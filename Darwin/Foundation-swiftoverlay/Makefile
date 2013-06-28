@@ -1,4 +1,4 @@
-##===- objc/Foundation/Makefile ----------------------------*- Makefile -*-===##
+##===- stdlib/objc/Foundation/Makefile ---------------------*- Makefile -*-===##
 #
 # This source file is part of the Swift.org open source project
 #
@@ -10,7 +10,7 @@
 #
 ##===----------------------------------------------------------------------===##
 
-SWIFT_LEVEL := ../..
+SWIFT_LEVEL := ../../..
 include $(SWIFT_LEVEL)/../../Makefile.config
 
 LIBRARYNAME := swiftFoundation
