@@ -100,7 +100,7 @@ public class NSObject : NSObjectProtocol {
     public var description: String {
         get {
             
-            return "<\(_stdlib_getDemangledTypeName(self)) \(unsafeAddressOf(self))"
+            return "<\(self)) \(unsafeAddressOf(self))"
         }
     }
     
