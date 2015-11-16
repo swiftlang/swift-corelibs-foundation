@@ -14,13 +14,13 @@ public struct CGFloat {
     /// 32-bit architectures and Double on 64-bit architectures.
     /// We assume 64 bit for now
     public typealias NativeType = Double
-    @transparent public init() {
+    @_transparent public init() {
         self.native = 0.0
     }
-    @transparent public init(_ value: Float) {
+    @_transparent public init(_ value: Float) {
         self.native = NativeType(value)
     }
-    @transparent public init(_ value: Double) {
+    @_transparent public init(_ value: Double) {
         self.native = NativeType(value)
     }
     /// The native value.
@@ -30,11 +30,11 @@ public struct CGFloat {
 public struct CGPoint {
     public var x: CGFloat
     public var y: CGFloat
-    @transparent public init() {
+    @_transparent public init() {
         self.x = CGFloat()
         self.y = CGFloat()
     }
-    @transparent public init(x: CGFloat, y: CGFloat) {
+    @_transparent public init(x: CGFloat, y: CGFloat) {
         self.x = x
         self.y = y
     }
@@ -43,11 +43,11 @@ public struct CGPoint {
 public struct CGSize {
     public var width: CGFloat
     public var height: CGFloat
-    @transparent public init() {
+    @_transparent public init() {
         self.width = CGFloat()
         self.height = CGFloat()
     }
-    @transparent public init(width: CGFloat, height: CGFloat) {
+    @_transparent public init(width: CGFloat, height: CGFloat) {
         self.width = width
         self.height = height
     }
@@ -56,11 +56,11 @@ public struct CGSize {
 public struct CGRect {
     public var origin: CGPoint
     public var size: CGSize
-    @transparent public init() {
+    @_transparent public init() {
         self.origin = CGPoint()
         self.size = CGSize()
     }
-    @transparent public init(origin: CGPoint, size: CGSize) {
+    @_transparent public init(origin: CGPoint, size: CGSize) {
         self.origin = origin
         self.size = size
     }
