@@ -16,7 +16,7 @@ This project provides an implementation of the Foundation API for platforms wher
 
 ## Using Foundation
 
-Here is a simple `main.swift` file which uses Foundation. This guide assumes you have already installed a version of the latest [Swift binary distribution](https://oss.apple.com/downloads#latest).
+Here is a simple `main.swift` file which uses Foundation. This guide assumes you have already installed a version of the latest [Swift binary distribution](https://swift.org/downloads#latest).
 
 ```
 import Foundation
