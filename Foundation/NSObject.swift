@@ -100,7 +100,7 @@ public class NSObject : NSObjectProtocol {
     public var description: String {
         get {
             
-            return "<\(self)) \(unsafeAddressOf(self))"
+            return "<\(self.dynamicType): \(unsafeAddressOf(self))>"
         }
     }
     
