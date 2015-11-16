@@ -309,8 +309,8 @@
 
 /* Begin PBXFileReference section */
 		522C253A1BF16E1600804FC6 /* FoundationErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationErrors.swift; sourceTree = "<group>"; };
-		525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSFileManager.swift; path = ../../TestNSFileManager.swift; sourceTree = "<group>"; };
-		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Test.plist; path = ../../../Resources/Test.plist; sourceTree = "<group>"; };
+		525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileManager.swift; sourceTree = "<group>"; };
+		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Test.plist; sourceTree = "<group>"; };
 		5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftFoundation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B5D886A1BBC948300234F36 /* CFApplicationPreferences.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFApplicationPreferences.c; sourceTree = "<group>"; };
 		5B5D886C1BBC94C400234F36 /* CFPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFPreferences.h; sourceTree = "<group>"; };
@@ -462,7 +462,7 @@
 		5B5D89A71BBDC09700234F36 /* CFStringScanner.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringScanner.c; sourceTree = "<group>"; };
 		5B5D89A91BBDC11100234F36 /* CFLocaleKeys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFLocaleKeys.c; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSCharacterSet.swift; path = ../../TestNSCharacterSet.swift; sourceTree = "<group>"; };
+		5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCharacterSet.swift; sourceTree = "<group>"; };
 		5BDC3F191BCC440100ED97BB /* CFICULogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFICULogging.h; sourceTree = "<group>"; };
 		5BDC3F1C1BCC447900ED97BB /* CFStringLocalizedFormattingInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFStringLocalizedFormattingInternal.h; sourceTree = "<group>"; };
 		5BDC3F2E1BCC5DCB00ED97BB /* NSArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSArray.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -508,16 +508,16 @@
 		EA313DFE1BE7F2E90060A403 /* CFURLComponents.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLComponents.c; sourceTree = "<group>"; };
 		EA313DFF1BE7F2E90060A403 /* CFURLComponents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLComponents.h; sourceTree = "<group>"; };
 		EA66F6351BEED03E00136161 /* TargetConditionals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TargetConditionals.h; path = CoreFoundation/Base.subproj/SwiftRuntime/TargetConditionals.h; sourceTree = SOURCE_ROOT; };
-		EA66F6381BF1619600136161 /* main.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = main.swift; path = ../../main.swift; sourceTree = "<group>"; };
-		EA66F63B1BF1619600136161 /* NSURLTestData.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = NSURLTestData.plist; path = ../../../Resources/NSURLTestData.plist; sourceTree = "<group>"; };
-		EA66F63C1BF1619600136161 /* TestNSArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSArray.swift; path = ../../TestNSArray.swift; sourceTree = "<group>"; };
-		EA66F63D1BF1619600136161 /* TestNSDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSDictionary.swift; path = ../../TestNSDictionary.swift; sourceTree = "<group>"; };
-		EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSIndexSet.swift; path = ../../TestNSIndexSet.swift; sourceTree = "<group>"; };
-		EA66F63F1BF1619600136161 /* TestNSNumber.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSNumber.swift; path = ../../TestNSNumber.swift; sourceTree = "<group>"; };
-		EA66F6401BF1619600136161 /* TestNSPropertyList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSPropertyList.swift; path = ../../TestNSPropertyList.swift; sourceTree = "<group>"; };
-		EA66F6411BF1619600136161 /* TestNSSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSSet.swift; path = ../../TestNSSet.swift; sourceTree = "<group>"; };
-		EA66F6421BF1619600136161 /* TestNSString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSString.swift; path = ../../TestNSString.swift; sourceTree = "<group>"; };
-		EA66F6431BF1619600136161 /* TestNSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSURL.swift; path = ../../TestNSURL.swift; sourceTree = "<group>"; };
+		EA66F6381BF1619600136161 /* main.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		EA66F63B1BF1619600136161 /* NSURLTestData.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = NSURLTestData.plist; sourceTree = "<group>"; };
+		EA66F63C1BF1619600136161 /* TestNSArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSArray.swift; sourceTree = "<group>"; };
+		EA66F63D1BF1619600136161 /* TestNSDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDictionary.swift; sourceTree = "<group>"; };
+		EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSIndexSet.swift; sourceTree = "<group>"; };
+		EA66F63F1BF1619600136161 /* TestNSNumber.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNumber.swift; sourceTree = "<group>"; };
+		EA66F6401BF1619600136161 /* TestNSPropertyList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSPropertyList.swift; sourceTree = "<group>"; };
+		EA66F6411BF1619600136161 /* TestNSSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSSet.swift; sourceTree = "<group>"; };
+		EA66F6421BF1619600136161 /* TestNSString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSString.swift; sourceTree = "<group>"; };
+		EA66F6431BF1619600136161 /* TestNSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURL.swift; sourceTree = "<group>"; };
 		EA66F65E1BF2DF4C00136161 /* uuid.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = uuid.c; path = uuid/uuid.c; sourceTree = "<group>"; };
 		EA66F65F1BF2DF4C00136161 /* uuid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = uuid.h; path = uuid/uuid.h; sourceTree = "<group>"; };
 		EA66F6601BF2DF7700136161 /* Block_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Block_private.h; path = closure/Block_private.h; sourceTree = "<group>"; };
@@ -527,7 +527,7 @@
 		EA66F6651BF2F2E800136161 /* CoreFoundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CoreFoundation.h; path = CoreFoundation/Base.subproj/SwiftRuntime/CoreFoundation.h; sourceTree = SOURCE_ROOT; };
 		EA66F6691BF55D4B00136161 /* main.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = main.swift; path = Tools/plutil/main.swift; sourceTree = "<group>"; };
 		EA66F66F1BF56CCB00136161 /* plutil */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = plutil; sourceTree = BUILT_PRODUCTS_DIR; };
-		EA66F6791BF9401E00136161 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../../../Resources/Info.plist; sourceTree = "<group>"; };
+		EA66F6791BF9401E00136161 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EAB57B711BD1C7A5004AC5C5 /* NSPortMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSPortMessage.swift; sourceTree = "<group>"; };
 		EADE0B4D1BD09E0800C49C64 /* NSAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSAffineTransform.swift; sourceTree = "<group>"; };
 		EADE0B4F1BD09E3100C49C64 /* NSAttributedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
@@ -970,8 +970,7 @@
 				EA66F65A1BF1976100136161 /* Tests */,
 				EA66F6391BF1619600136161 /* Resources */,
 			);
-			name = TestFoundation;
-			path = TestFoundation/Sources/TestFoundation;
+			path = TestFoundation;
 			sourceTree = "<group>";
 		};
 		EA66F6391BF1619600136161 /* Resources */ = {
