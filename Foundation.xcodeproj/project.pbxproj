@@ -203,7 +203,6 @@
 		EA66F6671BF2F2F100136161 /* CoreFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = EA66F6651BF2F2E800136161 /* CoreFoundation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EA66F6761BF56CDE00136161 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6691BF55D4B00136161 /* main.swift */; };
 		EA66F6771BF56D4C00136161 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
-		EA66F67A1BF9401E00136161 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EA66F6791BF9401E00136161 /* Info.plist */; };
 		EAB57B721BD1C7A5004AC5C5 /* NSPortMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB57B711BD1C7A5004AC5C5 /* NSPortMessage.swift */; };
 		EADE0B4E1BD09E0800C49C64 /* NSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B4D1BD09E0800C49C64 /* NSAffineTransform.swift */; };
 		EADE0B501BD09E3100C49C64 /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B4F1BD09E3100C49C64 /* NSAttributedString.swift */; };
@@ -1483,7 +1482,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EA66F67A1BF9401E00136161 /* Info.plist in Resources */,
 				EADE0B911BD15DFF00C49C64 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
