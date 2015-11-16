@@ -1,0 +1,111 @@
+#!/usr/bin/env python
+
+# This source file is part of the Swift.org open source project
+#
+# Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
+# Licensed under Apache License v2.0 with Runtime Library Exception
+#
+# See http://swift.org/LICENSE.txt for license information
+# See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+#
+
+import sys
+import os
+import argparse
+import json
+
+from lib.config import Configuration
+
+from lib.path import Path
+
+from lib.phases import CompileSources
+from lib.phases import CompileSwiftSources
+from lib.phases import CopyResources
+from lib.phases import CopyHeaders
+from lib.phases import SwiftExecutable
+
+from lib.product import DynamicLibrary
+from lib.product import Framework
+from lib.product import StaticLibrary
+from lib.product import Application
+from lib.product import Executable
+
+from lib.script import Script
+
+from lib.target import ArchSubType
+from lib.target import ArchType
+from lib.target import EnvironmentType
+from lib.target import ObjectFormat
+from lib.target import OSType
+from lib.target import Target
+from lib.target import Vendor
+
+from lib.workspace import Workspace
+
+import sys
+
+def main():
+    config = Configuration()
+    CWD                           = Path.path(os.getcwd())
+    config.build_directory        = Path.path(os.getenv("BUILD_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "Build")))
+    config.module_cache_directory = Path.path(os.getenv("BUILD_DIR", config.build_directory.path_by_appending("ModuleCache")))
+    config.intermediate_directory = Path.path(os.getenv("INTERMEDIATE_DIR", config.build_directory.path_by_appending("Intermediates")))
+    config.install_directory      = Path.path(os.getenv("DSTROOT", "/"))
+    config.clang                  = os.getenv("CLANG", "clang")
+    config.clangxx                = os.getenv("CLANGXX", "clang")
+    config.swift                  = os.getenv("SWIFT", "swift")
+    config.swiftc                 = os.getenv("SWIFTC", "swiftc")
+    config.ar                     = os.getenv("AR", None)
+    config.source_root            = Path.path(os.getenv("SRCROOT", CWD))
+    config.extra_c_flags          = os.getenv("CFLAGS", "")
+    config.extra_swift_flags      = os.getenv("SWIFTCFLAGS", "")
+    config.extra_ld_flags         = os.getenv("LDFLAGS", "")
+    config.swift_sdk              = os.getenv("SDKROOT", None)
+    config.script_path            = config.source_root.path_by_appending("build.py")
+    config.build_script_path      = config.source_root.path_by_appending("build.ninja")
+
+    parser = argparse.ArgumentParser(description='Configure and emit ninja build scripts for building.')
+    parser.add_argument('--target', dest='target', type=str, default=Target.default())
+    parser.add_argument('--sysroot', dest='sysroot', type=str, default=None)
+    parser.add_argument('--toolchain', dest='toolchain', type=str, default=None)
+    parser.add_argument('--bootstrap', dest='bootstrap', type=str, default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "bootstrap"))
+    parser.add_argument('-v', '--verbose', dest='verbose', action="store_true")
+    args, extras = parser.parse_known_args()
+
+    if len(extras) > 0:
+        mode = extras[0].lower()
+        if mode == 'debug':
+            config.build_mode = Configuration.Debug
+        elif mode == 'release':
+            config.build_mode = Configuration.Release
+        if len(extras) > 1 or config.build_mode is None:
+            pass # fail here
+    else:
+        config.build_mode = Configuration.Release
+
+    config.command = [os.path.abspath(__file__)] + sys.argv[1:]
+
+    config.target = Target(args.target)
+
+    config.system_root = Path.path(args.sysroot)
+    if config.target.sdk == OSType.MacOSX and config.system_root is None and Target(Target.default()).sdk == OSType.MacOSX:
+        import subprocess
+        config.system_root = Path.path(subprocess.Popen(['xcrun', '--show-sdk-path'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE).communicate()[0])
+        swift_path = Path.path(subprocess.Popen(['xcrun', '--find', 'swift'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE).communicate()[0]).parent().parent()
+        config.swift_sdk = swift_path.absolute()
+    elif config.swift_sdk is None:
+        config.swift_sdk = "/usr"
+    config.toolchain = Path.path(args.toolchain)
+    config.bootstrap_directory = Path.path(args.bootstrap)
+    config.verbose = args.verbose
+    if config.toolchain is not None:
+        config.ar = os.path.join(config.toolchain.relative(), "bin", "ar")
+    elif config.ar is None:
+        config.ar = "ar"
+
+    Configuration.current = config
+
+    execfile(config.script_path.absolute())
+
+if __name__ == "__main__":
+    main()

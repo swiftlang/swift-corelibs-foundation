@@ -1,0 +1,182 @@
+// This source file is part of the Swift.org open source project
+//
+// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See http://swift.org/LICENSE.txt for license information
+// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+
+
+import CoreFoundation
+
+public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
+    typealias CFType = CFTimeZoneRef
+    private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())
+    private var _name = UnsafeMutablePointer<Void>()
+    private var _data = UnsafeMutablePointer<Void>()
+    private var _periods = UnsafeMutablePointer<Void>()
+    private var _periodCnt = Int32(0)
+    
+    internal var _cfObject: CFType {
+        return unsafeBitCast(self, CFType.self)
+    }
+    
+    // Primary creation method is +timeZoneWithName:; the
+    // data-taking variants should rarely be used directly
+    public convenience init?(name tzName: String) {
+        self.init(name: tzName, data: nil)
+    }
+
+    public init?(name tzName: String, data aData: NSData?) {
+        super.init()
+        if !_CFTimeZoneInit(_cfObject, tzName._cfObject, aData?._cfObject) {
+            return nil
+        }
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        NSUnimplemented()
+    }
+    
+    deinit {
+        _CFDeinit(self)
+    }
+
+    // Time zones created with this never have daylight savings and the
+    // offset is constant no matter the date; the name and abbreviation
+    // do NOT follow the POSIX convention (of minutes-west).
+    public convenience init(forSecondsFromGMT seconds: Int) { NSUnimplemented() }
+    
+    public convenience init?(abbreviation: String) { NSUnimplemented() }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        
+    }
+    
+    public static func supportsSecureCoding() -> Bool {
+        return true
+    }
+    
+    public func copyWithZone(zone: NSZone) -> AnyObject {
+        return self
+    }
+    
+    public var name: String {
+        get {
+            if self.dynamicType === NSTimeZone.self {
+                return CFTimeZoneGetName(_cfObject)._swiftObject
+            } else {
+                NSRequiresConcreteImplementation()
+            }
+        }
+    }
+    
+    public var data: NSData {
+        get {
+            if self.dynamicType === NSTimeZone.self {
+                return CFTimeZoneGetData(_cfObject)._nsObject
+            } else {
+                NSRequiresConcreteImplementation()
+            }
+        }
+    }
+    
+    public func secondsFromGMTForDate(aDate: NSDate) -> Int {
+        if self.dynamicType === NSTimeZone.self {
+            return Int(CFTimeZoneGetSecondsFromGMT(_cfObject, aDate.timeIntervalSinceReferenceDate))
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+    
+    public func abbreviationForDate(aDate: NSDate) -> String? {
+        if self.dynamicType === NSTimeZone.self {
+            return CFTimeZoneCopyAbbreviation(_cfObject, aDate.timeIntervalSinceReferenceDate)._swiftObject
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+    
+    public func isDaylightSavingTimeForDate(aDate: NSDate) -> Bool {
+        if self.dynamicType === NSTimeZone.self {
+            return CFTimeZoneIsDaylightSavingTime(_cfObject, aDate.timeIntervalSinceReferenceDate)
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+    
+    public func daylightSavingTimeOffsetForDate(aDate: NSDate) -> NSTimeInterval {
+        if self.dynamicType === NSTimeZone.self {
+            return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+    
+    public func nextDaylightSavingTimeTransitionAfterDate(aDate: NSDate) -> NSDate? {
+        if self.dynamicType === NSTimeZone.self {
+            return NSDate(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+}
+
+extension NSTimeZone {
+
+    public class func systemTimeZone() -> NSTimeZone {
+        return CFTimeZoneCopySystem()._nsObject
+    }
+
+    public class func resetSystemTimeZone() {
+        CFTimeZoneResetSystem()
+    }
+
+    public class func defaultTimeZone() -> NSTimeZone {
+        return CFTimeZoneCopyDefault()._nsObject
+    }
+
+    public class func setDefaultTimeZone(aTimeZone: NSTimeZone) {
+        CFTimeZoneSetDefault(aTimeZone._cfObject)
+    }
+}
+
+extension NSTimeZone : _CFBridgable { }
+
+extension CFTimeZoneRef : _NSBridgable {
+    typealias NSType = NSTimeZone
+    internal var _nsObject : NSType {
+        return unsafeBitCast(self, NSType.self)
+    }
+}
+
+extension NSTimeZone {
+    public class func localTimeZone() -> NSTimeZone { NSUnimplemented() }
+    
+    public class func knownTimeZoneNames() -> [String] { NSUnimplemented() }
+    
+    public class func abbreviationDictionary() -> [String : String] { NSUnimplemented() }
+    public class func setAbbreviationDictionary(dict: [String : String]) { NSUnimplemented() }
+    
+    public class func timeZoneDataVersion() -> String { NSUnimplemented() }
+    
+    public var secondsFromGMT: Int { NSUnimplemented() }
+    public var abbreviation: String? { NSUnimplemented() }
+    public var daylightSavingTime: Bool { NSUnimplemented() }
+    public var daylightSavingTimeOffset: NSTimeInterval { NSUnimplemented() }
+    /*@NSCopying*/ public var nextDaylightSavingTimeTransition: NSDate?  { NSUnimplemented() }
+    
+    public func isEqualToTimeZone(aTimeZone: NSTimeZone) -> Bool { NSUnimplemented() }
+    
+    public func localizedName(style: NSTimeZoneNameStyle, locale: NSLocale?) -> String? { NSUnimplemented() }
+}
+public enum NSTimeZoneNameStyle : Int {
+    case Standard    // Central Standard Time
+    case ShortStandard    // CST
+    case DaylightSaving    // Central Daylight Time
+    case ShortDaylightSaving    // CDT
+    case Generic    // Central Time
+    case ShortGeneric    // CT
+}
+
