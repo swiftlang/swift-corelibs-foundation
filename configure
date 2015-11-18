@@ -51,6 +51,7 @@ def main():
     config.module_cache_directory = Path.path(os.getenv("BUILD_DIR", config.build_directory.path_by_appending("ModuleCache")))
     config.intermediate_directory = Path.path(os.getenv("INTERMEDIATE_DIR", config.build_directory.path_by_appending("Intermediates")))
     config.install_directory      = Path.path(os.getenv("DSTROOT", "/"))
+    config.prefix                 = os.getenv("PREFIX", "/usr")
     config.clang                  = os.getenv("CLANG", "clang")
     config.clangxx                = os.getenv("CLANGXX", "clang")
     config.swift                  = os.getenv("SWIFT", "swift")

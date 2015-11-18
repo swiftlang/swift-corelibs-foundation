@@ -359,4 +359,19 @@ foundation.add_phase(plutil)
 
 script.add_product(foundation)
 
+script.add_text("""
+rule InstallFoundation
+    command = mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
+    cp "${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
+    mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}"; $
+    cp "${BUILD_DIR}/Foundation/Foundation.swiftmodule" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
+    cp "${BUILD_DIR}/Foundation/Foundation.swiftdoc" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
+    mkdir -p "${DSTROOT}/${PREFIX}/local/include"; $
+    rsync -r "${BUILD_DIR}/Foundation/${PREFIX}/lib/swift/CoreFoundation" "${DSTROOT}/${PREFIX}/lib/swift/"
+
+build ${BUILD_DIR}/.install: InstallFoundation ${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}
+
+build install: phony | ${BUILD_DIR}/.install
+""")
+
 script.generate()

@@ -1,8 +1,0 @@
-#!/bin/sh
-mkdir -p "$DSTROOT/usr/lib/swift/linux"
-cp "$BUILD_DIR/Foundation/libFoundation.so" "$DSTROOT/usr/lib/swift/linux"
-mkdir -p "$DSTROOT/usr/lib/swift/linux/x86_64"
-cp "$BUILD_DIR/Foundation/Foundation.swiftmodule" "$DSTROOT/usr/lib/swift/linux/x86_64/"
-cp "$BUILD_DIR/Foundation/Foundation.swiftdoc" "$DSTROOT/usr/lib/swift/linux/x86_64/"
-mkdir -p "$DSTROOT/usr/local/include"
-rsync -r "$BUILD_DIR/Foundation/usr/lib/swift/CoreFoundation" "$DSTROOT/usr/lib/swift/"

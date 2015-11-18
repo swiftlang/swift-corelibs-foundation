@@ -24,6 +24,7 @@ class Configuration:
     intermediate_directory = None
     module_cache_directory = None
     install_directory = None
+    prefix = None
     swift_install = None
     clang = None
     clangxx = None

@@ -13,6 +13,8 @@ import os
 class Script:
     products = []
     workspaces = []
+    extra = ""
+
     def __init__(self):
         pass
 
@@ -24,6 +26,8 @@ class Script:
         self.products = None
         self.workspaces.append(workspace)
 
+    def add_text(self, text):
+        self.extra += text + "\n\n"
 
     def generate_products(self):
         verbose_flags = """
@@ -51,6 +55,11 @@ SWIFT                 = """ + Configuration.current.swift + """
 SWIFTC                = """ + Configuration.current.swiftc + """
 SDKROOT               = """ + Configuration.current.swift_sdk + """
 AR                    = """ + Configuration.current.ar + """
+OS                    = """ + Configuration.current.target.swift_sdk_name + """
+ARCH                  = """ + Configuration.current.target.swift_arch + """
+DYLIB_PREFIX          = """ + Configuration.current.target.dynamic_library_prefix + """
+DYLIB_SUFFIX          = """ + Configuration.current.target.dynamic_library_suffix + """
+PREFIX                = """ + Configuration.current.prefix + """
 """
         if Configuration.current.system_root is not None:
             base_flags += """
@@ -109,16 +118,18 @@ TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.targe
         elif Configuration.current.build_mode == Configuration.Release:
             swift_flags += " "
 
+
+
         ld_flags = """
-TARGET_LDFLAGS       = --target=${TARGET} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
+EXTRA_LD_FLAGS       = """ + Configuration.current.extra_ld_flags
+
+        ld_flags += """
+TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
         if Configuration.current.system_root is not None:
             ld_flags += "--sysroot=${SYSROOT}"
 
         if Configuration.current.bootstrap_directory is not None:
             ld_flags += """ -L${TARGET_BOOTSTRAP_DIR}/usr/lib"""
-        
-
-        ld_flags += Configuration.current.extra_ld_flags
 
         if Configuration.current.toolchain is not None:
             c_flags += " -B" + Configuration.current.toolchain.path_by_appending("bin").relative()
@@ -186,7 +197,7 @@ rule Archive
         
         swift_build_command = """
 rule SwiftExecutable
-    command = mkdir -p `dirname $out`; ${SWIFTC} ${TARGET_SWIFTEXE_FLAGS} $flags $in -o $out
+    command = mkdir -p `dirname $out`; ${SWIFTC} ${TARGET_SWIFTEXE_FLAGS} ${EXTRA_LD_FLAGS} $flags $in -o $out
     description = SwiftExecutable: $out
 """
 
@@ -197,6 +208,8 @@ rule SwiftExecutable
         for product in self.products:
             script += product.generate()
 
+        script += "\n\n"
+        script += self.extra
         script += "\n\n"
 
         return script
