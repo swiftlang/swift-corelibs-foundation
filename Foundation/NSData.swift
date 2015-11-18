@@ -482,6 +482,33 @@ public class NSMutableData : NSData {
     }
 }
 
+extension NSData {
+    
+    /* Create an NSData from a Base-64 encoded NSString using the given options. By default, returns nil when the input is not recognized as valid Base-64.
+    */
+    public convenience init?(base64EncodedString base64String: String, options: NSDataBase64DecodingOptions) {
+        NSUnimplemented()
+    }
+    
+    /* Create a Base-64 encoded NSString from the receiver's contents using the given options.
+    */
+    public func base64EncodedStringWithOptions(options: NSDataBase64EncodingOptions) -> String {
+        NSUnimplemented()
+    }
+    
+    /* Create an NSData from a Base-64, UTF-8 encoded NSData. By default, returns nil when the input is not recognized as valid Base-64.
+    */
+    public convenience init?(base64EncodedData base64Data: NSData, options: NSDataBase64DecodingOptions) {
+        NSUnimplemented()
+    }
+    
+    /* Create a Base-64, UTF-8 encoded NSData from the receiver's contents using the given options.
+    */
+    public func base64EncodedDataWithOptions(options: NSDataBase64EncodingOptions) -> NSData {
+        NSUnimplemented()
+    }
+}
+
 extension NSMutableData {
 
     public func appendBytes(bytes: UnsafePointer<Void>, length: Int) {
