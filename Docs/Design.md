@@ -1,10 +1,4 @@
 
-# Roadmap and Design Principles
-
-## Part of Swift 3.0
-
-Our primary goal is to achieve implementation parity with Foundation on Apple platforms. This will help to enable the overall Swift 3 roadmap goal of **portability**.
-
 # Design Principles
 
 ## Portability
@@ -129,4 +123,4 @@ There are some additional considerations when working on the CoreFoundation part
 
 * Surround Swift-runtime-specific code with the standard macro `#if DEPLOYMENT_RUNTIME_SWIFT`.
 * Surround platform-specific code with our standard macros `DEPLOYMENT_TARGET_MACOSX`, `DEPLOYMENT_TARGET_EMBEDDED` (all iOS platforms and derivatives), `DEPLOYMENT_TARGET_LINUX`.
-* Follow the code style of the .c file that you are working in.
+* Follow the coding style of the .c file that you are working in.
