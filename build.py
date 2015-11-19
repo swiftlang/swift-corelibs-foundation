@@ -48,6 +48,7 @@ foundation.CFLAGS += " ".join([
 ])
 
 foundation.SWIFTCFLAGS += " ".join([
+	'-I${BUILD_DIR}/Foundation/usr/lib/swift'
 ])
 
 foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore'
