@@ -117,6 +117,7 @@ TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.targe
             swift_flags += "-g -Onone "
         elif Configuration.current.build_mode == Configuration.Release:
             swift_flags += " "
+        swift_flags += Configuration.current.extra_swift_flags
 
 
 
