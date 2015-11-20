@@ -22,6 +22,10 @@ Our primary goal is to achieve implementation parity with Foundation on Apple pl
 
 In our first year, we are not looking to make major API changes to the library. We feel that this will hamper the primary goal. There are some areas where API changes are unavoidable, however. For more information on those APIs and the overall design of Foundation, please see [our design document](Docs/Design.md).
 
+### Current Status
+
+See our [status page](Docs/Status.md) for a detailed list of what features are currently implemented.
+
 ## Using Foundation
 
 Here is a simple `main.swift` file which uses Foundation. This guide assumes you have already installed a version of the latest [Swift binary distribution](https://swift.org/downloads#latest).
@@ -73,4 +77,4 @@ The Objective-C runtime is not part of the Swift open source project. We can, ho
 
 ##### How do I contribute?
 
-We welcome contributions to Foundation! Please see the [Known Issues](Docs/Issues.md) page if you are looking for an area where we need help. We are also standing by on the [Mailing Lists](https://swift.org/community/#communication) to answer questions about what is most important to do and what we will accept into the project.
+We welcome contributions to Foundation! Please see the [known issues](Docs/Issues.md) page if you are looking for an area where we need help. We are also standing by on the [mailing lists](https://swift.org/community/#communication) to answer questions about what is most important to do and what we will accept into the project.
