@@ -30,6 +30,10 @@ class Script:
         self.extra += text + "\n\n"
 
     def generate_products(self):
+        variables = ""
+        for key, val in Configuration.current.variables.iteritems():
+            variables += key + "=" + val
+        variables += "\n"
         verbose_flags = """
 VERBOSE_FLAGS = """ 
         if Configuration.current.verbose:
@@ -148,7 +152,7 @@ TARGET_CXXFLAGS       = -std=gnu++11 -I${SYSROOT}/usr/include/c++/${BINUTILS_VER
 AR_FLAGS              = rcs
 """
 
-        flags = verbose_flags + base_flags + c_flags + swift_flags + cxx_flags + ld_flags + ar_flags
+        flags = variables + verbose_flags + base_flags + c_flags + swift_flags + cxx_flags + ld_flags + ar_flags
 
         cp_command = """
 rule Cp

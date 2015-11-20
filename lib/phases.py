@@ -416,8 +416,7 @@ class SwiftExecutable(BuildPhase):
 
         return """
 build """ + appName + """: SwiftExecutable """ + swiftSources + self.generate_dependencies() + """ """ + libDependencyName + """
-    flags = -I""" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH + " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " -L" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + """
-
+    flags = -I""" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH + " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " -L" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " " + TargetConditional.value(self.product.SWIFTCFLAGS) + """
 build """ + self.executableName + """: phony | """ + appName + """
 """
 

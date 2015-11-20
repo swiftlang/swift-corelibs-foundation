@@ -20,8 +20,6 @@ elif Configuration.current.target.sdk == OSType.MacOSX:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_MACOSX '
 	foundation.LDFLAGS = '-licucore -twolevel_namespace -Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases -sectcreate __UNICODE __csbitmaps CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap -sectcreate __UNICODE __properties CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data -sectcreate __UNICODE __data CoreFoundation/CharacterSets/CFUnicodeData-L.mapping -segprot __UNICODE r r '
 
-foundation.SWIFTCFLAGS = ''
-
 # For now, we do not distinguish between public and private headers (they are all private to Foundation)
 # These are really part of CF, which should ultimately be a separate target
 foundation.ROOT_HEADERS_FOLDER_PATH = "/usr/lib/swift"
@@ -47,11 +45,21 @@ foundation.CFLAGS += " ".join([
 	'-I./'
 ])
 
-foundation.SWIFTCFLAGS += " ".join([
+swift_cflags = [
 	'-I${BUILD_DIR}/Foundation/usr/lib/swift'
-])
+]
 
-foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore'
+if "XCTEST_BUILD_DIR" in Configuration.current.variables:
+	swift_cflags += [
+		'-I${XCTEST_BUILD_DIR}',
+		'-L${XCTEST_BUILD_DIR}',
+	]
+foundation.SWIFTCFLAGS = " ".join(swift_cflags)
+
+foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore '
+
+if "XCTEST_BUILD_DIR" in Configuration.current.variables:
+	foundation.LDFLAGS += '-L${XCTEST_BUILD_DIR}'
 
 headers = CopyHeaders(
 module = 'CoreFoundation/Base.subproj/linux.modulemap',
@@ -360,7 +368,7 @@ foundation.add_phase(plutil)
 
 script.add_product(foundation)
 
-script.add_text("""
+extra_script = """
 rule InstallFoundation
     command = mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
     cp "${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
@@ -373,6 +381,31 @@ rule InstallFoundation
 build ${BUILD_DIR}/.install: InstallFoundation ${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}
 
 build install: phony | ${BUILD_DIR}/.install
-""")
+
+"""
+if "XCTEST_BUILD_DIR" in Configuration.current.variables:
+	extra_script += """
+rule RunTestFoundation
+    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${XCTEST_BUILD_DIR} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${XCTEST_BUILD_DIR} lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
+    description = Building Tests
+
+build ${BUILD_DIR}/.test: RunTestFoundation | TestFoundation
+
+build test: phony | ${BUILD_DIR}/.test
+
+"""
+else:
+	extra_script += """
+rule RunTestFoundation
+    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/ ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/ lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
+    description = Building Tests
+
+build ${BUILD_DIR}/.test: RunTestFoundation | TestFoundation
+
+build test: phony | ${BUILD_DIR}/.test
+
+"""
+
+script.add_text(extra_script)
 
 script.generate()

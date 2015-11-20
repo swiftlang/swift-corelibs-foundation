@@ -37,5 +37,6 @@ class Configuration:
     extra_swift_flags = None
     extra_ld_flags = None
     build_mode = None
+    variables = {}
     def __init__(self):
         pass

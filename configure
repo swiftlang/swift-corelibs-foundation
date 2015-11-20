@@ -73,16 +73,16 @@ def main():
     parser.add_argument('-v', '--verbose', dest='verbose', action="store_true")
     args, extras = parser.parse_known_args()
 
-    if len(extras) > 0:
-        mode = extras[0].lower()
-        if mode == 'debug':
+    config.build_mode = Configuration.Release # by default build a release mode
+
+    for arg in extras:
+        if arg == 'debug':
             config.build_mode = Configuration.Debug
-        elif mode == 'release':
+        elif arg == 'release':
             config.build_mode = Configuration.Release
-        if len(extras) > 1 or config.build_mode is None:
-            pass # fail here
-    else:
-        config.build_mode = Configuration.Release
+        elif arg.startswith('-D'): # accept -DNAME=value as extra parameters to the configuration of the build.ninja
+            key, val = arg[2:].split("=", 1)
+            config.variables[key] = val
 
     config.command = [os.path.abspath(__file__)] + sys.argv[1:]
 
