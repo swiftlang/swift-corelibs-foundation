@@ -23,20 +23,29 @@ Testing steps:
 
 You will need:
 
-* A supported distribution of Linux. At this time, we only support [Ubuntu 15.10](http://www.ubuntu.com).
-* A recent version of the clang compiler and swiftc compiler. _**TODO**_: Instructions on how to get this from github.
-* Some additional tools and libraries:
- * `sudo apt-get install ninja`
- * `sudo apt-get install libicu-dev`
- * `sudo apt-get install icu-devtools`
+* A supported distribution of Linux. At this time, we support [Ubuntu 14.04 and Ubuntu 15.10](http://www.ubuntu.com).
 
-Build steps:
+To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation requires use of the version of `swiftc` and `clang` built with the overall project.
 
-0. `cd Foundation`
-0. `./configure debug` - This runs a python configuration script, and produces `build.ninja` for building a debug version of Foundation.
-0. `ninja` - This builds Foundation
+The default build script does not include Foundation. To build Foundation as well, pass `--foundation` to the build script.
 
-Testing steps:
+```
+swift/utils/build-script --foundation -t
+```
 
-0. `ninja TestFoundation` - This builds the TestFoundation executable.
-0. `LD_LIBRARY_PATH=Build/Foundation ./Build/TestFoundation/TestFoundation` - Run the new TestFoundation executable against the Foundation you just built.
+This will build and run the Foundation tests.
+
+After the complete Swift build has finished, you can iterate quickly on Foundation itself by simply invoking `ninja` in the Foundation directory.
+
+```
+cd Foundation
+ninja
+```
+
+This will build Foundation. To build and run the tests, use the `test` target:
+
+```
+ninja test
+```
+
+The script will also output some help on how to run the tests under the debugger. The exact library path to use will depend on how Foundation itself was configured.
