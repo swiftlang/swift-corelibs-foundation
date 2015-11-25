@@ -2,22 +2,24 @@
 
 ## On OS X
 
-Although OS X is not a deployment platform for Swift Foundation, it is useful for development and test purposes.
+Although OS X is not a deployment platform for Swift Foundation, it is useful for development and test purposes. The repository includes an Xcode project file as well as an Xcode workspace. The workspace includes both Foundation and XCTest, which makes it easy to build and run everything together.
 
 In order to build on OS X, you will need:
 
 * The latest version of Xcode
 * The latest version of the OS X SDK (at this time: 10.11)
 
+The Xcode workspace assumes that Foundation and XCTest are checked out from GitHub in peer directories, and with those exact names.
+
 Build steps:
 
-0. Open `Foundation.xcodeproj`
-0. Build the _Foundation_ target
+0. Open `Foundation.xcworkspace`.
+0. Build the _Foundation_ target. This builds CoreFoundation and Foundation.
 
 Testing steps:
 
-0. Create a new Xcode workspace that includes both `Foundation.xcodeproj` and `XCTest.xcodeproj` (from the swift-corelibs-xctest repository). The Swift Core Libraries XCTest project is not the same as the one that comes with Xcode itself.
-0. Run (Cmd-R) the _TestFoundation_ target
+0. Open `Foundation.xcworkspace`.
+0. Run (Cmd-R) the _TestFoundation_ target. This builds CoreFoundation, Foundation, XCTest, and TestFoundation.
 
 ## On Linux
 
