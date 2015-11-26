@@ -1048,6 +1048,16 @@ void __CFInitialize(void) {
 
         
 #if DEPLOYMENT_RUNTIME_SWIFT
+
+        #ifndef __CFSwiftGetBaseClass
+        #if TARGET_OS_LINUX
+        #define __CFSwiftGetBaseClass _TF10Foundation21__CFSwiftGetBaseClassFT_PMPs9AnyObject_
+        #elif TARGET_OS_MAC
+        #define __CFSwiftGetBaseClass _TF15SwiftFoundation21__CFSwiftGetBaseClassFT_PMPs9AnyObject_
+        #endif
+        #endif
+        extern uintptr_t __CFSwiftGetBaseClass();        
+
         uintptr_t NSCFType = __CFSwiftGetBaseClass();
         for (CFIndex idx = 1; idx < __CFRuntimeClassTableSize; idx++) {
             __CFRuntimeObjCClassTable[idx] = NSCFType;
@@ -1151,6 +1161,14 @@ void __CFInitialize(void) {
 #endif
 #endif
 #if DEPLOYMENT_RUNTIME_SWIFT
+        #ifndef __CFInitializeSwift
+        #if TARGET_OS_LINUX
+        #define __CFInitializeSwift _TF10Foundation19__CFInitializeSwiftFT_T_
+        #elif TARGET_OS_MAC
+        #define __CFInitializeSwift _TF15SwiftFoundation19__CFInitializeSwiftFT_T_
+        #endif
+        #endif
+        extern void __CFInitializeSwift();
         __CFInitializeSwift();
 #endif
         {

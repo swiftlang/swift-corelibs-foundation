@@ -37,24 +37,6 @@ typedef struct __CFSwiftObject *CFSwiftRef;
     } \
 } while (0)
 
-#ifndef __CFSwiftGetBaseClass
-#if TARGET_OS_LINUX
-#define __CFSwiftGetBaseClass _TF10Foundation21__CFSwiftGetBaseClassFT_PMPs9AnyObject_
-#elif TARGET_OS_MAC
-#define __CFSwiftGetBaseClass _TF15SwiftFoundation21__CFSwiftGetBaseClassFT_PMPSs9AnyObject_
-#endif
-#endif
-extern uintptr_t __CFSwiftGetBaseClass();
-
-#ifndef __CFInitializeSwift
-#if TARGET_OS_LINUX
-#define __CFInitializeSwift _TF10Foundation19__CFInitializeSwiftFT_T_
-#elif TARGET_OS_MAC
-#define __CFInitializeSwift _TF15SwiftFoundation19__CFInitializeSwiftFT_T_
-#endif
-#endif
-extern void __CFInitializeSwift();
-
 extern bool _CFIsSwift(CFTypeID type, CFSwiftRef obj);
 extern void _CFDeinit(CFTypeRef cf);
 
