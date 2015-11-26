@@ -22,6 +22,10 @@ Our primary goal is to achieve implementation parity with Foundation on Apple pl
 
 In our first year, we are not looking to make major API changes to the library. We feel that this will hamper the primary goal. There are some areas where API changes are unavoidable, however. For more information on those APIs and the overall design of Foundation, please see [our design document](Docs/Design.md).
 
+### API Naming and Foundation
+
+One of the goals of the Swift 3 project is [a new set of naming guidelines](https://swift.org/documentation/api-design-guidelines). The Foundation project will soon update all of its names to match the new guidelines. We will also drop the 'NS' prefix from all classes.
+
 ### Current Status
 
 See our [status page](Docs/Status.md) for a detailed list of what features are currently implemented.
