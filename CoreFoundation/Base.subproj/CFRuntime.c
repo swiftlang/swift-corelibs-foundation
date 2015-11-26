@@ -208,7 +208,9 @@ bool (*__CFObjCIsCollectable)(void *) = NULL;
 #endif
 #endif
 
-#if !DEPLOYMENT_RUNTIME_SWIFT
+#if DEPLOYMENT_RUNTIME_SWIFT
+// The constant string class reference is set at link time to _NSCFConstantString
+#else
 #if !__CONSTANT_CFSTRINGS__ || DEPLOYMENT_TARGET_EMBEDDED_MINI
 // Compiler uses this symbol name; must match compiler built-in decl, so we use 'int'
 #if __LP64__

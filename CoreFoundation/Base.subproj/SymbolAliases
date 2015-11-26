@@ -1,6 +1,8 @@
-# OPENSOURCE: REVIEW
 
+
+# This is specific to Swift open source; Foundation's NSCFConstantString is used as our constant string class reference
 __TMdC15SwiftFoundation19_NSCFConstantString ___CFConstantStringClassReference
+
 _kCFCalendarIdentifierBuddhist		_kCFBuddhistCalendar
 _kCFCalendarIdentifierChinese		_kCFChineseCalendar
 _kCFCalendarIdentifierGregorian		_kCFGregorianCalendar
