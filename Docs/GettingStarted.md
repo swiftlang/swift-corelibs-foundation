@@ -21,16 +21,14 @@ swift-corelibs-foundation swift-corelibs-xctest
 %
 ```
 
-Build steps:
+Build and test steps:
 
 0. Run Xcode with the latest toolchain. Follow [the instructions here](https://swift.org/download/#apple-platforms) to start Xcode with the correct toolchain.
 0. Open `Foundation.xcworkspace`.
 0. Build the _Foundation_ target. This builds CoreFoundation and Foundation.
+0. Run (Cmd-R) the _TestFoundation_ target. This builds CoreFoundation, Foundation, XCTest, and TestFoundation, then runs the tests.
 
-Testing steps:
-
-0. Open `Foundation.xcworkspace`.
-0. Run (Cmd-R) the _TestFoundation_ target. This builds CoreFoundation, Foundation, XCTest, and TestFoundation.
+> Note: If you see the name of the XCTest project file in red in the workspace, then Xcode cannot find the cloned XCTest repository. Make sure that it is located next to the `swift-corelibs-foundation` directory and has the name `swift-corelibs-xctest`.
 
 ## On Linux
 
