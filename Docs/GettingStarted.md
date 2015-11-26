@@ -8,7 +8,7 @@ In order to build on OS X, you will need:
 
 * The latest version of Xcode
 * The latest version of the OS X SDK (at this time: 10.11)
-* The [current Swift toolchain](https://oss.apple.com/download/#latest-development-snapshots).
+* The [current Swift toolchain](https://swift.org/download/#latest-development-snapshots).
 
 Foundation is developed at the same time as the rest of Swift, so the most recent version of the compiler is required in order to build it.
 
@@ -23,7 +23,7 @@ swift-corelibs-foundation swift-corelibs-xctest
 
 Build steps:
 
-0. Run Xcode with the latest toolchain. Follow (the instructions here)[https://oss.apple.com/download/#apple-platforms] to start Xcode with the correct toolchain.
+0. Run Xcode with the latest toolchain. Follow [the instructions here](https://swift.org/download/#apple-platforms) to start Xcode with the correct toolchain.
 0. Open `Foundation.xcworkspace`.
 0. Build the _Foundation_ target. This builds CoreFoundation and Foundation.
 
@@ -38,7 +38,7 @@ You will need:
 
 * A supported distribution of Linux. At this time, we support [Ubuntu 14.04 and Ubuntu 15.10](http://www.ubuntu.com).
 
-To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it.
+To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
 
 The default build script does not include Foundation. To build Foundation and XCTest as well, pass `--xctest --foundation` to the build script.
 
@@ -51,7 +51,7 @@ This will build and run the Foundation tests, in the Debug configuration.
 After the complete Swift build has finished, you can iterate quickly on Foundation itself by simply invoking `ninja` in the Foundation directory.
 
 ```
-cd Foundation
+cd swift-corelibs-foundation
 ninja
 ```
 
@@ -76,4 +76,3 @@ LD_LIBRARY_PATH=../build/Ninja-ReleaseAssert/foundation-linux-x86_64/Foundation/
 ```
 
 Just copy & paste the correct line.
-
