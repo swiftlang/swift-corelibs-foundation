@@ -219,6 +219,7 @@ sources = CompileSources([
 	'CoreFoundation/String.subproj/CFStringEncodings.c',
 	'CoreFoundation/String.subproj/CFStringScanner.c',
 	'CoreFoundation/String.subproj/CFStringUtilities.c',
+	'CoreFoundation/String.subproj/CFStringTransform.c',
 	'CoreFoundation/StringEncodings.subproj/CFBuiltinConverters.c',
 	'CoreFoundation/StringEncodings.subproj/CFICUConverters.c',
 	'CoreFoundation/StringEncodings.subproj/CFPlatformConverters.c',
