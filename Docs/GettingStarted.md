@@ -2,17 +2,28 @@
 
 ## On OS X
 
-Although OS X is not a deployment platform for Swift Foundation, it is useful for development and test purposes. The repository includes an Xcode project file as well as an Xcode workspace. The workspace includes both Foundation and XCTest, which makes it easy to build and run everything together.
+Although OS X is not a deployment platform for Swift Foundation, it is useful for development and test purposes.
 
 In order to build on OS X, you will need:
 
 * The latest version of Xcode
 * The latest version of the OS X SDK (at this time: 10.11)
+* The [current Swift toolchain](https://oss.apple.com/download/#latest-development-snapshots).
 
-The Xcode workspace assumes that Foundation and XCTest are checked out from GitHub in peer directories, and with those exact names.
+Foundation is developed at the same time as the rest of Swift, so the most recent version of the compiler is required in order to build it.
+
+The repository includes an Xcode project file as well as an Xcode workspace. The workspace includes both Foundation and XCTest, which makes it easy to build and run everything together. The workspace assumes that Foundation and XCTest are checked out from GitHub in peer directories. For example:
+
+```
+% cd Development
+% ls
+swift-corelibs-foundation swift-corelibs-xctest
+%
+```
 
 Build steps:
 
+0. Run Xcode with the latest toolchain. Follow (the instructions here)[https://oss.apple.com/download/#apple-platforms] to start Xcode with the correct toolchain.
 0. Open `Foundation.xcworkspace`.
 0. Build the _Foundation_ target. This builds CoreFoundation and Foundation.
 
@@ -27,15 +38,15 @@ You will need:
 
 * A supported distribution of Linux. At this time, we support [Ubuntu 14.04 and Ubuntu 15.10](http://www.ubuntu.com).
 
-To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation requires use of the version of `swiftc` and `clang` built with the overall project.
+To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it.
 
-The default build script does not include Foundation. To build Foundation as well, pass `--foundation` to the build script.
+The default build script does not include Foundation. To build Foundation and XCTest as well, pass `--xctest --foundation` to the build script.
 
 ```
-swift/utils/build-script --foundation -t
+swift/utils/build-script --xctest --foundation -t
 ```
 
-This will build and run the Foundation tests.
+This will build and run the Foundation tests, in the Debug configuration.
 
 After the complete Swift build has finished, you can iterate quickly on Foundation itself by simply invoking `ninja` in the Foundation directory.
 
@@ -50,4 +61,19 @@ This will build Foundation. To build and run the tests, use the `test` target:
 ninja test
 ```
 
-The script will also output some help on how to run the tests under the debugger. The exact library path to use will depend on how Foundation itself was configured.
+The ninja build script will print the correct command-line invocation for both running the tests and debugging the tests. The exact library path to use will depend on how Foundation itself was configured by the earlier `build-script`. For example:
+
+```
+% ninja test
+[5/5] Building Tests
+**** RUNNING TESTS ****
+execute:
+LD_LIBRARY_PATH=../build/Ninja-ReleaseAssert/foundation-linux-x86_64/Foundation/:/home/user/Development/build/Ninja-ReleaseAssert/xctest-linux-x86_64 ../build/Ninja-ReleaseAssert/foundation-linux-x86_64/TestFoundation/TestFoundation
+**** DEBUGGING TESTS ****
+execute:
+LD_LIBRARY_PATH=../build/Ninja-ReleaseAssert/foundation-linux-x86_64/Foundation/:/home/user/Development/build/Ninja-ReleaseAssert/xctest-linux-x86_64 lldb ../build/Ninja-ReleaseAssert/foundation-linux-x86_64/TestFoundation/TestFoundation
+%
+```
+
+Just copy & paste the correct line.
+
