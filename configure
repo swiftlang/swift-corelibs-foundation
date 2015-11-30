@@ -73,12 +73,12 @@ def main():
     parser.add_argument('-v', '--verbose', dest='verbose', action="store_true")
     args, extras = parser.parse_known_args()
 
-    config.build_mode = Configuration.Release # by default build a release mode
+    config.build_mode = Configuration.Debug # by default build in debug mode
 
     for arg in extras:
-        if arg == 'debug':
+        if arg.lower() == 'debug':
             config.build_mode = Configuration.Debug
-        elif arg == 'release':
+        elif arg.lower() == 'release':
             config.build_mode = Configuration.Release
         elif arg.startswith('-D'): # accept -DNAME=value as extra parameters to the configuration of the build.ninja
             key, val = arg[2:].split("=", 1)
