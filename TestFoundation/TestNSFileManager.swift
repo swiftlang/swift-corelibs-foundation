@@ -124,11 +124,13 @@ class TestNSFileManger : XCTestCase {
         }
         
         if let e = NSFileManager.defaultManager().enumeratorAtURL(NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
-            XCTAssertEqual((e.nextObject() as? NSURL)?.path, itemPath)
-            XCTAssertEqual(e.level, 1)
-            XCTAssertNil(e.nextObject())
-            XCTAssertEqual(e.level, 0)
-            XCTAssertNil(e.nextObject())
+            var foundItems = [String:Int]()
+            while let item = e.nextObject() as? NSURL {
+                if let p = item.path {
+                    foundItems[p] = e.level
+                }
+            }
+            XCTAssertEqual(foundItems[itemPath], 1)
         } else {
             XCTFail()
         }
@@ -143,40 +145,41 @@ class TestNSFileManger : XCTestCase {
         }
         
         if let e = NSFileManager.defaultManager().enumeratorAtURL(NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
-            XCTAssertEqual((e.nextObject() as? NSURL)?.path, itemPath)
-            XCTAssertEqual(e.level, 1)
-            XCTAssertEqual((e.nextObject() as? NSURL)?.path, subDirPath)
-            XCTAssertEqual(e.level, 1)
-            XCTAssertEqual((e.nextObject() as? NSURL)?.path, subDirItemPath)
-            XCTAssertEqual(e.level, 2)
-            XCTAssertNil(e.nextObject())
-            XCTAssertEqual(e.level, 0)
-            XCTAssertNil(e.nextObject())
+            var foundItems = [String:Int]()
+            while let item = e.nextObject() as? NSURL {
+                if let p = item.path {
+                    foundItems[p] = e.level
+                }
+            }
+            XCTAssertEqual(foundItems[itemPath], 1)
+            XCTAssertEqual(foundItems[subDirPath], 1)
+            XCTAssertEqual(foundItems[subDirItemPath], 2)
         } else {
             XCTFail()
         }
         
         if let e = NSFileManager.defaultManager().enumeratorAtURL(NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [.SkipsSubdirectoryDescendants], errorHandler: nil) {
-            XCTAssertEqual((e.nextObject() as? NSURL)?.path, itemPath)
-            XCTAssertEqual(e.level, 1)
-            XCTAssertEqual((e.nextObject() as? NSURL)?.path, subDirPath)
-            XCTAssertEqual(e.level, 1)
-            XCTAssertNil(e.nextObject())
-            XCTAssertEqual(e.level, 0)
-            XCTAssertNil(e.nextObject())
+            var foundItems = [String:Int]()
+            while let item = e.nextObject() as? NSURL {
+                if let p = item.path {
+                    foundItems[p] = e.level
+                }
+            }
+            XCTAssertEqual(foundItems[itemPath], 1)
+            XCTAssertEqual(foundItems[subDirPath], 1)
         } else {
             XCTFail()
         }
         
         if let e = NSFileManager.defaultManager().enumeratorAtURL(NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
-            XCTAssertEqual((e.nextObject() as? NSURL)?.path, itemPath)
-            XCTAssertEqual(e.level, 1)
-            XCTAssertEqual((e.nextObject() as? NSURL)?.path, subDirPath)
-            XCTAssertEqual(e.level, 1)
-            e.skipDescendants()
-            XCTAssertNil(e.nextObject())
-            XCTAssertEqual(e.level, 0)
-            XCTAssertNil(e.nextObject())
+            var foundItems = [String:Int]()
+            while let item = e.nextObject() as? NSURL {
+                if let p = item.path {
+                    foundItems[p] = e.level
+                }
+            }
+            XCTAssertEqual(foundItems[itemPath], 1)
+            XCTAssertEqual(foundItems[subDirPath], 1)
         } else {
             XCTFail()
         }
@@ -194,10 +197,12 @@ class TestNSFileManger : XCTestCase {
         XCTAssertTrue(didGetError)
         
         do {
-            let contents = try NSFileManager.defaultManager().contentsOfDirectoryAtURL(NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [])
+            let contents = try NSFileManager.defaultManager().contentsOfDirectoryAtURL(NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: []).map {
+                return $0.path!
+            }
             XCTAssertEqual(contents.count, 2)
-            XCTAssertEqual(contents[0].path, itemPath)
-            XCTAssertEqual(contents[1].path, subDirPath)
+            XCTAssertTrue(contents.contains(itemPath))
+            XCTAssertTrue(contents.contains(subDirPath))
         } catch {
             XCTFail()
         }
