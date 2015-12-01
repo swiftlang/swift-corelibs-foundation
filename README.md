@@ -77,7 +77,7 @@ On the other hand, the compiler has no built-in support for types like NSURL. NS
 
 ##### Why not make the existing Objective-C implementation of Foundation open source?
 
-The Objective-C runtime is not part of the Swift open source project. We can, however, use the open source CoreFoundation implementation. CF is written in C and does not require Objective-C.
+Foundation on Darwin is written primarily in Objective-C, and the Objective-C runtime is not part of the Swift open source project. CoreFoundation, however, is a portable C library and does not require the Objective-C runtime. It contains much of the behavior that is exposed via the Foundation API. Therefore, it is used on all platforms including Linux.
 
 ##### How do I contribute?
 
