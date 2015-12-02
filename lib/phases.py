@@ -30,13 +30,17 @@ class BuildAction:
     def set_product(self, product):
         self._product = product
 
-    def generate_dependencies(self):
+    def generate_dependencies(self, extra = None):
         if self.dependencies is not None and len(self.dependencies) > 0:
             rule = " |"
             for dep in self.dependencies:
                 rule += " " + dep.name
+            if extra is not None:
+                rule += " " + extra
             return rule
         else:
+            if extra is not None:
+                return " | " + extra
             return ""
 
     def add_dependency(self, phase):
@@ -415,7 +419,7 @@ class SwiftExecutable(BuildPhase):
             swiftSources += " " + resource.relative()
 
         return """
-build """ + appName + """: SwiftExecutable """ + swiftSources + self.generate_dependencies() + """ """ + libDependencyName + """
+build """ + appName + """: SwiftExecutable """ + swiftSources + self.generate_dependencies(libDependencyName) + """
     flags = -I""" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH + " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " -L" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " " + TargetConditional.value(self.product.SWIFTCFLAGS) + """
 build """ + self.executableName + """: phony | """ + appName + """
 """
