@@ -105,13 +105,6 @@ public func NSRangeFromString(aString: String) -> NSRange {
     return NSRangeParser.parseRange(aString)
 }
 
-public func _NSRangeFromString(aString: String) -> NSRange {
-    // just by playing around in the REPL, it looks like
-    // NSRangeFromString just walks through the string finding
-    // all integers in order, defaulting to 0 if they're not found.
-    return NSRangeParser.parseRange(aString)
-}
-
 struct NSRangeParser {
     // removes all characters that are not decimal digits and commas.
     static let decimalDigitsAndCommas: NSCharacterSet = {
