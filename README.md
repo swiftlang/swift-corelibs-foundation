@@ -34,7 +34,7 @@ See our [status page](Docs/Status.md) for a detailed list of what features are c
 
 Here is a simple `main.swift` file which uses Foundation. This guide assumes you have already installed a version of the latest [Swift binary distribution](https://swift.org/downloads#latest).
 
-```
+```swift
 import Foundation
 
 // Make an URLComponents instance
