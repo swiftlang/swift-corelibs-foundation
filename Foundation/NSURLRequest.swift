@@ -267,7 +267,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         @abstract Returns the HTTP request method of the receiver.
         @result the HTTP request method of the receiver.
     */
-    public var HTTPMethod: String? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    public var HTTPMethod: String? { get { NSUnimplemented() }}
     
     /*!
         @method allHTTPHeaderFields
@@ -377,6 +377,13 @@ public class NSMutableURLRequest : NSURLRequest {
         other things in the future.
     */
     /*@NSCopying*/ public override var mainDocumentURL: NSURL? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    
+    /*!
+        @method HTTPMethod
+        @abstract Sets the HTTP request method of the receiver.
+        @result the HTTP request method of the receiver.
+    */
+    public override var HTTPMethod: String? { get { NSUnimplemented() } set { NSUnimplemented() } }
     
     /*!
         @method setValue:forHTTPHeaderField:
