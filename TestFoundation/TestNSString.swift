@@ -22,6 +22,10 @@ class TestNSString : XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
             ("test_BridgeConstruction", test_BridgeConstruction ),
+            ("test_isEqualToStringWithStringLiteral", test_isEqualToStringWithStringLiteral ),
+            ("test_FromASCIIData", test_FromASCIIData ),
+            ("test_FromUTF8Data", test_FromUTF8Data ),
+            ("test_FromMalformedUTF8Data", test_FromMalformedUTF8Data ),
         ]
     }
     
@@ -41,5 +45,30 @@ class TestNSString : XCTestCase {
         
         let cluster: NSString = "✌🏾"
         XCTAssertEqual(cluster.length, 3)
+    }
+
+    func test_isEqualToStringWithStringLiteral() {
+        let string: NSString = "literal"
+        XCTAssertTrue(string.isEqualToString("literal"))
+    }
+
+    func test_FromASCIIData() {
+        let bytes: [UInt8] = [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74, 0x21] // "Hello Swift!"
+        let string = NSString(bytes: bytes, length: bytes.count, encoding: NSASCIIStringEncoding)
+        XCTAssertNotNil(string)
+        XCTAssertTrue(string!.isEqualToString("Hello Swift!"))
+    }
+
+    func test_FromUTF8Data() {
+        let bytes: [UInt8] = [0x49, 0x20, 0xE2, 0x9D, 0xA4, 0xEF, 0xB8, 0x8F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74] // "I ❤️ Swift"
+        let string = NSString(bytes: bytes, length: bytes.count, encoding: NSUTF8StringEncoding)
+        XCTAssertNotNil(string)
+        XCTAssertTrue(string?.isEqualToString("I ❤️ Swift") ?? false)
+    }
+
+    func test_FromMalformedUTF8Data() {
+        let bytes: [UInt8] = [0xFF]
+        let string = NSString(bytes: bytes, length: bytes.count, encoding: NSUTF8StringEncoding)
+        XCTAssertNil(string)
     }
 }

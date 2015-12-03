@@ -698,7 +698,9 @@ extension NSString {
     }
     
     public convenience init?(bytes: UnsafePointer<Void>, length len: Int, encoding: UInt) {
-        let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(bytes), len, CFStringConvertNSStringEncodingToEncoding(encoding), true)
+        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(bytes), len, CFStringConvertNSStringEncodingToEncoding(encoding), true) else {
+            return nil
+        }
         self.init(cf._swiftObject)
     }
     
