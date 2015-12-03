@@ -14,21 +14,28 @@
     import SwiftXCTest
 #endif
 
+extension NSRange: Equatable {}
+
+public func ==(lhs: NSRange, rhs: NSRange) -> Bool {
+    return lhs.location == rhs.location && lhs.length == rhs.length
+}
+
 class TestNSRange: XCTestCase {
     
-    override func setUp() {
-        super.setUp()
+    var allTests: [(String, () -> ())] {
+        return [
+            ("test_rangeWithValidInput", test_rangeWithValidInput),
+            ("test_rangesWithInvalidInput", test_rangesWithInvalidInput),
+            ("test_roundTrip", test_roundTrip)
+        ]
     }
     
-    override func tearDown() {
-        super.tearDown()
+    func test_rangeWithValidInput() {
+        let practice = NSRangeFromString("{4,5}")
+        XCTAssertEqual(practice, NSRange(location: 4, length: 5))
     }
     
-    func testRangeWithValidInput() {
-        XCTAssertEqual(NSRangeFromString("{4,5}"), NSRange(location: 4, length: 5))
-    }
-    
-    func testRangesWithInvalidInput() {
+    func test_rangesWithInvalidInput() {
         XCTAssertEqual(NSRangeFromString("4,5}"), NSRange(location: 4, length: 5))
         XCTAssertEqual(NSRangeFromString("{4,5"), NSRange(location: 4, length: 5))
         XCTAssertEqual(NSRangeFromString("{4,}"), NSRange(location: 4, length: 0))
@@ -36,16 +43,9 @@ class TestNSRange: XCTestCase {
         XCTAssertEqual(NSRangeFromString("4,5"), NSRange(location: 4, length: 5))
     }
     
-    func testRoundTrip() {
+    func test_roundTrip() {
         let initial = NSRange(location: 4, length: 5)
         XCTAssertEqual(NSRangeFromString(NSStringFromRange(initial)), initial)
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock {
-            // Put the code you want to measure the time of here.
-        }
     }
     
 }

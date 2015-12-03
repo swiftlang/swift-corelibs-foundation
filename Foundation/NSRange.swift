@@ -108,9 +108,9 @@ public func NSRangeFromString(aString: String) -> NSRange {
 struct NSRangeParser {
     // removes all characters that are not decimal digits and commas.
     static let decimalDigitsAndCommas: NSCharacterSet = {
-        let mutable = NSCharacterSet.decimalDigitCharacterSet().mutableCopy() as! NSMutableCharacterSet
-        mutable.addCharactersInString(",")
-        return mutable.invertedSet
+        let characterSet = NSMutableCharacterSet(bitmapRepresentation: NSCharacterSet.decimalDigitCharacterSet().bitmapRepresentation)
+        characterSet.addCharactersInString(",")
+        return characterSet.invertedSet
     }()
     static func parseRange(string: String) -> NSRange {
         var final = NSRange(location: 0, length: 0)
