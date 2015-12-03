@@ -177,14 +177,15 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func getObjects(inout objects: [AnyObject], range: NSRange) {
+        objects.reserveCapacity(objects.count + range.length)
+
         if self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self {
-            if range.location == 0 && range.length == count {
-                objects = _storage
-                return
-            }
+            objects.insertContentsOf(_storage[range.toRange()!], at: 0)
+            return
         }
+
         for idx in 0..<range.length {
-            objects[idx] = self[range.location + idx]
+            objects.insert(self[range.location + idx], atIndex: idx)
         }
     }
     
