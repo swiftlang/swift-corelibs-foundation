@@ -709,7 +709,10 @@ extension NSString {
     }
     
     public convenience init?(CString nullTerminatedCString: UnsafePointer<Int8>, encoding: UInt) {
-        NSUnimplemented()    
+        guard let cf = CFStringCreateWithCString(kCFAllocatorDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding)) else {
+            return nil
+        }
+        self.init(cf._swiftObject)
     }
     
     public convenience init(contentsOfURL url: NSURL, encoding enc: UInt) throws {

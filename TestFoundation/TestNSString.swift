@@ -29,6 +29,9 @@ class TestNSString : XCTestCase {
             ("test_FromASCIINSData", test_FromASCIINSData ),
             ("test_FromUTF8NSData", test_FromUTF8NSData ),
             ("test_FromMalformedUTF8NSData", test_FromMalformedUTF8NSData ),
+            ("test_FromNullTerminatedCStringInASCII", test_FromNullTerminatedCStringInASCII ),
+            ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
+            ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
         ]
     }
     
@@ -95,6 +98,26 @@ class TestNSString : XCTestCase {
         let bytes: [UInt8] = [0xFF]
         let data = NSData(bytes: bytes, length: bytes.count)
         let string = NSString(data: data, encoding: NSUTF8StringEncoding)
+        XCTAssertNil(string)
+    }
+
+    func test_FromNullTerminatedCStringInASCII() {
+        let bytes: [UInt8] = [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74, 0x21, 0x00] // "Hello Swift!"
+        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSASCIIStringEncoding)
+        XCTAssertNotNil(string)
+        XCTAssertTrue(string!.isEqualToString("Hello Swift!"))
+    }
+
+    func test_FromNullTerminatedCStringInUTF8() {
+        let bytes: [UInt8] = [0x49, 0x20, 0xE2, 0x9D, 0xA4, 0xEF, 0xB8, 0x8F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74] // "I ❤️ Swift"
+        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
+        XCTAssertNotNil(string)
+        XCTAssertTrue(string?.isEqualToString("I ❤️ Swift") ?? false)
+    }
+
+    func test_FromMalformedNullTerminatedCStringInUTF8() {
+        let bytes: [UInt8] = [0xFF, 0x00]
+        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
     }
 }
