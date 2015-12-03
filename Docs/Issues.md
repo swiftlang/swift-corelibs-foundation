@@ -22,4 +22,4 @@ In short: users or implementers should be careful about the implicit conversions
 
 * The python & ninja build system in place is a medium-term solution. We believe a long-term building solution will come from the Swift Package Manager. However, it can not yet build dynamic libraries nor build mixed-source (C and Swift) projects.
 
-* Data pointers normally that are autoreleased such as fileSystemRepresentationWithPath or UTF8String will leak when the data is not returned from an inner value.
+* Data pointers that are normally autoreleased such as fileSystemRepresentationWithPath or UTF8String will leak when the data is not returned from an inner value.
