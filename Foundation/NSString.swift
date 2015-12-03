@@ -694,7 +694,7 @@ extension NSString {
     }
     
     public convenience init?(data: NSData, encoding: UInt) {
-        NSUnimplemented()    
+        self.init(bytes: data.bytes, length: data.length, encoding: encoding)
     }
     
     public convenience init?(bytes: UnsafePointer<Void>, length len: Int, encoding: UInt) {
