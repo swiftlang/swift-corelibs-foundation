@@ -38,7 +38,7 @@ class TestNSRange: XCTestCase {
     
     func testRoundTrip() {
         let initial = NSRange(location: 4, length: 5)
-        NSRangeFromString(NSStringFromRange(initial)) == initial
+        XCTAssertEqual(NSRangeFromString(NSStringFromRange(initial)), initial)
     }
     
     func testPerformanceExample() {
