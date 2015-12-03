@@ -932,7 +932,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     Result dates have an integer number of seconds (as if 0 was specified for the nanoseconds property of the NSDateComponents matching parameter), unless a value was set in the nanoseconds property, in which case the result date will have that number of nanoseconds (or as close as possible with floating point numbers).
     The enumeration is stopped by setting *stop = YES in the block and return.  It is not necessary to set *stop to NO to keep the enumeration going.
     */
-    public func enumerateDatesStartingAfterDate(start: NSDate, matchingComponents comps: NSDateComponents, options opts: NSCalendarOptions, usingBlock block: (NSDate?, Bool, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateDatesStartingAfterDate(start: NSDate, matchingComponents comps: NSDateComponents, options opts: NSCalendarOptions, @noescape usingBlock block: (NSDate?, Bool, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     
     /*
     This method computes the next date which matches (or most closely matches) a given set of components.

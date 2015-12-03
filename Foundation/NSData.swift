@@ -382,7 +382,7 @@ extension NSData {
         }
     }
     
-    internal func enumerateByteRangesUsingBlockRethrows(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
+    internal func enumerateByteRangesUsingBlockRethrows(@noescape block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
         var err : ErrorType? = nil
         self.enumerateByteRangesUsingBlock() { (buf, range, stop) -> Void in
             do {
@@ -396,7 +396,7 @@ extension NSData {
         }
     }
 
-    public func enumerateByteRangesUsingBlock(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
+    public func enumerateByteRangesUsingBlock(@noescape block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
         var stop = false
         withUnsafeMutablePointer(&stop) { stopPointer in
             block(bytes, NSMakeRange(0, length), stopPointer)

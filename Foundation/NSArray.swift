@@ -309,13 +309,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }
     }
     
-    public func sortedArrayUsingFunction(comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>) -> [AnyObject] {
+    public func sortedArrayUsingFunction(@noescape comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>) -> [AnyObject] {
         return sortedArrayWithOptions([]) { lhs, rhs in
             return NSComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
     }
     
-    public func sortedArrayUsingFunction(comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>, hint: NSData?) -> [AnyObject] {
+    public func sortedArrayUsingFunction(@noescape comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>, hint: NSData?) -> [AnyObject] {
         return sortedArrayWithOptions([]) { lhs, rhs in
             return NSComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
@@ -348,13 +348,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }
     }
     
-    public func enumerateObjectsUsingBlock(block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjectsUsingBlock(@noescape block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.enumerateObjectsWithOptions([], usingBlock: block)
     }
-    public func enumerateObjectsWithOptions(opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjectsWithOptions(opts: NSEnumerationOptions, @noescape  usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.enumerateObjectsAtIndexes(NSIndexSet(indexesInRange: NSMakeRange(0, count)), options: opts, usingBlock: block)
     }
-    public func enumerateObjectsAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjectsAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, @noescape usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         guard !opts.contains(.Concurrent) else {
             NSUnimplemented()
         }
@@ -364,13 +364,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }
     }
     
-    public func indexOfObjectPassingTest(predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexOfObjectPassingTest(@noescape  predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return indexOfObjectWithOptions([], passingTest: predicate)
     }
-    public func indexOfObjectWithOptions(opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexOfObjectWithOptions(opts: NSEnumerationOptions, @noescape  passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return indexOfObjectAtIndexes(NSIndexSet(indexesInRange: NSMakeRange(0, count)), options: opts, passingTest: predicate)
     }
-    public func indexOfObjectAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexOfObjectAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, @noescape  passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         var result = NSNotFound
         enumerateObjectsAtIndexes(s, options: opts) { (obj, idx, stop) -> Void in
             if predicate(obj, idx, stop) {
@@ -381,13 +381,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return result
     }
     
-    public func indexesOfObjectsPassingTest(predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
+    public func indexesOfObjectsPassingTest(@noescape predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
         return indexesOfObjectsWithOptions([], passingTest: predicate)
     }
-    public func indexesOfObjectsWithOptions(opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
+    public func indexesOfObjectsWithOptions(opts: NSEnumerationOptions, @noescape passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
         return indexesOfObjectsAtIndexes(NSIndexSet(indexesInRange: NSMakeRange(0, count)), options: opts, passingTest: predicate)
     }
-    public func indexesOfObjectsAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
+    public func indexesOfObjectsAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, @noescape passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
         let result = NSMutableIndexSet()
         enumerateObjectsAtIndexes(s, options: opts) { (obj, idx, stop) in
             if predicate(obj, idx, stop) {
@@ -397,7 +397,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return result
     }
 
-    internal func sortedArrayFromRange(range: NSRange, options: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
+    internal func sortedArrayFromRange(range: NSRange, options: NSSortOptions, @noescape usingComparator cmptr: NSComparator) -> [AnyObject] {
         let count = self.count
         if range.length == 0 || count == 0 {
             return []
@@ -408,15 +408,15 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }
     }
     
-    public func sortedArrayUsingComparator(cmptr: NSComparator) -> [AnyObject] {
+    public func sortedArrayUsingComparator(@noescape cmptr: NSComparator) -> [AnyObject] {
         return sortedArrayFromRange(NSMakeRange(0, count), options: [], usingComparator: cmptr)
     }
 
-    public func sortedArrayWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
+    public func sortedArrayWithOptions(opts: NSSortOptions, @noescape usingComparator cmptr: NSComparator) -> [AnyObject] {
         return sortedArrayFromRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
     }
 
-    public func indexOfObject(obj: AnyObject, inSortedRange r: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
+    public func indexOfObject(obj: AnyObject, inSortedRange r: NSRange, options opts: NSBinarySearchingOptions, @noescape usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
     
     public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
     public convenience init?(contentsOfURL url: NSURL) { NSUnimplemented() }
