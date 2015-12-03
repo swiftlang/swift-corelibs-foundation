@@ -351,7 +351,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     public func enumerateObjectsUsingBlock(@noescape block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.enumerateObjectsWithOptions([], usingBlock: block)
     }
-    public func enumerateObjectsWithOptions(opts: NSEnumerationOptions, @noescape  usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjectsWithOptions(opts: NSEnumerationOptions, @noescape usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.enumerateObjectsAtIndexes(NSIndexSet(indexesInRange: NSMakeRange(0, count)), options: opts, usingBlock: block)
     }
     public func enumerateObjectsAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, @noescape usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
@@ -364,13 +364,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }
     }
     
-    public func indexOfObjectPassingTest(@noescape  predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexOfObjectPassingTest(@noescape predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return indexOfObjectWithOptions([], passingTest: predicate)
     }
-    public func indexOfObjectWithOptions(opts: NSEnumerationOptions, @noescape  passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexOfObjectWithOptions(opts: NSEnumerationOptions, @noescape passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return indexOfObjectAtIndexes(NSIndexSet(indexesInRange: NSMakeRange(0, count)), options: opts, passingTest: predicate)
     }
-    public func indexOfObjectAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, @noescape  passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexOfObjectAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, @noescape passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         var result = NSNotFound
         enumerateObjectsAtIndexes(s, options: opts) { (obj, idx, stop) -> Void in
             if predicate(obj, idx, stop) {
