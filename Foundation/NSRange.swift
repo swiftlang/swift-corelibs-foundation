@@ -114,7 +114,9 @@ struct NSRangeParser {
     }()
     static func parseRange(string: String) -> NSRange {
         var final = NSRange(location: 0, length: 0)
-        let removeNonDigits = (string as NSString).componentsSeparatedByCharactersInSet(NSRangeParser.decimalDigitsAndCommas).joinWithSeparator("")
+        let removeNonDigits = (string as NSString)
+                            .componentsSeparatedByCharactersInSet(NSRangeParser.decimalDigitsAndCommas)
+                            .joinWithSeparator("")
         let ints = removeNonDigits.componentsSeparatedByString(",").flatMap { Int($0) }
         guard let location = ints.first else { return final }
         final.location = location
