@@ -228,7 +228,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return NSNotFound
     }
     
-public func isEqualToArray(otherArray: [AnyObject]) -> Bool {
+    public func isEqualToArray(otherArray: [AnyObject]) -> Bool {
         if count != otherArray.count {
             return false
         }
