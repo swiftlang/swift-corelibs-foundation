@@ -228,6 +228,30 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     */
     /*@NSCopying */public var URL: NSURL? { NSUnimplemented() }
     
+    /*! 
+        @method cachePolicy
+        @abstract Returns the cache policy of the receiver. 
+        @result The cache policy of the receiver. 
+    */
+    public var cachePolicy: NSURLRequestCachePolicy { get { NSUnimplemented() } }
+    
+    /*! 
+        @method timeoutInterval
+        @abstract Returns the timeout interval of the receiver.
+        @discussion The timeout interval specifies the limit on the idle
+        interval alloted to a request in the process of loading. The "idle
+        interval" is defined as the period of time that has passed since the
+        last instance of load activity occurred for a request that is in the
+        process of loading. Hence, when an instance of load activity occurs
+        (e.g. bytes are received from the network for a request), the idle
+        interval for a request is reset to 0. If the idle interval ever
+        becomes greater than or equal to the timeout interval, the request
+        is considered to have timed out. This timeout interval is measured
+        in seconds.
+        @result The timeout interval of the receiver. 
+    */
+    public var timeoutInterval: NSTimeInterval { get { NSUnimplemented() } }
+    
     /*!
         @method mainDocumentURL
         @abstract The main document URL associated with this load.
@@ -239,33 +263,65 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     /*@NSCopying*/ public var mainDocumentURL: NSURL? { NSUnimplemented() }
     
     /*!
-    @method HTTPMethod
-    @abstract Returns the HTTP request method of the receiver.
-    @result the HTTP request method of the receiver.
+        @method HTTPMethod
+        @abstract Returns the HTTP request method of the receiver.
+        @result the HTTP request method of the receiver.
     */
-    public var HTTPMethod: String? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    public var HTTPMethod: String? { get { NSUnimplemented() }}
     
     /*!
-    @method allHTTPHeaderFields
-    @abstract Returns a dictionary containing all the HTTP header fields
-    of the receiver.
-    @result a dictionary containing all the HTTP header fields of the
-    receiver.
+        @method allHTTPHeaderFields
+        @abstract Returns a dictionary containing all the HTTP header fields
+        of the receiver.
+        @result a dictionary containing all the HTTP header fields of the
+        receiver.
     */
     public var allHTTPHeaderFields: [String : String]? { NSUnimplemented() }
     
     /*!
-    @method valueForHTTPHeaderField:
-    @abstract Returns the value which corresponds to the given header
-    field. Note that, in keeping with the HTTP RFC, HTTP header field
-    names are case-insensitive.
-    @param field the header field name to use for the lookup
-    (case-insensitive).
-    @result the value associated with the given header field, or nil if
-    there is no value associated with the given header field.
+        @method valueForHTTPHeaderField:
+        @abstract Returns the value which corresponds to the given header
+        field. Note that, in keeping with the HTTP RFC, HTTP header field
+        names are case-insensitive.
+        @param field the header field name to use for the lookup
+        (case-insensitive).
+        @result the value associated with the given header field, or nil if
+        there is no value associated with the given header field.
     */
     public func valueForHTTPHeaderField(field: String) -> String? { NSUnimplemented() }
     
+    /*! 
+        @method HTTPBody
+        @abstract Returns the request body data of the receiver. 
+        @discussion This data is sent as the message body of the request, as
+        in done in an HTTP POST request.
+        @result The request body data of the receiver. 
+    */
+    /*@NSCopying*/ public var HTTPBody: NSData? { get { NSUnimplemented() } }
+
+    /*!
+        @method HTTPBodyStream
+        @abstract Returns the request body stream of the receiver
+        if any has been set
+        @discussion The stream is returned for examination only; it is
+        not safe for the caller to manipulate the stream in any way.  Also
+        note that the HTTPBodyStream and HTTPBody are mutually exclusive - only
+        one can be set on a given request.  Also note that the body stream is
+        preserved across copies, but is LOST when the request is coded via the 
+        NSCoding protocol
+        @result The request body stream of the receiver.
+    */
+    public var HTTPBodyStream: NSInputStream? { get { NSUnimplemented() } }
+    
+    /*! 
+        @method HTTPShouldHandleCookies
+        @abstract Determine whether default cookie handling will happen for 
+        this request.
+        @discussion NOTE: This value is not used prior to 10.3
+        @result YES if cookies will be sent with and set for this request; 
+        otherwise NO.
+    */
+    public var HTTPShouldHandleCookies: Bool { get { NSUnimplemented() } }
 }
 
 /*!
@@ -321,6 +377,13 @@ public class NSMutableURLRequest : NSURLRequest {
         other things in the future.
     */
     /*@NSCopying*/ public override var mainDocumentURL: NSURL? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    
+    /*!
+        @method HTTPMethod
+        @abstract Sets the HTTP request method of the receiver.
+        @result the HTTP request method of the receiver.
+    */
+    public override var HTTPMethod: String? { get { NSUnimplemented() } set { NSUnimplemented() } }
     
     /*!
         @method setValue:forHTTPHeaderField:
