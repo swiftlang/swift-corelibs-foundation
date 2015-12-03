@@ -184,7 +184,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             }
         }
         for idx in 0..<range.length {
-            objects[idx] = self[idx]
+            objects[idx] = self[range.location + idx]
         }
     }
     
