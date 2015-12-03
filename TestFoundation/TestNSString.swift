@@ -22,7 +22,7 @@ class TestNSString : XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
             ("test_BridgeConstruction", test_BridgeConstruction ),
-            ("test_isEqualToStringWithStringLiteral", test_isEqualToStringWithStringLiteral ),
+            ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
             ("test_FromASCIIData", test_FromASCIIData ),
             ("test_FromUTF8Data", test_FromUTF8Data ),
             ("test_FromMalformedUTF8Data", test_FromMalformedUTF8Data ),
@@ -53,70 +53,77 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(cluster.length, 3)
     }
 
-    func test_isEqualToStringWithStringLiteral() {
+    func test_isEqualToStringWithSwiftString() {
         let string: NSString = "literal"
-        XCTAssertTrue(string.isEqualToString("literal"))
+        let swiftString = "literal"
+        XCTAssertTrue(string.isEqualToString(swiftString))
     }
 
+    internal let mockASCIIStringBytes: [UInt8] = [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74, 0x21]
+    internal let mockASCIIString = "Hello Swift!"
+    internal let mockUTF8StringBytes: [UInt8] = [0x49, 0x20, 0xE2, 0x9D, 0xA4, 0xEF, 0xB8, 0x8F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74]
+    internal let mockUTF8String = "I ❤️ Swift"
+    internal let mockMalformedUTF8StringBytes: [UInt8] = [0xFF]
+
     func test_FromASCIIData() {
-        let bytes: [UInt8] = [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74, 0x21] // "Hello Swift!"
+        let bytes = mockASCIIStringBytes
         let string = NSString(bytes: bytes, length: bytes.count, encoding: NSASCIIStringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string!.isEqualToString("Hello Swift!"))
+        XCTAssertTrue(string?.isEqualToString(mockASCIIString) ?? false)
     }
 
     func test_FromUTF8Data() {
-        let bytes: [UInt8] = [0x49, 0x20, 0xE2, 0x9D, 0xA4, 0xEF, 0xB8, 0x8F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74] // "I ❤️ Swift"
+        let bytes = mockUTF8StringBytes
         let string = NSString(bytes: bytes, length: bytes.count, encoding: NSUTF8StringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string?.isEqualToString("I ❤️ Swift") ?? false)
+        XCTAssertTrue(string?.isEqualToString(mockUTF8String) ?? false)
     }
 
     func test_FromMalformedUTF8Data() {
-        let bytes: [UInt8] = [0xFF]
+        let bytes = mockMalformedUTF8StringBytes
         let string = NSString(bytes: bytes, length: bytes.count, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
     }
 
     func test_FromASCIINSData() {
-        let bytes: [UInt8] = [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74, 0x21] // "Hello Swift!"
+        let bytes = mockASCIIStringBytes
         let data = NSData(bytes: bytes, length: bytes.count)
         let string = NSString(data: data, encoding: NSASCIIStringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string!.isEqualToString("Hello Swift!"))
+        XCTAssertTrue(string?.isEqualToString(mockASCIIString) ?? false)
     }
 
     func test_FromUTF8NSData() {
-        let bytes: [UInt8] = [0x49, 0x20, 0xE2, 0x9D, 0xA4, 0xEF, 0xB8, 0x8F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74] // "I ❤️ Swift"
+        let bytes = mockUTF8StringBytes
         let data = NSData(bytes: bytes, length: bytes.count)
         let string = NSString(data: data, encoding: NSUTF8StringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string?.isEqualToString("I ❤️ Swift") ?? false)
+        XCTAssertTrue(string?.isEqualToString(mockUTF8String) ?? false)
     }
 
     func test_FromMalformedUTF8NSData() {
-        let bytes: [UInt8] = [0xFF]
+        let bytes = mockMalformedUTF8StringBytes
         let data = NSData(bytes: bytes, length: bytes.count)
         let string = NSString(data: data, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
     }
 
     func test_FromNullTerminatedCStringInASCII() {
-        let bytes: [UInt8] = [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74, 0x21, 0x00] // "Hello Swift!"
+        let bytes = mockASCIIStringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSASCIIStringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string!.isEqualToString("Hello Swift!"))
+        XCTAssertTrue(string?.isEqualToString(mockASCIIString) ?? false)
     }
 
     func test_FromNullTerminatedCStringInUTF8() {
-        let bytes: [UInt8] = [0x49, 0x20, 0xE2, 0x9D, 0xA4, 0xEF, 0xB8, 0x8F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74] // "I ❤️ Swift"
+        let bytes = mockUTF8StringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string?.isEqualToString("I ❤️ Swift") ?? false)
+        XCTAssertTrue(string?.isEqualToString(mockUTF8String) ?? false)
     }
 
     func test_FromMalformedNullTerminatedCStringInUTF8() {
-        let bytes: [UInt8] = [0xFF, 0x00]
+        let bytes = mockMalformedUTF8StringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
     }
