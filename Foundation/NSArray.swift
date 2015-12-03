@@ -69,6 +69,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public required init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
+        _storage.reserveCapacity(cnt)
         for idx in 0..<cnt {
             _storage.append(objects[idx]!)
         }
@@ -500,6 +501,10 @@ public class NSMutableArray : NSArray {
     
     public init(capacity numItems: Int) {
         super.init(objects: nil, count: 0)
+
+        if self.dynamicType === NSMutableArray.self {
+            _storage.reserveCapacity(numItems)
+        }
     }
     
     public required convenience init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
@@ -599,6 +604,7 @@ public class NSMutableArray : NSArray {
     public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject], range otherRange: NSRange) { NSUnimplemented() }
     public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject]) {
         if self.dynamicType === NSMutableArray.self {
+            _storage.reserveCapacity(count - range.length + otherArray.count)
             for var idx = 0; idx < range.length; idx++ {
                 _storage[idx + range.location] = otherArray[idx]
             }
@@ -622,6 +628,10 @@ public class NSMutableArray : NSArray {
     public func insertObjects(objects: [AnyObject], atIndexes indexes: NSIndexSet) {
         precondition(objects.count == indexes.count)
         
+        if self.dynamicType === NSMutableArray.self {
+            _storage.reserveCapacity(count + indexes.count)
+        }
+
         var objectIdx = 0
         indexes.enumerateIndexesUsingBlock() { (insertionIndex, _) in
             self.insertObject(objects[objectIdx++], atIndex: insertionIndex)
