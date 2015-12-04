@@ -190,7 +190,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public func indexOfObject(anObject: AnyObject) -> Int {
-        for var idx = 0; idx < count; idx++ {
+        for idx in 0..<count {
             let obj = objectAtIndex(idx) as! NSObject
             if anObject === obj || obj.isEqual(anObject) {
                 return idx
@@ -200,7 +200,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public func indexOfObject(anObject: AnyObject, inRange range: NSRange) -> Int {
-        for var idx = 0; idx < range.length; idx++ {
+        for idx in 0..<range.length {
             let obj = objectAtIndex(idx + range.location) as! NSObject
             if anObject === obj || obj.isEqual(anObject) {
                 return idx
@@ -210,7 +210,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public func indexOfObjectIdenticalTo(anObject: AnyObject) -> Int {
-        for var idx = 0; idx < count; idx++ {
+        for idx in 0..<count {
             let obj = objectAtIndex(idx) as! NSObject
             if anObject === obj {
                 return idx
@@ -220,7 +220,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public func indexOfObjectIdenticalTo(anObject: AnyObject, inRange range: NSRange) -> Int {
-        for var idx = 0; idx < range.length; idx++ {
+        for idx in 0..<range.length {
             let obj = objectAtIndex(idx + range.location) as! NSObject
             if anObject === obj {
                 return idx
@@ -234,7 +234,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             return false
         }
         
-        for var idx = 0; idx < count; idx++ {
+        for idx in 0..<count {
             let obj1 = objectAtIndex(idx) as! NSObject
             let obj2 = otherArray[idx] as! NSObject
             if obj1 === obj2 {
@@ -301,7 +301,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     /*@NSCopying*/ public var sortedArrayHint: NSData {
         get {
             let buffer = UnsafeMutablePointer<Int32>.alloc(count)
-            for var idx = 0; idx < count; idx++ {
+            for idx in 0..<count {
                 let item = objectAtIndex(idx) as! NSObject
                 let hash = item.hash
                 buffer.advancedBy(idx).memory = Int32(hash).littleEndian
@@ -512,7 +512,7 @@ public class NSMutableArray : NSArray {
     
     public required convenience init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
         self.init(capacity: cnt)
-        for var idx = 0; idx < cnt; idx++ {
+        for idx in 0..<cnt {
             _storage.append(objects[idx]!)
         }
     }
@@ -608,10 +608,10 @@ public class NSMutableArray : NSArray {
     public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject]) {
         if self.dynamicType === NSMutableArray.self {
             _storage.reserveCapacity(count - range.length + otherArray.count)
-            for var idx = 0; idx < range.length; idx++ {
+            for idx in 0..<range.length {
                 _storage[idx + range.location] = otherArray[idx]
             }
-            for var idx = range.length; idx < otherArray.count; idx++ {
+            for idx in range.length..<otherArray.count {
                 _storage.insert(otherArray[idx], atIndex: idx + range.location)
             }
         } else {
