@@ -69,6 +69,12 @@ public struct CGSize {
     }
 }
 
+extension CGSize: Equatable { }
+
+public func ==(lhs: CGSize, rhs: CGSize) -> Bool {
+    return (lhs.width == rhs.width) && (lhs.height == lhs.height)
+}
+
 public struct CGRect {
     public var origin: CGPoint
     public var size: CGSize
