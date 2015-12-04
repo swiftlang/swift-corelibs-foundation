@@ -211,12 +211,12 @@ public class NSFileManager : NSObject {
      
         This method replaces fileAttributesAtPath:traverseLink:.
      */
-    public func attributesOfItemAtPath(path: String) throws -> [String : AnyObject] {
+    public func attributesOfItemAtPath(path: String) throws -> [String : Any] {
         var s = stat()
         guard lstat(path, &s) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
-        var result = [String : AnyObject]()
+        var result = [String : Any]()
         result[NSFileSize] = NSNumber(unsignedLongLong: UInt64(s.st_size))
 
 #if os(OSX) || os(iOS)
