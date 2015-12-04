@@ -50,6 +50,12 @@ public struct CGPoint {
     }
 }
 
+extension CGPoint: Equatable { }
+
+public func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
+    return (lhs.x == rhs.x) && (lhs.y == lhs.y)
+}
+
 public struct CGSize {
     public var width: CGFloat
     public var height: CGFloat
