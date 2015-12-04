@@ -119,8 +119,8 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         _storage = Set(minimumCapacity: cnt)
         super.init()
         let buffer = UnsafeBufferPointer(start: objects, count: cnt)
-        for case let obj as NSObject in buffer {
-            _storage.insert(obj)
+        for obj in buffer {
+            _storage.insert(obj as! NSObject)
         }
     }
     
