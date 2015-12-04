@@ -174,6 +174,28 @@ extension CFDateRef : _NSBridgable {
     internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
 }
 
+extension NSDate : Comparable { }
+
+public func ==(lhs: NSDate, rhs: NSDate) -> Bool {
+    return lhs === rhs || lhs.compare(rhs) == .OrderedSame
+}
+
+public func <(lhs: NSDate, rhs: NSDate) -> Bool {
+    return lhs.compare(rhs) == .OrderedAscending
+}
+
+public func <=(lhs: NSDate, rhs: NSDate) -> Bool {
+    return lhs < rhs || lhs == rhs
+}
+
+public func >(lhs: NSDate, rhs: NSDate) -> Bool {
+    return lhs.compare(rhs) == .OrderedDescending
+}
+
+public func >=(lhs: NSDate, rhs: NSDate) -> Bool {
+    return lhs > rhs || lhs == rhs
+}
+
 /// Alternative API for avoiding AutoreleasingUnsafeMutablePointer usage in NSCalendar and NSFormatter
 /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to the AutoreleasingUnsafeMutablePointer usage case of returning a NSDate + NSTimeInterval or using a pair of dates representing a range
 /// - Note: Since this API is under consideration it may be either removed or revised in the near future
