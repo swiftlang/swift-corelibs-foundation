@@ -344,11 +344,11 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     
     public subscript (idx: Int) -> AnyObject {
         get {
-                guard idx < count && idx >= 0 else {
-                    fatalError("\(self): Index out of bounds")
-                }
+            guard idx < count && idx >= 0 else {
+                fatalError("\(self): Index out of bounds")
+            }
             
-                return objectAtIndex(idx)
+            return objectAtIndex(idx)
         }
     }
     
