@@ -176,8 +176,8 @@ extension NSSet {
 
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
-        for var idx = 0; idx < array.count; idx++ {
-            buffer.advancedBy(idx).initialize(array[idx])
+        for (idx, element) in array.enumerate() {
+            buffer.advancedBy(idx).initialize(element)
         }
         self.init(objects: buffer, count: array.count)
         buffer.destroy(array.count)
