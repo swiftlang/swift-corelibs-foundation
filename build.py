@@ -42,7 +42,8 @@ foundation.CFLAGS += " ".join([
 	'-Wno-unused-variable',
 	'-Wno-int-conversion',
 	'-Wno-unused-function',
-	'-I./'
+	'-I/usr/include/libxml2',
+	'-I./',
 ])
 
 swift_cflags = [
@@ -56,7 +57,7 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	]
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
-foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore '
+foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore -lxml2 '
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	foundation.LDFLAGS += '-L${XCTEST_BUILD_DIR}'
@@ -119,6 +120,7 @@ private = [
 	'CoreFoundation/Stream.subproj/CFStreamAbstract.h',
 	'CoreFoundation/Base.subproj/CFInternal.h',
 	'CoreFoundation/Parsing.subproj/CFXMLInputStream.h',
+	'CoreFoundation/Parsing.subproj/CFXMLInterface.h',
 	'CoreFoundation/PlugIn.subproj/CFPlugIn_Factory.h',
 	'CoreFoundation/String.subproj/CFStringLocalizedFormattingInternal.h',
 	'CoreFoundation/PlugIn.subproj/CFBundle_Internal.h',
@@ -190,6 +192,7 @@ sources = CompileSources([
 	'CoreFoundation/Parsing.subproj/CFXMLNode.c',
 	'CoreFoundation/Parsing.subproj/CFXMLParser.c',
 	'CoreFoundation/Parsing.subproj/CFXMLTree.c',
+	'CoreFoundation/Parsing.subproj/CFXMLInterface.c',
 	'CoreFoundation/PlugIn.subproj/CFBundle.c',
 	'CoreFoundation/PlugIn.subproj/CFBundle_Binary.c',
 	'CoreFoundation/PlugIn.subproj/CFBundle_Grok.c',
@@ -358,6 +361,7 @@ foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/TestNSURL.swift',
     'TestFoundation/TestNSFileManager.swift',
     'TestFoundation/TestNSCharacterSet.swift',
+    'TestFoundation/TestNSXMLParser.swift',
 ])
 
 foundation_tests.add_dependency(foundation_tests_resources)
