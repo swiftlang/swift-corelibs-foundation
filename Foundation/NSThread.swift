@@ -146,6 +146,8 @@ public class NSThread : NSObject {
     
     internal var _main: (Void) -> Void = {}
     internal var _thread = pthread_t()
+    /// - Note: this differs from the Darwin implementation in that the keys must be Strings
+    public var threadDictionary = [String:AnyObject]()
     
     internal init(thread: pthread_t) {
         _thread = thread
