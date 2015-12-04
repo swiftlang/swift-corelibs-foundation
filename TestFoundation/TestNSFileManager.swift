@@ -123,9 +123,6 @@ class TestNSFileManger : XCTestCase {
             let fileOwnerAccountID = attrs[NSFileOwnerAccountID] as? NSNumber
             XCTAssertNotEqual(fileOwnerAccountID!.longLongValue, 0)
             
-            let fileGroupOwnerAccountID = attrs[NSFileGroupOwnerAccountID] as? NSNumber
-            XCTAssertEqual(fileGroupOwnerAccountID!.longLongValue, 0)
-            
         } catch let err {
             XCTFail("\(err)")
         }
