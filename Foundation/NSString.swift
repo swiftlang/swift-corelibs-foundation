@@ -694,11 +694,13 @@ extension NSString {
     }
     
     public convenience init?(data: NSData, encoding: UInt) {
-        NSUnimplemented()    
+        self.init(bytes: data.bytes, length: data.length, encoding: encoding)
     }
     
     public convenience init?(bytes: UnsafePointer<Void>, length len: Int, encoding: UInt) {
-        let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(bytes), len, CFStringConvertNSStringEncodingToEncoding(encoding), true)
+        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(bytes), len, CFStringConvertNSStringEncodingToEncoding(encoding), true) else {
+            return nil
+        }
         self.init(cf._swiftObject)
     }
     
@@ -707,7 +709,10 @@ extension NSString {
     }
     
     public convenience init?(CString nullTerminatedCString: UnsafePointer<Int8>, encoding: UInt) {
-        NSUnimplemented()    
+        guard let cf = CFStringCreateWithCString(kCFAllocatorDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding)) else {
+            return nil
+        }
+        self.init(cf._swiftObject)
     }
     
     public convenience init(contentsOfURL url: NSURL, encoding enc: UInt) throws {
