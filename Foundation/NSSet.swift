@@ -188,11 +188,11 @@ extension NSSet {
     public var allObjects: [AnyObject] {
         get {
             if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
-                return _storage.map { $0 }
+                return Array(_storage)
             } else {
                 var objects = [AnyObject]()
-                let enumerator = objectEnumerator()
-                while let obj = enumerator.nextObject() {
+                objects.reserveCapacity(count)
+                for obj in objectEnumerator() {
                     objects.append(obj)
                 }
                 return objects
