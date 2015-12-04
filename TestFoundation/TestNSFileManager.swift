@@ -96,8 +96,36 @@ class TestNSFileManger : XCTestCase {
         
         do {
             let attrs = try fm.attributesOfItemAtPath(path)
-            // TODO: Actually verify the contents of the dictionary.
+            
             XCTAssertTrue(attrs.count > 0)
+            
+            let fileSize = attrs[NSFileSize] as? NSNumber
+            XCTAssertEqual(fileSize!.longLongValue, 0)
+            
+            let fileModificationDate = attrs[NSFileModificationDate] as? NSDate
+            XCTAssertGreaterThan(NSDate().timeIntervalSince1970, fileModificationDate!.timeIntervalSince1970)
+            
+            let filePosixPermissions = attrs[NSFilePosixPermissions] as? NSNumber
+            XCTAssertNotEqual(filePosixPermissions!.longLongValue, 0)
+            
+            let fileReferenceCount = attrs[NSFileReferenceCount] as? NSNumber
+            XCTAssertEqual(fileReferenceCount!.longLongValue, 1)
+            
+            let fileSystemNumber = attrs[NSFileSystemNumber] as? NSNumber
+            XCTAssertNotEqual(fileSystemNumber!.longLongValue, 0)
+            
+            let fileSystemFileNumber = attrs[NSFileSystemFileNumber] as? NSNumber
+            XCTAssertNotEqual(fileSystemFileNumber!.longLongValue, 0)
+            
+            let fileType = attrs[NSFileType] as? String
+            XCTAssertEqual(fileType!, NSFileTypeRegular)
+            
+            let fileOwnerAccountID = attrs[NSFileOwnerAccountID] as? NSNumber
+            XCTAssertNotEqual(fileOwnerAccountID!.longLongValue, 0)
+            
+            let fileGroupOwnerAccountID = attrs[NSFileGroupOwnerAccountID] as? NSNumber
+            XCTAssertEqual(fileGroupOwnerAccountID!.longLongValue, 0)
+            
         } catch let err {
             XCTFail("\(err)")
         }
