@@ -50,9 +50,14 @@ extension NSNotification {
 }
 
 public class NSNotificationCenter : NSObject {
+    private var _observers = [NSNotificationObserver]()
     
+    
+    /* Returns the default singleton instance.
+    */
+    internal static let defaultInstance = NSNotificationCenter()
     public class func defaultCenter() -> NSNotificationCenter {
-        NSUnimplemented()
+        return defaultInstance
     }
     
     public func postNotification(notification: NSNotification) {
@@ -78,8 +83,26 @@ public class NSNotificationCenter : NSObject {
 
     
     public func addObserverForName(name: String?, object obj: AnyObject?, queue: NSOperationQueue?, usingBlock block: (NSNotification) -> Void) -> NSObjectProtocol {
-        NSUnimplemented()
+        // Create observer object and store it
+        let observer = NSNotificationObserver(name: name, object: obj, queue: queue, usingBlock: block)
+        _observers.append(observer)
+        return observer
     }
+}
 
+extension NSNotificationCenter {
+    
+    private class NSNotificationObserver : NSObject {
+        let name: String?
+        let object: AnyObject?
+        let queue: NSOperationQueue?
+        let block: (NSNotification) -> Void
+        init(name: String?, object obj: AnyObject?, queue: NSOperationQueue?, usingBlock block: (NSNotification) -> Void) {
+            self.name = name
+            self.object = obj
+            self.queue = queue
+            self.block = block
+        }
+    }
 }
 
