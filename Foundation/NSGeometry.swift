@@ -88,6 +88,12 @@ public struct CGRect {
     }
 }
 
+extension CGRect: Equatable { }
+
+public func ==(lhs: CGRect, rhs: CGRect) -> Bool {
+    return (lhs.origin == rhs.origin) && (lhs.size == lhs.size)
+}
+
 public typealias NSPoint = CGPoint
 
 public typealias NSPointPointer = UnsafeMutablePointer<NSPoint>
