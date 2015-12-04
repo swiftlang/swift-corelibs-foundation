@@ -630,11 +630,39 @@ extension NSString {
     }
     
     public func componentsSeparatedByString(separator: String) -> [String] {
-        NSUnimplemented()
+        let sepLength = separator.characters.count
+        var previousSplit = 0
+        var components = [String]()
+        for i in (0..<self.length) {
+            let range = NSRange(location: i, length: sepLength)
+            if self.substringWithRange(range) == separator {
+                let componentRange = NSRange(location: previousSplit, length: i - previousSplit)
+                let substr = self.substringWithRange(componentRange)
+                components.append(substr)
+                previousSplit = i + 1
+            }
+            if (self.length - i) <= sepLength {
+                components.append(self.substringFromIndex(i))
+                break
+            }
+        }
+        return components
     }
     
     public func componentsSeparatedByCharactersInSet(separator: NSCharacterSet) -> [String] {
-        NSUnimplemented()
+        let worker = self as String
+        var components = [String]()
+        var current = ""
+        for scalar in worker.unicodeScalars {
+            if separator.characterIsMember(unichar(unicodeScalarLiteral: scalar)) {
+                components.append(current)
+                current = ""
+            } else {
+                current.append(scalar)
+            }
+        }
+        components.append(current)
+        return components
     }
     
     public func stringByTrimmingCharactersInSet(set: NSCharacterSet) -> String {

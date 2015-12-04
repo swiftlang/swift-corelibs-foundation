@@ -99,5 +99,29 @@ public func NSStringFromRange(range: NSRange) -> String {
 }
 
 public func NSRangeFromString(aString: String) -> NSRange {
-    NSUnimplemented()
+    // just by playing around in the REPL, it looks like
+    // NSRangeFromString just walks through the string finding
+    // all integers in order, defaulting to 0 if they're not found.
+    return NSRangeParser.parseRange(aString)
+}
+
+struct NSRangeParser {
+    // removes all characters that are not decimal digits and commas.
+    static let decimalDigitsAndCommas: NSCharacterSet = {
+        let characterSet = NSMutableCharacterSet(bitmapRepresentation: NSCharacterSet.decimalDigitCharacterSet().bitmapRepresentation)
+        characterSet.addCharactersInString(",")
+        return characterSet.invertedSet
+    }()
+    static func parseRange(string: String) -> NSRange {
+        var final = NSRange(location: 0, length: 0)
+        let removeNonDigits = (string as NSString)
+                            .componentsSeparatedByCharactersInSet(NSRangeParser.decimalDigitsAndCommas)
+                            .joinWithSeparator("")
+        let ints = removeNonDigits.componentsSeparatedByString(",").flatMap { Int($0) }
+        guard let location = ints.first else { return final }
+        final.location = location
+        guard let length = ints.dropFirst().first else { return final }
+        final.length = length
+        return final
+    }
 }
