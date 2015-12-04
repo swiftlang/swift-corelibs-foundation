@@ -1816,14 +1816,6 @@ CFTypeRef objc_retainAutoreleasedReturnValue(CFTypeRef cf) {
     else return NULL;
 }
 
-#if DEPLOYMENT_TARGET_LINUX
-
-// The compiler current emits a reference to this symbol, but it is not actually present unless we define it here ourselves. This is a workaround until the compiler fix can be implemented.
-CF_EXPORT void *_TWVBO;
-void *_TWVBO = &_TWVBO;
-
-#endif
-
 #endif
 
 #undef __kCFAllocatorTypeID_CONST
