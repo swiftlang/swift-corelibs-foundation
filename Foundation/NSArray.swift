@@ -180,13 +180,11 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         objects.reserveCapacity(objects.count + range.length)
 
         if self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self {
-            objects.insertContentsOf(_storage[range.toRange()!], at: 0)
+            objects += _storage[range.toRange()!]
             return
         }
 
-        for idx in 0..<range.length {
-            objects.insert(self[range.location + idx], atIndex: idx)
-        }
+        objects += range.toRange()!.map { self[$0] }
     }
     
     public func indexOfObject(anObject: AnyObject) -> Int {
