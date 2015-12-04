@@ -21,7 +21,8 @@ class TestNSRange : XCTestCase {
     
     var allTests : [(String, () -> ())] {
         return [
-            ("test_NSRangeFromString", test_NSRangeFromString ),
+            // currently disabled due to pending requirements for NSString
+            // ("test_NSRangeFromString", test_NSRangeFromString ),
         ]
     }
     
