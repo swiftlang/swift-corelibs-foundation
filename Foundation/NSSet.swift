@@ -239,11 +239,10 @@ extension NSSet {
     }
     
     public func setByAddingObjectsFromSet(other: Set<NSObject>) -> Set<NSObject> {
-        var result: Set<NSObject>
+        var result = Set<NSObject>(minimumCapacity: max(count, other.count))
         if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
-            result = _storage
+            result.unionInPlace(_storage)
         } else {
-            result = Set<NSObject>()
             for case let obj as NSObject in self {
                 result.insert(obj)
             }
@@ -252,11 +251,10 @@ extension NSSet {
     }
     
     public func setByAddingObjectsFromArray(other: [AnyObject]) -> Set<NSObject> {
-        var result: Set<NSObject>
+        var result = Set<NSObject>(minimumCapacity: count)
         if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
-            result = _storage
+            result.unionInPlace(_storage)
         } else {
-            result = Set<NSObject>()
             for case let obj as NSObject in self {
                 result.insert(obj)
             }
