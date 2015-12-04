@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0B3F2FEB1C114C9E00264B07 /* Stack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6789AF1C114BD200ACE3E9 /* Stack.swift */; };
+		0B3F2FED1C114FFB00264B07 /* TestStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B3F2FEC1C114FFB00264B07 /* TestStack.swift */; };
 		525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
@@ -308,6 +310,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0B3F2FEC1C114FFB00264B07 /* TestStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestStack.swift; sourceTree = "<group>"; };
+		0B6789AF1C114BD200ACE3E9 /* Stack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stack.swift; sourceTree = "<group>"; };
 		522C253A1BF16E1600804FC6 /* FoundationErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationErrors.swift; sourceTree = "<group>"; };
 		525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileManager.swift; sourceTree = "<group>"; };
 		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Test.plist; sourceTree = "<group>"; };
@@ -996,6 +1000,7 @@
 				EA66F6431BF1619600136161 /* TestNSURL.swift */,
 				5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */,
 				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
+				0B3F2FEC1C114FFB00264B07 /* TestStack.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1165,6 +1170,7 @@
 				5BDC3FCF1BCF17E600ED97BB /* NSCFSet.swift */,
 				EADE0B541BD15DFF00C49C64 /* NSCache.swift */,
 				EADE0B781BD15DFF00C49C64 /* NSSortDescriptor.swift */,
+				0B6789AF1C114BD200ACE3E9 /* Stack.swift */,
 			);
 			name = Collections;
 			sourceTree = "<group>";
@@ -1537,6 +1543,7 @@
 				EADE0BA31BD15E0000C49C64 /* NSKeyedArchiver.swift in Sources */,
 				5BF7AEAD1BCD51F9008F214A /* NSError.swift in Sources */,
 				EADE0BB61BD15E0000C49C64 /* NSSortDescriptor.swift in Sources */,
+				0B3F2FEB1C114C9E00264B07 /* Stack.swift in Sources */,
 				5BF7AEA41BCD51F9008F214A /* NSBundle.swift in Sources */,
 				EAB57B721BD1C7A5004AC5C5 /* NSPortMessage.swift in Sources */,
 				EADE0BBB1BD15E0000C49C64 /* NSURLAuthenticationChallenge.swift in Sources */,
@@ -1676,6 +1683,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B3F2FED1C114FFB00264B07 /* TestStack.swift in Sources */,
 				525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */,
 				EA66F6501BF1619600136161 /* TestNSNumber.swift in Sources */,
 				EA66F6521BF1619600136161 /* TestNSPropertyList.swift in Sources */,
