@@ -211,19 +211,10 @@ extension NSSet {
     
     public func intersectsSet(otherSet: Set<NSObject>) -> Bool {
         if count < otherSet.count {
-            for obj in allObjects {
-                if otherSet.contains(obj as! NSObject) {
-                    return true
-                }
-            }
+            return contains { obj in otherSet.contains(obj as! NSObject) }
         } else {
-            for obj in otherSet {
-                if containsObject(obj) {
-                    return true
-                }
-            }
+            return otherSet.contains { obj in containsObject(obj) }
         }
-        return false
     }
     
     public func isEqualToSet(otherSet: Set<NSObject>) -> Bool {
