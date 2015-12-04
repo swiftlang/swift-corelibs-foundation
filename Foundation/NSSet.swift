@@ -191,12 +191,7 @@ extension NSSet {
             if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
                 return Array(_storage)
             } else {
-                var objects = [AnyObject]()
-                objects.reserveCapacity(count)
-                for obj in objectEnumerator() {
-                    objects.append(obj)
-                }
-                return objects
+                return Array(self)
             }
         }
     }
@@ -218,20 +213,12 @@ extension NSSet {
     }
     
     public func isEqualToSet(otherSet: Set<NSObject>) -> Bool {
-        if count != otherSet.count {
-            return false
-        }
-        for obj in otherSet where !containsObject(obj) {
-            return false
-        }
-        return true
+        return count == otherSet.count && isSubsetOfSet(otherSet)
     }
     
     public func isSubsetOfSet(otherSet: Set<NSObject>) -> Bool {
-        for case let obj as NSObject in allObjects where !otherSet.contains(obj) {
-            return false
-        }
-        return true
+        // `true` if we don't contain any object that `otherSet` doesn't contain.
+        return !self.contains { obj in !otherSet.contains(obj as! NSObject) }
     }
 
     public func setByAddingObject(anObject: AnyObject) -> Set<NSObject> {
