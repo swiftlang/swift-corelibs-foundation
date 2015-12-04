@@ -172,10 +172,7 @@ public func ==(lhs: NSDate, rhs: NSDate) -> Bool {
     return lhs.isEqualToDate(rhs)
 }
 public func <(lhs: NSDate, rhs: NSDate) -> Bool {
-    let t1 = lhs.timeIntervalSinceReferenceDate
-    let t2 = rhs.timeIntervalSinceReferenceDate
-    
-    return t1 < t2
+    return lhs.timeIntervalSinceReferenceDate < rhs.timeIntervalSinceReferenceDate
 }
 
 extension NSDate : _CFBridgable { }
