@@ -80,7 +80,7 @@ extension Set : _ObjectiveCBridgeable {
 
 public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
-    internal var _storage = Set<NSObject>()
+    internal var _storage: Set<NSObject>
     
     public var count: Int {
         get {
@@ -116,6 +116,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
+        _storage = Set(minimumCapacity: cnt)
         super.init()
         for idx in 0..<cnt {
             let obj = objects[idx] as! NSObject
