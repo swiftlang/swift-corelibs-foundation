@@ -11,9 +11,6 @@
 #ifndef __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__
 #define __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ 1
 
-#define NS_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
-#define NS_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
-
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFLocaleInternal.h>
@@ -21,7 +18,7 @@
 
 #import <fts.h>
 
-NS_ASSUME_NONNULL_BEGIN
+CF_ASSUME_NONNULL_BEGIN
 
 struct __CFSwiftObject {
     uintptr_t isa;
@@ -211,6 +208,6 @@ extern void _cf_uuid_unparse(const _cf_uuid_t uu, _cf_uuid_string_t out);
 extern void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out);
 extern void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
 
-NS_ASSUME_NONNULL_END
+CF_ASSUME_NONNULL_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */
