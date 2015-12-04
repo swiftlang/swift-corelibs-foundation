@@ -16,7 +16,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     }
     public init(indexes: UnsafePointer<Int>, length: Int) {
         _indexes = []
-        for var idx = 0; idx < length; idx++ {
+        for idx in 0..<length {
             _indexes.append(indexes[idx])
         }
     }
