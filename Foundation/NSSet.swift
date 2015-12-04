@@ -94,10 +94,8 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     
     public func member(object: AnyObject) -> AnyObject? {
         if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
-            if let obj = object as? NSObject {
-                if _storage.contains(obj) {
-                    return obj // this is not exactly the same behavior, but it is reasonably close
-                }
+            if let obj = object as? NSObject where _storage.contains(obj) {
+                return obj // this is not exactly the same behavior, but it is reasonably close
             }
             return nil
         } else {
