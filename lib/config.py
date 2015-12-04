@@ -48,21 +48,27 @@ class Configuration:
     def __init__(self):
         pass
 
+    def _encode_path(self, path):
+        if path is not None:
+            return path.absolute()
+        else:
+            return None
+
     def write(self, path):
         info = {
             'version' : self.version,
             'command' : self.command,
             'project' : self.project,
-            'script_path' : self.script_path.absolute(),
-            'build_script_path' : self.build_script_path.absolute(),
-            'source_root' : self.source_root.absolute(),
+            'script_path' : self._encode_path(self.script_path),
+            'build_script_path' : self._encode_path(self.build_script_path),
+            'source_root' : self._encode_path(self.source_root),
             'target' : self.target.triple,
-            'system_root' : self.system_root.absolute(),
+            'system_root' : self._encode_path(self.system_root),
             'toolchain' : self.toolchain,
-            'build_directory' : self.build_directory.absolute(),
-            'intermediate_directory' : self.intermediate_directory.absolute(),
-            'module_cache_directory' : self.module_cache_directory.absolute(),
-            'install_directory' : self.install_directory.absolute(),
+            'build_directory' : self._encode_path(self.build_directory),
+            'intermediate_directory' : self._encode_path(self.intermediate_directory),
+            'module_cache_directory' : self._encode_path(self.module_cache_directory),
+            'install_directory' : self._encode_path(self.install_directory),
             'prefix' : self.prefix,
             'swift_install' : self.swift_install,
             'clang' : self.clang,
@@ -71,7 +77,7 @@ class Configuration:
             'swiftc' : self.swiftc,
             'ar' : self.ar,
             'swift_sdk' : self.swift_sdk,
-            'bootstrap_directory' : self.bootstrap_directory.absolute(),
+            'bootstrap_directory' : self._encode_path(self.bootstrap_directory),
             'verbose' : self.verbose,
             'extra_c_flags' : self.extra_c_flags,
             'extra_swift_flags' : self.extra_swift_flags,
