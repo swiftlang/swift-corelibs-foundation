@@ -168,7 +168,9 @@ extension NSData {
     
     public convenience init(bytesNoCopy bytes: UnsafeMutablePointer<Void>, length: Int, freeWhenDone b: Bool) {
         self.init(bytes: bytes, length: length, copy: true) { buffer, length in
-            free(buffer)
+            if b {
+                free(buffer)
+            }
         }
     }
 
