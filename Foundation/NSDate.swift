@@ -178,23 +178,16 @@ extension CFDateRef : _NSBridgable {
 /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to the AutoreleasingUnsafeMutablePointer usage case of returning a NSDate + NSTimeInterval or using a pair of dates representing a range
 /// - Note: Since this API is under consideration it may be either removed or revised in the near future
 public class NSDateInterval : NSObject {
-    internal var _start: NSDate
-    public var start: NSDate {
-        return _start
-    }
-    
-    internal var _end: NSDate
-    public var end: NSDate {
-        return _end
-    }
+    public internal(set) var start: NSDate
+    public internal(set) var end: NSDate
     
     public var interval: NSTimeInterval {
         return end.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate
     }
     
     public required init(start: NSDate, end: NSDate) {
-        _start = start
-        _end = end
+        self.start = start
+        self.end = end
     }
     
     public convenience init(start: NSDate, interval: NSTimeInterval) {
