@@ -15,6 +15,8 @@
     import SwiftXCTest
 #endif
 
+import CoreFoundation
+
 class TestNSNull: XCTestCase {
     
     var allTests : [(String, () -> ())] {
@@ -24,7 +26,7 @@ class TestNSNull: XCTestCase {
     }
     
     func test_null() {
-        let nullIsDefined = NSNull.null() == NSNull.null()
+        let nullIsDefined = NSNull.null() == unsafeBitCast(kCFNull, NSNull.self)
         XCTAssertTrue(nullIsDefined)
     }
 
