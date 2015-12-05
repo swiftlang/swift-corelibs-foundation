@@ -321,15 +321,35 @@ extension NSFileHandle {
 
 public class NSPipe : NSObject {
     
+    private let readHandle: NSFileHandle
+    private let writeHandle: NSFileHandle
+    
     public override init() {
+        /// the `pipe` system call creates two `fd` in a malloc'ed area
+        var fds = UnsafeMutablePointer<Int32>.alloc(2)
+        defer {
+            free(fds)
+        }
+        /// If the operating system prevents us from creating file handles, stop
+        guard pipe(fds) == 0 else { fatalError("Could not open pipe file handles") }
         
+        /// The handles below auto-close when the `NSFileHandle` is deallocated, so we
+        /// don't need to add a `deinit` to this class
+        
+        /// Create the read handle from the first fd in `fds`
+        self.readHandle = NSFileHandle(fileDescriptor: fds.memory, closeOnDealloc: true)
+        
+        /// Advance `fds` by one to create the write handle from the second fd
+        self.writeHandle = NSFileHandle(fileDescriptor: fds.successor().memory, closeOnDealloc: true)
+        
+        super.init()
     }
     
     public var fileHandleForReading: NSFileHandle {
-        NSUnimplemented()
+        return self.readHandle
     }
-
+    
     public var fileHandleForWriting: NSFileHandle {
-        NSUnimplemented()
+        return self.writeHandle
     }
 }
