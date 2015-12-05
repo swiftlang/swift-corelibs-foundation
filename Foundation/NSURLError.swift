@@ -12,20 +12,20 @@
     @discussion Constants used by NSError to differentiate between "domains" of error codes, serving as a discriminator for error codes that originate from different subsystems or sources.
     @constant NSURLErrorDomain Indicates an NSURL error.
 */
-public let NSURLErrorDomain: String = "" // NSUnimplemented
+public let NSURLErrorDomain: String = "NSURLErrorDomain"
 
 /*!
     @const NSURLErrorFailingURLErrorKey
     @abstract The NSError userInfo dictionary key used to store and retrieve the URL which caused a load to fail.
 */
-public let NSURLErrorFailingURLErrorKey: String = "" // NSUnimplemented
+public let NSURLErrorFailingURLErrorKey: String = "NSErrorFailingURLKey"
 
 /*!
     @const NSURLErrorFailingURLStringErrorKey
     @abstract The NSError userInfo dictionary key used to store and retrieve the NSString object for the URL which caused a load to fail.
     @discussion This constant supersedes NSErrorFailingURLStringKey, which was deprecated in Mac OS X 10.6.  Both constants refer to the same value for backward-compatibility, but this symbol name has a better prefix.
 */
-public let NSURLErrorFailingURLStringErrorKey: String = "" // NSUnimplemented
+public let NSURLErrorFailingURLStringErrorKey: String = "NSErrorFailingURLStringKey"
 
 /*!
     @const NSErrorFailingURLStringKey
@@ -37,14 +37,14 @@ public let NSURLErrorFailingURLStringErrorKey: String = "" // NSUnimplemented
     @const NSURLErrorFailingURLPeerTrustErrorKey
     @abstract The NSError userInfo dictionary key used to store and retrieve the SecTrustRef object representing the state of a failed SSL handshake.
  */
-public let NSURLErrorFailingURLPeerTrustErrorKey: String = "" // NSUnimplemented
+public let NSURLErrorFailingURLPeerTrustErrorKey: String = "NSURLErrorFailingURLPeerTrustErrorKey"
 
 /*!
     @const NSURLErrorBackgroundTaskCancelledReasonKey
     @abstract The NSError userInfo dictionary key used to store and retrieve the NSNumber corresponding to the reason why a background
 	NSURLSessionTask was cancelled
  */
-public let NSURLErrorBackgroundTaskCancelledReasonKey: String = "" // NSUnimplemented
+public let NSURLErrorBackgroundTaskCancelledReasonKey: String = "NSURLErrorBackgroundTaskCancelledReasonKey"
 
 /*!
     @enum Codes associated with NSURLErrorBackgroundTaskCancelledReasonKey
