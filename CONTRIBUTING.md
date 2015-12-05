@@ -1,6 +1,6 @@
 # Contributing
 
-Contributions to Foundation are welcome! This project follows the [contribution guidelines for the Swift project](https://swift.org/contributing/#reporting-bugs). A few additional details are outlined below.
+Contributions to Foundation are welcome! This project follows the [contribution guidelines for the Swift project](https://swift.org/contributing/#contributing-code). A few additional details are outlined below.
 
 ## Licensing
 
