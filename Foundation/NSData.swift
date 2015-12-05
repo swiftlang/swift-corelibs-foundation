@@ -414,6 +414,28 @@ extension NSData {
         }
     }
     
+    public func writeToFile(path: String, atomically useAuxiliaryFile: Bool) -> Bool {
+        do {
+            try writeToFile(path, options: useAuxiliaryFile ? .DataWritingAtomic : [])
+        } catch {
+            return false
+        }
+        return true
+    }
+    
+    public func writeToURL(url: NSURL, atomically: Bool) -> Bool {
+        if url.fileURL {
+            if let path = url.path {
+                return writeToFile(path, atomically: atomically)
+            }
+        }
+        return false
+    }
+    
+    public func writeToURL(url: NSURL, options writeOptionsMask: NSDataWritingOptions) throws {
+        NSUnimplemented()
+    }
+    
     internal func enumerateByteRangesUsingBlockRethrows(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
         var err : ErrorType? = nil
         self.enumerateByteRangesUsingBlock() { (buf, range, stop) -> Void in
