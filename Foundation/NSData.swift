@@ -150,8 +150,9 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let buffer = UnsafePointer<UInt8>(bytes)
         for i in (0..<self.length) {
             if i > 0 && i % 4 == 0 { s += " " }
-            var byteStr = String(buffer[i], radix: 16, uppercase: false)
-            if byteStr.characters.count == 1 { byteStr = "0\(byteStr)" }
+            let byte = buffer[i]
+            var byteStr = String(byte, radix: 16, uppercase: false)
+            if byte <= 0xf { byteStr = "0\(byteStr)" }
             s += byteStr
         }
         return s
