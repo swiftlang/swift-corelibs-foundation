@@ -77,7 +77,7 @@ extension NSRegularExpression {
     /* The fundamental matching method on NSRegularExpression is a block iterator.  There are several additional convenience methods, for returning all matches at once, the number of matches, the first match, or the range of the first match.  Each match is specified by an instance of NSTextCheckingResult (of type NSTextCheckingTypeRegularExpression) in which the overall match range is given by the range property (equivalent to rangeAtIndex:0) and any capture group ranges are given by rangeAtIndex: for indexes from 1 to numberOfCaptureGroups.  {NSNotFound, 0} is used if a particular capture group does not participate in the match.
     */
     
-    public func enumerateMatchesInString(string: String, options: NSMatchingOptions, range: NSRange, usingBlock block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateMatchesInString(string: String, options: NSMatchingOptions, range: NSRange, @noescape usingBlock block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     
     public func matchesInString(string: String, options: NSMatchingOptions, range: NSRange) -> [NSTextCheckingResult] { NSUnimplemented() }
     public func numberOfMatchesInString(string: String, options: NSMatchingOptions, range: NSRange) -> Int { NSUnimplemented() }

@@ -332,11 +332,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     public func writeToFile(path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
     public func writeToURL(url: NSURL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
     
-    public func enumerateKeysAndObjectsUsingBlock(block: (NSObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateKeysAndObjectsUsingBlock(@noescape block: (NSObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateKeysAndObjectsWithOptions([], usingBlock: block)
     }
 
-    public func enumerateKeysAndObjectsWithOptions(opts: NSEnumerationOptions, usingBlock block: (NSObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateKeysAndObjectsWithOptions(opts: NSEnumerationOptions, @noescape usingBlock block: (NSObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         let count = self.count
         var keys = [AnyObject]()
         var objects = [AnyObject]()
@@ -353,22 +353,22 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
     
-    public func keysSortedByValueUsingComparator(cmptr: NSComparator) -> [AnyObject] {
+    public func keysSortedByValueUsingComparator(@noescape cmptr: NSComparator) -> [AnyObject] {
         return keysSortedByValueWithOptions([], usingComparator: cmptr)
     }
 
-    public func keysSortedByValueWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
+    public func keysSortedByValueWithOptions(opts: NSSortOptions, @noescape usingComparator cmptr: NSComparator) -> [AnyObject] {
         let sorted = allKeys.sort { lhs, rhs in
             return cmptr(lhs, rhs) == .OrderedSame
         }
         return sorted
     }
 
-    public func keysOfEntriesPassingTest(predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    public func keysOfEntriesPassingTest(@noescape predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         return keysOfEntriesWithOptions([], passingTest: predicate)
     }
 
-    public func keysOfEntriesWithOptions(opts: NSEnumerationOptions, passingTest predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    public func keysOfEntriesWithOptions(opts: NSEnumerationOptions, @noescape passingTest predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         var matching = Set<NSObject>()
         enumerateKeysAndObjectsWithOptions(opts) { key, value, stop in
             if predicate(key, value, stop) {

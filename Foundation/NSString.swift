@@ -527,11 +527,11 @@ extension NSString {
         NSUnimplemented()
     }
     
-    public func enumerateSubstringsInRange(range: NSRange, options opts: NSStringEnumerationOptions, usingBlock block: (String?, NSRange, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateSubstringsInRange(range: NSRange, options opts: NSStringEnumerationOptions, @noescape usingBlock block: (String?, NSRange, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         NSUnimplemented()
     }
     
-    public func enumerateLinesUsingBlock(block: (String, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateLinesUsingBlock(@noescape block: (String, UnsafeMutablePointer<ObjCBool>) -> Void) {
         NSUnimplemented()
     }
     

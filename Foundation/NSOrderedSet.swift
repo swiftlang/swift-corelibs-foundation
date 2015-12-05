@@ -81,22 +81,22 @@ extension NSOrderedSet {
     public var array: [AnyObject] { NSUnimplemented() }
     public var set: Set<NSObject> { NSUnimplemented() }
     
-    public func enumerateObjectsUsingBlock(block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
-    public func enumerateObjectsWithOptions(opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
-    public func enumerateObjectsAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateObjectsUsingBlock(@noescape block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateObjectsWithOptions(opts: NSEnumerationOptions, @noescape usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateObjectsAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, @noescape usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     
-    public func indexOfObjectPassingTest(predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
-    public func indexOfObjectWithOptions(opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
-    public func indexOfObjectAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
+    public func indexOfObjectPassingTest(@noescape predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
+    public func indexOfObjectWithOptions(opts: NSEnumerationOptions, @noescape passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
+    public func indexOfObjectAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, @noescape passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
     
-    public func indexesOfObjectsPassingTest(predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
-    public func indexesOfObjectsWithOptions(opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
-    public func indexesOfObjectsAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
+    public func indexesOfObjectsPassingTest(@noescape predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
+    public func indexesOfObjectsWithOptions(opts: NSEnumerationOptions, @noescape passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
+    public func indexesOfObjectsAtIndexes(s: NSIndexSet, options opts: NSEnumerationOptions, @noescape passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
     
-    public func indexOfObject(object: AnyObject, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
+    public func indexOfObject(object: AnyObject, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions, @noescape usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
     
-    public func sortedArrayUsingComparator(cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
-    public func sortedArrayWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
+    public func sortedArrayUsingComparator(@noescape cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
+    public func sortedArrayWithOptions(opts: NSSortOptions, @noescape usingComparator cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
     
     public func descriptionWithLocale(locale: AnyObject?) -> String { NSUnimplemented() }
     public func descriptionWithLocale(locale: AnyObject?, indent level: Int) -> String { NSUnimplemented() }
