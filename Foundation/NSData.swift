@@ -168,7 +168,9 @@ extension NSData {
     
     public convenience init(bytesNoCopy bytes: UnsafeMutablePointer<Void>, length: Int, freeWhenDone b: Bool) {
         self.init(bytes: bytes, length: length, copy: true) { buffer, length in
-            free(buffer)
+            if b {
+                free(buffer)
+            }
         }
     }
 
@@ -254,6 +256,36 @@ extension NSData {
 
     public convenience init(data: NSData) {
         self.init(bytes:data.bytes, length: data.length)
+    }
+    
+    public convenience init(contentsOfURL url: NSURL, options readOptionsMask: NSDataReadingOptions) throws {
+        if url.fileURL {
+            try self.init(contentsOfFile: url.path!, options: readOptionsMask)
+        } else {
+            let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
+            let cond = NSCondition()
+            var resError: NSError?
+            var resData: NSData?
+            let task = session.dataTaskWithURL(url, completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) -> Void in
+                resData = data
+                resError = error
+                cond.broadcast()
+            })
+            task.resume()
+            cond.wait()
+            if resData == nil {
+                throw resError!
+            }
+            self.init(data: resData!)
+        }
+    }
+    
+    public convenience init?(contentsOfURL url: NSURL) {
+        do {
+            try self.init(contentsOfURL: url, options: [])
+        } catch {
+            return nil
+        }
     }
 }
 

@@ -50,7 +50,7 @@ You will want to use the [Swift Package Manager](https://swift.org/package-manag
 
 ## Working on Foundation
 
-Please see [Getting Started](Docs/GettingStarted.md).
+For information on how to build Foundation, please see [Getting Started](Docs/GettingStarted.md). Once you're ready to make changes of your own, check out our [information on contributing](CONTRIBUTING.md).
 
 ## FAQ
 

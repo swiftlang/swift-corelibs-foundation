@@ -32,7 +32,7 @@ public class NSCache : NSObject {
     public var countLimit: Int = -1 // limits are imprecise/not strict
     public var evictsObjectsWithDiscardedContent: Bool = false
 
-    override init() {
+    public override init() {
         
     }
     

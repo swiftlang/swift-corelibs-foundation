@@ -213,7 +213,17 @@ rule SwiftExecutable
         for product in self.products:
             script += product.generate()
 
-        script += "\n\n"
+        script += """
+
+rule RunReconfigure
+    command = ./configure --reconfigure
+    description = Reconfiguring build script.
+
+build ${BUILD_DIR}/.reconfigure: RunReconfigure
+
+build reconfigure: phony | ${BUILD_DIR}/.reconfigure
+
+"""
         script += self.extra
         script += "\n\n"
 
