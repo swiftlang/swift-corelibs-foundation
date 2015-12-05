@@ -27,6 +27,16 @@ public struct CGFloat {
     public var native: NativeType
 }
 
+extension CGFloat: Comparable { }
+
+public func ==(lhs: CGFloat, rhs: CGFloat) -> Bool {
+    return lhs.native == rhs.native
+}
+
+public func <(lhs: CGFloat, rhs: CGFloat) -> Bool {
+    return lhs.native < rhs.native
+}
+
 public struct CGPoint {
     public var x: CGFloat
     public var y: CGFloat
