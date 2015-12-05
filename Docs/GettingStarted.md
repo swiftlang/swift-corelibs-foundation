@@ -74,3 +74,11 @@ LD_LIBRARY_PATH=../build/Ninja-ReleaseAssert/foundation-linux-x86_64/Foundation/
 ```
 
 Just copy & paste the correct line.
+
+When new source files or flags are added to the `build.py` script, the project will need to be reconfigured in order for the build system to pick them up. The top-level `swift/utils/build-script` can be used, but for quicker iteration you can use the following command to limit the reconfiguration to just the Foundation project:
+
+```
+% ninja reconfigure
+% ninja
+```
+
