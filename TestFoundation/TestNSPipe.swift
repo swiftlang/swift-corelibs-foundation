@@ -21,7 +21,7 @@ class TestNSPipe : XCTestCase {
     
     func test_NSPipe() {
         let expectation = self.expectationWithDescription("Should read data")
-        let aPipe = XNPipe()
+        let aPipe = NSPipe()
         
         let text = "test-pipe"
         
