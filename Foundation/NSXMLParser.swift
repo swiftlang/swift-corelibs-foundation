@@ -73,47 +73,39 @@ internal func _NSXMLParserExternalEntityWithURL(interface: _CFXMLInterface, urlS
     
     switch policy {
     case .ResolveExternalEntitiesSameOriginOnly:
-        if let url = parser._url {
-            if a == nil {
-                a = NSURL(string: String(urlStr))
+        guard let url = parser._url else { break }
+        
+        if a == nil {
+            a = NSURL(string: String(urlStr))
+        }
+        
+        guard let aUrl = a else { break }
+        
+        var matches: Bool
+        if let aHost = aUrl.host, host = url.host {
+            matches = host == aHost
+        } else {
+            return nil
+        }
+        
+        if matches {
+            if let aPort = aUrl.port, port = url.port {
+                matches = port == aPort
+            } else {
+                return nil
             }
-            if let aUrl = a {
-                var matches: Bool
-                if let aHost = aUrl.host {
-                    if let host = url.host {
-                        matches = host == aHost
-                    } else {
-                        matches = false
-                    }
-                } else {
-                    matches = false
-                }
-                if matches {
-                    if let aPort = aUrl.port {
-                        if let port = url.port {
-                            matches = port == aPort
-                        } else {
-                            matches = false
-                        }
-                    } else {
-                        matches = false
-                    }
-                }
-                if matches {
-                    if let aScheme = aUrl.scheme {
-                        if let scheme = url.scheme {
-                            matches = scheme == aScheme
-                        } else {
-                            matches = false
-                        }
-                    } else {
-                        matches = false
-                    }
-                }
-                if !matches {
-                    return nil
-                }
+        }
+        
+        if matches {
+            if let aScheme = aUrl.scheme, scheme = url.scheme {
+                matches = scheme == aScheme
+            } else {
+                return nil
             }
+        }
+        
+        if !matches {
+            return nil
         }
         break
     case .ResolveExternalEntitiesAlways:
@@ -262,18 +254,14 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
                 asAttrNamespaceNameString = "xmlns"
             }
             let namespaceValueString = namespaces[idx + 1] == nil ? UTF8STRING(namespaces[idx + 1]) : ""
-            if (reportNamespaces) {
-                if let k = namespaceNameString {
-                    if let v = namespaceValueString {
-                        nsDict[k] = v
-                    }
+            if reportNamespaces {
+                if let k = namespaceNameString, v = namespaceValueString {
+                    nsDict[k] = v
                 }
             }
             if !reportQNameURI {
-                if let k = asAttrNamespaceNameString {
-                    if let v = namespaceValueString {
-                        attrDict[k] = v
-                    }
+                if let k = asAttrNamespaceNameString, v = namespaceValueString {
+                    attrDict[k] = v
                 }
             }
         }
@@ -329,13 +317,13 @@ internal func _NSXMLParserEndElementNs(ctx: _CFXMLInterface , localname: UnsafeP
     let reportQNameURI = parser.shouldProcessNamespaces
     let prefixLen = prefix == nil ? strlen(UnsafePointer<Int8>(prefix)) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
-    let nilStr: String? = nil
+    let nilStr: String?
     let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix, prefixLen, localname, strlen(UnsafePointer<Int8>(localname))) : nilStr
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nilStr
     
     
     if let delegate = parser.delegate {
-        if (reportQNameURI) {
+        if reportQNameURI {
             // When reporting namespace info, the delegate parameters are not passed in nil
             delegate.parser(parser, didEndElement: localnameString!, namespaceURI: namespaceURIString == nil ? "" : namespaceURIString, qualifiedName: qualifiedNameString == nil ? "" : qualifiedNameString)
         } else {
