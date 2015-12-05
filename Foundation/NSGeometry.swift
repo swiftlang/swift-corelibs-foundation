@@ -27,6 +27,12 @@ public struct CGFloat {
     public var native: NativeType
 }
 
+extension Double {
+    public init(_ value: CGFloat) {
+        self = Double(value.native)
+    }
+}
+
 public struct CGPoint {
     public var x: CGFloat
     public var y: CGFloat

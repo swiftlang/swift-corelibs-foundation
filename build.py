@@ -350,6 +350,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
 # TODO: Probably this should be another 'product', but for now it's simply a phase
 foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/main.swift',
+	'TestFoundation/TestNSAffineTransform.swift',
 	'TestFoundation/TestNSArray.swift',
 	'TestFoundation/TestNSIndexSet.swift',
 	'TestFoundation/TestNSDictionary.swift',
