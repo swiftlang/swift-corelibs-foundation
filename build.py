@@ -352,6 +352,7 @@ foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/main.swift',
 	'TestFoundation/TestNSArray.swift',
 	'TestFoundation/TestNSIndexSet.swift',
+	'TestFoundation/TestNSData.swift',
 	'TestFoundation/TestNSDictionary.swift',
 	'TestFoundation/TestNSNumber.swift',
 	'TestFoundation/TestNSPropertyList.swift',
