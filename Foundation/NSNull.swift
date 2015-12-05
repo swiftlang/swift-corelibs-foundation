@@ -8,7 +8,14 @@
 //
 
 
+import CoreFoundation
+
 public class NSNull : NSObject, NSCopying, NSSecureCoding {
+    internal static let defaultInstance = kCFNull
+    public class func null() -> NSNull {
+        return defaultInstance._nsObject
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return self
     }
@@ -28,6 +35,15 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
     public static func supportsSecureCoding() -> Bool {
         return true
     }
+
 }
 
+extension NSNull : _CFBridgable {
+    typealias CFType = CFNullRef
+    internal var _cfObject: CFType { return unsafeBitCast(self, CFType.self) }
+}
 
+extension CFNullRef : _NSBridgable {
+    typealias NSType = NSNull
+    internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
+}
