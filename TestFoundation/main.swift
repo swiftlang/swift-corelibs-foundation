@@ -33,4 +33,5 @@ XCTMain([
     TestNSFileManger(),
     TestNSRange(),
     TestNSXMLParser(),
+    TestNSDate(),
 ])
