@@ -20,20 +20,23 @@ import SwiftXCTest
 class TestNSPipe : XCTestCase {
     
     func test_NSPipe() {
-        let expectation = self.expectationWithDescription("Should read data")
         let aPipe = NSPipe()
-        
         let text = "test-pipe"
         
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) { () -> Void in
-            let data = aPipe.fileHandleForReading.readDataOfLength(text.characters.count)
-            if String(data: data, encoding: NSUTF8StringEncoding) == text {
-                expectation.fulfill()
-            }
-        }
-        
+        // First write some data into the pipe
         aPipe.fileHandleForWriting.writeData(text.dataUsingEncoding(NSUTF8StringEncoding)!)
         
-        waitForExpectationsWithTimeout(1.0, handler: nil)
+        // Then read it out again
+        let data = aPipe.fileHandleForReading.readDataOfLength(text.characters.count)
+        
+        // Make sure we *did* get data
+        XCTAssertNotNil(data)
+        
+        // Make sure the data can be converted
+        let convertedData = String(data: data, encoding: NSUTF8StringEncoding)
+        XCTAssertNotNil(convertedData)
+        
+        // Make sure we did get back what we wrote in
+        XCTAssertEqual(text, convertedData)
     }
 }
