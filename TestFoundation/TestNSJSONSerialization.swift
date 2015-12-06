@@ -86,9 +86,8 @@ extension TestNSJSONSerialization {
             ("test_deserialize_values", test_deserialize_values),
             ("test_deserialize_numbers", test_deserialize_numbers),
             
-            ("test_deserialize_simpleStringEscapes", test_deserialize_simpleStringEscapes),
-            
-            ("test_deserialize_unicodeStringEscape", test_deserialize_unicodeStringEscape),
+            ("test_deserialize_simpleEscapeSequences", test_deserialize_simpleEscapeSequences),
+            ("test_deserialize_unicodeEscapeSequence", test_deserialize_unicodeEscapeSequence),
             
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
@@ -182,8 +181,8 @@ extension TestNSJSONSerialization {
         }
     }
     
-    //MARK: - String parsing
-    func test_deserialize_simpleStringEscapes() {
+    //MARK: - Escape Sequences
+    func test_deserialize_simpleEscapeSequences() {
         let subject = "[\"\\\"\", \"\\\\\", \"\\/\", \"\\b\", \"\\f\", \"\\n\", \"\\r\", \"\\t\"]"
         do {
             let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
@@ -200,7 +199,7 @@ extension TestNSJSONSerialization {
         }
     }
     
-    func test_deserialize_unicodeStringEscape() {
+    func test_deserialize_unicodeEscapeSequence() {
         let subject = "[\"\\u2728\"]"
         do {
             let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
