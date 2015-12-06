@@ -257,6 +257,18 @@ private struct JSONDeserializer {
         static let QuotationMark = UnicodeScalar(0x22) // "
         static let Escape        = UnicodeScalar(0x5C) // \
     }
+    
+    static func parseEscapedString(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
+        guard let (scalar, parser) = readScalar(input) else {
+            throw NSJSONSerializationError.UnexpectedEndOfFile
+        }
+        switch scalar {
+        case UnicodeScalar(0x22): // "    quotation mark  U+0022
+            return (scalar, parser)
+        default:
+            return nil
+        }
+    }
 
     static func parseString(input: UnicodeParser) throws -> (String, UnicodeParser)? {
         guard let begin = try consumeScalar(StringScalar.QuotationMark, input: input) else {
@@ -273,6 +285,11 @@ private struct JSONDeserializer {
             switch scalar {
             case StringScalar.QuotationMark:
                 return (String(value), UnicodeParser(view: view, index: index))
+            case StringScalar.Escape:
+                if let (escaped, newParser) = try parseEscapedString(UnicodeParser(view: view, index: index)) {
+                    value.append(escaped)
+                    index = newParser.index
+                }
             default:
                 value.append(scalar)
             }
