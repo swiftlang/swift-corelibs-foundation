@@ -500,48 +500,21 @@ extension NSString {
     }
     
     public func uppercaseStringWithLocale(locale: NSLocale?) -> String {
-        func uppercase(cfstring: CFString) -> String {
-            let uppercaseMutableCFString = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, cfstring)
-            CFStringUppercase(uppercaseMutableCFString, locale?._cfObject ?? nil)
-            return uppercaseMutableCFString._swiftObject
-        }
-
-        let characters = CFStringGetCharactersPtr(self._cfObject)
-        if characters != nil, let createdCFString = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, characters, CFStringGetLength(self._cfObject)) {
-            return uppercase(createdCFString)
-        } else {
-            return uppercase(self._cfObject)
-        }
+        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)
+        CFStringUppercase(mutableCopy, locale?._cfObject ?? nil)
+        return mutableCopy._swiftObject
     }
 
     public func lowercaseStringWithLocale(locale: NSLocale?) -> String {
-        func lowercase(cfstring: CFString) -> String {
-            let lowercaseMutableCFString = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, cfstring)
-            CFStringLowercase(lowercaseMutableCFString, locale?._cfObject ?? nil)
-            return lowercaseMutableCFString._swiftObject
-        }
-
-        let characters = CFStringGetCharactersPtr(self._cfObject)
-        if characters != nil, let createdCFString = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, characters, CFStringGetLength(self._cfObject)) {
-            return lowercase(createdCFString)
-        } else {
-            return lowercase(self._cfObject)
-        }
+        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)
+        CFStringLowercase(mutableCopy, locale?._cfObject ?? nil)
+        return mutableCopy._swiftObject
     }
     
     public func capitalizedStringWithLocale(locale: NSLocale?) -> String {
-        func capitalize(cfstring: CFString) -> String {
-            let capitalizeMutableCFString = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, cfstring)
-            CFStringCapitalize(capitalizeMutableCFString, locale?._cfObject ?? nil)
-            return capitalizeMutableCFString._swiftObject
-        }
-
-        let characters = CFStringGetCharactersPtr(self._cfObject)
-        if characters != nil, let createdCFString = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, characters, CFStringGetLength(self._cfObject)) {
-            return capitalize(createdCFString)
-        } else {
-            return capitalize(self._cfObject)
-        }
+        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)
+        CFStringCapitalize(mutableCopy, locale?._cfObject ?? nil)
+        return mutableCopy._swiftObject
     }
     
     public func getLineStart(startPtr: UnsafeMutablePointer<Int>, end lineEndPtr: UnsafeMutablePointer<Int>, contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>, forRange range: NSRange) {
