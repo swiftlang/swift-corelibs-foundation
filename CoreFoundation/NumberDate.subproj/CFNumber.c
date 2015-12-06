@@ -1099,6 +1099,7 @@ static inline void _CFNumberInit(CFNumberRef result, CFNumberType type, const vo
         case kCFNumberFloat32Type: memmove((void *)&result->_pad, valuePtr, 4); break;
         case kCFNumberFloat64Type: memmove((void *)&result->_pad, valuePtr, 8); break;
     }
+    __CFBitfieldSetValue(((struct __CFNumber *)result)->_base._cfinfo[CF_INFO_BITS], 4, 0, (uint8_t)__CFNumberTypeTable[type].canonicalType);
 }
 
 CF_EXPORT void _CFNumberInitBool(CFNumberRef result, Boolean value) {
