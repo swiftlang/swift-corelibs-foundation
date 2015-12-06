@@ -116,6 +116,7 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(NSLocale.self, UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(NSTimeZone.self, UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(NSMutableCharacterSet.self, UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFNullGetTypeID(), unsafeBitCast(NSNull.self, UnsafePointer<Void>.self))
     
 //    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, UnsafePointer<Void>.self))

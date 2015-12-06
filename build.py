@@ -362,6 +362,7 @@ foundation_tests = SwiftExecutable('TestFoundation', [
     'TestFoundation/TestNSFileManager.swift',
     'TestFoundation/TestNSCharacterSet.swift',
     'TestFoundation/TestNSXMLParser.swift',
+    'TestFoundation/TestNSNull.swift',
 ])
 
 foundation_tests.add_dependency(foundation_tests_resources)
