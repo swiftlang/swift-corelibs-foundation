@@ -130,6 +130,7 @@ extension TestNSJSONSerialization {
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
+            ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
         ]
     }
     
@@ -187,6 +188,19 @@ extension TestNSJSONSerialization {
             XCTFail("Expected error: Missing key for value")
         } catch let NSJSONSerializationError.MissingObjectKey(index){
             XCTAssertEqual(index, 1)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_unexpectedEndOfFile() {
+        let subject = "{"
+        
+        do {
+            try NSJSONSerialization.JSONObjectWithString(subject)
+            XCTFail("Expected error: Unexpected end of file")
+        } catch NSJSONSerializationError.UnexpectedEndOfFile {
+            // Success
         } catch {
             XCTFail("Unexpected error: \(error)")
         }

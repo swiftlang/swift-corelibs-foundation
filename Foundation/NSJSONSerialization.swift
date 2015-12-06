@@ -29,6 +29,7 @@ enum NSJSONSerializationError: ErrorType {
     case NotAnArrayOrObject
     case UnterminatedString(String.UnicodeScalarIndex.Distance)
     case MissingObjectKey(String.UnicodeScalarIndex.Distance)
+    case UnexpectedEndOfFile
 }
 
 /* A class for converting JSON to Foundation/Swift objects and converting Foundation/Swift objects to JSON.
@@ -206,16 +207,16 @@ private struct JSONDeserializer {
         static let ValueSeparator = UnicodeScalar(0x2C) // , comma
     }
     
-    static func consumeStructure(scalar: UnicodeScalar, input: UnicodeParser) -> UnicodeParser? {
-        if let parser = consumeScalar(scalar, input: consumeWhitespace(input)) {
+    static func consumeStructure(scalar: UnicodeScalar, input: UnicodeParser) throws -> UnicodeParser? {
+        if let parser = try consumeScalar(scalar, input: consumeWhitespace(input)) {
             return consumeWhitespace(parser)
         }
         return nil
     }
     
-    static func consumeScalar(scalar: UnicodeScalar, input: UnicodeParser) -> UnicodeParser? {
+    static func consumeScalar(scalar: UnicodeScalar, input: UnicodeParser) throws -> UnicodeParser? {
         guard input.index < input.view.endIndex else {
-            return nil
+            throw NSJSONSerializationError.UnexpectedEndOfFile
         }
         if scalar == input.view[input.index] {
             return input.successor()
@@ -229,7 +230,7 @@ private struct JSONDeserializer {
     }
 
     static func readString(input: UnicodeParser) throws -> (String, UnicodeParser)? {
-        guard let begin = consumeScalar(StringScalar.QuotationMark, input: input) else {
+        guard let begin = try consumeScalar(StringScalar.QuotationMark, input: input) else {
             return nil
         }
         let view = begin.view
@@ -261,7 +262,7 @@ private struct JSONDeserializer {
         guard let (name, parser) = try readString(input) else {
             throw NSJSONSerializationError.MissingObjectKey(input.distanceFromStart)
         }
-        guard let separatorParser = consumeStructure(StructureScalar.NameSeparator, input: parser) else {
+        guard let separatorParser = try consumeStructure(StructureScalar.NameSeparator, input: parser) else {
             return nil
         }
         guard let (value, finalParser) = try parseValue(separatorParser) else {
@@ -272,23 +273,23 @@ private struct JSONDeserializer {
     }
 
     static func parseObject(input: UnicodeParser) throws -> ([String: AnyObject], UnicodeParser)? {
-        guard let beginParser = consumeStructure(StructureScalar.BeginObject, input: input) else {
+        guard let beginParser = try consumeStructure(StructureScalar.BeginObject, input: input) else {
             return nil
         }
         var parser = beginParser
         var output: [String: AnyObject] = [:]
         while true {
-            if let finalParser = consumeStructure(StructureScalar.EndObject, input: parser) {
+            if let finalParser = try consumeStructure(StructureScalar.EndObject, input: parser) {
                 return (output, finalParser)
             }
     
             if let (key, value, newParser) = try parseObjectMember(parser) {
                 output[key] = value
     
-                if let finalParser = consumeStructure(StructureScalar.EndObject, input: newParser) {
+                if let finalParser = try consumeStructure(StructureScalar.EndObject, input: newParser) {
                     return (output, finalParser)
                 }
-                else if let nextParser = consumeStructure(StructureScalar.ValueSeparator, input: newParser) {
+                else if let nextParser = try consumeStructure(StructureScalar.ValueSeparator, input: newParser) {
                     parser = nextParser
                     continue
                 }
