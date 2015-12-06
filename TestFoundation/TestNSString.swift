@@ -36,6 +36,7 @@ class TestNSString : XCTestCase {
             ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
             ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
+            ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet ),
         ]
     }
 
@@ -163,5 +164,28 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(string.rangeOfCharacterFromSet(decimalDigits).location, 0)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [.BackwardsSearch]).location, 2)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [], range: NSMakeRange(2, 1)).location, 2)
+    }
+ 
+    func test_stringByTrimmingCharactersInSet() {
+        XCTAssertEqual("\u{feff}".stringByTrimmingCharactersInSet(NSCharacterSet.controlCharacterSet()), "")
+        XCTAssertEqual("a".stringByTrimmingCharactersInSet(NSCharacterSet.letterCharacterSet()), "")
+        XCTAssertEqual("a".stringByTrimmingCharactersInSet(NSCharacterSet.lowercaseLetterCharacterSet()), "")
+        XCTAssertEqual("A".stringByTrimmingCharactersInSet(NSCharacterSet.uppercaseLetterCharacterSet()), "")
+        XCTAssertEqual("\u{01c5}".stringByTrimmingCharactersInSet(NSCharacterSet.uppercaseLetterCharacterSet()), "")
+        XCTAssertEqual("\u{01c5}".stringByTrimmingCharactersInSet(NSCharacterSet.capitalizedLetterCharacterSet()), "")
+        XCTAssertEqual("\u{002b}".stringByTrimmingCharactersInSet(NSCharacterSet.symbolCharacterSet()), "")
+        XCTAssertEqual("\u{20b1}".stringByTrimmingCharactersInSet(NSCharacterSet.symbolCharacterSet()), "")
+        XCTAssertEqual("\u{000a}".stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet()), "")
+        XCTAssertEqual("\u{2029}".stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet()), "")
+
+        let cset1 = NSCharacterSet(charactersInString: "ABC123")
+        XCTAssertEqual("".stringByTrimmingCharactersInSet(cset1), "")
+        XCTAssertEqual("321CBA".stringByTrimmingCharactersInSet(cset1), "", "Should trim everything")
+        XCTAssertEqual("CBAabc".stringByTrimmingCharactersInSet(cset1), "abc", "Should trim only first 3 characters")
+        XCTAssertEqual("cbaABC".stringByTrimmingCharactersInSet(cset1), "cba", "Should trim only last 3 characters")
+        XCTAssertEqual("cba123abc".stringByTrimmingCharactersInSet(cset1), "cba123abc", "Should not trim anything")
+
+        let cset2 = NSCharacterSet(charactersInString: "юникодユニコード")
+        XCTAssertEqual("ЮНИゆにコドкод".stringByTrimmingCharactersInSet(cset2), "ЮНИゆに")
     }
 }

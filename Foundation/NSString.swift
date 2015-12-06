@@ -676,7 +676,29 @@ extension NSString {
     }
     
     public func stringByTrimmingCharactersInSet(set: NSCharacterSet) -> String {
-        NSUnimplemented()
+        let characters = _swiftObject.utf16
+        var start = characters.startIndex
+        var end = characters.endIndex
+
+        for char in characters {
+            guard set.characterIsMember(char) else {
+                break
+            }
+
+            start = start.successor()
+        }
+
+        if start < end {
+            for char in characters.suffixFrom(start).reverse() {
+                guard set.characterIsMember(char) else {
+                    break
+                }
+
+                end = end.predecessor()
+            }
+        }
+
+        return String(characters[Range<String.UTF16View.Index>(start: start, end: end)])
     }
     
     public func stringByPaddingToLength(newLength: Int, withString padString: String, startingAtIndex padIndex: Int) -> String {
