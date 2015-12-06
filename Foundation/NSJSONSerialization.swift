@@ -322,6 +322,10 @@ private struct JSONDeserializer {
                 if let finalParser = try consumeStructure(StructureScalar.EndArray, input: newParser) {
                     return (output, finalParser)
                 }
+                else if let nextParser = try consumeStructure(StructureScalar.ValueSeparator, input: newParser) {
+                    parser = nextParser
+                    continue
+                }
                 else {
                     return nil
                 }
