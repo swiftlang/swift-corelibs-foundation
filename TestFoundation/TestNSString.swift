@@ -136,7 +136,7 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(NSString(stringLiteral: "абВГ").uppercaseString, "АБВГ")
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercaseString, "たちつてと")
 
-        // Special casting (see swift/validation-tests/stdlib/NSStringAPI.swift)
+        // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
         XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0049}")
         XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0130}")
         XCTAssertEqual(NSString(stringLiteral: "\u{00df}").uppercaseString, "\u{0053}\u{0053}")
@@ -148,7 +148,7 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(NSString(stringLiteral: "aБВГ").lowercaseString, "aбвг")
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercaseString, "たちつてと")
 
-        // Special casting (see swift/validation-tests/stdlib/NSStringAPI.swift)
+        // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
         XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
         XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
         XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
