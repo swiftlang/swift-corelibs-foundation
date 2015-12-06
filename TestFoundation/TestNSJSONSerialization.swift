@@ -131,9 +131,11 @@ extension TestNSJSONSerialization {
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
             ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
+            ("test_deserialize_emptyArray", test_deserialize_emptyArray),
         ]
     }
     
+    //MARK: - Object Deserialization
     func test_deserialize_emptyObject() {
         let subject = "{}"
         
@@ -201,6 +203,18 @@ extension TestNSJSONSerialization {
             XCTFail("Expected error: Unexpected end of file")
         } catch NSJSONSerializationError.UnexpectedEndOfFile {
             // Success
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    //MARK: - Array Deserialization
+    func test_deserialize_emptyArray() {
+        let subject = "[]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
+            XCTAssertEqual(result?.count, 0)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }

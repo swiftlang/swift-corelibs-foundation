@@ -88,6 +88,9 @@ internal extension NSJSONSerialization {
         if let (object, _) = try JSONDeserializer.parseObject(parser) {
             return object
         }
+        else if let (array, _) = try JSONDeserializer.parseArray(parser) {
+            return array
+        }
         throw NSJSONSerializationError.NotAnArrayOrObject
     }
 }
@@ -292,6 +295,31 @@ private struct JSONDeserializer {
                 else if let nextParser = try consumeStructure(StructureScalar.ValueSeparator, input: newParser) {
                     parser = nextParser
                     continue
+                }
+                else {
+                    return nil
+                }
+            }
+            return nil
+        }
+    }
+
+    static func parseArray(input: UnicodeParser) throws -> ([AnyObject], UnicodeParser)? {
+        guard let beginParser = try consumeStructure(StructureScalar.BeginArray, input: input) else {
+            return nil
+        }
+        var parser = beginParser
+        var output: [AnyObject] = []
+        while true {
+            if let finalParser = try consumeStructure(StructureScalar.EndArray, input: parser) {
+                return (output, finalParser)
+            }
+    
+            if let (value, newParser) = try parseValue(parser) {
+                output.append(value)
+    
+                if let finalParser = try consumeStructure(StructureScalar.EndArray, input: newParser) {
+                    return (output, finalParser)
                 }
                 else {
                     return nil
