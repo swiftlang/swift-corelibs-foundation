@@ -282,10 +282,10 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             return false
         }
         
-        for (key, value) in _storage {
+        for key in keyEnumerator() {
             if otherDictionary[key] == nil {
                 return false
-            } else if otherDictionary[key] != value {
+            } else if otherDictionary[key] != objectForKey(key) {
                 return false
             }
         }
