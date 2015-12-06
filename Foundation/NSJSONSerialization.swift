@@ -254,6 +254,21 @@ private struct JSONDeserializer {
         }
         return (input.view[input.index], input.successor())
     }
+    
+    static func takeInClass(matchClass: String.UnicodeScalarView, count: UInt = UInt.max, input: UnicodeParser) -> (String.UnicodeScalarView, UnicodeParser)? {
+        var output = String.UnicodeScalarView()
+        var remaining = count
+        var parser = input
+        while remaining > 0, let (taken, newParser) = takeScalar(parser) where matchClass.contains(taken) {
+            output.append(taken)
+            parser = newParser
+            remaining -= 1
+        }
+        guard output.count > 0 && (count != UInt.max || remaining == 0) else {
+            return nil
+        }
+        return (output, parser)
+    }
 
     //MARK: - String Parsing
     struct StringScalar{
@@ -321,7 +336,11 @@ private struct JSONDeserializer {
     }
     
     static func parseUnicodeSequence(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
-        return nil
+        guard let (result, parser) = takeInClass("1234567890abcdefABCDEF".unicodeScalars, count: 4, input: input),
+              let value = Int(String(result), radix: 16) else {
+            return nil
+        }
+        return (UnicodeScalar(value), parser)
     }
     
     //MARK: - Number parsing

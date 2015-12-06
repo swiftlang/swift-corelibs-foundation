@@ -88,6 +88,8 @@ extension TestNSJSONSerialization {
             
             ("test_deserialize_simpleStringEscapes", test_deserialize_simpleStringEscapes),
             
+            ("test_deserialize_unicodeStringEscape", test_deserialize_unicodeStringEscape),
+            
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
             ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
@@ -193,6 +195,16 @@ extension TestNSJSONSerialization {
             XCTAssertEqual(result?[5], "\u{0A}")
             XCTAssertEqual(result?[6], "\u{0D}")
             XCTAssertEqual(result?[7], "\u{09}")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_unicodeStringEscape() {
+        let subject = "[\"\\u2728\"]"
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
+            XCTAssertEqual(result?[0], "✨")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
