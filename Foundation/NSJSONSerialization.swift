@@ -68,3 +68,68 @@ public class NSJSONSerialization : NSObject {
         NSUnimplemented()
     }
 }
+
+
+//MARK: - Encoding Detection
+
+internal extension NSJSONSerialization {
+    
+    class func detectEncoding(data: NSData) -> NSStringEncoding {
+        let bytes = UnsafePointer<UInt8>(data.bytes)
+        let length = data.length
+        if let encoding = parseBOM(bytes, length: length) {
+            return encoding
+        }
+        
+        if length >= 4 {
+            switch (bytes[0], bytes[1], bytes[2], bytes[3]) {
+            case (0, 0, 0, _):
+                return NSUTF32BigEndianStringEncoding
+            case (_, 0, 0, 0):
+                return NSUTF32LittleEndianStringEncoding
+            case (0, _, 0, _):
+                return NSUTF16BigEndianStringEncoding
+            case (_, 0, _, 0):
+                return NSUTF16LittleEndianStringEncoding
+            default:
+                break
+            }
+        }
+        else if length >= 2 {
+            switch (bytes[0], bytes[1]) {
+            case (0, _):
+                return NSUTF16BigEndianStringEncoding
+            case (_, 0):
+                return NSUTF16LittleEndianStringEncoding
+            default:
+                break
+            }
+        }
+        return NSUTF8StringEncoding
+    }
+    
+    static func parseBOM(bytes: UnsafePointer<UInt8>, length: Int) -> NSStringEncoding? {
+        if length >= 2 {
+            switch (bytes[0], bytes[1]) {
+            case (0xEF, 0xBB):
+                if length >= 3 && bytes[2] == 0xBF {
+                    return NSUTF8StringEncoding
+                }
+            case (0x00, 0x00):
+                if length >= 4 && bytes[2] == 0xFE && bytes[3] == 0xFF {
+                    return NSUTF32BigEndianStringEncoding
+                }
+            case (0xFF, 0xFE):
+                if length >= 4 && bytes[2] == 0 && bytes[3] == 0 {
+                    return NSUTF32LittleEndianStringEncoding
+                }
+                return NSUTF16LittleEndianStringEncoding
+            case (0xFE, 0xFF):
+                return NSUTF16BigEndianStringEncoding
+            default:
+                break
+            }
+        }
+        return nil
+    }
+}
