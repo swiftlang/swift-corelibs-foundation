@@ -345,7 +345,7 @@ private struct JSONDeserializer {
         guard value.count > 0, let result = Double(String(value)) else {
             return nil
         }
-        return (NSNumber(double: result), UnicodeParser(view: view, index: index))
+        return (result, UnicodeParser(view: view, index: index))
     }
 
     static func parseValue(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
