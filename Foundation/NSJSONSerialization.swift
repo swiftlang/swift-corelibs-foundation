@@ -32,6 +32,7 @@ enum NSJSONSerializationError: ErrorType {
     case UnterminatedString(Position)
     case MissingObjectKey(Position)
     case InvalidValue(Position)
+    case MissingTrailingSurrogate(Position)
     case InvalidEscapeSequence(Position)
     case BadlyFormedArray(Position)
     case UnexpectedEndOfFile
@@ -338,11 +339,39 @@ private struct JSONDeserializer {
     }
     
     static func parseUnicodeSequence(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
-        guard let (result, parser) = takeInClass("1234567890abcdefABCDEF".unicodeScalars, count: 4, input: input),
-              let value = Int(String(result), radix: 16) else {
+        
+        guard let (codeUnit, parser) = parseCodeUnit(input) else {
             return nil
         }
-        return (UnicodeScalar(value), parser)
+        
+        if !UTF16.isLeadSurrogate(codeUnit) {
+            return (UnicodeScalar(codeUnit), parser)
+        }
+        
+        guard let (trailCodeUnit, finalParser) = try consumeSequence("\\u", input: parser).flatMap(parseCodeUnit) else {
+            return nil
+        }
+        if !UTF16.isTrailSurrogate(trailCodeUnit) {
+            throw NSJSONSerializationError.MissingTrailingSurrogate(parser.distanceFromStart)
+        }
+        
+        var utf = UTF16()
+        var generator = [codeUnit, trailCodeUnit].generate()
+        switch utf.decode(&generator) {
+        case .Result(let scalar):
+            return (scalar, finalParser)
+        default:
+            return nil
+        }
+    }
+    
+    static let hexScalars = "1234567890abcdefABCDEF".unicodeScalars
+    static func parseCodeUnit(input: UnicodeParser) -> (UTF16.CodeUnit, UnicodeParser)? {
+        guard let (result, parser) = takeInClass(hexScalars, count: 4, input: input),
+            let value = Int(String(result), radix: 16) else {
+                return nil
+        }
+        return (UTF16.CodeUnit(value), parser)
     }
     
     //MARK: - Number parsing
