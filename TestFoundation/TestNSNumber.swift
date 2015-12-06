@@ -23,7 +23,7 @@ class TestNSNumber : XCTestCase {
             ("test_NumberWithBool", test_NumberWithBool ),
             ("test_numberWithChar", test_numberWithChar ),
             ("test_numberWithUnsignedChar", test_numberWithUnsignedChar ),
-            ("test_numberWithShort", test_numberWithShort ),   
+            ("test_numberWithShort", test_numberWithShort ),
             ("test_numberWithFloat", test_numberWithFloat ),
             ("test_numberWithDouble", test_numberWithDouble ),
         ]
