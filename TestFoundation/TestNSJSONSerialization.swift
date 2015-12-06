@@ -127,6 +127,7 @@ extension TestNSJSONSerialization {
         return [
             ("test_deserialize_emptyObject", test_deserialize_emptyObject),
             ("test_deserialize_objectWithString", test_deserialize_objectWithString),
+            ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
         ]
     }
     
@@ -152,4 +153,14 @@ extension TestNSJSONSerialization {
         }
     }
     
+    func test_deserialize_multiStringObject() {
+        let subject = "{ \"hello\": \"world\", \"swift\": \"rocks\" }"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String: String]
+            XCTAssertEqual(result?["swift"], "rocks")
+        } catch {
+            XCTFail("Error thrown: \(error)")
+        }
+    }
 }
