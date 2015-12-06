@@ -24,6 +24,11 @@ public struct NSJSONWritingOptions : OptionSetType {
     public static let PrettyPrinted = NSJSONWritingOptions(rawValue: 1 << 0)
 }
 
+enum NSJSONSerializationError: ErrorType {
+    case InvalidStringEncoding
+    case NotAnArrayOrObject
+}
+
 /* A class for converting JSON to Foundation/Swift objects and converting Foundation/Swift objects to JSON.
    
    An object that may be converted to JSON must have the following properties:
@@ -53,7 +58,10 @@ public class NSJSONSerialization : NSObject {
        The data must be in one of the 5 supported encodings listed in the JSON specification: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE. The data may or may not have a BOM. The most efficient encoding to use for parsing is UTF-8, so if you have a choice in encoding the data passed to this method, use UTF-8.
      */
     public class func JSONObjectWithData(data: NSData, options opt: NSJSONReadingOptions) throws -> AnyObject {
-        NSUnimplemented()
+        guard let string = NSString(data: data, encoding: NSUTF8StringEncoding) else {
+            throw NSJSONSerializationError.InvalidStringEncoding
+        }
+        return try JSONObjectWithString(string as String)
     }
     
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
@@ -69,6 +77,17 @@ public class NSJSONSerialization : NSObject {
     }
 }
 
+//MARK: - Deserialization
+internal extension NSJSONSerialization {
+    
+    static func JSONObjectWithString(string: String) throws -> AnyObject {
+        let parser = JSONDeserializer.UnicodeParser(view: string.unicodeScalars)
+        if let (object, _) = JSONDeserializer.parseObject(parser) {
+            return object
+        }
+        throw NSJSONSerializationError.NotAnArrayOrObject
+    }
+}
 
 //MARK: - Encoding Detection
 
@@ -131,5 +150,84 @@ internal extension NSJSONSerialization {
             }
         }
         return nil
+    }
+}
+
+//MARK: - JSONDeserializer
+private struct JSONDeserializer {
+    
+    struct UnicodeParser {
+        let view: String.UnicodeScalarView
+        let index: String.UnicodeScalarIndex
+        
+        init(view: String.UnicodeScalarView, index: String.UnicodeScalarIndex) {
+            self.view = view
+            self.index = index
+        }
+        
+        init(view: String.UnicodeScalarView) {
+            self.init(view: view, index: view.startIndex)
+        }
+        
+        func successor() -> UnicodeParser {
+            return UnicodeParser(view: view, index: index.successor())
+        }
+    }
+    
+    static let whitespaceScalars = [
+        UnicodeScalar(0x20), // Space
+        UnicodeScalar(0x09), // Horizontal tab
+        UnicodeScalar(0x0A), // Line feed or New line
+        UnicodeScalar(0x0D)  // Carriage return
+    ]
+    
+    static func consumeWhitespace(parser: UnicodeParser) -> UnicodeParser {
+        var index = parser.index
+        let view = parser.view
+        let endIndex = view.endIndex
+        while index < endIndex && whitespaceScalars.contains(view[index]) {
+            index = index.successor()
+        }
+        return UnicodeParser(view: view, index: index)
+    }
+    
+    struct StructureScalar {
+        static let BeginArray     = UnicodeScalar(0x5B) // [ left square bracket
+        static let EndArray       = UnicodeScalar(0x5D) // ] right square bracket
+        static let BeginObject    = UnicodeScalar(0x7B) // { left curly bracket
+        static let EndObject      = UnicodeScalar(0x7D) // } right curly bracket
+        static let NameSeparator  = UnicodeScalar(0x3A) // : colon
+        static let ValueSeparator = UnicodeScalar(0x2C) // , comma
+    }
+    
+    static func consumeStructure(scalar: UnicodeScalar, input: UnicodeParser) -> UnicodeParser? {
+        if let parser = consumeScalar(scalar, input: consumeWhitespace(input)) {
+            return consumeWhitespace(parser)
+        }
+        return nil
+    }
+    
+    static func consumeScalar(scalar: UnicodeScalar, input: UnicodeParser) -> UnicodeParser? {
+        guard input.index < input.view.endIndex else {
+            return nil
+        }
+        if scalar == input.view[input.index] {
+            return input.successor()
+        }
+        return nil
+    }
+    
+    static func parseObject(input: UnicodeParser) -> ([String: AnyObject], UnicodeParser)? {
+        guard let beginParser = consumeStructure(StructureScalar.BeginObject, input: input) else {
+            return nil
+        }
+        var parser = beginParser
+        var output: [String: AnyObject] = [:]
+        while true {
+            if let finalParser = consumeStructure(StructureScalar.EndObject, input: parser) {
+                return (output, finalParser)
+            }
+            return nil
+        }
     }
 }

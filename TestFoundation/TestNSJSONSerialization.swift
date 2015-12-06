@@ -20,9 +20,25 @@
 class TestNSJSONSerialization : XCTestCase {
     
     var allTests : [(String, () -> ())] {
-        return detectEncodingTests
+        return JSONObjectWithDataTests + detectEncodingTests
     }
     
+}
+
+//MARK: - JSONObjectWithData
+extension TestNSJSONSerialization {
+    var JSONObjectWithDataTests: [(String, () -> ())] {
+        return [
+            ("test_JSONObjectWithData_emptyObject", test_JSONObjectWithData_emptyObject)
+        ]
+    }
+    
+    func test_JSONObjectWithData_emptyObject() {
+        let subject = NSData(bytes: UnsafePointer<Void>([UInt8]([0x7B, 0x7D])), length: 2)
+        
+        let object = try! NSJSONSerialization.JSONObjectWithData(subject, options: []) as? [NSObject: AnyObject]
+        XCTAssertEqual(object?.keys.count, 0)
+    }
 }
 
 //MARK: - Encoding Detection
