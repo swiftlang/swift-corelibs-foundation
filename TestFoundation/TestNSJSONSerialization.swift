@@ -128,6 +128,7 @@ extension TestNSJSONSerialization {
             ("test_deserialize_emptyObject", test_deserialize_emptyObject),
             ("test_deserialize_objectWithString", test_deserialize_objectWithString),
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
+            ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
         ]
     }
     
@@ -161,6 +162,19 @@ extension TestNSJSONSerialization {
             XCTAssertEqual(result?["swift"], "rocks")
         } catch {
             XCTFail("Error thrown: \(error)")
+        }
+    }
+    
+    func test_deserialize_unterminatedObjectString() {
+        let subject = "{\"}"
+        
+        do {
+            try NSJSONSerialization.JSONObjectWithString(subject)
+            XCTFail("Expected error: UnterminatedString")
+        } catch let NSJSONSerializationError.UnterminatedString(index){
+            XCTAssertEqual(index, 1)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 }

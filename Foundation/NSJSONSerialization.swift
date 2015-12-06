@@ -27,6 +27,7 @@ public struct NSJSONWritingOptions : OptionSetType {
 enum NSJSONSerializationError: ErrorType {
     case InvalidStringEncoding
     case NotAnArrayOrObject
+    case UnterminatedString(String.UnicodeScalarIndex.Distance)
 }
 
 /* A class for converting JSON to Foundation/Swift objects and converting Foundation/Swift objects to JSON.
@@ -82,7 +83,7 @@ internal extension NSJSONSerialization {
     
     static func JSONObjectWithString(string: String) throws -> AnyObject {
         let parser = JSONDeserializer.UnicodeParser(view: string.unicodeScalars)
-        if let (object, _) = JSONDeserializer.parseObject(parser) {
+        if let (object, _) = try JSONDeserializer.parseObject(parser) {
             return object
         }
         throw NSJSONSerializationError.NotAnArrayOrObject
@@ -222,7 +223,7 @@ private struct JSONDeserializer {
         static let Escape        = UnicodeScalar(0x5C) // \
     }
 
-    static func readString(input: UnicodeParser) -> (String, UnicodeParser)? {
+    static func readString(input: UnicodeParser) throws -> (String, UnicodeParser)? {
         guard let begin = consumeScalar(StringScalar.QuotationMark, input: input) else {
             return nil
         }
@@ -241,31 +242,31 @@ private struct JSONDeserializer {
                 value.append(scalar)
             }
         }
-        return nil
+        throw NSJSONSerializationError.UnterminatedString(input.view.startIndex.distanceTo(input.index))
     }
 
-    static func parseValue(input: UnicodeParser) -> (AnyObject, UnicodeParser)? {
-        if let (value, parser) = readString(input) {
+    static func parseValue(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
+        if let (value, parser) = try readString(input) {
             return (value, parser)
         }
         return nil
     }
 
-    static func parseObjectMember(input: UnicodeParser) -> (String, AnyObject, UnicodeParser)? {
-        guard let (name, parser) = readString(input) else {
+    static func parseObjectMember(input: UnicodeParser) throws -> (String, AnyObject, UnicodeParser)? {
+        guard let (name, parser) = try readString(input) else {
             return nil
         }
         guard let separatorParser = consumeStructure(StructureScalar.NameSeparator, input: parser) else {
             return nil
         }
-        guard let (value, finalParser) = parseValue(separatorParser) else {
+        guard let (value, finalParser) = try parseValue(separatorParser) else {
             return nil
         }
     
         return (name, value, finalParser)
     }
 
-    static func parseObject(input: UnicodeParser) -> ([String: AnyObject], UnicodeParser)? {
+    static func parseObject(input: UnicodeParser) throws -> ([String: AnyObject], UnicodeParser)? {
         guard let beginParser = consumeStructure(StructureScalar.BeginObject, input: input) else {
             return nil
         }
@@ -276,7 +277,7 @@ private struct JSONDeserializer {
                 return (output, finalParser)
             }
     
-            if let (key, value, newParser) = parseObjectMember(parser) {
+            if let (key, value, newParser) = try parseObjectMember(parser) {
                 output[key] = value
     
                 if let finalParser = consumeStructure(StructureScalar.EndObject, input: newParser) {
