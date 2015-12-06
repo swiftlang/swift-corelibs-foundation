@@ -133,6 +133,9 @@ extension TestNSJSONSerialization {
             ("test_deserialize_stringArray", test_deserialize_stringArray),
             ("test_deserialize_multiStringArray", test_deserialize_multiStringArray),
             
+            ("test_deserialize_true", test_deserialize_true),
+            ("test_deserialize_false", test_deserialize_false),
+            
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
             ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
@@ -204,6 +207,29 @@ extension TestNSJSONSerialization {
         do {
             let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
             XCTAssertEqual(result?[1], "swift🔥")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    //MARK: - Test value parsing
+    func test_deserialize_true() {
+        let subject = "[true]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Bool]
+            XCTAssertEqual(result?[0], true)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_false() {
+        let subject = "[false]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Bool]
+            XCTAssertEqual(result?[0], false)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }

@@ -228,6 +228,17 @@ private struct JSONDeserializer {
         }
         return nil
     }
+    
+    static func consumeString(string: String, input: UnicodeParser) throws -> UnicodeParser? {
+        var parser = input
+        for scalar in string.unicodeScalars {
+            guard let newParser = try consumeScalar(scalar, input: parser) else {
+                return nil
+            }
+            parser = newParser
+        }
+        return parser
+    }
 
     struct StringScalar{
         static let QuotationMark = UnicodeScalar(0x22) // "
@@ -259,6 +270,12 @@ private struct JSONDeserializer {
     static func parseValue(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
         if let (value, parser) = try parseString(input) {
             return (value, parser)
+        }
+        else if let parser = try consumeString("true", input: input) {
+            return (true, parser)
+        }
+        else if let parser = try consumeString("false", input: input) {
+            return (false, parser)
         }
         return nil
     }
