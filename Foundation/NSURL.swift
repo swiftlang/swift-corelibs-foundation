@@ -344,10 +344,8 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying, CustomStringConvertibl
     }
     
     override public var description: String {
-        // The percent encoding is removed to ensure readability
-        if let absoluteString = self.absoluteString,
-            let unencodedString = NSString(absoluteString).stringByRemovingPercentEncoding {
-            return unencodedString
+        if let absoluteString = self.absoluteString {
+            return absoluteString
         } else {
             return super.description
         }
