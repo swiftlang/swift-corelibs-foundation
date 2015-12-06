@@ -283,6 +283,9 @@ private struct JSONDeserializer {
         else if let (object, parser) = try parseObject(input) {
             return (object, parser)
         }
+        else if let (array, parser) = try parseArray(input) {
+            return (array, parser)
+        }
         return nil
     }
 
