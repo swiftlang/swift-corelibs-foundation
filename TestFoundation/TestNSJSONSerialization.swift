@@ -128,12 +128,14 @@ extension TestNSJSONSerialization {
             ("test_deserialize_emptyObject", test_deserialize_emptyObject),
             ("test_deserialize_objectWithString", test_deserialize_objectWithString),
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
-            ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
-            ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
-            ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
+            
             ("test_deserialize_emptyArray", test_deserialize_emptyArray),
             ("test_deserialize_stringArray", test_deserialize_stringArray),
             ("test_deserialize_multiStringArray", test_deserialize_multiStringArray),
+            
+            ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
+            ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
+            ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
         ]
     }
     
@@ -171,6 +173,41 @@ extension TestNSJSONSerialization {
         }
     }
     
+    //MARK: - Array Deserialization
+    func test_deserialize_emptyArray() {
+        let subject = "[]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
+            XCTAssertEqual(result?.count, 0)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_stringArray() {
+        let subject = "[\"hello\"]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
+            XCTAssertEqual(result?[0], "hello")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_multiStringArray() {
+        let subject = "[\"hello\", \"swift🔥\"]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
+            XCTAssertEqual(result?[1], "swift🔥")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    //MARK: - Parsing Errors
     func test_deserialize_unterminatedObjectString() {
         let subject = "{\"}"
         
@@ -205,40 +242,6 @@ extension TestNSJSONSerialization {
             XCTFail("Expected error: Unexpected end of file")
         } catch NSJSONSerializationError.UnexpectedEndOfFile {
             // Success
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    //MARK: - Array Deserialization
-    func test_deserialize_emptyArray() {
-        let subject = "[]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
-            XCTAssertEqual(result?.count, 0)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_stringArray() {
-        let subject = "[\"hello\"]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
-            XCTAssertEqual(result?[0], "hello")
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_multiStringArray() {
-        let subject = "[\"hello\", \"swift🔥\"]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
-            XCTAssertEqual(result?[1], "swift🔥")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
