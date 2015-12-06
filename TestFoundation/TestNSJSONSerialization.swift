@@ -136,6 +136,7 @@ extension TestNSJSONSerialization {
             ("test_deserialize_true", test_deserialize_true),
             ("test_deserialize_false", test_deserialize_false),
             ("test_deserialize_null", test_deserialize_null),
+            ("test_deserialize_nestedObject", test_deserialize_nestedObject),
             
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
@@ -244,6 +245,17 @@ extension TestNSJSONSerialization {
             XCTAssertEqual(result?.count, 1)
         } catch {
             XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_nestedObject() {
+        let subject = "[{}]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [[String:AnyObject]]
+            XCTAssertEqual(result?.count, 1)
+        } catch {
+            XCTFail("Unexpected error:")
         }
     }
     
