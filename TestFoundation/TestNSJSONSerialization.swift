@@ -151,6 +151,7 @@ extension TestNSJSONSerialization {
             ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
             ("test_deserialize_invalidValueInObject", test_deserialize_invalidValueInObject),
             ("test_deserialize_invalidValueInArray", test_deserialize_invalidValueInArray),
+            ("test_deserialize_badlyFormedArray", test_deserialize_badlyFormedArray),
         ]
     }
     
@@ -406,6 +407,19 @@ extension TestNSJSONSerialization {
             XCTFail("Expected error: Invalid value")
         } catch let NSJSONSerializationError.InvalidValue(index){
             XCTAssertEqual(index, 1)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_badlyFormedArray() {
+        let subject = "[2b4]"
+        
+        do {
+            try NSJSONSerialization.JSONObjectWithString(subject)
+            XCTFail("Expected error: Badly formed array")
+        } catch let NSJSONSerializationError.BadlyFormedArray(index){
+            XCTAssertEqual(index, 2)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
