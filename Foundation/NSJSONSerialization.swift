@@ -61,7 +61,8 @@ public class NSJSONSerialization : NSObject {
        The data must be in one of the 5 supported encodings listed in the JSON specification: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE. The data may or may not have a BOM. The most efficient encoding to use for parsing is UTF-8, so if you have a choice in encoding the data passed to this method, use UTF-8.
      */
     public class func JSONObjectWithData(data: NSData, options opt: NSJSONReadingOptions) throws -> AnyObject {
-        guard let string = NSString(data: data, encoding: NSUTF8StringEncoding) else {
+        
+        guard let string = NSString(data: data, encoding: detectEncoding(data)) else {
             throw NSJSONSerializationError.InvalidStringEncoding
         }
         return try JSONObjectWithString(string as String)
