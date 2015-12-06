@@ -211,12 +211,13 @@ public class NSFileManager : NSObject {
      
         This method replaces fileAttributesAtPath:traverseLink:.
      */
-    public func attributesOfItemAtPath(path: String) throws -> [String : AnyObject] {
+    /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
+    public func attributesOfItemAtPath(path: String) throws -> [String : Any] {
         var s = stat()
         guard lstat(path, &s) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
-        var result = [String : AnyObject]()
+        var result = [String : Any]()
         result[NSFileSize] = NSNumber(unsignedLongLong: UInt64(s.st_size))
 
 #if os(OSX) || os(iOS)
@@ -233,14 +234,14 @@ public class NSFileManager : NSObject {
         
         let pwd = getpwuid(s.st_uid)
         if pwd != nil && pwd.memory.pw_name != nil {
-            if let name = NSString(bytes: pwd.memory.pw_name, length: Int(strlen(pwd.memory.pw_name)), encoding: NSUTF8StringEncoding) {
+            if let name = String.fromCString(pwd.memory.pw_name) {
                 result[NSFileOwnerAccountName] = name
             }
         }
         
         let grd = getgrgid(s.st_gid)
         if grd != nil && grd.memory.gr_name != nil {
-            if let name = NSString(bytes: grd.memory.gr_name, length: Int(strlen(grd.memory.gr_name)), encoding: NSUTF8StringEncoding) {
+            if let name = String.fromCString(grd.memory.gr_name) {
                 result[NSFileGroupOwnerAccountID] = name
             }
         }
@@ -255,7 +256,7 @@ public class NSFileManager : NSObject {
             case S_IFSOCK: type = NSFileTypeSocket
             default: type = NSFileTypeUnknown
         }
-        result[NSFileType] = NSString(type)
+        result[NSFileType] = type
         
         if type == NSFileTypeBlockSpecial || type == NSFileTypeCharacterSpecial {
             result[NSFileDeviceIdentifier] = NSNumber(unsignedLongLong: UInt64(s.st_rdev))
