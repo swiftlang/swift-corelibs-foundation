@@ -87,7 +87,7 @@ public class NSJSONSerialization : NSObject {
 internal extension NSJSONSerialization {
     
     static func JSONObjectWithString(string: String) throws -> AnyObject {
-        let parser = JSONDeserializer.UnicodeParser(view: string.unicodeScalars)
+        let parser = JSONDeserializer.UnicodeParser(viewSkippingBOM: string.unicodeScalars)
         if let (object, _) = try JSONDeserializer.parseObject(parser) {
             return object
         }
@@ -102,6 +102,7 @@ internal extension NSJSONSerialization {
 
 internal extension NSJSONSerialization {
     
+    /// Detect the encoding format of the NSData contents
     class func detectEncoding(data: NSData) -> NSStringEncoding {
         let bytes = UnsafePointer<UInt8>(data.bytes)
         let length = data.length
@@ -174,7 +175,11 @@ private struct JSONDeserializer {
             self.index = index
         }
         
-        init(view: String.UnicodeScalarView) {
+        init(viewSkippingBOM view: String.UnicodeScalarView) {
+            if view.startIndex < view.endIndex && view[view.startIndex] == UnicodeScalar(65279) {
+                self.init(view: view, index: view.startIndex.successor())
+                return
+            }
             self.init(view: view, index: view.startIndex)
         }
         

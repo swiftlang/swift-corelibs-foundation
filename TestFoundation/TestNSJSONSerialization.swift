@@ -30,7 +30,8 @@ class TestNSJSONSerialization : XCTestCase {
 extension TestNSJSONSerialization {
     var JSONObjectWithDataTests: [(String, () -> ())] {
         return [
-            ("test_JSONObjectWithData_emptyObject", test_JSONObjectWithData_emptyObject)
+            ("test_JSONObjectWithData_emptyObject", test_JSONObjectWithData_emptyObject),
+            ("test_JSONObjectWithData_encodingDetection", test_JSONObjectWithData_encodingDetection),
         ]
     }
     
@@ -40,6 +41,35 @@ extension TestNSJSONSerialization {
         let object = try! NSJSONSerialization.JSONObjectWithData(subject, options: []) as? [NSObject: AnyObject]
         XCTAssertEqual(object?.keys.count, 0)
     }
+    
+    //MARK: - Encoding Detection
+    func test_JSONObjectWithData_encodingDetection() {
+        let subjects: [(String, [UInt8])] = [
+            // BOM Detection
+            ("{} UTF-8 w/BOM", [0xEF, 0xBB, 0xBF, 0x7B, 0x7D]),
+            ("{} UTF-16BE w/BOM", [0xFE, 0xFF, 0x0, 0x7B, 0x0, 0x7D]),
+            ("{} UTF-16LE w/BOM", [0xFF, 0xFE, 0x7B, 0x0, 0x7D, 0x0]),
+            ("{} UTF-32BE w/BOM", [0x00, 0x00, 0xFE, 0xFF, 0x0, 0x0, 0x0, 0x7B, 0x0, 0x0, 0x0, 0x7D]),
+            ("{} UTF-32LE w/BOM", [0xFF, 0xFE, 0x00, 0x00, 0x7B, 0x0, 0x0, 0x0, 0x7D, 0x0, 0x0, 0x0]),
+            
+            // RFC4627 Detection
+            ("{} UTF-8", [0x7B, 0x7D]),
+            ("{} UTF-16BE", [0x0, 0x7B, 0x0, 0x7D]),
+            ("{} UTF-16LE", [0x7B, 0x0, 0x7D, 0x0]),
+            ("{} UTF-32BE", [0x0, 0x0, 0x0, 0x7B, 0x0, 0x0, 0x0, 0x7D]),
+            ("{} UTF-32LE", [0x7B, 0x0, 0x0, 0x0, 0x7D, 0x0, 0x0, 0x0]),
+            
+            //            // Single Characters
+            //            ("'3' UTF-8", [0x33]),
+            //            ("'3' UTF-16BE", [0x0, 0x33]),
+            //            ("'3' UTF-16LE", [0x33, 0x0]),
+        ]
+        
+        for (description, encoded) in subjects {
+            let result = try? NSJSONSerialization.JSONObjectWithData(NSData(bytes:UnsafePointer<Void>(encoded), length: encoded.count), options: []) as? [String:String]
+            XCTAssertNotNil(result, description)
+        }
+    }
 }
 
 //MARK: - JSONDeserialization
@@ -47,8 +77,6 @@ extension TestNSJSONSerialization {
     
     var deserializationTests: [(String, () -> ())] {
         return [
-            ("test_detectEncoding", test_detectEncoding),
-            
             ("test_deserialize_emptyObject", test_deserialize_emptyObject),
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
             
@@ -65,36 +93,6 @@ extension TestNSJSONSerialization {
             ("test_deserialize_invalidValueInArray", test_deserialize_invalidValueInArray),
             ("test_deserialize_badlyFormedArray", test_deserialize_badlyFormedArray),
         ]
-    }
-    
-    //MARK: - Encoding Detection
-    func test_detectEncoding() {
-        let subjects: [(NSStringEncoding, [UInt8], String)] = [
-            (NSUTF8StringEncoding, [], "Empty String"),
-            
-            // BOM Detection
-            (NSUTF8StringEncoding, [0xEF, 0xBB, 0xBF], "UTF-8 BOM"),
-            (NSUTF16BigEndianStringEncoding, [0xFE, 0xFF], "UTF-16BE BOM"),
-            (NSUTF16LittleEndianStringEncoding, [0xFF, 0xFE], "UTF-16LE BOM"),
-            (NSUTF32BigEndianStringEncoding, [0x00, 0x00, 0xFE, 0xFF], "UTF-32BE BOM"),
-            (NSUTF32LittleEndianStringEncoding, [0xFF, 0xFE, 0x00, 0x00], "UTF-32LE BOM"),
-            
-            // RFC4627 Detection
-            (NSUTF8StringEncoding, [0x7B, 0x7D], "{} UTF-8"),
-            (NSUTF16BigEndianStringEncoding, [0x0, 0x7B, 0x0, 0x7D], "{} UTF-16BE"),
-            (NSUTF16LittleEndianStringEncoding, [0x7B, 0x0, 0x7D, 0x0], "{} UTF-16LE"),
-            (NSUTF32BigEndianStringEncoding, [0x0, 0x0, 0x0, 0x7B, 0x0, 0x0, 0x0, 0x7D], "{} UTF-32BE"),
-            (NSUTF32LittleEndianStringEncoding, [0x7B, 0x0, 0x0, 0x0, 0x7D, 0x0, 0x0, 0x0], "{} UTF-32LE"),
-            
-            // Single Characters
-            (NSUTF8StringEncoding, [0x33], "'3' UTF-8"),
-            (NSUTF16BigEndianStringEncoding, [0x0, 0x33], "'3' UTF-16BE"),
-            (NSUTF16LittleEndianStringEncoding, [0x33, 0x0], "'3' UTF-16LE"),
-        ]
-
-        for (encoding, encoded, message) in subjects {
-            XCTAssertEqual(NSJSONSerialization.detectEncoding(NSData(bytes: UnsafePointer<Void>(encoded), length: encoded.count)), encoding, message)
-        }
     }
     
     //MARK: - Object Deserialization
