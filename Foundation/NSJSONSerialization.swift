@@ -29,6 +29,7 @@ enum NSJSONSerializationError: ErrorType {
     case NotAnArrayOrObject
     case UnterminatedString(String.UnicodeScalarIndex.Distance)
     case MissingObjectKey(String.UnicodeScalarIndex.Distance)
+    case InvalidValue(String.UnicodeScalarIndex.Distance)
     case UnexpectedEndOfFile
 }
 
@@ -270,7 +271,7 @@ private struct JSONDeserializer {
             return nil
         }
         guard let (value, finalParser) = try parseValue(separatorParser) else {
-            return nil
+            throw NSJSONSerializationError.InvalidValue(separatorParser.distanceFromStart)
         }
     
         return (name, value, finalParser)
@@ -326,11 +327,8 @@ private struct JSONDeserializer {
                     parser = nextParser
                     continue
                 }
-                else {
-                    return nil
-                }
             }
-            return nil
+            throw NSJSONSerializationError.InvalidValue(parser.distanceFromStart)
         }
     }
 }

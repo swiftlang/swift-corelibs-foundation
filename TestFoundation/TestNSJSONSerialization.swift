@@ -136,6 +136,8 @@ extension TestNSJSONSerialization {
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
             ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
+            ("test_deserialize_invalidValueInObject", test_deserialize_invalidValueInObject),
+            ("test_deserialize_invalidValueInArray", test_deserialize_invalidValueInArray),
         ]
     }
     
@@ -242,6 +244,32 @@ extension TestNSJSONSerialization {
             XCTFail("Expected error: Unexpected end of file")
         } catch NSJSONSerializationError.UnexpectedEndOfFile {
             // Success
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_invalidValueInObject() {
+        let subject = "{\"error\":}"
+        
+        do {
+            try NSJSONSerialization.JSONObjectWithString(subject)
+            XCTFail("Expected error: Invalid value")
+        } catch let NSJSONSerializationError.InvalidValue(index){
+            XCTAssertEqual(index, 9)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_invalidValueInArray() {
+        let subject = "[,"
+        
+        do {
+            try NSJSONSerialization.JSONObjectWithString(subject)
+            XCTFail("Expected error: Invalid value")
+        } catch let NSJSONSerializationError.InvalidValue(index){
+            XCTAssertEqual(index, 1)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
