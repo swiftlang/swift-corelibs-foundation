@@ -25,13 +25,15 @@ public struct NSJSONWritingOptions : OptionSetType {
 }
 
 enum NSJSONSerializationError: ErrorType {
+    typealias Position = String.UnicodeScalarIndex.Distance
+    
     case InvalidStringEncoding
     case NotAnArrayOrObject
-    case UnterminatedString(String.UnicodeScalarIndex.Distance)
-    case MissingObjectKey(String.UnicodeScalarIndex.Distance)
-    case InvalidValue(String.UnicodeScalarIndex.Distance)
-    case InvalidEscapeSequence(String.UnicodeScalarIndex.Distance)
-    case BadlyFormedArray(String.UnicodeScalarIndex.Distance)
+    case UnterminatedString(Position)
+    case MissingObjectKey(Position)
+    case InvalidValue(Position)
+    case InvalidEscapeSequence(Position)
+    case BadlyFormedArray(Position)
     case UnexpectedEndOfFile
 }
 
