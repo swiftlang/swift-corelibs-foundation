@@ -97,6 +97,7 @@ extension TestNSJSONSerialization {
             ("test_deserialize_invalidValueInArray", test_deserialize_invalidValueInArray),
             ("test_deserialize_badlyFormedArray", test_deserialize_badlyFormedArray),
             ("test_deserialize_invalidEscapeSequence", test_deserialize_invalidEscapeSequence),
+            ("test_deserialize_unicodeMissingTrailingSurrogate", test_deserialize_unicodeMissingTrailingSurrogate),
         ]
     }
     
@@ -307,6 +308,18 @@ extension TestNSJSONSerialization {
             XCTFail("Expected error: Invalid escape sequence")
         } catch let NSJSONSerializationError.InvalidEscapeSequence(index){
             XCTAssertEqual(index, 2, "\(index)")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_unicodeMissingTrailingSurrogate() {
+        let subject = "[\"\\uD834\"]"
+        do {
+            try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
+            XCTFail("Expected error: Missing Trailing Surrogate")
+        } catch let NSJSONSerializationError.MissingTrailingSurrogate(index) {
+            XCTAssertEqual(index, 8)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }

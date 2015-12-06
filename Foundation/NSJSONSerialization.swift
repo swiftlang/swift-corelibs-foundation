@@ -348,10 +348,7 @@ private struct JSONDeserializer {
             return (UnicodeScalar(codeUnit), parser)
         }
         
-        guard let (trailCodeUnit, finalParser) = try consumeSequence("\\u", input: parser).flatMap(parseCodeUnit) else {
-            return nil
-        }
-        if !UTF16.isTrailSurrogate(trailCodeUnit) {
+        guard let (trailCodeUnit, finalParser) = try consumeSequence("\\u", input: parser).flatMap(parseCodeUnit) where UTF16.isTrailSurrogate(trailCodeUnit) else {
             throw NSJSONSerializationError.MissingTrailingSurrogate(parser.distanceFromStart)
         }
         
