@@ -216,7 +216,55 @@ private struct JSONDeserializer {
         }
         return nil
     }
+
+    struct StringScalar{
+        static let QuotationMark = UnicodeScalar(0x22) // "
+        static let Escape        = UnicodeScalar(0x5C) // \
+    }
+
+    static func readString(input: UnicodeParser) -> (String, UnicodeParser)? {
+        guard let begin = consumeScalar(StringScalar.QuotationMark, input: input) else {
+            return nil
+        }
+        let view = begin.view
+        let endIndex = view.endIndex
+        var index = begin.index
+        var value = String.UnicodeScalarView()
+        while index < endIndex {
+            let scalar = view[index]
+            index = index.successor()
     
+            switch scalar {
+            case StringScalar.QuotationMark:
+                return (String(value), UnicodeParser(view: view, index: index))
+            default:
+                value.append(scalar)
+            }
+        }
+        return nil
+    }
+
+    static func parseValue(input: UnicodeParser) -> (AnyObject, UnicodeParser)? {
+        if let (value, parser) = readString(input) {
+            return (value, parser)
+        }
+        return nil
+    }
+
+    static func parseObjectMember(input: UnicodeParser) -> (String, AnyObject, UnicodeParser)? {
+        guard let (name, parser) = readString(input) else {
+            return nil
+        }
+        guard let separatorParser = consumeStructure(StructureScalar.NameSeparator, input: parser) else {
+            return nil
+        }
+        guard let (value, finalParser) = parseValue(separatorParser) else {
+            return nil
+        }
+    
+        return (name, value, finalParser)
+    }
+
     static func parseObject(input: UnicodeParser) -> ([String: AnyObject], UnicodeParser)? {
         guard let beginParser = consumeStructure(StructureScalar.BeginObject, input: input) else {
             return nil
@@ -226,6 +274,17 @@ private struct JSONDeserializer {
         while true {
             if let finalParser = consumeStructure(StructureScalar.EndObject, input: parser) {
                 return (output, finalParser)
+            }
+    
+            if let (key, value, newParser) = parseObjectMember(parser) {
+                output[key] = value
+    
+                if let finalParser = consumeStructure(StructureScalar.EndObject, input: newParser) {
+                    return (output, finalParser)
+                }
+                else {
+                    return nil
+                }
             }
             return nil
         }

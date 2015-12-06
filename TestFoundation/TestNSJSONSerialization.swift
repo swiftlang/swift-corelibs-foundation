@@ -20,7 +20,9 @@
 class TestNSJSONSerialization : XCTestCase {
     
     var allTests : [(String, () -> ())] {
-        return JSONObjectWithDataTests + detectEncodingTests
+        return JSONObjectWithDataTests
+            + detectEncodingTests
+            + deserializationTests
     }
     
 }
@@ -116,4 +118,38 @@ extension TestNSJSONSerialization {
         let utf32leBOM = NSData(bytes: UnsafePointer<Void>(bom), length: 4)
         XCTAssertEqual(NSJSONSerialization.detectEncoding(utf32leBOM), NSUTF32LittleEndianStringEncoding)
     }
+}
+
+//MARK: - JSONDeserialization
+extension TestNSJSONSerialization {
+    
+    var deserializationTests: [(String, () -> ())] {
+        return [
+            ("test_deserialize_emptyObject", test_deserialize_emptyObject),
+            ("test_deserialize_objectWithString", test_deserialize_objectWithString),
+        ]
+    }
+    
+    func test_deserialize_emptyObject() {
+        let subject = "{}"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [NSObject: AnyObject]
+            XCTAssertEqual(result?.keys.count, 0)
+        } catch {
+            XCTFail("Error thrown: \(error)")
+        }
+    }
+    
+    func test_deserialize_objectWithString() {
+        let subject = "{ \"hello\": \"world\" }"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String: String]
+            XCTAssertEqual(result?["hello"], "world")
+        } catch {
+            XCTFail("Error thrown: \(error)")
+        }
+    }
+    
 }
