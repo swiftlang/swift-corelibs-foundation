@@ -94,6 +94,7 @@ extension TestNSJSONSerialization {
             ("test_deserialize_invalidValueInObject", test_deserialize_invalidValueInObject),
             ("test_deserialize_invalidValueInArray", test_deserialize_invalidValueInArray),
             ("test_deserialize_badlyFormedArray", test_deserialize_badlyFormedArray),
+            ("test_deserialize_invalidEscapeSequence", test_deserialize_invalidEscapeSequence),
         ]
     }
     
@@ -271,6 +272,19 @@ extension TestNSJSONSerialization {
             XCTFail("Expected error: Badly formed array")
         } catch let NSJSONSerializationError.BadlyFormedArray(index){
             XCTAssertEqual(index, 2)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_invalidEscapeSequence() {
+        let subject = "[\"\\e\"]"
+        
+        do {
+            try NSJSONSerialization.JSONObjectWithString(subject)
+            XCTFail("Expected error: Invalid escape sequence")
+        } catch let NSJSONSerializationError.InvalidEscapeSequence(index){
+            XCTAssertEqual(index, 2, "\(index)")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }

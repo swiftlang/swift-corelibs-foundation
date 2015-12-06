@@ -30,6 +30,7 @@ enum NSJSONSerializationError: ErrorType {
     case UnterminatedString(String.UnicodeScalarIndex.Distance)
     case MissingObjectKey(String.UnicodeScalarIndex.Distance)
     case InvalidValue(String.UnicodeScalarIndex.Distance)
+    case InvalidEscapeSequence(String.UnicodeScalarIndex.Distance)
     case BadlyFormedArray(String.UnicodeScalarIndex.Distance)
     case UnexpectedEndOfFile
 }
@@ -258,7 +259,7 @@ private struct JSONDeserializer {
         static let Escape        = UnicodeScalar(0x5C) // \
     }
     
-    static func parseEscapedString(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
+    static func parseEscapeSequence(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
         guard let (scalar, parser) = readScalar(input) else {
             throw NSJSONSerializationError.UnexpectedEndOfFile
         }
@@ -300,9 +301,13 @@ private struct JSONDeserializer {
             case StringScalar.QuotationMark:
                 return (String(value), UnicodeParser(view: view, index: index))
             case StringScalar.Escape:
-                if let (escaped, newParser) = try parseEscapedString(UnicodeParser(view: view, index: index)) {
+                let parser = UnicodeParser(view: view, index: index)
+                if let (escaped, newParser) = try parseEscapeSequence(parser) {
                     value.append(escaped)
                     index = newParser.index
+                }
+                else {
+                    throw NSJSONSerializationError.InvalidEscapeSequence(parser.distanceFromStart - 1)
                 }
             default:
                 value.append(scalar)
