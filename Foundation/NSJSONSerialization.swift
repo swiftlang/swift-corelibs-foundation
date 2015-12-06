@@ -229,6 +229,13 @@ private struct JSONDeserializer {
         return nil
     }
     
+    static func readScalar(input: UnicodeParser) -> (UnicodeScalar, UnicodeParser)? {
+        guard input.index < input.view.endIndex else {
+            return nil
+        }
+        return (input.view[input.index], input.successor())
+    }
+    
     static func consumeString(string: String, input: UnicodeParser) throws -> UnicodeParser? {
         var parser = input
         for scalar in string.unicodeScalars {
@@ -266,6 +273,38 @@ private struct JSONDeserializer {
         }
         throw NSJSONSerializationError.UnterminatedString(input.distanceFromStart)
     }
+    
+    static let numberScalars = [
+        UnicodeScalar(0x2E), // .
+        UnicodeScalar(0x30), // 0
+        UnicodeScalar(0x31), // 1
+        UnicodeScalar(0x32), // 2
+        UnicodeScalar(0x33), // 3
+        UnicodeScalar(0x34), // 4
+        UnicodeScalar(0x35), // 5
+        UnicodeScalar(0x36), // 6
+        UnicodeScalar(0x37), // 7
+        UnicodeScalar(0x38), // 8
+        UnicodeScalar(0x39), // 9
+        UnicodeScalar(0x65), // e
+        UnicodeScalar(0x45), // E
+        UnicodeScalar(0x2B), // +
+        UnicodeScalar(0x2D), // -
+    ]
+    static func parseNumber(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
+        let view = input.view
+        let endIndex = view.endIndex
+        var index = input.index
+        var value = String.UnicodeScalarView()
+        while index < endIndex && numberScalars.contains(view[index]) {
+            value.append(view[index])
+            index = index.successor()
+        }
+        guard value.count > 0, let result = Double(String(value)) else {
+            return nil
+        }
+        return (NSNumber(double: result), UnicodeParser(view: view, index: index))
+    }
 
     static func parseValue(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
         if let (value, parser) = try parseString(input) {
@@ -285,6 +324,9 @@ private struct JSONDeserializer {
         }
         else if let (array, parser) = try parseArray(input) {
             return (array, parser)
+        }
+        else if let (number, parser) = try parseNumber(input) {
+            return (number, parser)
         }
         return nil
     }

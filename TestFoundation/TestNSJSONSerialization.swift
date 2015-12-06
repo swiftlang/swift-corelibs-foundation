@@ -139,6 +139,13 @@ extension TestNSJSONSerialization {
             ("test_deserialize_nestedObject", test_deserialize_nestedObject),
             ("test_deserialize_nestedArray", test_deserialize_nestedArray),
             
+            ("test_deserialize_integer", test_deserialize_integer),
+            ("test_deserialize_negativeInteger", test_deserialize_negativeInteger),
+            ("test_deserialize_float", test_deserialize_float),
+            ("test_deserialize_negativeFloat", test_deserialize_negativeFloat),
+            ("test_deserialize_exponent", test_deserialize_exponent),
+            ("test_deserialize_exponentNegative", test_deserialize_exponentNegative),
+            
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
             ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
@@ -215,7 +222,7 @@ extension TestNSJSONSerialization {
         }
     }
     
-    //MARK: - Test value parsing
+    //MARK: - Value parsing
     func test_deserialize_true() {
         let subject = "[true]"
         
@@ -268,6 +275,73 @@ extension TestNSJSONSerialization {
             XCTAssertEqual(result?.count, 1)
         } catch {
             XCTFail("Unexpected error:")
+        }
+    }
+    
+    //MARK: - Number parsing
+    func test_deserialize_integer() {
+        let subject = "[1]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Int]
+            XCTAssertEqual(result?[0], 1)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_negativeInteger() {
+        let subject = "[-1]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Int]
+            XCTAssertEqual(result?[0], -1)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_float() {
+        let subject = "[1.3]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Float]
+            XCTAssertEqual(result?[0], 1.3)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_negativeFloat() {
+        let subject = "[-1.3]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Float]
+            XCTAssertEqual(result?[0], -1.3)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_exponent() {
+        let subject = "[1e+3]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Int]
+            XCTAssertEqual(result?[0], 1000)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_exponentNegative() {
+        let subject = "[1e-3]"
+        
+        do {
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Float]
+            XCTAssertEqual(result?[0], 0.001)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
     
