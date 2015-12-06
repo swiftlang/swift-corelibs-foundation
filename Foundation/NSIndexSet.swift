@@ -484,12 +484,10 @@ public class NSMutableIndexSet : NSIndexSet {
     }
     
     public func addIndex(value: Int) {
-        // TODO: Bounds checking
         self.addIndexesInRange(NSMakeRange(value, 1))
     }
     
     public func removeIndex(value: Int) {
-        // TODO: Bounds checking
         self.removeIndexesInRange(NSMakeRange(value, 1))
     }
     
