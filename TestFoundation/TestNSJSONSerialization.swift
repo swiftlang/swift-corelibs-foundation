@@ -21,7 +21,6 @@ class TestNSJSONSerialization : XCTestCase {
     
     var allTests : [(String, () -> ())] {
         return JSONObjectWithDataTests
-            + detectEncodingTests
             + deserializationTests
     }
     
@@ -43,108 +42,21 @@ extension TestNSJSONSerialization {
     }
 }
 
-//MARK: - Encoding Detection
-extension TestNSJSONSerialization {
-    
-    var detectEncodingTests: [(String, () -> ())] {
-        return [
-            ("test_detectEncoding_basic", test_detectEncoding_basic),
-            ("test_detectEncoding_empty", test_detectEncoding_empty),
-            ("test_detectEncoding_single_char", test_detectEncoding_single_char),
-            ("test_detectEncoding_BOM_utf8", test_detectEncoding_BOM_utf8),
-            ("test_detectEncoding_BOM_utf16be", test_detectEncoding_BOM_utf16be),
-            ("test_detectEncoding_BOM_utf16le", test_detectEncoding_BOM_utf16le),
-            ("test_detectEncoding_BOM_utf32be", test_detectEncoding_BOM_utf32be),
-            ("test_detectEncoding_BOM_utf32le", test_detectEncoding_BOM_utf32le),
-        ]
-    }
-    
-    func test_detectEncoding_basic() {
-        let subjects: [NSStringEncoding: [UInt8]] = [
-            NSUTF8StringEncoding: [0x7B, 0x7D], // "{}"
-            NSUTF16BigEndianStringEncoding:    [0x0, 0x7B, 0x0, 0x7D],
-            NSUTF16LittleEndianStringEncoding: [0x7B, 0x0, 0x7D, 0x0],
-            NSUTF32BigEndianStringEncoding:    [0x0, 0x0, 0x0, 0x7B, 0x0, 0x0, 0x0, 0x7D],
-            NSUTF32LittleEndianStringEncoding: [0x7B, 0x0, 0x0, 0x0, 0x7D, 0x0, 0x0, 0x0],
-        ]
-
-        for (encoding, encoded) in subjects {
-            XCTAssertEqual(NSJSONSerialization.detectEncoding(NSData(bytes: UnsafePointer<Void>(encoded), length: encoded.count)), encoding)
-        }
-    }
-    
-    func test_detectEncoding_empty() {
-        XCTAssertEqual(NSJSONSerialization.detectEncoding(NSData()), NSUTF8StringEncoding)
-    }
-    
-    func test_detectEncoding_single_char() {
-        let subjects: [NSStringEncoding: [UInt8]] = [
-            NSUTF8StringEncoding: [0x33], // "3"
-            NSUTF16BigEndianStringEncoding:    [0x0, 0x33],
-            NSUTF16LittleEndianStringEncoding: [0x33, 0x0],
-        ]
-        
-        for (encoding, encoded) in subjects {
-            XCTAssertEqual(NSJSONSerialization.detectEncoding(NSData(bytes: UnsafePointer<Void>(encoded), length: encoded.count)), encoding)
-        }
-    }
-    
-    func test_detectEncoding_BOM_utf8() {
-        let bom: [UInt8] = [0xEF, 0xBB, 0xBF]
-        let utf8BOM = NSData(bytes: UnsafePointer<Void>(bom), length: 3)
-        XCTAssertEqual(NSJSONSerialization.detectEncoding(utf8BOM), NSUTF8StringEncoding)
-    }
-    
-    func test_detectEncoding_BOM_utf16be() {
-        let bom: [UInt8] = [0xFE, 0xFF]
-        let utf16beBOM = NSData(bytes: UnsafePointer<Void>(bom), length: 2)
-        XCTAssertEqual(NSJSONSerialization.detectEncoding(utf16beBOM), NSUTF16BigEndianStringEncoding)
-    }
-    
-    func test_detectEncoding_BOM_utf16le() {
-        let bom: [UInt8] = [0xFF, 0xFE]
-        let utf16leBOM = NSData(bytes: UnsafePointer<Void>(bom), length: 2)
-        XCTAssertEqual(NSJSONSerialization.detectEncoding(utf16leBOM), NSUTF16LittleEndianStringEncoding)
-    }
-    
-    func test_detectEncoding_BOM_utf32be() {
-        let bom: [UInt8] = [0x00, 0x00, 0xFE, 0xFF]
-        let utf32beBOM = NSData(bytes: UnsafePointer<Void>(bom), length: 4)
-        XCTAssertEqual(NSJSONSerialization.detectEncoding(utf32beBOM), NSUTF32BigEndianStringEncoding)
-    }
-    
-    func test_detectEncoding_BOM_utf32le() {
-        let bom: [UInt8] = [0xFF, 0xFE, 0x00, 0x00]
-        let utf32leBOM = NSData(bytes: UnsafePointer<Void>(bom), length: 4)
-        XCTAssertEqual(NSJSONSerialization.detectEncoding(utf32leBOM), NSUTF32LittleEndianStringEncoding)
-    }
-}
-
 //MARK: - JSONDeserialization
 extension TestNSJSONSerialization {
     
     var deserializationTests: [(String, () -> ())] {
         return [
+            ("test_detectEncoding", test_detectEncoding),
+            
             ("test_deserialize_emptyObject", test_deserialize_emptyObject),
-            ("test_deserialize_objectWithString", test_deserialize_objectWithString),
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
             
             ("test_deserialize_emptyArray", test_deserialize_emptyArray),
-            ("test_deserialize_stringArray", test_deserialize_stringArray),
             ("test_deserialize_multiStringArray", test_deserialize_multiStringArray),
             
-            ("test_deserialize_true", test_deserialize_true),
-            ("test_deserialize_false", test_deserialize_false),
-            ("test_deserialize_null", test_deserialize_null),
-            ("test_deserialize_nestedObject", test_deserialize_nestedObject),
-            ("test_deserialize_nestedArray", test_deserialize_nestedArray),
-            
-            ("test_deserialize_integer", test_deserialize_integer),
-            ("test_deserialize_negativeInteger", test_deserialize_negativeInteger),
-            ("test_deserialize_float", test_deserialize_float),
-            ("test_deserialize_negativeFloat", test_deserialize_negativeFloat),
-            ("test_deserialize_exponent", test_deserialize_exponent),
-            ("test_deserialize_exponentNegative", test_deserialize_exponentNegative),
+            ("test_deserialize_values", test_deserialize_values),
+            ("test_deserialize_numbers", test_deserialize_numbers),
             
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
@@ -153,6 +65,36 @@ extension TestNSJSONSerialization {
             ("test_deserialize_invalidValueInArray", test_deserialize_invalidValueInArray),
             ("test_deserialize_badlyFormedArray", test_deserialize_badlyFormedArray),
         ]
+    }
+    
+    //MARK: - Encoding Detection
+    func test_detectEncoding() {
+        let subjects: [(NSStringEncoding, [UInt8], String)] = [
+            (NSUTF8StringEncoding, [], "Empty String"),
+            
+            // BOM Detection
+            (NSUTF8StringEncoding, [0xEF, 0xBB, 0xBF], "UTF-8 BOM"),
+            (NSUTF16BigEndianStringEncoding, [0xFE, 0xFF], "UTF-16BE BOM"),
+            (NSUTF16LittleEndianStringEncoding, [0xFF, 0xFE], "UTF-16LE BOM"),
+            (NSUTF32BigEndianStringEncoding, [0x00, 0x00, 0xFE, 0xFF], "UTF-32BE BOM"),
+            (NSUTF32LittleEndianStringEncoding, [0xFF, 0xFE, 0x00, 0x00], "UTF-32LE BOM"),
+            
+            // RFC4627 Detection
+            (NSUTF8StringEncoding, [0x7B, 0x7D], "{} UTF-8"),
+            (NSUTF16BigEndianStringEncoding, [0x0, 0x7B, 0x0, 0x7D], "{} UTF-16BE"),
+            (NSUTF16LittleEndianStringEncoding, [0x7B, 0x0, 0x7D, 0x0], "{} UTF-16LE"),
+            (NSUTF32BigEndianStringEncoding, [0x0, 0x0, 0x0, 0x7B, 0x0, 0x0, 0x0, 0x7D], "{} UTF-32BE"),
+            (NSUTF32LittleEndianStringEncoding, [0x7B, 0x0, 0x0, 0x0, 0x7D, 0x0, 0x0, 0x0], "{} UTF-32LE"),
+            
+            // Single Characters
+            (NSUTF8StringEncoding, [0x33], "'3' UTF-8"),
+            (NSUTF16BigEndianStringEncoding, [0x0, 0x33], "'3' UTF-16BE"),
+            (NSUTF16LittleEndianStringEncoding, [0x33, 0x0], "'3' UTF-16LE"),
+        ]
+
+        for (encoding, encoded, message) in subjects {
+            XCTAssertEqual(NSJSONSerialization.detectEncoding(NSData(bytes: UnsafePointer<Void>(encoded), length: encoded.count)), encoding, message)
+        }
     }
     
     //MARK: - Object Deserialization
@@ -167,22 +109,12 @@ extension TestNSJSONSerialization {
         }
     }
     
-    func test_deserialize_objectWithString() {
-        let subject = "{ \"hello\": \"world\" }"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String: String]
-            XCTAssertEqual(result?["hello"], "world")
-        } catch {
-            XCTFail("Error thrown: \(error)")
-        }
-    }
-    
     func test_deserialize_multiStringObject() {
         let subject = "{ \"hello\": \"world\", \"swift\": \"rocks\" }"
         
         do {
             let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String: String]
+            XCTAssertEqual(result?["hello"], "world")
             XCTAssertEqual(result?["swift"], "rocks")
         } catch {
             XCTFail("Error thrown: \(error)")
@@ -201,146 +133,47 @@ extension TestNSJSONSerialization {
         }
     }
     
-    func test_deserialize_stringArray() {
-        let subject = "[\"hello\"]"
+    func test_deserialize_multiStringArray() {
+        let subject = "[\"hello\", \"swift⚡️\"]"
         
         do {
             let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
             XCTAssertEqual(result?[0], "hello")
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_multiStringArray() {
-        let subject = "[\"hello\", \"swift🔥\"]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
-            XCTAssertEqual(result?[1], "swift🔥")
+            XCTAssertEqual(result?[1], "swift⚡️")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
     
     //MARK: - Value parsing
-    func test_deserialize_true() {
-        let subject = "[true]"
+    func test_deserialize_values() {
+        let subject = "[true, false, \"hello\", null, {}, []]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Bool]
-            XCTAssertEqual(result?[0], true)
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [AnyObject]
+            XCTAssertEqual(result?[0] as? Bool, true)
+            XCTAssertEqual(result?[1] as? Bool, false)
+            XCTAssertEqual(result?[2] as? String, "hello")
+            XCTAssertNotNil(result?[3] as? NSNull)
+            XCTAssertNotNil(result?[4] as? [String:String])
+            XCTAssertNotNil(result?[5] as? [String])
         } catch {
             XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_false() {
-        let subject = "[false]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Bool]
-            XCTAssertEqual(result?[0], false)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_null() {
-        let subject = "[null]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [NSNull]
-            XCTAssertEqual(result?.count, 1)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_nestedObject() {
-        let subject = "[{}]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [[String:AnyObject]]
-            XCTAssertEqual(result?.count, 1)
-        } catch {
-            XCTFail("Unexpected error:")
-        }
-    }
-    
-    func test_deserialize_nestedArray() {
-        let subject = "[[]]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [[AnyObject]]
-            XCTAssertEqual(result?.count, 1)
-        } catch {
-            XCTFail("Unexpected error:")
         }
     }
     
     //MARK: - Number parsing
-    func test_deserialize_integer() {
-        let subject = "[1]"
+    func test_deserialize_numbers() {
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Int]
-            XCTAssertEqual(result?[0], 1)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_negativeInteger() {
-        let subject = "[-1]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Int]
-            XCTAssertEqual(result?[0], -1)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_float() {
-        let subject = "[1.3]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Float]
-            XCTAssertEqual(result?[0], 1.3)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_negativeFloat() {
-        let subject = "[-1.3]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Float]
-            XCTAssertEqual(result?[0], -1.3)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_exponent() {
-        let subject = "[1e+3]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Int]
-            XCTAssertEqual(result?[0], 1000)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-    
-    func test_deserialize_exponentNegative() {
-        let subject = "[1e-3]"
-        
-        do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Float]
-            XCTAssertEqual(result?[0], 0.001)
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Double]
+            XCTAssertEqual(result?[0],     1)
+            XCTAssertEqual(result?[1],    -1)
+            XCTAssertEqual(result?[2],   1.3)
+            XCTAssertEqual(result?[3],  -1.3)
+            XCTAssertEqual(result?[4],  1000)
+            XCTAssertEqual(result?[5], 0.001)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
