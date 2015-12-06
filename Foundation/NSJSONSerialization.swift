@@ -28,6 +28,7 @@ enum NSJSONSerializationError: ErrorType {
     case InvalidStringEncoding
     case NotAnArrayOrObject
     case UnterminatedString(String.UnicodeScalarIndex.Distance)
+    case MissingObjectKey(String.UnicodeScalarIndex.Distance)
 }
 
 /* A class for converting JSON to Foundation/Swift objects and converting Foundation/Swift objects to JSON.
@@ -173,6 +174,10 @@ private struct JSONDeserializer {
         func successor() -> UnicodeParser {
             return UnicodeParser(view: view, index: index.successor())
         }
+        
+        var distanceFromStart: String.UnicodeScalarIndex.Distance {
+            return view.startIndex.distanceTo(index)
+        }
     }
     
     static let whitespaceScalars = [
@@ -242,7 +247,7 @@ private struct JSONDeserializer {
                 value.append(scalar)
             }
         }
-        throw NSJSONSerializationError.UnterminatedString(input.view.startIndex.distanceTo(input.index))
+        throw NSJSONSerializationError.UnterminatedString(input.distanceFromStart)
     }
 
     static func parseValue(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
@@ -254,7 +259,7 @@ private struct JSONDeserializer {
 
     static func parseObjectMember(input: UnicodeParser) throws -> (String, AnyObject, UnicodeParser)? {
         guard let (name, parser) = try readString(input) else {
-            return nil
+            throw NSJSONSerializationError.MissingObjectKey(input.distanceFromStart)
         }
         guard let separatorParser = consumeStructure(StructureScalar.NameSeparator, input: parser) else {
             return nil

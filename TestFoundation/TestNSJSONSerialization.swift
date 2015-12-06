@@ -129,6 +129,7 @@ extension TestNSJSONSerialization {
             ("test_deserialize_objectWithString", test_deserialize_objectWithString),
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
+            ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
         ]
     }
     
@@ -172,6 +173,19 @@ extension TestNSJSONSerialization {
             try NSJSONSerialization.JSONObjectWithString(subject)
             XCTFail("Expected error: UnterminatedString")
         } catch let NSJSONSerializationError.UnterminatedString(index){
+            XCTAssertEqual(index, 1)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_missingObjectKey() {
+        let subject = "{3}"
+        
+        do {
+            try NSJSONSerialization.JSONObjectWithString(subject)
+            XCTFail("Expected error: Missing key for value")
+        } catch let NSJSONSerializationError.MissingObjectKey(index){
             XCTAssertEqual(index, 1)
         } catch {
             XCTFail("Unexpected error: \(error)")
