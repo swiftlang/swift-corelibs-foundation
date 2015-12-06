@@ -227,25 +227,19 @@ private struct JSONDeserializer {
     }
     
     static func consumeScalar(scalar: UnicodeScalar, input: UnicodeParser) throws -> UnicodeParser? {
-        guard input.index < input.view.endIndex else {
+        switch takeScalar(input) {
+        case nil:
             throw NSJSONSerializationError.UnexpectedEndOfFile
-        }
-        if scalar == input.view[input.index] {
-            return input.successor()
-        }
-        return nil
-    }
-    
-    static func readScalar(input: UnicodeParser) -> (UnicodeScalar, UnicodeParser)? {
-        guard input.index < input.view.endIndex else {
+        case let (taken, parser)? where taken == scalar:
+            return parser
+        default:
             return nil
         }
-        return (input.view[input.index], input.successor())
     }
     
-    static func consumeString(string: String, input: UnicodeParser) throws -> UnicodeParser? {
+    static func consumeSequence(sequence: String, input: UnicodeParser) throws -> UnicodeParser? {
         var parser = input
-        for scalar in string.unicodeScalars {
+        for scalar in sequence.unicodeScalars {
             guard let newParser = try consumeScalar(scalar, input: parser) else {
                 return nil
             }
@@ -253,38 +247,20 @@ private struct JSONDeserializer {
         }
         return parser
     }
+    
+    static func takeScalar(input: UnicodeParser) -> (UnicodeScalar, UnicodeParser)? {
+        guard input.index < input.view.endIndex else {
+            return nil
+        }
+        return (input.view[input.index], input.successor())
+    }
 
+    //MARK: - String Parsing
     struct StringScalar{
         static let QuotationMark = UnicodeScalar(0x22) // "
         static let Escape        = UnicodeScalar(0x5C) // \
     }
     
-    static func parseEscapeSequence(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
-        guard let (scalar, parser) = readScalar(input) else {
-            throw NSJSONSerializationError.UnexpectedEndOfFile
-        }
-        switch scalar {
-        case UnicodeScalar(0x22): // "    quotation mark  U+0022
-            fallthrough
-        case UnicodeScalar(0x5C): // \    reverse solidus U+005F
-            fallthrough
-        case UnicodeScalar(0x2F): // /    solidus         U+002F
-            return (scalar, parser)
-        case UnicodeScalar(0x62): // b    backspace       U+0008
-            return (UnicodeScalar(0x08), parser)
-        case UnicodeScalar(0x66): // f    form feed       U+000C
-            return (UnicodeScalar(0x0C), parser)
-        case UnicodeScalar(0x6E): // n    line feed       U+000A
-            return (UnicodeScalar(0x0A), parser)
-        case UnicodeScalar(0x72): // r    carriage return U+000D
-            return (UnicodeScalar(0x0D), parser)
-        case UnicodeScalar(0x74): // t    tab             U+0009
-            return (UnicodeScalar(0x09), parser)
-        default:
-            return nil
-        }
-    }
-
     static func parseString(input: UnicodeParser) throws -> (String, UnicodeParser)? {
         guard let begin = try consumeScalar(StringScalar.QuotationMark, input: input) else {
             return nil
@@ -296,7 +272,7 @@ private struct JSONDeserializer {
         while index < endIndex {
             let scalar = view[index]
             index = index.successor()
-    
+            
             switch scalar {
             case StringScalar.QuotationMark:
                 return (String(value), UnicodeParser(view: view, index: index))
@@ -316,6 +292,39 @@ private struct JSONDeserializer {
         throw NSJSONSerializationError.UnterminatedString(input.distanceFromStart)
     }
     
+    static func parseEscapeSequence(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
+        guard let (scalar, parser) = takeScalar(input) else {
+            throw NSJSONSerializationError.UnexpectedEndOfFile
+        }
+        switch scalar {
+        case UnicodeScalar(0x22): // "    quotation mark  U+0022
+            fallthrough
+        case UnicodeScalar(0x5C): // \    reverse solidus U+005F
+            fallthrough
+        case UnicodeScalar(0x2F): // /    solidus         U+002F
+            return (scalar, parser)
+        case UnicodeScalar(0x62): // b    backspace       U+0008
+            return (UnicodeScalar(0x08), parser)
+        case UnicodeScalar(0x66): // f    form feed       U+000C
+            return (UnicodeScalar(0x0C), parser)
+        case UnicodeScalar(0x6E): // n    line feed       U+000A
+            return (UnicodeScalar(0x0A), parser)
+        case UnicodeScalar(0x72): // r    carriage return U+000D
+            return (UnicodeScalar(0x0D), parser)
+        case UnicodeScalar(0x74): // t    tab             U+0009
+            return (UnicodeScalar(0x09), parser)
+        case UnicodeScalar(0x75): // u    unicode
+            return try parseUnicodeSequence(parser)
+        default:
+            return nil
+        }
+    }
+    
+    static func parseUnicodeSequence(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
+        return nil
+    }
+    
+    //MARK: - Number parsing
     static let numberScalars = [
         UnicodeScalar(0x2E), // .
         UnicodeScalar(0x30), // 0
@@ -348,17 +357,18 @@ private struct JSONDeserializer {
         return (result, UnicodeParser(view: view, index: index))
     }
 
+    //MARK: - Value parsing
     static func parseValue(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
         if let (value, parser) = try parseString(input) {
             return (value, parser)
         }
-        else if let parser = try consumeString("true", input: input) {
+        else if let parser = try consumeSequence("true", input: input) {
             return (true, parser)
         }
-        else if let parser = try consumeString("false", input: input) {
+        else if let parser = try consumeSequence("false", input: input) {
             return (false, parser)
         }
-        else if let parser = try consumeString("null", input: input) {
+        else if let parser = try consumeSequence("null", input: input) {
             return (NSNull(), parser)
         }
         else if let (object, parser) = try parseObject(input) {
@@ -373,20 +383,7 @@ private struct JSONDeserializer {
         return nil
     }
 
-    static func parseObjectMember(input: UnicodeParser) throws -> (String, AnyObject, UnicodeParser)? {
-        guard let (name, parser) = try parseString(input) else {
-            throw NSJSONSerializationError.MissingObjectKey(input.distanceFromStart)
-        }
-        guard let separatorParser = try consumeStructure(StructureScalar.NameSeparator, input: parser) else {
-            return nil
-        }
-        guard let (value, finalParser) = try parseValue(separatorParser) else {
-            throw NSJSONSerializationError.InvalidValue(separatorParser.distanceFromStart)
-        }
-    
-        return (name, value, finalParser)
-    }
-
+    //MARK: - Object parsing
     static func parseObject(input: UnicodeParser) throws -> ([String: AnyObject], UnicodeParser)? {
         guard let beginParser = try consumeStructure(StructureScalar.BeginObject, input: input) else {
             return nil
@@ -415,7 +412,22 @@ private struct JSONDeserializer {
             return nil
         }
     }
+    
+    static func parseObjectMember(input: UnicodeParser) throws -> (String, AnyObject, UnicodeParser)? {
+        guard let (name, parser) = try parseString(input) else {
+            throw NSJSONSerializationError.MissingObjectKey(input.distanceFromStart)
+        }
+        guard let separatorParser = try consumeStructure(StructureScalar.NameSeparator, input: parser) else {
+            return nil
+        }
+        guard let (value, finalParser) = try parseValue(separatorParser) else {
+            throw NSJSONSerializationError.InvalidValue(separatorParser.distanceFromStart)
+        }
+        
+        return (name, value, finalParser)
+    }
 
+    //MARK: - Array parsing
     static func parseArray(input: UnicodeParser) throws -> ([AnyObject], UnicodeParser)? {
         guard let beginParser = try consumeStructure(StructureScalar.BeginArray, input: input) else {
             return nil
