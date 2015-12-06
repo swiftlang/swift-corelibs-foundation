@@ -277,6 +277,9 @@ private struct JSONDeserializer {
         else if let parser = try consumeString("false", input: input) {
             return (false, parser)
         }
+        else if let parser = try consumeString("null", input: input) {
+            return (NSNull(), parser)
+        }
         return nil
     }
 
