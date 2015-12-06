@@ -50,6 +50,7 @@ class TestNSURL : XCTestCase {
             ("test_fileURLWithPath_relativeToURL", test_fileURLWithPath_relativeToURL ),
             ("test_fileURLWithPath", test_fileURLWithPath),
             ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
+            ("test_description", test_description),
         ]
     }
     
@@ -343,4 +344,11 @@ class TestNSURL : XCTestCase {
         */
     }
 
+    func test_description() {
+        // test with file that exists
+        let path = TestNSURL.gFileExistsPath
+        let url = NSURL(fileURLWithPath: path)
+        
+        XCTAssertEqual(path, url.description, "expected description does not match")
+    }
 }
