@@ -229,7 +229,7 @@ private struct JSONDeserializer {
         static let Escape        = UnicodeScalar(0x5C) // \
     }
 
-    static func readString(input: UnicodeParser) throws -> (String, UnicodeParser)? {
+    static func parseString(input: UnicodeParser) throws -> (String, UnicodeParser)? {
         guard let begin = try consumeScalar(StringScalar.QuotationMark, input: input) else {
             return nil
         }
@@ -252,14 +252,14 @@ private struct JSONDeserializer {
     }
 
     static func parseValue(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
-        if let (value, parser) = try readString(input) {
+        if let (value, parser) = try parseString(input) {
             return (value, parser)
         }
         return nil
     }
 
     static func parseObjectMember(input: UnicodeParser) throws -> (String, AnyObject, UnicodeParser)? {
-        guard let (name, parser) = try readString(input) else {
+        guard let (name, parser) = try parseString(input) else {
             throw NSJSONSerializationError.MissingObjectKey(input.distanceFromStart)
         }
         guard let separatorParser = try consumeStructure(StructureScalar.NameSeparator, input: parser) else {
