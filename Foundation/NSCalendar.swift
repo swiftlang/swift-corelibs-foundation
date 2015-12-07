@@ -365,11 +365,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     public func dateFromComponents(comps: NSDateComponents) -> NSDate? {
         var (vector, compDesc) = _convert(comps)
         
-        let oldTz = timeZone
-        let tempTz = comps.timeZone
-        if let tz = tempTz {
-            timeZone = tz
-        }
+        self.timeZone = comps.timeZone ?? timeZone
         
         var at: CFAbsoluteTime = 0.0
         let res: Bool = withUnsafeMutablePointer(&at) { t in
@@ -378,15 +374,11 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             }
         }
         
-        if tempTz != nil {
-            self.timeZone = oldTz
-        }
-        
         if res {
             return NSDate(timeIntervalSinceReferenceDate: at)
+        } else {
+            return nil
         }
-        
-        return nil
     }
     
     private func _setup(unitFlags: NSCalendarUnit, field: NSCalendarUnit, type: String, inout compDesc: [Int8]) {
