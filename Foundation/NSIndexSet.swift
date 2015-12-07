@@ -13,17 +13,17 @@
 The following code snippets can be used to enumerate over the indexes in an NSIndexSet:
 
     // Forward
-    NSUInteger currentIndex = [set firstIndex];
-    while (currentIndex != NSNotFound) {
+    var currentIndex = set.firstIndex
+    while currentIndex != NSNotFound {
         ...
-        currentIndex = [set indexGreaterThanIndex:currentIndex];
+        currentIndex = set.indexGreaterThanIndex(currentIndex)
     }
-    
+
     // Backward
-    NSUInteger currentIndex = [set lastIndex];
-    while (currentIndex != NSNotFound) {
+    var currentIndex = set.lastIndex
+    while currentIndex != NSNotFound {
         ...
-        currentIndex = [set indexLessThanIndex:currentIndex];
+        currentIndex = set.indexLessThanIndex(currentIndex)
     }
 
 To enumerate without doing a call per index, you can use the method getIndexes:maxCount:inIndexRange:.
