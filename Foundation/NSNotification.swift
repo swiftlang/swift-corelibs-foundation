@@ -74,15 +74,9 @@ public class NSNotificationCenter : NSObject {
             return
         }
         
-        var sendTo = [NSNotificationReceiver]()
         let sender = notification.object
-        
-        for observer in observers where observer.valid {
-            if observer.sender != nil && observer.sender !== sender {
-                continue
-            }
-            
-            sendTo.append(observer)
+        let sendTo = observers.filter { observer in
+            observer.valid && (observer.sender == nil || observer.sender === sender)
         }
         
         for observer in sendTo where observer.valid {
@@ -104,7 +98,6 @@ public class NSNotificationCenter : NSObject {
         postNotification(notification)
     }
 
-    
     public func removeObserver(observer: AnyObject) {
         for (name, _) in observers {
             removeObserver(observer, name: name, object: nil)
@@ -112,14 +105,14 @@ public class NSNotificationCenter : NSObject {
     }
 
     public func removeObserver(observer: AnyObject, name aName: String?, object anObject: AnyObject?) {
-        guard let name = aName, observers = observers[name] else {
+        guard let name = aName, observersForName = observers[name] else {
             return
         }
         guard let observer = observer as? NSObject else {
             return
         }
         
-        for curObserver in observers where curObserver.valid {
+        for curObserver in observersForName where curObserver.valid {
             if curObserver.object !== observer {
                 continue
             }
@@ -131,12 +124,12 @@ public class NSNotificationCenter : NSObject {
             curObserver.valid = false
         }
         
-        let validObservers = observers.filter { $0.valid }
+        let validObservers = observersForName.filter { $0.valid }
         
         if validObservers.count == 0 {
-            self.observers.removeValueForKey(name)
+            observers.removeValueForKey(name)
         } else {
-            self.observers[name] = validObservers
+            observers[name] = validObservers
         }
     }
 
