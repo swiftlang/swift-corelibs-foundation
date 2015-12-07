@@ -24,7 +24,7 @@ In our first year, we are not looking to make major API changes to the library. 
 
 ### API Naming and Foundation
 
-One of the goals of the Swift 3 project is [a new set of naming guidelines](https://swift.org/documentation/api-design-guidelines.html). The Foundation project will soon update all of its names to match the new guidelines. We will also drop the 'NS' prefix from all classes.
+One of the goals of the Swift 3 project is [a new set of naming guidelines](https://swift.org/documentation/api-design-guidelines.html). The Foundation project will soon update all of its names to match the new guidelines. We will also drop the 'NS' prefix from all Foundation classes.
 
 ### Current Status
 
@@ -50,7 +50,7 @@ You will want to use the [Swift Package Manager](https://swift.org/package-manag
 
 ## Working on Foundation
 
-Please see [Getting Started](Docs/GettingStarted.md).
+For information on how to build Foundation, please see [Getting Started](Docs/GettingStarted.md). Once you're ready to make changes of your own, check out our [information on contributing](CONTRIBUTING.md).
 
 ## FAQ
 

@@ -13,6 +13,8 @@ In a very limited number of cases, key Foundation API as it exists on Apple plat
 
 A significant portion of the implementation of Foundation on Apple platforms is provided by another framework called CoreFoundation (a.k.a. CF). CF is written primarily in C and is very portable. Therefore we have chosen to use it for the internal implementation of Swift Foundation where possible. As CF is present on all platforms, we can use it to provide a common implementation everywhere.
 
+Another aspect of portability is keeping dependencies to an absolute minimum. With fewer dependencies to port, it is more likely that Foundation will be able to easily compile and run on new platforms. Therefore, we will prefer solutions that are implemented in Foundation itself. Exceptions can be made for major functionality (for example, `ICU`, `libdispatch`, and `libxml2`).
+
 ## A Taxonomy of Types
 
 A key to the internal design of the framework is the split between the CF implementation and Swift implementation of the Foundation classes. They can be organized into several categories.

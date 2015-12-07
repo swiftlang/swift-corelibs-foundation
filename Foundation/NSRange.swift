@@ -99,5 +99,33 @@ public func NSStringFromRange(range: NSRange) -> String {
 }
 
 public func NSRangeFromString(aString: String) -> NSRange {
-    NSUnimplemented()
+    let emptyRange = NSMakeRange(0, 0)
+    if aString.isEmpty {
+        // fail early if the string is empty
+        return emptyRange
+    }
+    let scanner = NSScanner(string: aString)
+    let digitSet = NSCharacterSet.decimalDigitCharacterSet()
+    scanner.scanUpToCharactersFromSet(digitSet)
+    if scanner.atEnd {
+        // fail early if there are no decimal digits
+        return emptyRange
+    }
+    guard let location = scanner.scanInteger() else {
+        return emptyRange
+    }
+    let partialRange = NSMakeRange(location, 0)
+    if scanner.atEnd {
+        // return early if there are no more characters after the first int in the string
+        return partialRange
+    }
+    scanner.scanUpToCharactersFromSet(digitSet)
+    if scanner.atEnd {
+        // return early if there are no integer characters after the first int in the string
+        return partialRange
+    }
+    guard let length = scanner.scanInteger() else {
+        return partialRange
+    }
+    return NSMakeRange(location, length)
 }

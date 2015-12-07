@@ -10,7 +10,7 @@
 
 public typealias NSSocketNativeHandle = Int32
 
-public let NSPortDidBecomeInvalidNotification: String = "" // NSUnimplemented
+public let NSPortDidBecomeInvalidNotification: String = "NSPortDidBecomeInvalidNotification"
 
 public class NSPort : NSObject, NSCopying, NSCoding {
     

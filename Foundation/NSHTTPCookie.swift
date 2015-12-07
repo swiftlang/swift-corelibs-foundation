@@ -372,7 +372,17 @@ public class NSHTTPCookie : NSObject {
         @result An NSDictionary where the keys are header field names, and the values
         are the corresponding header field values.
     */
-    public class func requestHeaderFieldsWithCookies(cookies: [NSHTTPCookie]) -> [String : String] { NSUnimplemented() }
+    public class func requestHeaderFieldsWithCookies(cookies: [NSHTTPCookie]) -> [String : String] {
+        var cookieString = cookies.reduce("") { (sum, next) -> String in
+            return sum + "\(next.cookieRepresentation.name)=\(next.cookieRepresentation.value); "
+        }
+        //Remove the final trailing semicolon and whitespace
+        if ( cookieString.length > 0 ) {
+            cookieString.removeAtIndex(cookieString.endIndex.predecessor())
+            cookieString.removeAtIndex(cookieString.endIndex.predecessor())
+        }
+        return ["Cookie": cookieString]
+    }
     
     /*!
         @method cookiesWithResponseHeaderFields:forURL:
