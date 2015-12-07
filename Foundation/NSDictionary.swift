@@ -283,9 +283,12 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
         
         for key in keyEnumerator() {
-            if otherDictionary[key] == nil {
-                return false
-            } else if otherDictionary[key] != objectForKey(key) {
+            if let otherValue = otherDictionary[key as! NSObject] as? NSObject {
+                let value = objectForKey(key as! NSObject)! as! NSObject
+                if otherValue != value {
+                    return false
+                }
+            } else {
                 return false
             }
         }
