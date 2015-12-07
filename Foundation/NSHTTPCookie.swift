@@ -11,79 +11,79 @@
     @const NSHTTPCookieName
     @discussion Key for cookie name
 */
-public let NSHTTPCookieName: String = "NSHTTPCookieName"
+public let NSHTTPCookieName: String = "Name"
 
 /*!
     @const NSHTTPCookieValue
     @discussion Key for cookie value
 */
-public let NSHTTPCookieValue: String = "NSHTTPCookieValue"
+public let NSHTTPCookieValue: String = "Value"
 
 /*!
     @const NSHTTPCookieOriginURL
     @discussion Key for cookie origin URL
 */
-public let NSHTTPCookieOriginURL: String = "NSHTTPCookieOriginURL"
+public let NSHTTPCookieOriginURL: String = "OriginURL"
 
 /*!
     @const NSHTTPCookieVersion
     @discussion Key for cookie version
 */
-public let NSHTTPCookieVersion: String = "NSHTTPCookieVersion"
+public let NSHTTPCookieVersion: String = "Version"
 
 /*!
     @const NSHTTPCookieDomain
     @discussion Key for cookie domain
 */
-public let NSHTTPCookieDomain: String = "NSHTTPCookieDomain"
+public let NSHTTPCookieDomain: String = "Domain"
 
 /*!
     @const NSHTTPCookiePath
     @discussion Key for cookie path
 */
-public let NSHTTPCookiePath: String = "NSHTTPCookiePath"
+public let NSHTTPCookiePath: String = "Path"
 
 /*!
     @const NSHTTPCookieSecure
     @discussion Key for cookie secure flag
 */
-public let NSHTTPCookieSecure: String = "NSHTTPCookieSecure"
+public let NSHTTPCookieSecure: String = "Secure"
 
 /*!
     @const NSHTTPCookieExpires
     @discussion Key for cookie expiration date
 */
-public let NSHTTPCookieExpires: String = "NSHTTPCookieExpires"
+public let NSHTTPCookieExpires: String = "Expires"
 
 /*!
     @const NSHTTPCookieComment
     @discussion Key for cookie comment text
 */
-public let NSHTTPCookieComment: String = "NSHTTPCookieComment"
+public let NSHTTPCookieComment: String = "Comment"
 
 /*!
     @const NSHTTPCookieCommentURL
     @discussion Key for cookie comment URL
 */
-public let NSHTTPCookieCommentURL: String = "NSHTTPCookieCommentURL"
+public let NSHTTPCookieCommentURL: String = "CommentURL"
 
 /*!
     @const NSHTTPCookieDiscard
     @discussion Key for cookie discard (session-only) flag
 */
-public let NSHTTPCookieDiscard: String = "NSHTTPCookieDiscard"
+public let NSHTTPCookieDiscard: String = "Discard"
 
 /*!
     @const NSHTTPCookieMaximumAge
     @discussion Key for cookie maximum age (an alternate way of specifying the expiration)
 */
-public let NSHTTPCookieMaximumAge: String = "NSHTTPCookieMaximumAge"
+public let NSHTTPCookieMaximumAge: String = "Max-Age"
 
 /*!
     @const NSHTTPCookiePort
     @discussion Key for cookie ports
 */
-public let NSHTTPCookiePort: String = "NSHTTPCookiePort"
+public let NSHTTPCookiePort: String = "Port"
 
 
 /*!
