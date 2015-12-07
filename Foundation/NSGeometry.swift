@@ -53,7 +53,7 @@ public struct CGPoint {
 extension CGPoint: Equatable { }
 
 public func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
-    return (lhs.x == rhs.x) && (lhs.y == lhs.y)
+    return (lhs.x == rhs.x) && (lhs.y == rhs.y)
 }
 
 public struct CGSize {
@@ -72,7 +72,7 @@ public struct CGSize {
 extension CGSize: Equatable { }
 
 public func ==(lhs: CGSize, rhs: CGSize) -> Bool {
-    return (lhs.width == rhs.width) && (lhs.height == lhs.height)
+    return (lhs.width == rhs.width) && (lhs.height == rhs.height)
 }
 
 public struct CGRect {
@@ -91,7 +91,7 @@ public struct CGRect {
 extension CGRect: Equatable { }
 
 public func ==(lhs: CGRect, rhs: CGRect) -> Bool {
-    return (lhs.origin == rhs.origin) && (lhs.size == lhs.size)
+    return (lhs.origin == rhs.origin) && (lhs.size == rhs.size)
 }
 
 public typealias NSPoint = CGPoint
