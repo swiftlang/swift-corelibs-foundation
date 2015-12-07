@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		207920CE1C15E2C50027FE71 /* TestNSNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 207920CD1C15E2C50027FE71 /* TestNSNotificationCenter.swift */; };
 		525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
@@ -313,6 +314,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		207920CD1C15E2C50027FE71 /* TestNSNotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNotificationCenter.swift; sourceTree = "<group>"; };
 		522C253A1BF16E1600804FC6 /* FoundationErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationErrors.swift; sourceTree = "<group>"; };
 		525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileManager.swift; sourceTree = "<group>"; };
 		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Test.plist; sourceTree = "<group>"; };
@@ -1012,6 +1014,7 @@
 				5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */,
 				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
 				5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */,
+				207920CD1C15E2C50027FE71 /* TestNSNotificationCenter.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1694,6 +1697,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				207920CE1C15E2C50027FE71 /* TestNSNotificationCenter.swift in Sources */,
 				525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */,
 				EA66F6501BF1619600136161 /* TestNSNumber.swift in Sources */,
 				E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */,

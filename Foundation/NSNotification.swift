@@ -8,18 +8,11 @@
 //
 
 public class NSNotification : NSObject, NSCopying, NSCoding {
+    private(set) public var name: String
     
-    public var name: String {
-        NSUnimplemented()
-    }
+    private(set) public var object: AnyObject?
     
-    public var object: AnyObject? {
-        NSUnimplemented()
-    }
-    
-    public var userInfo: [NSObject : AnyObject]? {
-        NSUnimplemented()
-    }
+    private(set) public var userInfo: [NSObject : AnyObject]?
     
     public convenience override init() {
         /* do not invoke; not a valid initializer for this class */
@@ -27,7 +20,9 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
     }
     
     public init(name: String, object: AnyObject?, userInfo: [NSObject : AnyObject]?) {
-        NSUnimplemented()
+        self.name = name
+        self.object = object
+        self.userInfo = userInfo
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -45,40 +40,125 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
 
 extension NSNotification {
     public convenience init(name aName: String, object anObject: AnyObject?) {
-        NSUnimplemented()
+        self.init(name: aName, object: anObject, userInfo: nil)
     }
 }
 
+private class NSNotificationReceiver : NSObject {
+    private var object: NSObject = NSObject()
+    private var block: ((NSNotification) -> Void)?
+    private var sender: AnyObject?
+    private var valid: Bool = false
+}
+
+
+private var _defaultCenter: NSNotificationCenter = NSNotificationCenter()
+
 public class NSNotificationCenter : NSObject {
     
+    private var observers: Dictionary<String, [NSNotificationReceiver]>
+    
+    public required override init() {
+        observers = [String: [NSNotificationReceiver]]()
+    }
+    
     public class func defaultCenter() -> NSNotificationCenter {
-        NSUnimplemented()
+        return _defaultCenter
     }
     
     public func postNotification(notification: NSNotification) {
-        NSUnimplemented()
+        let name = notification.name
+        guard let observers = observers[name] else {
+            return
+        }
+        
+        var sendTo = [NSNotificationReceiver]()
+        let sender = notification.object
+        
+        for observer in observers where observer.valid {
+            if observer.sender != nil && observer.sender !== sender {
+                continue
+            }
+            
+            sendTo.append(observer)
+        }
+        
+        for observer in sendTo where observer.valid {
+            guard let block = observer.block else {
+                continue
+            }
+            
+            block(notification)
+        }
     }
 
     public func postNotificationName(aName: String, object anObject: AnyObject?) {
-        NSUnimplemented()
+        let notification = NSNotification(name: aName, object: anObject)
+        postNotification(notification)
     }
 
     public func postNotificationName(aName: String, object anObject: AnyObject?, userInfo aUserInfo: [NSObject : AnyObject]?) {
-        NSUnimplemented()
+        let notification = NSNotification(name: aName, object: anObject, userInfo: aUserInfo)
+        postNotification(notification)
     }
 
     
     public func removeObserver(observer: AnyObject) {
-        NSUnimplemented()
+        for (name, _) in observers {
+            removeObserver(observer, name: name, object: nil)
+        }
     }
 
     public func removeObserver(observer: AnyObject, name aName: String?, object anObject: AnyObject?) {
-        NSUnimplemented()
+        guard let name = aName, observers = observers[name] else {
+            return
+        }
+        guard let observer = observer as? NSObject else {
+            return
+        }
+        
+        for curObserver in observers where curObserver.valid {
+            if curObserver.object !== observer {
+                continue
+            }
+            
+            if anObject != nil && curObserver.sender !== anObject {
+                continue
+            }
+            
+            curObserver.valid = false
+        }
+        
+        let validObservers = observers.filter { $0.valid }
+        
+        if validObservers.count == 0 {
+            self.observers.removeValueForKey(name)
+        } else {
+            self.observers[name] = validObservers
+        }
     }
 
     
     public func addObserverForName(name: String?, object obj: AnyObject?, queue: NSOperationQueue?, usingBlock block: (NSNotification) -> Void) -> NSObjectProtocol {
-        NSUnimplemented()
+        if queue != nil {
+            NSUnimplemented()
+        }
+
+        guard let name = name else {
+            NSUnimplemented()
+        }
+
+        let newObserver = NSNotificationReceiver()
+        newObserver.block = block
+        newObserver.sender = obj
+        newObserver.valid = true
+        
+        var observers = self.observers[name] ?? [NSNotificationReceiver]()
+        
+        observers.append(newObserver)
+        self.observers[name] = observers
+        
+        return newObserver.object
     }
 
 }
