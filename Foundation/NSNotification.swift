@@ -44,8 +44,9 @@ extension NSNotification {
     }
 }
 
+
 private class NSNotificationReceiver : NSObject {
-    private var object: NSObject = NSObject()
+    private weak var object: NSObject?
     private var block: ((NSNotification) -> Void)?
     private var sender: AnyObject?
     private var valid: Bool = false
