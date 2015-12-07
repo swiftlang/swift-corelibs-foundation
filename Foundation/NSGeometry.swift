@@ -106,8 +106,18 @@ public struct NSEdgeInsets {
     public var left: CGFloat
     public var bottom: CGFloat
     public var right: CGFloat
-    public init() { NSUnimplemented() }
-    public init(top: CGFloat, left: CGFloat, bottom: CGFloat, right: CGFloat) { NSUnimplemented() }
+    public init() {
+        self.top = CGFloat.init(0.0)
+        self.left = CGFloat.init(0.0)
+        self.bottom = CGFloat.init(0.0)
+        self.right = CGFloat.init(0.0)
+    }
+    public init(top: CGFloat, left: CGFloat, bottom: CGFloat, right: CGFloat) {
+        self.top = top
+        self.left = left
+        self.bottom = bottom
+        self.right = right
+    }
 }
 
 public struct NSAlignmentOptions : OptionSetType {
