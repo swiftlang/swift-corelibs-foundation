@@ -149,17 +149,20 @@ public class NSNotificationCenter : NSObject {
             NSUnimplemented()
         }
 
+        let object = NSObject()
+        
         let newObserver = NSNotificationReceiver()
+        newObserver.object = object
         newObserver.block = block
         newObserver.sender = obj
         newObserver.valid = true
         
-        var observers = self.observers[name] ?? [NSNotificationReceiver]()
+        var observersForName = observers[name] ?? [NSNotificationReceiver]()
+        observersForName.append(newObserver)
         
-        observers.append(newObserver)
-        self.observers[name] = observers
+        observers[name] = observersForName
         
-        return newObserver.object
+        return object
     }
 
 }
