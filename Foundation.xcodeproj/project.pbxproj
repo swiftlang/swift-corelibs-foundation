@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */; };
 		525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
+		52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52829AD61C160D64003BC4EF /* TestNSCalendar.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
 		5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
@@ -317,6 +318,7 @@
 		4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSPipe.swift; sourceTree = "<group>"; };
 		522C253A1BF16E1600804FC6 /* FoundationErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationErrors.swift; sourceTree = "<group>"; };
 		525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileManager.swift; sourceTree = "<group>"; };
+		52829AD61C160D64003BC4EF /* TestNSCalendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCalendar.swift; sourceTree = "<group>"; };
 		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Test.plist; sourceTree = "<group>"; };
 		5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInterface.c; sourceTree = "<group>"; };
 		5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLInterface.h; sourceTree = "<group>"; };
@@ -1003,6 +1005,7 @@
 			isa = PBXGroup;
 			children = (
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
+				52829AD61C160D64003BC4EF /* TestNSCalendar.swift */,
 				EA66F63D1BF1619600136161 /* TestNSDictionary.swift */,
 				EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */,
 				EA66F63F1BF1619600136161 /* TestNSNumber.swift */,
@@ -1702,6 +1705,7 @@
 				E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */,
 				EA66F6521BF1619600136161 /* TestNSPropertyList.swift in Sources */,
 				4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */,
+				52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */,
 				EA66F64E1BF1619600136161 /* TestNSIndexSet.swift in Sources */,
 				EA66F6541BF1619600136161 /* TestNSSet.swift in Sources */,
 				EA66F64A1BF1619600136161 /* TestNSArray.swift in Sources */,
