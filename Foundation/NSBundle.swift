@@ -190,12 +190,21 @@ public class NSBundle : NSObject {
     public var bundleIdentifier: String? {
         return CFBundleGetIdentifier(_bundle)?._swiftObject
     }
-    public var infoDictionary: [String : AnyObject]? {
-        return CFBundleGetInfoDictionary(_bundle)?._swiftObject as! [String: AnyObject]?
+    
+    /// - Experiment: This currently returns a dictionary of Any instead of AnyObject because of bridging limitations
+    
+    public var infoDictionary: [String : Any]? {
+        let cfDict: CFDictionary? = CFBundleGetInfoDictionary(_bundle)
+        return cfDict.map(_expensivePropertyListConversion) as? [String: Any]
     }
-    public var localizedInfoDictionary: [String : AnyObject]? {
-        return CFBundleGetLocalInfoDictionary(_bundle)?._swiftObject as! [String: AnyObject]?
+    
+    /// - Experiment: This currently returns a dictionary of Any instead of AnyObject because of bridging limitations
+    
+    public var localizedInfoDictionary: [String : Any]? {
+        let cfDict: CFDictionary? = CFBundleGetLocalInfoDictionary(_bundle)
+        return cfDict.map(_expensivePropertyListConversion) as? [String: Any]
     }
+    
     public func objectForInfoDictionaryKey(key: String) -> AnyObject? { NSUnimplemented() }
     public func classNamed(className: String) -> AnyClass? { NSUnimplemented() }
     public var principalClass: AnyClass? { NSUnimplemented() }
@@ -203,11 +212,15 @@ public class NSBundle : NSObject {
         return NSBundle.preferredLocalizationsFromArray(localizations)
     }
     public var localizations: [String] {
-        return (CFBundleCopyBundleLocalizations(_bundle)?._swiftObject ?? []) as! [String]
+        let cfLocalizations: CFArray? = CFBundleCopyBundleLocalizations(_bundle)
+        let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
+        return nsLocalizations?.map { ($0 as! NSString).bridge() } ?? []
     }
     public var developmentLocalization: String? { NSUnimplemented() }
     public class func preferredLocalizationsFromArray(localizationsArray: [String]) -> [String] {
-        return (CFBundleCopyPreferredLocalizationsFromArray(localizationsArray._cfObject)?._swiftObject ?? []) as! [String]
+        let cfLocalizations: CFArray? = CFBundleCopyPreferredLocalizationsFromArray(localizationsArray._cfObject)
+        let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
+        return nsLocalizations?.map { ($0 as! NSString).bridge() } ?? []
     }
     public class func preferredLocalizationsFromArray(localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] { NSUnimplemented() }
     public var executableArchitectures: [NSNumber]? { NSUnimplemented() }
