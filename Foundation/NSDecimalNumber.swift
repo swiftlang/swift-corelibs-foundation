@@ -9,10 +9,10 @@
 
 
 /***************	Exceptions		***********/
-public let NSDecimalNumberExactnessException: String = "" // NSUnimplemented
-public let NSDecimalNumberOverflowException: String = "" // NSUnimplemented
-public let NSDecimalNumberUnderflowException: String = "" // NSUnimplemented
-public let NSDecimalNumberDivideByZeroException: String = "" // NSUnimplemented
+public let NSDecimalNumberExactnessException: String = "NSDecimalNumberExactnessException"
+public let NSDecimalNumberOverflowException: String = "NSDecimalNumberOverflowException"
+public let NSDecimalNumberUnderflowException: String = "NSDecimalNumberUnderflowException"
+public let NSDecimalNumberDivideByZeroException: String = "NSDecimalNumberDivideByZeroException"
 
 /***************	Rounding and Exception behavior		***********/
 

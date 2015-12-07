@@ -8,9 +8,9 @@
 //
 
 
-public let NSGlobalDomain: String = "" // NSUnimplemented()
-public let NSArgumentDomain: String = "" // NSUnimplemented()
-public let NSRegistrationDomain: String = "" // NSUnimplemented()
+public let NSGlobalDomain: String = "NSGlobalDomain"
+public let NSArgumentDomain: String = "NSArgumentDomain"
+public let NSRegistrationDomain: String = "NSRegistrationDomain"
 
 public class NSUserDefaults : NSObject {
     
@@ -63,5 +63,5 @@ public class NSUserDefaults : NSObject {
     public func objectIsForcedForKey(key: String, inDomain domain: String) -> Bool { NSUnimplemented() }
 }
 
-public let NSUserDefaultsDidChangeNotification: String = "" // NSUnimplemented()
+public let NSUserDefaultsDidChangeNotification: String = "NSUserDefaultsDidChangeNotification"
 
