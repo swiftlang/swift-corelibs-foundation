@@ -19,24 +19,32 @@ import SwiftXCTest
 
 class TestNSPipe : XCTestCase {
     
+    public var allTests: [(String, () -> ())] {
+        return [
+            ("test_NSPipe", test_NSPipe)
+        ]
+    }
+    
     func test_NSPipe() {
         let aPipe = NSPipe()
         let text = "test-pipe"
         
         // First write some data into the pipe
-        aPipe.fileHandleForWriting.writeData(text.dataUsingEncoding(NSUTF8StringEncoding)!)
+        let stringAsData = text.bridge().dataUsingEncoding(NSUTF8StringEncoding)
+        XCTAssertNotNil(stringAsData)
+        aPipe.fileHandleForWriting.writeData(stringAsData!)
         
         // Then read it out again
         let data = aPipe.fileHandleForReading.readDataOfLength(text.characters.count)
         
-        // Make sure we *did* get data
+        // Confirm that we did read data
         XCTAssertNotNil(data)
         
-        // Make sure the data can be converted
+        // Confirm the data can be converted to a String
         let convertedData = String(data: data, encoding: NSUTF8StringEncoding)
         XCTAssertNotNil(convertedData)
         
-        // Make sure we did get back what we wrote in
+        // Confirm the data written in is the same as the data we read
         XCTAssertEqual(text, convertedData)
     }
 }
