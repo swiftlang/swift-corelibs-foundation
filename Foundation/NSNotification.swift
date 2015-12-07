@@ -26,15 +26,16 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        /* do not invoke; not a valid initializer for this class */
+        fatalError()
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        return self
     }
 }
 
