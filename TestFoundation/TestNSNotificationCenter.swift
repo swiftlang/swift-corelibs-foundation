@@ -22,6 +22,7 @@ class TestNSNotificationCenter : XCTestCase {
         return [
             ("test_defaultCenter", test_defaultCenter),
             ("test_postNotification", test_postNotification),
+            ("test_postNotificationForObject", test_postNotificationForObject),
             ("test_postMultipleNotifications", test_postMultipleNotifications),
             ("test_removeObserver", test_removeObserver),
         ]
@@ -34,83 +35,88 @@ class TestNSNotificationCenter : XCTestCase {
         XCTAssertEqual(defaultCenter1, defaultCenter2)
     }
     
-    func removeObserverFromDefaultCenter(observer: NSObjectProtocol) {
+    func removeObserver(observer: NSObjectProtocol, notificationCenter: NSNotificationCenter) {
         guard let observer = observer as? NSObject else {
             return
         }
         
-        NSNotificationCenter.defaultCenter().removeObserver(observer)
+        notificationCenter.removeObserver(observer)
     }
     
     func test_postNotification() {
-        let defaultCenter = NSNotificationCenter.defaultCenter()
+        let notificationCenter = NSNotificationCenter()
         let notificationName = "test_postNotification_name"
         var flag = false
         let dummyObject = NSObject()
-        let observer = defaultCenter.addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+        let observer = notificationCenter.addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
             XCTAssertEqual(notificationName, notification.name)
             XCTAssertTrue(dummyObject === notification.object)
             
             flag = true
         }
         
-        defaultCenter.postNotificationName(notificationName, object: dummyObject)
+        notificationCenter.postNotificationName(notificationName, object: dummyObject)
         XCTAssertTrue(flag)
         
-        removeObserverFromDefaultCenter(observer)
+        removeObserver(observer, notificationCenter: notificationCenter)
+    }
 
-        flag = true
+    func test_postNotificationForObject() {
+        let notificationCenter = NSNotificationCenter()
+        let notificationName = "test_postNotificationForObject_name"
+        var flag = true
+        let dummyObject = NSObject()
         let dummyObject2 = NSObject()
-        let observer2 = defaultCenter.addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+        let observer = notificationCenter.addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
             flag = false
         }
         
-        defaultCenter.postNotificationName(notificationName, object: dummyObject2)
+        notificationCenter.postNotificationName(notificationName, object: dummyObject2)
         XCTAssertTrue(flag)
         
-        removeObserverFromDefaultCenter(observer2)
+        removeObserver(observer, notificationCenter: notificationCenter)
     }
-
+    
     func test_postMultipleNotifications() {
-        let defaultCenter = NSNotificationCenter.defaultCenter()
-        let notificationName = "test_postNotification_name"
+        let notificationCenter = NSNotificationCenter()
+        let notificationName = "test_postMultipleNotifications_name"
         var flag1 = false
-        let observer1 = defaultCenter.addObserverForName(notificationName, object: nil, queue: nil) { _ in
+        let observer1 = notificationCenter.addObserverForName(notificationName, object: nil, queue: nil) { _ in
             flag1 = true
         }
 
         var flag2 = true
-        let observer2 = defaultCenter.addObserverForName(notificationName, object: nil, queue: nil) { _ in
+        let observer2 = notificationCenter.addObserverForName(notificationName, object: nil, queue: nil) { _ in
             flag2 = false
         }
 
         var flag3 = false
-        let observer3 = defaultCenter.addObserverForName(notificationName, object: nil, queue: nil) { _ in
+        let observer3 = notificationCenter.addObserverForName(notificationName, object: nil, queue: nil) { _ in
             flag3 = true
         }
 
-        removeObserverFromDefaultCenter(observer2)
+        removeObserver(observer2, notificationCenter: notificationCenter)
 
-        defaultCenter.postNotificationName(notificationName, object: nil)
+        notificationCenter.postNotificationName(notificationName, object: nil)
         XCTAssertTrue(flag1)
         XCTAssertTrue(flag2)
         XCTAssertTrue(flag3)
         
-        removeObserverFromDefaultCenter(observer1)
-        removeObserverFromDefaultCenter(observer3)
+        removeObserver(observer1, notificationCenter: notificationCenter)
+        removeObserver(observer3, notificationCenter: notificationCenter)
     }
 
     func test_removeObserver() {
-        let defaultCenter = NSNotificationCenter.defaultCenter()
+        let notificationCenter = NSNotificationCenter()
         let notificationName = "test_removeObserver_name"
         var flag = true
-        let observer = defaultCenter.addObserverForName(notificationName, object: nil, queue: nil) { _ in
+        let observer = notificationCenter.addObserverForName(notificationName, object: nil, queue: nil) { _ in
             flag = false
         }
 
-        removeObserverFromDefaultCenter(observer)
+        removeObserver(observer, notificationCenter: notificationCenter)
 
-        defaultCenter.postNotificationName(notificationName, object: nil)
+        notificationCenter.postNotificationName(notificationName, object: nil)
         XCTAssertTrue(flag)
     }
 
