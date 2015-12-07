@@ -191,7 +191,9 @@ extension NSSet {
             if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
                 return Array(_storage)
             } else {
-                return Array(self)
+				// Would be nice to use `Array(self)` here but compiler
+				// crashes on Linux @ swift 6e3e83c
+				return map { $0 }
             }
         }
     }
