@@ -441,9 +441,9 @@ extension NSData {
     ///
     ///      This method is invoked in a `try` expression and the caller is responsible for handling any errors in the `catch` clauses of a `do` statement, as described in [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/ErrorHandling.html#//apple_ref/doc/uid/TP40014097-CH42) in [The Swift Programming Language](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/index.html#//apple_ref/doc/uid/TP40014097) and [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/AdoptingCocoaDesignPatterns.html#//apple_ref/doc/uid/TP40014216-CH7-ID10) in [Using Swift with Cocoa and Objective-C](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/index.html#//apple_ref/doc/uid/TP40014216).
     public func writeToURL(url: NSURL, options writeOptionsMask: NSDataWritingOptions) throws {
-        guard let path = url.path where url.filePathURL == true else {
-            let userInfo = [NSLocalizedDescriptionKey : "The folder at “\(url)” does not exist or is not a file URL.", // NSLocalizedString() not yet available
-                            NSURLErrorKey             : url.absoluteString ?? ""]
+        guard let path = url.path where url.fileURL == true else {
+            let userInfo = [NSLocalizedDescriptionKey : "The folder at “\(url)” does not exist or is not a file URL." as NSString, // NSLocalizedString() not yet available
+                            NSURLErrorKey             : url.absoluteString as NSString? ?? ""]
             throw NSError(domain: NSCocoaErrorDomain, code: 4, userInfo: userInfo)
         }
         try writeToFile(path, options: writeOptionsMask)
