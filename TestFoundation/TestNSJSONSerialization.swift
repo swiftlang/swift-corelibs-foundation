@@ -94,6 +94,7 @@ extension TestNSJSONSerialization {
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
             ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
             ("test_deserialize_invalidValueInObject", test_deserialize_invalidValueInObject),
+            ("test_deserialize_invalidValueIncorrectSeparatorInObject", test_deserialize_invalidValueIncorrectSeparatorInObject),
             ("test_deserialize_invalidValueInArray", test_deserialize_invalidValueInArray),
             ("test_deserialize_badlyFormedArray", test_deserialize_badlyFormedArray),
             ("test_deserialize_invalidEscapeSequence", test_deserialize_invalidEscapeSequence),
@@ -269,6 +270,19 @@ extension TestNSJSONSerialization {
             XCTFail("Expected error: Invalid value")
         } catch let NSJSONSerializationError.InvalidValue(index){
             XCTAssertEqual(index, 9)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_invalidValueIncorrectSeparatorInObject() {
+        let subject = "{\"missing\";}"
+        
+        do {
+            try NSJSONSerialization.JSONObjectWithString(subject)
+            XCTFail("Expected error: Invalid value")
+        } catch let NSJSONSerializationError.InvalidValue(index){
+            XCTAssertEqual(index, 10)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }

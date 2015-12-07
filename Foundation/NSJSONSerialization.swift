@@ -443,7 +443,7 @@ private struct JSONDeserializer {
             throw NSJSONSerializationError.MissingObjectKey(input.distanceFromStart)
         }
         guard let separatorParser = try consumeStructure(StructureScalar.NameSeparator, input: parser) else {
-            return nil
+            throw NSJSONSerializationError.InvalidValue(parser.distanceFromStart)
         }
         guard let (value, finalParser) = try parseValue(separatorParser) else {
             throw NSJSONSerializationError.InvalidValue(separatorParser.distanceFromStart)
