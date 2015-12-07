@@ -196,13 +196,7 @@ private struct JSONDeserializer {
         }
     }
     
-    static let whitespaceScalars = [
-        UnicodeScalar(0x20), // Space
-        UnicodeScalar(0x09), // Horizontal tab
-        UnicodeScalar(0x0A), // Line feed or New line
-        UnicodeScalar(0x0D)  // Carriage return
-    ]
-    
+    static let whitespaceScalars = "\u{20}\u{09}\u{0A}\u{0D}".unicodeScalars
     static func consumeWhitespace(parser: UnicodeParser) -> UnicodeParser {
         var index = parser.index
         let view = parser.view
