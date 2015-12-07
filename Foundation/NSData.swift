@@ -168,7 +168,9 @@ extension NSData {
     
     public convenience init(bytesNoCopy bytes: UnsafeMutablePointer<Void>, length: Int, freeWhenDone b: Bool) {
         self.init(bytes: bytes, length: length, copy: true) { buffer, length in
-            free(buffer)
+            if b {
+                free(buffer)
+            }
         }
     }
 
@@ -254,6 +256,36 @@ extension NSData {
 
     public convenience init(data: NSData) {
         self.init(bytes:data.bytes, length: data.length)
+    }
+    
+    public convenience init(contentsOfURL url: NSURL, options readOptionsMask: NSDataReadingOptions) throws {
+        if url.fileURL {
+            try self.init(contentsOfFile: url.path!, options: readOptionsMask)
+        } else {
+            let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
+            let cond = NSCondition()
+            var resError: NSError?
+            var resData: NSData?
+            let task = session.dataTaskWithURL(url, completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) -> Void in
+                resData = data
+                resError = error
+                cond.broadcast()
+            })
+            task.resume()
+            cond.wait()
+            if resData == nil {
+                throw resError!
+            }
+            self.init(data: resData!)
+        }
+    }
+    
+    public convenience init?(contentsOfURL url: NSURL) {
+        do {
+            try self.init(contentsOfURL: url, options: [])
+        } catch {
+            return nil
+        }
     }
 }
 
@@ -382,6 +414,28 @@ extension NSData {
         }
     }
     
+    public func writeToFile(path: String, atomically useAuxiliaryFile: Bool) -> Bool {
+        do {
+            try writeToFile(path, options: useAuxiliaryFile ? .DataWritingAtomic : [])
+        } catch {
+            return false
+        }
+        return true
+    }
+    
+    public func writeToURL(url: NSURL, atomically: Bool) -> Bool {
+        if url.fileURL {
+            if let path = url.path {
+                return writeToFile(path, atomically: atomically)
+            }
+        }
+        return false
+    }
+    
+    public func writeToURL(url: NSURL, options writeOptionsMask: NSDataWritingOptions) throws {
+        NSUnimplemented()
+    }
+    
     internal func enumerateByteRangesUsingBlockRethrows(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
         var err : ErrorType? = nil
         self.enumerateByteRangesUsingBlock() { (buf, range, stop) -> Void in
@@ -447,6 +501,33 @@ public class NSMutableData : NSData {
     
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         return NSData(data: self)
+    }
+}
+
+extension NSData {
+    
+    /* Create an NSData from a Base-64 encoded NSString using the given options. By default, returns nil when the input is not recognized as valid Base-64.
+    */
+    public convenience init?(base64EncodedString base64String: String, options: NSDataBase64DecodingOptions) {
+        NSUnimplemented()
+    }
+    
+    /* Create a Base-64 encoded NSString from the receiver's contents using the given options.
+    */
+    public func base64EncodedStringWithOptions(options: NSDataBase64EncodingOptions) -> String {
+        NSUnimplemented()
+    }
+    
+    /* Create an NSData from a Base-64, UTF-8 encoded NSData. By default, returns nil when the input is not recognized as valid Base-64.
+    */
+    public convenience init?(base64EncodedData base64Data: NSData, options: NSDataBase64DecodingOptions) {
+        NSUnimplemented()
+    }
+    
+    /* Create a Base-64, UTF-8 encoded NSData from the receiver's contents using the given options.
+    */
+    public func base64EncodedDataWithOptions(options: NSDataBase64EncodingOptions) -> NSData {
+        NSUnimplemented()
     }
 }
 

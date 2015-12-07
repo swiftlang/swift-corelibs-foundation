@@ -20,6 +20,7 @@ class TestNSHTTPCookie: XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
+            ("test_RequestHeaderFields", test_RequestHeaderFields)
         ]
     }
 
@@ -89,5 +90,28 @@ class TestNSHTTPCookie: XCTestCase {
         XCTAssertNil(versionZeroCookieWithInvalidVersionOneProps?.portList)
         XCTAssert(versionZeroCookieWithInvalidVersionOneProps?.secure == true)
         XCTAssert(versionZeroCookieWithInvalidVersionOneProps?.version == 0)
+    }
+    
+    func test_RequestHeaderFields() {
+        let noCookies: [NSHTTPCookie] = []
+        XCTAssertEqual(NSHTTPCookie.requestHeaderFieldsWithCookies(noCookies)["Cookie"], "")
+        
+        let basicCookies: [NSHTTPCookie] = [
+            NSHTTPCookie(properties: [
+                NSHTTPCookieName: "TestCookie1",
+                NSHTTPCookieValue: "testValue1",
+                NSHTTPCookiePath: "/",
+                NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
+                ])!,
+            NSHTTPCookie(properties: [
+                NSHTTPCookieName: "TestCookie2",
+                NSHTTPCookieValue: "testValue2",
+                NSHTTPCookiePath: "/",
+                NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
+                ])!,
+        ]
+        
+        let basicCookieString = NSHTTPCookie.requestHeaderFieldsWithCookies(basicCookies)["Cookie"]
+        XCTAssertEqual(basicCookieString, "TestCookie1=testValue1; TestCookie2=testValue2")
     }
 }

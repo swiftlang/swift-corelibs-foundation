@@ -10,6 +10,10 @@
 		525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
+		5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
+		5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		5B40F9F21C125187000E72E3 /* TestNSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */; };
+		5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B40F9F31C12524C000E72E3 /* libxml2.dylib */; };
 		5B5D89761BBDADD300234F36 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89751BBDADD300234F36 /* libicucore.dylib */; };
 		5B5D89781BBDADDB00234F36 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89771BBDADDB00234F36 /* libz.dylib */; };
 		5B5D897A1BBDADDF00234F36 /* libobjc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89791BBDADDF00234F36 /* libobjc.dylib */; };
@@ -189,6 +193,7 @@
 		5BF7AEBF1BCD51F9008F214A /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4A1BCC5DCB00ED97BB /* NSURL.swift */; };
 		5BF7AEC01BCD51F9008F214A /* NSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */; };
 		5BF7AEC11BCD51F9008F214A /* NSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */; };
+		E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
 		848A30581C137B3500C83206 /* TestNSHTTPCookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */; };
 		EA66F6361BEED03E00136161 /* TargetConditionals.h in Headers */ = {isa = PBXBuildFile; fileRef = EA66F6351BEED03E00136161 /* TargetConditionals.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EA66F6441BF1619600136161 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6381BF1619600136161 /* main.swift */; };
@@ -312,6 +317,10 @@
 		522C253A1BF16E1600804FC6 /* FoundationErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationErrors.swift; sourceTree = "<group>"; };
 		525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileManager.swift; sourceTree = "<group>"; };
 		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Test.plist; sourceTree = "<group>"; };
+		5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInterface.c; sourceTree = "<group>"; };
+		5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLInterface.h; sourceTree = "<group>"; };
+		5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLParser.swift; sourceTree = "<group>"; };
+		5B40F9F31C12524C000E72E3 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
 		5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftFoundation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B5D886A1BBC948300234F36 /* CFApplicationPreferences.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFApplicationPreferences.c; sourceTree = "<group>"; };
 		5B5D886C1BBC94C400234F36 /* CFPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFPreferences.h; sourceTree = "<group>"; };
@@ -504,6 +513,7 @@
 		5BDC3FCF1BCF17E600ED97BB /* NSCFSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSCFSet.swift; sourceTree = "<group>"; };
 		5BDC405C1BD6D83B00ED97BB /* TestFoundation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestFoundation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
+		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
 		848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSHTTPCookie.swift; path = TestFoundation/TestNSHTTPCookie.swift; sourceTree = SOURCE_ROOT; };
 		EA313DFC1BE7F2E90060A403 /* CFURLComponents_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLComponents_Internal.h; sourceTree = "<group>"; };
 		EA313DFD1BE7F2E90060A403 /* CFURLComponents_URIParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLComponents_URIParser.c; sourceTree = "<group>"; };
@@ -598,6 +608,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */,
 				5B7C8B031BEA86A900C5B690 /* libCoreFoundation.a in Frameworks */,
 				5B5D897A1BBDADDF00234F36 /* libobjc.dylib in Frameworks */,
 				5B5D89781BBDADDB00234F36 /* libz.dylib in Frameworks */,
@@ -867,6 +878,8 @@
 				5B5D89931BBDBFCE00234F36 /* CFXMLParser.c */,
 				5B5D89911BBDBFC500234F36 /* CFXMLParser.h */,
 				5B5D899B1BBDBFEA00234F36 /* CFXMLTree.c */,
+				5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */,
+				5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */,
 			);
 			name = Parsing;
 			path = CoreFoundation/Parsing.subproj;
@@ -925,6 +938,7 @@
 		5B5D89AB1BBDCD0B00234F36 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5B40F9F31C12524C000E72E3 /* libxml2.dylib */,
 				5B5D89751BBDADD300234F36 /* libicucore.dylib */,
 				5B5D89791BBDADDF00234F36 /* libobjc.dylib */,
 				5B5D89771BBDADDB00234F36 /* libz.dylib */,
@@ -994,11 +1008,13 @@
 				EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */,
 				EA66F63F1BF1619600136161 /* TestNSNumber.swift */,
 				EA66F6401BF1619600136161 /* TestNSPropertyList.swift */,
+				E876A73D1C1180E000F279EC /* TestNSRange.swift */,
 				EA66F6411BF1619600136161 /* TestNSSet.swift */,
 				EA66F6421BF1619600136161 /* TestNSString.swift */,
 				EA66F6431BF1619600136161 /* TestNSURL.swift */,
 				5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */,
 				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
+				5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1295,6 +1311,7 @@
 				5B7C8AE11BEA80FC00C5B690 /* CFURL.h in Headers */,
 				5B7C8ABF1BEA807A00C5B690 /* CFUtilities.h in Headers */,
 				5B7C8ADD1BEA80FC00C5B690 /* CFStream.h in Headers */,
+				5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */,
 				5B7C8AD71BEA80FC00C5B690 /* CFPlugInCOM.h in Headers */,
 				5B7C8AFA1BEA81AC00C5B690 /* CFUniChar.h in Headers */,
 				5B7C8AC91BEA80FC00C5B690 /* CFTree.h in Headers */,
@@ -1441,7 +1458,7 @@
 		5B5D88541BBC938800234F36 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0710;
+				LastSwiftUpdateCheck = 0720;
 				LastUpgradeCheck = 0710;
 				ORGANIZATIONNAME = Apple;
 				TargetAttributes = {
@@ -1629,6 +1646,7 @@
 				5B7C8AB41BEA801700C5B690 /* CFStringEncodingDatabase.c in Sources */,
 				5B7C8A831BEA7FCE00C5B690 /* CFTree.c in Sources */,
 				5B7C8A981BEA7FF900C5B690 /* CFBundle_InfoPlist.c in Sources */,
+				5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */,
 				5B7C8A961BEA7FF900C5B690 /* CFBundle_Binary.c in Sources */,
 				5B7C8AAC1BEA800D00C5B690 /* CFString.c in Sources */,
 				5B7C8A821BEA7FCE00C5B690 /* CFStorage.c in Sources */,
@@ -1681,6 +1699,7 @@
 			files = (
 				525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */,
 				EA66F6501BF1619600136161 /* TestNSNumber.swift in Sources */,
+				E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */,
 				EA66F6521BF1619600136161 /* TestNSPropertyList.swift in Sources */,
 				EA66F64E1BF1619600136161 /* TestNSIndexSet.swift in Sources */,
 				848A30581C137B3500C83206 /* TestNSHTTPCookie.swift in Sources */,
@@ -1688,6 +1707,7 @@
 				EA66F64A1BF1619600136161 /* TestNSArray.swift in Sources */,
 				5BC1D8BE1BF3B09E009D3973 /* TestNSCharacterSet.swift in Sources */,
 				EA66F6561BF1619600136161 /* TestNSString.swift in Sources */,
+				5B40F9F21C125187000E72E3 /* TestNSXMLParser.swift in Sources */,
 				EA66F64C1BF1619600136161 /* TestNSDictionary.swift in Sources */,
 				EA66F6581BF1619600136161 /* TestNSURL.swift in Sources */,
 				EA66F6441BF1619600136161 /* main.swift in Sources */,
@@ -1938,6 +1958,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
+				HEADER_SEARCH_PATHS = /usr/include/libxml2;
 				OTHER_CFLAGS = (
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_TARGET_MACOSX",
@@ -1971,6 +1992,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
+				HEADER_SEARCH_PATHS = /usr/include/libxml2;
 				OTHER_CFLAGS = (
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_TARGET_MACOSX",

@@ -26,6 +26,7 @@ class TestNSArray : XCTestCase {
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
+            ("test_getObjects", test_getObjects),
         ]
     }
     
@@ -68,6 +69,19 @@ class TestNSArray : XCTestCase {
             res.append((obj as! NSString).bridge())
         }
         XCTAssertEqual(res, ["foo", "bar", "baz"])
+    }
+
+    func test_getObjects() {
+        let array : NSArray = ["foo", "bar", "baz", "foo1", "bar2", "baz3",].bridge()
+        var objects = [AnyObject]()
+        array.getObjects(&objects, range: NSMakeRange(1, 3))
+        XCTAssertEqual(objects.count, 3)
+        let fetched = [
+            (objects[0] as! NSString).bridge(),
+            (objects[1] as! NSString).bridge(),
+            (objects[2] as! NSString).bridge(),
+        ]
+        XCTAssertEqual(fetched, ["bar", "baz", "foo1"])
     }
 
 }

@@ -175,6 +175,28 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSMutableString.appendString = _CFSwiftStringAppend
     __CFSwiftBridge.NSMutableString.appendCharacters = _CFSwiftStringAppendCharacters
     __CFSwiftBridge.NSMutableString._cfAppendCString = _CFSwiftStringAppendCString
+    
+    __CFSwiftBridge.NSXMLParser.currentParser = _NSXMLParserCurrentParser
+    __CFSwiftBridge.NSXMLParser._xmlExternalEntityWithURL = _NSXMLParserExternalEntityWithURL
+    __CFSwiftBridge.NSXMLParser.getContext = _NSXMLParserGetContext
+    __CFSwiftBridge.NSXMLParser.internalSubset = _NSXMLParserInternalSubset
+    __CFSwiftBridge.NSXMLParser.isStandalone = _NSXMLParserIsStandalone
+    __CFSwiftBridge.NSXMLParser.hasInternalSubset = _NSXMLParserHasInternalSubset
+    __CFSwiftBridge.NSXMLParser.hasExternalSubset = _NSXMLParserHasExternalSubset
+    __CFSwiftBridge.NSXMLParser.getEntity = _NSXMLParserGetEntity
+    __CFSwiftBridge.NSXMLParser.notationDecl = _NSXMLParserNotationDecl
+    __CFSwiftBridge.NSXMLParser.attributeDecl = _NSXMLParserAttributeDecl
+    __CFSwiftBridge.NSXMLParser.elementDecl = _NSXMLParserElementDecl
+    __CFSwiftBridge.NSXMLParser.unparsedEntityDecl = _NSXMLParserUnparsedEntityDecl
+    __CFSwiftBridge.NSXMLParser.startDocument = _NSXMLParserStartDocument
+    __CFSwiftBridge.NSXMLParser.endDocument = _NSXMLParserEndDocument
+    __CFSwiftBridge.NSXMLParser.startElementNs = _NSXMLParserStartElementNs
+    __CFSwiftBridge.NSXMLParser.endElementNs = _NSXMLParserEndElementNs
+    __CFSwiftBridge.NSXMLParser.characters = _NSXMLParserCharacters
+    __CFSwiftBridge.NSXMLParser.processingInstruction = _NSXMLParserProcessingInstruction
+    __CFSwiftBridge.NSXMLParser.cdataBlock = _NSXMLParserCdataBlock
+    __CFSwiftBridge.NSXMLParser.comment = _NSXMLParserComment
+    __CFSwiftBridge.NSXMLParser.externalSubset = _NSXMLParserExternalSubset
 }
 
 #if os(Linux)

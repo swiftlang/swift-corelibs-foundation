@@ -12,7 +12,7 @@ In order to build on OS X, you will need:
 
 Foundation is developed at the same time as the rest of Swift, so the most recent version of the compiler is required in order to build it.
 
-The repository includes an Xcode project file as well as an Xcode workspace. The workspace includes both Foundation and XCTest, which makes it easy to build and run everything together. The workspace assumes that Foundation and XCTest are checked out from GitHub in peer directories. For example:
+The repository includes an Xcode project file as well as an Xcode workspace. The workspace includes both Foundation and XCTest, which makes it easy to build and run everything together. The workspace assumes that Foundation and XCTest are checked out from GitHub in sibling directories. For example:
 
 ```
 % cd Development
@@ -25,7 +25,7 @@ Build and test steps:
 
 0. Run Xcode with the latest toolchain. Follow [the instructions here](https://swift.org/download/#apple-platforms) to start Xcode with the correct toolchain.
 0. Open `Foundation.xcworkspace`.
-0. Build the _Foundation_ target. This builds CoreFoundation and Foundation.
+0. Build the _SwiftFoundation_ target. This builds CoreFoundation and Foundation.
 0. Run (Cmd-R) the _TestFoundation_ target. This builds CoreFoundation, Foundation, XCTest, and TestFoundation, then runs the tests.
 
 > Note: If you see the name of the XCTest project file in red in the workspace, then Xcode cannot find the cloned XCTest repository. Make sure that it is located next to the `swift-corelibs-foundation` directory and has the name `swift-corelibs-xctest`.
@@ -74,3 +74,11 @@ LD_LIBRARY_PATH=../build/Ninja-ReleaseAssert/foundation-linux-x86_64/Foundation/
 ```
 
 Just copy & paste the correct line.
+
+When new source files or flags are added to the `build.py` script, the project will need to be reconfigured in order for the build system to pick them up. The top-level `swift/utils/build-script` can be used, but for quicker iteration you can use the following command to limit the reconfiguration to just the Foundation project:
+
+```
+% ninja reconfigure
+% ninja
+```
+

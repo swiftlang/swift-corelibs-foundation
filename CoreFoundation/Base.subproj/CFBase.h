@@ -231,6 +231,15 @@ CF_EXTERN_C_BEGIN
 #define CF_AUTOMATED_REFCOUNT_UNAVAILABLE
 #endif
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+#ifndef CF_ASSUME_NONNULL_BEGIN
+#define CF_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
+#endif
+#ifndef CF_ASSUME_NONNULL_BEGIN
+#define CF_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
+#endif
+#endif
+
 #ifndef CF_IMPLICIT_BRIDGING_ENABLED
 #if __has_feature(arc_cf_code_audited)
 #define CF_IMPLICIT_BRIDGING_ENABLED _Pragma("clang arc_cf_code_audited begin")
