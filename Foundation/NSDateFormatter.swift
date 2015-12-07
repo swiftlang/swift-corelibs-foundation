@@ -91,7 +91,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _dateFormat: String?
-    public var dateFormat: String! {
+    public var dateFormat: String {
         get {
             if let format = _dateFormat {
                 return format
@@ -132,7 +132,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _locale: NSLocale = NSLocale.currentLocale()
-    /*@NSCopying*/ public var locale: NSLocale! {
+    /*@NSCopying*/ public var locale: NSLocale {
         get {
             return _locale
         }
@@ -154,7 +154,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _timeZone: NSTimeZone = NSTimeZone.systemTimeZone()
-    /*@NSCopying*/ public var timeZone: NSTimeZone! {
+    /*@NSCopying*/ public var timeZone: NSTimeZone {
         get {
             return _timeZone
         }
@@ -165,7 +165,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _calendar: NSCalendar!
-    /*@NSCopying*/ public var calendar: NSCalendar! {
+    /*@NSCopying*/ public var calendar: NSCalendar {
         get {
             return _calendar
         }
@@ -209,7 +209,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _eraSymbols: [String]!
-    public var eraSymbols: [String]! {
+    public var eraSymbols: [String] {
         get {
             return _eraSymbols
         }
@@ -220,7 +220,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _monthSymbols: [String]!
-    public var monthSymbols: [String]! {
+    public var monthSymbols: [String] {
         get {
             return _monthSymbols
         }
@@ -231,7 +231,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _shortMonthSymbols: [String]!
-    public var shortMonthSymbols: [String]! {
+    public var shortMonthSymbols: [String] {
         get {
             return _shortMonthSymbols
         }
@@ -242,7 +242,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _weekdaySymbols: [String]!
-    public var weekdaySymbols: [String]! {
+    public var weekdaySymbols: [String] {
         get {
             return _weekdaySymbols
         }
@@ -253,7 +253,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _shortWeekdaySymbols: [String]!
-    public var shortWeekdaySymbols: [String]! {
+    public var shortWeekdaySymbols: [String] {
         get {
             return _shortWeekdaySymbols
         }
@@ -264,7 +264,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _AMSymbol: String!
-    public var AMSymbol: String! {
+    public var AMSymbol: String {
         get {
             return _AMSymbol
         }
@@ -275,7 +275,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _PMSymbol: String!
-    public var PMSymbol: String! {
+    public var PMSymbol: String {
         get {
             return _PMSymbol
         }
@@ -286,7 +286,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _longEraSymbols: [String]!
-    public var longEraSymbols: [String]! {
+    public var longEraSymbols: [String] {
         get {
             return _longEraSymbols
         }
@@ -297,7 +297,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _veryShortMonthSymbols: [String]!
-    public var veryShortMonthSymbols: [String]! {
+    public var veryShortMonthSymbols: [String] {
         get {
             return _veryShortMonthSymbols
         }
@@ -308,7 +308,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _standaloneMonthSymbols: [String]!
-    public var standaloneMonthSymbols: [String]! {
+    public var standaloneMonthSymbols: [String] {
         get {
             return _standaloneMonthSymbols
         }
@@ -319,7 +319,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _shortStandaloneMonthSymbols: [String]!
-    public var shortStandaloneMonthSymbols: [String]! {
+    public var shortStandaloneMonthSymbols: [String] {
         get {
             return _shortStandaloneMonthSymbols
         }
@@ -330,7 +330,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _veryShortStandaloneMonthSymbols: [String]!
-    public var veryShortStandaloneMonthSymbols: [String]! {
+    public var veryShortStandaloneMonthSymbols: [String] {
         get {
             return _veryShortStandaloneMonthSymbols
         }
@@ -341,7 +341,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _veryShortWeekdaySymbols: [String]!
-    public var veryShortWeekdaySymbols: [String]! {
+    public var veryShortWeekdaySymbols: [String] {
         get {
             return _veryShortWeekdaySymbols
         }
@@ -352,7 +352,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _standaloneWeekdaySymbols: [String]!
-    public var standaloneWeekdaySymbols: [String]! {
+    public var standaloneWeekdaySymbols: [String] {
         get {
             return _standaloneWeekdaySymbols
         }
@@ -363,7 +363,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _shortStandaloneWeekdaySymbols: [String]!
-    public var shortStandaloneWeekdaySymbols: [String]! {
+    public var shortStandaloneWeekdaySymbols: [String] {
         get {
             return _shortStandaloneWeekdaySymbols
         }
@@ -374,7 +374,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _veryShortStandaloneWeekdaySymbols: [String]!
-    public var veryShortStandaloneWeekdaySymbols: [String]! {
+    public var veryShortStandaloneWeekdaySymbols: [String] {
         get {
             return _veryShortStandaloneWeekdaySymbols
         }
@@ -385,7 +385,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _quarterSymbols: [String]!
-    public var quarterSymbols: [String]! {
+    public var quarterSymbols: [String] {
         get {
             return _quarterSymbols
         }
@@ -396,7 +396,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _shortQuarterSymbols: [String]!
-    public var shortQuarterSymbols: [String]! {
+    public var shortQuarterSymbols: [String] {
         get {
             return _shortQuarterSymbols
         }
@@ -407,7 +407,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _standaloneQuarterSymbols: [String]!
-    public var standaloneQuarterSymbols: [String]! {
+    public var standaloneQuarterSymbols: [String] {
         get {
             return _standaloneQuarterSymbols
         }
@@ -418,7 +418,7 @@ public class NSDateFormatter : NSFormatter {
     }
     
     internal var _shortStandaloneQuarterSymbols: [String]!
-    public var shortStandaloneQuarterSymbols: [String]! {
+    public var shortStandaloneQuarterSymbols: [String] {
         get {
             return _shortStandaloneQuarterSymbols
         }
