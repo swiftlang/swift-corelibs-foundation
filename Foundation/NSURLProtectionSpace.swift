@@ -12,92 +12,92 @@
    @const NSURLProtectionSpaceHTTP
    @abstract The protocol for HTTP
 */
-public let NSURLProtectionSpaceHTTP: String = "" // NSUnimplemented
+public let NSURLProtectionSpaceHTTP: String = "NSURLProtectionSpaceHTTP"
 
 /*!
    @const NSURLProtectionSpaceHTTPS
    @abstract The protocol for HTTPS
 */
-public let NSURLProtectionSpaceHTTPS: String = "" // NSUnimplemented
+public let NSURLProtectionSpaceHTTPS: String = "NSURLProtectionSpaceHTTPS"
 
 /*!
    @const NSURLProtectionSpaceFTP
    @abstract The protocol for FTP
 */
-public let NSURLProtectionSpaceFTP: String = "" // NSUnimplemented
+public let NSURLProtectionSpaceFTP: String = "NSURLProtectionSpaceFTP"
 
 /*!
     @const NSURLProtectionSpaceHTTPProxy
     @abstract The proxy type for http proxies
 */
-public let NSURLProtectionSpaceHTTPProxy: String = "" // NSUnimplemented
+public let NSURLProtectionSpaceHTTPProxy: String = "NSURLProtectionSpaceHTTPProxy"
 
 /*!
     @const NSURLProtectionSpaceHTTPSProxy
     @abstract The proxy type for https proxies
 */
-public let NSURLProtectionSpaceHTTPSProxy: String = "" // NSUnimplemented
+public let NSURLProtectionSpaceHTTPSProxy: String = "NSURLProtectionSpaceHTTPSProxy"
 
 /*!
     @const NSURLProtectionSpaceFTPProxy
     @abstract The proxy type for ftp proxies
 */
-public let NSURLProtectionSpaceFTPProxy: String = "" // NSUnimplemented
+public let NSURLProtectionSpaceFTPProxy: String = "NSURLProtectionSpaceFTPProxy"
 
 /*!
     @const NSURLProtectionSpaceSOCKSProxy
     @abstract The proxy type for SOCKS proxies
 */
-public let NSURLProtectionSpaceSOCKSProxy: String = "" // NSUnimplemented
+public let NSURLProtectionSpaceSOCKSProxy: String = "NSURLProtectionSpaceSOCKSProxy"
 
 /*!
     @const NSURLAuthenticationMethodDefault
     @abstract The default authentication method for a protocol
 */
-public let NSURLAuthenticationMethodDefault: String = "" // NSUnimplemented
+public let NSURLAuthenticationMethodDefault: String = "NSURLAuthenticationMethodDefault"
 
 /*!
     @const NSURLAuthenticationMethodHTTPBasic
     @abstract HTTP basic authentication. Equivalent to
     NSURLAuthenticationMethodDefault for http.
 */
-public let NSURLAuthenticationMethodHTTPBasic: String = "" // NSUnimplemented
+public let NSURLAuthenticationMethodHTTPBasic: String = "NSURLAuthenticationMethodHTTPBasic"
 
 /*!
     @const NSURLAuthenticationMethodHTTPDigest
     @abstract HTTP digest authentication.
 */
-public let NSURLAuthenticationMethodHTTPDigest: String = "" // NSUnimplemented
+public let NSURLAuthenticationMethodHTTPDigest: String = "NSURLAuthenticationMethodHTTPDigest"
 
 /*!
     @const NSURLAuthenticationMethodHTMLForm
     @abstract HTML form authentication. Applies to any protocol.
 */
-public let NSURLAuthenticationMethodHTMLForm: String = "" // NSUnimplemented
+public let NSURLAuthenticationMethodHTMLForm: String = "NSURLAuthenticationMethodHTMLForm"
 
 /*!
    @const NSURLAuthenticationMethodNTLM
    @abstract NTLM authentication.
 */
-public let NSURLAuthenticationMethodNTLM: String = "" // NSUnimplemented
+public let NSURLAuthenticationMethodNTLM: String = "NSURLAuthenticationMethodNTLM"
 
 /*!
    @const NSURLAuthenticationMethodNegotiate
    @abstract Negotiate authentication.
 */
-public let NSURLAuthenticationMethodNegotiate: String = "" // NSUnimplemented
+public let NSURLAuthenticationMethodNegotiate: String = "NSURLAuthenticationMethodNegotiate"
 
 /*!
     @const NSURLAuthenticationMethodClientCertificate
     @abstract SSL Client certificate.  Applies to any protocol.
  */
-public let NSURLAuthenticationMethodClientCertificate: String = "" // NSUnimplemented
+public let NSURLAuthenticationMethodClientCertificate: String = "NSURLAuthenticationMethodClientCertificate"
 
 /*!
     @const NSURLAuthenticationMethodServerTrust
     @abstract SecTrustRef validation required.  Applies to any protocol.
  */
-public let NSURLAuthenticationMethodServerTrust: String = "" // NSUnimplemented
+public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMethodServerTrust"
 
 
 /*!

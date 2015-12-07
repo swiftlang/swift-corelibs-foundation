@@ -8,8 +8,8 @@
 //
 
 
-public let NSDefaultRunLoopMode: String = "" // NSUnimplemented
-public let NSRunLoopCommonModes: String = "" // NSUnimplemented
+public let NSDefaultRunLoopMode: String = "NSDefaultRunLoopMode"
+public let NSRunLoopCommonModes: String = "NSRunLoopCommonModes"
 
 public class NSRunLoop : NSObject {
     
