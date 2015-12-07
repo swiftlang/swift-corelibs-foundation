@@ -34,4 +34,5 @@ XCTMain([
     TestNSFileManger(),
     TestNSRange(),
     TestNSXMLParser(),
+    TestNSData()
 ])
