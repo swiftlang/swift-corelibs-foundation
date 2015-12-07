@@ -107,10 +107,10 @@ public struct NSEdgeInsets {
     public var bottom: CGFloat
     public var right: CGFloat
     public init() {
-        self.top = 0
-        self.left = 0
-        self.bottom = 0
-        self.right = 0
+        self.top = CGFloat.init(0.0)
+        self.left = CGFloat.init(0.0)
+        self.bottom = CGFloat.init(0.0)
+        self.right = CGFloat.init(0.0)
     }
     public init(top: CGFloat, left: CGFloat, bottom: CGFloat, right: CGFloat) {
         self.top = top
