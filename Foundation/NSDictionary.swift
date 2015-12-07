@@ -156,13 +156,44 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        if self.dynamicType === NSDictionary.self {
+            // NSDictionary is immutable; just return ourself
+            return self
+        } else if self.dynamicType === NSMutableDictionary.self {
+            // Otherwise, create a new NSDictionary object
+            
+            // TODO: speed up?
+            var keys = [AnyObject]()
+            var values = [AnyObject]()
+            for (key, value) in self {
+                keys.append(key)
+                values.append(value)
+            }
+            
+            return NSDictionary(objects: values, forKeys: keys as! [NSObject])
+        } else {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+            //ALWAYS create and return an NSMutableDictionary
+            
+            // TODO: speed up?
+            var keys = [AnyObject]()
+            var values = [AnyObject]()
+            for (key, value) in self {
+                keys.append(key)
+                values.append(value)
+            }
+            
+            return NSMutableDictionary(objects: values, forKeys: keys as! [NSObject])
+        } else {
+            NSRequiresConcreteImplementation()
+        }
     }
-
+    
     public convenience init(object: AnyObject, forKey key: NSCopying) {
         self.init(objects: [object], forKeys: [key as! NSObject])
     }
