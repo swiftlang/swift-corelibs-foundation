@@ -33,4 +33,6 @@ XCTMain([
     TestNSFileManger(),
     TestNSRange(),
     TestNSXMLParser(),
+    TestNSHTTPCookie()
 ])
+
