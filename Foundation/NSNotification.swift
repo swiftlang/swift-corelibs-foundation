@@ -9,17 +9,9 @@
 
 public class NSNotification : NSObject, NSCopying, NSCoding {
     
-    public var name: String {
-        NSUnimplemented()
-    }
-    
-    public var object: AnyObject? {
-        NSUnimplemented()
-    }
-    
-    public var userInfo: [NSObject : AnyObject]? {
-        NSUnimplemented()
-    }
+    public let name: String
+    public let object: AnyObject?
+    public let userInfo: [NSObject : AnyObject]?
     
     public convenience override init() {
         /* do not invoke; not a valid initializer for this class */
@@ -27,25 +19,36 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
     }
     
     public init(name: String, object: AnyObject?, userInfo: [NSObject : AnyObject]?) {
-        NSUnimplemented()
+        self.name = name
+        self.object = object
+        self.userInfo = userInfo
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard let name = aDecoder.decodeObjectForKey("name") as? String else { return nil }
+        self.name = name
+        self.object = aDecoder.decodeObjectForKey("object")
+        self.userInfo = aDecoder.decodeObjectForKey("userInfo") as? [NSObject: AnyObject]
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        if let object = self.object {
+            aCoder.encodeObject(object, forKey: "object")
+        }
+        aCoder.encodeObject(name, forKey: "name")
+        if let userInfo = self.userInfo {
+            aCoder.encodeObject(userInfo, forKey: "userInfo")
+        }
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        return NSNotification(name: self.name, object: self.object, userInfo: self.userInfo)
     }
 }
 
 extension NSNotification {
     public convenience init(name aName: String, object anObject: AnyObject?) {
-        NSUnimplemented()
+        self.init(name: aName, object: anObject, userInfo: nil)
     }
 }
 
