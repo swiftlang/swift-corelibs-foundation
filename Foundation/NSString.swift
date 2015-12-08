@@ -476,7 +476,10 @@ extension NSString {
     
     public var integerValue: Int {
         get {
-            NSUnimplemented()
+            let scanner = NSScanner(string: _swiftObject)
+            var value: Int = 0
+            scanner.scanInteger(&value)
+            return value
         }
     }
     
