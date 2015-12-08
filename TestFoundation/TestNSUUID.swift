@@ -26,6 +26,8 @@ class TestNSUUID : XCTestCase {
             ("test_InitializationWithNil", test_InitializationWithNil),
             ("test_UUIDString", test_UUIDString),
             ("test_description", test_description),
+            // Disabled until NSKeyedArchiver and NSKeyedUnarchiver are implemented
+            // ("test_NSCoding", test_NSCoding),
         ]
     }
     
@@ -58,5 +60,11 @@ class TestNSUUID : XCTestCase {
     func test_description() {
         let uuid = NSUUID()
         XCTAssertEqual(uuid.description, uuid.UUIDString, "The description must be the same as the UUIDString.")
+    }
+    
+    func test_NSCoding() {
+        let uuidA = NSUUID()
+        let uuidB = NSKeyedUnarchiver.unarchiveObjectWithData(NSKeyedArchiver.archivedDataWithRootObject(uuidA)) as! NSUUID
+        XCTAssertEqual(uuidA, uuidB, "Archived then unarchived uuid must be equal.")
     }
 }

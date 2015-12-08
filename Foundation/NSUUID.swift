@@ -60,11 +60,11 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public required init?(coder: NSCoder) {
-        
+        NSUnimplemented()
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        NSUnimplemented()
     }
     
     public override func isEqual(object: AnyObject?) -> Bool {
