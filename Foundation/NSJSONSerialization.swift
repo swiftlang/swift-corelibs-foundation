@@ -71,7 +71,8 @@ public class NSJSONSerialization : NSObject {
         guard let string = NSString(data: data, encoding: detectEncoding(data)) else {
             throw NSJSONSerializationError.InvalidStringEncoding
         }
-        return try JSONObjectWithString(string as String)
+        let result = _NSObjectRepresentableBridge(try JSONObjectWithString(string._swiftObject))
+        return result
     }
     
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
@@ -90,7 +91,7 @@ public class NSJSONSerialization : NSObject {
 //MARK: - Deserialization
 internal extension NSJSONSerialization {
     
-    static func JSONObjectWithString(string: String) throws -> AnyObject {
+    static func JSONObjectWithString(string: String) throws -> Any {
         let parser = JSONDeserializer.UnicodeParser(viewSkippingBOM: string.unicodeScalars)
         if let (object, _) = try JSONDeserializer.parseObject(parser) {
             return object
@@ -367,7 +368,7 @@ private struct JSONDeserializer {
     
     //MARK: - Number parsing
     static let numberScalars = ".+-0123456789eE".unicodeScalars
-    static func parseNumber(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
+    static func parseNumber(input: UnicodeParser) throws -> (Double, UnicodeParser)? {
         let view = input.view
         let endIndex = view.endIndex
         var index = input.index
@@ -383,7 +384,7 @@ private struct JSONDeserializer {
     }
 
     //MARK: - Value parsing
-    static func parseValue(input: UnicodeParser) throws -> (AnyObject, UnicodeParser)? {
+    static func parseValue(input: UnicodeParser) throws -> (Any, UnicodeParser)? {
         if let (value, parser) = try parseString(input) {
             return (value, parser)
         }
@@ -409,12 +410,12 @@ private struct JSONDeserializer {
     }
 
     //MARK: - Object parsing
-    static func parseObject(input: UnicodeParser) throws -> ([String: AnyObject], UnicodeParser)? {
+    static func parseObject(input: UnicodeParser) throws -> ([String: Any], UnicodeParser)? {
         guard let beginParser = try consumeStructure(StructureScalar.BeginObject, input: input) else {
             return nil
         }
         var parser = beginParser
-        var output: [String: AnyObject] = [:]
+        var output: [String: Any] = [:]
         while true {
             if let finalParser = try consumeStructure(StructureScalar.EndObject, input: parser) {
                 return (output, finalParser)
@@ -438,7 +439,7 @@ private struct JSONDeserializer {
         }
     }
     
-    static func parseObjectMember(input: UnicodeParser) throws -> (String, AnyObject, UnicodeParser)? {
+    static func parseObjectMember(input: UnicodeParser) throws -> (String, Any, UnicodeParser)? {
         guard let (name, parser) = try parseString(input) else {
             throw NSJSONSerializationError.MissingObjectKey(input.distanceFromStart)
         }
@@ -453,12 +454,12 @@ private struct JSONDeserializer {
     }
 
     //MARK: - Array parsing
-    static func parseArray(input: UnicodeParser) throws -> ([AnyObject], UnicodeParser)? {
+    static func parseArray(input: UnicodeParser) throws -> ([Any], UnicodeParser)? {
         guard let beginParser = try consumeStructure(StructureScalar.BeginArray, input: input) else {
             return nil
         }
         var parser = beginParser
-        var output: [AnyObject] = []
+        var output: [Any] = []
         while true {
             if let finalParser = try consumeStructure(StructureScalar.EndArray, input: parser) {
                 return (output, finalParser)

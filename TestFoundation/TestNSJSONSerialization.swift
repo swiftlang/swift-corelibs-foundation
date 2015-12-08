@@ -38,8 +38,8 @@ extension TestNSJSONSerialization {
     func test_JSONObjectWithData_emptyObject() {
         let subject = NSData(bytes: UnsafePointer<Void>([UInt8]([0x7B, 0x7D])), length: 2)
         
-        let object = try! NSJSONSerialization.JSONObjectWithData(subject, options: []) as? [NSObject: AnyObject]
-        XCTAssertEqual(object?.keys.count, 0)
+        let object = try! NSJSONSerialization.JSONObjectWithData(subject, options: []) as? NSDictionary
+        XCTAssertEqual(object?.count, 0)
     }
     
     //MARK: - Encoding Detection
@@ -66,7 +66,7 @@ extension TestNSJSONSerialization {
         ]
         
         for (description, encoded) in subjects {
-            let result = try? NSJSONSerialization.JSONObjectWithData(NSData(bytes:UnsafePointer<Void>(encoded), length: encoded.count), options: []) as? [String:String]
+            let result = try? NSJSONSerialization.JSONObjectWithData(NSData(bytes:UnsafePointer<Void>(encoded), length: encoded.count), options: [])
             XCTAssertNotNil(result, description)
         }
     }
@@ -107,8 +107,8 @@ extension TestNSJSONSerialization {
         let subject = "{}"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [NSObject: AnyObject]
-            XCTAssertEqual(result?.keys.count, 0)
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String: Any]
+            XCTAssertEqual(result?.count, 0)
         } catch {
             XCTFail("Error thrown: \(error)")
         }
@@ -118,9 +118,9 @@ extension TestNSJSONSerialization {
         let subject = "{ \"hello\": \"world\", \"swift\": \"rocks\" }"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String: String]
-            XCTAssertEqual(result?["hello"], "world")
-            XCTAssertEqual(result?["swift"], "rocks")
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String: Any]
+            XCTAssertEqual(result?["hello"] as? String, "world")
+            XCTAssertEqual(result?["swift"] as? String, "rocks")
         } catch {
             XCTFail("Error thrown: \(error)")
         }
@@ -131,7 +131,7 @@ extension TestNSJSONSerialization {
         let subject = "[]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
             XCTAssertEqual(result?.count, 0)
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -142,9 +142,9 @@ extension TestNSJSONSerialization {
         let subject = "[\"hello\", \"swift⚡️\"]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
-            XCTAssertEqual(result?[0], "hello")
-            XCTAssertEqual(result?[1], "swift⚡️")
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            XCTAssertEqual(result?[0] as? String, "hello")
+            XCTAssertEqual(result?[1] as? String, "swift⚡️")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -155,13 +155,13 @@ extension TestNSJSONSerialization {
         let subject = "[true, false, \"hello\", null, {}, []]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [AnyObject]
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
             XCTAssertEqual(result?[0] as? Bool, true)
             XCTAssertEqual(result?[1] as? Bool, false)
             XCTAssertEqual(result?[2] as? String, "hello")
             XCTAssertNotNil(result?[3] as? NSNull)
-            XCTAssertNotNil(result?[4] as? [String:String])
-            XCTAssertNotNil(result?[5] as? [String])
+            XCTAssertNotNil(result?[4] as? [String:Any])
+            XCTAssertNotNil(result?[5] as? [Any])
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -172,13 +172,13 @@ extension TestNSJSONSerialization {
         let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Double]
-            XCTAssertEqual(result?[0],     1)
-            XCTAssertEqual(result?[1],    -1)
-            XCTAssertEqual(result?[2],   1.3)
-            XCTAssertEqual(result?[3],  -1.3)
-            XCTAssertEqual(result?[4],  1000)
-            XCTAssertEqual(result?[5], 0.001)
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            XCTAssertEqual(result?[0] as? Double,     1)
+            XCTAssertEqual(result?[1] as? Double,    -1)
+            XCTAssertEqual(result?[2] as? Double,   1.3)
+            XCTAssertEqual(result?[3] as? Double,  -1.3)
+            XCTAssertEqual(result?[4] as? Double,  1000)
+            XCTAssertEqual(result?[5] as? Double, 0.001)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -188,7 +188,7 @@ extension TestNSJSONSerialization {
     func test_deserialize_simpleEscapeSequences() {
         let subject = "[\"\\\"\", \"\\\\\", \"\\/\", \"\\b\", \"\\f\", \"\\n\", \"\\r\", \"\\t\"]"
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
+            let result = (try NSJSONSerialization.JSONObjectWithString(subject) as? [Any])?.flatMap { $0 as? String }
             XCTAssertEqual(result?[0], "\"")
             XCTAssertEqual(result?[1], "\\")
             XCTAssertEqual(result?[2], "/")
@@ -205,8 +205,8 @@ extension TestNSJSONSerialization {
     func test_deserialize_unicodeEscapeSequence() {
         let subject = "[\"\\u2728\"]"
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
-            XCTAssertEqual(result?[0], "✨")
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            XCTAssertEqual(result?[0] as? String, "✨")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -215,8 +215,8 @@ extension TestNSJSONSerialization {
     func test_deserialize_unicodeSurrogatePairEscapeSequence() {
         let subject = "[\"\\uD834\\udd1E\"]"
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
-            XCTAssertEqual(result?[0], "\u{1D11E}")
+            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            XCTAssertEqual(result?[0] as? String, "\u{1D11E}")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
