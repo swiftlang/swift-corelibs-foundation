@@ -10,16 +10,8 @@
 
 import CoreFoundation
 
-extension Dictionary : _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSDictionary.self
-    }
-    
-    public func _bridgeToObjectiveC() -> NSDictionary {
+extension Dictionary : _ObjectTypeBridgeable {
+    public func _bridgeToObject() -> NSDictionary {
         let keyBuffer = UnsafeMutablePointer<NSObject>.alloc(count)
         let valueBuffer = UnsafeMutablePointer<AnyObject>.alloc(count)
         
@@ -43,7 +35,7 @@ extension Dictionary : _ObjectiveCBridgeable {
         return dict
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSDictionary, inout result: Dictionary?) {
+    public static func _forceBridgeFromObject(x: NSDictionary, inout result: Dictionary?) {
         var dict = [Key: Value]()
         var failedConversion = false
         
@@ -95,8 +87,8 @@ extension Dictionary : _ObjectiveCBridgeable {
         }
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(x: NSDictionary, inout result: Dictionary?) -> Bool {
-        _forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSDictionary, inout result: Dictionary?) -> Bool {
+        _forceBridgeFromObject(x, result: &result)
         return true
     }
 }
@@ -414,7 +406,7 @@ extension NSDictionary : _CFBridgable, _SwiftBridgable {
     internal var _cfObject: CFDictionaryRef { return unsafeBitCast(self, CFDictionaryRef.self) }
     internal var _swiftObject: Dictionary<NSObject, AnyObject> {
         var dictionary: [NSObject: AnyObject]?
-        Dictionary._forceBridgeFromObjectiveC(self, result: &dictionary)
+        Dictionary._forceBridgeFromObject(self, result: &dictionary)
         return dictionary!
     }
 }
@@ -429,7 +421,7 @@ extension CFDictionaryRef : _NSBridgable, _SwiftBridgable {
 }
 
 extension Dictionary : _NSBridgable, _CFBridgable {
-    internal var _nsObject: NSDictionary { return _bridgeToObjectiveC() }
+    internal var _nsObject: NSDictionary { return _bridgeToObject() }
     internal var _cfObject: CFDictionaryRef { return _nsObject._cfObject }
 }
 

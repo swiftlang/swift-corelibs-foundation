@@ -59,20 +59,12 @@ public struct NSStringEnumerationOptions : OptionSetType {
     public static let Localized = NSStringEnumerationOptions(rawValue: 1 << 10)
 }
 
-extension String : _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSString.self
-    }
-    
-    public func _bridgeToObjectiveC() -> NSString {
+extension String : _ObjectTypeBridgeable {
+    public func _bridgeToObject() -> NSString {
         return NSString(self)
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSString, inout result: String?) {
+    public static func _forceBridgeFromObject(x: NSString, inout result: String?) {
         if x.dynamicType == NSString.self || x.dynamicType == NSMutableString.self {
             result = x._storage
         } else if x.dynamicType == _NSCFString.self {
@@ -99,8 +91,8 @@ extension String : _ObjectiveCBridgeable {
         }
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(x: NSString, inout result: String?) -> Bool {
-        self._forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSString, inout result: String?) -> Bool {
+        self._forceBridgeFromObject(x, result: &result)
         return true
     }
 }
@@ -969,7 +961,7 @@ extension NSString : _CFBridgable, _SwiftBridgable {
     internal var _cfObject: CFStringRef { return unsafeBitCast(self, CFStringRef.self) }
     internal var _swiftObject: String {
         var str: String?
-        String._forceBridgeFromObjectiveC(self, result: &str)
+        String._forceBridgeFromObject(self, result: &str)
         return str!
     }
 }
@@ -984,7 +976,7 @@ extension CFStringRef : _NSBridgable, _SwiftBridgable {
 extension String : _NSBridgable, _CFBridgable {
     typealias NSType = NSString
     typealias CFType = CFStringRef
-    internal var _nsObject: NSType { return _bridgeToObjectiveC() }
+    internal var _nsObject: NSType { return _bridgeToObject() }
     internal var _cfObject: CFType { return _nsObject._cfObject }
 }
 

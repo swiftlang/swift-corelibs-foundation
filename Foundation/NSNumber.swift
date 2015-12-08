@@ -20,141 +20,96 @@ internal let kCFNumberFloatType = CFNumberType.FloatType
 internal let kCFNumberDoubleType = CFNumberType.DoubleType
 #endif
 
-extension Int : _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
+extension Int : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.integerValue
     }
     
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSNumber.self
-    }
-    
-    @_semantics("convertToObjectiveC")
-    public func _bridgeToObjectiveC() -> NSNumber {
+    public func _bridgeToObject() -> NSNumber {
         return NSNumber(integer: self)
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSNumber, inout result: Int?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Int?) {
         result = x.integerValue
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(x: NSNumber, inout result: Int?) -> Bool {
-        self._forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Int?) -> Bool {
+        self._forceBridgeFromObject(x, result: &result)
         return true
     }
 }
 
-extension UInt : _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
+extension UInt : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.unsignedIntegerValue
     }
-    
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSNumber.self
-    }
-    
-    @_semantics("convertToObjectiveC")
-    public func _bridgeToObjectiveC() -> NSNumber {
+
+    public func _bridgeToObject() -> NSNumber {
         return NSNumber(unsignedInteger: self)
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSNumber, inout result: UInt?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: UInt?) {
         result = x.unsignedIntegerValue
     }
-    public static func _conditionallyBridgeFromObjectiveC(x: NSNumber, inout result: UInt?) -> Bool {
-        _forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: UInt?) -> Bool {
+        _forceBridgeFromObject(x, result: &result)
         return true
     }
 }
 
-extension Float : _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
+extension Float : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.floatValue
     }
     
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSNumber.self
-    }
-    
-    @_semantics("convertToObjectiveC")
-    public func _bridgeToObjectiveC() -> NSNumber {
+    public func _bridgeToObject() -> NSNumber {
         return NSNumber(float: self)
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSNumber, inout result: Float?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Float?) {
         result = x.floatValue
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(x: NSNumber, inout result: Float?) -> Bool {
-        _forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Float?) -> Bool {
+        _forceBridgeFromObject(x, result: &result)
         return true
     }
 }
 
-extension Double : _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
+extension Double : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.doubleValue
     }
     
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSNumber.self
-    }
-    
-    @_semantics("convertToObjectiveC")
-    public func _bridgeToObjectiveC() -> NSNumber {
+    public func _bridgeToObject() -> NSNumber {
         return NSNumber(double: self)
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSNumber, inout result: Double?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Double?) {
         result = x.doubleValue
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(x: NSNumber, inout result: Double?) -> Bool {
-        _forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Double?) -> Bool {
+        _forceBridgeFromObject(x, result: &result)
         return true
     }
 }
 
-extension Bool: _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
+extension Bool: _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.boolValue
     }
     
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSNumber.self
-    }
-    
-    @_semantics("convertToObjectiveC")
-    public func _bridgeToObjectiveC() -> NSNumber {
+    public func _bridgeToObject() -> NSNumber {
         return NSNumber(bool: self)
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSNumber, inout result: Bool?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Bool?) {
         result = x.boolValue
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(x: NSNumber, inout result: Bool?) -> Bool {
-        _forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Bool?) -> Bool {
+        _forceBridgeFromObject(x, result: &result)
         return true
     }
 }
