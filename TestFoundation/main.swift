@@ -44,5 +44,6 @@ XCTMain([
     TestNSHTTPCookie(),
     TestNSGeometry(),
     TestNSUUID(),
+    TestNSURLResponse(),
 ])
 
