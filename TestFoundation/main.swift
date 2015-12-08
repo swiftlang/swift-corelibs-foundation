@@ -38,4 +38,5 @@ XCTMain([
     TestNSXMLParser(),
     TestNSDate(),
     TestNSTimeZone(),
+    TestNSByteCountFormatter(),
 ])
