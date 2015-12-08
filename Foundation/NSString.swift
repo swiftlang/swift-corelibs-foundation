@@ -488,7 +488,16 @@ extension NSString {
     
     public var boolValue: Bool {
         get {
-            NSUnimplemented()
+            let scanner = NSScanner(string: _swiftObject)
+            // skip initial whitespace if present
+            scanner.scanCharactersFromSet(NSCharacterSet.whitespaceCharacterSet())
+            // scan a single optional '+' or '-' character, followed by zeroes
+            if scanner.scanString(string: "+") == nil {
+                scanner.scanString(string: "-")
+            }
+            // scan any following zeroes
+            scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "0"))
+            return scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "tTyY123456789")) != nil
         }
     }
     

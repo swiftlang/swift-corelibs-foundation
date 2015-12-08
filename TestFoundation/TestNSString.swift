@@ -21,6 +21,7 @@ class TestNSString : XCTestCase {
     
     var allTests : [(String, () -> ())] {
         return [
+            ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
             ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
             ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
@@ -36,6 +37,17 @@ class TestNSString : XCTestCase {
             ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
         ]
+    }
+
+    func test_boolValue() {
+        let trueStrings: [NSString] = ["t", "true", "TRUE", "tRuE", "yes", "YES", "1", "+000009"]
+        for string in trueStrings {
+            XCTAssert(string.boolValue)
+        }
+        let falseStrings: [NSString] = ["false", "FALSE", "fAlSe", "no", "NO", "0", "<true>", "_true", "-00000"]
+        for string in falseStrings {
+            XCTAssertFalse(string.boolValue)
+        }
     }
     
     func test_BridgeConstruction() {
