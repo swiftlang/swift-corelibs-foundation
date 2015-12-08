@@ -16,7 +16,10 @@ public struct NSAffineTransformStruct {
     public var tX: CGFloat
     public var tY: CGFloat
     public init() { NSUnimplemented() }
-    public init(m11: CGFloat, m12: CGFloat, m21: CGFloat, m22: CGFloat, tX: CGFloat, tY: CGFloat) { NSUnimplemented() }
+    public init(m11: CGFloat, m12: CGFloat, m21: CGFloat, m22: CGFloat, tX: CGFloat, tY: CGFloat) {
+        (self.m11, self.m12, self.m21, self.m22) = (m11, m12, m21, m22)
+        (self.tX, self.tY) = (tX, tY)
+    }
 }
 
 public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
@@ -36,7 +39,9 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
     // Initialization
     public convenience init(transform: NSAffineTransform) { NSUnimplemented() }
-    public override init() { NSUnimplemented() }
+    public override init() {
+        transformStruct = NSAffineTransformStruct(m11: CGFloat(1.0), m12: CGFloat(), m21: CGFloat(), m22: CGFloat(1.0), tX: CGFloat(), tY: CGFloat())
+    }
     
     // Translating
     public func translateXBy(deltaX: CGFloat, yBy deltaY: CGFloat) { NSUnimplemented() }
