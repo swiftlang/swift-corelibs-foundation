@@ -1733,6 +1733,7 @@
 				22B9C1E11C165D7A00DECFF9 /* TestNSDate.swift in Sources */,
 				848A30581C137B3500C83206 /* TestNSHTTPCookie.swift in Sources */,
 				EA66F6541BF1619600136161 /* TestNSSet.swift in Sources */,
+				366C227D1C1649590069EBFD /* TestNSData.swift in Sources */,
 				EA66F64A1BF1619600136161 /* TestNSArray.swift in Sources */,
 				5BC1D8BE1BF3B09E009D3973 /* TestNSCharacterSet.swift in Sources */,
 				EA66F6561BF1619600136161 /* TestNSString.swift in Sources */,

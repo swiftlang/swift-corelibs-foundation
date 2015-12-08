@@ -26,9 +26,23 @@ class TestNSData: XCTestCase {
             ("test_longDebugDescription", test_longDebugDescription),
             ("test_limitDebugDescription", test_limitDebugDescription),
             ("test_edgeDebugDescription", test_edgeDebugDescription),
+            ("test_writeToURLOptions", test_writeToURLOptions),
         ]
     }
     
+    func test_writeToURLOptions() {
+        let saveData = NSData(contentsOfURL: NSBundle.mainBundle().URLForResource("Test", withExtension: "plist")!)
+        let savePath = "/var/tmp/Test.plist"
+        do {
+            try saveData!.writeToFile(savePath, options: NSDataWritingOptions.DataWritingAtomic)
+            let fileManager = NSFileManager.defaultManager()
+            XCTAssertTrue(fileManager.fileExistsAtPath(savePath))
+            try! fileManager.removeItemAtPath(savePath)
+        } catch let error {
+            XCTFail((error as! NSError).localizedDescription)
+        }
+    }
+
     func test_emptyDescription() {
         let expected = "<>"
         
