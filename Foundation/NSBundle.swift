@@ -156,9 +156,19 @@ public class NSBundle : NSObject {
     // MARK: - Other
     
     public var bundleIdentifier: String? { NSUnimplemented() }
-    public var infoDictionary: [String : AnyObject]? { NSUnimplemented() }
-    public var localizedInfoDictionary: [String : AnyObject]? { NSUnimplemented() }
-    public func objectForInfoDictionaryKey(key: String) -> AnyObject? { NSUnimplemented() }
+    
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
+    public var infoDictionary: [String : Any]? { NSUnimplemented() }
+    
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
+    public var localizedInfoDictionary: [String : Any]? { NSUnimplemented() }
+    
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
+    public func objectForInfoDictionaryKey(key: String) -> Any? { NSUnimplemented() }
+    
     public func classNamed(className: String) -> AnyClass? { NSUnimplemented() }
     public var principalClass: AnyClass? { NSUnimplemented() }
     public var preferredLocalizations: [String] { NSUnimplemented() }

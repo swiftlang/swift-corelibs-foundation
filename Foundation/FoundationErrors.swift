@@ -249,7 +249,7 @@ public extension NSCocoaError {
     import Glibc
 #endif
 
-internal func _NSErrorWithErrno(posixErrno : Int32, reading : Bool, path : String? = nil, url : NSURL? = nil, extraUserInfo : [String : AnyObject]? = nil) -> NSError {
+internal func _NSErrorWithErrno(posixErrno : Int32, reading : Bool, path : String? = nil, url : NSURL? = nil, extraUserInfo : [String : Any]? = nil) -> NSError {
     var cocoaError : NSCocoaError
     if reading {
         switch posixErrno {
@@ -271,7 +271,7 @@ internal func _NSErrorWithErrno(posixErrno : Int32, reading : Bool, path : Strin
         }
     }
     
-    var userInfo = extraUserInfo ?? [String : AnyObject]()
+    var userInfo = extraUserInfo ?? [String : Any]()
     if let path = path {
         userInfo[NSFilePathErrorKey] = path._nsObject
     } else if let url = url {
