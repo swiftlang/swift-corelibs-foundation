@@ -32,7 +32,11 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public init(UUIDBytes bytes: UnsafePointer<UInt8>) {
-        memcpy(unsafeBitCast(buffer, UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
+        if (bytes != nil) {
+            memcpy(unsafeBitCast(buffer, UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
+        } else {
+            memset(unsafeBitCast(buffer, UnsafeMutablePointer<Void>.self), 0, 16)
+        }
     }
     
     public func getUUIDBytes(uuid: UnsafeMutablePointer<UInt8>) {
@@ -42,8 +46,8 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public var UUIDString: String {
         get {
             let strPtr = UnsafeMutablePointer<Int8>.alloc(37)
-            _cf_uuid_unparse_upper(buffer, strPtr)
-            return String(strPtr)
+            _cf_uuid_unparse_lower(buffer, strPtr)
+            return String.fromCString(strPtr)!
         }
     }
     
@@ -56,10 +60,28 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public required init?(coder: NSCoder) {
-        
+        NSUnimplemented()
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        NSUnimplemented()
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if object === self {
+            return true
+        } else if let other = object as? NSUUID {
+            return _cf_uuid_compare(buffer, other.buffer) == 0
+        } else {
+            return false
+        }
+    }
+    
+    public override var hash: Int {
+        return Int(CFHashBytes(buffer, 16))
+    }
+    
+    public override var description: String {
+        return UUIDString
     }
 }
