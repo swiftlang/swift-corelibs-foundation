@@ -180,7 +180,7 @@ private struct JSONDeserializer {
         }
         
         init(viewSkippingBOM view: String.UnicodeScalarView) {
-            if view.startIndex < view.endIndex && view[view.startIndex] == UnicodeScalar(65279) {
+            if view.startIndex < view.endIndex && view[view.startIndex] == UnicodeScalar(0xFEFF) {
                 self.init(view: view, index: view.startIndex.successor())
                 return
             }
@@ -309,23 +309,23 @@ private struct JSONDeserializer {
             throw NSJSONSerializationError.UnexpectedEndOfFile
         }
         switch scalar {
-        case UnicodeScalar(0x22): // "    quotation mark  U+0022
+        case UnicodeScalar(0x22):                   // "    quotation mark  U+0022
             fallthrough
-        case UnicodeScalar(0x5C): // \    reverse solidus U+005F
+        case UnicodeScalar(0x5C):                   // \    reverse solidus U+005F
             fallthrough
-        case UnicodeScalar(0x2F): // /    solidus         U+002F
+        case UnicodeScalar(0x2F):                   // /    solidus         U+002F
             return (scalar, parser)
-        case UnicodeScalar(0x62): // b    backspace       U+0008
+        case UnicodeScalar(0x62):                   // b    backspace       U+0008
             return (UnicodeScalar(0x08), parser)
-        case UnicodeScalar(0x66): // f    form feed       U+000C
+        case UnicodeScalar(0x66):                   // f    form feed       U+000C
             return (UnicodeScalar(0x0C), parser)
-        case UnicodeScalar(0x6E): // n    line feed       U+000A
+        case UnicodeScalar(0x6E):                   // n    line feed       U+000A
             return (UnicodeScalar(0x0A), parser)
-        case UnicodeScalar(0x72): // r    carriage return U+000D
+        case UnicodeScalar(0x72):                   // r    carriage return U+000D
             return (UnicodeScalar(0x0D), parser)
-        case UnicodeScalar(0x74): // t    tab             U+0009
+        case UnicodeScalar(0x74):                   // t    tab             U+0009
             return (UnicodeScalar(0x09), parser)
-        case UnicodeScalar(0x75): // u    unicode
+        case UnicodeScalar(0x75):                   // u    unicode
             return try parseUnicodeSequence(parser)
         default:
             return nil
