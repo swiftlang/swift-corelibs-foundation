@@ -21,6 +21,18 @@ class TestNSUUID : XCTestCase {
     
     var allTests : [(String, () -> ())] {
         return [
+            ("test_Equality", test_Equality),
         ]
+    }
+    
+    func test_Equality() {
+        let uuidA = NSUUID(UUIDString: "E621E1F8-C36C-495A-93FC-0C247A3E6E5F")
+        let uuidB = NSUUID(UUIDString: "e621e1f8-c36c-495a-93fc-0c247a3e6e5f")
+        let uuidC = NSUUID(UUIDBytes: [0xe6,0x21,0xe1,0xf8,0xc3,0x6c,0x49,0x5a,0x93,0xfc,0x0c,0x24,0x7a,0x3e,0x6e,0x5f])
+        let uuidD = NSUUID()
+        
+        XCTAssertEqual(uuidA, uuidB, "String case must not matter.")
+        XCTAssertEqual(uuidA, uuidC, "A UUID initialized with a string must be equal to the same UUID initialized with its UnsafePointer<UInt8> equivalent representation.")
+        XCTAssertNotEqual(uuidC, uuidD, "Two different UUIDs must not be equal.")
     }
 }

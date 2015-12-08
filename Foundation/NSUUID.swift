@@ -62,4 +62,18 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public func encodeWithCoder(aCoder: NSCoder) {
         
     }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if object === self {
+            return true
+        } else if let other = object as? NSUUID {
+            return _cf_uuid_compare(buffer, other.buffer) == 0
+        } else {
+            return false
+        }
+    }
+    
+    public override var hash: Int {
+        return Int(CFHashBytes(buffer, 16))
+    }
 }

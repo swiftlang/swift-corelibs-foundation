@@ -210,6 +210,7 @@ extern void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CFStringRef
 extern Boolean _CFURLInitWithURLString(CFURLRef url, CFStringRef string, Boolean checkForLegalCharacters, _Nullable CFURLRef baseURL);
 extern Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding, _Nullable CFURLRef baseURL);
 
+extern CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length);
 extern CFIndex __CFProcessorCount();
 extern uint64_t __CFMemorySize();
 extern CFIndex __CFActiveProcessorCount();
