@@ -225,7 +225,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
 
 extension NSString {
     public func getCharacters(buffer: UnsafeMutablePointer<unichar>, range: NSRange) {
-        for var idx = 0; idx < range.length; idx++ {
+        for idx in 0..<range.length {
             buffer[idx] = characterAtIndex(idx + range.location)
         }
     }
@@ -924,7 +924,7 @@ extension String {
         if characters.count < prefixCharacters.count {
             return false
         }
-        for var idx = 0; idx < prefixCharacters.count; idx++ {
+        for idx in 0..<prefixCharacters.count {
             if characters[start.advancedBy(idx)] != prefixCharacters[prefixStart.advancedBy(idx)] {
                 return false
             }
@@ -941,7 +941,7 @@ extension String {
         if characters.count < suffixCharacters.count {
             return false
         }
-        for var idx = 0; idx < suffixCharacters.count; idx++ {
+        for idx in 0..<suffixCharacters.count {
             let charactersIdx = start.advancedBy(characters.count - idx - 1)
             let suffixIdx = suffixStart.advancedBy(suffixCharacters.count - idx - 1)
             if characters[charactersIdx] != suffixCharacters[suffixIdx] {

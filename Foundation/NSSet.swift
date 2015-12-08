@@ -47,7 +47,7 @@ extension Set : _ObjectTypeBridgeable {
             
             CFSetGetValues(cf, objs)
             
-            for var idx = 0; idx < cnt; idx++ {
+            for idx in 0..<cnt {
                 let obj = unsafeBitCast(objs.advancedBy(idx), AnyObject.self)
                 if let o = obj as? Element {
                     set.insert(o)
@@ -168,7 +168,7 @@ extension NSSet {
 
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
-        for var idx = 0; idx < array.count; idx++ {
+        for idx in 0..<array.count {
             buffer.advancedBy(idx).initialize(array[idx])
         }
         self.init(objects: buffer, count: array.count)
