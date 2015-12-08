@@ -472,7 +472,7 @@ extension NSString {
     
     public var longLongValue: Int64 {
         get {
-            NSUnimplemented()
+            return NSScanner(string: _swiftObject).scanLongLong() ?? 0
         }
     }
     

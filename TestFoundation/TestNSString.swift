@@ -36,6 +36,7 @@ class TestNSString : XCTestCase {
             ("test_FromNullTerminatedCStringInASCII", test_FromNullTerminatedCStringInASCII ),
             ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
             ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
+            ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
         ]
     }
@@ -182,6 +183,14 @@ class TestNSString : XCTestCase {
         XCTAssertNil(string)
     }
 
+    func test_longLongValue() {
+        let string1: NSString = "9223372036854775808"
+        XCTAssertEqual(string1.longLongValue, 9223372036854775807)
+
+        let string2: NSString = "-9223372036854775809"
+        XCTAssertEqual(string2.longLongValue, -9223372036854775808)
+    }
+    
     func test_rangeOfCharacterFromSet() {
         let string: NSString = "0Az"
         let letters = NSCharacterSet.letterCharacterSet()
