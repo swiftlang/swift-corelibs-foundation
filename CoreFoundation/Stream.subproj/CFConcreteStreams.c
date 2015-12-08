@@ -592,21 +592,23 @@ static CFIndex dataRead(CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLen
 
 static const UInt8 *dataGetBuffer(CFReadStreamRef stream, CFIndex maxBytesToRead, CFIndex *numBytesRead, CFStreamError *error, Boolean *atEOF, void *info) {
     _CFReadDataStreamContext *dataCtxt = (_CFReadDataStreamContext *)info;
-    const UInt8 *bytes = CFDataGetBytePtr(dataCtxt->data);
-    if (dataCtxt->loc - bytes > maxBytesToRead) {
+    const UInt8 *bytePtr = CFDataGetBytePtr(dataCtxt->data);
+    CFIndex length = CFDataGetLength(dataCtxt->data);
+    CFIndex bytesToRead = bytePtr + length - dataCtxt->loc;
+    if (bytesToRead > maxBytesToRead) {
         *numBytesRead = maxBytesToRead;
         *atEOF = FALSE;
     } else {
-        *numBytesRead = dataCtxt->loc - bytes;
+        *numBytesRead = bytesToRead;
         *atEOF = TRUE;
     }
     error->error = 0;
-    bytes = dataCtxt->loc;
+    const UInt8 *buffer = dataCtxt->loc;
     dataCtxt->loc += *numBytesRead;
     if (dataCtxt->scheduled && !*atEOF) {
         CFReadStreamSignalEvent(stream, kCFStreamEventHasBytesAvailable, NULL);
     }
-    return bytes;
+    return buffer;
 }
 
 static Boolean dataCanRead(CFReadStreamRef stream, void *info) {
