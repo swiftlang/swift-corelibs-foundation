@@ -23,6 +23,7 @@ class TestNSString : XCTestCase {
         return [
             ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
+            ("test_integerValue", test_integerValue ),
             ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
             ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
             ("test_isNotEqualToObjectWithNSNumber", test_isNotEqualToObjectWithNSNumber ),
@@ -66,6 +67,32 @@ class TestNSString : XCTestCase {
         
         let cluster: NSString = "✌🏾"
         XCTAssertEqual(cluster.length, 3)
+    }
+
+    func test_integerValue() {
+        let string1: NSString = "123"
+        XCTAssertEqual(string1.integerValue, 123)
+
+        let string2: NSString = "123a"
+        XCTAssertEqual(string2.integerValue, 123)
+
+        let string3: NSString = "-123a"
+        XCTAssertEqual(string3.integerValue, -123)
+
+        let string4: NSString = "a123"
+        XCTAssertEqual(string4.integerValue, 0)
+
+        let string5: NSString = "+123"
+        XCTAssertEqual(string5.integerValue, 123)
+
+        let string6: NSString = "++123"
+        XCTAssertEqual(string6.integerValue, 0)
+
+        let string7: NSString = "-123"
+        XCTAssertEqual(string7.integerValue, -123)
+
+        let string8: NSString = "--123"
+        XCTAssertEqual(string8.integerValue, 0)
     }
 
     func test_isEqualToStringWithSwiftString() {
