@@ -417,11 +417,14 @@ extension NSString {
     }
     
     public func rangeOfComposedCharacterSequenceAtIndex(index: Int) -> NSRange {
-        NSUnimplemented()
+        let cfRange = CFStringGetRangeOfComposedCharactersAtIndex(index)
+        return NSMakeRange(cfRange.location, cfRange.length)
     }
     
     public func rangeOfComposedCharacterSequencesForRange(range: NSRange) -> NSRange {
-        NSUnimplemented()
+        let cfRangeStart = CFStringGetRangeOfComposedCharactersAtIndex(range.location)
+        let cfRangeEnd = CFStringGetRangeOfComposedCharactersAtIndex(NSMaxRange(range))
+        return NSMakeRange(cfRangeStart.location, cfRangeEnd.location + cfRangeEnd.length - cfRangeStart.location)
     }
     
     public func stringByAppendingString(aString: String) -> String {
