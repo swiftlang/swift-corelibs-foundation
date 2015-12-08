@@ -145,10 +145,37 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return true
     }
     
-    override public var description: String {
-        get {
-            return "Fixme"
+    private func byteDescription(limit limit: Int? = nil) -> String {
+        var s = ""
+        let buffer = UnsafePointer<UInt8>(bytes)
+        var i = 0
+        while i < self.length {
+            if i > 0 && i % 4 == 0 {
+                // if there's a limit, and we're at the barrier where we'd add the ellipses, don't add a space.
+                if let limit = limit where self.length > limit && i == self.length - (limit / 2) { /* do nothing */ }
+                else { s += " " }
+            }
+            let byte = buffer[i]
+            var byteStr = String(byte, radix: 16, uppercase: false)
+            if byte <= 0xf { byteStr = "0\(byteStr)" }
+            s += byteStr
+            // if we've hit the midpoint of the limit, skip to the last (limit / 2) bytes.
+            if let limit = limit where self.length > limit && i == (limit / 2) - 1 {
+                s += " ... "
+                i = self.length - (limit / 2)
+            } else {
+                i += 1
+            }
         }
+        return s
+    }
+    
+    override public var debugDescription: String {
+        return "<\(byteDescription(limit: 1024))>"
+    }
+    
+    override public var description: String {
+        return "<\(byteDescription())>"
     }
     
     override internal var _cfTypeID: CFTypeID {
