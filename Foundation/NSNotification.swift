@@ -19,19 +19,18 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
         fatalError()
     }
     
-    public init(name aName: String, object anObject: AnyObject?, userInfo aUserInfo: [NSObject : AnyObject]?) {
-        name = aName
-        object = anObject
-        userInfo = aUserInfo
+    public init(name: String, object: AnyObject?, userInfo: [NSObject : AnyObject]?) {
+        self.name = name
+        self.object = object
+        self.userInfo = userInfo
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        /* do not invoke; not a valid initializer for this class */
-        fatalError()
+        NSUnimplemented()
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        NSUnimplemented()
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
@@ -54,7 +53,7 @@ private class NSNotificationReceiver : NSObject {
 }
 
 
-private var _defaultCenter: NSNotificationCenter = NSNotificationCenter()
+private let _defaultCenter: NSNotificationCenter = NSNotificationCenter()
 
 public class NSNotificationCenter : NSObject {
     
