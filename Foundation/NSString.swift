@@ -217,6 +217,10 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         guard let string = (object as? NSString)?._swiftObject else { return false }
         return self.isEqualToString(string)
     }
+    
+    public override var description: String {
+        return _swiftObject
+    }
 }
 
 extension NSString {
