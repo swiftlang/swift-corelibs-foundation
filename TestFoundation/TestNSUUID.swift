@@ -25,6 +25,7 @@ class TestNSUUID : XCTestCase {
             ("test_InvalidUUID", test_InvalidUUID),
             ("test_InitializationWithNil", test_InitializationWithNil),
             ("test_UUIDString", test_UUIDString),
+            ("test_description", test_description),
         ]
     }
     
@@ -52,5 +53,10 @@ class TestNSUUID : XCTestCase {
     func test_UUIDString() {
         let uuid = NSUUID(UUIDBytes: [0xe6,0x21,0xe1,0xf8,0xc3,0x6c,0x49,0x5a,0x93,0xfc,0x0c,0x24,0x7a,0x3e,0x6e,0x5f])
         XCTAssertEqual(uuid.UUIDString, "e621e1f8-c36c-495a-93fc-0c247a3e6e5f", "The UUIDString representation must be lowercase as defined by RFC 4122.")
+    }
+    
+    func test_description() {
+        let uuid = NSUUID()
+        XCTAssertEqual(uuid.description, uuid.UUIDString, "The description must be the same as the UUIDString.")
     }
 }
