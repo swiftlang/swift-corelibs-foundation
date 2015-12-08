@@ -46,8 +46,8 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public var UUIDString: String {
         get {
             let strPtr = UnsafeMutablePointer<Int8>.alloc(37)
-            _cf_uuid_unparse_upper(buffer, strPtr)
-            return String(strPtr)
+            _cf_uuid_unparse_lower(buffer, strPtr)
+            return String.fromCString(strPtr)!
         }
     }
     
