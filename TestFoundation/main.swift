@@ -23,6 +23,7 @@ internal func testBundle() -> NSBundle {
 XCTMain([
     TestNSString(),
     TestNSArray(),
+    TestNSCalendar(),
     TestNSDictionary(),
     TestNSSet(),
     TestNSNumber(),
