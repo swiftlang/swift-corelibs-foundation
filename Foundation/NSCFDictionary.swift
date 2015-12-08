@@ -65,7 +65,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
             let keys = UnsafeMutablePointer<UnsafePointer<Void>>.alloc(count)            
             CFDictionaryGetKeysAndValues(cf, keys, nil)
             
-            for var idx = 0; idx < count; idx++ {
+            for idx in 0..<count {
                 let key = unsafeBitCast(keys.advancedBy(idx).memory, NSObject.self)
                 keyArray.append(key)
             }
