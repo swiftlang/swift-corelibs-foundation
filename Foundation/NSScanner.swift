@@ -79,7 +79,7 @@ private struct _NSStringBuffer {
     var stringLen: Int
     var stringLoc: Int
     var buffer = Array<unichar>(count: 32, repeatedValue: 0)
-    var curChar: unichar
+    var curChar: unichar?
     
     static let EndCharacter = unichar(0xffff)
     
@@ -92,10 +92,10 @@ private struct _NSStringBuffer {
             bufferLen = min(32, stringLen - stringLoc);
             let range = NSMakeRange(stringLoc, bufferLen)
             bufferLoc = 1
-            curChar = buffer[0]
             buffer.withUnsafeMutableBufferPointer({ (inout ptr: UnsafeMutableBufferPointer<unichar>) -> Void in
                 self.string.getCharacters(ptr.baseAddress, range: range)
             })
+            curChar = buffer[0]
         } else {
             bufferLen = 0
             bufferLoc = 1
@@ -104,7 +104,7 @@ private struct _NSStringBuffer {
     }
     
     var currentCharacter: unichar {
-        return curChar
+        return curChar!
     }
     
     var isAtEnd: Bool {
