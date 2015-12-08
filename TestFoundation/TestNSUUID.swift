@@ -22,6 +22,7 @@ class TestNSUUID : XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
             ("test_Equality", test_Equality),
+            ("test_InvalidUUID", test_InvalidUUID),
         ]
     }
     
@@ -34,5 +35,10 @@ class TestNSUUID : XCTestCase {
         XCTAssertEqual(uuidA, uuidB, "String case must not matter.")
         XCTAssertEqual(uuidA, uuidC, "A UUID initialized with a string must be equal to the same UUID initialized with its UnsafePointer<UInt8> equivalent representation.")
         XCTAssertNotEqual(uuidC, uuidD, "Two different UUIDs must not be equal.")
+    }
+    
+    func test_InvalidUUID() {
+        let uuid = NSUUID(UUIDString: "Invalid UUID")
+        XCTAssertNil(uuid, "The convenience initializer `init?(UUIDString string:)` must return nil for an invalid UUID string.")
     }
 }
