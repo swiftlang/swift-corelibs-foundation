@@ -19,6 +19,7 @@
 #include <fts.h>
 
 CF_ASSUME_NONNULL_BEGIN
+CF_IMPLICIT_BRIDGING_ENABLED
 
 struct __CFSwiftObject {
     uintptr_t isa;
@@ -271,6 +272,7 @@ extern void _cf_uuid_unparse(const _cf_uuid_t uu, _cf_uuid_string_t out);
 extern void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out);
 extern void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
 
+CF_IMPLICIT_BRIDGING_DISABLED
 CF_ASSUME_NONNULL_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */
