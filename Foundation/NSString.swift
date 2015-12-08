@@ -457,7 +457,7 @@ extension NSString {
     
     public var intValue: Int32 {
         get {
-            NSUnimplemented()
+            return NSScanner(string: _swiftObject).scanInt() ?? 0
         }
     }
     

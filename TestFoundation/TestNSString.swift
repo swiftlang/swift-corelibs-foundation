@@ -24,6 +24,7 @@ class TestNSString : XCTestCase {
             ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
             ("test_integerValue", test_integerValue ),
+            ("test_intValue", test_intValue ),
             ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
             ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
             ("test_isNotEqualToObjectWithNSNumber", test_isNotEqualToObjectWithNSNumber ),
@@ -95,6 +96,14 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(string8.integerValue, 0)
     }
 
+    func test_intValue() {
+        let string1: NSString = "2147483648"
+        XCTAssertEqual(string1.intValue, 2147483647)
+
+        let string2: NSString = "-2147483649"
+        XCTAssertEqual(string2.intValue, -2147483648)
+    }
+    
     func test_isEqualToStringWithSwiftString() {
         let string: NSString = "literal"
         let swiftString = "literal"
