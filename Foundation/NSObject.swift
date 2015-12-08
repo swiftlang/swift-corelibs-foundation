@@ -127,3 +127,9 @@ extension NSObject : Equatable, Hashable {
 public func ==(lhs: NSObject, rhs: NSObject) -> Bool {
     return lhs.isEqual(rhs)
 }
+
+extension NSObject : CustomDebugStringConvertible {
+}
+
+extension NSObject : CustomStringConvertible {
+}
