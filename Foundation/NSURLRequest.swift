@@ -328,7 +328,6 @@ public class NSMutableURLRequest : NSURLRequest {
         _URL = URL
     }
     
-    
     /*!
         @method URL
         @abstract Sets the URL of the receiver. 
