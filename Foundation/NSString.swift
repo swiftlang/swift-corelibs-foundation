@@ -405,15 +405,39 @@ extension NSString {
     }
     
     public func rangeOfCharacterFromSet(searchSet: NSCharacterSet) -> NSRange {
-        NSUnimplemented()
+        return rangeOfCharacterFromSet(searchSet, options: [])
     }
     
     public func rangeOfCharacterFromSet(searchSet: NSCharacterSet, options mask: NSStringCompareOptions) -> NSRange {
-        NSUnimplemented()
+        return rangeOfCharacterFromSet(searchSet, options: mask, range: NSMakeRange(0, length))
     }
     
     public func rangeOfCharacterFromSet(searchSet: NSCharacterSet, options mask: NSStringCompareOptions, range searchRange: NSRange) -> NSRange {
-        NSUnimplemented()
+        if mask.contains(.RegularExpressionSearch) {
+            NSUnimplemented()
+        }
+        if searchRange.length == 0 {
+            return NSMakeRange(NSNotFound, 0)
+        }
+        
+#if os(Linux)
+        var cfflags = CFStringCompareFlags(mask.rawValue)
+        if mask.contains(.LiteralSearch) {
+            cfflags |= UInt(kCFCompareNonliteral)
+        }
+#else
+        var cfflags = CFStringCompareFlags(rawValue: mask.rawValue)
+        if mask.contains(.LiteralSearch) {
+            cfflags.unionInPlace(.CompareNonliteral)
+        }
+#endif
+        var result = CFRangeMake(kCFNotFound, 0)
+
+        if CFStringFindCharacterFromSet(_cfObject, searchSet._cfObject, CFRangeMake(searchRange.location, searchRange.length), cfflags, &result) {
+            return NSMakeRange(result.location, result.length)
+        } else {
+            return NSMakeRange(NSNotFound, 0)
+        }
     }
     
     public func rangeOfComposedCharacterSequenceAtIndex(index: Int) -> NSRange {
