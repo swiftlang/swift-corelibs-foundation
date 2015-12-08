@@ -72,7 +72,7 @@ extension Set : _ObjectTypeBridgeable {
 
 public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
-    internal var _storage = Set<NSObject>()
+    internal var _storage: Set<NSObject>
     
     public var count: Int {
         get {
@@ -86,10 +86,8 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     
     public func member(object: AnyObject) -> AnyObject? {
         if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
-            if let obj = object as? NSObject {
-                if _storage.contains(obj) {
-                    return obj // this is not exactly the same behavior, but it is reasonably close
-                }
+            if let obj = object as? NSObject where _storage.contains(obj) {
+                return obj // this is not exactly the same behavior, but it is reasonably close
             }
             return nil
         } else {
@@ -110,10 +108,11 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
+        _storage = Set(minimumCapacity: cnt)
         super.init()
-        for idx in 0..<cnt {
-            let obj = objects[idx] as! NSObject
-            _storage.insert(obj)
+        let buffer = UnsafeBufferPointer(start: objects, count: cnt)
+        for obj in buffer {
+            _storage.insert(obj as! NSObject)
         }
     }
     
@@ -168,8 +167,8 @@ extension NSSet {
 
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
-        for var idx = 0; idx < array.count; idx++ {
-            buffer.advancedBy(idx).initialize(array[idx])
+        for (idx, element) in array.enumerate() {
+            buffer.advancedBy(idx).initialize(element)
         }
         self.init(objects: buffer, count: array.count)
         buffer.destroy(array.count)
@@ -182,14 +181,11 @@ extension NSSet {
     public var allObjects: [AnyObject] {
         get {
             if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
-                return _storage.map { $0 }
+                return Array(_storage)
             } else {
-                var objects = [AnyObject]()
-                let enumerator = objectEnumerator()
-                while let obj = enumerator.nextObject() {
-                    objects.append(obj)
-                }
-                return objects
+				// Would be nice to use `Array(self)` here but compiler
+				// crashes on Linux @ swift 6e3e83c
+				return map { $0 }
             }
         }
     }
@@ -204,36 +200,19 @@ extension NSSet {
     
     public func intersectsSet(otherSet: Set<NSObject>) -> Bool {
         if count < otherSet.count {
-            for obj in allObjects {
-                if otherSet.contains(obj as! NSObject) {
-                    return true
-                }
-            }
+            return contains { obj in otherSet.contains(obj as! NSObject) }
         } else {
-            for obj in otherSet {
-                if containsObject(obj) {
-                    return true
-                }
-            }
+            return otherSet.contains { obj in containsObject(obj) }
         }
-        return false
     }
     
     public func isEqualToSet(otherSet: Set<NSObject>) -> Bool {
-        if count != otherSet.count {
-            return false
-        }
-        for obj in otherSet where !containsObject(obj) {
-            return false
-        }
-        return true
+        return count == otherSet.count && isSubsetOfSet(otherSet)
     }
     
     public func isSubsetOfSet(otherSet: Set<NSObject>) -> Bool {
-        for case let obj as NSObject in allObjects where !otherSet.contains(obj) {
-            return false
-        }
-        return true
+        // `true` if we don't contain any object that `otherSet` doesn't contain.
+        return !self.contains { obj in !otherSet.contains(obj as! NSObject) }
     }
 
     public func setByAddingObject(anObject: AnyObject) -> Set<NSObject> {
@@ -241,11 +220,10 @@ extension NSSet {
     }
     
     public func setByAddingObjectsFromSet(other: Set<NSObject>) -> Set<NSObject> {
-        var result: Set<NSObject>
+        var result = Set<NSObject>(minimumCapacity: max(count, other.count))
         if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
-            result = _storage
+            result.unionInPlace(_storage)
         } else {
-            result = Set<NSObject>()
             for case let obj as NSObject in self {
                 result.insert(obj)
             }
@@ -254,11 +232,10 @@ extension NSSet {
     }
     
     public func setByAddingObjectsFromArray(other: [AnyObject]) -> Set<NSObject> {
-        var result: Set<NSObject>
+        var result = Set<NSObject>(minimumCapacity: count)
         if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
-            result = _storage
+            result.unionInPlace(_storage)
         } else {
-            result = Set<NSObject>()
             for case let obj as NSObject in self {
                 result.insert(obj)
             }
