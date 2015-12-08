@@ -40,4 +40,5 @@ XCTMain([
     TestNSData(),
     TestNSTimeZone(),
     TestNSScanner(),
+    TestNSURLRequest()
 ])
