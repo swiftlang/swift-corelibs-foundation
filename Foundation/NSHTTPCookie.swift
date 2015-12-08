@@ -95,8 +95,23 @@ public let NSHTTPCookiePort: String = "Port"
     attributes of a cookie.
 */
 public class NSHTTPCookie : NSObject {
-    var _properties: [String : AnyObject]
-    
+    private struct Cookie {
+        let comment: String?
+        let commentURL: NSURL?
+        let domain: String
+        let expiresDate: NSDate?
+        let HTTPOnly: Bool
+        let secure: Bool
+        let sessionOnly: Bool
+        let name: String
+        let path: String
+        let portList: [NSNumber]?
+        let properties: [String: Any]?
+        let value: String
+        let version: Int
+    }
+    private let cookieRepresentation: Cookie
+
     /*!
         @method initWithProperties:
         @abstract Initialize a NSHTTPCookie object with a dictionary of
@@ -220,20 +235,121 @@ public class NSHTTPCookie : NSObject {
         dictionary keys is invalid, for example because a required key is
         missing, or a recognized key maps to an illegal value.
     */
-    public init?(properties: [String : AnyObject]) {
-        func isValidProperty(property: String?) -> Bool {
-            if let propertyValue = property {
-                return propertyValue.length > 0 && (propertyValue as NSString).rangeOfString("/n").location == NSNotFound
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
+    /// - Note: Since this API is under consideration it may be either removed or revised in the near future
+    public init?(properties: [String : Any]) {
+        guard let
+            path = properties[NSHTTPCookiePath] as? String,
+            name = properties[NSHTTPCookieName] as? String,
+            value = properties[NSHTTPCookieValue] as? String
+        else {
+            return nil
+        }
+
+        let canonicalDomain: String
+        if let domain = properties[NSHTTPCookieDomain] as? String {
+            canonicalDomain = domain
+        } else if let
+            originURL = properties[NSHTTPCookieOriginURL] as? NSURL,
+            host = originURL.host
+        {
+            canonicalDomain = host
+        } else {
+            return nil
+        }
+
+        let secure: Bool
+        if let
+            secureString = properties[NSHTTPCookieSecure] as? String
+            where secureString.characters.count > 0
+        {
+            secure = true
+        } else {
+            secure = false
+        }
+
+        let version: Int
+        if let
+            versionString = properties[NSHTTPCookieSecure] as? String
+            where versionString == "1"
+        {
+            version = 1
+        } else {
+            version = 0
+        }
+
+        let portList: [NSNumber]?
+        if let portString = properties[NSHTTPCookiePort] as? String {
+            portList = portString.characters
+                .split(",")
+                .flatMap { Int(String($0)) }
+                .map { NSNumber(integer: $0) }
+        } else {
+            portList = nil
+        }
+
+        // TODO: factor into a utility function
+        let expiresDate: NSDate?
+        if version == 0 {
+            let expiresProperty = properties[NSHTTPCookieExpires]
+            if let date = expiresProperty as? NSDate {
+                // If the dictionary value is already an NSDate,
+                // nothing left to do
+                expiresDate = date
+            } else if let dateString = expiresProperty as? String {
+                // If the dictionary value is a string, parse it
+                let formatter = NSDateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
+
+                let timeZone = NSTimeZone(abbreviation: "GMT")
+                formatter.timeZone = timeZone
+
+                expiresDate = formatter.dateFromString(dateString)
+            } else {
+                expiresDate = nil
             }
-            return false
+        } else if version == 1 {
+            if let
+                maximumAge = properties[NSHTTPCookieMaximumAge] as? String,
+                secondsFromNow = Double(maximumAge)
+            {
+                expiresDate = NSDate(timeIntervalSinceNow: secondsFromNow)
+            } else {
+                expiresDate = nil
+            }
+        } else {
+            expiresDate = nil
         }
-        if  !isValidProperty(properties[NSHTTPCookiePath] as? String)
-            || !isValidProperty(properties[NSHTTPCookieDomain] as? String)
-            || !isValidProperty(properties[NSHTTPCookieName] as? String)
-            || !isValidProperty(properties[NSHTTPCookieValue] as? String) {
-                return nil
+
+        var discard = false
+        if let discardString = properties[NSHTTPCookieDiscard] as? String {
+            discard = discardString == "TRUE"
+        } else if let
+            _ = properties[NSHTTPCookieMaximumAge] as? String
+            where version >= 1
+        {
+            discard = false
         }
-        _properties = properties
+
+        // TODO: commentURL can be a string or NSURL
+
+        self.cookieRepresentation = Cookie(
+            comment: version == 1 ?
+                properties[NSHTTPCookieComment] as? String : nil,
+            commentURL: version == 1 ?
+                properties[NSHTTPCookieCommentURL] as? NSURL : nil,
+            domain: canonicalDomain,
+            expiresDate: expiresDate,
+            HTTPOnly: secure,
+            secure: secure,
+            sessionOnly: discard,
+            name: name,
+            path: path,
+            portList: version == 1 ? portList : nil,
+            properties: properties,
+            value: value,
+            version: version
+        )
     }
     
     /*!
@@ -258,7 +374,17 @@ public class NSHTTPCookie : NSObject {
         @result An NSDictionary where the keys are header field names, and the values
         are the corresponding header field values.
     */
-    public class func requestHeaderFieldsWithCookies(cookies: [NSHTTPCookie]) -> [String : String] { NSUnimplemented() }
+    public class func requestHeaderFieldsWithCookies(cookies: [NSHTTPCookie]) -> [String : String] {
+        var cookieString = cookies.reduce("") { (sum, next) -> String in
+            return sum + "\(next.cookieRepresentation.name)=\(next.cookieRepresentation.value); "
+        }
+        //Remove the final trailing semicolon and whitespace
+        if ( cookieString.length > 0 ) {
+            cookieString.removeAtIndex(cookieString.endIndex.predecessor())
+            cookieString.removeAtIndex(cookieString.endIndex.predecessor())
+        }
+        return ["Cookie": cookieString]
+    }
     
     /*!
         @method cookiesWithResponseHeaderFields:forURL:
@@ -283,8 +409,10 @@ public class NSHTTPCookie : NSObject {
         for descriptions of the supported keys and values.
         @result The dictionary representation of the receiver.
     */
-    public var properties: [String : AnyObject]? {
-        return _properties
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
+    /// - Note: Since this API is under consideration it may be either removed or revised in the near future
+    public var properties: [String : Any]? {
+        return self.cookieRepresentation.properties
     }
     
     /*!
@@ -295,7 +423,7 @@ public class NSHTTPCookie : NSObject {
         @result the version of the receiver.
     */
     public var version: Int {
-        return (_properties[NSHTTPCookieVersion] as! Int)
+        return self.cookieRepresentation.version
     }
     
     /*!
@@ -304,7 +432,7 @@ public class NSHTTPCookie : NSObject {
         @result the name of the receiver.
     */
     public var name: String {
-        return (_properties[NSHTTPCookieName] as! NSString)._swiftObject
+        return self.cookieRepresentation.name
     }
     
     /*!
@@ -313,7 +441,7 @@ public class NSHTTPCookie : NSObject {
         @result the value of the receiver.
     */
     public var value: String {
-        return (_properties[NSHTTPCookieValue] as! NSString)._swiftObject
+        return self.cookieRepresentation.value
     }
     
     /*!
@@ -326,10 +454,7 @@ public class NSHTTPCookie : NSObject {
         @result The expires date of the receiver.
     */
     /*@NSCopying*/ public var expiresDate: NSDate? {
-        if let expiresDate = _properties[NSHTTPCookieExpires] as? NSDate {
-            return expiresDate
-        }
-        return nil
+        return self.cookieRepresentation.expiresDate
     }
     
     /*!
@@ -340,7 +465,7 @@ public class NSHTTPCookie : NSObject {
         be discarded at the end of the session.
     */
     public var sessionOnly: Bool {
-        return !(_properties[NSHTTPCookieExpires] is NSDate)
+        return self.cookieRepresentation.sessionOnly
     }
     
     /*!
@@ -353,7 +478,7 @@ public class NSHTTPCookie : NSObject {
         @result The domain of the receiver.
     */
     public var domain: String {
-        return (_properties[NSHTTPCookieDomain] as! NSString)._swiftObject
+        return self.cookieRepresentation.domain
     }
     
     /*!
@@ -365,7 +490,7 @@ public class NSHTTPCookie : NSObject {
         @result The path of the receiver.
     */
     public var path: String {
-        return (_properties[NSHTTPCookiePath] as! NSString)._swiftObject
+        return self.cookieRepresentation.path
     }
     
     /*!
@@ -379,7 +504,9 @@ public class NSHTTPCookie : NSObject {
         @result YES if this cookie should be sent only over secure channels,
         NO otherwise.
     */
-    public var secure: Bool { NSUnimplemented() }
+    public var secure: Bool {
+        return self.cookieRepresentation.secure
+    }
     
     /*!
         @method isHTTPOnly
@@ -393,7 +520,9 @@ public class NSHTTPCookie : NSObject {
         @result YES if this cookie should only be sent via HTTP headers,
         NO otherwise.
     */
-    public var HTTPOnly: Bool { NSUnimplemented() }
+    public var HTTPOnly: Bool {
+        return self.cookieRepresentation.HTTPOnly
+    }
     
     /*!
         @method comment
@@ -405,7 +534,7 @@ public class NSHTTPCookie : NSObject {
         comment.
     */
     public var comment: String? {
-        return (_properties[NSHTTPCookieComment] as! NSString)._swiftObject
+        return self.cookieRepresentation.comment
     }
     
     /*!
@@ -418,10 +547,7 @@ public class NSHTTPCookie : NSObject {
         has no comment URL.
     */
     /*@NSCopying*/ public var commentURL: NSURL? {
-        if let commentURL = _properties[NSHTTPCookieCommentURL] as? NSURL {
-            return commentURL
-        }
-        return nil
+        return self.cookieRepresentation.commentURL
     }
     
     /*!
@@ -435,6 +561,8 @@ public class NSHTTPCookie : NSObject {
         array may be nil, in which case this cookie can be sent to any
         port.
     */
-    public var portList: [NSNumber]? { NSUnimplemented() }
+    public var portList: [NSNumber]? {
+        return self.cookieRepresentation.portList
+    }
 }
 
