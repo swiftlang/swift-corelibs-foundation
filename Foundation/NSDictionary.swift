@@ -162,6 +162,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         } else if self.dynamicType === NSMutableDictionary.self {
             // Otherwise, create a new NSDictionary object
             
+            let newDict = NSDictionary()
+            newDict._storage = _storage
+            
+            return newDict
+        } else {
             // TODO: speed up?
             var keys = [AnyObject]()
             var values = [AnyObject]()
@@ -171,8 +176,6 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             }
             
             return NSDictionary(objects: values, forKeys: keys as! [NSObject])
-        } else {
-            NSRequiresConcreteImplementation()
         }
     }
     
@@ -180,6 +183,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
             //ALWAYS create and return an NSMutableDictionary
             
+            let newDict = NSMutableDictionary()
+            newDict._storage = _storage
+            
+            return newDict
+        } else {
             // TODO: speed up?
             var keys = [AnyObject]()
             var values = [AnyObject]()
@@ -189,8 +197,6 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             }
             
             return NSMutableDictionary(objects: values, forKeys: keys as! [NSObject])
-        } else {
-            NSRequiresConcreteImplementation()
         }
     }
     
