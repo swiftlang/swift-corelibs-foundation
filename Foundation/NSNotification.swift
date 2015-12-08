@@ -19,10 +19,10 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
         fatalError()
     }
     
-    public init(name: String, object: AnyObject?, userInfo: [NSObject : AnyObject]?) {
-        self.name = name
-        self.object = object
-        self.userInfo = userInfo
+    public init(name aName: String, object anObject: AnyObject?, userInfo aUserInfo: [NSObject : AnyObject]?) {
+        name = aName
+        object = anObject
+        userInfo = aUserInfo
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -48,9 +48,9 @@ extension NSNotification {
 
 private class NSNotificationReceiver : NSObject {
     private weak var object: NSObject?
+    private var name: String?
     private var block: ((NSNotification) -> Void)?
     private var sender: AnyObject?
-    private var valid: Bool = false
 }
 
 
@@ -58,10 +58,10 @@ private var _defaultCenter: NSNotificationCenter = NSNotificationCenter()
 
 public class NSNotificationCenter : NSObject {
     
-    private var observers: Dictionary<String, [NSNotificationReceiver]>
+    private var observers: [NSNotificationReceiver]
     
     public required override init() {
-        observers = [String: [NSNotificationReceiver]]()
+        observers = [NSNotificationReceiver]()
     }
     
     public class func defaultCenter() -> NSNotificationCenter {
@@ -70,16 +70,16 @@ public class NSNotificationCenter : NSObject {
     
     public func postNotification(notification: NSNotification) {
         let name = notification.name
-        guard let observers = observers[name] else {
-            return
-        }
-        
         let sender = notification.object
+        
         let sendTo = observers.filter { observer in
-            observer.valid && (observer.sender == nil || observer.sender === sender)
+            let sameName = (observer.name == nil || observer.name == name)
+            let sameSender = (observer.sender == nil || observer.sender === sender)
+            
+            return sameSender && sameName
         }
         
-        for observer in sendTo where observer.valid {
+        for observer in sendTo {
             guard let block = observer.block else {
                 continue
             }
@@ -99,37 +99,18 @@ public class NSNotificationCenter : NSObject {
     }
 
     public func removeObserver(observer: AnyObject) {
-        for (name, _) in observers {
-            removeObserver(observer, name: name, object: nil)
-        }
+        removeObserver(observer, name: nil, object: nil)
     }
 
     public func removeObserver(observer: AnyObject, name aName: String?, object anObject: AnyObject?) {
-        guard let name = aName, observersForName = observers[name] else {
-            return
-        }
         guard let observer = observer as? NSObject else {
             return
         }
         
-        for curObserver in observersForName where curObserver.valid {
-            if curObserver.object !== observer {
-                continue
-            }
-            
-            if anObject != nil && curObserver.sender !== anObject {
-                continue
-            }
-            
-            curObserver.valid = false
-        }
-        
-        let validObservers = observersForName.filter { $0.valid }
-        
-        if validObservers.count == 0 {
-            observers.removeValueForKey(name)
-        } else {
-            observers[name] = validObservers
+        observers = observers.filter { curObserver in
+            return (curObserver.object !== observer)
+                || (aName != nil && curObserver.name != aName)
+                || (anObject != nil && curObserver.sender !== anObject)
         }
     }
 
@@ -139,25 +120,17 @@ public class NSNotificationCenter : NSObject {
             NSUnimplemented()
         }
 
-        guard let name = name else {
-            NSUnimplemented()
-        }
-
         let object = NSObject()
         
         let newObserver = NSNotificationReceiver()
         newObserver.object = object
+        newObserver.name = name
         newObserver.block = block
         newObserver.sender = obj
-        newObserver.valid = true
         
-        var observersForName = observers[name] ?? [NSNotificationReceiver]()
-        observersForName.append(newObserver)
-        
-        observers[name] = observersForName
+        observers.append(newObserver)
         
         return object
     }
 
 }
-
