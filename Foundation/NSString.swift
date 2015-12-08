@@ -229,6 +229,11 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     override internal var _cfTypeID: CFTypeID {
         return CFStringGetTypeID()
     }
+  
+    public override func isEqual(object: AnyObject?) -> Bool {
+        guard let string = (object as? NSString)?._swiftObject else { return false }
+        return self.isEqualToString(string)
+    }
 }
 
 extension NSString {

@@ -278,7 +278,22 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     public func descriptionWithLocale(locale: AnyObject?, indent level: Int) -> String { NSUnimplemented() }
     
     public func isEqualToDictionary(otherDictionary: [NSObject : AnyObject]) -> Bool {
-        NSUnimplemented()
+        if count != otherDictionary.count {
+            return false
+        }
+        
+        for key in keyEnumerator() {
+            if let otherValue = otherDictionary[key as! NSObject] as? NSObject {
+                let value = objectForKey(key as! NSObject)! as! NSObject
+                if otherValue != value {
+                    return false
+                }
+            } else {
+                return false
+            }
+        }
+        
+        return true
     }
     
     public struct Generator : GeneratorType {

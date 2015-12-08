@@ -23,6 +23,8 @@ class TestNSString : XCTestCase {
         return [
             ("test_BridgeConstruction", test_BridgeConstruction ),
             ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
+            ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
+            ("test_isNotEqualToObjectWithNSNumber", test_isNotEqualToObjectWithNSNumber ),
             ("test_FromASCIIData", test_FromASCIIData ),
             ("test_FromUTF8Data", test_FromUTF8Data ),
             ("test_FromMalformedUTF8Data", test_FromMalformedUTF8Data ),
@@ -57,6 +59,18 @@ class TestNSString : XCTestCase {
         let string: NSString = "literal"
         let swiftString = "literal"
         XCTAssertTrue(string.isEqualToString(swiftString))
+    }
+  
+    func test_isEqualToObjectWithNSString() {
+        let string1: NSString = "literal"
+        let string2: NSString = "literal"
+        XCTAssertTrue(string1.isEqual(string2))
+    }
+    
+    func test_isNotEqualToObjectWithNSNumber() {
+      let string: NSString = "5"
+      let number: NSNumber = 5
+      XCTAssertFalse(string.isEqual(number))
     }
 
     internal let mockASCIIStringBytes: [UInt8] = [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74, 0x21]

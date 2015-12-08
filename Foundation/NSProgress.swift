@@ -154,35 +154,35 @@ public protocol NSProgressReporting : NSObjectProtocol {
 
 /* How much time is probably left in the operation, as an NSNumber containing a number of seconds.
 */
-public let NSProgressEstimatedTimeRemainingKey: String = "" // NSUnimplemented
+public let NSProgressEstimatedTimeRemainingKey: String = "NSProgressEstimatedTimeRemainingKey"
 
 /* How fast data is being processed, as an NSNumber containing bytes per second.
 */
-public let NSProgressThroughputKey: String = "" // NSUnimplemented
+public let NSProgressThroughputKey: String = "NSProgressThroughputKey"
 
 /* The value for the kind property that indicates that the work being done is one of the kind of file operations listed below. NSProgress of this kind is assumed to use bytes as the unit of work being done and the default implementation of -localizedDescription takes advantage of that to return more specific text than it could otherwise. The NSProgressFileTotalCountKey and NSProgressFileCompletedCountKey keys in the userInfo dictionary are used for the overall count of files.
 */
-public let NSProgressKindFile: String = "" // NSUnimplemented
+public let NSProgressKindFile: String = "NSProgressKindFile"
 
 /* A user info dictionary key, for an entry that is required when the value for the kind property is NSProgressKindFile. The value must be one of the strings listed in the next section. The default implementations of of -localizedDescription and -localizedItemDescription use this value to determine the text that they return.
 */
-public let NSProgressFileOperationKindKey: String = "" // NSUnimplemented
+public let NSProgressFileOperationKindKey: String = "NSProgressKindFile"
 
 /* Possible values for NSProgressFileOperationKindKey entries.
 */
-public let NSProgressFileOperationKindDownloading: String = "" // NSUnimplemented
-public let NSProgressFileOperationKindDecompressingAfterDownloading: String = "" // NSUnimplemented
-public let NSProgressFileOperationKindReceiving: String = "" // NSUnimplemented
-public let NSProgressFileOperationKindCopying: String = "" // NSUnimplemented
+public let NSProgressFileOperationKindDownloading: String = "NSProgressFileOperationKindDownloading"
+public let NSProgressFileOperationKindDecompressingAfterDownloading: String = "NSProgressFileOperationKindDecompressingAfterDownloading"
+public let NSProgressFileOperationKindReceiving: String = "NSProgressFileOperationKindReceiving"
+public let NSProgressFileOperationKindCopying: String = "NSProgressFileOperationKindCopying"
 
 /* A user info dictionary key. The value must be an NSURL identifying the item on which progress is being made. This is required for any NSProgress that is published using -publish to be reported to subscribers registered with +addSubscriberForFileURL:withPublishingHandler:.
 */
-public let NSProgressFileURLKey: String = "" // NSUnimplemented
+public let NSProgressFileURLKey: String = "NSProgressFileURLKey"
 
 /* User info dictionary keys. The values must be NSNumbers containing integers. These entries are optional but if they are both present then the default implementation of -localizedAdditionalDescription uses them to determine the text that it returns.
 */
-public let NSProgressFileTotalCountKey: String = "" // NSUnimplemented
-public let NSProgressFileCompletedCountKey: String = "" // NSUnimplemented
+public let NSProgressFileTotalCountKey: String = "NSProgressFileTotalCountKey"
+public let NSProgressFileCompletedCountKey: String = "NSProgressFileCompletedCountKey"
 
 
 
