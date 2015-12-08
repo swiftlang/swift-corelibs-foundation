@@ -196,6 +196,7 @@
 		5BF7AEC01BCD51F9008F214A /* NSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */; };
 		5BF7AEC11BCD51F9008F214A /* NSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */; };
 		84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */; };
+		A501D6021C1745E7004636F1 /* TestNSByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A501D6011C1745E7004636F1 /* TestNSByteCountFormatter.swift */; };
 		C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */; };
 		DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
 		E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
@@ -521,6 +522,7 @@
 		5BDC405C1BD6D83B00ED97BB /* TestFoundation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestFoundation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
 		84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTimeZone.swift; sourceTree = "<group>"; };
+		A501D6011C1745E7004636F1 /* TestNSByteCountFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSByteCountFormatter.swift; sourceTree = "<group>"; };
 		C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAffineTransform.swift; sourceTree = "<group>"; };
 		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
@@ -1028,6 +1030,7 @@
 				22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */,
 				DCDBB8321C1768AC00313299 /* TestNSData.swift */,
 				84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */,
+				A501D6011C1745E7004636F1 /* TestNSByteCountFormatter.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1728,6 +1731,7 @@
 				5B40F9F21C125187000E72E3 /* TestNSXMLParser.swift in Sources */,
 				EA66F64C1BF1619600136161 /* TestNSDictionary.swift in Sources */,
 				EA66F6581BF1619600136161 /* TestNSURL.swift in Sources */,
+				A501D6021C1745E7004636F1 /* TestNSByteCountFormatter.swift in Sources */,
 				EA66F6441BF1619600136161 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

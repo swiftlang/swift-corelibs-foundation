@@ -39,4 +39,5 @@ XCTMain([
     TestNSDate(),
     TestNSData(),
     TestNSTimeZone(),
+    TestNSByteCountFormatter(),
 ])
