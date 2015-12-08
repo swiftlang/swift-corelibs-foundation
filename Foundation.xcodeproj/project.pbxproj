@@ -197,6 +197,7 @@
 		5BF7AEC11BCD51F9008F214A /* NSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */; };
 		844DC3331C17584F005611F9 /* TestNSScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 844DC3321C17584F005611F9 /* TestNSScanner.swift */; };
 		84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */; };
+		88D28DE71C13AE9000494606 /* TestNSGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D28DE61C13AE9000494606 /* TestNSGeometry.swift */; };
 		C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */; };
 		DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
 		E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
@@ -524,6 +525,7 @@
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
 		844DC3321C17584F005611F9 /* TestNSScanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSScanner.swift; sourceTree = "<group>"; };
 		84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTimeZone.swift; sourceTree = "<group>"; };
+		88D28DE61C13AE9000494606 /* TestNSGeometry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSGeometry.swift; sourceTree = "<group>"; };
 		C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAffineTransform.swift; sourceTree = "<group>"; };
 		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
@@ -1016,9 +1018,12 @@
 			children = (
 				C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */,
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
+				5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */,
 				52829AD61C160D64003BC4EF /* TestNSCalendar.swift */,
 				EA66F63D1BF1619600136161 /* TestNSDictionary.swift */,
 				848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */,
+				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
+				88D28DE61C13AE9000494606 /* TestNSGeometry.swift */,
 				EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */,
 				EA66F63F1BF1619600136161 /* TestNSNumber.swift */,
 				4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */,
@@ -1027,8 +1032,6 @@
 				EA66F6411BF1619600136161 /* TestNSSet.swift */,
 				EA66F6421BF1619600136161 /* TestNSString.swift */,
 				EA66F6431BF1619600136161 /* TestNSURL.swift */,
-				5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */,
-				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
 				5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */,
 				22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */,
 				DCDBB8321C1768AC00313299 /* TestNSData.swift */,
@@ -1734,6 +1737,7 @@
 				5BC1D8BE1BF3B09E009D3973 /* TestNSCharacterSet.swift in Sources */,
 				EA66F6561BF1619600136161 /* TestNSString.swift in Sources */,
 				5B40F9F21C125187000E72E3 /* TestNSXMLParser.swift in Sources */,
+				88D28DE71C13AE9000494606 /* TestNSGeometry.swift in Sources */,
 				EA66F64C1BF1619600136161 /* TestNSDictionary.swift in Sources */,
 				EA66F6581BF1619600136161 /* TestNSURL.swift in Sources */,
 				EA66F6441BF1619600136161 /* main.swift in Sources */,
