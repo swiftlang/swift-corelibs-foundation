@@ -192,12 +192,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public required init(stringLiteral value: StaticString) {
-        if value.hasPointerRepresentation {
-            _storage = String._fromWellFormedCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: value.utf8Start, count: Int(value.byteSize)))
-        } else {
-            var uintValue = value.unicodeScalar.value
-            _storage = String._fromWellFormedCodeUnitSequence(UTF32.self, input: UnsafeBufferPointer(start: &uintValue, count: 1))
-        }
+        _storage = value.stringValue
     }
     
     internal var _fastCStringContents: UnsafePointer<Int8> {
