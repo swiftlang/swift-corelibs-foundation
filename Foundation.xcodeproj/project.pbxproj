@@ -197,6 +197,7 @@
 		5BF7AEBF1BCD51F9008F214A /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4A1BCC5DCB00ED97BB /* NSURL.swift */; };
 		5BF7AEC01BCD51F9008F214A /* NSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */; };
 		5BF7AEC11BCD51F9008F214A /* NSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */; };
+		84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */; };
 		C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */; };
 		E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
 		EA66F6361BEED03E00136161 /* TargetConditionals.h in Headers */ = {isa = PBXBuildFile; fileRef = EA66F6351BEED03E00136161 /* TargetConditionals.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -521,6 +522,7 @@
 		5BDC3FCF1BCF17E600ED97BB /* NSCFSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSCFSet.swift; sourceTree = "<group>"; };
 		5BDC405C1BD6D83B00ED97BB /* TestFoundation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestFoundation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
+		84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTimeZone.swift; sourceTree = "<group>"; };
 		C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAffineTransform.swift; sourceTree = "<group>"; };
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
 		EA313DFC1BE7F2E90060A403 /* CFURLComponents_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLComponents_Internal.h; sourceTree = "<group>"; };
@@ -1027,6 +1029,7 @@
 				5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */,
 				207920CD1C15E2C50027FE71 /* TestNSNotificationCenter.swift */,
 				22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */,
+				84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1715,6 +1718,7 @@
 				E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */,
 				EA66F6521BF1619600136161 /* TestNSPropertyList.swift in Sources */,
 				4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */,
+				84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */,
 				52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */,
 				C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */,
 				EA66F64E1BF1619600136161 /* TestNSIndexSet.swift in Sources */,

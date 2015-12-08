@@ -38,4 +38,5 @@ XCTMain([
     TestNSXMLParser(),
     TestNSNotificationCenter(),
     TestNSDate(),
+    TestNSTimeZone(),
 ])

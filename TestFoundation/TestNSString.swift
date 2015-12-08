@@ -34,6 +34,7 @@ class TestNSString : XCTestCase {
             ("test_FromNullTerminatedCStringInASCII", test_FromNullTerminatedCStringInASCII ),
             ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
             ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
+            ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
         ]
     }
     
@@ -140,5 +141,15 @@ class TestNSString : XCTestCase {
         let bytes = mockMalformedUTF8StringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
+    }
+
+    func test_rangeOfCharacterFromSet() {
+        let string: NSString = "0Az"
+        let letters = NSCharacterSet.letterCharacterSet()
+        let decimalDigits = NSCharacterSet.decimalDigitCharacterSet()
+        XCTAssertEqual(string.rangeOfCharacterFromSet(letters).location, 1)
+        XCTAssertEqual(string.rangeOfCharacterFromSet(decimalDigits).location, 0)
+        XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [.BackwardsSearch]).location, 2)
+        XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [], range: NSMakeRange(2, 1)).location, 2)
     }
 }
