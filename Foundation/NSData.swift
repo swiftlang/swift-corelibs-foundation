@@ -145,10 +145,37 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return true
     }
     
-    override public var description: String {
-        get {
-            return "Fixme"
+    private func byteDescription(limit limit: Int? = nil) -> String {
+        var s = ""
+        let buffer = UnsafePointer<UInt8>(bytes)
+        var i = 0
+        while i < self.length {
+            if i > 0 && i % 4 == 0 {
+                // if there's a limit, and we're at the barrier where we'd add the ellipses, don't add a space.
+                if let limit = limit where self.length > limit && i == self.length - (limit / 2) { /* do nothing */ }
+                else { s += " " }
+            }
+            let byte = buffer[i]
+            var byteStr = String(byte, radix: 16, uppercase: false)
+            if byte <= 0xf { byteStr = "0\(byteStr)" }
+            s += byteStr
+            // if we've hit the midpoint of the limit, skip to the last (limit / 2) bytes.
+            if let limit = limit where self.length > limit && i == (limit / 2) - 1 {
+                s += " ... "
+                i = self.length - (limit / 2)
+            } else {
+                i += 1
+            }
         }
+        return s
+    }
+    
+    override public var debugDescription: String {
+        return "<\(byteDescription(limit: 1024))>"
+    }
+    
+    override public var description: String {
+        return "<\(byteDescription())>"
     }
     
     override internal var _cfTypeID: CFTypeID {
@@ -414,6 +441,28 @@ extension NSData {
         }
     }
     
+    public func writeToFile(path: String, atomically useAuxiliaryFile: Bool) -> Bool {
+        do {
+            try writeToFile(path, options: useAuxiliaryFile ? .DataWritingAtomic : [])
+        } catch {
+            return false
+        }
+        return true
+    }
+    
+    public func writeToURL(url: NSURL, atomically: Bool) -> Bool {
+        if url.fileURL {
+            if let path = url.path {
+                return writeToFile(path, atomically: atomically)
+            }
+        }
+        return false
+    }
+    
+    public func writeToURL(url: NSURL, options writeOptionsMask: NSDataWritingOptions) throws {
+        NSUnimplemented()
+    }
+    
     internal func enumerateByteRangesUsingBlockRethrows(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
         var err : ErrorType? = nil
         self.enumerateByteRangesUsingBlock() { (buf, range, stop) -> Void in
@@ -479,6 +528,33 @@ public class NSMutableData : NSData {
     
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         return NSData(data: self)
+    }
+}
+
+extension NSData {
+    
+    /* Create an NSData from a Base-64 encoded NSString using the given options. By default, returns nil when the input is not recognized as valid Base-64.
+    */
+    public convenience init?(base64EncodedString base64String: String, options: NSDataBase64DecodingOptions) {
+        NSUnimplemented()
+    }
+    
+    /* Create a Base-64 encoded NSString from the receiver's contents using the given options.
+    */
+    public func base64EncodedStringWithOptions(options: NSDataBase64EncodingOptions) -> String {
+        NSUnimplemented()
+    }
+    
+    /* Create an NSData from a Base-64, UTF-8 encoded NSData. By default, returns nil when the input is not recognized as valid Base-64.
+    */
+    public convenience init?(base64EncodedData base64Data: NSData, options: NSDataBase64DecodingOptions) {
+        NSUnimplemented()
+    }
+    
+    /* Create a Base-64, UTF-8 encoded NSData from the receiver's contents using the given options.
+    */
+    public func base64EncodedDataWithOptions(options: NSDataBase64EncodingOptions) -> NSData {
+        NSUnimplemented()
     }
 }
 

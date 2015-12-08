@@ -149,7 +149,7 @@ extension CFErrorRef : _NSBridgable {
 }
 
 
-public protocol _ObjectiveCBridgeableErrorType : ErrorType {
+public protocol _ObjectTypeBridgeableErrorType : ErrorType {
     init?(_bridgedNSError: NSError)
 }
 
