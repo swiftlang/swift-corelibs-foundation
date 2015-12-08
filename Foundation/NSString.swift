@@ -135,10 +135,6 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         }
     }
     
-    deinit {
-        _CFDeinit(self)
-    }
-    
     public override convenience init() {
         let characters = Array<unichar>(count: 1, repeatedValue: 0)
         self.init(characters: characters, length: 0)
