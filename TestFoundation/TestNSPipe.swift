@@ -19,7 +19,7 @@ import SwiftXCTest
 
 class TestNSPipe : XCTestCase {
     
-    public var allTests: [(String, () -> ())] {
+    var allTests: [(String, () -> ())] {
         return [
             // Currently disabled until NSString implements dataUsingEncoding
             // ("test_NSPipe", test_NSPipe)
