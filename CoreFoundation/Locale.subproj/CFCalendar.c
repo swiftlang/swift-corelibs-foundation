@@ -49,10 +49,10 @@ static CFStringRef __CFCalendarCopyDescription(CFTypeRef cf) {
 
 static void __CFCalendarDeallocate(CFTypeRef cf) {
     CFCalendarRef calendar = (CFCalendarRef)cf;
-    CFRelease(calendar->_identifier);
+    if (calendar->_identifier) CFRelease(calendar->_identifier);
     if (calendar->_locale) CFRelease(calendar->_locale);
     if (calendar->_localeID) CFRelease(calendar->_localeID);
-    CFRelease(calendar->_tz);
+    if (calendar->_tz) CFRelease(calendar->_tz);
     if (calendar->_cal) ucal_close(calendar->_cal);
 }
 
@@ -236,15 +236,14 @@ CFCalendarRef CFCalendarCopyCurrent(void) {
 }
 
 Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier) {
-    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar) {
-        //    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar && identifier != kCFChineseCalendar) {
+    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar && identifier != kCFChineseCalendar) {
         if (CFEqual(kCFGregorianCalendar, identifier)) identifier = kCFGregorianCalendar;
         else if (CFEqual(kCFBuddhistCalendar, identifier)) identifier = kCFBuddhistCalendar;
         else if (CFEqual(kCFJapaneseCalendar, identifier)) identifier = kCFJapaneseCalendar;
         else if (CFEqual(kCFIslamicCalendar, identifier)) identifier = kCFIslamicCalendar;
         else if (CFEqual(kCFIslamicCivilCalendar, identifier)) identifier = kCFIslamicCivilCalendar;
         else if (CFEqual(kCFHebrewCalendar, identifier)) identifier = kCFHebrewCalendar;
-        //	else if (CFEqual(kCFChineseCalendar, identifier)) identifier = kCFChineseCalendar;
+        else if (CFEqual(kCFChineseCalendar, identifier)) identifier = kCFChineseCalendar;
         else return false;
     }
     
@@ -261,15 +260,14 @@ CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringR
     __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
     __CFGenericValidateType(identifier, CFStringGetTypeID());
     // return NULL until Chinese calendar is available
-    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar) {
-//    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar && identifier != kCFChineseCalendar) {
+    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar && identifier != kCFChineseCalendar) {
 	if (CFEqual(kCFGregorianCalendar, identifier)) identifier = kCFGregorianCalendar;
 	else if (CFEqual(kCFBuddhistCalendar, identifier)) identifier = kCFBuddhistCalendar;
 	else if (CFEqual(kCFJapaneseCalendar, identifier)) identifier = kCFJapaneseCalendar;
 	else if (CFEqual(kCFIslamicCalendar, identifier)) identifier = kCFIslamicCalendar;
 	else if (CFEqual(kCFIslamicCivilCalendar, identifier)) identifier = kCFIslamicCivilCalendar;
 	else if (CFEqual(kCFHebrewCalendar, identifier)) identifier = kCFHebrewCalendar;
-//	else if (CFEqual(kCFChineseCalendar, identifier)) identifier = kCFChineseCalendar;
+	else if (CFEqual(kCFChineseCalendar, identifier)) identifier = kCFChineseCalendar;
 	else return NULL;
     }
     struct __CFCalendar *calendar = NULL;
@@ -422,6 +420,7 @@ static UCalendarDateFields __CFCalendarGetICUFieldCodeFromChar(char ch) {
     case 'G': return UCAL_ERA;
     case 'y': return UCAL_YEAR;
     case 'M': return UCAL_MONTH;
+    case 'l': return UCAL_IS_LEAP_MONTH;
     case 'd': return UCAL_DAY_OF_MONTH;
     case 'h': return UCAL_HOUR;
     case 'H': return UCAL_HOUR_OF_DAY;

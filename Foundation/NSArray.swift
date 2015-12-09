@@ -9,22 +9,14 @@
 
 import CoreFoundation
 
-extension Array : _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSArray.self
-    }
-    
-    public func _bridgeToObjectiveC() -> NSArray {
+extension Array : _ObjectTypeBridgeable {
+    public func _bridgeToObject() -> NSArray {
         return NSArray(array: map {
             return _NSObjectRepresentableBridge($0)
         })
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSArray, inout result: Array?) {
+    public static func _forceBridgeFromObject(x: NSArray, inout result: Array?) {
         var array = [Element]()
         for value in x.allObjects {
             if let v = value as? Element {
@@ -36,8 +28,8 @@ extension Array : _ObjectiveCBridgeable {
         result = array
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(x: NSArray, inout result: Array?) -> Bool {
-        _forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSArray, inout result: Array?) -> Bool {
+        _forceBridgeFromObject(x, result: &result)
         return true
     }
 }
@@ -433,7 +425,7 @@ extension NSArray : _CFBridgable, _SwiftBridgable {
     internal var _cfObject: CFArrayRef { return unsafeBitCast(self, CFArrayRef.self) }
     internal var _swiftObject: [AnyObject] {
         var array: [AnyObject]?
-        Array._forceBridgeFromObjectiveC(self, result: &array)
+        Array._forceBridgeFromObject(self, result: &array)
         return array!
     }
 }
@@ -448,7 +440,7 @@ extension CFArrayRef : _NSBridgable, _SwiftBridgable {
 }
 
 extension Array : _NSBridgable, _CFBridgable {
-    internal var _nsObject: NSArray { return _bridgeToObjectiveC() }
+    internal var _nsObject: NSArray { return _bridgeToObject() }
     internal var _cfObject: CFArrayRef { return _nsObject._cfObject }
 }
 

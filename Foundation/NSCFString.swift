@@ -117,7 +117,7 @@ internal func _CFSwiftStringGetBytes(str: AnyObject, range: CFRange, buffer: Uns
     let s = (str as! NSString)._swiftObject.utf8
     let start = s.startIndex
     if buffer != nil {
-        for var idx = 0; idx < range.length; idx++ {
+        for idx in 0..<range.length {
             let c = s[start.advancedBy(idx + range.location)]
             buffer.advancedBy(idx).initialize(c)
         }

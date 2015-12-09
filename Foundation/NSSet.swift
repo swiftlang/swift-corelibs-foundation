@@ -10,16 +10,8 @@
 
 import CoreFoundation
 
-extension Set : _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSSet.self
-    }
-    
-    public func _bridgeToObjectiveC() -> NSSet {
+extension Set : _ObjectTypeBridgeable {
+    public func _bridgeToObject() -> NSSet {
         let buffer = UnsafeMutablePointer<AnyObject?>.alloc(count)
         
         for (idx, obj) in enumerate() {
@@ -34,7 +26,7 @@ extension Set : _ObjectiveCBridgeable {
         return set
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSSet, inout result: Set?) {
+    public static func _forceBridgeFromObject(x: NSSet, inout result: Set?) {
         var set = Set<Element>()
         var failedConversion = false
         
@@ -55,7 +47,7 @@ extension Set : _ObjectiveCBridgeable {
             
             CFSetGetValues(cf, objs)
             
-            for var idx = 0; idx < cnt; idx++ {
+            for idx in 0..<cnt {
                 let obj = unsafeBitCast(objs.advancedBy(idx), AnyObject.self)
                 if let o = obj as? Element {
                     set.insert(o)
@@ -72,8 +64,8 @@ extension Set : _ObjectiveCBridgeable {
         }
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(x: NSSet, inout result: Set?) -> Bool {
-        self._forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSSet, inout result: Set?) -> Bool {
+        self._forceBridgeFromObject(x, result: &result)
         return true
     }
 }
@@ -176,7 +168,7 @@ extension NSSet {
 
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
-        for var idx = 0; idx < array.count; idx++ {
+        for idx in 0..<array.count {
             buffer.advancedBy(idx).initialize(array[idx])
         }
         self.init(objects: buffer, count: array.count)
@@ -312,7 +304,7 @@ extension NSSet : _CFBridgable, _SwiftBridgable {
     internal var _cfObject: CFSetRef { return unsafeBitCast(self, CFSetRef.self) }
     internal var _swiftObject: Set<NSObject> {
         var set: Set<NSObject>?
-        Set._forceBridgeFromObjectiveC(self, result: &set)
+        Set._forceBridgeFromObject(self, result: &set)
         return set!
     }
 }
@@ -323,7 +315,7 @@ extension CFSetRef : _NSBridgable, _SwiftBridgable {
 }
 
 extension Set : _NSBridgable, _CFBridgable {
-    internal var _nsObject: NSSet { return _bridgeToObjectiveC() }
+    internal var _nsObject: NSSet { return _bridgeToObject() }
     internal var _cfObject: CFSetRef { return _nsObject._cfObject }
 }
 

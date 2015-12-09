@@ -59,20 +59,12 @@ public struct NSStringEnumerationOptions : OptionSetType {
     public static let Localized = NSStringEnumerationOptions(rawValue: 1 << 10)
 }
 
-extension String : _ObjectiveCBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
-    public static func _getObjectiveCType() -> Any.Type {
-        return NSString.self
-    }
-    
-    public func _bridgeToObjectiveC() -> NSString {
+extension String : _ObjectTypeBridgeable {
+    public func _bridgeToObject() -> NSString {
         return NSString(self)
     }
     
-    public static func _forceBridgeFromObjectiveC(x: NSString, inout result: String?) {
+    public static func _forceBridgeFromObject(x: NSString, inout result: String?) {
         if x.dynamicType == NSString.self || x.dynamicType == NSMutableString.self {
             result = x._storage
         } else if x.dynamicType == _NSCFString.self {
@@ -99,8 +91,8 @@ extension String : _ObjectiveCBridgeable {
         }
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(x: NSString, inout result: String?) -> Bool {
-        self._forceBridgeFromObjectiveC(x, result: &result)
+    public static func _conditionallyBridgeFromObject(x: NSString, inout result: String?) -> Bool {
+        self._forceBridgeFromObject(x, result: &result)
         return true
     }
 }
@@ -141,10 +133,6 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         } else {
             NSRequiresConcreteImplementation()
         }
-    }
-    
-    deinit {
-        _CFDeinit(self)
     }
     
     public override convenience init() {
@@ -200,12 +188,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public required init(stringLiteral value: StaticString) {
-        if value.hasPointerRepresentation {
-            _storage = String._fromWellFormedCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: value.utf8Start, count: Int(value.byteSize)))
-        } else {
-            var uintValue = value.unicodeScalar.value
-            _storage = String._fromWellFormedCodeUnitSequence(UTF32.self, input: UnsafeBufferPointer(start: &uintValue, count: 1))
-        }
+        _storage = value.stringValue
     }
     
     internal var _fastCStringContents: UnsafePointer<Int8> {
@@ -229,11 +212,20 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     override internal var _cfTypeID: CFTypeID {
         return CFStringGetTypeID()
     }
+  
+    public override func isEqual(object: AnyObject?) -> Bool {
+        guard let string = (object as? NSString)?._swiftObject else { return false }
+        return self.isEqualToString(string)
+    }
+    
+    public override var description: String {
+        return _swiftObject
+    }
 }
 
 extension NSString {
     public func getCharacters(buffer: UnsafeMutablePointer<unichar>, range: NSRange) {
-        for var idx = 0; idx < range.length; idx++ {
+        for idx in 0..<range.length {
             buffer[idx] = characterAtIndex(idx + range.location)
         }
     }
@@ -278,7 +270,7 @@ extension NSString {
     }
     
     public func compare(string: String, options mask: NSStringCompareOptions, range compareRange: NSRange) -> NSComparisonResult {
-        return compare(string, options: [], range:compareRange, locale: nil)
+        return compare(string, options: mask, range:compareRange, locale: nil)
     }
     
     public func compare(string: String, options mask: NSStringCompareOptions, range compareRange: NSRange, locale: AnyObject?) -> NSComparisonResult {
@@ -400,15 +392,39 @@ extension NSString {
     }
     
     public func rangeOfCharacterFromSet(searchSet: NSCharacterSet) -> NSRange {
-        NSUnimplemented()
+        return rangeOfCharacterFromSet(searchSet, options: [])
     }
     
     public func rangeOfCharacterFromSet(searchSet: NSCharacterSet, options mask: NSStringCompareOptions) -> NSRange {
-        NSUnimplemented()
+        return rangeOfCharacterFromSet(searchSet, options: mask, range: NSMakeRange(0, length))
     }
     
     public func rangeOfCharacterFromSet(searchSet: NSCharacterSet, options mask: NSStringCompareOptions, range searchRange: NSRange) -> NSRange {
-        NSUnimplemented()
+        if mask.contains(.RegularExpressionSearch) {
+            NSUnimplemented()
+        }
+        if searchRange.length == 0 {
+            return NSMakeRange(NSNotFound, 0)
+        }
+        
+#if os(Linux)
+        var cfflags = CFStringCompareFlags(mask.rawValue)
+        if mask.contains(.LiteralSearch) {
+            cfflags |= UInt(kCFCompareNonliteral)
+        }
+#else
+        var cfflags = CFStringCompareFlags(rawValue: mask.rawValue)
+        if mask.contains(.LiteralSearch) {
+            cfflags.unionInPlace(.CompareNonliteral)
+        }
+#endif
+        var result = CFRangeMake(kCFNotFound, 0)
+
+        if CFStringFindCharacterFromSet(_cfObject, searchSet._cfObject, CFRangeMake(searchRange.location, searchRange.length), cfflags, &result) {
+            return NSMakeRange(result.location, result.length)
+        } else {
+            return NSMakeRange(NSNotFound, 0)
+        }
     }
     
     public func rangeOfComposedCharacterSequenceAtIndex(index: Int) -> NSRange {
@@ -447,19 +463,31 @@ extension NSString {
     
     public var integerValue: Int {
         get {
-            NSUnimplemented()
+            let scanner = NSScanner(string: _swiftObject)
+            var value: Int = 0
+            scanner.scanInteger(&value)
+            return value
         }
     }
     
     public var longLongValue: Int64 {
         get {
-            NSUnimplemented()
+            return NSScanner(string: _swiftObject).scanLongLong() ?? 0
         }
     }
     
     public var boolValue: Bool {
         get {
-            NSUnimplemented()
+            let scanner = NSScanner(string: _swiftObject)
+            // skip initial whitespace if present
+            scanner.scanCharactersFromSet(NSCharacterSet.whitespaceCharacterSet())
+            // scan a single optional '+' or '-' character, followed by zeroes
+            if scanner.scanString(string: "+") == nil {
+                scanner.scanString(string: "-")
+            }
+            // scan any following zeroes
+            scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "0"))
+            return scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "tTyY123456789")) != nil
         }
     }
     
@@ -902,7 +930,7 @@ extension String {
         if characters.count < prefixCharacters.count {
             return false
         }
-        for var idx = 0; idx < prefixCharacters.count; idx++ {
+        for idx in 0..<prefixCharacters.count {
             if characters[start.advancedBy(idx)] != prefixCharacters[prefixStart.advancedBy(idx)] {
                 return false
             }
@@ -919,7 +947,7 @@ extension String {
         if characters.count < suffixCharacters.count {
             return false
         }
-        for var idx = 0; idx < suffixCharacters.count; idx++ {
+        for idx in 0..<suffixCharacters.count {
             let charactersIdx = start.advancedBy(characters.count - idx - 1)
             let suffixIdx = suffixStart.advancedBy(suffixCharacters.count - idx - 1)
             if characters[charactersIdx] != suffixCharacters[suffixIdx] {
@@ -937,7 +965,7 @@ extension NSString : _CFBridgable, _SwiftBridgable {
     internal var _cfObject: CFStringRef { return unsafeBitCast(self, CFStringRef.self) }
     internal var _swiftObject: String {
         var str: String?
-        String._forceBridgeFromObjectiveC(self, result: &str)
+        String._forceBridgeFromObject(self, result: &str)
         return str!
     }
 }
@@ -952,7 +980,7 @@ extension CFStringRef : _NSBridgable, _SwiftBridgable {
 extension String : _NSBridgable, _CFBridgable {
     typealias NSType = NSString
     typealias CFType = CFStringRef
-    internal var _nsObject: NSType { return _bridgeToObjectiveC() }
+    internal var _nsObject: NSType { return _bridgeToObject() }
     internal var _cfObject: CFType { return _nsObject._cfObject }
 }
 

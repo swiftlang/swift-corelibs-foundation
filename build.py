@@ -350,19 +350,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
 # TODO: Probably this should be another 'product', but for now it's simply a phase
 foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/main.swift',
-	'TestFoundation/TestNSArray.swift',
-	'TestFoundation/TestNSIndexSet.swift',
-	'TestFoundation/TestNSDictionary.swift',
-	'TestFoundation/TestNSNumber.swift',
-	'TestFoundation/TestNSPropertyList.swift',
-	'TestFoundation/TestNSRange.swift',
-	'TestFoundation/TestNSSet.swift',
-	'TestFoundation/TestNSString.swift',
-	'TestFoundation/TestNSURL.swift',
-    'TestFoundation/TestNSFileManager.swift',
-    'TestFoundation/TestNSCharacterSet.swift',
-    'TestFoundation/TestNSXMLParser.swift',
-])
+] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
 
 foundation_tests.add_dependency(foundation_tests_resources)
 foundation.add_phase(foundation_tests_resources)

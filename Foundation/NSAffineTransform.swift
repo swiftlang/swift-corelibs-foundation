@@ -16,7 +16,10 @@ public struct NSAffineTransformStruct {
     public var tX: CGFloat
     public var tY: CGFloat
     public init() { NSUnimplemented() }
-    public init(m11: CGFloat, m12: CGFloat, m21: CGFloat, m22: CGFloat, tX: CGFloat, tY: CGFloat) { NSUnimplemented() }
+    public init(m11: CGFloat, m12: CGFloat, m21: CGFloat, m22: CGFloat, tX: CGFloat, tY: CGFloat) {
+        (self.m11, self.m12, self.m21, self.m22) = (m11, m12, m21, m22)
+        (self.tX, self.tY) = (tX, tY)
+    }
 }
 
 public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
@@ -36,7 +39,9 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
     // Initialization
     public convenience init(transform: NSAffineTransform) { NSUnimplemented() }
-    public override init() { NSUnimplemented() }
+    public override init() {
+        transformStruct = NSAffineTransformStruct(m11: CGFloat(1.0), m12: CGFloat(), m21: CGFloat(), m22: CGFloat(1.0), tX: CGFloat(), tY: CGFloat())
+    }
     
     // Translating
     public func translateXBy(deltaX: CGFloat, yBy deltaY: CGFloat) { NSUnimplemented() }
@@ -57,10 +62,43 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     public func prependTransform(transform: NSAffineTransform) { NSUnimplemented() }
     
     // Transforming points and sizes
-    public func transformPoint(aPoint: NSPoint) -> NSPoint { NSUnimplemented() }
-    public func transformSize(aSize: NSSize) -> NSSize { NSUnimplemented() }
-    
+    public func transformPoint(aPoint: NSPoint) -> NSPoint {
+        let matrix = transformStruct.matrix3x3
+        let vector = Vector3(aPoint.x, aPoint.y, CGFloat(1.0))
+        let resultVector = multiplyMatrix3x3(matrix, byVector3: vector)
+        return NSMakePoint(resultVector.m1, resultVector.m2)
+    }
+
+    public func transformSize(aSize: NSSize) -> NSSize {
+        let matrix = transformStruct.matrix3x3
+        let vector = Vector3(aSize.width, aSize.height, CGFloat(1.0))
+        let resultVector = multiplyMatrix3x3(matrix, byVector3: vector)
+        return NSMakeSize(resultVector.m1, resultVector.m2)
+    }
+
     // Transform Struct
     public var transformStruct: NSAffineTransformStruct
 }
 
+// Private helper functions and structures for linear algebra operations.
+private typealias Vector3 = (m1: CGFloat, m2: CGFloat, m3: CGFloat)
+private typealias Matrix3x3 =
+    (m11: CGFloat, m12: CGFloat, m13: CGFloat,
+     m21: CGFloat, m22: CGFloat, m23: CGFloat,
+     m31: CGFloat, m32: CGFloat, m33: CGFloat)
+
+private func multiplyMatrix3x3(matrix: Matrix3x3, byVector3 vector: Vector3) -> Vector3 {
+    let x = matrix.m11 * vector.m1 + matrix.m12 * vector.m2 + matrix.m13 * vector.m3
+    let y = matrix.m21 * vector.m1 + matrix.m22 * vector.m2 + matrix.m23 * vector.m3
+    let z = matrix.m31 * vector.m1 + matrix.m32 * vector.m2 + matrix.m33 * vector.m3
+
+    return Vector3(x, y, z)
+}
+
+private extension NSAffineTransformStruct {
+    var matrix3x3: Matrix3x3 {
+        return Matrix3x3(m11, m12, tX,
+                         m21, m22, tY,
+                         CGFloat(), CGFloat(), CGFloat())
+    }
+}

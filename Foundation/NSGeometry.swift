@@ -27,12 +27,35 @@ public struct CGFloat {
     public var native: NativeType
 }
 
+extension CGFloat: Comparable { }
+
+public func ==(lhs: CGFloat, rhs: CGFloat) -> Bool {
+    return lhs.native == rhs.native
+}
+
+public func <(lhs: CGFloat, rhs: CGFloat) -> Bool {
+    return lhs.native < rhs.native
+}
+
+public func *(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
+    return CGFloat(lhs.native * rhs.native)
+}
+
+public func +(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
+    return CGFloat(lhs.native + rhs.native)
+}
+
+@_transparent extension Double {
+    public init(_ value: CGFloat) {
+        self = Double(value.native)
+    }
+}
+
 public struct CGPoint {
     public var x: CGFloat
     public var y: CGFloat
     public init() {
-        self.x = CGFloat()
-        self.y = CGFloat()
+        self.init(x: CGFloat(), y: CGFloat())
     }
     public init(x: CGFloat, y: CGFloat) {
         self.x = x
@@ -40,12 +63,17 @@ public struct CGPoint {
     }
 }
 
+extension CGPoint: Equatable { }
+
+public func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
+    return lhs.x == rhs.x && lhs.y == rhs.y
+}
+
 public struct CGSize {
     public var width: CGFloat
     public var height: CGFloat
     public init() {
-        self.width = CGFloat()
-        self.height = CGFloat()
+        self.init(width: CGFloat(), height: CGFloat())
     }
     public init(width: CGFloat, height: CGFloat) {
         self.width = width
@@ -53,17 +81,28 @@ public struct CGSize {
     }
 }
 
+extension CGSize: Equatable { }
+
+public func ==(lhs: CGSize, rhs: CGSize) -> Bool {
+    return lhs.width == rhs.width && lhs.height == rhs.height
+}
+
 public struct CGRect {
     public var origin: CGPoint
     public var size: CGSize
     public init() {
-        self.origin = CGPoint()
-        self.size = CGSize()
+        self.init(origin: CGPoint(), size: CGSize())
     }
     public init(origin: CGPoint, size: CGSize) {
         self.origin = origin
         self.size = size
     }
+}
+
+extension CGRect: Equatable { }
+
+public func ==(lhs: CGRect, rhs: CGRect) -> Bool {
+    return lhs.origin == rhs.origin && lhs.size == rhs.size
 }
 
 public typealias NSPoint = CGPoint
@@ -98,7 +137,14 @@ public enum CGRectEdge : UInt32 {
 }
 
 extension NSRectEdge {
-    public init(rectEdge: CGRectEdge) { NSUnimplemented() }
+    public init(rectEdge: CGRectEdge) {
+        switch rectEdge {
+        case .MinXEdge: self = .MinX
+        case .MinYEdge: self = .MinY
+        case .MaxXEdge: self = .MaxX
+        case .MaxYEdge: self = .MaxY
+        }
+    }
 }
 
 public struct NSEdgeInsets {
@@ -106,8 +152,17 @@ public struct NSEdgeInsets {
     public var left: CGFloat
     public var bottom: CGFloat
     public var right: CGFloat
-    public init() { NSUnimplemented() }
-    public init(top: CGFloat, left: CGFloat, bottom: CGFloat, right: CGFloat) { NSUnimplemented() }
+
+    public init() {
+        self.init(top: CGFloat(), left: CGFloat(), bottom: CGFloat(), right: CGFloat())
+    }
+
+    public init(top: CGFloat, left: CGFloat, bottom: CGFloat, right: CGFloat) {
+        self.top = top
+        self.left = left
+        self.bottom = bottom
+        self.right = right
+    }
 }
 
 public struct NSAlignmentOptions : OptionSetType {
@@ -134,8 +189,9 @@ public struct NSAlignmentOptions : OptionSetType {
     public static let AlignMaxYNearest = NSAlignmentOptions(rawValue: 1 << 19)
     public static let AlignWidthNearest = NSAlignmentOptions(rawValue: 1 << 20)
     public static let AlignHeightNearest = NSAlignmentOptions(rawValue: 1 << 21)
-    
-    public static let AlignRectFlipped = NSAlignmentOptions(rawValue: 1 << 63) // pass this if the rect is in a flipped coordinate system. This allows 0.5 to be treated in a visually consistent way.
+
+    // pass this if the rect is in a flipped coordinate system. This allows 0.5 to be treated in a visually consistent way.
+    public static let AlignRectFlipped = NSAlignmentOptions(rawValue: 1 << 63)
     
     // convenience combinations
     public static let AlignAllEdgesInward = [NSAlignmentOptions.AlignMinXInward, NSAlignmentOptions.AlignMaxXInward, NSAlignmentOptions.AlignMinYInward, NSAlignmentOptions.AlignMaxYInward]
@@ -148,49 +204,70 @@ public let NSZeroSize: NSSize = NSSize()
 public let NSZeroRect: NSRect = NSRect()
 public let NSEdgeInsetsZero: NSEdgeInsets = NSEdgeInsets()
 
-public func NSMakePoint(x: CGFloat, _ y: CGFloat) -> NSPoint { NSUnimplemented() }
+public func NSMakePoint(x: CGFloat, _ y: CGFloat) -> NSPoint {
+    return NSPoint(x: x, y: y)
+}
 
-public func NSMakeSize(w: CGFloat, _ h: CGFloat) -> NSSize { NSUnimplemented() }
+public func NSMakeSize(w: CGFloat, _ h: CGFloat) -> NSSize {
+    return NSSize(width: w, height: h)
+}
 
-public func NSMakeRect(x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> NSRect { NSUnimplemented() }
+public func NSMakeRect(x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> NSRect {
+    return NSRect(origin: NSPoint(x: x, y: y), size: NSSize(width: w, height: h))
+}
 
-public func NSMaxX(aRect: NSRect) -> CGFloat { NSUnimplemented() }
+public func NSMaxX(aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.x.native + aRect.size.width.native) }
 
-public func NSMaxY(aRect: NSRect) -> CGFloat { NSUnimplemented() }
+public func NSMaxY(aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.y.native + aRect.size.height.native) }
 
-public func NSMidX(aRect: NSRect) -> CGFloat { NSUnimplemented() }
+public func NSMidX(aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.x.native + (aRect.size.width.native / 2)) }
 
-public func NSMidY(aRect: NSRect) -> CGFloat { NSUnimplemented() }
+public func NSMidY(aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.y.native + (aRect.size.height.native / 2)) }
 
-public func NSMinX(aRect: NSRect) -> CGFloat { NSUnimplemented() }
+public func NSMinX(aRect: NSRect) -> CGFloat { return aRect.origin.x }
 
-public func NSMinY(aRect: NSRect) -> CGFloat { NSUnimplemented() }
+public func NSMinY(aRect: NSRect) -> CGFloat { return aRect.origin.y }
 
-public func NSWidth(aRect: NSRect) -> CGFloat { NSUnimplemented() }
+public func NSWidth(aRect: NSRect) -> CGFloat { return aRect.size.width }
 
-public func NSHeight(aRect: NSRect) -> CGFloat { NSUnimplemented() }
+public func NSHeight(aRect: NSRect) -> CGFloat { return aRect.size.height }
 
-public func NSRectFromCGRect(cgrect: CGRect) -> NSRect { NSUnimplemented() }
+public func NSRectFromCGRect(cgrect: CGRect) -> NSRect { return cgrect }
 
-public func NSRectToCGRect(nsrect: NSRect) -> CGRect { NSUnimplemented() }
+public func NSRectToCGRect(nsrect: NSRect) -> CGRect { return nsrect }
 
-public func NSPointFromCGPoint(cgpoint: CGPoint) -> NSPoint { NSUnimplemented() }
+public func NSPointFromCGPoint(cgpoint: CGPoint) -> NSPoint { return cgpoint }
 
-public func NSPointToCGPoint(nspoint: NSPoint) -> CGPoint { NSUnimplemented() }
+public func NSPointToCGPoint(nspoint: NSPoint) -> CGPoint { return nspoint }
 
-public func NSSizeFromCGSize(cgsize: CGSize) -> NSSize { NSUnimplemented() }
+public func NSSizeFromCGSize(cgsize: CGSize) -> NSSize { return cgsize }
 
-public func NSSizeToCGSize(nssize: NSSize) -> CGSize { NSUnimplemented() }
+public func NSSizeToCGSize(nssize: NSSize) -> CGSize { return nssize }
 
-public func NSEdgeInsetsMake(top: CGFloat, _ left: CGFloat, _ bottom: CGFloat, _ right: CGFloat) -> NSEdgeInsets { NSUnimplemented() }
+public func NSEdgeInsetsMake(top: CGFloat, _ left: CGFloat, _ bottom: CGFloat, _ right: CGFloat) -> NSEdgeInsets {
+    return NSEdgeInsets(top: top, left: left, bottom: bottom, right: right)
+}
 
-public func NSEqualPoints(aPoint: NSPoint, _ bPoint: NSPoint) -> Bool { NSUnimplemented() }
-public func NSEqualSizes(aSize: NSSize, _ bSize: NSSize) -> Bool { NSUnimplemented() }
-public func NSEqualRects(aRect: NSRect, _ bRect: NSRect) -> Bool { NSUnimplemented() }
-public func NSIsEmptyRect(aRect: NSRect) -> Bool { NSUnimplemented() }
-public func NSEdgeInsetsEqual(aInsets: NSEdgeInsets, _ bInsets: NSEdgeInsets) -> Bool { NSUnimplemented() }
+public func NSEqualPoints(aPoint: NSPoint, _ bPoint: NSPoint) -> Bool { return aPoint == bPoint }
 
-public func NSInsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect { NSUnimplemented() }
+public func NSEqualSizes(aSize: NSSize, _ bSize: NSSize) -> Bool { return aSize == bSize }
+
+public func NSEqualRects(aRect: NSRect, _ bRect: NSRect) -> Bool { return aRect == bRect }
+
+public func NSIsEmptyRect(aRect: NSRect) -> Bool { return (aRect.size.width.native <= 0) || (aRect.size.height.native <= 0) }
+
+public func NSEdgeInsetsEqual(aInsets: NSEdgeInsets, _ bInsets: NSEdgeInsets) -> Bool {
+    return (aInsets.top == bInsets.top) && (aInsets.left == bInsets.left) && (aInsets.bottom == bInsets.bottom) && (aInsets.right == bInsets.right)
+}
+
+public func NSInsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
+    let x = CGFloat(aRect.origin.x.native + dX.native)
+    let y = CGFloat(aRect.origin.y.native + dY.native)
+    let w = CGFloat(aRect.size.width.native - (dX.native * 2))
+    let h = CGFloat(aRect.size.height.native - (dY.native * 2))
+    return NSMakeRect(x, y, w, h)
+}
+
 public func NSIntegralRect(aRect: NSRect) -> NSRect { NSUnimplemented() }
 public func NSIntegralRectWithOptions(aRect: NSRect, _ opts: NSAlignmentOptions) -> NSRect { NSUnimplemented() }
 
@@ -246,5 +323,3 @@ extension NSCoder {
     public func decodeSizeForKey(key: String) -> NSSize { NSUnimplemented() }
     public func decodeRectForKey(key: String) -> NSRect { NSUnimplemented() }
 }
-
-

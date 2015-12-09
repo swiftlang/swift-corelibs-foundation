@@ -23,7 +23,9 @@ class TestNSNumber : XCTestCase {
             ("test_NumberWithBool", test_NumberWithBool ),
             ("test_numberWithChar", test_numberWithChar ),
             ("test_numberWithUnsignedChar", test_numberWithUnsignedChar ),
-            ("test_numberWithShort", test_numberWithShort ),   
+            ("test_numberWithShort", test_numberWithShort ),
+            ("test_numberWithFloat", test_numberWithFloat ),
+            ("test_numberWithDouble", test_numberWithDouble ),
         ]
     }
     
@@ -179,5 +181,69 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(short: Int16(0)).doubleValue, Double(0))
         XCTAssertEqual(NSNumber(short: Int16(-37)).doubleValue, Double(-37))
         XCTAssertEqual(NSNumber(short: Int16(42)).doubleValue, Double(42))
+    }
+    
+    func test_numberWithFloat() {
+        XCTAssertEqual(NSNumber(float: Float(0)).boolValue, false)
+        XCTAssertEqual(NSNumber(float: Float(0)).charValue, Int8(0))
+        XCTAssertEqual(NSNumber(float: Float(0)).unsignedCharValue, UInt8(0))
+        XCTAssertEqual(NSNumber(float: Float(0)).shortValue, Int16(0))
+        XCTAssertEqual(NSNumber(float: Float(0)).unsignedShortValue, UInt16(0))
+        XCTAssertEqual(NSNumber(float: Float(0)).intValue, Int32(0))
+        XCTAssertEqual(NSNumber(float: Float(0)).unsignedIntValue, UInt32(0))
+        XCTAssertEqual(NSNumber(float: Float(0)).longLongValue, Int64(0))
+        XCTAssertEqual(NSNumber(float: Float(0)).unsignedLongLongValue, UInt64(0))
+        XCTAssertEqual(NSNumber(float: Float(-37)).boolValue, true);
+        XCTAssertEqual(NSNumber(float: Float(-37)).charValue, Int8(-37))
+        XCTAssertEqual(NSNumber(float: Float(-37)).shortValue, Int16(-37))
+        XCTAssertEqual(NSNumber(float: Float(-37)).intValue, Int32(-37))
+        XCTAssertEqual(NSNumber(float: Float(-37)).longLongValue, Int64(-37))
+        XCTAssertEqual(NSNumber(float: Float(42)).boolValue, true)
+        XCTAssertEqual(NSNumber(float: Float(42)).charValue, Int8(42))
+        XCTAssertEqual(NSNumber(float: Float(42)).unsignedCharValue, UInt8(42))
+        XCTAssertEqual(NSNumber(float: Float(42)).shortValue, Int16(42))
+        XCTAssertEqual(NSNumber(float: Float(42)).unsignedShortValue, UInt16(42))
+        XCTAssertEqual(NSNumber(float: Float(42)).intValue, Int32(42))
+        XCTAssertEqual(NSNumber(float: Float(42)).unsignedIntValue, UInt32(42))
+        XCTAssertEqual(NSNumber(float: Float(42)).longLongValue, Int64(42))
+        XCTAssertEqual(NSNumber(float: Float(42)).unsignedLongLongValue, UInt64(42))
+        XCTAssertEqual(NSNumber(float: Float(0)).floatValue, Float(0))
+        XCTAssertEqual(NSNumber(float: Float(-37.5)).floatValue, Float(-37.5))
+        XCTAssertEqual(NSNumber(float: Float(42.1)).floatValue, Float(42.1))
+        XCTAssertEqual(NSNumber(float: Float(0)).doubleValue, Double(0))
+        XCTAssertEqual(NSNumber(float: Float(-37.5)).doubleValue, Double(-37.5))
+        XCTAssertEqual(NSNumber(float: Float(42.5)).doubleValue, Double(42.5))
+    }
+    
+    func test_numberWithDouble() {
+        XCTAssertEqual(NSNumber(double: Double(0)).boolValue, false)
+        XCTAssertEqual(NSNumber(double: Double(0)).charValue, Int8(0))
+        XCTAssertEqual(NSNumber(double: Double(0)).unsignedCharValue, UInt8(0))
+        XCTAssertEqual(NSNumber(double: Double(0)).shortValue, Int16(0))
+        XCTAssertEqual(NSNumber(double: Double(0)).unsignedShortValue, UInt16(0))
+        XCTAssertEqual(NSNumber(double: Double(0)).intValue, Int32(0))
+        XCTAssertEqual(NSNumber(double: Double(0)).unsignedIntValue, UInt32(0))
+        XCTAssertEqual(NSNumber(double: Double(0)).longLongValue, Int64(0))
+        XCTAssertEqual(NSNumber(double: Double(0)).unsignedLongLongValue, UInt64(0))
+        XCTAssertEqual(NSNumber(double: Double(-37)).boolValue, true);
+        XCTAssertEqual(NSNumber(double: Double(-37)).charValue, Int8(-37))
+        XCTAssertEqual(NSNumber(double: Double(-37)).shortValue, Int16(-37))
+        XCTAssertEqual(NSNumber(double: Double(-37)).intValue, Int32(-37))
+        XCTAssertEqual(NSNumber(double: Double(-37)).longLongValue, Int64(-37))
+        XCTAssertEqual(NSNumber(double: Double(42)).boolValue, true)
+        XCTAssertEqual(NSNumber(double: Double(42)).charValue, Int8(42))
+        XCTAssertEqual(NSNumber(double: Double(42)).unsignedCharValue, UInt8(42))
+        XCTAssertEqual(NSNumber(double: Double(42)).shortValue, Int16(42))
+        XCTAssertEqual(NSNumber(double: Double(42)).unsignedShortValue, UInt16(42))
+        XCTAssertEqual(NSNumber(double: Double(42)).intValue, Int32(42))
+        XCTAssertEqual(NSNumber(double: Double(42)).unsignedIntValue, UInt32(42))
+        XCTAssertEqual(NSNumber(double: Double(42)).longLongValue, Int64(42))
+        XCTAssertEqual(NSNumber(double: Double(42)).unsignedLongLongValue, UInt64(42))
+        XCTAssertEqual(NSNumber(double: Double(0)).floatValue, Float(0))
+        XCTAssertEqual(NSNumber(double: Double(-37.5)).floatValue, Float(-37.5))
+        XCTAssertEqual(NSNumber(double: Double(42.1)).floatValue, Float(42.1))
+        XCTAssertEqual(NSNumber(double: Double(0)).doubleValue, Double(0))
+        XCTAssertEqual(NSNumber(double: Double(-37.5)).doubleValue, Double(-37.5))
+        XCTAssertEqual(NSNumber(double: Double(42.1)).doubleValue, Double(42.1))
     }
 }

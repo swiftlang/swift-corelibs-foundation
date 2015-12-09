@@ -12,7 +12,7 @@ import CoreFoundation
 
 public enum NSComparisonResult : Int {
     
-    case OrderedAscending
+    case OrderedAscending = -1
     case OrderedSame
     case OrderedDescending
 }

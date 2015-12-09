@@ -21,8 +21,12 @@ class TestNSString : XCTestCase {
     
     var allTests : [(String, () -> ())] {
         return [
+            ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
+            ("test_integerValue", test_integerValue ),
             ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
+            ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
+            ("test_isNotEqualToObjectWithNSNumber", test_isNotEqualToObjectWithNSNumber ),
             ("test_FromASCIIData", test_FromASCIIData ),
             ("test_FromUTF8Data", test_FromUTF8Data ),
             ("test_FromMalformedUTF8Data", test_FromMalformedUTF8Data ),
@@ -35,7 +39,20 @@ class TestNSString : XCTestCase {
             ("test_uppercaseString", test_uppercaseString ),
             ("test_lowercaseString", test_lowercaseString ),
             ("test_capitalizedString", test_capitalizedString ),
+            ("test_longLongValue", test_longLongValue ),
+            ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
         ]
+    }
+
+    func test_boolValue() {
+        let trueStrings: [NSString] = ["t", "true", "TRUE", "tRuE", "yes", "YES", "1", "+000009"]
+        for string in trueStrings {
+            XCTAssert(string.boolValue)
+        }
+        let falseStrings: [NSString] = ["false", "FALSE", "fAlSe", "no", "NO", "0", "<true>", "_true", "-00000"]
+        for string in falseStrings {
+            XCTAssertFalse(string.boolValue)
+        }
     }
     
     func test_BridgeConstruction() {
@@ -56,10 +73,48 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(cluster.length, 3)
     }
 
+    func test_integerValue() {
+        let string1: NSString = "123"
+        XCTAssertEqual(string1.integerValue, 123)
+
+        let string2: NSString = "123a"
+        XCTAssertEqual(string2.integerValue, 123)
+
+        let string3: NSString = "-123a"
+        XCTAssertEqual(string3.integerValue, -123)
+
+        let string4: NSString = "a123"
+        XCTAssertEqual(string4.integerValue, 0)
+
+        let string5: NSString = "+123"
+        XCTAssertEqual(string5.integerValue, 123)
+
+        let string6: NSString = "++123"
+        XCTAssertEqual(string6.integerValue, 0)
+
+        let string7: NSString = "-123"
+        XCTAssertEqual(string7.integerValue, -123)
+
+        let string8: NSString = "--123"
+        XCTAssertEqual(string8.integerValue, 0)
+    }
+
     func test_isEqualToStringWithSwiftString() {
         let string: NSString = "literal"
         let swiftString = "literal"
         XCTAssertTrue(string.isEqualToString(swiftString))
+    }
+  
+    func test_isEqualToObjectWithNSString() {
+        let string1: NSString = "literal"
+        let string2: NSString = "literal"
+        XCTAssertTrue(string1.isEqual(string2))
+    }
+    
+    func test_isNotEqualToObjectWithNSNumber() {
+      let string: NSString = "5"
+      let number: NSNumber = 5
+      XCTAssertFalse(string.isEqual(number))
     }
 
     internal let mockASCIIStringBytes: [UInt8] = [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x53, 0x77, 0x69, 0x66, 0x74, 0x21]
@@ -158,5 +213,23 @@ class TestNSString : XCTestCase {
     func test_capitalizedString() {
         XCTAssertEqual(NSString(stringLiteral: "foo Foo fOO FOO").capitalizedString, "Foo Foo Foo Foo")
         XCTAssertEqual(NSString(stringLiteral: "жжж").capitalizedString, "Жжж")
+    }
+
+    func test_longLongValue() {
+        let string1: NSString = "9223372036854775808"
+        XCTAssertEqual(string1.longLongValue, 9223372036854775807)
+
+        let string2: NSString = "-9223372036854775809"
+        XCTAssertEqual(string2.longLongValue, -9223372036854775808)
+    }
+    
+    func test_rangeOfCharacterFromSet() {
+        let string: NSString = "0Az"
+        let letters = NSCharacterSet.letterCharacterSet()
+        let decimalDigits = NSCharacterSet.decimalDigitCharacterSet()
+        XCTAssertEqual(string.rangeOfCharacterFromSet(letters).location, 1)
+        XCTAssertEqual(string.rangeOfCharacterFromSet(decimalDigits).location, 0)
+        XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [.BackwardsSearch]).location, 2)
+        XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [], range: NSMakeRange(2, 1)).location, 2)
     }
 }
