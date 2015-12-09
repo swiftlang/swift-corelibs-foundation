@@ -17,8 +17,7 @@ public struct NSAffineTransformStruct {
     public var tY: CGFloat
     
     public init() {
-        (self.m11, self.m12, self.m21, self.m22) = (CGFloat(), CGFloat(), CGFloat(), CGFloat())
-        (self.tX, self.tY) = (CGFloat(), CGFloat())
+        self.init(m11: CGFloat(), m12: CGFloat(), m21: CGFloat(), m22: CGFloat(), tX: CGFloat(), tY: CGFloat())
     }
     
     public init(m11: CGFloat, m12: CGFloat, m21: CGFloat, m22: CGFloat, tX: CGFloat, tY: CGFloat) {
