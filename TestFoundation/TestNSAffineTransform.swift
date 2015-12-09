@@ -29,7 +29,11 @@ class TestNSAffineTransform : XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
-            ("test_IdentityTransformation", test_IdentityTransformation)
+            ("test_IdentityTransformation", test_IdentityTransformation),
+            ("test_Translation", test_Translation),
+            ("test_Scale", test_Scale),
+            ("test_Rotation_Degrees", test_Rotation_Degrees),
+            ("test_Rotation_Radians", test_Rotation_Radians)
         ]
     }
 
@@ -52,23 +56,108 @@ class TestNSAffineTransform : XCTestCase {
         let identityTransform = NSAffineTransform()
 
         func checkIdentityPointTransformation(point: NSPoint) {
-            let newPoint = identityTransform.transformPoint(point)
-            XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(point.x), accuracy: accuracyThreshold)
-            XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(point.y), accuracy: accuracyThreshold)
+            checkPointTransformation(identityTransform, point: point, expectedPoint: point)
         }
-
+        
         checkIdentityPointTransformation(NSPoint())
         checkIdentityPointTransformation(NSMakePoint(CGFloat(24.5), CGFloat(10.0)))
         checkIdentityPointTransformation(NSMakePoint(CGFloat(-7.5), CGFloat(2.0)))
 
         func checkIdentitySizeTransformation(size: NSSize) {
-            let newSize = identityTransform.transformSize(size)
-            XCTAssertEqualWithAccuracy(Double(newSize.width), Double(size.width), accuracy: accuracyThreshold)
-            XCTAssertEqualWithAccuracy(Double(newSize.height), Double(size.height), accuracy: accuracyThreshold)
+            checkSizeTransformation(identityTransform, size: size, expectedSize: size)
         }
 
         checkIdentitySizeTransformation(NSSize())
         checkIdentitySizeTransformation(NSMakeSize(CGFloat(13.0), CGFloat(12.5)))
         checkIdentitySizeTransformation(NSMakeSize(CGFloat(100.0), CGFloat(-100.0)))
+    }
+    
+    func test_Translation() {
+        let point = NSPoint(x: CGFloat(0.0), y: CGFloat(0.0))
+
+        let noop = NSAffineTransform()
+        noop.translateXBy(CGFloat(), yBy: CGFloat())
+        checkPointTransformation(noop, point: point, expectedPoint: point)
+        
+        let translateH = NSAffineTransform()
+        translateH.translateXBy(CGFloat(10.0), yBy: CGFloat())
+        checkPointTransformation(translateH, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat()))
+        
+        let translateV = NSAffineTransform()
+        translateV.translateXBy(CGFloat(), yBy: CGFloat(20.0))
+        checkPointTransformation(translateV, point: point, expectedPoint: NSPoint(x: CGFloat(), y: CGFloat(20.0)))
+        
+        let translate = NSAffineTransform()
+        translate.translateXBy(CGFloat(-30.0), yBy: CGFloat(40.0))
+        checkPointTransformation(translate, point: point, expectedPoint: NSPoint(x: CGFloat(-30.0), y: CGFloat(40.0)))
+    }
+    
+    func test_Scale() {
+        let size = NSSize(width: CGFloat(10.0), height: CGFloat(10.0))
+        
+        let noop = NSAffineTransform()
+        noop.scaleBy(CGFloat(1.0))
+        checkSizeTransformation(noop, size: size, expectedSize: size)
+        
+        let shrink = NSAffineTransform()
+        shrink.scaleBy(CGFloat(0.5))
+        checkSizeTransformation(shrink, size: size, expectedSize: NSSize(width: CGFloat(5.0), height: CGFloat(5.0)))
+        
+        let grow = NSAffineTransform()
+        grow.scaleBy(CGFloat(3.0))
+        checkSizeTransformation(grow, size: size, expectedSize: NSSize(width: CGFloat(30.0), height: CGFloat(30.0)))
+        
+        let stretch = NSAffineTransform()
+        stretch.scaleXBy(CGFloat(2.0), yBy: CGFloat(0.5))
+        checkSizeTransformation(stretch, size: size, expectedSize: NSSize(width: CGFloat(20.0), height: CGFloat(5.0)))
+    }
+    
+    func test_Rotation_Degrees() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let noop = NSAffineTransform()
+        noop.rotateByDegrees(CGFloat())
+        checkPointTransformation(noop, point: point, expectedPoint: point)
+        
+        let tenEighty = NSAffineTransform()
+        tenEighty.rotateByDegrees(CGFloat(1080.0))
+        checkPointTransformation(tenEighty, point: point, expectedPoint: point)
+        
+        let reflectAboutOrigin = NSAffineTransform()
+        reflectAboutOrigin.rotateByDegrees(CGFloat(180.0))
+        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
+    }
+    
+    func test_Rotation_Radians() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let noop = NSAffineTransform()
+        noop.rotateByRadians(CGFloat())
+        checkPointTransformation(noop, point: point, expectedPoint: point)
+        
+        let tenEighty = NSAffineTransform()
+        tenEighty.rotateByRadians(CGFloat(6 * M_PI))
+        checkPointTransformation(tenEighty, point: point, expectedPoint: point)
+        
+        let reflectAboutOrigin = NSAffineTransform()
+        reflectAboutOrigin.rotateByRadians(CGFloat(M_PI))
+        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
+    }
+}
+
+
+// Test helper functions
+
+private extension TestNSAffineTransform {
+    func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
+        let newPoint = transform.transformPoint(point)
+        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, "x: \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold, "y: \(message)", file: file, line: line)
+    }
+    
+    func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
+        let newSize = transform.transformSize(size)
+        XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, "width: \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold, "height: \(message)", file: file, line: line)
     }
 }
