@@ -134,7 +134,7 @@ public struct NSStringCompareOptions : OptionSetType {
 #if os(OSX) || os(iOS)
         return contains(.LiteralSearch) || !fixLiteral ? CFStringCompareFlags(rawValue: rawValue) : CFStringCompareFlags(rawValue: rawValue).union(.CompareNonliteral)
 #else
-        return contains(.LiteralSearch) || !fixLiteral ? CFStringCompareFlags(rawValue) : CFStringCompareFlags(rawValue) | kCFCompareNonliteral
+        return contains(.LiteralSearch) || !fixLiteral ? CFStringCompareFlags(rawValue) : CFStringCompareFlags(rawValue) | UInt(kCFCompareNonliteral)
 #endif
     }
 }

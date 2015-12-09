@@ -199,7 +199,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSXMLParser.comment = _NSXMLParserComment
     __CFSwiftBridge.NSXMLParser.externalSubset = _NSXMLParserExternalSubset
     
-    __CFDefaultEightBitStringEncoding = kCFStringEncodingUTF8
+    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
 
 public protocol _ObjectTypeBridgeable {
