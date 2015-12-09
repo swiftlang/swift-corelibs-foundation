@@ -36,6 +36,7 @@ XCTMain([
     TestNSFileManger(),
     TestNSRange(),
     TestNSXMLParser(),
+    TestNSNotificationCenter(),
     TestNSDate(),
     TestNSData(),
     TestNSTimeZone(),
