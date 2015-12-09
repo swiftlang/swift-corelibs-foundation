@@ -31,6 +31,9 @@ class TestNSAffineTransform : XCTestCase {
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_IdentityTransformation", test_IdentityTransformation),
             ("test_Scale", test_Scale),
+            ("test_Scaling", test_Scaling),
+            ("test_TranslationScaling", test_TranslationScaling),
+            ("test_ScalingTranslation", test_ScalingTranslation),
             ("test_Rotation_Degrees", test_Rotation_Degrees),
             ("test_Rotation_Radians", test_Rotation_Radians),
             ("test_Inversion", test_Inversion),
@@ -207,6 +210,38 @@ class TestNSAffineTransform : XCTestCase {
 
         checkPointTransformation(xyPlus5, point: NSMakePoint(CGFloat(-2.0), CGFloat(-3.0)),
                                   expectedPoint: NSMakePoint(CGFloat(3.0), CGFloat(2.0)))
+    }
+
+    func test_Scaling() {
+        let xyTimes5 = NSAffineTransform()
+        xyTimes5.scaleBy(CGFloat(5.0))
+
+        checkPointTransformation(xyTimes5, point: NSMakePoint(CGFloat(-2.0), CGFloat(3.0)),
+                                   expectedPoint: NSMakePoint(CGFloat(-10.0), CGFloat(15.0)))
+
+        let xTimes2YTimes3 = NSAffineTransform()
+        xTimes2YTimes3.scaleXBy(CGFloat(2.0), yBy: CGFloat(-3.0))
+
+        checkPointTransformation(xTimes2YTimes3, point: NSMakePoint(CGFloat(-1.0), CGFloat(3.5)),
+                                         expectedPoint: NSMakePoint(CGFloat(-2.0), CGFloat(-10.5)))
+    }
+
+    func test_TranslationScaling() {
+        let xPlus2XYTimes5 = NSAffineTransform()
+        xPlus2XYTimes5.translateXBy(CGFloat(2.0), yBy: CGFloat())
+        xPlus2XYTimes5.scaleXBy(CGFloat(5.0), yBy: CGFloat(-5.0))
+
+        checkPointTransformation(xPlus2XYTimes5, point: NSMakePoint(CGFloat(1.0), CGFloat(2.0)),
+                                         expectedPoint: NSMakePoint(CGFloat(7.0), CGFloat(-10.0)))
+    }
+
+    func test_ScalingTranslation() {
+        let xyTimes5XPlus3 = NSAffineTransform()
+        xyTimes5XPlus3.scaleBy(CGFloat(5.0))
+        xyTimes5XPlus3.translateXBy(CGFloat(3.0), yBy: CGFloat())
+
+        checkPointTransformation(xyTimes5XPlus3, point: NSMakePoint(CGFloat(1.0), CGFloat(2.0)),
+                                         expectedPoint: NSMakePoint(CGFloat(20.0), CGFloat(10.0)))
     }
 }
 
