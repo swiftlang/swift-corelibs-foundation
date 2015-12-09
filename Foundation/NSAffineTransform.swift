@@ -85,10 +85,9 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
     // Scaling
     public func scaleBy(scale: CGFloat) {
-        let scale = NSAffineTransformStruct.scale(sX: scale, sY: scale)
-        
-        transformStruct = transformStruct.concat(scale)
+        scaleXBy(scale, yBy: scale)
     }
+
     public func scaleXBy(scaleX: CGFloat, yBy scaleY: CGFloat) {
         let scale = NSAffineTransformStruct.scale(sX: scaleX, sY: scaleY)
         
