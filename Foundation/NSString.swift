@@ -649,7 +649,7 @@ extension NSString {
             return uppercaseStringWithLocale(nil)
         }
     }
-    
+
     public var lowercaseString: String {
         get {
             return lowercaseStringWithLocale(nil)
@@ -681,24 +681,21 @@ extension NSString {
     }
     
     public func uppercaseStringWithLocale(locale: NSLocale?) -> String {
-        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
-        CFStringReplaceAll(string, self._cfObject)
-        CFStringUppercase(string, locale?._cfObject)
-        return string._swiftObject
+        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)
+        CFStringUppercase(mutableCopy, locale?._cfObject ?? nil)
+        return mutableCopy._swiftObject
     }
-    
+
     public func lowercaseStringWithLocale(locale: NSLocale?) -> String {
-        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
-        CFStringReplaceAll(string, self._cfObject)
-        CFStringLowercase(string, locale?._cfObject)
-        return string._swiftObject
+        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)
+        CFStringLowercase(mutableCopy, locale?._cfObject ?? nil)
+        return mutableCopy._swiftObject
     }
     
     public func capitalizedStringWithLocale(locale: NSLocale?) -> String {
-        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
-        CFStringReplaceAll(string, self._cfObject)
-        CFStringCapitalize(string, locale?._cfObject)
-        return string._swiftObject
+        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)
+        CFStringCapitalize(mutableCopy, locale?._cfObject ?? nil)
+        return mutableCopy._swiftObject
     }
     
     internal func _getBlockStart(startPtr: UnsafeMutablePointer<Int>, end endPtr: UnsafeMutablePointer<Int>, contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>, forRange range: NSRange, stopAtLineSeparators line: Bool) {

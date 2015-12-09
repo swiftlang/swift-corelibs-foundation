@@ -37,6 +37,9 @@ class TestNSString : XCTestCase {
             ("test_FromNullTerminatedCStringInASCII", test_FromNullTerminatedCStringInASCII ),
             ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
             ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
+            ("test_uppercaseString", test_uppercaseString ),
+            ("test_lowercaseString", test_lowercaseString ),
+            ("test_capitalizedString", test_capitalizedString ),
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
         ]
@@ -190,6 +193,37 @@ class TestNSString : XCTestCase {
         let bytes = mockMalformedUTF8StringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
+    }
+
+    func test_uppercaseString() {
+        XCTAssertEqual(NSString(stringLiteral: "abcd").uppercaseString, "ABCD")
+        XCTAssertEqual(NSString(stringLiteral: "абВГ").uppercaseString, "АБВГ")
+        XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercaseString, "たちつてと")
+
+        // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
+        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0049}")
+        // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
+        // XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0130}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{00df}").uppercaseString, "\u{0053}\u{0053}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{fb01}").uppercaseString, "\u{0046}\u{0049}")
+    }
+
+    func test_lowercaseString() {
+        XCTAssertEqual(NSString(stringLiteral: "abCD").lowercaseString, "abcd")
+        XCTAssertEqual(NSString(stringLiteral: "aБВГ").lowercaseString, "aбвг")
+        XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercaseString, "たちつてと")
+
+        // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
+        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
+        // XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
+    }
+
+    func test_capitalizedString() {
+        XCTAssertEqual(NSString(stringLiteral: "foo Foo fOO FOO").capitalizedString, "Foo Foo Foo Foo")
+        XCTAssertEqual(NSString(stringLiteral: "жжж").capitalizedString, "Жжж")
     }
 
     func test_longLongValue() {
