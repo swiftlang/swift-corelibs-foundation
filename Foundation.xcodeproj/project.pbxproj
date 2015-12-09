@@ -198,6 +198,7 @@
 		5BF7AEC11BCD51F9008F214A /* NSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */; };
 		61F8AE7D1C180FC600FB62F0 /* TestNSNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */; };
 		7A7D6FBB1C16439400957E2E /* TestNSURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */; };
+		5EB6A15D1C188FC40037DCB8 /* TestNSJSONSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */; };
 		83712C8E1C1684900049AD49 /* TestNSURLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */; };
 		844DC3331C17584F005611F9 /* TestNSScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 844DC3321C17584F005611F9 /* TestNSScanner.swift */; };
 		848A30581C137B3500C83206 /* TestNSHTTPCookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */; };
@@ -534,6 +535,7 @@
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
 		61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNotificationCenter.swift; sourceTree = "<group>"; };
 		7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLResponse.swift; sourceTree = "<group>"; };
+		5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSJSONSerialization.swift; sourceTree = "<group>"; };
 		83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLRequest.swift; sourceTree = "<group>"; };
 		844DC3321C17584F005611F9 /* TestNSScanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSScanner.swift; sourceTree = "<group>"; };
 		848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSHTTPCookie.swift; path = TestFoundation/TestNSHTTPCookie.swift; sourceTree = SOURCE_ROOT; };
@@ -631,7 +633,6 @@
 		EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNode.swift; sourceTree = "<group>"; };
 		EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNodeOptions.swift; sourceTree = "<group>"; };
 		EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLParser.swift; sourceTree = "<group>"; };
-		ED58F76E1C134B3A00E6A5BE /* TestNSJSONSerialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSJSONSerialization.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1046,6 +1047,7 @@
 				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
 				88D28DE61C13AE9000494606 /* TestNSGeometry.swift */,
 				EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */,
+				5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */,
 				EA66F63F1BF1619600136161 /* TestNSNumber.swift */,
 				4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */,
 				EA66F6401BF1619600136161 /* TestNSPropertyList.swift */,
@@ -1763,6 +1765,7 @@
 				22B9C1E11C165D7A00DECFF9 /* TestNSDate.swift in Sources */,
 				848A30581C137B3500C83206 /* TestNSHTTPCookie.swift in Sources */,
 				EA66F6541BF1619600136161 /* TestNSSet.swift in Sources */,
+				5EB6A15D1C188FC40037DCB8 /* TestNSJSONSerialization.swift in Sources */,
 				EA66F64A1BF1619600136161 /* TestNSArray.swift in Sources */,
 				5BC1D8BE1BF3B09E009D3973 /* TestNSCharacterSet.swift in Sources */,
 				EA66F6561BF1619600136161 /* TestNSString.swift in Sources */,

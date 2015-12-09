@@ -41,7 +41,6 @@ XCTMain([
     TestNSData(),
     TestNSTimeZone(),
     TestNSScanner(),
-    TestNSJSONSerialization(),
     TestNSURLRequest(),
     TestNSHTTPCookie(),
     TestNSGeometry(),

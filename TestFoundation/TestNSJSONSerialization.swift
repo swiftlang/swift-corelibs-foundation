@@ -22,12 +22,14 @@ class TestNSJSONSerialization : XCTestCase {
     var allTests : [(String, () -> ())] {
         return JSONObjectWithDataTests
             + deserializationTests
+            + isValidJSONObjectTests
     }
     
 }
 
 //MARK: - JSONObjectWithData
 extension TestNSJSONSerialization {
+
     var JSONObjectWithDataTests: [(String, () -> ())] {
         return [
             ("test_JSONObjectWithData_emptyObject", test_JSONObjectWithData_emptyObject),
@@ -70,6 +72,7 @@ extension TestNSJSONSerialization {
             XCTAssertNotNil(result, description)
         }
     }
+
 }
 
 //MARK: - JSONDeserialization
@@ -320,4 +323,113 @@ extension TestNSJSONSerialization {
             // Passing case; the unicode character is malformed
         }
     }
+
+}
+
+// MARK: - isValidJSONObjectTests
+extension TestNSJSONSerialization {
+
+    var isValidJSONObjectTests: [(String, () -> ())] {
+        return [
+            ("test_isValidJSONObjectTrue", test_isValidJSONObjectTrue),
+            ("test_isValidJSONObjectFalse", test_isValidJSONObjectFalse),
+        ]
+    }
+
+    func test_isValidJSONObjectTrue() {
+        let trueJSON: [Any] = [
+            // []
+            Array<Any>(),
+
+            // [1, ["string", [[]]]]
+            Array<Any>(arrayLiteral:
+                NSNumber(int: 1),
+                Array<Any>(arrayLiteral:
+                    "string",
+                    Array<Any>(arrayLiteral:
+                        Array<Any>()
+                    )
+                )
+            ),
+
+            // [NSNull(), ["1" : ["string", 1], "2" : NSNull()]]
+            Array<Any>(arrayLiteral:
+                NSNull(),
+                Dictionary<String, Any>(dictionaryLiteral:
+                    (
+                        "1",
+                        Array<Any>(arrayLiteral:
+                            "string",
+                            NSNumber(int: 1)
+                        )
+                    ),
+                    (
+                        "2",
+                        NSNull()
+                    )
+                )
+            ),
+
+            // ["0" : 0]
+            Dictionary<String, Any>(dictionaryLiteral:
+                (
+                    "0",
+                    NSNumber(int: 0)
+                )
+            )
+        ]
+        for testCase in trueJSON {
+            XCTAssertTrue(NSJSONSerialization.isValidJSONObject(testCase))
+        }
+    }
+
+    func test_isValidJSONObjectFalse() {
+        let falseJSON: [Any] = [
+            // 0
+            NSNumber(int: 0),
+
+            // NSNull()
+            NSNull(),
+
+            // "string"
+            "string",
+
+            // [1, 2, 3, [4 : 5]]
+            Array<Any>(arrayLiteral:
+                NSNumber(int: 1),
+                NSNumber(int: 2),
+                NSNumber(int: 3),
+                Dictionary<NSNumber, Any>(dictionaryLiteral:
+                    (
+                        NSNumber(int: 4),
+                        NSNumber(int: 5)
+                    )
+                )
+            ),
+
+            // [1, 2, Infinity]
+            [NSNumber(int: 1), NSNumber(int: 2), NSNumber(double: 1 / 0)],
+
+            // [NSNull() : 1]
+            [NSNull() : NSNumber(int: 1)],
+
+            // [[[[1 : 2]]]]
+            Array<Any>(arrayLiteral:
+                Array<Any>(arrayLiteral:
+                    Array<Any>(arrayLiteral:
+                        Dictionary<NSNumber, Any>(dictionaryLiteral:
+                            (
+                                NSNumber(int: 1),
+                                NSNumber(int: 2)
+                            )
+                        )
+                    )
+                )
+            )
+        ]
+        for testCase in falseJSON {
+            XCTAssertFalse(NSJSONSerialization.isValidJSONObject(testCase))
+        }
+    }
+
 }
