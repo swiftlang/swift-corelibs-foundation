@@ -132,9 +132,9 @@ private extension NSAffineTransformStruct {
      Creates an affine transformation matrix from translation values.
      The matrix takes the following form:
      
-     [ 1  0  tX ]
-     [ 0  1  tY ]
-     [ 0  0   1 ]
+         [ 1  0  tX ]
+         [ 0  1  tY ]
+         [ 0  0   1 ]
      */
     static func translation(tX tX: CGFloat, tY: CGFloat) -> NSAffineTransformStruct {
         return NSAffineTransformStruct(
@@ -148,9 +148,9 @@ private extension NSAffineTransformStruct {
      Creates an affine transformation matrix from scaling values.
      The matrix takes the following form:
      
-     [ sX   0  0 ]
-     [ 0   sY  0 ]
-     [ 0    0  1 ]
+         [ sX   0  0 ]
+         [ 0   sY  0 ]
+         [ 0    0  1 ]
      */
     static func scale(sX sX: CGFloat, sY: CGFloat) -> NSAffineTransformStruct {
         return NSAffineTransformStruct(
@@ -164,9 +164,9 @@ private extension NSAffineTransformStruct {
      Creates an affine transformation matrix from rotation value (angle in radians).
      The matrix takes the following form:
      
-     [ cos α   -sin α  0 ]
-     [ sin α    cos α  0 ]
-     [   0        0    1 ]
+         [ cos α   -sin α  0 ]
+         [ sin α    cos α  0 ]
+         [   0        0    1 ]
      */
     static func rotation(radians angle: CGFloat) -> NSAffineTransformStruct {
         let α = Double(angle)
@@ -182,9 +182,9 @@ private extension NSAffineTransformStruct {
      Creates an affine transformation matrix from a rotation value (angle in degrees).
      The matrix takes the following form:
      
-     [ cos α   -sin α  0 ]
-     [ sin α    cos α  0 ]
-     [   0        0    1 ]
+         [ cos α   -sin α  0 ]
+         [ sin α    cos α  0 ]
+         [   0        0    1 ]
      */
     static func rotation(degrees angle: CGFloat) -> NSAffineTransformStruct {
         let α = Double(angle) * M_PI / 180.0
@@ -198,13 +198,13 @@ private extension NSAffineTransformStruct {
      the `transformStruct`'s affine transformation matrix.
      The resulting matrix takes the following form:
      
-             [ m11_T  m12_T  tX_T ] [ m11_M  m12_M  tX_M ]
-     T * M = [ m21_T  m22_T  tY_T ] [ m21_M  m22_M  tY_M ]
-             [   0      0      1  ] [   0      0      1  ]
+                 [ m11_T  m12_T  tX_T ] [ m11_M  m12_M  tX_M ]
+         T * M = [ m21_T  m22_T  tY_T ] [ m21_M  m22_M  tY_M ]
+                 [   0      0      1  ] [   0      0      1  ]
      
-             [ (m11_T*m11_M + m12_T*m21_M)  (m11_T*m12_M + m12_T*m22_M)  (m11_T*tX_M + m12_T*tY_M + tX_T) ]
-           = [ (m21_T*m11_M + m22_T*m21_M)  (m21_T*m12_M + m22_T*m22_M)  (m21_T*tX_M + m22_T*tY_M + tY_T) ]
-             [              0                            0                                  1             ]
+                 [ (m11_T*m11_M + m12_T*m21_M)  (m11_T*m12_M + m12_T*m22_M)  (m11_T*tX_M + m12_T*tY_M + tX_T) ]
+               = [ (m21_T*m11_M + m22_T*m21_M)  (m21_T*m12_M + m22_T*m22_M)  (m21_T*tX_M + m22_T*tY_M + tY_T) ]
+                 [              0                            0                                  1             ]
      */
     func concat(transformStruct: NSAffineTransformStruct) -> NSAffineTransformStruct {
         let (t, m) = (self, transformStruct)
@@ -221,9 +221,9 @@ private extension NSAffineTransformStruct {
      Applies the affine transformation to `toPoint` and returns the result.
      The resulting point takes the following form:
      
-     [ x' ]     [ x ]   [ m11  m12  tX ] [ x ]   [ m11*x + m12*y + tX ]
-     [ y' ] = T [ y ] = [ m21  m22  tY ] [ y ] = [ m21*x + m22*y + tY ]
-     [  1 ]     [ 1 ]   [  0    0    1 ] [ 1 ]   [           1        ]
+         [ x' ]     [ x ]   [ m11  m12  tX ] [ x ]   [ m11*x + m12*y + tX ]
+         [ y' ] = T [ y ] = [ m21  m22  tY ] [ y ] = [ m21*x + m22*y + tY ]
+         [  1 ]     [ 1 ]   [  0    0    1 ] [ 1 ]   [           1        ]
      */
     func applied(toPoint p: NSPoint) -> NSPoint {
         let x = (m11 * p.x) + (m12 * p.y) + tX
@@ -235,10 +235,10 @@ private extension NSAffineTransformStruct {
     /**
      Applies the affine transformation to `toSize` and returns the result.
      The resulting size takes the following form:
-     
-     [ w' ]     [ w ]   [ m11  m12  tX ] [ w ]   [ m11*w + m12*h ]
-     [ h' ] = T [ h ] = [ m21  m22  tY ] [ h ] = [ m21*w + m22*h ]
-     [  0 ]     [ 0 ]   [  0    0    1 ] [ 1 ]   [       0       ]
+  
+         [ w' ]     [ w ]   [ m11  m12  tX ] [ w ]   [ m11*w + m12*h ]
+         [ h' ] = T [ h ] = [ m21  m22  tY ] [ h ] = [ m21*w + m22*h ]
+         [  0 ]     [ 0 ]   [  0    0    1 ] [ 1 ]   [       0       ]
      
      Note: Translation has no effect on the size.
      */
@@ -253,13 +253,17 @@ private extension NSAffineTransformStruct {
     /**
      Returns the inverse affine transformation matrix or `nil` if it has no inverse.
      The receiver's affine transformation matrix can be divided into matrix sub-block as
-       [ M  t ]
-       [ 0  1 ]
+     
+         [ M  t ]
+         [ 0  1 ]
+     
      where `M` represents the linear map and `t` the translation vector.
      
      The inversion can then be calculated as
-       [ inv(M)  -inv(M) * t ]
-       [   0           1     ]
+     
+         [ inv(M)  -inv(M) * t ]
+         [   0           1     ]
+     
      if `M` is invertible.
      */
     var inverse: NSAffineTransformStruct? {
