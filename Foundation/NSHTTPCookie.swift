@@ -110,7 +110,7 @@ public class NSHTTPCookie : NSObject {
         let value: String
         let version: Int
     }
-    private let cookieRepresentation: Cookie
+    private var cookieRepresentation: Cookie!
 
     /*!
         @method initWithProperties:
@@ -238,108 +238,23 @@ public class NSHTTPCookie : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public init?(properties: [String : Any]) {
+        super.init()
+
         guard let
             path = properties[NSHTTPCookiePath] as? String,
             name = properties[NSHTTPCookieName] as? String,
-            value = properties[NSHTTPCookieValue] as? String
+            value = properties[NSHTTPCookieValue] as? String,
+            canonicalDomain = NSHTTPCookie.canonicalDomainFrom(properties)
         else {
             return nil
         }
 
-        let canonicalDomain: String
-        if let domain = properties[NSHTTPCookieDomain] as? String {
-            canonicalDomain = domain
-        } else if let
-            originURL = properties[NSHTTPCookieOriginURL] as? NSURL,
-            host = originURL.host
-        {
-            canonicalDomain = host
-        } else {
-            return nil
-        }
-
-        let secure: Bool
-        if let
-            secureString = properties[NSHTTPCookieSecure] as? String
-            where secureString.characters.count > 0
-        {
-            secure = true
-        } else {
-            secure = false
-        }
-
-        let version: Int
-        if let
-            versionString = properties[NSHTTPCookieSecure] as? String
-            where versionString == "1"
-        {
-            version = 1
-        } else {
-            version = 0
-        }
-
-        let portList: [NSNumber]?
-        if let portString = properties[NSHTTPCookiePort] as? String {
-            portList = portString.characters
-                .split(",")
-                .flatMap { Int(String($0)) }
-                .map { NSNumber(integer: $0) }
-        } else {
-            portList = nil
-        }
-
-        // TODO: factor into a utility function
-        let expiresDate: NSDate?
-        if version == 0 {
-            let expiresProperty = properties[NSHTTPCookieExpires]
-            if let date = expiresProperty as? NSDate {
-                // If the dictionary value is already an NSDate,
-                // nothing left to do
-                expiresDate = date
-            } else if let dateString = expiresProperty as? String {
-                // If the dictionary value is a string, parse it
-                let formatter = NSDateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
-
-                let timeZone = NSTimeZone(abbreviation: "GMT")
-                formatter.timeZone = timeZone
-
-                expiresDate = formatter.dateFromString(dateString)
-            } else {
-                expiresDate = nil
-            }
-        } else if version == 1 {
-            if let
-                maximumAge = properties[NSHTTPCookieMaximumAge] as? String,
-                secondsFromNow = Double(maximumAge)
-            {
-                expiresDate = NSDate(timeIntervalSinceNow: secondsFromNow)
-            } else {
-                expiresDate = nil
-            }
-        } else {
-            expiresDate = nil
-        }
-
-        var discard = false
-        if let discardString = properties[NSHTTPCookieDiscard] as? String {
-            discard = discardString == "TRUE"
-        } else if let
-            _ = properties[NSHTTPCookieMaximumAge] as? String
-            where version >= 1
-        {
-            discard = false
-        }
-
-        let commentURL: NSURL
-        if let
-            commentString = properties[NSHTTPCookieCommentURL] as? String,
-            URL = NSURL(string: commentString)
-        {
-            commentURL = URL
-        } else if let URL = properties[NSHTTPCookieCommentURL] as? NSURL {
-            commentURL = URL
-        }
+        let secure = NSHTTPCookie.secureFrom(properties)
+        let version = NSHTTPCookie.versionFrom(properties)
+        let portList = NSHTTPCookie.portListFrom(properties)
+        let expiresDate = NSHTTPCookie.expiresDateFrom(properties, version: version)
+        let discard = NSHTTPCookie.discardFrom(properties, version: version)
+        let commentURL = NSHTTPCookie.commentURLFrom(properties)
 
         self.cookieRepresentation = Cookie(
             comment: version == 1 ?
@@ -391,6 +306,102 @@ public class NSHTTPCookie : NSObject {
             cookieString.removeAtIndex(cookieString.endIndex.predecessor())
         }
         return ["Cookie": cookieString]
+    }
+
+    private class func canonicalDomainFrom(properties: [String : Any]) -> String? {
+        if let domain = properties[NSHTTPCookieDomain] as? String {
+            return domain
+        } else if let
+            originURL = properties[NSHTTPCookieOriginURL] as? NSURL,
+            host = originURL.host
+        {
+            return host
+        }
+        return nil
+    }
+
+    private class func secureFrom(properties: [String : Any]) -> Bool {
+        if let
+            secureString = properties[NSHTTPCookieSecure] as? String
+            where secureString.characters.count > 0
+        {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    private class func versionFrom(properties: [String : Any]) -> Int {
+        if let
+            versionString = properties[NSHTTPCookieSecure] as? String
+            where versionString == "1"
+        {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    private class func portListFrom(properties: [String : Any]) -> [NSNumber]? {
+        if let portString = properties[NSHTTPCookiePort] as? String {
+            return portString.characters
+                .split(",")
+                .flatMap { Int(String($0)) }
+                .map { NSNumber(integer: $0) }
+        } else {
+            return nil
+        }
+    }
+
+    private class func expiresDateFrom(properties: [String : Any], version: Int) -> NSDate? {
+        // TODO: factor into a utility function
+        if version == 0 {
+            let expiresProperty = properties[NSHTTPCookieExpires]
+            if let date = expiresProperty as? NSDate {
+                // If the dictionary value is already an NSDate,
+                // nothing left to do
+                return date
+            } else if let dateString = expiresProperty as? String {
+                // If the dictionary value is a string, parse it
+                let formatter = NSDateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
+
+                let timeZone = NSTimeZone(abbreviation: "GMT")
+                formatter.timeZone = timeZone
+
+                return formatter.dateFromString(dateString)
+            }
+            return nil
+        } else if version == 1 {
+            if let
+                maximumAge = properties[NSHTTPCookieMaximumAge] as? String,
+                secondsFromNow = Double(maximumAge)
+            {
+                return NSDate(timeIntervalSinceNow: secondsFromNow)
+            }
+        }
+        return nil
+    }
+
+    private class func discardFrom(properties: [String: Any], version: Int) -> Bool {
+        if let discardString = properties[NSHTTPCookieDiscard] as? String {
+            return discardString == "TRUE"
+        } else if version >= 1 && properties[NSHTTPCookieMaximumAge] == nil {
+            return true
+        }
+        return false
+    }
+
+    private class func commentURLFrom(properties: [String : Any]) -> NSURL? {
+        if let
+            commentString = properties[NSHTTPCookieCommentURL] as? String,
+            URL = NSURL(string: commentString)
+        {
+            return URL
+        } else if let URL = properties[NSHTTPCookieCommentURL] as? NSURL {
+            return URL
+        }
+        return nil
     }
     
     /*!
