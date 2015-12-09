@@ -331,13 +331,20 @@ public class NSHTTPCookie : NSObject {
             discard = false
         }
 
-        // TODO: commentURL can be a string or NSURL
+        let commentURL: NSURL
+        if let
+            commentString = properties[NSHTTPCookieCommentURL] as? String,
+            URL = NSURL(string: commentString)
+        {
+            commentURL = URL
+        } else if let URL = properties[NSHTTPCookieCommentURL] as? NSURL {
+            commentURL = URL
+        }
 
         self.cookieRepresentation = Cookie(
             comment: version == 1 ?
                 properties[NSHTTPCookieComment] as? String : nil,
-            commentURL: version == 1 ?
-                properties[NSHTTPCookieCommentURL] as? NSURL : nil,
+            commentURL: version == 1 ? commentURL : nil,
             domain: canonicalDomain,
             expiresDate: expiresDate,
             HTTPOnly: secure,
