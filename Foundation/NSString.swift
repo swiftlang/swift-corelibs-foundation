@@ -330,7 +330,37 @@ extension NSString {
     }
     
     public func commonPrefixWithString(str: String, options mask: NSStringCompareOptions) -> String {
-        NSUnimplemented()
+        guard str.startIndex != str.endIndex else {
+            return ""
+        }
+
+        var searchMask = NSStringCompareOptions()
+        searchMask.unionInPlace(.AnchoredSearch)
+        if mask.contains(.CaseInsensitiveSearch) {
+            searchMask.unionInPlace(.CaseInsensitiveSearch)
+        }
+        if mask.contains(.LiteralSearch) {
+            searchMask.unionInPlace(.LiteralSearch)
+        }
+
+        var foundRange = NSMakeRange(NSNotFound, 0)
+        var currentIndex = str.startIndex
+        repeat {
+            currentIndex = currentIndex.successor()
+            let substring = String(str.characters[str.startIndex..<currentIndex])
+            let range = self.rangeOfString(substring, options: searchMask)
+            if range.location != NSNotFound {
+                foundRange = range
+            } else {
+                break
+            }
+        } while currentIndex != str.endIndex
+
+        if foundRange.location == NSNotFound {
+            return ""
+        }
+        
+        return self.substringWithRange(foundRange)
     }
     
     public func containsString(str: String) -> Bool {
