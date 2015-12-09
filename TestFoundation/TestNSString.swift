@@ -38,6 +38,8 @@ class TestNSString : XCTestCase {
             ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
+            ("test_compareLiteral", test_compareLiteral ),
+            ("test_rangeOfStringLiteral", test_rangeOfStringLiteral ),
         ]
     }
 
@@ -199,5 +201,17 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(string.rangeOfCharacterFromSet(decimalDigits).location, 0)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [.BackwardsSearch]).location, 2)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [], range: NSMakeRange(2, 1)).location, 2)
+    }
+
+    func test_compareLiteral() {
+        let str: NSString = "Ma\u{0308}dchen"
+        XCTAssertNotEqual(str.compare("Mädchen", options: [.LiteralSearch]), NSComparisonResult.OrderedSame)
+        XCTAssertEqual(str.compare("Mädchen", options: []), NSComparisonResult.OrderedSame)
+    }
+
+    func test_rangeOfStringLiteral() {
+        let str: NSString = "Ma\u{0308}dchen"
+        XCTAssertEqual(str.rangeOfString("Mädchen", options: [.LiteralSearch]).location, NSNotFound)
+        XCTAssertNotEqual(str.rangeOfString("Mädchen", options: []).location, NSNotFound)
     }
 }

@@ -279,12 +279,12 @@ extension NSString {
         }
 #if os(Linux)
         var cfflags = CFStringCompareFlags(mask.rawValue)
-        if mask.contains(.LiteralSearch) {
+        if !mask.contains(.LiteralSearch) {
             cfflags |= UInt(kCFCompareNonliteral)
         }
 #else
         var cfflags = CFStringCompareFlags(rawValue: mask.rawValue)
-        if mask.contains(.LiteralSearch) {
+        if !mask.contains(.LiteralSearch) {
             cfflags.unionInPlace(.CompareNonliteral)
         }
 #endif
@@ -374,12 +374,12 @@ extension NSString {
         
 #if os(Linux)
         var cfflags = CFStringCompareFlags(mask.rawValue)
-        if mask.contains(.LiteralSearch) {
+        if !mask.contains(.LiteralSearch) {
             cfflags |= UInt(kCFCompareNonliteral)
         }
 #else
         var cfflags = CFStringCompareFlags(rawValue: mask.rawValue)
-        if mask.contains(.LiteralSearch) {
+        if !mask.contains(.LiteralSearch) {
             cfflags.unionInPlace(.CompareNonliteral)
         }
 #endif
