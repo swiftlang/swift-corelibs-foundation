@@ -408,15 +408,9 @@ extension NSString {
         }
         
 #if os(Linux)
-        var cfflags = CFStringCompareFlags(mask.rawValue)
-        if mask.contains(.LiteralSearch) {
-            cfflags |= UInt(kCFCompareNonliteral)
-        }
+        let cfflags = CFStringCompareFlags(mask.rawValue)
 #else
-        var cfflags = CFStringCompareFlags(rawValue: mask.rawValue)
-        if mask.contains(.LiteralSearch) {
-            cfflags.unionInPlace(.CompareNonliteral)
-        }
+        let cfflags = CFStringCompareFlags(rawValue: mask.rawValue)
 #endif
         var result = CFRangeMake(kCFNotFound, 0)
 
