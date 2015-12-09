@@ -66,42 +66,82 @@ public class NSBundle : NSObject {
     public func loadAndReturnError() throws { NSUnimplemented() }
     
     /* Methods for locating various components of a bundle. */
-    public var bundleURL: NSURL { NSUnimplemented() }
+    public var bundleURL: NSURL {
+        let url = CFBundleCopyBundleURL(_bundle)
+        return url._nsObject
+    }
     
-    public var resourceURL: NSURL? { NSUnimplemented() }
+    public var resourceURL: NSURL? {
+        let url = CFBundleCopyResourcesDirectoryURL(_bundle)
+        return url._nsObject
+    }
     
-    public var executableURL: NSURL? { NSUnimplemented() }
+    public var executableURL: NSURL? {
+        let url = CFBundleCopyExecutableURL(_bundle)
+        return url._nsObject
+    }
     
-    public func URLForAuxiliaryExecutable(executableName: String) -> NSURL? { NSUnimplemented() }
+    public func URLForAuxiliaryExecutable(executableName: String) -> NSURL? {
+        let url = CFBundleCopyAuxiliaryExecutableURL(_bundle, executableName._cfObject)
+        return url._nsObject
+    }
     
-    public var privateFrameworksURL: NSURL? { NSUnimplemented() }
+    public var privateFrameworksURL: NSURL? {
+        let url = CFBundleCopyPrivateFrameworksURL(_bundle)
+        return url._nsObject
+    }
     
-    public var sharedFrameworksURL: NSURL? { NSUnimplemented() }
+    public var sharedFrameworksURL: NSURL? {
+        let url = CFBundleCopySharedFrameworksURL(_bundle)
+        return url._nsObject
+    }
     
-    public var sharedSupportURL: NSURL? { NSUnimplemented() }
+    public var sharedSupportURL: NSURL? {
+        let url = CFBundleCopySharedSupportURL(_bundle)
+        return url._nsObject
+    }
     
-    public var builtInPlugInsURL: NSURL? { NSUnimplemented() }
+    public var builtInPlugInsURL: NSURL? {
+        let url = CFBundleCopyBuiltInPlugInsURL(_bundle)
+        return url._nsObject
+    }
     
     public var appStoreReceiptURL: NSURL? {
         // Always nil on this platform
         return nil
     }
     
-    public var bundlePath: String { NSUnimplemented() }
+    public var bundlePath: String {
+        return bundleURL.path!
+    }
     
-    public var resourcePath: String? { NSUnimplemented() }
+    public var resourcePath: String? {
+        return resourceURL?.path
+    }
     
-    public var executablePath: String? { NSUnimplemented() }
+    public var executablePath: String? {
+        return executableURL?.path
+    }
     
-    public func pathForAuxiliaryExecutable(executableName: String) -> String? { NSUnimplemented() }
+    public func pathForAuxiliaryExecutable(executableName: String) -> String? {
+        return URLForAuxiliaryExecutable(executableName)?.path
+    }
     
-    public var privateFrameworksPath: String? { NSUnimplemented() }
+    public var privateFrameworksPath: String? {
+        return privateFrameworksURL?.path
+    }
     
-    public var sharedFrameworksPath: String? { NSUnimplemented() }
+    public var sharedFrameworksPath: String? {
+        return sharedFrameworksURL?.path
+    }
     
-    public var sharedSupportPath: String? { NSUnimplemented() }
+    public var sharedSupportPath: String? {
+        return sharedSupportURL?.path
+    }
     
-    public var builtInPlugInsPath: String? { NSUnimplemented() }
+    public var builtInPlugInsPath: String? {
+        return builtInPlugInsURL?.path
+    }
     
     // -----------------------------------------------------------------------------------
     // MARK: - URL and Path Resource Lookup
@@ -123,7 +163,13 @@ public class NSBundle : NSObject {
         return unsafeBitCast(resultURL, NSURL.self)
     }
     
-    public func URLForResource(name: String?, withExtension ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> NSURL? { NSUnimplemented() }
+    public func URLForResource(name: String?, withExtension ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> NSURL? {
+        if let url = CFBundleCopyResourceURLForLocalization(_bundle, name?._cfObject, ext?._cfObject, subpath?._cfObject, localizationName?._cfObject) {
+            return url._nsObject
+        } else {
+            return nil
+        }
+    }
     
     public func URLsForResourcesWithExtension(ext: String?, subdirectory subpath: String?) -> [NSURL]? { NSUnimplemented() }
     
@@ -149,23 +195,73 @@ public class NSBundle : NSObject {
     // -----------------------------------------------------------------------------------
     // MARK: - Localized Strings
     
-    public func localizedStringForKey(key: String, value: String?, table tableName: String?) -> String { NSUnimplemented() }
-    
+    public func localizedStringForKey(key: String, value: String?, table tableName: String?) -> String {
+        let localizedString = CFBundleCopyLocalizedString(_bundle, key._cfObject, value?._cfObject, tableName?._cfObject)
+        return localizedString._swiftObject
+    }
     
     // -----------------------------------------------------------------------------------
     // MARK: - Other
     
-    public var bundleIdentifier: String? { NSUnimplemented() }
-    public var infoDictionary: [String : AnyObject]? { NSUnimplemented() }
-    public var localizedInfoDictionary: [String : AnyObject]? { NSUnimplemented() }
-    public func objectForInfoDictionaryKey(key: String) -> AnyObject? { NSUnimplemented() }
+    public var bundleIdentifier: String? {
+        let identifier = CFBundleGetIdentifier(_bundle)
+        return identifier._swiftObject
+    }
+    
+    public var infoDictionary: [String : AnyObject]? {
+        if let dictionary = CFBundleGetInfoDictionary(_bundle) {
+            return dictionary._swiftObject as? [String: AnyObject]
+        } else {
+            return nil
+        }
+    }
+    
+    public var localizedInfoDictionary: [String : AnyObject]? {
+        if let localDictionary = CFBundleGetLocalInfoDictionary(_bundle) {
+            return localDictionary._swiftObject as? [String: AnyObject]
+        } else {
+            return nil
+        }
+    }
+    
+    public func objectForInfoDictionaryKey(key: String) -> AnyObject? {
+        if let localizedInfoDictionary = localizedInfoDictionary {
+            return localizedInfoDictionary[key]
+        } else {
+            return infoDictionary?[key]
+        }
+    }
+    
     public func classNamed(className: String) -> AnyClass? { NSUnimplemented() }
     public var principalClass: AnyClass? { NSUnimplemented() }
-    public var preferredLocalizations: [String] { NSUnimplemented() }
-    public var localizations: [String] { NSUnimplemented() }
-    public var developmentLocalization: String? { NSUnimplemented() }
-    public class func preferredLocalizationsFromArray(localizationsArray: [String]) -> [String] { NSUnimplemented() }
-    public class func preferredLocalizationsFromArray(localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] { NSUnimplemented() }
-    public var executableArchitectures: [NSNumber]? { NSUnimplemented() }
+    
+    public var preferredLocalizations: [String] {
+        return NSBundle.preferredLocalizationsFromArray(localizations)
+    }
+    
+    public var localizations: [String] {
+        let localizations = CFBundleCopyBundleLocalizations(_bundle)
+        return localizations._swiftObject as! [String]
+    }
+    
+    public var developmentLocalization: String? {
+        let region = CFBundleGetDevelopmentRegion(_bundle)
+        return region._swiftObject
+    }
+    
+    public class func preferredLocalizationsFromArray(localizationsArray: [String]) -> [String] {
+        let localizations = CFBundleCopyPreferredLocalizationsFromArray(localizationsArray._cfObject)
+        return localizations._swiftObject as! [String]
+    }
+    
+    public class func preferredLocalizationsFromArray(localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] {
+        let localizations = CFBundleCopyLocalizationsForPreferences(localizationsArray._cfObject, preferencesArray?._cfObject)
+        return localizations._swiftObject as! [String]
+    }
+    
+    public var executableArchitectures: [NSNumber]? {
+        let architectures = CFBundleCopyExecutableArchitectures(_bundle)
+        return architectures._swiftObject as? [NSNumber]
+    }
 }
 
