@@ -255,8 +255,9 @@ extension NSData {
             remaining -= amt
             total += amt
         }
+
+        close(fd)
         if remaining != 0 {
-            close(fd)
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
         
