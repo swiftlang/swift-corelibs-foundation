@@ -21,7 +21,7 @@
     about receiving the content data for a URL load.
 */
 public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
-    
+
     static public func supportsSecureCoding() -> Bool {
         return true
     }
@@ -48,14 +48,20 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         @result The initialized NSURLResponse.
         @discussion This is the designated initializer for NSURLResponse.
     */
-    public init(URL: NSURL, MIMEType: String?, expectedContentLength length: Int, textEncodingName name: String?) { NSUnimplemented() }
+    public init(URL: NSURL, MIMEType: String?, expectedContentLength length: Int, textEncodingName name: String?) {
+        self.URL = URL
+        self.MIMEType = MIMEType
+        self.expectedContentLength = Int64(length)
+        self.textEncodingName = name
+    }
     
     /*! 
         @method URL
         @abstract Returns the URL of the receiver. 
         @result The URL of the receiver. 
     */
-    /*@NSCopying*/ public var URL: NSURL? { NSUnimplemented() }
+    /*@NSCopying*/ public private(set) var URL: NSURL?
+
     
     /*! 
         @method MIMEType
@@ -68,7 +74,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         be made if the origin source did not report any such information.
         @result The MIME type of the receiver.
     */
-    public var MIMEType: String? { NSUnimplemented() }
+    public private(set) var MIMEType: String?
     
     /*! 
         @method expectedContentLength
@@ -83,7 +89,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         there is no expectation that can be arrived at regarding expected
         content length.
     */
-    public var expectedContentLength: Int64 { NSUnimplemented() }
+    public private(set) var expectedContentLength: Int64
     
     /*! 
         @method textEncodingName
@@ -96,7 +102,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         @result The name of the text encoding of the receiver, or nil if no
         text encoding was specified. 
     */
-    public var textEncodingName: String? { NSUnimplemented() }
+    public private(set) var textEncodingName: String?
     
     /*!
         @method suggestedFilename

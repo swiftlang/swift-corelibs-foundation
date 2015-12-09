@@ -164,6 +164,10 @@ public enum NSURLRequestNetworkServiceType : UInt {
 */
 public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
+    private var _URL : NSURL?
+    private var _mainDocumentURL: NSURL?
+    private var _httpHeaderFields: [String: String]?
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
@@ -179,6 +183,8 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     public func encodeWithCoder(aCoder: NSCoder) {
         NSUnimplemented()
     }
+    
+    private override init() {}
     
     /*! 
         @method requestWithURL:
@@ -219,14 +225,17 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         @param URL The URL for the request. 
         @result An initialized NSURLRequest. 
     */
-    public convenience init(URL: NSURL) { NSUnimplemented() }
+    public convenience init(URL: NSURL) {
+        self.init()
+        _URL = URL
+    }
     
     /*!
         @method URL
         @abstract Returns the URL of the receiver. 
         @result The URL of the receiver. 
     */
-    /*@NSCopying */public var URL: NSURL? { NSUnimplemented() }
+    /*@NSCopying */public var URL: NSURL? { return _URL }
     
     /*!
         @method mainDocumentURL
@@ -236,14 +245,14 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         See setMainDocumentURL:
         @result The main document URL.
     */
-    /*@NSCopying*/ public var mainDocumentURL: NSURL? { NSUnimplemented() }
+    /*@NSCopying*/ public var mainDocumentURL: NSURL? { return _mainDocumentURL }
     
     /*!
     @method HTTPMethod
     @abstract Returns the HTTP request method of the receiver.
     @result the HTTP request method of the receiver.
     */
-    public var HTTPMethod: String? { get { NSUnimplemented() }}
+    public var HTTPMethod: String? { get { return "GET" }}
     
     /*!
     @method allHTTPHeaderFields
@@ -252,7 +261,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @result a dictionary containing all the HTTP header fields of the
     receiver.
     */
-    public var allHTTPHeaderFields: [String : String]? { NSUnimplemented() }
+    public var allHTTPHeaderFields: [String : String]? { return _httpHeaderFields  }
     
     /*!
     @method valueForHTTPHeaderField:
@@ -264,7 +273,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @result the value associated with the given header field, or nil if
     there is no value associated with the given header field.
     */
-    public func valueForHTTPHeaderField(field: String) -> String? { NSUnimplemented() }
+    public func valueForHTTPHeaderField(field: String) -> String? { return _httpHeaderFields?[field.lowercaseString] }
     
 }
 

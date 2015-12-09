@@ -1131,7 +1131,18 @@ CFHashCode CFStringHashNSString(CFStringRef str) {
     UniChar buffer[HashEverythingLimit];
     CFIndex bufLen;		// Number of characters in the buffer for hashing
     CFIndex len = 0;	// Actual length of the string
-    
+#if DEPLOYMENT_RUNTIME_SWIFT
+    len = CF_SWIFT_CALLV(str, NSString.length);
+    if (len <= HashEverythingLimit) {
+        (void)CF_SWIFT_CALLV(str, NSString.getCharacters, CFRangeMake(0, len), buffer);
+        bufLen = len;
+    } else {
+        (void)CF_SWIFT_CALLV(str, NSString.getCharacters, CFRangeMake(0, 32), buffer);
+        (void)CF_SWIFT_CALLV(str, NSString.getCharacters, CFRangeMake((len >> 1) - 16, 32), buffer+32);
+        (void)CF_SWIFT_CALLV(str, NSString.getCharacters, CFRangeMake(len - 32, 32), buffer+64);
+        bufLen = HashEverythingLimit;
+    }
+#else
     len = CF_OBJC_CALLV((NSString *)str, length);
     if (len <= HashEverythingLimit) {
         (void)CF_OBJC_CALLV((NSString *)str, getCharacters:buffer range:NSMakeRange(0, len));
@@ -1142,6 +1153,7 @@ CFHashCode CFStringHashNSString(CFStringRef str) {
         (void)CF_OBJC_CALLV((NSString *)str, getCharacters:buffer+64 range:NSMakeRange(len - 32, 32));
         bufLen = HashEverythingLimit;
     }
+#endif
     return __CFStrHashCharacters(buffer, bufLen, len);
 }
 
@@ -1196,9 +1208,7 @@ CFTypeID CFStringGetTypeID(void) {
 
 
 static Boolean CFStrIsUnicode(CFStringRef str) {
-    if (CF_IS_SWIFT(__kCFStringTypeID, str)) {
-        return false;
-    }
+    CF_SWIFT_FUNCDISPATCHV(__kCFStringTypeID, Boolean, str, NSString._encodingCantBeStoredInEightBitCFString);
     CF_OBJC_FUNCDISPATCHV(__kCFStringTypeID, Boolean, (NSString *)str, _encodingCantBeStoredInEightBitCFString);
     return __CFStrIsUnicode(str);
 }

@@ -169,53 +169,53 @@ public protocol NSStreamDelegate : class {
 // NSString constants for the propertyForKey/setProperty:forKey: API
 // String constants for the setting of the socket security level.
 // use this as the key for setting one of the following values for the security level of the target stream.
-public let NSStreamSocketSecurityLevelKey: String = "" // NSUnimplemented
+public let NSStreamSocketSecurityLevelKey: String = "kCFStreamPropertySocketSecurityLevel"
 
-public let NSStreamSocketSecurityLevelNone: String = "" // NSUnimplemented
-public let NSStreamSocketSecurityLevelSSLv2: String = "" // NSUnimplemented
-public let NSStreamSocketSecurityLevelSSLv3: String = "" // NSUnimplemented
-public let NSStreamSocketSecurityLevelTLSv1: String = "" // NSUnimplemented
-public let NSStreamSocketSecurityLevelNegotiatedSSL: String = "" // NSUnimplemented
+public let NSStreamSocketSecurityLevelNone: String = "kCFStreamSocketSecurityLevelNone"
+public let NSStreamSocketSecurityLevelSSLv2: String = "NSStreamSocketSecurityLevelSSLv2"
+public let NSStreamSocketSecurityLevelSSLv3: String = "NSStreamSocketSecurityLevelSSLv3"
+public let NSStreamSocketSecurityLevelTLSv1: String = "kCFStreamSocketSecurityLevelTLSv1"
+public let NSStreamSocketSecurityLevelNegotiatedSSL: String = "kCFStreamSocketSecurityLevelNegotiatedSSL"
 
-public let NSStreamSOCKSProxyConfigurationKey: String  = "" // NSUnimplemented
+public let NSStreamSOCKSProxyConfigurationKey: String  = "kCFStreamPropertySOCKSProxy"
 // Value is an NSDictionary containing the key/value pairs below. The dictionary returned from SystemConfiguration for SOCKS proxies will work without alteration.
 
-public let NSStreamSOCKSProxyHostKey: String = "" // NSUnimplemented
+public let NSStreamSOCKSProxyHostKey: String = "NSStreamSOCKSProxyKey"
 // Value is an NSString
-public let NSStreamSOCKSProxyPortKey: String = "" // NSUnimplemented
+public let NSStreamSOCKSProxyPortKey: String = "NSStreamSOCKSPortKey"
 // Value is an NSNumber
-public let NSStreamSOCKSProxyVersionKey: String = "" // NSUnimplemented
+public let NSStreamSOCKSProxyVersionKey: String = "kCFStreamPropertySOCKSVersion"
 // Value is one of NSStreamSOCKSProxyVersion4 or NSStreamSOCKSProxyVersion5
-public let NSStreamSOCKSProxyUserKey: String = "" // NSUnimplemented
+public let NSStreamSOCKSProxyUserKey: String = "kCFStreamPropertySOCKSUser"
 // Value is an NSString
-public let NSStreamSOCKSProxyPasswordKey: String = "" // NSUnimplemented
+public let NSStreamSOCKSProxyPasswordKey: String = "kCFStreamPropertySOCKSPassword"
 // Value is an NSString
 
-public let NSStreamSOCKSProxyVersion4: String = "" // NSUnimplemented
+public let NSStreamSOCKSProxyVersion4: String = "kCFStreamSocketSOCKSVersion4"
 // Value for NSStreamSOCKProxyVersionKey
-public let NSStreamSOCKSProxyVersion5: String = "" // NSUnimplemented
+public let NSStreamSOCKSProxyVersion5: String = "kCFStreamSocketSOCKSVersion5"
 // Value for NSStreamSOCKProxyVersionKey
 
-public let NSStreamDataWrittenToMemoryStreamKey: String = "" // NSUnimplemented
+public let NSStreamDataWrittenToMemoryStreamKey: String = "kCFStreamPropertyDataWritten"
 // Key for obtaining the data written to a memory stream.
 
-public let NSStreamFileCurrentOffsetKey: String = "" // NSUnimplemented
+public let NSStreamFileCurrentOffsetKey: String = "kCFStreamPropertyFileCurrentOffset"
 // Value is an NSNumber representing the current absolute offset of the stream.
 
 // NSString constants for error domains.
-public let NSStreamSocketSSLErrorDomain: String = "" // NSUnimplemented
+public let NSStreamSocketSSLErrorDomain: String = "NSStreamSocketSSLErrorDomain"
 // SSL errors are to be interpreted via <Security/SecureTransport.h>
-public let NSStreamSOCKSErrorDomain: String = "" // NSUnimplemented
+public let NSStreamSOCKSErrorDomain: String = "NSStreamSOCKSErrorDomain"
 
 // Property key to specify the type of service for the stream.  This
 // allows the system to properly handle the request with respect to
 // routing, suspension behavior and other networking related attributes
 // appropriate for the given service type.  The service types supported
 // are documented below.
-public let NSStreamNetworkServiceType: String = "" // NSUnimplemented
+public let NSStreamNetworkServiceType: String = "kCFStreamNetworkServiceType"
 // Supported network service types:
-public let NSStreamNetworkServiceTypeVoIP: String = "" // NSUnimplemented
-public let NSStreamNetworkServiceTypeVideo: String = "" // NSUnimplemented
-public let NSStreamNetworkServiceTypeBackground: String = "" // NSUnimplemented
-public let NSStreamNetworkServiceTypeVoice: String = "" // NSUnimplemented
+public let NSStreamNetworkServiceTypeVoIP: String = "kCFStreamNetworkServiceTypeVoIP"
+public let NSStreamNetworkServiceTypeVideo: String = "kCFStreamNetworkServiceTypeVideo"
+public let NSStreamNetworkServiceTypeBackground: String = "kCFStreamNetworkServiceTypeBackground"
+public let NSStreamNetworkServiceTypeVoice: String = "kCFStreamNetworkServiceTypeVoice"
 

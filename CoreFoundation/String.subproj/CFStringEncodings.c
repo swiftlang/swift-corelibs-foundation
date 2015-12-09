@@ -488,7 +488,7 @@ memoryErrorExit:	// Added for <rdar://problem/6581621>, but it's not clear wheth
    Note: This function is intended to work through CFString functions, so it should work
    with NSStrings as well as CFStrings.
 */
-CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding, char lossByte, uint8_t *buffer, CFIndex max, CFIndex *usedBufLen) {
+CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding, uint8_t lossByte, uint8_t *buffer, CFIndex max, CFIndex *usedBufLen) {
     CFIndex totalBytesWritten = 0;	/* Number of written bytes */
     CFIndex numCharsProcessed = 0;	/* Number of processed chars */
     const UniChar *unichars;

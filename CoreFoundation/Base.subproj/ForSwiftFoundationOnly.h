@@ -15,6 +15,7 @@
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFLocaleInternal.h>
 #include <CoreFoundation/CFCalendar.h>
+#include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/CFXMLInterface.h>
 #include <fts.h>
 
@@ -101,6 +102,7 @@ struct _NSStringBridge {
     const char *_Nullable (*_Nonnull _fastCStringContents)(CFTypeRef str);
     const UniChar *_Nullable (*_Nonnull _fastCharacterContents)(CFTypeRef str);
     bool (*_getCString)(CFTypeRef str, char *buffer, size_t len, UInt32 encoding);
+    bool (*_encodingCantBeStoredInEightBitCFString)(CFTypeRef str);
 };
 
 struct _NSMutableStringBridge {
@@ -190,6 +192,9 @@ struct _CFSwiftBridge {
 
 __attribute__((__visibility__("hidden"))) extern struct _CFSwiftBridge __CFSwiftBridge;
 
+
+CF_EXPORT CFStringEncoding __CFDefaultEightBitStringEncoding;
+
 extern void _CFRuntimeBridgeTypeToClass(CFTypeID type, const void *isa);
 
 extern void _CFNumberInitBool(CFNumberRef result, Boolean value);
@@ -255,6 +260,9 @@ extern int _CFOpenFileWithMode(const char *path, int opts, mode_t mode);
 extern int _CFOpenFile(const char *path, int opts);
 extern void *_CFReallocf(void *ptr, size_t size);
 
+CFHashCode CFStringHashNSString(CFStringRef str);
+
+extern CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding, uint8_t lossByte,  UInt8 * _Nullable buffer, CFIndex max, CFIndex * _Nullable usedBufLen);
 
 typedef	unsigned char __cf_uuid[16];
 typedef	char __cf_uuid_string[37];
