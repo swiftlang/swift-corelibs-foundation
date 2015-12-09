@@ -106,8 +106,6 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         if copy {
             _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, false)
             deallocHandler = nil
-
-            deallocator?(bytes, length)
         } else {
             _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
         }
@@ -194,7 +192,7 @@ extension NSData {
     }
     
     public convenience init(bytesNoCopy bytes: UnsafeMutablePointer<Void>, length: Int, freeWhenDone b: Bool) {
-        self.init(bytes: bytes, length: length, copy: true) { buffer, length in
+        self.init(bytes: bytes, length: length, copy: false) { buffer, length in
             if b {
                 free(buffer)
             }
