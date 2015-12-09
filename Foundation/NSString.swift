@@ -610,12 +610,7 @@ extension NSString {
     
     public var intValue: Int32 {
         get {
-            var start: Int = 0
-            var result: Int32 = 0
-            _swiftObject.scan(NSCharacterSet.whitespaceCharacterSet(), locationToScanFrom: &start) { (value: Int32) -> Void in
-                result = value
-            }
-            return result
+            return NSScanner(string: _swiftObject).scanInt() ?? 0
         }
     }
     
