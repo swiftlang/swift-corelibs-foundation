@@ -38,6 +38,7 @@ class TestNSString : XCTestCase {
             ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
+            ("test_commonPrefixWithString", test_commonPrefixWithString ),
         ]
     }
 
@@ -199,5 +200,33 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(string.rangeOfCharacterFromSet(decimalDigits).location, 0)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [.BackwardsSearch]).location, 2)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [], range: NSMakeRange(2, 1)).location, 2)
+    }
+
+    func test_commonPrefixWithString() {
+        let str1: NSString = ""
+        XCTAssertEqual(str1.commonPrefixWithString("", options: NSStringCompareOptions()), "")
+        XCTAssertEqual(str1.commonPrefixWithString("DEF", options: NSStringCompareOptions()), "")
+
+        let str2: NSString = "123ABC"
+        XCTAssertEqual(str2.commonPrefixWithString("DEF123ABCDEF", options: NSStringCompareOptions()), "")
+        XCTAssertEqual(str2.commonPrefixWithString("DEF123ABC", options: NSStringCompareOptions()), "")
+        XCTAssertEqual(str2.commonPrefixWithString("123ABCDEF", options: NSStringCompareOptions()), "123ABC")
+        XCTAssertEqual(str2.commonPrefixWithString("123ABC", options: NSStringCompareOptions()), "123ABC")
+        XCTAssertEqual(str2.commonPrefixWithString("123DEF", options: NSStringCompareOptions()), "123")
+        XCTAssertEqual(str2.commonPrefixWithString("123", options: NSStringCompareOptions()), "123")
+        XCTAssertEqual(str2.commonPrefixWithString("DEF", options: NSStringCompareOptions()), "")
+        XCTAssertEqual(str2.commonPrefixWithString("1", options: NSStringCompareOptions()), "1")
+        XCTAssertEqual(str2.commonPrefixWithString("", options: NSStringCompareOptions()), "")
+
+        let str3: NSString = "❤️🖖"
+        XCTAssertEqual(str3.commonPrefixWithString("❤️", options: NSStringCompareOptions()), "❤️")
+
+        let str4: NSString = "xXYXx"
+        XCTAssertNotEqual(str4.commonPrefixWithString("xxy", options: NSStringCompareOptions()), "xXY")
+        XCTAssertEqual(str4.commonPrefixWithString("xxy", options: [.CaseInsensitiveSearch]), "xXY")
+
+        let str5: NSString = "Ma\u{0308}dchen"
+        XCTAssertEqual(str5.commonPrefixWithString("Mädchenschule", options: [.LiteralSearch]), "M")
+        XCTAssertEqual(str5.commonPrefixWithString("Mädchenschule", options: NSStringCompareOptions()), "Ma\u{0308}dchen")
     }
 }
