@@ -76,42 +76,30 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
     // Transforming points and sizes
     public func transformPoint(aPoint: NSPoint) -> NSPoint {
-        let matrix = transformStruct.matrix3x3
-        let vector = Vector3(aPoint.x, aPoint.y, CGFloat(1.0))
-        let resultVector = multiplyMatrix3x3(matrix, byVector3: vector)
-        return NSMakePoint(resultVector.m1, resultVector.m2)
+        /**
+         [ x' ]     [ x ]   [ m11  m12  tX ] [ x ]   [ m11*x + m12*y + tX ]
+         [ y' ] = T [ y ] = [ m21  m22  tY ] [ y ] = [ m21*x + m22*y + tY ]
+         [  1 ]     [ 1 ]   [  0    0    1 ] [ 1 ]   [           1        ]
+         */
+        let x = transformStruct.m11*aPoint.x + transformStruct.m12*aPoint.y + transformStruct.tX
+        let y = transformStruct.m21*aPoint.x + transformStruct.m22*aPoint.y + transformStruct.tY
+        
+        return NSPoint(x: x, y: y)
     }
 
     public func transformSize(aSize: NSSize) -> NSSize {
-        let matrix = transformStruct.matrix3x3
-        let vector = Vector3(aSize.width, aSize.height, CGFloat(1.0))
-        let resultVector = multiplyMatrix3x3(matrix, byVector3: vector)
-        return NSMakeSize(resultVector.m1, resultVector.m2)
+        /**
+         [ w' ]     [ w ]   [ m11  m12  tX ] [ w ]   [ m11*w + m12*h ]
+         [ h' ] = T [ h ] = [ m21  m22  tY ] [ h ] = [ m21*w + m22*h ]
+         [  0 ]     [ 0 ]   [  0    0    1 ] [ 1 ]   [       0       ]
+         NOTE: Translation has no effect on sizes.
+         */
+        let w = transformStruct.m11*aSize.width + transformStruct.m12*aSize.height
+        let h = transformStruct.m21*aSize.width + transformStruct.m22*aSize.height
+        
+        return NSSize(width: w, height: h)
     }
 
     // Transform Struct
     public var transformStruct: NSAffineTransformStruct
-}
-
-// Private helper functions and structures for linear algebra operations.
-private typealias Vector3 = (m1: CGFloat, m2: CGFloat, m3: CGFloat)
-private typealias Matrix3x3 =
-    (m11: CGFloat, m12: CGFloat, m13: CGFloat,
-     m21: CGFloat, m22: CGFloat, m23: CGFloat,
-     m31: CGFloat, m32: CGFloat, m33: CGFloat)
-
-private func multiplyMatrix3x3(matrix: Matrix3x3, byVector3 vector: Vector3) -> Vector3 {
-    let x = matrix.m11 * vector.m1 + matrix.m12 * vector.m2 + matrix.m13 * vector.m3
-    let y = matrix.m21 * vector.m1 + matrix.m22 * vector.m2 + matrix.m23 * vector.m3
-    let z = matrix.m31 * vector.m1 + matrix.m32 * vector.m2 + matrix.m33 * vector.m3
-
-    return Vector3(x, y, z)
-}
-
-private extension NSAffineTransformStruct {
-    var matrix3x3: Matrix3x3 {
-        return Matrix3x3(m11, m12, tX,
-                         m21, m22, tY,
-                         CGFloat(), CGFloat(), CGFloat())
-    }
 }
