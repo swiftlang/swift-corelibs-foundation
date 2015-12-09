@@ -45,5 +45,6 @@ XCTMain([
     TestNSGeometry(),
     TestNSUUID(),
     TestNSURLResponse(),
+    TestNSNotificationCenter(),
 ])
 
