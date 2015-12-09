@@ -43,7 +43,11 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     // Initialization
-    public convenience init(transform: NSAffineTransform) { NSUnimplemented() }
+    public convenience init(transform: NSAffineTransform) {
+        self.init()
+        transformStruct = transform.transformStruct
+    }
+    
     public override init() {
         transformStruct = NSAffineTransformStruct(m11: CGFloat(1.0), m12: CGFloat(), m21: CGFloat(), m22: CGFloat(1.0), tX: CGFloat(), tY: CGFloat())
     }
