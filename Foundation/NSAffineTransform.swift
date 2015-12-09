@@ -44,7 +44,14 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     // Translating
-    public func translateXBy(deltaX: CGFloat, yBy deltaY: CGFloat) { NSUnimplemented() }
+    public func translateXBy(deltaX: CGFloat, yBy deltaY: CGFloat) {
+        let matrix = transformStruct.matrix3x3
+        let translationMatrix = Matrix3x3(CGFloat(1.0), CGFloat(),    deltaX,
+                                          CGFloat(),    CGFloat(1.0), deltaY,
+                                          CGFloat(),    CGFloat(),    CGFloat(1.0))
+        let product = multiplyMatrix3x3(matrix, byMatrix3x3: translationMatrix)
+        transformStruct = NSAffineTransformStruct(matrix: product)
+    }
     
     // Rotating
     public func rotateByDegrees(angle: CGFloat) { NSUnimplemented() }
@@ -95,7 +102,28 @@ private func multiplyMatrix3x3(matrix: Matrix3x3, byVector3 vector: Vector3) -> 
     return Vector3(x, y, z)
 }
 
+private func multiplyMatrix3x3(matrix: Matrix3x3, byMatrix3x3 otherMatrix: Matrix3x3) -> Matrix3x3 {
+    let column1 = Vector3(otherMatrix.m11, otherMatrix.m21, otherMatrix.m31)
+    let newColumn1 = multiplyMatrix3x3(matrix, byVector3: column1)
+
+    let column2 = Vector3(otherMatrix.m12, otherMatrix.m22, otherMatrix.m32)
+    let newColumn2 = multiplyMatrix3x3(matrix, byVector3: column2)
+
+    let column3 = Vector3(otherMatrix.m13, otherMatrix.m23, otherMatrix.m33)
+    let newColumn3 = multiplyMatrix3x3(matrix, byVector3: column3)
+
+    return Matrix3x3(newColumn1.m1, newColumn2.m1, newColumn3.m1,
+                     newColumn1.m2, newColumn2.m2, newColumn3.m2,
+                     newColumn1.m3, newColumn2.m3, newColumn3.m3)
+}
+
 private extension NSAffineTransformStruct {
+    init(matrix: Matrix3x3) {
+        self.init(m11: matrix.m11, m12: matrix.m12,
+                  m21: matrix.m21, m22: matrix.m22,
+                   tX: matrix.m13,  tY: matrix.m23)
+    }
+
     var matrix3x3: Matrix3x3 {
         return Matrix3x3(m11, m12, tX,
                          m21, m22, tY,

@@ -29,7 +29,9 @@ class TestNSAffineTransform : XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
-            ("test_IdentityTransformation", test_IdentityTransformation)
+            ("test_IdentityTransformation", test_IdentityTransformation),
+            ("test_Translation", test_Translation),
+            ("test_TranslationComposed", test_TranslationComposed)
         ]
     }
 
@@ -52,9 +54,7 @@ class TestNSAffineTransform : XCTestCase {
         let identityTransform = NSAffineTransform()
 
         func checkIdentityPointTransformation(point: NSPoint) {
-            let newPoint = identityTransform.transformPoint(point)
-            XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(point.x), accuracy: accuracyThreshold)
-            XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(point.y), accuracy: accuracyThreshold)
+            checkPointTransformation(identityTransform, point: point, expectedPoint: point)
         }
 
         checkIdentityPointTransformation(NSPoint())
@@ -70,5 +70,28 @@ class TestNSAffineTransform : XCTestCase {
         checkIdentitySizeTransformation(NSSize())
         checkIdentitySizeTransformation(NSMakeSize(CGFloat(13.0), CGFloat(12.5)))
         checkIdentitySizeTransformation(NSMakeSize(CGFloat(100.0), CGFloat(-100.0)))
+    }
+
+    private func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint) {
+        let newPoint = transform.transformPoint(point)
+        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold)
+        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold)
+    }
+
+    func test_Translation() {
+        let xPlus2 = NSAffineTransform()
+        xPlus2.translateXBy(CGFloat(2.0), yBy: CGFloat())
+
+        checkPointTransformation(xPlus2, point: NSMakePoint(CGFloat(22.0), CGFloat(10.0)),
+                                 expectedPoint: NSMakePoint(CGFloat(24.0), CGFloat(10.0)))
+    }
+
+    func test_TranslationComposed() {
+        let xyPlus5 = NSAffineTransform()
+        xyPlus5.translateXBy(CGFloat(2.0), yBy: CGFloat(3.0))
+        xyPlus5.translateXBy(CGFloat(3.0), yBy: CGFloat(2.0))
+
+        checkPointTransformation(xyPlus5, point: NSMakePoint(CGFloat(-2.0), CGFloat(-3.0)),
+                                  expectedPoint: NSMakePoint(CGFloat(3.0), CGFloat(2.0)))
     }
 }
