@@ -26,6 +26,7 @@ class TestNSData: XCTestCase {
             ("test_longDebugDescription", test_longDebugDescription),
             ("test_limitDebugDescription", test_limitDebugDescription),
             ("test_edgeDebugDescription", test_edgeDebugDescription),
+            ("test_edgeNoCopyDescription", test_edgeNoCopyDescription),
         ]
     }
     
