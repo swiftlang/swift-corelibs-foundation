@@ -46,5 +46,6 @@ XCTMain([
     TestNSUUID(),
     TestNSByteCountFormatter(),
     TestNSURLResponse(),
+    TestNSNotificationCenter(),
 ])
 
