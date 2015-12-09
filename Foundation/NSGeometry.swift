@@ -45,7 +45,7 @@ public func +(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
     return CGFloat(lhs.native + rhs.native)
 }
 
-@_transparent extension Double {
+extension Double {
     public init(_ value: CGFloat) {
         self = Double(value.native)
     }
