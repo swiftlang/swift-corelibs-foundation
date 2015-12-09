@@ -58,8 +58,18 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     public func rotateByRadians(angle: CGFloat) { NSUnimplemented() }
     
     // Scaling
-    public func scaleBy(scale: CGFloat) { NSUnimplemented() }
-    public func scaleXBy(scaleX: CGFloat, yBy scaleY: CGFloat) { NSUnimplemented() }
+    public func scaleBy(scale: CGFloat) {
+        scaleXBy(scale, yBy: scale)
+    }
+    
+    public func scaleXBy(scaleX: CGFloat, yBy scaleY: CGFloat) {
+        let matrix = transformStruct.matrix3x3
+        let scaleMatrix = Matrix3x3(scaleX,    CGFloat(), CGFloat(),
+                                    CGFloat(), scaleY,    CGFloat(),
+                                    CGFloat(), CGFloat(), CGFloat(1.0))
+        let product = multiplyMatrix3x3(matrix, byMatrix3x3: scaleMatrix)
+        transformStruct = NSAffineTransformStruct(matrix: product)
+    }
     
     // Inverting
     public func invert() { NSUnimplemented() }
