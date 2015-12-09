@@ -33,7 +33,8 @@ class TestNSAffineTransform : XCTestCase {
             ("test_Translation", test_Translation),
             ("test_Scale", test_Scale),
             ("test_Rotation_Degrees", test_Rotation_Degrees),
-            ("test_Rotation_Radians", test_Rotation_Radians)
+            ("test_Rotation_Radians", test_Rotation_Radians),
+            ("test_Inversion", test_Inversion)
         ]
     }
 
@@ -142,6 +143,38 @@ class TestNSAffineTransform : XCTestCase {
         let reflectAboutOrigin = NSAffineTransform()
         reflectAboutOrigin.rotateByRadians(CGFloat(M_PI))
         checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
+    }
+    
+    func test_Inversion() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let translate = NSAffineTransform()
+        translate.translateXBy(CGFloat(-30.0), yBy: CGFloat(40.0))
+        
+        let rotate = NSAffineTransform()
+        translate.rotateByDegrees(CGFloat(30.0))
+        
+        let scale = NSAffineTransform()
+        scale.scaleBy(CGFloat(2.0))
+        
+        let identityTransform = NSAffineTransform()
+        
+        // append transformations
+        identityTransform.appendTransform(translate)
+        identityTransform.appendTransform(rotate)
+        identityTransform.appendTransform(scale)
+        
+        // invert transformations
+        scale.invert()
+        rotate.invert()
+        translate.invert()
+        
+        // append inverse transformations in reverse order
+        identityTransform.appendTransform(scale)
+        identityTransform.appendTransform(rotate)
+        identityTransform.appendTransform(translate)
+        
+        checkPointTransformation(identityTransform, point: point, expectedPoint: point)
     }
 }
 

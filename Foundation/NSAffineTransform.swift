@@ -96,7 +96,14 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     // Inverting
-    public func invert() { NSUnimplemented() }
+    public func invert() {
+        if let inverse = transformStruct.inverse {
+            transformStruct = inverse
+        }
+        else {
+            preconditionFailure("NSAffineTransform: Transform has no inverse")
+        }
+    }
     
     // Transforming with transform
     public func appendTransform(transform: NSAffineTransform) {
@@ -240,6 +247,45 @@ private extension NSAffineTransformStruct {
         let h = (m21 * s.width) + (m22 * s.height)
         
         return NSSize(width: w, height: h)
+    }
+    
+    
+    /**
+     Returns the inverse affine transformation matrix or `nil` if it has no inverse.
+     The receiver's affine transformation matrix can be divided into matrix sub-block as
+       [ M  t ]
+       [ 0  1 ]
+     where `M` represents the linear map and `t` the translation vector.
+     
+     The inversion can then be calculated as
+       [ inv(M)  -inv(M) * t ]
+       [   0           1     ]
+     if `M` is invertible.
+     */
+    var inverse: NSAffineTransformStruct? {
+        get {
+            // Calculate determinant of M: det(M)
+            let det = (m11 * m22) - (m12 * m21)
+            if det == CGFloat() {
+                return nil
+            }
+
+            let detReciprocal = CGFloat(1.0) / det
+            
+            // Calculate the inverse of M: inv(M)
+            let (invM11, invM12) = (detReciprocal *  m22, detReciprocal * -m12)
+            let (invM21, invM22) = (detReciprocal * -m21, detReciprocal *  m11)
+            
+            // Calculate -inv(M)*t
+            let invTX = ((-invM11 * tX) + (-invM12 * tY))
+            let invTY = ((-invM21 * tX) + (-invM22 * tY))
+            
+            return NSAffineTransformStruct(
+                m11: invM11, m12: invM12,
+                m21: invM21, m22: invM22,
+                tX: invTX, tY: invTY
+            )
+        }
     }
 }
 
