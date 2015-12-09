@@ -38,8 +38,8 @@ class TestNSData: XCTestCase {
             let fileManager = NSFileManager.defaultManager()
             XCTAssertTrue(fileManager.fileExistsAtPath(savePath))
             try! fileManager.removeItemAtPath(savePath)
-        } catch let error {
-            XCTFail((error as! NSError).localizedDescription)
+        } catch _ {
+            XCTFail()
         }
     }
 
