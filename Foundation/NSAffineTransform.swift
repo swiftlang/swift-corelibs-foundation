@@ -75,26 +75,30 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
     // Transforming points and sizes
     public func transformPoint(aPoint: NSPoint) -> NSPoint {
+        let (t, p) = (transformStruct, aPoint)
+        
         /**
          [ x' ]     [ x ]   [ m11  m12  tX ] [ x ]   [ m11*x + m12*y + tX ]
          [ y' ] = T [ y ] = [ m21  m22  tY ] [ y ] = [ m21*x + m22*y + tY ]
          [  1 ]     [ 1 ]   [  0    0    1 ] [ 1 ]   [           1        ]
          */
-        let x = transformStruct.m11*aPoint.x + transformStruct.m12*aPoint.y + transformStruct.tX
-        let y = transformStruct.m21*aPoint.x + transformStruct.m22*aPoint.y + transformStruct.tY
+        let x = (t.m11 * p.x) + (t.m12 * p.y) + t.tX
+        let y = (t.m21 * p.x) + (t.m22 * p.y) + t.tY
         
         return NSPoint(x: x, y: y)
     }
 
     public func transformSize(aSize: NSSize) -> NSSize {
+        let (t, s) = (transformStruct, aSize)
+        
         /**
          [ w' ]     [ w ]   [ m11  m12  tX ] [ w ]   [ m11*w + m12*h ]
          [ h' ] = T [ h ] = [ m21  m22  tY ] [ h ] = [ m21*w + m22*h ]
          [  0 ]     [ 0 ]   [  0    0    1 ] [ 1 ]   [       0       ]
          NOTE: Translation has no effect on sizes.
          */
-        let w = transformStruct.m11*aSize.width + transformStruct.m12*aSize.height
-        let h = transformStruct.m21*aSize.width + transformStruct.m22*aSize.height
+        let w = (t.m11 * s.width) + (t.m12 * s.height)
+        let h = (t.m21 * s.width) + (t.m22 * s.height)
         
         return NSSize(width: w, height: h)
     }
