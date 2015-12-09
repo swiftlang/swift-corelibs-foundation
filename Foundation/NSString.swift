@@ -270,7 +270,7 @@ extension NSString {
     }
     
     public func compare(string: String, options mask: NSStringCompareOptions, range compareRange: NSRange) -> NSComparisonResult {
-        return compare(string, options: [], range:compareRange, locale: nil)
+        return compare(string, options: mask, range:compareRange, locale: nil)
     }
     
     public func compare(string: String, options mask: NSStringCompareOptions, range compareRange: NSRange, locale: AnyObject?) -> NSComparisonResult {
