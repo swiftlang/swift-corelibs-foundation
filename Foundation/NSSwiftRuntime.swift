@@ -199,44 +199,15 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSXMLParser.externalSubset = _NSXMLParserExternalSubset
 }
 
-#if os(Linux)
-/// This is ripped from the standard library; technically it should be
-/// split out into two protocols. _ObjectiveCBridgeable causes extra thunks
-/// to be emitted during subclassing to properly convert to objc bridgable
-/// types; however this is being overloaded for it's meaning to be used as
-/// a conversion point between struct types such as String and Dictionary
-/// to object types such as NSDictionary; which in this case is a Swift class
-/// type. So ideally the standard library should provide a _ImplicitConvertable
-/// protocol which _ObjectiveCBridgeable derives from so that the classes that
-/// adopt _ObjectiveCBridgeable get the subclassing thunk behavior and the
-/// classes that adopt _ImplicitConvertable just get the implicit conversion
-/// behavior and avoid the thunk generation.
-public protocol _ObjectiveCBridgeable {
-    typealias _ObjectiveCType : AnyObject
+public protocol _ObjectTypeBridgeable {
+    typealias _ObjectType : AnyObject
     
-    /// Return true iff instances of `Self` can be converted to
-    /// Objective-C.  Even if this method returns `true`, A given
-    /// instance of `Self._ObjectiveCType` may, or may not, convert
-    /// successfully to `Self`; for example, an `NSArray` will only
-    /// convert successfully to `[String]` if it contains only
-    /// `NSString`s.
+    /// Convert `self` to an Object type
     @warn_unused_result
-    static func _isBridgedToObjectiveC() -> Bool
+    func _bridgeToObject() -> _ObjectType
     
-    // _getObjectiveCType is a workaround: right now protocol witness
-    // tables don't include associated types, so we can not find
-    // '_ObjectiveCType.self' from them.
-    
-    /// Must return `_ObjectiveCType.self`.
-    @warn_unused_result
-    static func _getObjectiveCType() -> Any.Type
-    
-    /// Convert `self` to Objective-C.
-    @warn_unused_result
-    func _bridgeToObjectiveC() -> _ObjectiveCType
-    
-    /// Bridge from an Objective-C object of the bridged class type to a
-    /// value of the Self type.
+    /// Bridge from an object of the bridged class type to a value of 
+    /// the Self type.
     ///
     /// This bridging operation is used for forced downcasting (e.g.,
     /// via as), and may defer complete checking until later. For
@@ -245,13 +216,13 @@ public protocol _ObjectiveCBridgeable {
     ///
     /// - parameter result: The location where the result is written. The optional
     ///   will always contain a value.
-    static func _forceBridgeFromObjectiveC(
-        source: _ObjectiveCType,
+    static func _forceBridgeFromObject(
+        source: _ObjectType,
         inout result: Self?
     )
     
-    /// Try to bridge from an Objective-C object of the bridged class
-    /// type to a value of the Self type.
+    /// Try to bridge from an object of the bridged class type to a value of 
+    /// the Self type.
     ///
     /// This conditional bridging operation is used for conditional
     /// downcasting (e.g., via as?) and therefore must perform a
@@ -264,12 +235,11 @@ public protocol _ObjectiveCBridgeable {
     ///   information is provided for the convenience of the runtime's `dynamic_cast`
     ///   implementation, so that it need not look into the optional representation
     ///   to determine success.
-    static func _conditionallyBridgeFromObjectiveC(
-        source: _ObjectiveCType,
+    static func _conditionallyBridgeFromObject(
+        source: _ObjectType,
         inout result: Self?
-        ) -> Bool
+    ) -> Bool
 }
-#endif
 
 protocol _NSObjectRepresentable {
     func _nsObjectRepresentation() -> NSObject
@@ -288,34 +258,32 @@ internal func _NSObjectRepresentableBridge(value: Any) -> NSObject {
 
 extension Array : _NSObjectRepresentable {
     func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObjectiveC()
+        return _bridgeToObject()
     }
 }
 
 extension Dictionary : _NSObjectRepresentable {
     func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObjectiveC()
+        return _bridgeToObject()
     }
 }
 
 
 extension String : _NSObjectRepresentable {
     func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObjectiveC()
+        return _bridgeToObject()
     }
 }
 
 extension Set : _NSObjectRepresentable {
     func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObjectiveC()
+        return _bridgeToObject()
     }
 }
 
-#if os(Linux)
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
     return unsafeBitCast(lhs, UnsafePointer<Void>.self) == unsafeBitCast(rhs, UnsafePointer<Void>.self)
 }
-#endif
 
 /// Swift extensions for common operations in Foundation that use unsafe things...
 

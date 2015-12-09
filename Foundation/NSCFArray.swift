@@ -53,7 +53,7 @@ internal func _CFSwiftArrayGetValueAtIndex(array: AnyObject, _ index: CFIndex) -
 }
 
 internal func _CFSwiftArrayGetValues(array: AnyObject, _ range: CFRange, _ values: UnsafeMutablePointer<Unmanaged<AnyObject>?>) {
-    for var idx = 0; idx < range.length; idx++ {
+    for idx in 0..<range.length {
         let obj = (array as! NSArray).objectAtIndex(idx + range.location)
         values[idx] = Unmanaged.passUnretained(obj)
     }

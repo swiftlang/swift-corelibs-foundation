@@ -19,6 +19,7 @@
 #include <fts.h>
 
 CF_ASSUME_NONNULL_BEGIN
+CF_IMPLICIT_BRIDGING_ENABLED
 
 struct __CFSwiftObject {
     uintptr_t isa;
@@ -209,6 +210,7 @@ extern void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CFStringRef
 extern Boolean _CFURLInitWithURLString(CFURLRef url, CFStringRef string, Boolean checkForLegalCharacters, _Nullable CFURLRef baseURL);
 extern Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding, _Nullable CFURLRef baseURL);
 
+extern CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length);
 extern CFIndex __CFProcessorCount();
 extern uint64_t __CFMemorySize();
 extern CFIndex __CFActiveProcessorCount();
@@ -271,6 +273,7 @@ extern void _cf_uuid_unparse(const _cf_uuid_t uu, _cf_uuid_string_t out);
 extern void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out);
 extern void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
 
+CF_IMPLICIT_BRIDGING_DISABLED
 CF_ASSUME_NONNULL_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */

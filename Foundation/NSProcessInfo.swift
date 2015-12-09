@@ -46,7 +46,7 @@ public class NSProcessInfo : NSObject {
     
     
     internal static var _environment: [String : String] = {
-        let dict = __CFGetEnvironment().takeUnretainedValue()._nsObject
+        let dict = __CFGetEnvironment()._nsObject
         var env = [String : String]()
         dict.enumerateKeysAndObjectsUsingBlock { key, value, stop in
             env[(key as! NSString)._swiftObject] = (value as! NSString)._swiftObject
@@ -96,7 +96,7 @@ public class NSProcessInfo : NSObject {
 
     public var operatingSystemVersionString: String {
         get {
-            return CFCopySystemVersionString().takeRetainedValue()._swiftObject
+            return CFCopySystemVersionString()._swiftObject
         }
     }
     
