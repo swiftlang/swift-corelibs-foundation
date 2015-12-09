@@ -33,7 +33,11 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
         NSUnimplemented()
     }
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        return NSAffineTransform(transform: self)
+    }
+    // Necessary because `NSObject.copy()` returns `self`.
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
     }
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
