@@ -16,6 +16,7 @@ import SwiftFoundation
 import SwiftXCTest
 #endif
 
+import CoreFoundation
 
 class TestNSString : XCTestCase {
     
@@ -42,6 +43,7 @@ class TestNSString : XCTestCase {
             ("test_capitalizedString", test_capitalizedString ),
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
+            ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
         ]
     }
 
@@ -243,5 +245,12 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(string.rangeOfCharacterFromSet(decimalDigits).location, 0)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [.BackwardsSearch]).location, 2)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [], range: NSMakeRange(2, 1)).location, 2)
+    }
+    
+    func test_CFStringCreateMutableCopy() {
+        let nsstring: NSString = "абВГ"
+        let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, CFStringRef.self))
+        let str = unsafeBitCast(mCopy, NSString.self).bridge()
+        XCTAssertEqual(nsstring.bridge(), str)
     }
 }
