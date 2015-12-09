@@ -215,7 +215,10 @@ extension NSData {
         if fd < 0 {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
-        
+        defer {
+            close(fd)
+        }
+
         var info = stat()
         let ret = withUnsafeMutablePointer(&info) { infoPointer -> Bool in
             if fstat(fd, infoPointer) < 0 {
@@ -225,7 +228,6 @@ extension NSData {
         }
         
         if !ret {
-            close(fd)
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
         
@@ -236,7 +238,6 @@ extension NSData {
             
             // Swift does not currently expose MAP_FAILURE
             if data != UnsafeMutablePointer<Void>(bitPattern: -1) {
-                close(fd)
                 return NSDataReadResult(bytes: data, length: length) { buffer, length in
                     munmap(data, length)
                 }
@@ -255,8 +256,8 @@ extension NSData {
             remaining -= amt
             total += amt
         }
+
         if remaining != 0 {
-            close(fd)
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
         
