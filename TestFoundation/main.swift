@@ -8,11 +8,11 @@
 //
 
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
+    import Foundation
+    import XCTest
 #else
-import SwiftFoundation
-import SwiftXCTest
+    import SwiftFoundation
+    import SwiftXCTest
 #endif
 
 internal func testBundle() -> NSBundle {
@@ -21,33 +21,31 @@ internal func testBundle() -> NSBundle {
 
 // For the Swift version of the Foundation tests, we must manually list all test cases here.
 XCTMain([
-    TestNSString(),
     TestNSAffineTransform(),
     TestNSArray(),
+    TestNSByteCountFormatter(),
     TestNSCalendar(),
+    TestNSCharacterSet(),
+    TestNSData(),
+    TestNSDate(),
     TestNSDictionary(),
-    TestNSSet(),
+    TestNSFileManger(),
+    TestNSGeometry(),
+    TestNSHTTPCookie(),
+    TestNSIndexSet(),
+    TestNSJSONSerialization(),
+    TestNSNotificationCenter(),
     TestNSNumber(),
     TestNSPipe(),
     TestNSPropertyList(),
-    TestNSURL(),
-    TestNSIndexSet(),
-    TestNSCharacterSet(),
-    TestNSFileManger(),
     TestNSRange(),
-    TestNSXMLParser(),
-    TestNSDate(),
-    TestNSJSONSerialization(),
-    TestNSData(),
-    TestNSTimeZone(),
     TestNSScanner(),
-    TestNSJSONSerialization(),
+    TestNSSet(),
+    TestNSString(),
+    TestNSTimeZone(),
+    TestNSURL(),
     TestNSURLRequest(),
-    TestNSHTTPCookie(),
-    TestNSGeometry(),
-    TestNSUUID(),
-    TestNSByteCountFormatter(),
     TestNSURLResponse(),
-    TestNSNotificationCenter(),
+    TestNSUUID(),
+    TestNSXMLParser(),
 ])
-
