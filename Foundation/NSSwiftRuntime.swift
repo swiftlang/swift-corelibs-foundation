@@ -284,6 +284,36 @@ extension Set : _NSObjectRepresentable {
     }
 }
 
+extension Int : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension UInt : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Float : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Double : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Bool : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
     return unsafeBitCast(lhs, UnsafePointer<Void>.self) == unsafeBitCast(rhs, UnsafePointer<Void>.self)
 }
