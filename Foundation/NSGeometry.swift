@@ -57,6 +57,10 @@ prefix public func -(x: CGFloat) -> CGFloat {
     return CGFloat(-x.native)
 }
 
+public func +=(inout lhs: CGFloat, rhs: CGFloat) {
+    lhs.native = lhs.native + rhs.native
+}
+
 extension Double {
     public init(_ value: CGFloat) {
         self = Double(value.native)
@@ -283,14 +287,63 @@ public func NSInsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
 public func NSIntegralRect(aRect: NSRect) -> NSRect { NSUnimplemented() }
 public func NSIntegralRectWithOptions(aRect: NSRect, _ opts: NSAlignmentOptions) -> NSRect { NSUnimplemented() }
 
-public func NSUnionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect { NSUnimplemented() }
-public func NSIntersectionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect { NSUnimplemented() }
-public func NSOffsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect { NSUnimplemented() }
+public func NSUnionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect {
+    let isEmptyFirstRect = NSIsEmptyRect(aRect)
+    let isEmptySecondRect = NSIsEmptyRect(bRect)
+    if isEmptyFirstRect && isEmptySecondRect {
+        return NSZeroRect
+    } else if isEmptyFirstRect {
+        return bRect
+    } else if isEmptySecondRect {
+        return aRect
+    }
+    let x = min(NSMinX(aRect), NSMinX(bRect))
+    let y = min(NSMinY(aRect), NSMinY(bRect))
+    let width = max(NSMaxX(aRect), NSMaxX(bRect)) - x
+    let height = max(NSMaxY(aRect), NSMaxY(bRect)) - y
+    return NSMakeRect(x, y, width, height)
+}
+
+public func NSIntersectionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect {
+    if NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect) {
+        return NSZeroRect
+    }
+    let x = max(NSMinX(aRect), NSMinX(bRect))
+    let y = max(NSMinY(aRect), NSMinY(bRect))
+    let width = min(NSMaxX(aRect), NSMaxX(bRect)) - x
+    let height = min(NSMaxY(aRect), NSMaxY(bRect)) - y
+    return NSMakeRect(x, y, width, height)
+}
+
+public func NSOffsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
+    var result = aRect
+    result.origin.x += dX
+    result.origin.y += dY
+    return result
+}
+
 public func NSDivideRect(inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, _ rem: UnsafeMutablePointer<NSRect>, _ amount: CGFloat, _ edge: NSRectEdge) { NSUnimplemented() }
-public func NSPointInRect(aPoint: NSPoint, _ aRect: NSRect) -> Bool { NSUnimplemented() }
-public func NSMouseInRect(aPoint: NSPoint, _ aRect: NSRect, _ flipped: Bool) -> Bool { NSUnimplemented() }
-public func NSContainsRect(aRect: NSRect, _ bRect: NSRect) -> Bool { NSUnimplemented() }
-public func NSIntersectsRect(aRect: NSRect, _ bRect: NSRect) -> Bool { NSUnimplemented() }
+
+public func NSPointInRect(aPoint: NSPoint, _ aRect: NSRect) -> Bool {
+    return NSMouseInRect(aPoint, aRect, true)
+}
+
+public func NSMouseInRect(aPoint: NSPoint, _ aRect: NSRect, _ flipped: Bool) -> Bool {
+    if flipped {
+        return aPoint.x >= NSMinX(aRect) && aPoint.y >= NSMinX(aRect) && aPoint.x < NSMaxX(aRect) && aPoint.y < NSMaxY(aRect)
+    }
+    return aPoint.x >= NSMinX(aRect) && aPoint.y > NSMinY(aRect) && aPoint.x < NSMaxX(aRect) && aPoint.y <= NSMaxY(aRect)
+}
+
+public func NSContainsRect(aRect: NSRect, _ bRect: NSRect) -> Bool {
+    return !NSIsEmptyRect(bRect) && NSMaxX(bRect) <= NSMaxX(aRect) && NSMinX(bRect) >= NSMinX(aRect) &&
+        NSMaxY(bRect) <= NSMaxY(aRect) && NSMinY(bRect) >= NSMinY(aRect)
+}
+
+public func NSIntersectsRect(aRect: NSRect, _ bRect: NSRect) -> Bool {
+    return !(NSIsEmptyRect(aRect) || NSIsEmptyRect(bRect) ||
+        NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect))
+}
 
 public func NSStringFromPoint(aPoint: NSPoint) -> String { NSUnimplemented() }
 public func NSStringFromSize(aSize: NSSize) -> String { NSUnimplemented() }
