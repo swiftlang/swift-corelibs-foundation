@@ -53,14 +53,15 @@ public class NSJSONSerialization : NSObject {
     /* Create a Foundation object from JSON data. Set the NSJSONReadingAllowFragments option if the parser should allow top-level objects that are not an NSArray or NSDictionary. Setting the NSJSONReadingMutableContainers option will make the parser generate mutable NSArrays and NSDictionaries. Setting the NSJSONReadingMutableLeaves option will make the parser generate mutable NSString objects. If an error occurs during the parse, then the error parameter will be set and the result will be nil.
        The data must be in one of the 5 supported encodings listed in the JSON specification: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE. The data may or may not have a BOM. The most efficient encoding to use for parsing is UTF-8, so if you have a choice in encoding the data passed to this method, use UTF-8.
      */
-    public class func JSONObjectWithData(data: NSData, options opt: NSJSONReadingOptions) throws -> AnyObject {
+    /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
+    public class func JSONObjectWithData(data: NSData, options opt: NSJSONReadingOptions) throws -> Any {
         
         guard let string = NSString(data: data, encoding: detectEncoding(data)) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
             ])
         }
-        let result = _NSObjectRepresentableBridge(try JSONObjectWithString(string._swiftObject))
+        let result = try JSONObjectWithString(string._swiftObject)
         return result
     }
     

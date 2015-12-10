@@ -9,10 +9,10 @@
 
 
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    @testable import Foundation
+    import Foundation
     import XCTest
 #else
-    @testable import SwiftFoundation
+    import SwiftFoundation
     import SwiftXCTest
 #endif
 
@@ -38,7 +38,7 @@ extension TestNSJSONSerialization {
     func test_JSONObjectWithData_emptyObject() {
         let subject = NSData(bytes: UnsafePointer<Void>([UInt8]([0x7B, 0x7D])), length: 2)
         
-        let object = try! NSJSONSerialization.JSONObjectWithData(subject, options: []) as? NSDictionary
+        let object = try! NSJSONSerialization.JSONObjectWithData(subject, options: []) as? [String:Any]
         XCTAssertEqual(object?.count, 0)
     }
     
@@ -105,9 +105,13 @@ extension TestNSJSONSerialization {
     //MARK: - Object Deserialization
     func test_deserialize_emptyObject() {
         let subject = "{}"
-        
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String: Any]
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let t = try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            let result = t as? [String: Any]
             XCTAssertEqual(result?.count, 0)
         } catch {
             XCTFail("Error thrown: \(error)")
@@ -116,9 +120,12 @@ extension TestNSJSONSerialization {
     
     func test_deserialize_multiStringObject() {
         let subject = "{ \"hello\": \"world\", \"swift\": \"rocks\" }"
-        
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [String: Any]
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [String: Any]
             XCTAssertEqual(result?["hello"] as? String, "world")
             XCTAssertEqual(result?["swift"] as? String, "rocks")
         } catch {
@@ -131,7 +138,11 @@ extension TestNSJSONSerialization {
         let subject = "[]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
             XCTAssertEqual(result?.count, 0)
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -142,7 +153,11 @@ extension TestNSJSONSerialization {
         let subject = "[\"hello\", \"swift⚡️\"]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
             XCTAssertEqual(result?[0] as? String, "hello")
             XCTAssertEqual(result?[1] as? String, "swift⚡️")
         } catch {
@@ -155,7 +170,11 @@ extension TestNSJSONSerialization {
         let subject = "[true, false, \"hello\", null, {}, []]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
             XCTAssertEqual(result?[0] as? Bool, true)
             XCTAssertEqual(result?[1] as? Bool, false)
             XCTAssertEqual(result?[2] as? String, "hello")
@@ -172,7 +191,11 @@ extension TestNSJSONSerialization {
         let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
         
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
             XCTAssertEqual(result?[0] as? Double,     1)
             XCTAssertEqual(result?[1] as? Double,    -1)
             XCTAssertEqual(result?[2] as? Double,   1.3)
@@ -188,7 +211,12 @@ extension TestNSJSONSerialization {
     func test_deserialize_simpleEscapeSequences() {
         let subject = "[\"\\\"\", \"\\\\\", \"\\/\", \"\\b\", \"\\f\", \"\\n\", \"\\r\", \"\\t\"]"
         do {
-            let result = (try NSJSONSerialization.JSONObjectWithString(subject) as? [Any])?.flatMap { $0 as? String }
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let res = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+            let result = res?.flatMap { $0 as? String }
             XCTAssertEqual(result?[0], "\"")
             XCTAssertEqual(result?[1], "\\")
             XCTAssertEqual(result?[2], "/")
@@ -205,7 +233,11 @@ extension TestNSJSONSerialization {
     func test_deserialize_unicodeEscapeSequence() {
         let subject = "[\"\\u2728\"]"
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
             XCTAssertEqual(result?[0] as? String, "✨")
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -215,7 +247,11 @@ extension TestNSJSONSerialization {
     func test_deserialize_unicodeSurrogatePairEscapeSequence() {
         let subject = "[\"\\uD834\\udd1E\"]"
         do {
-            let result = try NSJSONSerialization.JSONObjectWithString(subject) as? [Any]
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
             XCTAssertEqual(result?[0] as? String, "\u{1D11E}")
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -227,7 +263,11 @@ extension TestNSJSONSerialization {
         let subject = "{\"}"
         
         do {
-            try NSJSONSerialization.JSONObjectWithString(subject)
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            try NSJSONSerialization.JSONObjectWithData(data, options: [])
             XCTFail("Expected error: UnterminatedString")
         } catch {
             // Passing case; the object as unterminated
@@ -238,7 +278,11 @@ extension TestNSJSONSerialization {
         let subject = "{3}"
         
         do {
-            try NSJSONSerialization.JSONObjectWithString(subject)
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            try NSJSONSerialization.JSONObjectWithData(data, options: [])
             XCTFail("Expected error: Missing key for value")
         } catch {
             // Passing case; the key was missing for a value
@@ -249,7 +293,11 @@ extension TestNSJSONSerialization {
         let subject = "{"
         
         do {
-            try NSJSONSerialization.JSONObjectWithString(subject)
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            try NSJSONSerialization.JSONObjectWithData(data, options: [])
             XCTFail("Expected error: Unexpected end of file")
         } catch {
             // Success
@@ -260,7 +308,11 @@ extension TestNSJSONSerialization {
         let subject = "{\"error\":}"
         
         do {
-            try NSJSONSerialization.JSONObjectWithString(subject)
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            try NSJSONSerialization.JSONObjectWithData(data, options: [])
             XCTFail("Expected error: Invalid value")
         } catch {
             // Passing case; the value is invalid
@@ -271,7 +323,11 @@ extension TestNSJSONSerialization {
         let subject = "{\"missing\";}"
         
         do {
-            try NSJSONSerialization.JSONObjectWithString(subject)
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            try NSJSONSerialization.JSONObjectWithData(data, options: [])
             XCTFail("Expected error: Invalid value")
         } catch {
             // passing case the value is invalid
@@ -282,7 +338,11 @@ extension TestNSJSONSerialization {
         let subject = "[,"
         
         do {
-            try NSJSONSerialization.JSONObjectWithString(subject)
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            try NSJSONSerialization.JSONObjectWithData(data, options: [])
             XCTFail("Expected error: Invalid value")
         } catch {
             // Passing case; the element in the array is missing
@@ -293,7 +353,11 @@ extension TestNSJSONSerialization {
         let subject = "[2b4]"
         
         do {
-            try NSJSONSerialization.JSONObjectWithString(subject)
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            try NSJSONSerialization.JSONObjectWithData(data, options: [])
             XCTFail("Expected error: Badly formed array")
         } catch {
             // Passing case; the array is malformed
@@ -304,7 +368,11 @@ extension TestNSJSONSerialization {
         let subject = "[\"\\e\"]"
         
         do {
-            try NSJSONSerialization.JSONObjectWithString(subject)
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            try NSJSONSerialization.JSONObjectWithData(data, options: [])
             XCTFail("Expected error: Invalid escape sequence")
         } catch {
             // Passing case; the escape sequence is invalid
@@ -314,7 +382,11 @@ extension TestNSJSONSerialization {
     func test_deserialize_unicodeMissingTrailingSurrogate() {
         let subject = "[\"\\uD834\"]"
         do {
-            try NSJSONSerialization.JSONObjectWithString(subject) as? [String]
+            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [String]
             XCTFail("Expected error: Missing Trailing Surrogate")
         } catch {
             // Passing case; the unicode character is malformed
