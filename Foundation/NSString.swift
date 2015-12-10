@@ -1256,7 +1256,7 @@ extension NSString {
         let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: [])
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to Creates a string from a buffer containing characters in a specified encoding."
+                "NSDebugDescription" : "Unable to create a string using the specified encoding."
                 ])
         }
         var str: String?
