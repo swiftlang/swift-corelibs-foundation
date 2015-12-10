@@ -58,14 +58,17 @@ public struct NSDataBase64DecodingOptions : OptionSetType {
     public static let Anchored = NSDataSearchOptions(rawValue: UInt(1 << 1))
 }
 
+class _NSDataDeallocator {
+    var handler: (UnsafeMutablePointer<Void>, Int) -> Void = {_,_ in }
+}
+
 public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     private static let DeallocationSentry = UInt32(0xB5A5A5AB) // this is a slightly sub-par solution, however we cannot caputre self in the block for deallocation but we need a way of passing the bytes (in case of realloc) to the block and a way of then disambiguating between CFAllocators and dealloc handlers
     typealias CFType = CFDataRef
     private var _base = _CFInfo(typeID: CFDataGetTypeID(), extra: NSData.DeallocationSentry)
     private var _length: CFIndex = 0
     private var _capacity: CFIndex = 0
-    private typealias _NSDataDeallocator = (UnsafeMutablePointer<Void>, Int) -> Void
-    private var _deallocHandler: _NSDataDeallocator?
+    private var _deallocHandler = _NSDataDeallocator()
     private var _bytes: UnsafeMutablePointer<UInt8> = nil
     
     internal var _cfObject: CFType {
@@ -84,15 +87,15 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     deinit {
         if _base.pad == NSData.DeallocationSentry && _bytes != nil {
-            if let handler = _deallocHandler {
-                handler(_bytes, _length)
-            }
+            _deallocHandler.handler(_bytes, _length)
         }
         _CFDeinit(self)
     }
     
     internal init(bytes: UnsafeMutablePointer<Void>, length: Int, copy: Bool, deallocator: ((UnsafeMutablePointer<Void>, Int) -> Void)?) {
-        _deallocHandler = deallocator
+        if let handler = deallocator {
+            _deallocHandler.handler = handler
+        }
         
         super.init()
         let options : CFOptionFlags = (self.dynamicType == NSMutableData.self) ? 0x1 | 0x2 : 0x0
