@@ -233,12 +233,12 @@ private struct JSONDeserializer {
             return view.startIndex.distanceTo(index)
         }
     }
-    
+
     static let whitespaceScalars = [
-        UnicodeScalar(0x20), // Space
         UnicodeScalar(0x09), // Horizontal tab
         UnicodeScalar(0x0A), // Line feed or New line
-        UnicodeScalar(0x0D)  // Carriage return
+        UnicodeScalar(0x0D), // Carriage return
+        UnicodeScalar(0x20), // Space
     ]
 
     static func consumeWhitespace(parser: UnicodeParser) -> UnicodeParser {
@@ -421,6 +421,8 @@ private struct JSONDeserializer {
     
     //MARK: - Number parsing
     static let numberScalars = [
+        UnicodeScalar(0x2B), // +
+        UnicodeScalar(0x2D), // -
         UnicodeScalar(0x2E), // .
         UnicodeScalar(0x30), // 0
         UnicodeScalar(0x31), // 1
@@ -432,10 +434,8 @@ private struct JSONDeserializer {
         UnicodeScalar(0x37), // 7
         UnicodeScalar(0x38), // 8
         UnicodeScalar(0x39), // 9
-        UnicodeScalar(0x65), // e
         UnicodeScalar(0x45), // E
-        UnicodeScalar(0x2B), // +
-        UnicodeScalar(0x2D), // -
+        UnicodeScalar(0x65), // e
     ]
     static func parseNumber(input: UnicodeParser) throws -> (Double, UnicodeParser)? {
         let view = input.view
