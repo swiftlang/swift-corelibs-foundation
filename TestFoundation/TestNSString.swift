@@ -229,6 +229,7 @@ class TestNSString : XCTestCase {
 
     func test_uppercaseString() {
         XCTAssertEqual(NSString(stringLiteral: "abcd").uppercaseString, "ABCD")
+        XCTAssertEqual(NSString(stringLiteral: "ａｂｃｄ").uppercaseString, "ＡＢＣＤ") // full-width
         XCTAssertEqual(NSString(stringLiteral: "абВГ").uppercaseString, "АБВГ")
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercaseString, "たちつてと")
 
@@ -242,6 +243,7 @@ class TestNSString : XCTestCase {
 
     func test_lowercaseString() {
         XCTAssertEqual(NSString(stringLiteral: "abCD").lowercaseString, "abcd")
+        XCTAssertEqual(NSString(stringLiteral: "ＡＢＣＤ").lowercaseString, "ａｂｃｄ") // full-width
         XCTAssertEqual(NSString(stringLiteral: "aБВГ").lowercaseString, "aбвг")
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercaseString, "たちつてと")
 
