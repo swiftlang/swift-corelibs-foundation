@@ -48,7 +48,7 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     * `NSPropertyList` is mostly implemented.
     * `NSCoder` and `NSKeyedArchiver` are mostly not yet implemented (a few funnel methods are implemented).
-    * `NSJSONSerialization` is not yet implemented.
+    * `NSJSONSerialization` is partly implemented (serialization is not yet implemented)
 
 
 * **XML**: A group of classes for parsing and representing XML documents and elements.
