@@ -54,7 +54,6 @@ public class NSJSONSerialization : NSObject {
             // object is NSNumber and is not NaN or infinity
             if let number = obj as? NSNumber {
                 let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
-                    || number.floatValue.isInfinite || number.floatValue.isNaN
                 return !invalid
             }
 
