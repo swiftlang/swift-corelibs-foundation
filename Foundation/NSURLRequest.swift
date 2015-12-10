@@ -311,22 +311,10 @@ public class NSMutableURLRequest : NSURLRequest {
     private var _HTTPMethod: String? = "GET"
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        super.init()
     }
     
-    /*!
-     @method initWithURL:
-     @abstract Initializes an NSMutableURLRequest with the given URL.
-     @discussion Default values are used for cache policy
-     (NSURLRequestUseProtocolCachePolicy) and timeout interval (60
-     seconds).
-     @param URL The URL for the request.
-     @result An initialized NSMutableURLRequest.
-     */
-    public init(URL: NSURL) {
-        super.init()
-        _URL = URL
-    }
+    private override init() { super.init() }
     
     /*!
         @method URL
