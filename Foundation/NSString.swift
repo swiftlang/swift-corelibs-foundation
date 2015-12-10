@@ -1237,9 +1237,7 @@ extension NSString {
     }
     
     public convenience init?(CString nullTerminatedCString: UnsafePointer<Int8>, encoding: UInt) {
-        guard let cf = CFStringCreateWithCString(kCFAllocatorSystemDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding)) else {
-            return nil
-        }
+        let cf = CFStringCreateWithCString(kCFAllocatorSystemDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding))
         var str: String?
         if String._conditionallyBridgeFromObject(cf._nsObject, result: &str) {
             self.init(str!)
