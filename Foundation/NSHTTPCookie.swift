@@ -110,7 +110,7 @@ public class NSHTTPCookie : NSObject {
         let value: String
         let version: Int
     }
-    private var cookieRepresentation: Cookie!
+    private var cookie: Cookie!
 
     /*!
         @method initWithProperties:
@@ -256,7 +256,7 @@ public class NSHTTPCookie : NSObject {
         let discard = NSHTTPCookie.discardFrom(properties, version: version)
         let commentURL = NSHTTPCookie.commentURLFrom(properties)
 
-        self.cookieRepresentation = Cookie(
+        self.cookie = Cookie(
             comment: version == 1 ?
                 properties[NSHTTPCookieComment] as? String : nil,
             commentURL: version == 1 ? commentURL : nil,
@@ -297,15 +297,11 @@ public class NSHTTPCookie : NSObject {
         are the corresponding header field values.
     */
     public class func requestHeaderFieldsWithCookies(cookies: [NSHTTPCookie]) -> [String : String] {
-        var cookieString = cookies.reduce("") { (sum, next) -> String in
-            return sum + "\(next.cookieRepresentation.name)=\(next.cookieRepresentation.value); "
-        }
-        //Remove the final trailing semicolon and whitespace
-        if ( cookieString.length > 0 ) {
-            cookieString.removeAtIndex(cookieString.endIndex.predecessor())
-            cookieString.removeAtIndex(cookieString.endIndex.predecessor())
-        }
-        return ["Cookie": cookieString]
+        let header = cookies.reduce("") { sum, next in
+            return sum + "\(next.cookie.name)=\(next.cookie.value); "
+        }.characters.dropLast().dropLast()
+
+        return ["Cookie": String(header)]
     }
 
     private class func canonicalDomainFrom(properties: [String : Any]) -> String? {
@@ -354,7 +350,6 @@ public class NSHTTPCookie : NSObject {
     }
 
     private class func expiresDateFrom(properties: [String : Any], version: Int) -> NSDate? {
-        // TODO: factor into a utility function
         if version == 0 {
             let expiresProperty = properties[NSHTTPCookieExpires]
             if let date = expiresProperty as? NSDate {
@@ -430,7 +425,7 @@ public class NSHTTPCookie : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public var properties: [String : Any]? {
-        return self.cookieRepresentation.properties
+        return self.cookie.properties
     }
     
     /*!
@@ -441,7 +436,7 @@ public class NSHTTPCookie : NSObject {
         @result the version of the receiver.
     */
     public var version: Int {
-        return self.cookieRepresentation.version
+        return self.cookie.version
     }
     
     /*!
@@ -450,7 +445,7 @@ public class NSHTTPCookie : NSObject {
         @result the name of the receiver.
     */
     public var name: String {
-        return self.cookieRepresentation.name
+        return self.cookie.name
     }
     
     /*!
@@ -459,7 +454,7 @@ public class NSHTTPCookie : NSObject {
         @result the value of the receiver.
     */
     public var value: String {
-        return self.cookieRepresentation.value
+        return self.cookie.value
     }
     
     /*!
@@ -472,7 +467,7 @@ public class NSHTTPCookie : NSObject {
         @result The expires date of the receiver.
     */
     /*@NSCopying*/ public var expiresDate: NSDate? {
-        return self.cookieRepresentation.expiresDate
+        return self.cookie.expiresDate
     }
     
     /*!
@@ -483,7 +478,7 @@ public class NSHTTPCookie : NSObject {
         be discarded at the end of the session.
     */
     public var sessionOnly: Bool {
-        return self.cookieRepresentation.sessionOnly
+        return self.cookie.sessionOnly
     }
     
     /*!
@@ -496,7 +491,7 @@ public class NSHTTPCookie : NSObject {
         @result The domain of the receiver.
     */
     public var domain: String {
-        return self.cookieRepresentation.domain
+        return self.cookie.domain
     }
     
     /*!
@@ -508,7 +503,7 @@ public class NSHTTPCookie : NSObject {
         @result The path of the receiver.
     */
     public var path: String {
-        return self.cookieRepresentation.path
+        return self.cookie.path
     }
     
     /*!
@@ -523,7 +518,7 @@ public class NSHTTPCookie : NSObject {
         NO otherwise.
     */
     public var secure: Bool {
-        return self.cookieRepresentation.secure
+        return self.cookie.secure
     }
     
     /*!
@@ -539,7 +534,7 @@ public class NSHTTPCookie : NSObject {
         NO otherwise.
     */
     public var HTTPOnly: Bool {
-        return self.cookieRepresentation.HTTPOnly
+        return self.cookie.HTTPOnly
     }
     
     /*!
@@ -552,7 +547,7 @@ public class NSHTTPCookie : NSObject {
         comment.
     */
     public var comment: String? {
-        return self.cookieRepresentation.comment
+        return self.cookie.comment
     }
     
     /*!
@@ -565,7 +560,7 @@ public class NSHTTPCookie : NSObject {
         has no comment URL.
     */
     /*@NSCopying*/ public var commentURL: NSURL? {
-        return self.cookieRepresentation.commentURL
+        return self.cookie.commentURL
     }
     
     /*!
@@ -580,7 +575,7 @@ public class NSHTTPCookie : NSObject {
         port.
     */
     public var portList: [NSNumber]? {
-        return self.cookieRepresentation.portList
+        return self.cookie.portList
     }
 }
 
