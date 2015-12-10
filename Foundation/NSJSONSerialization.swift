@@ -395,18 +395,13 @@ private struct JSONDeserializer {
         
         guard let (trailCodeUnit, finalParser) = try consumeSequence("\\u", input: parser).flatMap(parseCodeUnit) where UTF16.isTrailSurrogate(trailCodeUnit) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to convert hex escape sequence (no high character) to UTF8-encoded character at position \(parser.distanceFromStart)"
+                "NSDebugDescription" : "Unable to convert unicode escape sequence (no low-surrogate code point) to UTF8-encoded character at position \(parser.distanceFromStart)"
             ])
         }
         
-        var utf = UTF16()
-        var generator = [codeUnit, trailCodeUnit].generate()
-        switch utf.decode(&generator) {
-        case .Result(let scalar):
-            return (scalar, finalParser)
-        default:
-            return nil
-        }
+        let highValue = (UInt32(codeUnit  - 0xD800) << 10)
+        let lowValue  =  UInt32(trailCodeUnit - 0xDC00)
+        return (UnicodeScalar(highValue + lowValue + 0x10000), finalParser)
     }
     
     static let hexScalars = "1234567890abcdefABCDEF".unicodeScalars
