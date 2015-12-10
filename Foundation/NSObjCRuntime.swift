@@ -89,6 +89,10 @@ internal struct _CFInfo {
         info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
         pad = 0
     }
+    init(typeID: CFTypeID, extra: UInt32) {
+        info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
+        pad = extra
+    }
 }
 
 internal protocol _CFBridgable {
