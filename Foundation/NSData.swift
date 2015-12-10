@@ -58,17 +58,25 @@ public struct NSDataBase64DecodingOptions : OptionSetType {
     public static let Anchored = NSDataSearchOptions(rawValue: UInt(1 << 1))
 }
 
-class _NSDataDeallocator {
+private final class _NSDataDeallocator {
     var handler: (UnsafeMutablePointer<Void>, Int) -> Void = {_,_ in }
 }
 
+private let __kCFMutable: CFOptionFlags = 0x01
+private let __kCFGrowable: CFOptionFlags = 0x02
+private let __kCFMutableVarietyMask: CFOptionFlags = 0x03
+private let __kCFBytesInline: CFOptionFlags = 0x04
+private let __kCFUseAllocator: CFOptionFlags = 0x08
+private let __kCFDontDeallocate: CFOptionFlags = 0x10
+private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
+
 public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
-    private static let DeallocationSentry = UInt32(0xB5A5A5AB) // this is a slightly sub-par solution, however we cannot caputre self in the block for deallocation but we need a way of passing the bytes (in case of realloc) to the block and a way of then disambiguating between CFAllocators and dealloc handlers
     typealias CFType = CFDataRef
-    private var _base = _CFInfo(typeID: CFDataGetTypeID(), extra: NSData.DeallocationSentry)
+    private var _base = _CFInfo(typeID: CFDataGetTypeID())
     private var _length: CFIndex = 0
     private var _capacity: CFIndex = 0
-    private var _deallocHandler = _NSDataDeallocator()
+    private var _deallocator: UnsafeMutablePointer<Void> = nil // for CF only
+    private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
     private var _bytes: UnsafeMutablePointer<UInt8> = nil
     
     internal var _cfObject: CFType {
@@ -86,26 +94,28 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     deinit {
-        if _base.pad == NSData.DeallocationSentry && _bytes != nil {
-            _deallocHandler.handler(_bytes, _length)
+        if _bytes != nil {
+            _deallocHandler?.handler(_bytes, _length)
         }
-        _CFDeinit(self)
+        if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
+            _CFDeinit(self._cfObject)
+        }
     }
     
     internal init(bytes: UnsafeMutablePointer<Void>, length: Int, copy: Bool, deallocator: ((UnsafeMutablePointer<Void>, Int) -> Void)?) {
-        if let handler = deallocator {
-            _deallocHandler.handler = handler
-        }
-        
         super.init()
-        let options : CFOptionFlags = (self.dynamicType == NSMutableData.self) ? 0x1 | 0x2 : 0x0
+        let options : CFOptionFlags = (self.dynamicType == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
         if copy {
             _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, false)
             if let handler = deallocator {
-                handler(_bytes, _length)
+                handler(bytes, length)
             }
         } else {
-            _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
+            if let handler = deallocator {
+                _deallocHandler!.handler = handler
+            }
+            // The data initialization should flag that CF should not deallocate which leaves the handler a chance to deallocate instead
+            _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options | __kCFDontDeallocate, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
         }
     }
     
@@ -237,7 +247,7 @@ extension NSData {
             // Swift does not currently expose MAP_FAILURE
             if data != UnsafeMutablePointer<Void>(bitPattern: -1) {
                 return NSDataReadResult(bytes: data, length: length) { buffer, length in
-                    munmap(data, length)
+                    munmap(buffer, length)
                 }
             }
             
