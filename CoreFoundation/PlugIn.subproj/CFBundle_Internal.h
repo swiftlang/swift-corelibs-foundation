@@ -121,6 +121,8 @@ struct __CFBundle {
     CFLock_t _additionalResourceLock;
     CFMutableDictionaryRef _additionalResourceBundles;
     
+    CFURLRef _infoPlistUrl;
+    
 #if defined(BINARY_SUPPORT_DLL)
     HMODULE _hModule;
 #endif /* BINARY_SUPPORT_DLL */

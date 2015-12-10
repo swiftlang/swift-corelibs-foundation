@@ -530,9 +530,7 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
             CFErrorRef error = NULL;
             result = (CFDictionaryRef)CFPropertyListCreateWithData(alloc, infoData, kCFPropertyListMutableContainers, NULL, &error);
             if (result) {
-                if (CFDictionaryGetTypeID() == CFGetTypeID(result)) {
-                    CFDictionarySetValue((CFMutableDictionaryRef)result, _kCFBundleInfoPlistURLKey, finalInfoPlistURL);
-                } else {
+                if (CFDictionaryGetTypeID() != CFGetTypeID(result)) {
                     CFRelease(result);
                     result = NULL;
                 }
@@ -548,20 +546,18 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
             
             if (!result) {
                 result = CFDictionaryCreateMutable(alloc, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-                CFDictionarySetValue((CFMutableDictionaryRef)result, _kCFBundleRawInfoPlistURLKey, finalInfoPlistURL);
             }
             
             CFRelease(infoData);
         }
         
-        if (platformInfoPlistURL) CFRelease(platformInfoPlistURL);
-        if (localInfoPlistURL) {
-            if (infoPlistUrl) {
-                *infoPlistUrl = localInfoPlistURL;
-            } else {
-                CFRelease(localInfoPlistURL);
-            }
+        if (infoPlistUrl && finalInfoPlistURL) {
+            CFRetain(finalInfoPlistURL);
+            *infoPlistUrl = finalInfoPlistURL;
         }
+        
+        if (platformInfoPlistURL) CFRelease(platformInfoPlistURL);
+        if (localInfoPlistURL) CFRelease(localInfoPlistURL);
     }
     
     if (!result) {
@@ -748,8 +744,9 @@ static void _CFBundleInfoPlistFixupInfoDictionary(CFBundleRef bundle, CFMutableD
 CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle) {
     __CFLock(&bundle->_lock);
     if (!bundle->_infoDict) {
-        bundle->_infoDict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(kCFAllocatorSystemDefault, bundle->_url, NULL, bundle->_version);
-        
+        CFURLRef infoPlistUrl;
+        bundle->_infoDict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(kCFAllocatorSystemDefault, bundle->_url, &infoPlistUrl, bundle->_version);
+        bundle->_infoPlistUrl = infoPlistUrl;
 
         // Add or fixup any keys that will be expected later
         if (bundle->_infoDict) _CFBundleInfoPlistFixupInfoDictionary(bundle, (CFMutableDictionaryRef)bundle->_infoDict);
@@ -938,8 +935,6 @@ CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRe
 }
 
 CF_EXPORT CFURLRef _CFBundleCopyInfoPlistURL(CFBundleRef bundle) {
-    CFDictionaryRef infoDict = CFBundleGetInfoDictionary(bundle);
-    CFURLRef url = (CFURLRef)CFDictionaryGetValue(infoDict, _kCFBundleInfoPlistURLKey);
-    if (!url) url = (CFURLRef)CFDictionaryGetValue(infoDict, _kCFBundleRawInfoPlistURLKey);
-    return (url ? (CFURLRef)CFRetain(url) : NULL);
+    CFURLRef url = bundle->_infoPlistUrl;
+    return (url ? (CFURLRef) CFRetain(url) : NULL);
 }

@@ -116,8 +116,6 @@ CONST_STRING_DECL(_kCFBundleOldTypeExtensions2Key, "NSDOSExtensions")
 CONST_STRING_DECL(_kCFBundleOldTypeOSTypesKey, "NSMacOSType")
 
 // Internally used keys for loaded Info plists.
-CONST_STRING_DECL(_kCFBundleInfoPlistURLKey, "CFBundleInfoPlistURL")
-CONST_STRING_DECL(_kCFBundleRawInfoPlistURLKey, "CFBundleRawInfoPlistURL")
 CONST_STRING_DECL(_kCFBundleNumericVersionKey, "CFBundleNumericVersion")
 CONST_STRING_DECL(_kCFBundleExecutablePathKey, "CFBundleExecutablePath")
 CONST_STRING_DECL(_kCFBundleResourcesFileMappedKey, "CSResourcesFileMapped")
