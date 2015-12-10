@@ -4117,7 +4117,7 @@ CFStringRef CFStringCreateByCombiningStrings(CFAllocatorRef alloc, CFArrayRef ar
             } else {
                 if (!isSepCFString) { // NSString
                     CFStringGetCharacters(separatorString, CFRangeMake(0, CFStringGetLength(separatorString)), (UniChar *)bufPtr);
-                } else if (canBeEightbit) {
+                } else if (canBeEightbit || __CFStrIsUnicode(separatorString)) {
                     memmove(bufPtr, (const uint8_t *)__CFStrContents(separatorString) + __CFStrSkipAnyLengthByte(separatorString), separatorNumByte);
                 } else {	
                     __CFStrConvertBytesToUnicode((uint8_t *)__CFStrContents(separatorString) + __CFStrSkipAnyLengthByte(separatorString), (UniChar *)bufPtr, __CFStrLength(separatorString));
