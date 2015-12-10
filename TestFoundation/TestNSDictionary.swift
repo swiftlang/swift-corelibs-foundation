@@ -21,7 +21,7 @@ import SwiftXCTest
 
 class TestNSDictionary : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_ArrayConstruction", test_ArrayConstruction),

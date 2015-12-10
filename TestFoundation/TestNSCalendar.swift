@@ -18,7 +18,7 @@ import CoreFoundation
 
 class TestNSCalendar: XCTestCase {
   
-  var allTests : [(String, () -> ())] {
+  var allTests : [(String, () -> Void)] {
     return [
       ("test_gettingDatesOnGregorianCalendar", test_gettingDatesOnGregorianCalendar ),
       ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),

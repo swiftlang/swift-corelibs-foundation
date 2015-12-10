@@ -44,7 +44,7 @@ let kNullURLString = "<null url>"
 let kNullString = "<null>"
 
 class TestNSURL : XCTestCase {
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_URLStrings", test_URLStrings),
             ("test_fileURLWithPath_relativeToURL", test_fileURLWithPath_relativeToURL ),

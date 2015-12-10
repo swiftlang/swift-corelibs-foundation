@@ -18,7 +18,7 @@
 
 class TestNSURLRequest : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_construction", test_construction),
             ("test_mutableConstruction", test_mutableConstruction),

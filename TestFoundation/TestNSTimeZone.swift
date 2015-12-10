@@ -21,7 +21,7 @@
 
 class TestNSTimeZone: XCTestCase {
 
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_abbreviation", test_abbreviation),
         ]

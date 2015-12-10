@@ -17,7 +17,7 @@
 
 class TestNSData: XCTestCase {
     
-    var allTests: [(String, () -> ())] {
+    var allTests: [(String, () -> Void)] {
         return [
             ("test_description", test_description),
             ("test_emptyDescription", test_emptyDescription),
