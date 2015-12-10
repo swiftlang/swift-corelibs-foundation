@@ -46,6 +46,7 @@ XCTMain([
     TestNSString(),
     TestNSTimeZone(),
     TestNSURL(),
+    TestNSURLComponents(),
     TestNSURLRequest(),
     TestNSURLResponse(),
     TestNSUUID(),
