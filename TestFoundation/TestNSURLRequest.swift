@@ -41,6 +41,7 @@ class TestNSURLRequest : XCTestCase {
     func test_mutableConstruction() {
         let URL = NSURL(string: "http://swift.org")!
         let request = NSMutableURLRequest(URL: URL)
+        
         //Confirm initial state matches NSURLRequest responses
         XCTAssertNotNil(request)
         XCTAssertEqual(request.URL, URL)
@@ -61,11 +62,18 @@ class TestNSURLRequest : XCTestCase {
     
     func test_headerFields() {
         let request = NSMutableURLRequest(URL: URL)
-        request.setValue("application/json", forHTTPHeaderField: "accept")
+        
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
         XCTAssertNotNil(request.allHTTPHeaderFields)
-        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/json")
-        //HTTP Header fields should be case insensitive
+        XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/json")
+
+        // Setting "accept" should remove "Accept"
+        request.setValue("application/xml", forHTTPHeaderField: "accept")
+        XCTAssertNil(request.allHTTPHeaderFields?["Accept"])
+        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/xml")
+        
+        // Adding to "Accept" should add to "accept"
         request.addValue("text/html", forHTTPHeaderField: "Accept")
-        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/json,text/html")
+        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/xml,text/html")
     }
 }

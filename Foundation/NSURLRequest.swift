@@ -389,7 +389,13 @@ public class NSMutableURLRequest : NSURLRequest {
         if _httpHeaderFields == nil {
             _httpHeaderFields = [:]
         }
-        _httpHeaderFields?[field.lowercaseString] = value
+        if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
+            return existingField.lowercaseString == field.lowercaseString
+        }).first {
+            let (existingField, _) = existingHeader
+            _httpHeaderFields?.removeValueForKey(existingField)
+        }
+        _httpHeaderFields?[field] = value
     }
     
     /*! 
@@ -410,10 +416,13 @@ public class NSMutableURLRequest : NSURLRequest {
         if _httpHeaderFields == nil {
             _httpHeaderFields = [:]
         }
-        if let oldValue = _httpHeaderFields?[field.lowercaseString] {
-            _httpHeaderFields?[field.lowercaseString] = "\(oldValue),\(value)"
+        if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
+            return existingField.lowercaseString == field.lowercaseString
+        }).first {
+            let (existingField, existingValue) = existingHeader
+            _httpHeaderFields?[existingField] = "\(existingValue),\(value)"
         } else {
-            _httpHeaderFields?[field.lowercaseString] = value
+            _httpHeaderFields?[field] = value
         }
     }
 }
