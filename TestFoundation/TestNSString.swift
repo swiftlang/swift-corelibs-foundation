@@ -16,6 +16,7 @@ import SwiftFoundation
 import SwiftXCTest
 #endif
 
+import CoreFoundation
 
 class TestNSString : XCTestCase {
     
@@ -24,6 +25,7 @@ class TestNSString : XCTestCase {
             ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
             ("test_integerValue", test_integerValue ),
+            ("test_intValue", test_intValue ),
             ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
             ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
             ("test_isNotEqualToObjectWithNSNumber", test_isNotEqualToObjectWithNSNumber ),
@@ -36,8 +38,12 @@ class TestNSString : XCTestCase {
             ("test_FromNullTerminatedCStringInASCII", test_FromNullTerminatedCStringInASCII ),
             ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
             ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
+            ("test_uppercaseString", test_uppercaseString ),
+            ("test_lowercaseString", test_lowercaseString ),
+            ("test_capitalizedString", test_capitalizedString ),
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
+            ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
         ]
     }
 
@@ -96,6 +102,14 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(string8.integerValue, 0)
     }
 
+    func test_intValue() {
+        let string1: NSString = "2147483648"
+        XCTAssertEqual(string1.intValue, 2147483647)
+
+        let string2: NSString = "-2147483649"
+        XCTAssertEqual(string2.intValue, -2147483648)
+    }
+    
     func test_isEqualToStringWithSwiftString() {
         let string: NSString = "literal"
         let swiftString = "literal"
@@ -183,6 +197,38 @@ class TestNSString : XCTestCase {
         XCTAssertNil(string)
     }
 
+    func test_uppercaseString() {
+        XCTAssertEqual(NSString(stringLiteral: "abcd").uppercaseString, "ABCD")
+        XCTAssertEqual(NSString(stringLiteral: "абВГ").uppercaseString, "АБВГ")
+        XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercaseString, "たちつてと")
+
+        // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
+        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0049}")
+        // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
+        // XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0130}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{00df}").uppercaseString, "\u{0053}\u{0053}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{fb01}").uppercaseString, "\u{0046}\u{0049}")
+    }
+
+    func test_lowercaseString() {
+        XCTAssertEqual(NSString(stringLiteral: "abCD").lowercaseString, "abcd")
+        XCTAssertEqual(NSString(stringLiteral: "aБВГ").lowercaseString, "aбвг")
+        XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercaseString, "たちつてと")
+
+        // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
+        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
+        // XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
+        // XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
+    }
+
+    func test_capitalizedString() {
+        XCTAssertEqual(NSString(stringLiteral: "foo Foo fOO FOO").capitalizedString, "Foo Foo Foo Foo")
+        XCTAssertEqual(NSString(stringLiteral: "жжж").capitalizedString, "Жжж")
+    }
+
     func test_longLongValue() {
         let string1: NSString = "9223372036854775808"
         XCTAssertEqual(string1.longLongValue, 9223372036854775807)
@@ -199,5 +245,12 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(string.rangeOfCharacterFromSet(decimalDigits).location, 0)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [.BackwardsSearch]).location, 2)
         XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [], range: NSMakeRange(2, 1)).location, 2)
+    }
+    
+    func test_CFStringCreateMutableCopy() {
+        let nsstring: NSString = "абВГ"
+        let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, CFStringRef.self))
+        let str = unsafeBitCast(mCopy, NSString.self).bridge()
+        XCTAssertEqual(nsstring.bridge(), str)
     }
 }

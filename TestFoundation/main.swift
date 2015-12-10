@@ -37,11 +37,16 @@ XCTMain([
     TestNSRange(),
     TestNSXMLParser(),
     TestNSDate(),
+    TestNSJSONSerialization(),
     TestNSData(),
     TestNSTimeZone(),
     TestNSScanner(),
+    TestNSURLRequest(),
     TestNSHTTPCookie(),
     TestNSGeometry(),
     TestNSUUID(),
+    TestNSByteCountFormatter(),
+    TestNSURLResponse(),
+    TestNSNotificationCenter(),
 ])
 

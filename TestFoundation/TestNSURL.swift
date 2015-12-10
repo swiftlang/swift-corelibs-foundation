@@ -227,10 +227,10 @@ class TestNSURL : XCTestCase {
         }
     }
 //    size_t      gRelativeOffsetFromBaseCurrentWorkingDirectory = 0;
-    static let gFileExistsName = "TestCFURL file exists"
-    static let gFileDoesNotExistName = "TestCFURL file does not exist"
-    static let gDirectoryExistsName = "TestCFURL directory exists"
-    static let gDirectoryDoesNotExistName = "TestCFURL directory does not exist"
+    static let gFileExistsName = "TestCFURL_file_exists"
+    static let gFileDoesNotExistName = "TestCFURL_file_does_not_exist"
+    static let gDirectoryExistsName = "TestCFURL_directory_exists"
+    static let gDirectoryDoesNotExistName = "TestCFURL_directory_does_not_exist"
     static let gFileExistsPath = gBaseTemporaryDirectoryPath + gFileExistsName
     static let gFileDoesNotExistPath = gBaseTemporaryDirectoryPath + gFileDoesNotExistName
     static let gDirectoryExistsPath = gBaseTemporaryDirectoryPath + gDirectoryExistsName

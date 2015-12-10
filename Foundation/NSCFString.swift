@@ -153,6 +153,10 @@ internal func _CFSwiftStringGetCString(str: AnyObject, buffer: UnsafeMutablePoin
     return (str as! NSString).getCString(buffer, maxLength: maxLength, encoding: CFStringConvertEncodingToNSStringEncoding(encoding))
 }
 
+internal func _CFSwiftStringIsUnicode(str: AnyObject) -> Bool {
+    return (str as! NSString)._encodingCantBeStoredInEightBitCFString
+}
+
 internal func _CFSwiftStringInsert(str: AnyObject, index: CFIndex, inserted: AnyObject) {
     (str as! NSMutableString).insertString((inserted as! NSString)._swiftObject, atIndex: index)
 }

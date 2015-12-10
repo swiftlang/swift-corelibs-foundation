@@ -167,6 +167,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSString._fastCStringContents = _CFSwiftStringFastCStringContents
     __CFSwiftBridge.NSString._fastCharacterContents = _CFSwiftStringFastContents
     __CFSwiftBridge.NSString._getCString = _CFSwiftStringGetCString
+    __CFSwiftBridge.NSString._encodingCantBeStoredInEightBitCFString = _CFSwiftStringIsUnicode
     
     __CFSwiftBridge.NSMutableString.insertString = _CFSwiftStringInsert
     __CFSwiftBridge.NSMutableString.deleteCharactersInRange = _CFSwiftStringDelete
@@ -197,6 +198,8 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSXMLParser.cdataBlock = _NSXMLParserCdataBlock
     __CFSwiftBridge.NSXMLParser.comment = _NSXMLParserComment
     __CFSwiftBridge.NSXMLParser.externalSubset = _NSXMLParserExternalSubset
+    
+    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
 
 public protocol _ObjectTypeBridgeable {
@@ -281,6 +284,36 @@ extension Set : _NSObjectRepresentable {
     }
 }
 
+extension Int : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension UInt : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Float : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Double : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Bool : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
     return unsafeBitCast(lhs, UnsafePointer<Void>.self) == unsafeBitCast(rhs, UnsafePointer<Void>.self)
 }
@@ -312,6 +345,24 @@ extension Unmanaged {
             return self.fromOpaque(COpaquePointer(value))
         } else {
             return nil
+        }
+    }
+}
+
+extension Array {
+    internal mutating func withUnsafeMutablePointerOrAllocation<R>(count: Int, fastpath: UnsafeMutablePointer<Element> = nil, @noescape body: (UnsafeMutablePointer<Element>) -> R) -> R {
+        if fastpath != nil {
+            return body(fastpath)
+        } else if self.count > count {
+            let buffer = UnsafeMutablePointer<Element>.alloc(count)
+            let res = body(buffer)
+            buffer.destroy(count)
+            buffer.dealloc(count)
+            return res
+        } else {
+            return withUnsafeMutableBufferPointer() { (inout bufferPtr: UnsafeMutableBufferPointer<Element>) -> R in
+                return body(bufferPtr.baseAddress)
+            }
         }
     }
 }

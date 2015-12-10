@@ -646,6 +646,8 @@ extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 #define CF_OBJC_CALLV(obj, ...) (0)
 #define CF_IS_OBJC(typeID, obj) (0)
 
+#define CF_SWIFT_CALLV(obj, fn, ...) __CFSwiftBridge.fn((CFSwiftRef)obj, ##__VA_ARGS__)
+
 extern uintptr_t __CFRuntimeObjCClassTable[];
 
 CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {

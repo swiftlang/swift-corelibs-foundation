@@ -29,8 +29,31 @@ class TestNSAffineTransform : XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
-            ("test_IdentityTransformation", test_IdentityTransformation)
+            ("test_IdentityTransformation", test_IdentityTransformation),
+            ("test_Scale", test_Scale),
+            ("test_Scaling", test_Scaling),
+            ("test_TranslationScaling", test_TranslationScaling),
+            ("test_ScalingTranslation", test_ScalingTranslation),
+            ("test_Rotation_Degrees", test_Rotation_Degrees),
+            ("test_Rotation_Radians", test_Rotation_Radians),
+            ("test_Inversion", test_Inversion),
+            ("test_IdentityTransformation", test_IdentityTransformation),
+            ("test_Translation", test_Translation),
+            ("test_Translation2", test_Translation2),
+            ("test_TranslationComposed", test_TranslationComposed),
         ]
+    }
+    
+    func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", _ file: StaticString = __FILE__, _ line: UInt = __LINE__) {
+        let newPoint = transform.transformPoint(point)
+        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, "x: \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold, "y: \(message)", file: file, line: line)
+    }
+    
+    func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", _ file: StaticString = __FILE__, _ line: UInt = __LINE__) {
+        let newSize = transform.transformSize(size)
+        XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, "width: \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold, "height: \(message)", file: file, line: line)
     }
 
     func test_BasicConstruction() {
@@ -52,23 +75,173 @@ class TestNSAffineTransform : XCTestCase {
         let identityTransform = NSAffineTransform()
 
         func checkIdentityPointTransformation(point: NSPoint) {
-            let newPoint = identityTransform.transformPoint(point)
-            XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(point.x), accuracy: accuracyThreshold)
-            XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(point.y), accuracy: accuracyThreshold)
+            checkPointTransformation(identityTransform, point: point, expectedPoint: point)
         }
-
+        
         checkIdentityPointTransformation(NSPoint())
         checkIdentityPointTransformation(NSMakePoint(CGFloat(24.5), CGFloat(10.0)))
         checkIdentityPointTransformation(NSMakePoint(CGFloat(-7.5), CGFloat(2.0)))
 
         func checkIdentitySizeTransformation(size: NSSize) {
-            let newSize = identityTransform.transformSize(size)
-            XCTAssertEqualWithAccuracy(Double(newSize.width), Double(size.width), accuracy: accuracyThreshold)
-            XCTAssertEqualWithAccuracy(Double(newSize.height), Double(size.height), accuracy: accuracyThreshold)
+            checkSizeTransformation(identityTransform, size: size, expectedSize: size)
         }
 
         checkIdentitySizeTransformation(NSSize())
         checkIdentitySizeTransformation(NSMakeSize(CGFloat(13.0), CGFloat(12.5)))
         checkIdentitySizeTransformation(NSMakeSize(CGFloat(100.0), CGFloat(-100.0)))
     }
+    
+    func test_Translation() {
+        let point = NSPoint(x: CGFloat(0.0), y: CGFloat(0.0))
+
+        let noop = NSAffineTransform()
+        noop.translateXBy(CGFloat(), yBy: CGFloat())
+        checkPointTransformation(noop, point: point, expectedPoint: point)
+        
+        let translateH = NSAffineTransform()
+        translateH.translateXBy(CGFloat(10.0), yBy: CGFloat())
+        checkPointTransformation(translateH, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat()))
+        
+        let translateV = NSAffineTransform()
+        translateV.translateXBy(CGFloat(), yBy: CGFloat(20.0))
+        checkPointTransformation(translateV, point: point, expectedPoint: NSPoint(x: CGFloat(), y: CGFloat(20.0)))
+        
+        let translate = NSAffineTransform()
+        translate.translateXBy(CGFloat(-30.0), yBy: CGFloat(40.0))
+        checkPointTransformation(translate, point: point, expectedPoint: NSPoint(x: CGFloat(-30.0), y: CGFloat(40.0)))
+    }
+    
+    func test_Scale() {
+        let size = NSSize(width: CGFloat(10.0), height: CGFloat(10.0))
+        
+        let noop = NSAffineTransform()
+        noop.scaleBy(CGFloat(1.0))
+        checkSizeTransformation(noop, size: size, expectedSize: size)
+        
+        let shrink = NSAffineTransform()
+        shrink.scaleBy(CGFloat(0.5))
+        checkSizeTransformation(shrink, size: size, expectedSize: NSSize(width: CGFloat(5.0), height: CGFloat(5.0)))
+        
+        let grow = NSAffineTransform()
+        grow.scaleBy(CGFloat(3.0))
+        checkSizeTransformation(grow, size: size, expectedSize: NSSize(width: CGFloat(30.0), height: CGFloat(30.0)))
+        
+        let stretch = NSAffineTransform()
+        stretch.scaleXBy(CGFloat(2.0), yBy: CGFloat(0.5))
+        checkSizeTransformation(stretch, size: size, expectedSize: NSSize(width: CGFloat(20.0), height: CGFloat(5.0)))
+    }
+    
+    func test_Rotation_Degrees() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let noop = NSAffineTransform()
+        noop.rotateByDegrees(CGFloat())
+        checkPointTransformation(noop, point: point, expectedPoint: point)
+        
+        let tenEighty = NSAffineTransform()
+        tenEighty.rotateByDegrees(CGFloat(1080.0))
+        checkPointTransformation(tenEighty, point: point, expectedPoint: point)
+        
+        let reflectAboutOrigin = NSAffineTransform()
+        reflectAboutOrigin.rotateByDegrees(CGFloat(180.0))
+        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
+    }
+    
+    func test_Rotation_Radians() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let noop = NSAffineTransform()
+        noop.rotateByRadians(CGFloat())
+        checkPointTransformation(noop, point: point, expectedPoint: point)
+        
+        let tenEighty = NSAffineTransform()
+        tenEighty.rotateByRadians(CGFloat(6 * M_PI))
+        checkPointTransformation(tenEighty, point: point, expectedPoint: point)
+        
+        let reflectAboutOrigin = NSAffineTransform()
+        reflectAboutOrigin.rotateByRadians(CGFloat(M_PI))
+        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
+    }
+    
+    func test_Inversion() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let translate = NSAffineTransform()
+        translate.translateXBy(CGFloat(-30.0), yBy: CGFloat(40.0))
+        
+        let rotate = NSAffineTransform()
+        translate.rotateByDegrees(CGFloat(30.0))
+        
+        let scale = NSAffineTransform()
+        scale.scaleBy(CGFloat(2.0))
+        
+        let identityTransform = NSAffineTransform()
+        
+        // append transformations
+        identityTransform.appendTransform(translate)
+        identityTransform.appendTransform(rotate)
+        identityTransform.appendTransform(scale)
+        
+        // invert transformations
+        scale.invert()
+        rotate.invert()
+        translate.invert()
+        
+        // append inverse transformations in reverse order
+        identityTransform.appendTransform(scale)
+        identityTransform.appendTransform(rotate)
+        identityTransform.appendTransform(translate)
+        
+        checkPointTransformation(identityTransform, point: point, expectedPoint: point)
+    }
+
+    func test_Translation2() {
+        let xPlus2 = NSAffineTransform()
+        xPlus2.translateXBy(CGFloat(2.0), yBy: CGFloat())
+
+        checkPointTransformation(xPlus2, point: NSMakePoint(CGFloat(22.0), CGFloat(10.0)),
+                                 expectedPoint: NSMakePoint(CGFloat(24.0), CGFloat(10.0)))
+    }
+
+    func test_TranslationComposed() {
+        let xyPlus5 = NSAffineTransform()
+        xyPlus5.translateXBy(CGFloat(2.0), yBy: CGFloat(3.0))
+        xyPlus5.translateXBy(CGFloat(3.0), yBy: CGFloat(2.0))
+
+        checkPointTransformation(xyPlus5, point: NSMakePoint(CGFloat(-2.0), CGFloat(-3.0)),
+                                  expectedPoint: NSMakePoint(CGFloat(3.0), CGFloat(2.0)))
+    }
+
+    func test_Scaling() {
+        let xyTimes5 = NSAffineTransform()
+        xyTimes5.scaleBy(CGFloat(5.0))
+
+        checkPointTransformation(xyTimes5, point: NSMakePoint(CGFloat(-2.0), CGFloat(3.0)),
+                                   expectedPoint: NSMakePoint(CGFloat(-10.0), CGFloat(15.0)))
+
+        let xTimes2YTimes3 = NSAffineTransform()
+        xTimes2YTimes3.scaleXBy(CGFloat(2.0), yBy: CGFloat(-3.0))
+
+        checkPointTransformation(xTimes2YTimes3, point: NSMakePoint(CGFloat(-1.0), CGFloat(3.5)),
+                                         expectedPoint: NSMakePoint(CGFloat(-2.0), CGFloat(-10.5)))
+    }
+
+    func test_TranslationScaling() {
+        let xPlus2XYTimes5 = NSAffineTransform()
+        xPlus2XYTimes5.translateXBy(CGFloat(2.0), yBy: CGFloat())
+        xPlus2XYTimes5.scaleXBy(CGFloat(5.0), yBy: CGFloat(-5.0))
+
+        checkPointTransformation(xPlus2XYTimes5, point: NSMakePoint(CGFloat(1.0), CGFloat(2.0)),
+                                         expectedPoint: NSMakePoint(CGFloat(7.0), CGFloat(-10.0)))
+    }
+
+    func test_ScalingTranslation() {
+        let xyTimes5XPlus3 = NSAffineTransform()
+        xyTimes5XPlus3.scaleBy(CGFloat(5.0))
+        xyTimes5XPlus3.translateXBy(CGFloat(3.0), yBy: CGFloat())
+
+        checkPointTransformation(xyTimes5XPlus3, point: NSMakePoint(CGFloat(1.0), CGFloat(2.0)),
+                                         expectedPoint: NSMakePoint(CGFloat(20.0), CGFloat(10.0)))
+    }
 }
+

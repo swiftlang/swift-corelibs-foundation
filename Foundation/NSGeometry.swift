@@ -45,7 +45,19 @@ public func +(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
     return CGFloat(lhs.native + rhs.native)
 }
 
-@_transparent extension Double {
+public func -(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
+    return CGFloat(lhs.native - rhs.native)
+}
+
+public func /(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
+    return CGFloat(lhs.native / rhs.native)
+}
+
+prefix public func -(x: CGFloat) -> CGFloat {
+    return CGFloat(-x.native)
+}
+
+extension Double {
     public init(_ value: CGFloat) {
         self = Double(value.native)
     }

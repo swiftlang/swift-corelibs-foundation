@@ -204,7 +204,7 @@ CF_EXTERN_C_BEGIN
    Does not zero-terminate. If you want to create Pascal or C string, allow one
    extra byte at start or end.
 */
-CF_EXPORT CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding, char lossByte, UInt8 *buffer, CFIndex max, CFIndex *usedBufLen);
+CF_EXPORT CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding, uint8_t lossByte, UInt8 *buffer, CFIndex max, CFIndex *usedBufLen);
 
 CF_EXPORT CFStringRef __CFStringCreateImmutableFunnel2(CFAllocatorRef alloc, const void *bytes, CFIndex numBytes, CFStringEncoding encoding, Boolean possiblyExternalFormat, Boolean tryToReduceUnicode, Boolean hasLengthByte, Boolean hasNullByte, Boolean noCopy, CFAllocatorRef contentsDeallocator);
 

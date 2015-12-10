@@ -49,6 +49,9 @@ struct __CFData {
     CFIndex _length;	/* number of bytes */
     CFIndex _capacity;	/* maximum number of bytes */
     CFAllocatorRef _bytesDeallocator;	/* used only for immutable; if NULL, no deallocation */
+#if DEPLOYMENT_RUNTIME_SWIFT
+    void *_deallocHandler; // for swift
+#endif
     uint8_t *_bytes;	/* compaction: direct access to _bytes is only valid when data is not inline */
 };
 
@@ -289,19 +292,19 @@ static void *__CFDataAllocate(CFDataRef data, CFIndex size, Boolean clear) {
 static void __CFDataDeallocate(CFTypeRef cf) {
     CFMutableDataRef data = (CFMutableDataRef)cf;
     if (!__CFDataBytesInline(data) && !__CFDataGetInfoBit(data, __kCFDontDeallocate)) {
-	CFAllocatorRef deallocator = data->_bytesDeallocator;
-	if (deallocator != NULL) {
-	    _CFAllocatorDeallocateGC(deallocator, data->_bytes);
-	    CFRelease(deallocator);
-	    data->_bytes = NULL;
-	} else {
-	    if (__CFDataUseAllocator(data)) {
-		_CFAllocatorDeallocateGC(__CFGetAllocator(data), data->_bytes);
-	    } else if (!__CFDataAllocatesCollectable(data) && data->_bytes) {
-		free(data->_bytes);
-	    }
-	    data->_bytes = NULL;
-	}
+        CFAllocatorRef deallocator = data->_bytesDeallocator;
+        if (deallocator != NULL) {
+            _CFAllocatorDeallocateGC(deallocator, data->_bytes);
+            CFRelease(deallocator);
+            data->_bytes = NULL;
+        } else {
+            if (__CFDataUseAllocator(data)) {
+                _CFAllocatorDeallocateGC(__CFGetAllocator(data), data->_bytes);
+            } else if (!__CFDataAllocatesCollectable(data) && data->_bytes) {
+                free(data->_bytes);
+            }
+            data->_bytes = NULL;
+        }
     }
 }
 
@@ -388,6 +391,9 @@ static CFMutableDataRef __CFDataInit(CFAllocatorRef allocator, CFOptionFlags fla
     if (NULL == memory) {
 	return NULL;
     }
+#if DEPLOYMENT_RUNTIME_SWIFT
+    memory->_deallocHandler = NULL;
+#endif
     __CFDataSetNumBytesUsed(memory, 0);
     __CFDataSetLength(memory, 0);
     __CFDataSetInfoBits(memory,
