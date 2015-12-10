@@ -34,6 +34,10 @@ class TestNSDate : XCTestCase {
             ("test_LaterDate", test_LaterDate),
             ("test_Compare", test_Compare),
             ("test_IsEqualToDate", test_IsEqualToDate),
+            ("test_EquatableTrue", test_EquatableTrue),
+            ("test_EquatableFalse", test_EquatableFalse),
+            ("test_ComparableGreaterThan", test_ComparableGreaterThan),
+            ("test_ComparableLessThan", test_ComparableLessThan),
         ]
     }
     
@@ -106,5 +110,38 @@ class TestNSDate : XCTestCase {
         let d2 = d1.dateByAddingTimeInterval(ti)
         let d3 = d1.dateByAddingTimeInterval(ti)
         XCTAssertTrue(d2.isEqualToDate(d3))
+    }
+    
+    func test_EquatableTrue() {
+        let ti: NSTimeInterval = 1
+        let d1 = NSDate()
+        let d2 = d1.dateByAddingTimeInterval(ti)
+        let d3 = d1.dateByAddingTimeInterval(ti)
+        XCTAssertTrue(d2 == d3)
+    }
+    
+    func test_EquatableFalse() {
+        let ti: NSTimeInterval = 1
+        let d1 = NSDate()
+        let d2 = d1.dateByAddingTimeInterval(ti)
+        let d3 = d1
+        XCTAssertTrue(d2 != d3)
+    }
+    
+    func test_ComparableGreaterThan() {
+        let ti: NSTimeInterval = 1
+        let d1 = NSDate()
+        let d2 = d1.dateByAddingTimeInterval(ti)
+        let d3 = d1
+        XCTAssertTrue(d2 > d3)
+    }
+    
+    func test_ComparableLessThan()
+    {
+        let ti: NSTimeInterval = 1
+        let d1 = NSDate()
+        let d2 = d1
+        let d3 = d1.dateByAddingTimeInterval(ti)
+        XCTAssertTrue(d2 < d3)
     }
 }

@@ -169,6 +169,18 @@ extension NSDate {
 
 extension NSDate : _CFBridgable { }
 
+extension NSDate : Comparable, Equatable { }
+
+@warn_unused_result public func <(_ lhs: NSDate, _ rhs: NSDate) -> Bool
+{
+    return lhs.timeIntervalSinceReferenceDate < rhs.timeIntervalSinceReferenceDate
+}
+
+@warn_unused_result public func ==(_ lhs: NSDate, _ rhs: NSDate) -> Bool
+{
+    return lhs.timeIntervalSinceReferenceDate == rhs.timeIntervalSinceReferenceDate
+}
+
 extension CFDateRef : _NSBridgable {
     typealias NSType = NSDate
     internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
