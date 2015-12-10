@@ -20,6 +20,7 @@ class TestNSHTTPCookie: XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
+            ("test_CanonicalDomainFrom", test_CanonicalDomainFrom),
             ("test_RequestHeaderFields", test_RequestHeaderFields)
         ]
     }
@@ -91,7 +92,13 @@ class TestNSHTTPCookie: XCTestCase {
         XCTAssert(versionZeroCookieWithInvalidVersionOneProps?.secure == true)
         XCTAssert(versionZeroCookieWithInvalidVersionOneProps?.version == 0)
     }
-    
+
+    func test_CanonicalDomainFrom() {
+        let propertiesWithDomainOnly = [NSHTTPCookieDomain: "apple.com"]
+        let domainOnly = NSHTTPCookie.canonicalDomainFrom(propertiesWithDomainOnly)
+        XCTAssert(domainOnly == "apple.com")
+    }
+
     func test_RequestHeaderFields() {
         let noCookies: [NSHTTPCookie] = []
         XCTAssertEqual(NSHTTPCookie.requestHeaderFieldsWithCookies(noCookies)["Cookie"], "")
@@ -102,13 +109,13 @@ class TestNSHTTPCookie: XCTestCase {
                 NSHTTPCookieValue: "testValue1",
                 NSHTTPCookiePath: "/",
                 NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
-                ])!,
+            ])!,
             NSHTTPCookie(properties: [
                 NSHTTPCookieName: "TestCookie2",
                 NSHTTPCookieValue: "testValue2",
                 NSHTTPCookiePath: "/",
                 NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
-                ])!,
+            ])!,
         ]
         
         let basicCookieString = NSHTTPCookie.requestHeaderFieldsWithCookies(basicCookies)["Cookie"]
