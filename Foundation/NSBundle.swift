@@ -217,13 +217,13 @@ public class NSBundle : NSObject {
     public var localizations: [String] {
         let cfLocalizations: CFArray? = CFBundleCopyBundleLocalizations(_bundle)
         let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
-        return nsLocalizations?.map { ($0 as! NSString).bridge() } ?? []
+        return nsLocalizations?.map { $0 as! String } ?? []
     }
     public var developmentLocalization: String? { NSUnimplemented() }
     public class func preferredLocalizationsFromArray(localizationsArray: [String]) -> [String] {
         let cfLocalizations: CFArray? = CFBundleCopyPreferredLocalizationsFromArray(localizationsArray._cfObject)
         let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
-        return nsLocalizations?.map { ($0 as! NSString).bridge() } ?? []
+        return nsLocalizations?.map { $0 as! String } ?? []
     }
     public class func preferredLocalizationsFromArray(localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] { NSUnimplemented() }
     public var executableArchitectures: [NSNumber]? { NSUnimplemented() }
