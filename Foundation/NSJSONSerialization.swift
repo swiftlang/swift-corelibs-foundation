@@ -28,20 +28,66 @@ public struct NSJSONWritingOptions : OptionSetType {
 /* A class for converting JSON to Foundation/Swift objects and converting Foundation/Swift objects to JSON.
    
    An object that may be converted to JSON must have the following properties:
-    - Top level object is an Array or Dictionary
-    - All objects are String, NSNumber, Array, Dictionary, or NSNull
-    - All dictionary keys are Strings
-    - NSNumbers are not NaN or infinity
+    - Top level object is a `Swift.Array` or `Swift.Dictionary`
+    - All objects are `Swift.String`, `Foundation.NSNumber`, `Swift.Array`, `Swift.Dictionary`,
+      or `Foundation.NSNull`
+    - All dictionary keys are `Swift.String`s
+    - `NSNumber`s are not NaN or infinity
 */
 
 public class NSJSONSerialization : NSObject {
     
-    /* Returns YES if the given object can be converted to JSON data, NO otherwise.
-    
-    Other rules may apply. Calling this method or attempting a conversion are the definitive ways to tell if a given object can be converted to JSON data.
+    /* Determines whether the given object can be converted to JSON.
+       Other rules may apply. Calling this method or attempting a conversion are the definitive ways
+       to tell if a given object can be converted to JSON data.
+       - parameter obj: The object to test.
+       - returns: `true` if `obj` can be converted to JSON, otherwise `false`.
      */
-    public class func isValidJSONObject(obj: AnyObject) -> Bool {
-        NSUnimplemented()
+    public class func isValidJSONObject(obj: Any) -> Bool {
+        // TODO: - revisit this once bridging story gets fully figured out
+        func isValidJSONObjectInternal(obj: Any) -> Bool {
+            // object is Swift.String or NSNull
+            if obj is String || obj is NSNull {
+                return true
+            }
+
+            // object is NSNumber and is not NaN or infinity
+            if let number = obj as? NSNumber {
+                let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
+                    || number.floatValue.isInfinite || number.floatValue.isNaN
+                return !invalid
+            }
+
+            // object is Swift.Array
+            if let array = obj as? [Any] {
+                for element in array {
+                    guard isValidJSONObjectInternal(element) else {
+                        return false
+                    }
+                }
+                return true
+            }
+
+            // object is Swift.Dictionary
+            if let dictionary = obj as? [String: Any] {
+                for (_, value) in dictionary {
+                    guard isValidJSONObjectInternal(value) else {
+                        return false
+                    }
+                }
+                return true
+            }
+
+            // invalid object
+            return false
+        }
+
+        // top level object must be an Swift.Array or Swift.Dictionary
+        guard obj is [Any] || obj is [String: Any] else {
+            return false
+        }
+
+        return isValidJSONObjectInternal(obj)
     }
     
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
