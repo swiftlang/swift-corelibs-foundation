@@ -45,6 +45,7 @@ XCTMain([
     TestNSHTTPCookie(),
     TestNSGeometry(),
     TestNSUUID(),
+    TestNSIndexPath(),
     TestNSByteCountFormatter(),
     TestNSURLResponse(),
     TestNSNotificationCenter(),
