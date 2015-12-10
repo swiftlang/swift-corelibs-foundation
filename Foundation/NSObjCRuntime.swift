@@ -10,11 +10,27 @@
 
 import CoreFoundation
 
+#if os(OSX) || os(iOS)
+internal let kCFCompareLessThan = CFComparisonResult.CompareLessThan
+internal let kCFCompareEqualTo = CFComparisonResult.CompareEqualTo
+internal let kCFCompareGreaterThan = CFComparisonResult.CompareGreaterThan
+#endif
+
 public enum NSComparisonResult : Int {
     
-    case OrderedAscending
+    case OrderedAscending = -1
     case OrderedSame
     case OrderedDescending
+    
+    internal static func _fromCF(val: CFComparisonResult) -> NSComparisonResult {
+        if val == kCFCompareLessThan {
+            return .OrderedAscending
+        } else if  val == kCFCompareGreaterThan {
+            return .OrderedDescending
+        } else {
+            return .OrderedSame
+        }
+    }
 }
 
 /* Note: QualityOfService enum is available on all platforms, but it may not be implemented on all platforms. */

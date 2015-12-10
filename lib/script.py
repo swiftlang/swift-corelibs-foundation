@@ -118,7 +118,7 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
         swift_flags += """
 TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """  -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
         if Configuration.current.build_mode == Configuration.Debug:
-            swift_flags += "-g -Onone "
+            swift_flags += "-g -Onone -enable-testing "
         elif Configuration.current.build_mode == Configuration.Release:
             swift_flags += " "
         swift_flags += Configuration.current.extra_swift_flags

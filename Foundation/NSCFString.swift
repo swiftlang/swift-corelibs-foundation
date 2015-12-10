@@ -117,7 +117,7 @@ internal func _CFSwiftStringGetBytes(str: AnyObject, range: CFRange, buffer: Uns
     let s = (str as! NSString)._swiftObject.utf8
     let start = s.startIndex
     if buffer != nil {
-        for var idx = 0; idx < range.length; idx++ {
+        for idx in 0..<range.length {
             let c = s[start.advancedBy(idx + range.location)]
             buffer.advancedBy(idx).initialize(c)
         }
@@ -151,6 +151,10 @@ internal func _CFSwiftStringFastContents(str: AnyObject) -> UnsafePointer<UniCha
 
 internal func _CFSwiftStringGetCString(str: AnyObject, buffer: UnsafeMutablePointer<Int8>, maxLength: Int, encoding: CFStringEncoding) -> Bool {
     return (str as! NSString).getCString(buffer, maxLength: maxLength, encoding: CFStringConvertEncodingToNSStringEncoding(encoding))
+}
+
+internal func _CFSwiftStringIsUnicode(str: AnyObject) -> Bool {
+    return (str as! NSString)._encodingCantBeStoredInEightBitCFString
 }
 
 internal func _CFSwiftStringInsert(str: AnyObject, index: CFIndex, inserted: AnyObject) {

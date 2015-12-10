@@ -106,8 +106,6 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         if copy {
             _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, false)
             deallocHandler = nil
-
-            deallocator?(bytes, length)
         } else {
             _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
         }
@@ -145,10 +143,37 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return true
     }
     
-    override public var description: String {
-        get {
-            return "Fixme"
+    private func byteDescription(limit limit: Int? = nil) -> String {
+        var s = ""
+        let buffer = UnsafePointer<UInt8>(bytes)
+        var i = 0
+        while i < self.length {
+            if i > 0 && i % 4 == 0 {
+                // if there's a limit, and we're at the barrier where we'd add the ellipses, don't add a space.
+                if let limit = limit where self.length > limit && i == self.length - (limit / 2) { /* do nothing */ }
+                else { s += " " }
+            }
+            let byte = buffer[i]
+            var byteStr = String(byte, radix: 16, uppercase: false)
+            if byte <= 0xf { byteStr = "0\(byteStr)" }
+            s += byteStr
+            // if we've hit the midpoint of the limit, skip to the last (limit / 2) bytes.
+            if let limit = limit where self.length > limit && i == (limit / 2) - 1 {
+                s += " ... "
+                i = self.length - (limit / 2)
+            } else {
+                i += 1
+            }
         }
+        return s
+    }
+    
+    override public var debugDescription: String {
+        return "<\(byteDescription(limit: 1024))>"
+    }
+    
+    override public var description: String {
+        return "<\(byteDescription())>"
     }
     
     override internal var _cfTypeID: CFTypeID {
@@ -167,7 +192,7 @@ extension NSData {
     }
     
     public convenience init(bytesNoCopy bytes: UnsafeMutablePointer<Void>, length: Int, freeWhenDone b: Bool) {
-        self.init(bytes: bytes, length: length, copy: true) { buffer, length in
+        self.init(bytes: bytes, length: length, copy: false) { buffer, length in
             if b {
                 free(buffer)
             }
@@ -190,7 +215,10 @@ extension NSData {
         if fd < 0 {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
-        
+        defer {
+            close(fd)
+        }
+
         var info = stat()
         let ret = withUnsafeMutablePointer(&info) { infoPointer -> Bool in
             if fstat(fd, infoPointer) < 0 {
@@ -200,7 +228,6 @@ extension NSData {
         }
         
         if !ret {
-            close(fd)
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
         
@@ -211,7 +238,6 @@ extension NSData {
             
             // Swift does not currently expose MAP_FAILURE
             if data != UnsafeMutablePointer<Void>(bitPattern: -1) {
-                close(fd)
                 return NSDataReadResult(bytes: data, length: length) { buffer, length in
                     munmap(data, length)
                 }
@@ -230,8 +256,8 @@ extension NSData {
             remaining -= amt
             total += amt
         }
+
         if remaining != 0 {
-            close(fd)
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
         
@@ -431,9 +457,22 @@ extension NSData {
         }
         return false
     }
-    
+
+    ///    Write the contents of the receiver to a location specified by the given file URL.
+    ///
+    ///    - parameter url:              The location to which the receiver’s contents will be written.
+    ///    - parameter writeOptionsMask: An option set specifying file writing options.
+    ///
+    ///    - throws: This method returns Void and is marked with the `throws` keyword to indicate that it throws an error in the event of failure.
+    ///
+    ///      This method is invoked in a `try` expression and the caller is responsible for handling any errors in the `catch` clauses of a `do` statement, as described in [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/ErrorHandling.html#//apple_ref/doc/uid/TP40014097-CH42) in [The Swift Programming Language](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/index.html#//apple_ref/doc/uid/TP40014097) and [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/AdoptingCocoaDesignPatterns.html#//apple_ref/doc/uid/TP40014216-CH7-ID10) in [Using Swift with Cocoa and Objective-C](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/index.html#//apple_ref/doc/uid/TP40014216).
     public func writeToURL(url: NSURL, options writeOptionsMask: NSDataWritingOptions) throws {
-        NSUnimplemented()
+        guard let path = url.path where url.fileURL == true else {
+            let userInfo = [NSLocalizedDescriptionKey : "The folder at “\(url)” does not exist or is not a file URL.", // NSLocalizedString() not yet available
+                            NSURLErrorKey             : url.absoluteString ?? ""] as Dictionary<String, Any>
+            throw NSError(domain: NSCocoaErrorDomain, code: 4, userInfo: userInfo)
+        }
+        try writeToFile(path, options: writeOptionsMask)
     }
     
     internal func enumerateByteRangesUsingBlockRethrows(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {

@@ -473,6 +473,8 @@ public class NSXMLParser : NSObject {
     }
     
     internal func _handleParseResult(parseResult: Int32) -> Bool {
+        return true
+        /*
         var result = true
         if parseResult != 0 {
             if parseResult != -1 {
@@ -480,6 +482,7 @@ public class NSXMLParser : NSObject {
             }
         }
         return result
+        */
     }
     
     internal func parseData(data: NSData) -> Bool {
