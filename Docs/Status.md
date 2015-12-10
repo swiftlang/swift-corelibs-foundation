@@ -108,7 +108,7 @@ As Foundation is a work in progress, not all methods and functionality are prese
     * `NSDecimal` is not yet implemented.
     * `NSDecimalNumber` is not yet implemented.
     * `NSGeometry` is fully implemented.
-    * `NSAffineTransform` is not yet implemented.
+    * `NSAffineTransform` is fully implemented.
     * `NSNumber` is fully implemented.
     * `NSValue` is not yet implemented.
 
