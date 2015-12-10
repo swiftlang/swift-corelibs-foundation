@@ -218,6 +218,7 @@ extern Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativ
 extern CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length);
 extern CFIndex __CFProcessorCount();
 extern uint64_t __CFMemorySize();
+extern CFStringRef _CFProcessNameString(void);
 extern CFIndex __CFActiveProcessorCount();
 extern CFDictionaryRef __CFGetEnvironment();
 extern int32_t __CFGetPid();
