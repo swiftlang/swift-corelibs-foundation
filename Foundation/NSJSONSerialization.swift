@@ -24,19 +24,6 @@ public struct NSJSONWritingOptions : OptionSetType {
     public static let PrettyPrinted = NSJSONWritingOptions(rawValue: 1 << 0)
 }
 
-enum NSJSONSerializationError: ErrorType {
-    typealias Position = String.UnicodeScalarIndex.Distance
-    
-    case InvalidStringEncoding
-    case NotAnArrayOrObject
-    case UnterminatedString(Position)
-    case MissingObjectKey(Position)
-    case InvalidValue(Position)
-    case MissingTrailingSurrogate(Position)
-    case InvalidEscapeSequence(Position)
-    case BadlyFormedArray(Position)
-    case UnexpectedEndOfFile
-}
 
 /* A class for converting JSON to Foundation/Swift objects and converting Foundation/Swift objects to JSON.
    
@@ -69,7 +56,9 @@ public class NSJSONSerialization : NSObject {
     public class func JSONObjectWithData(data: NSData, options opt: NSJSONReadingOptions) throws -> AnyObject {
         
         guard let string = NSString(data: data, encoding: detectEncoding(data)) else {
-            throw NSJSONSerializationError.InvalidStringEncoding
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
+            ])
         }
         let result = _NSObjectRepresentableBridge(try JSONObjectWithString(string._swiftObject))
         return result
@@ -99,7 +88,9 @@ internal extension NSJSONSerialization {
         else if let (array, _) = try JSONDeserializer.parseArray(parser) {
             return array
         }
-        throw NSJSONSerializationError.NotAnArrayOrObject
+        throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            "NSDebugDescription" : "JSON text did not start with array or object and option to allow fragments not set."
+        ])
     }
 }
 
@@ -227,7 +218,9 @@ private struct JSONDeserializer {
     static func consumeScalar(scalar: UnicodeScalar, input: UnicodeParser) throws -> UnicodeParser? {
         switch takeScalar(input) {
         case nil:
-            throw NSJSONSerializationError.UnexpectedEndOfFile
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Unexpected end of file during JSON parse."
+            ])
         case let (taken, parser)? where taken == scalar:
             return parser
         default:
@@ -296,18 +289,24 @@ private struct JSONDeserializer {
                     index = newParser.index
                 }
                 else {
-                    throw NSJSONSerializationError.InvalidEscapeSequence(parser.distanceFromStart - 1)
+                    throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                        "NSDebugDescription" : "Invalid unicode escape sequence at position \(parser.distanceFromStart - 1)"
+                    ])
                 }
             default:
                 value.append(scalar)
             }
         }
-        throw NSJSONSerializationError.UnterminatedString(input.distanceFromStart)
+        throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            "NSDebugDescription" : "Unexpected end of file during string parse."
+        ])
     }
     
     static func parseEscapeSequence(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
         guard let (scalar, parser) = takeScalar(input) else {
-            throw NSJSONSerializationError.UnexpectedEndOfFile
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Early end of unicode escape sequence around character"
+            ])
         }
         switch scalar {
         case UnicodeScalar(0x22):                   // "    quotation mark  U+0022
@@ -344,7 +343,9 @@ private struct JSONDeserializer {
         }
         
         guard let (trailCodeUnit, finalParser) = try consumeSequence("\\u", input: parser).flatMap(parseCodeUnit) where UTF16.isTrailSurrogate(trailCodeUnit) else {
-            throw NSJSONSerializationError.MissingTrailingSurrogate(parser.distanceFromStart)
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Unable to convert hex escape sequence (no high character) to UTF8-encoded character at position \(parser.distanceFromStart)"
+            ])
         }
         
         var utf = UTF16()
@@ -441,13 +442,19 @@ private struct JSONDeserializer {
     
     static func parseObjectMember(input: UnicodeParser) throws -> (String, Any, UnicodeParser)? {
         guard let (name, parser) = try parseString(input) else {
-            throw NSJSONSerializationError.MissingObjectKey(input.distanceFromStart)
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Missing object key at location \(input.distanceFromStart)"
+            ])
         }
         guard let separatorParser = try consumeStructure(StructureScalar.NameSeparator, input: parser) else {
-            throw NSJSONSerializationError.InvalidValue(parser.distanceFromStart)
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Invalid value at location \(input.distanceFromStart)"
+            ])
         }
         guard let (value, finalParser) = try parseValue(separatorParser) else {
-            throw NSJSONSerializationError.InvalidValue(separatorParser.distanceFromStart)
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Invalid value at location \(input.distanceFromStart)"
+            ])
         }
         
         return (name, value, finalParser)
@@ -476,10 +483,14 @@ private struct JSONDeserializer {
                     continue
                 }
                 else {
-                    throw NSJSONSerializationError.BadlyFormedArray(newParser.distanceFromStart)
+                    throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                        "NSDebugDescription" : "Unexpected end of file while parsing array at location \(input.distanceFromStart)"
+                    ])
                 }
             }
-            throw NSJSONSerializationError.InvalidValue(parser.distanceFromStart)
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Unexpected end of file while parsing array at location \(input.distanceFromStart)"
+            ])
         }
     }
 }
