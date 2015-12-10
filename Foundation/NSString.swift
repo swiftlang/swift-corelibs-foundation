@@ -1237,7 +1237,9 @@ extension NSString {
     }
     
     public convenience init?(CString nullTerminatedCString: UnsafePointer<Int8>, encoding: UInt) {
-        let cf = CFStringCreateWithCString(kCFAllocatorSystemDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding))
+        guard let cf = CFStringCreateWithCString(kCFAllocatorSystemDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding)) else {
+            return nil
+        }
         var str: String?
         if String._conditionallyBridgeFromObject(cf._nsObject, result: &str) {
             self.init(str!)
@@ -1252,7 +1254,11 @@ extension NSString {
     
     public convenience init(contentsOfFile path: String, encoding enc: UInt) throws {
         let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: [])
-        let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true)
+        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Unable to Creates a string from a buffer containing characters in a specified encoding."
+                ])
+        }
         var str: String?
         if String._conditionallyBridgeFromObject(cf._nsObject, result: &str) {
             self.init(str!)
