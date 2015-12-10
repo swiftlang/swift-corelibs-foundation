@@ -107,8 +107,7 @@ public class NSJSONSerialization : NSObject {
                 "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
             ])
         }
-        let result = try JSONObjectWithString(string._swiftObject)
-        return result
+        return try JSONObjectWithString(string._swiftObject)
     }
     
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
