@@ -29,6 +29,7 @@ XCTMain([
     TestNSSet(),
     TestNSNumber(),
     TestNSPipe(),
+    TestNSProcessInfo(),
     TestNSPropertyList(),
     TestNSURL(),
     TestNSIndexSet(),
