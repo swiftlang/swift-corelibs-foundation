@@ -824,6 +824,8 @@ static void __CFBundleDeallocate(CFTypeRef cf) {
     if (bundle->_searchLanguages) CFRelease(bundle->_searchLanguages);
     if (bundle->_executablePath) CFRelease(bundle->_executablePath);
     if (bundle->_developmentRegion) CFRelease(bundle->_developmentRegion);
+    if (bundle->_infoPlistUrl) CFRelease(bundle->_infoPlistUrl);
+    
     if (bundle->_glueDict) {
         CFDictionaryApplyFunction(bundle->_glueDict, _CFBundleDeallocateGlue, (void *)CFGetAllocator(bundle));
         CFRelease(bundle->_glueDict);
