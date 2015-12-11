@@ -72,14 +72,7 @@ public class NSProcessInfo : NSObject {
         }
     }
     
-    public var processName: String {
-        get {
-            NSUnimplemented()
-        }
-        set {
-            NSUnimplemented()
-        }
-    }
+    public var processName: String = _CFProcessNameString()._swiftObject
     
     public var processIdentifier: Int32 {
         get {
