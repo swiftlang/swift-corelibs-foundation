@@ -31,6 +31,8 @@ class TestNSGeometry : XCTestCase {
             ("test_NSMakePoint", test_NSMakePoint),
             ("test_NSMakeSize", test_NSMakeSize),
             ("test_NSMakeRect", test_NSMakeRect),
+            ("test_NSIntegralRect", test_NSIntegralRect),
+            ("test_NSIntegralRectWithOptions", test_NSIntegralRectWithOptions),
         ]
     }
 
@@ -137,5 +139,115 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(r2.origin.y, CGFloat(3.0))
         XCTAssertEqual(r2.size.width, CGFloat(5.0))
         XCTAssertEqual(r2.size.height, CGFloat(5.0))
+    }
+
+    func test_NSIntegralRect() {
+        let referenceNegativeRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(-105.7), CGFloat(-24.3))
+        XCTAssertEqual(NSIntegralRect(referenceNegativeRect), NSZeroRect)
+
+        
+        let referenceRect = NSMakeRect(CGFloat(0.6), CGFloat(5.4), CGFloat(105.7), CGFloat(24.3))
+        let referenceNegativeOriginRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(105.7), CGFloat(24.3))
+        
+        var expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(5.0), CGFloat(107.0), CGFloat(25.0))
+        var result = NSIntegralRect(referenceRect)
+        XCTAssertEqual(result, expectedResult)
+
+        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-6.0), CGFloat(107.0), CGFloat(25.0))
+        result = NSIntegralRect(referenceNegativeOriginRect)
+        XCTAssertEqual(result, expectedResult)
+    
+    }
+    
+    func test_NSIntegralRectWithOptions() {
+        let referenceRect = NSMakeRect(CGFloat(0.6), CGFloat(5.4), CGFloat(105.7), CGFloat(24.3))
+        let referenceNegativeRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(-105.7), CGFloat(-24.3))
+        let referenceNegativeOriginRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(105.7), CGFloat(24.3))
+
+        var options: NSAlignmentOptions = [.AlignMinXInward, .AlignMinYInward, .AlignHeightInward, .AlignWidthInward]
+        var expectedResult = NSMakeRect(CGFloat(1.0), CGFloat(6.0), CGFloat(105.0), CGFloat(24.0))
+        var result = NSIntegralRectWithOptions(referenceRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMinXOutward, .AlignMinYOutward, .AlignHeightOutward, .AlignWidthOutward]
+        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(5.0), CGFloat(106.0), CGFloat(25.0))
+        result = NSIntegralRectWithOptions(referenceRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMinXInward, .AlignMinYInward, .AlignHeightInward, .AlignWidthInward]
+        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(0.0), CGFloat(0.0))
+        result = NSIntegralRectWithOptions(referenceNegativeRect, options)
+        XCTAssertEqual(result, expectedResult)
+        
+        options = [.AlignMinXInward, .AlignMinYInward, .AlignHeightInward, .AlignWidthInward]
+        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(105.0), CGFloat(24.0))
+        result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMinXOutward, .AlignMinYOutward, .AlignHeightOutward, .AlignWidthOutward]
+        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-6.0), CGFloat(106.0), CGFloat(25.0))
+        result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMaxXOutward, .AlignMaxYOutward, .AlignHeightOutward, .AlignWidthOutward]
+        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(-6.0), CGFloat(106.0), CGFloat(25.0))
+        result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMinXOutward, .AlignMaxXOutward, .AlignMinYOutward, .AlignMaxYOutward]
+        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-6.0), CGFloat(107.0), CGFloat(25.0))
+        result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMaxXOutward, .AlignMaxYOutward, .AlignHeightOutward, .AlignWidthOutward]
+        expectedResult = NSMakeRect(CGFloat(1.0), CGFloat(5.0), CGFloat(106.0), CGFloat(25.0))
+        result = NSIntegralRectWithOptions(referenceRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMaxXInward, .AlignMaxYInward, .AlignHeightOutward, .AlignWidthOutward]
+        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-7.0), CGFloat(106.0), CGFloat(25.0))
+        result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMaxXInward, .AlignMaxYInward, .AlignHeightOutward, .AlignWidthOutward]
+        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(4.0), CGFloat(106.0), CGFloat(25.0))
+        result = NSIntegralRectWithOptions(referenceRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMinXNearest, .AlignMinYNearest, .AlignHeightNearest, .AlignWidthNearest]
+        expectedResult = NSMakeRect(CGFloat(1.0), CGFloat(5.0), CGFloat(106.0), CGFloat(24.0))
+        result = NSIntegralRectWithOptions(referenceRect, options)
+        XCTAssertEqual(result, expectedResult)
+        
+        options = [.AlignMinXNearest, .AlignMinYNearest, .AlignHeightNearest, .AlignWidthNearest]
+        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-5.0), CGFloat(106.0), CGFloat(24.0))
+        result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMaxXNearest, .AlignMaxYNearest, .AlignHeightNearest, .AlignWidthNearest]
+        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(6.0), CGFloat(106.0), CGFloat(24.0))
+        result = NSIntegralRectWithOptions(referenceRect, options)
+        XCTAssertEqual(result, expectedResult)
+        
+        options = [.AlignMaxXNearest, .AlignMaxYNearest, .AlignHeightNearest, .AlignWidthNearest]
+        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-5.0), CGFloat(106.0), CGFloat(24.0))
+        result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMinXInward, .AlignMaxXInward, .AlignMinYInward, .AlignMaxYInward]
+        expectedResult = NSMakeRect(CGFloat(1.0), CGFloat(6.0), CGFloat(105.0), CGFloat(23.0))
+        result = NSIntegralRectWithOptions(referenceRect, options)
+        XCTAssertEqual(result, expectedResult)
+        
+        options = [.AlignMinXInward, .AlignMaxXInward, .AlignMinYInward, .AlignMaxYInward]
+        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(105.0), CGFloat(23.0))
+        result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
+        XCTAssertEqual(result, expectedResult)
+
+        options = [.AlignMinXNearest, .AlignMaxXInward, .AlignMinYInward, .AlignMaxYNearest]
+        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-5.0), CGFloat(106.0), CGFloat(24.0))
+        result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
+        XCTAssertEqual(result, expectedResult)
+
     }
 }
