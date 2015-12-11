@@ -75,12 +75,12 @@ class TestNSBundle : XCTestCase {
         let bundle = NSBundle.mainBundle()
         
         // bundleIdentifier
-        XCTAssertEqual("com.apple.TestFoundation", bundle.bundleIdentifier)
+        XCTAssertEqual("org.swift.TestFoundation", bundle.bundleIdentifier)
         
         // infoDictionary
         let info = bundle.infoDictionary
         XCTAssertNotNil(info)
-        XCTAssert("com.apple.TestFoundation" == info!["CFBundleIdentifier"] as! String)
+        XCTAssert("org.swift.TestFoundation" == info!["CFBundleIdentifier"] as! String)
         XCTAssert("TestFoundation" == info!["CFBundleName"] as! String)
         
         // localizedInfoDictionary
