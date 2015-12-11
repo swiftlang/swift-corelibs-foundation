@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		22B9C1E11C165D7A00DECFF9 /* TestNSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */; };
+		265706D21C1B404300D31C07 /* TestNSPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 265706D11C1B404300D31C07 /* TestNSPredicate.swift */; };
 		4AE109271C17CCBF007367B5 /* TestNSIndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */; };
 		4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */; };
 		525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
@@ -332,6 +333,7 @@
 
 /* Begin PBXFileReference section */
 		22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDate.swift; sourceTree = "<group>"; };
+		265706D11C1B404300D31C07 /* TestNSPredicate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSPredicate.swift; sourceTree = "<group>"; };
 		4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSIndexPath.swift; sourceTree = "<group>"; };
 		4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSPipe.swift; sourceTree = "<group>"; };
 		522C253A1BF16E1600804FC6 /* FoundationErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationErrors.swift; sourceTree = "<group>"; };
@@ -1068,6 +1070,7 @@
 				83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */,
 				7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */,
 				A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */,
+				265706D11C1B404300D31C07 /* TestNSPredicate.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1761,6 +1764,7 @@
 			files = (
 				525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */,
 				5B915F0F1C1A320E00BE40C5 /* TestNSJSONSerialization.swift in Sources */,
+				265706D21C1B404300D31C07 /* TestNSPredicate.swift in Sources */,
 				EA66F6501BF1619600136161 /* TestNSNumber.swift in Sources */,
 				844DC3331C17584F005611F9 /* TestNSScanner.swift in Sources */,
 				E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */,
