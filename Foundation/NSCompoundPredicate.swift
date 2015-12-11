@@ -19,14 +19,43 @@ public enum NSCompoundPredicateType : UInt {
 
 public class NSCompoundPredicate : NSPredicate {
     
-    public init(type: NSCompoundPredicateType, subpredicates: [NSPredicate]) { NSUnimplemented() }
+    public init(type: NSCompoundPredicateType, subpredicates: [NSPredicate]) {
+        if type == .NotPredicateType && subpredicates.count == 0 {
+            preconditionFailure("Unsupported predicate count of \(subpredicates.count) for \(type)")
+        }
+        self.compoundPredicateType = type
+        self.subpredicates = subpredicates
+        super.init(value: false)
+    }
     public required init?(coder: NSCoder) { NSUnimplemented() }
     
-    public var compoundPredicateType: NSCompoundPredicateType { NSUnimplemented() }
-    public var subpredicates: [AnyObject] { NSUnimplemented() }
-    
+    public let compoundPredicateType: NSCompoundPredicateType
+    public let subpredicates: [NSPredicate]
+
     /*** Convenience Methods ***/
-    public init(andPredicateWithSubpredicates subpredicates: [NSPredicate]) { NSUnimplemented() }
-    public init(orPredicateWithSubpredicates subpredicates: [NSPredicate]) { NSUnimplemented() }
-    public init(notPredicateWithSubpredicate predicate: NSPredicate) { NSUnimplemented() }
+    public convenience init(andPredicateWithSubpredicates subpredicates: [NSPredicate]) {
+        self.init(type: .AndPredicateType, subpredicates: subpredicates)
+    }
+    public convenience init(orPredicateWithSubpredicates subpredicates: [NSPredicate]) {
+        self.init(type: .OrPredicateType, subpredicates: subpredicates)
+    }
+    public convenience init(notPredicateWithSubpredicate predicate: NSPredicate) {
+        self.init(type: .NotPredicateType, subpredicates: [predicate])
+    }
+
+    override public func evaluateWithObject(_ object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
+        switch compoundPredicateType {
+        case .AndPredicateType:
+            return subpredicates.reduce(true, combine: {
+                $0 && $1.evaluateWithObject(object, substitutionVariables: bindings)
+            })
+        case .OrPredicateType:
+            return subpredicates.reduce(false, combine: {
+                $0 || $1.evaluateWithObject(object, substitutionVariables: bindings)
+            })
+        case .NotPredicateType:
+            // safe to get the 0th item here since we trap if there's not at least one on init
+            return !(subpredicates[0].evaluateWithObject(object, substitutionVariables: bindings))
+        }
+    }
 }
