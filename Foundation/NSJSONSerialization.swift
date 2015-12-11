@@ -251,12 +251,12 @@ private struct JSONDeserializer {
     }
     
     struct StructureScalar {
-        static let BeginArray     = UnicodeScalar(0x5B) // [ left square bracket
-        static let EndArray       = UnicodeScalar(0x5D) // ] right square bracket
-        static let BeginObject    = UnicodeScalar(0x7B) // { left curly bracket
-        static let EndObject      = UnicodeScalar(0x7D) // } right curly bracket
-        static let NameSeparator  = UnicodeScalar(0x3A) // : colon
-        static let ValueSeparator = UnicodeScalar(0x2C) // , comma
+        static let BeginArray: UnicodeScalar     = "["
+        static let EndArray: UnicodeScalar       = "]"
+        static let BeginObject: UnicodeScalar    = "{"
+        static let EndObject: UnicodeScalar      = "}"
+        static let NameSeparator: UnicodeScalar  = ":"
+        static let ValueSeparator: UnicodeScalar = ","
     }
     
     static func consumeStructure(scalar: UnicodeScalar, input: UnicodeParser) throws -> UnicodeParser? {
@@ -307,8 +307,8 @@ private struct JSONDeserializer {
 
     //MARK: - String Parsing
     struct StringScalar{
-        static let QuotationMark = UnicodeScalar(0x22) // "
-        static let Escape        = UnicodeScalar(0x5C) // \
+        static let QuotationMark: UnicodeScalar = "\""
+        static let Escape: UnicodeScalar        = "\\"
     }
     
     static func parseString(input: UnicodeParser) throws -> (String, UnicodeParser)? {
@@ -353,23 +353,19 @@ private struct JSONDeserializer {
             ])
         }
         switch scalar {
-        case UnicodeScalar(0x22):                   // "    quotation mark  U+0022
-            fallthrough
-        case UnicodeScalar(0x5C):                   // \    reverse solidus U+005F
-            fallthrough
-        case UnicodeScalar(0x2F):                   // /    solidus         U+002F
+        case "\"", "\\", "/":
             return (scalar, parser)
-        case UnicodeScalar(0x62):                   // b    backspace       U+0008
+        case "b":
             return (UnicodeScalar(0x08), parser)
-        case UnicodeScalar(0x66):                   // f    form feed       U+000C
+        case "f":
             return (UnicodeScalar(0x0C), parser)
-        case UnicodeScalar(0x6E):                   // n    line feed       U+000A
+        case "n":
             return (UnicodeScalar(0x0A), parser)
-        case UnicodeScalar(0x72):                   // r    carriage return U+000D
+        case "r":
             return (UnicodeScalar(0x0D), parser)
-        case UnicodeScalar(0x74):                   // t    tab             U+0009
+        case "t":
             return (UnicodeScalar(0x09), parser)
-        case UnicodeScalar(0x75):                   // u    unicode
+        case "u":
             return try parseUnicodeSequence(parser)
         default:
             return nil
