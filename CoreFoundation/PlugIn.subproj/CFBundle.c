@@ -1562,7 +1562,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     } else {
                         exeDirURL = (CFURLRef)CFRetain(url);
                     }
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#else
                     exeDirURL = (CFURLRef)CFRetain(url);
 #endif
                 }
