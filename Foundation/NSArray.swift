@@ -672,7 +672,10 @@ public class NSMutableArray : NSArray {
             }
         }
     }
-    public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject], range otherRange: NSRange) { NSUnimplemented() }
+    public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject], range otherRange: NSRange) {
+        replaceObjectsInRange(range, withObjectsFromArray: otherArray.bridge().subarrayWithRange(otherRange))
+    }
+    
     public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject]) {
         if self.dynamicType === NSMutableArray.self {
             _storage.reserveCapacity(count - range.length + otherArray.count)
