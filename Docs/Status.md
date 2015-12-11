@@ -31,6 +31,7 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     * `NSFormatter` is fully implemented.
     * `NSDateFormatter` is mostly implemented.
+    * `NSNumberFormatter` is mostly implemented.
     * The remaining formatters are not yet implemented.
 
 

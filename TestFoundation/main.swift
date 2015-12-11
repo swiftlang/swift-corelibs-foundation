@@ -38,6 +38,7 @@ XCTMain([
     TestNSJSONSerialization(),
     TestNSNotificationCenter(),
     TestNSNumber(),
+    TestNSNumberFormatter(),
     TestNSPipe(),
     TestNSProcessInfo(),
     TestNSPropertyList(),
@@ -53,5 +54,5 @@ XCTMain([
     TestNSURLResponse(),
     TestNSNull(),
     TestNSUUID(),
-    TestNSXMLParser(),
+    TestNSXMLParser()
 ])
