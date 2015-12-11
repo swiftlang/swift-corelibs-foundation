@@ -329,7 +329,7 @@ public class NSHTTPCookie : NSObject {
 
     private class func versionFrom(properties: [String : Any]) -> Int {
         if let
-            versionString = properties[NSHTTPCookieSecure] as? String
+            versionString = properties[NSHTTPCookieVersion] as? String
             where versionString == "1"
         {
             return 1
