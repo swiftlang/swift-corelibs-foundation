@@ -36,6 +36,7 @@ XCTMain([
     TestNSFileManger(),
     TestNSRange(),
     TestNSXMLParser(),
+    TestNSBundle(),
     TestNSDate(),
     TestNSJSONSerialization(),
     TestNSData(),
@@ -50,4 +51,3 @@ XCTMain([
     TestNSURLResponse(),
     TestNSNotificationCenter(),
 ])
-
