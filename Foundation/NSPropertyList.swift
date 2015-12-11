@@ -113,6 +113,8 @@ internal func _expensivePropertyListConversion(input : AnyObject) -> Any {
         return data
     } else if let number = input as? NSNumber {
         return number
+    } else if let url = input as? NSURL {
+        return url
     } else if input === kCFBooleanTrue {
         return true
     } else if input === kCFBooleanFalse {

@@ -66,42 +66,74 @@ public class NSBundle : NSObject {
     public func loadAndReturnError() throws { NSUnimplemented() }
     
     /* Methods for locating various components of a bundle. */
-    public var bundleURL: NSURL { NSUnimplemented() }
+    public var bundleURL: NSURL {
+        return CFBundleCopyBundleURL(_bundle)._nsObject
+    }
     
-    public var resourceURL: NSURL? { NSUnimplemented() }
+    public var resourceURL: NSURL? {
+        return CFBundleCopyResourcesDirectoryURL(_bundle)?._nsObject
+    }
     
-    public var executableURL: NSURL? { NSUnimplemented() }
+    public var executableURL: NSURL? {
+        return CFBundleCopyExecutableURL(_bundle)?._nsObject
+    }
     
-    public func URLForAuxiliaryExecutable(executableName: String) -> NSURL? { NSUnimplemented() }
+    public func URLForAuxiliaryExecutable(executableName: String) -> NSURL? {
+        return CFBundleCopyAuxiliaryExecutableURL(_bundle, executableName._cfObject)?._nsObject
+    }
     
-    public var privateFrameworksURL: NSURL? { NSUnimplemented() }
+    public var privateFrameworksURL: NSURL? {
+        return CFBundleCopyPrivateFrameworksURL(_bundle)?._nsObject
+    }
     
-    public var sharedFrameworksURL: NSURL? { NSUnimplemented() }
+    public var sharedFrameworksURL: NSURL? {
+        return CFBundleCopySharedFrameworksURL(_bundle)?._nsObject
+    }
     
-    public var sharedSupportURL: NSURL? { NSUnimplemented() }
+    public var sharedSupportURL: NSURL? {
+        return CFBundleCopySharedSupportURL(_bundle)?._nsObject
+    }
     
-    public var builtInPlugInsURL: NSURL? { NSUnimplemented() }
+    public var builtInPlugInsURL: NSURL? {
+        return CFBundleCopyBuiltInPlugInsURL(_bundle)?._nsObject
+    }
     
     public var appStoreReceiptURL: NSURL? {
         // Always nil on this platform
         return nil
     }
     
-    public var bundlePath: String { NSUnimplemented() }
+    public var bundlePath: String {
+        return bundleURL.path!
+    }
     
-    public var resourcePath: String? { NSUnimplemented() }
+    public var resourcePath: String? {
+        return resourceURL?.path
+    }
     
-    public var executablePath: String? { NSUnimplemented() }
+    public var executablePath: String? {
+        return executableURL?.path
+    }
     
-    public func pathForAuxiliaryExecutable(executableName: String) -> String? { NSUnimplemented() }
+    public func pathForAuxiliaryExecutable(executableName: String) -> String? {
+        return URLForAuxiliaryExecutable(executableName)?.path
+    }
     
-    public var privateFrameworksPath: String? { NSUnimplemented() }
+    public var privateFrameworksPath: String? {
+        return privateFrameworksURL?.path
+    }
     
-    public var sharedFrameworksPath: String? { NSUnimplemented() }
+    public var sharedFrameworksPath: String? {
+        return sharedFrameworksURL?.path
+    }
     
-    public var sharedSupportPath: String? { NSUnimplemented() }
+    public var sharedSupportPath: String? {
+        return sharedSupportURL?.path
+    }
     
-    public var builtInPlugInsPath: String? { NSUnimplemented() }
+    public var builtInPlugInsPath: String? {
+        return builtInPlugInsURL?.path
+    }
     
     // -----------------------------------------------------------------------------------
     // MARK: - URL and Path Resource Lookup
@@ -155,26 +187,44 @@ public class NSBundle : NSObject {
     // -----------------------------------------------------------------------------------
     // MARK: - Other
     
-    public var bundleIdentifier: String? { NSUnimplemented() }
+    public var bundleIdentifier: String? {
+        return CFBundleGetIdentifier(_bundle)?._swiftObject
+    }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    public var infoDictionary: [String : Any]? { NSUnimplemented() }
+    public var infoDictionary: [String : Any]? {
+        let cfDict: CFDictionary? = CFBundleGetInfoDictionary(_bundle)
+        return cfDict.map(_expensivePropertyListConversion) as? [String: Any]
+    }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    public var localizedInfoDictionary: [String : Any]? { NSUnimplemented() }
+    public var localizedInfoDictionary: [String : Any]? {
+        let cfDict: CFDictionary? = CFBundleGetLocalInfoDictionary(_bundle)
+        return cfDict.map(_expensivePropertyListConversion) as? [String: Any]
+    }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    public func objectForInfoDictionaryKey(key: String) -> Any? { NSUnimplemented() }
+    public func objectForInfoDictionaryKey(key: String) -> AnyObject? { NSUnimplemented() }
     
     public func classNamed(className: String) -> AnyClass? { NSUnimplemented() }
     public var principalClass: AnyClass? { NSUnimplemented() }
-    public var preferredLocalizations: [String] { NSUnimplemented() }
-    public var localizations: [String] { NSUnimplemented() }
+    public var preferredLocalizations: [String] {
+        return NSBundle.preferredLocalizationsFromArray(localizations)
+    }
+    public var localizations: [String] {
+        let cfLocalizations: CFArray? = CFBundleCopyBundleLocalizations(_bundle)
+        let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
+        return nsLocalizations?.map { $0 as! String } ?? []
+    }
     public var developmentLocalization: String? { NSUnimplemented() }
-    public class func preferredLocalizationsFromArray(localizationsArray: [String]) -> [String] { NSUnimplemented() }
+    public class func preferredLocalizationsFromArray(localizationsArray: [String]) -> [String] {
+        let cfLocalizations: CFArray? = CFBundleCopyPreferredLocalizationsFromArray(localizationsArray._cfObject)
+        let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
+        return nsLocalizations?.map { $0 as! String } ?? []
+    }
     public class func preferredLocalizationsFromArray(localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] { NSUnimplemented() }
     public var executableArchitectures: [NSNumber]? { NSUnimplemented() }
 }
