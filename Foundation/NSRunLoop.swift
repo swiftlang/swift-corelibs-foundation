@@ -7,38 +7,51 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
 
-public let NSDefaultRunLoopMode: String = "NSDefaultRunLoopMode"
-public let NSRunLoopCommonModes: String = "NSRunLoopCommonModes"
+public let NSDefaultRunLoopMode: String = kCFRunLoopDefaultMode._swiftObject
+public let NSRunLoopCommonModes: String = kCFRunLoopCommonModes._swiftObject
 
 public class NSRunLoop : NSObject {
+    typealias CFType = CFRunLoopRef
+    internal var _cfObject : CFType!
+    internal static var _mainRunLoop : NSRunLoop = {
+        return NSRunLoop(cfObject: CFRunLoopGetMain())
+    }()
+    
+    internal init(cfObject : CFRunLoopRef) {
+        _cfObject = cfObject
+    }
     
     public class func currentRunLoop() -> NSRunLoop {
-        NSUnimplemented()
+        return NSRunLoop(cfObject: CFRunLoopGetCurrent())
     }
     
     public class func mainRunLoop() -> NSRunLoop {
-        NSUnimplemented()
+        return _mainRunLoop
     }
     
     public var currentMode: String? {
-        NSUnimplemented()
+        return CFRunLoopCopyCurrentMode(_cfObject)?._swiftObject
     }
     
     public func addTimer(timer: NSTimer, forMode mode: String) {
-        NSUnimplemented()
+        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode._cfObject)
     }
     
     public func addPort(aPort: NSPort, forMode mode: String) {
+//        CFRunLoopAddSource(CFRunLoopGetCurrent(), aPort._cfObject, mode._cfObject)
         NSUnimplemented()
     }
 
     public func removePort(aPort: NSPort, forMode mode: String) {
+//        CFRunLoopRemoveSource(CFRunLoopGetCurrent(), aPort._cfObject, mode._cfObject)
         NSUnimplemented()
     }
     
     public func limitDateForMode(mode: String) -> NSDate? {
-        NSUnimplemented()
+        let nextTimerFireAbsoluteTime = CFRunLoopGetNextTimerFireDate(CFRunLoopGetCurrent(), mode._cfObject)
+        return NSDate(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
     }
 
     public func acceptInputForMode(mode: String, beforeDate limitDate: NSDate) {
@@ -50,15 +63,17 @@ public class NSRunLoop : NSObject {
 extension NSRunLoop {
     
     public func run() {
-        NSUnimplemented()
+        runUntilDate(NSDate.distantFuture());
     }
 
     public func runUntilDate(limitDate: NSDate) {
-        NSUnimplemented()
+        runMode(NSDefaultRunLoopMode, beforeDate: limitDate)
     }
 
     public func runMode(mode: String, beforeDate limitDate: NSDate) -> Bool {
-        NSUnimplemented()
+        let result: Int32 = CFRunLoopRunSpecific(_cfObject, mode._cfObject, limitDate.timeIntervalSinceNow, false)
+        let runloopResult = CFRunLoopRunResult(rawValue: result)
+        return runloopResult == .HandledSource || runloopResult == .TimedOut
     }
 
 }
