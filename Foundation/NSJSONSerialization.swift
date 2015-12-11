@@ -240,7 +240,7 @@ private struct JSONDeserializer {
         UnicodeScalar(0x20), // Space
     ]
 
-    static func consumeWhitespace(parser: UnicodeParser) -> UnicodeParser {
+    static func consumeWhitespace(parser: UnicodeParser) -> UnicodeParser? {
         var index = parser.index
         let view = parser.view
         let endIndex = view.endIndex
@@ -260,29 +260,28 @@ private struct JSONDeserializer {
     }
     
     static func consumeStructure(scalar: UnicodeScalar, input: UnicodeParser) throws -> UnicodeParser? {
-        if let parser = try consumeScalar(scalar, input: consumeWhitespace(input)) {
-            return consumeWhitespace(parser)
-        }
-        return nil
+        return try consumeWhitespace(input).flatMap(consumeScalar(scalar)).flatMap(consumeWhitespace)
     }
     
-    static func consumeScalar(scalar: UnicodeScalar, input: UnicodeParser) throws -> UnicodeParser? {
-        switch takeScalar(input) {
-        case nil:
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Unexpected end of file during JSON parse."
-            ])
-        case let (taken, parser)? where taken == scalar:
-            return parser
-        default:
-            return nil
+    static func consumeScalar(scalar: UnicodeScalar) -> (UnicodeParser) throws -> UnicodeParser? {
+        return { (parser: UnicodeParser) throws -> UnicodeParser? in
+            switch takeScalar(parser) {
+            case nil:
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                    "NSDebugDescription" : "Unexpected end of file during JSON parse."
+                ])
+            case let (taken, parser)? where taken == scalar:
+                return parser
+            default:
+                return nil
+            }
         }
     }
     
     static func consumeSequence(sequence: String, input: UnicodeParser) throws -> UnicodeParser? {
         var parser = input
         for scalar in sequence.unicodeScalars {
-            guard let newParser = try consumeScalar(scalar, input: parser) else {
+            guard let newParser = try consumeScalar(scalar)(parser) else {
                 return nil
             }
             parser = newParser
@@ -319,7 +318,7 @@ private struct JSONDeserializer {
     }
     
     static func parseString(input: UnicodeParser) throws -> (String, UnicodeParser)? {
-        guard let begin = try consumeScalar(StringScalar.QuotationMark, input: input) else {
+        guard let begin = try consumeScalar(StringScalar.QuotationMark)(input) else {
             return nil
         }
         let view = begin.view
