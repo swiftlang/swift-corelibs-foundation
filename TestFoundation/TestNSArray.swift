@@ -27,8 +27,8 @@ class TestNSArray : XCTestCase {
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_getObjects", test_getObjects),
+            ("test_objectAtIndex", test_objectAtIndex),
             ("test_binarySearch", test_binarySearch),
-            ("test_objectAtIndex", test_objectAtIndex)
         ]
     }
     
