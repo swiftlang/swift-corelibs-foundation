@@ -296,19 +296,13 @@ private struct JSONDeserializer {
         return (input.view[input.index], input.successor())
     }
     
-    static func takeInClass(matchClass: String.UnicodeScalarView, count: UInt = UInt.max, input: UnicodeParser) -> (String.UnicodeScalarView, UnicodeParser)? {
-        var output = String.UnicodeScalarView()
-        var remaining = count
-        var parser = input
-        while remaining > 0, let (taken, newParser) = takeScalar(parser) where matchClass.contains(taken) {
-            output.append(taken)
-            parser = newParser
-            remaining -= 1
+    static func takeMatching(match: (UnicodeScalar) -> Bool) -> (String, UnicodeParser) -> (String, UnicodeParser)? {
+        return { input, parser in
+            guard let (scalar, parser) = takeScalar(parser) where match(scalar) else {
+                return nil
+            }
+            return (input + String(scalar), parser)
         }
-        guard output.count > 0 && (count != UInt.max || remaining == 0) else {
-            return nil
-        }
-        return (output, parser)
     }
 
     //MARK: - String Parsing
@@ -403,10 +397,23 @@ private struct JSONDeserializer {
         return (UnicodeScalar(highValue + lowValue + 0x10000), finalParser)
     }
     
-    static let hexScalars = "1234567890abcdefABCDEF".unicodeScalars
+    static let hexScalars = [
+        UnicodeScalar(0x30), UnicodeScalar(0x31), // 0, 1
+        UnicodeScalar(0x32), UnicodeScalar(0x33), // 2, 3
+        UnicodeScalar(0x34), UnicodeScalar(0x35), // 4, 5
+        UnicodeScalar(0x36), UnicodeScalar(0x37), // 6, 7
+        UnicodeScalar(0x38), UnicodeScalar(0x39), // 8, 9
+        UnicodeScalar(0x41), UnicodeScalar(0x61), // A, a
+        UnicodeScalar(0x42), UnicodeScalar(0x62), // B, b
+        UnicodeScalar(0x43), UnicodeScalar(0x63), // C, c
+        UnicodeScalar(0x44), UnicodeScalar(0x64), // D, d
+        UnicodeScalar(0x45), UnicodeScalar(0x65), // E, e
+        UnicodeScalar(0x46), UnicodeScalar(0x66), // F, f
+    ]
     static func parseCodeUnit(input: UnicodeParser) -> (UTF16.CodeUnit, UnicodeParser)? {
-        guard let (result, parser) = takeInClass(hexScalars, count: 4, input: input),
-            let value = Int(String(result), radix: 16) else {
+        let hexParser = takeMatching(hexScalars.contains)
+        guard let (result, parser) = hexParser("", input).flatMap(hexParser).flatMap(hexParser).flatMap(hexParser),
+            let value = Int(result, radix: 16) else {
                 return nil
         }
         return (UTF16.CodeUnit(value), parser)
