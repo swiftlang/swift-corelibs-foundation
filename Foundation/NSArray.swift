@@ -413,11 +413,16 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
 
     public func indexOfObject(obj: AnyObject, inSortedRange r: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int {
         guard (r.location + r.length) <= count else {
-            NSInvalidArgument("range \(r) extends beyond bounds [0 .. \(count - 1)]")
+            let bounds = count == 0 ? "for empty array" : "[0 .. \(count - 1)]"
+            NSInvalidArgument("range \(r) extends beyond bounds \(bounds)")
         }
         
         if opts.contains(.FirstEqual) && opts.contains(.LastEqual) {
             NSInvalidArgument("both NSBinarySearching.FirstEqual and NSBinarySearching.LastEqual options cannot be specified")
+        }
+        
+        if r.length == 0 && opts.contains(.InsertionIndex) {
+            return r.location
         }
         
         let firstEqual = opts.contains(.FirstEqual)
@@ -468,7 +473,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }
         
         guard indexOfLeastGreaterThanObj != NSNotFound else {
-            return count
+            return r.location + r.length
         }
         
         return indexOfLeastGreaterThanObj

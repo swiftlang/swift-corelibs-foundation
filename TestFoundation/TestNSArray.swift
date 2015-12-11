@@ -128,8 +128,20 @@ class TestNSArray : XCTestCase {
         let indexOfLeastGreaterObjectThanFive = objectIndexInArray(array, value: 5, startingFrom: 0, length: 10, options: [.InsertionIndex, .LastEqual])
         XCTAssertTrue(indexOfLeastGreaterObjectThanFive == 7, "If both .InsertionIndex and .LastEqual are specified NSArray returns the index of the least greater object...")
         
-        let endOfArray = objectIndexInArray(array, value: 10, startingFrom: 0, length: 13, options: [.InsertionIndex, .LastEqual])
-        XCTAssertTrue(endOfArray == array.count, "...or the index at the end of the array if the object is larger than all other elements.")
+        let rangeStart = 0
+        let rangeLength = 13
+        let endOfArray = objectIndexInArray(array, value: 10, startingFrom: rangeStart, length: rangeLength, options: [.InsertionIndex, .LastEqual])
+        XCTAssertTrue(endOfArray == (rangeStart + rangeLength), "...or the index at the end of the array if the object is larger than all other elements.")
+        
+        let emptyArray = NSArray()
+//        Same as for non empty NSArray but error message ends with 'bounds for empty array'.
+//        let _ = objectIndexInArray(emptyArray, value: 0, startingFrom: 0, length: 1)
+        
+        let notFoundInEmptyArray = objectIndexInArray(emptyArray, value: 9, startingFrom: 0, length: 0)
+        XCTAssertEqual(notFoundInEmptyArray, NSNotFound, "Empty NSArray return NSNotFound for any valid arguments.")
+        
+        let startIndex = objectIndexInArray(emptyArray, value: 7, startingFrom: 0, length: 0, options: [.InsertionIndex])
+        XCTAssertTrue(startIndex == 0, "For Empty NSArray any objects should be inserted at start.")
     }
     
     func objectIndexInArray(array: NSArray, value: Int, startingFrom: Int, length: Int, options: NSBinarySearchingOptions = []) -> Int {
