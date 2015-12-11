@@ -133,6 +133,20 @@ class TestNSHTTPCookie: XCTestCase {
         XCTAssert(versionOneCookie?.secure == false)
         XCTAssert(versionOneCookie?.HTTPOnly == false)
         XCTAssert(versionOneCookie?.version == 1)
+
+        let versionOneCookieWithStringCommentURL = NSHTTPCookie(properties: [
+            NSHTTPCookieName: "TestCookie",
+            NSHTTPCookieValue: "Test value 989as8dfhlkaj@#$%",
+            NSHTTPCookiePath: "/",
+            NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!,
+            NSHTTPCookieCommentURL: "https://google.com",
+            NSHTTPCookieMaximumAge: "2000",
+            NSHTTPCookieVersion: "1"
+        ])
+        XCTAssert(
+            versionOneCookieWithStringCommentURL?
+                .commentURL?.absoluteString == "https://google.com"
+        )
     }
 
     func test_RequestHeaderFields() {
