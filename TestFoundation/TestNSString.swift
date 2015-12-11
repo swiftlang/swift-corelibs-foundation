@@ -100,14 +100,44 @@ class TestNSString : XCTestCase {
 
         let string8: NSString = "--123"
         XCTAssertEqual(string8.integerValue, 0)
+
+        let string9: NSString = "999999999999999999999999999999"
+        XCTAssertEqual(string9.integerValue, Int.max)
+
+        let string10: NSString = "-999999999999999999999999999999"
+        XCTAssertEqual(string10.integerValue, Int.min)
     }
 
     func test_intValue() {
-        let string1: NSString = "2147483648"
-        XCTAssertEqual(string1.intValue, 2147483647)
+        let string1: NSString = "123"
+        XCTAssertEqual(string1.intValue, 123)
 
-        let string2: NSString = "-2147483649"
-        XCTAssertEqual(string2.intValue, -2147483648)
+        let string2: NSString = "123a"
+        XCTAssertEqual(string2.intValue, 123)
+
+        let string3: NSString = "-123a"
+        XCTAssertEqual(string3.intValue, -123)
+
+        let string4: NSString = "a123"
+        XCTAssertEqual(string4.intValue, 0)
+
+        let string5: NSString = "+123"
+        XCTAssertEqual(string5.intValue, 123)
+
+        let string6: NSString = "++123"
+        XCTAssertEqual(string6.intValue, 0)
+
+        let string7: NSString = "-123"
+        XCTAssertEqual(string7.intValue, -123)
+
+        let string8: NSString = "--123"
+        XCTAssertEqual(string8.intValue, 0)
+
+        let string9: NSString = "999999999999999999999999999999"
+        XCTAssertEqual(string9.intValue, Int32.max)
+
+        let string10: NSString = "-999999999999999999999999999999"
+        XCTAssertEqual(string10.intValue, Int32.min)
     }
     
     func test_isEqualToStringWithSwiftString() {
@@ -199,6 +229,7 @@ class TestNSString : XCTestCase {
 
     func test_uppercaseString() {
         XCTAssertEqual(NSString(stringLiteral: "abcd").uppercaseString, "ABCD")
+        XCTAssertEqual(NSString(stringLiteral: "ａｂｃｄ").uppercaseString, "ＡＢＣＤ") // full-width
         XCTAssertEqual(NSString(stringLiteral: "абВГ").uppercaseString, "АБВГ")
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercaseString, "たちつてと")
 
@@ -212,6 +243,7 @@ class TestNSString : XCTestCase {
 
     func test_lowercaseString() {
         XCTAssertEqual(NSString(stringLiteral: "abCD").lowercaseString, "abcd")
+        XCTAssertEqual(NSString(stringLiteral: "ＡＢＣＤ").lowercaseString, "ａｂｃｄ") // full-width
         XCTAssertEqual(NSString(stringLiteral: "aБВГ").lowercaseString, "aбвг")
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercaseString, "たちつてと")
 
@@ -230,11 +262,35 @@ class TestNSString : XCTestCase {
     }
 
     func test_longLongValue() {
-        let string1: NSString = "9223372036854775808"
-        XCTAssertEqual(string1.longLongValue, 9223372036854775807)
+        let string1: NSString = "123"
+        XCTAssertEqual(string1.longLongValue, 123)
 
-        let string2: NSString = "-9223372036854775809"
-        XCTAssertEqual(string2.longLongValue, -9223372036854775808)
+        let string2: NSString = "123a"
+        XCTAssertEqual(string2.longLongValue, 123)
+
+        let string3: NSString = "-123a"
+        XCTAssertEqual(string3.longLongValue, -123)
+
+        let string4: NSString = "a123"
+        XCTAssertEqual(string4.longLongValue, 0)
+
+        let string5: NSString = "+123"
+        XCTAssertEqual(string5.longLongValue, 123)
+
+        let string6: NSString = "++123"
+        XCTAssertEqual(string6.longLongValue, 0)
+
+        let string7: NSString = "-123"
+        XCTAssertEqual(string7.longLongValue, -123)
+
+        let string8: NSString = "--123"
+        XCTAssertEqual(string8.longLongValue, 0)
+
+        let string9: NSString = "999999999999999999999999999999"
+        XCTAssertEqual(string9.longLongValue, Int64.max)
+
+        let string10: NSString = "-999999999999999999999999999999"
+        XCTAssertEqual(string10.longLongValue, Int64.min)
     }
     
     func test_rangeOfCharacterFromSet() {

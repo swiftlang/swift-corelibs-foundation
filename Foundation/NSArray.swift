@@ -411,7 +411,70 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return sortedArrayFromRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
     }
 
-    public func indexOfObject(obj: AnyObject, inSortedRange r: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
+    public func indexOfObject(obj: AnyObject, inSortedRange r: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int {
+        guard (r.location + r.length) <= count else {
+            NSInvalidArgument("range \(r) extends beyond bounds [0 .. \(count - 1)]")
+        }
+        
+        if opts.contains(.FirstEqual) && opts.contains(.LastEqual) {
+            NSInvalidArgument("both NSBinarySearching.FirstEqual and NSBinarySearching.LastEqual options cannot be specified")
+        }
+        
+        let firstEqual = opts.contains(.FirstEqual)
+        let lastEqual = opts.contains(.LastEqual)
+        let anyEqual = !(firstEqual || lastEqual)
+        
+        var result = NSNotFound
+        var indexOfLeastGreaterThanObj = NSNotFound
+        var start = r.location
+        var end = r.location + r.length - 1
+        
+        loop: while start <= end {
+            let middle = start + (end - start) / 2
+            let item = objectAtIndex(middle)
+            
+            switch cmp(item, obj) {
+                
+            case .OrderedSame where anyEqual:
+                result = middle
+                break loop
+                
+            case .OrderedSame where lastEqual:
+                result = middle
+                fallthrough
+                
+            case .OrderedAscending:
+                start = middle + 1
+                
+            case .OrderedSame where firstEqual:
+                result = middle
+                fallthrough
+                
+            case .OrderedDescending:
+                indexOfLeastGreaterThanObj = middle
+                end = middle - 1
+                
+            default:
+                fatalError("Implementation error.")
+            }
+        }
+        
+        guard opts.contains(.InsertionIndex) && lastEqual else {
+            return result
+        }
+        
+        guard result == NSNotFound else {
+            return result + 1
+        }
+        
+        guard indexOfLeastGreaterThanObj != NSNotFound else {
+            return count
+        }
+        
+        return indexOfLeastGreaterThanObj
+    }
+    
+    
     
     public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
     public convenience init?(contentsOfURL url: NSURL) { NSUnimplemented() }

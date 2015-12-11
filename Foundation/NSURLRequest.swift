@@ -252,7 +252,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @abstract Returns the HTTP request method of the receiver.
     @result the HTTP request method of the receiver.
     */
-    public var HTTPMethod: String? { get { return "GET" }}
+    public var HTTPMethod: String? { get { return "GET" } }
     
     /*!
     @method allHTTPHeaderFields
@@ -308,15 +308,27 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
 */
 public class NSMutableURLRequest : NSURLRequest {
     
+    private var _HTTPMethod: String? = "GET"
+    
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        super.init()
     }
-    /*! 
+    
+    private override init() { super.init() }
+    
+    /*!
         @method URL
         @abstract Sets the URL of the receiver. 
         @param URL The new URL for the receiver. 
     */
-    /*@NSCopying */ public override var URL: NSURL? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    /*@NSCopying */ public override var URL: NSURL? {
+        get {
+            return _URL
+        }
+        set(newURL) {
+            _URL = newURL
+        }
+    }
 
     /*!
         @method setMainDocumentURL:
@@ -329,14 +341,27 @@ public class NSMutableURLRequest : NSURLRequest {
         "only from same domain as main document" policy, and possibly
         other things in the future.
     */
-    /*@NSCopying*/ public override var mainDocumentURL: NSURL? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    /*@NSCopying*/ public override var mainDocumentURL: NSURL? {
+        get {
+            return _mainDocumentURL
+        } set(newMainDocumentURL) {
+            _mainDocumentURL = newMainDocumentURL
+        }
+    }
+    
     
     /*!
         @method HTTPMethod
         @abstract Sets the HTTP request method of the receiver.
         @result the HTTP request method of the receiver.
     */
-    public override var HTTPMethod: String? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    public override var HTTPMethod: String? {
+        get {
+            return _HTTPMethod
+        } set(newHTTPMethod) {
+            _HTTPMethod = newHTTPMethod
+        }
+    }
     
     /*!
         @method setValue:forHTTPHeaderField:
@@ -348,7 +373,18 @@ public class NSMutableURLRequest : NSURLRequest {
         @param value the header field value. 
         @param field the header field name (case-insensitive). 
     */
-    public func setValue(value: String?, forHTTPHeaderField field: String) { NSUnimplemented() }
+    public func setValue(value: String?, forHTTPHeaderField field: String) {
+        if _httpHeaderFields == nil {
+            _httpHeaderFields = [:]
+        }
+        if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
+            return existingField.lowercaseString == field.lowercaseString
+        }).first {
+            let (existingField, _) = existingHeader
+            _httpHeaderFields?.removeValueForKey(existingField)
+        }
+        _httpHeaderFields?[field] = value
+    }
     
     /*! 
         @method addValue:forHTTPHeaderField:
@@ -364,7 +400,19 @@ public class NSMutableURLRequest : NSURLRequest {
         @param value the header field value. 
         @param field the header field name (case-insensitive). 
     */
-    public func addValue(value: String, forHTTPHeaderField field: String) { NSUnimplemented() }
+    public func addValue(value: String, forHTTPHeaderField field: String) {
+        if _httpHeaderFields == nil {
+            _httpHeaderFields = [:]
+        }
+        if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
+            return existingField.lowercaseString == field.lowercaseString
+        }).first {
+            let (existingField, existingValue) = existingHeader
+            _httpHeaderFields?[existingField] = "\(existingValue),\(value)"
+        } else {
+            _httpHeaderFields?[field] = value
+        }
+    }
 }
 
 
