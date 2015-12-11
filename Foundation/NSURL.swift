@@ -417,7 +417,7 @@ extension NSURL {
         return self.path?.pathExtension
     }
     
-    public func URLByAppendingPathComponent(pathComponent: String) -> NSURL? {
+    public func URLByAppendingPathComponent(pathComponent: String) -> NSURL! {
         var result : NSURL? = URLByAppendingPathComponent(pathComponent, isDirectory: false)
         if !pathComponent.hasSuffix("/") && fileURL {
             if let urlWithoutDirectory = result, path = urlWithoutDirectory.path {
@@ -431,7 +431,7 @@ extension NSURL {
         return result
     }
     
-    public func URLByAppendingPathComponent(pathComponent: String, isDirectory: Bool) -> NSURL? {
+    public func URLByAppendingPathComponent(pathComponent: String, isDirectory: Bool) -> NSURL! {
         return CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, _cfObject, pathComponent._cfObject, isDirectory)?._nsObject
     }
     
