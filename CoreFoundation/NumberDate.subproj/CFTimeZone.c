@@ -1010,7 +1010,7 @@ static int32_t __tryParseGMTName(CFStringRef name) {
     Boolean sixIsPunct = (':' == ustr[6] || '.' == ustr[6]);
     if (!(sixIsDigit && 8 == len) && !(sixIsPunct && 9 == len)) return -1;
     
-    Boolean minIdx = len - 2;
+    CFIndex minIdx = len - 2;
     UniChar minDig1 = ustr[minIdx], minDig2 = ustr[minIdx + 1];
     if (!('0' <= minDig1 && minDig1 <= '5' && '0' <= minDig2 && minDig2 <= '9')) return -1;
     int32_t minutes = 10 * (minDig1 - '0') + (minDig2 - '0');
@@ -1091,7 +1091,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
             CFTZPeriod *tzp = NULL;
             CFIndex cnt = 0;
             __CFTimeZoneLockGlobal();
-            if (!__CFParseTimeZoneData(kCFAllocatorSystemDefault, data, &tzp, &cnt)) {
+            if (__CFParseTimeZoneData(kCFAllocatorSystemDefault, data, &tzp, &cnt)) {
                 __CFTimeZoneUnlockGlobal();
                 
             } else {

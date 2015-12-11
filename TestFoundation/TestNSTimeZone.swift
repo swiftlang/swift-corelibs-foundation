@@ -24,11 +24,19 @@ class TestNSTimeZone: XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
             ("test_abbreviation", test_abbreviation),
+            ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
         ]
     }
 
     func test_abbreviation() {
         let tz = NSTimeZone.systemTimeZone()
         XCTAssertEqual(tz.abbreviation, tz.abbreviationForDate(NSDate()))
+    }
+    
+    func test_initializingTimeZoneWithOffset() {
+        let tz = NSTimeZone(name: "GMT-0400")
+        XCTAssertNotNil(tz)
+        let seconds = tz?.secondsFromGMTForDate(NSDate())
+        XCTAssertEqual(seconds, -14400)
     }
 }
