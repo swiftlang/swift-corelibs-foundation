@@ -50,4 +50,5 @@ XCTMain([
     TestNSByteCountFormatter(),
     TestNSURLResponse(),
     TestNSNotificationCenter(),
+    TestNSPredicate(),
 ])
