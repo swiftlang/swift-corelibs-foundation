@@ -89,10 +89,10 @@ class TestNSArray : XCTestCase {
     func test_objectAtIndex() {
         let array : NSArray = ["foo", "bar"].bridge()
         let foo = array.objectAtIndex(0) as! NSString
-        XCTAssertEqual(foo, "foo")
+        XCTAssertEqual(foo, "foo".bridge())
         
         let bar = array.objectAtIndex(1) as! NSString
-        XCTAssertEqual(bar, "bar")
+        XCTAssertEqual(bar, "bar".bridge())
     }
 
     func test_binarySearch() {
