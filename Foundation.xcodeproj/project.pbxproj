@@ -198,6 +198,7 @@
 		5BF7AEBF1BCD51F9008F214A /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4A1BCC5DCB00ED97BB /* NSURL.swift */; };
 		5BF7AEC01BCD51F9008F214A /* NSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */; };
 		5BF7AEC11BCD51F9008F214A /* NSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */; };
+		612952F91C1B235900BE0FD9 /* TestNSNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 612952F81C1B235900BE0FD9 /* TestNSNull.swift */; };
 		61F8AE7D1C180FC600FB62F0 /* TestNSNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */; };
 		6E203B8D1C1303BB003B2576 /* TestNSBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E203B8C1C1303BB003B2576 /* TestNSBundle.swift */; };
 		7A7D6FBB1C16439400957E2E /* TestNSURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */; };
@@ -536,6 +537,7 @@
 		5BDC405C1BD6D83B00ED97BB /* TestFoundation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestFoundation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
 		5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSJSONSerialization.swift; sourceTree = "<group>"; };
+		612952F81C1B235900BE0FD9 /* TestNSNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNull.swift; sourceTree = "<group>"; };
 		61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNotificationCenter.swift; sourceTree = "<group>"; };
 		6E203B8C1C1303BB003B2576 /* TestNSBundle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSBundle.swift; sourceTree = "<group>"; };
 		7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLResponse.swift; sourceTree = "<group>"; };
@@ -1068,6 +1070,7 @@
 				83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */,
 				7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */,
 				A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */,
+				612952F81C1B235900BE0FD9 /* TestNSNull.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1766,6 +1769,7 @@
 				E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */,
 				C2A9D75C1C15C08B00993803 /* TestNSUUID.swift in Sources */,
 				A5A34B561C18C85D00FD972B /* TestNSByteCountFormatter.swift in Sources */,
+				612952F91C1B235900BE0FD9 /* TestNSNull.swift in Sources */,
 				EA66F6521BF1619600136161 /* TestNSPropertyList.swift in Sources */,
 				4AE109271C17CCBF007367B5 /* TestNSIndexPath.swift in Sources */,
 				4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */,

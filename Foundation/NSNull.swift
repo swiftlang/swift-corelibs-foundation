@@ -28,6 +28,10 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
     public static func supportsSecureCoding() -> Bool {
         return true
     }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        return object is NSNull
+    }
 }
 
 
