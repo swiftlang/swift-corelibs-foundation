@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		22B9C1E11C165D7A00DECFF9 /* TestNSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */; };
+		4AE109271C17CCBF007367B5 /* TestNSIndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */; };
 		4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */; };
 		525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
 		52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52829AD61C160D64003BC4EF /* TestNSCalendar.swift */; };
@@ -157,6 +158,7 @@
 		5B7C8B011BEA82F800C5B690 /* CFError_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88A61BBC970D00234F36 /* CFError_Private.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8B021BEA830200C5B690 /* CFBurstTrie.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89341BBDA76300234F36 /* CFBurstTrie.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8B031BEA86A900C5B690 /* libCoreFoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */; };
+		5B915F0F1C1A320E00BE40C5 /* TestNSJSONSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */; };
 		5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BC1D8BE1BF3B09E009D3973 /* TestNSCharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */; };
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
@@ -203,7 +205,6 @@
 		848A30581C137B3500C83206 /* TestNSHTTPCookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */; };
 		84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */; };
 		88D28DE71C13AE9000494606 /* TestNSGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D28DE61C13AE9000494606 /* TestNSGeometry.swift */; };
-		C2A9D75C1C15C08B00993803 /* TestNSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */; };
 		A5A34B561C18C85D00FD972B /* TestNSByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */; };
 		C2A9D75C1C15C08B00993803 /* TestNSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */; };
 		C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */; };
@@ -283,7 +284,7 @@
 		EADE0BCB1BD15E0000C49C64 /* NSXMLNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */; };
 		EADE0BCC1BD15E0000C49C64 /* NSXMLNodeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */; };
 		EADE0BCD1BD15E0000C49C64 /* NSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */; };
-		ED58F76F1C134B3A00E6A5BE /* TestNSJSONSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED58F76E1C134B3A00E6A5BE /* TestNSJSONSerialization.swift */; };
+		ED58F76F1C134B3A00E6A5BE /* (null) in Sources */ = {isa = PBXBuildFile; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -330,6 +331,7 @@
 
 /* Begin PBXFileReference section */
 		22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDate.swift; sourceTree = "<group>"; };
+		4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSIndexPath.swift; sourceTree = "<group>"; };
 		4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSPipe.swift; sourceTree = "<group>"; };
 		522C253A1BF16E1600804FC6 /* FoundationErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationErrors.swift; sourceTree = "<group>"; };
 		525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileManager.swift; sourceTree = "<group>"; };
@@ -532,6 +534,7 @@
 		5BDC3FCF1BCF17E600ED97BB /* NSCFSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSCFSet.swift; sourceTree = "<group>"; };
 		5BDC405C1BD6D83B00ED97BB /* TestFoundation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestFoundation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
+		5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSJSONSerialization.swift; sourceTree = "<group>"; };
 		61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNotificationCenter.swift; sourceTree = "<group>"; };
 		7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLResponse.swift; sourceTree = "<group>"; };
 		83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLRequest.swift; sourceTree = "<group>"; };
@@ -539,7 +542,6 @@
 		848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSHTTPCookie.swift; path = TestFoundation/TestNSHTTPCookie.swift; sourceTree = SOURCE_ROOT; };
 		84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTimeZone.swift; sourceTree = "<group>"; };
 		88D28DE61C13AE9000494606 /* TestNSGeometry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSGeometry.swift; sourceTree = "<group>"; };
-		C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUUID.swift; sourceTree = "<group>"; };
 		A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSByteCountFormatter.swift; sourceTree = "<group>"; };
 		C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUUID.swift; sourceTree = "<group>"; };
 		C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAffineTransform.swift; sourceTree = "<group>"; };
@@ -631,7 +633,6 @@
 		EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNode.swift; sourceTree = "<group>"; };
 		EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNodeOptions.swift; sourceTree = "<group>"; };
 		EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLParser.swift; sourceTree = "<group>"; };
-		ED58F76E1C134B3A00E6A5BE /* TestNSJSONSerialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSJSONSerialization.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1045,7 +1046,9 @@
 				848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */,
 				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
 				88D28DE61C13AE9000494606 /* TestNSGeometry.swift */,
+				4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */,
 				EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */,
+				5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */,
 				EA66F63F1BF1619600136161 /* TestNSNumber.swift */,
 				4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */,
 				EA66F6401BF1619600136161 /* TestNSPropertyList.swift */,
@@ -1059,7 +1062,6 @@
 				DCDBB8321C1768AC00313299 /* TestNSData.swift */,
 				84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */,
 				844DC3321C17584F005611F9 /* TestNSScanner.swift */,
-				ED58F76E1C134B3A00E6A5BE /* TestNSJSONSerialization.swift */,
 				83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */,
 				7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */,
 				A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */,
@@ -1747,12 +1749,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */,
+				5B915F0F1C1A320E00BE40C5 /* TestNSJSONSerialization.swift in Sources */,
 				EA66F6501BF1619600136161 /* TestNSNumber.swift in Sources */,
 				844DC3331C17584F005611F9 /* TestNSScanner.swift in Sources */,
 				E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */,
 				C2A9D75C1C15C08B00993803 /* TestNSUUID.swift in Sources */,
 				A5A34B561C18C85D00FD972B /* TestNSByteCountFormatter.swift in Sources */,
 				EA66F6521BF1619600136161 /* TestNSPropertyList.swift in Sources */,
+				4AE109271C17CCBF007367B5 /* TestNSIndexPath.swift in Sources */,
 				4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */,
 				84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */,
 				52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */,
@@ -1771,7 +1775,7 @@
 				5B40F9F21C125187000E72E3 /* TestNSXMLParser.swift in Sources */,
 				88D28DE71C13AE9000494606 /* TestNSGeometry.swift in Sources */,
 				EA66F64C1BF1619600136161 /* TestNSDictionary.swift in Sources */,
-				ED58F76F1C134B3A00E6A5BE /* TestNSJSONSerialization.swift in Sources */,
+				ED58F76F1C134B3A00E6A5BE /* (null) in Sources */,
 				EA66F6581BF1619600136161 /* TestNSURL.swift in Sources */,
 				EA66F6441BF1619600136161 /* main.swift in Sources */,
 			);

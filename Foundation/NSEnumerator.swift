@@ -33,11 +33,7 @@ extension NSEnumerator : SequenceType {
 extension NSEnumerator {
 
     public var allObjects: [AnyObject] {
-        var result = [AnyObject]()
-        for o in self {
-            result.append(o)
-        }
-        return result
+        return Array(self)
     }
 
 }
