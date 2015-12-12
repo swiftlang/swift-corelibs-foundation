@@ -39,6 +39,7 @@ XCTMain([
     TestNSNotificationCenter(),
     TestNSNumber(),
     TestNSPipe(),
+    TestNSProcessInfo(),
     TestNSPropertyList(),
     TestNSRange(),
     TestNSScanner(),
