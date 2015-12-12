@@ -111,6 +111,16 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(s2.width, CGFloat(3.6))
         XCTAssertEqual(s2.height, CGFloat(4.5))
     }
+    
+    func test_CGVector_BasicConstruction() {
+        let v1 = CGVector()
+        XCTAssertEqual(v1.dx, CGFloat(0.0))
+        XCTAssertEqual(v1.dy, CGFloat(0.0))
+        
+        let v2 = CGVector(dx: CGFloat(3.6), dy: CGFloat(4.5))
+        XCTAssertEqual(v2.dx, CGFloat(3.6))
+        XCTAssertEqual(v2.dy, CGFloat(4.5))
+    }
 
     func test_CGRect_BasicConstruction() {
         let r1 = CGRect()
