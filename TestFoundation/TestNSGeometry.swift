@@ -31,6 +31,13 @@ class TestNSGeometry : XCTestCase {
             ("test_NSMakePoint", test_NSMakePoint),
             ("test_NSMakeSize", test_NSMakeSize),
             ("test_NSMakeRect", test_NSMakeRect),
+            ("test_NSUnionRect", test_NSUnionRect),
+            ("test_NSIntersectionRect", test_NSIntersectionRect),
+            ("test_NSOffsetRect", test_NSOffsetRect),
+            ("test_NSPointInRect", test_NSPointInRect),
+            ("test_NSMouseInRect", test_NSMouseInRect),
+            ("test_NSContainsRect", test_NSContainsRect),
+            ("test_NSIntersectsRect", test_NSIntersectsRect),
             ("test_NSIntegralRect", test_NSIntegralRect),
             ("test_NSIntegralRectWithOptions", test_NSIntegralRectWithOptions),
         ]
@@ -139,6 +146,102 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(r2.origin.y, CGFloat(3.0))
         XCTAssertEqual(r2.size.width, CGFloat(5.0))
         XCTAssertEqual(r2.size.height, CGFloat(5.0))
+    }
+
+    func test_NSUnionRect() {
+        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
+        let r2 = NSMakeRect(CGFloat(10.2), CGFloat(2.5), CGFloat(5.0), CGFloat(5.0))
+
+        XCTAssertTrue(NSIsEmptyRect(NSUnionRect(NSZeroRect, NSZeroRect)))
+        XCTAssertTrue(NSEqualRects(r1, NSUnionRect(r1, NSZeroRect)))
+        XCTAssertTrue(NSEqualRects(r2, NSUnionRect(NSZeroRect, r2)))
+
+        let r3 = NSUnionRect(r1, r2)
+        XCTAssertEqual(r3.origin.x, CGFloat(1.2))
+        XCTAssertEqual(r3.origin.y, CGFloat(2.5))
+        XCTAssertEqual(r3.size.width, CGFloat(14.0))
+        XCTAssertEqual(r3.size.height, CGFloat(10.6))
+    }
+
+    func test_NSIntersectionRect() {
+        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
+        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
+        let r3 = NSMakeRect(CGFloat(10.2), CGFloat(2.5), CGFloat(5.0), CGFloat(5.0))
+
+        XCTAssertTrue(NSIsEmptyRect(NSIntersectionRect(r1, r2)))
+
+        let r4 = NSIntersectionRect(r1, r3)
+        XCTAssertEqual(r4.origin.x, CGFloat(10.2))
+        XCTAssertEqual(r4.origin.y, CGFloat(3.1))
+        XCTAssertEqual(r4.size.width, CGFloat(1.0))
+        XCTAssertEqual(r4.size.height, CGFloat(4.4))
+    }
+
+    func test_NSOffsetRect() {
+        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
+        let r2 = NSOffsetRect(r1, CGFloat(2.0), CGFloat(-5.0))
+        let expectedRect = NSMakeRect(CGFloat(3.2), CGFloat(-1.9), CGFloat(10.0), CGFloat(10.0))
+        
+        XCTAssertTrue(NSEqualRects(r2, expectedRect))
+    }
+
+    func test_NSPointInRect() {
+        let p1 = NSMakePoint(CGFloat(2.2), CGFloat(5.3))
+        let p2 = NSMakePoint(CGFloat(1.2), CGFloat(3.1))
+        let p3 = NSMakePoint(CGFloat(1.2), CGFloat(5.3))
+        let p4 = NSMakePoint(CGFloat(5.2), CGFloat(3.1))
+        let p5 = NSMakePoint(CGFloat(11.2), CGFloat(13.1))
+        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
+        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
+
+        XCTAssertFalse(NSPointInRect(NSZeroPoint, NSZeroRect))
+        XCTAssertFalse(NSPointInRect(p1, r2))
+        XCTAssertTrue(NSPointInRect(p1, r1))
+        XCTAssertTrue(NSPointInRect(p2, r1))
+        XCTAssertTrue(NSPointInRect(p3, r1))
+        XCTAssertTrue(NSPointInRect(p4, r1))
+        XCTAssertFalse(NSPointInRect(p5, r1))
+    }
+
+    func test_NSMouseInRect() {
+        let p1 = NSMakePoint(CGFloat(2.2), CGFloat(5.3))
+        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
+        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
+
+        XCTAssertFalse(NSMouseInRect(NSZeroPoint, NSZeroRect, true))
+        XCTAssertFalse(NSMouseInRect(p1, r2, true))
+        XCTAssertTrue(NSMouseInRect(p1, r1, true))
+
+        let p2 = NSMakePoint(NSMinX(r1), NSMaxY(r1))
+        XCTAssertFalse(NSMouseInRect(p2, r1, true))
+        XCTAssertTrue(NSMouseInRect(p2, r1, false))
+
+        let p3 = NSMakePoint(NSMinX(r1), NSMinY(r1))
+        XCTAssertFalse(NSMouseInRect(p3, r1, false))
+        XCTAssertTrue(NSMouseInRect(p3, r1, true))
+    }
+
+    func test_NSContainsRect() {
+        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
+        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
+        let r3 = NSMakeRect(CGFloat(10.2), CGFloat(5.5), CGFloat(0.5), CGFloat(5.0))
+
+        XCTAssertFalse(NSContainsRect(r1, NSZeroRect))
+        XCTAssertFalse(NSContainsRect(r1, r2))
+        XCTAssertFalse(NSContainsRect(r2, r1))
+        XCTAssertTrue(NSContainsRect(r1, r3))
+    }
+
+    func test_NSIntersectsRect() {
+        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
+        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
+        let r3 = NSMakeRect(CGFloat(10.2), CGFloat(2.5), CGFloat(5.0), CGFloat(5.0))
+
+        XCTAssertFalse(NSIntersectsRect(NSZeroRect, NSZeroRect))
+        XCTAssertFalse(NSIntersectsRect(r1, NSZeroRect))
+        XCTAssertFalse(NSIntersectsRect(NSZeroRect, r2))
+        XCTAssertFalse(NSIntersectsRect(r1, r2))
+        XCTAssertTrue(NSIntersectsRect(r1, r3))
     }
 
     func test_NSIntegralRect() {
