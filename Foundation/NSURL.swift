@@ -223,9 +223,12 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
             let theRest = CFURLCopyResourceSpecifier(cf)?._swiftObject
             
             if let netLoc = netLoc {
-                return "//\(netLoc)\(path ?? "")\(theRest ?? "")"
+                let p = path ?? ""
+                let rest = theRest ?? ""
+                return "//\(netLoc)\(p)\(rest)"
             } else if let path = path {
-                return "\(path)\(theRest ?? "")"
+                let rest = theRest ?? ""
+                return "\(path)\(rest)"
             } else {
                 return theRest
             }
