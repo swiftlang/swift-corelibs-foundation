@@ -317,7 +317,7 @@ internal func _NSXMLParserEndElementNs(ctx: _CFXMLInterface , localname: UnsafeP
     let reportQNameURI = parser.shouldProcessNamespaces
     let prefixLen = prefix == nil ? strlen(UnsafePointer<Int8>(prefix)) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
-    let nilStr: String?
+    let nilStr: String? = nil
     let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix, prefixLen, localname, strlen(UnsafePointer<Int8>(localname))) : nilStr
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nilStr
     
