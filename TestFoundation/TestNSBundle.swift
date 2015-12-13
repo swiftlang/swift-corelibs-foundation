@@ -27,6 +27,7 @@ class TestNSBundle : XCTestCase {
             ("test_resources", test_resources),
             ("test_infoPlist", test_infoPlist),
             ("test_localizations", test_localizations),
+            ("test_URLsForResourcesWithExtension", test_URLsForResourcesWithExtension),
         ]
     }
     
@@ -93,5 +94,52 @@ class TestNSBundle : XCTestCase {
         XCTAssertEqual(["en"], bundle.localizations)
         XCTAssertEqual(["en"], bundle.preferredLocalizations)
         XCTAssertEqual(["en"], NSBundle.preferredLocalizationsFromArray(["en", "pl", "es"]))
+    }
+    
+    private let _bundleName = "MyBundle.bundle"
+    private let _bundleResourceNames = ["hello.world", "goodbye.world", "swift.org"]
+    
+    private func _setupPlayground() -> String? {
+        // Make sure the directory is uniquely named
+        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().UUIDString + "/"
+        
+        do {
+            try NSFileManager.defaultManager().createDirectoryAtPath(tempDir, withIntermediateDirectories: false, attributes: nil)
+            
+            // Make a flat bundle in the playground
+            let bundlePath = tempDir + _bundleName
+            try NSFileManager.defaultManager().createDirectoryAtPath(bundlePath, withIntermediateDirectories: false, attributes: nil)
+            
+            // Put some resources in the bundle
+            for n in _bundleResourceNames {
+                NSFileManager.defaultManager().createFileAtPath(bundlePath + "/" + n, contents: nil, attributes: nil)
+            }
+        } catch _ {
+            return nil
+        }
+        
+        
+        return tempDir
+    }
+    
+    private func _cleanupPlayground(location: String) {
+        do {
+            try NSFileManager.defaultManager().removeItemAtPath(location)
+        } catch _ {
+            // Oh well
+        }
+    }
+
+    func test_URLsForResourcesWithExtension() {
+        guard let playground = _setupPlayground() else { XCTFail("Unable to create playground"); return }
+        
+        let bundle = NSBundle(path: playground + _bundleName)
+        XCTAssertNotNil(bundle)
+        
+        let worldResources = bundle?.URLsForResourcesWithExtension("world", subdirectory: nil)
+        XCTAssertNotNil(worldResources)
+        XCTAssertEqual(worldResources?.count, 2)
+        
+        _cleanupPlayground(playground)
     }
 }
