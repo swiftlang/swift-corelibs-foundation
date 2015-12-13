@@ -658,7 +658,19 @@ public class NSMutableArray : NSArray {
             }
         }
     }
-    public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject], range otherRange: NSRange) { NSUnimplemented() }
+    
+    /// Replaces the objects in the receiving array specified by one given range with the objects in another array specified by another range.
+    /// - parameter range: The range of objects to be replaced in (or removed from) the receiving array.
+    /// - parameter otherArray: The array of objects from which to select replacements for the objects in `range`.
+    /// - parameter otherRange: The range of objects be selected from `otherArray` as replacements for the objects in `range`.
+    public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject], range otherRange: NSRange) {
+        let slicedOtherArray = Array(otherArray[otherRange.location...otherRange.length+otherRange.location])
+        replaceObjectsInRange(range, withObjectsFromArray: slicedOtherArray)
+    }
+    
+    /// Replaces the objects in the receiving array specified by a given range with all of the objects from a given array.
+    /// - parameter range: The range of objects to be replaced in (or removed from) the receiving array.
+    /// - parameter otherArray: The array of objects from which to select replacements for the objects in `range`.
     public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject]) {
         if self.dynamicType === NSMutableArray.self {
             _storage.reserveCapacity(count - range.length + otherArray.count)
