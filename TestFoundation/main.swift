@@ -50,6 +50,7 @@ XCTMain([
     TestNSURLComponents(),
     TestNSURLRequest(),
     TestNSURLResponse(),
+    TestNSNull(),
     TestNSUUID(),
     TestNSXMLParser(),
 ])
