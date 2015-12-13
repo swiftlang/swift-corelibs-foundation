@@ -34,4 +34,7 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-
+public func ===(lhs: NSNull?, rhs: NSNull?) -> Bool {
+    guard let _ = lhs, let _ = rhs else { return false }
+    return true
+}

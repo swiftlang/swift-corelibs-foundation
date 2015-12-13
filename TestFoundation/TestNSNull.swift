@@ -34,9 +34,16 @@ class TestNSNull : XCTestCase {
         let null_3: NSNull? = NSNull()
         let null_4: NSNull? = nil
         
+        //Check that any two NSNull's are ==
         XCTAssertEqual(null_1, null_2)
-        XCTAssertEqual(null_1, null_3)
 
-        XCTAssertNotEqual(null_1, null_4)
+        //Check that any two NSNull's are ===, preserving the singleton behavior
+        XCTAssertTrue(null_1 === null_2)
+        
+        //Check that NSNull() == .Some(NSNull)
+        XCTAssertEqual(null_1, null_3)
+        
+        //Make sure that NSNull() != .None
+        XCTAssertNotEqual(null_1, null_4)        
     }
 }
