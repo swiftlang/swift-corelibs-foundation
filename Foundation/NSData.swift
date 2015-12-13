@@ -556,25 +556,225 @@ extension NSData {
     /* Create an NSData from a Base-64 encoded NSString using the given options. By default, returns nil when the input is not recognized as valid Base-64.
     */
     public convenience init?(base64EncodedString base64String: String, options: NSDataBase64DecodingOptions) {
-        NSUnimplemented()
+        let encodedBytes = Array(base64String.utf8)
+        guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
+            return nil
+        }
+        self.init(bytes: decodedBytes, length: decodedBytes.count)
     }
     
     /* Create a Base-64 encoded NSString from the receiver's contents using the given options.
     */
     public func base64EncodedStringWithOptions(options: NSDataBase64EncodingOptions) -> String {
-        NSUnimplemented()
+        var decodedBytes = [UInt8](count: self.length, repeatedValue: 0)
+        getBytes(&decodedBytes, length: decodedBytes.count)
+        let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
+        let characters = encodedBytes.map { Character(UnicodeScalar($0)) }
+        return String(characters)
     }
     
     /* Create an NSData from a Base-64, UTF-8 encoded NSData. By default, returns nil when the input is not recognized as valid Base-64.
     */
     public convenience init?(base64EncodedData base64Data: NSData, options: NSDataBase64DecodingOptions) {
-        NSUnimplemented()
+        var encodedBytes = [UInt8](count: base64Data.length, repeatedValue: 0)
+        base64Data.getBytes(&encodedBytes, length: encodedBytes.count)
+        guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
+            return nil
+        }
+        self.init(bytes: decodedBytes, length: decodedBytes.count)
     }
     
     /* Create a Base-64, UTF-8 encoded NSData from the receiver's contents using the given options.
     */
     public func base64EncodedDataWithOptions(options: NSDataBase64EncodingOptions) -> NSData {
-        NSUnimplemented()
+        var decodedBytes = [UInt8](count: self.length, repeatedValue: 0)
+        getBytes(&decodedBytes, length: decodedBytes.count)
+        let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
+        return NSData(bytes: encodedBytes, length: encodedBytes.count)
+    }
+    
+    /**
+      The ranges of ASCII characters that are used to encode data in Base64.
+      */
+    private static var base64ByteMappings: [Range<UInt8>] {
+        return [
+            65 ..< 91,      // A-Z
+            97 ..< 123,     // a-z
+            48 ..< 58,      // 0-9
+            43 ..< 44,      // +
+            47 ..< 48,      // /
+            61 ..< 62       // =
+        ]
+    }
+
+    /**
+        This method takes a byte with a character from Base64-encoded string
+        and gets the binary value that the character corresponds to.
+     
+        If the byte is not a valid character in Base64, this will return nil.
+     
+        - parameter byte:       The byte with the Base64 character.
+        - returns:              The numeric value that the character corresponds
+                                to.
+        */
+    private static func base64DecodeByte(byte: UInt8) -> UInt8? {
+        var decodedStart: UInt8 = 0
+        for range in base64ByteMappings {
+            if range.contains(byte) {
+                let result = decodedStart + (byte - range.startIndex)
+                return result == 64 ? 0 : result
+            }
+            decodedStart += range.endIndex - range.startIndex
+        }
+        return nil
+    }
+    
+    /**
+        This method takes six bits of binary data and encodes it as a character
+        in Base64.
+ 
+        The value in the byte must be less than 64, because a Base64 character
+        can only represent 6 bits.
+ 
+        - parameter byte:       The byte to encode
+        - returns:              The ASCII value for the encoded character.
+        */
+    private static func base64EncodeByte(byte: UInt8) -> UInt8 {
+        assert(byte < 64)
+        var decodedStart: UInt8 = 0
+        for range in base64ByteMappings {
+            let decodedRange = decodedStart ..< decodedStart + (range.endIndex - range.startIndex)
+            if decodedRange.contains(byte) {
+                return range.startIndex + (byte - decodedStart)
+            }
+            decodedStart += range.endIndex - range.startIndex
+        }
+        return 0
+    }
+    
+    /**
+        This method takes an array of bytes and either adds or removes padding
+        as part of Base64 encoding and decoding.
+ 
+        If the fromSize is larger than the toSize, this will inflate the bytes
+        by adding zero between the bits. If the fromSize is smaller than the
+        toSize, this will deflate the bytes by removing the most significant
+        bits and recompacting the bytes.
+ 
+        For instance, if you were going from 6 bits to 8 bits, and you had
+        an array of bytes with `[0b00010000, 0b00010101, 0b00001001 0b00001101]`,
+        this would give a result of: `[0b01000001 0b01010010 0b01001101]`.
+        This transition is done when decoding Base64 data.
+     
+        If you were going from 8 bits to 6 bits, and you had an array of bytes
+        with `[0b01000011 0b01101111 0b01101110], this would give a result of:
+        `[0b00010000 0b00110110 0b00111101 0b00101110]. This transition is done
+        when encoding data in Base64.
+     
+        - parameter bytes:      The original bytes
+        - parameter fromSize:   The number of useful bits in each byte of the
+                                input.
+        - parameter toSize:     The number of useful bits in each byte of the
+                                output.
+        - returns:              The resized bytes
+        */
+    private static func base64ResizeBytes(bytes: [UInt8], fromSize: UInt32, toSize: UInt32) -> [UInt8] {
+        var bitBuffer: UInt32 = 0
+        var bitCount: UInt32 = 0
+        
+        var result = [UInt8]()
+        
+        result.reserveCapacity(bytes.count * Int(fromSize) / Int(toSize))
+        
+        let mask = UInt32(1 << toSize - 1)
+        
+        for byte in bytes {
+            bitBuffer = bitBuffer << fromSize | UInt32(byte)
+            bitCount += fromSize
+            if bitCount % toSize == 0 {
+                while(bitCount > 0) {
+                    let byte = UInt8(mask & (bitBuffer >> (bitCount - toSize)))
+                    result.append(byte)
+                    bitCount -= toSize
+                }
+            }
+        }
+        
+        let paddingBits = toSize - (bitCount % toSize)
+        if paddingBits != toSize {
+            bitBuffer = bitBuffer << paddingBits
+            bitCount += paddingBits
+        }
+        
+        while(bitCount > 0) {
+            let byte = UInt8(mask & (bitBuffer >> (bitCount - toSize)))
+            result.append(byte)
+            bitCount -= toSize
+        }
+        
+        return result
+
+    }
+    
+    /**
+        This method decodes Base64-encoded data.
+     
+        If the input contains any bytes that are not valid Base64 characters,
+        this will return nil.
+ 
+        - parameter bytes:      The Base64 bytes
+        - parameter options:    Options for handling invalid input
+        - returns:              The decoded bytes.
+        */
+    private static func base64DecodeBytes(bytes: [UInt8], options: NSDataBase64DecodingOptions = []) -> [UInt8]? {
+        var decodedBytes = [UInt8]()
+        decodedBytes.reserveCapacity(bytes.count)
+        for byte in bytes {
+            guard let decoded = base64DecodeByte(byte) else {
+                if options.contains(.IgnoreUnknownCharacters) {
+                    continue
+                }
+                else {
+                    return nil
+                }
+            }
+            decodedBytes.append(decoded)
+        }
+        return base64ResizeBytes(decodedBytes, fromSize: 6, toSize: 8)
+    }
+    
+    
+    /**
+        This method encodes data in Base64.
+     
+        - parameter bytes:      The bytes you want to encode
+        - parameter options:    Options for formatting the result
+        - returns:              The Base64-encoding for those bytes.
+        */
+    private static func base64EncodeBytes(bytes: [UInt8], options: NSDataBase64EncodingOptions = []) -> [UInt8] {
+        var encodedBytes = base64ResizeBytes(bytes, fromSize: 8, toSize: 6)
+        encodedBytes = encodedBytes.map(base64EncodeByte)
+        
+        let paddingBytes = (4 - (encodedBytes.count % 4)) % 4
+        for _ in 0..<paddingBytes {
+            encodedBytes.append(61)
+        }
+        let lineLength: Int
+        if options.contains(.Encoding64CharacterLineLength) { lineLength = 64 }
+        else if options.contains(.Encoding76CharacterLineLength) { lineLength = 76 }
+        else { lineLength = 0 }
+        if lineLength > 0 {
+            var separator = [UInt8]()
+            if options.contains(.EncodingEndLineWithCarriageReturn) { separator.append(13) }
+            if options.contains(.EncodingEndLineWithLineFeed) { separator.append(10) }
+            let lines = encodedBytes.count / lineLength
+            for line in 0..<lines {
+                for (index,character) in separator.enumerate() {
+                    encodedBytes.insert(character, atIndex: (lineLength + separator.count) * line + index + lineLength)
+                }
+            }
+        }
+        return encodedBytes
     }
 }
 

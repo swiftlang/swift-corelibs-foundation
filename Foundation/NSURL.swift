@@ -516,11 +516,8 @@ public class NSURLComponents : NSObject, NSCopying {
     
     // Returns a URL created from the NSURLComponents. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
     public var URL: NSURL? {
-        if let result = _CFURLComponentsCopyURL(_components) {
-            return unsafeBitCast(result, NSURL.self)
-        } else {
-            return nil
-        }
+        guard let result = _CFURLComponentsCopyURL(_components) else { return nil }
+        return unsafeBitCast(result, NSURL.self)
     }
     
     // Returns a URL created from the NSURLComponents relative to a base URL. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
@@ -530,7 +527,7 @@ public class NSURLComponents : NSObject, NSCopying {
     
     // Returns a URL string created from the NSURLComponents. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
     public var string: String?  {
-        NSUnimplemented()
+        return _CFURLComponentsCopyString(_components)?._swiftObject
     }
     
     // Warning: IETF STD 66 (rfc3986) says the use of the format "user:password" in the userinfo subcomponent of a URI is deprecated because passing authentication information in clear text has proven to be a security risk. However, there are cases where this practice is still needed, and so the user and password components and methods are provided.
