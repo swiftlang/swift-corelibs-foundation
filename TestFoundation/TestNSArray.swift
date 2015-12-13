@@ -28,7 +28,8 @@ class TestNSArray : XCTestCase {
             ("test_sequenceType", test_sequenceType),
             ("test_getObjects", test_getObjects),
             ("test_binarySearch", test_binarySearch),
-            ("test_arrayReplacement", test_arrayReplacement)
+            ("test_arrayReplacement", test_arrayReplacement),
+            ("test_arrayReplaceObjectsInRangeFromRange", test_arrayReplaceObjectsInRangeFromRange)
         ]
     }
     
@@ -144,6 +145,16 @@ class TestNSArray : XCTestCase {
         XCTAssertTrue((array[2] as! NSNumber).integerValue == 2)
     }
 
+    func test_arrayReplaceObjectsInRangeFromRange() {
+        let array = NSMutableArray(array: [
+                                      NSNumber(int: 0), NSNumber(int: 1), NSNumber(int: 2), NSNumber(int: 3),
+                                      NSNumber(int: 4), NSNumber(int: 5), NSNumber(int: 7)])
+        array.replaceObjectsInRange(NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(int: 8), NSNumber(int: 9), NSNumber(int: 10)], range: NSRange(location: 1, length: 2))
+        XCTAssertTrue((array[0] as! NSNumber).integerValue == 9)
+        XCTAssertTrue((array[1] as! NSNumber).integerValue == 10)
+        XCTAssertTrue((array[2] as! NSNumber).integerValue == 2)
+    }
+    
     func objectIndexInArray(array: NSArray, value: Int, startingFrom: Int, length: Int, options: NSBinarySearchingOptions = []) -> Int {
         return array.indexOfObject(NSNumber(integer: value), inSortedRange: NSRange(location: startingFrom, length: length), options: options, usingComparator: compareIntNSNumber)
     }
