@@ -27,7 +27,8 @@ class TestNSArray : XCTestCase {
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_getObjects", test_getObjects),
-            ("test_binarySearch", test_binarySearch)
+            ("test_binarySearch", test_binarySearch),
+            ("test_arrayReplacement", test_arrayReplacement)
         ]
     }
     
@@ -131,7 +132,18 @@ class TestNSArray : XCTestCase {
         let endOfArray = objectIndexInArray(array, value: 10, startingFrom: 0, length: 13, options: [.InsertionIndex, .LastEqual])
         XCTAssertTrue(endOfArray == array.count, "...or the index at the end of the array if the object is larger than all other elements.")
     }
-    
+
+
+    func test_arrayReplacement() {
+        let array = NSMutableArray(array: [
+                               NSNumber(int: 0), NSNumber(int: 1), NSNumber(int: 2), NSNumber(int: 3),
+                               NSNumber(int: 4), NSNumber(int: 5), NSNumber(int: 7)])
+        array.replaceObjectsInRange(NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(int: 8), NSNumber(int: 9)])
+        XCTAssertTrue((array[0] as! NSNumber).integerValue == 8)
+        XCTAssertTrue((array[1] as! NSNumber).integerValue == 9)
+        XCTAssertTrue((array[2] as! NSNumber).integerValue == 2)
+    }
+
     func objectIndexInArray(array: NSArray, value: Int, startingFrom: Int, length: Int, options: NSBinarySearchingOptions = []) -> Int {
         return array.indexOfObject(NSNumber(integer: value), inSortedRange: NSRange(location: startingFrom, length: length), options: options, usingComparator: compareIntNSNumber)
     }
