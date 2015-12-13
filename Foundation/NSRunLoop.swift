@@ -71,9 +71,8 @@ extension NSRunLoop {
     }
 
     public func runMode(mode: String, beforeDate limitDate: NSDate) -> Bool {
-        let result: Int32 = CFRunLoopRunSpecific(_cfObject, mode._cfObject, limitDate.timeIntervalSinceNow, false)
-        let runloopResult = CFRunLoopRunResult(rawValue: result)
-        return runloopResult == .HandledSource || runloopResult == .TimedOut
+        let runloopResult = CFRunLoopRunInMode(mode._cfObject, limitDate.timeIntervalSinceNow, false)
+        return runloopResult == 2 || runloopResult == 3
     }
 
 }
