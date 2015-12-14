@@ -556,7 +556,7 @@ public class NSMutableIndexSet : NSIndexSet {
                 // Nothing to add
                 return
             } else if range.location >= curRange.location && range.location <= curEnd && addEnd > curEnd {
-                _replaceRangeAtIndex(rangeIndex, withRange: NSMakeRange(addEnd - curRange.location, curRange.location))
+                _replaceRangeAtIndex(rangeIndex, withRange: NSMakeRange(curRange.location, addEnd - curRange.location))
                 replacedRangeIndex = rangeIndex
                 // Proceed to merging
                 break
