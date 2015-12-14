@@ -315,6 +315,7 @@ static CFStringRef copySystemVersionPath(CFStringRef suffix) {
 
 
 CFDictionaryRef _CFCopySystemVersionDictionary(void) {
+    // TODO: Populate this dictionary differently on non-Darwin platforms
     CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/SystemVersion.plist"));
     CFPropertyListRef plist = _CFCopyVersionDictionary(path);
     CFRelease(path);
