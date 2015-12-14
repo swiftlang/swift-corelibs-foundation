@@ -551,12 +551,84 @@ public func NSIntersectsRect(aRect: NSRect, _ bRect: NSRect) -> Bool {
         NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect))
 }
 
-public func NSStringFromPoint(aPoint: NSPoint) -> String { NSUnimplemented() }
-public func NSStringFromSize(aSize: NSSize) -> String { NSUnimplemented() }
-public func NSStringFromRect(aRect: NSRect) -> String { NSUnimplemented() }
-public func NSPointFromString(aString: String) -> NSPoint { NSUnimplemented() }
-public func NSSizeFromString(aString: String) -> NSSize { NSUnimplemented() }
-public func NSRectFromString(aString: String) -> NSRect { NSUnimplemented() }
+public func NSStringFromPoint(aPoint: NSPoint) -> String {
+    return "{\(aPoint.x.native), \(aPoint.y.native)}"
+}
+
+public func NSStringFromSize(aSize: NSSize) -> String {
+    return "{\(aSize.width.native), \(aSize.height.native)}"
+}
+
+public func NSStringFromRect(aRect: NSRect) -> String {
+    let originString = NSStringFromPoint(aRect.origin)
+    let sizeString = NSStringFromSize(aRect.size)
+    
+    return "{\(originString), \(sizeString)}"
+}
+
+private func _scanTwoNumbersFromGeometryString(aString: String) -> (first: Double, second: Double) {
+    guard aString.hasPrefix("{") && aString.hasSuffix("}") else {
+        fatalError("Wrong format")
+    }
+    
+    var string: NSString = aString._nsObject
+    string = string.substringWithRange(NSMakeRange(1, aString.length - 2))._nsObject
+    string = string.stringByReplacingOccurrencesOfString(" ", withString: "")._nsObject;
+    
+    let numbers = string.componentsSeparatedByString(",")
+    
+    guard numbers.count == 2 else {
+        fatalError("Wrong format")
+    }
+    
+    let x = Double((numbers.first)!)
+    let y = Double((numbers.last)!)
+    let result = (first: x!, second: y!)
+    
+    return result
+}
+
+public func NSPointFromString(aString: String) -> NSPoint {
+    let parsedNumbers = _scanTwoNumbersFromGeometryString(aString)
+    
+    let x = parsedNumbers.first
+    let y = parsedNumbers.second
+    let result = NSMakePoint(CGFloat(x), CGFloat(y))
+    
+    return result
+}
+
+public func NSSizeFromString(aString: String) -> NSSize {
+    let parsedNumbers = _scanTwoNumbersFromGeometryString(aString)
+    
+    let x = parsedNumbers.first
+    let y = parsedNumbers.second
+    let result = NSMakeSize(CGFloat(x), CGFloat(y))
+    
+    return result
+}
+
+public func NSRectFromString(aString: String) -> NSRect {
+    guard aString.hasPrefix("{") && aString.hasSuffix("}") else {
+        fatalError("Wrong format")
+    }
+    
+    var string: NSString = aString._nsObject
+    string = string.substringWithRange(NSMakeRange(1, aString.length - 2))._nsObject
+    string = string.stringByReplacingOccurrencesOfString(" ", withString: "")._nsObject;
+
+    let components = string.componentsSeparatedByString("},{")
+    
+    guard components.count == 2 else {
+        fatalError("Wrong format")
+    }
+    
+    let origin = NSPointFromString(components.first! + "}")
+    let size = NSSizeFromString("{" + components.last!)
+    let result = NSMakeRect(origin.x, origin.y, size.width, size.height)
+    
+    return result
+}
 
 extension NSValue {
     
