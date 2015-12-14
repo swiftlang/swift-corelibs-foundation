@@ -95,7 +95,20 @@ public class NSProcessInfo : NSObject {
     
     public var operatingSystemVersion: NSOperatingSystemVersion {
         get {
-            NSUnimplemented()
+            let productVersionKey = unsafeBitCast(_kCFSystemVersionProductVersionKey, UnsafePointer<Void>.self)
+            let productVersion = unsafeBitCast(CFDictionaryGetValue(_CFCopySystemVersionDictionary(), productVersionKey), NSString!.self)
+            // The following fallback values match Darwin Foundation
+            let fallbackMajor = -1
+            let fallbackMinor = 0
+            let fallbackPatch = 0
+            if productVersion == nil {
+                return NSOperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+            }
+            let versionComponents = productVersion._swiftObject.characters.split(".").flatMap(String.init).flatMap({ Int($0) })
+            let majorVersion = versionComponents.dropFirst(0).first ?? fallbackMajor
+            let minorVersion = versionComponents.dropFirst(1).first ?? fallbackMinor
+            let patchVersion = versionComponents.dropFirst(2).first ?? fallbackPatch
+            return NSOperatingSystemVersion(majorVersion: majorVersion, minorVersion: minorVersion, patchVersion: patchVersion)
         }
     }
     

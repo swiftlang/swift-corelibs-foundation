@@ -21,8 +21,17 @@ class TestNSProcessInfo : XCTestCase {
     
     var allTests : [(String, () -> ())] {
         return [
+            ("test_operatingSystemVersion", test_operatingSystemVersion ),
             ("test_processName", test_processName ),
         ]
+    }
+    
+    func test_operatingSystemVersion() {
+        let processInfo = NSProcessInfo.processInfo()
+        let versionString = processInfo.operatingSystemVersionString
+        let version = processInfo.operatingSystemVersion
+        let reconstructedVersionString = "Version \(version.majorVersion).\(version.minorVersion).\(version.patchVersion)"
+        XCTAssert(versionString.hasPrefix(reconstructedVersionString))
     }
     
     func test_processName() {
