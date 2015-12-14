@@ -701,40 +701,36 @@ public class NSURLComponents : NSObject, NSCopying {
     
     /* These properties return the character range of a component in the URL string returned by -[NSURLComponents string]. If the component does not exist in the NSURLComponents object, {NSNotFound, 0} is returned. Note: Zero length components are legal. For example, the URL string "scheme://:@/?#" has a zero length user, password, host, query and fragment; the URL strings "scheme:" and "" both have a zero length path.
     */
-    private final func _convertRange(r : CFRange) -> NSRange {
-        return NSMakeRange(r.location == kCFNotFound ? NSNotFound : r.location, r.length)
-    }
-    
     public var rangeOfScheme: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfScheme(_components))
+        return NSRange(_CFURLComponentsGetRangeOfScheme(_components))
     }
     
     public var rangeOfUser: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfUser(_components))
+        return NSRange(_CFURLComponentsGetRangeOfUser(_components))
     }
     
     public var rangeOfPassword: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfPassword(_components))
+        return NSRange(_CFURLComponentsGetRangeOfPassword(_components))
     }
     
     public var rangeOfHost: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfHost(_components))
+        return NSRange(_CFURLComponentsGetRangeOfHost(_components))
     }
     
     public var rangeOfPort: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfPort(_components))
+        return NSRange(_CFURLComponentsGetRangeOfPort(_components))
     }
     
     public var rangeOfPath: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfPath(_components))
+        return NSRange(_CFURLComponentsGetRangeOfPath(_components))
     }
     
     public var rangeOfQuery: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfQuery(_components))
+        return NSRange(_CFURLComponentsGetRangeOfQuery(_components))
     }
     
     public var rangeOfFragment: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfFragment(_components))
+        return NSRange(_CFURLComponentsGetRangeOfFragment(_components))
     }
     
     // The getter method that underlies the queryItems property parses the query string based on these delimiters and returns an NSArray containing any number of NSURLQueryItem objects, each of which represents a single key-value pair, in the order in which they appear in the original query string.  Note that a name may appear more than once in a single query string, so the name values are not guaranteed to be unique. If the NSURLComponents object has an empty query component, queryItems returns an empty NSArray. If the NSURLComponents object has no query component, queryItems returns nil.
