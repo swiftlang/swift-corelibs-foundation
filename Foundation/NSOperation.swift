@@ -7,11 +7,16 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+internal let NSOperationDefaultThreadPriority: Double                  = 0.5
+internal let NSOperationDefaultQueuePriority: NSOperationQueuePriority = .Normal
+internal let NSOperationDefaultQualityOfService: NSQualityOfService    = .Background
 
 public class NSOperation : NSObject {
     
     public override init() {
-        NSUnimplemented()
+        queuePriority    = NSOperationDefaultQueuePriority
+        threadPriority   = NSOperationDefaultThreadPriority
+        qualityOfService = NSOperationDefaultQualityOfService
     }
     
     public func start() {
@@ -81,26 +86,39 @@ public enum NSOperationQueuePriority : Int {
 
 public class NSBlockOperation : NSOperation {
     
-    public convenience init(block: () -> Void) {
-        NSUnimplemented()
+    private typealias ExecutionBlock = () -> ()
+    private var _executionBlocks = [ExecutionBlock]()
+    private let _executionBlocksLock = NSLock()
+    
+    public convenience init(block: () -> ()) {
+        self.init()
+        addExecutionBlock(block)
     }
     
-    public func addExecutionBlock(block: () -> Void) {
-        NSUnimplemented()
+    public func addExecutionBlock(block: () -> ()) {
+        guard !executing else {
+            fatalError("Cannot add a block if the operation is currently executing.")
+        }
+        
+        guard !finished else {
+            fatalError("Cannot add a block if the operation has already finished.")
+        }
+        
+        _executionBlocksLock.lock()
+        _executionBlocks.append(block)
+        _executionBlocksLock.unlock()
     }
 
-    public var executionBlocks: [() -> Void] {
-        NSUnimplemented()
+    public var executionBlocks: [() -> ()] {
+        _executionBlocksLock.lock()
+        defer { _executionBlocksLock.unlock() }
+        return _executionBlocks
     }
 }
 
 public let NSOperationQueueDefaultMaxConcurrentOperationCount: Int = 0 // Unimplemented
 
 public class NSOperationQueue : NSObject {
-    
-    public override init() {
-        NSUnimplemented()
-    }
     
     public func addOperation(op: NSOperation) {
         NSUnimplemented()
@@ -122,13 +140,15 @@ public class NSOperationQueue : NSObject {
         NSUnimplemented()
     }
     
-    public var maxConcurrentOperationCount: Int
+    public var maxConcurrentOperationCount: Int = NSOperationQueueDefaultMaxConcurrentOperationCount
     
-    public var suspended: Bool
+    public var suspended: Bool = false
     
     public var name: String?
     
-    public var qualityOfService: NSQualityOfService
+    public var qualityOfService: NSQualityOfService = .Default // Unimplemented
+                                                               // NSThread.currentThread().qualityOfService
+                                                               // (suggested by phausler@apple.com)
     
     /* This method remains commented out until we have an implementation of libdispatch. */
     // unowned(unsafe) public var underlyingQueue: dispatch_queue_t? /* actually retain */
