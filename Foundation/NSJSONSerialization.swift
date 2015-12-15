@@ -326,22 +326,15 @@ private struct JSONReader {
         }
         return index
     }
-//
-//    func takeScalar(input: Index) -> (UnicodeScalar, Index)? {
-//        guard input < parser.view.endIndex else {
-//            return nil
-//        }
-//        return (parser.view[input], input.successor())
-//    }
-//
-//    func takeMatching(match: (UnicodeScalar) -> Bool) -> (String, Index) -> (String, Index)? {
-//        return { input, index in
-//            guard let (scalar, index) = self.takeScalar(index) where match(scalar) else {
-//                return nil
-//            }
-//            return (input + String(scalar), index)
-//        }
-//    }
+
+    func takeMatching(match: (UInt8) -> Bool) -> ([Character], Index) -> ([Character], Index)? {
+        return { input, index in
+            guard let (byte, index) = self.source.takeASCII(index) where match(byte) else {
+                return nil
+            }
+            return (input + [Character(UnicodeScalar(byte))], index)
+        }
+    }
 
     //MARK: - String Parsing
     struct StringScalar{
@@ -404,55 +397,46 @@ private struct JSONReader {
         case 0x6E: output = "\u{0A}" // \n
         case 0x72: output = "\u{0D}" // \r
         case 0x74: output = "\u{09}" // \t
-//        case "u":
-//            return try parseUnicodeSequence(index)
+        case 0x75: return try parseUnicodeSequence(index)
         default: return nil
         }
         return (output, index)
     }
-//    func parseUnicodeSequence(input: Index) throws -> (UnicodeScalar, Index)? {
-//
-//        guard let (codeUnit, index) = parseCodeUnit(input) else {
-//            return nil
-//        }
-//
-//        if !UTF16.isLeadSurrogate(codeUnit) {
-//            return (UnicodeScalar(codeUnit), index)
-//        }
-//
-//        guard let (trailCodeUnit, finalIndex) = try consumeSequence("\\u", input: index).flatMap(parseCodeUnit) where UTF16.isTrailSurrogate(trailCodeUnit) else {
-//            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-//                "NSDebugDescription" : "Unable to convert unicode escape sequence (no low-surrogate code point) to UTF8-encoded character at position \(distanceFromStart(input))"
-//            ])
-//        }
-//
-//        let highValue = (UInt32(codeUnit  - 0xD800) << 10)
-//        let lowValue  =  UInt32(trailCodeUnit - 0xDC00)
-//        return (UnicodeScalar(highValue + lowValue + 0x10000), finalIndex)
-//    }
-//
-//    static let hexScalars = [
-//        UnicodeScalar(0x30), UnicodeScalar(0x31), // 0, 1
-//        UnicodeScalar(0x32), UnicodeScalar(0x33), // 2, 3
-//        UnicodeScalar(0x34), UnicodeScalar(0x35), // 4, 5
-//        UnicodeScalar(0x36), UnicodeScalar(0x37), // 6, 7
-//        UnicodeScalar(0x38), UnicodeScalar(0x39), // 8, 9
-//        UnicodeScalar(0x41), UnicodeScalar(0x61), // A, a
-//        UnicodeScalar(0x42), UnicodeScalar(0x62), // B, b
-//        UnicodeScalar(0x43), UnicodeScalar(0x63), // C, c
-//        UnicodeScalar(0x44), UnicodeScalar(0x64), // D, d
-//        UnicodeScalar(0x45), UnicodeScalar(0x65), // E, e
-//        UnicodeScalar(0x46), UnicodeScalar(0x66), // F, f
-//    ]
-//    func parseCodeUnit(input: Index) -> (UTF16.CodeUnit, Index)? {
-//        let hexParser = takeMatching(JSONReader.hexScalars.contains)
-//        guard let (result, index) = hexParser("", input).flatMap(hexParser).flatMap(hexParser).flatMap(hexParser),
-//            let value = Int(result, radix: 16) else {
-//                return nil
-//        }
-//        return (UTF16.CodeUnit(value), index)
-//    }
-//
+
+    func parseUnicodeSequence(input: Index) throws -> (String, Index)? {
+
+        guard let (codeUnit, index) = parseCodeUnit(input) else {
+            return nil
+        }
+
+        if !UTF16.isLeadSurrogate(codeUnit) {
+            return (String(UnicodeScalar(codeUnit)), index)
+        }
+
+        guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit) where UTF16.isTrailSurrogate(trailCodeUnit) else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Unable to convert unicode escape sequence (no low-surrogate code point) to UTF8-encoded character at position \(source.distanceFromStart(input))"
+            ])
+        }
+
+        let highValue = (UInt32(codeUnit  - 0xD800) << 10)
+        let lowValue  =  UInt32(trailCodeUnit - 0xDC00)
+        return (String(UnicodeScalar(highValue + lowValue + 0x10000)), finalIndex)
+    }
+
+    func isHexChr(byte: UInt8) -> Bool {
+        return (byte >= 0x30 && byte <= 0x39)
+            || (byte >= 0x41 && byte <= 0x46)
+            || (byte >= 0x61 && byte <= 0x66)
+    }
+    func parseCodeUnit(input: Index) -> (UTF16.CodeUnit, Index)? {
+        let hexParser = takeMatching(isHexChr)
+        guard let (result, index) = hexParser([], input).flatMap(hexParser).flatMap(hexParser).flatMap(hexParser),
+            let value = Int(String(result), radix: 16) else {
+                return nil
+        }
+        return (UTF16.CodeUnit(value), index)
+    }
     //MARK: - Number parsing
 //    static let numberScalars: [UnicodeScalar] = [
 //        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "-", "+", "E", "e"
