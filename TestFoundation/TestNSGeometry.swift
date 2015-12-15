@@ -40,6 +40,7 @@ class TestNSGeometry : XCTestCase {
             ("test_NSIntersectsRect", test_NSIntersectsRect),
             ("test_NSIntegralRect", test_NSIntegralRect),
             ("test_NSIntegralRectWithOptions", test_NSIntegralRectWithOptions),
+            ("test_NSDivideRect", test_NSDivideRect)
         ]
     }
 
@@ -352,5 +353,98 @@ class TestNSGeometry : XCTestCase {
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
 
+    }
+
+    func test_NSDivideRect() {
+
+        // divide empty rect
+        var inRect = NSZeroRect
+        var slice = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        var remainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(0.0), .MaxX)
+        var expectedSlice = NSZeroRect
+        var expectedRemainder = NSZeroRect
+        XCTAssertEqual(slice, expectedSlice)
+        XCTAssertEqual(remainder, expectedRemainder)
+
+        // divide rect by MinX edge
+        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        slice = NSZeroRect
+        remainder = NSZeroRect
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .MinX)
+        expectedSlice = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(10.0), CGFloat(35.0))
+        expectedRemainder = NSMakeRect(CGFloat(10.0), CGFloat(-5.0), CGFloat(15.0), CGFloat(35.0))
+        XCTAssertEqual(slice, expectedSlice)
+        XCTAssertEqual(remainder, expectedRemainder)
+
+        // divide rect by MinX edge with amount > width
+        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        slice = NSZeroRect
+        remainder = NSZeroRect
+        NSDivideRect(inRect, &slice, &remainder, NSWidth(inRect) + CGFloat(1.0), .MinX)
+        expectedSlice = inRect
+        expectedRemainder = NSMakeRect(CGFloat(25.0), CGFloat(-5.0), CGFloat(0.0), CGFloat(35.0))
+        XCTAssertEqual(slice, expectedSlice)
+        XCTAssertEqual(remainder, expectedRemainder)
+
+        // divide rect by MinY edge
+        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        slice = NSZeroRect
+        remainder = NSZeroRect
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .MinY)
+        expectedSlice = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(10.0))
+        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(5.0), CGFloat(25.0), CGFloat(25.0))
+        XCTAssertEqual(slice, expectedSlice)
+        XCTAssertEqual(remainder, expectedRemainder)
+
+        // divide rect by MinY edge with amount > height
+        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        slice = NSZeroRect
+        remainder = NSZeroRect
+        NSDivideRect(inRect, &slice, &remainder, NSHeight(inRect) + CGFloat(1.0), .MinY)
+        expectedSlice = inRect
+        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(30.0), CGFloat(25.0), CGFloat(0.0))
+        XCTAssertEqual(slice, expectedSlice)
+        XCTAssertEqual(remainder, expectedRemainder)
+
+        // divide rect by MaxX edge
+        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        slice = NSZeroRect
+        remainder = NSZeroRect
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .MaxX)
+        expectedSlice = NSMakeRect(CGFloat(15.0), CGFloat(-5.0), CGFloat(10.0), CGFloat(35.0))
+        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(15.0), CGFloat(35.0))
+        XCTAssertEqual(slice, expectedSlice)
+        XCTAssertEqual(remainder, expectedRemainder)
+
+        // divide rect by MaxX edge with amount > width
+        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        slice = NSZeroRect
+        remainder = NSZeroRect
+        NSDivideRect(inRect, &slice, &remainder, NSWidth(inRect) + CGFloat(1.0), .MaxX)
+        expectedSlice = inRect
+        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(0.0), CGFloat(35.0))
+        XCTAssertEqual(slice, expectedSlice)
+        XCTAssertEqual(remainder, expectedRemainder)
+
+        // divide rect by MaxY edge
+        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        slice = NSZeroRect
+        remainder = NSZeroRect
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .MaxY)
+        expectedSlice = NSMakeRect(CGFloat(0.0), CGFloat(20.0), CGFloat(25.0), CGFloat(10.0))
+        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(25.0))
+        XCTAssertEqual(slice, expectedSlice)
+        XCTAssertEqual(remainder, expectedRemainder)
+
+        // divide rect by MaxY edge with amount > height
+        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        slice = NSZeroRect
+        remainder = NSZeroRect
+        NSDivideRect(inRect, &slice, &remainder, NSHeight(inRect) + CGFloat(1.0), .MaxY)
+        expectedSlice = inRect
+        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(0.0))
+        XCTAssertEqual(slice, expectedSlice)
+        XCTAssertEqual(remainder, expectedRemainder)
     }
 }
