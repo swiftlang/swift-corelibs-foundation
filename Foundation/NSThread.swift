@@ -31,7 +31,7 @@ internal class NSThreadSpecific<T: AnyObject> {
             NSThreadSpecificKeyLock.lock()
             if !NSThreadSpecificKeySet {
                 withUnsafeMutablePointer(&NSThreadSpecificKey) { key in
-                    NSThreadSpecificKeySet = pthread_key_create(key, disposeTLS) != 0
+                    NSThreadSpecificKeySet = pthread_key_create(key, disposeTLS) == 0
                 }
             }
             NSThreadSpecificKeyLock.unlock()
