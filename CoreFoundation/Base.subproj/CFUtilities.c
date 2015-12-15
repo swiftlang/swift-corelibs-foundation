@@ -309,7 +309,7 @@ static CFStringRef copySystemVersionPath(CFStringRef suffix) {
     if (!simulatorRoot) simulatorRoot = "/";
     return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%s%@"), simulatorRoot, suffix);
 #else
-    return suffix;
+    return CFStringCreateCopy(kCFAllocatorSystemDefault, suffix);
 #endif
 }
 
