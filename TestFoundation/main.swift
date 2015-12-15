@@ -36,6 +36,7 @@ XCTMain([
     TestNSIndexPath(),
     TestNSIndexSet(),
     TestNSJSONSerialization(),
+    TestNSMutableArray(),
     TestNSNotificationCenter(),
     TestNSNumber(),
     TestNSPipe(),
