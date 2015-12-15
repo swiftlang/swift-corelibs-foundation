@@ -401,7 +401,7 @@ extension TestNSJSONSerialization {
 // MARK: - isValidJSONObjectTests
 extension TestNSJSONSerialization {
 
-    var isValidJSONObjectTests: [(String, () -> ())] {
+    var isValidJSONObjectTests: [(String, () -> Void)] {
         return [
             ("test_isValidJSONObjectTrue", test_isValidJSONObjectTrue),
             ("test_isValidJSONObjectFalse", test_isValidJSONObjectFalse),

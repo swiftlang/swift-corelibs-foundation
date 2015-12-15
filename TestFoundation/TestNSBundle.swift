@@ -21,7 +21,7 @@
 
 class TestNSBundle : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_paths", test_paths),
             ("test_resources", test_resources),

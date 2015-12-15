@@ -348,7 +348,7 @@ class TestNSURL : XCTestCase {
 }
     
 class TestNSURLComponents : XCTestCase {
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_string", test_string),
         ]

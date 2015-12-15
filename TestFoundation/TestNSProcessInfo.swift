@@ -19,7 +19,7 @@
 
 class TestNSProcessInfo : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_operatingSystemVersion", test_operatingSystemVersion ),
             ("test_processName", test_processName ),

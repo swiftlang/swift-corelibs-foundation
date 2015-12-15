@@ -19,7 +19,7 @@
 
 class TestNSIndexPath: XCTestCase {
     
-    var allTests: [(String, () -> ())] {
+    var allTests: [(String, () -> Void)] {
         return [
            ("test_BasicConstruction", test_BasicConstruction)
         ]
