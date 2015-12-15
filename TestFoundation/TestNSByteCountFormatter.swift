@@ -21,7 +21,7 @@
 
 class TestNSByteCountFormatter : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_DefaultValues", test_DefaultValues)
         ]

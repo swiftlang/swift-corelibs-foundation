@@ -21,7 +21,7 @@ import SwiftXCTest
 
 class TestNSCharacterSet : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_Predefines", test_Predefines),
             ("test_Range", test_Range),

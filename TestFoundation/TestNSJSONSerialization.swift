@@ -19,7 +19,7 @@
 
 class TestNSJSONSerialization : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return JSONObjectWithDataTests
             + deserializationTests
             + isValidJSONObjectTests
@@ -30,7 +30,7 @@ class TestNSJSONSerialization : XCTestCase {
 //MARK: - JSONObjectWithData
 extension TestNSJSONSerialization {
 
-    var JSONObjectWithDataTests: [(String, () -> ())] {
+    var JSONObjectWithDataTests: [(String, () -> Void)] {
         return [
             ("test_JSONObjectWithData_emptyObject", test_JSONObjectWithData_emptyObject),
             ("test_JSONObjectWithData_encodingDetection", test_JSONObjectWithData_encodingDetection),
@@ -78,7 +78,7 @@ extension TestNSJSONSerialization {
 //MARK: - JSONDeserialization
 extension TestNSJSONSerialization {
     
-    var deserializationTests: [(String, () -> ())] {
+    var deserializationTests: [(String, () -> Void)] {
         return [
             ("test_deserialize_emptyObject", test_deserialize_emptyObject),
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
