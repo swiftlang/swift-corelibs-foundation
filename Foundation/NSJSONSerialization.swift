@@ -267,6 +267,16 @@ private struct JSONReader {
             return nil
         }
 
+        func takeString(begin: Index, end: Index) throws -> String {
+            let byteLength = begin.distanceTo(end)
+            guard let chunk = NSString(bytes: buffer.baseAddress.advancedBy(begin), length: byteLength, encoding: encoding)?.bridge() else {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                    "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
+                    ])
+            }
+            return chunk
+        }
+
         func hasNext(input: Index) -> Bool {
             return input + step <= buffer.endIndex
         }
@@ -343,10 +353,10 @@ private struct JSONReader {
         guard let beginIndex = try consumeStructure(StringScalar.QuotationMark, input: input) else {
             return nil
         }
-        let chunkIndex: Int = beginIndex
+        var chunkIndex: Int = beginIndex
         var currentIndex: Int = chunkIndex
 
-        let value: String = ""
+        var output: String = ""
         while source.hasNext(currentIndex) {
             guard let (ascii, index) = source.takeASCII(currentIndex) else {
                 currentIndex += source.step
@@ -354,59 +364,52 @@ private struct JSONReader {
             }
             switch ascii {
             case StringScalar.QuotationMark:
-                guard let chunk = NSString(bytes: source.buffer.baseAddress.advancedBy(chunkIndex), length: currentIndex - chunkIndex, encoding: source.encoding) else {
+                output += try source.takeString(chunkIndex, end: currentIndex)
+                return (output, index)
+            case StringScalar.Escape:
+                output += try source.takeString(chunkIndex, end: currentIndex)
+                if let (escaped, nextIndex) = try parseEscapeSequence(index) {
+                    output += escaped
+                    chunkIndex = nextIndex
+                    currentIndex = nextIndex
+                    continue
+                }
+                else {
                     throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                        "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
+                        "NSDebugDescription" : "Invalid escape sequence at position \(source.distanceFromStart(currentIndex))"
                     ])
                 }
-                return (value + chunk.bridge(), index)
-            case StringScalar.Escape:
-//                if let (escaped, nextIndex) = try parseEscapeSequence(index) {
-//                    value.append(escaped)
-//                    index = nextIndex
-//                }
-//                else {
-//                    throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-//                        "NSDebugDescription" : "Invalid unicode escape sequence at position \(source.distanceFromStart(index) - 1)"
-//                    ])
-//                }
-                return nil
             default:
-                break
+                currentIndex += source.step
             }
-            currentIndex += source.step
         }
         throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
             "NSDebugDescription" : "Unexpected end of file during string parse."
         ])
     }
-//
-//    func parseEscapeSequence(input: Index) throws -> (UnicodeScalar, Index)? {
-//        guard let (scalar, index) = takeScalar(input) else {
-//            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-//                "NSDebugDescription" : "Early end of unicode escape sequence around character"
-//            ])
-//        }
-//        switch scalar {
-//        case "\"", "\\", "/":
-//            return (scalar, index)
-//        case "b":
-//            return (UnicodeScalar(0x08), index)
-//        case "f":
-//            return (UnicodeScalar(0x0C), index)
-//        case "n":
-//            return (UnicodeScalar(0x0A), index)
-//        case "r":
-//            return (UnicodeScalar(0x0D), index)
-//        case "t":
-//            return (UnicodeScalar(0x09), index)
+
+    func parseEscapeSequence(input: Index) throws -> (String, Index)? {
+        guard let (byte, index) = source.takeASCII(input) else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Early end of unicode escape sequence around character"
+            ])
+        }
+        let output: String
+        switch byte {
+        case 0x22: output = "\""
+        case 0x5C: output = "\\"
+        case 0x2F: output = "/"
+        case 0x62: output = "\u{08}" // \b
+        case 0x66: output = "\u{0C}" // \f
+        case 0x6E: output = "\u{0A}" // \n
+        case 0x72: output = "\u{0D}" // \r
+        case 0x74: output = "\u{09}" // \t
 //        case "u":
 //            return try parseUnicodeSequence(index)
-//        default:
-//            return nil
-//        }
-//    }
-//
+        default: return nil
+        }
+        return (output, index)
+    }
 //    func parseUnicodeSequence(input: Index) throws -> (UnicodeScalar, Index)? {
 //
 //        guard let (codeUnit, index) = parseCodeUnit(input) else {
