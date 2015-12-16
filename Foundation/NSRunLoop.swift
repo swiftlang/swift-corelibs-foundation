@@ -13,14 +13,13 @@ public let NSDefaultRunLoopMode: String = kCFRunLoopDefaultMode._swiftObject
 public let NSRunLoopCommonModes: String = kCFRunLoopCommonModes._swiftObject
 
 public class NSRunLoop : NSObject {
-    typealias CFType = CFRunLoopRef
-    internal var _cfObject : CFType!
+    internal var _cfRunLoop : CFRunLoopRef!
     internal static var _mainRunLoop : NSRunLoop = {
         return NSRunLoop(cfObject: CFRunLoopGetMain())
     }()
     
     internal init(cfObject : CFRunLoopRef) {
-        _cfObject = cfObject
+        _cfRunLoop = cfObject
     }
     
     public class func currentRunLoop() -> NSRunLoop {
@@ -32,7 +31,7 @@ public class NSRunLoop : NSObject {
     }
     
     public var currentMode: String? {
-        return CFRunLoopCopyCurrentMode(_cfObject)?._swiftObject
+        return CFRunLoopCopyCurrentMode(_cfRunLoop)?._swiftObject
     }
     
     public func addTimer(timer: NSTimer, forMode mode: String) {
@@ -40,17 +39,20 @@ public class NSRunLoop : NSObject {
     }
     
     public func addPort(aPort: NSPort, forMode mode: String) {
-//        CFRunLoopAddSource(CFRunLoopGetCurrent(), aPort._cfObject, mode._cfObject)
         NSUnimplemented()
     }
 
     public func removePort(aPort: NSPort, forMode mode: String) {
-//        CFRunLoopRemoveSource(CFRunLoopGetCurrent(), aPort._cfObject, mode._cfObject)
         NSUnimplemented()
     }
     
     public func limitDateForMode(mode: String) -> NSDate? {
         let nextTimerFireAbsoluteTime = CFRunLoopGetNextTimerFireDate(CFRunLoopGetCurrent(), mode._cfObject)
+        
+        if (nextTimerFireAbsoluteTime == 0) {
+            return NSDate.distantFuture()
+        }
+        
         return NSDate(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
     }
 

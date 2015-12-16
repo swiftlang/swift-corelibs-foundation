@@ -2406,8 +2406,9 @@ static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort o
         } while (result == -1 && errno == EINTR);
         CFAssert2(result >= 0, __kCFLogAssertion, "%s(): error %d from epoll_wait", __PRETTY_FUNCTION__, errno);
 
-        if (result == 0)
+        if (result == 0) {
             return false;
+        }
 
         awokenFd = event.data.fd;
     }
