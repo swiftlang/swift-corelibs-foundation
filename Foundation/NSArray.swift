@@ -722,7 +722,6 @@ public class NSMutableArray : NSArray {
             replaceObjectsInRange(NSMakeRange(0, count), withObjectsFromArray: otherArray)
         }
     }
-    public func sortUsingFunction(compare: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>) { NSUnimplemented() }
     
     public func insertObjects(objects: [AnyObject], atIndexes indexes: NSIndexSet) {
         precondition(objects.count == indexes.count)
@@ -752,9 +751,18 @@ public class NSMutableArray : NSArray {
             objectIndex += range.length
         }
     }
-    
-    public func sortUsingComparator(cmptr: NSComparator) { NSUnimplemented() }
-    public func sortWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) { NSUnimplemented() }
+
+    public func sortUsingFunction(compare: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>) {
+        self.setArray(self.sortedArrayUsingFunction(compare, context: context))
+    }
+
+    public func sortUsingComparator(cmptr: NSComparator) {
+        self.sortWithOptions([], usingComparator: cmptr)
+    }
+
+    public func sortWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+        self.setArray(self.sortedArrayWithOptions(opts, usingComparator: cmptr))
+    }
     
     public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
     public convenience init?(contentsOfURL url: NSURL) { NSUnimplemented() }
