@@ -46,14 +46,18 @@ class TestNSAffineTransform : XCTestCase {
     
     func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", _ file: StaticString = __FILE__, _ line: UInt = __LINE__) {
         let newPoint = transform.transformPoint(point)
-        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, "x: \(message)", file: file, line: line)
-        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold, "y: \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, file: file, line: line,
+                                   "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)")
+        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold, file: file, line: line,
+                                   "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)")
     }
     
     func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", _ file: StaticString = __FILE__, _ line: UInt = __LINE__) {
         let newSize = transform.transformSize(size)
-        XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, "width: \(message)", file: file, line: line)
-        XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold, "height: \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, file: file, line: line,
+                                   "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)")
+        XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold, file: file, line: line,
+                                   "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)")
     }
 
     func test_BasicConstruction() {
