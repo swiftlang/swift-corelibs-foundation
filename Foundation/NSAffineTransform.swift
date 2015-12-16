@@ -68,19 +68,19 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     public func translateXBy(deltaX: CGFloat, yBy deltaY: CGFloat) {
         let translation = NSAffineTransformStruct.translation(tX: deltaX, tY: deltaY)
         
-        transformStruct = transformStruct.concat(translation)
+        transformStruct = translation.concat(transformStruct)
     }
     
     // Rotating
     public func rotateByDegrees(angle: CGFloat) {
         let rotation = NSAffineTransformStruct.rotation(degrees: angle)
         
-        transformStruct = transformStruct.concat(rotation)
+        transformStruct = rotation.concat(transformStruct)
     }
     public func rotateByRadians(angle: CGFloat) {
         let rotation = NSAffineTransformStruct.rotation(radians: angle)
         
-        transformStruct = transformStruct.concat(rotation)
+        transformStruct = rotation.concat(transformStruct)
     }
     
     // Scaling
@@ -91,7 +91,7 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     public func scaleXBy(scaleX: CGFloat, yBy scaleY: CGFloat) {
         let scale = NSAffineTransformStruct.scale(sX: scaleX, sY: scaleY)
         
-        transformStruct = transformStruct.concat(scale)
+        transformStruct = scale.concat(transformStruct)
     }
     
     // Inverting
@@ -106,10 +106,10 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
     // Transforming with transform
     public func appendTransform(transform: NSAffineTransform) {
-        transformStruct = transform.transformStruct.concat(transformStruct)
+        transformStruct = transformStruct.concat(transform.transformStruct)
     }
     public func prependTransform(transform: NSAffineTransform) {
-        transformStruct = transformStruct.concat(transform.transformStruct)
+        transformStruct = transform.transformStruct.concat(transformStruct)
     }
     
     // Transforming points and sizes
@@ -125,15 +125,21 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     public var transformStruct: NSAffineTransformStruct
 }
 
-
+/**
+ NSAffineTransformStruct represents an affine transformation matrix of the following form:
+ 
+     [ m11  m12  0 ]
+     [ m21  m22  0 ]
+     [  tX   tY  1 ]
+ */
 private extension NSAffineTransformStruct {
     /**
      Creates an affine transformation matrix from translation values.
      The matrix takes the following form:
      
-         [ 1  0  tX ]
-         [ 0  1  tY ]
-         [ 0  0   1 ]
+         [  1   0  0 ]
+         [  0   1  0 ]
+         [ tX  tY  1 ]
      */
     static func translation(tX tX: CGFloat, tY: CGFloat) -> NSAffineTransformStruct {
         return NSAffineTransformStruct(
@@ -163,16 +169,19 @@ private extension NSAffineTransformStruct {
      Creates an affine transformation matrix from rotation value (angle in radians).
      The matrix takes the following form:
      
-         [ cos α   -sin α  0 ]
-         [ sin α    cos α  0 ]
-         [   0        0    1 ]
+         [  cos α   sin α  0 ]
+         [ -sin α   cos α  0 ]
+         [    0       0    1 ]
      */
     static func rotation(radians angle: CGFloat) -> NSAffineTransformStruct {
         let α = Double(angle)
         
+        let sine = CGFloat(sin(α))
+        let cosine = CGFloat(cos(α))
+        
         return NSAffineTransformStruct(
-            m11: CGFloat(cos(α)), m12: CGFloat(-sin(α)),
-            m21: CGFloat(sin(α)), m22: CGFloat(cos(α)),
+            m11: cosine, m12: sine,
+            m21: -sine,  m22: cosine,
             tX: CGFloat(), tY: CGFloat()
         )
     }
@@ -181,9 +190,9 @@ private extension NSAffineTransformStruct {
      Creates an affine transformation matrix from a rotation value (angle in degrees).
      The matrix takes the following form:
      
-         [ cos α   -sin α  0 ]
-         [ sin α    cos α  0 ]
-         [   0        0    1 ]
+         [  cos α   sin α  0 ]
+         [ -sin α   cos α  0 ]
+         [    0       0    1 ]
      */
     static func rotation(degrees angle: CGFloat) -> NSAffineTransformStruct {
         let α = Double(angle) * M_PI / 180.0
@@ -197,13 +206,13 @@ private extension NSAffineTransformStruct {
      the `transformStruct`'s affine transformation matrix.
      The resulting matrix takes the following form:
      
-                 [ m11_T  m12_T  tX_T ] [ m11_M  m12_M  tX_M ]
-         T * M = [ m21_T  m22_T  tY_T ] [ m21_M  m22_M  tY_M ]
-                 [   0      0      1  ] [   0      0      1  ]
+                 [ m11_T  m12_T  0 ] [ m11_M  m12_M  0 ]
+         T * M = [ m21_T  m22_T  0 ] [ m21_M  m22_M  0 ]
+                 [  tX_T   tY_T  1 ] [  tX_M   tY_M  1 ]
      
-                 [ (m11_T*m11_M + m12_T*m21_M)  (m11_T*m12_M + m12_T*m22_M)  (m11_T*tX_M + m12_T*tY_M + tX_T) ]
-               = [ (m21_T*m11_M + m22_T*m21_M)  (m21_T*m12_M + m22_T*m22_M)  (m21_T*tX_M + m22_T*tY_M + tY_T) ]
-                 [              0                            0                                  1             ]
+                 [    (m11_T*m11_M + m12_T*m21_M)       (m11_T*m12_M + m12_T*m22_M)    0 ]
+               = [    (m21_T*m11_M + m22_T*m21_M)       (m21_T*m12_M + m22_T*m22_M)    0 ]
+                 [ (tX_T*m11_M + tY_T*m21_M + tX_M)  (tX_T*m12_M + tY_T*m22_M + tY_M)  1 ]
      */
     func concat(transformStruct: NSAffineTransformStruct) -> NSAffineTransformStruct {
         let (t, m) = (self, transformStruct)
@@ -211,8 +220,8 @@ private extension NSAffineTransformStruct {
         return NSAffineTransformStruct(
             m11: (t.m11 * m.m11) + (t.m12 * m.m21), m12: (t.m11 * m.m12) + (t.m12 * m.m22),
             m21: (t.m21 * m.m11) + (t.m22 * m.m21), m22: (t.m21 * m.m12) + (t.m22 * m.m22),
-            tX: (t.m11 * m.tX) + (t.m12 * m.tY) + t.tX,
-            tY: (t.m21 * m.tX) + (t.m22 * m.tY) + t.tY
+            tX: (t.tX * m.m11) + (t.tY * m.m21) + m.tX,
+            tY: (t.tX * m.m12) + (t.tY * m.m22) + m.tY
         )
     }
     
@@ -220,13 +229,17 @@ private extension NSAffineTransformStruct {
      Applies the affine transformation to `toPoint` and returns the result.
      The resulting point takes the following form:
      
-         [ x' ]     [ x ]   [ m11  m12  tX ] [ x ]   [ m11*x + m12*y + tX ]
-         [ y' ] = T [ y ] = [ m21  m22  tY ] [ y ] = [ m21*x + m22*y + tY ]
-         [  1 ]     [ 1 ]   [  0    0    1 ] [ 1 ]   [           1        ]
+         [ x'  y'  1 ] = [ x  y  1 ] * T
+
+                                       [ m11  m12  0 ]
+                       = [ x  y  1 ] * [ m21  m22  0 ]
+                                       [  tX   tY  1 ]
+
+                       = [ (x*m11 + y*m21 + tX)  (x*m12 + y*m22 + tY)  1 ]
      */
     func applied(toPoint p: NSPoint) -> NSPoint {
-        let x = (m11 * p.x) + (m12 * p.y) + tX
-        let y = (m21 * p.x) + (m22 * p.y) + tY
+        let x = (p.x * m11) + (p.y * m21) + tX
+        let y = (p.x * m12) + (p.y * m22) + tY
         
         return NSPoint(x: x, y: y)
     }
@@ -235,9 +248,13 @@ private extension NSAffineTransformStruct {
      Applies the affine transformation to `toSize` and returns the result.
      The resulting size takes the following form:
   
-         [ w' ]     [ w ]   [ m11  m12  tX ] [ w ]   [ m11*w + m12*h ]
-         [ h' ] = T [ h ] = [ m21  m22  tY ] [ h ] = [ m21*w + m22*h ]
-         [  0 ]     [ 0 ]   [  0    0    1 ] [ 1 ]   [       0       ]
+         [ w'  h'  0 ] = [ w  h  0] * T
+
+                                     [ m11  m12  0 ]
+                       = [ w  h  0 ] [ m21  m22  0 ]
+                                     [  tX   tY  1 ]
+
+                       = [ (w*m11 + h*m21)  (w*m12 + h*m22)  0 ]
      
      Note: Translation has no effect on the size.
      */
@@ -253,42 +270,38 @@ private extension NSAffineTransformStruct {
      Returns the inverse affine transformation matrix or `nil` if it has no inverse.
      The receiver's affine transformation matrix can be divided into matrix sub-block as
      
-         [ M  t ]
-         [ 0  1 ]
+         [ M  0 ]
+         [ t  1 ]
      
      where `M` represents the linear map and `t` the translation vector.
      
      The inversion can then be calculated as
      
-         [ inv(M)  -inv(M) * t ]
-         [   0           1     ]
+         [   inv(M)  0 ]
+         [ -t*inv(M)  1 ]
      
      if `M` is invertible.
      */
     var inverse: NSAffineTransformStruct? {
-        get {
-            // Calculate determinant of M: det(M)
-            let det = (m11 * m22) - (m12 * m21)
-            if det == CGFloat() {
-                return nil
-            }
-
-            let detReciprocal = CGFloat(1.0) / det
-            
-            // Calculate the inverse of M: inv(M)
-            let (invM11, invM12) = (detReciprocal *  m22, detReciprocal * -m12)
-            let (invM21, invM22) = (detReciprocal * -m21, detReciprocal *  m11)
-            
-            // Calculate -inv(M)*t
-            let invTX = ((-invM11 * tX) + (-invM12 * tY))
-            let invTY = ((-invM21 * tX) + (-invM22 * tY))
-            
-            return NSAffineTransformStruct(
-                m11: invM11, m12: invM12,
-                m21: invM21, m22: invM22,
-                tX: invTX, tY: invTY
-            )
+        // Calculate determinant of M: det(M)
+        let det = (m11 * m22) - (m12 * m21)
+        if det == CGFloat() {
+            return nil
         }
+
+        // Calculate the inverse of M: inv(M)
+        let (invM11, invM12) = ( m22 / det, -m12 / det)
+        let (invM21, invM22) = (-m21 / det,  m11 / det)
+        
+        // Calculate -t*inv(M)
+        let invTX = (-tX * invM11) + (-tY * invM21)
+        let invTY = (-tX * invM12) + (-tY * invM22)
+        
+        return NSAffineTransformStruct(
+            m11: invM11, m12: invM12,
+            m21: invM21, m22: invM22,
+            tX: invTX, tY: invTY
+        )
     }
 }
 
