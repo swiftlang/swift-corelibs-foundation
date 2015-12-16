@@ -27,6 +27,7 @@ class TestNSDate : XCTestCase {
             ("test_InitTimeIntervalSince1970", test_InitTimeIntervalSince1970),
             ("test_InitTimeIntervalSinceSinceDate", test_InitTimeIntervalSinceSinceDate),
             ("test_TimeIntervalSinceSinceDate", test_TimeIntervalSinceSinceDate),
+            ("test_descriptionWithLocale", test_descriptionWithLocale),
             ("test_DistantFuture", test_DistantFuture),
             ("test_DistantPast", test_DistantPast),
             ("test_DateByAddingTimeInterval", test_DateByAddingTimeInterval),
@@ -40,6 +41,12 @@ class TestNSDate : XCTestCase {
     func test_BasicConstruction() {
         let d = NSDate()
         XCTAssertNotNil(d)
+    }
+
+    func test_descriptionWithLocale() {
+        let d = NSDate(timeIntervalSince1970: 0)
+        XCTAssertEqual(d.descriptionWithLocale(nil), "1970-01-01 00:00:00 +0000")
+        XCTAssertNotNil(d.descriptionWithLocale(NSLocale(localeIdentifier: "ja_JP")))
     }
     
     func test_InitTimeIntervalSince1970() {
