@@ -50,8 +50,13 @@ public class NSNumberFormatter : NSFormatter {
     public func numberFromString(string: String) -> NSNumber? {
         var range = CFRange()
         let number = withUnsafeMutablePointer(&range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
-            let options = CFNumberFormatterOptionFlags.ParseIntegersOnly.rawValue
-            let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, options)
+            
+            #if os(OSX) || os(iOS)
+                let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, CFNumberFormatterOptionFlags.ParseIntegersOnly.rawValue)
+            #else
+                let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, CFOptionFlags(kCFNumberFormatterParseIntegersOnly))
+            #endif
+
             return result?._nsObject
         }
         return number
