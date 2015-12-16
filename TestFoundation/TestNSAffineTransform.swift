@@ -147,6 +147,14 @@ class TestNSAffineTransform : XCTestCase {
         tenEighty.rotateByDegrees(CGFloat(1080.0))
         checkPointTransformation(tenEighty, point: point, expectedPoint: point)
         
+        let rotateCounterClockwise = NSAffineTransform()
+        rotateCounterClockwise.rotateByDegrees(CGFloat(90.0))
+        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(10.0)))
+        
+        let rotateClockwise = NSAffineTransform()
+        rotateClockwise.rotateByDegrees(CGFloat(-90.0))
+        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat(-10.0)))
+        
         let reflectAboutOrigin = NSAffineTransform()
         reflectAboutOrigin.rotateByDegrees(CGFloat(180.0))
         checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
@@ -162,6 +170,14 @@ class TestNSAffineTransform : XCTestCase {
         let tenEighty = NSAffineTransform()
         tenEighty.rotateByRadians(CGFloat(6 * M_PI))
         checkPointTransformation(tenEighty, point: point, expectedPoint: point)
+        
+        let rotateCounterClockwise = NSAffineTransform()
+        rotateCounterClockwise.rotateByRadians(CGFloat(M_PI_2))
+        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(10.0)))
+        
+        let rotateClockwise = NSAffineTransform()
+        rotateClockwise.rotateByRadians(CGFloat(-M_PI_2))
+        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat(-10.0)))
         
         let reflectAboutOrigin = NSAffineTransform()
         reflectAboutOrigin.rotateByRadians(CGFloat(M_PI))
