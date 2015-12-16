@@ -48,12 +48,6 @@
 #include <net/if_dl.h>
 #include <net/if_types.h>
 
-static inline void read_random(void *buffer, u_int numBytes) {
-    int fd = open("/dev/random", O_RDONLY);
-    read(fd, buffer, numBytes);
-    close(fd);
-}
-
 static inline void nanotime(struct timespec *tv) {
     uint64_t now = mach_absolute_time();
     tv->tv_sec = now / 1000000000;
@@ -63,18 +57,17 @@ static inline void nanotime(struct timespec *tv) {
 #elif TARGET_OS_LINUX
 #include <time.h>
 
-
-static inline void read_random(void *buffer, u_int numBytes) {
-	int fd = open("/dev/random", O_RDONLY);
-	read(fd, buffer, numBytes);
-	close(fd);
-}
-
 static inline void nanotime(struct timespec *tv) {
 	clock_gettime(CLOCK_MONOTONIC, tv);
 }
 
 #endif
+
+static inline void read_random(void *buffer, u_int numBytes) {
+    int fd = open("/dev/urandom", O_RDONLY);
+    read(fd, buffer, numBytes);
+    close(fd);
+}
 
 
 UUID_DEFINE(UUID_NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
