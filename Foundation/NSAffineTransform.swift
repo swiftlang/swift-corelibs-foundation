@@ -106,10 +106,10 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
     // Transforming with transform
     public func appendTransform(transform: NSAffineTransform) {
-        transformStruct = transformStruct.concat(transform.transformStruct)
+        transformStruct = transform.transformStruct.concat(transformStruct)
     }
     public func prependTransform(transform: NSAffineTransform) {
-        transformStruct = transform.transformStruct.concat(transformStruct)
+        transformStruct = transformStruct.concat(transform.transformStruct)
     }
     
     // Transforming points and sizes
