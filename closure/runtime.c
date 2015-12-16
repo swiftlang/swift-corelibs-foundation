@@ -12,7 +12,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#if TARGET_OS_LINUX
+#define __USE_GNU
 #include <dlfcn.h>
+#else
+#include <dlfcn.h>
+#endif
 #if __has_include(<os/assumes.h>)
 #include <os/assumes.h>
 #else
