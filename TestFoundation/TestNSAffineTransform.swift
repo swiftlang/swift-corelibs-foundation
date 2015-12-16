@@ -42,10 +42,11 @@ class TestNSAffineTransform : XCTestCase {
             ("test_TranslationComposed", test_TranslationComposed),
             ("test_AppendTransform", test_AppendTransform),
             ("test_PrependTransform", test_PrependTransform),
+            ("test_TransformComposition", test_TransformComposition),
         ]
     }
     
-    func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", _ file: StaticString = __FILE__, _ line: UInt = __LINE__) {
+    func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
         let newPoint = transform.transformPoint(point)
         XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, file: file, line: line,
                                    "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)")
@@ -53,12 +54,21 @@ class TestNSAffineTransform : XCTestCase {
                                    "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)")
     }
     
-    func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", _ file: StaticString = __FILE__, _ line: UInt = __LINE__) {
+    func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
         let newSize = transform.transformSize(size)
         XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, file: file, line: line,
                                    "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)")
         XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold, file: file, line: line,
                                    "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)")
+    }
+    
+    func checkRectTransformation(transform: NSAffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
+        let newRect = transform.transformRect(rect)
+        
+        checkPointTransformation(transform, point: newRect.origin, expectedPoint: expectedRect.origin, file: file, line: line,
+                                 "origin (expected: \(expectedRect.origin), was: \(newRect.origin)): \(message)")
+        checkSizeTransformation(transform, size: newRect.size, expectedSize: expectedRect.size, file: file, line: line,
+                                "size (expected: \(expectedRect.size), was: \(newRect.size)): \(message)")
     }
 
     func test_BasicConstruction() {
@@ -292,5 +302,34 @@ class TestNSAffineTransform : XCTestCase {
         scaleThenTranslate.prependTransform(scale)
         checkPointTransformation(scaleThenTranslate, point: point, expectedPoint: NSPoint(x: CGFloat(30.0), y: CGFloat(20.0)))
     }
+    
+    
+    func test_TransformComposition() {
+        let origin = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        let size = NSSize(width: CGFloat(40.0), height: CGFloat(20.0))
+        let rect = NSRect(origin: origin, size: size)
+        let center = NSPoint(x: NSMidX(rect), y: NSMidY(rect))
+        
+        let rotate = NSAffineTransform()
+        rotate.rotateByDegrees(CGFloat(90.0))
+        
+        let moveOrigin = NSAffineTransform()
+        moveOrigin.translateXBy(-center.x, yBy: -center.y)
+        
+        let moveBack = NSAffineTransform(transform: moveOrigin)
+        moveBack.invert()
+        
+        let rotateAboutCenter = NSAffineTransform(transform: rotate)
+        rotateAboutCenter.prependTransform(moveOrigin)
+        rotateAboutCenter.appendTransform(moveBack)
+        
+        // center of rect shouldn't move as its the rotation anchor
+        checkPointTransformation(rotateAboutCenter, point: center, expectedPoint: center)
+    }
 }
 
+extension NSAffineTransform {
+    func transformRect(aRect: NSRect) -> NSRect {
+        return NSRect(origin: transformPoint(aRect.origin), size: transformSize(aRect.size))
+    }
+}
