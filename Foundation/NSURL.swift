@@ -28,7 +28,7 @@ private func _standardizedPath(path: String) -> String {
     return path
 }
 
-public class NSURL : NSObject, NSSecureCoding, NSCopying {
+public class NSURL : NSObject, NSSecureCoding, NSCopying, CustomStringConvertible {
     typealias CFType = CFURLRef
     internal var _base = _CFInfo(typeID: CFURLGetTypeID())
     internal var _flags : UInt32 = 0
@@ -341,6 +341,14 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     override internal var _cfTypeID: CFTypeID {
         return CFURLGetTypeID()
+    }
+    
+    override public var description: String {
+        if let absoluteString = self.absoluteString {
+            return absoluteString
+        } else {
+            return super.description
+        }
     }
 }
 
