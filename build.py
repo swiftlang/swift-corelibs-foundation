@@ -14,7 +14,7 @@ foundation = DynamicLibrary("Foundation")
 foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefix.h'
 
 if Configuration.current.target.sdk == OSType.Linux:
-	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX '
+	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE '
 	foundation.LDFLAGS = '-Wl,@./CoreFoundation/linux.ld -lswiftGlibc `icu-config --ldflags` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString '
 elif Configuration.current.target.sdk == OSType.FreeBSD:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 '
@@ -211,7 +211,7 @@ sources = CompileSources([
 	'CoreFoundation/Preferences.subproj/CFPreferences.c',
 	# 'CoreFoundation/RunLoop.subproj/CFMachPort.c',
 	# 'CoreFoundation/RunLoop.subproj/CFMessagePort.c',
-	# 'CoreFoundation/RunLoop.subproj/CFRunLoop.c',
+	'CoreFoundation/RunLoop.subproj/CFRunLoop.c',
 	# 'CoreFoundation/RunLoop.subproj/CFSocket.c',
 	# 'CoreFoundation/Stream.subproj/CFConcreteStreams.c',
 	# 'CoreFoundation/Stream.subproj/CFSocketStream.c',
@@ -306,7 +306,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSPropertyList.swift',
 	'Foundation/NSRange.swift',
 	'Foundation/NSRegularExpression.swift',
-	# 'Foundation/NSRunLoop.swift',
+	'Foundation/NSRunLoop.swift',
 	'Foundation/NSScanner.swift',
 	'Foundation/NSSet.swift',
 	'Foundation/NSSortDescriptor.swift',
@@ -316,7 +316,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSTask.swift',
 	'Foundation/NSTextCheckingResult.swift',
 	'Foundation/NSThread.swift',
-	# 'Foundation/NSTimer.swift',
+	'Foundation/NSTimer.swift',
 	'Foundation/NSTimeZone.swift',
 	'Foundation/NSURL.swift',
 	'Foundation/NSURLAuthenticationChallenge.swift',

@@ -990,7 +990,7 @@ CF_PRIVATE Boolean __CFInitialized = 0;
 // move the next 2 lines down into the #if below, and make it static, after Foundation gets off this symbol on other platforms
 CF_EXPORT pthread_t _CFMainPThread;
 pthread_t _CFMainPThread = kNilPthreadT;
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR
+#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR || DEPLOYMENT_TARGET_LINUX
 
 CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
 pthread_t _CF_pthread_main_thread_np(void) {
