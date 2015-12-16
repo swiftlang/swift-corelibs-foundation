@@ -39,7 +39,6 @@ class TestNSAffineTransform : XCTestCase {
             ("test_Inversion", test_Inversion),
             ("test_IdentityTransformation", test_IdentityTransformation),
             ("test_Translation", test_Translation),
-            ("test_Translation2", test_Translation2),
             ("test_TranslationComposed", test_TranslationComposed),
         ]
     }
@@ -197,14 +196,6 @@ class TestNSAffineTransform : XCTestCase {
         identityTransform.appendTransform(translate)
         
         checkPointTransformation(identityTransform, point: point, expectedPoint: point)
-    }
-
-    func test_Translation2() {
-        let xPlus2 = NSAffineTransform()
-        xPlus2.translateXBy(CGFloat(2.0), yBy: CGFloat())
-
-        checkPointTransformation(xPlus2, point: NSMakePoint(CGFloat(22.0), CGFloat(10.0)),
-                                 expectedPoint: NSMakePoint(CGFloat(24.0), CGFloat(10.0)))
     }
 
     func test_TranslationComposed() {
