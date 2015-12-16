@@ -753,7 +753,6 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
     }
     ret = readlink(TZZONELINK, linkbuf, sizeof(linkbuf));
     if (0 < ret) {
-        CFStringRef name;
         linkbuf[ret] = '\0';
         if (strncmp(linkbuf, TZZONEINFO, sizeof(TZZONEINFO) - 1) == 0) {
             name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf + sizeof(TZZONEINFO) - 1, strlen(linkbuf) - sizeof(TZZONEINFO) + 1, kCFStringEncodingUTF8, false);
