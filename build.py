@@ -245,6 +245,7 @@ foundation.add_phase(sources)
 
 swift_sources = CompileSwiftSources([
 	'Foundation/NSObject.swift',
+	'Foundation/NSRunLoop.swift',
 	'Foundation/NSAffineTransform.swift',
 	'Foundation/NSArray.swift',
 	'Foundation/NSAttributedString.swift',
@@ -306,7 +307,6 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSPropertyList.swift',
 	'Foundation/NSRange.swift',
 	'Foundation/NSRegularExpression.swift',
-	'Foundation/NSRunLoop.swift',
 	'Foundation/NSScanner.swift',
 	'Foundation/NSSet.swift',
 	'Foundation/NSSortDescriptor.swift',
