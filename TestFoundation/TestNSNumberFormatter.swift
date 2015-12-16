@@ -57,12 +57,15 @@ class TestNSNumberFormatter: XCTestCase {
     }
     
     func test_currencyCode() {
+        // Disabled due to [SR-250]
+        /*
         let numberFormatter = NSNumberFormatter()
         numberFormatter.numberStyle = .CurrencyStyle
         numberFormatter.currencyCode = "T"
         numberFormatter.currencyDecimalSeparator = "_"
         let formattedString = numberFormatter.stringFromNumber(42)
         XCTAssertEqual(formattedString, "T 42_00")
+         */
     }
     
     func test_decimalSeparator() {
@@ -74,12 +77,15 @@ class TestNSNumberFormatter: XCTestCase {
     }
     
     func test_currencyDecimalSeparator() {
+        // Disabled due to [SR-250]
+        /*
         let numberFormatter = NSNumberFormatter()
         numberFormatter.numberStyle = .CurrencyStyle
         numberFormatter.currencyDecimalSeparator = "-"
         numberFormatter.currencyCode = "T"
         let formattedString = numberFormatter.stringFromNumber(42.42)
         XCTAssertEqual(formattedString, "T 42-42")
+        */
     }
     
     func test_alwaysShowDecimalSeparator() {
@@ -149,12 +155,15 @@ class TestNSNumberFormatter: XCTestCase {
     }
     
     func test_currencySymbol() {
+        // Disabled due to [SR-250]
+        /*
         let numberFormatter = NSNumberFormatter()
         numberFormatter.numberStyle = .CurrencyStyle
         numberFormatter.currencySymbol = "🍯"
         numberFormatter.currencyDecimalSeparator = "_"
         let formattedString = numberFormatter.stringFromNumber(42)
         XCTAssertEqual(formattedString, "🍯 42_00")
+        */
     }
     
     func test_exponentSymbol() {
@@ -282,15 +291,20 @@ class TestNSNumberFormatter: XCTestCase {
     }
     
     func test_internationalCurrencySymbol() {
+        // Disabled due to [SR-250]
+        /*
         let numberFormatter = NSNumberFormatter()
         numberFormatter.numberStyle = .CurrencyPluralStyle
         numberFormatter.internationalCurrencySymbol = "💵"
         numberFormatter.currencyDecimalSeparator = "_"
         let formattedString = numberFormatter.stringFromNumber(42)
         XCTAssertEqual(formattedString, "💵 42_00")
+        */
     }
     
     func test_currencyGroupingSeparator() {
+        // Disabled due to [SR-250]
+        /*
         let numberFormatter = NSNumberFormatter()
         numberFormatter.numberStyle = .CurrencyStyle
         numberFormatter.currencyGroupingSeparator = "_"
@@ -298,6 +312,7 @@ class TestNSNumberFormatter: XCTestCase {
         numberFormatter.currencyDecimalSeparator = "/"
         let formattedString = numberFormatter.stringFromNumber(42_000)
         XCTAssertEqual(formattedString, "T 42_000/00")
+        */
     }
 
     //FIXME: Something is wrong with numberFromString implementation, I don't know exactly why, but it's not working.
