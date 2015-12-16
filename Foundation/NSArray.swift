@@ -673,7 +673,9 @@ public class NSMutableArray : NSArray {
         }
     }
     public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject], range otherRange: NSRange) {
-        replaceObjectsInRange(range, withObjectsFromArray: Array(otherArray[otherRange.toRange()!]))
+        var list = [AnyObject]()
+        otherArray.bridge().getObjects(&list, range:otherRange)
+        replaceObjectsInRange(range, withObjectsFromArray:list)
     }
     
     public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject]) {
