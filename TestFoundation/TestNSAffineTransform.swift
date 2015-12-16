@@ -40,6 +40,8 @@ class TestNSAffineTransform : XCTestCase {
             ("test_IdentityTransformation", test_IdentityTransformation),
             ("test_Translation", test_Translation),
             ("test_TranslationComposed", test_TranslationComposed),
+            ("test_AppendTransform", test_AppendTransform),
+            ("test_PrependTransform", test_PrependTransform),
         ]
     }
     
@@ -237,6 +239,42 @@ class TestNSAffineTransform : XCTestCase {
 
         checkPointTransformation(xyTimes5XPlus3, point: NSMakePoint(CGFloat(1.0), CGFloat(2.0)),
                                          expectedPoint: NSMakePoint(CGFloat(20.0), CGFloat(10.0)))
+    }
+    
+    func test_AppendTransform() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let identityTransform = NSAffineTransform()
+        identityTransform.appendTransform(identityTransform)
+        checkPointTransformation(identityTransform, point: point, expectedPoint: point)
+        
+        let translate = NSAffineTransform()
+        translate.translateXBy(CGFloat(10.0), yBy: CGFloat())
+        
+        let scale = NSAffineTransform()
+        scale.scaleBy(CGFloat(2.0))
+        
+        let translateThenScale = NSAffineTransform(transform: translate)
+        translateThenScale.appendTransform(scale)
+        checkPointTransformation(translateThenScale, point: point, expectedPoint: NSPoint(x: CGFloat(40.0), y: CGFloat(20.0)))
+    }
+    
+    func test_PrependTransform() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let identityTransform = NSAffineTransform()
+        identityTransform.prependTransform(identityTransform)
+        checkPointTransformation(identityTransform, point: point, expectedPoint: point)
+        
+        let translate = NSAffineTransform()
+        translate.translateXBy(CGFloat(10.0), yBy: CGFloat())
+        
+        let scale = NSAffineTransform()
+        scale.scaleBy(CGFloat(2.0))
+        
+        let scaleThenTranslate = NSAffineTransform(transform: translate)
+        scaleThenTranslate.prependTransform(scale)
+        checkPointTransformation(scaleThenTranslate, point: point, expectedPoint: NSPoint(x: CGFloat(30.0), y: CGFloat(20.0)))
     }
 }
 
