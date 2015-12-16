@@ -98,7 +98,7 @@ struct _NSStringBridge {
     CFIndex (*length)(CFTypeRef str);
     UniChar (*characterAtIndex)(CFTypeRef str, CFIndex idx);
     void (*getCharacters)(CFTypeRef str, CFRange range, UniChar *buffer);
-    CFIndex (*__getBytes)(CFTypeRef str, CFRange range, uint8_t *buffer, CFIndex maxBufLen, CFIndex *usedBufLen);
+    CFIndex (*__getBytes)(CFTypeRef str, CFStringEncoding encoding, CFRange range, uint8_t *buffer, CFIndex maxBufLen, CFIndex *usedBufLen);
     const char *_Nullable (*_Nonnull _fastCStringContents)(CFTypeRef str);
     const UniChar *_Nullable (*_Nonnull _fastCharacterContents)(CFTypeRef str);
     bool (*_getCString)(CFTypeRef str, char *buffer, size_t len, UInt32 encoding);
