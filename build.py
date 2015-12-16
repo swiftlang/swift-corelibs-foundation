@@ -51,13 +51,15 @@ foundation.CFLAGS += " ".join([
 ])
 
 swift_cflags = [
-	'-I${BUILD_DIR}/Foundation/usr/lib/swift'
+	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
+	'-I/usr/include/libxml2'
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	swift_cflags += [
 		'-I${XCTEST_BUILD_DIR}',
 		'-L${XCTEST_BUILD_DIR}',
+		'-I/usr/include/libxml2'
 	]
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
