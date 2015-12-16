@@ -57,7 +57,7 @@ static inline void read_random(void *buffer, u_int numBytes) {
 static inline void nanotime(struct timespec *tv) {
     uint64_t now = mach_absolute_time();
     tv->tv_sec = now / 1000000000;
-    tv->tv_nsec = (tv->tv_sec * 10000000000) - now;
+    tv->tv_nsec = now - (tv->tv_sec * 1000000000);
 }
 
 #elif TARGET_OS_LINUX

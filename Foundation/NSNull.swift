@@ -28,6 +28,13 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
     public static func supportsSecureCoding() -> Bool {
         return true
     }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        return object is NSNull
+    }
 }
 
-
+public func ===(lhs: NSNull?, rhs: NSNull?) -> Bool {
+    guard let _ = lhs, let _ = rhs else { return false }
+    return true
+}

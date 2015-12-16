@@ -17,7 +17,7 @@
 
 class TestNSData: XCTestCase {
     
-    var allTests: [(String, () -> ())] {
+    var allTests: [(String, () -> Void)] {
         return [
             ("test_description", test_description),
             ("test_emptyDescription", test_emptyDescription),
@@ -28,6 +28,15 @@ class TestNSData: XCTestCase {
             ("test_edgeDebugDescription", test_edgeDebugDescription),
             ("test_writeToURLOptions", test_writeToURLOptions),
             ("test_edgeNoCopyDescription", test_edgeNoCopyDescription),
+            ("test_initializeWithBase64EncodedDataGetsDecodedData", test_initializeWithBase64EncodedDataGetsDecodedData),
+            ("test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil", test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil),
+            ("test_initializeWithBase64EncodedDataWithNonBase64CharacterWithOptionToAllowItSkipsCharacter", test_initializeWithBase64EncodedDataWithNonBase64CharacterWithOptionToAllowItSkipsCharacter),
+            ("test_base64EncodedDataGetsEncodedText", test_base64EncodedDataGetsEncodedText),
+            ("test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn", test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn),
+            ("test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed", test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed),
+            ("test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth", test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth),
+            ("test_base64EncodedStringGetsEncodedText", test_base64EncodedStringGetsEncodedText),
+            ("test_initializeWithBase64EncodedStringGetsDecodedData", test_initializeWithBase64EncodedStringGetsDecodedData),
         ]
     }
     
@@ -108,5 +117,139 @@ class TestNSData: XCTestCase {
         let data = NSData(bytesNoCopy: UnsafeMutablePointer<Int8>(bytes), length: bytes.count, freeWhenDone: false)
         XCTAssertEqual(data.debugDescription, expected)
         XCTAssertEqual(data.bytes, bytes)
+    }
+
+    func test_initializeWithBase64EncodedDataGetsDecodedData() {
+        let plainText = "ARMA virumque cano, Troiae qui primus ab oris\nItaliam, fato profugus, Laviniaque venit"
+        let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHByaW11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
+        guard let encodedData = encodedText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            XCTFail("Could not get UTF-8 data")
+            return
+        }
+        guard let decodedData = NSData(base64EncodedData: encodedData, options: []) else {
+            XCTFail("Could not Base-64 decode data")
+            return
+        }
+        guard let decodedText = NSString(data: decodedData, encoding: NSUTF8StringEncoding)?.bridge() else {
+            XCTFail("Could not convert decoded data to a UTF-8 String")
+            return
+        }
+
+        XCTAssertEqual(decodedText, plainText)
+    }
+    
+    func test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil() {
+        let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHBya$W11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
+        guard let encodedData = encodedText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            XCTFail("Could not get UTF-8 data")
+            return
+        }
+        let decodedData = NSData(base64EncodedData: encodedData, options: [])
+        XCTAssertNil(decodedData)
+    }
+    
+    func test_initializeWithBase64EncodedDataWithNonBase64CharacterWithOptionToAllowItSkipsCharacter() {
+        let plainText = "ARMA virumque cano, Troiae qui primus ab oris\nItaliam, fato profugus, Laviniaque venit"
+        let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHBya$W11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
+        guard let encodedData = encodedText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            XCTFail("Could not get UTF-8 data")
+            return
+        }
+        guard let decodedData = NSData(base64EncodedData: encodedData, options: [.IgnoreUnknownCharacters]) else {
+            XCTFail("Could not Base-64 decode data")
+            return
+        }
+        guard let decodedText = NSString(data: decodedData, encoding: NSUTF8StringEncoding)?.bridge() else {
+            XCTFail("Could not convert decoded data to a UTF-8 String")
+            return
+        }
+        
+        XCTAssertEqual(decodedText, plainText)
+    }
+    
+    func test_initializeWithBase64EncodedStringGetsDecodedData() {
+        let plainText = "ARMA virumque cano, Troiae qui primus ab oris\nItaliam, fato profugus, Laviniaque venit"
+        let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHByaW11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
+        guard let decodedData = NSData(base64EncodedString: encodedText, options: []) else {
+            XCTFail("Could not Base-64 decode data")
+            return
+        }
+        guard let decodedText = NSString(data: decodedData, encoding: NSUTF8StringEncoding)?.bridge() else {
+            XCTFail("Could not convert decoded data to a UTF-8 String")
+            return
+        }
+        
+        XCTAssertEqual(decodedText, plainText)
+    }
+    
+    func test_base64EncodedDataGetsEncodedText() {
+        let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
+        let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1aXQgYEFjaGF0ZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVuYSBsYWJvcmlzP2A="
+        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            XCTFail("Could not encode UTF-8 string")
+            return
+        }
+        let encodedData = data.base64EncodedDataWithOptions([])
+        guard let encodedTextResult = NSString(data: encodedData, encoding: NSASCIIStringEncoding)?.bridge() else {
+            XCTFail("Could not convert encoded data to an ASCII String")
+            return
+        }
+        XCTAssertEqual(encodedTextResult, encodedText)
+    }
+    
+    func test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed() {
+        let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
+        let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1\naXQgYEFjaGF0ZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVu\nYSBsYWJvcmlzP2A="
+        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            XCTFail("Could not encode UTF-8 string")
+            return
+        }
+        let encodedData = data.base64EncodedDataWithOptions([.Encoding64CharacterLineLength, .EncodingEndLineWithLineFeed])
+        guard let encodedTextResult = NSString(data: encodedData, encoding: NSASCIIStringEncoding)?.bridge() else {
+            XCTFail("Could not convert encoded data to an ASCII String")
+            return
+        }
+        XCTAssertEqual(encodedTextResult, encodedText)
+    }
+    
+    func test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn() {
+        let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
+        let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1aXQgYEFjaGF0\rZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVuYSBsYWJvcmlzP2A="
+        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            XCTFail("Could not encode UTF-8 string")
+            return
+        }
+        let encodedData = data.base64EncodedDataWithOptions([.Encoding76CharacterLineLength, .EncodingEndLineWithCarriageReturn])
+        guard let encodedTextResult = NSString(data: encodedData, encoding: NSASCIIStringEncoding)?.bridge() else {
+            XCTFail("Could not convert encoded data to an ASCII String")
+            return
+        }
+        XCTAssertEqual(encodedTextResult, encodedText)
+    }
+    
+    func test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth() {
+        let plainText = "Revocate animos, maestumque timorem mittite: forsan et haec olim meminisse iuvabit."
+        let encodedText = "UmV2b2NhdGUgYW5pbW9zLCBtYWVzdHVtcXVlIHRpbW9yZW0gbWl0dGl0ZTogZm9yc2FuIGV0IGhh\r\nZWMgb2xpbSBtZW1pbmlzc2UgaXV2YWJpdC4="
+        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            XCTFail("Could not encode UTF-8 string")
+            return
+        }
+        let encodedData = data.base64EncodedDataWithOptions([.Encoding76CharacterLineLength, .EncodingEndLineWithCarriageReturn, .EncodingEndLineWithLineFeed])
+        guard let encodedTextResult = NSString(data: encodedData, encoding: NSASCIIStringEncoding)?.bridge() else {
+            XCTFail("Could not convert encoded data to an ASCII String")
+            return
+        }
+        XCTAssertEqual(encodedTextResult, encodedText)
+    }
+    
+    func test_base64EncodedStringGetsEncodedText() {
+        let plainText = "Revocate animos, maestumque timorem mittite: forsan et haec olim meminisse iuvabit."
+        let encodedText = "UmV2b2NhdGUgYW5pbW9zLCBtYWVzdHVtcXVlIHRpbW9yZW0gbWl0dGl0ZTogZm9yc2FuIGV0IGhhZWMgb2xpbSBtZW1pbmlzc2UgaXV2YWJpdC4="
+        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            XCTFail("Could not encode UTF-8 string")
+            return
+        }
+        let encodedTextResult = data.base64EncodedStringWithOptions([])
+        XCTAssertEqual(encodedTextResult, encodedText)
     }
 }

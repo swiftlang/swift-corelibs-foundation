@@ -28,7 +28,9 @@ public class NSBundle : NSObject {
     public init?(path: String) {
         super.init()
         
-        let resolvedPath = path._nsObject.stringByResolvingSymlinksInPath
+        // TODO: We do not yet resolve symlinks, but we must for compatibility
+        // let resolvedPath = path._nsObject.stringByResolvingSymlinksInPath
+        let resolvedPath = path
         guard resolvedPath.length > 0 else {
             return nil
         }
@@ -136,12 +138,24 @@ public class NSBundle : NSObject {
     }
     
     // -----------------------------------------------------------------------------------
-    // MARK: - URL and Path Resource Lookup
+    // MARK: - URL Resource Lookup - Class
     
-    public class func URLForResource(name: String?, withExtension ext: String?, subdirectory subpath: String?, inBundleWithURL bundleURL: NSURL) -> NSURL? { NSUnimplemented() }
+    public class func URLForResource(name: String?, withExtension ext: String?, subdirectory subpath: String?, inBundleWithURL bundleURL: NSURL) -> NSURL? {
+        // If both name and ext are nil/zero-length, return nil
+        if (name == nil || name!.isEmpty) && (ext == nil || ext!.isEmpty) {
+            return nil
+        }
+        
+        return CFBundleCopyResourceURLInDirectory(bundleURL._cfObject, name?._cfObject, ext?._cfObject, subpath?._cfObject)._nsObject
+    }
     
-    public class func URLsForResourcesWithExtension(ext: String?, subdirectory subpath: String?, inBundleWithURL bundleURL: NSURL) -> [NSURL]? { NSUnimplemented() }
+    public class func URLsForResourcesWithExtension(ext: String?, subdirectory subpath: String?, inBundleWithURL bundleURL: NSURL) -> [NSURL]? {
+        return CFBundleCopyResourceURLsOfTypeInDirectory(bundleURL._cfObject, ext?._cfObject, subpath?._cfObject)?._unsafeTypedBridge()
+    }
     
+    // -----------------------------------------------------------------------------------
+    // MARK: - URL Resource Lookup - Instance
+
     public func URLForResource(name: String?, withExtension ext: String?) -> NSURL? {
         return self.URLForResource(name, withExtension: ext, subdirectory: nil)
     }
@@ -151,20 +165,41 @@ public class NSBundle : NSObject {
         if (name == nil || name!.isEmpty) && (ext == nil || ext!.isEmpty) {
             return nil
         }
-        let resultURL = CFBundleCopyResourceURL(_bundle, name?._cfObject, ext?._cfObject, subpath?._cfObject)
-        return unsafeBitCast(resultURL, NSURL.self)
+        return CFBundleCopyResourceURL(_bundle, name?._cfObject, ext?._cfObject, subpath?._cfObject)?._nsObject
     }
     
-    public func URLForResource(name: String?, withExtension ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> NSURL? { NSUnimplemented() }
+    public func URLForResource(name: String?, withExtension ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> NSURL? {
+        // If both name and ext are nil/zero-length, return nil
+        if (name == nil || name!.isEmpty) && (ext == nil || ext!.isEmpty) {
+            return nil
+        }
+
+        return CFBundleCopyResourceURLForLocalization(_bundle, name?._cfObject, ext?._cfObject, subpath?._cfObject, localizationName?._cfObject)?._nsObject
+    }
     
-    public func URLsForResourcesWithExtension(ext: String?, subdirectory subpath: String?) -> [NSURL]? { NSUnimplemented() }
+    public func URLsForResourcesWithExtension(ext: String?, subdirectory subpath: String?) -> [NSURL]? {
+        return CFBundleCopyResourceURLsOfType(_bundle, ext?._cfObject, subpath?._cfObject)?._unsafeTypedBridge()
+    }
     
-    public func URLsForResourcesWithExtension(ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> [NSURL]? { NSUnimplemented() }
+    public func URLsForResourcesWithExtension(ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> [NSURL]? {
+        return CFBundleCopyResourceURLsOfTypeForLocalization(_bundle, ext?._cfObject, subpath?._cfObject, localizationName?._cfObject)?._unsafeTypedBridge()
+    }
     
-    public class func pathForResource(name: String?, ofType ext: String?, inDirectory bundlePath: String) -> String? { NSUnimplemented() }
+    // -----------------------------------------------------------------------------------
+    // MARK: - Path Resource Lookup - Class
+
+    public class func pathForResource(name: String?, ofType ext: String?, inDirectory bundlePath: String) -> String? {
+        return NSBundle.URLForResource(name, withExtension: ext, subdirectory: bundlePath, inBundleWithURL: NSURL(fileURLWithPath: bundlePath))?.path ?? nil
+    }
     
-    public class func pathsForResourcesOfType(ext: String?, inDirectory bundlePath: String) -> [String] { NSUnimplemented() }
+    public class func pathsForResourcesOfType(ext: String?, inDirectory bundlePath: String) -> [String] {
+        // Force-unwrap path, beacuse if the URL can't be turned into a path then something is wrong anyway
+        return URLsForResourcesWithExtension(ext, subdirectory: bundlePath, inBundleWithURL: NSURL(fileURLWithPath: bundlePath))?.map { $0.path! } ?? []
+    }
     
+    // -----------------------------------------------------------------------------------
+    // MARK: - Path Resource Lookup - Instance
+
     public func pathForResource(name: String?, ofType ext: String?) -> String? {
         return self.URLForResource(name, withExtension: ext, subdirectory: nil)?.path
     }
@@ -173,10 +208,19 @@ public class NSBundle : NSObject {
         return self.URLForResource(name, withExtension: ext, subdirectory: nil)?.path
     }
     
-    public func pathForResource(name: String?, ofType ext: String?, inDirectory subpath: String?, forLocalization localizationName: String?) -> String? { NSUnimplemented() }
+    public func pathForResource(name: String?, ofType ext: String?, inDirectory subpath: String?, forLocalization localizationName: String?) -> String? {
+        return self.URLForResource(name, withExtension: ext, subdirectory: subpath, localization: localizationName)?.path
+    }
     
-    public func pathsForResourcesOfType(ext: String?, inDirectory subpath: String?) -> [String] { NSUnimplemented() }
-    public func pathsForResourcesOfType(ext: String?, inDirectory subpath: String?, forLocalization localizationName: String?) -> [String] { NSUnimplemented() }
+    public func pathsForResourcesOfType(ext: String?, inDirectory subpath: String?) -> [String] {
+        // Force-unwrap path, beacuse if the URL can't be turned into a path then something is wrong anyway
+        return self.URLsForResourcesWithExtension(ext, subdirectory: subpath)?.map { $0.path! } ?? []
+    }
+    
+    public func pathsForResourcesOfType(ext: String?, inDirectory subpath: String?, forLocalization localizationName: String?) -> [String] {
+        // Force-unwrap path, beacuse if the URL can't be turned into a path then something is wrong anyway
+        return self.URLsForResourcesWithExtension(ext, subdirectory: subpath, localization: localizationName)?.map { $0.path! } ?? []
+    }
     
     // -----------------------------------------------------------------------------------
     // MARK: - Localized Strings

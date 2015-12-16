@@ -29,14 +29,14 @@
 #include <unicode/udat.h>
 #include <unicode/ustring.h>
 #include <CoreFoundation/CFDateFormatter.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/fcntl.h>
 #endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <tzfile.h>
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #ifndef TZDIR
 #define TZDIR	"/usr/share/zoneinfo" /* Time zone object file directory */
 #endif /* !defined TZDIR */
@@ -57,7 +57,9 @@ struct tzhead {
 };
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX
+#include <time.h>
+
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #define TZZONELINK	TZDEFAULT
 #define TZZONEINFO	TZDIR "/"
 #elif DEPLOYMENT_TARGET_WINDOWS
@@ -145,7 +147,7 @@ static CFMutableArrayRef __CFCopyWindowsTimeZoneList() {
     RegCloseKey(hkResult);
     return result;
 }
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 static CFMutableArrayRef __CFCopyRecursiveDirectoryList() {
     CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -710,8 +712,9 @@ void __InitTZStrings(void) {
 static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
     CFTimeZoneRef result = NULL;
     
-#if DEPLOYMENT_TARGET_WINDOWS
     CFStringRef name = NULL;
+    
+#if DEPLOYMENT_TARGET_WINDOWS
     TIME_ZONE_INFORMATION tzi = { 0 };
     DWORD rval = GetTimeZoneInformation(&tzi);
     if (rval != TIME_ZONE_ID_INVALID) {
@@ -729,40 +732,49 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
     } else {
         CFLog(kCFLogLevelError, CFSTR("Couldn't get time zone information error %d"), GetLastError());
     }
-    if (name) {
 #else
     const char *tzenv;
     int ret;
     char linkbuf[CFMaxPathSize];
-
+    
     tzenv = __CFgetenv("TZFILE");
     if (NULL != tzenv) {
-	CFStringRef name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)tzenv, strlen(tzenv), kCFStringEncodingUTF8, false);
-	result = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, name, false);
-	CFRelease(name);
-	if (result) return result;
+        CFStringRef name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)tzenv, strlen(tzenv), kCFStringEncodingUTF8, false);
+        result = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, name, false);
+        CFRelease(name);
+        if (result) return result;
     }
     tzenv = __CFgetenv("TZ");
     if (NULL != tzenv) {
-	CFStringRef name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)tzenv, strlen(tzenv), kCFStringEncodingUTF8, false);
-	result = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, name, true);
-	CFRelease(name);
-	if (result) return result;
+        CFStringRef name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)tzenv, strlen(tzenv), kCFStringEncodingUTF8, false);
+        result = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, name, true);
+        CFRelease(name);
+        if (result) return result;
     }
     ret = readlink(TZZONELINK, linkbuf, sizeof(linkbuf));
     if (0 < ret) {
-	CFStringRef name;
-	linkbuf[ret] = '\0';
-	if (strncmp(linkbuf, TZZONEINFO, sizeof(TZZONEINFO) - 1) == 0) {
-	    name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf + sizeof(TZZONEINFO) - 1, strlen(linkbuf) - sizeof(TZZONEINFO) + 1, kCFStringEncodingUTF8, false);
-	} else {
-	    name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf, strlen(linkbuf), kCFStringEncodingUTF8, false);
-	}
+        CFStringRef name;
+        linkbuf[ret] = '\0';
+        if (strncmp(linkbuf, TZZONEINFO, sizeof(TZZONEINFO) - 1) == 0) {
+            name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf + sizeof(TZZONEINFO) - 1, strlen(linkbuf) - sizeof(TZZONEINFO) + 1, kCFStringEncodingUTF8, false);
+        } else {
+            name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf, strlen(linkbuf), kCFStringEncodingUTF8, false);
+        }
+    } else {
+        // TODO: This can still fail on Linux if the time zone is not recognized by ICU later
+        // Try localtime
+        tzset();
+        time_t t = time(NULL);
+        struct tm lt = {0};
+        localtime_r(&t, &lt);
+        
+        name = CFStringCreateWithCString(kCFAllocatorSystemDefault, lt.tm_zone, kCFStringEncodingUTF8);
+    }
 #endif
-
-	result = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, name, false);
-	CFRelease(name);
-	if (result) return result;
+    if (name) {
+        result = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, name, false);
+        CFRelease(name);
+        if (result) return result;
     }
     return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0);
 }

@@ -218,6 +218,7 @@ extern Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativ
 extern CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length);
 extern CFIndex __CFProcessorCount();
 extern uint64_t __CFMemorySize();
+extern CFStringRef _CFProcessNameString(void);
 extern CFIndex __CFActiveProcessorCount();
 extern CFDictionaryRef __CFGetEnvironment();
 extern int32_t __CFGetPid();
@@ -227,6 +228,7 @@ extern void _CFDataInit(CFMutableDataRef memory, CFOptionFlags flags, CFIndex ca
 extern int32_t _CF_SOCK_STREAM();
 
 extern CFStringRef CFCopySystemVersionString(void);
+extern CFDictionaryRef _CFCopySystemVersionDictionary(void);
 
 extern Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier);
 extern Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbsoluteTime *atp, const char *componentDesc, int32_t *vector, int32_t count);

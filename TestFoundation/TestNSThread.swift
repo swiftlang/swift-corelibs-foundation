@@ -8,7 +8,6 @@
 //
 
 
-
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
     import Foundation
     import XCTest
@@ -18,17 +17,18 @@
 #endif
 
 
-
-class TestNSTimeZone: XCTestCase {
-
+class TestNSThread : XCTestCase {
     var allTests : [(String, () -> Void)] {
         return [
-            ("test_abbreviation", test_abbreviation),
+            ("test_currentThread", test_currentThread ),
         ]
     }
 
-    func test_abbreviation() {
-        let tz = NSTimeZone.systemTimeZone()
-        XCTAssertEqual(tz.abbreviation, tz.abbreviationForDate(NSDate()))
+    func test_currentThread() {
+        let thread1 = NSThread.currentThread()
+        let thread2 = NSThread.currentThread()
+        XCTAssertNotNil(thread1)
+        XCTAssertNotNil(thread2)
+        XCTAssertEqual(thread1, thread2)
     }
 }

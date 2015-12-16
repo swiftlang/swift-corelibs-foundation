@@ -309,12 +309,13 @@ static CFStringRef copySystemVersionPath(CFStringRef suffix) {
     if (!simulatorRoot) simulatorRoot = "/";
     return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%s%@"), simulatorRoot, suffix);
 #else
-    return suffix;
+    return CFStringCreateCopy(kCFAllocatorSystemDefault, suffix);
 #endif
 }
 
 
 CFDictionaryRef _CFCopySystemVersionDictionary(void) {
+    // TODO: Populate this dictionary differently on non-Darwin platforms
     CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/SystemVersion.plist"));
     CFPropertyListRef plist = _CFCopyVersionDictionary(path);
     CFRelease(path);
@@ -605,7 +606,7 @@ static void __CFLogCString(int32_t lev, const char *message, size_t length, char
     char *uid = NULL;
     int bannerLen;
     bannerLen = 0;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     // The banner path may use CF functions, but the rest of this function should not. It may be called at times when CF is not fully setup or torn down.
     if (withBanner) {
 	double dummy;
@@ -1081,7 +1082,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
     if (0LL == statBuf.st_size) {
         bytes = malloc(8); // don't return constant string -- it's freed!
 	length = 0;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     } else if (map) {
         if((void *)-1 == (bytes = mmap(0, (size_t)statBuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0))) {
 	    int32_t savederrno = errno;
@@ -1255,6 +1256,9 @@ CFDictionaryRef __CFGetEnvironment() {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
         extern char ***_NSGetEnviron();
         char **envp = *_NSGetEnviron();
+#elif DEPLOYMENT_TARGET_FREEBSD
+        extern char **environ;
+        char **envp = environ;
 #elif DEPLOYMENT_TARGET_LINUX
 #ifndef environ
 #define environ __environ

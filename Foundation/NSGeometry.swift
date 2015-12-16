@@ -7,6 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(OSX) || os(iOS)
+    import Darwin
+#elseif os(Linux)
+    import Glibc
+#endif
+
 // TODO: It's not clear who is responsibile for defining these CGTypes, but we'll do it here.
 
 public struct CGFloat {
@@ -55,6 +61,10 @@ public func /(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
 
 prefix public func -(x: CGFloat) -> CGFloat {
     return CGFloat(-x.native)
+}
+
+public func +=(inout lhs: CGFloat, rhs: CGFloat) {
+    lhs.native = lhs.native + rhs.native
 }
 
 extension Double {
@@ -280,17 +290,223 @@ public func NSInsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
     return NSMakeRect(x, y, w, h)
 }
 
-public func NSIntegralRect(aRect: NSRect) -> NSRect { NSUnimplemented() }
-public func NSIntegralRectWithOptions(aRect: NSRect, _ opts: NSAlignmentOptions) -> NSRect { NSUnimplemented() }
+public func NSIntegralRect(aRect: NSRect) -> NSRect {
+    if aRect.size.height.native <= 0 || aRect.size.width.native <= 0 {
+        return NSZeroRect
+    }
+    
+    return NSIntegralRectWithOptions(aRect, [.AlignMinXOutward, .AlignMaxXOutward, .AlignMinYOutward, .AlignMaxYOutward])
+}
+public func NSIntegralRectWithOptions(aRect: NSRect, _ opts: NSAlignmentOptions) -> NSRect {
+    let listOfOptionsIsInconsistentErrorMessage = "List of options is inconsistent"
+    
+    if opts.contains(.AlignRectFlipped) {
+        NSUnimplemented()
+    }
 
-public func NSUnionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect { NSUnimplemented() }
-public func NSIntersectionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect { NSUnimplemented() }
-public func NSOffsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect { NSUnimplemented() }
+    var width = Double.NaN
+    var height = Double.NaN
+    var minX = Double.NaN
+    var minY = Double.NaN
+    var maxX = Double.NaN
+    var maxY = Double.NaN
+
+    if aRect.size.height.native < 0 {
+        height = 0
+    }
+    if aRect.size.width.native < 0 {
+        width = 0
+    }
+    
+
+    if opts.contains(.AlignWidthInward) && width != 0 {
+        guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        width = floor(aRect.size.width.native)
+    }
+    if opts.contains(.AlignHeightInward) && height != 0 {
+        guard height.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        height = floor(aRect.size.height.native)
+    }
+    if opts.contains(.AlignWidthOutward) && width != 0 {
+        guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        width = ceil(aRect.size.width.native)
+    }
+    if opts.contains(.AlignHeightOutward) && height != 0 {
+        guard height.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        height = ceil(aRect.size.height.native)
+    }
+    if opts.contains(.AlignWidthNearest) && width != 0 {
+        guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        width = round(aRect.size.width.native)
+    }
+    if opts.contains(.AlignHeightNearest) && height != 0 {
+        guard height.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        height = round(aRect.size.height.native)
+    }
+
+    
+    if opts.contains(.AlignMinXInward) {
+        guard minX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        minX = ceil(aRect.origin.x.native)
+    }
+    if opts.contains(.AlignMinYInward) {
+        guard minY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        minY = ceil(aRect.origin.y.native)
+    }
+    if opts.contains(.AlignMaxXInward) {
+        guard maxX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        maxX = floor(aRect.origin.x.native + aRect.size.width.native)
+    }
+    if opts.contains(.AlignMaxYInward) {
+        guard maxY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        maxY = floor(aRect.origin.y.native + aRect.size.height.native)
+    }
+
+    
+    if opts.contains(.AlignMinXOutward) {
+        guard minX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        minX = floor(aRect.origin.x.native)
+    }
+    if opts.contains(.AlignMinYOutward) {
+        guard minY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        minY = floor(aRect.origin.y.native)
+    }
+    if opts.contains(.AlignMaxXOutward) {
+        guard maxX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        maxX = ceil(aRect.origin.x.native + aRect.size.width.native)
+    }
+    if opts.contains(.AlignMaxYOutward) {
+        guard maxY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        maxY = ceil(aRect.origin.y.native + aRect.size.height.native)
+    }
+    
+
+    if opts.contains(.AlignMinXNearest) {
+        guard minX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        minX = round(aRect.origin.x.native)
+    }
+    if opts.contains(.AlignMinYNearest) {
+        guard minY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        minY = round(aRect.origin.y.native)
+    }
+    if opts.contains(.AlignMaxXNearest) {
+        guard maxX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        maxX = round(aRect.origin.x.native + aRect.size.width.native)
+    }
+    if opts.contains(.AlignMaxYNearest) {
+        guard maxY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+        maxY = round(aRect.origin.y.native + aRect.size.height.native)
+    }
+    
+    var resultOriginX = Double.NaN
+    var resultOriginY = Double.NaN
+    var resultWidth = Double.NaN
+    var resultHeight = Double.NaN
+    
+    if !minX.isNaN {
+        resultOriginX = minX
+    }
+    if !width.isNaN {
+        resultWidth = width
+    }
+    if !maxX.isNaN {
+        if width.isNaN {
+            guard resultWidth.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+            resultWidth = maxX - minX
+        } else {
+            guard resultOriginX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+            resultOriginX = maxX - width
+        }
+    }
+    
+    
+    if !minY.isNaN {
+        resultOriginY = minY
+    }
+    if !height.isNaN {
+        resultHeight = height
+    }
+    if !maxY.isNaN {
+        if height.isNaN {
+            guard resultHeight.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+            resultHeight = maxY - minY
+        } else {
+            guard resultOriginY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
+            resultOriginY = maxY - height
+        }
+    }
+    
+    if resultOriginX.isNaN || resultOriginY.isNaN
+        || resultHeight.isNaN || resultWidth.isNaN {
+        fatalError(listOfOptionsIsInconsistentErrorMessage)
+    }
+    
+    var result = NSZeroRect
+    result.origin.x.native = resultOriginX
+    result.origin.y.native = resultOriginY
+    result.size.width.native = resultWidth
+    result.size.height.native = resultHeight
+    
+    return result
+}
+
+public func NSUnionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect {
+    let isEmptyFirstRect = NSIsEmptyRect(aRect)
+    let isEmptySecondRect = NSIsEmptyRect(bRect)
+    if isEmptyFirstRect && isEmptySecondRect {
+        return NSZeroRect
+    } else if isEmptyFirstRect {
+        return bRect
+    } else if isEmptySecondRect {
+        return aRect
+    }
+    let x = min(NSMinX(aRect), NSMinX(bRect))
+    let y = min(NSMinY(aRect), NSMinY(bRect))
+    let width = max(NSMaxX(aRect), NSMaxX(bRect)) - x
+    let height = max(NSMaxY(aRect), NSMaxY(bRect)) - y
+    return NSMakeRect(x, y, width, height)
+}
+
+public func NSIntersectionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect {
+    if NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect) {
+        return NSZeroRect
+    }
+    let x = max(NSMinX(aRect), NSMinX(bRect))
+    let y = max(NSMinY(aRect), NSMinY(bRect))
+    let width = min(NSMaxX(aRect), NSMaxX(bRect)) - x
+    let height = min(NSMaxY(aRect), NSMaxY(bRect)) - y
+    return NSMakeRect(x, y, width, height)
+}
+
+public func NSOffsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
+    var result = aRect
+    result.origin.x += dX
+    result.origin.y += dY
+    return result
+}
+
 public func NSDivideRect(inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, _ rem: UnsafeMutablePointer<NSRect>, _ amount: CGFloat, _ edge: NSRectEdge) { NSUnimplemented() }
-public func NSPointInRect(aPoint: NSPoint, _ aRect: NSRect) -> Bool { NSUnimplemented() }
-public func NSMouseInRect(aPoint: NSPoint, _ aRect: NSRect, _ flipped: Bool) -> Bool { NSUnimplemented() }
-public func NSContainsRect(aRect: NSRect, _ bRect: NSRect) -> Bool { NSUnimplemented() }
-public func NSIntersectsRect(aRect: NSRect, _ bRect: NSRect) -> Bool { NSUnimplemented() }
+
+public func NSPointInRect(aPoint: NSPoint, _ aRect: NSRect) -> Bool {
+    return NSMouseInRect(aPoint, aRect, true)
+}
+
+public func NSMouseInRect(aPoint: NSPoint, _ aRect: NSRect, _ flipped: Bool) -> Bool {
+    if flipped {
+        return aPoint.x >= NSMinX(aRect) && aPoint.y >= NSMinX(aRect) && aPoint.x < NSMaxX(aRect) && aPoint.y < NSMaxY(aRect)
+    }
+    return aPoint.x >= NSMinX(aRect) && aPoint.y > NSMinY(aRect) && aPoint.x < NSMaxX(aRect) && aPoint.y <= NSMaxY(aRect)
+}
+
+public func NSContainsRect(aRect: NSRect, _ bRect: NSRect) -> Bool {
+    return !NSIsEmptyRect(bRect) && NSMaxX(bRect) <= NSMaxX(aRect) && NSMinX(bRect) >= NSMinX(aRect) &&
+        NSMaxY(bRect) <= NSMaxY(aRect) && NSMinY(bRect) >= NSMinY(aRect)
+}
+
+public func NSIntersectsRect(aRect: NSRect, _ bRect: NSRect) -> Bool {
+    return !(NSIsEmptyRect(aRect) || NSIsEmptyRect(bRect) ||
+        NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect))
+}
 
 public func NSStringFromPoint(aPoint: NSPoint) -> String { NSUnimplemented() }
 public func NSStringFromSize(aSize: NSSize) -> String { NSUnimplemented() }
