@@ -27,7 +27,8 @@ class TestNSArray : XCTestCase {
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_getObjects", test_getObjects),
-            ("test_binarySearch", test_binarySearch)
+            ("test_objectAtIndex", test_objectAtIndex),
+            ("test_binarySearch", test_binarySearch),
         ]
     }
     
@@ -83,6 +84,15 @@ class TestNSArray : XCTestCase {
             (objects[2] as! NSString).bridge(),
         ]
         XCTAssertEqual(fetched, ["bar", "baz", "foo1"])
+    }
+    
+    func test_objectAtIndex() {
+        let array : NSArray = ["foo", "bar"].bridge()
+        let foo = array.objectAtIndex(0) as! NSString
+        XCTAssertEqual(foo, "foo".bridge())
+        
+        let bar = array.objectAtIndex(1) as! NSString
+        XCTAssertEqual(bar, "bar".bridge())
     }
 
     func test_binarySearch() {
