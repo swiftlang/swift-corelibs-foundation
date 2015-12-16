@@ -25,6 +25,7 @@ class TestNSDictionary : XCTestCase {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_ArrayConstruction", test_ArrayConstruction),
+            ("test_description", test_description),
             ("test_enumeration", test_enumeration),
         ]
     }
@@ -36,6 +37,15 @@ class TestNSDictionary : XCTestCase {
         XCTAssertEqual(dict2.count, 1)
     }
     
+
+    func test_description() {
+        let d1: NSDictionary = [ "foo": "bar", "baz": "qux"].bridge()
+        XCTAssertEqual(d1.description, "{\n    baz = qux;\n    foo = bar;\n}")
+
+        let d2: NSDictionary = ["1" : ["1" : ["1" : "1"]]].bridge()
+        XCTAssertEqual(d2.description, "{\n    1 =     {\n        1 =         {\n            1 = 1;\n        };\n    };\n}")
+    }
+
     func test_HeterogeneousConstruction() {
 //        let dict2: NSDictionary = [
 //            "foo": "bar",
