@@ -32,9 +32,6 @@
 #endif /* BINARY_SUPPORT_DYLD */
 
 #if defined(BINARY_SUPPORT_DLFCN)
-#if DEPLOYMENT_TARGET_LINUX
-#define __USE_GNU 1
-#endif
 #include <dlfcn.h>
 #ifndef RTLD_FIRST
 #define RTLD_FIRST 0
