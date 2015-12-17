@@ -345,7 +345,100 @@ public extension NSString {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePathIntoString(inout outputName: NSString?, caseSensitive flag: Bool, inout matchesIntoArray outputArray: [NSString], filterTypes: [String]?) -> Int {
-        NSUnimplemented()
+        // FIXME: I guess, it should be NSURL(fileURLWithPath: _storage), but it is not implemented yet.
+        guard let url = NSURL(string: _storage) else {
+            return 0
+        }
+        
+        let normalizedTypes = flag ? filterTypes : filterTypes?.map { $0.lowercaseString }
+        let types = Set<String>(normalizedTypes ?? [])
+        let compareOptions = flag ? [] : NSStringCompareOptions.CaseInsensitiveSearch
+        
+        var isDirectory = false
+        let isAbsolutePath = NSFileManager.defaultManager().fileExistsAtPath(_storage, isDirectory: &isDirectory)
+        
+        if isAbsolutePath && !isDirectory {
+            if types.isEmpty || types.contains(url.pathExtension ?? "") {
+                outputName = self
+                outputArray = [self]
+                return 1
+            } else {
+                return 0
+            }
+        }
+        
+        guard let urlWhereToSearch = isAbsolutePath ? url : url.URLByDeletingLastPathComponent else {
+            return 0
+        }
+        
+        var matches: [String] = []
+        var matchSuffixes: [String] = []
+        
+        let namePrefix = url.lastPathComponent ?? ""
+        
+        let enumerator = NSFileManager.defaultManager().enumeratorAtURL(urlWhereToSearch, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil)
+        
+        while let item = enumerator?.nextObject() as? NSURL {
+            
+            let itemName = item.lastPathComponent ?? ""
+            let itemExtension = item.pathExtension ?? ""
+            let normalizedExtension = flag ? itemExtension : itemExtension.lowercaseString
+            
+            let matchByName = isAbsolutePath || itemName.bridge().rangeOfString(namePrefix, options: compareOptions).location == 0
+            let matchByExtension = types.isEmpty || types.contains(normalizedExtension)
+            
+            if matchByName && matchByExtension {
+                let match = item.absoluteString!
+                matches.append(match)
+                matchSuffixes.append(itemName)
+            }
+        }
+        
+        if let lcp = longestCommonPrefix(matchSuffixes, caseSensitive: flag) {
+           outputName = (urlWhereToSearch.absoluteString! + lcp).bridge()
+        }
+        
+        outputArray = matches.map({ $0.bridge() })
+        
+        return matches.count
+    }
+    
+    func longestCommonPrefix(strings: [String], caseSensitive: Bool) -> String? {
+        guard strings.count > 0 else {
+            return nil
+        }
+        
+        guard strings.count > 1 else {
+            return strings.first
+        }
+        
+        var sequences = strings.map({ $0.characters.generate() })
+        var prefix: [Character] = []
+        loop: while true {
+            var char: Character? = nil
+            for (idx, s) in sequences.enumerate() {
+                var seq = s
+                
+                guard let c = seq.next() else {
+                    break loop
+                }
+                
+                if char != nil {
+                    let lhs = caseSensitive ? char : String(char!).lowercaseString.characters.first!
+                    let rhs = caseSensitive ? c : String(c).lowercaseString.characters.first!
+                    if lhs != rhs {
+                        break loop
+                    }
+                } else {
+                    char = c
+                }
+                
+                sequences[idx] = seq
+            }
+            prefix.append(char!)
+        }
+        
+        return String(prefix)
     }
     
     public var fileSystemRepresentation : UnsafePointer<Int8> {
