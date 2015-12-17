@@ -63,29 +63,29 @@ class TestNSCharacterSet : XCTestCase {
     
     func test_Range() {
         let cset1 = NSCharacterSet(range: NSMakeRange(0x20, 40))
-        for var idx: unichar = 0; idx < 0xFFFF; idx++ {
+        for idx: unichar in 0..<0xFFFF {
             XCTAssertEqual(cset1.characterIsMember(idx), (idx >= 0x20 && idx < 0x20 + 40 ? true : false))
         }
         
         let cset2 = NSCharacterSet(range: NSMakeRange(0x0000, 0xFFFF))
-        for var idx: unichar = 0; idx < 0xFFFF; idx++ {
+        for idx: unichar in 0..<0xFFFF {
             XCTAssertEqual(cset2.characterIsMember(idx), true)
         }
         
         let cset3 = NSCharacterSet(range: NSMakeRange(0x0000, 10))
-        for var idx: unichar = 0; idx < 0xFFFF; idx++ {
+        for idx: unichar in 0..<0xFFFF {
             XCTAssertEqual(cset3.characterIsMember(idx), (idx < 10 ? true : false))
         }
         
         let cset4 = NSCharacterSet(range: NSMakeRange(0x20, 0))
-        for var idx: unichar = 0; idx < 0xFFFF; idx++ {
+        for idx: unichar in 0..<0xFFFF {
             XCTAssertEqual(cset4.characterIsMember(idx), false)
         }
     }
     
     func test_String() {
         let cset = NSCharacterSet(charactersInString: "abcABC")
-        for var idx: unichar = 0; idx < 0xFFFF; idx++ {
+        for idx: unichar in 0..<0xFFFF {
             XCTAssertEqual(cset.characterIsMember(idx), (idx >= unichar(unicodeScalarLiteral: "a") && idx <= unichar(unicodeScalarLiteral: "c")) || (idx >= unichar(unicodeScalarLiteral: "A") && idx <= unichar(unicodeScalarLiteral: "C")) ? true : false)
         }
     }
