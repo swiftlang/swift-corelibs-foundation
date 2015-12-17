@@ -1813,8 +1813,11 @@ const char *_NSPrintForDebugger(void *cf) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 
 // For CF functions with 'Get' semantics, the compiler currently assumes that the result is autoreleased and must be retained. It does so on all platforms by emitting a call to objc_retainAutoreleasedReturnValue. On Darwin, this is implemented by the ObjC runtime. On Linux, there is no runtime, and therefore we have to stub it out here ourselves. The compiler will eventually call swift_release to balance the retain below. This is a workaround until the compiler no longer emits this callout on Linux.
-CFTypeRef objc_retainAutoreleasedReturnValue(CFTypeRef cf) {
-    if (cf) return CFRetain(cf);
+void * objc_retainAutoreleasedReturnValue(void *obj) {
+    if (obj) {
+        swift_retain(obj);
+        return obj;
+    }
     else return NULL;
 }
 
