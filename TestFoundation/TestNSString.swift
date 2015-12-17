@@ -383,6 +383,15 @@ class TestNSString : XCTestCase {
         }
         
         do {
+            let path: NSString = ""
+            var outName: NSString?
+            var matches: [NSString] = []
+            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            XCTAssert(outName == nil, "If no matches found then outName is nil.")
+            XCTAssert(matches.count == 0 && count == 0, "If no matches found then return 0 and matches is empty.")
+        }
+        
+        do {
             let path: NSString = "/private/tmp/test_c"
             var outName: NSString?
             var matches: [NSString] = []

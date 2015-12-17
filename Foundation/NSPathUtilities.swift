@@ -346,6 +346,10 @@ public extension NSString {
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePathIntoString(inout outputName: NSString?, caseSensitive flag: Bool, inout matchesIntoArray outputArray: [NSString], filterTypes: [String]?) -> Int {
         // FIXME: I guess, it should be NSURL(fileURLWithPath: _storage), but it is not implemented yet.
+        guard !_storage.isEmpty else {
+            return 0
+        }
+        
         guard let url = NSURL(string: _storage) else {
             return 0
         }
@@ -394,7 +398,7 @@ public extension NSString {
             }
         }
         
-        if let lcp = longestCommonPrefix(matchSuffixes, caseSensitive: flag) {
+        if let lcp = _longestCommonPrefix(matchSuffixes, caseSensitive: flag) {
            outputName = (urlWhereToSearch.absoluteString! + lcp).bridge()
         }
         
@@ -403,7 +407,7 @@ public extension NSString {
         return matches.count
     }
     
-    func longestCommonPrefix(strings: [String], caseSensitive: Bool) -> String? {
+    internal func _longestCommonPrefix(strings: [String], caseSensitive: Bool) -> String? {
         guard strings.count > 0 else {
             return nil
         }
