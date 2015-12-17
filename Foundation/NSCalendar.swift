@@ -411,7 +411,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private func _setComp(unitFlags: NSCalendarUnit, field: NSCalendarUnit, vector: [Int32], inout compIndex: Int, setter: (Int32) -> Void) {
         if unitFlags.contains(field) {
             setter(vector[compIndex])
-            compIndex++
+            compIndex += 1
         }
     }
     

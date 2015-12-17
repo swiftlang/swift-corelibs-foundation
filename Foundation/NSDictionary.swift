@@ -22,7 +22,7 @@ extension Dictionary : _ObjectTypeBridgeable {
             let value = _NSObjectRepresentableBridge($0.1)
             keyBuffer.advancedBy(idx).initialize(key)
             valueBuffer.advancedBy(idx).initialize(value)
-            idx++
+            idx += 1
         }
         
         let dict = NSDictionary(objects: valueBuffer, forKeys: keyBuffer, count: count)

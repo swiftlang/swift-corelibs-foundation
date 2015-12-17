@@ -87,14 +87,14 @@ internal extension String {
             
             while curPos < endPos {
                 while curPos < endPos && characterView[curPos] == "/" {
-                    curPos++
+                    curPos = curPos.successor()
                 }
                 if curPos == endPos {
                     break
                 }
                 var curEnd = curPos
                 while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd++
+                    curEnd = curEnd.successor()
                 }
                 result.append(String(characterView[curPos ..< curEnd]))
                 curPos = curEnd
@@ -204,14 +204,14 @@ public extension NSString {
             
             while curPos < endPos {
                 while curPos < endPos && characterView[curPos] == "/" {
-                    curPos++
+                    curPos = curPos.successor()
                 }
                 if curPos == endPos {
                     break
                 }
                 var curEnd = curPos
                 while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd++
+                    curEnd = curEnd.successor()
                 }
                 result.append(String(characterView[curPos ..< curEnd]))
                 curPos = curEnd
