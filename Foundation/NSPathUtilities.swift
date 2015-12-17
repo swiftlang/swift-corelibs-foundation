@@ -342,6 +342,8 @@ public extension NSString {
         return paths.map(stringByAppendingPathComponent)
     }
     
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePathIntoString(inout outputName: NSString?, caseSensitive flag: Bool, inout matchesIntoArray outputArray: [NSString], filterTypes: [String]?) -> Int {
         NSUnimplemented()
     }

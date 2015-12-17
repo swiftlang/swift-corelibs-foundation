@@ -72,10 +72,16 @@ public class NSObject : NSObjectProtocol {
     }
     
     public func copy() -> AnyObject {
+        if let copyable = self as? NSCopying {
+            return copyable.copyWithZone(nil)
+        }
         return self
     }
     
     public func mutableCopy() -> AnyObject {
+        if let copyable = self as? NSMutableCopying {
+            return copyable.mutableCopyWithZone(nil)
+        }
         return self
     }
     

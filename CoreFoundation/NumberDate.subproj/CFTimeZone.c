@@ -29,14 +29,14 @@
 #include <unicode/udat.h>
 #include <unicode/ustring.h>
 #include <CoreFoundation/CFDateFormatter.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/fcntl.h>
 #endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <tzfile.h>
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #ifndef TZDIR
 #define TZDIR	"/usr/share/zoneinfo" /* Time zone object file directory */
 #endif /* !defined TZDIR */
@@ -59,7 +59,7 @@ struct tzhead {
 
 #include <time.h>
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #define TZZONELINK	TZDEFAULT
 #define TZZONEINFO	TZDIR "/"
 #elif DEPLOYMENT_TARGET_WINDOWS
@@ -147,7 +147,7 @@ static CFMutableArrayRef __CFCopyWindowsTimeZoneList() {
     RegCloseKey(hkResult);
     return result;
 }
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 static CFMutableArrayRef __CFCopyRecursiveDirectoryList() {
     CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -753,7 +753,6 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
     }
     ret = readlink(TZZONELINK, linkbuf, sizeof(linkbuf));
     if (0 < ret) {
-        CFStringRef name;
         linkbuf[ret] = '\0';
         if (strncmp(linkbuf, TZZONEINFO, sizeof(TZZONEINFO) - 1) == 0) {
             name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf + sizeof(TZZONEINFO) - 1, strlen(linkbuf) - sizeof(TZZONEINFO) + 1, kCFStringEncodingUTF8, false);
@@ -1010,7 +1009,7 @@ static int32_t __tryParseGMTName(CFStringRef name) {
     Boolean sixIsPunct = (':' == ustr[6] || '.' == ustr[6]);
     if (!(sixIsDigit && 8 == len) && !(sixIsPunct && 9 == len)) return -1;
     
-    Boolean minIdx = len - 2;
+    CFIndex minIdx = len - 2;
     UniChar minDig1 = ustr[minIdx], minDig2 = ustr[minIdx + 1];
     if (!('0' <= minDig1 && minDig1 <= '5' && '0' <= minDig2 && minDig2 <= '9')) return -1;
     int32_t minutes = 10 * (minDig1 - '0') + (minDig2 - '0');
@@ -1091,7 +1090,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
             CFTZPeriod *tzp = NULL;
             CFIndex cnt = 0;
             __CFTimeZoneLockGlobal();
-            if (!__CFParseTimeZoneData(kCFAllocatorSystemDefault, data, &tzp, &cnt)) {
+            if (__CFParseTimeZoneData(kCFAllocatorSystemDefault, data, &tzp, &cnt)) {
                 __CFTimeZoneUnlockGlobal();
                 
             } else {

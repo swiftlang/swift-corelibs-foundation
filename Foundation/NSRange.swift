@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
 
 public struct _NSRange {
     public var location: Int
@@ -19,6 +20,18 @@ public struct _NSRange {
     public init(location: Int, length: Int) {
         self.location = location
         self.length = length
+    }
+    
+    internal init(_ range: CFRange) {
+        location = range.location == kCFNotFound ? NSNotFound : range.location
+        length = range.length
+    }
+}
+
+extension CFRange {
+    internal init(_ range: NSRange) {
+        location = range.location == NSNotFound ? kCFNotFound : range.location
+        length = range.length
     }
 }
 

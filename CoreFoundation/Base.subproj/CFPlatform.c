@@ -563,7 +563,7 @@ CF_PRIVATE void __CFFinalizeWindowsThreadData() {
 #endif
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 static pthread_key_t __CFTSDIndexKey;
 #endif
 
@@ -1062,7 +1062,7 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz) {
 #pragma mark -
 #pragma mark Linux OSAtomic
 
-#if DEPLOYMENT_TARGET_LINUX
+#if defined(DEPLOYMENT_TARGET_LINUX) || defined(DEPLOYMENT_TARGET_FREEBSD)
 
 bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) 
 { 

@@ -95,7 +95,7 @@ extension Double : _ObjectTypeBridgeable {
     }
 }
 
-extension Bool: _ObjectTypeBridgeable {
+extension Bool : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.boolValue
     }
@@ -111,6 +111,13 @@ extension Bool: _ObjectTypeBridgeable {
     public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Bool?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
+    }
+}
+
+extension Bool : _CFBridgable {
+    typealias CFType = CFBooleanRef
+    var _cfObject: CFType {
+        return self ? kCFBooleanTrue : kCFBooleanFalse
     }
 }
 
@@ -378,4 +385,9 @@ public class NSNumber : NSValue {
     override internal var _cfTypeID: CFTypeID {
         return CFNumberGetTypeID()
     }
+}
+
+extension CFNumberRef : _NSBridgable {
+    typealias NSType = NSNumber
+    internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
 }

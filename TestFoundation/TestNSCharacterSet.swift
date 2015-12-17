@@ -21,7 +21,7 @@ import SwiftXCTest
 
 class TestNSCharacterSet : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_Predefines", test_Predefines),
             ("test_Range", test_Range),
@@ -52,12 +52,9 @@ class TestNSCharacterSet : XCTestCase {
         
         let mcset = NSMutableCharacterSet.whitespaceAndNewlineCharacterSet()
         let cset2 = NSCharacterSet.whitespaceAndNewlineCharacterSet()
-        let count = UInt32(0x10FFFF)
-        for var idx = UInt32(0); idx < count; idx++ {
-            let a = mcset.longCharacterIsMember(idx)
-            let b = cset2.longCharacterIsMember(idx)
-            XCTAssertEqual(a, b, "\(String(idx, radix: 16)) \(a ? "exists in" : "does not exist in") mutable and \(b ? "exists in" : "does not exist in") immutable character set")
-        }
+
+        XCTAssert(mcset.isSupersetOfSet(cset2))
+        XCTAssert(cset2.isSupersetOfSet(mcset))
         
         XCTAssertTrue(NSCharacterSet.whitespaceAndNewlineCharacterSet().isSupersetOfSet(NSCharacterSet.newlineCharacterSet()), "whitespace and newline should be a superset of newline")
         let data = NSCharacterSet.uppercaseLetterCharacterSet().bitmapRepresentation

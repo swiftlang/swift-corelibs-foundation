@@ -19,10 +19,11 @@
 
 class TestNSProcessInfo : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_operatingSystemVersion", test_operatingSystemVersion ),
             ("test_processName", test_processName ),
+            ("test_globallyUniqueString", test_globallyUniqueString ),
         ]
     }
     
@@ -53,4 +54,16 @@ class TestNSProcessInfo : XCTestCase {
         processInfo.processName = originalProcessName
         XCTAssertEqual(processInfo.processName, originalProcessName, "\"\(processInfo.processName)\" not equal to \"\(originalProcessName)\"")
     }
+    
+    func test_globallyUniqueString() {
+        let uuid = NSProcessInfo.processInfo().globallyUniqueString
+        let parts = uuid.bridge().componentsSeparatedByString("-")
+        XCTAssertEqual(parts.count, 5)
+        XCTAssertEqual(parts[0].bridge().length, 8)
+        XCTAssertEqual(parts[1].bridge().length, 4)
+        XCTAssertEqual(parts[2].bridge().length, 4)
+        XCTAssertEqual(parts[3].bridge().length, 4)
+        XCTAssertEqual(parts[4].bridge().length, 12)
+    }
+    
 }

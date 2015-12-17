@@ -20,7 +20,7 @@ import CoreFoundation
 
 class TestNSString : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
@@ -44,6 +44,7 @@ class TestNSString : XCTestCase {
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
             ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
+            ("test_swiftStringUTF16", test_swiftStringUTF16),
         ]
     }
 
@@ -308,5 +309,31 @@ class TestNSString : XCTestCase {
         let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, CFStringRef.self))
         let str = unsafeBitCast(mCopy, NSString.self).bridge()
         XCTAssertEqual(nsstring.bridge(), str)
+    }
+    
+    // This test verifies that CFStringGetBytes with a UTF16 encoding works on an NSString backed by a Swift string
+    func test_swiftStringUTF16() {
+        #if os(OSX) || os(iOS)
+        let kCFStringEncodingUTF16 = CFStringBuiltInEncodings.UTF16.rawValue
+        #endif
+
+        let testString = "hello world"
+        let string = NSString(string: testString)
+        let cfString = unsafeBitCast(string, CFStringRef.self)
+        
+        // Get the bytes as UTF16
+        let reservedLength = 50
+        var buf : [UInt8] = []
+        buf.reserveCapacity(reservedLength)
+        var usedLen : CFIndex = 0
+        buf.withUnsafeMutableBufferPointer { p in
+            CFStringGetBytes(cfString, CFRangeMake(0, CFStringGetLength(cfString)), CFStringEncoding(kCFStringEncodingUTF16), 0, false, p.baseAddress, reservedLength, &usedLen)
+        }
+        
+        // Make a new string out of it
+        let newCFString = CFStringCreateWithBytes(nil, buf, usedLen, CFStringEncoding(kCFStringEncodingUTF16), false)
+        let newString = unsafeBitCast(newCFString, NSString.self)
+        
+        XCTAssertTrue(newString.isEqualToString(testString))
     }
 }

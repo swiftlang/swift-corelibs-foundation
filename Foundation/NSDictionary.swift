@@ -264,11 +264,101 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return matching
     }
 
-    public override var description: String { NSUnimplemented() }
+    /// A string that represents the contents of the dictionary, formatted as
+    /// a property list (read-only)
+    ///
+    /// If each key in the dictionary is an NSString object, the entries are
+    /// listed in ascending order by key, otherwise the order in which the entries
+    /// are listed is undefined. This property is intended to produce readable
+    /// output for debugging purposes, not for serializing data. If you want to
+    /// store dictionary data for later retrieval, see
+    /// [Property List Programming Guide](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/PropertyLists/Introduction/Introduction.html#//apple_ref/doc/uid/10000048i)
+    /// and [Archives and Serializations Programming Guide](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Archiving/Archiving.html#//apple_ref/doc/uid/10000047i).
+    public override var description: String {
+        get {
+            return descriptionWithLocale(nil)
+        }
+    }
+
     public var descriptionInStringsFileFormat: String { NSUnimplemented() }
-    public func descriptionWithLocale(locale: AnyObject?) -> String { NSUnimplemented() }
-    public func descriptionWithLocale(locale: AnyObject?, indent level: Int) -> String { NSUnimplemented() }
-    
+
+    /// Returns a string object that represents the contents of the dictionary,
+    /// formatted as a property list.
+    ///
+    /// - parameter locale: An object that specifies options used for formatting
+    ///   each of the dictionary’s keys and values; pass `nil` if you don’t
+    ///   want them formatted.
+    public func descriptionWithLocale(locale: AnyObject?) -> String {
+        return descriptionWithLocale(locale, indent: 0)
+    }
+
+    /// Returns a string object that represents the contents of the dictionary,
+    /// formatted as a property list.
+    ///
+    /// - parameter locale: An object that specifies options used for formatting
+    ///   each of the dictionary’s keys and values; pass `nil` if you don’t
+    ///   want them formatted.
+    ///
+    /// - parameter level: Specifies a level of indentation, to make the output
+    ///   more readable: the indentation is (4 spaces) * level.
+    ///
+    /// - returns: A string object that represents the contents of the dictionary,
+    ///   formatted as a property list.
+    public func descriptionWithLocale(locale: AnyObject?, indent level: Int) -> String {
+        if level > 100 { return "..." }
+
+        var lines = [String]()
+        let indentation = String(count: level * 4, repeatedValue: Character(" "))
+        lines.append(indentation + "{")
+
+        for key in self.allKeys {
+            var line = String(count: (level + 1) * 4, repeatedValue: Character(" "))
+
+            if key is NSArray {
+                line += (key as! NSArray).descriptionWithLocale(locale, indent: level + 1)
+            } else if key is NSDate {
+                line += (key as! NSDate).descriptionWithLocale(locale)
+            } else if key is NSDecimalNumber {
+                line += (key as! NSDecimalNumber).descriptionWithLocale(locale)
+            } else if key is NSDictionary {
+                line += (key as! NSDictionary).descriptionWithLocale(locale, indent: level + 1)
+            } else if key is NSOrderedSet {
+                line += (key as! NSOrderedSet).descriptionWithLocale(locale, indent: level + 1)
+            } else if key is NSSet {
+                line += (key as! NSSet).descriptionWithLocale(locale)
+            } else {
+                line += "\(key)"
+            }
+
+            line += " = "
+
+            let object = objectForKey(key)!
+            if object is NSArray {
+                line += (object as! NSArray).descriptionWithLocale(locale, indent: level + 1)
+            } else if object is NSDate {
+                line += (object as! NSDate).descriptionWithLocale(locale)
+            } else if object is NSDecimalNumber {
+                line += (object as! NSDecimalNumber).descriptionWithLocale(locale)
+            } else if object is NSDictionary {
+                line += (object as! NSDictionary).descriptionWithLocale(locale, indent: level + 1)
+            } else if object is NSOrderedSet {
+                line += (object as! NSOrderedSet).descriptionWithLocale(locale, indent: level + 1)
+            } else if object is NSSet {
+                line += (object as! NSSet).descriptionWithLocale(locale)
+            } else {
+                line += "\(object)"
+            }
+
+            line += ";"
+
+            lines.append(line)
+        }
+
+        lines.append(indentation + "}")
+        
+        return lines.joinWithSeparator("\n")
+    }
+
     public func isEqualToDictionary(otherDictionary: [NSObject : AnyObject]) -> Bool {
         if count != otherDictionary.count {
             return false

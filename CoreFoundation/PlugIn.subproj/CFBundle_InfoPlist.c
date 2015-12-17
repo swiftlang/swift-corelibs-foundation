@@ -23,7 +23,7 @@
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFURLAccess.h>
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_FREEBSD
 #include <dirent.h>
 #include <sys/sysctl.h>
 #include <sys/mman.h>
@@ -159,6 +159,8 @@ CF_EXPORT CFStringRef _CFGetAlternatePlatformName(void) {
     return CFSTR("");
 #elif DEPLOYMENT_TARGET_LINUX
     return CFSTR("Linux");
+#elif DEPLOYMENT_TARGET_FREEBSD
+    return CFSTR("FreeBSD");
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif

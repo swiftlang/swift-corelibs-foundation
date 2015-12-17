@@ -21,14 +21,17 @@ import SwiftXCTest
 
 class TestNSArray : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_getObjects", test_getObjects),
+            ("test_objectAtIndex", test_objectAtIndex),
             ("test_binarySearch", test_binarySearch),
-            ("test_binarySearchFringeCases", test_binarySearchFringeCases)
+            ("test_binarySearchFringeCases", test_binarySearchFringeCases),
+            ("test_replaceObjectsInRange_withObjectsFromArray", test_replaceObjectsInRange_withObjectsFromArray),
+            ("test_replaceObjectsInRange_withObjectsFromArray_range", test_replaceObjectsInRange_withObjectsFromArray_range),
         ]
     }
     
@@ -84,6 +87,15 @@ class TestNSArray : XCTestCase {
             (objects[2] as! NSString).bridge(),
         ]
         XCTAssertEqual(fetched, ["bar", "baz", "foo1"])
+    }
+    
+    func test_objectAtIndex() {
+        let array : NSArray = ["foo", "bar"].bridge()
+        let foo = array.objectAtIndex(0) as! NSString
+        XCTAssertEqual(foo, "foo".bridge())
+        
+        let bar = array.objectAtIndex(1) as! NSString
+        XCTAssertEqual(bar, "bar".bridge())
     }
 
     func test_binarySearch() {
@@ -182,5 +194,43 @@ class TestNSArray : XCTestCase {
         }
         
         return .OrderedDescending
+    }
+    
+    func test_replaceObjectsInRange_withObjectsFromArray() {
+        let array1 = NSMutableArray(array:[
+            "foo1".bridge(),
+            "bar1".bridge(),
+            "baz1".bridge()])
+        
+        let array2: [AnyObject] = [
+            "foo2".bridge(),
+            "bar2".bridge(),
+            "baz2".bridge()]
+        
+        array1.replaceObjectsInRange(NSMakeRange(0, 2), withObjectsFromArray: array2)
+        
+        XCTAssertEqual(array1[0] as? NSString, "foo2".bridge(), "Expected foo2 but was \(array1[0])")
+        XCTAssertEqual(array1[1] as? NSString, "bar2".bridge(), "Expected bar2 but was \(array1[1])")
+        XCTAssertEqual(array1[2] as? NSString, "baz2".bridge(), "Expected baz2 but was \(array1[2])")
+        XCTAssertEqual(array1[3] as? NSString, "baz1".bridge(), "Expected baz1 but was \(array1[3])")
+    }
+    
+    func test_replaceObjectsInRange_withObjectsFromArray_range() {
+        let array1 = NSMutableArray(array:[
+            "foo1".bridge(),
+            "bar1".bridge(),
+            "baz1".bridge()])
+        
+        let array2: [AnyObject] = [
+            "foo2".bridge(),
+            "bar2".bridge(),
+            "baz2".bridge()]
+        
+        array1.replaceObjectsInRange(NSMakeRange(1, 1), withObjectsFromArray: array2, range: NSMakeRange(1, 2))
+        
+        XCTAssertEqual(array1[0] as? NSString, "foo1".bridge(), "Expected foo1 but was \(array1[0])")
+        XCTAssertEqual(array1[1] as? NSString, "bar2".bridge(), "Expected bar2 but was \(array1[1])")
+        XCTAssertEqual(array1[2] as? NSString, "baz2".bridge(), "Expected baz2 but was \(array1[2])")
+        XCTAssertEqual(array1[3] as? NSString, "baz1".bridge(), "Expected baz1 but was \(array1[3])")
     }
 }
