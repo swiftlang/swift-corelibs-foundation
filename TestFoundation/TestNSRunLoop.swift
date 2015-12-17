@@ -31,6 +31,18 @@ class TestNSRunLoop : XCTestCase {
         XCTAssertNotNil(mainRunLoop)
         let currentRunLoop = NSRunLoop.currentRunLoop()
         XCTAssertNotNil(currentRunLoop)
+
+        let secondAccessOfMainLoop = NSRunLoop.mainRunLoop()
+        XCTAssertEqual(mainRunLoop, secondAccessOfMainLoop, "fetching the main loop a second time should be equal")
+        XCTAssertTrue(mainRunLoop === secondAccessOfMainLoop, "fetching the main loop a second time should be identical")
+        
+        let secondAccessOfCurrentLoop = NSRunLoop.currentRunLoop()
+        XCTAssertEqual(currentRunLoop, secondAccessOfCurrentLoop, "fetching the current loop a second time should be equal")
+        XCTAssertTrue(currentRunLoop === secondAccessOfCurrentLoop, "fetching the current loop a second time should be identical")
+        
+        // We can assume that the tests will be run on the main run loop
+        // so the current loop should be the main loop
+        XCTAssertEqual(mainRunLoop, currentRunLoop, "the current run loop should be the main loop")
     }
     
     func test_runLoopRunMode() {
@@ -70,5 +82,4 @@ class TestNSRunLoop : XCTestCase {
         
         XCTAssertLessThan(abs(timerTickInterval - expectedTimeInterval), 0.01)
     }
-    
 }
