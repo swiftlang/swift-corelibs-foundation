@@ -160,7 +160,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
                 guard idx < NSNotFound else {
                     return nil
                 }
-                result++
+                result += 1
             }
             
             if let rangeIndex = _indexOfRangeAfterOrContainingIndex(result) {
@@ -173,7 +173,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
                 guard idx > 0 else {
                     return nil
                 }
-                result--
+                result -= 1
             }
             
             if let rangeIndex = _indexOfRangeBeforeOrContainingIndex(result) {
@@ -229,12 +229,13 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
                 }
                 
                 while idx <= maxIndex && counter < bufferSize && offset < currentRange.length {
-                    indexBuffer.advancedBy(counter++).memory = idx
-                    ++idx
-                    ++offset
+                    indexBuffer.advancedBy(counter).memory = idx
+                    counter += 1
+                    idx += 1
+                    offset += 1
                 }
                 if offset >= currentRange.length {
-                    ++rangeIndex
+                    rangeIndex += 1
                     offset = 0
                 }
             }
@@ -266,7 +267,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
                     return range.length
                 }
                 result = NSMaxRange(firstRange) - range.location
-                rangeIndex++
+                rangeIndex += 1
             }
             
             for curRange in _ranges.suffixFrom(rangeIndex) {
@@ -518,7 +519,7 @@ public class NSMutableIndexSet : NSIndexSet {
                 // overlaps
                 if curEnd < nextEnd {
                     self._replaceRangeAtIndex(rangeIndex, withRange: NSMakeRange(nextEnd - curRange.location, curRange.length))
-                    rangeIndex++
+                    rangeIndex += 1
                 }
                 self._replaceRangeAtIndex(rangeIndex + 1, withRange: nil)
             } else {
@@ -560,7 +561,7 @@ public class NSMutableIndexSet : NSIndexSet {
                 // Proceed to merging
                 break
             }
-            rangeIndex++
+            rangeIndex += 1
         }
         if let r = replacedRangeIndex {
             _mergeOverlappingRangesStartingAtIndex(r)
@@ -602,7 +603,7 @@ public class NSMutableIndexSet : NSIndexSet {
             } else if range.location > curRange.location && range.location < curEnd && removeEnd >= curEnd {
                 _replaceRangeAtIndex(rangeIndex, withRange: NSMakeRange(curRange.location, range.location - curRange.location))
             }
-            rangeIndex++
+            rangeIndex += 1
         }
         
     }

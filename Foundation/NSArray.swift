@@ -710,7 +710,8 @@ public class NSMutableArray : NSArray {
 
         var objectIdx = 0
         indexes.enumerateIndexesUsingBlock() { (insertionIndex, _) in
-            self.insertObject(objects[objectIdx++], atIndex: insertionIndex)
+            self.insertObject(objects[objectIdx], atIndex: insertionIndex)
+            objectIdx += 1
         }
     }
     

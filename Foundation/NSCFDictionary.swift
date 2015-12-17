@@ -54,7 +54,9 @@ internal final class _NSCFDictionary : NSMutableDictionary {
             if index == count {
                 return nil
             } else {
-                return keyArray[index++]
+                let item = keyArray[index]
+                index += 1
+                return item
             }
         }
         
@@ -139,7 +141,7 @@ internal func _CFSwiftDictionaryGetKeysAndValues(dictionary: AnyObject, keybuf: 
     (dictionary as! NSDictionary).enumerateKeysAndObjectsUsingBlock { key, value, _ in
         keybuf[idx] = Unmanaged<AnyObject>.passUnretained(key)
         valuebuf[idx] = Unmanaged<AnyObject>.passUnretained(value)
-        idx++
+        idx += 1
     }
 }
 

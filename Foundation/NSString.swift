@@ -753,7 +753,7 @@ extension NSString {
                 buf.rewind()
                 if buf.currentCharacter == 0x0d {
                     lineSeparatorLength = 2
-                    endOfContents--
+                    endOfContents -= 1
                 }
             } else {
                 while true {
@@ -938,15 +938,21 @@ extension NSString {
                 let cfEncodings = CFStringGetListOfAvailableEncodings()
                 var idx = 0
                 var numEncodings = 0
-                while cfEncodings.advancedBy(idx++).memory != kCFStringEncodingInvalidId {
-                    numEncodings++
+                
+                while cfEncodings.advancedBy(idx).memory != kCFStringEncodingInvalidId {
+                    idx += 1
+                    numEncodings += 1
                 }
                 
                 let theEncodingList = UnsafeMutablePointer<NSStringEncoding>.alloc(numEncodings + 1)
                 theEncodingList.advancedBy(numEncodings).memory = 0 // Terminator
-                while --numEncodings >= 0 {
+                
+                numEncodings -= 1
+                while numEncodings >= 0 {
                     theEncodingList.advancedBy(numEncodings).memory = CFStringConvertEncodingToNSStringEncoding(cfEncodings.advancedBy(numEncodings).memory)
+                    numEncodings -= 1
                 }
+                
                 return UnsafePointer<UInt>(theEncodingList)
             }()
         }
@@ -1399,7 +1405,7 @@ extension String {
         var encodingArray = Array<NSStringEncoding>()
         while encodings.advancedBy(numEncodings).memory != CoreFoundation.kCFStringEncodingInvalidId {
             encodingArray.append(CFStringConvertEncodingToNSStringEncoding(encodings.advancedBy(numEncodings).memory))
-            numEncodings++
+            numEncodings += 1
         }
         return encodingArray
     }
