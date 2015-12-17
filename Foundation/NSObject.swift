@@ -105,7 +105,6 @@ public class NSObject : NSObjectProtocol {
     
     public var description: String {
         get {
-            
             return "<\(self.dynamicType): \(unsafeAddressOf(self))>"
         }
     }
