@@ -50,6 +50,14 @@ public class NSLock : NSObject, NSLocking {
     public var name: String?
 }
 
+extension NSLock {
+    internal func synchronized<T>(@noescape closure: () -> T) -> T {
+        self.lock()
+        defer { self.unlock() }
+        return closure()
+    }
+}
+
 public class NSConditionLock : NSObject, NSLocking {
     internal var _cond = NSCondition()
     internal var _value: Int
