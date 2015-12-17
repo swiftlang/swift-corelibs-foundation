@@ -31,6 +31,8 @@ class TestNSArray : XCTestCase {
             ("test_binarySearch", test_binarySearch),
             ("test_replaceObjectsInRange_withObjectsFromArray", test_replaceObjectsInRange_withObjectsFromArray),
             ("test_replaceObjectsInRange_withObjectsFromArray_range", test_replaceObjectsInRange_withObjectsFromArray_range),
+            ("test_sortedArrayUsingComparator", test_sortedArrayUsingComparator),
+            ("test_sortedArrayWithOptionsUsingComparator", test_sortedArrayWithOptionsUsingComparator)
         ]
     }
     
@@ -197,5 +199,48 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array1[1] as? NSString, "bar2".bridge(), "Expected bar2 but was \(array1[1])")
         XCTAssertEqual(array1[2] as? NSString, "baz2".bridge(), "Expected baz2 but was \(array1[2])")
         XCTAssertEqual(array1[3] as? NSString, "baz1".bridge(), "Expected baz1 but was \(array1[3])")
+    }
+
+    func test_sortedArrayUsingComparator() {
+        // sort with localized caseInsensitive compare
+        let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
+        let expectedResult: Array<String> = input.sort()
+        let result = input.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+            let l = left as! NSString
+            let r = right as! NSString
+            return l.localizedCaseInsensitiveCompare(r.bridge())
+        } as! [NSString]
+        XCTAssertEqual(result.map { $0.bridge()} , expectedResult)
+
+        // sort empty array
+        let emptyArray = NSArray().sortedArrayUsingComparator { _,_ in .OrderedSame }
+        XCTAssertTrue(emptyArray.isEmpty)
+
+        // sort numbers
+        let inputNumbers = [0, 10, 25, 100, 21, 22]
+        let expectedNumbers = inputNumbers.sort()
+        let resultNumbers = inputNumbers.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+            let l = (left as! NSNumber).integerValue
+            let r = (right as! NSNumber).integerValue
+            return l < r ? .OrderedAscending : (l > r ? .OrderedSame : .OrderedDescending)
+        } as! [NSNumber]
+        XCTAssertEqual(resultNumbers.map { $0.integerValue}, expectedNumbers)
+    }
+
+    func test_sortedArrayWithOptionsUsingComparator() {
+        // check that sortedArrayWithOptions:comparator: works in the way sortedArrayUsingComparator does
+        let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"].bridge()
+        let comparator: (AnyObject, AnyObject) -> NSComparisonResult = { left, right -> NSComparisonResult in
+            let l = left as! NSString
+            let r = right as! NSString
+            return l.localizedCaseInsensitiveCompare(r.bridge())
+        }
+        let result1 = input.sortedArrayUsingComparator(comparator) as! [NSString]
+        let result2 = input.sortedArrayWithOptions([], usingComparator: comparator) as! [NSString]
+        XCTAssertEqual(result1, result2)
+
+        // sort empty array
+        let emptyArray = NSArray().sortedArrayWithOptions([]) { _,_ in .OrderedSame }
+        XCTAssertTrue(emptyArray.isEmpty)
     }
 }
