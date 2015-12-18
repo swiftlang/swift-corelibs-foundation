@@ -25,7 +25,8 @@ class TestNSTimeZone: XCTestCase {
 
     var allTests : [(String, () -> Void)] {
         return [
-            ("test_abbreviation", test_abbreviation),
+            // Disabled see https://bugs.swift.org/browse/SR-300
+            // ("test_abbreviation", test_abbreviation),
             ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
             ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
         ]
