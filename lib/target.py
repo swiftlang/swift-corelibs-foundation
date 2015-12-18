@@ -138,14 +138,12 @@ class ArchType:
 # Not 1:1, See to_string
     @staticmethod
     def from_string(string):
-        if string == "arm":
-            return ArchType.arm
-        if string == "armv7":
-            return ArchType.arm
-        if string == "armv7l":
-            return ArchType.arm
+        # Match big endian arm first
         if string == "armeb":
             return ArchType.armeb
+        # Catch-all for little endian arm
+        if "arm" in string:
+            return ArchType.arm
         if string == "aarch64":
             return ArchType.aarch64
         if string == "aarch64_be":
