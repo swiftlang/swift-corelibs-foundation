@@ -7,6 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+// It is necessary to explicitly cast strlen to UInt to match the type
+// of prefixLen because currently, strlen (and other functions that
+// rely on swift_ssize_t) use the machine word size (int on 32 bit and
+// long in on 64 bit).  I've filed a bug at bugs.swift.org:
+// https://bugs.swift.org/browse/SR-314
+
 #if os(OSX) || os(iOS)
     import Darwin
 #elseif os(Linux)
@@ -233,9 +239,9 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
     let parser = ctx.parser
     let reportQNameURI = parser.shouldProcessNamespaces
     let reportNamespaces = parser.shouldReportNamespacePrefixes
-    let prefixLen = prefix == nil ? strlen(UnsafePointer<Int8>(prefix)) : 0
+    let prefixLen = prefix == nil ? UInt(strlen(UnsafePointer<Int8>(prefix))) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
-    let qualifiedNameString = prefixLen != 0 ? _colonSeparatedStringFromPrefixAndSuffix(prefix, prefixLen, localname, strlen(UnsafePointer<Int8>(localname))) : localnameString
+    let qualifiedNameString = prefixLen != 0 ? _colonSeparatedStringFromPrefixAndSuffix(prefix, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : localnameString
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nil
     
     var nsDict = [String:String]()
@@ -248,7 +254,7 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
                 if reportNamespaces {
                     namespaceNameString = UTF8STRING(namespaces[idx])
                 }
-                asAttrNamespaceNameString = _colonSeparatedStringFromPrefixAndSuffix("xmlns", 5, namespaces[idx], strlen(UnsafePointer<Int8>(namespaces[idx])))
+                asAttrNamespaceNameString = _colonSeparatedStringFromPrefixAndSuffix("xmlns", 5, namespaces[idx], UInt(strlen(UnsafePointer<Int8>(namespaces[idx]))))
             } else {
                 namespaceNameString = ""
                 asAttrNamespaceNameString = "xmlns"
@@ -280,7 +286,7 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
         let attrPrefix = attributes[idx + 1]
         let attrPrefixLen = attrPrefix == nil ? strlen(UnsafePointer<Int8>(attrPrefix)) : 0
         if attrPrefixLen != 0 {
-            attributeQName = _colonSeparatedStringFromPrefixAndSuffix(attrPrefix, attrPrefixLen, attrLocalName, strlen((UnsafePointer<Int8>(attrLocalName))))
+            attributeQName = _colonSeparatedStringFromPrefixAndSuffix(attrPrefix, UInt(attrPrefixLen), attrLocalName, UInt(strlen((UnsafePointer<Int8>(attrLocalName)))))
         } else {
             attributeQName = UTF8STRING(attrLocalName)!
         }
@@ -318,7 +324,7 @@ internal func _NSXMLParserEndElementNs(ctx: _CFXMLInterface , localname: UnsafeP
     let prefixLen = prefix == nil ? strlen(UnsafePointer<Int8>(prefix)) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
     let nilStr: String? = nil
-    let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix, prefixLen, localname, strlen(UnsafePointer<Int8>(localname))) : nilStr
+    let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : nilStr
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nilStr
     
     
