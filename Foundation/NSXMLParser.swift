@@ -7,6 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+// It is necessary to explicitly cast strlen to UInt to match the type
+// of prefixLen because currently, strlen (and other functions that
+// rely on swift_ssize_t) use the machine word size (int on 32 bit and
+// long in on 64 bit).  I've filed a bug at bugs.swift.org:
+// https://bugs.swift.org/browse/SR-314
+
 #if os(OSX) || os(iOS)
     import Darwin
 #elseif os(Linux)
