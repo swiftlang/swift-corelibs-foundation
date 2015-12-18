@@ -55,7 +55,6 @@ swift_cflags = [
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	swift_cflags += [
-                '-target-cpu cortex-a15',
 		'-I${XCTEST_BUILD_DIR}',
 		'-L${XCTEST_BUILD_DIR}',
 	]
