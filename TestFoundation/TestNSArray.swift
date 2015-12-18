@@ -281,8 +281,8 @@ class TestNSArray : XCTestCase {
             let l = (left as! NSNumber).integerValue
             let r = (right as! NSNumber).integerValue
             return l < r ? .OrderedAscending : (l > r ? .OrderedSame : .OrderedDescending)
-        } as! [NSNumber]
-        XCTAssertEqual(resultNumbers.map { $0.integerValue}, expectedNumbers)
+        }
+        XCTAssertEqual(resultNumbers.map { ($0 as! NSNumber).integerValue}, expectedNumbers)
     }
 
     func test_sortedArrayWithOptionsUsingComparator() {
