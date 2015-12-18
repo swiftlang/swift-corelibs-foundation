@@ -381,6 +381,10 @@ public class NSNumber : NSValue {
     public required convenience init(booleanLiteral value: Bool) {
         self.init(bool: value)
     }
+
+    public func compare(otherNumber: NSNumber) -> NSComparisonResult {
+        return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
+    }
     
     override internal var _cfTypeID: CFTypeID {
         return CFNumberGetTypeID()
