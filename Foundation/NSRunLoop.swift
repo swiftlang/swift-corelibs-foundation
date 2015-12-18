@@ -12,7 +12,7 @@ import CoreFoundation
 public let NSDefaultRunLoopMode: String = kCFRunLoopDefaultMode._swiftObject
 public let NSRunLoopCommonModes: String = kCFRunLoopCommonModes._swiftObject
 
-internal func _NSRunLoopNew(cf: CFRunLoopRef) -> Unmanaged<AnyObject>! {
+internal func _NSRunLoopNew(cf: CFRunLoopRef) -> Unmanaged<AnyObject> {
     let rl = Unmanaged<NSRunLoop>.passRetained(NSRunLoop(cfObject: cf))
     return unsafeBitCast(rl, Unmanaged<AnyObject>.self) // this retain is balanced on the other side of the CF fence
 }
