@@ -80,7 +80,7 @@ public let NSNotFound: Int = Int.max
     fatalError("\(fn) is not yet implemented")
 }
 
-@noreturn func NSInvalidArgument(message: String, method: String = __FUNCTION__) {
+@noreturn internal func NSInvalidArgument(message: String, method: String = __FUNCTION__) {
     fatalError("\(method): \(message)")
 }
 
