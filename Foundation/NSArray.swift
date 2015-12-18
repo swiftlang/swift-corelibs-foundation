@@ -393,13 +393,18 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
 
     internal func sortedArrayFromRange(range: NSRange, options: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
+        // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
+        guard options.isEmpty else {
+            NSUnimplemented()
+        }
+
         let count = self.count
         if range.length == 0 || count == 0 {
             return []
         }
 
         return allObjects.sort { lhs, rhs in
-            return cmptr(lhs, rhs) == .OrderedSame
+            return cmptr(lhs, rhs) == .OrderedAscending
         }
     }
     
