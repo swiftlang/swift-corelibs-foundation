@@ -33,7 +33,7 @@ class TestNSArray : XCTestCase {
             ("test_replaceObjectsInRange_withObjectsFromArray", test_replaceObjectsInRange_withObjectsFromArray),
             ("test_replaceObjectsInRange_withObjectsFromArray_range", test_replaceObjectsInRange_withObjectsFromArray_range),
             ("test_sortedArrayUsingComparator", test_sortedArrayUsingComparator),
-            ("test_sortedArrayWithOptionsUsingComparator", test_sortedArrayWithOptionsUsingComparator)
+            ("test_sortedArrayWithOptionsUsingComparator", test_sortedArrayWithOptionsUsingComparator),
             ("test_arrayReplacement", test_arrayReplacement),
             ("test_arrayReplaceObjectsInRangeFromRange", test_arrayReplaceObjectsInRangeFromRange),
         ]
@@ -267,8 +267,8 @@ class TestNSArray : XCTestCase {
             let l = left as! NSString
             let r = right as! NSString
             return l.localizedCaseInsensitiveCompare(r.bridge())
-        } as! [NSString]
-        XCTAssertEqual(result.map { $0.bridge()} , expectedResult)
+        }
+        XCTAssertEqual(result.map { ($0 as! NSString).bridge()} , expectedResult)
 
         // sort empty array
         let emptyArray = NSArray().sortedArrayUsingComparator { _,_ in .OrderedSame }
@@ -293,9 +293,10 @@ class TestNSArray : XCTestCase {
             let r = right as! NSString
             return l.localizedCaseInsensitiveCompare(r.bridge())
         }
-        let result1 = input.sortedArrayUsingComparator(comparator) as! [NSString]
-        let result2 = input.sortedArrayWithOptions([], usingComparator: comparator) as! [NSString]
-        XCTAssertEqual(result1, result2)
+        let result1 = input.sortedArrayUsingComparator(comparator)
+        let result2 = input.sortedArrayWithOptions([], usingComparator: comparator)
+
+        XCTAssertTrue(result1.bridge().isEqualToArray(result2))
 
         // sort empty array
         let emptyArray = NSArray().sortedArrayWithOptions([]) { _,_ in .OrderedSame }
