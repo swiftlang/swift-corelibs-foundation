@@ -15,6 +15,9 @@
 		52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52829AD61C160D64003BC4EF /* TestNSCalendar.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
+		5B2B59821C24D00500271109 /* CFStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89031BBC9BC300234F36 /* CFStream.c */; };
+		5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89871BBDB1B400234F36 /* CFSocketStream.c */; };
+		5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89831BBDB13800234F36 /* CFConcreteStreams.c */; };
 		5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
 		5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B40F9F21C125187000E72E3 /* TestNSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */; };
@@ -1728,8 +1731,10 @@
 				5B7C8A881BEA7FDB00C5B690 /* CFLocaleIdentifier.c in Sources */,
 				5B7C8AB01BEA801700C5B690 /* CFBuiltinConverters.c in Sources */,
 				5B7C8A761BEA7FCE00C5B690 /* CFSortFunctions.c in Sources */,
+				5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */,
 				5B7C8A941BEA7FEC00C5B690 /* CFXMLParser.c in Sources */,
 				5B7C8AA11BEA800400C5B690 /* CFApplicationPreferences.c in Sources */,
+				5B2B59821C24D00500271109 /* CFStream.c in Sources */,
 				5B7C8A8B1BEA7FE200C5B690 /* CFBigNumber.c in Sources */,
 				5B7C8A7D1BEA7FCE00C5B690 /* CFBinaryHeap.c in Sources */,
 				5B7C8A7E1BEA7FCE00C5B690 /* CFBitVector.c in Sources */,
@@ -1773,6 +1778,7 @@
 				5B7C8A811BEA7FCE00C5B690 /* CFSet.c in Sources */,
 				5B7C8A8A1BEA7FDB00C5B690 /* CFLocaleKeys.c in Sources */,
 				5B7C8A9B1BEA7FF900C5B690 /* CFBundle_Strings.c in Sources */,
+				5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */,
 				5B7C8A851BEA7FDB00C5B690 /* CFCalendar.c in Sources */,
 				5B7C8A9F1BEA7FF900C5B690 /* CFPlugIn_PlugIn.c in Sources */,
 				5B7C8AB11BEA801700C5B690 /* CFICUConverters.c in Sources */,
