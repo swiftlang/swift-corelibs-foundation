@@ -309,8 +309,8 @@ class Vendor:
 
 class Target:
     triple = None
-    sdk = OSType.UnknownOS
-    arch = ArchType.UnknownArch
+    sdk = None
+    arch = None
     executable_suffix = ""
     dynamic_library_prefix = "lib"
     dynamic_library_suffix = ".dylib"
