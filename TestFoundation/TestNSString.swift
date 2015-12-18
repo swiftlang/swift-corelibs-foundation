@@ -44,6 +44,7 @@ class TestNSString : XCTestCase {
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
             ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
+            ("test_FromContentOfFile",test_FromContentOfFile),
         ]
     }
 
@@ -195,6 +196,18 @@ class TestNSString : XCTestCase {
         let bytes = mockMalformedUTF8StringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
+    }
+    
+    func test_FromContentOfFile() {
+        let testFilePath = testBundle().pathForResource("NSStingTestData", ofType: "txt")
+        
+        do {
+            let str = try NSString(contentsOfFile: testFilePath, encoding: NSUTF8StringEncoding)
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfFile:encoding:")
+        }
+        
+        XCTAssertEqual(str, "swift-corelibs-foundation")
     }
 
     func test_uppercaseString() {
