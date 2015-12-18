@@ -235,6 +235,9 @@ class Target:
         if "linux" in triple:
             self.sdk = OSType.Linux
             self.dynamic_library_suffix = ".so"
+        elif "freebsd" in triple:
+            self.sdk = OSType.FreeBSD
+            self.dynamic_library_suffix = ".so"
         elif "windows" in triple or "win32" in triple:
             self.sdk = OSType.Win32
             self.dynamic_library_suffix = ".dll"
@@ -250,6 +253,9 @@ class Target:
             triple += "linux-gnu"
         elif platform.system() == "Darwin":
             triple += "apple-darwin"
+        elif platform.system() == "FreeBSD":
+            # Make this working on 10 as well.
+            triple += "freebsd11.0"
         else:
             # TODO: This should be a bit more exhaustive
             print("unknown host os")
@@ -268,6 +274,8 @@ class Target:
             return None
         elif self.sdk == OSType.Linux:
             triple += "-pc-linux"
+        elif self.sdk == OSType.FreeBSD:
+            triple += "-unknown-freebsd"
         else:
             print("unknown sdk for swift")
             return None
@@ -279,6 +287,8 @@ class Target:
             return "macosx"
         elif self.sdk == OSType.Linux:
             return "linux"
+        elif self.sdk == OSType.FreeBSD:
+            return "freebsd"
         else:
             print("unknown sdk for swift")
             return None

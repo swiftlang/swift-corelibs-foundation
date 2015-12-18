@@ -411,7 +411,70 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return sortedArrayFromRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
     }
 
-    public func indexOfObject(obj: AnyObject, inSortedRange r: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
+    public func indexOfObject(obj: AnyObject, inSortedRange r: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int {
+        guard (r.location + r.length) <= count else {
+            NSInvalidArgument("range \(r) extends beyond bounds [0 .. \(count - 1)]")
+        }
+        
+        if opts.contains(.FirstEqual) && opts.contains(.LastEqual) {
+            NSInvalidArgument("both NSBinarySearching.FirstEqual and NSBinarySearching.LastEqual options cannot be specified")
+        }
+        
+        let firstEqual = opts.contains(.FirstEqual)
+        let lastEqual = opts.contains(.LastEqual)
+        let anyEqual = !(firstEqual || lastEqual)
+        
+        var result = NSNotFound
+        var indexOfLeastGreaterThanObj = NSNotFound
+        var start = r.location
+        var end = r.location + r.length - 1
+        
+        loop: while start <= end {
+            let middle = start + (end - start) / 2
+            let item = objectAtIndex(middle)
+            
+            switch cmp(item, obj) {
+                
+            case .OrderedSame where anyEqual:
+                result = middle
+                break loop
+                
+            case .OrderedSame where lastEqual:
+                result = middle
+                fallthrough
+                
+            case .OrderedAscending:
+                start = middle + 1
+                
+            case .OrderedSame where firstEqual:
+                result = middle
+                fallthrough
+                
+            case .OrderedDescending:
+                indexOfLeastGreaterThanObj = middle
+                end = middle - 1
+                
+            default:
+                fatalError("Implementation error.")
+            }
+        }
+        
+        guard opts.contains(.InsertionIndex) && lastEqual else {
+            return result
+        }
+        
+        guard result == NSNotFound else {
+            return result + 1
+        }
+        
+        guard indexOfLeastGreaterThanObj != NSNotFound else {
+            return count
+        }
+        
+        return indexOfLeastGreaterThanObj
+    }
+    
+    
     
     public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
     public convenience init?(contentsOfURL url: NSURL) { NSUnimplemented() }
@@ -437,6 +500,20 @@ extension NSMutableArray {
 extension CFArrayRef : _NSBridgable, _SwiftBridgable {
     internal var _nsObject: NSArray { return unsafeBitCast(self, NSArray.self) }
     internal var _swiftObject: Array<AnyObject> { return _nsObject._swiftObject }
+}
+
+extension CFArrayRef {
+    /// Bridge something returned from CF to an Array<T>. Useful when we already know that a CFArray contains objects that are toll-free bridged with Swift objects, e.g. CFArray<CFURLRef>.
+    /// - Note: This bridging operation is unfortunately still O(n), but it only traverses the NSArray once, creating the Swift array and casting at the same time.
+    func _unsafeTypedBridge<T : AnyObject>() -> Array<T> {
+        var result = Array<T>()
+        let count = CFArrayGetCount(self)
+        result.reserveCapacity(count)
+        for i in 0..<count {
+            result.append(unsafeBitCast(CFArrayGetValueAtIndex(self, i), T.self))
+        }
+        return result
+    }
 }
 
 extension Array : _NSBridgable, _CFBridgable {
@@ -595,7 +672,12 @@ public class NSMutableArray : NSArray {
             }
         }
     }
-    public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject], range otherRange: NSRange) { NSUnimplemented() }
+    public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject], range otherRange: NSRange) {
+        var list = [AnyObject]()
+        otherArray.bridge().getObjects(&list, range:otherRange)
+        replaceObjectsInRange(range, withObjectsFromArray:list)
+    }
+    
     public func replaceObjectsInRange(range: NSRange, withObjectsFromArray otherArray: [AnyObject]) {
         if self.dynamicType === NSMutableArray.self {
             _storage.reserveCapacity(count - range.length + otherArray.count)
@@ -628,7 +710,8 @@ public class NSMutableArray : NSArray {
 
         var objectIdx = 0
         indexes.enumerateIndexesUsingBlock() { (insertionIndex, _) in
-            self.insertObject(objects[objectIdx++], atIndex: insertionIndex)
+            self.insertObject(objects[objectIdx], atIndex: insertionIndex)
+            objectIdx += 1
         }
     }
     

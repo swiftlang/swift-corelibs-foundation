@@ -12,7 +12,7 @@
  */
 
 #if !defined(__COREFOUNDATION_CFXMLINTERFACE__)
-#define __COREFOUNDATION_CFXMLINTERFACE 1
+#define __COREFOUNDATION_CFXMLINTERFACE__ 1
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFArray.h>
@@ -97,4 +97,4 @@ CF_EXTERN_C_END
 CF_ASSUME_NONNULL_END
 CF_IMPLICIT_BRIDGING_DISABLED
 
-#endif /* CFXMLInterface_h */
+#endif /* __COREFOUNDATION_CFXMLINTERFACE__ */

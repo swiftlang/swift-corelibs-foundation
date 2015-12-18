@@ -20,7 +20,7 @@ import CoreFoundation
 
 class TestNSString : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
@@ -45,6 +45,7 @@ class TestNSString : XCTestCase {
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
             ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
             ("test_FromContentOfFile",test_FromContentOfFile),
+            ("test_swiftStringUTF16", test_swiftStringUTF16),
         ]
     }
 
@@ -101,14 +102,44 @@ class TestNSString : XCTestCase {
 
         let string8: NSString = "--123"
         XCTAssertEqual(string8.integerValue, 0)
+
+        let string9: NSString = "999999999999999999999999999999"
+        XCTAssertEqual(string9.integerValue, Int.max)
+
+        let string10: NSString = "-999999999999999999999999999999"
+        XCTAssertEqual(string10.integerValue, Int.min)
     }
 
     func test_intValue() {
-        let string1: NSString = "2147483648"
-        XCTAssertEqual(string1.intValue, 2147483647)
+        let string1: NSString = "123"
+        XCTAssertEqual(string1.intValue, 123)
 
-        let string2: NSString = "-2147483649"
-        XCTAssertEqual(string2.intValue, -2147483648)
+        let string2: NSString = "123a"
+        XCTAssertEqual(string2.intValue, 123)
+
+        let string3: NSString = "-123a"
+        XCTAssertEqual(string3.intValue, -123)
+
+        let string4: NSString = "a123"
+        XCTAssertEqual(string4.intValue, 0)
+
+        let string5: NSString = "+123"
+        XCTAssertEqual(string5.intValue, 123)
+
+        let string6: NSString = "++123"
+        XCTAssertEqual(string6.intValue, 0)
+
+        let string7: NSString = "-123"
+        XCTAssertEqual(string7.intValue, -123)
+
+        let string8: NSString = "--123"
+        XCTAssertEqual(string8.intValue, 0)
+
+        let string9: NSString = "999999999999999999999999999999"
+        XCTAssertEqual(string9.intValue, Int32.max)
+
+        let string10: NSString = "-999999999999999999999999999999"
+        XCTAssertEqual(string10.intValue, Int32.min)
     }
     
     func test_isEqualToStringWithSwiftString() {
@@ -212,6 +243,7 @@ class TestNSString : XCTestCase {
 
     func test_uppercaseString() {
         XCTAssertEqual(NSString(stringLiteral: "abcd").uppercaseString, "ABCD")
+        XCTAssertEqual(NSString(stringLiteral: "ａｂｃｄ").uppercaseString, "ＡＢＣＤ") // full-width
         XCTAssertEqual(NSString(stringLiteral: "абВГ").uppercaseString, "АБВГ")
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercaseString, "たちつてと")
 
@@ -225,6 +257,7 @@ class TestNSString : XCTestCase {
 
     func test_lowercaseString() {
         XCTAssertEqual(NSString(stringLiteral: "abCD").lowercaseString, "abcd")
+        XCTAssertEqual(NSString(stringLiteral: "ＡＢＣＤ").lowercaseString, "ａｂｃｄ") // full-width
         XCTAssertEqual(NSString(stringLiteral: "aБВГ").lowercaseString, "aбвг")
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercaseString, "たちつてと")
 
@@ -243,11 +276,35 @@ class TestNSString : XCTestCase {
     }
 
     func test_longLongValue() {
-        let string1: NSString = "9223372036854775808"
-        XCTAssertEqual(string1.longLongValue, 9223372036854775807)
+        let string1: NSString = "123"
+        XCTAssertEqual(string1.longLongValue, 123)
 
-        let string2: NSString = "-9223372036854775809"
-        XCTAssertEqual(string2.longLongValue, -9223372036854775808)
+        let string2: NSString = "123a"
+        XCTAssertEqual(string2.longLongValue, 123)
+
+        let string3: NSString = "-123a"
+        XCTAssertEqual(string3.longLongValue, -123)
+
+        let string4: NSString = "a123"
+        XCTAssertEqual(string4.longLongValue, 0)
+
+        let string5: NSString = "+123"
+        XCTAssertEqual(string5.longLongValue, 123)
+
+        let string6: NSString = "++123"
+        XCTAssertEqual(string6.longLongValue, 0)
+
+        let string7: NSString = "-123"
+        XCTAssertEqual(string7.longLongValue, -123)
+
+        let string8: NSString = "--123"
+        XCTAssertEqual(string8.longLongValue, 0)
+
+        let string9: NSString = "999999999999999999999999999999"
+        XCTAssertEqual(string9.longLongValue, Int64.max)
+
+        let string10: NSString = "-999999999999999999999999999999"
+        XCTAssertEqual(string10.longLongValue, Int64.min)
     }
     
     func test_rangeOfCharacterFromSet() {
@@ -265,5 +322,31 @@ class TestNSString : XCTestCase {
         let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, CFStringRef.self))
         let str = unsafeBitCast(mCopy, NSString.self).bridge()
         XCTAssertEqual(nsstring.bridge(), str)
+    }
+    
+    // This test verifies that CFStringGetBytes with a UTF16 encoding works on an NSString backed by a Swift string
+    func test_swiftStringUTF16() {
+        #if os(OSX) || os(iOS)
+        let kCFStringEncodingUTF16 = CFStringBuiltInEncodings.UTF16.rawValue
+        #endif
+
+        let testString = "hello world"
+        let string = NSString(string: testString)
+        let cfString = unsafeBitCast(string, CFStringRef.self)
+        
+        // Get the bytes as UTF16
+        let reservedLength = 50
+        var buf : [UInt8] = []
+        buf.reserveCapacity(reservedLength)
+        var usedLen : CFIndex = 0
+        buf.withUnsafeMutableBufferPointer { p in
+            CFStringGetBytes(cfString, CFRangeMake(0, CFStringGetLength(cfString)), CFStringEncoding(kCFStringEncodingUTF16), 0, false, p.baseAddress, reservedLength, &usedLen)
+        }
+        
+        // Make a new string out of it
+        let newCFString = CFStringCreateWithBytes(nil, buf, usedLen, CFStringEncoding(kCFStringEncodingUTF16), false)
+        let newString = unsafeBitCast(newCFString, NSString.self)
+        
+        XCTAssertTrue(newString.isEqualToString(testString))
     }
 }

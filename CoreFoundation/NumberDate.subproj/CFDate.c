@@ -26,7 +26,7 @@
 #include <dispatch/dispatch.h>
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #include <sys/time.h>
 #endif
 
@@ -43,7 +43,7 @@ const CFTimeInterval kCFAbsoluteTimeIntervalSince1904 = 3061152000.0L;
 CF_PRIVATE double __CFTSRRate = 0.0;
 static double __CF1_TSRRate = 0.0;
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 
 CF_PRIVATE uint64_t __CFTimeIntervalToTSR(CFTimeInterval ti) {
     if ((ti * __CFTSRRate) > INT64_MAX / 2) return (INT64_MAX / 2);
@@ -66,7 +66,7 @@ CF_PRIVATE CFTimeInterval __CFTimeIntervalUntilTSR(uint64_t tsr) {
 
 // Technically this is 'TSR units' not a strict 'TSR' absolute time
 CF_PRIVATE uint64_t __CFTSRToNanoseconds(uint64_t tsr) {
-    double tsrInNanoseconds = floor(tsr * __CF1_TSRRate * NSEC_PER_SEC);
+    double tsrInNanoseconds = floor(tsr * __CF1_TSRRate * 1000000000UL);
     uint64_t ns = (uint64_t)tsrInNanoseconds;
     return ns;
 }
@@ -99,7 +99,7 @@ CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
     CFDateGetTypeID();
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     uint64_t tsr = mach_absolute_time();
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     struct timespec res;
     if (clock_gettime(CLOCK_MONOTONIC, &res) != 0) {
         HALT;
@@ -165,7 +165,7 @@ CFTypeID CFDateGetTypeID(void) {
     }
     __CFTSRRate = (double)freq.QuadPart;
     __CF1_TSRRate = 1.0 / __CFTSRRate;
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     struct timespec res;
     if (clock_getres(CLOCK_MONOTONIC, &res) != 0) {
         HALT;

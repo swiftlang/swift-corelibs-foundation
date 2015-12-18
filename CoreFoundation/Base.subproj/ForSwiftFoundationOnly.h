@@ -98,7 +98,7 @@ struct _NSStringBridge {
     CFIndex (*length)(CFTypeRef str);
     UniChar (*characterAtIndex)(CFTypeRef str, CFIndex idx);
     void (*getCharacters)(CFTypeRef str, CFRange range, UniChar *buffer);
-    CFIndex (*__getBytes)(CFTypeRef str, CFRange range, uint8_t *buffer, CFIndex maxBufLen, CFIndex *usedBufLen);
+    CFIndex (*__getBytes)(CFTypeRef str, CFStringEncoding encoding, CFRange range, uint8_t *buffer, CFIndex maxBufLen, CFIndex *usedBufLen);
     const char *_Nullable (*_Nonnull _fastCStringContents)(CFTypeRef str);
     const UniChar *_Nullable (*_Nonnull _fastCharacterContents)(CFTypeRef str);
     bool (*_getCString)(CFTypeRef str, char *buffer, size_t len, UInt32 encoding);
@@ -177,6 +177,10 @@ struct _NSXMLParserBridge {
                            const unsigned char *SystemID);
 };
 
+struct _NSRunLoop {
+    CFTypeRef (*_new)(CFRunLoopRef rl);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -188,6 +192,7 @@ struct _CFSwiftBridge {
     struct _NSStringBridge NSString;
     struct _NSMutableStringBridge NSMutableString;
     struct _NSXMLParserBridge NSXMLParser;
+    struct _NSRunLoop NSRunLoop;
 };
 
 __attribute__((__visibility__("hidden"))) extern struct _CFSwiftBridge __CFSwiftBridge;
@@ -218,6 +223,7 @@ extern Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativ
 extern CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length);
 extern CFIndex __CFProcessorCount();
 extern uint64_t __CFMemorySize();
+extern CFStringRef _CFProcessNameString(void);
 extern CFIndex __CFActiveProcessorCount();
 extern CFDictionaryRef __CFGetEnvironment();
 extern int32_t __CFGetPid();
@@ -227,6 +233,7 @@ extern void _CFDataInit(CFMutableDataRef memory, CFOptionFlags flags, CFIndex ca
 extern int32_t _CF_SOCK_STREAM();
 
 extern CFStringRef CFCopySystemVersionString(void);
+extern CFDictionaryRef _CFCopySystemVersionDictionary(void);
 
 extern Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier);
 extern Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbsoluteTime *atp, const char *componentDesc, int32_t *vector, int32_t count);
@@ -261,6 +268,8 @@ extern int _CFOpenFile(const char *path, int opts);
 extern void *_CFReallocf(void *ptr, size_t size);
 
 CFHashCode CFStringHashNSString(CFStringRef str);
+
+extern CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
 
 extern CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding, uint8_t lossByte,  UInt8 * _Nullable buffer, CFIndex max, CFIndex * _Nullable usedBufLen);
 

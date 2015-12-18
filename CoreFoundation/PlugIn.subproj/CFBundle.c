@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #else
 #error Unknown deployment target
 #endif
@@ -116,8 +116,6 @@ CONST_STRING_DECL(_kCFBundleOldTypeExtensions2Key, "NSDOSExtensions")
 CONST_STRING_DECL(_kCFBundleOldTypeOSTypesKey, "NSMacOSType")
 
 // Internally used keys for loaded Info plists.
-CONST_STRING_DECL(_kCFBundleInfoPlistURLKey, "CFBundleInfoPlistURL")
-CONST_STRING_DECL(_kCFBundleRawInfoPlistURLKey, "CFBundleRawInfoPlistURL")
 CONST_STRING_DECL(_kCFBundleNumericVersionKey, "CFBundleNumericVersion")
 CONST_STRING_DECL(_kCFBundleExecutablePathKey, "CFBundleExecutablePath")
 CONST_STRING_DECL(_kCFBundleResourcesFileMappedKey, "CSResourcesFileMapped")
@@ -826,6 +824,8 @@ static void __CFBundleDeallocate(CFTypeRef cf) {
     if (bundle->_searchLanguages) CFRelease(bundle->_searchLanguages);
     if (bundle->_executablePath) CFRelease(bundle->_executablePath);
     if (bundle->_developmentRegion) CFRelease(bundle->_developmentRegion);
+    if (bundle->_infoPlistUrl) CFRelease(bundle->_infoPlistUrl);
+    
     if (bundle->_glueDict) {
         CFDictionaryApplyFunction(bundle->_glueDict, _CFBundleDeallocateGlue, (void *)CFGetAllocator(bundle));
         CFRelease(bundle->_glueDict);
@@ -1562,7 +1562,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     } else {
                         exeDirURL = (CFURLRef)CFRetain(url);
                     }
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#else
                     exeDirURL = (CFURLRef)CFRetain(url);
 #endif
                 }

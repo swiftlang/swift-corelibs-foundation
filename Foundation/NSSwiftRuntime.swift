@@ -121,7 +121,7 @@ internal func __CFInitializeSwift() {
 //    _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFReadStreamGetTypeID(), unsafeBitCast(NSInputStream.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFWriteStreamGetTypeID(), unsafeBitCast(NSOutputStream.self, UnsafePointer<Void>.self))
-//    _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(NSTimer.self, UnsafePointer<Void>.self))
+   _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(NSTimer.self, UnsafePointer<Void>.self))
     
     __CFSwiftBridge.NSObject.isEqual = _CFSwiftIsEqual
     __CFSwiftBridge.NSObject.hash = _CFSwiftGetHash
@@ -198,6 +198,8 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSXMLParser.cdataBlock = _NSXMLParserCdataBlock
     __CFSwiftBridge.NSXMLParser.comment = _NSXMLParserComment
     __CFSwiftBridge.NSXMLParser.externalSubset = _NSXMLParserExternalSubset
+    
+    __CFSwiftBridge.NSRunLoop._new = _NSRunLoopNew
     
     __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
@@ -279,6 +281,36 @@ extension String : _NSObjectRepresentable {
 }
 
 extension Set : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Int : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension UInt : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Float : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Double : _NSObjectRepresentable {
+    func _nsObjectRepresentation() -> NSObject {
+        return _bridgeToObject()
+    }
+}
+
+extension Bool : _NSObjectRepresentable {
     func _nsObjectRepresentation() -> NSObject {
         return _bridgeToObject()
     }

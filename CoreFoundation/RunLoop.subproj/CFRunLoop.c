@@ -71,9 +71,18 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void);
 
 #define AbsoluteTime LARGE_INTEGER 
 
+#elif DEPLOYMENT_TARGET_LINUX
+#include <dlfcn.h>
+#include <poll.h>
+#include <sys/epoll.h>
+#include <sys/eventfd.h>
+#include <sys/timerfd.h>
+
+#define _dispatch_get_main_queue_port_4CF dispatch_get_main_queue_eventfd_np
+#define _dispatch_main_queue_callback_4CF(x) dispatch_main_queue_drain_np()
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR
+#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR || DEPLOYMENT_TARGET_LINUX
 CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
 #define pthread_main_thread_np() _CF_pthread_main_thread_np()
 #endif
@@ -115,6 +124,13 @@ static void _runLoopTimerWithBlockContext(CFRunLoopTimerRef timer, void *opaqueB
 static pthread_t kNilPthreadT = { nil, nil };
 #define pthreadPointer(a) a.p
 typedef	int kern_return_t;
+#define KERN_SUCCESS 0
+
+#elif DEPLOYMENT_TARGET_LINUX
+
+static pthread_t kNilPthreadT = (pthread_t)0;
+#define pthreadPointer(a) ((void*)a)
+typedef int kern_return_t;
 #define KERN_SUCCESS 0
 
 #else
@@ -424,6 +440,50 @@ static kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet portSet) {
     return KERN_SUCCESS;
 }
 
+#elif DEPLOYMENT_TARGET_LINUX
+// eventfd/timerfd descriptor
+typedef int __CFPort;
+#define CFPORT_NULL -1
+#define MACH_PORT_NULL CFPORT_NULL
+
+// epoll file descriptor
+typedef int __CFPortSet;
+#define CFPORTSET_NULL -1
+
+static __CFPort __CFPortAllocate(void) {
+    return eventfd(0, EFD_CLOEXEC|EFD_NONBLOCK);
+}
+
+CF_INLINE void __CFPortFree(__CFPort port) {
+    close(port);
+}
+
+CF_INLINE __CFPortSet __CFPortSetAllocate(void) {
+    return epoll_create1(EPOLL_CLOEXEC);
+}
+
+CF_INLINE kern_return_t __CFPortSetInsert(__CFPort port, __CFPortSet portSet) {
+    if (CFPORT_NULL == port) {
+        return -1;
+    }
+    struct epoll_event event;
+    memset(&event, 0, sizeof(event));
+    event.data.fd = port;
+    event.events = EPOLLIN|EPOLLET;
+    
+    return epoll_ctl(portSet, EPOLL_CTL_ADD, port, &event);
+}
+
+CF_INLINE kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet portSet) {
+    if (CFPORT_NULL == port) {
+        return -1;
+    }
+    return epoll_ctl(portSet, EPOLL_CTL_DEL, port, NULL); 
+}
+
+CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
+    close(portSet);
+}
 #endif
 
 #if !defined(__MACTYPES__) && !defined(_OS_OSTYPES_H)
@@ -464,6 +524,36 @@ static uint32_t __CFSendTrivialMachMessage(mach_port_t port, uint32_t msg_id, CF
     if (result == MACH_SEND_TIMED_OUT) mach_msg_destroy(&header);
     return result;
 }
+#elif DEPLOYMENT_TARGET_LINUX
+
+static int mk_timer_create(void) {
+    return timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK|TFD_CLOEXEC);
+}
+
+static kern_return_t mk_timer_destroy(int timer) {
+    return close(timer);
+}
+
+static kern_return_t mk_timer_arm(int timer, int64_t expire_time) {
+    struct itimerspec ts;
+    ts.it_value.tv_sec = expire_time / 1000000000UL;
+    ts.it_value.tv_nsec = expire_time % 1000000000UL;
+    
+    // Non-repeating timer
+    ts.it_interval.tv_sec = 0;
+    ts.it_interval.tv_nsec = 0;
+
+    return timerfd_settime(timer, TFD_TIMER_ABSTIME, &ts, NULL);
+}
+
+static kern_return_t mk_timer_cancel(int timer, const void *unused) {
+    return mk_timer_arm(timer, 0);
+}
+
+CF_INLINE int64_t __CFUInt64ToAbsoluteTime(int64_t x) {
+    return x;
+}
+
 #elif DEPLOYMENT_TARGET_WINDOWS
 
 static HANDLE mk_timer_create(void) {
@@ -547,7 +637,7 @@ struct __CFRunLoopMode {
     Boolean _dispatchTimerArmed;
 #endif
 #if USE_MK_TIMER_TOO
-    mach_port_t _timerPort;
+    __CFPort _timerPort;
     Boolean _mkTimerArmed;
 #endif
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -1436,7 +1526,12 @@ CF_PRIVATE void __CFFinalizeRunLoop(uintptr_t data) {
     }
     if (rl && CFRunLoopGetMain() != rl) { // protect against cooperative threads
         if (NULL != rl->_counterpart) {
+#if DEPLOYMENT_RUNTIME_SWIFT
+            extern void swift_release(void *);
+            swift_release((void *)rl->_counterpart);
+#else
             CFRelease(rl->_counterpart);
+#endif
 	    rl->_counterpart = NULL;
         }
 	// purge all sources before deallocation
@@ -1459,6 +1554,12 @@ pthread_t _CFRunLoopGet1(CFRunLoopRef rl) {
 CF_EXPORT CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl) {
     CFTypeRef ret = NULL;
     __CFLock(&loopsLock);
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (rl->_counterpart == NULL) {
+        CFTypeRef ns = __CFSwiftBridge.NSRunLoop._new(rl); // returns retained so we will claim ownership of that return value by just assigning (the release is balanced in the destruction of the CFRunLoop
+        rl->_counterpart = ns;
+    }
+#endif
     ret = rl->_counterpart;
     __CFUnlock(&loopsLock);
     return ret;
@@ -2256,6 +2357,95 @@ static Boolean __CFRunLoopServiceMachPort(mach_port_name_t port, mach_msg_header
     return false;
 }
 
+#elif DEPLOYMENT_TARGET_LINUX
+
+#define TIMEOUT_INFINITY UINT64_MAX
+
+static int __CFPollFileDescriptors(struct pollfd *fds, nfds_t nfds, uint64_t timeout) {
+    uint64_t elapsed = 0;
+    uint64_t start = mach_absolute_time();
+    int result = 0;
+    while (1) {
+        struct timespec ts = {0};
+        struct timespec *tsPtr = &ts;
+        if (timeout == TIMEOUT_INFINITY) {
+            tsPtr = NULL;
+
+        } else if (elapsed < timeout) {
+            uint64_t delta = timeout - elapsed;
+            ts.tv_sec = delta / 1000000000UL;
+            ts.tv_nsec = delta % 1000000000UL;
+        }
+
+        result = ppoll(fds, 1, tsPtr, NULL);
+
+        if (result == -1 && errno == EINTR) {
+            uint64_t end = mach_absolute_time();
+            elapsed += (end - start);
+            start = end;
+
+        } else {
+            return result;
+        }
+    }
+}
+
+// pass in either a portSet or onePort. portSet is an epollfd, onePort is either a timerfd or an eventfd.
+// TODO: Better error handling. What should happen if we get an error on a file descriptor?
+static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort onePort, uint64_t timeout, int *livePort) {
+    struct pollfd fdInfo = {
+        .fd = (onePort == CFPORT_NULL) ? portSet : onePort,
+        .events = POLLIN
+    };
+
+    ssize_t result = __CFPollFileDescriptors(&fdInfo, 1, timeout);
+    if (result == 0)
+        return false;
+
+    CFAssert2(result != -1, __kCFLogAssertion, "%s(): error %d from ppoll", __PRETTY_FUNCTION__, errno);
+
+    int awokenFd;
+
+    if (onePort != CFPORT_NULL) {
+        CFAssert1(0 == (fdInfo.revents & (POLLERR|POLLHUP)), __kCFLogAssertion, "%s(): ppoll reported error for fd", __PRETTY_FUNCTION__);
+        awokenFd = onePort;
+
+    } else {
+        struct epoll_event event;
+        do {
+            result = epoll_wait(portSet, &event, 1 /*numEvents*/, 0 /*timeout*/);
+        } while (result == -1 && errno == EINTR);
+        CFAssert2(result >= 0, __kCFLogAssertion, "%s(): error %d from epoll_wait", __PRETTY_FUNCTION__, errno);
+
+        if (result == 0) {
+            return false;
+        }
+
+        awokenFd = event.data.fd;
+    }
+
+    // Now we acknowledge the wakeup. awokenFd is an eventfd (or possibly a
+    // timerfd ?). In either case, we read an 8-byte integer, as per eventfd(2)
+    // and timerfd_create(2).
+    uint64_t value;
+    do {
+        result = read(awokenFd, &value, sizeof(value));
+    } while (result == -1 && errno == EINTR);
+
+    if (result == -1 && errno == EAGAIN) {
+        // Another thread stole the wakeup for this fd. (FIXME Can this actually 
+        // happen?)
+        return false;   
+    }
+
+    CFAssert2(result == sizeof(value), __kCFLogAssertion, "%s(): error %d from read(2) while acknowledging wakeup", __PRETTY_FUNCTION__, errno);
+    
+    if (livePort)
+        *livePort = awokenFd;
+    
+    return true;
+}
+
 #elif DEPLOYMENT_TARGET_WINDOWS
 
 #define TIMEOUT_INFINITY INFINITE
@@ -2409,6 +2599,8 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 #elif DEPLOYMENT_TARGET_WINDOWS
         HANDLE livePort = NULL;
         Boolean windowsMessageReceived = false;
+#elif DEPLOYMENT_TARGET_LINUX
+        int livePort = -1;
 #endif
 	__CFPortSet waitSet = rlm->_portSet;
 
@@ -2431,6 +2623,10 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
             msg = (mach_msg_header_t *)msg_buffer;
             if (__CFRunLoopServiceMachPort(dispatchPort, &msg, sizeof(msg_buffer), &livePort, 0, &voucherState, NULL)) {
+                goto handle_msg;
+            }
+#elif DEPLOYMENT_TARGET_LINUX
+            if (__CFRunLoopServiceFileDescriptors(CFPORTSET_NULL, dispatchPort, 0, &livePort)) {
                 goto handle_msg;
             }
 #elif DEPLOYMENT_TARGET_WINDOWS
@@ -2501,6 +2697,8 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 #elif DEPLOYMENT_TARGET_WINDOWS
         // Here, use the app-supplied message queue mask. They will set this if they are interested in having this run loop receive windows messages.
         __CFRunLoopWaitForMultipleObjects(waitSet, NULL, poll ? 0 : TIMEOUT_INFINITY, rlm->_msgQMask, &livePort, &windowsMessageReceived);
+#elif DEPLOYMENT_TARGET_LINUX
+        __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, TIMEOUT_INFINITY, &livePort);
 #endif
         
         __CFRunLoopLock(rl);
@@ -2624,7 +2822,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 		    (void)mach_msg(reply, MACH_SEND_MSG, reply->msgh_size, 0, MACH_PORT_NULL, 0, MACH_PORT_NULL);
 		    CFAllocatorDeallocate(kCFAllocatorSystemDefault, reply);
 		}
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
                 sourceHandledThisLoop = __CFRunLoopDoSource1(rl, rlm, rls) || sourceHandledThisLoop;
 #endif
 	    }
@@ -2740,6 +2938,13 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
      * wakeup pending, since the queue length is 1. */
     ret = __CFSendTrivialMachMessage(rl->_wakeUpPort, 0, MACH_SEND_TIMEOUT, 0);
     if (ret != MACH_MSG_SUCCESS && ret != MACH_SEND_TIMED_OUT) CRASH("*** Unable to send message to wake up port. (%d) ***", ret);
+#elif DEPLOYMENT_TARGET_LINUX
+    int ret;
+    do {
+        ret = eventfd_write(rl->_wakeUpPort, 1);
+    } while (ret == -1 && errno == EINTR);
+
+    CFAssert1(0 == ret, __kCFLogAssertion, "%s(): Unable to send wake message to eventfd", __PRETTY_FUNCTION__);
 #elif DEPLOYMENT_TARGET_WINDOWS
     SetEvent(rl->_wakeUpPort);
 #endif
@@ -3278,7 +3483,7 @@ static CFStringRef __CFRunLoopSourceCopyDescription(CFTypeRef cf) {	/* DOES CALL
 	void *addr = rls->_context.version0.version == 0 ? (void *)rls->_context.version0.perform : (rls->_context.version0.version == 1 ? (void *)rls->_context.version1.perform : NULL);
 #if DEPLOYMENT_TARGET_WINDOWS
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %p}"), rls->_context.version0.version, rls->_context.version0.info, addr);
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
 	Dl_info info;
 	const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %s (%p)}"), rls->_context.version0.version, rls->_context.version0.info, name, addr);
@@ -3479,7 +3684,7 @@ static CFStringRef __CFRunLoopObserverCopyDescription(CFTypeRef cf) {	/* DOES CA
     }
 #if DEPLOYMENT_TARGET_WINDOWS
     result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopObserver %p [%p]>{valid = %s, activities = 0x%x, repeats = %s, order = %d, callout = %p, context = %@}"), cf, CFGetAllocator(rlo), __CFIsValid(rlo) ? "Yes" : "No", rlo->_activities, __CFRunLoopObserverRepeats(rlo) ? "Yes" : "No", rlo->_order, rlo->_callout, contextDesc);    
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
     void *addr = rlo->_callout;
     Dl_info info;
     const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";

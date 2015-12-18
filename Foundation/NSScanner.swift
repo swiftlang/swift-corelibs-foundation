@@ -143,7 +143,8 @@ internal struct _NSStringBuffer {
     
     mutating func advance() {
         if bufferLoc < bufferLen { /*buffer is OK*/
-            curChar = buffer[bufferLoc++]
+            curChar = buffer[bufferLoc]
+            bufferLoc += 1
         } else if (_stringLoc + bufferLen < stringLen) { /* Buffer is empty but can be filled */
             _stringLoc += bufferLen
             fill()
@@ -155,7 +156,7 @@ internal struct _NSStringBuffer {
     
     mutating func rewind() {
         if bufferLoc > 1 { /* Buffer is OK */
-            bufferLoc--
+            bufferLoc -= 1
             curChar = buffer[bufferLoc - 1]
         } else if _stringLoc > 0 { /* Buffer is empty but can be filled */
             bufferLoc = min(32, _stringLoc)
@@ -195,7 +196,8 @@ internal struct _NSStringBuffer {
                 fill()
             }
             bufferLoc = newValue - _stringLoc
-            curChar = buffer[bufferLoc++]
+            curChar = buffer[bufferLoc]
+            bufferLoc += 1
         }
     }
 }

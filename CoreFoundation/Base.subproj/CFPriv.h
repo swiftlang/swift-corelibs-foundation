@@ -563,9 +563,9 @@ CF_EXPORT CFMessagePortRef _CFMessagePortCreateLocalEx(CFAllocatorRef allocator,
 
 #endif
 
-#if TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE
 #include <pthread.h>
-#else
+#elif !TARGET_OS_LINUX
 // Avoid including the pthread header
 #ifndef HAVE_STRUCT_TIMESPEC
 #define HAVE_STRUCT_TIMESPEC 1

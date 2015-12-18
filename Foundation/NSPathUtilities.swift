@@ -87,14 +87,14 @@ internal extension String {
             
             while curPos < endPos {
                 while curPos < endPos && characterView[curPos] == "/" {
-                    curPos++
+                    curPos = curPos.successor()
                 }
                 if curPos == endPos {
                     break
                 }
                 var curEnd = curPos
                 while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd++
+                    curEnd = curEnd.successor()
                 }
                 result.append(String(characterView[curPos ..< curEnd]))
                 curPos = curEnd
@@ -204,14 +204,14 @@ public extension NSString {
             
             while curPos < endPos {
                 while curPos < endPos && characterView[curPos] == "/" {
-                    curPos++
+                    curPos = curPos.successor()
                 }
                 if curPos == endPos {
                     break
                 }
                 var curEnd = curPos
                 while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd++
+                    curEnd = curEnd.successor()
                 }
                 result.append(String(characterView[curPos ..< curEnd]))
                 curPos = curEnd
@@ -342,6 +342,8 @@ public extension NSString {
         return paths.map(stringByAppendingPathComponent)
     }
     
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePathIntoString(inout outputName: NSString?, caseSensitive flag: Bool, inout matchesIntoArray outputArray: [NSString], filterTypes: [String]?) -> Int {
         NSUnimplemented()
     }

@@ -26,7 +26,7 @@
 class TestNSAffineTransform : XCTestCase {
     private let accuracyThreshold = 0.001
 
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_IdentityTransformation", test_IdentityTransformation),
@@ -39,21 +39,36 @@ class TestNSAffineTransform : XCTestCase {
             ("test_Inversion", test_Inversion),
             ("test_IdentityTransformation", test_IdentityTransformation),
             ("test_Translation", test_Translation),
-            ("test_Translation2", test_Translation2),
             ("test_TranslationComposed", test_TranslationComposed),
+            ("test_AppendTransform", test_AppendTransform),
+            ("test_PrependTransform", test_PrependTransform),
+            ("test_TransformComposition", test_TransformComposition),
         ]
     }
     
-    func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", _ file: StaticString = __FILE__, _ line: UInt = __LINE__) {
+    func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
         let newPoint = transform.transformPoint(point)
-        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, "x: \(message)", file: file, line: line)
-        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold, "y: \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, file: file, line: line,
+                                   "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)")
+        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold, file: file, line: line,
+                                   "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)")
     }
     
-    func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", _ file: StaticString = __FILE__, _ line: UInt = __LINE__) {
+    func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
         let newSize = transform.transformSize(size)
-        XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, "width: \(message)", file: file, line: line)
-        XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold, "height: \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, file: file, line: line,
+                                   "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)")
+        XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold, file: file, line: line,
+                                   "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)")
+    }
+    
+    func checkRectTransformation(transform: NSAffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
+        let newRect = transform.transformRect(rect)
+        
+        checkPointTransformation(transform, point: newRect.origin, expectedPoint: expectedRect.origin, file: file, line: line,
+                                 "origin (expected: \(expectedRect.origin), was: \(newRect.origin)): \(message)")
+        checkSizeTransformation(transform, size: newRect.size, expectedSize: expectedRect.size, file: file, line: line,
+                                "size (expected: \(expectedRect.size), was: \(newRect.size)): \(message)")
     }
 
     func test_BasicConstruction() {
@@ -142,6 +157,14 @@ class TestNSAffineTransform : XCTestCase {
         tenEighty.rotateByDegrees(CGFloat(1080.0))
         checkPointTransformation(tenEighty, point: point, expectedPoint: point)
         
+        let rotateCounterClockwise = NSAffineTransform()
+        rotateCounterClockwise.rotateByDegrees(CGFloat(90.0))
+        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(10.0)))
+        
+        let rotateClockwise = NSAffineTransform()
+        rotateClockwise.rotateByDegrees(CGFloat(-90.0))
+        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat(-10.0)))
+        
         let reflectAboutOrigin = NSAffineTransform()
         reflectAboutOrigin.rotateByDegrees(CGFloat(180.0))
         checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
@@ -157,6 +180,14 @@ class TestNSAffineTransform : XCTestCase {
         let tenEighty = NSAffineTransform()
         tenEighty.rotateByRadians(CGFloat(6 * M_PI))
         checkPointTransformation(tenEighty, point: point, expectedPoint: point)
+        
+        let rotateCounterClockwise = NSAffineTransform()
+        rotateCounterClockwise.rotateByRadians(CGFloat(M_PI_2))
+        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(10.0)))
+        
+        let rotateClockwise = NSAffineTransform()
+        rotateClockwise.rotateByRadians(CGFloat(-M_PI_2))
+        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat(-10.0)))
         
         let reflectAboutOrigin = NSAffineTransform()
         reflectAboutOrigin.rotateByRadians(CGFloat(M_PI))
@@ -193,14 +224,6 @@ class TestNSAffineTransform : XCTestCase {
         identityTransform.appendTransform(translate)
         
         checkPointTransformation(identityTransform, point: point, expectedPoint: point)
-    }
-
-    func test_Translation2() {
-        let xPlus2 = NSAffineTransform()
-        xPlus2.translateXBy(CGFloat(2.0), yBy: CGFloat())
-
-        checkPointTransformation(xPlus2, point: NSMakePoint(CGFloat(22.0), CGFloat(10.0)),
-                                 expectedPoint: NSMakePoint(CGFloat(24.0), CGFloat(10.0)))
     }
 
     func test_TranslationComposed() {
@@ -243,5 +266,70 @@ class TestNSAffineTransform : XCTestCase {
         checkPointTransformation(xyTimes5XPlus3, point: NSMakePoint(CGFloat(1.0), CGFloat(2.0)),
                                          expectedPoint: NSMakePoint(CGFloat(20.0), CGFloat(10.0)))
     }
+    
+    func test_AppendTransform() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let identityTransform = NSAffineTransform()
+        identityTransform.appendTransform(identityTransform)
+        checkPointTransformation(identityTransform, point: point, expectedPoint: point)
+        
+        let translate = NSAffineTransform()
+        translate.translateXBy(CGFloat(10.0), yBy: CGFloat())
+        
+        let scale = NSAffineTransform()
+        scale.scaleBy(CGFloat(2.0))
+        
+        let translateThenScale = NSAffineTransform(transform: translate)
+        translateThenScale.appendTransform(scale)
+        checkPointTransformation(translateThenScale, point: point, expectedPoint: NSPoint(x: CGFloat(40.0), y: CGFloat(20.0)))
+    }
+    
+    func test_PrependTransform() {
+        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        
+        let identityTransform = NSAffineTransform()
+        identityTransform.prependTransform(identityTransform)
+        checkPointTransformation(identityTransform, point: point, expectedPoint: point)
+        
+        let translate = NSAffineTransform()
+        translate.translateXBy(CGFloat(10.0), yBy: CGFloat())
+        
+        let scale = NSAffineTransform()
+        scale.scaleBy(CGFloat(2.0))
+        
+        let scaleThenTranslate = NSAffineTransform(transform: translate)
+        scaleThenTranslate.prependTransform(scale)
+        checkPointTransformation(scaleThenTranslate, point: point, expectedPoint: NSPoint(x: CGFloat(30.0), y: CGFloat(20.0)))
+    }
+    
+    
+    func test_TransformComposition() {
+        let origin = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        let size = NSSize(width: CGFloat(40.0), height: CGFloat(20.0))
+        let rect = NSRect(origin: origin, size: size)
+        let center = NSPoint(x: NSMidX(rect), y: NSMidY(rect))
+        
+        let rotate = NSAffineTransform()
+        rotate.rotateByDegrees(CGFloat(90.0))
+        
+        let moveOrigin = NSAffineTransform()
+        moveOrigin.translateXBy(-center.x, yBy: -center.y)
+        
+        let moveBack = NSAffineTransform(transform: moveOrigin)
+        moveBack.invert()
+        
+        let rotateAboutCenter = NSAffineTransform(transform: rotate)
+        rotateAboutCenter.prependTransform(moveOrigin)
+        rotateAboutCenter.appendTransform(moveBack)
+        
+        // center of rect shouldn't move as its the rotation anchor
+        checkPointTransformation(rotateAboutCenter, point: center, expectedPoint: center)
+    }
 }
 
+extension NSAffineTransform {
+    func transformRect(aRect: NSRect) -> NSRect {
+        return NSRect(origin: transformPoint(aRect.origin), size: transformSize(aRect.size))
+    }
+}

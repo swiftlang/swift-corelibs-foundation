@@ -223,9 +223,12 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
             let theRest = CFURLCopyResourceSpecifier(cf)?._swiftObject
             
             if let netLoc = netLoc {
-                return "//\(netLoc)\(path ?? "")\(theRest ?? "")"
+                let p = path ?? ""
+                let rest = theRest ?? ""
+                return "//\(netLoc)\(p)\(rest)"
             } else if let path = path {
-                return "\(path)\(theRest ?? "")"
+                let rest = theRest ?? ""
+                return "\(path)\(rest)"
             } else {
                 return theRest
             }
@@ -516,11 +519,8 @@ public class NSURLComponents : NSObject, NSCopying {
     
     // Returns a URL created from the NSURLComponents. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
     public var URL: NSURL? {
-        if let result = _CFURLComponentsCopyURL(_components) {
-            return unsafeBitCast(result, NSURL.self)
-        } else {
-            return nil
-        }
+        guard let result = _CFURLComponentsCopyURL(_components) else { return nil }
+        return unsafeBitCast(result, NSURL.self)
     }
     
     // Returns a URL created from the NSURLComponents relative to a base URL. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
@@ -530,7 +530,7 @@ public class NSURLComponents : NSObject, NSCopying {
     
     // Returns a URL string created from the NSURLComponents. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
     public var string: String?  {
-        NSUnimplemented()
+        return _CFURLComponentsCopyString(_components)?._swiftObject
     }
     
     // Warning: IETF STD 66 (rfc3986) says the use of the format "user:password" in the userinfo subcomponent of a URI is deprecated because passing authentication information in clear text has proven to be a security risk. However, there are cases where this practice is still needed, and so the user and password components and methods are provided.
@@ -701,40 +701,36 @@ public class NSURLComponents : NSObject, NSCopying {
     
     /* These properties return the character range of a component in the URL string returned by -[NSURLComponents string]. If the component does not exist in the NSURLComponents object, {NSNotFound, 0} is returned. Note: Zero length components are legal. For example, the URL string "scheme://:@/?#" has a zero length user, password, host, query and fragment; the URL strings "scheme:" and "" both have a zero length path.
     */
-    private final func _convertRange(r : CFRange) -> NSRange {
-        return NSMakeRange(r.location == kCFNotFound ? NSNotFound : r.location, r.length)
-    }
-    
     public var rangeOfScheme: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfScheme(_components))
+        return NSRange(_CFURLComponentsGetRangeOfScheme(_components))
     }
     
     public var rangeOfUser: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfUser(_components))
+        return NSRange(_CFURLComponentsGetRangeOfUser(_components))
     }
     
     public var rangeOfPassword: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfPassword(_components))
+        return NSRange(_CFURLComponentsGetRangeOfPassword(_components))
     }
     
     public var rangeOfHost: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfHost(_components))
+        return NSRange(_CFURLComponentsGetRangeOfHost(_components))
     }
     
     public var rangeOfPort: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfPort(_components))
+        return NSRange(_CFURLComponentsGetRangeOfPort(_components))
     }
     
     public var rangeOfPath: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfPath(_components))
+        return NSRange(_CFURLComponentsGetRangeOfPath(_components))
     }
     
     public var rangeOfQuery: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfQuery(_components))
+        return NSRange(_CFURLComponentsGetRangeOfQuery(_components))
     }
     
     public var rangeOfFragment: NSRange {
-        return _convertRange(_CFURLComponentsGetRangeOfFragment(_components))
+        return NSRange(_CFURLComponentsGetRangeOfFragment(_components))
     }
     
     // The getter method that underlies the queryItems property parses the query string based on these delimiters and returns an NSArray containing any number of NSURLQueryItem objects, each of which represents a single key-value pair, in the order in which they appear in the original query string.  Note that a name may appear more than once in a single query string, so the name values are not guaranteed to be unique. If the NSURLComponents object has an empty query component, queryItems returns an empty NSArray. If the NSURLComponents object has no query component, queryItems returns nil.

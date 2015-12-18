@@ -80,6 +80,10 @@ public let NSNotFound: Int = Int.max
     fatalError("\(fn) is not yet implemented")
 }
 
+@noreturn func NSInvalidArgument(message: String, method: String = __FUNCTION__) {
+    fatalError("\(method): \(message)")
+}
+
 internal struct _CFInfo {
     // This must match _CFRuntimeBase
     var info: UInt32
@@ -88,6 +92,10 @@ internal struct _CFInfo {
         // This matches what _CFRuntimeCreateInstance does to initialize the info value
         info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
         pad = 0
+    }
+    init(typeID: CFTypeID, extra: UInt32) {
+        info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
+        pad = extra
     }
 }
 

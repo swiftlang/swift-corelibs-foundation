@@ -380,9 +380,9 @@ extension NSString {
     public func compare(string: String, options mask: NSStringCompareOptions, range compareRange: NSRange, locale: AnyObject?) -> NSComparisonResult {
         var res: CFComparisonResult
         if let loc = locale {
-            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRangeMake(compareRange.location, compareRange.length), mask._cfValue(true), (loc as! NSLocale)._cfObject)
+            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! NSLocale)._cfObject)
         } else {
-            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRangeMake(compareRange.location, compareRange.length), mask._cfValue(true), nil)
+            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), nil)
         }
         return NSComparisonResult._fromCF(res)
     }
@@ -520,9 +520,9 @@ extension NSString {
         var result = CFRange()
         let res = withUnsafeMutablePointer(&result) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
             if let loc = locale {
-                return CFStringFindWithOptionsAndLocale(_cfObject, searchString._cfObject, CFRangeMake(searchRange.location, searchRange.length), mask._cfValue(true), loc._cfObject, rangep)
+                return CFStringFindWithOptionsAndLocale(_cfObject, searchString._cfObject, CFRange(searchRange), mask._cfValue(true), loc._cfObject, rangep)
             } else {
-                return CFStringFindWithOptionsAndLocale(_cfObject, searchString._cfObject, CFRangeMake(searchRange.location, searchRange.length), mask._cfValue(true), nil, rangep)
+                return CFStringFindWithOptionsAndLocale(_cfObject, searchString._cfObject, CFRange(searchRange), mask._cfValue(true), nil, rangep)
             }
         }
         if res {
@@ -547,7 +547,7 @@ extension NSString {
         
         var result = CFRange()
         let res = withUnsafeMutablePointer(&result) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
-            return CFStringFindCharacterFromSet(_cfObject, searchSet._cfObject, CFRangeMake(searchRange.location, searchRange.length), mask._cfValue(), rangep)
+            return CFStringFindCharacterFromSet(_cfObject, searchSet._cfObject, CFRange(searchRange), mask._cfValue(), rangep)
         }
         if res {
             return NSMakeRange(result.location, result.length)
@@ -753,7 +753,7 @@ extension NSString {
                 buf.rewind()
                 if buf.currentCharacter == 0x0d {
                     lineSeparatorLength = 2
-                    endOfContents--
+                    endOfContents -= 1
                 }
             } else {
                 while true {
@@ -938,15 +938,21 @@ extension NSString {
                 let cfEncodings = CFStringGetListOfAvailableEncodings()
                 var idx = 0
                 var numEncodings = 0
-                while cfEncodings.advancedBy(idx++).memory != kCFStringEncodingInvalidId {
-                    numEncodings++
+                
+                while cfEncodings.advancedBy(idx).memory != kCFStringEncodingInvalidId {
+                    idx += 1
+                    numEncodings += 1
                 }
                 
                 let theEncodingList = UnsafeMutablePointer<NSStringEncoding>.alloc(numEncodings + 1)
                 theEncodingList.advancedBy(numEncodings).memory = 0 // Terminator
-                while --numEncodings >= 0 {
+                
+                numEncodings -= 1
+                while numEncodings >= 0 {
                     theEncodingList.advancedBy(numEncodings).memory = CFStringConvertEncodingToNSStringEncoding(cfEncodings.advancedBy(numEncodings).memory)
+                    numEncodings -= 1
                 }
+                
                 return UnsafePointer<UInt>(theEncodingList)
             }()
         }
@@ -1374,11 +1380,11 @@ extension NSMutableString {
         }
         
 
-        if let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorSystemDefault, _cfObject, target._cfObject, CFRangeMake(searchRange.location, searchRange.length), options._cfValue(true)) {
+        if let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorSystemDefault, _cfObject, target._cfObject, CFRange(searchRange), options._cfValue(true)) {
             let numOccurrences = CFArrayGetCount(findResults)
             for cnt in 0..<numOccurrences {
                 let range = UnsafePointer<CFRange>(CFArrayGetValueAtIndex(findResults, backwards ? cnt : numOccurrences - cnt - 1))
-                replaceCharactersInRange(NSMakeRange(range.memory.location, range.memory.length), withString: replacement)
+                replaceCharactersInRange(NSRange(range.memory), withString: replacement)
             }
             return numOccurrences
         } else {
@@ -1412,7 +1418,7 @@ extension String {
         var encodingArray = Array<NSStringEncoding>()
         while encodings.advancedBy(numEncodings).memory != CoreFoundation.kCFStringEncodingInvalidId {
             encodingArray.append(CFStringConvertEncodingToNSStringEncoding(encodings.advancedBy(numEncodings).memory))
-            numEncodings++
+            numEncodings += 1
         }
         return encodingArray
     }
