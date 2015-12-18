@@ -28,7 +28,8 @@ class TestNSTimeZone: XCTestCase {
             // Disabled see https://bugs.swift.org/browse/SR-300
             // ("test_abbreviation", test_abbreviation),
             ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
-            ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
+            // Also disabled due to https://bugs.swift.org/browse/SR-300
+            // ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
         ]
     }
 
