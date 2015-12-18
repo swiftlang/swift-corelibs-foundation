@@ -412,14 +412,36 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
 
     public func indexOfObject(obj: AnyObject, inSortedRange r: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int {
-        guard (r.location + r.length) <= count else {
-            NSInvalidArgument("range \(r) extends beyond bounds [0 .. \(count - 1)]")
+        let lastIndex = r.location + r.length - 1
+        
+        // argument validation
+        guard lastIndex < count else {
+            let bounds = count == 0 ? "for empty array" : "[0 .. \(count - 1)]"
+            NSInvalidArgument("range \(r) extends beyond bounds \(bounds)")
         }
         
         if opts.contains(.FirstEqual) && opts.contains(.LastEqual) {
             NSInvalidArgument("both NSBinarySearching.FirstEqual and NSBinarySearching.LastEqual options cannot be specified")
         }
         
+        let searchForInsertionIndex = opts.contains(.InsertionIndex)
+        
+        // fringe cases
+        if r.length == 0 {
+            return  searchForInsertionIndex ? r.location : NSNotFound
+        }
+        
+        let leastObj = objectAtIndex(r.location)
+        if cmp(obj, leastObj) == .OrderedAscending {
+            return searchForInsertionIndex ? r.location : NSNotFound
+        }
+        
+        let greatestObj = objectAtIndex(lastIndex)
+        if cmp(obj, greatestObj) == .OrderedDescending {
+            return searchForInsertionIndex ? lastIndex + 1 : NSNotFound
+        }
+        
+        // common processing
         let firstEqual = opts.contains(.FirstEqual)
         let lastEqual = opts.contains(.LastEqual)
         let anyEqual = !(firstEqual || lastEqual)
@@ -427,7 +449,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         var result = NSNotFound
         var indexOfLeastGreaterThanObj = NSNotFound
         var start = r.location
-        var end = r.location + r.length - 1
+        var end = lastIndex
         
         loop: while start <= end {
             let middle = start + (end - start) / 2
@@ -459,16 +481,12 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             }
         }
         
-        guard opts.contains(.InsertionIndex) && lastEqual else {
+        guard searchForInsertionIndex && lastEqual else {
             return result
         }
         
         guard result == NSNotFound else {
             return result + 1
-        }
-        
-        guard indexOfLeastGreaterThanObj != NSNotFound else {
-            return count
         }
         
         return indexOfLeastGreaterThanObj

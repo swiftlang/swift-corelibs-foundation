@@ -199,6 +199,8 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSXMLParser.comment = _NSXMLParserComment
     __CFSwiftBridge.NSXMLParser.externalSubset = _NSXMLParserExternalSubset
     
+    __CFSwiftBridge.NSRunLoop._new = _NSRunLoopNew
+    
     __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
 

@@ -25,22 +25,26 @@ class TestNSTimeZone: XCTestCase {
 
     var allTests : [(String, () -> Void)] {
         return [
-            ("test_abbreviation", test_abbreviation),
+            // Disabled see https://bugs.swift.org/browse/SR-300
+            // ("test_abbreviation", test_abbreviation),
             ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
-            ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
+            // Also disabled due to https://bugs.swift.org/browse/SR-300
+            // ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
         ]
     }
 
     func test_abbreviation() {
         let tz = NSTimeZone.systemTimeZone()
-        XCTAssertEqual(tz.abbreviation, tz.abbreviationForDate(NSDate()))
+        let abbreviation1 = tz.abbreviation
+        let abbreviation2 = tz.abbreviationForDate(NSDate())
+        XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1) should be equal to \(abbreviation2)")
     }
     
     func test_initializingTimeZoneWithOffset() {
         let tz = NSTimeZone(name: "GMT-0400")
         XCTAssertNotNil(tz)
         let seconds = tz?.secondsFromGMTForDate(NSDate())
-        XCTAssertEqual(seconds, -14400)
+        XCTAssertEqual(seconds, -14400, "GMT-0400 should be -14400 seconds but got \(seconds) instead")
     }
     
     func test_systemTimeZoneUsesSystemTime() {
@@ -50,6 +54,6 @@ class TestNSTimeZone: XCTestCase {
         localtime_r(&t, &lt)
         let zoneName = NSTimeZone.systemTimeZone().abbreviation ?? "Invalid Abbreviation"
         let expectedName = NSString(CString: lt.tm_zone, encoding: NSASCIIStringEncoding)?.bridge() ?? "Invalid Zone"
-        XCTAssertEqual(zoneName, expectedName)
+        XCTAssertEqual(zoneName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(zoneName)\"")
     }
 }

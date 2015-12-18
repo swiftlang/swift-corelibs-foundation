@@ -45,7 +45,8 @@ class TestNSString : XCTestCase {
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
             ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
             ("test_swiftStringUTF16", test_swiftStringUTF16),
-            ("test_completePathIntoString", test_completePathIntoString)
+            ("test_completePathIntoString", test_completePathIntoString),
+            ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet)
         ]
     }
 
@@ -443,5 +444,11 @@ class TestNSString : XCTestCase {
             result = result && NSFileManager.defaultManager().createFileAtPath(name, contents: nil, attributes: nil)
         }
         return result
+    }
+
+    func test_stringByTrimmingCharactersInSet() {
+        let characterSet = NSCharacterSet.whitespaceCharacterSet()
+        let string: NSString = " abc   "
+        XCTAssertEqual(string.stringByTrimmingCharactersInSet(characterSet), "abc")
     }
 }

@@ -485,7 +485,50 @@ public func NSOffsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect 
     return result
 }
 
-public func NSDivideRect(inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, _ rem: UnsafeMutablePointer<NSRect>, _ amount: CGFloat, _ edge: NSRectEdge) { NSUnimplemented() }
+public func NSDivideRect(inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, _ rem: UnsafeMutablePointer<NSRect>, _ amount: CGFloat, _ edge: NSRectEdge) {
+    if NSIsEmptyRect(inRect) {
+        slice.memory = NSZeroRect
+        rem.memory = NSZeroRect
+        return
+    }
+
+    let width = NSWidth(inRect)
+    let height = NSHeight(inRect)
+
+    switch (edge, amount) {
+    case (.MinX, let amount) where amount > width:
+        slice.memory = inRect
+        rem.memory = NSMakeRect(NSMaxX(inRect), NSMinY(inRect), CGFloat(0.0), height)
+
+    case (.MinX, _):
+        slice.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), amount, height)
+        rem.memory = NSMakeRect(NSMaxX(slice.memory), NSMinY(inRect), NSMaxX(inRect) - NSMaxX(slice.memory), height)
+
+    case (.MinY, let amount) where amount > height:
+        slice.memory = inRect
+        rem.memory = NSMakeRect(NSMinX(inRect), NSMaxY(inRect), width, CGFloat(0.0))
+
+    case (.MinY, _):
+        slice.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, amount)
+        rem.memory = NSMakeRect(NSMinX(inRect), NSMaxY(slice.memory), width, NSMaxY(inRect) - NSMaxY(slice.memory))
+
+    case (.MaxX, let amount) where amount > width:
+        slice.memory = inRect
+        rem.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), CGFloat(0.0), height)
+
+    case (.MaxX, _):
+        slice.memory = NSMakeRect(NSMaxX(inRect) - amount, NSMinY(inRect), amount, height)
+        rem.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), NSMinX(slice.memory) - NSMinX(inRect), height)
+
+    case (.MaxY, let amount) where amount > height:
+        slice.memory = inRect
+        rem.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, CGFloat(0.0))
+
+    case (.MaxY, _):
+        slice.memory = NSMakeRect(NSMinX(inRect), NSMaxY(inRect) - amount, width, amount)
+        rem.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, NSMinY(slice.memory) - NSMinY(inRect))
+    }
+}
 
 public func NSPointInRect(aPoint: NSPoint, _ aRect: NSRect) -> Bool {
     return NSMouseInRect(aPoint, aRect, true)
