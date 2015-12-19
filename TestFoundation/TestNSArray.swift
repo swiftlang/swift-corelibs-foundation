@@ -13,7 +13,7 @@
 import Foundation
 import XCTest
 #else
-import SwiftFoundation
+@testable import SwiftFoundation
 import SwiftXCTest
 #endif
 
@@ -36,6 +36,7 @@ class TestNSArray : XCTestCase {
             ("test_sortedArrayWithOptionsUsingComparator", test_sortedArrayWithOptionsUsingComparator),
             ("test_arrayReplacement", test_arrayReplacement),
             ("test_arrayReplaceObjectsInRangeFromRange", test_arrayReplaceObjectsInRangeFromRange),
+            ("test_sortedArrayFromRange", test_sortedArrayFromRange)
         ]
     }
     
@@ -301,5 +302,17 @@ class TestNSArray : XCTestCase {
         // sort empty array
         let emptyArray = NSArray().sortedArrayWithOptions([]) { _,_ in .OrderedSame }
         XCTAssertTrue(emptyArray.isEmpty)
+    }
+    
+    func test_sortedArrayFromRange() {
+        let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
+        let range = 1...5
+        let expectedResult = input[range].sort()
+        let result = input.bridge().sortedArrayFromRange(NSRange(range), options: []) { left, right -> NSComparisonResult in
+            let l = left as! NSString
+            let r = right as! NSString
+            return l.localizedCaseInsensitiveCompare(r.bridge())
+        }
+        XCTAssertEqual(result.map { ($0 as! NSString).bridge()} , expectedResult)
     }
 }

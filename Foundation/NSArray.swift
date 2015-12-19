@@ -403,7 +403,8 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             return []
         }
 
-        return allObjects.sort { lhs, rhs in
+        let swiftRange = range.toRange()!
+        return allObjects[swiftRange].sort { lhs, rhs in
             return cmptr(lhs, rhs) == .OrderedAscending
         }
     }
