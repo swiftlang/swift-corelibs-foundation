@@ -389,6 +389,13 @@ public class NSNumber : NSValue {
     override internal var _cfTypeID: CFTypeID {
         return CFNumberGetTypeID()
     }
+    
+    public override var description: String {
+        let locale = CFLocaleCopyCurrent()
+        let formatter = CFNumberFormatterCreate(nil, locale, .DecimalStyle)
+        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
+        return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
+    }
 }
 
 extension CFNumberRef : _NSBridgable {
