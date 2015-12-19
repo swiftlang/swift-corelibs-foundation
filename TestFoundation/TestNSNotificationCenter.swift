@@ -22,6 +22,8 @@ class TestNSNotificationCenter : XCTestCase {
         return [
             ("test_defaultCenter", test_defaultCenter),
             ("test_postNotification", test_postNotification),
+            // ("test_postNotificationOnSpyQueue", test_postNotificationOnSpyQueue),  // Unimplemented
+                                                                                            // Uncomment when NSOperationQueue is implemented.
             ("test_postNotificationForObject", test_postNotificationForObject),
             ("test_postMultipleNotifications", test_postMultipleNotifications),
             ("test_addObserverForNilName", test_addObserverForNilName),
@@ -58,6 +60,31 @@ class TestNSNotificationCenter : XCTestCase {
         
         notificationCenter.postNotificationName(notificationName, object: dummyObject)
         XCTAssertTrue(flag)
+        
+        removeObserver(observer, notificationCenter: notificationCenter)
+    }
+    
+    func test_postNotificationOnSpyQueue() {
+        
+        class SpyQueue : NSOperationQueue {
+            var addOperationCalled = false
+
+            override func addOperation(op: NSOperation) {
+                addOperationCalled = true
+            }
+        }
+        
+        let notificationCenter = NSNotificationCenter()
+        let notificationName = "test_postNotification_name"
+
+        let dummyObject = NSObject()
+        let spy = SpyQueue()
+        let observer = notificationCenter.addObserverForName(notificationName, object: dummyObject, queue: spy) { notification in
+            
+        }
+        
+        notificationCenter.postNotificationName(notificationName, object: dummyObject)
+        XCTAssertTrue(spy.addOperationCalled)
         
         removeObserver(observer, notificationCenter: notificationCenter)
     }

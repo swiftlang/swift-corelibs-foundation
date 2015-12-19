@@ -49,7 +49,8 @@ private class NSNotificationReceiver : NSObject {
     private weak var object: NSObject?
     private var name: String?
     private var block: ((NSNotification) -> Void)?
-    private var sender: AnyObject?
+    private weak var sender: AnyObject?
+    private weak var queue: NSOperationQueue?
 }
 
 
@@ -57,25 +58,31 @@ private let _defaultCenter: NSNotificationCenter = NSNotificationCenter()
 
 public class NSNotificationCenter : NSObject {
     
-    private var observers: [NSNotificationReceiver]
-    
-    public required override init() {
-        observers = [NSNotificationReceiver]()
-    }
+    private var _observers = [NSNotificationReceiver]()
+    private let _observersLock = NSLock()
     
     public class func defaultCenter() -> NSNotificationCenter {
         return _defaultCenter
     }
     
+    private func synchronized<T>(lock: NSLock, closure: () -> T) -> T {
+        lock.lock()
+        defer { lock.unlock() }
+        return closure()
+    }
+    
     public func postNotification(notification: NSNotification) {
+
         let name = notification.name
         let sender = notification.object
-        
-        let sendTo = observers.filter { observer in
-            let sameName = (observer.name == nil || observer.name == name)
-            let sameSender = (observer.sender == nil || observer.sender === sender)
+
+        let sendTo = synchronized(_observersLock) {
+            return self._observers.filter { observer in
+                let sameName = (observer.name == nil || observer.name == name)
+                let sameSender = (observer.sender == nil || observer.sender === sender)
             
-            return sameSender && sameName
+                return sameSender && sameName
+            }
         }
         
         for observer in sendTo {
@@ -83,7 +90,17 @@ public class NSNotificationCenter : NSObject {
                 continue
             }
             
-            block(notification)
+            if let queue = observer.queue where queue != NSOperationQueue.currentQueue() {
+                
+                let operation = NSBlockOperation {
+                    block(notification)
+                }
+                
+                queue.addOperation(operation)
+                operation.waitUntilFinished()
+            } else {
+                block(notification)
+            }
         }
     }
 
@@ -102,22 +119,22 @@ public class NSNotificationCenter : NSObject {
     }
 
     public func removeObserver(observer: AnyObject, name aName: String?, object anObject: AnyObject?) {
-        guard let observer = observer as? NSObject else {
+        
+        guard let observerToRemove = observer as? NSObject else {
             return
         }
         
-        observers = observers.filter { curObserver in
-            return (curObserver.object !== observer)
-                || (aName != nil && curObserver.name != aName)
-                || (anObject != nil && curObserver.sender !== anObject)
+        _observersLock.lock()
+        defer { _observersLock.unlock() }
+        
+        _observers = _observers.filter { observer in
+            return (observer.object !== observerToRemove)
+                || (aName != nil && observer.name != aName)
+                || (anObject != nil && observer.sender !== anObject)
         }
     }
-
     
     public func addObserverForName(name: String?, object obj: AnyObject?, queue: NSOperationQueue?, usingBlock block: (NSNotification) -> Void) -> NSObjectProtocol {
-        if queue != nil {
-            NSUnimplemented()
-        }
 
         let object = NSObject()
         
@@ -126,8 +143,11 @@ public class NSNotificationCenter : NSObject {
         newObserver.name = name
         newObserver.block = block
         newObserver.sender = obj
+        newObserver.queue = queue
         
-        observers.append(newObserver)
+        _observersLock.lock()
+        _observers.append(newObserver)
+        _observersLock.unlock()
         
         return object
     }
