@@ -29,8 +29,13 @@ class TestNSArray : XCTestCase {
             ("test_getObjects", test_getObjects),
             ("test_objectAtIndex", test_objectAtIndex),
             ("test_binarySearch", test_binarySearch),
+            ("test_binarySearchFringeCases", test_binarySearchFringeCases),
             ("test_replaceObjectsInRange_withObjectsFromArray", test_replaceObjectsInRange_withObjectsFromArray),
             ("test_replaceObjectsInRange_withObjectsFromArray_range", test_replaceObjectsInRange_withObjectsFromArray_range),
+            ("test_sortedArrayUsingComparator", test_sortedArrayUsingComparator),
+            ("test_sortedArrayWithOptionsUsingComparator", test_sortedArrayWithOptionsUsingComparator),
+            ("test_arrayReplacement", test_arrayReplacement),
+            ("test_arrayReplaceObjectsInRangeFromRange", test_arrayReplaceObjectsInRangeFromRange),
         ]
     }
     
@@ -140,8 +145,63 @@ class TestNSArray : XCTestCase {
         let indexOfLeastGreaterObjectThanFive = objectIndexInArray(array, value: 5, startingFrom: 0, length: 10, options: [.InsertionIndex, .LastEqual])
         XCTAssertTrue(indexOfLeastGreaterObjectThanFive == 7, "If both .InsertionIndex and .LastEqual are specified NSArray returns the index of the least greater object...")
         
-        let endOfArray = objectIndexInArray(array, value: 10, startingFrom: 0, length: 13, options: [.InsertionIndex, .LastEqual])
-        XCTAssertTrue(endOfArray == array.count, "...or the index at the end of the array if the object is larger than all other elements.")
+        let rangeStart = 0
+        let rangeLength = 13
+        let endOfArray = objectIndexInArray(array, value: 10, startingFrom: rangeStart, length: rangeLength, options: [.InsertionIndex, .LastEqual])
+        XCTAssertTrue(endOfArray == (rangeStart + rangeLength), "...or the index at the end of the array if the object is larger than all other elements.")
+    }
+
+
+    func test_arrayReplacement() {
+        let array = NSMutableArray(array: [
+                               NSNumber(int: 0), NSNumber(int: 1), NSNumber(int: 2), NSNumber(int: 3),
+                               NSNumber(int: 4), NSNumber(int: 5), NSNumber(int: 7)])
+        array.replaceObjectsInRange(NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(int: 8), NSNumber(int: 9)])
+        XCTAssertTrue((array[0] as! NSNumber).integerValue == 8)
+        XCTAssertTrue((array[1] as! NSNumber).integerValue == 9)
+        XCTAssertTrue((array[2] as! NSNumber).integerValue == 2)
+    }
+
+    func test_arrayReplaceObjectsInRangeFromRange() {
+        let array = NSMutableArray(array: [
+                                      NSNumber(int: 0), NSNumber(int: 1), NSNumber(int: 2), NSNumber(int: 3),
+                                      NSNumber(int: 4), NSNumber(int: 5), NSNumber(int: 7)])
+        array.replaceObjectsInRange(NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(int: 8), NSNumber(int: 9), NSNumber(int: 10)], range: NSRange(location: 1, length: 2))
+        XCTAssertTrue((array[0] as! NSNumber).integerValue == 9)
+        XCTAssertTrue((array[1] as! NSNumber).integerValue == 10)
+        XCTAssertTrue((array[2] as! NSNumber).integerValue == 2)
+    }
+    
+    func test_binarySearchFringeCases() {
+        let array = NSArray(array: [
+            NSNumber(int: 0), NSNumber(int: 1), NSNumber(int: 2), NSNumber(int: 2), NSNumber(int: 3),
+            NSNumber(int: 4), NSNumber(int: 4), NSNumber(int: 6), NSNumber(int: 7), NSNumber(int: 7),
+            NSNumber(int: 7), NSNumber(int: 8), NSNumber(int: 9), NSNumber(int: 9)])
+        
+        let emptyArray = NSArray()
+//        Same as for non empty NSArray but error message ends with 'bounds for empty array'.
+//        let _ = objectIndexInArray(emptyArray, value: 0, startingFrom: 0, length: 1)
+        
+        let notFoundInEmptyArray = objectIndexInArray(emptyArray, value: 9, startingFrom: 0, length: 0)
+        XCTAssertEqual(notFoundInEmptyArray, NSNotFound, "Empty NSArray return NSNotFound for any valid arguments.")
+        
+        let startIndex = objectIndexInArray(emptyArray, value: 7, startingFrom: 0, length: 0, options: [.InsertionIndex])
+        XCTAssertTrue(startIndex == 0, "For Empty NSArray any objects should be inserted at start.")
+        
+        let rangeStart = 0
+        let rangeLength = 13
+        
+        let leastSearch = objectIndexInArray(array, value: -1, startingFrom: rangeStart, length: rangeLength)
+        XCTAssertTrue(leastSearch == NSNotFound, "If object is less than least object in the range then there is no change it could be found.")
+        
+        let greatestSearch = objectIndexInArray(array, value: 15, startingFrom: rangeStart, length: rangeLength)
+        XCTAssertTrue(greatestSearch == NSNotFound, "If object is greater than greatest object in the range then there is no change it could be found.")
+        
+        let leastInsert = objectIndexInArray(array, value: -1, startingFrom: rangeStart, length: rangeLength, options: .InsertionIndex)
+        XCTAssertTrue(leastInsert == rangeStart, "If object is less than least object in the range it should be inserted at range' location.")
+        
+        let greatestInsert = objectIndexInArray(array, value: 15, startingFrom: rangeStart, length: rangeLength, options: .InsertionIndex)
+        XCTAssertTrue(greatestInsert == (rangeStart + rangeLength), "If object is greater than greatest object in the range it should be inserted at range' end.")
     }
     
     func objectIndexInArray(array: NSArray, value: Int, startingFrom: Int, length: Int, options: NSBinarySearchingOptions = []) -> Int {
@@ -197,5 +257,49 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array1[1] as? NSString, "bar2".bridge(), "Expected bar2 but was \(array1[1])")
         XCTAssertEqual(array1[2] as? NSString, "baz2".bridge(), "Expected baz2 but was \(array1[2])")
         XCTAssertEqual(array1[3] as? NSString, "baz1".bridge(), "Expected baz1 but was \(array1[3])")
+    }
+
+    func test_sortedArrayUsingComparator() {
+        // sort with localized caseInsensitive compare
+        let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
+        let expectedResult: Array<String> = input.sort()
+        let result = input.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+            let l = left as! NSString
+            let r = right as! NSString
+            return l.localizedCaseInsensitiveCompare(r.bridge())
+        }
+        XCTAssertEqual(result.map { ($0 as! NSString).bridge()} , expectedResult)
+
+        // sort empty array
+        let emptyArray = NSArray().sortedArrayUsingComparator { _,_ in .OrderedSame }
+        XCTAssertTrue(emptyArray.isEmpty)
+
+        // sort numbers
+        let inputNumbers = [0, 10, 25, 100, 21, 22]
+        let expectedNumbers = inputNumbers.sort()
+        let resultNumbers = inputNumbers.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+            let l = (left as! NSNumber).integerValue
+            let r = (right as! NSNumber).integerValue
+            return l < r ? .OrderedAscending : (l > r ? .OrderedSame : .OrderedDescending)
+        }
+        XCTAssertEqual(resultNumbers.map { ($0 as! NSNumber).integerValue}, expectedNumbers)
+    }
+
+    func test_sortedArrayWithOptionsUsingComparator() {
+        // check that sortedArrayWithOptions:comparator: works in the way sortedArrayUsingComparator does
+        let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"].bridge()
+        let comparator: (AnyObject, AnyObject) -> NSComparisonResult = { left, right -> NSComparisonResult in
+            let l = left as! NSString
+            let r = right as! NSString
+            return l.localizedCaseInsensitiveCompare(r.bridge())
+        }
+        let result1 = input.sortedArrayUsingComparator(comparator)
+        let result2 = input.sortedArrayWithOptions([], usingComparator: comparator)
+
+        XCTAssertTrue(result1.bridge().isEqualToArray(result2))
+
+        // sort empty array
+        let emptyArray = NSArray().sortedArrayWithOptions([]) { _,_ in .OrderedSame }
+        XCTAssertTrue(emptyArray.isEmpty)
     }
 }

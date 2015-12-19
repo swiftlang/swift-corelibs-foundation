@@ -177,6 +177,10 @@ struct _NSXMLParserBridge {
                            const unsigned char *SystemID);
 };
 
+struct _NSRunLoop {
+    _Nonnull CFTypeRef (*_Nonnull _new)(CFRunLoopRef rl);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -188,6 +192,7 @@ struct _CFSwiftBridge {
     struct _NSStringBridge NSString;
     struct _NSMutableStringBridge NSMutableString;
     struct _NSXMLParserBridge NSXMLParser;
+    struct _NSRunLoop NSRunLoop;
 };
 
 __attribute__((__visibility__("hidden"))) extern struct _CFSwiftBridge __CFSwiftBridge;
@@ -263,6 +268,8 @@ extern int _CFOpenFile(const char *path, int opts);
 extern void *_CFReallocf(void *ptr, size_t size);
 
 CFHashCode CFStringHashNSString(CFStringRef str);
+
+extern CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
 
 extern CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding, uint8_t lossByte,  UInt8 * _Nullable buffer, CFIndex max, CFIndex * _Nullable usedBufLen);
 

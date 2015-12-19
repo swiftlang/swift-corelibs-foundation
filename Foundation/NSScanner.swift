@@ -182,7 +182,7 @@ internal struct _NSStringBuffer {
     
     var location: Int {
         get {
-            return _stringLoc
+            return _stringLoc + bufferLoc - 1
         }
         mutating set {
             if newValue < _stringLoc || newValue >= _stringLoc + bufferLen {

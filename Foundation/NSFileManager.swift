@@ -191,20 +191,115 @@ public class NSFileManager : NSObject {
         }
     }
     
-    /* contentsOfDirectoryAtPath:error: returns an NSArray of NSStrings representing the filenames of the items in the directory. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter. If the directory contains no items, this method will return the empty array.
+    /**
+     Performs a shallow search of the specified directory and returns the paths of any contained items.
      
-        This method replaces directoryContentsAtPath:
+     This method performs a shallow search of the directory and therefore does not traverse symbolic links or return the contents of any subdirectories. This method also does not return URLs for the current directory (“.”), parent directory (“..”) but it does return other hidden files (files that begin with a period character).
+     
+     The order of the files in the returned array is undefined.
+     
+     - Parameter path: The path to the directory whose contents you want to enumerate.
+     
+     - Throws: `NSError` if the directory does not exist, this error is thrown with the associated error code.
+     
+     - Returns: An array of String each of which identifies a file, directory, or symbolic link contained in `path`. The order of the files returned is undefined.
      */
     public func contentsOfDirectoryAtPath(path: String) throws -> [String] {
-        NSUnimplemented()
+        var contents : [String] = [String]()
+        
+        let dir = opendir(path)
+        
+        if dir == nil {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadNoSuchFileError.rawValue, userInfo: [NSFilePathErrorKey: path])
+        }
+        
+        defer {
+            closedir(dir)
+        }
+        
+        var entry: UnsafeMutablePointer<dirent> = readdir(dir)
+        
+        while entry != nil {
+            if let entryName = withUnsafePointer(&entry.memory.d_name, { (ptr) -> String? in
+                let int8Ptr = unsafeBitCast(ptr, UnsafePointer<Int8>.self)
+                return String.fromCString(int8Ptr)
+            }) {
+                // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
+                if entryName != "." && entryName != ".." {
+                    contents.append(entryName)
+                }
+            }
+            
+            entry = readdir(dir)
+        }
+        
+        return contents
     }
     
-    /* subpathsOfDirectoryAtPath:error: returns an NSArray of NSStrings representing the filenames of the items in the specified directory and all its subdirectories recursively. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter. If the directory contains no items, this method will return the empty array.
-     
-        This method replaces subpathsAtPath:
-     */
+    /**
+    Performs a deep enumeration of the specified directory and returns the paths of all of the contained subdirectories.
+    
+    This method recurses the specified directory and its subdirectories. The method skips the “.” and “..” directories at each level of the recursion.
+    
+    Because this method recurses the directory’s contents, you might not want to use it in performance-critical code. Instead, consider using the enumeratorAtURL:includingPropertiesForKeys:options:errorHandler: or enumeratorAtPath: method to enumerate the directory contents yourself. Doing so gives you more control over the retrieval of items and more opportunities to abort the enumeration or perform other tasks at the same time.
+    
+    - Parameter path: The path of the directory to list.
+    
+    - Throws: `NSError` if the directory does not exist, this error is thrown with the associated error code.
+    
+    - Returns: An array of NSString objects, each of which contains the path of an item in the directory specified by path. If path is a symbolic link, this method traverses the link. This method returns nil if it cannot retrieve the device of the linked-to file.
+    */
     public func subpathsOfDirectoryAtPath(path: String) throws -> [String] {
-        NSUnimplemented()
+        var contents : [String] = [String]()
+        
+        let dir = opendir(path)
+        
+        if dir == nil {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadNoSuchFileError.rawValue, userInfo: [NSFilePathErrorKey: path])
+        }
+        
+        defer {
+            closedir(dir)
+        }
+        
+        var entry = readdir(dir)
+        
+        while entry != nil {
+            if let entryName = withUnsafePointer(&entry.memory.d_name, { (ptr) -> String? in
+                let int8Ptr = unsafeBitCast(ptr, UnsafePointer<Int8>.self)
+                return String.fromCString(int8Ptr)
+            }) {
+                // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
+                if entryName != "." && entryName != ".." {
+                    contents.append(entryName)
+                    
+                    if let entryType = withUnsafePointer(&entry.memory.d_type, { (ptr) -> Int32? in
+                        let int32Ptr = unsafeBitCast(ptr, UnsafePointer<UInt8>.self)
+                        return Int32(int32Ptr.memory)
+                    }) {
+                        #if os(OSX) || os(iOS)
+                            if entryType == DT_DIR {
+                                let subPath: String = path + "/" + entryName
+                                
+                                let entries =  try subpathsOfDirectoryAtPath(subPath)
+                                contents.appendContentsOf(entries.map({file in "\(entryName)/\(file)"}))
+                            }
+                        #elseif os(Linux)
+                            if Int(entryType) == DT_DIR {
+                                let subPath: String = path + "/" + entryName
+                                
+                                let entries =  try subpathsOfDirectoryAtPath(subPath)
+                                contents.appendContentsOf(entries.map({file in "\(entryName)/\(file)"}))
+                            }
+                        #endif
+                    }
+                }
+            }
+            
+            entry = readdir(dir)
+        }
+        
+        return contents
     }
     
     /* attributesOfItemAtPath:error: returns an NSDictionary of key/value pairs containing the attributes of the item (file, directory, symlink, etc.) at the path in question. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.

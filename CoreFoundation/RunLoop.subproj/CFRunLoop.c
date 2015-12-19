@@ -1526,7 +1526,12 @@ CF_PRIVATE void __CFFinalizeRunLoop(uintptr_t data) {
     }
     if (rl && CFRunLoopGetMain() != rl) { // protect against cooperative threads
         if (NULL != rl->_counterpart) {
+#if DEPLOYMENT_RUNTIME_SWIFT
+            extern void swift_release(void *);
+            swift_release((void *)rl->_counterpart);
+#else
             CFRelease(rl->_counterpart);
+#endif
 	    rl->_counterpart = NULL;
         }
 	// purge all sources before deallocation
@@ -1549,6 +1554,12 @@ pthread_t _CFRunLoopGet1(CFRunLoopRef rl) {
 CF_EXPORT CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl) {
     CFTypeRef ret = NULL;
     __CFLock(&loopsLock);
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (rl->_counterpart == NULL) {
+        CFTypeRef ns = __CFSwiftBridge.NSRunLoop._new(rl); // returns retained so we will claim ownership of that return value by just assigning (the release is balanced in the destruction of the CFRunLoop
+        rl->_counterpart = ns;
+    }
+#endif
     ret = rl->_counterpart;
     __CFUnlock(&loopsLock);
     return ret;

@@ -247,7 +247,7 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
     var nsDict = [String:String]()
     var attrDict = [String:String]()
     if nb_attributes + nb_namespaces > 0 {
-        for var idx = 0; idx < Int(nb_namespaces) * 2; idx += 2 {
+        for idx in 0.stride(to: Int(nb_namespaces) * 2, by: 2) {
             var namespaceNameString: String?
             var asAttrNamespaceNameString: String?
             if namespaces[idx] != nil {
@@ -277,7 +277,7 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
         parser._pushNamespaces(nsDict)
     }
     
-    for var idx = 0; idx < Int(nb_attributes) * 5; idx += 5 {
+    for idx in 0.stride(to: Int(nb_attributes) * 5, by: 5) {
         if attributes[idx] == nil {
             continue
         }
