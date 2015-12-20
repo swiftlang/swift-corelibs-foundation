@@ -36,7 +36,7 @@ public struct CGFloat {
 extension CGFloat: Comparable { }
 
 public func ==(lhs: CGFloat, rhs: CGFloat) -> Bool {
-    return lhs.native == rhs.native
+    return abs(lhs.native - rhs.native) < DBL_EPSILON
 }
 
 public func <(lhs: CGFloat, rhs: CGFloat) -> Bool {
@@ -566,66 +566,65 @@ public func NSStringFromRect(aRect: NSRect) -> String {
     return "{\(originString), \(sizeString)}"
 }
 
-private func _scanTwoNumbersFromGeometryString(aString: String) -> (first: Double, second: Double) {
-    guard aString.hasPrefix("{") && aString.hasSuffix("}") else {
-        fatalError("Wrong format")
+private func _scanDoublesFromString(aString: String, number: Int) -> [Double] {
+    let scanner = NSScanner(string: aString)
+    let digitSet = NSMutableCharacterSet.decimalDigitCharacterSet()
+    digitSet.addCharactersInString("-")
+    var result = [Double](count: number, repeatedValue: 0.0)
+    var index = 0
+    
+    scanner.scanUpToCharactersFromSet(digitSet)
+    while !scanner.atEnd && index < number {
+        if let num = scanner.scanDouble() {
+            result[index] = num
+        }
+        scanner.scanUpToCharactersFromSet(digitSet)
+        index += 1
     }
-    
-    var string: NSString = aString._nsObject
-    string = string.substringWithRange(NSMakeRange(1, aString.length - 2))._nsObject
-    string = string.stringByReplacingOccurrencesOfString(" ", withString: "")._nsObject;
-    
-    let numbers = string.componentsSeparatedByString(",")
-    
-    guard numbers.count == 2 else {
-        fatalError("Wrong format")
-    }
-    
-    let x = Double((numbers.first)!)
-    let y = Double((numbers.last)!)
-    let result = (first: x!, second: y!)
     
     return result
 }
 
 public func NSPointFromString(aString: String) -> NSPoint {
-    let parsedNumbers = _scanTwoNumbersFromGeometryString(aString)
+    if aString.isEmpty {
+        return NSZeroPoint
+    }
+
+    let parsedNumbers = _scanDoublesFromString(aString, number: 2)
     
-    let x = parsedNumbers.first
-    let y = parsedNumbers.second
+    let x = parsedNumbers[0]
+    let y = parsedNumbers[1]
     let result = NSMakePoint(CGFloat(x), CGFloat(y))
     
     return result
 }
 
 public func NSSizeFromString(aString: String) -> NSSize {
-    let parsedNumbers = _scanTwoNumbersFromGeometryString(aString)
+    if aString.isEmpty {
+        return NSZeroSize
+    }
+    let parsedNumbers = _scanDoublesFromString(aString, number: 2)
     
-    let x = parsedNumbers.first
-    let y = parsedNumbers.second
-    let result = NSMakeSize(CGFloat(x), CGFloat(y))
+    let w = parsedNumbers[0]
+    let h = parsedNumbers[1]
+    let result = NSMakeSize(CGFloat(w), CGFloat(h))
     
     return result
 }
 
 public func NSRectFromString(aString: String) -> NSRect {
-    guard aString.hasPrefix("{") && aString.hasSuffix("}") else {
-        fatalError("Wrong format")
+    if aString.isEmpty {
+        return NSZeroRect
     }
     
-    var string: NSString = aString._nsObject
-    string = string.substringWithRange(NSMakeRange(1, aString.length - 2))._nsObject
-    string = string.stringByReplacingOccurrencesOfString(" ", withString: "")._nsObject;
-
-    let components = string.componentsSeparatedByString("},{")
+    let parsedNumbers = _scanDoublesFromString(aString, number: 4)
     
-    guard components.count == 2 else {
-        fatalError("Wrong format")
-    }
+    let x = parsedNumbers[0]
+    let y = parsedNumbers[1]
+    let w = parsedNumbers[2]
+    let h = parsedNumbers[3]
     
-    let origin = NSPointFromString(components.first! + "}")
-    let size = NSSizeFromString("{" + components.last!)
-    let result = NSMakeRect(origin.x, origin.y, size.width, size.height)
+    let result = NSMakeRect(CGFloat(x), CGFloat(y), CGFloat(w), CGFloat(h))
     
     return result
 }
