@@ -19,7 +19,11 @@ public class NSPort : NSObject, NSCopying, NSCoding {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard let coder = coder else {
+            print("Error")
+            return
+        }
+        super.init(coder)
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
