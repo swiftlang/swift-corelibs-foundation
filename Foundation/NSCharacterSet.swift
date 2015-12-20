@@ -168,6 +168,10 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
     }
     
+    public override func mutableCopy() -> AnyObject {
+        return self.mutableCopyWithZone(nil)
+    }
+    
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
         return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
     }

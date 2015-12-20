@@ -44,6 +44,7 @@ class TestNSGeometry : XCTestCase {
             ("test_EncodeToNSString", test_EncodeToNSString),
             ("test_EncodeNegativeToNSString", test_EncodeNegativeToNSString),
             ("test_DecodeFromNSString", test_DecodeFromNSString),
+            ("test_DecodeEmptyStrings", test_DecodeEmptyStrings),
             ("test_DecodeNegativeFromNSString", test_DecodeNegativeFromNSString),
             ("test_DecodeGarbageFromNSString", test_DecodeGarbageFromNSString),
         ]
@@ -543,7 +544,28 @@ class TestNSGeometry : XCTestCase {
         rect = NSRectFromString(stringRect)
         XCTAssertEqual(expectedRect, rect,
                        "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
+    
+    }
+    
+    func test_DecodeEmptyStrings() {
+        let stringPoint = ""
+        let stringSize = ""
+        let stringRect = ""
         
+        let expectedPoint = NSZeroPoint
+        let point = NSPointFromString(stringPoint)
+        XCTAssertEqual(expectedPoint, point,
+                       "\(NSStringFromPoint(point)) is not equal to expected \(NSStringFromPoint(expectedPoint))")
+
+        let expectedSize = NSZeroSize
+        let size = NSSizeFromString(stringSize)
+        XCTAssertEqual(expectedSize, size,
+                       "\(NSStringFromSize(size)) is not equal to expected \(NSStringFromSize(expectedSize))")
+        
+        let expectedRect = NSZeroRect
+        let rect = NSRectFromString(stringRect)
+        XCTAssertEqual(expectedRect, rect,
+                       "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
     }
     
     func test_DecodeNegativeFromNSString() {

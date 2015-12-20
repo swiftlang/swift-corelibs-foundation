@@ -11,6 +11,7 @@
     import Darwin
 #elseif os(Linux)
     import Glibc
+    import CoreFoundation
 #endif
 
 // TODO: It's not clear who is responsibile for defining these CGTypes, but we'll do it here.
