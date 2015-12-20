@@ -7,6 +7,20 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+private struct _NSAttributedStringAttribute {
+    let range: Range<Int>
+    let name: String
+    let value: NSObject
+}
+
+extension _NSAttributedStringAttribute : Equatable {
+}
+
+private func ==(lhs: _NSAttributedStringAttribute, rhs: _NSAttributedStringAttribute) -> Bool {
+    return lhs.range == rhs.range &&
+        lhs.name == rhs.name &&
+        lhs.value == rhs.value
+}
 
 public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
@@ -23,28 +37,77 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        return NSAttributedString(attributedString: self)
     }
 
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        return NSMutableAttributedString(attributedString: self)
     }
     
-    public var string: String { NSUnimplemented() }
-    public func attributesAtIndex(location: Int, effectiveRange range: NSRangePointer) -> [String : AnyObject] { NSUnimplemented() }
+    private var _string: String
+    public var string: String {
+        return _string
+    }
+    
+    public func attributesAtIndex(location: Int, effectiveRange range: NSRangePointer) -> [String : AnyObject] {
+        let attributesAtIndex = _attributes?.filter({
+            $0.range.contains(location)
+        })
 
-    public var length: Int { NSUnimplemented() }
-    public func attribute(attrName: String, atIndex location: Int, effectiveRange range: NSRangePointer) -> AnyObject? { NSUnimplemented() }
-    public func attributedSubstringFromRange(range: NSRange) -> NSAttributedString { NSUnimplemented() }
+        var result = [String: AnyObject]()
+        attributesAtIndex?.forEach {
+            result[$0.name] = $0.value
+        }
+        
+        return result
+    }
+
+    public var length: Int {
+        return string.length
+    }
+    
+    private var _attributes: [_NSAttributedStringAttribute]?
+    public func attribute(attrName: String, atIndex location: Int, effectiveRange range: NSRangePointer) -> AnyObject? {
+        let attributeWithNameAtIndex = _attributes?.filter({
+            $0.name == attrName && $0.range.contains(location)
+        }).last
+        
+        if let attributeWithNameAtIndex = attributeWithNameAtIndex {
+            range.memory = NSRange(attributeWithNameAtIndex.range)
+        }
+        
+        return attributeWithNameAtIndex?.value
+    }
+    
+    public func attributedSubstringFromRange(range: NSRange) -> NSAttributedString {
+        let effectiveAttributes = 
+        let attr = _attributes.map {
+            
+        }
+        
+    }
     
     public func attributesAtIndex(location: Int, longestEffectiveRange range: NSRangePointer, inRange rangeLimit: NSRange) -> [String : AnyObject] { NSUnimplemented() }
     public func attribute(attrName: String, atIndex location: Int, longestEffectiveRange range: NSRangePointer, inRange rangeLimit: NSRange) -> AnyObject? { NSUnimplemented() }
     
     public func isEqualToAttributedString(other: NSAttributedString) -> Bool { NSUnimplemented() }
     
-    public init(string str: String) { NSUnimplemented() }
-    public init(string str: String, attributes attrs: [String : AnyObject]?) { NSUnimplemented() }
-    public init(attributedString attrStr: NSAttributedString) { NSUnimplemented() }
+    public init(string str: String) {
+        _string = str
+    }
+    
+    public init(string str: String, attributes attrs: [String : AnyObject]?) {
+        _string = str
+        
+        let len = str.length
+        _attributes = attrs?.map { key, value in
+            _NSAttributedStringAttribute(range: Range(start: 0, end: len), name: key, value: value as! NSObject)
+        }
+    }
+    public init(attributedString attrStr: NSAttributedString) {
+        _string = attrStr._string
+        _attributes = attrStr._attributes
+    }
     
     public func enumerateAttributesInRange(enumerationRange: NSRange, options opts: NSAttributedStringEnumerationOptions, usingBlock block: ([String : AnyObject], NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     public func enumerateAttribute(attrName: String, inRange enumerationRange: NSRange, options opts: NSAttributedStringEnumerationOptions, usingBlock block: (AnyObject?, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
