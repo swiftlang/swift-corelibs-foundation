@@ -46,6 +46,7 @@ class TestNSString : XCTestCase {
             ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
             ("test_FromContentOfFile",test_FromContentOfFile),
             ("test_swiftStringUTF16", test_swiftStringUTF16),
+            ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
         ]
     }
 
@@ -348,5 +349,11 @@ class TestNSString : XCTestCase {
         let newString = unsafeBitCast(newCFString, NSString.self)
         
         XCTAssertTrue(newString.isEqualToString(testString))
+    }
+
+    func test_stringByTrimmingCharactersInSet() {
+        let characterSet = NSCharacterSet.whitespaceCharacterSet()
+        let string: NSString = " abc   "
+        XCTAssertEqual(string.stringByTrimmingCharactersInSet(characterSet), "abc")
     }
 }

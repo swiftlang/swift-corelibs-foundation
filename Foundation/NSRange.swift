@@ -39,7 +39,7 @@ extension _NSRange {
     public init(_ x: Range<Int>) {
         if let start = x.first {
             if let end = x.last {
-                self.init(location: start, length: end - start)
+                self.init(location: start, length: end - start + 1)
                 return
             }
         }

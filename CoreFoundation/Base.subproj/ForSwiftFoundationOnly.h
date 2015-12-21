@@ -178,7 +178,7 @@ struct _NSXMLParserBridge {
 };
 
 struct _NSRunLoop {
-    CFTypeRef (*_new)(CFRunLoopRef rl);
+    _Nonnull CFTypeRef (*_Nonnull _new)(CFRunLoopRef rl);
 };
 
 struct _CFSwiftBridge {
