@@ -21,16 +21,76 @@ class TestNSOperation : XCTestCase {
 
     var allTests : [(String, () -> ())] {
         return [
-            ("test_OperationQueueWaitsForExecutionAndAllBlocksWereExecuted", test_OperationQueueWaitsForExecutionAndAllBlocksWereExecuted ),
-            ("test_BlockOperationWaitsForExecutionAndAllBlocksWereExecuted", test_BlockOperationWaitsForExecutionAndAllBlocksWereExecuted ),
-            ("test_BlockOperationHasFinishedPropertyEqualTrueAfterItFinishes", test_BlockOperationHasFinishedPropertyEqualTrueAfterItFinishes ),
-            ("test_BlockOperationHasExecutingPropertyEquaFalseAfterItFinishes", test_BlockOperationHasExecutingPropertyEquaFalseAfterItFinishes ),
-            ("test_BlockOperationHasCancelledPropertyEqualFalseAfterItFinishes", test_BlockOperationHasCancelledPropertyEqualFalseAfterItFinishes ),
-            ("test_BlockOperationHasFinishedPropertyEqualFalseBeforeItFinishes", test_BlockOperationHasFinishedPropertyEqualFalseBeforeItFinishes ),
-            ("test_BlockOperationHasCancelPropertyEqualFalseBeforeItsCancelled", test_BlockOperationHasCancelPropertyEqualFalseBeforeItsCancelled ),
-            ("test_BlockOperationHasCancelPropertyEqualTrueAfterItsCancelled", test_BlockOperationHasCancelPropertyEqualTrueAfterItsCancelled ),
-            ("test_BlockOperationHasFinishedPropertyEqualTrueAfterItsCancelled", test_BlockOperationHasFinishedPropertyEqualTrueAfterItsCancelled ),
+            ("test_OperationQueueCalledStartOnAsynchronousNSOperationSubclass", test_OperationQueueCalledStartOnAsynchronousNSOperationSubclass),
+            ("test_OperationQueueCalledMainOnAsynchronousNSOperationSubclass", test_OperationQueueCalledMainOnAsynchronousNSOperationSubclass),
+            ("test_OperationQueueWaitsForExecutionAndAllBlocksWereExecuted", test_OperationQueueWaitsForExecutionAndAllBlocksWereExecuted),
+            ("test_BlockOperationWaitsForExecutionAndAllBlocksWereExecuted", test_BlockOperationWaitsForExecutionAndAllBlocksWereExecuted),
+            ("test_BlockOperationHasFinishedPropertyEqualTrueAfterItFinishes", test_BlockOperationHasFinishedPropertyEqualTrueAfterItFinishes),
+            ("test_BlockOperationHasExecutingPropertyEquaFalseAfterItFinishes", test_BlockOperationHasExecutingPropertyEquaFalseAfterItFinishes),
+            ("test_BlockOperationHasCancelledPropertyEqualFalseAfterItFinishes", test_BlockOperationHasCancelledPropertyEqualFalseAfterItFinishes),
+            ("test_BlockOperationHasFinishedPropertyEqualFalseBeforeItFinishes", test_BlockOperationHasFinishedPropertyEqualFalseBeforeItFinishes),
+            ("test_BlockOperationHasCancelPropertyEqualFalseBeforeItsCancelled", test_BlockOperationHasCancelPropertyEqualFalseBeforeItsCancelled),
+            ("test_BlockOperationHasCancelPropertyEqualTrueAfterItsCancelled", test_BlockOperationHasCancelPropertyEqualTrueAfterItsCancelled),
+            ("test_BlockOperationHasFinishedPropertyEqualTrueAfterItsCancelled", test_BlockOperationHasFinishedPropertyEqualTrueAfterItsCancelled),
         ]
+    }
+
+    func test_OperationQueueCalledStartOnAsynchronousNSOperationSubclass() {
+        class AsyncOperation : NSOperation {
+
+            var startCalled = false
+
+            override var asynchronous: Bool {
+                return true
+            }
+
+            override var executing: Bool {
+                return true
+            }
+
+            override func start() {
+                startCalled = true
+            }
+
+            override func waitUntilFinished() {
+
+            }
+        }
+
+        let operation = AsyncOperation()
+        let queue = NSOperationQueue()
+
+        queue.addOperation(operation)
+        queue.waitUntilAllOperationsAreFinished()
+
+        XCTAssertTrue(operation.startCalled)
+    }
+
+    func test_OperationQueueCalledMainOnAsynchronousNSOperationSubclass() {
+        class SyncOperation : NSOperation {
+
+            var mainCalled = false
+
+            override var asynchronous: Bool {
+                return false
+            }
+
+            override func main() {
+                mainCalled = true
+            }
+
+            override func waitUntilFinished() {
+
+            }
+        }
+
+        let operation = SyncOperation()
+        let queue = NSOperationQueue()
+
+        queue.addOperation(operation)
+        queue.waitUntilAllOperationsAreFinished()
+        
+        XCTAssertTrue(operation.mainCalled)
     }
 
     func test_OperationQueueWaitsForExecutionAndAllBlocksWereExecuted() {

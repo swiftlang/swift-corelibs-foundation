@@ -1059,8 +1059,6 @@
 		EA66F65A1BF1976100136161 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				1A3E52811C25715F0011AB14 /* TestNSOperation.swift */,
-				61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */,
 				C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */,
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
 				6E203B8C1C1303BB003B2576 /* TestNSBundle.swift */,
@@ -1079,6 +1077,7 @@
 				61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */,
 				612952F81C1B235900BE0FD9 /* TestNSNull.swift */,
 				EA66F63F1BF1619600136161 /* TestNSNumber.swift */,
+				1A3E52811C25715F0011AB14 /* TestNSOperation.swift */,
 				4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */,
 				400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */,
 				EA66F6401BF1619600136161 /* TestNSPropertyList.swift */,

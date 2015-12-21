@@ -42,9 +42,11 @@ public class NSOperation : NSObject {
         case Finished
     }
 
+    // Internal state of the operation.
     private var _state: NSOperationState = .Inactive
     private let _stateLock = NSLock()
 
+    // Internal list of depedencies.
     private var _depedencies = [NSOperation]()
     private let _depedenciesLock = NSLock()
 
@@ -138,6 +140,10 @@ public class NSOperation : NSObject {
     public var name: String?
 }
 
+/*  The NSBlockOperation class is a concrete subclass of NSOperation that manages the concurrent execution
+    of one or more blocks. You can use this object to execute several blocks at once without having to 
+    create separate operation objects for each. When executing more than one block, the operation itself 
+    is considered finished only when all blocks have finished executing. */
 public class NSBlockOperation : NSOperation {
     
     private typealias ExecutionBlock = () -> ()
@@ -467,7 +473,7 @@ internal enum DispatchQueueType {
 internal struct DispatchQueueBridge {
 
     private let _queue: dispatch_queue_t
-    static let mainQueue = DispatchQueueBridge(queue:  dispatch_get_main_queue())
+    static let mainQueue = DispatchQueueBridge(queue: dispatch_get_main_queue())
 
     init(name: String, type: DispatchQueueType = .Serial) {
 
