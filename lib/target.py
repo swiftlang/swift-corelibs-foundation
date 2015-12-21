@@ -364,6 +364,7 @@ class Target:
         if self.sdk == OSType.MacOSX:
             return None
         elif self.sdk == OSType.Linux:
+            # FIXME: It would be nice to detect the host ABI here
             if self.arch == ArchType.arm:
                 triple += "-unknown-linux-gnueabihf"
             else:
