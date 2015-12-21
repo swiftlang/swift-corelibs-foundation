@@ -230,7 +230,7 @@ class TestNSString : XCTestCase {
     }
     
     func test_FromContentOfFile() {
-        let testFilePath = testBundle().pathForResource("NSStingTestData", ofType: "txt")
+        let testFilePath = testBundle().pathForResource("NSStringTestData", ofType: "txt")
         
         do {
             let str = try NSString(contentsOfFile: testFilePath, encoding: NSUTF8StringEncoding)
