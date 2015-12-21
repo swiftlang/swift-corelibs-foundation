@@ -43,7 +43,7 @@
     @constant NSXMLDocumentIncludeContentTypeDeclaration Include a content type declaration for HTML or XHTML
 */
 
-public var NSXMLNodeOptionsNone: Int { return 0 }
+public var NSXMLNodeOptionsNone: UInt { return 0 }
 
 // Init
 public var NSXMLNodeIsCDATA: UInt { return 1 << 0 }
