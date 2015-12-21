@@ -42,7 +42,8 @@ public class NSDateComponentsFormatter : NSFormatter {
     }
 
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        super.init(coder: coder)
+
     }
     
     /* 'obj' must be an instance of NSDateComponents.

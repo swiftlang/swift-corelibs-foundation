@@ -20,7 +20,7 @@ public enum NSCompoundPredicateType : UInt {
 public class NSCompoundPredicate : NSPredicate {
     
     public init(type: NSCompoundPredicateType, subpredicates: [NSPredicate]) { NSUnimplemented() }
-    public required init?(coder: NSCoder) { NSUnimplemented() }
+    public required init?(coder: NSCoder) { super.init(coder: coder) }
     
     public var compoundPredicateType: NSCompoundPredicateType { NSUnimplemented() }
     public var subpredicates: [AnyObject] { NSUnimplemented() }

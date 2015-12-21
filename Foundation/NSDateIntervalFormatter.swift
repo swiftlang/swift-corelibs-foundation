@@ -27,7 +27,7 @@ public class NSDateIntervalFormatter : NSFormatter {
     }
 
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        super.init(coder: coder)
     }
     
     /*@NSCopying*/ public var locale: NSLocale! // default is [NSLocale currentLocale]

@@ -40,7 +40,8 @@ public struct NSPersonNameComponentsFormatterOptions : OptionSetType {
 public class NSPersonNameComponentsFormatter : NSFormatter {
     
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        super.init(coder: coder)
+
     }
     
     /* Specify the formatting style for the formatted string on an instance. ShortStyle will fall back to user preferences and language-specific defaults

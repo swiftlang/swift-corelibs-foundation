@@ -41,7 +41,7 @@ public enum NSByteCountFormatterCountStyle : Int {
 
 public class NSByteCountFormatter : NSFormatter {
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        super.init(coder: coder)
     }
     
     /* Shortcut for converting a byte count into a string without creating an NSByteCountFormatter and an NSNumber. If you need to specify options other than countStyle, create an instance of NSByteCountFormatter first.
