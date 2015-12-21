@@ -204,6 +204,7 @@
 		5BF7AEC01BCD51F9008F214A /* NSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */; };
 		5BF7AEC11BCD51F9008F214A /* NSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */; };
 		5E5835F41C20C9B500C81317 /* TestNSThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5835F31C20C9B500C81317 /* TestNSThread.swift */; };
+		5EF673AC1C28B527006212A3 /* TestNSNotificationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */; };
 		612952F91C1B235900BE0FD9 /* TestNSNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 612952F81C1B235900BE0FD9 /* TestNSNull.swift */; };
 		61A395FA1C2484490029B337 /* TestNSLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A395F91C2484490029B337 /* TestNSLocale.swift */; };
 		61D6C9EF1C1DFE9500DEF583 /* TestNSTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */; };
@@ -559,6 +560,7 @@
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
 		5E5835F31C20C9B500C81317 /* TestNSThread.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSThread.swift; sourceTree = "<group>"; };
 		5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSJSONSerialization.swift; sourceTree = "<group>"; };
+		5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNotificationQueue.swift; sourceTree = "<group>"; };
 		612952F81C1B235900BE0FD9 /* TestNSNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNull.swift; sourceTree = "<group>"; };
 		61A395F91C2484490029B337 /* TestNSLocale.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSLocale.swift; sourceTree = "<group>"; };
 		61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTimer.swift; sourceTree = "<group>"; };
@@ -1085,6 +1087,7 @@
 				5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */,
 				61A395F91C2484490029B337 /* TestNSLocale.swift */,
 				61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */,
+				5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */,
 				EA66F63F1BF1619600136161 /* TestNSNumber.swift */,
 				4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */,
 				400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */,
@@ -1828,6 +1831,7 @@
 				84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */,
 				52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */,
 				45BBD92B1C30E9C200540DDB /* TestNSTask.swift in Sources */,
+				5EF673AC1C28B527006212A3 /* TestNSNotificationQueue.swift in Sources */,
 				C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */,
 				DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */,
 				83712C8E1C1684900049AD49 /* TestNSURLRequest.swift in Sources */,
