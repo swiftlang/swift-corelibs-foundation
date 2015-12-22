@@ -6041,7 +6041,7 @@ static void __CFStringAppendFormatCore(CFMutableStringRef outputString, CFString
 
 
     formatLen = CFStringGetLength(formatString);
-    if (!CF_IS_OBJC(__kCFStringTypeID, formatString)) {
+    if (!CF_IS_OBJC(__kCFStringTypeID, formatString) && !CF_IS_SWIFT(CFStringGetTypeID(), formatString)) {
         __CFAssertIsString(formatString);
         if (!__CFStrIsUnicode(formatString)) {
             cformat = (const uint8_t *)__CFStrContents(formatString);
