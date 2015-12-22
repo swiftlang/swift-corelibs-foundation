@@ -101,6 +101,7 @@ CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number);
 
 static CFTypeID stringtype, datatype, numbertype, datetype;
 static CFTypeID booltype, nulltype, dicttype, arraytype, settype;
+static CFTypeID uidtype; /* for debugging */
 
 static void initStatics() {
     static dispatch_once_t once = 0;
@@ -114,6 +115,7 @@ static void initStatics() {
         arraytype = CFArrayGetTypeID();
         settype = CFSetGetTypeID();
         nulltype = CFNullGetTypeID();
+        uidtype = _CFKeyedArchiverUIDGetTypeID();
     });
 }
 
@@ -663,6 +665,14 @@ if (date.year != y || date.month != M || date.day != d || date.hour != H || date
             _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[FALSE_IX], FALSE_TAG_LENGTH);
             _plistAppendUTF8CString(xmlString, "/>\n");
         }
+    } else if (typeID == uidtype) {
+        CFStringRef key = CFSTR("CF$UID");
+        CFIndex n = _CFKeyedArchiverUIDGetValue((CFKeyedArchiverUIDRef)object);
+        CFNumberRef value = CFNumberCreate(kCFAllocatorSystemDefault, kCFNumberCFIndexType, &n);
+        CFDictionaryRef dict = CFDictionaryCreate(kCFAllocatorSystemDefault, (const void **)(&key), (const void **)(&value), 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        _CFAppendXML0(dict, indentation, xmlString);
+        CFRelease(value);
+        CFRelease(dict);
     }
 }
 
