@@ -11,7 +11,6 @@
     import Darwin
 #elseif os(Linux)
     import Glibc
-    import CoreFoundation
 #endif
 
 // TODO: It's not clear who is responsibile for defining these CGTypes, but we'll do it here.
@@ -37,7 +36,7 @@ public struct CGFloat {
 extension CGFloat: Comparable { }
 
 public func ==(lhs: CGFloat, rhs: CGFloat) -> Bool {
-    return abs(lhs.native - rhs.native) < DBL_EPSILON
+    return lhs.native == rhs.native
 }
 
 public func <(lhs: CGFloat, rhs: CGFloat) -> Bool {
