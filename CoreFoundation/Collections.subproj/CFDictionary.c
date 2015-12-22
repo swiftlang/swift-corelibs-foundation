@@ -500,7 +500,7 @@ void CFDictionaryGetValues(CFHashRef hc, const_any_pointer_t *keybuf) {
     const_any_pointer_t *valuebuf = 0;
 #endif
 #if CFDictionary
-    if (CFDictionary) CF_SWIFT_FUNCDISPATCHV(CFDictionaryGetTypeID(), void, (CFSwiftRef)hc, NSDictionary.getObjects, valuebuf, keybuf);
+    if (CFDictionary) CF_SWIFT_FUNCDISPATCHV(CFDictionaryGetTypeID(), void, (CFSwiftRef)hc, NSDictionary.getObjects, keybuf, valuebuf);
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFDictionaryGetTypeID(), void, (NSDictionary *)hc, getObjects:(id *)valuebuf andKeys:(id *)keybuf);
 #endif
 #if CFSet
