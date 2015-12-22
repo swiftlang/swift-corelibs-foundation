@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+git pr $1
+ninja reconfigure
+ninja test
+LD_LIBRARY_PATH=../build/Ninja-ReleaseAssert/foundation-linux-x86_64/Foundation/:..//build/Ninja-ReleaseAssert/xctest-linux-x86_64 ../build/Ninja-ReleaseAssert/foundation-linux-x86_64/TestFoundation/TestFoundation
