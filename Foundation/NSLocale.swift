@@ -168,7 +168,7 @@ public enum NSLocaleLanguageDirection : UInt {
     case BottomToTop
 }
 
-public let NSCurrentLocaleDidChangeNotification: String = "" // NSUnimplemented
+public let NSCurrentLocaleDidChangeNotification: String = "kCFLocaleCurrentLocaleDidChangeNotification"
 
 public let NSLocaleIdentifier: String = "kCFLocaleIdentifierKey"
 public let NSLocaleLanguageCode: String = "kCFLocaleLanguageCodeKey"
@@ -184,11 +184,11 @@ public let NSLocaleDecimalSeparator: String = "kCFLocaleDecimalSeparatorKey"
 public let NSLocaleGroupingSeparator: String = "kCFLocaleGroupingSeparatorKey"
 public let NSLocaleCurrencySymbol: String = "kCFLocaleCurrencySymbolKey"
 public let NSLocaleCurrencyCode: String = "currency"
-public let NSLocaleCollatorIdentifier: String = "" // NSUnimplemented // NSString
-public let NSLocaleQuotationBeginDelimiterKey: String = "" // NSUnimplemented // NSString
-public let NSLocaleQuotationEndDelimiterKey: String = "" // NSUnimplemented // NSString
-public let NSLocaleAlternateQuotationBeginDelimiterKey: String = "" // NSUnimplemented // NSString
-public let NSLocaleAlternateQuotationEndDelimiterKey: String = "" // NSUnimplemented // NSString
+public let NSLocaleCollatorIdentifier: String = "kCFLocaleCollatorIdentifierKey"
+public let NSLocaleQuotationBeginDelimiterKey: String = "kCFLocaleQuotationBeginDelimiterKey"
+public let NSLocaleQuotationEndDelimiterKey: String = "kCFLocaleQuotationEndDelimiterKey"
+public let NSLocaleAlternateQuotationBeginDelimiterKey: String = "kCFLocaleAlternateQuotationBeginDelimiterKey"
+public let NSLocaleAlternateQuotationEndDelimiterKey: String = "kCFLocaleAlternateQuotationEndDelimiterKey"
 
 extension CFLocaleRef : _NSBridgable {
     typealias NSType = NSLocale
