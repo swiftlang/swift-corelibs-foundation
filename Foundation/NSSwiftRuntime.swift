@@ -384,3 +384,78 @@ public protocol Bridgeable {
     func bridge() -> BridgeType
 }
 
+#if os(OSX) || os(iOS)
+    private let RTLD_DEFAULT = UnsafeMutablePointer<Void>(bitPattern: -2)
+#elseif os(Linux)
+    private let RTLD_DEFAULT = UnsafeMutablePointer<Void>(bitPattern: 0)
+#endif
+
+typealias MetadataAccessor = @convention(c) () -> AnyClass?
+
+/**
+ Calls a metadata accessor given a metadata accessor symbol name.
+ */
+private func metadataFromAccessorName(mangledName : String) -> AnyClass?
+{
+    let cf = mangledName._cfObject
+    var str = CFStringGetCStringPtr(cf, kCFStringEncodingASCII)
+    let symbol : MetadataAccessor?
+    var buffer : UnsafeMutablePointer<CChar> = nil
+    var length : Int = 0
+    
+    if str == nil {
+        length = CFStringGetLength(cf) + 1
+        buffer = UnsafeMutablePointer<CChar>.alloc(length)
+        
+        CFStringGetCString(cf, buffer, length, kCFStringEncodingASCII)
+        
+        // surely there's a better way to cast away mutability?
+        str = unsafeBitCast(buffer, UnsafePointer<CChar>.self)
+    }
+    
+    symbol = unsafeBitCast(dlsym(RTLD_DEFAULT, str), MetadataAccessor.self);
+    
+    if str == nil {
+        buffer.destroy(length)
+        buffer.dealloc(length)
+    }
+    
+    return symbol != nil ? symbol!() : nil
+}
+
+/**
+ Returns mangled metadata accessor symbol name for a namespaced
+ Swift class.
+ */
+private func mangledTypeMetadataAccessorNameForClass(className : String) -> String
+{
+    let sep = "."._cfObject
+    let components = CFStringCreateArrayBySeparatingStrings(kCFAllocatorSystemDefault,
+                                                            className._cfObject,
+                                                            sep)
+    var mangledName = "_TMaC"
+    
+    for component in components._swiftObject as! [CFString] {
+        let len = CFStringGetLength(component)
+        
+        mangledName += "\(len)" + component._swiftObject
+    }
+    
+    return mangledName
+}
+
+/**
+ Returns native class metadata for a string identifying a Swift class.
+ */
+internal func swift_classFromString_native(className : String) -> AnyClass?
+{
+    return metadataFromAccessorName(mangledTypeMetadataAccessorNameForClass(className))
+}
+
+/**
+ Returns class metadata for a string identifying a Swift or Objective-C class.
+ */
+internal func swift_classFromString(className : String) -> AnyClass?
+{
+    return swift_classFromString_native(className)
+}
