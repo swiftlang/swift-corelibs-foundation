@@ -551,12 +551,83 @@ public func NSIntersectsRect(aRect: NSRect, _ bRect: NSRect) -> Bool {
         NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect))
 }
 
-public func NSStringFromPoint(aPoint: NSPoint) -> String { NSUnimplemented() }
-public func NSStringFromSize(aSize: NSSize) -> String { NSUnimplemented() }
-public func NSStringFromRect(aRect: NSRect) -> String { NSUnimplemented() }
-public func NSPointFromString(aString: String) -> NSPoint { NSUnimplemented() }
-public func NSSizeFromString(aString: String) -> NSSize { NSUnimplemented() }
-public func NSRectFromString(aString: String) -> NSRect { NSUnimplemented() }
+public func NSStringFromPoint(aPoint: NSPoint) -> String {
+    return "{\(aPoint.x.native), \(aPoint.y.native)}"
+}
+
+public func NSStringFromSize(aSize: NSSize) -> String {
+    return "{\(aSize.width.native), \(aSize.height.native)}"
+}
+
+public func NSStringFromRect(aRect: NSRect) -> String {
+    let originString = NSStringFromPoint(aRect.origin)
+    let sizeString = NSStringFromSize(aRect.size)
+    
+    return "{\(originString), \(sizeString)}"
+}
+
+private func _scanDoublesFromString(aString: String, number: Int) -> [Double] {
+    let scanner = NSScanner(string: aString)
+    let digitSet = NSMutableCharacterSet.decimalDigitCharacterSet()
+    digitSet.addCharactersInString("-")
+    var result = [Double](count: number, repeatedValue: 0.0)
+    var index = 0
+    
+    scanner.scanUpToCharactersFromSet(digitSet)
+    while !scanner.atEnd && index < number {
+        if let num = scanner.scanDouble() {
+            result[index] = num
+        }
+        scanner.scanUpToCharactersFromSet(digitSet)
+        index += 1
+    }
+    
+    return result
+}
+
+public func NSPointFromString(aString: String) -> NSPoint {
+    if aString.isEmpty {
+        return NSZeroPoint
+    }
+
+    let parsedNumbers = _scanDoublesFromString(aString, number: 2)
+    
+    let x = parsedNumbers[0]
+    let y = parsedNumbers[1]
+    let result = NSMakePoint(CGFloat(x), CGFloat(y))
+    
+    return result
+}
+
+public func NSSizeFromString(aString: String) -> NSSize {
+    if aString.isEmpty {
+        return NSZeroSize
+    }
+    let parsedNumbers = _scanDoublesFromString(aString, number: 2)
+    
+    let w = parsedNumbers[0]
+    let h = parsedNumbers[1]
+    let result = NSMakeSize(CGFloat(w), CGFloat(h))
+    
+    return result
+}
+
+public func NSRectFromString(aString: String) -> NSRect {
+    if aString.isEmpty {
+        return NSZeroRect
+    }
+    
+    let parsedNumbers = _scanDoublesFromString(aString, number: 4)
+    
+    let x = parsedNumbers[0]
+    let y = parsedNumbers[1]
+    let w = parsedNumbers[2]
+    let h = parsedNumbers[3]
+    
+    let result = NSMakeRect(CGFloat(x), CGFloat(y), CGFloat(w), CGFloat(h))
+    
+    return result
+}
 
 extension NSValue {
     

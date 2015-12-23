@@ -1123,7 +1123,7 @@ extension NSString {
         if options.contains(.RegularExpressionSearch) {
             return _stringByReplacingOccurrencesOfRegularExpressionPattern(target, withTemplate: replacement, options: options, range: searchRange)
         }
-        let str = mutableCopy() as! NSMutableString
+        let str = mutableCopyWithZone(nil) as! NSMutableString
         if str.replaceOccurrencesOfString(target, withString: replacement, options: options, range: searchRange) == 0 {
             return _swiftObject
         } else {
