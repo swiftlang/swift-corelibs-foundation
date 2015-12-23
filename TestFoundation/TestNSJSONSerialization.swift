@@ -124,13 +124,15 @@ extension TestNSJSONSerialization {
     func test_deserialize_multiStringObject() {
         let subject = "{ \"hello\": \"world\", \"swift\": \"rocks\" }"
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
-                XCTFail("Unable to convert string to data")
-                return
+            for encoding in [NSUTF8StringEncoding, NSUTF16BigEndianStringEncoding] {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [String: Any]
+                XCTAssertEqual(result?["hello"] as? String, "world")
+                XCTAssertEqual(result?["swift"] as? String, "rocks")
             }
-            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [String: Any]
-            XCTAssertEqual(result?["hello"] as? String, "world")
-            XCTAssertEqual(result?["swift"] as? String, "rocks")
         } catch {
             XCTFail("Error thrown: \(error)")
         }
@@ -156,13 +158,15 @@ extension TestNSJSONSerialization {
         let subject = "[\"hello\", \"swift⚡️\"]"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
-                XCTFail("Unable to convert string to data")
-                return
+            for encoding in [NSUTF8StringEncoding, NSUTF16BigEndianStringEncoding] {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                XCTAssertEqual(result?[0] as? String, "hello")
+                XCTAssertEqual(result?[1] as? String, "swift⚡️")
             }
-            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? String, "hello")
-            XCTAssertEqual(result?[1] as? String, "swift⚡️")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }

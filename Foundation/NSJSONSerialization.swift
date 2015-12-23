@@ -249,15 +249,21 @@ private struct JSONReader {
         }
 
         func peekASCII(input: Index) -> UInt8? {
-            if encoding == NSUTF8StringEncoding {
-                guard hasNext(input) else {
-                    return nil
-                }
-                return (buffer[input] < 0x80) ? buffer[input] : nil
+            let index: Int
+            switch encoding {
+            case NSUTF8StringEncoding, NSUTF16LittleEndianStringEncoding, NSUTF32LittleEndianStringEncoding:
+                index = input
+            case NSUTF16BigEndianStringEncoding:
+                index = input + 1
+            case NSUTF32BigEndianStringEncoding:
+                index = input + 3
+            default:
+                index = input
             }
-            else {
-                NSUnimplemented()
+            guard hasNext(input) else {
+                return nil
             }
+            return (buffer[index] < 0x80) ? buffer[index] : nil
         }
 
         func takeASCII(input: Index) -> (UInt8, Index)? {
@@ -292,7 +298,7 @@ private struct JSONReader {
     func consumeWhitespace(input: Index) -> Index? {
         var index = input
         while let char = source.peekASCII(index) where JSONReader.whitespaceASCII.contains(char) {
-            index += 1
+            index += source.step
         }
         return index
     }
