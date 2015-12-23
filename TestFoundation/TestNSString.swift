@@ -232,9 +232,10 @@ class TestNSString : XCTestCase {
     
     func test_FromContentOfFile() {
         let testFilePath = testBundle().pathForResource("NSStringTestData", ofType: "txt")
+        XCTAssertNotNil(testFilePath)
         
         do {
-            let str = try NSString(contentsOfFile: testFilePath, encoding: NSUTF8StringEncoding)
+            let str = try NSString(contentsOfFile: testFilePath!, encoding: NSUTF8StringEncoding)
         } catch {
             XCTFail("Unable to init NSString from contentsOfFile:encoding:")
         }
