@@ -429,7 +429,9 @@ public class NSKeyedArchiver : NSCoder {
                 }
             }
             
-            // object replaced by delegate
+            // object replaced by delegate. If the delegate returns nil, nil is encoded
+            // XXX is the delegate called with the original object or the one that was
+            // possibly replaced immediately above?
             if object == nil {
                 if let unwrappedDelegate = self._delegate {
                     let possiblyReplacedObject = object != nil ? object! : objv!
