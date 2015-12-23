@@ -64,7 +64,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        aCoder.encodeBytes(buffer, length: 16, forKey: "NS.uuidbytes")
     }
     
     public override func isEqual(object: AnyObject?) -> Bool {
