@@ -42,7 +42,7 @@ public class NSKeyedArchiver : NSCoder {
     var _objRefMap : Dictionary<ObjectIdentifier, UInt32> = [:]
     var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
     var _classNameMap : Dictionary<String, String> = [:]
-    var _classes : Dictionary<String, UInt32> = [:]
+    var _classes : Dictionary<String, CFKeyedArchiverUID> = [:]
     var _cache : Array<CFKeyedArchiverUID> = []
     var _genericKey : UInt32 = 0
     var _visited : Set<ObjectIdentifier> = []
@@ -391,20 +391,20 @@ public class NSKeyedArchiver : NSCoder {
      */
     private func _classReference(clsv: AnyClass) -> CFKeyedArchiverUID? {
         let className = _classNameForClass(clsv)
-        let classUid = self._classes[className]
+        var classRef = self._classes[className]
         
-        if classUid == nil {
+        if classRef == nil {
             let classDictionary = _classDictionary(clsv)
-            let classRef = _addObject(classDictionary.bridge())
+            classRef = _addObject(classDictionary.bridge())
             
             if let unwrappedClassRef = classRef {
-                self._classes[className] = NSKeyedArchiver._objectRefGetValue(unwrappedClassRef)
+                self._classes[className] = unwrappedClassRef
             }
             
             return classRef
         }
         
-        return _createObjectRefCached(classUid!)
+        return classRef
     }
    
     /**
