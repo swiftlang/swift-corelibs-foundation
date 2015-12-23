@@ -70,7 +70,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        aCoder.encodeDouble(_timeIntervalSinceReferenceDate, forKey: "NS.time")
     }
 
     /**
