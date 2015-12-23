@@ -249,18 +249,23 @@ private struct JSONReader {
         }
 
         func peekASCII(input: Index) -> UInt8? {
+            guard hasNext(input) else {
+                return nil
+            }
+
             let index: Int
             switch encoding {
-            case NSUTF8StringEncoding, NSUTF16LittleEndianStringEncoding, NSUTF32LittleEndianStringEncoding:
+            case NSUTF8StringEncoding:
                 index = input
-            case NSUTF16BigEndianStringEncoding:
+            case NSUTF16LittleEndianStringEncoding where buffer[input+1] == 0:
+                index = input
+            case NSUTF16BigEndianStringEncoding where buffer[input] == 0:
                 index = input + 1
-            case NSUTF32BigEndianStringEncoding:
+            case NSUTF32LittleEndianStringEncoding where buffer[input+1] == 0 && buffer[input+2] == 0 && buffer[input+3] == 0:
+                index = input
+            case NSUTF32BigEndianStringEncoding where buffer[input] == 0 && buffer[input+1] == 0 && buffer[input+2] == 0:
                 index = input + 3
             default:
-                index = input
-            }
-            guard hasNext(input) else {
                 return nil
             }
             return (buffer[index] < 0x80) ? buffer[index] : nil

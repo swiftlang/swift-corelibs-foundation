@@ -85,6 +85,8 @@ extension TestNSJSONSerialization {
             
             ("test_deserialize_emptyArray", test_deserialize_emptyArray),
             ("test_deserialize_multiStringArray", test_deserialize_multiStringArray),
+            ("test_deserialize_unicodeString", test_deserialize_unicodeString),
+            
             
             ("test_deserialize_values", test_deserialize_values),
             ("test_deserialize_numbers", test_deserialize_numbers),
@@ -166,6 +168,26 @@ extension TestNSJSONSerialization {
                 let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
                 XCTAssertEqual(result?[0] as? String, "hello")
                 XCTAssertEqual(result?[1] as? String, "swift⚡️")
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_unicodeString() {
+        /// Ģ has the same LSB as quotation mark " (U+0022) so test guarding against this case
+        let subject = "[\"unicode\", \"Ģ\", \"😢\"]"
+        
+        do {
+            for encoding in [NSUTF16LittleEndianStringEncoding, NSUTF16BigEndianStringEncoding, NSUTF32LittleEndianStringEncoding, NSUTF32BigEndianStringEncoding] {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                XCTAssertEqual(result?[0] as? String, "unicode")
+                XCTAssertEqual(result?[1] as? String, "Ģ")
+                XCTAssertEqual(result?[2] as? String, "😢")
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
