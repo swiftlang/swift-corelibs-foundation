@@ -310,12 +310,12 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Returns true if the type can be encoded directly (i.e. is not a container type)
      */ 
-    private func _isValueType(objv: AnyObject?) -> Bool {
-        return objv == nil ||
+    private func _isContainer(objv: AnyObject?) -> Bool {
+        return !(objv == nil ||
             objv is String ||
             objv is NSString ||
             objv is NSNumber ||
-            objv is NSData
+            objv is NSData)
     }
    
     /**
@@ -421,7 +421,7 @@ public class NSKeyedArchiver : NSCoder {
         _assertSecureCoding(object)
 
         var blob : NSMutableDictionary
-        let isValueType = _isValueType(object)
+        let isContainer = _isContainer(object)
 
         blob = _blobForCurrentObject()
     
@@ -433,7 +433,7 @@ public class NSKeyedArchiver : NSCoder {
         if !haveVisited {
             var flattenedObject : AnyObject? = nil
 
-            if !isValueType {
+            if isContainer {
                 if let codable = object as? NSCoding {
                     let innerBlob = NSMutableDictionary()
                     var cls : AnyClass?
@@ -477,41 +477,41 @@ public class NSKeyedArchiver : NSCoder {
         _encodeObject(objv, forKey: key, conditional: true)
     }
     
+    private func _encodeValueType(objv: NSObject, forKey key: String) {
+        let blob = _blobForCurrentObject()
+        blob[key.bridge()] = objv
+    }
+    
     public override func encodeBool(boolv: Bool, forKey key: String) {
-        encodeObject(NSNumber(bool: boolv), forKey:key)
+        _encodeValueType(NSNumber(bool: boolv), forKey: key)
     }
     
     public override func encodeInt(intv: Int32, forKey key: String) {
-        encodeObject(NSNumber(int: intv), forKey:key)
+        _encodeValueType(NSNumber(int: intv), forKey: key)
     }
     
     public override func encodeInt32(intv: Int32, forKey key: String) {
-        encodeObject(NSNumber(int: intv), forKey:key)
+        _encodeValueType(NSNumber(int: intv), forKey: key)
     }
     
     public override func encodeInt64(intv: Int64, forKey key: String) {
-        encodeObject(NSNumber(longLong: intv), forKey:key)
+        _encodeValueType(NSNumber(longLong: intv), forKey: key)
     }
     
     public override func encodeFloat(realv: Float, forKey key: String) {
-        encodeObject(NSNumber(float: realv), forKey:key)
+        _encodeValueType(NSNumber(float: realv), forKey: key)
     }
     
     public override func encodeDouble(realv: Double, forKey key: String) {
-        encodeObject(NSNumber(double: realv), forKey:key)
+        _encodeValueType(NSNumber(double: realv), forKey: key)
     }
     
     public override func encodeBytes(bytesp: UnsafePointer<UInt8>, length lenv: Int, forKey key: String) {
-        if bytesp == nil {
-            encodeObject(nil, forKey:key);
-        } else {
-            encodeObject(NSData(bytes: bytesp, length:lenv), forKey:key)
-        }
+        let data = NSData(bytes: bytesp, length: lenv)
+        _encodeValueType(data, forKey: key)
     }
     
     internal func _encodeArrayOfObjects(objects : NSArray, forKey key : String) {
-        let blob = _blobForCurrentObject()
-        
         var objectRefs = [CFKeyedArchiverUID]()
         
         objectRefs.reserveCapacity(objects.count)
@@ -522,7 +522,7 @@ public class NSKeyedArchiver : NSCoder {
             objectRefs.append(objectRef)
         }
         
-        blob[key.bridge()] = objectRefs.bridge()
+        _encodeValueType(objectRefs.bridge(), forKey: key)
     }
     
     // Enables secure coding support on this keyed archiver. You do not need to enable secure coding on the archiver to enable secure coding on the unarchiver. Enabling secure coding on the archiver is a way for you to be sure that all classes that are encoded conform with NSSecureCoding (it will throw an exception if a class which does not NSSecureCoding is archived). Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
