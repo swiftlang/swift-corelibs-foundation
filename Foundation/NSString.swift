@@ -1261,7 +1261,7 @@ extension NSString {
     public convenience init(contentsOfFile path: String, encoding enc: UInt) throws {
         let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: [])
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to create a string using the specified encoding."
                 ])
         }
@@ -1269,7 +1269,7 @@ extension NSString {
         if String._conditionallyBridgeFromObject(cf._nsObject, result: &str) {
             self.init(str!)
         } else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to bridge CFString to String."
                 ])
         }
