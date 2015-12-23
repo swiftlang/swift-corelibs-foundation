@@ -395,7 +395,7 @@ typealias MetadataAccessor = @convention(c) () -> AnyClass?
 /**
  Calls a metadata accessor given a metadata accessor symbol name.
  */
-private func metadataFromAccessorName(mangledName : String) -> AnyClass?
+private func _metadataFromAccessorName(mangledName : String) -> AnyClass?
 {
     let cf = mangledName._cfObject
     var str = CFStringGetCStringPtr(cf, kCFStringEncodingASCII)
@@ -427,7 +427,7 @@ private func metadataFromAccessorName(mangledName : String) -> AnyClass?
  Returns mangled metadata accessor symbol name for a namespaced
  Swift class.
  */
-private func mangledTypeMetadataAccessorNameForClass(className : String) -> String
+private func _mangledTypeMetadataAccessorNameForClass(className : String) -> String
 {
     let sep = "."._cfObject
     let components = CFStringCreateArrayBySeparatingStrings(kCFAllocatorSystemDefault,
@@ -449,7 +449,7 @@ private func mangledTypeMetadataAccessorNameForClass(className : String) -> Stri
  */
 internal func swift_classFromString_native(className : String) -> AnyClass?
 {
-    return metadataFromAccessorName(mangledTypeMetadataAccessorNameForClass(className))
+    return _metadataFromAccessorName(_mangledTypeMetadataAccessorNameForClass(className))
 }
 
 /**
