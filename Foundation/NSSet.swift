@@ -121,7 +121,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        self.allObjects._nsObject.encodeWithCoder(aCoder)
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
