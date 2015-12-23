@@ -478,6 +478,7 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     private func _encodeValueType(objv: NSObject, forKey key: String) {
+        _assertStillEncoding()
         let blob = _blobForCurrentObject()
         blob[key.bridge()] = objv
     }
