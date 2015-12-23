@@ -38,10 +38,11 @@ public class NSKeyedArchiver : NSCoder {
     var _flags = NSKeyedArchiverFlags(rawValue: 0)
     var _delegate : NSKeyedArchiverDelegate? = nil
     var _containers = NSMutableArray(object: NSMutableDictionary())
-    var _classNameMap : Dictionary<String, String> = [:]
     var _objects : Array<AnyObject> = [NSKeyedArchiver.NullObjectReferenceName]
     var _objRefMap : Dictionary<ObjectIdentifier, UInt32> = [:]
     var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
+    var _classNameMap : Dictionary<String, String> = [:]
+    var _classes : Dictionary<String, UInt32> = [:]
     var _cache : Array<CFKeyedArchiverUID> = []
     var _genericKey : UInt32 = 0
     var _visited : Set<ObjectIdentifier> = []
@@ -337,41 +338,73 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
+    private func _classNameForClass(clsv: AnyClass) -> String {
+        var className : String?
+        
+        className = classNameForClass(clsv)
+        if className == nil {
+            className = NSKeyedArchiver.classNameForClass(clsv)
+        }
+        if className == nil {
+            className = _typeName(clsv)
+        }
+
+        return className!
+    }
+    
     /**
         Returns a dictionary describing class metadata for clsv
      */
-    private func _classDictionary(clsv: AnyClass) -> NSDictionary {
-        var dict : [String:AnyObject] = [:]
-        var classname : String?
+    private func _classDictionary(clsv: AnyClass) -> Dictionary<String, Any> {
+        var classDict : [String:Any] = [:]
+        let className = _classNameForClass(clsv)
         
-        classname = classNameForClass(clsv)
-        if classname == nil {
-            classname = NSKeyedArchiver.classNameForClass(clsv)
-        }
-        if classname == nil {
-            classname = _typeName(clsv)
-        }
-        
-        dict["$classname"] = _unnamespacedClassName(classname!).bridge()
+        classDict["$classname"] = _unnamespacedClassName(className)
 
-        var chain : [String] = []
-        var cls : AnyClass? = clsv
+        var classChain : [String] = []
+        var classIter : AnyClass? = clsv
 
         repeat {
-            chain.append(_unnamespacedClassName(_typeName(cls!)))
-            cls = _getSuperclass(cls!)
-        } while cls != nil
+            classChain.append(_unnamespacedClassName(_typeName(classIter!)))
+            classIter = _getSuperclass(classIter!)
+        } while classIter != nil
         
-        dict["$classes"] = chain.bridge()
+        classDict["$classes"] = classChain
         
         if let ns = clsv as? NSObject.Type {
-            let classhints = ns.classFallbacksForKeyedArchiver()
-            if classhints.count > 0 {
-                dict["$classhints"] = classhints.bridge()
+            let classHints = ns.classFallbacksForKeyedArchiver()
+            if classHints.count > 0 {
+                classDict["$classhints"] = classHints
             }
         }
+        
+        return classDict
+    }
+    
+    /*
+        Return an object reference for a class
 
-        return dict.bridge()
+        Because _classDictionary() returns a dictionary by value, and every
+        time we bridge to NSDictionary we get a new object (the hash code is
+        different), we maintain a private mapping between class name and
+        object reference to avoid redundantly encoding class metadata
+     */
+    private func _classReference(clsv: AnyClass) -> CFKeyedArchiverUID? {
+        let className = _classNameForClass(clsv)
+        let classUid = self._classes[className]
+        
+        if classUid == nil {
+            let classDictionary = _classDictionary(clsv)
+            let classRef = _addObject(classDictionary.bridge())
+            
+            if let unwrappedClassRef = classRef {
+                self._classes[className] = NSKeyedArchiver._objectRefGetValue(unwrappedClassRef)
+            }
+            
+            return classRef
+        }
+        
+        return _createObjectRefCached(classUid!)
     }
    
     /**
@@ -447,7 +480,7 @@ public class NSKeyedArchiver : NSCoder {
                         cls = object!.dynamicType
                     }
                     
-                    innerBlob["$class".bridge()] = _addObject(_classDictionary(cls!))
+                    innerBlob["$class".bridge()] = _classReference(cls!)
                     
                     _setBlobForCurrentObject(nil)
                     flattenedObject = innerBlob
