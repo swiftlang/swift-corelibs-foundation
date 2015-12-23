@@ -392,7 +392,7 @@ public class NSNumber : NSValue {
     
     public override var description: String {
         let locale = CFLocaleCopyCurrent()
-        let formatter = CFNumberFormatterCreate(nil, locale, .DecimalStyle)
+        let formatter = CFNumberFormatterCreate(nil, locale, kCFNumberFormatterDecimalStyle)
         CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
         return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
     }
