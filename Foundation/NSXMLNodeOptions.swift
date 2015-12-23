@@ -43,7 +43,7 @@
     @constant NSXMLDocumentIncludeContentTypeDeclaration Include a content type declaration for HTML or XHTML
 */
 
-#if arch(x86_64)
+#if arch(x86_64) || arch(arm64)
 public typealias NSXMLNodeOptionRawType = Int
 #else
 public typealias NSXMLNodeOptionRawType = Int64
