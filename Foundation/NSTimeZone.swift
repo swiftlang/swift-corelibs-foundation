@@ -58,6 +58,10 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return true
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return self
     }

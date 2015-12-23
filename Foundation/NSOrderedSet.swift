@@ -11,10 +11,18 @@
 /****************       Immutable Ordered Set   ****************/
 public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ArrayLiteralConvertible {
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
-    
+
+    public override func mutableCopy() -> AnyObject {
+        return mutableCopyWithZone(nil)
+    }
+
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }

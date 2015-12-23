@@ -44,6 +44,10 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
         return true
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }

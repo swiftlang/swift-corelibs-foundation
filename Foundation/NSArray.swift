@@ -79,8 +79,16 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return true
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return self
+    }
+    
+    public override func mutableCopy() -> AnyObject {
+        return mutableCopyWithZone(nil)
     }
     
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {

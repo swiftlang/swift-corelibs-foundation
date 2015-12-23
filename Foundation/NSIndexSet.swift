@@ -46,7 +46,17 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         _ranges = indexSet._ranges
         _count = indexSet.count
     }
+    
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject  { NSUnimplemented() }
+    
+    public override func mutableCopy() -> AnyObject {
+        return mutableCopyWithZone(nil)
+    }
+    
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject { NSUnimplemented() }
     public static func supportsSecureCoding() -> Bool { return true }
     public required init?(coder aDecoder: NSCoder)  { NSUnimplemented() }

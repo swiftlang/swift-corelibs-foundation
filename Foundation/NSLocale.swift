@@ -44,6 +44,10 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
         NSUnimplemented()
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject { NSUnimplemented() }
     
     public func encodeWithCoder(aCoder: NSCoder) { NSUnimplemented() }
