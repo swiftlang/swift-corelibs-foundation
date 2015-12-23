@@ -948,6 +948,10 @@
 #include <libc.h>
 #include <dlfcn.h>
 #endif
+#include <arpa/inet.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
@@ -955,6 +959,10 @@
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFPropertyList.h>
 #include "CFInternal.h"
+
+#ifndef NBBY
+#define NBBY 8
+#endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
@@ -964,7 +972,6 @@
 #undef EBADF
 #define EBADF WSAENOTSOCK
 
-#define NBBY 8
 #define NFDBITS	(sizeof(int32_t) * NBBY)
 
 typedef int32_t fd_mask;
@@ -993,7 +1000,7 @@ if ((vvp)->tv_usec < 0) {				\
 
 //#define LOG_CFSOCKET
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #define INVALID_SOCKET (CFSocketNativeHandle)(-1)
 #define closesocket(a) close((a))
 #define ioctlsocket(a,b,c) ioctl((a),(b),(c))
@@ -1242,7 +1249,7 @@ static SInt32 __CFSocketCreateWakeupSocketPair(void) {
         address[i].sin_family = AF_INET;
         address[i].sin_addr.s_addr = htonl(INADDR_LOOPBACK);
         if (0 <= error) error = bind(__CFWakeupSocketPair[i], (struct sockaddr *)&(address[i]), sizeof(struct sockaddr_in));
-        if (0 <= error) error = getsockname(__CFWakeupSocketPair[i], (struct sockaddr *)&(address[i]), &namelen);
+        if (0 <= error) error = getsockname(__CFWakeupSocketPair[i], (struct sockaddr *)&(address[i]), (socklen_t *)&namelen);
         if (sizeof(struct sockaddr_in) != namelen) error = -1;
     }
     if (0 <= error) error = connect(__CFWakeupSocketPair[0], (struct sockaddr *)&(address[1]), sizeof(struct sockaddr_in));
@@ -2057,7 +2064,11 @@ manageSelectError()
 
 static void *__CFSocketManager(void * arg)
 {
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+    pthread_setname_np(pthread_self(), "com.apple.CFSocket.private");
+#else
     pthread_setname_np("com.apple.CFSocket.private");
+#endif
     if (objc_collectingEnabled()) objc_registerThreadWithCollector();
     SInt32 nrfds, maxnrfds, fdentries = 1;
     SInt32 rfds, wfds;
@@ -2465,7 +2476,9 @@ static CFSocketRef _CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketN
         pthread_attr_init(&attr);
         pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
         pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
+#endif
         pthread_create(&tid, &attr, __CFSocketManager, 0);
         pthread_attr_destroy(&attr);
         //warning CF: we dont actually know that a pthread_t is the same size as void *

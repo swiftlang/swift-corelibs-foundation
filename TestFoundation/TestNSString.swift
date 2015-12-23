@@ -47,6 +47,7 @@ class TestNSString : XCTestCase {
             ("test_FromContentOfFile",test_FromContentOfFile),
             ("test_swiftStringUTF16", test_swiftStringUTF16),
             ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
+            ("test_initializeWithFormat", test_initializeWithFormat),
         ]
     }
 
@@ -356,5 +357,14 @@ class TestNSString : XCTestCase {
         let characterSet = NSCharacterSet.whitespaceCharacterSet()
         let string: NSString = " abc   "
         XCTAssertEqual(string.stringByTrimmingCharactersInSet(characterSet), "abc")
+    }
+    
+    func test_initializeWithFormat() {
+        let argument: [CVarArgType] = [42, 42.0]
+        withVaList(argument) {
+            pointer in
+            let string = NSString(format: "Value is %d (%.1f)", arguments: pointer)
+            XCTAssertEqual(string, "Value is 42 (42.0)")
+        }
     }
 }

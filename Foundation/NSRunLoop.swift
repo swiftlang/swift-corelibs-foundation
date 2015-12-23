@@ -9,8 +9,8 @@
 
 import CoreFoundation
 
-public let NSDefaultRunLoopMode: String = kCFRunLoopDefaultMode._swiftObject
-public let NSRunLoopCommonModes: String = kCFRunLoopCommonModes._swiftObject
+public let NSDefaultRunLoopMode: String = "kCFRunLoopDefaultMode"
+public let NSRunLoopCommonModes: String = "kCFRunLoopCommonModes"
 
 internal func _NSRunLoopNew(cf: CFRunLoopRef) -> Unmanaged<AnyObject> {
     let rl = Unmanaged<NSRunLoop>.passRetained(NSRunLoop(cfObject: cf))
@@ -77,7 +77,7 @@ extension NSRunLoop {
     public func runMode(mode: String, beforeDate limitDate: NSDate) -> Bool {
         let runloopResult = CFRunLoopRunInMode(mode._cfObject, limitDate.timeIntervalSinceNow, false)
 #if os(Linux)
-        return runloopResult == 2 || runloopResult == 3
+        return runloopResult == Int32(kCFRunLoopRunHandledSource) || runloopResult == Int32(kCFRunLoopRunTimedOut)
 #else
         return runloopResult == .HandledSource || runloopResult == .TimedOut
 #endif
