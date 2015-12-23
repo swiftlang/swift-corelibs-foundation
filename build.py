@@ -349,6 +349,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
     'TestFoundation/Resources/Info.plist',
     'TestFoundation/Resources/NSURLTestData.plist',
     'TestFoundation/Resources/Test.plist',
+    'TestFoundation/Resources/NSStringTestData.txt',
 ])
 
 # TODO: Probably this should be another 'product', but for now it's simply a phase
