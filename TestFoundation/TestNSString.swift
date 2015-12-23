@@ -237,11 +237,10 @@ class TestNSString : XCTestCase {
         
         do {
             let str = try NSString(contentsOfFile: testFilePath!, encoding: NSUTF8StringEncoding)
+            XCTAssertEqual(str, "swift-corelibs-foundation")
         } catch {
             XCTFail("Unable to init NSString from contentsOfFile:encoding:")
         }
-        
-        XCTAssertEqual(str, "swift-corelibs-foundation")
     }
 
     func test_uppercaseString() {
