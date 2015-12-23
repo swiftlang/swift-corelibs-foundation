@@ -203,7 +203,7 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
-    private func _nextGenericKey() -> UInt32 {
+    private func _nextGenericKey() -> UInt32! {
         self._genericKey += 1
         return self._genericKey
     }
@@ -241,7 +241,7 @@ public class NSKeyedArchiver : NSCoder {
             
             uid = _nextGenericKey()
             
-            self._objRefMap[oid] = uid!
+            self._objRefMap[oid] = uid
             self._visited.insert(oid)
             self._objects.insert(NSKeyedArchiver.NullObjectReferenceName, atIndex: Int(uid!))
         }
