@@ -57,8 +57,9 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         _timeIntervalSinceReferenceDate = ti
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    public convenience required init?(coder aDecoder: NSCoder) {
+        let ti = aDecoder.decodeDoubleForKey("NS.time")
+        self.init(timeIntervalSinceReferenceDate: ti)
     }
 
     public func copyWithZone(zone: NSZone) -> AnyObject {
