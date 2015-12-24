@@ -329,43 +329,47 @@ public class NSKeyedArchiver : NSCoder {
         let index = Int(NSKeyedArchiver._objectRefGetValue(reference))
         self._objects[index] = objv
     }
-
-    private func _classNameForClass(clsv: AnyClass) -> String {
-        var className : String?
-        
-        className = classNameForClass(clsv)
-        if className == nil {
-            className = NSKeyedArchiver.classNameForClass(clsv)
-        }
-        if className == nil {
-            className = _typeName(clsv)
-        }
-
-        return className!
-    }
     
     /**
         Returns a dictionary describing class metadata for clsv
      */
     private func _classDictionary(clsv: AnyClass) -> Dictionary<String, Any> {
+        func _classNameForClass(clsv: AnyClass) -> String? {
+            var className : String?
+            
+            className = classNameForClass(clsv)
+            if className == nil {
+                className = NSKeyedArchiver.classNameForClass(clsv)
+            }
+            
+            return className
+        }
+
         var classDict : [String:Any] = [:]
+        let className = NSStringFromClass(clsv)
+        let mappedClassName = _classNameForClass(clsv)
         
-        classDict["$classname"] = NSStringFromClass(clsv)
+        if mappedClassName != nil && mappedClassName != className {
+            // If we have a mapped class name, OS X only encodes the mapped name
+            classDict["$classname"] = mappedClassName
+        } else {
+            var classChain : [String] = []
+            var classIter : AnyClass? = clsv
 
-        var classChain : [String] = []
-        var classIter : AnyClass? = clsv
-
-        repeat {
-            classChain.append(NSStringFromClass(classIter!))
-            classIter = _getSuperclass(classIter!)
-        } while classIter != nil
-        
-        classDict["$classes"] = classChain
-        
-        if let ns = clsv as? NSObject.Type {
-            let classHints = ns.classFallbacksForKeyedArchiver()
-            if classHints.count > 0 {
-                classDict["$classhints"] = classHints
+            classDict["$classname"] = className
+            
+            repeat {
+                classChain.append(NSStringFromClass(classIter!))
+                classIter = _getSuperclass(classIter!)
+            } while classIter != nil
+            
+            classDict["$classes"] = classChain
+            
+            if let ns = clsv as? NSObject.Type {
+                let classHints = ns.classFallbacksForKeyedArchiver()
+                if classHints.count > 0 {
+                    classDict["$classhints"] = classHints
+                }
             }
         }
         
@@ -381,18 +385,16 @@ public class NSKeyedArchiver : NSCoder {
         object reference to avoid redundantly encoding class metadata
      */
     private func _classReference(clsv: AnyClass) -> CFKeyedArchiverUID? {
-        let className = _classNameForClass(clsv)
-        var classRef = self._classes[className]
+        let className = NSStringFromClass(clsv)
+        var classRef = self._classes[className] // keyed by actual class name
         
         if classRef == nil {
-            let classDictionary = _classDictionary(clsv)
-            classRef = _addObject(classDictionary.bridge())
+            let classDict = _classDictionary(clsv)
+            classRef = _addObject(classDict.bridge())
             
             if let unwrappedClassRef = classRef {
                 self._classes[className] = unwrappedClassRef
             }
-            
-            return classRef
         }
         
         return classRef
@@ -770,8 +772,14 @@ public class NSKeyedUnarchiver : NSCoder {
             return false
         }
         
+        if !_flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding) {
+            // if secure coding is disabled, anything goes
+            return true
+        }
+        
         if whitelist == nil {
-            return !_flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding)
+            // SwiftFoundation classes are white-listed if a whitelist is not specified
+            return _SwiftIsFoundationClass(assertedClass!)
         }
         
         for whitelistedClass in whitelist! {
@@ -786,6 +794,20 @@ public class NSKeyedUnarchiver : NSCoder {
     private func _parseClassDictionaryWithWhitelist(classDict: Dictionary<String, Any>?, whitelist: NSSet?, inout classToConstruct: AnyClass?) -> Bool {
         classToConstruct = nil
         
+        func _classForClassName(codedName: String) -> AnyClass? {
+            var aClass : AnyClass?
+            
+            aClass = classForClassName(codedName)
+            if aClass == nil {
+                aClass = NSKeyedUnarchiver.classForClassName(codedName)
+            }
+            if aClass == nil {
+                aClass = NSClassFromString(codedName)
+            }
+            
+            return aClass
+        }
+
         guard let unwrappedClassDict = classDict else {
             return false
         }
@@ -796,7 +818,7 @@ public class NSKeyedUnarchiver : NSCoder {
         let assertedClasses = unwrappedClassDict["$classes"] as? [String]
 
         if assertedClassName != nil {
-            let assertedClass : AnyClass? = NSClassFromString(assertedClassName!)
+            let assertedClass : AnyClass? = _classForClassName(assertedClassName!)
             if _isClassInWhitelist(assertedClass, whitelist: whitelist) {
                 classToConstruct = assertedClass
                 return true
@@ -805,6 +827,7 @@ public class NSKeyedUnarchiver : NSCoder {
         
         if assertedClassHints != nil {
             for assertedClassHint in assertedClassHints! {
+                // FIXME check whether class hints should be subject to mapping or not
                 let assertedClass : AnyClass? = NSClassFromString(assertedClassHint)
                 if _isClassInWhitelist(assertedClass, whitelist: whitelist) {
                     classToConstruct = assertedClass
@@ -813,9 +836,10 @@ public class NSKeyedUnarchiver : NSCoder {
             }
         }
         
-        if assertedClassName != nil && assertedClasses != nil {
+        if assertedClassName != nil {
             if let unwrappedDelegate = self._delegate {
-                classToConstruct = unwrappedDelegate.unarchiver(self, cannotDecodeObjectOfClassName: assertedClassName!, originalClasses: assertedClasses!)
+                classToConstruct = unwrappedDelegate.unarchiver(self, cannotDecodeObjectOfClassName: assertedClassName!,
+                                                                originalClasses: assertedClasses != nil ? assertedClasses! : [])
                 if classToConstruct != nil {
                     return true
                 }
