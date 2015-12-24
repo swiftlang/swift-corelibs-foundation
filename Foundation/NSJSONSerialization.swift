@@ -257,14 +257,14 @@ private struct JSONReader {
             switch encoding {
             case NSUTF8StringEncoding:
                 index = input
-            case NSUTF16LittleEndianStringEncoding where buffer[input+1] == 0:
-                index = input
             case NSUTF16BigEndianStringEncoding where buffer[input] == 0:
                 index = input + 1
-            case NSUTF32LittleEndianStringEncoding where buffer[input+1] == 0 && buffer[input+2] == 0 && buffer[input+3] == 0:
-                index = input
             case NSUTF32BigEndianStringEncoding where buffer[input] == 0 && buffer[input+1] == 0 && buffer[input+2] == 0:
                 index = input + 3
+            case NSUTF16LittleEndianStringEncoding where buffer[input+1] == 0:
+                index = input
+            case NSUTF32LittleEndianStringEncoding where buffer[input+1] == 0 && buffer[input+2] == 0 && buffer[input+3] == 0:
+                index = input
             default:
                 return nil
             }
