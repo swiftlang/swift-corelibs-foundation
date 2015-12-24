@@ -1099,7 +1099,6 @@ public class NSKeyedUnarchiver : NSCoder {
     
     @warn_unused_result
     public override func decodeObjectOfClasses(classes: NSSet?, forKey key: String) -> AnyObject? {
-        _validateStillDecoding()
         do {
             return try _decodeObject(classes, forKey: key)
         } catch {
@@ -1120,8 +1119,6 @@ public class NSKeyedUnarchiver : NSCoder {
     
     @warn_unused_result
     public override func decodeTopLevelObjectOfClasses(classes: NSSet?, forKey key: String) throws -> AnyObject? {
-        _validateStillDecoding()
-        
         guard self._containers?.count == 1 else {
             return try _throwError(NSCocoaError.CoderReadCorruptError,
                                    withDescription: "Can only call decodeTopLevelObjectOfClasses when decoding top level objects.")
