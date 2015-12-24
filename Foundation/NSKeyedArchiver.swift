@@ -30,6 +30,10 @@ struct NSKeyedArchiverFlags : OptionSetType {
 
 typealias CFKeyedArchiverUID = CFTypeRef
 
+private func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
+    return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, CFKeyedArchiverUIDRef.self))
+}
+
 public class NSKeyedArchiver : NSCoder {
     
     static var _classNameMap = Dictionary<String, String>()
@@ -214,10 +218,6 @@ public class NSKeyedArchiver : NSCoder {
         return self._genericKey
     }
     
-    private class func _objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
-        return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, CFKeyedArchiverUIDRef.self))
-    }
-    
     private class func _escapeKey(key: String) -> String {
         if key.hasPrefix("$") {
             return "$" + key
@@ -330,7 +330,7 @@ public class NSKeyedArchiver : NSCoder {
         Associates an object with an existing reference
      */ 
     private func _setObject(objv: Any, forReference reference : CFKeyedArchiverUID) {
-        let index = Int(NSKeyedArchiver._objectRefGetValue(reference))
+        let index = Int(objectRefGetValue(reference))
         self._objects[index] = objv
     }
     
@@ -744,7 +744,7 @@ public class NSKeyedUnarchiver : NSCoder {
         Dereferences, but does not decode, an object reference
      */
     private func _dereferenceObjectReference(unwrappedObjectRef: CFKeyedArchiverUID) -> Any? {
-        let uid = Int(NSKeyedArchiver._objectRefGetValue(unwrappedObjectRef))
+        let uid = Int(objectRefGetValue(unwrappedObjectRef))
             
         guard uid < self._objects.count else {
             return nil
@@ -858,7 +858,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     private func _validateAndMapClass(classReference: CFKeyedArchiverUID, whitelist: NSSet?) throws -> AnyClass? {
-        let classUid = NSKeyedUnarchiver._objectRefGetValue(classReference)
+        let classUid = objectRefGetValue(classReference)
         var classToConstruct : AnyClass? = _classes[classUid]
 
         if classToConstruct == nil {
@@ -884,20 +884,16 @@ public class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    private class func _objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
-        return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, CFKeyedArchiverUIDRef.self))
-    }
-
     private func _cachedObjectForReference(objectRef: CFKeyedArchiverUID) -> AnyObject? {
-        return self._objRefMap[NSKeyedUnarchiver._objectRefGetValue(objectRef)]
+        return self._objRefMap[objectRefGetValue(objectRef)]
     }
     
     private func _cacheObject(object: AnyObject, forReference objectRef: CFKeyedArchiverUID) {
-        self._objRefMap[NSKeyedUnarchiver._objectRefGetValue(objectRef)] = object
+        self._objRefMap[objectRefGetValue(objectRef)] = object
     }
     
     private func _isNullObjectReference(objectRef: CFKeyedArchiverUID) -> Bool {
-        return NSKeyedUnarchiver._objectRefGetValue(objectRef) == 0
+        return objectRefGetValue(objectRef) == 0
     }
     
     /**
@@ -1056,7 +1052,9 @@ public class NSKeyedUnarchiver : NSCoder {
         if let unwrappedDelegate = self._delegate {
             unwrappedDelegate.unarchiverWillFinish(self)
         }
-        
+    
+	// FIXME are we supposed to do anything here?
+    
         if let unwrappedDelegate = self._delegate {
             unwrappedDelegate.unarchiverDidFinish(self)
         }
