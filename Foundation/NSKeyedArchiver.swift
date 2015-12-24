@@ -38,18 +38,17 @@ public class NSKeyedArchiver : NSCoder {
     
     static var _classNameMap = Dictionary<String, String>()
     
-    var _stream : AnyObject
-    var _flags = NSKeyedArchiverFlags(rawValue: 0)
-    var _delegate : NSKeyedArchiverDelegate? = nil
-    var _containers = NSMutableArray(object: NSMutableDictionary())
-    var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
-    var _objRefMap : Dictionary<ObjectIdentifier, UInt32> = [:]
-    var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
-    var _classNameMap : Dictionary<String, String> = [:]
-    var _classes : Dictionary<String, CFKeyedArchiverUID> = [:]
-    var _cache : Array<CFKeyedArchiverUID> = []
-    var _genericKey : UInt32 = 0
-    var _visited : Set<ObjectIdentifier> = []
+    private var _stream : AnyObject
+    private var _flags = NSKeyedArchiverFlags(rawValue: 0)
+    private var _containers = NSMutableArray(object: NSMutableDictionary())
+    private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
+    private var _objRefMap : Dictionary<ObjectIdentifier, UInt32> = [:]
+    private var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
+    private var _classNameMap : Dictionary<String, String> = [:]
+    private var _classes : Dictionary<String, CFKeyedArchiverUID> = [:]
+    private var _cache : Array<CFKeyedArchiverUID> = []
+    private var _genericKey : UInt32 = 0
+    private var _visited : Set<ObjectIdentifier> = []
 
     public weak var delegate: NSKeyedArchiverDelegate?
     public var outputFormat = NSPropertyListFormat.BinaryFormat_v1_0 {
@@ -136,7 +135,7 @@ public class NSKeyedArchiver : NSCoder {
         plist["$objects"] = self._objects
         plist["$top"] = self._containers[0]
         
-        if let unwrappedDelegate = self._delegate {
+        if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiverWillFinish(self)
         }
 
@@ -148,7 +147,7 @@ public class NSKeyedArchiver : NSCoder {
             success = _writeBinaryData(nsPlist)
         }
 
-        if let unwrappedDelegate = self._delegate {
+        if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiverDidFinish(self)
         }
 
@@ -308,7 +307,7 @@ public class NSKeyedArchiver : NSCoder {
     private func replaceObject(object: AnyObject, withObject replacement: AnyObject?) {
         let oid = ObjectIdentifier(object)
         
-        if let unwrappedDelegate = self._delegate {
+        if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiver(self, willReplaceObject: object, withObject: replacement)
         }
         
@@ -434,7 +433,7 @@ public class NSKeyedArchiver : NSCoder {
         }
         
         // object replaced by delegate. If the delegate returns nil, nil is encoded
-        if let unwrappedDelegate = self._delegate {
+        if let unwrappedDelegate = self.delegate {
             objectToEncode = unwrappedDelegate.archiver(self, willEncodeObject: objectToEncode!)
             replaceObject(object!, withObject: objectToEncode)
         }
@@ -496,7 +495,7 @@ public class NSKeyedArchiver : NSCoder {
             }
         }
         
-        if let unwrappedDelegate = self._delegate {
+        if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiver(self, didEncodeObject: object)
         }
 
@@ -603,17 +602,16 @@ public class NSKeyedUnarchiver : NSCoder {
 
     public weak var delegate: NSKeyedUnarchiverDelegate?
 
-    var _stream : AnyObject
-    var _flags = NSKeyedUnarchiverFlags(rawValue: 0)
-    var _delegate : NSKeyedUnarchiverDelegate? = nil
-    var _containers : Array<Dictionary<String, Any>>? = nil
-    var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
-    var _objRefMap : Dictionary<UInt32, AnyObject> = [:]
-    var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
-    var _classNameMap : Dictionary<String, AnyClass> = [:]
-    var _classes : Dictionary<UInt32, AnyClass> = [:]
-    var _cache : Array<CFKeyedArchiverUID> = []
-    var _error : NSError? = nil
+    private var _stream : AnyObject
+    private var _flags = NSKeyedUnarchiverFlags(rawValue: 0)
+    private var _containers : Array<Dictionary<String, Any>>? = nil
+    private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
+    private var _objRefMap : Dictionary<UInt32, AnyObject> = [:]
+    private var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
+    private var _classNameMap : Dictionary<String, AnyClass> = [:]
+    private var _classes : Dictionary<UInt32, AnyClass> = [:]
+    private var _cache : Array<CFKeyedArchiverUID> = []
+    private var _error : NSError? = nil
 
     public class func unarchiveObjectWithData(data: NSData) -> AnyObject? {
         do {
@@ -845,7 +843,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
         
         if assertedClassName != nil {
-            if let unwrappedDelegate = self._delegate {
+            if let unwrappedDelegate = self.delegate {
                 classToConstruct = unwrappedDelegate.unarchiver(self, cannotDecodeObjectOfClassName: assertedClassName!,
                                                                 originalClasses: assertedClasses != nil ? assertedClasses! : [])
                 if classToConstruct != nil {
@@ -912,7 +910,7 @@ public class NSKeyedUnarchiver : NSCoder {
     private func replaceObject(object: AnyObject, withObject replacement: AnyObject) {
         let oid = ObjectIdentifier(object)
         
-        if let unwrappedDelegate = self._delegate {
+        if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.unarchiver(self, willReplaceObject: object, withObject: replacement)
         }
         
@@ -940,7 +938,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
         
         // object replaced by delegate. If the delegate returns nil, nil is encoded
-        if let unwrappedDelegate = self._delegate {
+        if let unwrappedDelegate = self.delegate {
             object = unwrappedDelegate.unarchiver(self, didDecodeObject: decodedObject!)
             if object != nil {
                 replaceObject(decodedObject!, withObject: object!)
@@ -1049,13 +1047,13 @@ public class NSKeyedUnarchiver : NSCoder {
             return;
         }
         
-        if let unwrappedDelegate = self._delegate {
+        if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.unarchiverWillFinish(self)
         }
     
 	// FIXME are we supposed to do anything here?
     
-        if let unwrappedDelegate = self._delegate {
+        if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.unarchiverDidFinish(self)
         }
 
