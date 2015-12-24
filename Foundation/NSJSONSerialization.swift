@@ -248,7 +248,7 @@ private struct JSONReader {
             }()
         }
 
-        func peekASCII(input: Index) -> UInt8? {
+        func takeASCII(input: Index) -> (UInt8, Index)? {
             guard hasNext(input) else {
                 return nil
             }
@@ -268,14 +268,7 @@ private struct JSONReader {
             default:
                 return nil
             }
-            return (buffer[index] < 0x80) ? buffer[index] : nil
-        }
-
-        func takeASCII(input: Index) -> (UInt8, Index)? {
-            if let ascii = peekASCII(input) {
-                return (ascii, input + step)
-            }
-            return nil
+            return (buffer[index] < 0x80) ? (buffer[index], input + step) : nil
         }
 
         func takeString(begin: Index, end: Index) throws -> String {
@@ -302,8 +295,8 @@ private struct JSONReader {
 
     func consumeWhitespace(input: Index) -> Index? {
         var index = input
-        while let char = source.peekASCII(index) where JSONReader.whitespaceASCII.contains(char) {
-            index += source.step
+        while let (char, nextIndex) = source.takeASCII(index) where JSONReader.whitespaceASCII.contains(char) {
+            index = nextIndex
         }
         return index
     }
@@ -384,7 +377,7 @@ private struct JSONReader {
                     ])
                 }
             default:
-                currentIndex += source.step
+                currentIndex = index
             }
         }
         throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
