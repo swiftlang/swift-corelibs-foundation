@@ -778,22 +778,20 @@ public class NSKeyedUnarchiver : NSCoder {
             return false
         }
         
-        if !_flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding) {
-            return true
-        }
-        
-        if let unwrappedWhitelist = whitelist {
-            for whitelistedClass in unwrappedWhitelist {
-                if whitelistedClass as? AnyClass == assertedClass {
-                    print("matched \(whitelistedClass)")
-                    return true
+        if _flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding) {
+            if let unwrappedWhitelist = whitelist {
+                for whitelistedClass in unwrappedWhitelist {
+                    if whitelistedClass as? AnyClass == assertedClass {
+                        print("matched \(whitelistedClass)")
+                        return true
+                    }
                 }
             }
+            
+            fatalError("Value was of unexpected class \(assertedClass!)")
+        } else {
+            return true
         }
-
-        fatalError("Value was of unexpected class \(assertedClass!)")
-        
-        return false
     }
     
     private func _parseClassDictionaryWithWhitelist(classDict: Dictionary<String, Any>?, whitelist: NSSet?, inout classToConstruct: AnyClass?) -> Bool {
