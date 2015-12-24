@@ -116,18 +116,6 @@ internal protocol _NSBridgable {
 
 private let _SwiftFoundationModuleName = "SwiftFoundation"
 
-internal func _SwiftIsFoundationClass(aClass: AnyClass) -> Bool
-{
-    let demangledName = _typeName(aClass).bridge()
-    let components = demangledName.componentsSeparatedByString(".")
-    
-    if components.count == 2 && components[0] == _SwiftFoundationModuleName {
-        return true
-    }
-    
-    return false
-}
-
 /**
     Returns the class name for a class, applying the following rules:
  
