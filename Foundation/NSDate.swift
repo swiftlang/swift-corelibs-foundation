@@ -58,8 +58,12 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        let ti = aDecoder.decodeDoubleForKey("NS.time")
-        self.init(timeIntervalSinceReferenceDate: ti)
+        if aDecoder.allowsKeyedCoding {
+            let ti = aDecoder.decodeDoubleForKey("NS.time")
+            self.init(timeIntervalSinceReferenceDate: ti)
+        } else {
+            NSUnimplemented()
+        }
     }
 
     public func copyWithZone(zone: NSZone) -> AnyObject {
@@ -71,7 +75,11 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeDouble(_timeIntervalSinceReferenceDate, forKey: "NS.time")
+	if aCoder.allowsKeyedCoding {
+	    aCoder.encodeDouble(_timeIntervalSinceReferenceDate, forKey: "NS.time")
+	} else {
+	    NSUnimplemented()
+	}
     }
 
     /**

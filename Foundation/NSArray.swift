@@ -69,7 +69,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     
     public required convenience init?(coder aDecoder: NSCoder) {
         if let keyedUnarchiver = aDecoder as? NSKeyedUnarchiver {
-            self.init(array: keyedUnarchiver._decodeArrayOfObjects("NS.objects"))
+            self.init(array: keyedUnarchiver._decodeArrayOfObjects("NS.objects")!)
         } else {
             NSUnimplemented()
         }

@@ -730,14 +730,14 @@ public class NSKeyedUnarchiver : NSCoder {
         self._containers!.removeLast()
     }
     
-    private func _getObjectInCurrentDecodingContext(forKey key: String, unescape: Bool = true) -> Any? {
+    private func _getObjectInCurrentDecodingContext<T>(forKey key: String, unescape: Bool = true) -> T? {
         var unescapedKey : String = key
         
         if unescape {
             unescapedKey = NSKeyedUnarchiver._unescapeKey(key)
         }
 
-        return self._containers!.last![unescapedKey]
+        return self._containers!.last![unescapedKey] as? T
     }
 
     /**
@@ -755,6 +755,12 @@ public class NSKeyedUnarchiver : NSCoder {
         }
         
         return self._objects[uid]
+    }
+    
+    public override var allowsKeyedCoding: Bool {
+        get {
+            return true
+        }
     }
     
     private func _validateStillDecoding() -> Bool {
@@ -1035,12 +1041,12 @@ public class NSKeyedUnarchiver : NSCoder {
         Internal function to decode an object. Returns the decoded object or throws an error.
       */
     private func _decodeObject(classes: NSSet?, forKey key: String) throws -> AnyObject? {
-        guard let objectRef = _getObjectInCurrentDecodingContext(forKey: key) as? AnyObject else {
+        guard let objectRef : AnyObject? = _getObjectInCurrentDecodingContext(forKey: key) else {
             return try _throwError(NSCocoaError.CoderValueNotFoundError,
                                    withDescription: "No value found for key \(key). The data may be corrupt.")
         }
         
-        return try _decodeObject(classes, forObjectReference: objectRef)
+        return try _decodeObject(classes, forObjectReference: objectRef!)
     }
     
     public func finishDecoding() {
@@ -1079,7 +1085,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     public override func containsValueForKey(key: String) -> Bool {
-        return _valueForKey(key) != nil
+        return _decodeValueForKey(key) != nil
     }
     
     public override func decodeObjectForKey(key: String) -> AnyObject? {
@@ -1125,14 +1131,15 @@ public class NSKeyedUnarchiver : NSCoder {
         return try _decodeObject(classes, forKey: key)
     }
     
-    private func _valueForKey(key: String) -> Any? {
+    private func _decodeValueForKey<T>(key: String) -> T? {
         _validateStillDecoding()
         return _getObjectInCurrentDecodingContext(forKey: key)
     }
     
     // FIXME would be nicer to use a generic function that called _conditionallyBridgeFromObject
     private func _nsNumberForKey(key: String) -> NSNumber? {
-        return _valueForKey(key) as? NSNumber
+        let ns : NSNumber? = _decodeValueForKey(key)
+        return ns
     }
 
     public override func decodeBoolForKey(key: String) -> Bool {
@@ -1179,7 +1186,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     // returned bytes immutable, and they go away with the unarchiver, not the containing autorelease pool
     public override func decodeBytesForKey(key: String, returnedLength lengthp: UnsafeMutablePointer<Int>) -> UnsafePointer<UInt8> {
-        let ns = _valueForKey(key) as? NSData
+        let ns : NSData? = _decodeValueForKey(key)
         
         if let value = ns {
             lengthp.memory = Int(value.length)
@@ -1189,8 +1196,8 @@ public class NSKeyedUnarchiver : NSCoder {
         return nil
     }
     
-    internal func _decodeArrayOfObjects(key : String, _ block: (Any) -> Void) {
-        let objectRefs = _valueForKey(key) as? Array<Any>
+    internal func _decodeArray(key : String, withBlock block: (Any) -> Void) throws {
+        let objectRefs : Array<Any>? = _decodeValueForKey(key)
         
         guard let unwrappedObjectRefs = objectRefs else {
             return
@@ -1201,27 +1208,27 @@ public class NSKeyedUnarchiver : NSCoder {
                 return
             }
             
-            do {
-                if let object = try _decodeObject(nil, forObjectReference: objectRef as! CFKeyedArchiverUID) {
-                    block(object)
-                }
-            } catch {
+            if let object = try _decodeObject(nil, forObjectReference: objectRef as! CFKeyedArchiverUID) {
+                block(object)
             }
         }
     }
     
-    internal func _decodeArrayOfObjects(key : String) -> Array<AnyObject> {
+    internal func _decodeArrayOfObjects(key : String) -> Array<AnyObject>? {
         var array : Array<AnyObject> = []
         
-        _decodeArrayOfObjects(key) { any in
-            if let object = any as? AnyObject {
-                array.append(object)
+        do {
+            try _decodeArray(key) { any in
+                if let object = any as? AnyObject {
+                    array.append(object)
+                }
             }
+        } catch {
+            return nil
         }
         
         return array
     }
-    
 
     // Enables secure coding support on this keyed unarchiver. When enabled, anarchiving a disallowed class throws an exception. Once enabled, attempting to set requiresSecureCoding to NO will throw an exception. This is to prevent classes from selectively turning secure coding off. This is designed to be set once at the top level and remain on. Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
     public override var requiresSecureCoding: Bool {
