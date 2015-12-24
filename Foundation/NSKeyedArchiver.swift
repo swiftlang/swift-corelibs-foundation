@@ -169,23 +169,27 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
-    private func _assertStillEncoding() {
+    private func _validateStillEncoding() -> Bool {
         if self._flags.contains(NSKeyedArchiverFlags.FinishedEncoding) {
             fatalError("Encoder already finished")
         }
+        
+        return true
     }
     
     private class func _supportsSecureCoding(objv : AnyObject?) -> Bool {
+        var supportsSecureCoding : Bool = false
+        
         if let secureCodable = objv as? NSSecureCoding {
-            return secureCodable.dynamicType.supportsSecureCoding()
+            supportsSecureCoding = secureCodable.dynamicType.supportsSecureCoding()
         }
         
-        return false
+        return supportsSecureCoding
     }
     
-    private func _assertSecureCoding(objv : AnyObject?) {
+    private func _validateObjectSupportsSecureCoding(objv : AnyObject?) {
         if self.requiresSecureCoding && !NSKeyedArchiver._supportsSecureCoding(objv) {
-            fatalError("Secure coding required")
+            fatalError("Secure coding required when encoding \(objv)")
         }
     }
     
@@ -446,7 +450,7 @@ public class NSKeyedArchiver : NSCoder {
         var objectRef : CFKeyedArchiverUID? // encoded object reference
         let haveVisited : Bool
 
-        _assertStillEncoding()
+        _validateStillEncoding()
         
         haveVisited = _haveVisited(objv)
         object = _replacementObject(objv)
@@ -456,7 +460,7 @@ public class NSKeyedArchiver : NSCoder {
             return nil
         }
         
-        _assertSecureCoding(object)
+        _validateObjectSupportsSecureCoding(object)
     
         if let unwrappedKey = key {
             _setObjectInCurrentEncodingContext(unwrappedObjectRef, forKey: unwrappedKey)
@@ -508,7 +512,7 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     private func _encodeValueType<T: NSObject where T: NSCoding>(objv: T, forKey key: String) {
-        _assertStillEncoding()
+        _validateStillEncoding()
         _setObjectInCurrentEncodingContext(objv, forKey: key)
     }
     
@@ -753,10 +757,12 @@ public class NSKeyedUnarchiver : NSCoder {
         return self._objects[uid]
     }
     
-    private func _assertStillDecoding() {
+    private func _validateStillDecoding() -> Bool {
         if self._flags.contains(NSKeyedUnarchiverFlags.FinishedDecoding) {
             fatalError("Decoder already finished")
         }
+        
+        return true
     }
     
     private class func _supportsSecureCoding(clsv : AnyClass) -> Bool {
@@ -773,20 +779,19 @@ public class NSKeyedUnarchiver : NSCoder {
         }
         
         if !_flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding) {
-            // if secure coding is disabled, anything goes
             return true
         }
         
-        if whitelist == nil {
-            // SwiftFoundation classes are white-listed if a whitelist is not specified
-            return _SwiftIsFoundationClass(assertedClass!)
-        }
-        
-        for whitelistedClass in whitelist! {
-            if whitelistedClass as? AnyClass == assertedClass {
-                return true
+        if let unwrappedWhitelist = whitelist {
+            for whitelistedClass in unwrappedWhitelist {
+                if whitelistedClass as? AnyClass == assertedClass {
+                    print("matched \(whitelistedClass)")
+                    return true
+                }
             }
         }
+
+        fatalError("Value was of unexpected class \(assertedClass!)")
         
         return false
     }
@@ -849,7 +854,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return false
     }
     
-    private func _mapClass(classReference: CFKeyedArchiverUID, whitelist: NSSet?) throws -> AnyClass? {
+    private func _validateAndMapClass(classReference: CFKeyedArchiverUID, whitelist: NSSet?) throws -> AnyClass? {
         let classUid = NSKeyedUnarchiver._objectRefGetValue(classReference)
         var classToConstruct : AnyClass? = _classes[classUid]
 
@@ -946,11 +951,25 @@ public class NSKeyedUnarchiver : NSCoder {
         
         return decodedObject
     }
+    
+    private func _validateClassSupportsSecureCoding(classToConstruct : AnyClass?) -> Bool {
+        var supportsSecureCoding : Bool = false
+        
+        if let secureDecodableClass = classToConstruct as? NSSecureCoding.Type {
+            supportsSecureCoding = secureDecodableClass.supportsSecureCoding()
+        }
+        
+        if self.requiresSecureCoding && !supportsSecureCoding {
+            fatalError("Archiver \(self) requires secure coding but class \(classToConstruct) does not support it")
+        }
+        
+        return supportsSecureCoding
+    }
 
     private func _decodeObject(classes: NSSet?, forObjectReference objectRef: CFKeyedArchiverUID) throws -> AnyObject? {
         var object : AnyObject? = nil
 
-        _assertStillDecoding()
+        _validateStillDecoding()
         
         if !NSKeyedUnarchiver._isReference(objectRef) {
             return try _throwError(NSCocoaError.CoderReadCorruptError,
@@ -981,7 +1000,7 @@ public class NSKeyedUnarchiver : NSCoder {
                                                withDescription: "Invalid class reference \(classReference). The data may be corrupt.")
                     }
                     
-                    var classToConstruct : AnyClass? = try _mapClass(classReference!, whitelist: classes)
+                    var classToConstruct : AnyClass? = try _validateAndMapClass(classReference!, whitelist: classes)
                     
                     if let ns = classToConstruct as? NSObject.Type {
                         classToConstruct = ns.classForKeyedUnarchiver()
@@ -991,6 +1010,8 @@ public class NSKeyedUnarchiver : NSCoder {
                         return try _throwError(NSCocoaError.CoderReadCorruptError,
                                                withDescription: "Class \(classToConstruct) is not decodable. The data may be corrupt.")
                     }
+
+                    _validateClassSupportsSecureCoding(classToConstruct)
                     
                     _pushDecodingContext(innerDecodingContext)
                     object = decodableClass.init(coder: self) as? AnyObject
@@ -1075,7 +1096,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     @warn_unused_result
     public override func decodeObjectOfClasses(classes: NSSet?, forKey key: String) -> AnyObject? {
-        _assertStillDecoding()
+        _validateStillDecoding()
         do {
             return try _decodeObject(classes, forKey: key)
         } catch {
@@ -1096,7 +1117,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     @warn_unused_result
     public override func decodeTopLevelObjectOfClasses(classes: NSSet?, forKey key: String) throws -> AnyObject? {
-        _assertStillDecoding()
+        _validateStillDecoding()
         
         guard self._containers?.count == 1 else {
             return try _throwError(NSCocoaError.CoderReadCorruptError,
@@ -1107,7 +1128,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     private func _valueForKey(key: String) -> Any? {
-        _assertStillDecoding()
+        _validateStillDecoding()
         return _getObjectInCurrentDecodingContext(forKey: key)
     }
     
