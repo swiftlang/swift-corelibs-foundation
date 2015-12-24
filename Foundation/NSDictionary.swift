@@ -136,7 +136,14 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        self.init(objects: nil, forKeys: nil, count: 0)
+        if let keyedUnarchiver = aDecoder as? NSKeyedUnarchiver {
+            let keys = keyedUnarchiver._decodeArrayOfObjects("NS.keys") as! [NSObject] // XXX cast check
+            let objects = keyedUnarchiver._decodeArrayOfObjects("NS.objects")
+
+            self.init(objects: objects, forKeys: keys)
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {

@@ -68,7 +68,11 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        self.init(objects: nil, count: 0)
+        if let keyedUnarchiver = aDecoder as? NSKeyedUnarchiver {
+            self.init(array: keyedUnarchiver._decodeArrayOfObjects("NS.objects"))
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
@@ -614,10 +618,6 @@ public class NSMutableArray : NSArray {
         for idx in 0..<cnt {
             _storage.append(objects[idx]!)
         }
-    }
-    
-    public required convenience init(coder: NSCoder) {
-        self.init()
     }
     
     public override subscript (idx: Int) -> AnyObject {
