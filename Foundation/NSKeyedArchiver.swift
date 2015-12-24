@@ -338,7 +338,7 @@ public class NSKeyedArchiver : NSCoder {
         Returns a dictionary describing class metadata for clsv
      */
     private func _classDictionary(clsv: AnyClass) -> Dictionary<String, Any> {
-        func _classNameForClass(clsv: AnyClass) -> String? {
+        func classNameForClass(clsv: AnyClass) -> String? {
             var className : String?
             
             className = classNameForClass(clsv)
@@ -351,7 +351,7 @@ public class NSKeyedArchiver : NSCoder {
 
         var classDict : [String:Any] = [:]
         let className = NSStringFromClass(clsv)
-        let mappedClassName = _classNameForClass(clsv)
+        let mappedClassName = classNameForClass(clsv)
         
         if mappedClassName != nil && mappedClassName != className {
             // If we have a mapped class name, OS X only encodes the mapped name
@@ -802,7 +802,7 @@ public class NSKeyedUnarchiver : NSCoder {
     private func _parseClassDictionaryWithWhitelist(classDict: Dictionary<String, Any>?, whitelist: NSSet?, inout classToConstruct: AnyClass?) -> Bool {
         classToConstruct = nil
         
-        func _classForClassName(codedName: String) -> AnyClass? {
+        func classForClassName(codedName: String) -> AnyClass? {
             var aClass : AnyClass?
             
             aClass = classForClassName(codedName)
@@ -826,7 +826,7 @@ public class NSKeyedUnarchiver : NSCoder {
         let assertedClasses = unwrappedClassDict["$classes"] as? [String]
 
         if assertedClassName != nil {
-            let assertedClass : AnyClass? = _classForClassName(assertedClassName!)
+            let assertedClass : AnyClass? = classForClassName(assertedClassName!)
             if _isClassInWhitelist(assertedClass, whitelist: whitelist) {
                 classToConstruct = assertedClass
                 return true
