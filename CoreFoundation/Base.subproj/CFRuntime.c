@@ -1163,6 +1163,7 @@ void __CFInitialize(void) {
 #endif
 #endif
 #if DEPLOYMENT_RUNTIME_SWIFT
+        _CFKeyedArchiverUIDGetTypeID();
         #ifndef __CFInitializeSwift
         #if TARGET_OS_LINUX
         #define __CFInitializeSwift _TF10Foundation19__CFInitializeSwiftFT_T_
