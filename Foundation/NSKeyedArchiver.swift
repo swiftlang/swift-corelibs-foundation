@@ -36,7 +36,7 @@ private func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
 
 public class NSKeyedArchiver : NSCoder {
     
-    static var _classNameMap = Dictionary<String, String>()
+    private static var _classNameMap = Dictionary<String, String>()
     
     private var _stream : AnyObject
     private var _flags = NSKeyedArchiverFlags(rawValue: 0)
@@ -598,7 +598,7 @@ struct NSKeyedUnarchiverFlags : OptionSetType {
 }
 
 public class NSKeyedUnarchiver : NSCoder {
-    static private var _classNameMap : Dictionary<String, AnyClass> = [:]
+    private static var _classNameMap : Dictionary<String, AnyClass> = [:]
 
     public weak var delegate: NSKeyedUnarchiverDelegate?
 
