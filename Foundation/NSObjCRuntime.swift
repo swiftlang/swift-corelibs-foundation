@@ -114,7 +114,7 @@ internal protocol _NSBridgable {
     var _nsObject: NSType { get }
 }
 
-private let _SwiftFoundationModule = "SwiftFoundation"
+private let _SwiftFoundationModuleName = "SwiftFoundation"
 
 /**
     Returns the class name for a class, applying the following rules:
@@ -129,7 +129,7 @@ public func NSStringFromClass(aClass: AnyClass) -> String
     let components = demangledName.componentsSeparatedByString(".")
     
     if components.count == 2 {
-        if components[0] == _SwiftFoundationModule {
+        if components[0] == _SwiftFoundationModuleName {
             return components[1]
         } else {
             return String(demangledName)
@@ -202,7 +202,7 @@ public func NSClassFromString(aClassName: String) -> AnyClass?
         if components.count > 1 {
             mangledName = mangledTypeNameNameForClass(aClassName)
         } else {
-            mangledName = mangledTypeNameNameForClass([_SwiftFoundationModule] + components)
+            mangledName = mangledTypeNameNameForClass([_SwiftFoundationModuleName] + components)
         }
     }
     
