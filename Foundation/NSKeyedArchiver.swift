@@ -788,7 +788,6 @@ public class NSKeyedUnarchiver : NSCoder {
             if let unwrappedWhitelist = whitelist {
                 for whitelistedClass in unwrappedWhitelist {
                     if whitelistedClass as? AnyClass == assertedClass {
-                        print("matched \(whitelistedClass)")
                         return true
                     }
                 }
