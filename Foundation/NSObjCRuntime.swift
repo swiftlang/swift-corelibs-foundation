@@ -125,8 +125,7 @@ private let _SwiftFoundationModule = "SwiftFoundation"
  */
 public func NSStringFromClass(aClass: AnyClass) -> String
 {
-    let mangledName = _CFCopyNominalTypeNameForClass(unsafeBitCast(aClass, CFTypeRef.self))
-    let demangledName = NSString(_typeName(aClass))
+    let demangledName = _typeName(aClass).bridge()
     let components = demangledName.componentsSeparatedByString(".")
     
     if components.count == 2 {
@@ -135,8 +134,8 @@ public func NSStringFromClass(aClass: AnyClass) -> String
         } else {
             return String(demangledName)
         }
-    } else if mangledName != nil {
-        return "_Tt" + String(mangledName!)
+    } else if let mangledName = _CFCopyNominalTypeNameForClass(unsafeBitCast(aClass, CFTypeRef.self)) {
+        return "_Tt" + String(mangledName)
     } else {
         fatalError("NSStringFromClass could not determine class name")
     }
