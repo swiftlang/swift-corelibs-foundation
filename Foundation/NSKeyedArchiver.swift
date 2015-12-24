@@ -279,24 +279,25 @@ public class NSKeyedArchiver : NSCoder {
         return objectRef
     }
 
-    /**
-        Gets the current serialization dictionary
-     */
-    private func _blobForCurrentObject() -> NSMutableDictionary {
-        return self._containers.lastObject as! NSMutableDictionary
+    private func _pushEncodingContext(encodingContext: NSDictionary) {
+        self._containers.addObject(encodingContext)
     }
     
-    /**
-        Pushes or pops a serialization dictionary
-     */ 
-    private func _setBlobForCurrentObject(blob: NSDictionary?) {
-        if let unwrappedBlob = blob {
-            self._containers.addObject(unwrappedBlob)
-        } else {
-            self._containers.removeLastObject()
-        }
+    private func _popEncodingContext() {
+        self._containers.removeLastObject()
     }
    
+    private func _setObjectInCurrentEncodingContext(object : AnyObject?, forKey key: String, escape: Bool = true) {
+        let encodingContext = self._containers.lastObject as! NSMutableDictionary
+        
+        if escape {
+            let escapedKey = NSKeyedArchiver._escapeKey(key)
+            encodingContext[NSString(escapedKey)] = object
+        } else {
+            encodingContext[NSString(key)] = object
+        }
+    }
+    
     /**
         Update replacement object mapping
      */
@@ -454,12 +455,9 @@ public class NSKeyedArchiver : NSCoder {
         }
         
         _assertSecureCoding(object)
-
-        let blob = _blobForCurrentObject()
     
         if let unwrappedKey = key {
-            let escapedKey = NSKeyedArchiver._escapeKey(unwrappedKey)
-            blob[NSString(escapedKey)] = unwrappedObjectRef
+            _setObjectInCurrentEncodingContext(unwrappedObjectRef, forKey: unwrappedKey)
         }
 
         if !haveVisited {
@@ -467,10 +465,10 @@ public class NSKeyedArchiver : NSCoder {
 
             if _isContainer(object) {
                 if let codable = object as? NSCoding {
-                    let innerBlob = NSMutableDictionary()
+                    let innerEncodingContext = NSMutableDictionary()
                     var cls : AnyClass?
                     
-                    _setBlobForCurrentObject(innerBlob)
+                    _pushEncodingContext(innerEncodingContext)
                     codable.encodeWithCoder(self)
 
                     let ns = object as? NSObject
@@ -479,10 +477,9 @@ public class NSKeyedArchiver : NSCoder {
                         cls = object!.dynamicType
                     }
                     
-                    innerBlob[NSString("$class")] = _classReference(cls!)
-                    
-                    _setBlobForCurrentObject(nil)
-                    flattenedObject = innerBlob
+                    _setObjectInCurrentEncodingContext(_classReference(cls!), forKey: "$class", escape: false)
+                    _popEncodingContext()
+                    flattenedObject = innerEncodingContext
                 }
             } else {
                 flattenedObject = object!
@@ -510,8 +507,7 @@ public class NSKeyedArchiver : NSCoder {
     
     private func _encodeValueType<T: NSObject where T: NSCoding>(objv: T, forKey key: String) {
         _assertStillEncoding()
-        let blob = _blobForCurrentObject()
-        blob[NSString(key)] = objv
+        _setObjectInCurrentEncodingContext(objv, forKey: key)
     }
     
     public override func encodeBool(boolv: Bool, forKey key: String) {
@@ -712,16 +708,30 @@ public class NSKeyedUnarchiver : NSCoder {
         self._containers = [top!]
     }
 
-    private func _blobForCurrentObject() -> Dictionary<String, Any> {
-        return self._containers!.last!
+    private class func _unescapeKey(key : String) -> String {
+        if key.hasPrefix("$") {
+            return key.bridge().substringFromIndex(1)
+        }
+        
+        return key
     }
     
-    private func _setBlobForCurrentObject(blob: Dictionary<String, Any>?) {
-        if let unwrappedBlob = blob {
-            self._containers!.append(unwrappedBlob)
-        } else {
-            self._containers!.removeLast()
+    private func _pushDecodingContext(decodingContext: Dictionary<String, Any>) {
+        self._containers!.append(decodingContext)
+    }
+    
+    private func _popDecodingContext() {
+        self._containers!.removeLast()
+    }
+    
+    private func _getObjectInCurrentDecodingContext(forKey key: String, unescape: Bool = true) -> Any? {
+        var unescapedKey : String = key
+        
+        if unescape {
+            unescapedKey = NSKeyedUnarchiver._unescapeKey(key)
         }
+
+        return self._containers!.last![unescapedKey]
     }
 
     /**
@@ -936,13 +946,12 @@ public class NSKeyedUnarchiver : NSCoder {
                 // check cached of decoded objects
                 object = _cachedObjectForReference(objectRef)
                 if object == nil {
-
-                    guard let innerBlob = dereferencedObject as? Dictionary<String, Any> else {
+                    guard let innerDecodingContext = dereferencedObject as? Dictionary<String, Any> else {
                         return try _throwError(NSCocoaError.CoderReadCorruptError,
                                                withDescription: "Invalid object encoding \(objectRef). The data may be corrupt.")
                     }
                     
-                    let classReference = innerBlob["$class"] as? CFKeyedArchiverUID
+                    let classReference = innerDecodingContext["$class"] as? CFKeyedArchiverUID
                     if !NSKeyedUnarchiver._isReference(classReference) {
                         return try _throwError(NSCocoaError.CoderReadCorruptError,
                                                withDescription: "Invalid class reference \(classReference). The data may be corrupt.")
@@ -959,9 +968,9 @@ public class NSKeyedUnarchiver : NSCoder {
                                                withDescription: "Class \(classToConstruct) is not decodable. The data may be corrupt.")
                     }
                     
-                    _setBlobForCurrentObject(innerBlob)
+                    _pushDecodingContext(innerDecodingContext)
                     object = decodableClass.init(coder: self) as? AnyObject
-                    _setBlobForCurrentObject(nil)
+                    _popDecodingContext()
                     
                     _cacheObject(object!, forReference: objectRef)
                 }
@@ -983,10 +992,7 @@ public class NSKeyedUnarchiver : NSCoder {
         Internal function to decode an object. Returns the decoded object or throws an error.
       */
     private func _decodeObject(classes: NSSet?, forKey key: String) throws -> AnyObject? {
-        
-        let blob = _blobForCurrentObject()
-        
-        guard let objectRef = blob[key] as? AnyObject else {
+        guard let objectRef = _getObjectInCurrentDecodingContext(forKey: key) as? AnyObject else {
             return try _throwError(NSCocoaError.CoderValueNotFoundError,
                                    withDescription: "No value found for key \(key). The data may be corrupt.")
         }
@@ -1078,7 +1084,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     private func _valueForKey(key: String) -> Any? {
         _assertStillDecoding()
-        return _blobForCurrentObject()[key]
+        return _getObjectInCurrentDecodingContext(forKey: key)
     }
     
     // FIXME would be nicer to use a generic function that called _conditionallyBridgeFromObject
