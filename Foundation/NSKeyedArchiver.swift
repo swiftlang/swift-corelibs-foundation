@@ -324,7 +324,7 @@ public class NSKeyedArchiver : NSCoder {
     private func _pushEncodingContext(encodingContext: NSKeyedEncodingContext) {
         self._containers.append(encodingContext)
     }
-    
+   
     private func _popEncodingContext() {
         self._containers.removeLast()
     }
@@ -332,7 +332,10 @@ public class NSKeyedArchiver : NSCoder {
     private var _currentEncodingContext : NSKeyedEncodingContext {
         return self._containers.last!
     }
-   
+  
+    /**
+        Associate an encoded object or reference with a key in the current encoding context
+     */
     private func _setObjectInCurrentEncodingContext(object : AnyObject?, forKey key: String, escape: Bool = true) {
         let encodingContext = self._containers.last!
         
@@ -343,7 +346,11 @@ public class NSKeyedArchiver : NSCoder {
             encodingContext.dict[key] = object
         }
     }
-    
+   
+    /**
+        The generic key is used for objects that are encoded without a key. It is a per-encoding
+        context monotonically increasing integer prefixed with "$".
+      */ 
     private func _nextGenericKey() -> String {
         let key = "$" + String(_currentEncodingContext.genericKey)
         _currentEncodingContext.genericKey += 1
@@ -383,7 +390,7 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     /**
-        Returns a dictionary describing class metadata for clsv
+        Returns a dictionary describing class metadata for a class
      */
     private func _classDictionary(clsv: AnyClass) -> Dictionary<String, Any> {
         func _classNameForClass(clsv: AnyClass) -> String? {
@@ -453,7 +460,7 @@ public class NSKeyedArchiver : NSCoder {
     }
    
     /**
-        Return the object replacing another object
+        Return the object replacing another object (if any)
      */
     private func _replacementObject(object: AnyObject?) -> AnyObject? {
         var objectToEncode : AnyObject? = nil // object to encode after substitution
@@ -508,6 +515,7 @@ public class NSKeyedArchiver : NSCoder {
 
         objectRef = _referenceObject(object, conditional: conditional)
         guard let unwrappedObjectRef = objectRef else {
+            // we can return nil if the object is being conditionally encoded
             return nil
         }
         
@@ -621,10 +629,15 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     public override func encodeBytes(bytesp: UnsafePointer<UInt8>, length lenv: Int, forKey key: String) {
+        // this encodes the data inline
         let data = NSData(bytes: bytesp, length: lenv)
         _encodeValue(data, forKey: key)
     }
-    
+   
+    /**
+        Helper API for NSArray and NSDictionary that encodes an array of objects,
+        creating references as it goes
+     */ 
     internal func _encodeArrayOfObjects(objects : NSArray, forKey key : String) {
         var objectRefs = [CFKeyedArchiverUID]()
         
@@ -639,7 +652,14 @@ public class NSKeyedArchiver : NSCoder {
         _encodeValue(objectRefs.bridge(), forKey: key)
     }
     
-    // Enables secure coding support on this keyed archiver. You do not need to enable secure coding on the archiver to enable secure coding on the unarchiver. Enabling secure coding on the archiver is a way for you to be sure that all classes that are encoded conform with NSSecureCoding (it will throw an exception if a class which does not NSSecureCoding is archived). Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
+    /**
+        Enables secure coding support on this keyed archiver. You do not need to enable
+        secure coding on the archiver to enable secure coding on the unarchiver. Enabling
+        secure coding on the archiver is a way for you to be sure that all classes that
+        are encoded conform with NSSecureCoding (it will throw an exception if a class
+        which does not NSSecureCoding is archived). Note that the getter is on the superclass,
+        NSCoder. See NSCoder for more information about secure coding.
+     */
     public override var requiresSecureCoding: Bool {
         get {
             return _flags.contains(NSKeyedArchiverFlags.RequiresSecureCoding)
@@ -885,15 +905,15 @@ public class NSKeyedUnarchiver : NSCoder {
         return false
     }
     
-    private func _isClassAllowed(assertedClass: AnyClass?, whitelist: NSSet?) -> Bool {
+    private func _isClassAllowed(assertedClass: AnyClass?, allowedClasses: NSSet?) -> Bool {
         if assertedClass == nil {
             return false
         }
         
         if _flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding) {
-            if let unwrappedWhitelist = whitelist {
-                for whitelistedClass in unwrappedWhitelist {
-                    if whitelistedClass as? AnyClass == assertedClass {
+            if let unwrappedAllowedClasses = allowedClasses {
+                for allowedClass in unwrappedAllowedClasses {
+                    if allowedClass as? AnyClass == assertedClass {
                         return true
                     }
                 }
@@ -905,7 +925,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    private func _validateAndMapClassDictionary(classDict: Dictionary<String, Any>?, whitelist: NSSet?, inout classToConstruct: AnyClass?) -> Bool {
+    private func _validateAndMapClassDictionary(classDict: Dictionary<String, Any>?, allowedClasses: NSSet?, inout classToConstruct: AnyClass?) -> Bool {
         classToConstruct = nil
         
         func _classForClassName(codedName: String) -> AnyClass? {
@@ -933,7 +953,7 @@ public class NSKeyedUnarchiver : NSCoder {
 
         if assertedClassName != nil {
             let assertedClass : AnyClass? = _classForClassName(assertedClassName!)
-            if _isClassAllowed(assertedClass, whitelist: whitelist) {
+            if _isClassAllowed(assertedClass, allowedClasses: allowedClasses) {
                 classToConstruct = assertedClass
                 return true
             }
@@ -943,7 +963,7 @@ public class NSKeyedUnarchiver : NSCoder {
             for assertedClassHint in assertedClassHints! {
                 // FIXME check whether class hints should be subject to mapping or not
                 let assertedClass : AnyClass? = NSClassFromString(assertedClassHint)
-                if _isClassAllowed(assertedClass, whitelist: whitelist) {
+                if _isClassAllowed(assertedClass, allowedClasses: allowedClasses) {
                     classToConstruct = assertedClass
                     return true
                 }
@@ -964,18 +984,18 @@ public class NSKeyedUnarchiver : NSCoder {
     }
    
     /**
-        Validate a class reference against an optional class whitelist, and return the class object
+        Validate a class reference against an optional class allowedClasses, and return the class object
         if it's allowed
      */
     private func _validateAndMapClassReference(classReference: CFKeyedArchiverUID) throws -> AnyClass? {
-        let whitelist : NSSet? = _currentDecodingContext.allowedClasses
+        let allowedClasses : NSSet? = _currentDecodingContext.allowedClasses
         let classUid = objectRefGetValue(classReference)
         var classToConstruct : AnyClass? = _classes[classUid]
 
         if classToConstruct == nil {
             let classDict = _dereferenceObjectReference(classReference) as? Dictionary<String, Any>
             
-            if !_validateAndMapClassDictionary(classDict!, whitelist: whitelist, classToConstruct: &classToConstruct) {
+            if !_validateAndMapClassDictionary(classDict!, allowedClasses: allowedClasses, classToConstruct: &classToConstruct) {
                 throw _decodingError(NSCocoaError.CoderReadCorruptError, withDescription: "Invalid class \(classDict). The data may be corrupt.")
             }
         
@@ -1074,6 +1094,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
         
         if self.requiresSecureCoding && !supportsSecureCoding {
+            // FIXME should this be a fatal error?
             fatalError("Archiver \(self) requires secure coding but class \(classToConstruct) does not support it")
         }
         
@@ -1081,7 +1102,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
 
     /**
-        Decode an object for the given reference, validating class against provided whitelist.
+        Decode an object for the given reference, validating class against provided allowedClasses.
      */
     private func _decodeObject(classes: NSSet?, forObjectReference objectRef: CFKeyedArchiverUID) throws -> AnyObject? {
         var object : AnyObject? = nil
@@ -1164,12 +1185,18 @@ public class NSKeyedUnarchiver : NSCoder {
         
         return try _decodeObject(classes, forObjectReference: objectRef!)
     }
-    
+   
+    /**
+        Decode a value type in the current decoding context
+     */ 
     private func _decodeValueForKey<T>(key: String?) -> T? {
         _validateStillDecoding()
         return _objectInCurrentDecodingContext(forKey: key)
     }
-    
+   
+    /**
+        Helper for NSArray/NSDictionary to dereference and decode an array of objects
+     */ 
     internal func _decodeArray(key : String, withBlock block: (Any) -> Void) throws {
         let objectRefs : Array<Any>? = _decodeValueForKey(key)
         
@@ -1206,7 +1233,10 @@ public class NSKeyedUnarchiver : NSCoder {
         
         return array
     }
-    
+
+    /**
+        Called when the caller has finished decoding.
+     */    
     public func finishDecoding() {
         if _flags.contains(NSKeyedUnarchiverFlags.FinishedDecoding) {
             return;
