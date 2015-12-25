@@ -888,7 +888,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return false
     }
     
-    private func _isClassInWhitelist(assertedClass: AnyClass?, whitelist: NSSet?) -> Bool {
+    private func _isClassAllowed(assertedClass: AnyClass?, whitelist: NSSet?) -> Bool {
         if assertedClass == nil {
             return false
         }
@@ -908,7 +908,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    private func _parseClassDictionaryWithWhitelist(classDict: Dictionary<String, Any>?, whitelist: NSSet?, inout classToConstruct: AnyClass?) -> Bool {
+    private func _validateAndMapClassDictionary(classDict: Dictionary<String, Any>?, whitelist: NSSet?, inout classToConstruct: AnyClass?) -> Bool {
         classToConstruct = nil
         
         func _classForClassName(codedName: String) -> AnyClass? {
@@ -936,7 +936,7 @@ public class NSKeyedUnarchiver : NSCoder {
 
         if assertedClassName != nil {
             let assertedClass : AnyClass? = _classForClassName(assertedClassName!)
-            if _isClassInWhitelist(assertedClass, whitelist: whitelist) {
+            if _isClassAllowed(assertedClass, whitelist: whitelist) {
                 classToConstruct = assertedClass
                 return true
             }
@@ -946,7 +946,7 @@ public class NSKeyedUnarchiver : NSCoder {
             for assertedClassHint in assertedClassHints! {
                 // FIXME check whether class hints should be subject to mapping or not
                 let assertedClass : AnyClass? = NSClassFromString(assertedClassHint)
-                if _isClassInWhitelist(assertedClass, whitelist: whitelist) {
+                if _isClassAllowed(assertedClass, whitelist: whitelist) {
                     classToConstruct = assertedClass
                     return true
                 }
@@ -978,7 +978,7 @@ public class NSKeyedUnarchiver : NSCoder {
         if classToConstruct == nil {
             let classDict = _dereferenceObjectReference(classReference) as? Dictionary<String, Any>
             
-            if !_parseClassDictionaryWithWhitelist(classDict!, whitelist: whitelist, classToConstruct: &classToConstruct) {
+            if !_validateAndMapClassDictionary(classDict!, whitelist: whitelist, classToConstruct: &classToConstruct) {
                 try _throwError(NSCocoaError.CoderReadCorruptError, withDescription: "Invalid class \(classDict). The data may be corrupt.")
             }
         
@@ -1115,7 +1115,7 @@ public class NSKeyedUnarchiver : NSCoder {
                                                withDescription: "Invalid object encoding \(objectRef). The data may be corrupt.")
                     }
                     
-                    let innerDecodingContext = NSKeyedDecodingContext(dict, allowedClasses: classes)
+                    let innerDecodingContext = NSKeyedDecodingContext(dict, allowedClasses: requiresSecureCoding ? classes : nil)
                     
                     let classReference = innerDecodingContext.dict["$class"] as? CFKeyedArchiverUID
                     if !NSKeyedUnarchiver._isReference(classReference) {
