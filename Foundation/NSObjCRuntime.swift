@@ -16,6 +16,39 @@ internal let kCFCompareEqualTo = CFComparisonResult.CompareEqualTo
 internal let kCFCompareGreaterThan = CFComparisonResult.CompareGreaterThan
 #endif
 
+internal enum NSObjCType : Character {
+    case ID = "@"
+    case Class = "#"
+    case Sel = ":"
+    case Char = "c"
+    case UChar = "C"
+    case Short = "s"
+    case UShort = "S"
+    case Int = "i"
+    case UInt = "I"
+    case Int32 = "l"
+    case UInt32 = "L"
+    case Int64 = "q"
+    case UInt64 = "Q"
+    case Float = "f"
+    case Double = "d"
+    case Bitfield = "b"
+    case Bool = "B"
+    case Void = "v"
+    case Undef = "?"
+    case Ptr = "^"
+    case CharPtr = "*"
+    case Atom = "%"
+    case ArrayBegin = "["
+    case ArrayEnd = "]"
+    case UnionBegin = "("
+    case UnionEnd = ")"
+    case StructBegin = "{"
+    case StructEnd = "}"
+    case Vector = "!"
+    case Const = "r"
+}
+
 public enum NSComparisonResult : Int {
     
     case OrderedAscending = -1
