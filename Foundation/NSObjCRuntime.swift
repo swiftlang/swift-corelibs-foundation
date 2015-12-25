@@ -123,8 +123,7 @@ private let _SwiftFoundationModuleName = "SwiftFoundation"
     - Swift classes directly under a package (i.e. one-level) are returned as a demangled name
     - Everything else is returned as the full mangled type name
  */
-public func NSStringFromClass(aClass: AnyClass) -> String
-{
+public func NSStringFromClass(aClass: AnyClass) -> String {
     let demangledName = _typeName(aClass).bridge()
     let components = demangledName.componentsSeparatedByString(".")
     
@@ -152,8 +151,7 @@ typealias MetadataAccessor = @convention(c) () -> AnyClass?
 /**
     Calls a metadata accessor given a metadata accessor symbol name.
  */
-private func metadataFromAccessorName(mangledName : String) -> AnyClass?
-{
+private func metadataFromAccessorName(mangledName : String) -> AnyClass? {
     let symbol : MetadataAccessor?
         
     symbol = unsafeBitCast(dlsym(RTLD_DEFAULT, mangledName), MetadataAccessor.self)
@@ -165,8 +163,7 @@ private func metadataFromAccessorName(mangledName : String) -> AnyClass?
     Returns mangled metadata accessor symbol name for a namespaced
     Swift class.
  */
-private func mangledTypeNameNameForClass(components : [String]) -> String
-{
+private func mangledTypeNameNameForClass(components : [String]) -> String {
     var mangledName = "_TtC"
     
     for component in components {
@@ -176,8 +173,7 @@ private func mangledTypeNameNameForClass(components : [String]) -> String
     return mangledName
 }
 
-private func mangledTypeNameNameForClass(className : String) -> String
-{
+private func mangledTypeNameNameForClass(className : String) -> String {
     let components = className.bridge().componentsSeparatedByString(".")
     
     return mangledTypeNameNameForClass(components)
@@ -190,8 +186,7 @@ private func mangledTypeNameNameForClass(className : String) -> String
     - Unmangled namespaced names are mangled then looked up
     - Unmangled unnamespaced names are mangled into SwiftFoundation classes before lookup
  */
-public func NSClassFromString(aClassName: String) -> AnyClass?
-{
+public func NSClassFromString(aClassName: String) -> AnyClass? {
     var mangledName : String
     
     if aClassName.hasPrefix("_Tt") {
