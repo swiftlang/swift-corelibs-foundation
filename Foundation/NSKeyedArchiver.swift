@@ -35,8 +35,8 @@ private func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
 }
 
 private class NSKeyedEncodingContext {
-    private var _dict = NSMutableDictionary()
-    private var _genericKey : UInt = 0
+    private var dict = NSMutableDictionary()
+    private var genericKey : UInt = 0
 }
 
 public class NSKeyedArchiver : NSCoder {
@@ -137,7 +137,7 @@ public class NSKeyedArchiver : NSCoder {
         plist["$archiver"] = String(self.dynamicType)
         plist["$version"] = NSKeyedArchivePlistVersion
         plist["$objects"] = self._objects
-        plist["$top"] = self._containers[0]._dict
+        plist["$top"] = self._containers[0].dict
         
         if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiverWillFinish(self)
@@ -288,23 +288,25 @@ public class NSKeyedArchiver : NSCoder {
     private func _popEncodingContext() {
         self._containers.removeLast()
     }
+    
+    private var _currentEncodingContext : NSKeyedEncodingContext {
+        return self._containers.last!
+    }
    
     private func _setObjectInCurrentEncodingContext(object : AnyObject?, forKey key: String, escape: Bool = true) {
         let encodingContext = self._containers.last!
         
         if escape {
             let escapedKey = NSKeyedArchiver._escapeKey(key)
-            encodingContext._dict[NSString(escapedKey)] = object
+            encodingContext.dict[NSString(escapedKey)] = object
         } else {
-            encodingContext._dict[NSString(key)] = object
+            encodingContext.dict[NSString(key)] = object
         }
     }
     
     private func _nextGenericKey() -> String {
-        let encodingContext = self._containers.last!
-
-        let key = "$" + String(encodingContext._genericKey)
-        encodingContext._genericKey += 1
+        let key = "$" + String(_currentEncodingContext.genericKey)
+        _currentEncodingContext.genericKey += 1
         return key
     }
 
@@ -472,7 +474,7 @@ public class NSKeyedArchiver : NSCoder {
         _validateObjectSupportsSecureCoding(object)
     
         if !haveVisited {
-            var flattenedObject : Any? = nil
+            var encodedObject : Any? = nil
 
             if _isContainer(object) {
                 if let codable = object as? NSCoding {
@@ -490,14 +492,14 @@ public class NSKeyedArchiver : NSCoder {
                     
                     _setObjectInCurrentEncodingContext(_classReference(cls!), forKey: "$class", escape: false)
                     _popEncodingContext()
-                    flattenedObject = innerEncodingContext._dict
+                    encodedObject = innerEncodingContext.dict
                 }
             } else {
-                flattenedObject = object!
+                encodedObject = object!
             }
             
-            if flattenedObject != nil {
-                _setObject(flattenedObject!, forReference: unwrappedObjectRef)
+            if encodedObject != nil {
+                _setObject(encodedObject!, forReference: unwrappedObjectRef)
             }
         }
         
@@ -624,6 +626,15 @@ struct NSKeyedUnarchiverFlags : OptionSetType {
     static let RequiresSecureCoding = NSKeyedUnarchiverFlags(rawValue: 2)
 }
 
+private class NSKeyedDecodingContext {
+    private var dict : Dictionary<String, Any>
+    private var genericKey : UInt = 0
+    
+    init(_ dict : Dictionary<String, Any>) {
+        self.dict = dict
+    }
+}
+
 public class NSKeyedUnarchiver : NSCoder {
     private static var _classNameMap : Dictionary<String, AnyClass> = [:]
 
@@ -631,7 +642,7 @@ public class NSKeyedUnarchiver : NSCoder {
 
     private var _stream : AnyObject
     private var _flags = NSKeyedUnarchiverFlags(rawValue: 0)
-    private var _containers : Array<Dictionary<String, Any>>? = nil
+    private var _containers : Array<NSKeyedDecodingContext>? = nil
     private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
     private var _objRefMap : Dictionary<UInt32, AnyObject> = [:]
     private var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
@@ -736,7 +747,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
         
         self._objects = objects!
-        self._containers = [top!]
+        self._containers = [NSKeyedDecodingContext(top!)]
     }
 
     private class func _unescapeKey(key : String) -> String {
@@ -747,7 +758,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return key
     }
     
-    private func _pushDecodingContext(decodingContext: Dictionary<String, Any>) {
+    private func _pushDecodingContext(decodingContext: NSKeyedDecodingContext) {
         self._containers!.append(decodingContext)
     }
     
@@ -755,14 +766,24 @@ public class NSKeyedUnarchiver : NSCoder {
         self._containers!.removeLast()
     }
     
-    private func _getObjectInCurrentDecodingContext<T>(forKey key: String, unescape: Bool = true) -> T? {
+    private var _currentDecodingContext : NSKeyedDecodingContext {
+        return self._containers!.last!
+    }
+    
+    private func _objectInCurrentDecodingContext<T>(forKey key: String, unescape: Bool = true) -> T? {
         var unescapedKey : String = key
         
         if unescape {
             unescapedKey = NSKeyedUnarchiver._unescapeKey(key)
         }
+        
+        return _currentDecodingContext.dict[unescapedKey] as? T
+    }
 
-        return self._containers!.last![unescapedKey] as? T
+    private func _nextGenericKey() -> String {
+        let key = "$" + String(_currentDecodingContext.genericKey)
+        _currentDecodingContext.genericKey += 1
+        return key
     }
 
     /**
@@ -1027,12 +1048,14 @@ public class NSKeyedUnarchiver : NSCoder {
                 // check cached of decoded objects
                 object = _cachedObjectForReference(objectRef)
                 if object == nil {
-                    guard let innerDecodingContext = dereferencedObject as? Dictionary<String, Any> else {
+                    guard let dict = dereferencedObject as? Dictionary<String, Any> else {
                         return try _throwError(NSCocoaError.CoderReadCorruptError,
                                                withDescription: "Invalid object encoding \(objectRef). The data may be corrupt.")
                     }
                     
-                    let classReference = innerDecodingContext["$class"] as? CFKeyedArchiverUID
+                    let innerDecodingContext = NSKeyedDecodingContext(dict)
+                    
+                    let classReference = innerDecodingContext.dict["$class"] as? CFKeyedArchiverUID
                     if !NSKeyedUnarchiver._isReference(classReference) {
                         return try _throwError(NSCocoaError.CoderReadCorruptError,
                                                withDescription: "Invalid class reference \(classReference). The data may be corrupt.")
@@ -1074,8 +1097,13 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
         Internal function to decode an object. Returns the decoded object or throws an error.
       */
-    private func _decodeObject(classes: NSSet?, forKey key: String) throws -> AnyObject? {
-        guard let objectRef : AnyObject? = _getObjectInCurrentDecodingContext(forKey: key) else {
+    private func _decodeObject(classes: NSSet?, forKey key: String?) throws -> AnyObject? {
+        var unwrappedKey = key
+        if unwrappedKey == nil {
+            unwrappedKey = _nextGenericKey()
+        }
+        
+        guard let objectRef : AnyObject? = _objectInCurrentDecodingContext(forKey: unwrappedKey!, unescape: key != nil) else {
             return try _throwError(NSCocoaError.CoderValueNotFoundError,
                                    withDescription: "No value found for key \(key). The data may be corrupt.")
         }
@@ -1164,9 +1192,17 @@ public class NSKeyedUnarchiver : NSCoder {
         return try _decodeObject(classes, forKey: key)
     }
     
+    public override func decodeObject() -> AnyObject? {
+        do {
+            return try _decodeObject(nil, forKey: nil)
+        } catch {
+            return nil
+        }
+    }
+
     private func _decodeValueForKey<T>(key: String) -> T? {
         _validateStillDecoding()
-        return _getObjectInCurrentDecodingContext(forKey: key)
+        return _objectInCurrentDecodingContext(forKey: key)
     }
     
     // FIXME would be nicer to use a generic function that called _conditionallyBridgeFromObject
