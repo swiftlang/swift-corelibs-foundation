@@ -726,17 +726,6 @@ public class NSKeyedUnarchiver : NSCoder {
         return decodeObject() as? NSData
     }
     
-    public override func decodeBytesWithReturnedLength(lengthp: UnsafeMutablePointer<Int>) -> UnsafeMutablePointer<Void> {
-        let ns : NSData? = _decodeValueForKey(nil)
-        
-        if let value = ns {
-            lengthp.memory = Int(value.length)
-            return UnsafeMutablePointer<Void>(value.bytes) // FIXME really mutable?
-        }
-        
-        return nil
-    }
-    
     public override func encodePropertyList(aPropertyList: AnyObject) {
         return encodeObject(aPropertyList)
     }
