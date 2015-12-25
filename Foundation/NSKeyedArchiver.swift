@@ -36,9 +36,45 @@ private func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
 
 private class NSKeyedEncodingContext {
     // the object container that is being encoded
-    private var dict = Dictionary<String, Any>()
+    var dict = Dictionary<String, Any>()
     // the index used for non-keyed objects (encodeObject: vs encodeObject:forKey:)
-    private var genericKey : UInt = 0
+    var genericKey : UInt = 0
+}
+
+// NSUniqueObject is a wrapper that allows both hashable and non-hashable objects
+// to be used as keys in a dictionary
+private struct NSUniqueObject : Hashable {
+    var _backing : Any
+    var _hashValue : () -> Int
+    var _equality : (Any) -> Bool
+    
+    init<T: Hashable>(hashableObject: T) {
+        self._backing = hashableObject
+        self._hashValue = { hashableObject.hashValue }
+        self._equality = {
+            if let other = $0 as? T {
+                return hashableObject == other
+            }
+            return false
+        }
+    }
+    
+    init(_ object: AnyObject) {
+        // FIXME can't we check for Hashable directly?
+        if let ns = object as? NSObject {
+            self.init(hashableObject: ns)
+        } else {
+            self.init(hashableObject: ObjectIdentifier(object))
+        }
+    }
+    
+    var hashValue: Int {
+        return _hashValue()
+    }
+}
+
+private func ==(x : NSUniqueObject, y : NSUniqueObject) -> Bool {
+    return x._equality(y._backing)
 }
 
 public class NSKeyedArchiver : NSCoder {
@@ -49,12 +85,12 @@ public class NSKeyedArchiver : NSCoder {
     private var _flags = NSKeyedArchiverFlags(rawValue: 0)
     private var _containers : Array<NSKeyedEncodingContext> = [NSKeyedEncodingContext()]
     private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
-    private var _objRefMap : Dictionary<ObjectIdentifier, UInt32> = [:]
-    private var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
+    private var _objRefMap : Dictionary<NSUniqueObject, UInt32> = [:]
+    private var _replacementMap : Dictionary<NSUniqueObject, AnyObject> = [:]
     private var _classNameMap : Dictionary<String, String> = [:]
     private var _classes : Dictionary<String, CFKeyedArchiverUID> = [:]
     private var _cache : Array<CFKeyedArchiverUID> = []
-    private var _visited : Set<ObjectIdentifier> = []
+    private var _visited : Set<NSUniqueObject> = []
 
     public weak var delegate: NSKeyedArchiverDelegate?
     public var outputFormat = NSPropertyListFormat.BinaryFormat_v1_0 {
@@ -237,7 +273,7 @@ public class NSKeyedArchiver : NSCoder {
             return NSKeyedArchiveNullObjectReference
         }
         
-        let oid = ObjectIdentifier(objv!)
+        let oid = NSUniqueObject(objv!)
 
         uid = self._objRefMap[oid]
         if uid == nil {
@@ -262,7 +298,7 @@ public class NSKeyedArchiver : NSCoder {
         if objv == nil {
             return true // always have a null reference
         } else {
-            let oid = ObjectIdentifier(objv!)
+            let oid = NSUniqueObject(objv!)
 
             return self._visited.contains(oid)
         }
@@ -315,7 +351,7 @@ public class NSKeyedArchiver : NSCoder {
         Update replacement object mapping
      */
     private func replaceObject(object: AnyObject, withObject replacement: AnyObject?) {
-        let oid = ObjectIdentifier(object)
+        let oid = NSUniqueObject(object)
         
         if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiver(self, willReplaceObject: object, withObject: replacement)
@@ -425,7 +461,7 @@ public class NSKeyedArchiver : NSCoder {
         }
         
         // check replacement cache
-        objectToEncode = self._replacementMap[ObjectIdentifier(object!)]
+        objectToEncode = self._replacementMap[NSUniqueObject(object!)]
         if objectToEncode != nil {
             return objectToEncode
         }
@@ -646,7 +682,7 @@ public class NSKeyedUnarchiver : NSCoder {
     private var _containers : Array<NSKeyedDecodingContext>? = nil
     private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
     private var _objRefMap : Dictionary<UInt32, AnyObject> = [:]
-    private var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
+    private var _replacementMap : Dictionary<NSUniqueObject, AnyObject> = [:]
     private var _classNameMap : Dictionary<String, AnyClass> = [:]
     private var _classes : Dictionary<UInt32, AnyClass> = [:]
     private var _cache : Array<CFKeyedArchiverUID> = []
@@ -968,7 +1004,7 @@ public class NSKeyedUnarchiver : NSCoder {
         Replace object with another one
      */ 
     private func replaceObject(object: AnyObject, withObject replacement: AnyObject) {
-        let oid = ObjectIdentifier(object)
+        let oid = NSUniqueObject(object)
         
         if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.unarchiver(self, willReplaceObject: object, withObject: replacement)
@@ -992,7 +1028,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
         
         // check replacement cache
-        object = self._replacementMap[ObjectIdentifier(decodedObject!)]
+        object = self._replacementMap[NSUniqueObject(decodedObject!)]
         if object != nil {
             return object
         }
