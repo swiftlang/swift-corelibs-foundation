@@ -970,7 +970,7 @@ public class NSKeyedUnarchiver : NSCoder {
         Validate a class reference against an optional class whitelist, and return the class object
         if it's allowed
      */
-    private func _validateAndMapClass(classReference: CFKeyedArchiverUID) throws -> AnyClass? {
+    private func _validateAndMapClassReference(classReference: CFKeyedArchiverUID) throws -> AnyClass? {
         let whitelist : NSSet? = _currentDecodingContext.allowedClasses
         let classUid = objectRefGetValue(classReference)
         var classToConstruct : AnyClass? = _classes[classUid]
@@ -1126,7 +1126,7 @@ public class NSKeyedUnarchiver : NSCoder {
                     _pushDecodingContext(innerDecodingContext)
                     defer { _popDecodingContext() } // ensure an error does not invalidate the decoding context stack
 
-                    var classToConstruct : AnyClass? = try _validateAndMapClass(classReference!)
+                    var classToConstruct : AnyClass? = try _validateAndMapClassReference(classReference!)
                     
                     if let ns = classToConstruct as? NSObject.Type {
                         classToConstruct = ns.classForKeyedUnarchiver()
