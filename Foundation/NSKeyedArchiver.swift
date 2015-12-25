@@ -35,7 +35,9 @@ private func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
 }
 
 private class NSKeyedEncodingContext {
-    private var dict = NSMutableDictionary()
+    // the object container that is being encoded
+    private var dict = Dictionary<String, Any>()
+    // the index used for non-keyed objects (encodeObject: vs encodeObject:forKey:)
     private var genericKey : UInt = 0
 }
 
@@ -253,7 +255,6 @@ public class NSKeyedArchiver : NSCoder {
         return _createObjectRefCached(uid!)
     }
    
-
     /**
         Returns true if the object has already been encoded.
      */ 
@@ -298,9 +299,9 @@ public class NSKeyedArchiver : NSCoder {
         
         if escape {
             let escapedKey = NSKeyedArchiver._escapeKey(key)
-            encodingContext.dict[NSString(escapedKey)] = object
+            encodingContext.dict[escapedKey] = object
         } else {
-            encodingContext.dict[NSString(key)] = object
+            encodingContext.dict[key] = object
         }
     }
     
