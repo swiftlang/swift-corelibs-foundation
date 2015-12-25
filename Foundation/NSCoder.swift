@@ -264,6 +264,14 @@ public class NSCoder : NSObject {
             fatalError("*** NSKeyedUnarchiver.init: \(debugDescription)")
         }
     }
+    
+    internal func _decodeArrayOfObjectsForKey(key: String) -> [AnyObject] {
+        NSRequiresConcreteImplementation()
+    }
+    
+    internal func _decodePropertyListForKey(key: String) -> Any {
+        NSRequiresConcreteImplementation()
+    }
 }
 
 // TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
