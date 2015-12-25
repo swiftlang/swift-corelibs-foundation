@@ -283,7 +283,7 @@ public class NSKeyedArchiver : NSCoder {
         uid = self._objRefMap[oid]
         if uid == nil {
             if conditional {
-                return nil
+                return nil // object has not been unconditionally encoded
             }
             
             uid = UInt32(self._objects.count)
@@ -551,7 +551,10 @@ public class NSKeyedArchiver : NSCoder {
 
         return unwrappedObjectRef
     }
-    
+
+    /**
+	Encode an object and associate it with a key in the current encoding context.
+     */
     private func _encodeObject(objv: AnyObject?, forKey key: String?, conditional: Bool = false) {
         let objectRef = _encodeObject(objv, conditional: conditional)
 
