@@ -283,6 +283,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSIndexSet.swift',
 	'Foundation/NSJSONSerialization.swift',
 	'Foundation/NSKeyedArchiver.swift',
+	'Foundation/NSKeyedUnarchiver.swift',
 	'Foundation/NSLengthFormatter.swift',
 	'Foundation/NSLocale.swift',
 	'Foundation/NSLock.swift',
