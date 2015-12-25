@@ -91,7 +91,6 @@ public class NSKeyedArchiver : NSCoder {
     private var _classNameMap : Dictionary<String, String> = [:]
     private var _classes : Dictionary<String, CFKeyedArchiverUID> = [:]
     private var _cache : Array<CFKeyedArchiverUID> = []
-    private var _visited : Set<NSUniqueObject> = []
 
     public weak var delegate: NSKeyedArchiverDelegate?
     public var outputFormat = NSPropertyListFormat.BinaryFormat_v1_0 {
@@ -289,7 +288,6 @@ public class NSKeyedArchiver : NSCoder {
             uid = UInt32(self._objects.count)
             
             self._objRefMap[oid] = uid
-            self._visited.insert(oid)
             self._objects.insert(NSKeyedArchiveNullObjectReferenceName, atIndex: Int(uid!))
         }
 
@@ -305,7 +303,7 @@ public class NSKeyedArchiver : NSCoder {
         } else {
             let oid = NSUniqueObject(objv!)
 
-            return self._visited.contains(oid)
+            return self._objRefMap[oid] != nil
         }
     }
     
