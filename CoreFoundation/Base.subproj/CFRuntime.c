@@ -1822,6 +1822,28 @@ void * objc_retainAutoreleasedReturnValue(void *obj) {
     else return NULL;
 }
 
+// temporary helpers for poking into Swift runtime, for implementing NSStringFromClass()
+// needs to be replaced with a proper contract, this is fragile in so many ways
+
+typedef struct NominalTypeDescriptor {
+    uintptr_t Kind;
+    const char *Name;
+} NominalTypeDescriptor;
+
+extern const NominalTypeDescriptor *_ZNK5swift8Metadata24getNominalTypeDescriptorEv(const void *);
+
+_Nullable CFStringRef _CFCopyNominalTypeNameForClass(_Nonnull CFTypeRef aClass) {
+    const NominalTypeDescriptor *ntd;
+
+    CFAssert1(aClass != NULL, __kCFLogAssertion, "%s(): invalid class", __PRETTY_FUNCTION__);
+
+    ntd = _ZNK5swift8Metadata24getNominalTypeDescriptorEv(aClass);
+    if (ntd == NULL)
+        return NULL;
+
+    return CFStringCreateWithCString(kCFAllocatorSystemDefault, ntd->Name, kCFStringEncodingASCII);
+}
+
 #endif
 
 #undef __kCFAllocatorTypeID_CONST
