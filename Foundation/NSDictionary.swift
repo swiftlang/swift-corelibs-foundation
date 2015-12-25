@@ -197,10 +197,12 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     
     public convenience init(objects: [AnyObject], forKeys keys: [NSObject]) {
         let keyBuffer = UnsafeMutablePointer<NSObject>.alloc(keys.count)
+        bzero(unsafeBitCast(keyBuffer, UnsafeMutablePointer<Void>.self), keys.count * sizeof(NSObject))
         for idx in 0..<keys.count {
             keyBuffer[idx] = keys[idx]
         }
         let valueBuffer = UnsafeMutablePointer<AnyObject>.alloc(objects.count)
+        bzero(unsafeBitCast(valueBuffer, UnsafeMutablePointer<Void>.self), objects.count * sizeof(NSObject))
         for idx in 0..<objects.count {
             valueBuffer[idx] = objects[idx]
         }
