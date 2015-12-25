@@ -24,57 +24,39 @@ public struct NSNotificationCoalescing : OptionSetType {
 
 public class NSNotificationQueue : NSObject {
 
-    private typealias NotificationQueueList = Array<NSNotificationQueue>
-    private typealias NSNotificationListEntry = (NSNotification, [String])
-    private typealias NSNotificationList = [NSNotificationListEntry]
+    internal typealias NotificationQueueList = NSMutableArray
+    internal typealias NSNotificationListEntry = (NSNotification, [String]) // Notification ans list of modes the notification may be posted in.
+    internal typealias NSNotificationList = [NSNotificationListEntry] // The list of notifications to post
 
-    private static let _notificationQueueThreadKey = "NSNotificationQueueThreadKey"
-    private static let _notificationListThreadKey = "NSNotificationListThreadKey"
-    private let notificationCenter: NSNotificationCenter
-    private var asapList = NSNotificationList()
-    private var idleList = NSNotificationList()
-    private var notificationQueueList: NotificationQueueList {
-        get {
-            let currentThread = NSThread.currentThread()
-            let lKey = NSNotificationQueue._notificationListThreadKey
+    internal let notificationCenter: NSNotificationCenter
+    internal var asapList = NSNotificationList()
+    internal var idleList = NSNotificationList()
 
-            if let list = currentThread.threadDictionary[lKey] as? NotificationQueueList {
-                return list
-            }
-
-            let list = NotificationQueueList()
-            currentThread.threadDictionary[lKey] = NSArray(array: list)
-            return list
-        }
-        set {
-            let currentThread = NSThread.currentThread()
-            let lKey = NSNotificationQueue._notificationListThreadKey
-
-            currentThread.threadDictionary[lKey] = NSArray(array: newValue)
+    // The NSNotificationQueue instance is associated with current thread.
+    // The _notificationQueueList represents a list of notification queues related to the current thread.
+    private static var _notificationQueueList = NSThreadSpecific<NSMutableArray>()
+    internal static var notificationQueueList: NotificationQueueList {
+        return _notificationQueueList.get() {
+            return NSMutableArray()
         }
     }
 
+    // The default notification queue for the current thread.
+    private static var _defaultQueue = NSThreadSpecific<NSNotificationQueue>()
     public class func defaultQueue() -> NSNotificationQueue {
-        let currentThread = NSThread.currentThread()
-        let qKey = NSNotificationQueue._notificationListThreadKey
-
-        if let defaultQueue = currentThread.threadDictionary[qKey] as? NSNotificationQueue {
-            return defaultQueue
+        return _defaultQueue.get() {
+            return NSNotificationQueue(notificationCenter: NSNotificationCenter.defaultCenter())
         }
-
-        let defaultQueue = NSNotificationQueue(notificationCenter: NSNotificationCenter.defaultCenter())
-        currentThread.threadDictionary[qKey] = defaultQueue
-        return defaultQueue
     }
     
     public init(notificationCenter: NSNotificationCenter) {
         self.notificationCenter = notificationCenter
         super.init()
-        self.registerQueue()
+        NSNotificationQueue.registerQueue(self)
     }
 
     deinit {
-        self.unregisterQueue()
+        NSNotificationQueue.unregisterQueue(self)
     }
 
     public func enqueueNotification(notification: NSNotification, postingStyle: NSPostingStyle) {
@@ -131,20 +113,15 @@ public class NSNotificationQueue : NSObject {
 
     // MARK: Private
 
-    private func registerQueue() {
-        var notificationQueueList = self.notificationQueueList
-        notificationQueueList.append(self)
-        self.notificationQueueList = notificationQueueList
+    private static func registerQueue(notificationQueue: NSNotificationQueue) {
+        self.notificationQueueList.addObject(notificationQueue)
     }
 
-    private func unregisterQueue() {
-        guard let idx = self.notificationQueueList.indexOf(self) else {
+    private static func unregisterQueue(notificationQueue: NSNotificationQueue) {
+        guard self.notificationQueueList.indexOfObject(notificationQueue) != NSNotFound else {
             return
         }
-
-        var notificationQueueList = self.notificationQueueList
-        notificationQueueList.removeAtIndex(idx)
-        self.notificationQueueList = notificationQueueList
+        self.notificationQueueList.removeObject(notificationQueue)
     }
 
 }

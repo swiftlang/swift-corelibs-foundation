@@ -20,13 +20,13 @@ private func disposeTLS(ctx: UnsafeMutablePointer<Void>) -> Void {
     Unmanaged<AnyObject>.fromOpaque(COpaquePointer(ctx)).release()
 }
 
-private var NSThreadSpecificKeySet = false
-private var NSThreadSpecificKeyLock = NSLock()
-private var NSThreadSpecificKey = pthread_key_t()
-
 internal class NSThreadSpecific<T: AnyObject> {
-    
-    private static var key: pthread_key_t {
+
+    private var NSThreadSpecificKeySet = false
+    private var NSThreadSpecificKeyLock = NSLock()
+    private var NSThreadSpecificKey = pthread_key_t()
+
+    private var key: pthread_key_t {
         get {
             NSThreadSpecificKeyLock.lock()
             if !NSThreadSpecificKeySet {
@@ -40,18 +40,18 @@ internal class NSThreadSpecific<T: AnyObject> {
     }
     
     internal func get(generator: (Void) -> T) -> T {
-        let specific = pthread_getspecific(NSThreadSpecific.key)
+        let specific = pthread_getspecific(self.key)
         if specific != UnsafeMutablePointer<Void>() {
             return Unmanaged<T>.fromOpaque(COpaquePointer(specific)).takeUnretainedValue()
         } else {
             let value = generator()
-            pthread_setspecific(NSThreadSpecific.key, UnsafePointer<Void>(Unmanaged<AnyObject>.passRetained(value).toOpaque()))
+            pthread_setspecific(self.key, UnsafePointer<Void>(Unmanaged<AnyObject>.passRetained(value).toOpaque()))
             return value
         }
     }
     
     internal func set(value: T) {
-        let specific = pthread_getspecific(NSThreadSpecific.key)
+        let specific = pthread_getspecific(self.key)
         var previous: Unmanaged<T>?
         if specific != UnsafeMutablePointer<Void>() {
             previous = Unmanaged<T>.fromOpaque(COpaquePointer(specific))
@@ -61,7 +61,7 @@ internal class NSThreadSpecific<T: AnyObject> {
                 return
             }
         }
-        pthread_setspecific(NSThreadSpecific.key, UnsafePointer<Void>(Unmanaged<AnyObject>.passRetained(value).toOpaque()))
+        pthread_setspecific(self.key, UnsafePointer<Void>(Unmanaged<AnyObject>.passRetained(value).toOpaque()))
         if let prev = previous {
             prev.release()
         }
