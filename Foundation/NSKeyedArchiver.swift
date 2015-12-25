@@ -34,20 +34,24 @@ private func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
     return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, CFKeyedArchiverUIDRef.self))
 }
 
+private class NSKeyedEncodingContext {
+    private var _dict = NSMutableDictionary()
+    private var _genericKey : UInt = 0
+}
+
 public class NSKeyedArchiver : NSCoder {
     
     private static var _classNameMap = Dictionary<String, String>()
     
     private var _stream : AnyObject
     private var _flags = NSKeyedArchiverFlags(rawValue: 0)
-    private var _containers = NSMutableArray(object: NSMutableDictionary())
+    private var _containers : Array<NSKeyedEncodingContext> = [NSKeyedEncodingContext()]
     private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
     private var _objRefMap : Dictionary<ObjectIdentifier, UInt32> = [:]
     private var _replacementMap : Dictionary<ObjectIdentifier, AnyObject> = [:]
     private var _classNameMap : Dictionary<String, String> = [:]
     private var _classes : Dictionary<String, CFKeyedArchiverUID> = [:]
     private var _cache : Array<CFKeyedArchiverUID> = []
-    private var _genericKey : UInt32 = 0
     private var _visited : Set<ObjectIdentifier> = []
 
     public weak var delegate: NSKeyedArchiverDelegate?
@@ -133,7 +137,7 @@ public class NSKeyedArchiver : NSCoder {
         plist["$archiver"] = String(self.dynamicType)
         plist["$version"] = NSKeyedArchivePlistVersion
         plist["$objects"] = self._objects
-        plist["$top"] = self._containers[0]
+        plist["$top"] = self._containers[0]._dict
         
         if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiverWillFinish(self)
@@ -212,11 +216,6 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
-    private func _nextGenericKey() -> UInt32! {
-        self._genericKey += 1
-        return self._genericKey
-    }
-    
     private class func _escapeKey(key: String) -> String {
         if key.hasPrefix("$") {
             return "$" + key
@@ -282,25 +281,33 @@ public class NSKeyedArchiver : NSCoder {
         return objectRef
     }
 
-    private func _pushEncodingContext(encodingContext: NSDictionary) {
-        self._containers.addObject(encodingContext)
+    private func _pushEncodingContext(encodingContext: NSKeyedEncodingContext) {
+        self._containers.append(encodingContext)
     }
     
     private func _popEncodingContext() {
-        self._containers.removeLastObject()
+        self._containers.removeLast()
     }
    
     private func _setObjectInCurrentEncodingContext(object : AnyObject?, forKey key: String, escape: Bool = true) {
-        let encodingContext = self._containers.lastObject as! NSMutableDictionary
+        let encodingContext = self._containers.last!
         
         if escape {
             let escapedKey = NSKeyedArchiver._escapeKey(key)
-            encodingContext[NSString(escapedKey)] = object
+            encodingContext._dict[NSString(escapedKey)] = object
         } else {
-            encodingContext[NSString(key)] = object
+            encodingContext._dict[NSString(key)] = object
         }
     }
     
+    private func _nextGenericKey() -> String {
+        let encodingContext = self._containers.last!
+
+        let key = "$" + String(encodingContext._genericKey)
+        encodingContext._genericKey += 1
+        return key
+    }
+
     /**
         Update replacement object mapping
      */
@@ -469,7 +476,7 @@ public class NSKeyedArchiver : NSCoder {
 
             if _isContainer(object) {
                 if let codable = object as? NSCoding {
-                    let innerEncodingContext = NSMutableDictionary()
+                    let innerEncodingContext = NSKeyedEncodingContext()
                     var cls : AnyClass?
                     
                     _pushEncodingContext(innerEncodingContext)
@@ -483,7 +490,7 @@ public class NSKeyedArchiver : NSCoder {
                     
                     _setObjectInCurrentEncodingContext(_classReference(cls!), forKey: "$class", escape: false)
                     _popEncodingContext()
-                    flattenedObject = innerEncodingContext
+                    flattenedObject = innerEncodingContext._dict
                 }
             } else {
                 flattenedObject = object!
@@ -501,19 +508,25 @@ public class NSKeyedArchiver : NSCoder {
         return unwrappedObjectRef
     }
     
-    private func _encodeObject(objv: AnyObject?, forKey key: String, conditional: Bool = false) {
+    private func _encodeObject(objv: AnyObject?, forKey key: String?, conditional: Bool = false) {
         let objectRef = _encodeObject(objv, conditional: conditional)
 
         if let unwrappedObjectRef = objectRef {
-            _setObjectInCurrentEncodingContext(unwrappedObjectRef, forKey: key)
+            var unwrappedKey = key
+            if unwrappedKey == nil {
+                unwrappedKey = _nextGenericKey()
+            }
+            
+            _setObjectInCurrentEncodingContext(unwrappedObjectRef, forKey: unwrappedKey!, escape: key != nil)
         }
     }
     
     public override func encodeObject(object: AnyObject?) {
-        var object = object
-        withUnsafePointer(&object) { (ptr: UnsafePointer<AnyObject?>) -> Void in
-            encodeValueOfObjCType("@", at: unsafeBitCast(ptr, UnsafePointer<Void>.self))
-        }
+        _encodeObject(object, forKey: nil)
+    }
+    
+    public override func encodeConditionalObject(object: AnyObject?) {
+        _encodeObject(object, forKey: nil, conditional: true)
     }
 
     public override func encodeObject(objv: AnyObject?, forKey key: String) {
