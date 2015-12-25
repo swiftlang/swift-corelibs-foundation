@@ -265,7 +265,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        aCoder.encodeObject(self)
     }
     
     public init(characters: UnsafePointer<unichar>, length: Int) {

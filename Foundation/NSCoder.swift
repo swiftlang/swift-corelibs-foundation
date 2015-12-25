@@ -260,6 +260,8 @@ public class NSCoder : NSObject {
     }
     
     public func failWithError(error: NSError) {
-        NSUnimplemented()
+        if let debugDescription = error.userInfo["NSDebugDescription"] {
+            fatalError("*** NSKeyedUnarchiver.init: \(debugDescription)")
+        }
     }
 }
