@@ -379,7 +379,7 @@ public class NSKeyedArchiver : NSCoder {
         return classDict
     }
     
-    /*
+    /**
         Return an object reference for a class
 
         Because _classDictionary() returns a dictionary by value, and every
@@ -402,7 +402,10 @@ public class NSKeyedArchiver : NSCoder {
         
         return classRef
     }
-    
+   
+    /**
+        Return the object replacing another object
+     */
     private func _replacementObject(object: AnyObject?) -> AnyObject? {
         var objectToEncode : AnyObject? = nil // object to encode after substitution
 
@@ -854,7 +857,11 @@ public class NSKeyedUnarchiver : NSCoder {
 
         return false
     }
-    
+   
+    /**
+        Validate a class reference against an optional class whitelist, and return the class object
+        if it's allowed
+     */
     private func _validateAndMapClass(classReference: CFKeyedArchiverUID, whitelist: NSSet?) throws -> AnyClass? {
         let classUid = objectRefGetValue(classReference)
         var classToConstruct : AnyClass? = _classes[classUid]
@@ -873,7 +880,10 @@ public class NSKeyedUnarchiver : NSCoder {
         
         return classToConstruct
     }
-    
+
+    /**
+        Returns true if objectOrReference represents a reference to another object in the archive
+     */
     internal class func _isReference(objectOrReference : Any?) -> Bool {
         if let cf = objectOrReference as? AnyObject {
             return CFGetTypeID(cf) == _CFKeyedArchiverUIDGetTypeID()
@@ -895,7 +905,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     /**
-        Returns true if the object is a dictionary representing an object container
+        Returns true if the object is a dictionary representing a object rather than a value type
       */
     private func _isContainer(object: Any) -> Bool {
         guard let dict = object as? Dictionary<String, Any> else {
@@ -906,7 +916,11 @@ public class NSKeyedUnarchiver : NSCoder {
         
         return NSKeyedUnarchiver._isReference(classRef)
     }
-    
+   
+
+    /**
+        Replace object with another one
+     */ 
     private func replaceObject(object: AnyObject, withObject replacement: AnyObject) {
         let oid = ObjectIdentifier(object)
         
@@ -963,6 +977,9 @@ public class NSKeyedUnarchiver : NSCoder {
         return supportsSecureCoding
     }
 
+    /**
+        Decode an object for the given reference, validating class against provided whitelist.
+     */
     private func _decodeObject(classes: NSSet?, forObjectReference objectRef: CFKeyedArchiverUID) throws -> AnyObject? {
         var object : AnyObject? = nil
 
