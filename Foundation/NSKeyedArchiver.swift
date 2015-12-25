@@ -447,7 +447,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Internal function to encode an object. Returns the object reference.
      */
-    private func _encodeObject(objv: AnyObject?, forKey key: String? = nil, conditional: Bool = false) -> CFKeyedArchiverUID? {
+    private func _encodeObject(objv: AnyObject?, conditional: Bool = false) -> CFKeyedArchiverUID? {
         var object : AnyObject? = nil // object to encode after substitution
         var objectRef : CFKeyedArchiverUID? // encoded object reference
         let haveVisited : Bool
@@ -464,10 +464,6 @@ public class NSKeyedArchiver : NSCoder {
         
         _validateObjectSupportsSecureCoding(object)
     
-        if let unwrappedKey = key {
-            _setObjectInCurrentEncodingContext(unwrappedObjectRef, forKey: unwrappedKey)
-        }
-
         if !haveVisited {
             var flattenedObject : Any? = nil
 
@@ -505,6 +501,21 @@ public class NSKeyedArchiver : NSCoder {
         return unwrappedObjectRef
     }
     
+    private func _encodeObject(objv: AnyObject?, forKey key: String, conditional: Bool = false) {
+        let objectRef = _encodeObject(objv, conditional: conditional)
+
+        if let unwrappedObjectRef = objectRef {
+            _setObjectInCurrentEncodingContext(unwrappedObjectRef, forKey: key)
+        }
+    }
+    
+    public override func encodeObject(object: AnyObject?) {
+        var object = object
+        withUnsafePointer(&object) { (ptr: UnsafePointer<AnyObject?>) -> Void in
+            encodeValueOfObjCType("@", at: unsafeBitCast(ptr, UnsafePointer<Void>.self))
+        }
+    }
+
     public override func encodeObject(objv: AnyObject?, forKey key: String) {
         _encodeObject(objv, forKey: key, conditional: false)
     }
@@ -513,38 +524,38 @@ public class NSKeyedArchiver : NSCoder {
         _encodeObject(objv, forKey: key, conditional: true)
     }
     
-    private func _encodeValueType<T: NSObject where T: NSCoding>(objv: T, forKey key: String) {
+    private func _encodeValue<T: NSObject where T: NSCoding>(objv: T, forKey key: String) {
         _validateStillEncoding()
         _setObjectInCurrentEncodingContext(objv, forKey: key)
     }
     
     public override func encodeBool(boolv: Bool, forKey key: String) {
-        _encodeValueType(NSNumber(bool: boolv), forKey: key)
+        _encodeValue(NSNumber(bool: boolv), forKey: key)
     }
     
     public override func encodeInt(intv: Int32, forKey key: String) {
-        _encodeValueType(NSNumber(int: intv), forKey: key)
+        _encodeValue(NSNumber(int: intv), forKey: key)
     }
     
     public override func encodeInt32(intv: Int32, forKey key: String) {
-        _encodeValueType(NSNumber(int: intv), forKey: key)
+        _encodeValue(NSNumber(int: intv), forKey: key)
     }
     
     public override func encodeInt64(intv: Int64, forKey key: String) {
-        _encodeValueType(NSNumber(longLong: intv), forKey: key)
+        _encodeValue(NSNumber(longLong: intv), forKey: key)
     }
     
     public override func encodeFloat(realv: Float, forKey key: String) {
-        _encodeValueType(NSNumber(float: realv), forKey: key)
+        _encodeValue(NSNumber(float: realv), forKey: key)
     }
     
     public override func encodeDouble(realv: Double, forKey key: String) {
-        _encodeValueType(NSNumber(double: realv), forKey: key)
+        _encodeValue(NSNumber(double: realv), forKey: key)
     }
     
     public override func encodeBytes(bytesp: UnsafePointer<UInt8>, length lenv: Int, forKey key: String) {
         let data = NSData(bytes: bytesp, length: lenv)
-        _encodeValueType(data, forKey: key)
+        _encodeValue(data, forKey: key)
     }
     
     internal func _encodeArrayOfObjects(objects : NSArray, forKey key : String) {
@@ -558,7 +569,7 @@ public class NSKeyedArchiver : NSCoder {
             objectRefs.append(objectRef)
         }
         
-        _encodeValueType(objectRefs.bridge(), forKey: key)
+        _encodeValue(objectRefs.bridge(), forKey: key)
     }
     
     // Enables secure coding support on this keyed archiver. You do not need to enable secure coding on the archiver to enable secure coding on the unarchiver. Enabling secure coding on the archiver is a way for you to be sure that all classes that are encoded conform with NSSecureCoding (it will throw an exception if a class which does not NSSecureCoding is archived). Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
