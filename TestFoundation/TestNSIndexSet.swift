@@ -119,7 +119,7 @@ class TestNSIndexSet : XCTestCase {
         if testInputA1.count == testSetA.count {
             testSetA.enumerateIndexesUsingBlock { (idx, _) in
                 XCTAssertEqual(idx, testInputA1[i])
-                i++
+                i += 1
             }
         }
         else {
@@ -134,7 +134,7 @@ class TestNSIndexSet : XCTestCase {
             let testRange = testInputA2[i]
             XCTAssertEqual(range.location, testRange.location)
             XCTAssertEqual(range.length, testRange.length)
-            i++
+            i += 1
         }
         
         let testSetB = NSMutableIndexSet(indexesInRange: NSMakeRange(0,5))
@@ -148,7 +148,7 @@ class TestNSIndexSet : XCTestCase {
         if testInputB1.count == testSetB.count {
             testSetB.enumerateIndexesUsingBlock { (idx, _) in
                 XCTAssertEqual(idx, testInputB1[i])
-                i++
+                i += 1
             }
         }
         else {
@@ -163,7 +163,7 @@ class TestNSIndexSet : XCTestCase {
             let testRange = testInputB2[i]
             XCTAssertEqual(range.location, testRange.location)
             XCTAssertEqual(range.length, testRange.length)
-            i++
+            i += 1
         }
     
     }
