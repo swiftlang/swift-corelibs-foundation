@@ -244,7 +244,7 @@ public class NSKeyedArchiver : NSCoder {
                 return nil
             }
             
-            uid = _nextGenericKey()
+            uid = UInt32(self._objects.count)
             
             self._objRefMap[oid] = uid
             self._visited.insert(oid)
