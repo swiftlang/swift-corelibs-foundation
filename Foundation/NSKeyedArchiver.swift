@@ -1124,6 +1124,7 @@ public class NSKeyedUnarchiver : NSCoder {
                     }
                     
                     _pushDecodingContext(innerDecodingContext)
+                    defer { _popDecodingContext() } // ensure an error does not invalidate the decoding context stack
 
                     var classToConstruct : AnyClass? = try _validateAndMapClass(classReference!)
                     
@@ -1132,7 +1133,6 @@ public class NSKeyedUnarchiver : NSCoder {
                     }
                     
                     guard let decodableClass = classToConstruct as? NSCoding.Type else {
-                        _popDecodingContext()
                         return try _throwError(NSCocoaError.CoderReadCorruptError,
                                                withDescription: "Class \(classToConstruct) is not decodable. The data may be corrupt.")
                     }
@@ -1140,7 +1140,6 @@ public class NSKeyedUnarchiver : NSCoder {
                     _validateClassSupportsSecureCoding(classToConstruct)
                     
                     object = decodableClass.init(coder: self) as? AnyObject
-                    _popDecodingContext()
                     
                     _cacheObject(object!, forReference: objectRef)
                 }
