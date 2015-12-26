@@ -864,11 +864,3 @@ extension NSKeyedUnarchiverDelegate {
     func unarchiverWillFinish(unarchiver: NSKeyedUnarchiver) { }
     func unarchiverDidFinish(unarchiver: NSKeyedUnarchiver) { }
 }
-
-
-// TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
-extension NSObject {
-    public class func classForKeyedUnarchiver() -> AnyClass {
-        return self
-    }
-}
