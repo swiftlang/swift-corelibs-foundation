@@ -371,13 +371,13 @@ public class NSKeyedArchiver : NSCoder {
    
     /**
         Returns true if the type can be encoded directly (i.e. is not a container type)
-     */ 
+     */
     private func _isContainer(objv: AnyObject?) -> Bool {
         return !(objv == nil ||
             objv is String ||
-            objv is NSString ||
-            objv is NSNumber ||
-            objv is NSData)
+            objv.dynamicType == NSString.self ||
+            objv.dynamicType == NSNumber.self ||
+            objv.dynamicType == NSData.self)
     }
    
     /**
