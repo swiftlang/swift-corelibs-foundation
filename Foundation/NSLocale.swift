@@ -56,8 +56,8 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     public func encodeWithCoder(aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             // FIXME once we can encode _NSCFString properly we can encode this directly
-            let identifier = String(CFLocaleGetIdentifier(self._cfObject))
-            aCoder.encodeObject(identifier.bridge(), forKey: "NS.identifier")
+            let identifier = CFLocaleGetIdentifier(self._cfObject)
+            aCoder.encodeObject(identifier, forKey: "NS.identifier")
         } else {
             NSUnimplemented()
         }
