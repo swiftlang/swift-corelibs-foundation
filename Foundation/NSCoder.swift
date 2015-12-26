@@ -265,3 +265,14 @@ public class NSCoder : NSObject {
         }
     }
 }
+
+// TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
+extension NSObject {
+    public var classForCoder: AnyClass {
+        return self.dynamicType
+    }
+ 
+    public func replacementObjectForCoder(aCoder: NSCoder) -> AnyObject? {
+        return self
+    }
+}
