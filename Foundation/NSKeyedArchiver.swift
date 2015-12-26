@@ -378,14 +378,18 @@ public class NSKeyedArchiver : NSCoder {
     }
    
     /**
-        Returns true if the type can be encoded directly (i.e. is not a container type)
+        Returns true if the type cannot be encoded directly (i.e. is a container type)
      */
     private func _isContainer(objv: AnyObject?) -> Bool {
-        return !(objv == nil ||
-            objv is String ||
-            objv.dynamicType == NSString.self ||
-            objv.dynamicType == NSNumber.self ||
-            objv.dynamicType == NSData.self)
+        // Note that we check for class equality rather than membership, because
+        // their mutable subclasses are as object references
+        let valueType = (objv == nil ||
+                         objv is String ||
+                         objv!.dynamicType === NSString.self ||
+                         objv!.dynamicType === NSNumber.self ||
+                         objv!.dynamicType === NSData.self)
+        
+        return !valueType
     }
    
     /**
@@ -763,7 +767,7 @@ public protocol NSKeyedArchiverDelegate : class {
 extension NSObject {
     
     public var classForKeyedArchiver: AnyClass? {
-        return self.dynamicType
+        return self.classForCoder
     }
     
     // Implemented by classes to substitute a new class for instances during
@@ -775,7 +779,7 @@ extension NSObject {
     // expected.  This is a concession to source compatibility.
     
     public func replacementObjectForKeyedArchiver(archiver: NSKeyedArchiver) -> AnyObject? {
-        return self
+        return self.replacementObjectForCoder(archiver)
     }
     
     // Implemented by classes to substitute new instances for the receiving
