@@ -22,6 +22,14 @@ internal let NSKeyedArchiverSystemVersion : UInt32 = 2000
 internal func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
     return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, CFKeyedArchiverUIDRef.self))
 }
+internal var NSPropertyListClasses : [AnyClass] = [
+    NSArray.self,
+    NSDictionary.self,
+    NSString.self,
+    NSData.self,
+    NSDate.self,
+    NSNumber.self
+]
 
 // NSUniqueObject is a wrapper that allows both hashable and non-hashable objects
 // to be used as keys in a dictionary
@@ -590,7 +598,17 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     public override func encodePropertyList(aPropertyList: AnyObject) {
+        if !NSPropertyListClasses.contains({ $0 == aPropertyList.dynamicType }) {
+            fatalError("Cannot encode non-property list type \(aPropertyList.dynamicType) as property list")
+        }
         encodeObject(aPropertyList)
+    }
+    
+    public func encodePropertyList(aPropertyList: AnyObject, forKey key: String) {
+        if !NSPropertyListClasses.contains({ $0 == aPropertyList.dynamicType }) {
+            fatalError("Cannot encode non-property list type \(aPropertyList.dynamicType) as property list")
+        }
+        encodeObject(aPropertyList, forKey: key)
     }
     
     public func _encodePropertyList(aPropertyList: AnyObject, forKey key: String) {
