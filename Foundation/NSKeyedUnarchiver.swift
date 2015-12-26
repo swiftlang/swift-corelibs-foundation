@@ -32,7 +32,6 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     private static var _classNameMap : Dictionary<String, AnyClass> = [:]
-    
     public weak var delegate: NSKeyedUnarchiverDelegate?
     
     private var _stream : AnyObject
@@ -92,14 +91,19 @@ public class NSKeyedUnarchiver : NSCoder {
         do {
             try _readPropertyList()
         } catch let error as NSError {
-            if let debugDescription = error.userInfo["NSDebugDescription"] {
-                print("*** NSKeyedUnarchiver.init: \(debugDescription)")
-            }
+            _debugError(error)
+            return nil
         } catch {
             return nil
         }
     }
-    
+  
+    private func _debugError(error: NSError, function: String = __FUNCTION__) {
+        if let debugDescription = error.userInfo["NSDebugDescription"] {
+            print("*** \(function): \(debugDescription)")
+        }
+    }
+ 
     private func _readPropertyList() throws {
         var plist : Any? = nil
         var format = NSPropertyListFormat.BinaryFormat_v1_0
@@ -180,7 +184,7 @@ public class NSKeyedUnarchiver : NSCoder {
         } else {
             unwrappedKey = _nextGenericKey()
         }
-        
+
         return _currentDecodingContext.dict[unwrappedKey!] as? T
     }
     
@@ -493,12 +497,16 @@ public class NSKeyedUnarchiver : NSCoder {
                     
                     guard let decodableClass = classToConstruct as? NSCoding.Type else {
                         throw _decodingError(NSCocoaError.CoderReadCorruptError,
-                                             withDescription: "Class \(classToConstruct) is not decodable. The data may be corrupt.")
+                                             withDescription: "Class \(classToConstruct!) is not decodable. The data may be corrupt.")
                     }
                     
                     _validateClassSupportsSecureCoding(classToConstruct)
                     
                     object = decodableClass.init(coder: self) as? AnyObject
+                    guard object != nil else {
+                        throw _decodingError(NSCocoaError.CoderReadCorruptError,
+                                             withDescription: "Class \(classToConstruct!) failed to decode. The data may be corrupt.")
+                    }
                     
                     _cacheObject(object!, forReference: objectRef)
                 }
@@ -567,6 +575,7 @@ public class NSKeyedUnarchiver : NSCoder {
                 }
             }
         } catch let error as NSError {
+	    _debugError(error)
             self._error = error
             return nil
         } catch {
@@ -624,6 +633,7 @@ public class NSKeyedUnarchiver : NSCoder {
         do {
             return try _decodeObject(forKey: key)
         } catch let error as NSError {
+            _debugError(error)
             self._error = error
         } catch {
         }
@@ -643,6 +653,7 @@ public class NSKeyedUnarchiver : NSCoder {
 
             return try _decodeObject(forKey: key)
         } catch let error as NSError {
+            _debugError(error)
             self._error = error
         } catch {
         }
@@ -674,6 +685,7 @@ public class NSKeyedUnarchiver : NSCoder {
         do {
             return try _decodeObject(forKey: nil)
         } catch let error as NSError {
+            _debugError(error)
             self._error = error
         } catch {
         }
@@ -682,10 +694,22 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     public override func decodePropertyList() -> AnyObject? {
+        self._allowedClasses.append(NSPropertyListClasses)
+        defer { self._allowedClasses.removeLast() }
+
         return decodeObject()
     }
     
     public override func decodePropertyListForKey(key: String) -> AnyObject? {
+        return decodeObjectOfClasses(NSPropertyListClasses, forKey:key)
+    }
+    
+    /**
+        Note that unlike decodePropertyListForKey(), _decodePropertyListForKey() decodes
+        a property list in the current decoding context rather than as an object. It's
+        also able to return value types.
+     */
+    public func _decodePropertyListForKey(key: String) -> Any? {
         return _decodeValueForKey(key)
     }
     
