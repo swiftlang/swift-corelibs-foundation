@@ -360,26 +360,16 @@ public extension NSString {
         
         var isDirectory = false
         let isAbsolutePath = NSFileManager.defaultManager().fileExistsAtPath(_storage, isDirectory: &isDirectory)
+        let searchAllFilesInDirectory = isAbsolutePath && isDirectory
         
-        if isAbsolutePath && !isDirectory {
-            if types.isEmpty || types.contains(url.pathExtension ?? "") {
-                outputName = self
-                outputArray = [self]
-                return 1
-            } else {
-                return 0
-            }
-        }
-        
-        guard let urlWhereToSearch = isAbsolutePath ? url : url.URLByDeletingLastPathComponent else {
+        guard let urlWhereToSearch = searchAllFilesInDirectory ? url : url.URLByDeletingLastPathComponent else {
             return 0
         }
         
         var matches: [String] = []
-        var matchSuffixes: [String] = []
         
         let namePrefix = url.lastPathComponent ?? ""
-        
+
         let enumerator = NSFileManager.defaultManager().enumeratorAtURL(urlWhereToSearch, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil)
         
         while let item = enumerator?.nextObject() as? NSURL {
@@ -388,21 +378,21 @@ public extension NSString {
             let itemExtension = item.pathExtension ?? ""
             let normalizedExtension = flag ? itemExtension : itemExtension.lowercaseString
             
-            let matchByName = isAbsolutePath || itemName.bridge().rangeOfString(namePrefix, options: compareOptions).location == 0
+            let matchByName = searchAllFilesInDirectory || itemName.bridge().rangeOfString(namePrefix, options: compareOptions).location == 0
             let matchByExtension = types.isEmpty || types.contains(normalizedExtension)
             
             if matchByName && matchByExtension {
-                let match = item.absoluteString!
-                matches.append(match)
-                matchSuffixes.append(itemName)
+                matches.append(itemName)
             }
         }
         
-        if let lcp = _longestCommonPrefix(matchSuffixes, caseSensitive: flag) {
+        if let lcp = _longestCommonPrefix(matches, caseSensitive: flag) {
            outputName = (urlWhereToSearch.absoluteString! + lcp).bridge()
         }
         
-        outputArray = matches.map({ $0.bridge() })
+        // on Linux matches have protocol prefix, but we need path only
+        let commonPath = urlWhereToSearch.absoluteString!.bridge().stringByReplacingOccurrencesOfString("file://", withString: "")
+        outputArray = matches.map({ (commonPath + $0).bridge() })
         
         return matches.count
     }

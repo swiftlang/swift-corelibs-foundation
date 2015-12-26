@@ -366,9 +366,18 @@ class TestNSString : XCTestCase {
             XCTAssert(false, "Could not create temp files for testing.")
             return
         }
-        
+
+        let tmpPath = { (path: String) -> NSString in
+        	#if os(Linux)
+        	let tmp = "/tmp/"
+        	#else
+        	let tmp = "private/tmp" // no symlink support yet
+        	#endif
+        	return "\(tmp)\(path)".bridge()
+        }
+
         do {
-            let path: NSString = "/private/tmp/" // no symlink support yet
+            let path: NSString = tmpPath("")
             var outName: NSString?
             var matches: [NSString] = []
             let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
@@ -380,23 +389,32 @@ class TestNSString : XCTestCase {
         }
         
         do {
-            let path: NSString = "/private/tmp/test_completePathIntoString_01"
+            let path: NSString = tmpPath("Test_completePathIntoString_01")
+            var outName: NSString?
+            var matches: [NSString] = []
+            let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: nil)
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, path), "If NSString is valid path to file and search is case sensitive then outName is string itself.")
+            XCTAssert(matches.count == 1 && count == 1 && stringsAreCaseInsensitivelyEqual(matches[0], path), "If NSString is valid path to file and search is case sensitive then matches contain that file path only")
+        }
+        
+		do {
+            let path: NSString = tmpPath("Test_completePathIntoString_01")
             var outName: NSString?
             var matches: [NSString] = []
             let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(outName == path, "If NSString is valid path to file then outName is string itself.")
-            XCTAssert(matches.count == 1 && count == 1 && matches[0] == path, "If NSString is valid path to directory then matches contain all content of directory")
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, path), "If NSString is valid path to file and search is case insensitive then outName is string equal to self.")
+            XCTAssert(matches.count == 3 && count == 3, "Matches contain all files with similar name.")
         }
-        
+
         do {
-            let path = NSString(string: "/private/tmp/\(NSUUID().UUIDString)")
+            let path = tmpPath(NSUUID().UUIDString)
             var outName: NSString?
             var matches: [NSString] = []
             let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
             XCTAssert(outName == nil, "If no matches found then outName is nil.")
             XCTAssert(matches.count == 0 && count == 0, "If no matches found then return 0 and matches is empty.")
         }
-        
+
         do {
             let path: NSString = ""
             var outName: NSString?
@@ -405,49 +423,52 @@ class TestNSString : XCTestCase {
             XCTAssert(outName == nil, "If no matches found then outName is nil.")
             XCTAssert(matches.count == 0 && count == 0, "If no matches found then return 0 and matches is empty.")
         }
-        
+
         do {
-            let path: NSString = "/private/tmp/test_c"
+            let path: NSString = tmpPath("test_c")
             var outName: NSString?
             var matches: [NSString] = []
             // case insensetive
             let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(outName == "/private/tmp/Test_completePathIntoString_0", "If there are matches then outName should be longest common prefix of all matches.")
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, tmpPath("Test_completePathIntoString_0")), "If there are matches then outName should be longest common prefix of all matches.")
             XCTAssert(matches.count == fileNames.count && count == fileNames.count, "If there are matches then matches array contains them.")
         }
         
         do {
-            let path: NSString = "/private/tmp/test_c"
+            let path: NSString = tmpPath("test_c")
             var outName: NSString?
             var matches: [NSString] = []
             // case sensetive
             let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(outName == "/private/tmp/test_completePathIntoString_0", "If there are matches then outName should be longest common prefix of all matches.")
+            XCTAssert(outName == tmpPath("test_completePathIntoString_0"), "If there are matches then outName should be longest common prefix of all matches.")
             XCTAssert(matches.count == 4 && count == 4, "Supports case sensetive search")
         }
         
         do {
-            let path: NSString = "/private/tmp/test_c"
+            let path: NSString = tmpPath("test_c")
             var outName: NSString?
             var matches: [NSString] = []
             // case sensetive
             let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: ["DAT"])
-            XCTAssert(outName == "/private/tmp/test_completePathIntoString_03.DAT", "If there are matches then outName should be longest common prefix of all matches.")
+            XCTAssert(outName == tmpPath("test_completePathIntoString_03.DAT"), "If there are matches then outName should be longest common prefix of all matches.")
             XCTAssert(matches.count == 1 && count == 1, "Supports case sensetive search by extensions")
         }
-
         
         do {
-            let path: NSString = "/private/tmp/test_c"
+            let path: NSString = tmpPath("test_c")
             var outName: NSString?
             var matches: [NSString] = []
             // type by filter
             let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: ["txt", "dat"])
-            XCTAssert(outName == "/private/tmp/test_completePathIntoString_0", "If there are matches then outName should be longest common prefix of all matches.")
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, tmpPath("test_completePathIntoString_0")), "If there are matches then outName should be longest common prefix of all matches.")
             XCTAssert(matches.count == 3 && count == 3, "Supports filtration by type")
         }
     }
     
+    private func stringsAreCaseInsensitivelyEqual(lhs: NSString, _ rhs: NSString) -> Bool {
+    	return lhs.compare(rhs.bridge(), options: .CaseInsensitiveSearch) == .OrderedSame
+    }
+
     private func ensureFiles(fileNames: [String]) -> Bool {
         var result = true
         for name in fileNames {
