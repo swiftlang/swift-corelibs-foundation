@@ -52,7 +52,7 @@ public class NSCoder : NSObject {
     }
     
     @warn_unused_result
-    public func decodeObjectOfClasses(classes: NSSet?, forKey key: String) -> AnyObject? {
+    public func decodeObjectOfClasses(classes: [AnyClass], forKey key: String) -> AnyObject? {
         NSUnimplemented()
     }
     
@@ -72,7 +72,7 @@ public class NSCoder : NSObject {
     }
     
     @warn_unused_result
-    public func decodeTopLevelObjectOfClasses(classes: NSSet?, forKey key: String) throws -> AnyObject? {
+    public func decodeTopLevelObjectOfClasses(classes: [AnyClass], forKey key: String) throws -> AnyObject? {
         NSUnimplemented()
     }
     
@@ -253,7 +253,7 @@ public class NSCoder : NSObject {
         NSUnimplemented()
     }
     
-    public var allowedClasses: Set<NSObject>? {
+    public var allowedClasses: [AnyClass]? {
         get {
             NSUnimplemented()
         }

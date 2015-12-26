@@ -24,11 +24,9 @@ struct NSKeyedUnarchiverFlags : OptionSetType {
 private class NSKeyedDecodingContext {
     private var dict : Dictionary<String, Any>
     private var genericKey : UInt = 0
-    private var allowedClasses : NSSet?
     
-    init(_ dict : Dictionary<String, Any>, allowedClasses classes : NSSet? = nil) {
+    init(_ dict : Dictionary<String, Any>) {
         self.dict = dict
-        self.allowedClasses = classes
     }
 }
 
@@ -46,6 +44,7 @@ public class NSKeyedUnarchiver : NSCoder {
     private var _classNameMap : Dictionary<String, AnyClass> = [:]
     private var _classes : Dictionary<UInt32, AnyClass> = [:]
     private var _cache : Array<CFKeyedArchiverUID> = []
+    private var _allowedClasses : Array<[AnyClass]> = []
     private var _error : NSError? = nil
     
     internal override var error: NSError? {
@@ -228,17 +227,30 @@ public class NSKeyedUnarchiver : NSCoder {
         return false
     }
     
-    private func _isClassAllowed(assertedClass: AnyClass?, allowedClasses: NSSet?) -> Bool {
+    // FIXME is there a better way to do this with Swift stdlib?
+    private class func _classIsKindOfClass(assertedClass : AnyClass, _ allowedClass : AnyClass) -> Bool {
+        var superClass : AnyClass? = assertedClass
+        
+        repeat {
+            if superClass == allowedClass {
+                return true
+            }
+            
+            superClass = _getSuperclass(superClass!)
+        } while superClass != nil
+        
+        return false
+    }
+    
+    private func _isClassAllowed(assertedClass: AnyClass?, allowedClasses: [AnyClass]?) -> Bool {
         if assertedClass == nil {
             return false
         }
         
         if _flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding) {
             if let unwrappedAllowedClasses = allowedClasses {
-                for allowedClass in unwrappedAllowedClasses {
-                    if allowedClass as? AnyClass == assertedClass {
-                        return true
-                    }
+                if unwrappedAllowedClasses.contains({NSKeyedUnarchiver._classIsKindOfClass(assertedClass!, $0)}) {
+                    return true
                 }
             }
             
@@ -248,7 +260,9 @@ public class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    private func _validateAndMapClassDictionary(classDict: Dictionary<String, Any>?, allowedClasses: NSSet?, inout classToConstruct: AnyClass?) -> Bool {
+    private func _validateAndMapClassDictionary(classDict: Dictionary<String, Any>?,
+                                                allowedClasses: [AnyClass]?,
+                                                inout classToConstruct: AnyClass?) -> Bool {
         classToConstruct = nil
         
         func _classForClassName(codedName: String) -> AnyClass? {
@@ -295,7 +309,8 @@ public class NSKeyedUnarchiver : NSCoder {
         
         if assertedClassName != nil {
             if let unwrappedDelegate = self.delegate {
-                classToConstruct = unwrappedDelegate.unarchiver(self, cannotDecodeObjectOfClassName: assertedClassName!,
+                classToConstruct = unwrappedDelegate.unarchiver(self,
+                                                                cannotDecodeObjectOfClassName: assertedClassName!,
                                                                 originalClasses: assertedClasses != nil ? assertedClasses! : [])
                 if classToConstruct != nil {
                     return true
@@ -307,18 +322,19 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     /**
-     Validate a class reference against an optional class allowedClasses, and return the class object
-     if it's allowed
+        Validate a class reference against a class list, and return the class object if allowed
      */
-    private func _validateAndMapClassReference(classReference: CFKeyedArchiverUID) throws -> AnyClass? {
-        let allowedClasses : NSSet? = _currentDecodingContext.allowedClasses
+    private func _validateAndMapClassReference(classReference: CFKeyedArchiverUID,
+                                               allowedClasses: [AnyClass]?) throws -> AnyClass? {
         let classUid = objectRefGetValue(classReference)
         var classToConstruct : AnyClass? = _classes[classUid]
-        
+ 
         if classToConstruct == nil {
             let classDict = _dereferenceObjectReference(classReference) as? Dictionary<String, Any>
             
-            if !_validateAndMapClassDictionary(classDict!, allowedClasses: allowedClasses, classToConstruct: &classToConstruct) {
+            if !_validateAndMapClassDictionary(classDict!,
+                                               allowedClasses: allowedClasses,
+                                               classToConstruct: &classToConstruct) {
                 throw _decodingError(NSCocoaError.CoderReadCorruptError, withDescription: "Invalid class \(classDict). The data may be corrupt.")
             }
             
@@ -329,7 +345,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     /**
-     Returns true if objectOrReference represents a reference to another object in the archive
+        Returns true if objectOrReference represents a reference to another object in the archive
      */
     internal class func _isReference(objectOrReference : Any?) -> Bool {
         if let cf = objectOrReference as? AnyObject {
@@ -352,7 +368,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     /**
-     Returns true if the object is a dictionary representing a object rather than a value type
+        Returns true if the object is a dictionary representing a object rather than a value type
      */
     private func _isContainer(object: Any) -> Bool {
         guard let dict = object as? Dictionary<String, Any> else {
@@ -366,7 +382,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     
     /**
-     Replace object with another one
+        Replace object with another one
      */
     private func replaceObject(object: AnyObject, withObject replacement: AnyObject) {
         let oid = NSUniqueObject(object)
@@ -425,9 +441,9 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     /**
-     Decode an object for the given reference, validating class against provided allowedClasses.
+        Decode an object for the given reference
      */
-    private func _decodeObject(classes: NSSet?, forObjectReference objectRef: CFKeyedArchiverUID) throws -> AnyObject? {
+    private func _decodeObject(objectRef: CFKeyedArchiverUID) throws -> AnyObject? {
         var object : AnyObject? = nil
         
         _validateStillDecoding()
@@ -436,7 +452,6 @@ public class NSKeyedUnarchiver : NSCoder {
             throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                  withDescription: "Object \(objectRef) is not a reference. The data may be corrupt.")
         }
-        
         if _isNullObjectReference(objectRef) {
             // reference to the nil object
             object = nil
@@ -454,20 +469,21 @@ public class NSKeyedUnarchiver : NSCoder {
                         throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                              withDescription: "Invalid object encoding \(objectRef). The data may be corrupt.")
                     }
-                    
-                    let innerDecodingContext = NSKeyedDecodingContext(dict, allowedClasses: requiresSecureCoding ? classes : nil)
-                    
+		
+                    let innerDecodingContext = NSKeyedDecodingContext(dict)
+
                     let classReference = innerDecodingContext.dict["$class"] as? CFKeyedArchiverUID
                     if !NSKeyedUnarchiver._isReference(classReference) {
                         throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                              withDescription: "Invalid class reference \(classReference). The data may be corrupt.")
                     }
+
+                    var classToConstruct : AnyClass? = try _validateAndMapClassReference(classReference!,
+                                                                                         allowedClasses: self.allowedClasses)
                     
                     _pushDecodingContext(innerDecodingContext)
                     defer { _popDecodingContext() } // ensure an error does not invalidate the decoding context stack
-                    
-                    var classToConstruct : AnyClass? = try _validateAndMapClassReference(classReference!)
-                    
+
                     if let ns = classToConstruct as? NSObject.Type {
                         classToConstruct = ns.classForKeyedUnarchiver()
                     }
@@ -500,13 +516,13 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
      Internal function to decode an object. Returns the decoded object or throws an error.
      */
-    private func _decodeObject(classes: NSSet?, forKey key: String?) throws -> AnyObject? {
+    private func _decodeObject(forKey key: String?) throws -> AnyObject? {
         guard let objectRef : AnyObject? = _objectInCurrentDecodingContext(forKey: key) else {
             throw _decodingError(NSCocoaError.CoderValueNotFoundError,
                                  withDescription: "No value found for key \(key). The data may be corrupt.")
         }
         
-        return try _decodeObject(classes, forObjectReference: objectRef!)
+        return try _decodeObject(objectRef!)
     }
     
     /**
@@ -532,7 +548,7 @@ public class NSKeyedUnarchiver : NSCoder {
                 return
             }
             
-            if let object = try _decodeObject(nil, forObjectReference: objectRef as! CFKeyedArchiverUID) {
+            if let object = try _decodeObject(objectRef as! CFKeyedArchiverUID) {
                 block(object)
             }
         }
@@ -602,19 +618,28 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     public override func decodeObjectForKey(key: String) -> AnyObject? {
-        return decodeObjectOfClasses(nil, forKey: key)
+        do {
+            return try _decodeObject(forKey: key)
+        } catch let error as NSError {
+            self._error = error
+        } catch {
+        }
+        return nil
     }
     
     @warn_unused_result
     public override func decodeObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
-        let classes = NSSet(object: cls)
+        let classes = [cls]
         return decodeObjectOfClasses(classes, forKey: key) as? DecodedObjectType
     }
     
     @warn_unused_result
-    public override func decodeObjectOfClasses(classes: NSSet?, forKey key: String) -> AnyObject? {
+    public override func decodeObjectOfClasses(classes: [AnyClass], forKey key: String) -> AnyObject? {
         do {
-            return try _decodeObject(classes, forKey: key)
+            self._allowedClasses.append(classes)
+            defer { self._allowedClasses.removeLast() }
+
+            return try _decodeObject(forKey: key)
         } catch let error as NSError {
             self._error = error
         } catch {
@@ -625,28 +650,27 @@ public class NSKeyedUnarchiver : NSCoder {
     
     @warn_unused_result
     public override func decodeTopLevelObjectForKey(key: String) throws -> AnyObject? {
-        return try self.decodeTopLevelObjectOfClasses(nil, forKey: key)
+        return try decodeTopLevelObjectOfClasses([NSArray.self], forKey: key)
     }
     
     @warn_unused_result
     public override func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? {
-        let classes = NSSet(object: cls)
-        return try self.decodeTopLevelObjectOfClasses(classes, forKey: key) as! DecodedObjectType?
+        return try self.decodeTopLevelObjectOfClasses([cls], forKey: key) as! DecodedObjectType?
     }
     
     @warn_unused_result
-    public override func decodeTopLevelObjectOfClasses(classes: NSSet?, forKey key: String) throws -> AnyObject? {
+    public override func decodeTopLevelObjectOfClasses(classes: [AnyClass], forKey key: String) throws -> AnyObject? {
         guard self._containers?.count == 1 else {
             throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                  withDescription: "Can only call decodeTopLevelObjectOfClasses when decoding top level objects.")
         }
         
-        return try _decodeObject(classes, forKey: key)
+        return decodeObjectOfClasses(classes, forKey: key)
     }
     
     public override func decodeObject() -> AnyObject? {
         do {
-            return try _decodeObject(nil, forKey: nil)
+            return try _decodeObject(forKey: nil)
         } catch let error as NSError {
             self._error = error
         } catch {
@@ -734,9 +758,9 @@ public class NSKeyedUnarchiver : NSCoder {
         return decodeObject()
     }
     
-    public override var allowedClasses: Set<NSObject>? {
+    public override var allowedClasses: [AnyClass]? {
         get {
-            return _currentDecodingContext.allowedClasses?._swiftObject
+            return self._allowedClasses.last
         }
     }
     
