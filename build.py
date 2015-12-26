@@ -293,6 +293,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSNull.swift',
 	'Foundation/NSNumber.swift',
 	'Foundation/NSNumberFormatter.swift',
+	'Foundation/NSLog.swift',
 	'Foundation/NSObjCRuntime.swift',
 	'Foundation/NSOperation.swift',
 	'Foundation/NSOrderedSet.swift',
