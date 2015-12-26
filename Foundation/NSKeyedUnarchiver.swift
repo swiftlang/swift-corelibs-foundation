@@ -148,7 +148,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     private class func _unescapeKey(key : String) -> String {
         if key.hasPrefix("$") {
-            return key.bridge().substringFromIndex(1)
+            return NSString(key).substringFromIndex(1)
         }
         
         return key
@@ -185,7 +185,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     /**
-     Dereferences, but does not decode, an object reference
+        Dereferences, but does not decode, an object reference
      */
     private func _dereferenceObjectReference(unwrappedObjectRef: CFKeyedArchiverUID) -> Any? {
         let uid = Int(objectRefGetValue(unwrappedObjectRef))
@@ -259,7 +259,10 @@ public class NSKeyedUnarchiver : NSCoder {
             return true
         }
     }
-    
+   
+    /**
+        Validate a dictionary with class type information, mapping to a class if allowed
+     */ 
     private func _validateAndMapClassDictionary(classDict: Dictionary<String, Any>?,
                                                 allowedClasses: [AnyClass]?,
                                                 inout classToConstruct: AnyClass?) -> Bool {
@@ -503,7 +506,7 @@ public class NSKeyedUnarchiver : NSCoder {
                 // reference to a non-container object
                 // FIXME remove these special cases
                 if let str = dereferencedObject as? String {
-                    object = str.bridge()
+                    object = NSString(str)
                 } else {
                     object = dereferencedObject as? AnyObject
                 }
