@@ -149,7 +149,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     public required convenience init?(coder aDecoder: NSCoder) {
         if let aKeyedDecoder = aDecoder as? NSKeyedUnarchiver {
-            guard let data = aKeyedDecoder.decodePropertyListForKey("NS.data") as? NSData else {
+            guard let data = aKeyedDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
             self.init(data: data)
