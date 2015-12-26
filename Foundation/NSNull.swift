@@ -9,6 +9,11 @@
 
 
 public class NSNull : NSObject, NSCopying, NSSecureCoding {
+    
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return self
     }

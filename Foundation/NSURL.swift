@@ -62,6 +62,10 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         _CFDeinit(self)
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
@@ -468,6 +472,10 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
         self.value = value
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
@@ -490,6 +498,10 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
 
 public class NSURLComponents : NSObject, NSCopying {
     private let _components : CFURLComponentsRef!
+    
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()

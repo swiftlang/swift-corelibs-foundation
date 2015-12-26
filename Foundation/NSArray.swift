@@ -79,8 +79,16 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return true
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return self
+    }
+    
+    public override func mutableCopy() -> AnyObject {
+        return mutableCopyWithZone(nil)
     }
     
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
@@ -393,13 +401,19 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
 
     internal func sortedArrayFromRange(range: NSRange, options: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
+        // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
+        guard options.isEmpty else {
+            NSUnimplemented()
+        }
+
         let count = self.count
         if range.length == 0 || count == 0 {
             return []
         }
 
-        return allObjects.sort { lhs, rhs in
-            return cmptr(lhs, rhs) == .OrderedSame
+        let swiftRange = range.toRange()!
+        return allObjects[swiftRange].sort { lhs, rhs in
+            return cmptr(lhs, rhs) == .OrderedAscending
         }
     }
     
@@ -717,7 +731,6 @@ public class NSMutableArray : NSArray {
             replaceObjectsInRange(NSMakeRange(0, count), withObjectsFromArray: otherArray)
         }
     }
-    public func sortUsingFunction(compare: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>) { NSUnimplemented() }
     
     public func insertObjects(objects: [AnyObject], atIndexes indexes: NSIndexSet) {
         precondition(objects.count == indexes.count)
@@ -747,9 +760,18 @@ public class NSMutableArray : NSArray {
             objectIndex += range.length
         }
     }
-    
-    public func sortUsingComparator(cmptr: NSComparator) { NSUnimplemented() }
-    public func sortWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) { NSUnimplemented() }
+
+    public func sortUsingFunction(compare: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>) {
+        self.setArray(self.sortedArrayUsingFunction(compare, context: context))
+    }
+
+    public func sortUsingComparator(cmptr: NSComparator) {
+        self.sortWithOptions([], usingComparator: cmptr)
+    }
+
+    public func sortWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+        self.setArray(self.sortedArrayWithOptions(opts, usingComparator: cmptr))
+    }
     
     public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
     public convenience init?(contentsOfURL url: NSURL) { NSUnimplemented() }

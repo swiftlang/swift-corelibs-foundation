@@ -381,9 +381,20 @@ public class NSNumber : NSValue {
     public required convenience init(booleanLiteral value: Bool) {
         self.init(bool: value)
     }
+
+    public func compare(otherNumber: NSNumber) -> NSComparisonResult {
+        return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
+    }
     
     override internal var _cfTypeID: CFTypeID {
         return CFNumberGetTypeID()
+    }
+    
+    public override var description: String {
+        let locale = CFLocaleCopyCurrent()
+        let formatter = CFNumberFormatterCreate(nil, locale, kCFNumberFormatterDecimalStyle)
+        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
+        return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
     }
 }
 

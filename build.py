@@ -212,10 +212,10 @@ sources = CompileSources([
 	# 'CoreFoundation/RunLoop.subproj/CFMachPort.c',
 	# 'CoreFoundation/RunLoop.subproj/CFMessagePort.c',
 	'CoreFoundation/RunLoop.subproj/CFRunLoop.c',
-	# 'CoreFoundation/RunLoop.subproj/CFSocket.c',
-	# 'CoreFoundation/Stream.subproj/CFConcreteStreams.c',
-	# 'CoreFoundation/Stream.subproj/CFSocketStream.c',
-	# 'CoreFoundation/Stream.subproj/CFStream.c',
+	'CoreFoundation/RunLoop.subproj/CFSocket.c',
+	'CoreFoundation/Stream.subproj/CFConcreteStreams.c',
+	'CoreFoundation/Stream.subproj/CFSocketStream.c',
+	'CoreFoundation/Stream.subproj/CFStream.c',
 	'CoreFoundation/String.subproj/CFBurstTrie.c',
 	'CoreFoundation/String.subproj/CFCharacterSet.c',
 	'CoreFoundation/String.subproj/CFString.c',
@@ -349,6 +349,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
     'TestFoundation/Resources/Info.plist',
     'TestFoundation/Resources/NSURLTestData.plist',
     'TestFoundation/Resources/Test.plist',
+    'TestFoundation/Resources/NSStringTestData.txt',
 ])
 
 # TODO: Probably this should be another 'product', but for now it's simply a phase

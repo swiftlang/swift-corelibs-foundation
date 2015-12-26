@@ -7,7 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
     import Foundation
     import XCTest
@@ -20,10 +19,19 @@
 class TestNSRunLoop : XCTestCase {
     var allTests : [(String, () -> ())] {
         return [
+            ("test_constants", test_constants),
             ("test_runLoopInit", test_runLoopInit),
             ("test_runLoopRunMode", test_runLoopRunMode),
             ("test_runLoopLimitDate", test_runLoopLimitDate),
         ]
+    }
+    
+    func test_constants() {
+        XCTAssertEqual(NSRunLoopCommonModes, "kCFRunLoopCommonModes",
+                       "\(NSRunLoopCommonModes) is not equal to kCFRunLoopCommonModes")
+        
+        XCTAssertEqual(NSDefaultRunLoopMode, "kCFRunLoopDefaultMode",
+                       "\(NSDefaultRunLoopMode) is not equal to kCFRunLoopDefaultMode")
     }
     
     func test_runLoopInit() {

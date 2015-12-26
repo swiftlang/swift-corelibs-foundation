@@ -9,6 +9,19 @@
 
 import CoreFoundation
 
+#if os(OSX) || os(iOS)
+internal let kCFNumberFormatterNoStyle = CFNumberFormatterStyle.NoStyle
+internal let kCFNumberFormatterDecimalStyle = CFNumberFormatterStyle.DecimalStyle
+internal let kCFNumberFormatterCurrencyStyle = CFNumberFormatterStyle.CurrencyStyle
+internal let kCFNumberFormatterPercentStyle = CFNumberFormatterStyle.PercentStyle
+internal let kCFNumberFormatterScientificStyle = CFNumberFormatterStyle.ScientificStyle
+internal let kCFNumberFormatterSpellOutStyle = CFNumberFormatterStyle.SpellOutStyle
+internal let kCFNumberFormatterOrdinalStyle = CFNumberFormatterStyle.OrdinalStyle
+internal let kCFNumberFormatterCurrencyISOCodeStyle = CFNumberFormatterStyle.CurrencyISOCodeStyle
+internal let kCFNumberFormatterCurrencyPluralStyle = CFNumberFormatterStyle.CurrencyPluralStyle
+internal let kCFNumberFormatterCurrencyAccountingStyle = CFNumberFormatterStyle.CurrencyAccountingStyle
+#endif
+
 public class NSNumberFormatter : NSFormatter {
     
     typealias CFType = CFNumberFormatterRef

@@ -17,6 +17,10 @@ public class NSScanner : NSObject, NSCopying {
     internal var _invertedSkipSet: NSCharacterSet?
     internal var _scanLocation: Int
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return NSScanner(string: string)
     }

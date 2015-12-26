@@ -164,8 +164,16 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(thePlane))
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
+    }
+    
+    public override func mutableCopy() -> AnyObject {
+        return mutableCopyWithZone(nil)
     }
     
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {

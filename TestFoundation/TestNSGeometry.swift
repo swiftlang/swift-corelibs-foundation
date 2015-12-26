@@ -11,9 +11,12 @@
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
     import Foundation
     import XCTest
+    import Glibc
+    import CoreFoundation
 #else
     import SwiftFoundation
     import SwiftXCTest
+    import Darwin
 #endif
 
 
@@ -40,7 +43,13 @@ class TestNSGeometry : XCTestCase {
             ("test_NSIntersectsRect", test_NSIntersectsRect),
             ("test_NSIntegralRect", test_NSIntegralRect),
             ("test_NSIntegralRectWithOptions", test_NSIntegralRectWithOptions),
-            ("test_NSDivideRect", test_NSDivideRect)
+            ("test_NSDivideRect", test_NSDivideRect),
+            ("test_EncodeToNSString", test_EncodeToNSString),
+            ("test_EncodeNegativeToNSString", test_EncodeNegativeToNSString),
+            ("test_DecodeFromNSString", test_DecodeFromNSString),
+            ("test_DecodeEmptyStrings", test_DecodeEmptyStrings),
+            ("test_DecodeNegativeFromNSString", test_DecodeNegativeFromNSString),
+            ("test_DecodeGarbageFromNSString", test_DecodeGarbageFromNSString),
         ]
     }
 
@@ -352,7 +361,6 @@ class TestNSGeometry : XCTestCase {
         expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-5.0), CGFloat(106.0), CGFloat(24.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
-
     }
 
     func test_NSDivideRect() {
@@ -447,4 +455,178 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
     }
+    
+    func test_EncodeToNSString() {
+        let referenceRect = NSMakeRect(CGFloat(0.6), CGFloat(5.4), CGFloat(105.7), CGFloat(24.3))
+        
+        var expectedString = "{0.6, 5.4}"
+        var string = NSStringFromPoint(referenceRect.origin)
+        XCTAssertEqual(expectedString, string,
+                       "\(string) is not equal to expected \(expectedString)")
+        
+        expectedString = "{105.7, 24.3}"
+        string = NSStringFromSize(referenceRect.size)
+        XCTAssertEqual(expectedString, string,
+                       "\(string) is not equal to expected \(expectedString)")
+        
+        expectedString = "{{0.6, 5.4}, {105.7, 24.3}}"
+        string = NSStringFromRect(referenceRect)
+        XCTAssertEqual(expectedString, string,
+                       "\(string) is not equal to expected \(expectedString)")
+    }
+    
+    func test_EncodeNegativeToNSString() {
+        let referenceNegativeRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(-105.7), CGFloat(-24.3))
+        
+        var expectedString = "{-0.6, -5.4}"
+        var string = NSStringFromPoint(referenceNegativeRect.origin)
+        XCTAssertEqual(expectedString, string,
+                       "\(string) is not equal to expected \(expectedString)")
+        
+        expectedString = "{-105.7, -24.3}"
+        string = NSStringFromSize(referenceNegativeRect.size)
+        XCTAssertEqual(expectedString, string,
+                       "\(string) is not equal to expected \(expectedString)")
+        
+        expectedString = "{{-0.6, -5.4}, {-105.7, -24.3}}"
+        string = NSStringFromRect(referenceNegativeRect)
+        XCTAssertEqual(expectedString, string,
+                       "\(string) is not equal to expected \(expectedString)")
+    }
+    
+    func test_DecodeFromNSString() {
+        var stringPoint = "{0.6, 5.4}"
+        var stringSize = "{105.7, 24.3}"
+        var stringRect = "{{0.6, 5.4}, {105.7, 24.3}}"
+        
+        let expectedPoint = NSMakePoint(CGFloat(0.6), CGFloat(5.4))
+        var point = NSPointFromString(stringPoint)
+        XCTAssertTrue(_NSPoint(expectedPoint, equalsToPoint: point),
+                       "\(NSStringFromPoint(point)) is not equal to expected \(NSStringFromPoint(expectedPoint))")
+        
+        let expectedSize = NSMakeSize(CGFloat(105.7), CGFloat(24.3))
+        var size = NSSizeFromString(stringSize)
+        XCTAssertTrue(_NSSize(expectedSize, equalsToSize: size),
+                       "\(NSStringFromSize(size)) is not equal to expected \(NSStringFromSize(expectedSize))")
+        
+        let expectedRect = NSMakeRect(CGFloat(0.6), CGFloat(5.4), CGFloat(105.7), CGFloat(24.3))
+        var rect = NSRectFromString(stringRect)
+        XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
+                       "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
+        
+        // No spaces
+        stringPoint = "{0.6,5.4}"
+        stringSize = "{105.7,24.3}"
+        stringRect = "{{0.6,5.4},{105.7,24.3}}"
+        
+        point = NSPointFromString(stringPoint)
+        XCTAssertTrue(_NSPoint(expectedPoint, equalsToPoint: point),
+                       "\(NSStringFromPoint(point)) is not equal to expected \(NSStringFromPoint(expectedPoint))")
+        
+        size = NSSizeFromString(stringSize)
+        XCTAssertTrue(_NSSize(expectedSize, equalsToSize: size),
+                       "\(NSStringFromSize(size)) is not equal to expected \(NSStringFromSize(expectedSize))")
+        
+        rect = NSRectFromString(stringRect)
+        XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
+                       "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
+        
+        // Random spaces
+        stringPoint = "{  0.6   , 5.4   }"
+        stringSize = "{ 105.7, 24.3       }"
+        stringRect = "{{0.6 , 5.4}   ,{105.7 ,24.3}}"
+        
+        point = NSPointFromString(stringPoint)
+        XCTAssertTrue(_NSPoint(expectedPoint, equalsToPoint: point),
+                       "\(NSStringFromPoint(point)) is not equal to expected \(NSStringFromPoint(expectedPoint))")
+        
+        size = NSSizeFromString(stringSize)
+        XCTAssertTrue(_NSSize(expectedSize, equalsToSize: size),
+                       "\(NSStringFromSize(size)) is not equal to expected \(NSStringFromSize(expectedSize))")
+        
+        rect = NSRectFromString(stringRect)
+        XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
+                       "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
+    
+    }
+    
+    func test_DecodeEmptyStrings() {
+        let stringPoint = ""
+        let stringSize = ""
+        let stringRect = ""
+        
+        let expectedPoint = NSZeroPoint
+        let point = NSPointFromString(stringPoint)
+        XCTAssertTrue(_NSPoint(expectedPoint, equalsToPoint: point),
+                       "\(NSStringFromPoint(point)) is not equal to expected \(NSStringFromPoint(expectedPoint))")
+
+        let expectedSize = NSZeroSize
+        let size = NSSizeFromString(stringSize)
+        XCTAssertTrue(_NSSize(expectedSize, equalsToSize: size),
+                       "\(NSStringFromSize(size)) is not equal to expected \(NSStringFromSize(expectedSize))")
+        
+        let expectedRect = NSZeroRect
+        let rect = NSRectFromString(stringRect)
+        XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
+                       "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
+    }
+    
+    func test_DecodeNegativeFromNSString() {
+        let stringPoint = "{-0.6, -5.4}"
+        let stringSize = "{-105.7, -24.3}"
+        let stringRect = "{{-0.6, -5.4}, {-105.7, -24.3}}"
+        
+        let expectedPoint = NSMakePoint(CGFloat(-0.6), CGFloat(-5.4))
+        let point = NSPointFromString(stringPoint)
+        XCTAssertTrue(_NSPoint(expectedPoint, equalsToPoint: point),
+            "\(NSStringFromPoint(point)) is not equal to expected \(NSStringFromPoint(expectedPoint))")
+        
+        let expectedSize = NSMakeSize(CGFloat(-105.7), CGFloat(-24.3))
+        let size = NSSizeFromString(stringSize)
+        XCTAssertTrue(_NSSize(expectedSize, equalsToSize: size),
+                       "\(NSStringFromSize(size)) is not equal to expected \(NSStringFromSize(expectedSize))")
+        
+        let expectedRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(-105.7), CGFloat(-24.3))
+        let rect = NSRectFromString(stringRect)
+        XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
+                       "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
+        
+    }
+    
+    func test_DecodeGarbageFromNSString() {
+        var stringRect = "-0.6a5.4das-105.7bfh24.3dfas;hk312}}"
+        var expectedRect = NSMakeRect(CGFloat(-0.6), CGFloat(5.4), CGFloat(-105.7), CGFloat(24.3))
+        var rect = NSRectFromString(stringRect)
+        XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
+                       "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
+
+        stringRect = "-0.6a5.4da}}"
+        expectedRect = NSMakeRect(CGFloat(-0.6), CGFloat(5.4), CGFloat(0.0), CGFloat(0.0))
+        rect = NSRectFromString(stringRect)
+        XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
+                       "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
+
+    }
+    
+    // MARK: Private
+    
+    func _NSRect(rect: NSRect, equalsToRect rect2: NSRect, withPrecision precision: Double = DBL_EPSILON) -> Bool {
+        return _NSPoint(rect.origin, equalsToPoint: rect2.origin, withPrecision: precision)
+            && _NSSize(rect.size, equalsToSize: rect2.size, withPrecision: precision)
+    }
+
+    func _NSSize(size: NSSize, equalsToSize size2: NSSize, withPrecision precision: Double = DBL_EPSILON) -> Bool {
+        return _CGFloat(size.width, equalsToCGFloat: size2.width, withPrecision: precision)
+            && _CGFloat(size.height, equalsToCGFloat: size2.height, withPrecision: precision)
+    }
+
+    func _NSPoint(point: NSPoint, equalsToPoint point2: NSPoint, withPrecision precision: Double = DBL_EPSILON) -> Bool {
+        return _CGFloat(point.x, equalsToCGFloat: point2.x, withPrecision: precision)
+            && _CGFloat(point.y, equalsToCGFloat: point2.y, withPrecision: precision)
+    }
+
+    func _CGFloat(float: CGFloat, equalsToCGFloat float2: CGFloat, withPrecision precision: Double = DBL_EPSILON) -> Bool {
+        return fabs(float.native - float2.native) < precision
+    }
+
 }

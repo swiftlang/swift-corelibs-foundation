@@ -72,16 +72,16 @@ public typealias NSComparator = (AnyObject, AnyObject) -> NSComparisonResult
 
 public let NSNotFound: Int = Int.max
 
-@noreturn internal func NSRequiresConcreteImplementation(fn: String = __FUNCTION__) {
-    fatalError("\(fn) must be overriden in subclass implementations")
+@noreturn internal func NSRequiresConcreteImplementation(fn: String = __FUNCTION__, file: StaticString = __FILE__, line: UInt = __LINE__) {
+    fatalError("\(fn) must be overriden in subclass implementations", file: file, line: line)
 }
 
-@noreturn internal func NSUnimplemented(fn: String = __FUNCTION__) {
-    fatalError("\(fn) is not yet implemented")
+@noreturn internal func NSUnimplemented(fn: String = __FUNCTION__, file: StaticString = __FILE__, line: UInt = __LINE__) {
+    fatalError("\(fn) is not yet implemented", file: file, line: line)
 }
 
-@noreturn internal func NSInvalidArgument(message: String, method: String = __FUNCTION__) {
-    fatalError("\(method): \(message)")
+@noreturn internal func NSInvalidArgument(message: String, method: String = __FUNCTION__, file: StaticString = __FILE__, line: UInt = __LINE__) {
+    fatalError("\(method): \(message)", file: file, line: line)
 }
 
 internal struct _CFInfo {

@@ -225,6 +225,10 @@ public class NSURLSessionTask : NSObject, NSCopying {
         NSUnimplemented()
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
@@ -437,6 +441,10 @@ public class NSURLSessionConfiguration : NSObject, NSCopying {
     
     public override init() {
         NSUnimplemented()
+    }
+    
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {

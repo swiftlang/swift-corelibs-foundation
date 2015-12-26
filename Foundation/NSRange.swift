@@ -35,24 +35,20 @@ extension CFRange {
     }
 }
 
-extension _NSRange {
+public typealias NSRange = _NSRange
+
+extension NSRange {
     public init(_ x: Range<Int>) {
-        if let start = x.first {
-            if let end = x.last {
-                self.init(location: start, length: end - start)
-                return
-            }
-        }
-        self.init(location: 0, length: 0)
+        location = x.startIndex
+        length = x.count
     }
     
     @warn_unused_result
     public func toRange() -> Range<Int>? {
-        return Range<Int>(start: location, end: location + length)
+        if location == NSNotFound { return nil }
+        return Range(start: location, end: location + length)
     }
 }
-
-public typealias NSRange = _NSRange
 
 public typealias NSRangePointer = UnsafeMutablePointer<NSRange>
 

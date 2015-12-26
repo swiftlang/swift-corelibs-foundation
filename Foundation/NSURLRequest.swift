@@ -168,8 +168,16 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     private var _mainDocumentURL: NSURL?
     private var _httpHeaderFields: [String: String]?
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
+    }
+    
+    public override func mutableCopy() -> AnyObject {
+        return mutableCopyWithZone(nil)
     }
     
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {

@@ -875,15 +875,7 @@ void _CFRuntimeSetCFMPresent(void *addr) {
 
 
 extern void __HALT() {
-#if defined(__ppc__)
-    __asm__("trap");
-#elif defined(__i386__) || defined(__x86_64__)
-#if defined(_MSC_VER)
-    __asm int 3;
-#else
-    __asm__("int3");
-#endif
-#endif
+  __builtin_trap();
 }
 
 

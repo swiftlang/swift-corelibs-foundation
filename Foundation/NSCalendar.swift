@@ -118,6 +118,10 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         return true
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
@@ -1200,6 +1204,10 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     
     static public func supportsSecureCoding() -> Bool {
         return true
+    }
+    
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {

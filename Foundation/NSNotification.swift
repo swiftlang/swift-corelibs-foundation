@@ -33,6 +33,10 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return self
     }

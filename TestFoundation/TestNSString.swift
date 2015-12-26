@@ -44,9 +44,11 @@ class TestNSString : XCTestCase {
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
             ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
+            ("test_FromContentOfFile",test_FromContentOfFile),
             ("test_swiftStringUTF16", test_swiftStringUTF16),
             ("test_completePathIntoString", test_completePathIntoString),
-            ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet)
+            ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
+            ("test_initializeWithFormat", test_initializeWithFormat)
         ]
     }
 
@@ -228,6 +230,18 @@ class TestNSString : XCTestCase {
         let bytes = mockMalformedUTF8StringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
+    }
+    
+    func test_FromContentOfFile() {
+        let testFilePath = testBundle().pathForResource("NSStringTestData", ofType: "txt")
+        XCTAssertNotNil(testFilePath)
+        
+        do {
+            let str = try NSString(contentsOfFile: testFilePath!, encoding: NSUTF8StringEncoding)
+            XCTAssertEqual(str, "swift-corelibs-foundation")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfFile:encoding:")
+        }
     }
 
     func test_uppercaseString() {
@@ -450,5 +464,14 @@ class TestNSString : XCTestCase {
         let characterSet = NSCharacterSet.whitespaceCharacterSet()
         let string: NSString = " abc   "
         XCTAssertEqual(string.stringByTrimmingCharactersInSet(characterSet), "abc")
+    }
+    
+    func test_initializeWithFormat() {
+        let argument: [CVarArgType] = [42, 42.0]
+        withVaList(argument) {
+            pointer in
+            let string = NSString(format: "Value is %d (%.1f)", arguments: pointer)
+            XCTAssertEqual(string, "Value is 42 (42.0)")
+        }
     }
 }

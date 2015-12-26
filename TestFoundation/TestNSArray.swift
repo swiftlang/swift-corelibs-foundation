@@ -32,8 +32,12 @@ class TestNSArray : XCTestCase {
             ("test_binarySearchFringeCases", test_binarySearchFringeCases),
             ("test_replaceObjectsInRange_withObjectsFromArray", test_replaceObjectsInRange_withObjectsFromArray),
             ("test_replaceObjectsInRange_withObjectsFromArray_range", test_replaceObjectsInRange_withObjectsFromArray_range),
+            ("test_sortedArrayUsingComparator", test_sortedArrayUsingComparator),
+            ("test_sortedArrayWithOptionsUsingComparator", test_sortedArrayWithOptionsUsingComparator),
             ("test_arrayReplacement", test_arrayReplacement),
             ("test_arrayReplaceObjectsInRangeFromRange", test_arrayReplaceObjectsInRangeFromRange),
+            ("test_sortUsingFunction", test_sortUsingFunction),
+            ("test_sortUsingComparator", test_sortUsingComparator)
         ]
     }
     
@@ -256,4 +260,92 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array1[2] as? NSString, "baz2".bridge(), "Expected baz2 but was \(array1[2])")
         XCTAssertEqual(array1[3] as? NSString, "baz1".bridge(), "Expected baz1 but was \(array1[3])")
     }
+
+    func test_sortedArrayUsingComparator() {
+        // sort with localized caseInsensitive compare
+        let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
+        let expectedResult: Array<String> = input.sort()
+        let result = input.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+            let l = left as! NSString
+            let r = right as! NSString
+            return l.localizedCaseInsensitiveCompare(r.bridge())
+        }
+        XCTAssertEqual(result.map { ($0 as! NSString).bridge()} , expectedResult)
+
+        // sort empty array
+        let emptyArray = NSArray().sortedArrayUsingComparator { _,_ in .OrderedSame }
+        XCTAssertTrue(emptyArray.isEmpty)
+
+        // sort numbers
+        let inputNumbers = [0, 10, 25, 100, 21, 22]
+        let expectedNumbers = inputNumbers.sort()
+        let resultNumbers = inputNumbers.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+            let l = (left as! NSNumber).integerValue
+            let r = (right as! NSNumber).integerValue
+            return l < r ? .OrderedAscending : (l > r ? .OrderedSame : .OrderedDescending)
+        }
+        XCTAssertEqual(resultNumbers.map { ($0 as! NSNumber).integerValue}, expectedNumbers)
+    }
+
+    func test_sortedArrayWithOptionsUsingComparator() {
+        // check that sortedArrayWithOptions:comparator: works in the way sortedArrayUsingComparator does
+        let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"].bridge()
+        let comparator: (AnyObject, AnyObject) -> NSComparisonResult = { left, right -> NSComparisonResult in
+            let l = left as! NSString
+            let r = right as! NSString
+            return l.localizedCaseInsensitiveCompare(r.bridge())
+        }
+        let result1 = input.sortedArrayUsingComparator(comparator)
+        let result2 = input.sortedArrayWithOptions([], usingComparator: comparator)
+
+        XCTAssertTrue(result1.bridge().isEqualToArray(result2))
+
+        // sort empty array
+        let emptyArray = NSArray().sortedArrayWithOptions([]) { _,_ in .OrderedSame }
+        XCTAssertTrue(emptyArray.isEmpty)
+    }
+
+    func test_sortUsingFunction() {
+        let inputNumbers = [11, 120, 215, 11, 1, -22, 35, -89, 65]
+        let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
+        let expectedNumbers = inputNumbers.sort()
+
+        func compare(left: AnyObject, right:AnyObject,  context: UnsafeMutablePointer<Void>) -> Int {
+            let l = (left as! NSNumber).integerValue
+            let r = (right as! NSNumber).integerValue
+            return l < r ? -1 : (l > r ? 0 : 1)
+        }
+        mutableInput.sortUsingFunction(compare, context: UnsafeMutablePointer<Void>(bitPattern: 0))
+
+        XCTAssertEqual(mutableInput.map { ($0 as! NSNumber).integerValue}, expectedNumbers)
+    }
+
+    func test_sortUsingComparator() {
+        // check behaviour with Array's sort method
+        let inputNumbers = [11, 120, 215, 11, 1, -22, 35, -89, 65]
+        let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
+        let expectedNumbers = inputNumbers.sort()
+
+        mutableInput.sortUsingComparator { left, right -> NSComparisonResult in
+            let l = (left as! NSNumber).integerValue
+            let r = (right as! NSNumber).integerValue
+            return l < r ? .OrderedAscending : (l > r ? .OrderedSame : .OrderedDescending)
+        }
+
+        XCTAssertEqual(mutableInput.map { ($0 as! NSNumber).integerValue}, expectedNumbers);
+
+        // check that it works in the way self.sortWithOptions([], usingComparator: cmptr) does
+        let inputStrings = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
+        let mutableStringsInput1 = inputStrings.bridge().mutableCopy() as! NSMutableArray
+        let mutableStringsInput2 = inputStrings.bridge().mutableCopy() as! NSMutableArray
+        let comparator: (AnyObject, AnyObject) -> NSComparisonResult = { left, right -> NSComparisonResult in
+            let l = left as! NSString
+            let r = right as! NSString
+            return l.localizedCaseInsensitiveCompare(r.bridge())
+        }
+        mutableStringsInput1.sortUsingComparator(comparator)
+        mutableStringsInput2.sortWithOptions([], usingComparator: comparator)
+        XCTAssertTrue(mutableStringsInput1.isEqualToArray(mutableStringsInput2.bridge()))
+    }
+
 }

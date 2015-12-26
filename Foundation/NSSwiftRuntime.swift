@@ -257,6 +257,16 @@ internal func _NSObjectRepresentableBridge(value: Any) -> NSObject {
         return str._nsObjectRepresentation()
     } else if let obj = value as? NSObject {
         return obj
+    } else if let obj = value as? Int {
+        return obj._bridgeToObject()
+    } else if let obj = value as? UInt {
+        return obj._bridgeToObject()
+    } else if let obj = value as? Float {
+        return obj._bridgeToObject()
+    } else if let obj = value as? Double {
+        return obj._bridgeToObject()
+    } else if let obj = value as? Bool {
+        return obj._bridgeToObject()
     }
     fatalError("Unable to convert value of type \(value.dynamicType)")
 }

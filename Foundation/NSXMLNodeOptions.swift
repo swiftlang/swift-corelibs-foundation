@@ -43,49 +43,55 @@
     @constant NSXMLDocumentIncludeContentTypeDeclaration Include a content type declaration for HTML or XHTML
 */
 
-public var NSXMLNodeOptionsNone: Int { return 0 }
+#if arch(x86_64) || arch(arm64)
+public typealias NSXMLNodeOptionRawType = Int
+#else
+public typealias NSXMLNodeOptionRawType = Int64
+#endif
+
+public var NSXMLNodeOptionsNone: NSXMLNodeOptionRawType { return 0 }
 
 // Init
-public var NSXMLNodeIsCDATA: Int { return 1 << 0 }
-public var NSXMLNodeExpandEmptyElement: Int { return 1 << 1 } // <a></a>
-public var NSXMLNodeCompactEmptyElement: Int { return 1 << 2 } // <a/>
-public var NSXMLNodeUseSingleQuotes: Int { return 1 << 3 }
-public var NSXMLNodeUseDoubleQuotes: Int { return 1 << 4 }
-public var NSXMLNodeNeverEscapeContents: Int { return 1 << 5 }
+public var NSXMLNodeIsCDATA: NSXMLNodeOptionRawType { return 1 << 0 }
+public var NSXMLNodeExpandEmptyElement: NSXMLNodeOptionRawType { return 1 << 1 } // <a></a>
+public var NSXMLNodeCompactEmptyElement: NSXMLNodeOptionRawType { return 1 << 2 } // <a/>
+public var NSXMLNodeUseSingleQuotes: NSXMLNodeOptionRawType { return 1 << 3 }
+public var NSXMLNodeUseDoubleQuotes: NSXMLNodeOptionRawType { return 1 << 4 }
+public var NSXMLNodeNeverEscapeContents: NSXMLNodeOptionRawType { return 1 << 5 }
 
 // Tidy
-public var NSXMLDocumentTidyHTML: Int { return 1 << 9 }
-public var NSXMLDocumentTidyXML: Int { return 1 << 10 }
+public var NSXMLDocumentTidyHTML: NSXMLNodeOptionRawType { return 1 << 9 }
+public var NSXMLDocumentTidyXML: NSXMLNodeOptionRawType { return 1 << 10 }
 
 // Validate
-public var NSXMLDocumentValidate: Int { return 1 << 13 }
+public var NSXMLDocumentValidate: NSXMLNodeOptionRawType { return 1 << 13 }
 
 // External Entity Loading
 // Choose only zero or one option. Choosing none results in system-default behavior.
-public var NSXMLNodeLoadExternalEntitiesAlways: Int { return 1 << 14 }
-public var NSXMLNodeLoadExternalEntitiesSameOriginOnly: Int { return 1 << 15 }
-public var NSXMLNodeLoadExternalEntitiesNever: Int { return 1 << 19 }
+public var NSXMLNodeLoadExternalEntitiesAlways: NSXMLNodeOptionRawType { return 1 << 14 }
+public var NSXMLNodeLoadExternalEntitiesSameOriginOnly: NSXMLNodeOptionRawType { return 1 << 15 }
+public var NSXMLNodeLoadExternalEntitiesNever: NSXMLNodeOptionRawType { return 1 << 19 }
 
 // Parse
-public var NSXMLDocumentXInclude: Int { return 1 << 16 }
+public var NSXMLDocumentXInclude: NSXMLNodeOptionRawType { return 1 << 16 }
 
 // Output
-public var NSXMLNodePrettyPrint: Int { return 1 << 17 }
-public var NSXMLDocumentIncludeContentTypeDeclaration: Int { return 1 << 18 }
+public var NSXMLNodePrettyPrint: NSXMLNodeOptionRawType { return 1 << 17 }
+public var NSXMLDocumentIncludeContentTypeDeclaration: NSXMLNodeOptionRawType { return 1 << 18 }
 
 // Fidelity
-public var NSXMLNodePreserveNamespaceOrder: Int { return 1 << 20 }
-public var NSXMLNodePreserveAttributeOrder: Int { return 1 << 21 }
-public var NSXMLNodePreserveEntities: Int { return 1 << 22 }
-public var NSXMLNodePreservePrefixes: Int { return 1 << 23 }
-public var NSXMLNodePreserveCDATA: Int { return 1 << 24 }
-public var NSXMLNodePreserveWhitespace: Int { return 1 << 25 }
-public var NSXMLNodePreserveDTD: Int { return 1 << 26 }
-public var NSXMLNodePreserveCharacterReferences: Int { return 1 << 27 }
-public var NSXMLNodePromoteSignificantWhitespace: Int { return 1 << 28 }
-public var NSXMLNodePreserveEmptyElements: Int { return NSXMLNodeExpandEmptyElement | NSXMLNodeCompactEmptyElement }
-public var NSXMLNodePreserveQuotes: Int { return NSXMLNodeUseSingleQuotes | NSXMLNodeUseDoubleQuotes }
-public var NSXMLNodePreserveAll: Int { return
+public var NSXMLNodePreserveNamespaceOrder: NSXMLNodeOptionRawType { return 1 << 20 }
+public var NSXMLNodePreserveAttributeOrder: NSXMLNodeOptionRawType { return 1 << 21 }
+public var NSXMLNodePreserveEntities: NSXMLNodeOptionRawType { return 1 << 22 }
+public var NSXMLNodePreservePrefixes: NSXMLNodeOptionRawType { return 1 << 23 }
+public var NSXMLNodePreserveCDATA: NSXMLNodeOptionRawType { return 1 << 24 }
+public var NSXMLNodePreserveWhitespace: NSXMLNodeOptionRawType { return 1 << 25 }
+public var NSXMLNodePreserveDTD: NSXMLNodeOptionRawType { return 1 << 26 }
+public var NSXMLNodePreserveCharacterReferences: NSXMLNodeOptionRawType { return 1 << 27 }
+public var NSXMLNodePromoteSignificantWhitespace: NSXMLNodeOptionRawType { return 1 << 28 }
+public var NSXMLNodePreserveEmptyElements: NSXMLNodeOptionRawType { return NSXMLNodeExpandEmptyElement | NSXMLNodeCompactEmptyElement }
+public var NSXMLNodePreserveQuotes: NSXMLNodeOptionRawType { return NSXMLNodeUseSingleQuotes | NSXMLNodeUseDoubleQuotes }
+public var NSXMLNodePreserveAll: NSXMLNodeOptionRawType { return
     NSXMLNodePreserveNamespaceOrder |
     NSXMLNodePreserveAttributeOrder |
     NSXMLNodePreserveEntities |
