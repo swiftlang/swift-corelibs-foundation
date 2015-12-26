@@ -238,19 +238,19 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        var str : NSString? = nil
+        var str : String? = nil
         
         if let aKeyedDecoder = aDecoder as? NSKeyedUnarchiver {
-            str = aKeyedDecoder.decodePropertyListForKey("NS.string") as? NSString
+            str = aKeyedDecoder._decodePropertyListForKey("NS.string") as? String
         } else {
-            str = aDecoder.decodeObject() as? NSString
+            str = aDecoder.decodeObject() as? String
         }
-        
+       
         if str == nil {
             return nil
         }
         
-        self.init(str!.bridge())
+        self.init(str!)
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
