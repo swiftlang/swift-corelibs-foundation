@@ -71,7 +71,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if (aDecoder.allowsKeyedCoding) {
+        if aDecoder.allowsKeyedCoding {
             let base = aDecoder.decodeObjectOfClass(NSURL.self, forKey:"NS.base")
             let relative = aDecoder.decodeObjectOfClass(NSString.self, forKey:"NS.relative")
 
@@ -86,7 +86,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-	if (aCoder.allowsKeyedCoding) {
+	if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.baseURL, forKey:"NS.base")
             aCoder.encodeObject(self.relativeString.bridge(), forKey:"NS.relative")
 	} else {
