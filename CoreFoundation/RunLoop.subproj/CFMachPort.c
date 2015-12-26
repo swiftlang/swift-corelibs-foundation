@@ -225,6 +225,7 @@ static Boolean __CFMachPortCheck(mach_port_t port) {
     return (KERN_SUCCESS != ret || (0 == (type & MACH_PORT_TYPE_PORT_RIGHTS))) ? false : true;
 }
 
+#if 0
 static void __CFMachPortChecker(Boolean fromTimer) {
     __CFLock(&__CFAllMachPortsLock); // take this lock first before any instance-specific lock
     for (CFIndex idx = 0, cnt = __CFAllMachPorts ? CFArrayGetCount(__CFAllMachPorts) : 0; idx < cnt; idx++) {
@@ -273,7 +274,7 @@ static void __CFMachPortChecker(Boolean fromTimer) {
     }
     __CFUnlock(&__CFAllMachPortsLock);
 };
-
+#endif
 
 static CFTypeID __kCFMachPortTypeID = _kCFRuntimeNotATypeID;
 

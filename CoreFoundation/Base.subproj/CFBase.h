@@ -647,9 +647,9 @@ void CFRelease(CFTypeRef cf);
 #else
 CF_EXPORT
 CFTypeRef CFAutorelease(CFTypeRef CF_RELEASES_ARGUMENT arg) CF_AVAILABLE(10_9, 7_0);
-#endif
 CF_EXPORT
 CFIndex CFGetRetainCount(CFTypeRef cf);
+#endif
 
 CF_EXPORT
 Boolean CFEqual(CFTypeRef cf1, CFTypeRef cf2);

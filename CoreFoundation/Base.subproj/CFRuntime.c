@@ -724,11 +724,7 @@ static CFLock_t __CFRuntimeExternRefCountTableLock = CFLockInit;
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-CFIndex CFGetRetainCount(CFTypeRef cf) {
-    extern size_t swift_retainCount(void *object);
-    // size_t and CFIndex aren't really the same, but you are already playing with fire by calling this function.
-    return (CFIndex)swift_retainCount((void *)cf);
-}
+// using CFGetRetainCount is very dangerous; there is no real reason to use it in the swift version of CF.
 #else
 static uint64_t __CFGetFullRetainCount(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** __CFGetFullRetainCount() called with NULL ***"); HALT; }
