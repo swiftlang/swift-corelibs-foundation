@@ -23,25 +23,6 @@ internal func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
     return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, CFKeyedArchiverUIDRef.self))
 }
 
-struct NSKeyedArchiverFlags : OptionSetType {
-    let rawValue : UInt
-    
-    init(rawValue : UInt) {
-        self.rawValue = rawValue
-    }
-    
-    static let None = NSKeyedArchiverFlags(rawValue: 0)
-    static let FinishedEncoding = NSKeyedArchiverFlags(rawValue : 1)
-    static let RequiresSecureCoding = NSKeyedArchiverFlags(rawValue: 2)
-}
-
-private class NSKeyedEncodingContext {
-    // the object container that is being encoded
-    var dict = Dictionary<String, Any>()
-    // the index used for non-keyed objects (encodeObject: vs encodeObject:forKey:)
-    var genericKey : UInt = 0
-}
-
 // NSUniqueObject is a wrapper that allows both hashable and non-hashable objects
 // to be used as keys in a dictionary
 internal struct NSUniqueObject : Hashable {
@@ -79,12 +60,30 @@ internal func ==(x : NSUniqueObject, y : NSUniqueObject) -> Bool {
 }
 
 public class NSKeyedArchiver : NSCoder {
+    struct ArchiverFlags : OptionSetType {
+        let rawValue : UInt
+        
+        init(rawValue : UInt) {
+            self.rawValue = rawValue
+        }
+        
+        static let None = ArchiverFlags(rawValue: 0)
+        static let FinishedEncoding = ArchiverFlags(rawValue : 1)
+        static let RequiresSecureCoding = ArchiverFlags(rawValue: 2)
+    }
     
+    private class EncodingContext {
+        // the object container that is being encoded
+        var dict = Dictionary<String, Any>()
+        // the index used for non-keyed objects (encodeObject: vs encodeObject:forKey:)
+        var genericKey : UInt = 0
+    }
+
     private static var _classNameMap = Dictionary<String, String>()
     
     private var _stream : AnyObject
-    private var _flags = NSKeyedArchiverFlags(rawValue: 0)
-    private var _containers : Array<NSKeyedEncodingContext> = [NSKeyedEncodingContext()]
+    private var _flags = ArchiverFlags(rawValue: 0)
+    private var _containers : Array<EncodingContext> = [EncodingContext()]
     private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
     private var _objRefMap : Dictionary<NSUniqueObject, UInt32> = [:]
     private var _replacementMap : Dictionary<NSUniqueObject, AnyObject> = [:]
@@ -129,7 +128,7 @@ public class NSKeyedArchiver : NSCoder {
         
         CFWriteStreamClose(writeStream)
         
-        return keyedArchiver._flags.contains(NSKeyedArchiverFlags.FinishedEncoding)
+        return keyedArchiver._flags.contains(ArchiverFlags.FinishedEncoding)
     }
     
     private init(output: AnyObject) {
@@ -165,7 +164,7 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     public func finishEncoding() {
-        if _flags.contains(NSKeyedArchiverFlags.FinishedEncoding) {
+        if _flags.contains(ArchiverFlags.FinishedEncoding) {
             return;
         }
 
@@ -194,7 +193,7 @@ public class NSKeyedArchiver : NSCoder {
         }
 
         if success {
-            self._flags.insert(NSKeyedArchiverFlags.FinishedEncoding)
+            self._flags.insert(ArchiverFlags.FinishedEncoding)
         }
     }
     
@@ -219,7 +218,7 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     private func _validateStillEncoding() -> Bool {
-        if self._flags.contains(NSKeyedArchiverFlags.FinishedEncoding) {
+        if self._flags.contains(ArchiverFlags.FinishedEncoding) {
             fatalError("Encoder already finished")
         }
         
@@ -321,7 +320,7 @@ public class NSKeyedArchiver : NSCoder {
         return objectRef
     }
 
-    private func _pushEncodingContext(encodingContext: NSKeyedEncodingContext) {
+    private func _pushEncodingContext(encodingContext: EncodingContext) {
         self._containers.append(encodingContext)
     }
    
@@ -329,7 +328,7 @@ public class NSKeyedArchiver : NSCoder {
         self._containers.removeLast()
     }
     
-    private var _currentEncodingContext : NSKeyedEncodingContext {
+    private var _currentEncodingContext : EncodingContext {
         return self._containers.last!
     }
   
@@ -526,7 +525,7 @@ public class NSKeyedArchiver : NSCoder {
 
             if _isContainer(object) {
                 if let codable = object as? NSCoding {
-                    let innerEncodingContext = NSKeyedEncodingContext()
+                    let innerEncodingContext = EncodingContext()
                     var cls : AnyClass?
                     
                     _pushEncodingContext(innerEncodingContext)
@@ -662,13 +661,13 @@ public class NSKeyedArchiver : NSCoder {
      */
     public override var requiresSecureCoding: Bool {
         get {
-            return _flags.contains(NSKeyedArchiverFlags.RequiresSecureCoding)
+            return _flags.contains(ArchiverFlags.RequiresSecureCoding)
         }
         set {
             if newValue {
-                _flags.insert(NSKeyedArchiverFlags.RequiresSecureCoding)
+                _flags.insert(ArchiverFlags.RequiresSecureCoding)
             } else {
-                _flags.remove(NSKeyedArchiverFlags.RequiresSecureCoding)
+                _flags.remove(ArchiverFlags.RequiresSecureCoding)
             }
         }
     }

@@ -9,35 +9,35 @@
 
 import CoreFoundation
 
-struct NSKeyedUnarchiverFlags : OptionSetType {
-    let rawValue : UInt
-    
-    init(rawValue : UInt) {
-        self.rawValue = rawValue
-    }
-    
-    static let None = NSKeyedUnarchiverFlags(rawValue: 0)
-    static let FinishedDecoding = NSKeyedUnarchiverFlags(rawValue : 1)
-    static let RequiresSecureCoding = NSKeyedUnarchiverFlags(rawValue: 2)
-}
-
-private class NSKeyedDecodingContext {
-    private var dict : Dictionary<String, Any>
-    private var genericKey : UInt = 0
-    
-    init(_ dict : Dictionary<String, Any>) {
-        self.dict = dict
-    }
-}
-
 public class NSKeyedUnarchiver : NSCoder {
+    struct UnarchiverFlags : OptionSetType {
+        let rawValue : UInt
+        
+        init(rawValue : UInt) {
+            self.rawValue = rawValue
+        }
+        
+        static let None = UnarchiverFlags(rawValue: 0)
+        static let FinishedDecoding = UnarchiverFlags(rawValue : 1)
+        static let RequiresSecureCoding = UnarchiverFlags(rawValue: 2)
+    }
+    
+    class DecodingContext {
+        private var dict : Dictionary<String, Any>
+        private var genericKey : UInt = 0
+        
+        init(_ dict : Dictionary<String, Any>) {
+            self.dict = dict
+        }
+    }
+    
     private static var _classNameMap : Dictionary<String, AnyClass> = [:]
     
     public weak var delegate: NSKeyedUnarchiverDelegate?
     
     private var _stream : AnyObject
-    private var _flags = NSKeyedUnarchiverFlags(rawValue: 0)
-    private var _containers : Array<NSKeyedDecodingContext>? = nil
+    private var _flags = UnarchiverFlags(rawValue: 0)
+    private var _containers : Array<DecodingContext>? = nil
     private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
     private var _objRefMap : Dictionary<UInt32, AnyObject> = [:]
     private var _replacementMap : Dictionary<NSUniqueObject, AnyObject> = [:]
@@ -143,7 +143,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
         
         self._objects = objects!
-        self._containers = [NSKeyedDecodingContext(top!)]
+        self._containers = [DecodingContext(top!)]
     }
     
     private class func _unescapeKey(key : String) -> String {
@@ -154,7 +154,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return key
     }
     
-    private func _pushDecodingContext(decodingContext: NSKeyedDecodingContext) {
+    private func _pushDecodingContext(decodingContext: DecodingContext) {
         self._containers!.append(decodingContext)
     }
     
@@ -162,7 +162,7 @@ public class NSKeyedUnarchiver : NSCoder {
         self._containers!.removeLast()
     }
     
-    private var _currentDecodingContext : NSKeyedDecodingContext {
+    private var _currentDecodingContext : DecodingContext {
         return self._containers!.last!
     }
     
@@ -212,7 +212,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     private func _validateStillDecoding() -> Bool {
-        if self._flags.contains(NSKeyedUnarchiverFlags.FinishedDecoding) {
+        if self._flags.contains(UnarchiverFlags.FinishedDecoding) {
             fatalError("Decoder already finished")
         }
         
@@ -247,7 +247,7 @@ public class NSKeyedUnarchiver : NSCoder {
             return false
         }
         
-        if _flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding) {
+        if _flags.contains(UnarchiverFlags.RequiresSecureCoding) {
             if let unwrappedAllowedClasses = allowedClasses {
                 if unwrappedAllowedClasses.contains({NSKeyedUnarchiver._classIsKindOfClass(assertedClass!, $0)}) {
                     return true
@@ -470,7 +470,7 @@ public class NSKeyedUnarchiver : NSCoder {
                                              withDescription: "Invalid object encoding \(objectRef). The data may be corrupt.")
                     }
 		
-                    let innerDecodingContext = NSKeyedDecodingContext(dict)
+                    let innerDecodingContext = DecodingContext(dict)
 
                     let classReference = innerDecodingContext.dict["$class"] as? CFKeyedArchiverUID
                     if !NSKeyedUnarchiver._isReference(classReference) {
@@ -577,7 +577,7 @@ public class NSKeyedUnarchiver : NSCoder {
      Called when the caller has finished decoding.
      */
     public func finishDecoding() {
-        if _flags.contains(NSKeyedUnarchiverFlags.FinishedDecoding) {
+        if _flags.contains(UnarchiverFlags.FinishedDecoding) {
             return;
         }
         
@@ -591,7 +591,7 @@ public class NSKeyedUnarchiver : NSCoder {
             unwrappedDelegate.unarchiverDidFinish(self)
         }
         
-        self._flags.insert(NSKeyedUnarchiverFlags.FinishedDecoding)
+        self._flags.insert(UnarchiverFlags.FinishedDecoding)
     }
     
     public class func setClass(cls: AnyClass?, forClassName codedName: String) {
@@ -761,16 +761,16 @@ public class NSKeyedUnarchiver : NSCoder {
     // Enables secure coding support on this keyed unarchiver. When enabled, anarchiving a disallowed class throws an exception. Once enabled, attempting to set requiresSecureCoding to NO will throw an exception. This is to prevent classes from selectively turning secure coding off. This is designed to be set once at the top level and remain on. Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
     public override var requiresSecureCoding: Bool {
         get {
-            return _flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding)
+            return _flags.contains(UnarchiverFlags.RequiresSecureCoding)
         }
         set {
-            if _flags.contains(NSKeyedUnarchiverFlags.RequiresSecureCoding) {
+            if _flags.contains(UnarchiverFlags.RequiresSecureCoding) {
                 if !newValue {
                     fatalError("Cannot unset requiresSecureCoding")
                 }
             } else {
                 if newValue {
-                    _flags.insert(NSKeyedUnarchiverFlags.RequiresSecureCoding)
+                    _flags.insert(UnarchiverFlags.RequiresSecureCoding)
                 }
             }
         }
