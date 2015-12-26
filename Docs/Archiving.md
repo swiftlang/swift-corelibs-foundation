@@ -13,3 +13,7 @@ There is a preliminary implementation of NSKeyedArchiver and NSKeyedUnarchiver w
 * Encoding/decoding of objects using the encodeValueOfObjCType() methods is not yet supported
 
 * The signature of the decoding APIs that take a class whitelist has changed from NSSet to [AnyClass] as AnyClass does not support Hashable
+
+* classForKeyed[Un]Archiver has moved into NSObject so it can be overridden, move this back into an extension eventually
+
+
