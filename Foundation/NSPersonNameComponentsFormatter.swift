@@ -73,19 +73,19 @@ public class NSPersonNameComponentsFormatter : NSFormatter {
 }
 
 // Attributed String identifier key string
-public let NSPersonNameComponentKey: String = "" // NSUnimplemented
+public let NSPersonNameComponentKey: String = "NSPersonNameComponentKey"
 
 // Constants for attributed strings
-public let NSPersonNameComponentGivenName: String = "" // NSUnimplemented
-public let NSPersonNameComponentFamilyName: String = "" // NSUnimplemented
-public let NSPersonNameComponentMiddleName: String = "" // NSUnimplemented
-public let NSPersonNameComponentPrefix: String = "" // NSUnimplemented
-public let NSPersonNameComponentSuffix: String = "" // NSUnimplemented
-public let NSPersonNameComponentNickname: String = "" // NSUnimplemented
+public let NSPersonNameComponentGivenName: String = "NSPersonNameComponentGivenName"
+public let NSPersonNameComponentFamilyName: String = "NSPersonNameComponentFamilyName"
+public let NSPersonNameComponentMiddleName: String = "NSPersonNameComponentMiddleName"
+public let NSPersonNameComponentPrefix: String = "NSPersonNameComponentPrefix"
+public let NSPersonNameComponentSuffix: String = "NSPersonNameComponentSuffix"
+public let NSPersonNameComponentNickname: String = "NSPersonNameComponentNickname"
 
 /* The delimiter is the character or characters used to separate name components.
  For CJK languages there is no delimiter.
  */
-public let NSPersonNameComponentDelimiter: String = "" // NSUnimplemented
+public let NSPersonNameComponentDelimiter: String = "NSPersonNameComponentDelimiter"
 
 
