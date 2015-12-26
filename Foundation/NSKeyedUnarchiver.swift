@@ -632,8 +632,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     @warn_unused_result
     public override func decodeObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
-        let classes = [cls]
-        return decodeObjectOfClasses(classes, forKey: key) as? DecodedObjectType
+        return decodeObjectOfClasses([cls], forKey: key) as? DecodedObjectType
     }
     
     @warn_unused_result
