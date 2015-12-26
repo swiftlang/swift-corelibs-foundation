@@ -117,7 +117,14 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        if let keyedUnarchiver = aDecoder as? NSKeyedUnarchiver {
+            guard let array = keyedUnarchiver._decodeArrayOfObjects("NS.objects") else {
+                return nil
+            }
+            self.init(array: array)
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
