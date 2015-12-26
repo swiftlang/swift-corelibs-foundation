@@ -589,9 +589,17 @@ public class NSKeyedArchiver : NSCoder {
         _encodeObject(objv, forKey: key, conditional: true)
     }
     
-    private func _encodeValue<T: NSObject where T: NSCoding>(objv: T, forKey key: String) {
+    public override func encodePropertyList(aPropertyList: AnyObject) {
+        encodeObject(aPropertyList)
+    }
+    
+    public func _encodePropertyList(aPropertyList: AnyObject, forKey key: String) {
         _validateStillEncoding()
-        _setObjectInCurrentEncodingContext(objv, forKey: key)
+        _setObjectInCurrentEncodingContext(aPropertyList, forKey: key)
+    }
+    
+    private func _encodeValue<T: NSObject where T: NSCoding>(objv: T, forKey key: String) {
+        _encodePropertyList(objv, forKey: key)
     }
     
     public override func encodeBool(boolv: Bool, forKey key: String) {
@@ -632,7 +640,7 @@ public class NSKeyedArchiver : NSCoder {
         let data = NSData(bytes: bytesp, length: lenv)
         _encodeValue(data, forKey: key)
     }
-   
+
     /**
         Helper API for NSArray and NSDictionary that encodes an array of objects,
         creating references as it goes

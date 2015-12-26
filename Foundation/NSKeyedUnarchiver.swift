@@ -681,6 +681,14 @@ public class NSKeyedUnarchiver : NSCoder {
         return nil
     }
     
+    public override func decodePropertyList() -> AnyObject? {
+        return decodeObject()
+    }
+    
+    public override func decodePropertyListForKey(key: String) -> AnyObject? {
+        return _decodeValueForKey(key)
+    }
+    
     public override func decodeBoolForKey(key: String) -> Bool {
         guard let result : Bool = _decodeValueForKey(key) else {
             return false
@@ -744,14 +752,6 @@ public class NSKeyedUnarchiver : NSCoder {
     
     public override func decodeDataObject() -> NSData? {
         return decodeObject() as? NSData
-    }
-    
-    public override func encodePropertyList(aPropertyList: AnyObject) {
-        return encodeObject(aPropertyList)
-    }
-    
-    public override func decodePropertyList() -> AnyObject? {
-        return decodeObject()
     }
     
     public override var allowedClasses: [AnyClass]? {

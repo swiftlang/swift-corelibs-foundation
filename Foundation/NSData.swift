@@ -140,25 +140,19 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {
-        if (aCoder.allowsKeyedCoding) {
-            aCoder.encodeBytes(UnsafePointer<UInt8>(self.bytes), length: self.length, forKey: "NS.data")
+        if let aKeyedCoder = aCoder as? NSKeyedArchiver {
+            aKeyedCoder._encodePropertyList(self, forKey: "NS.data")
         } else {
             NSUnimplemented()
         }
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        if (aDecoder.allowsKeyedCoding) {
-            var length : Int = 0
-            var bytes : UnsafePointer<UInt8> = nil
-
-            withUnsafeMutablePointer(&length) { lengthPointer in
-                bytes = aDecoder.decodeBytesForKey("NS.data", returnedLength: lengthPointer)
-            }
-            if bytes == nil {
+        if let aKeyedDecoder = aDecoder as? NSKeyedUnarchiver {
+            guard let data = aKeyedDecoder.decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
-            self.init(bytes: bytes, length: length)
+            self.init(data: data)
         } else {
             NSUnimplemented()
         }
