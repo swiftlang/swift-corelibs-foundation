@@ -1312,7 +1312,13 @@ public class NSMutableString : NSString {
     }
 
     public convenience required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard let str = NSString(coder: aDecoder) else {
+            return nil
+        }
+        
+        // FIXME where is initWithString:
+        self.init(capacity: 0)
+        self.setString(str.bridge())
     }
 
     public required convenience init(unicodeScalarLiteral value: StaticString) {
