@@ -386,12 +386,12 @@ public extension NSString {
             }
         }
         
+        let commonPath = urlWhereToSearch.absoluteString!.bridge().stringByReplacingOccurrencesOfString("file://", withString: "")
+        
         if let lcp = _longestCommonPrefix(matches, caseSensitive: flag) {
-           outputName = (urlWhereToSearch.absoluteString! + lcp).bridge()
+           outputName = (commonPath + lcp).bridge()
         }
         
-        // on Linux matches have protocol prefix, but we need path only
-        let commonPath = urlWhereToSearch.absoluteString!.bridge().stringByReplacingOccurrencesOfString("file://", withString: "")
         outputArray = matches.map({ (commonPath + $0).bridge() })
         
         return matches.count
