@@ -91,16 +91,16 @@ public class NSKeyedUnarchiver : NSCoder {
         do {
             try _readPropertyList()
         } catch let error as NSError {
-            _debugError(error)
+            _logError(error)
             return nil
         } catch {
             return nil
         }
     }
   
-    private func _debugError(error: NSError, function: String = __FUNCTION__) {
+    private func _logError(error: NSError, function: String = __FUNCTION__) {
         if let debugDescription = error.userInfo["NSDebugDescription"] {
-            print("*** \(function): \(debugDescription)")
+            NSLog("*** \(function): \(debugDescription)")
         }
     }
  
@@ -575,7 +575,7 @@ public class NSKeyedUnarchiver : NSCoder {
                 }
             }
         } catch let error as NSError {
-	    _debugError(error)
+            _logError(error)
             self._error = error
             return nil
         } catch {
@@ -633,7 +633,7 @@ public class NSKeyedUnarchiver : NSCoder {
         do {
             return try _decodeObject(forKey: key)
         } catch let error as NSError {
-            _debugError(error)
+            _logError(error)
             self._error = error
         } catch {
         }
@@ -653,7 +653,7 @@ public class NSKeyedUnarchiver : NSCoder {
 
             return try _decodeObject(forKey: key)
         } catch let error as NSError {
-            _debugError(error)
+            _logError(error)
             self._error = error
         } catch {
         }
@@ -685,7 +685,7 @@ public class NSKeyedUnarchiver : NSCoder {
         do {
             return try _decodeObject(forKey: nil)
         } catch let error as NSError {
-            _debugError(error)
+            _logError(error)
             self._error = error
         } catch {
         }

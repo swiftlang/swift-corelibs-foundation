@@ -345,13 +345,19 @@ public class NSKeyedArchiver : NSCoder {
      */
     private func _setObjectInCurrentEncodingContext(object : AnyObject?, forKey key: String, escape: Bool = true) {
         let encodingContext = self._containers.last!
-        
+        var possiblyEscapedKey : String
+ 
         if escape {
-            let escapedKey = NSKeyedArchiver._escapeKey(key)
-            encodingContext.dict[escapedKey] = object
+            possiblyEscapedKey = NSKeyedArchiver._escapeKey(key)
         } else {
-            encodingContext.dict[key] = object
+            possiblyEscapedKey = key
         }
+        
+        if encodingContext.dict[possiblyEscapedKey] != nil {
+            NSLog("*** NSKeyedArchiver warning: replacing existing value for key '\(possiblyEscapedKey)'; probable duplication of encoding keys in class hierarchy")
+        }
+        
+        encodingContext.dict[possiblyEscapedKey] = object
     }
    
     /**
