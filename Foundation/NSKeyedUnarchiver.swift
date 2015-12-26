@@ -679,56 +679,50 @@ public class NSKeyedUnarchiver : NSCoder {
         return nil
     }
     
-    // FIXME would be nicer to use a generic function that called _conditionallyBridgeFromObject
-    private func _nsNumberForKey(key: String) -> NSNumber? {
-        let ns : NSNumber? = _decodeValueForKey(key)
-        return ns
-    }
-    
     public override func decodeBoolForKey(key: String) -> Bool {
-        guard let result = _nsNumberForKey(key)?.boolValue else {
+        guard let result : Bool = _decodeValueForKey(key) else {
             return false
         }
         return result
     }
     
     public override func decodeIntForKey(key: String) -> Int32  {
-        guard let result = _nsNumberForKey(key)?.intValue else {
+        guard let result : Int32 = _decodeValueForKey(key) else {
             return 0
         }
-        return result // FIXME
+        return result
     }
     
     public override func decodeInt32ForKey(key: String) -> Int32 {
-        guard let result = _nsNumberForKey(key)?.intValue else {
+        guard let result : Int32 = _decodeValueForKey(key) else {
             return 0
         }
         return result
     }
     
     public override func decodeInt64ForKey(key: String) -> Int64 {
-        guard let result = _nsNumberForKey(key)?.longLongValue else {
+        guard let result : Int64 = _decodeValueForKey(key) else {
             return 0
         }
         return result
     }
     
     public override func decodeFloatForKey(key: String) -> Float {
-        guard let result = _nsNumberForKey(key)?.floatValue else {
-            return 0.0
+        guard let result : Float = _decodeValueForKey(key) else {
+            return 0
         }
         return result
     }
     
     public override func decodeDoubleForKey(key: String) -> Double {
-        guard let result = _nsNumberForKey(key)?.doubleValue else {
-            return 0.0
+        guard let result : Double = _decodeValueForKey(key) else {
+            return 0
         }
         return result
     }
     
     public override func decodeIntegerForKey(key: String) -> Int {
-        guard let result = _nsNumberForKey(key)?.longValue else {
+        guard let result : Int = _decodeValueForKey(key) else {
             return 0
         }
         return result
