@@ -148,7 +148,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     private class func _unescapeKey(key : String) -> String {
         if key.hasPrefix("$") {
-            return NSString(key).substringFromIndex(1)
+            return key.bridge().substringFromIndex(1)
         }
         
         return key
@@ -506,7 +506,7 @@ public class NSKeyedUnarchiver : NSCoder {
                 // reference to a non-container object
                 // FIXME remove these special cases
                 if let str = dereferencedObject as? String {
-                    object = NSString(str)
+                    object = str.bridge()
                 } else {
                     object = dereferencedObject as? AnyObject
                 }
