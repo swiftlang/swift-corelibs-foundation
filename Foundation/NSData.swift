@@ -143,7 +143,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
             aKeyedCoder._encodePropertyList(self, forKey: "NS.data")
         } else {
-            NSUnimplemented()
+            aCoder.encodeBytes(UnsafePointer<UInt8>(self.bytes), length: self.length)
         }
     }
     
@@ -154,7 +154,14 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
             self.init(data: data)
         } else {
-            NSUnimplemented()
+            var length : Int = 0
+            let bytes = withUnsafeMutablePointer(&length) { lengthPointer in
+                return aDecoder.decodeBytesWithReturnedLength(lengthPointer)
+            }
+            if bytes == nil {
+                return nil
+            }
+            self.init(bytes: bytes, length: length)
         }
     }
     
