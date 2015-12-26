@@ -371,7 +371,7 @@ class TestNSString : XCTestCase {
         	#if os(Linux)
         	let tmp = "/tmp/"
         	#else
-        	let tmp = "private/tmp" // no symlink support yet
+        	let tmp = "/private/tmp/" // no symlink support yet
         	#endif
         	return "\(tmp)\(path)".bridge()
         }
@@ -463,6 +463,24 @@ class TestNSString : XCTestCase {
             XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, tmpPath("test_completePathIntoString_0")), "If there are matches then outName should be longest common prefix of all matches.")
             XCTAssert(matches.count == 3 && count == 3, "Supports filtration by type")
         }
+        
+        // Next check has no sense on Linux due to case sensitive file system.
+        #if os(OSX)
+        guard ensureFiles(["/tmp/ABC/temp.txt"]) else {
+            XCTAssert(false, "Could not create temp files for testing.")
+            return
+        }
+        
+        do {
+            let path: NSString = tmpPath("aBc/t")
+            var outName: NSString?
+            var matches: [NSString] = []
+            // type by filter
+            let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: ["txt", "dat"])
+            XCTAssert(outName == tmpPath("aBc/temp.txt"), "outName starts with receiver.")
+            XCTAssert(matches.count >= 1 && count >= 1, "There are matches")
+        }
+        #endif
     }
     
     private func stringsAreCaseInsensitivelyEqual(lhs: NSString, _ rhs: NSString) -> Bool {
