@@ -48,7 +48,8 @@ class TestNSString : XCTestCase {
             ("test_swiftStringUTF16", test_swiftStringUTF16),
             ("test_completePathIntoString", test_completePathIntoString),
             ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
-            ("test_initializeWithFormat", test_initializeWithFormat)
+            ("test_initializeWithFormat", test_initializeWithFormat),
+            ("test_stringByDeletingLastPathComponent", test_stringByDeletingLastPathComponent)
         ]
     }
 
@@ -512,6 +513,50 @@ class TestNSString : XCTestCase {
             pointer in
             let string = NSString(format: "Value is %d (%.1f)", arguments: pointer)
             XCTAssertEqual(string, "Value is 42 (42.0)")
+        }
+    }
+    
+    func test_stringByDeletingLastPathComponent() {
+        do {
+            let path: NSString = "/tmp/scratch.tiff"
+            let result = path.stringByDeletingLastPathComponent
+            XCTAssertEqual(result, "/tmp")
+        }
+        
+        do {
+            let path: NSString = "/tmp/lock/"
+            let result = path.stringByDeletingLastPathComponent
+            XCTAssertEqual(result, "/tmp")
+        }
+        
+        do {
+            let path: NSString = "/tmp/"
+            let result = path.stringByDeletingLastPathComponent
+            XCTAssertEqual(result, "/")
+        }
+        
+        do {
+            let path: NSString = "/tmp"
+            let result = path.stringByDeletingLastPathComponent
+            XCTAssertEqual(result, "/")
+        }
+        
+        do {
+            let path: NSString = "/"
+            let result = path.stringByDeletingLastPathComponent
+            XCTAssertEqual(result, "/")
+        }
+        
+        do {
+            let path: NSString = "scratch.tiff"
+            let result = path.stringByDeletingLastPathComponent
+            XCTAssertEqual(result, "")
+        }
+        
+        do {
+            let path: NSString = "foo/bar"
+            let result = path.stringByDeletingLastPathComponent
+            XCTAssertEqual(result, "foo", "Relative path stays relative.")
         }
     }
 }

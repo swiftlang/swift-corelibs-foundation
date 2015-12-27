@@ -237,14 +237,28 @@ public extension NSString {
         if fixedSelf == "/" {
             return fixedSelf
         }
-        if fixedSelf.length <= 1 {
-            return ""
-        }
         
-        return String(fixedSelf.characters.prefixUpTo(fixedSelf._startOfLastPathComponent))
+        switch fixedSelf._startOfLastPathComponent {
+        
+        // relative path, single component
+        case fixedSelf.startIndex:
+            return ""
+        
+        // absolute path, single component
+        case fixedSelf.startIndex.successor():
+            return "/"
+        
+        // all common cases
+        case let startOfLast:
+            return String(fixedSelf.characters.prefixUpTo(startOfLast.predecessor()))
+        }
     }
     
     internal func _stringByFixingSlashes(compress compress : Bool = true, stripTrailing: Bool = true) -> String {
+        if _swiftObject == "/" {
+            return _swiftObject
+        }
+        
         var result = _swiftObject
         if compress {
             result.withMutableCharacters { characterView in
