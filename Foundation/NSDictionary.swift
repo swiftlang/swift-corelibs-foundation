@@ -136,17 +136,41 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        if let keyedUnarchiver = aDecoder as? NSKeyedUnarchiver {
-            let keys = keyedUnarchiver._decodeArrayOfObjects("NS.keys") as? [NSObject]
-            let objects = keyedUnarchiver._decodeArrayOfObjects("NS.objects")
-
-            if keys != nil && objects != nil && keys!.count == objects!.count {
-                self.init(objects: objects!, forKeys: keys!)
-            } else {
-                self.init()
+        if !aDecoder.allowsKeyedCoding {
+            var cnt: UInt32 = 0
+            // We're stuck with (int) here (rather than unsigned int)
+            // because that's the way the code was originally written, unless
+            // we go to a new version of the class, which has its own problems.
+            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+                aDecoder.decodeValueOfObjCType("i", at: UnsafeMutablePointer<Void>(ptr))
             }
+            let keys = UnsafeMutablePointer<NSObject>.alloc(Int(cnt))
+            let objects = UnsafeMutablePointer<AnyObject>.alloc(Int(cnt))
+            for idx in 0..<cnt {
+                keys.advancedBy(Int(idx)).initialize(aDecoder.decodeObject()! as! NSObject)
+                objects.advancedBy(Int(idx)).initialize(aDecoder.decodeObject()!)
+            }
+            self.init(objects: UnsafePointer<AnyObject>(objects), forKeys: UnsafePointer<NSObject>(keys), count: Int(cnt))
+            keys.destroy(Int(cnt))
+            keys.dealloc(Int(cnt))
+            objects.destroy(Int(cnt))
+            objects.dealloc(Int(cnt))
+            
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.objects") {
+            let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
+            let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
+            self.init(objects: objects, forKeys: keys)
         } else {
-            NSUnimplemented()
+            var objects = [AnyObject]()
+            var keys = [NSObject]()
+            var count = 0
+            while let key = aDecoder.decodeObjectForKey("NS.key.\(count)"),
+                let object = aDecoder.decodeObjectForKey("NS.object.\(count)") {
+                    keys.append(key as! NSObject)
+                    objects.append(object)
+                    count++
+            }
+            self.init(objects: objects, forKeys: keys)
         }
     }
     
