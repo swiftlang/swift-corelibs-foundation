@@ -46,7 +46,16 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
             
             self.init(name: name!.bridge(), data: data)
         } else {
-            NSUnimplemented()
+            if let name = aDecoder.decodeObject() as? NSString {
+                if aDecoder.versionForClassName("NSTimeZone") == 0 {
+                    self.init(name: name._swiftObject)
+                } else {
+                    let data = aDecoder.decodeObject() as? NSData
+                    self.init(name: name._swiftObject, data: data)
+                }
+            } else {
+                return nil
+            }
         }
     }
     
@@ -64,10 +73,10 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public func encodeWithCoder(aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
-            // FIXME Foundation encodes this data as mutable, is this required?
-            aCoder.encodeObject(self.data.mutableCopy(), forKey:"NS.data")
+            // darwin versions of this method can and will encode mutable data, however it is not required for compatability
+            aCoder.encodeObject(self.data, forKey:"NS.data")
         } else {
-            NSUnimplemented()
+            
         }
     }
     
