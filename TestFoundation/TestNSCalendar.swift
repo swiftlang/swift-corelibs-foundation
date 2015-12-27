@@ -23,7 +23,8 @@ class TestNSCalendar: XCTestCase {
             ("test_gettingDatesOnGregorianCalendar", test_gettingDatesOnGregorianCalendar ),
             ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),
             ("test_initializingWithInvalidIdentifier", test_initializingWithInvalidIdentifier),
-            ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar)
+            ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
+            ("test_currentCalendarRRstability", test_currentCalendarRRstability),
         ]
     }
     
@@ -75,5 +76,15 @@ class TestNSCalendar: XCTestCase {
     func test_initializingWithInvalidIdentifier() {
         let calendar = NSCalendar(calendarIdentifier: "nonexistant_calendar")
         XCTAssertNil(calendar)
+    }
+    
+    func test_currentCalendarRRstability() {
+        var AMSymbols = [String]()
+        for _ in 1...10 {
+            let cal = NSCalendar.currentCalendar()
+            AMSymbols.append(cal.AMSymbol)
+        }
+        
+        XCTAssertEqual(AMSymbols.count, 10, "Accessing current calendar should work over multiple callouts")
     }
 }
