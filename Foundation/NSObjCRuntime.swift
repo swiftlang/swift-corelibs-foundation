@@ -11,6 +11,12 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
+import Darwin
+#elseif os(Linux)
+import Glibc
+#endif
+
+#if os(OSX) || os(iOS)
 internal let kCFCompareLessThan = CFComparisonResult.CompareLessThan
 internal let kCFCompareEqualTo = CFComparisonResult.CompareEqualTo
 internal let kCFCompareGreaterThan = CFComparisonResult.CompareGreaterThan
@@ -257,17 +263,16 @@ public func NSStringFromClass(aClass: AnyClass) -> String {
     private let RTLD_DEFAULT = UnsafeMutablePointer<Void>(bitPattern: 0)
 #endif
 
-typealias MetadataAccessor = @convention(c) () -> AnyClass?
-
 /**
     Calls a metadata accessor given a metadata accessor symbol name.
  */
 private func metadataFromAccessorName(mangledName : String) -> AnyClass? {
-    let symbol : MetadataAccessor?
-        
-    symbol = unsafeBitCast(dlsym(RTLD_DEFAULT, mangledName), MetadataAccessor.self)
-    
-    return symbol != nil ? symbol!() : nil
+    let symbol = dlsym(RTLD_DEFAULT, mangledName)
+    if symbol != nil {
+        return unsafeBitCast(symbol, AnyClass.self)
+    } else {
+        return nil
+    }
 }
 
 /**
@@ -316,7 +321,7 @@ public func NSClassFromString(aClassName: String) -> AnyClass? {
         fatalError("NSClassFromString() invalid mangled name \(mangledName)")
     }
 
-    let accessorName = "_TMa" + mangledName.bridge().substringFromIndex(3)
+    let accessorName = "_TMC" + mangledName.bridge().substringFromIndex(3)
 
     return metadataFromAccessorName(accessorName)
 }
