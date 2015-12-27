@@ -19,9 +19,7 @@
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFError.h>
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_EMBEDDED
 #include <CoreFoundation/CFStream.h>
-#endif
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
