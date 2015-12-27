@@ -24,7 +24,8 @@ class TestNSCalendar: XCTestCase {
             ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),
             ("test_initializingWithInvalidIdentifier", test_initializingWithInvalidIdentifier),
             ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
-            ("test_currentCalendarRRstability", test_currentCalendarRRstability),
+            // Disabled because this fails on linux https://bugs.swift.org/browse/SR-320
+            // ("test_currentCalendarRRstability", test_currentCalendarRRstability),
         ]
     }
     
