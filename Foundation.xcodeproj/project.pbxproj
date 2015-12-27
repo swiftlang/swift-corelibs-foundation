@@ -225,6 +225,12 @@
 		AA664D4F1C1B03CA00C22186 /* TestNSNumberFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA664D4E1C1B03CA00C22186 /* TestNSNumberFormatter.swift */; };
 		C2A9D75C1C15C08B00993803 /* TestNSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */; };
 		C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */; };
+		D39A13FD1C2A34B700295652 /* CFConcreteStreams.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89831BBDB13800234F36 /* CFConcreteStreams.c */; };
+		D39A13FE1C2A34BD00295652 /* CFSocketStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89871BBDB1B400234F36 /* CFSocketStream.c */; };
+		D39A13FF1C2A34C100295652 /* CFStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89031BBC9BC300234F36 /* CFStream.c */; };
+		D39A14011C2D6E0A00295652 /* NSKeyedUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */; };
+		D3BCEB9E1C2EDED800295652 /* NSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BCEB9D1C2EDED800295652 /* NSLog.swift */; };
+		D3BCEBA01C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */; };
 		CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */; };
 		DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
 		E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
@@ -571,6 +577,9 @@
 		AA664D4E1C1B03CA00C22186 /* TestNSNumberFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNumberFormatter.swift; sourceTree = "<group>"; };
 		C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUUID.swift; sourceTree = "<group>"; };
 		C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAffineTransform.swift; sourceTree = "<group>"; };
+		D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSKeyedUnarchiver.swift; sourceTree = "<group>"; };
+		D3BCEB9D1C2EDED800295652 /* NSLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSLog.swift; sourceTree = "<group>"; };
+		D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSKeyedCoderOldStyleArray.swift; sourceTree = "<group>"; };
 		CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NSStringTestData.txt; sourceTree = "<group>"; };
 		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
@@ -1225,6 +1234,8 @@
 			children = (
 				EADE0B641BD15DFF00C49C64 /* NSJSONSerialization.swift */,
 				EADE0B651BD15DFF00C49C64 /* NSKeyedArchiver.swift */,
+				D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */,
+				D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */,
 				5BDC3F321BCC5DCB00ED97BB /* NSCoder.swift */,
 				5BDC3F421BCC5DCB00ED97BB /* NSPropertyList.swift */,
 			);
@@ -1252,6 +1263,7 @@
 				5BDC3F3E1BCC5DCB00ED97BB /* NSObjCRuntime.swift */,
 				5BDC3F3F1BCC5DCB00ED97BB /* NSObject.swift */,
 				5BDC3F461BCC5DCB00ED97BB /* NSSwiftRuntime.swift */,
+				D3BCEB9D1C2EDED800295652 /* NSLog.swift */,
 			);
 			name = Runtime;
 			sourceTree = "<group>";
@@ -1683,6 +1695,7 @@
 				5BF7AEB31BCD51F9008F214A /* NSObjCRuntime.swift in Sources */,
 				5BF7AEAB1BCD51F9008F214A /* NSDictionary.swift in Sources */,
 				EADE0BAA1BD15E0000C49C64 /* NSNumberFormatter.swift in Sources */,
+				D39A14011C2D6E0A00295652 /* NSKeyedUnarchiver.swift in Sources */,
 				5BF7AEAF1BCD51F9008F214A /* NSHost.swift in Sources */,
 				EADE0B4E1BD09E0800C49C64 /* NSAffineTransform.swift in Sources */,
 				EADE0BC71BD15E0000C49C64 /* NSXMLDocument.swift in Sources */,
@@ -1690,10 +1703,12 @@
 				EADE0BA81BD15E0000C49C64 /* NSNotificationQueue.swift in Sources */,
 				EADE0B981BD15DFF00C49C64 /* NSDecimalNumber.swift in Sources */,
 				5BF7AEA71BCD51F9008F214A /* NSCoder.swift in Sources */,
+				D3BCEBA01C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift in Sources */,
 				EADE0BA71BD15E0000C49C64 /* NSNotification.swift in Sources */,
 				5BF7AEB41BCD51F9008F214A /* NSObject.swift in Sources */,
 				EADE0B521BD09F2F00C49C64 /* NSByteCountFormatter.swift in Sources */,
 				EADE0BC11BD15E0000C49C64 /* NSURLProtocol.swift in Sources */,
+				D3BCEB9E1C2EDED800295652 /* NSLog.swift in Sources */,
 				61E0117D1C1B5590000037DD /* NSRunLoop.swift in Sources */,
 				EADE0BC81BD15E0000C49C64 /* NSXMLDTD.swift in Sources */,
 				EADE0BA61BD15E0000C49C64 /* NSMassFormatter.swift in Sources */,
@@ -1727,6 +1742,9 @@
 				5B7C8AB81BEA802100C5B690 /* CFURLComponents_URIParser.c in Sources */,
 				5B7C8A8E1BEA7FE200C5B690 /* CFTimeZone.c in Sources */,
 				5B7C8A791BEA7FCE00C5B690 /* CFUUID.c in Sources */,
+				D39A13FD1C2A34B700295652 /* CFConcreteStreams.c in Sources */,
+				D39A13FE1C2A34BD00295652 /* CFSocketStream.c in Sources */,
+				D39A13FF1C2A34C100295652 /* CFStream.c in Sources */,
 				5B7C8A7F1BEA7FCE00C5B690 /* CFData.c in Sources */,
 				5B7C8A9C1BEA7FF900C5B690 /* CFBundle.c in Sources */,
 				5B7C8AB51BEA801700C5B690 /* CFUniChar.c in Sources */,

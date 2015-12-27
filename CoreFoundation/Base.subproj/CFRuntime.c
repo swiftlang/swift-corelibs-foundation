@@ -1159,6 +1159,7 @@ void __CFInitialize(void) {
 #endif
 #endif
 #if DEPLOYMENT_RUNTIME_SWIFT
+        _CFKeyedArchiverUIDGetTypeID();
         #ifndef __CFInitializeSwift
         #if TARGET_OS_LINUX
         #define __CFInitializeSwift _TF10Foundation19__CFInitializeSwiftFT_T_
@@ -1815,6 +1816,28 @@ void * objc_retainAutoreleasedReturnValue(void *obj) {
         return obj;
     }
     else return NULL;
+}
+
+// temporary helpers for poking into Swift runtime, for implementing NSStringFromClass()
+// needs to be replaced with a proper contract, this is fragile in so many ways
+
+typedef struct NominalTypeDescriptor {
+    uintptr_t Kind;
+    const char *Name;
+} NominalTypeDescriptor;
+
+extern const NominalTypeDescriptor *_ZNK5swift8Metadata24getNominalTypeDescriptorEv(const void *);
+
+_Nullable CFStringRef _CFCopyNominalTypeNameForClass(_Nonnull CFTypeRef aClass) {
+    const NominalTypeDescriptor *ntd;
+
+    CFAssert1(aClass != NULL, __kCFLogAssertion, "%s(): invalid class", __PRETTY_FUNCTION__);
+
+    ntd = _ZNK5swift8Metadata24getNominalTypeDescriptorEv(aClass);
+    if (ntd == NULL)
+        return NULL;
+
+    return CFStringCreateWithCString(kCFAllocatorSystemDefault, ntd->Name, kCFStringEncodingASCII);
 }
 
 #endif

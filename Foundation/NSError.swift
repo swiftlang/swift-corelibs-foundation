@@ -64,7 +64,9 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        aCoder.encodeObject(_domain.bridge(), forKey: "NSDomain")
+        aCoder.encodeInt(Int32(_code), forKey: "NSCode")
+        aCoder.encodeObject(_userInfo?.bridge(), forKey: "NSUserInfo")
     }
     
     public override func copy() -> AnyObject {

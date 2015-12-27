@@ -39,6 +39,44 @@ extension Int : _ObjectTypeBridgeable {
     }
 }
 
+extension Int32 : _ObjectTypeBridgeable {
+    public init(_ number: NSNumber) {
+        self = number.intValue
+    }
+    
+    public func _bridgeToObject() -> NSNumber {
+        return NSNumber(int: self)
+    }
+    
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Int32?) {
+        result = x.intValue
+    }
+    
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Int32?) -> Bool {
+        self._forceBridgeFromObject(x, result: &result)
+        return true
+    }
+}
+
+extension Int64 : _ObjectTypeBridgeable {
+    public init(_ number: NSNumber) {
+        self = number.longLongValue
+    }
+    
+    public func _bridgeToObject() -> NSNumber {
+        return NSNumber(longLong: self)
+    }
+    
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Int64?) {
+        result = x.longLongValue
+    }
+    
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Int64?) -> Bool {
+        self._forceBridgeFromObject(x, result: &result)
+        return true
+    }
+}
+
 extension UInt : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.unsignedIntegerValue

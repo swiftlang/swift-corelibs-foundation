@@ -63,12 +63,22 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return true
     }
     
-    public required init?(coder: NSCoder) {
-        NSUnimplemented()
+    public convenience required init?(coder: NSCoder) {
+        if coder.allowsKeyedCoding {
+            var length : Int = 0
+            let bytes = coder.decodeBytesForKey("NS.uuidbytes", returnedLength: &length)
+            if (length == 16) {
+                self.init(UUIDBytes: bytes)
+            } else {
+                self.init(UUIDBytes: nil) // XXX
+            }
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        aCoder.encodeBytes(buffer, length: 16, forKey: "NS.uuidbytes")
     }
     
     public override func isEqual(object: AnyObject?) -> Bool {

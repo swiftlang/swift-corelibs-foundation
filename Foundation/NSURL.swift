@@ -74,12 +74,28 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         return true
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    public convenience required init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            let base = aDecoder.decodeObjectOfClass(NSURL.self, forKey:"NS.base")
+            let relative = aDecoder.decodeObjectOfClass(NSString.self, forKey:"NS.relative")
+
+            if relative == nil {
+                return nil
+            }
+            
+            self.init(string: relative!.bridge(), relativeToURL: base)
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+	if aCoder.allowsKeyedCoding {
+            aCoder.encodeObject(self.baseURL, forKey:"NS.base")
+            aCoder.encodeObject(self.relativeString.bridge(), forKey:"NS.relative")
+	} else {
+            NSUnimplemented()
+        }
     }
     
     internal init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeToURL baseURL: NSURL?) {

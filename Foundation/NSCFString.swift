@@ -47,6 +47,10 @@ internal class _NSCFString : NSMutableString {
     override func replaceCharactersInRange(range: NSRange, withString aString: String) {
         CFStringReplace(unsafeBitCast(self, CFMutableStringRef.self), CFRangeMake(range.location, range.length), aString._cfObject)
     }
+    
+    override var classForKeyedArchiver: AnyClass? {
+        return NSMutableString.self
+    }
 }
 
 internal final class _NSCFConstantString : _NSCFString {
@@ -98,6 +102,10 @@ internal final class _NSCFConstantString : _NSCFString {
     
     override func replaceCharactersInRange(range: NSRange, withString aString: String) {
         fatalError()
+    }
+    
+    override var classForKeyedArchiver: AnyClass? {
+        return NSString.self
     }
 }
 

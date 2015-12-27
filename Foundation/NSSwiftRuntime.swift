@@ -383,4 +383,3 @@ public protocol Bridgeable {
     typealias BridgeType
     func bridge() -> BridgeType
 }
-

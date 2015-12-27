@@ -41,7 +41,14 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        if aDecoder.allowsKeyedCoding {
+            guard let identifier = aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.identifier") else {
+                return nil
+            }
+            self.init(localeIdentifier: identifier.bridge())
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public override func copy() -> AnyObject {
@@ -50,7 +57,15 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     
     public func copyWithZone(zone: NSZone) -> AnyObject { NSUnimplemented() }
     
-    public func encodeWithCoder(aCoder: NSCoder) { NSUnimplemented() }
+    public func encodeWithCoder(aCoder: NSCoder) {
+        if aCoder.allowsKeyedCoding {
+            // FIXME once we can encode _NSCFString properly we can encode this directly
+            let identifier = CFLocaleGetIdentifier(self._cfObject)
+            aCoder.encodeObject(identifier, forKey: "NS.identifier")
+        } else {
+            NSUnimplemented()
+        }
+    }
     
     public static func supportsSecureCoding() -> Bool {
         return true

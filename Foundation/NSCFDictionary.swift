@@ -87,6 +87,10 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     override func setObject(anObject: AnyObject, forKey aKey: NSObject) {
         CFDictionarySetValue(_cfMutableObject, unsafeBitCast(aKey, UnsafePointer<Void>.self), unsafeBitCast(anObject, UnsafePointer<Void>.self))
     }
+    
+    override var classForKeyedArchiver: AnyClass? {
+        return NSMutableDictionary.self
+    }
 }
 
 internal func _CFSwiftDictionaryGetCount(dictionary: AnyObject) -> CFIndex {
@@ -139,8 +143,12 @@ internal func _CFSwiftDictionaryContainsValue(dictionary: AnyObject, value: AnyO
 internal func _CFSwiftDictionaryGetKeysAndValues(dictionary: AnyObject, keybuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>, valuebuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>) {
     var idx = 0
     (dictionary as! NSDictionary).enumerateKeysAndObjectsUsingBlock { key, value, _ in
-        keybuf[idx] = Unmanaged<AnyObject>.passUnretained(key)
-        valuebuf[idx] = Unmanaged<AnyObject>.passUnretained(value)
+	if keybuf != nil {
+	    keybuf[idx] = Unmanaged<AnyObject>.passUnretained(key)
+	}
+	if valuebuf != nil {
+	    valuebuf[idx] = Unmanaged<AnyObject>.passUnretained(value)
+	}
         idx += 1
     }
 }

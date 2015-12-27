@@ -148,11 +148,29 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        if let aKeyedCoder = aCoder as? NSKeyedArchiver {
+            aKeyedCoder._encodePropertyList(self, forKey: "NS.data")
+        } else {
+            aCoder.encodeBytes(UnsafePointer<UInt8>(self.bytes), length: self.length)
+        }
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        if let aKeyedDecoder = aDecoder as? NSKeyedUnarchiver {
+            guard let data = aKeyedDecoder._decodePropertyListForKey("NS.data") as? NSData else {
+                return nil
+            }
+            self.init(data: data)
+        } else {
+            var length : Int = 0
+            let bytes = withUnsafeMutablePointer(&length) { lengthPointer in
+                return aDecoder.decodeBytesWithReturnedLength(lengthPointer)
+            }
+            if bytes == nil {
+                return nil
+            }
+            self.init(bytes: bytes, length: length)
+        }
     }
     
     public static func supportsSecureCoding() -> Bool {
@@ -529,11 +547,6 @@ public class NSMutableData : NSData {
     public required convenience init() {
         self.init(bytes: nil, length: 0)
     }
-    
-    public required convenience init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
-    }
-
     
     internal override init(bytes: UnsafeMutablePointer<Void>, length: Int, copy: Bool, deallocator: ((UnsafeMutablePointer<Void>, Int) -> Void)?) {
         super.init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)

@@ -136,11 +136,27 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        self.init(objects: nil, forKeys: nil, count: 0)
+        if let keyedUnarchiver = aDecoder as? NSKeyedUnarchiver {
+            let keys = keyedUnarchiver._decodeArrayOfObjects("NS.keys") as? [NSObject]
+            let objects = keyedUnarchiver._decodeArrayOfObjects("NS.objects")
+
+            if keys != nil && objects != nil && keys!.count == objects!.count {
+                self.init(objects: objects!, forKeys: keys!)
+            } else {
+                self.init()
+            }
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        if let keyedArchiver = aCoder as? NSKeyedArchiver {
+            keyedArchiver._encodeArrayOfObjects(self.allKeys._nsObject, forKey:"NS.keys")
+            keyedArchiver._encodeArrayOfObjects(self.allValues._nsObject, forKey:"NS.objects")
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public static func supportsSecureCoding() -> Bool {
@@ -189,10 +205,12 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     
     public convenience init(objects: [AnyObject], forKeys keys: [NSObject]) {
         let keyBuffer = UnsafeMutablePointer<NSObject>.alloc(keys.count)
+        bzero(unsafeBitCast(keyBuffer, UnsafeMutablePointer<Void>.self), keys.count * sizeof(NSObject))
         for idx in 0..<keys.count {
             keyBuffer[idx] = keys[idx]
         }
         let valueBuffer = UnsafeMutablePointer<AnyObject>.alloc(objects.count)
+        bzero(unsafeBitCast(valueBuffer, UnsafeMutablePointer<Void>.self), objects.count * sizeof(NSObject))
         for idx in 0..<objects.count {
             valueBuffer[idx] = objects[idx]
         }

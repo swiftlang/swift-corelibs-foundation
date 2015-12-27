@@ -754,14 +754,19 @@ CF_PRIVATE void _CFLogSimple(int32_t lev, char *format, ...) {
     va_end(args);
 }
 
-void CFLog(int32_t lev, CFStringRef format, ...) {
+void CFLog(CFLogLevel lev, CFStringRef format, ...) {
     va_list args;
     va_start(args, format); 
     _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, __builtin_return_address(0));
     va_end(args);
 }
 
-
+#if DEPLOYMENT_RUNTIME_SWIFT
+// Temporary as Swift cannot import varag C functions
+void CFLog1(CFLogLevel lev, CFStringRef message) {
+    CFLog(lev, CFSTR("%@"), message);
+}
+#endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 

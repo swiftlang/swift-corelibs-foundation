@@ -238,7 +238,19 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        var str : String? = nil
+        
+        if let aKeyedDecoder = aDecoder as? NSKeyedUnarchiver {
+            str = aKeyedDecoder._decodePropertyListForKey("NS.string") as? String
+        } else {
+            str = aDecoder.decodeObject() as? String
+        }
+       
+        if str == nil {
+            return nil
+        }
+        
+        self.init(str!)
     }
     
     public override func copy() -> AnyObject {
@@ -273,7 +285,11 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        if let aKeyedCoder = aCoder as? NSKeyedArchiver {
+            aKeyedCoder._encodePropertyList(self, forKey: "NS.string")
+        } else {
+            aCoder.encodeObject(self)
+        }
     }
     
     public init(characters: UnsafePointer<unichar>, length: Int) {
@@ -331,7 +347,8 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public override var hash: Int {
-        return Int(CFStringHashNSString(self._cfObject))
+        return unsafeBitCast(CFStringHashNSString(self._cfObject), Int.self)
+//        return Int(CFStringHashNSString(self._cfObject))
     }
 }
 
@@ -1316,7 +1333,13 @@ public class NSMutableString : NSString {
     }
 
     public convenience required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard let str = NSString(coder: aDecoder) else {
+            return nil
+        }
+        
+        // FIXME where is initWithString:
+        self.init(capacity: 0)
+        self.setString(str.bridge())
     }
 
     public required convenience init(unicodeScalarLiteral value: StaticString) {

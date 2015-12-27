@@ -57,8 +57,13 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         _timeIntervalSinceReferenceDate = ti
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    public convenience required init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            let ti = aDecoder.decodeDoubleForKey("NS.time")
+            self.init(timeIntervalSinceReferenceDate: ti)
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public override func copy() -> AnyObject {
@@ -74,7 +79,11 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+	if aCoder.allowsKeyedCoding {
+	    aCoder.encodeDouble(_timeIntervalSinceReferenceDate, forKey: "NS.time")
+	} else {
+	    NSUnimplemented()
+	}
     }
 
     /**

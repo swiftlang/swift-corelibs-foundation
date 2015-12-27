@@ -16,6 +16,117 @@ internal let kCFCompareEqualTo = CFComparisonResult.CompareEqualTo
 internal let kCFCompareGreaterThan = CFComparisonResult.CompareGreaterThan
 #endif
 
+internal enum NSObjCType : UnicodeScalar {
+    case ID = "@"
+    case Class = "#"
+    case Sel = ":"
+    case Char = "c"
+    case UChar = "C"
+    case Short = "s"
+    case UShort = "S"
+    case Int = "i"
+    case UInt = "I"
+    case Int32 = "l"
+    case UInt32 = "L"
+    case Int64 = "q"
+    case UInt64 = "Q"
+    case Float = "f"
+    case Double = "d"
+    case Bitfield = "b"
+    case Bool = "B"
+    case Void = "v"
+    case Undef = "?"
+    case Ptr = "^"
+    case CharPtr = "*"
+    case Atom = "%"
+    case ArrayBegin = "["
+    case ArrayEnd = "]"
+    case UnionBegin = "("
+    case UnionEnd = ")"
+    case StructBegin = "{"
+    case StructEnd = "}"
+    case Vector = "!"
+    case Const = "r"
+}
+
+extension Int {
+    init(_ v: NSObjCType) {
+        let asciiRepresentation = UInt8(ascii: v.rawValue)
+        self.init(asciiRepresentation)
+    }
+}
+
+extension Int8 {
+    init(_ v: NSObjCType) {
+        self.init(Int(v))
+    }
+}
+
+extension NSObjCType {
+    init?(_ v: UInt8) {
+        self.init(rawValue: UnicodeScalar(v))
+    }
+}
+
+private func sizeAndAlignmentOfType<T>(type : T) -> (Int, Int) {
+    return (sizeof(T), alignof(T))
+}
+
+private let _NSObjCSizesAndAlignments : Dictionary<NSObjCType, (Int, Int)>  = [
+    .ID         : sizeAndAlignmentOfType(AnyObject.self),
+    .Class      : sizeAndAlignmentOfType(AnyClass.self),
+    .Char       : sizeAndAlignmentOfType(CChar.self),
+    .UChar      : sizeAndAlignmentOfType(UInt8.self),
+    .Short      : sizeAndAlignmentOfType(Int16.self),
+    .UShort     : sizeAndAlignmentOfType(UInt16.self),
+    .Int        : sizeAndAlignmentOfType(Int32.self),
+    .UInt       : sizeAndAlignmentOfType(UInt32.self),
+    .Int32      : sizeAndAlignmentOfType(Int32.self),
+    .UInt32     : sizeAndAlignmentOfType(UInt32.self),
+    .Int64      : sizeAndAlignmentOfType(Int64.self),
+    .UInt64     : sizeAndAlignmentOfType(UInt64.self),
+    .Float      : sizeAndAlignmentOfType(Float.self),
+    .Double     : sizeAndAlignmentOfType(Double.self),
+    .Bool       : sizeAndAlignmentOfType(Bool.self),
+    .CharPtr    : sizeAndAlignmentOfType(UnsafePointer<Int8>.self)
+]
+
+internal func _NSGetSizeAndAlignment(type: NSObjCType,
+                                     inout _ size : Int,
+                                     inout _ align : Int) -> Bool {
+    guard let sizeAndAlignment = _NSObjCSizesAndAlignments[type] else {
+        return false
+    }
+    
+    size = sizeAndAlignment.0
+    align = sizeAndAlignment.1
+    
+    return true
+}
+
+public func NSGetSizeAndAlignment(typePtr: UnsafePointer<Int8>,
+                                  _ sizep: UnsafeMutablePointer<Int>,
+                                  _ alignp: UnsafeMutablePointer<Int>) -> UnsafePointer<Int8> {
+    let type = NSObjCType(UInt8(typePtr.memory))!
+
+    var size : Int = 0
+    var align : Int = 0
+    
+    if !_NSGetSizeAndAlignment(type, &size, &align) {
+        return nil
+    }
+    
+    if sizep != nil {
+        sizep.memory = size
+    }
+    
+    if alignp != nil {
+        alignp.memory = align
+    }
+
+    return typePtr
+}
+
 public enum NSComparisonResult : Int {
     
     case OrderedAscending = -1
@@ -114,3 +225,98 @@ internal protocol _NSBridgable {
     var _nsObject: NSType { get }
 }
 
+private let _SwiftFoundationModuleName = "SwiftFoundation"
+
+/**
+    Returns the class name for a class, applying the following rules:
+ 
+    - SwiftFoundation classes are returned with flat, unnamespaced, demangled names
+    - Swift classes directly under a package (i.e. one-level) are returned as a demangled name
+    - Everything else is returned as the full mangled type name
+ */
+public func NSStringFromClass(aClass: AnyClass) -> String {
+    let demangledName = _typeName(aClass).bridge()
+    let components = demangledName.componentsSeparatedByString(".")
+    
+    if components.count == 2 {
+        if components[0] == _SwiftFoundationModuleName {
+            return components[1]
+        } else {
+            return String(demangledName)
+        }
+    } else if let mangledName = _CFCopyNominalTypeNameForClass(unsafeBitCast(aClass, CFTypeRef.self)) {
+        return "_Tt" + String(mangledName)
+    } else {
+        fatalError("NSStringFromClass could not determine class name")
+    }
+}
+
+#if os(OSX) || os(iOS)
+    private let RTLD_DEFAULT = UnsafeMutablePointer<Void>(bitPattern: -2)
+#elseif os(Linux)
+    private let RTLD_DEFAULT = UnsafeMutablePointer<Void>(bitPattern: 0)
+#endif
+
+typealias MetadataAccessor = @convention(c) () -> AnyClass?
+
+/**
+    Calls a metadata accessor given a metadata accessor symbol name.
+ */
+private func metadataFromAccessorName(mangledName : String) -> AnyClass? {
+    let symbol : MetadataAccessor?
+        
+    symbol = unsafeBitCast(dlsym(RTLD_DEFAULT, mangledName), MetadataAccessor.self)
+    
+    return symbol != nil ? symbol!() : nil
+}
+
+/**
+    Returns mangled metadata accessor symbol name for a namespaced
+    Swift class.
+ */
+private func mangledTypeNameNameForClass(components : [String]) -> String {
+    var mangledName = "_TtC"
+    
+    for component in components {
+        mangledName += "\(component.length)" + component
+    }
+    
+    return mangledName
+}
+
+private func mangledTypeNameNameForClass(className : String) -> String {
+    let components = className.bridge().componentsSeparatedByString(".")
+    
+    return mangledTypeNameNameForClass(components)
+}
+
+/**
+    Returns the class metadata given a string, applying the following rules:
+ 
+    - Mangled type names are looked up directly
+    - Unmangled namespaced names are mangled then looked up
+    - Unmangled unnamespaced names are mangled into SwiftFoundation classes before lookup
+ */
+public func NSClassFromString(aClassName: String) -> AnyClass? {
+    var mangledName : String
+    
+    if aClassName.hasPrefix("_Tt") {
+        mangledName = aClassName
+    } else {
+        let components = aClassName.bridge().componentsSeparatedByString(".")
+        
+        if components.count > 1 {
+            mangledName = mangledTypeNameNameForClass(aClassName)
+        } else {
+            mangledName = mangledTypeNameNameForClass([_SwiftFoundationModuleName] + components)
+        }
+    }
+    
+    if !mangledName.hasPrefix("_Tt") {
+        fatalError("NSClassFromString() invalid mangled name \(mangledName)")
+    }
+
+    let accessorName = "_TMa" + mangledName.bridge().substringFromIndex(3)
+
+    return metadataFromAccessorName(accessorName)
+}
