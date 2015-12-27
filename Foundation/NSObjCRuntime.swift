@@ -49,6 +49,66 @@ internal enum NSObjCType : Character {
     case Const = "r"
 }
 
+private func sizeAndAlignmentOfType<T>(type : T) -> (Int, Int) {
+    return (sizeof(T), alignof(T))
+}
+
+private let _NSObjCSizesAndAlignments : Dictionary<NSObjCType, (Int, Int)>  = [
+    .ID         : sizeAndAlignmentOfType(AnyObject.self),
+    .Class      : sizeAndAlignmentOfType(AnyClass.self),
+    .Char       : sizeAndAlignmentOfType(Int8.self),
+    .UChar      : sizeAndAlignmentOfType(UInt8.self),
+    .Short      : sizeAndAlignmentOfType(Int16.self),
+    .UShort     : sizeAndAlignmentOfType(UInt16.self),
+    .Int        : sizeAndAlignmentOfType(Int32.self),
+    .UInt       : sizeAndAlignmentOfType(UInt32.self),
+    .Int32      : sizeAndAlignmentOfType(Int32.self),
+    .UInt32     : sizeAndAlignmentOfType(UInt32.self),
+    .Int64      : sizeAndAlignmentOfType(Int64.self),
+    .UInt64     : sizeAndAlignmentOfType(UInt64.self),
+    .Float      : sizeAndAlignmentOfType(Float.self),
+    .Double     : sizeAndAlignmentOfType(Double.self),
+    .Bool       : sizeAndAlignmentOfType(Bool.self),
+    .CharPtr    : sizeAndAlignmentOfType(UnsafePointer<Int8>.self)
+]
+
+internal func _NSGetSizeAndAlignment(type: NSObjCType,
+                                     inout _ size : Int,
+                                     inout _ align : Int) -> Bool {
+    guard let sizeAndAlignment = _NSObjCSizesAndAlignments[type] else {
+        return false
+    }
+    
+    size = sizeAndAlignment.0
+    align = sizeAndAlignment.1
+    
+    return true
+}
+
+public func NSGetSizeAndAlignment(typePtr: UnsafePointer<Int8>,
+                                  _ sizep: UnsafeMutablePointer<Int>,
+                                  _ alignp: UnsafeMutablePointer<Int>) -> UnsafePointer<Int8> {
+    let r = UnicodeScalar(UInt8(typePtr.memory))
+    let type = NSObjCType(rawValue: Character(r))!
+
+    var size : Int = 0
+    var align : Int = 0
+    
+    if !_NSGetSizeAndAlignment(type, &size, &align) {
+        return nil
+    }
+    
+    if sizep != nil {
+        sizep.memory = size
+    }
+    
+    if alignp != nil {
+        alignp.memory = align
+    }
+
+    return typePtr
+}
+
 public enum NSComparisonResult : Int {
     
     case OrderedAscending = -1
