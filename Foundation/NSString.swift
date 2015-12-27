@@ -238,19 +238,28 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        var str : String? = nil
-        
-        if let aKeyedDecoder = aDecoder as? NSKeyedUnarchiver {
-            str = aKeyedDecoder._decodePropertyListForKey("NS.string") as? String
+        if !aDecoder.allowsKeyedCoding {
+            let archiveVersion = aDecoder.versionForClassName("NSString")
+            if archiveVersion == 1 {
+                var length = 0
+                let buffer = aDecoder.decodeBytesWithReturnedLength(&length)
+                // note this is no copy because it is not free'd when done from the call to decodeBytesWithReturnedLength
+                self.init(bytesNoCopy: buffer, length: length, encoding: NSUTF8StringEncoding, freeWhenDone: true)
+            } else {
+                aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
+                    "NSDebugDescription": "NSString cannot decode class version \(archiveVersion)"
+                    ]))
+                return nil
+            }
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.string") {
+            let str = aDecoder._decodePropertyListForKey("NS.string") as! String
+            self.init(string: str)
         } else {
-            str = aDecoder.decodeObject() as? String
+            var length = 0
+            let buffer = UnsafeMutablePointer<Void>(aDecoder.decodeBytesForKey("NS.bytes", returnedLength: &length))
+            // note this is no copy because it is not free'd when done from the call to decodeBytesForKey
+            self.init(bytesNoCopy: buffer, length: length, encoding: NSUTF8StringEncoding, freeWhenDone: true)
         }
-       
-        if str == nil {
-            return nil
-        }
-        
-        self.init(str!)
     }
     
     public override func copy() -> AnyObject {
