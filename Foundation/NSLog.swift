@@ -9,6 +9,17 @@
 
 import CoreFoundation
 
+#if os(OSX) || os(iOS)
+internal let kCFLogLevelEmergency = CFLogLevel.Emergency
+internal let kCFLogLevelAlert = CFLogLevel.Alert
+internal let kCFLogLevelCritical = CFLogLevel.Critical
+internal let kCFLogLevelError = CFLogLevel.Error
+internal let kCFLogLevelWarning = CFLogLevel.Warning
+internal let kCFLogLevelNotice = CFLogLevel.Notice
+internal let kCFLogLevelInfo = CFLogLevel.Info
+internal let kCFLogLevelDebug = CFLogLevel.Debug
+#endif
+
 internal func NSLog(message : String) {
-    CFLog1(CFLogLevel.Warning, message._cfObject)
+    CFLog1(kCFLogLevelWarning, message._cfObject)
 }
