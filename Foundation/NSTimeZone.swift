@@ -37,8 +37,8 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
-            let name = aDecoder.decodeObjectForKey("NS.name") as? NSString
-            let data = aDecoder.decodeObjectForKey("NS.data") as? NSData
+            let name = aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.name")
+            let data = aDecoder.decodeObjectOfClass(NSData.self, forKey: "NS.data")
             
             if name == nil {
                 return nil
