@@ -461,8 +461,12 @@ extension NSURL {
     }
     
     public var URLByResolvingSymlinksInPath: NSURL? {
+        guard fileURL else {
+            return NSURL(string: absoluteString!)
+        }
+        
         guard let selfPath = path else {
-            return nil
+            return NSURL(string: absoluteString!)
         }
         
         let absolutePath: String
@@ -475,7 +479,7 @@ extension NSURL {
         
         var components = absolutePath.pathComponents
         guard !components.isEmpty else {
-            return nil
+            return NSURL(string: absoluteString!)
         }
         
         var resolvedPath = components.removeFirst()
