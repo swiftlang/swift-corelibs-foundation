@@ -35,8 +35,19 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    public convenience required init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            let name = aDecoder.decodeObjectForKey("NS.name") as? NSString
+            let data = aDecoder.decodeObjectForKey("NS.data") as? NSData
+            
+            if name == nil {
+                return nil
+            }
+            
+            self.init(name: name!.bridge(), data: data)
+        } else {
+            NSUnimplemented()
+        }
     }
     
     deinit {
@@ -51,7 +62,13 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public convenience init?(abbreviation: String) { NSUnimplemented() }
 
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        if aCoder.allowsKeyedCoding {
+            aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
+            // FIXME Foundation encodes this data as mutable, is this required?
+            aCoder.encodeObject(self.data.mutableCopy(), forKey:"NS.data")
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public static func supportsSecureCoding() -> Bool {
