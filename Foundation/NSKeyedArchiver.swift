@@ -20,6 +20,10 @@ internal let NSKeyedArchivePlistVersion = 100000
 internal let NSKeyedArchiverSystemVersion : UInt32 = 2000
 
 internal func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
+    if objectRef.dynamicType != __NSCFType.self ||
+        CFGetTypeID(objectRef) != _CFKeyedArchiverUIDGetTypeID() {
+        fatalError("Object \(objectRef) is not a CFKeyedArchiverUID")
+    }
     return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, CFKeyedArchiverUIDRef.self))
 }
 internal var NSPropertyListClasses : [AnyClass] = [

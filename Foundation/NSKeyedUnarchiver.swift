@@ -355,7 +355,7 @@ public class NSKeyedUnarchiver : NSCoder {
         Returns true if objectOrReference represents a reference to another object in the archive
      */
     internal class func _isReference(objectOrReference : Any?) -> Bool {
-        if let cf = objectOrReference as? AnyObject {
+        if let cf = objectOrReference as? __NSCFType {
             return CFGetTypeID(cf) == _CFKeyedArchiverUIDGetTypeID()
         } else {
             return false
