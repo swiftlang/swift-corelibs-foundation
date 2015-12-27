@@ -16,7 +16,7 @@ internal let kCFCompareEqualTo = CFComparisonResult.CompareEqualTo
 internal let kCFCompareGreaterThan = CFComparisonResult.CompareGreaterThan
 #endif
 
-internal enum NSObjCType : Character {
+internal enum NSObjCType : UnicodeScalar {
     case ID = "@"
     case Class = "#"
     case Sel = ":"
@@ -49,6 +49,25 @@ internal enum NSObjCType : Character {
     case Const = "r"
 }
 
+extension Int {
+    init(_ v: NSObjCType) {
+        let asciiRepresentation = UInt8(ascii: v.rawValue)
+        self.init(asciiRepresentation)
+    }
+}
+
+extension Int8 {
+    init(_ v: NSObjCType) {
+        self.init(Int(v))
+    }
+}
+
+extension NSObjCType {
+    init?(_ v: UInt8) {
+        self.init(rawValue: UnicodeScalar(v))
+    }
+}
+
 private func sizeAndAlignmentOfType<T>(type : T) -> (Int, Int) {
     return (sizeof(T), alignof(T))
 }
@@ -56,7 +75,7 @@ private func sizeAndAlignmentOfType<T>(type : T) -> (Int, Int) {
 private let _NSObjCSizesAndAlignments : Dictionary<NSObjCType, (Int, Int)>  = [
     .ID         : sizeAndAlignmentOfType(AnyObject.self),
     .Class      : sizeAndAlignmentOfType(AnyClass.self),
-    .Char       : sizeAndAlignmentOfType(Int8.self),
+    .Char       : sizeAndAlignmentOfType(CChar.self),
     .UChar      : sizeAndAlignmentOfType(UInt8.self),
     .Short      : sizeAndAlignmentOfType(Int16.self),
     .UShort     : sizeAndAlignmentOfType(UInt16.self),
@@ -88,8 +107,7 @@ internal func _NSGetSizeAndAlignment(type: NSObjCType,
 public func NSGetSizeAndAlignment(typePtr: UnsafePointer<Int8>,
                                   _ sizep: UnsafeMutablePointer<Int>,
                                   _ alignp: UnsafeMutablePointer<Int>) -> UnsafePointer<Int8> {
-    let r = UnicodeScalar(UInt8(typePtr.memory))
-    let type = NSObjCType(rawValue: Character(r))!
+    let type = NSObjCType(UInt8(typePtr.memory))!
 
     var size : Int = 0
     var align : Int = 0
