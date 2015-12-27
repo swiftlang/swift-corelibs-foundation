@@ -68,13 +68,32 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        if let keyedUnarchiver = aDecoder as? NSKeyedUnarchiver {
-            guard let array = keyedUnarchiver._decodeArrayOfObjects("NS.objects") else {
-                return nil
+        if !aDecoder.allowsKeyedCoding {
+            var cnt: UInt32 = 0
+            // We're stuck with (int) here (rather than unsigned int)
+            // because that's the way the code was originally written, unless
+            // we go to a new version of the class, which has its own problems.
+            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+                aDecoder.decodeValueOfObjCType("i", at: UnsafeMutablePointer<Void>(ptr))
             }
-            self.init(array: array)
+            let objects = UnsafeMutablePointer<AnyObject?>.alloc(Int(cnt))
+            for idx in 0..<cnt {
+                objects.advancedBy(Int(idx)).initialize(aDecoder.decodeObject())
+            }
+            self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
+            objects.destroy(Int(cnt))
+            objects.dealloc(Int(cnt))
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.objects") {
+            let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
+            self.init(array: objects)
         } else {
-            NSUnimplemented()
+            var objects = [AnyObject]()
+            var count = 0
+            while let object = aDecoder.decodeObjectForKey("NS.object.\(count)") {
+                objects.append(object)
+                count++
+            }
+            self.init(array: objects)
         }
     }
     
