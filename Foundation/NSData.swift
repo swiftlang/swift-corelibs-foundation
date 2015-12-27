@@ -156,20 +156,21 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        if let aKeyedDecoder = aDecoder as? NSKeyedUnarchiver {
-            guard let data = aKeyedDecoder._decodePropertyListForKey("NS.data") as? NSData else {
+        if !aDecoder.allowsKeyedCoding {
+            if let data = aDecoder.decodeDataObject() {
+                self.init(data: data)
+            } else {
+                return nil
+            }
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.data") {
+            guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
             self.init(data: data)
         } else {
-            var length : Int = 0
-            let bytes = withUnsafeMutablePointer(&length) { lengthPointer in
-                return aDecoder.decodeBytesWithReturnedLength(lengthPointer)
-            }
-            if bytes == nil {
-                return nil
-            }
-            self.init(bytes: bytes, length: length)
+            var len = 0
+            let bytes = aDecoder.decodeBytesForKey("NS.bytes", returnedLength: &len)
+            self.init(bytes: bytes, length: len)
         }
     }
     
