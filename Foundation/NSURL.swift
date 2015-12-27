@@ -502,7 +502,7 @@ extension NSURL {
         
         let privatePrefix = "/private"
         
-        if resolvedPath.hasPrefix(privatePrefix) {
+        if resolvedPath.hasPrefix(privatePrefix) && resolvedPath != privatePrefix {
             var temp = resolvedPath
             temp.removeRange(resolvedPath.startIndex..<privatePrefix.endIndex)
             if NSFileManager.defaultManager().fileExistsAtPath(temp) {
