@@ -70,10 +70,13 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
             if (length == 16) {
                 self.init(UUIDBytes: bytes)
             } else {
-                self.init(UUIDBytes: nil) // XXX
+                self.init() // failure to decode the entire uuid_t results in a new uuid
             }
         } else {
-            NSUnimplemented()
+            // TODO: emit a better failure error here with a reasonable user info and code
+            // NSUUIDs cannot be decoded by non-keyed coders
+            coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: -1, userInfo: nil))
+            return nil
         }
     }
     
