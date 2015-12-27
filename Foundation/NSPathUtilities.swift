@@ -346,7 +346,42 @@ public extension NSString {
     }
     
     public var stringByResolvingSymlinksInPath: String {
-        NSUnimplemented()
+        var components = pathComponents
+        guard !components.isEmpty else {
+            return _swiftObject
+        }
+        
+        let isAbsolutePath = components.first == "/"
+        
+        var resolvedPath = components.removeFirst()
+        for component in components {
+            switch component {
+                
+            case "", ".":
+                break
+                
+            case ".." where isAbsolutePath:
+                resolvedPath = resolvedPath.bridge().stringByDeletingLastPathComponent
+                
+            default:
+                resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
+                if let destination = NSFileManager.defaultManager()._tryToResolveTrailingSymlinkInPath(resolvedPath) {
+                    resolvedPath = destination
+                }
+            }
+        }
+        
+        let privatePrefix = "/private"
+        
+        if resolvedPath.hasPrefix(privatePrefix) && resolvedPath != privatePrefix {
+            var temp = resolvedPath
+            temp.removeRange(resolvedPath.startIndex..<privatePrefix.endIndex)
+            if NSFileManager.defaultManager().fileExistsAtPath(temp) {
+                resolvedPath = temp
+            }
+        }
+        
+        return resolvedPath
     }
     
     public func stringsByAppendingPaths(paths: [String]) -> [String] {
