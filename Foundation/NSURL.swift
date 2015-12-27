@@ -500,6 +500,10 @@ extension NSURL {
             }
         }
         
+        // It might be a responsibility of NSURL(fileURLWithPath:). Check it.
+        var isExistingDirectory = false
+        NSFileManager.defaultManager().fileExistsAtPath(resolvedPath, isDirectory: &isExistingDirectory)
+        
         let privatePrefix = "/private"
         
         if resolvedPath.hasPrefix(privatePrefix) && resolvedPath != privatePrefix {
@@ -508,6 +512,10 @@ extension NSURL {
             if NSFileManager.defaultManager().fileExistsAtPath(temp) {
                 resolvedPath = temp
             }
+        }
+        
+        if isExistingDirectory && !resolvedPath.hasSuffix("/") {
+            resolvedPath += "/"
         }
         
         return NSURL(fileURLWithPath: resolvedPath)
