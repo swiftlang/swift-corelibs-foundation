@@ -16,4 +16,47 @@ There is a preliminary implementation of NSKeyedArchiver and NSKeyedUnarchiver w
 
 * classForKeyed[Un]Archiver has moved into NSObject so it can be overridden, move this back into an extension eventually
 
+# Classes
 
+## Implemented
+
+* NSArray
+* NSCFArray (encodes as NSArray)
+* NSCFDictionary (encodes as NSDictionary)
+* NSCFSet (encodes as NSSet)
+* NSCFString (encodes as NSString)
+* NSData
+* NSDate
+* NSDictionary
+* NSError
+* NSLocale
+* NSNull (no-op)
+* NSOrderedSet
+* NSPort (not supported for keyed archiving)
+* NSSet
+* NSString
+* NSTimeZone
+* NSURL
+* NSUUID
+
+## TODO
+
+* NSAffineTransform
+* NSAttributedString
+* NSCalendar
+* NSCharacterSet
+* NSDecimalNumberHandler
+* NSExpression
+* NSIndexPath
+* NSIndexSet
+* NSNotification
+* NSPersonNameComponents
+* NSPredicate
+* NSSortDescriptor
+* NSTextCheckingResult
+* NSURLAuthenticationChallenge
+* NSURLCache
+* NSURLCredential
+* NSURLProtectionSpace
+* NSURLRequest
+* NSValue
