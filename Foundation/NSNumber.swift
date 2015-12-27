@@ -255,8 +255,86 @@ public class NSNumber : NSValue {
     }
 
     
-    public required init?(coder aDecoder: NSCoder) {
-        super.init()
+    public required convenience init?(coder aDecoder: NSCoder) {
+        if !aDecoder.allowsKeyedCoding {
+            var objcType = UnsafeMutablePointer<Int8>()
+            withUnsafeMutablePointer(&objcType, { (ptr: UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Void in
+                aDecoder.decodeValueOfObjCType("*", at: UnsafeMutablePointer<Void>(ptr))
+            })
+            if objcType == nil {
+                return nil
+            }
+            var size: Int = 0
+            NSGetSizeAndAlignment(objcType, &size, nil)
+            let buffer = malloc(size)
+            aDecoder.decodeValueOfObjCType(objcType, at: buffer)
+            switch Character(UnicodeScalar(UInt8(objcType.memory))) {
+            case Character("B"):
+                self.init(bool:UnsafePointer<Bool>(buffer).memory)
+                break
+            case Character("c"):
+                self.init(char:UnsafePointer<Int8>(buffer).memory)
+                break
+            case Character("C"):
+                self.init(unsignedChar:UnsafePointer<UInt8>(buffer).memory)
+                break
+            case Character("s"):
+                self.init(short:UnsafePointer<Int16>(buffer).memory)
+                break
+            case Character("S"):
+                self.init(unsignedShort:UnsafePointer<UInt16>(buffer).memory)
+                break
+            case Character("i"):
+                self.init(int:UnsafePointer<Int32>(buffer).memory)
+                break
+            case Character("I"):
+                self.init(unsignedInt:UnsafePointer<UInt32>(buffer).memory)
+                break
+            case Character("l"):
+                self.init(long:UnsafePointer<Int>(buffer).memory)
+                break
+            case Character("L"):
+                self.init(unsignedLong:UnsafePointer<UInt>(buffer).memory)
+                break
+            case Character("q"):
+                self.init(longLong:UnsafePointer<Int64>(buffer).memory)
+                break
+            case Character("Q"):
+                self.init(unsignedLongLong:UnsafePointer<UInt64>(buffer).memory)
+                break
+            case Character("f"):
+                self.init(float:UnsafePointer<Float>(buffer).memory)
+                break
+            case Character("d"):
+                self.init(double:UnsafePointer<Double>(buffer).memory)
+                break
+            default:
+                free(buffer)
+                return nil
+            }
+            free(buffer)
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.number") {
+            let number = aDecoder._decodePropertyListForKey("NS.number")
+            if let val = number as? Double {
+                self.init(double:val)
+            } else if let val = number as? Int {
+                self.init(long:val)
+            } else if let val = number as? Bool {
+                self.init(bool:val)
+            } else {
+                return nil
+            }
+        } else {
+            if aDecoder.containsValueForKey("NS.boolval") {
+                self.init(bool: aDecoder.decodeBoolForKey("NS.boolval"))
+            } else if aDecoder.containsValueForKey("NS.intval") {
+                self.init(longLong: aDecoder.decodeInt64ForKey("NS.intval"))
+            } else if aDecoder.containsValueForKey("NS.dblval") {
+                self.init(double: aDecoder.decodeDoubleForKey("NS.dblval"))
+            } else {
+                return nil
+            }
+        }
     }
 
     public var charValue: Int8 {
