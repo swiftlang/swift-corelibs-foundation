@@ -461,7 +461,52 @@ extension NSURL {
     }
     
     public var URLByResolvingSymlinksInPath: NSURL? {
-        NSUnimplemented()
+        guard let selfPath = path else {
+            return nil
+        }
+        
+        let absolutePath: String
+        if selfPath.hasPrefix("/") {
+            absolutePath = selfPath
+        } else {
+            let workingDir = NSFileManager.defaultManager().currentDirectoryPath
+            absolutePath = workingDir.bridge().stringByAppendingPathComponent(selfPath)
+        }
+        
+        var components = absolutePath.pathComponents
+        guard !components.isEmpty else {
+            return nil
+        }
+        
+        var resolvedPath = components.removeFirst()
+        for component in components {
+            switch component {
+            
+            case "", ".":
+                break
+            
+            case "..":
+                resolvedPath = resolvedPath.bridge().stringByDeletingLastPathComponent
+            
+            default:
+                resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
+                if let destination = NSFileManager.defaultManager()._tryToResolveTrailingSymlinkInPath(resolvedPath) {
+                    resolvedPath = destination
+                }
+            }
+        }
+        
+        let privatePrefix = "/private"
+        
+        if resolvedPath.hasPrefix(privatePrefix) {
+            var temp = resolvedPath
+            temp.removeRange(resolvedPath.startIndex..<privatePrefix.endIndex)
+            if NSFileManager.defaultManager().fileExistsAtPath(temp) {
+                resolvedPath = temp
+            }
+        }
+        
+        return NSURL(fileURLWithPath: resolvedPath)
     }
 }
 
