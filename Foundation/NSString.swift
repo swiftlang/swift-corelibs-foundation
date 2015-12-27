@@ -243,8 +243,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
             if archiveVersion == 1 {
                 var length = 0
                 let buffer = aDecoder.decodeBytesWithReturnedLength(&length)
-                // note this is no copy because it is not free'd when done from the call to decodeBytesWithReturnedLength
-                self.init(bytesNoCopy: buffer, length: length, encoding: NSUTF8StringEncoding, freeWhenDone: true)
+                self.init(bytes: buffer, length: length, encoding: NSUTF8StringEncoding)
             } else {
                 aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
                     "NSDebugDescription": "NSString cannot decode class version \(archiveVersion)"
@@ -257,8 +256,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         } else {
             var length = 0
             let buffer = UnsafeMutablePointer<Void>(aDecoder.decodeBytesForKey("NS.bytes", returnedLength: &length))
-            // note this is no copy because it is not free'd when done from the call to decodeBytesForKey
-            self.init(bytesNoCopy: buffer, length: length, encoding: NSUTF8StringEncoding, freeWhenDone: true)
+            self.init(bytes: buffer, length: length, encoding: NSUTF8StringEncoding)
         }
     }
     
