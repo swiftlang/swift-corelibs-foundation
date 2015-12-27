@@ -351,6 +351,11 @@ public extension NSString {
             return _swiftObject
         }
         
+        // TODO: if receiver has trailing / pathComponents preserve it. Check that logic.
+        if components.last == "/" {
+            components.removeLast()
+        }
+        
         let isAbsolutePath = components.first == "/"
         
         var resolvedPath = components.removeFirst()

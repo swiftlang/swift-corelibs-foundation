@@ -49,7 +49,8 @@ class TestNSString : XCTestCase {
             ("test_completePathIntoString", test_completePathIntoString),
             ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
             ("test_initializeWithFormat", test_initializeWithFormat),
-            ("test_stringByDeletingLastPathComponent", test_stringByDeletingLastPathComponent)
+            ("test_stringByDeletingLastPathComponent", test_stringByDeletingLastPathComponent),
+            ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath)
         ]
     }
 
@@ -557,6 +558,44 @@ class TestNSString : XCTestCase {
             let path: NSString = "foo/bar"
             let result = path.stringByDeletingLastPathComponent
             XCTAssertEqual(result, "foo", "Relative path stays relative.")
+        }
+    }
+    
+    func test_stringByResolvingSymlinksInPath() {
+        do {
+            let path: NSString = "foo/bar"
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "foo/bar", "For relative paths, symbolic links that can’t be resolved are left unresolved in the returned string.")
+        }
+        
+        do {
+            let path: NSString = "/tmp/.."
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "/private", "For absolute paths, all symbolic links are guaranteed to be removed.")
+        }
+        
+        do {
+            let path: NSString = "tmp/.."
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "tmp/..", "Parent links could be resolved for absolute paths only.")
+        }
+        
+        do {
+            let path: NSString = "/tmp/"
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "/tmp", "Result doesn't contain trailing slash.")
+        }
+        
+        do {
+            let path: NSString = "http://google.com/search/.."
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "http:/google.com/search/..", "stringByResolvingSymlinksInPath treats receiver as file path always")
+        }
+        
+        do {
+            let path: NSString = "file:///tmp/.."
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "file:/tmp/..", "stringByResolvingSymlinksInPath treats receiver as file path always")
         }
     }
 }
