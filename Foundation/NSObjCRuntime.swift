@@ -231,7 +231,11 @@ internal protocol _NSBridgable {
     var _nsObject: NSType { get }
 }
 
+#if os(OSX) || os(iOS)
 private let _SwiftFoundationModuleName = "SwiftFoundation"
+#else
+private let _SwiftFoundationModuleName = "Foundation"
+#endif
 
 /**
     Returns the class name for a class, applying the following rules:
