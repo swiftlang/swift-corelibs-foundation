@@ -52,6 +52,7 @@ class TestNSString : XCTestCase {
             ("test_stringByDeletingLastPathComponent", test_stringByDeletingLastPathComponent),
             ("test_getCString_simple", test_getCString_simple),
             ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
+            ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser)
         ]
     }
 
@@ -608,5 +609,13 @@ class TestNSString : XCTestCase {
         }
         XCTAssertTrue(res, "getCString should work on UTF8 encoding")
         XCTAssertEqual(chars, expected, "getCString on \(str) should have resulted in \(expected) but got \(chars)")
+    }
+    
+    func test_NSHomeDirectoryForUser() {
+        let homeDir = NSHomeDirectoryForUser(nil)
+        let userName = NSUserName()
+        let homeDir2 = NSHomeDirectoryForUser(userName)
+        let homeDir3 = NSHomeDirectory()
+        XCTAssert(homeDir != nil && homeDir == homeDir2 && homeDir == homeDir3, "Could get user' home directory")
     }
 }
