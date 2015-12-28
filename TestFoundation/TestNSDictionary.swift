@@ -27,6 +27,7 @@ class TestNSDictionary : XCTestCase {
             ("test_ArrayConstruction", test_ArrayConstruction),
             ("test_description", test_description),
             ("test_enumeration", test_enumeration),
+            ("test_equality", test_equality),
         ]
     }
         
@@ -101,4 +102,27 @@ class TestNSDictionary : XCTestCase {
         }
         XCTAssertEqual(result, ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"])
     }
+
+    func test_equality() {
+        let keys = ["foo", "whiz", "toil"].bridge().bridge()
+        let objects1 = ["bar", "bang", "trouble"].bridge().bridge()
+        let objects2 = ["bar", "bang", "troubl"].bridge().bridge()
+        let dict1 = NSDictionary(objects: objects1, forKeys: keys.map({ $0 as! NSObject}))
+        let dict2  = NSDictionary(objects: objects1, forKeys: keys.map({ $0 as! NSObject}))
+        let dict3  = NSDictionary(objects: objects2, forKeys: keys.map({ $0 as! NSObject}))
+
+        XCTAssertTrue(dict1 == dict2)
+        XCTAssertTrue(dict1.isEqual(dict2))
+        XCTAssertTrue(dict1.isEqualToDictionary(dict2.bridge()))
+        XCTAssertEqual(dict1.hash, dict2.hash)
+        XCTAssertEqual(dict1.hashValue, dict2.hashValue)
+
+        XCTAssertFalse(dict1 == dict3)
+        XCTAssertFalse(dict1.isEqual(dict3))
+        XCTAssertFalse(dict1.isEqualToDictionary(dict3.bridge()))
+
+        XCTAssertFalse(dict1.isEqual(nil))
+        XCTAssertFalse(dict1.isEqual(NSObject()))
+    }
+
 }

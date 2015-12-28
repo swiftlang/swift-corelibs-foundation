@@ -27,6 +27,7 @@ class TestNSSet : XCTestCase {
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_setOperations", test_setOperations),
+            ("test_equality", test_equality),
         ]
     }
     
@@ -66,4 +67,26 @@ class TestNSSet : XCTestCase {
 //        set.unionSet(["bar", "baz"])
 //        XCTAssertTrue(set.isEqualToSet(["foo", "bar", "baz"]))
     }
+
+    func test_equality() {
+        let inputArray1 = ["this", "is", "a", "test", "of", "equality", "with", "strings"].bridge()
+        let inputArray2 = ["this", "is", "a", "test", "of", "equality", "with", "objects"].bridge()
+        let set1 = NSSet(array: inputArray1.bridge())
+        let set2 = NSSet(array: inputArray1.bridge())
+        let set3 = NSSet(array: inputArray2.bridge())
+
+        XCTAssertTrue(set1 == set2)
+        XCTAssertTrue(set1.isEqual(set2))
+        XCTAssertTrue(set1.isEqualToSet(set2.bridge()))
+        XCTAssertEqual(set1.hash, set2.hash)
+        XCTAssertEqual(set1.hashValue, set2.hashValue)
+
+        XCTAssertFalse(set1 == set3)
+        XCTAssertFalse(set1.isEqual(set3))
+        XCTAssertFalse(set1.isEqualToSet(set3.bridge()))
+
+        XCTAssertFalse(set1.isEqual(nil))
+        XCTAssertFalse(set1.isEqual(NSObject()))
+    }
+
 }
