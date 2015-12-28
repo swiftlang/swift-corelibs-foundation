@@ -514,6 +514,7 @@ public func NSHomeDirectory() -> String {
 }
 
 public func NSHomeDirectoryForUser(user: String?) -> String? {
+    #if os(OSX)
     let usr = user ?? NSUserName()
     var info = passwd()
     let bufSize = Int(BUFSIZ * 10)
@@ -525,13 +526,20 @@ public func NSHomeDirectoryForUser(user: String?) -> String? {
     }
     
     return nil
+    #else
+    NSUnimplemented()
+    #endif
 }
 
 public func NSUserName() -> String {
+    #if os(OSX)
     let bufSize = Int(BUFSIZ)
     var buffer = [Int8](count: bufSize, repeatedValue: 0)
     if getlogin_r(&buffer, bufSize) == 0 {
         return String.fromCString(buffer)!
     }
-    fatalError("Could not current logon name.")
+    fatalError("Could not get current logon name.")
+    #else
+    NSUnimplemented()
+    #endif
 }
