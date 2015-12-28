@@ -53,7 +53,8 @@ class TestNSString : XCTestCase {
             ("test_getCString_simple", test_getCString_simple),
             ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
             ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser),
-            ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath)
+            ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath),
+            ("test_stringByExpandingTildeInPath", test_stringByExpandingTildeInPath)
         ]
     }
 
@@ -656,5 +657,35 @@ class TestNSString : XCTestCase {
         let homeDir2 = NSHomeDirectoryForUser(userName)
         let homeDir3 = NSHomeDirectory()
         XCTAssert(homeDir != nil && homeDir == homeDir2 && homeDir == homeDir3, "Could get user' home directory")
+    }
+    
+    func test_stringByExpandingTildeInPath() {
+        do {
+            let path: NSString = "~"
+            let result = path.stringByExpandingTildeInPath
+            XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
+            XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
+        }
+        
+        do {
+            let path: NSString = "~/"
+            let result = path.stringByExpandingTildeInPath
+            XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
+            XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
+        }
+        
+        do {
+            let path = NSString(string: "~\(NSUserName())")
+            let result = path.stringByExpandingTildeInPath
+            XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for specific user")
+            XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
+        }
+        
+        do {
+            let userName = NSUUID().UUIDString
+            let path = NSString(string: "~\(userName)/")
+            let result = path.stringByExpandingTildeInPath
+            XCTAssert(result == "~\(userName)", "Return copy of reciver if home directory could no be resolved.")
+        }
     }
 }

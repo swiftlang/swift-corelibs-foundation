@@ -347,6 +347,26 @@ public extension NSString {
         return result._stringByFixingSlashes()
     }
 
+    public var stringByExpandingTildeInPath: String {
+        guard hasPrefix("~") else {
+            return _swiftObject
+        }
+
+        let endOfUserName = _swiftObject.characters.indexOf("/") ?? _swiftObject.endIndex
+        let userName = String(_swiftObject.characters[_swiftObject.startIndex.successor()..<endOfUserName])
+        let optUserName: String? = userName.isEmpty ? nil : userName
+        
+        guard let homeDir = NSHomeDirectoryForUser(optUserName) else {
+            return _swiftObject._stringByFixingSlashes(compress: false, stripTrailing: true)
+        }
+        
+        var result = _swiftObject
+        result.replaceRange(_swiftObject.startIndex..<endOfUserName, with: homeDir)
+        result = result._stringByFixingSlashes(compress: false, stripTrailing: true)
+        
+        return result
+    }
+    
     public var stringByStandardizingPath: String {
         NSUnimplemented()
     }
