@@ -441,21 +441,42 @@ private struct JSONReader {
         }
         return (UTF16.CodeUnit(value), index)
     }
+    
     //MARK: - Number parsing
-//    static let numberScalars: [UnicodeScalar] = [
-//        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "-", "+", "E", "e"
-//    ]
+    static let numberCodePoints: [UInt8] = [
+        0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, // 0...9
+        0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
+    ]
     func parseNumber(input: Index) throws -> (Double, Index)? {
-        let startPointer = UnsafePointer<Int8>(source.buffer.baseAddress.advancedBy(input))
-        let endPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>.alloc(1)
-        defer { endPointer.dealloc(1) }
-
-        let result = strtod(startPointer, endPointer)
-        let distance = startPointer.distanceTo(endPointer[0])
-        guard distance > 0 else {
-            return nil
+        func parseDouble(address: UnsafePointer<UInt8>) -> (Double, Index.Distance)? {
+            let startPointer = UnsafePointer<Int8>(address)
+            let endPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>.alloc(1)
+            defer { endPointer.dealloc(1) }
+            
+            let result = strtod(startPointer, endPointer)
+            let distance = startPointer.distanceTo(endPointer[0])
+            guard distance > 0 else {
+                return nil
+            }
+            
+            return (result, distance)
         }
-        return (result, input + distance)
+        
+        if source.encoding == NSUTF8StringEncoding {
+            return parseDouble(source.buffer.baseAddress.advancedBy(input)).map { return ($0.0, input + $0.1) }
+        }
+        else {
+            var numberCharacters = [UInt8]()
+            var index = input
+            while let (ascii, nextIndex) = source.takeASCII(index) where JSONReader.numberCodePoints.contains(ascii) {
+                numberCharacters.append(ascii)
+                index = nextIndex
+            }
+            
+            numberCharacters.append(0)
+            
+            return numberCharacters.withUnsafeBufferPointer { parseDouble($0.baseAddress) }.map { return ($0.0, index) }
+        }
     }
 
     //MARK: - Value parsing
