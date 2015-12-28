@@ -214,13 +214,15 @@ private struct JSONReader {
         0x20, // Space
     ]
 
-    struct StructureScalar {
+    struct Structure {
         static let BeginArray: UInt8     = 0x5B // [
         static let EndArray: UInt8       = 0x5D // ]
         static let BeginObject: UInt8    = 0x7B // {
         static let EndObject: UInt8      = 0x7D // }
         static let NameSeparator: UInt8  = 0x3A // :
         static let ValueSeparator: UInt8 = 0x2C // ,
+        static let QuotationMark: UInt8  = 0x22 // "
+        static let Escape: UInt8         = 0x5C // \
     }
 
     typealias Index = Int
@@ -341,13 +343,9 @@ private struct JSONReader {
     }
 
     //MARK: - String Parsing
-    struct StringScalar{
-        static let QuotationMark: UInt8 = 0x22 // "
-        static let Escape: UInt8        = 0x5C // \
-    }
 
     func parseString(input: Index) throws -> (String, Index)? {
-        guard let beginIndex = try consumeStructure(StringScalar.QuotationMark, input: input) else {
+        guard let beginIndex = try consumeStructure(Structure.QuotationMark, input: input) else {
             return nil
         }
         var chunkIndex: Int = beginIndex
@@ -360,10 +358,10 @@ private struct JSONReader {
                 continue
             }
             switch ascii {
-            case StringScalar.QuotationMark:
+            case Structure.QuotationMark:
                 output += try source.takeString(chunkIndex, end: currentIndex)
                 return (output, index)
-            case StringScalar.Escape:
+            case Structure.Escape:
                 output += try source.takeString(chunkIndex, end: currentIndex)
                 if let (escaped, nextIndex) = try parseEscapeSequence(index) {
                     output += escaped
@@ -507,23 +505,23 @@ private struct JSONReader {
 
     //MARK: - Object parsing
     func parseObject(input: Index) throws -> ([String: Any], Index)? {
-        guard let beginIndex = try consumeStructure(StructureScalar.BeginObject, input: input) else {
+        guard let beginIndex = try consumeStructure(Structure.BeginObject, input: input) else {
             return nil
         }
         var index = beginIndex
         var output: [String: Any] = [:]
         while true {
-            if let finalIndex = try consumeStructure(StructureScalar.EndObject, input: index) {
+            if let finalIndex = try consumeStructure(Structure.EndObject, input: index) {
                 return (output, finalIndex)
             }
     
             if let (key, value, nextIndex) = try parseObjectMember(index) {
                 output[key] = value
     
-                if let finalParser = try consumeStructure(StructureScalar.EndObject, input: nextIndex) {
+                if let finalParser = try consumeStructure(Structure.EndObject, input: nextIndex) {
                     return (output, finalParser)
                 }
-                else if let nextIndex = try consumeStructure(StructureScalar.ValueSeparator, input: nextIndex) {
+                else if let nextIndex = try consumeStructure(Structure.ValueSeparator, input: nextIndex) {
                     index = nextIndex
                     continue
                 }
@@ -541,7 +539,7 @@ private struct JSONReader {
                 "NSDebugDescription" : "Missing object key at location \(source.distanceFromStart(input))"
             ])
         }
-        guard let separatorIndex = try consumeStructure(StructureScalar.NameSeparator, input: index) else {
+        guard let separatorIndex = try consumeStructure(Structure.NameSeparator, input: index) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                 "NSDebugDescription" : "Invalid value at location \(source.distanceFromStart(input))"
             ])
@@ -557,23 +555,23 @@ private struct JSONReader {
 
     //MARK: - Array parsing
     func parseArray(input: Index) throws -> ([Any], Index)? {
-        guard let beginIndex = try consumeStructure(StructureScalar.BeginArray, input: input) else {
+        guard let beginIndex = try consumeStructure(Structure.BeginArray, input: input) else {
             return nil
         }
         var index = beginIndex
         var output: [Any] = []
         while true {
-            if let finalIndex = try consumeStructure(StructureScalar.EndArray, input: index) {
+            if let finalIndex = try consumeStructure(Structure.EndArray, input: index) {
                 return (output, finalIndex)
             }
     
             if let (value, nextIndex) = try parseValue(index) {
                 output.append(value)
     
-                if let finalIndex = try consumeStructure(StructureScalar.EndArray, input: nextIndex) {
+                if let finalIndex = try consumeStructure(Structure.EndArray, input: nextIndex) {
                     return (output, finalIndex)
                 }
-                else if let nextIndex = try consumeStructure(StructureScalar.ValueSeparator, input: nextIndex) {
+                else if let nextIndex = try consumeStructure(Structure.ValueSeparator, input: nextIndex) {
                     index = nextIndex
                     continue
                 }
