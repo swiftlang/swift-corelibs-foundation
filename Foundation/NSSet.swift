@@ -149,6 +149,19 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     override internal var _cfTypeID: CFTypeID {
         return CFSetGetTypeID()
     }
+
+    public override func isEqual(object: AnyObject?) -> Bool {
+        guard let otherObject = object where otherObject is NSSet else {
+            return false
+        }
+        let otherSet = otherObject as! NSSet
+        return self.isEqualToSet(otherSet.bridge())
+    }
+
+    public override var hash: Int {
+        return self.count
+    }
+
 }
 
 extension NSSet {
