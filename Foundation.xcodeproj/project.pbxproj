@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		22B9C1E11C165D7A00DECFF9 /* TestNSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */; };
 		400E22651C1A4E58007C5933 /* TestNSProcessInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */; };
+		45BBD92B1C30E9C200540DDB /* TestNSTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BBD92A1C30E9C200540DDB /* TestNSTask.swift */; };
 		4AE109271C17CCBF007367B5 /* TestNSIndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */; };
 		4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */; };
 		525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
@@ -350,6 +351,7 @@
 /* Begin PBXFileReference section */
 		22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDate.swift; sourceTree = "<group>"; };
 		400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSProcessInfo.swift; sourceTree = "<group>"; };
+		45BBD92A1C30E9C200540DDB /* TestNSTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTask.swift; sourceTree = "<group>"; };
 		4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSIndexPath.swift; sourceTree = "<group>"; };
 		4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSPipe.swift; sourceTree = "<group>"; };
 		522C253A1BF16E1600804FC6 /* FoundationErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationErrors.swift; sourceTree = "<group>"; };
@@ -1101,6 +1103,7 @@
 				A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */,
 				612952F81C1B235900BE0FD9 /* TestNSNull.swift */,
 				AA664D4E1C1B03CA00C22186 /* TestNSNumberFormatter.swift */,
+				45BBD92A1C30E9C200540DDB /* TestNSTask.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1817,6 +1820,7 @@
 				4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */,
 				84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */,
 				52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */,
+				45BBD92B1C30E9C200540DDB /* TestNSTask.swift in Sources */,
 				C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */,
 				DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */,
 				83712C8E1C1684900049AD49 /* TestNSURLRequest.swift in Sources */,
