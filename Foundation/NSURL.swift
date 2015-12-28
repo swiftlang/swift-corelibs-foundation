@@ -457,7 +457,9 @@ extension NSURL {
     /* The following methods work only on `file:` scheme URLs; for non-`file:` scheme URLs, these methods return the URL unchanged.
     */
     public var URLByStandardizingPath: NSURL? {
-        NSUnimplemented()
+        // Documentation says it should expand initial tilde, but it does't do this on OS X.
+        // In remaining cases it works just like URLByResolvingSymlinksInPath.
+        return URLByResolvingSymlinksInPath
     }
     
     public var URLByResolvingSymlinksInPath: NSURL? {
