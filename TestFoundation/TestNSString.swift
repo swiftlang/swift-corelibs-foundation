@@ -493,12 +493,27 @@ class TestNSString : XCTestCase {
 
     private func ensureFiles(fileNames: [String]) -> Bool {
         var result = true
+        let fm = NSFileManager.defaultManager()
         for name in fileNames {
-            guard !NSFileManager.defaultManager().fileExistsAtPath(name) else {
+            guard !fm.fileExistsAtPath(name) else {
                 continue
             }
             
-            result = result && NSFileManager.defaultManager().createFileAtPath(name, contents: nil, attributes: nil)
+            var isDir: ObjCBool = false
+            let dir = name.bridge().stringByDeletingLastPathComponent
+            if !fm.fileExistsAtPath(dir, isDirectory: &isDir) {
+                do {
+                    try fm.createDirectoryAtPath(dir, withIntermediateDirectories: true, attributes: nil)
+                } catch let err {
+                    print(err)
+                    return false
+                }
+            } else if !isDir {
+                return false
+            }
+            
+            
+            result = result && fm.createFileAtPath(name, contents: nil, attributes: nil)
         }
         return result
     }
