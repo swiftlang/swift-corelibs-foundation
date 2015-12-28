@@ -97,6 +97,37 @@ private func managerThreadSetup() -> Void {
 }
 
 
+// Equal method for run loop source
+private func nstaskIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> DarwinBoolean {
+    
+    let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
+    guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
+        return DarwinBoolean( false )
+    }
+    
+    let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
+    guard let taskB = unmanagedTaskB.takeUnretainedValue() as? NSTask else {
+        return DarwinBoolean( false )
+    }
+    
+    guard taskA == taskB else {
+        return DarwinBoolean( false )
+    }
+    
+    return DarwinBoolean( true )
+}
+
+// Retain method for run loop source
+private func nstaskRetain(pointer : UnsafePointer<Void>) -> UnsafePointer<Void> {
+    let _ = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(pointer)).retain()
+    return pointer
+}
+
+// Release method for run loop source
+private func nstaskRelease(pointer : UnsafePointer<Void>) -> Void {
+    let _ = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(pointer)).release()
+}
+
 public class NSTask : NSObject {
     
     // Create an NSTask which can be run at a later time
@@ -180,8 +211,11 @@ public class NSTask : NSObject {
         
         self.runLoop = NSRunLoop.currentRunLoop()
         
-        self.runLoopSourceContext = CFRunLoopSourceContext (version: 0, info: nil, retain: nil, release: nil, copyDescription: nil,
-                                                                equal: nil, hash: nil, schedule: nil, cancel: nil, perform: runLoopCallback)
+        self.runLoopSourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque()),
+                                                                     retain: nstaskRetain, release: nstaskRelease, copyDescription: nil,
+                                                                             equal: nstaskIsEqual, hash: nil, schedule: nil, cancel: nil,
+                                                                                    perform: runLoopCallback)
+        
         self.runLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &runLoopSourceContext!)
         CFRunLoopAddSource(NSRunLoop.currentRunLoop()._cfRunLoop, runLoopSource, kCFRunLoopDefaultMode)
         
