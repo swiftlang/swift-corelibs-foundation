@@ -15,8 +15,6 @@ import CoreFoundation
     import Glibc
 #endif
 
-import CoreFoundation
-
 public enum NSTaskTerminationReason : Int {
     case Exit
     case UncaughtSignal
@@ -30,12 +28,12 @@ private func WEXITSTATUS(status: CInt) -> CInt {
 private var processMap : [pid_t : NSTask] = [:]
 private var processLaunchLock = NSLock()
 
-private var runLoopSetupOnceToken = pthread_once_t()
+private var managerThreadSetupOnceToken = pthread_once_t()
 private var threadID = pthread_t()
 
 private let semaphore = sem_open("_NSTaskRunLoopSemaphore", O_CREAT, 0o777, 0)
 
-@noreturn private func runLoop(x: UnsafeMutablePointer<Void>) -> UnsafeMutablePointer<Void> {
+@noreturn private func managerThread(x: UnsafeMutablePointer<Void>) -> UnsafeMutablePointer<Void> {
     
     while true {
         sem_wait( semaphore )
@@ -75,6 +73,13 @@ private let semaphore = sem_open("_NSTaskRunLoopSemaphore", O_CREAT, 0o777, 0)
             // Set the running flag to false
             
             task.running = false
+            
+            // Invalidate the source and wake up the run loop, if it's available
+            
+            CFRunLoopSourceInvalidate(task.runLoopSource)
+            if let runLoop = task.runLoop {
+                CFRunLoopWakeUp(runLoop._cfRunLoop)
+            }
         }
         
         // Clear out the NSTask from the process table
@@ -85,9 +90,12 @@ private let semaphore = sem_open("_NSTaskRunLoopSemaphore", O_CREAT, 0o777, 0)
     }
 }
 
-private func runLoopSetup() -> Void {
-    pthread_create(&threadID, nil, runLoop, nil)
+private func runLoopCallback(context : UnsafeMutablePointer<Void>) -> Void {}
+
+private func managerThreadSetup() -> Void {
+    pthread_create(&threadID, nil, managerThread, nil)
 }
+
 
 public class NSTask : NSObject {
     
@@ -116,12 +124,17 @@ public class NSTask : NSObject {
     public var standardOutput: AnyObject?
     public var standardError: AnyObject?
     
+    private var runLoopSourceContext : CFRunLoopSourceContext?
+    private var runLoopSource : CFRunLoopSource?
+    
+    private weak var runLoop : NSRunLoop? = nil
+    
     // actions
     public func launch() {
     
-        // Dispatch the run loop if it isn't already running
+        // Dispatch the manager thread if it isn't already running
         
-        pthread_once(&runLoopSetupOnceToken, runLoopSetup)
+        pthread_once(&managerThreadSetupOnceToken, managerThreadSetup)
         
         // Ensure that the launch path is set
         
@@ -164,6 +177,13 @@ public class NSTask : NSObject {
         guard status == 0 else {
             fatalError()
         }
+        
+        self.runLoop = NSRunLoop.currentRunLoop()
+        
+        self.runLoopSourceContext = CFRunLoopSourceContext (version: 0, info: nil, retain: nil, release: nil, copyDescription: nil,
+                                                                equal: nil, hash: nil, schedule: nil, cancel: nil, perform: runLoopCallback)
+        self.runLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &runLoopSourceContext!)
+        CFRunLoopAddSource(NSRunLoop.currentRunLoop()._cfRunLoop, runLoopSource, kCFRunLoopDefaultMode)
         
         running = true
         
@@ -210,9 +230,12 @@ extension NSTask {
     
     // poll the runLoop in defaultMode until task completes
     public func waitUntilExit() {
+        
         repeat {
             
         } while( self.running == true && NSRunLoop.currentRunLoop().runMode(NSDefaultRunLoopMode, beforeDate: NSDate(timeIntervalSinceNow: 0.05)) )
+        
+        self.runLoop = nil
     }
 }
 
