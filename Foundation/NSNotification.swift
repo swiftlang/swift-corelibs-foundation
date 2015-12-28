@@ -48,7 +48,6 @@ extension NSNotification {
     }
 }
 
-
 private class NSNotificationReceiver : NSObject {
     private weak var object: NSObject?
     private var name: String?
@@ -56,15 +55,56 @@ private class NSNotificationReceiver : NSObject {
     private var sender: AnyObject?
 }
 
+extension SequenceType where Generator.Element : NSNotificationReceiver {
+
+    /// Returns collection of `NSNotificationReceiver`.
+    ///
+    /// Will return:
+    ///  - elements that property `object` is not equal to `observerToFilter`
+    ///  - elements that property `name` is not equal to parameter `name` if specified.
+    ///  - elements that property `sender` is not equal to parameter `object` if specified.
+    ///
+    private func filterOutObserver(observerToFilter: AnyObject, name:String? = nil, object: AnyObject? = nil) -> [Generator.Element] {
+        return self.filter { observer in
+
+            let differentObserver = observer.object !== observerToFilter
+            let nameSpecified = name != nil
+            let differentName = observer.name != name
+            let objectSpecified = object != nil
+            let differentSender = observer.sender !== object
+
+            return differentObserver || (nameSpecified  && differentName) || (objectSpecified && differentSender)
+        }
+    }
+
+    /// Returns collection of `NSNotificationReceiver`.
+    ///
+    /// Will return:
+    ///  - elements that property `sender` is `nil` or equals specified parameter `sender`.
+    ///  - elements that property `name` is `nil` or equals specified parameter `name`.
+    ///
+    private func observersMatchingName(name:String? = nil, sender: AnyObject? = nil) -> [Generator.Element] {
+        return self.filter { observer in
+
+            let emptyName = observer.name == nil
+            let sameName = observer.name == name
+            let emptySender = observer.sender == nil
+            let sameSender = observer.sender === sender
+
+            return (emptySender || sameSender) && (emptyName || sameName)
+        }
+    }
+}
 
 private let _defaultCenter: NSNotificationCenter = NSNotificationCenter()
 
 public class NSNotificationCenter : NSObject {
     
-    private var observers: [NSNotificationReceiver]
+    private var _observers: [NSNotificationReceiver]
+    private let _observersLock = NSLock()
     
     public required override init() {
-        observers = [NSNotificationReceiver]()
+        _observers = [NSNotificationReceiver]()
     }
     
     public class func defaultCenter() -> NSNotificationCenter {
@@ -72,16 +112,11 @@ public class NSNotificationCenter : NSObject {
     }
     
     public func postNotification(notification: NSNotification) {
-        let name = notification.name
-        let sender = notification.object
-        
-        let sendTo = observers.filter { observer in
-            let sameName = (observer.name == nil || observer.name == name)
-            let sameSender = (observer.sender == nil || observer.sender === sender)
-            
-            return sameSender && sameName
-        }
-        
+
+        let sendTo = _observersLock.synchronized({
+            return _observers.observersMatchingName(notification.name, sender: notification.object)
+        })
+
         for observer in sendTo {
             guard let block = observer.block else {
                 continue
@@ -105,18 +140,15 @@ public class NSNotificationCenter : NSObject {
         removeObserver(observer, name: nil, object: nil)
     }
 
-    public func removeObserver(observer: AnyObject, name aName: String?, object anObject: AnyObject?) {
+    public func removeObserver(observer: AnyObject, name: String?, object: AnyObject?) {
         guard let observer = observer as? NSObject else {
             return
         }
-        
-        observers = observers.filter { curObserver in
-            return (curObserver.object !== observer)
-                || (aName != nil && curObserver.name != aName)
-                || (anObject != nil && curObserver.sender !== anObject)
-        }
-    }
 
+        _observersLock.synchronized({
+            self._observers = _observers.filterOutObserver(observer, name: name, object: object)
+        })
+    }
     
     public func addObserverForName(name: String?, object obj: AnyObject?, queue: NSOperationQueue?, usingBlock block: (NSNotification) -> Void) -> NSObjectProtocol {
         if queue != nil {
@@ -130,8 +162,10 @@ public class NSNotificationCenter : NSObject {
         newObserver.name = name
         newObserver.block = block
         newObserver.sender = obj
-        
-        observers.append(newObserver)
+
+        _observersLock.synchronized({
+            _observers.append(newObserver)
+        })
         
         return object
     }
