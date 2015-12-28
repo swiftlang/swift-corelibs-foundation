@@ -540,12 +540,12 @@ private struct JSONReader {
         }
         guard let separatorIndex = try consumeStructure(Structure.NameSeparator, input: index) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Invalid value at location \(source.distanceFromStart(input))"
+                "NSDebugDescription" : "Invalid separator at location \(source.distanceFromStart(index))"
             ])
         }
         guard let (value, finalIndex) = try parseValue(separatorIndex) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Invalid value at location \(source.distanceFromStart(input))"
+                "NSDebugDescription" : "Invalid value at location \(source.distanceFromStart(separatorIndex))"
             ])
         }
         
@@ -574,14 +574,9 @@ private struct JSONReader {
                     index = nextIndex
                     continue
                 }
-                else {
-                    throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                        "NSDebugDescription" : "Unexpected end of file while parsing array at location \(source.distanceFromStart(input))"
-                    ])
-                }
             }
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Unexpected end of file while parsing array at location \(source.distanceFromStart(input))"
+                "NSDebugDescription" : "Badly formed array at location \(source.distanceFromStart(index))"
             ])
         }
     }
