@@ -531,8 +531,8 @@ public func NSHomeDirectoryForUser(user: String?) -> String? {
         homeDir = String.fromCString(info.pw_dir)
     }
     
-    result.destroy(1)
-    
+    result.dealloc(1)
+
     return homeDir
 }
 
