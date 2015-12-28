@@ -297,23 +297,25 @@ public class NSOperationQueue : NSObject {
     private var _suspendedLock = NSLock()
 
     public var name: String? {
-        didSet {
-            _underlyingQueue = concurrentQueueWithName(name)
-        }
+        didSet { updateUnderlyingQueue() }
     }
 
-    private func concurrentQueueWithName(name: String?) -> DispatchQueueBridge {
-        return DispatchQueueBridge(name: name ?? "NSOperationQueue: \(NSUUID().UUIDString)", type: .Concurrent)
+    private func concurrentQueueWithName(name: String?, qos: NSQualityOfService) -> DispatchQueueBridge {
+        return DispatchQueueBridge(name: name ?? "NSOperationQueue: \(NSUUID().UUIDString)", qos: qos, type: .Concurrent)
     }
 
-    public var qualityOfService: NSQualityOfService = .Default  // Unimplemented
-                                                                // NSThread.currentThread().qualityOfService
-                                                                // (suggested by phausler@apple.com)
+    private func updateUnderlyingQueue() {
+        _underlyingQueue = concurrentQueueWithName(name, qos: qualityOfService)
+    }
+
+    public var qualityOfService: NSQualityOfService = .Default {  // Unimplemented - NSThread.currentThread().qualityOfService (suggested by phausler@apple.com)
+        didSet { updateUnderlyingQueue() }
+    }
 
     unowned(unsafe) public var underlyingQueue: dispatch_queue_t { return _underlyingQueue._queue }
 
     private lazy var _underlyingQueue: DispatchQueueBridge = {
-        return self.concurrentQueueWithName(self.name)
+        return self.concurrentQueueWithName(self.name, qos: self.qualityOfService)
     }()
 
     private let _dispatchGroup = DispatchGroupBridge()
@@ -478,17 +480,34 @@ internal enum DispatchQueueType {
     case Concurrent
 }
 
+internal func dispatchQualityOfServiceFrom(qos: NSQualityOfService) -> dispatch_qos_class_t {
+    switch(qos) {
+        case .UserInteractive:
+            return QOS_CLASS_USER_INTERACTIVE
+        case .UserInitiated:
+            return QOS_CLASS_USER_INITIATED
+        case .Utility:
+            return QOS_CLASS_UTILITY
+        case .Background:
+            return QOS_CLASS_BACKGROUND
+        case .Default:
+            return QOS_CLASS_DEFAULT
+    }
+}
+
 internal struct DispatchQueueBridge {
 
     private let _queue: dispatch_queue_t
     static let mainQueue = DispatchQueueBridge(queue: dispatch_get_main_queue())
 
-    init(name: String, type: DispatchQueueType = .Serial) {
+    init(name: String, qos: NSQualityOfService = .Default, type: DispatchQueueType = .Serial) {
 
         let isSerial = type == .Serial
         let actualType = isSerial ? DISPATCH_QUEUE_SERIAL : DISPATCH_QUEUE_CONCURRENT
 
-        _queue = dispatch_queue_create(name, actualType)
+        let attr = dispatch_queue_attr_make_with_qos_class(actualType, dispatchQualityOfServiceFrom(qos), 0);
+
+        _queue = dispatch_queue_create(name, attr)
     }
 
     init(queue: dispatch_queue_t) {

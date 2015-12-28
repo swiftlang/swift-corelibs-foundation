@@ -16,11 +16,13 @@
     import SwiftXCTest
 #endif
 
+import Dispatch
 
 class TestNSOperation : XCTestCase {
 
     var allTests : [(String, () -> ())] {
         return [
+            ("test_ChangeQueueNameCreatesNewUnderlyingQueueWithProperQOSUponQOSChange", test_ChangeQueueNameCreatesNewUnderlyingQueueWithProperQOSUponQOSChange),
             ("test_ChangeQueueNameCreatesNewUnderlyingQueueUponNameChange", test_ChangeQueueNameCreatesNewUnderlyingQueueUponNameChange),
             ("test_OperationQueueCalledStartOnAsynchronousNSOperationSubclass", test_OperationQueueCalledStartOnAsynchronousNSOperationSubclass),
             ("test_OperationQueueCalledMainOnAsynchronousNSOperationSubclass", test_OperationQueueCalledMainOnAsynchronousNSOperationSubclass),
@@ -43,6 +45,17 @@ class TestNSOperation : XCTestCase {
         queue.name = "Of eyes that vainly crave the light"
 
         XCTAssertTrue(oldQueue !== queue.underlyingQueue)
+    }
+
+    func test_ChangeQueueNameCreatesNewUnderlyingQueueWithProperQOSUponQOSChange() {
+        let queue = NSOperationQueue()
+
+        queue.qualityOfService = .UserInitiated
+
+        var relative: Int32 = 0
+        let qos = dispatch_queue_get_qos_class(queue.underlyingQueue, &relative)
+
+        XCTAssertTrue(qos == QOS_CLASS_USER_INITIATED)
     }
 
     func test_OperationQueueCalledStartOnAsynchronousNSOperationSubclass() {
