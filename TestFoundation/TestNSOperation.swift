@@ -21,6 +21,7 @@ class TestNSOperation : XCTestCase {
 
     var allTests : [(String, () -> ())] {
         return [
+            ("test_ChangeQueueNameCreatesNewUnderlyingQueueUponNameChange", test_ChangeQueueNameCreatesNewUnderlyingQueueUponNameChange),
             ("test_OperationQueueCalledStartOnAsynchronousNSOperationSubclass", test_OperationQueueCalledStartOnAsynchronousNSOperationSubclass),
             ("test_OperationQueueCalledMainOnAsynchronousNSOperationSubclass", test_OperationQueueCalledMainOnAsynchronousNSOperationSubclass),
             ("test_OperationQueueWaitsForExecutionAndAllBlocksWereExecuted", test_OperationQueueWaitsForExecutionAndAllBlocksWereExecuted),
@@ -33,6 +34,15 @@ class TestNSOperation : XCTestCase {
             ("test_BlockOperationHasCancelPropertyEqualTrueAfterItsCancelled", test_BlockOperationHasCancelPropertyEqualTrueAfterItsCancelled),
             ("test_BlockOperationHasFinishedPropertyEqualTrueAfterItsCancelled", test_BlockOperationHasFinishedPropertyEqualTrueAfterItsCancelled),
         ]
+    }
+
+    func test_ChangeQueueNameCreatesNewUnderlyingQueueUponNameChange() {
+        let queue = NSOperationQueue()
+        let oldQueue = queue.underlyingQueue
+
+        queue.name = "Of eyes that vainly crave the light"
+
+        XCTAssertTrue(oldQueue !== queue.underlyingQueue)
     }
 
     func test_OperationQueueCalledStartOnAsynchronousNSOperationSubclass() {

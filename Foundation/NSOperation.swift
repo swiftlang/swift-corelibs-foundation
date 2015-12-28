@@ -296,7 +296,15 @@ public class NSOperationQueue : NSObject {
 
     private var _suspendedLock = NSLock()
 
-    public var name: String?
+    public var name: String? {
+        didSet {
+            _underlyingQueue = concurrentQueueWithName(name)
+        }
+    }
+
+    private func concurrentQueueWithName(name: String?) -> DispatchQueueBridge {
+        return DispatchQueueBridge(name: name ?? "NSOperationQueue: \(NSUUID().UUIDString)", type: .Concurrent)
+    }
 
     public var qualityOfService: NSQualityOfService = .Default  // Unimplemented
                                                                 // NSThread.currentThread().qualityOfService
@@ -304,18 +312,18 @@ public class NSOperationQueue : NSObject {
 
     unowned(unsafe) public var underlyingQueue: dispatch_queue_t { return _underlyingQueue._queue }
 
-    private let _underlyingQueue: DispatchQueueBridge
+    private lazy var _underlyingQueue: DispatchQueueBridge = {
+        return self.concurrentQueueWithName(self.name)
+    }()
 
     private let _dispatchGroup = DispatchGroupBridge()
     private var _concurrencyLimitingSemaphore: DispatchSemaphoreBridge
 
     public override init() {
-        _underlyingQueue = DispatchQueueBridge(name: name ?? "NSOperationQueue: \(NSUUID().UUIDString)", type: .Concurrent)
         _concurrencyLimitingSemaphore = DispatchSemaphoreBridge(count: maxConcurrentOperationCount)
     }
 
     private init(queue: DispatchQueueBridge, name aName: String, maxConcurrentOperationCount max: Int = NSOperationQueueDefaultMaxConcurrentOperationCount) {
-        self._underlyingQueue = queue
         self.name = aName
         self.maxConcurrentOperationCount = max
 
