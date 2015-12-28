@@ -365,7 +365,7 @@ public class NSOperationQueue : NSObject {
     private func operationsReadyToExecute(ops: [NSOperation]) -> [NSOperation] {
         let readyOperations = ops.filter({ operation in operation.ready })
         let readyAndSortedOperations = readyOperations.sort({ operation1, operation2 in
-            operation1.qualityOfService.rawValue > operation2.qualityOfService.rawValue
+            operation1.queuePriority.rawValue > operation2.queuePriority.rawValue
         })
 
         return readyAndSortedOperations
