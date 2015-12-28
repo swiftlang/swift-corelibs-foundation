@@ -50,6 +50,9 @@ class TestNSString : XCTestCase {
             ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
             ("test_initializeWithFormat", test_initializeWithFormat),
             ("test_stringByDeletingLastPathComponent", test_stringByDeletingLastPathComponent),
+            ("test_getCString_simple", test_getCString_simple),
+            ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
+            ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser),
             ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath)
         ]
     }
@@ -492,12 +495,27 @@ class TestNSString : XCTestCase {
 
     private func ensureFiles(fileNames: [String]) -> Bool {
         var result = true
+        let fm = NSFileManager.defaultManager()
         for name in fileNames {
-            guard !NSFileManager.defaultManager().fileExistsAtPath(name) else {
+            guard !fm.fileExistsAtPath(name) else {
                 continue
             }
             
-            result = result && NSFileManager.defaultManager().createFileAtPath(name, contents: nil, attributes: nil)
+            var isDir: ObjCBool = false
+            let dir = name.bridge().stringByDeletingLastPathComponent
+            if !fm.fileExistsAtPath(dir, isDirectory: &isDir) {
+                do {
+                    try fm.createDirectoryAtPath(dir, withIntermediateDirectories: true, attributes: nil)
+                } catch let err {
+                    print(err)
+                    return false
+                }
+            } else if !isDir {
+                return false
+            }
+            
+            
+            result = result && fm.createFileAtPath(name, contents: nil, attributes: nil)
         }
         return result
     }
@@ -597,5 +615,46 @@ class TestNSString : XCTestCase {
             let result = path.stringByResolvingSymlinksInPath
             XCTAssertEqual(result, "file:/tmp/..", "stringByResolvingSymlinksInPath treats receiver as file path always")
         }
+    }
+
+    func test_getCString_simple() {
+        let str: NSString = "foo"
+        var chars = [Int8](count:4, repeatedValue:0xF)
+        let count = chars.count
+        let expected: [Int8] = [102, 111, 111, 0]
+        var res: Bool = false
+        chars.withUnsafeMutableBufferPointer() {
+            let ptr = $0.baseAddress
+            res = str.getCString(ptr, maxLength: count, encoding: NSASCIIStringEncoding)
+        }
+        XCTAssertTrue(res, "getCString should work on simple strings with ascii string encoding")
+        XCTAssertEqual(chars, expected, "getCString on \(str) should have resulted in \(expected) but got \(chars)")
+    }
+    
+    func test_getCString_nonASCII_withASCIIAccessor() {
+        let str: NSString = "ƒoo"
+        var chars = [Int8](count:5, repeatedValue:0xF)
+        let expected: [Int8] = [-58, -110, 111, 111, 0]
+        let count = chars.count
+        var res: Bool = false
+        chars.withUnsafeMutableBufferPointer() {
+            let ptr = $0.baseAddress
+            res = str.getCString(ptr, maxLength: count, encoding: NSASCIIStringEncoding)
+        }
+        XCTAssertFalse(res, "getCString should not work on non ascii strings accessing as ascii string encoding")
+        chars.withUnsafeMutableBufferPointer() {
+            let ptr = $0.baseAddress
+            res = str.getCString(ptr, maxLength: count, encoding: NSUTF8StringEncoding)
+        }
+        XCTAssertTrue(res, "getCString should work on UTF8 encoding")
+        XCTAssertEqual(chars, expected, "getCString on \(str) should have resulted in \(expected) but got \(chars)")
+    }
+    
+    func test_NSHomeDirectoryForUser() {
+        let homeDir = NSHomeDirectoryForUser(nil)
+        let userName = NSUserName()
+        let homeDir2 = NSHomeDirectoryForUser(userName)
+        let homeDir3 = NSHomeDirectory()
+        XCTAssert(homeDir != nil && homeDir == homeDir2 && homeDir == homeDir3, "Could get user' home directory")
     }
 }

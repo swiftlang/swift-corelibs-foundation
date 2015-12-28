@@ -1619,7 +1619,7 @@ static void __CFDateFormatterSetSymbolsArray(UDateFormat *icudf, int32_t icucode
     }
 }
 
-static CFArrayRef __CFDateFormatterGetSymbolsArray(UDateFormat *icudf, int32_t icucode, int index_base) {
+static CFArrayRef __CFDateFormatterCopySymbolsArray(UDateFormat *icudf, int32_t icucode, int index_base) {
     UErrorCode status = U_ZERO_ERROR;
     CFIndex idx, cnt = __cficu_udat_countSymbols(icudf, (UDateFormatSymbolType)icucode);
     if (cnt <= index_base) return CFArrayCreate(kCFAllocatorSystemDefault, NULL, 0, &kCFTypeArrayCallBacks);
@@ -1627,17 +1627,17 @@ static CFArrayRef __CFDateFormatterGetSymbolsArray(UDateFormat *icudf, int32_t i
     STACK_BUFFER_DECL(CFStringRef, strings, cnt);
     for (idx = 0; idx < cnt; idx++) {
         UChar ubuffer[BUFFER_SIZE];
-	CFStringRef str = NULL;
-	status = U_ZERO_ERROR;
-	CFIndex ucnt = __cficu_udat_getSymbols(icudf, (UDateFormatSymbolType)icucode, idx + index_base, ubuffer, BUFFER_SIZE, &status);
-	if (U_SUCCESS(status) && cnt <= BUFFER_SIZE) {
-	    str = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)ubuffer, ucnt);
-	}
-	strings[idx] = !str ? (CFStringRef)CFRetain(CFSTR("<error>")) : str;
+        CFStringRef str = NULL;
+        status = U_ZERO_ERROR;
+        CFIndex ucnt = __cficu_udat_getSymbols(icudf, (UDateFormatSymbolType)icucode, idx + index_base, ubuffer, BUFFER_SIZE, &status);
+        if (U_SUCCESS(status) && cnt <= BUFFER_SIZE) {
+            str = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)ubuffer, ucnt);
+        }
+        strings[idx] = !str ? (CFStringRef)CFRetain(CFSTR("<error>")) : str;
     }
     CFArrayRef array = CFArrayCreate(kCFAllocatorSystemDefault, (const void **)strings, cnt, &kCFTypeArrayCallBacks);
     while (cnt--) {
-	CFRelease(strings[cnt]);
+        CFRelease(strings[cnt]);
     }
     return array;
 }
@@ -1651,7 +1651,7 @@ CF_PRIVATE CFLocaleRef _CFLocaleCreateCopyWithNewCalendarIdentifier(CFAllocatorR
 	} \
         __CFDateFormatterSetSymbolsArray(formatter->_df, A, B, value); \
 	if (!directToICU) { \
-	    formatter->_property. C = __CFDateFormatterGetSymbolsArray(formatter->_df, A, B); \
+	    formatter->_property. C = __CFDateFormatterCopySymbolsArray(formatter->_df, A, B); \
 	}
 
 static void __CFDateFormatterSetProperty(CFDateFormatterRef formatter, CFStringRef key, CFTypeRef value, Boolean directToICU) {
@@ -1908,58 +1908,58 @@ CFTypeRef CFDateFormatterCopyProperty(CFDateFormatterRef formatter, CFStringRef 
         }
     } else if (kCFDateFormatterEraSymbolsKey == key) {
 	if (formatter->_property._EraSymbols) return CFRetain(formatter->_property._EraSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_ERAS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_ERAS, 0);
     } else if (kCFDateFormatterLongEraSymbolsKey == key) {
 	if (formatter->_property._LongEraSymbols) return CFRetain(formatter->_property._LongEraSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_ERA_NAMES, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_ERA_NAMES, 0);
     } else if (kCFDateFormatterMonthSymbolsKey == key) {
 	if (formatter->_property._MonthSymbols) return CFRetain(formatter->_property._MonthSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_MONTHS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_MONTHS, 0);
     } else if (kCFDateFormatterShortMonthSymbolsKey == key) {
 	if (formatter->_property._ShortMonthSymbols) return CFRetain(formatter->_property._ShortMonthSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_SHORT_MONTHS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_SHORT_MONTHS, 0);
     } else if (kCFDateFormatterVeryShortMonthSymbolsKey == key) {
 	if (formatter->_property._VeryShortMonthSymbols) return CFRetain(formatter->_property._VeryShortMonthSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_NARROW_MONTHS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_NARROW_MONTHS, 0);
     } else if (kCFDateFormatterStandaloneMonthSymbolsKey == key) {
 	if (formatter->_property._StandaloneMonthSymbols) return CFRetain(formatter->_property._StandaloneMonthSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_STANDALONE_MONTHS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_STANDALONE_MONTHS, 0);
     } else if (kCFDateFormatterShortStandaloneMonthSymbolsKey == key) {
 	if (formatter->_property._ShortStandaloneMonthSymbols) return CFRetain(formatter->_property._ShortStandaloneMonthSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_STANDALONE_SHORT_MONTHS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_STANDALONE_SHORT_MONTHS, 0);
     } else if (kCFDateFormatterVeryShortStandaloneMonthSymbolsKey == key) {
 	if (formatter->_property._VeryShortStandaloneMonthSymbols) return CFRetain(formatter->_property._VeryShortStandaloneMonthSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_STANDALONE_NARROW_MONTHS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_STANDALONE_NARROW_MONTHS, 0);
     } else if (kCFDateFormatterWeekdaySymbolsKey == key) {
 	if (formatter->_property._WeekdaySymbols) return CFRetain(formatter->_property._WeekdaySymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_WEEKDAYS, 1);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_WEEKDAYS, 1);
     } else if (kCFDateFormatterShortWeekdaySymbolsKey == key) {
 	if (formatter->_property._ShortWeekdaySymbols) return CFRetain(formatter->_property._ShortWeekdaySymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_SHORT_WEEKDAYS, 1);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_SHORT_WEEKDAYS, 1);
     } else if (kCFDateFormatterVeryShortWeekdaySymbolsKey == key) {
 	if (formatter->_property._VeryShortWeekdaySymbols) return CFRetain(formatter->_property._VeryShortWeekdaySymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_NARROW_WEEKDAYS, 1);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_NARROW_WEEKDAYS, 1);
     } else if (kCFDateFormatterStandaloneWeekdaySymbolsKey == key) {
 	if (formatter->_property._StandaloneWeekdaySymbols) return CFRetain(formatter->_property._StandaloneWeekdaySymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_STANDALONE_WEEKDAYS, 1);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_STANDALONE_WEEKDAYS, 1);
     } else if (kCFDateFormatterShortStandaloneWeekdaySymbolsKey == key) {
 	if (formatter->_property._ShortStandaloneWeekdaySymbols) return CFRetain(formatter->_property._ShortStandaloneWeekdaySymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_STANDALONE_SHORT_WEEKDAYS, 1);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_STANDALONE_SHORT_WEEKDAYS, 1);
     } else if (kCFDateFormatterVeryShortStandaloneWeekdaySymbolsKey == key) {
 	if (formatter->_property._VeryShortStandaloneWeekdaySymbols) return CFRetain(formatter->_property._VeryShortStandaloneWeekdaySymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_STANDALONE_NARROW_WEEKDAYS, 1);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_STANDALONE_NARROW_WEEKDAYS, 1);
     } else if (kCFDateFormatterQuarterSymbolsKey == key) {
 	if (formatter->_property._QuarterSymbols) return CFRetain(formatter->_property._QuarterSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_QUARTERS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_QUARTERS, 0);
     } else if (kCFDateFormatterShortQuarterSymbolsKey == key) {
 	if (formatter->_property._ShortQuarterSymbols) return CFRetain(formatter->_property._ShortQuarterSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_SHORT_QUARTERS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_SHORT_QUARTERS, 0);
     } else if (kCFDateFormatterStandaloneQuarterSymbolsKey == key) {
 	if (formatter->_property._StandaloneQuarterSymbols) return CFRetain(formatter->_property._StandaloneQuarterSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_STANDALONE_QUARTERS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_STANDALONE_QUARTERS, 0);
     } else if (kCFDateFormatterShortStandaloneQuarterSymbolsKey == key) {
 	if (formatter->_property._ShortStandaloneQuarterSymbols) return CFRetain(formatter->_property._ShortStandaloneQuarterSymbols);
-        return __CFDateFormatterGetSymbolsArray(formatter->_df, UDAT_STANDALONE_SHORT_QUARTERS, 0);
+        return __CFDateFormatterCopySymbolsArray(formatter->_df, UDAT_STANDALONE_SHORT_QUARTERS, 0);
     } else if (kCFDateFormatterAMSymbolKey == key) {
 	if (formatter->_property._AMSymbol) return CFRetain(formatter->_property._AMSymbol);
         CFIndex cnt = __cficu_udat_countSymbols(formatter->_df, UDAT_AM_PMS);
