@@ -27,6 +27,8 @@ class TestNSDictionary : XCTestCase {
             ("test_ArrayConstruction", test_ArrayConstruction),
             ("test_description", test_description),
             ("test_enumeration", test_enumeration),
+            ("test_NSCopying", test_NSCopying),
+            ("test_NSMutableCopying", test_NSMutableCopying),
         ]
     }
         
@@ -100,5 +102,33 @@ class TestNSDictionary : XCTestCase {
             result[key as! String] = (value as! NSString).bridge()
         }
         XCTAssertEqual(result, ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"])
+    }
+    
+    func test_NSCopying() {
+        let dict1 : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"].bridge()
+        let dict2 : NSDictionary = dict1.copy() as! NSDictionary
+        XCTAssertEqual(dict1, dict2)
+        XCTAssert(dict1 === dict2, "dict1's copy should have returned self")
+        
+        // NSMutableDictionary copying
+        let mutDict1 = NSMutableDictionary(objects: ["bar".bridge(), "bang".bridge(), "trouble".bridge()], forKeys: ["foo".bridge(), "whiz".bridge(), "toil".bridge()])
+        let dict4 = mutDict1.copy() as! NSDictionary
+        XCTAssertEqual(mutDict1, dict4)
+        mutDict1.setObject("bubble".bridge(), forKey: "toil".bridge())
+        XCTAssertNotEqual(mutDict1, dict4)
+    }
+    
+    func test_NSMutableCopying() {
+        let dict1 : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"].bridge()
+        
+        let mutDict1 = dict1.mutableCopy() as! NSMutableDictionary
+        XCTAssertEqual(dict1, mutDict1)
+        
+        mutDict1.setObject("bubble".bridge(), forKey: "toil".bridge())
+        XCTAssertNotEqual(dict1, mutDict1)
+        let mutDict2 = mutDict1.mutableCopy() as! NSMutableDictionary
+        XCTAssertEqual(mutDict1, mutDict2)
+        mutDict1.setObject("baz".bridge(), forKey: "foo".bridge())
+        XCTAssertNotEqual(mutDict1, mutDict2)
     }
 }
