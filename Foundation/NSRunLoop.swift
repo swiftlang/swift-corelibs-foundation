@@ -49,6 +49,16 @@ public class NSRunLoop : NSObject {
     }
     
     public func limitDateForMode(mode: String) -> NSDate? {
+        if _cfRunLoop !== CFRunLoopGetCurrent() {
+            return nil
+        }
+        let modeArg = mode._cfObject
+        
+        CFRunLoopRunInMode(modeArg, -10.0, true) /* poll run loop to fire ready timers and performers, as used to be done here */
+        if _CFRunLoopFinished(_cfRunLoop, modeArg) {
+            return nil
+        }
+        
         let nextTimerFireAbsoluteTime = CFRunLoopGetNextTimerFireDate(CFRunLoopGetCurrent(), mode._cfObject)
         
         if (nextTimerFireAbsoluteTime == 0) {
@@ -59,7 +69,10 @@ public class NSRunLoop : NSObject {
     }
 
     public func acceptInputForMode(mode: String, beforeDate limitDate: NSDate) {
-        NSUnimplemented()
+        if _cfRunLoop !== CFRunLoopGetCurrent() {
+            return
+        }
+        CFRunLoopRunInMode(mode._cfObject, limitDate.timeIntervalSinceReferenceDate - CFAbsoluteTimeGetCurrent(), true)
     }
 
 }
@@ -67,20 +80,26 @@ public class NSRunLoop : NSObject {
 extension NSRunLoop {
     
     public func run() {
-        runUntilDate(NSDate.distantFuture());
+        while runMode(NSDefaultRunLoopMode, beforeDate: NSDate.distantFuture()) { }
     }
 
     public func runUntilDate(limitDate: NSDate) {
-        runMode(NSDefaultRunLoopMode, beforeDate: limitDate)
+        while runMode(NSDefaultRunLoopMode, beforeDate: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
     }
 
     public func runMode(mode: String, beforeDate limitDate: NSDate) -> Bool {
-        let runloopResult = CFRunLoopRunInMode(mode._cfObject, limitDate.timeIntervalSinceNow, false)
-#if os(Linux)
-        return runloopResult == Int32(kCFRunLoopRunHandledSource) || runloopResult == Int32(kCFRunLoopRunTimedOut)
-#else
-        return runloopResult == .HandledSource || runloopResult == .TimedOut
-#endif
+        if _cfRunLoop !== CFRunLoopGetCurrent() {
+            return false
+        }
+        let modeArg = mode._cfObject
+        if _CFRunLoopFinished(_cfRunLoop, modeArg) {
+            return false
+        }
+        
+        let limitTime = limitDate.timeIntervalSinceReferenceDate
+        let ti = limitTime - CFAbsoluteTimeGetCurrent()
+        CFRunLoopRunInMode(modeArg, ti, true)
+        return true
     }
 
 }

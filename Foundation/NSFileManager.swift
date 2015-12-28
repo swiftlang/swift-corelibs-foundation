@@ -181,7 +181,22 @@ public class NSFileManager : NSObject {
      */
     public func createDirectoryAtPath(path: String, withIntermediateDirectories createIntermediates: Bool, attributes: [String : AnyObject]?) throws {
         if createIntermediates {
-            NSUnimplemented()
+            var isDir: ObjCBool = false
+            if !fileExistsAtPath(path, isDirectory: &isDir) {
+                let parent = path._nsObject.stringByDeletingLastPathComponent
+                if !fileExistsAtPath(parent, isDirectory: &isDir) {
+                    try createDirectoryAtPath(parent, withIntermediateDirectories: true, attributes: attributes)
+                }
+                if mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
+                    throw _NSErrorWithErrno(errno, reading: false, path: path)
+                } else if let attr = attributes {
+                    try self.setAttributes(attr, ofItemAtPath: path)
+                }
+            } else if isDir {
+                return
+            } else {
+                throw _NSErrorWithErrno(EEXIST, reading: false, path: path)
+            }
         } else {
             if mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
@@ -567,7 +582,15 @@ public class NSFileManager : NSObject {
         var s = stat()
         if lstat(path, &s) >= 0 {
             if isDirectory != nil {
-                isDirectory.memory = (s.st_mode & S_IFMT) == S_IFDIR
+                if (s.st_mode & S_IFMT) == S_IFLNK {
+                    if stat(path, &s) >= 0 {
+                        isDirectory.memory = (s.st_mode & S_IFMT) == S_IFDIR
+                    } else {
+                        return false
+                    }
+                } else {
+                    isDirectory.memory = (s.st_mode & S_IFMT) == S_IFDIR
+                }
             }
 
             // don't chase the link for this magic case -- we might be /Net/foo

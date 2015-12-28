@@ -68,9 +68,20 @@ internal class NSThreadSpecific<T: AnyObject> {
     }
 }
 
+internal enum _NSThreadStatus {
+    case Initialized
+    case Starting
+    case Executing
+    case Finished
+}
+
 private func NSThreadStart(context: UnsafeMutablePointer<Void>) -> UnsafeMutablePointer<Void> {
     let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(COpaquePointer(context))
-    unmanaged.takeUnretainedValue().main()
+    let thread = unmanaged.takeUnretainedValue()
+    NSThread._currentThread.set(thread)
+    thread._status = _NSThreadStatus.Executing
+    thread.main()
+    thread._status = _NSThreadStatus.Finished
     unmanaged.release()
     return nil
 }
@@ -146,6 +157,9 @@ public class NSThread : NSObject {
     
     internal var _main: (Void) -> Void = {}
     internal var _thread = pthread_t()
+    internal var _attr = pthread_attr_t()
+    internal var _status = _NSThreadStatus.Initialized
+    internal var _cancelled = false
     /// - Note: this differs from the Darwin implementation in that the keys must be Strings
     public var threadDictionary = [String:AnyObject]()
     
@@ -158,14 +172,63 @@ public class NSThread : NSObject {
     }
     
     public func start() {
-        withUnsafeMutablePointer(&_thread) { thread in
+        precondition(_status == .Initialized, "attempting to start a thread that has already been started")
+        _status = .Starting
+        if _cancelled {
+            _status = .Finished
+            return
+        }
+        withUnsafeMutablePointers(&_thread, &_attr) { thread, attr in
             let ptr = Unmanaged.passRetained(self)
-            pthread_create(thread, nil, NSThreadStart, UnsafeMutablePointer(ptr.toOpaque()))
+            pthread_create(thread, attr, NSThreadStart, UnsafeMutablePointer(ptr.toOpaque()))
         }
     }
     
     public func main() {
-        NSThread._currentThread.set(self)
         _main()
+    }
+
+    public var stackSize: Int {
+        get {
+            var size: Int = 0
+            return withUnsafeMutablePointers(&_attr, &size) { attr, sz in
+                pthread_attr_getstacksize(attr, sz)
+                return sz.memory
+            }
+        }
+        set {
+            // just don't allow a stack size more than 1GB on any platform
+            var s = newValue
+            if (1 << 30) < s {
+                s = 1 << 30
+            }
+            withUnsafeMutablePointer(&_attr) { attr in
+                pthread_attr_setstacksize(attr, s)
+            }
+        }
+    }
+    
+    public var executing: Bool {
+        return _status == .Executing
+    }
+
+    public var finished: Bool {
+        return _status == .Finished
+    }
+    
+    public var cancelled: Bool {
+        return _cancelled
+    }
+    
+    public func cancel() {
+        _cancelled = true
+    }
+
+    public class func callStackReturnAddresses() -> [NSNumber] {
+        NSUnimplemented()
+    }
+    
+    public class func callStackSymbols() -> [String] {
+        NSUnimplemented()
     }
 }

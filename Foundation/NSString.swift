@@ -888,13 +888,19 @@ extension NSString {
     }
     
     public func getCString(buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferCount: Int, encoding: UInt) -> Bool {
+        var used = 0
         if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
             if _storage._core.isASCII {
-                let len = min(self.length, maxBufferCount)
+                used = min(self.length, maxBufferCount - 1)
                 buffer.moveAssignFrom(unsafeBitCast(_storage._core.startASCII, UnsafeMutablePointer<Int8>.self)
-                    , count: len)
+                    , count: used)
+                buffer.advancedBy(used).initialize(0)
                 return true
             }
+        }
+        if getBytes(UnsafeMutablePointer<Void>(buffer), maxLength: maxBufferCount, usedLength: &used, encoding: encoding, options: [], range: NSMakeRange(0, self.length), remainingRange: nil) {
+            buffer.advancedBy(used).initialize(0)
+            return true
         }
         return false
     }
@@ -909,7 +915,7 @@ extension NSString {
                 let lossyOk = options.contains(.AllowLossy)
                 let externalRep = options.contains(.ExternalRepresentation)
                 let failOnPartial = options.contains(.FailOnPartialEncodingConversion)
-                numCharsProcessed = __CFStringEncodeByteStream(_cfObject, range.location, range.length, externalRep, cfStringEncoding, lossyOk ? (encoding == NSASCIIStringEncoding ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(buffer), buffer == nil ? maxBufferCount : 0, &totalBytesWritten)
+                numCharsProcessed = __CFStringEncodeByteStream(_cfObject, range.location, range.length, externalRep, cfStringEncoding, lossyOk ? (encoding == NSASCIIStringEncoding ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(buffer), buffer != nil ? maxBufferCount : 0, &totalBytesWritten)
                 if (failOnPartial && numCharsProcessed < range.length) || numCharsProcessed == 0 {
                     result = false
                 }

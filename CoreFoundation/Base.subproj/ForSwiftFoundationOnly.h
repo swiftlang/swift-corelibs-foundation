@@ -270,6 +270,7 @@ extern void *_CFReallocf(void *ptr, size_t size);
 CFHashCode CFStringHashNSString(CFStringRef str);
 
 extern CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
+extern Boolean _CFRunLoopFinished(CFRunLoopRef rl, CFStringRef modeName);
 
 extern CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding, uint8_t lossByte,  UInt8 * _Nullable buffer, CFIndex max, CFIndex * _Nullable usedBufLen);
 
