@@ -526,11 +526,14 @@ public func NSHomeDirectoryForUser(user: String?) -> String? {
     var buffer = [Int8](count: bufSize, repeatedValue: 0)
     var result = UnsafeMutablePointer<passwd>.alloc(1)
 
+    var homeDir: String? = nil
     if getpwnam_r(usr, &info, &buffer, bufSize, &result) == 0 && info.pw_dir != nil {
-        return String.fromCString(info.pw_dir)
+        homeDir = String.fromCString(info.pw_dir)
     }
     
-    return nil
+    result.destroy(1)
+    
+    return homeDir
 }
 
 public func NSUserName() -> String {
