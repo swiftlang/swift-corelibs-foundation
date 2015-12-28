@@ -612,12 +612,10 @@ class TestNSString : XCTestCase {
     }
     
     func test_NSHomeDirectoryForUser() {
-        #if os(OSX)
         let homeDir = NSHomeDirectoryForUser(nil)
         let userName = NSUserName()
         let homeDir2 = NSHomeDirectoryForUser(userName)
         let homeDir3 = NSHomeDirectory()
         XCTAssert(homeDir != nil && homeDir == homeDir2 && homeDir == homeDir3, "Could get user' home directory")
-        #endif
     }
 }
