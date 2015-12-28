@@ -146,9 +146,7 @@ public class NSTask : NSObject {
     public var arguments: [String]?
     public var environment: [String : String]? // if not set, use current
     
-    #if os(OSX) || os(iOS)
     public var currentDirectoryPath: String = NSFileManager.defaultInstance.currentDirectoryPath
-    #endif
     
     // standard I/O channels; could be either an NSFileHandle or an NSPipe
     public var standardInput: AnyObject?
