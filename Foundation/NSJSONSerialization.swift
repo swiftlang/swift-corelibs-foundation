@@ -286,10 +286,9 @@ private struct JSONReader {
         func hasNext(input: Index) -> Bool {
             return input + step <= buffer.endIndex
         }
-
-        func distanceFromStart(index: Index) -> Int {
-            /// Keep track of deltas after decoding strings
-            return 0
+        
+        func distanceFromStart(index: Index) -> Index.Distance {
+            return buffer.startIndex.distanceTo(index) / step
         }
     }
 
