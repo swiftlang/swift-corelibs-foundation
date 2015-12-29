@@ -189,14 +189,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     
     public convenience init(objects: [AnyObject], forKeys keys: [NSObject]) {
         let keyBuffer = UnsafeMutablePointer<NSObject>.alloc(keys.count)
-        for idx in 0..<keys.count {
-            keyBuffer.advancedBy(idx).initialize(keys[idx])
-        }
+        keyBuffer.initializeFrom(keys)
+
         let valueBuffer = UnsafeMutablePointer<AnyObject>.alloc(objects.count)
-        for idx in 0..<objects.count {
-            valueBuffer.advancedBy(idx).initialize(objects[idx])
-        }
-        
+        valueBuffer.initializeFrom(objects)
+
         self.init(objects: valueBuffer, forKeys:keyBuffer, count: keys.count)
         
         keyBuffer.destroy(keys.count)
@@ -204,7 +201,19 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         keyBuffer.dealloc(keys.count)
         valueBuffer.dealloc(objects.count)
     }
-    
+
+    public override func isEqual(object: AnyObject?) -> Bool {
+        guard let otherObject = object where otherObject is NSDictionary else {
+            return false
+        }
+        let otherDictionary = otherObject as! NSDictionary
+        return self.isEqualToDictionary(otherDictionary.bridge())
+    }
+
+    public override var hash: Int {
+        return self.count
+    }
+
     public var allKeys: [AnyObject] {
         get {
             if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
