@@ -121,6 +121,18 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         buffer.dealloc(cnt)
     }
 
+    public override func isEqual(object: AnyObject?) -> Bool {
+        guard let otherObject = object where otherObject is NSArray else {
+            return false
+        }
+        let otherArray = otherObject as! NSArray
+        return self.isEqualToArray(otherArray.bridge())
+    }
+
+    public override var hash: Int {
+        return self.count
+    }
+
     internal var allObjects: [AnyObject] {
         get {
             if self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self {

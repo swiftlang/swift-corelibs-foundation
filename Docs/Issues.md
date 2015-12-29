@@ -4,7 +4,7 @@
 
 * NSDictionary, NSArray, NSSet and NSString are not yet implicitly convertible to Dictionary, Array, Set, and String. In order to translate between these types, we have temporarily added a protocol to these types that allows them to be converted. There is one method called `bridge()`.
 
-```
+```swift
 let myArray: NSArray = ["foo", "bar", "baz"].bridge()
 ```
 

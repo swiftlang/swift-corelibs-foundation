@@ -37,7 +37,8 @@ class TestNSArray : XCTestCase {
             ("test_arrayReplacement", test_arrayReplacement),
             ("test_arrayReplaceObjectsInRangeFromRange", test_arrayReplaceObjectsInRangeFromRange),
             ("test_sortUsingFunction", test_sortUsingFunction),
-            ("test_sortUsingComparator", test_sortUsingComparator)
+            ("test_sortUsingComparator", test_sortUsingComparator),
+            ("test_equality", test_equality),
         ]
     }
     
@@ -346,6 +347,26 @@ class TestNSArray : XCTestCase {
         mutableStringsInput1.sortUsingComparator(comparator)
         mutableStringsInput2.sortWithOptions([], usingComparator: comparator)
         XCTAssertTrue(mutableStringsInput1.isEqualToArray(mutableStringsInput2.bridge()))
+    }
+
+    func test_equality() {
+        let array1 = ["this", "is", "a", "test", "of", "equal", "with", "strings"].bridge()
+        let array2 = ["this", "is", "a", "test", "of", "equal", "with", "strings"].bridge()
+        let array3 = ["this", "is", "a", "test", "of", "equal", "with", "objects"].bridge()
+
+        XCTAssertTrue(array1 == array2)
+        XCTAssertTrue(array1.isEqual(array2))
+        XCTAssertTrue(array1.isEqualToArray(array2.bridge()))
+        // if 2 arrays are equal, hashes should be equal as well. But not vise versa
+        XCTAssertEqual(array1.hash, array2.hash)
+        XCTAssertEqual(array1.hashValue, array2.hashValue)
+
+        XCTAssertFalse(array1 == array3)
+        XCTAssertFalse(array1.isEqual(array3))
+        XCTAssertFalse(array1.isEqualToArray(array3.bridge()))
+
+        XCTAssertFalse(array1.isEqual(nil))
+        XCTAssertFalse(array1.isEqual(NSObject()))
     }
 
 }

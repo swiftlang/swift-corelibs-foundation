@@ -19,6 +19,12 @@
 
 class TestNSJSONSerialization : XCTestCase {
     
+    let supportedEncodings = [
+        NSUTF8StringEncoding,
+        NSUTF16LittleEndianStringEncoding, NSUTF16BigEndianStringEncoding,
+        NSUTF32LittleEndianStringEncoding, NSUTF32BigEndianStringEncoding
+    ]
+
     var allTests : [(String, () -> Void)] {
         return JSONObjectWithDataTests
             + deserializationTests
@@ -85,6 +91,8 @@ extension TestNSJSONSerialization {
             
             ("test_deserialize_emptyArray", test_deserialize_emptyArray),
             ("test_deserialize_multiStringArray", test_deserialize_multiStringArray),
+            ("test_deserialize_unicodeString", test_deserialize_unicodeString),
+            
             
             ("test_deserialize_values", test_deserialize_values),
             ("test_deserialize_numbers", test_deserialize_numbers),
@@ -92,6 +100,8 @@ extension TestNSJSONSerialization {
             ("test_deserialize_simpleEscapeSequences", test_deserialize_simpleEscapeSequences),
             ("test_deserialize_unicodeEscapeSequence", test_deserialize_unicodeEscapeSequence),
             ("test_deserialize_unicodeSurrogatePairEscapeSequence", test_deserialize_unicodeSurrogatePairEscapeSequence),
+
+            ("test_deserialize_allowFragments", test_deserialize_allowFragments),
             
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
@@ -124,13 +134,15 @@ extension TestNSJSONSerialization {
     func test_deserialize_multiStringObject() {
         let subject = "{ \"hello\": \"world\", \"swift\": \"rocks\" }"
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
-                XCTFail("Unable to convert string to data")
-                return
+            for encoding in [NSUTF8StringEncoding, NSUTF16BigEndianStringEncoding] {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [String: Any]
+                XCTAssertEqual(result?["hello"] as? String, "world")
+                XCTAssertEqual(result?["swift"] as? String, "rocks")
             }
-            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [String: Any]
-            XCTAssertEqual(result?["hello"] as? String, "world")
-            XCTAssertEqual(result?["swift"] as? String, "rocks")
         } catch {
             XCTFail("Error thrown: \(error)")
         }
@@ -156,13 +168,35 @@ extension TestNSJSONSerialization {
         let subject = "[\"hello\", \"swift⚡️\"]"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
-                XCTFail("Unable to convert string to data")
-                return
+            for encoding in [NSUTF8StringEncoding, NSUTF16BigEndianStringEncoding] {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                XCTAssertEqual(result?[0] as? String, "hello")
+                XCTAssertEqual(result?[1] as? String, "swift⚡️")
             }
-            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? String, "hello")
-            XCTAssertEqual(result?[1] as? String, "swift⚡️")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_unicodeString() {
+        /// Ģ has the same LSB as quotation mark " (U+0022) so test guarding against this case
+        let subject = "[\"unicode\", \"Ģ\", \"😢\"]"
+        
+        do {
+            for encoding in [NSUTF16LittleEndianStringEncoding, NSUTF16BigEndianStringEncoding, NSUTF32LittleEndianStringEncoding, NSUTF32BigEndianStringEncoding] {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                XCTAssertEqual(result?[0] as? String, "unicode")
+                XCTAssertEqual(result?[1] as? String, "Ģ")
+                XCTAssertEqual(result?[2] as? String, "😢")
+            }
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -173,17 +207,19 @@ extension TestNSJSONSerialization {
         let subject = "[true, false, \"hello\", null, {}, []]"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
-                XCTFail("Unable to convert string to data")
-                return
+            for encoding in supportedEncodings {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                XCTAssertEqual(result?[0] as? Bool, true)
+                XCTAssertEqual(result?[1] as? Bool, false)
+                XCTAssertEqual(result?[2] as? String, "hello")
+                XCTAssertNotNil(result?[3] as? NSNull)
+                XCTAssertNotNil(result?[4] as? [String:Any])
+                XCTAssertNotNil(result?[5] as? [Any])
             }
-            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? Bool, true)
-            XCTAssertEqual(result?[1] as? Bool, false)
-            XCTAssertEqual(result?[2] as? String, "hello")
-            XCTAssertNotNil(result?[3] as? NSNull)
-            XCTAssertNotNil(result?[4] as? [String:Any])
-            XCTAssertNotNil(result?[5] as? [Any])
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -194,17 +230,19 @@ extension TestNSJSONSerialization {
         let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
-                XCTFail("Unable to convert string to data")
-                return
+            for encoding in supportedEncodings {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                XCTAssertEqual(result?[0] as? Double,     1)
+                XCTAssertEqual(result?[1] as? Double,    -1)
+                XCTAssertEqual(result?[2] as? Double,   1.3)
+                XCTAssertEqual(result?[3] as? Double,  -1.3)
+                XCTAssertEqual(result?[4] as? Double,  1000)
+                XCTAssertEqual(result?[5] as? Double, 0.001)
             }
-            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? Double,     1)
-            XCTAssertEqual(result?[1] as? Double,    -1)
-            XCTAssertEqual(result?[2] as? Double,   1.3)
-            XCTAssertEqual(result?[3] as? Double,  -1.3)
-            XCTAssertEqual(result?[4] as? Double,  1000)
-            XCTAssertEqual(result?[5] as? Double, 0.001)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -256,6 +294,23 @@ extension TestNSJSONSerialization {
             }
             let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
             XCTAssertEqual(result?[0] as? String, "\u{1D11E}")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_allowFragments() {
+        let subject = "3"
+        
+        do {
+            for encoding in supportedEncodings {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as? Double
+                XCTAssertEqual(result, 3)
+            }
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
