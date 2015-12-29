@@ -53,6 +53,9 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public func objectAtIndex(idx: Int) -> AnyObject {
+        guard idx < count && idx >= 0 else {
+            fatalError("\(self): Index out of bounds")
+        }
         var nextEntry = _headEntry
         for _ in 0..<idx {
             nextEntry = nextEntry?.nextEntry
@@ -147,8 +150,11 @@ extension NSOrderedSet {
 
     public func objectsAtIndexes(indexes: NSIndexSet) -> [AnyObject]{
         var entries = [AnyObject]()
-        for index in indexes {
-            entries.append(objectAtIndex(index))
+        for idx in indexes {
+            if idx >= count && idx < 0 {
+                fatalError("\(self): Index out of bounds")
+            }
+            entries.append(objectAtIndex(idx))
         }
         return entries
     }
