@@ -109,20 +109,6 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         _entries[object] = entry
     }
 
-    private func _removeEntry(object: AnyObject) {
-        guard containsObject(object), let object = object as? NSObject, entry = _entries[object] else {
-            return
-        }
-
-        entry.previousEntry?.nextEntry = entry.nextEntry
-        entry.nextEntry?.previousEntry = entry.previousEntry
-
-        _entries.removeValueForKey(object)
-        if entry === _headEntry! {
-            _headEntry = nil
-        }
-    }
-
     private func _insertEntries(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
         let buffer = UnsafeBufferPointer(start: objects, count: cnt)
         for obj in buffer {
@@ -308,6 +294,20 @@ public class NSMutableOrderedSet : NSOrderedSet {
     }
 
     public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
+
+    private func _removeEntry(object: AnyObject) {
+      guard containsObject(object), let object = object as? NSObject, entry = _entries[object] else {
+        return
+      }
+
+      entry.previousEntry?.nextEntry = entry.nextEntry
+      entry.nextEntry?.previousEntry = entry.previousEntry
+
+      _entries.removeValueForKey(object)
+      if entry === _headEntry! {
+        _headEntry = nil
+      }
+    }
 }
 
 extension NSMutableOrderedSet {
