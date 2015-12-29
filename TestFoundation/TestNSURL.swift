@@ -402,18 +402,6 @@ class TestNSURL : XCTestCase {
             XCTAssertEqual(result, "file:///tmp/")
         }
     }
-    
-    private func ensureFiles(fileNames: [String]) -> Bool {
-        var result = true
-        for name in fileNames {
-            guard !NSFileManager.defaultManager().fileExistsAtPath(name) else {
-                continue
-            }
-            
-            result = result && NSFileManager.defaultManager().createFileAtPath(name, contents: nil, attributes: nil)
-        }
-        return result
-    }
 }
     
 class TestNSURLComponents : XCTestCase {
