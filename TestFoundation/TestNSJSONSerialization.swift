@@ -100,6 +100,8 @@ extension TestNSJSONSerialization {
             ("test_deserialize_simpleEscapeSequences", test_deserialize_simpleEscapeSequences),
             ("test_deserialize_unicodeEscapeSequence", test_deserialize_unicodeEscapeSequence),
             ("test_deserialize_unicodeSurrogatePairEscapeSequence", test_deserialize_unicodeSurrogatePairEscapeSequence),
+
+            ("test_deserialize_allowFragments", test_deserialize_allowFragments),
             
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
@@ -292,6 +294,23 @@ extension TestNSJSONSerialization {
             }
             let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
             XCTAssertEqual(result?[0] as? String, "\u{1D11E}")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func test_deserialize_allowFragments() {
+        let subject = "3"
+        
+        do {
+            for encoding in supportedEncodings {
+                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as? Double
+                XCTAssertEqual(result, 3)
+            }
         } catch {
             XCTFail("Unexpected error: \(error)")
         }

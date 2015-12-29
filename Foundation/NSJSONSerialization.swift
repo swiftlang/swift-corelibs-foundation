@@ -126,6 +126,9 @@ public class NSJSONSerialization : NSObject {
         else if let (array, _) = try reader.parseArray(0) {
             return array
         }
+        else if opt.contains(.AllowFragments), let (value, _) = try reader.parseValue(0) {
+            return value
+        }
         throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
             "NSDebugDescription" : "JSON text did not start with array or object and option to allow fragments not set."
         ])
