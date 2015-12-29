@@ -7,19 +7,119 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
 public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    
+
+    private static var SideTable = [ObjectIdentifier : NSConcreteValue]()
+    private static var SideTableLock = NSLock()
+
     internal override init() {
-        
+        super.init()
+        // on Darwin [NSValue new] returns nil
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        
+    // because we cannot support the class cluster pattern owing to a lack of
+    // factory initialization methods, we maintain a sidetable mapping instances
+    // of NSValue to NSConcreteValue
+    private var _concreteValue: NSConcreteValue {
+        get {
+            return NSValue.SideTableLock.synchronized {
+                return NSValue.SideTable[ObjectIdentifier(self)]!
+            }
+        }
+        set {
+            NSValue.SideTableLock.synchronized {
+                NSValue.SideTable[ObjectIdentifier(self)] = newValue
+            }
+        }
+    }
+    
+    deinit {
+        if self.dynamicType == NSValue.self {
+            NSValue.SideTableLock.synchronized {
+                NSValue.SideTable[ObjectIdentifier(self)] = nil
+            }
+        }
+    }
+    
+    public override var hash: Int {
+        get {
+            if self.dynamicType == NSValue.self {
+                return _concreteValue.hash
+            } else {
+                return super.hash
+            }
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if self === object {
+            return true
+        } else if self.dynamicType == NSValue.self && object?.dynamicType == NSValue.self {
+            // bypass _concreteValue accessor in order to avoid acquiring lock twice
+            let (lhs, rhs) = NSValue.SideTableLock.synchronized {
+                return (NSValue.SideTable[ObjectIdentifier(self)]!,
+                        NSValue.SideTable[ObjectIdentifier(object!)]!)
+            }
+            return lhs.isEqual(rhs)
+        } else {
+            return super.isEqual(object)
+        }
+    }
+    
+    public override var description : String {
+        get {
+            if self.dynamicType == NSValue.self {
+                return _concreteValue.description
+            } else {
+                return super.description
+            }
+        }
+    }
+    
+    public func getValue(value: UnsafeMutablePointer<Void>) {
+        if self.dynamicType == NSValue.self {
+            return _concreteValue.getValue(value)
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+    
+    public var objCType: UnsafePointer<Int8> {
+        if self.dynamicType == NSValue.self {
+            return _concreteValue.objCType
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+    
+    public convenience required init(bytes value: UnsafePointer<Void>, objCType type: UnsafePointer<Int8>) {
+        if self.dynamicType == NSValue.self {
+            self.init()
+            self._concreteValue = NSConcreteValue(bytes: value, objCType: type)
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+    
+    public convenience required init?(coder aDecoder: NSCoder) {
+        if self.dynamicType == NSValue.self {
+            self.init()
+            if let concreteValue = NSConcreteValue(coder: aDecoder) {
+                self._concreteValue = concreteValue
+            } else {
+                return nil
+            }
+        } else {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        if self.dynamicType == NSValue.self {
+            _concreteValue.encodeWithCoder(aCoder)
+        } else {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     public static func supportsSecureCoding() -> Bool {
