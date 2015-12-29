@@ -30,6 +30,11 @@ class TestNSOrderedSet : XCTestCase {
             ("test_ObjectsAtIndexes", test_ObjectsAtIndexes),
             ("test_GetObjects", test_GetObjects),
             ("test_FirstAndLastObjects", test_FirstAndLastObjects),
+            ("test_AddObject", test_AddObject),
+            ("test_AddObjects", test_AddObjects),
+            ("test_RemoveAllObjects", test_RemoveAllObjects),
+            ("test_RemoveObject", test_RemoveObject),
+            ("test_RemoveObjectAtIndex", test_RemoveObjectAtIndex),
         ]
     }
 
@@ -88,5 +93,46 @@ class TestNSOrderedSet : XCTestCase {
         let set = NSOrderedSet(array: ["foo", "bar", "baz"].bridge().bridge())
         XCTAssertEqual(set.firstObject as? NSString, "foo")
         XCTAssertEqual(set.lastObject as? NSString, "baz")
+    }
+
+    func test_AddObject() {
+        let set = NSMutableOrderedSet()
+        set.addObject("1".bridge())
+        set.addObject("2".bridge())
+        XCTAssertEqual(set[0] as? NSString, "1")
+        XCTAssertEqual(set[1] as? NSString, "2")
+    }
+
+    func test_AddObjects() {
+        let set = NSMutableOrderedSet()
+        set.addObjectsFromArray(["foo", "bar", "baz"].bridge().bridge())
+        XCTAssertEqual(set.objectAtIndex(0) as? NSString, "foo")
+        XCTAssertEqual(set.objectAtIndex(1) as? NSString, "bar")
+        XCTAssertEqual(set.objectAtIndex(2) as? NSString, "baz")
+    }
+
+    func test_RemoveAllObjects() {
+        let set = NSMutableOrderedSet()
+        set.addObjectsFromArray(["foo", "bar", "baz"].bridge().bridge())
+        XCTAssertEqual(set.indexOfObject("foo" as NSString), 0)
+        set.removeAllObjects()
+        XCTAssertEqual(set.count, 0)
+        XCTAssertEqual(set.indexOfObject("foo" as NSString), NSNotFound)
+    }
+
+    func test_RemoveObject() {
+        let set = NSMutableOrderedSet()
+        set.addObjectsFromArray(["foo", "bar", "baz"].bridge().bridge())
+        set.removeObject("bar" as NSString)
+        XCTAssertEqual(set.count, 2)
+        XCTAssertEqual(set.indexOfObject("baz" as NSString), 1)
+    }
+
+    func test_RemoveObjectAtIndex() {
+        let set = NSMutableOrderedSet()
+        set.addObjectsFromArray(["foo", "bar", "baz"].bridge().bridge())
+        set.removeObjectAtIndex(1)
+        XCTAssertEqual(set.count, 2)
+        XCTAssertEqual(set.indexOfObject("baz" as NSString), 1)
     }
 }

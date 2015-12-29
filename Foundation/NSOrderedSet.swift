@@ -53,20 +53,17 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public func objectAtIndex(idx: Int) -> AnyObject {
-        guard idx < count && idx >= 0 else {
-            fatalError("\(self): Index out of bounds")
-        }
-        var nextEntry = _headEntry
-        for _ in 0..<idx {
-            nextEntry = nextEntry?.nextEntry
-        }
-        return nextEntry!.object
+        return _entryAtIndex(idx).object
     }
 
     public func indexOfObject(object: AnyObject) -> Int {
+        guard let object = object as? NSObject else {
+            return NSNotFound
+        }
+
         var nextEntry = _headEntry
         for idx in 0...count {
-            if nextEntry!.object == object as! NSObject {
+            if let nextObject = nextEntry?.object where nextObject == object {
                 return idx
             }
             nextEntry = nextEntry?.nextEntry
@@ -80,30 +77,31 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
 
     public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
         _entries = [NSObject: _NSOrderedSetEntry]()
+
         super.init()
-        let buffer = UnsafeBufferPointer(start: objects, count: cnt)
-        for obj in buffer {
-            _insertEntry(obj as! NSObject)
-        }
+
+        _insertEntries(objects, count: cnt)
     }
     
     required public convenience init(arrayLiteral elements: AnyObject...) { NSUnimplemented() }
     public convenience init(objects elements: AnyObject...) { NSUnimplemented() }
     
-    public subscript (idx: Int) -> AnyObject { NSUnimplemented() }
+    public subscript (idx: Int) -> AnyObject {
+        return objectAtIndex(idx)
+    }
 
-    private func _insertEntry(object: NSObject) {
-        if _entries[object] != nil {
-            return;
+    private func _insertEntry(object: AnyObject, beforeEntry: _NSOrderedSetEntry?) {
+        guard !containsObject(object), let object = object as? NSObject else {
+            return
         }
 
         let entry = _entryWithObject(object)
 
-        let previousEntry = _headEntry?.previousEntry ?? _headEntry
+        let previousEntry = beforeEntry?.previousEntry ?? _headEntry
         entry.previousEntry = previousEntry
         previousEntry?.nextEntry = entry
 
-        _headEntry?.previousEntry = entry
+        beforeEntry?.previousEntry = entry
         if _headEntry == nil {
             _headEntry = entry
         }
@@ -111,8 +109,41 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         _entries[object] = entry
     }
 
+    private func _removeEntry(object: AnyObject) {
+        guard containsObject(object), let object = object as? NSObject, entry = _entries[object] else {
+            return
+        }
+
+        entry.previousEntry?.nextEntry = entry.nextEntry
+        entry.nextEntry?.previousEntry = entry.previousEntry
+
+        _entries.removeValueForKey(object)
+        if entry === _headEntry! {
+            _headEntry = nil
+        }
+    }
+
+    private func _insertEntries(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
+        let buffer = UnsafeBufferPointer(start: objects, count: cnt)
+        for obj in buffer {
+            _insertEntry(obj!, beforeEntry: _headEntry)
+        }
+    }
+
     private func _entryWithObject(object: NSObject) -> _NSOrderedSetEntry {
         return _NSOrderedSetEntry(object: object)
+    }
+
+    private func _entryAtIndex(idx: Int) -> _NSOrderedSetEntry {
+        guard idx < count && idx >= 0 else {
+            fatalError("\(self): Index out of bounds")
+        }
+
+        var nextEntry = _headEntry
+        for _ in 0..<idx {
+            nextEntry = nextEntry?.nextEntry
+        }
+        return nextEntry!
     }
 }
 
@@ -169,7 +200,13 @@ extension NSOrderedSet {
     
     public func isEqualToOrderedSet(other: NSOrderedSet) -> Bool { NSUnimplemented() }
     
-    public func containsObject(object: AnyObject) -> Bool { NSUnimplemented() }
+    public func containsObject(object: AnyObject) -> Bool {
+        if let object = object as? NSObject {
+            return _entries[object] != nil
+        }
+        return false
+    }
+
     public func intersectsOrderedSet(other: NSOrderedSet) -> Bool { NSUnimplemented() }
     public func intersectsSet(set: Set<NSObject>) -> Bool { NSUnimplemented() }
     
@@ -242,22 +279,52 @@ extension NSOrderedSet {
 
 public class NSMutableOrderedSet : NSOrderedSet {
     
-    public func insertObject(object: AnyObject, atIndex idx: Int) { NSUnimplemented() }
-    public func removeObjectAtIndex(idx: Int) { NSUnimplemented() }
+    public func insertObject(object: AnyObject, atIndex idx: Int) {
+        guard idx < count && idx >= 0 else {
+            fatalError("\(self): Index out of bounds")
+        }
+
+        if containsObject(object) {
+            return
+        }
+
+        let entryAtIndex = _entryAtIndex(idx)
+        _insertEntry(object, beforeEntry: entryAtIndex)
+    }
+
+    public func removeObjectAtIndex(idx: Int) {
+        removeObject(objectAtIndex(idx))
+    }
+
     public func replaceObjectAtIndex(idx: Int, withObject object: AnyObject) { NSUnimplemented() }
-    public init(capacity numItems: Int) { NSUnimplemented() }
-    
-    required public convenience init(arrayLiteral elements: AnyObject...) { NSUnimplemented() }
+    public init(capacity numItems: Int) {
+        super.init(objects: nil, count: 0)
+    }
+
+    required public convenience init(arrayLiteral elements: AnyObject...) {
+        self.init(capacity: 0)
+
+        addObjectsFromArray(elements)
+    }
+
     public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
-    
-    public override subscript (idx: Int) -> AnyObject { NSUnimplemented() }
 }
 
 extension NSMutableOrderedSet {
     
-    public func addObject(object: AnyObject) { NSUnimplemented() }
-    public func addObjects(objects: UnsafePointer<AnyObject?>, count: Int) { NSUnimplemented() }
-    public func addObjectsFromArray(array: [AnyObject]) { NSUnimplemented() }
+    public func addObject(object: AnyObject) {
+        _insertEntry(object, beforeEntry: _headEntry)
+    }
+
+    public func addObjects(objects: UnsafePointer<AnyObject?>, count: Int) {
+        _insertEntries(objects, count: count)
+    }
+
+    public func addObjectsFromArray(array: [AnyObject]) {
+        for object in array {
+            _insertEntry(object, beforeEntry: _headEntry)
+        }
+    }
     
     public func exchangeObjectAtIndex(idx1: Int, withObjectAtIndex idx2: Int) { NSUnimplemented() }
     public func moveObjectsAtIndexes(indexes: NSIndexSet, toIndex idx: Int) { NSUnimplemented() }
@@ -271,10 +338,19 @@ extension NSMutableOrderedSet {
     
     public func removeObjectsInRange(range: NSRange) { NSUnimplemented() }
     public func removeObjectsAtIndexes(indexes: NSIndexSet) { NSUnimplemented() }
-    public func removeAllObjects() { NSUnimplemented() }
+
+    public func removeAllObjects() {
+        _entries.removeAll()
+        _headEntry = nil
+    }
     
-    public func removeObject(object: AnyObject) { NSUnimplemented() }
-    public func removeObjectsInArray(array: [AnyObject]) { NSUnimplemented() }
+    public func removeObject(object: AnyObject) {
+        _removeEntry(object)
+    }
+
+    public func removeObjectsInArray(array: [AnyObject]) {
+        array.forEach(removeObject)
+    }
     
     public func intersectOrderedSet(other: NSOrderedSet) { NSUnimplemented() }
     public func minusOrderedSet(other: NSOrderedSet) { NSUnimplemented() }
