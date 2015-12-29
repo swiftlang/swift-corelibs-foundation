@@ -98,23 +98,23 @@ private func managerThreadSetup() -> Void {
 
 
 // Equal method for run loop source
-private func nstaskIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> DarwinBoolean {
+private func nstaskIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> Bool {
     
     let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
     guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
-        return DarwinBoolean( false )
+        return false
     }
     
     let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
     guard let taskB = unmanagedTaskB.takeUnretainedValue() as? NSTask else {
-        return DarwinBoolean( false )
+        return false
     }
     
     guard taskA == taskB else {
-        return DarwinBoolean( false )
+        return false
     }
     
-    return DarwinBoolean( true )
+    return true
 }
 
 // Retain method for run loop source

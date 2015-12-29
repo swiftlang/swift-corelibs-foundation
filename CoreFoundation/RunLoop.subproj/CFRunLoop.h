@@ -97,7 +97,11 @@ typedef struct {
     const void *(*retain)(const void *info);
     void	(*release)(const void *info);
     CFStringRef	(*copyDescription)(const void *info);
-    Boolean	(*equal)(const void *info1, const void *info2);
+#if DEPLOYMENT_RUNTIME_SWIFT
+    _Bool (*equal)(const void *info1, const void *info2);
+#else
+    Boolean (*equal)(const void *info1, const void *info2);
+#endif
     CFHashCode	(*hash)(const void *info);
     void	(*schedule)(void *info, CFRunLoopRef rl, CFStringRef mode);
     void	(*cancel)(void *info, CFRunLoopRef rl, CFStringRef mode);
@@ -110,7 +114,11 @@ typedef struct {
     const void *(*retain)(const void *info);
     void	(*release)(const void *info);
     CFStringRef	(*copyDescription)(const void *info);
-    Boolean	(*equal)(const void *info1, const void *info2);
+#if DEPLOYMENT_RUNTIME_SWIFT
+    _Bool (*equal)(const void *info1, const void *info2);
+#else
+    Boolean (*equal)(const void *info1, const void *info2);
+#endif
     CFHashCode	(*hash)(const void *info);
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
     mach_port_t	(*getPort)(void *info);
