@@ -7,9 +7,20 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+internal class _NSOrderedSetEntry {
+    let object: NSObject
+    var previousEntry: _NSOrderedSetEntry?
+    var nextEntry: _NSOrderedSetEntry?
+
+    init(object: NSObject) {
+        self.object = object
+    }
+}
 
 /****************       Immutable Ordered Set   ****************/
 public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ArrayLiteralConvertible {
+    internal var _entries: [NSObject: _NSOrderedSetEntry]
+    internal var _headEntry: _NSOrderedSetEntry?
     
     public override func copy() -> AnyObject {
         return copyWithZone(nil)
@@ -37,34 +48,118 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     
     public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
     
-    public var count: Int { NSUnimplemented() }
-    public func objectAtIndex(idx: Int) -> AnyObject { NSUnimplemented() }
-    public func indexOfObject(object: AnyObject) -> Int { NSUnimplemented() }
-    public override init() { NSUnimplemented() }
-    public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) { NSUnimplemented() }
+    public var count: Int {
+        return _entries.count
+    }
+
+    public func objectAtIndex(idx: Int) -> AnyObject {
+        var nextEntry = _headEntry
+        for _ in 0..<idx {
+            nextEntry = nextEntry?.nextEntry
+        }
+        return nextEntry!.object
+    }
+
+    public func indexOfObject(object: AnyObject) -> Int {
+        var nextEntry = _headEntry
+        for idx in 0...count {
+            if nextEntry!.object == object as! NSObject {
+                return idx
+            }
+            nextEntry = nextEntry?.nextEntry
+        }
+        return NSNotFound
+    }
+
+    public convenience override init() {
+        self.init(objects: nil, count: 0)
+    }
+
+    public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
+        _entries = [NSObject: _NSOrderedSetEntry]()
+        super.init()
+        let buffer = UnsafeBufferPointer(start: objects, count: cnt)
+        for obj in buffer {
+            _insertEntry(obj as! NSObject)
+        }
+    }
     
     required public convenience init(arrayLiteral elements: AnyObject...) { NSUnimplemented() }
     public convenience init(objects elements: AnyObject...) { NSUnimplemented() }
     
     public subscript (idx: Int) -> AnyObject { NSUnimplemented() }
+
+    private func _insertEntry(object: NSObject) {
+        if _entries[object] != nil {
+            return;
+        }
+
+        let entry = _entryWithObject(object)
+
+        let previousEntry = _headEntry?.previousEntry ?? _headEntry
+        entry.previousEntry = previousEntry
+        previousEntry?.nextEntry = entry
+
+        _headEntry?.previousEntry = entry
+        if _headEntry == nil {
+            _headEntry = entry
+        }
+
+        _entries[object] = entry
+    }
+
+    private func _entryWithObject(object: NSObject) -> _NSOrderedSetEntry {
+        return _NSOrderedSetEntry(object: object)
+    }
 }
 
-// TODO
-/*
+
 extension NSOrderedSet : SequenceType {
     /// Return a *generator* over the elements of this *sequence*.
     ///
     /// - Complexity: O(1).
-    public func generate() -> NSFastGenerator { NSUnimplemented() }
+    public func generate() -> AnyGenerator<AnyObject> {
+        var current = _headEntry
+
+        return AnyGenerator() {
+            let returnValue = current
+            current = current?.nextEntry
+
+            if let returnValue = returnValue {
+                return returnValue.object
+            }
+            return nil
+        }
+    }
 }
-*/
 
 extension NSOrderedSet {
 
-    public func getObjects(inout objects: [AnyObject], range: NSRange) { NSUnimplemented() }
-    public func objectsAtIndexes(indexes: NSIndexSet) -> [AnyObject]{ NSUnimplemented() }
-    public var firstObject: AnyObject? { NSUnimplemented() }
-    public var lastObject: AnyObject? { NSUnimplemented() }
+    public func getObjects(inout objects: [AnyObject], range: NSRange) {
+        var nextEntry = _headEntry
+        for idx in 0..<(range.location + range.length) {
+            if idx >= range.location {
+                objects.append(nextEntry!.object)
+            }
+            nextEntry = nextEntry?.nextEntry
+        }
+    }
+
+    public func objectsAtIndexes(indexes: NSIndexSet) -> [AnyObject]{
+        var entries = [AnyObject]()
+        for index in indexes {
+            entries.append(objectAtIndex(index))
+        }
+        return entries
+    }
+
+    public var firstObject: AnyObject? {
+        return _headEntry?.object
+    }
+
+    public var lastObject: AnyObject? {
+        return _headEntry?.previousEntry?.object
+    }
     
     public func isEqualToOrderedSet(other: NSOrderedSet) -> Bool { NSUnimplemented() }
     
@@ -112,12 +207,24 @@ extension NSOrderedSet {
 
 extension NSOrderedSet {
     
-    public convenience init(object: AnyObject) { NSUnimplemented() }
+    public convenience init(object: AnyObject) {
+        self.init(array: [object])
+    }
     
     public convenience init(orderedSet set: NSOrderedSet) { NSUnimplemented() }
     public convenience init(orderedSet set: NSOrderedSet, copyItems flag: Bool) { NSUnimplemented() }
     public convenience init(orderedSet set: NSOrderedSet, range: NSRange, copyItems flag: Bool) { NSUnimplemented() }
-    public convenience init(array: [AnyObject]) { NSUnimplemented() }
+
+    public convenience init(array: [AnyObject]) {
+        let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
+        for (idx, element) in array.enumerate() {
+            buffer.advancedBy(idx).initialize(element)
+        }
+        self.init(objects: buffer, count: array.count)
+        buffer.destroy(array.count)
+        buffer.dealloc(array.count)
+    }
+
     public convenience init(array set: [AnyObject], copyItems flag: Bool) { NSUnimplemented() }
     public convenience init(array set: [AnyObject], range: NSRange, copyItems flag: Bool) { NSUnimplemented() }
     public convenience init(set: Set<NSObject>) { NSUnimplemented() }
