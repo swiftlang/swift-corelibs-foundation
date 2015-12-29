@@ -236,3 +236,62 @@ internal protocol _NSBridgable {
     var _nsObject: NSType { get }
 }
 
+#if os(OSX) || os(iOS)
+private let _SwiftFoundationModuleName = "SwiftFoundation"
+#else
+private let _SwiftFoundationModuleName = "Foundation"
+#endif
+
+/**
+    Returns the class name for a class. For compatibility with Foundation on Darwin,
+    Foundation classes are returned as unqualified names.
+ 
+    Only top-level Swift classes (Foo.bar) are supported at present. There is no
+    canonical encoding for other types yet, except for the mangled name, which is
+    neither stable nor human-readable.
+ */
+public func NSStringFromClass(aClass: AnyClass) -> String {
+    let aClassName = String(reflecting: aClass).bridge()
+    let components = aClassName.componentsSeparatedByString(".")
+    
+    guard components.count == 2 else {
+        fatalError("NSStringFromClass: \(String(reflecting: aClass)) is not a top-level class")
+    }
+    
+    if components[0] == _SwiftFoundationModuleName {
+        return components[1]
+    } else {
+        return String(aClassName)
+    }
+}
+
+/**
+    Returns the class metadata given a string. For compatibility with Foundation on Darwin,
+    unqualified names are looked up in the Foundation module.
+ 
+    Only top-level Swift classes (Foo.bar) are supported at present. There is no
+    canonical encoding for other types yet, except for the mangled name, which is
+    neither stable nor human-readable.
+ */
+public func NSClassFromString(aClassName: String) -> AnyClass? {
+    let aClassNameWithPrefix : String
+    let components = aClassName.bridge().componentsSeparatedByString(".")
+    
+    switch components.count {
+    case 1:
+        guard !aClassName.hasPrefix("_Tt") else {
+            NSLog("*** NSClassFromString(\(aClassName)): cannot yet decode mangled class names")
+            return nil
+        }
+        aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
+        break
+    case 2:
+        aClassNameWithPrefix = aClassName
+        break
+    default:
+        NSLog("*** NSClassFromString(\(aClassName)): nested class names not yet supported")
+        return nil
+    }
+    
+    return _typeByName(aClassNameWithPrefix) as? AnyClass
+}
