@@ -54,7 +54,8 @@ class TestNSString : XCTestCase {
             ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
             ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser),
             ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath),
-            ("test_stringByExpandingTildeInPath", test_stringByExpandingTildeInPath)
+            ("test_stringByExpandingTildeInPath", test_stringByExpandingTildeInPath),
+            ("test_stringByStandardizingPath", test_stringByStandardizingPath)
         ]
     }
 
@@ -686,6 +687,59 @@ class TestNSString : XCTestCase {
             let path = NSString(string: "~\(userName)/")
             let result = path.stringByExpandingTildeInPath
             XCTAssert(result == "~\(userName)", "Return copy of reciver if home directory could no be resolved.")
+        }
+    }
+    
+    func test_stringByStandardizingPath() {
+        
+        // tmp is special because it is symlinked to /private/tmp and this /private prefix should be dropped,
+        // so tmp is tmp. On Linux tmp is not symlinked so it would be the same.
+        do {
+            let path: NSString = "/.//tmp/ABC/.."
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, "/tmp", "stringByStandardizingPath removes extraneous path components and resolve symlinks.")
+        }
+        
+        do {
+            let path: NSString =  "~"
+            let result = path.stringByStandardizingPath
+            let expected = NSHomeDirectory()
+            XCTAssertEqual(result, expected, "stringByStandardizingPath expanding initial tilde.")
+        }
+        
+        do {
+            let path: NSString =  "~/foo/bar/"
+            let result = path.stringByStandardizingPath
+            let expected = NSHomeDirectory() + "/foo/bar"
+            XCTAssertEqual(result, expected, "stringByStandardizingPath expanding initial tilde.")
+        }
+        
+        // relative file paths depend on file path standardizing that is not yet implemented
+        do {
+            let path: NSString = "foo/bar"
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, path.bridge(), "stringByStandardizingPath doesn't resolve relative paths")
+        }
+        
+        // tmp is symlinked on OS X only
+        #if os(OSX)
+        do {
+            let path: NSString = "/tmp/.."
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, "/private")
+        }
+        #endif
+        
+        do {
+            let path: NSString = "/tmp/ABC/.."
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, "/tmp", "parent links could be resolved for absolute paths")
+        }
+        
+        do {
+            let path: NSString = "tmp/ABC/.."
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, path.bridge(), "parent links could not be resolved for relative paths")
         }
     }
 }

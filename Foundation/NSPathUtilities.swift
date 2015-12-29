@@ -177,6 +177,29 @@ internal extension String {
         }
         return result
     }
+    
+    internal func _stringByRemovingPrefix(prefix: String) -> String {
+        guard hasPrefix(prefix) else {
+            return self
+        }
+
+        var temp = self
+        temp.removeRange(startIndex..<prefix.endIndex)
+        return temp
+    }
+    
+    internal func _tryToRemovePathPrefix(prefix: String) -> String? {
+        guard self != prefix else {
+            return nil
+        }
+        
+        let temp = _stringByRemovingPrefix(prefix)
+        if NSFileManager.defaultManager().fileExistsAtPath(temp) {
+            return temp
+        }
+        
+        return nil
+    }
 }
 
 public extension NSString {
@@ -368,7 +391,12 @@ public extension NSString {
     }
     
     public var stringByStandardizingPath: String {
-        NSUnimplemented()
+        let expanded = stringByExpandingTildeInPath
+        var resolved = expanded.bridge().stringByResolvingSymlinksInPath
+        
+        let automount = "/var/automount"
+        resolved = resolved._tryToRemovePathPrefix(automount) ?? resolved
+        return resolved
     }
     
     public var stringByResolvingSymlinksInPath: String {
@@ -377,7 +405,7 @@ public extension NSString {
             return _swiftObject
         }
         
-        // TODO: if receiver has trailing / pathComponents preserve it. Check that logic.
+        // TODO: pathComponents keeps final path separator if any. Check that logic.
         if components.last == "/" {
             components.removeLast()
         }
@@ -403,14 +431,7 @@ public extension NSString {
         }
         
         let privatePrefix = "/private"
-        
-        if resolvedPath.hasPrefix(privatePrefix) && resolvedPath != privatePrefix {
-            var temp = resolvedPath
-            temp.removeRange(resolvedPath.startIndex..<privatePrefix.endIndex)
-            if NSFileManager.defaultManager().fileExistsAtPath(temp) {
-                resolvedPath = temp
-            }
-        }
+        resolvedPath = resolvedPath._tryToRemovePathPrefix(privatePrefix) ?? resolvedPath
         
         return resolvedPath
     }
