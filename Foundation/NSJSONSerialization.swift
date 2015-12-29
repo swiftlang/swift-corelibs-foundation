@@ -7,6 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(OSX) || os(iOS)
+    import Darwin
+#elseif os(Linux)
+    import Glibc
+#endif
 
 public struct NSJSONReadingOptions : OptionSetType {
     public let rawValue : UInt
@@ -54,7 +59,6 @@ public class NSJSONSerialization : NSObject {
             // object is NSNumber and is not NaN or infinity
             if let number = obj as? NSNumber {
                 let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
-                    || number.floatValue.isInfinite || number.floatValue.isNaN
                 return !invalid
             }
 
@@ -102,13 +106,32 @@ public class NSJSONSerialization : NSObject {
     /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
     public class func JSONObjectWithData(data: NSData, options opt: NSJSONReadingOptions) throws -> Any {
         
-        guard let string = NSString(data: data, encoding: detectEncoding(data)) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
-            ])
+        let bytes = UnsafePointer<UInt8>(data.bytes)
+        let encoding: NSStringEncoding
+        let buffer: UnsafeBufferPointer<UInt8>
+        if let detected = parseBOM(bytes, length: data.length) {
+            encoding = detected.encoding
+            buffer = UnsafeBufferPointer(start: bytes.advancedBy(detected.skipLength), count: data.length - detected.skipLength)
         }
-        let result = try JSONObjectWithString(string._swiftObject)
-        return result
+        else {
+            encoding = detectEncoding(bytes, data.length)
+            buffer = UnsafeBufferPointer(start: bytes, count: data.length)
+        }
+
+        let source = JSONReader.UnicodeSource(buffer: buffer, encoding: encoding)
+        let reader = JSONReader(source: source)
+        if let (object, _) = try reader.parseObject(0) {
+            return object
+        }
+        else if let (array, _) = try reader.parseArray(0) {
+            return array
+        }
+        else if opt.contains(.AllowFragments), let (value, _) = try reader.parseValue(0) {
+            return value
+        }
+        throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            "NSDebugDescription" : "JSON text did not start with array or object and option to allow fragments not set."
+        ])
     }
     
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
@@ -124,35 +147,13 @@ public class NSJSONSerialization : NSObject {
     }
 }
 
-//MARK: - Deserialization
-internal extension NSJSONSerialization {
-    
-    static func JSONObjectWithString(string: String) throws -> Any {
-        let parser = JSONDeserializer.UnicodeParser(viewSkippingBOM: string.unicodeScalars)
-        if let (object, _) = try JSONDeserializer.parseObject(parser) {
-            return object
-        }
-        else if let (array, _) = try JSONDeserializer.parseArray(parser) {
-            return array
-        }
-        throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-            "NSDebugDescription" : "JSON text did not start with array or object and option to allow fragments not set."
-        ])
-    }
-}
-
 //MARK: - Encoding Detection
 
 internal extension NSJSONSerialization {
     
     /// Detect the encoding format of the NSData contents
-    class func detectEncoding(data: NSData) -> NSStringEncoding {
-        let bytes = UnsafePointer<UInt8>(data.bytes)
-        let length = data.length
-        if let encoding = parseBOM(bytes, length: length) {
-            return encoding
-        }
-        
+    class func detectEncoding(bytes: UnsafePointer<UInt8>, _ length: Int) -> NSStringEncoding {
+
         if length >= 4 {
             switch (bytes[0], bytes[1], bytes[2], bytes[3]) {
             case (0, 0, 0, _):
@@ -180,24 +181,24 @@ internal extension NSJSONSerialization {
         return NSUTF8StringEncoding
     }
     
-    static func parseBOM(bytes: UnsafePointer<UInt8>, length: Int) -> NSStringEncoding? {
+    static func parseBOM(bytes: UnsafePointer<UInt8>, length: Int) -> (encoding: NSStringEncoding, skipLength: Int)? {
         if length >= 2 {
             switch (bytes[0], bytes[1]) {
             case (0xEF, 0xBB):
                 if length >= 3 && bytes[2] == 0xBF {
-                    return NSUTF8StringEncoding
+                    return (NSUTF8StringEncoding, 3)
                 }
             case (0x00, 0x00):
                 if length >= 4 && bytes[2] == 0xFE && bytes[3] == 0xFF {
-                    return NSUTF32BigEndianStringEncoding
+                    return (NSUTF32BigEndianStringEncoding, 4)
                 }
             case (0xFF, 0xFE):
                 if length >= 4 && bytes[2] == 0 && bytes[3] == 0 {
-                    return NSUTF32LittleEndianStringEncoding
+                    return (NSUTF32LittleEndianStringEncoding, 4)
                 }
-                return NSUTF16LittleEndianStringEncoding
+                return (NSUTF16LittleEndianStringEncoding, 2)
             case (0xFE, 0xFF):
-                return NSUTF16BigEndianStringEncoding
+                return (NSUTF16BigEndianStringEncoding, 2)
             default:
                 break
             }
@@ -207,242 +208,289 @@ internal extension NSJSONSerialization {
 }
 
 //MARK: - JSONDeserializer
-private struct JSONDeserializer {
-    
-    struct UnicodeParser {
-        let view: String.UnicodeScalarView
-        let index: String.UnicodeScalarIndex
-        
-        init(view: String.UnicodeScalarView, index: String.UnicodeScalarIndex) {
-            self.view = view
-            self.index = index
-        }
-        
-        init(viewSkippingBOM view: String.UnicodeScalarView) {
-            if view.startIndex < view.endIndex && view[view.startIndex] == UnicodeScalar(0xFEFF) {
-                self.init(view: view, index: view.startIndex.successor())
-                return
-            }
-            self.init(view: view, index: view.startIndex)
-        }
-        
-        func successor() -> UnicodeParser {
-            return UnicodeParser(view: view, index: index.successor())
-        }
-        
-        var distanceFromStart: String.UnicodeScalarIndex.Distance {
-            return view.startIndex.distanceTo(index)
-        }
+private struct JSONReader {
+
+    static let whitespaceASCII: [UInt8] = [
+        0x09, // Horizontal tab
+        0x0A, // Line feed or New line
+        0x0D, // Carriage return
+        0x20, // Space
+    ]
+
+    struct Structure {
+        static let BeginArray: UInt8     = 0x5B // [
+        static let EndArray: UInt8       = 0x5D // ]
+        static let BeginObject: UInt8    = 0x7B // {
+        static let EndObject: UInt8      = 0x7D // }
+        static let NameSeparator: UInt8  = 0x3A // :
+        static let ValueSeparator: UInt8 = 0x2C // ,
+        static let QuotationMark: UInt8  = 0x22 // "
+        static let Escape: UInt8         = 0x5C // \
     }
-    
-    static let whitespaceScalars = "\u{20}\u{09}\u{0A}\u{0D}".unicodeScalars
-    static func consumeWhitespace(parser: UnicodeParser) -> UnicodeParser {
-        var index = parser.index
-        let view = parser.view
-        let endIndex = view.endIndex
-        while index < endIndex && whitespaceScalars.contains(view[index]) {
-            index = index.successor()
+
+    typealias Index = Int
+
+    struct UnicodeSource {
+        let buffer: UnsafeBufferPointer<UInt8>
+        let encoding: NSStringEncoding
+        let step: Int
+
+        init(buffer: UnsafeBufferPointer<UInt8>, encoding: NSStringEncoding) {
+            self.buffer = buffer
+            self.encoding = encoding
+
+            self.step = {
+                switch encoding {
+                case NSUTF8StringEncoding:
+                    return 1
+                case NSUTF16BigEndianStringEncoding, NSUTF16LittleEndianStringEncoding:
+                    return 2
+                case NSUTF32BigEndianStringEncoding, NSUTF32LittleEndianStringEncoding:
+                    return 4
+                default:
+                    return 1
+                }
+            }()
         }
-        return UnicodeParser(view: view, index: index)
-    }
-    
-    struct StructureScalar {
-        static let BeginArray     = UnicodeScalar(0x5B) // [ left square bracket
-        static let EndArray       = UnicodeScalar(0x5D) // ] right square bracket
-        static let BeginObject    = UnicodeScalar(0x7B) // { left curly bracket
-        static let EndObject      = UnicodeScalar(0x7D) // } right curly bracket
-        static let NameSeparator  = UnicodeScalar(0x3A) // : colon
-        static let ValueSeparator = UnicodeScalar(0x2C) // , comma
-    }
-    
-    static func consumeStructure(scalar: UnicodeScalar, input: UnicodeParser) throws -> UnicodeParser? {
-        if let parser = try consumeScalar(scalar, input: consumeWhitespace(input)) {
-            return consumeWhitespace(parser)
-        }
-        return nil
-    }
-    
-    static func consumeScalar(scalar: UnicodeScalar, input: UnicodeParser) throws -> UnicodeParser? {
-        switch takeScalar(input) {
-        case nil:
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Unexpected end of file during JSON parse."
-            ])
-        case let (taken, parser)? where taken == scalar:
-            return parser
-        default:
-            return nil
-        }
-    }
-    
-    static func consumeSequence(sequence: String, input: UnicodeParser) throws -> UnicodeParser? {
-        var parser = input
-        for scalar in sequence.unicodeScalars {
-            guard let newParser = try consumeScalar(scalar, input: parser) else {
+
+        func takeASCII(input: Index) -> (UInt8, Index)? {
+            guard hasNext(input) else {
                 return nil
             }
-            parser = newParser
+
+            let index: Int
+            switch encoding {
+            case NSUTF8StringEncoding:
+                index = input
+            case NSUTF16BigEndianStringEncoding where buffer[input] == 0:
+                index = input + 1
+            case NSUTF32BigEndianStringEncoding where buffer[input] == 0 && buffer[input+1] == 0 && buffer[input+2] == 0:
+                index = input + 3
+            case NSUTF16LittleEndianStringEncoding where buffer[input+1] == 0:
+                index = input
+            case NSUTF32LittleEndianStringEncoding where buffer[input+1] == 0 && buffer[input+2] == 0 && buffer[input+3] == 0:
+                index = input
+            default:
+                return nil
+            }
+            return (buffer[index] < 0x80) ? (buffer[index], input + step) : nil
         }
-        return parser
+
+        func takeString(begin: Index, end: Index) throws -> String {
+            let byteLength = begin.distanceTo(end)
+            guard let chunk = NSString(bytes: buffer.baseAddress.advancedBy(begin), length: byteLength, encoding: encoding)?.bridge() else {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                    "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
+                    ])
+            }
+            return chunk
+        }
+
+        func hasNext(input: Index) -> Bool {
+            return input + step <= buffer.endIndex
+        }
+        
+        func distanceFromStart(index: Index) -> Index.Distance {
+            return buffer.startIndex.distanceTo(index) / step
+        }
     }
-    
-    static func takeScalar(input: UnicodeParser) -> (UnicodeScalar, UnicodeParser)? {
-        guard input.index < input.view.endIndex else {
-            return nil
+
+    let source: UnicodeSource
+
+    func consumeWhitespace(input: Index) -> Index? {
+        var index = input
+        while let (char, nextIndex) = source.takeASCII(index) where JSONReader.whitespaceASCII.contains(char) {
+            index = nextIndex
         }
-        return (input.view[input.index], input.successor())
+        return index
     }
-    
-    static func takeInClass(matchClass: String.UnicodeScalarView, count: UInt = UInt.max, input: UnicodeParser) -> (String.UnicodeScalarView, UnicodeParser)? {
-        var output = String.UnicodeScalarView()
-        var remaining = count
-        var parser = input
-        while remaining > 0, let (taken, newParser) = takeScalar(parser) where matchClass.contains(taken) {
-            output.append(taken)
-            parser = newParser
-            remaining -= 1
+
+    func consumeStructure(ascii: UInt8, input: Index) throws -> Index? {
+        return try consumeWhitespace(input).flatMap(consumeASCII(ascii)).flatMap(consumeWhitespace)
+    }
+
+    func consumeASCII(ascii: UInt8) -> (Index) throws -> Index? {
+        return { (input: Index) throws -> Index? in
+            switch self.source.takeASCII(input) {
+            case nil:
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                    "NSDebugDescription" : "Unexpected end of file during JSON parse."
+                    ])
+            case let (taken, index)? where taken == ascii:
+                return index
+            default:
+                return nil
+            }
         }
-        guard output.count > 0 && (count != UInt.max || remaining == 0) else {
-            return nil
+    }
+
+    func consumeASCIISequence(sequence: String, input: Index) throws -> Index? {
+        var index = input
+        for scalar in sequence.unicodeScalars {
+            guard let nextIndex = try consumeASCII(UInt8(scalar.value))(index) else {
+                return nil
+            }
+            index = nextIndex
         }
-        return (output, parser)
+        return index
+    }
+
+    func takeMatching(match: (UInt8) -> Bool) -> ([Character], Index) -> ([Character], Index)? {
+        return { input, index in
+            guard let (byte, index) = self.source.takeASCII(index) where match(byte) else {
+                return nil
+            }
+            return (input + [Character(UnicodeScalar(byte))], index)
+        }
     }
 
     //MARK: - String Parsing
-    struct StringScalar{
-        static let QuotationMark = UnicodeScalar(0x22) // "
-        static let Escape        = UnicodeScalar(0x5C) // \
-    }
-    
-    static func parseString(input: UnicodeParser) throws -> (String, UnicodeParser)? {
-        guard let begin = try consumeScalar(StringScalar.QuotationMark, input: input) else {
+
+    func parseString(input: Index) throws -> (String, Index)? {
+        guard let beginIndex = try consumeStructure(Structure.QuotationMark, input: input) else {
             return nil
         }
-        let view = begin.view
-        let endIndex = view.endIndex
-        var index = begin.index
-        var value = String.UnicodeScalarView()
-        while index < endIndex {
-            let scalar = view[index]
-            index = index.successor()
-            
-            switch scalar {
-            case StringScalar.QuotationMark:
-                return (String(value), UnicodeParser(view: view, index: index))
-            case StringScalar.Escape:
-                let parser = UnicodeParser(view: view, index: index)
-                if let (escaped, newParser) = try parseEscapeSequence(parser) {
-                    value.append(escaped)
-                    index = newParser.index
+        var chunkIndex: Int = beginIndex
+        var currentIndex: Int = chunkIndex
+
+        var output: String = ""
+        while source.hasNext(currentIndex) {
+            guard let (ascii, index) = source.takeASCII(currentIndex) else {
+                currentIndex += source.step
+                continue
+            }
+            switch ascii {
+            case Structure.QuotationMark:
+                output += try source.takeString(chunkIndex, end: currentIndex)
+                return (output, index)
+            case Structure.Escape:
+                output += try source.takeString(chunkIndex, end: currentIndex)
+                if let (escaped, nextIndex) = try parseEscapeSequence(index) {
+                    output += escaped
+                    chunkIndex = nextIndex
+                    currentIndex = nextIndex
+                    continue
                 }
                 else {
                     throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                        "NSDebugDescription" : "Invalid unicode escape sequence at position \(parser.distanceFromStart - 1)"
+                        "NSDebugDescription" : "Invalid escape sequence at position \(source.distanceFromStart(currentIndex))"
                     ])
                 }
             default:
-                value.append(scalar)
+                currentIndex = index
             }
         }
         throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
             "NSDebugDescription" : "Unexpected end of file during string parse."
         ])
     }
-    
-    static func parseEscapeSequence(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
-        guard let (scalar, parser) = takeScalar(input) else {
+
+    func parseEscapeSequence(input: Index) throws -> (String, Index)? {
+        guard let (byte, index) = source.takeASCII(input) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                 "NSDebugDescription" : "Early end of unicode escape sequence around character"
             ])
         }
-        switch scalar {
-        case UnicodeScalar(0x22):                   // "    quotation mark  U+0022
-            fallthrough
-        case UnicodeScalar(0x5C):                   // \    reverse solidus U+005F
-            fallthrough
-        case UnicodeScalar(0x2F):                   // /    solidus         U+002F
-            return (scalar, parser)
-        case UnicodeScalar(0x62):                   // b    backspace       U+0008
-            return (UnicodeScalar(0x08), parser)
-        case UnicodeScalar(0x66):                   // f    form feed       U+000C
-            return (UnicodeScalar(0x0C), parser)
-        case UnicodeScalar(0x6E):                   // n    line feed       U+000A
-            return (UnicodeScalar(0x0A), parser)
-        case UnicodeScalar(0x72):                   // r    carriage return U+000D
-            return (UnicodeScalar(0x0D), parser)
-        case UnicodeScalar(0x74):                   // t    tab             U+0009
-            return (UnicodeScalar(0x09), parser)
-        case UnicodeScalar(0x75):                   // u    unicode
-            return try parseUnicodeSequence(parser)
-        default:
-            return nil
+        let output: String
+        switch byte {
+        case 0x22: output = "\""
+        case 0x5C: output = "\\"
+        case 0x2F: output = "/"
+        case 0x62: output = "\u{08}" // \b
+        case 0x66: output = "\u{0C}" // \f
+        case 0x6E: output = "\u{0A}" // \n
+        case 0x72: output = "\u{0D}" // \r
+        case 0x74: output = "\u{09}" // \t
+        case 0x75: return try parseUnicodeSequence(index)
+        default: return nil
         }
+        return (output, index)
     }
-    
-    static func parseUnicodeSequence(input: UnicodeParser) throws -> (UnicodeScalar, UnicodeParser)? {
-        
-        guard let (codeUnit, parser) = parseCodeUnit(input) else {
+
+    func parseUnicodeSequence(input: Index) throws -> (String, Index)? {
+
+        guard let (codeUnit, index) = parseCodeUnit(input) else {
             return nil
         }
-        
+
         if !UTF16.isLeadSurrogate(codeUnit) {
-            return (UnicodeScalar(codeUnit), parser)
+            return (String(UnicodeScalar(codeUnit)), index)
         }
-        
-        guard let (trailCodeUnit, finalParser) = try consumeSequence("\\u", input: parser).flatMap(parseCodeUnit) where UTF16.isTrailSurrogate(trailCodeUnit) else {
+
+        guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit) where UTF16.isTrailSurrogate(trailCodeUnit) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to convert hex escape sequence (no high character) to UTF8-encoded character at position \(parser.distanceFromStart)"
+                "NSDebugDescription" : "Unable to convert unicode escape sequence (no low-surrogate code point) to UTF8-encoded character at position \(source.distanceFromStart(input))"
             ])
         }
-        
-        var utf = UTF16()
-        var generator = [codeUnit, trailCodeUnit].generate()
-        switch utf.decode(&generator) {
-        case .Result(let scalar):
-            return (scalar, finalParser)
-        default:
-            return nil
-        }
+
+        let highValue = (UInt32(codeUnit  - 0xD800) << 10)
+        let lowValue  =  UInt32(trailCodeUnit - 0xDC00)
+        return (String(UnicodeScalar(highValue + lowValue + 0x10000)), finalIndex)
     }
-    
-    static let hexScalars = "1234567890abcdefABCDEF".unicodeScalars
-    static func parseCodeUnit(input: UnicodeParser) -> (UTF16.CodeUnit, UnicodeParser)? {
-        guard let (result, parser) = takeInClass(hexScalars, count: 4, input: input),
+
+    func isHexChr(byte: UInt8) -> Bool {
+        return (byte >= 0x30 && byte <= 0x39)
+            || (byte >= 0x41 && byte <= 0x46)
+            || (byte >= 0x61 && byte <= 0x66)
+    }
+    func parseCodeUnit(input: Index) -> (UTF16.CodeUnit, Index)? {
+        let hexParser = takeMatching(isHexChr)
+        guard let (result, index) = hexParser([], input).flatMap(hexParser).flatMap(hexParser).flatMap(hexParser),
             let value = Int(String(result), radix: 16) else {
                 return nil
         }
-        return (UTF16.CodeUnit(value), parser)
+        return (UTF16.CodeUnit(value), index)
     }
     
     //MARK: - Number parsing
-    static let numberScalars = ".+-0123456789eE".unicodeScalars
-    static func parseNumber(input: UnicodeParser) throws -> (Double, UnicodeParser)? {
-        let view = input.view
-        let endIndex = view.endIndex
-        var index = input.index
-        var value = String.UnicodeScalarView()
-        while index < endIndex && numberScalars.contains(view[index]) {
-            value.append(view[index])
-            index = index.successor()
+    static let numberCodePoints: [UInt8] = [
+        0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, // 0...9
+        0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
+    ]
+    func parseNumber(input: Index) throws -> (Double, Index)? {
+        func parseDouble(address: UnsafePointer<UInt8>) -> (Double, Index.Distance)? {
+            let startPointer = UnsafePointer<Int8>(address)
+            let endPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>.alloc(1)
+            defer { endPointer.dealloc(1) }
+            
+            let result = strtod(startPointer, endPointer)
+            let distance = startPointer.distanceTo(endPointer[0])
+            guard distance > 0 else {
+                return nil
+            }
+            
+            return (result, distance)
         }
-        guard value.count > 0, let result = Double(String(value)) else {
-            return nil
+        
+        if source.encoding == NSUTF8StringEncoding {
+            return parseDouble(source.buffer.baseAddress.advancedBy(input)).map { return ($0.0, input + $0.1) }
         }
-        return (result, UnicodeParser(view: view, index: index))
+        else {
+            var numberCharacters = [UInt8]()
+            var index = input
+            while let (ascii, nextIndex) = source.takeASCII(index) where JSONReader.numberCodePoints.contains(ascii) {
+                numberCharacters.append(ascii)
+                index = nextIndex
+            }
+            
+            numberCharacters.append(0)
+            
+            return numberCharacters.withUnsafeBufferPointer { parseDouble($0.baseAddress) }.map { return ($0.0, index) }
+        }
     }
 
     //MARK: - Value parsing
-    static func parseValue(input: UnicodeParser) throws -> (Any, UnicodeParser)? {
+    func parseValue(input: Index) throws -> (Any, Index)? {
         if let (value, parser) = try parseString(input) {
             return (value, parser)
         }
-        else if let parser = try consumeSequence("true", input: input) {
+        else if let parser = try consumeASCIISequence("true", input: input) {
             return (true, parser)
         }
-        else if let parser = try consumeSequence("false", input: input) {
+        else if let parser = try consumeASCIISequence("false", input: input) {
             return (false, parser)
         }
-        else if let parser = try consumeSequence("null", input: input) {
+        else if let parser = try consumeASCIISequence("null", input: input) {
             return (NSNull(), parser)
         }
         else if let (object, parser) = try parseObject(input) {
@@ -458,25 +506,25 @@ private struct JSONDeserializer {
     }
 
     //MARK: - Object parsing
-    static func parseObject(input: UnicodeParser) throws -> ([String: Any], UnicodeParser)? {
-        guard let beginParser = try consumeStructure(StructureScalar.BeginObject, input: input) else {
+    func parseObject(input: Index) throws -> ([String: Any], Index)? {
+        guard let beginIndex = try consumeStructure(Structure.BeginObject, input: input) else {
             return nil
         }
-        var parser = beginParser
+        var index = beginIndex
         var output: [String: Any] = [:]
         while true {
-            if let finalParser = try consumeStructure(StructureScalar.EndObject, input: parser) {
-                return (output, finalParser)
+            if let finalIndex = try consumeStructure(Structure.EndObject, input: index) {
+                return (output, finalIndex)
             }
     
-            if let (key, value, newParser) = try parseObjectMember(parser) {
+            if let (key, value, nextIndex) = try parseObjectMember(index) {
                 output[key] = value
     
-                if let finalParser = try consumeStructure(StructureScalar.EndObject, input: newParser) {
+                if let finalParser = try consumeStructure(Structure.EndObject, input: nextIndex) {
                     return (output, finalParser)
                 }
-                else if let nextParser = try consumeStructure(StructureScalar.ValueSeparator, input: newParser) {
-                    parser = nextParser
+                else if let nextIndex = try consumeStructure(Structure.ValueSeparator, input: nextIndex) {
+                    index = nextIndex
                     continue
                 }
                 else {
@@ -487,56 +535,51 @@ private struct JSONDeserializer {
         }
     }
     
-    static func parseObjectMember(input: UnicodeParser) throws -> (String, Any, UnicodeParser)? {
-        guard let (name, parser) = try parseString(input) else {
+    func parseObjectMember(input: Index) throws -> (String, Any, Index)? {
+        guard let (name, index) = try parseString(input) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Missing object key at location \(input.distanceFromStart)"
+                "NSDebugDescription" : "Missing object key at location \(source.distanceFromStart(input))"
             ])
         }
-        guard let separatorParser = try consumeStructure(StructureScalar.NameSeparator, input: parser) else {
+        guard let separatorIndex = try consumeStructure(Structure.NameSeparator, input: index) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Invalid value at location \(input.distanceFromStart)"
+                "NSDebugDescription" : "Invalid separator at location \(source.distanceFromStart(index))"
             ])
         }
-        guard let (value, finalParser) = try parseValue(separatorParser) else {
+        guard let (value, finalIndex) = try parseValue(separatorIndex) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Invalid value at location \(input.distanceFromStart)"
+                "NSDebugDescription" : "Invalid value at location \(source.distanceFromStart(separatorIndex))"
             ])
         }
         
-        return (name, value, finalParser)
+        return (name, value, finalIndex)
     }
 
     //MARK: - Array parsing
-    static func parseArray(input: UnicodeParser) throws -> ([Any], UnicodeParser)? {
-        guard let beginParser = try consumeStructure(StructureScalar.BeginArray, input: input) else {
+    func parseArray(input: Index) throws -> ([Any], Index)? {
+        guard let beginIndex = try consumeStructure(Structure.BeginArray, input: input) else {
             return nil
         }
-        var parser = beginParser
+        var index = beginIndex
         var output: [Any] = []
         while true {
-            if let finalParser = try consumeStructure(StructureScalar.EndArray, input: parser) {
-                return (output, finalParser)
+            if let finalIndex = try consumeStructure(Structure.EndArray, input: index) {
+                return (output, finalIndex)
             }
     
-            if let (value, newParser) = try parseValue(parser) {
+            if let (value, nextIndex) = try parseValue(index) {
                 output.append(value)
     
-                if let finalParser = try consumeStructure(StructureScalar.EndArray, input: newParser) {
-                    return (output, finalParser)
+                if let finalIndex = try consumeStructure(Structure.EndArray, input: nextIndex) {
+                    return (output, finalIndex)
                 }
-                else if let nextParser = try consumeStructure(StructureScalar.ValueSeparator, input: newParser) {
-                    parser = nextParser
+                else if let nextIndex = try consumeStructure(Structure.ValueSeparator, input: nextIndex) {
+                    index = nextIndex
                     continue
-                }
-                else {
-                    throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                        "NSDebugDescription" : "Unexpected end of file while parsing array at location \(input.distanceFromStart)"
-                    ])
                 }
             }
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Unexpected end of file while parsing array at location \(input.distanceFromStart)"
+                "NSDebugDescription" : "Badly formed array at location \(source.distanceFromStart(index))"
             ])
         }
     }
