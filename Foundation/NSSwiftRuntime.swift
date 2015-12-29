@@ -148,7 +148,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSDictionary._getValueIfPresent = _CFSwiftDictionaryGetValueIfPresent
     __CFSwiftBridge.NSDictionary.containsObject = _CFSwiftDictionaryContainsValue
     __CFSwiftBridge.NSDictionary.countForObject = _CFSwiftDictionaryGetCountOfValue
-    __CFSwiftBridge.NSDictionary.getObjects = _CFSwiftDictionaryGetKeysAndValues
+    __CFSwiftBridge.NSDictionary.getObjects = _CFSwiftDictionaryGetValuesAndKeys
     __CFSwiftBridge.NSDictionary.__apply = _CFSwiftDictionaryApplyFunction
     
     __CFSwiftBridge.NSMutableDictionary.__addObject = _CFSwiftDictionaryAddValue
