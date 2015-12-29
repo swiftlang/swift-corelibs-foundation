@@ -564,9 +564,16 @@ class TestNSString : XCTestCase {
         do {
             let path: NSString = "/tmp/.."
             let result = path.stringByResolvingSymlinksInPath
-            XCTAssertEqual(result, "/private", "For absolute paths, all symbolic links are guaranteed to be removed.")
+            
+            #if os(OSX)
+            let expected = "/private"
+            #else
+            let expected = "/"
+            #endif
+            
+            XCTAssertEqual(result, expected, "For absolute paths, all symbolic links are guaranteed to be removed.")
         }
-        
+
         do {
             let path: NSString = "tmp/.."
             let result = path.stringByResolvingSymlinksInPath
@@ -659,6 +666,7 @@ class TestNSString : XCTestCase {
             let userName = NSUUID().UUIDString
             let path = NSString(string: "~\(userName)/")
             let result = path.stringByExpandingTildeInPath
+          	// next assert fails in VirtualBox because home directory for unknown user resolved to /var/run/vboxadd
             XCTAssert(result == "~\(userName)", "Return copy of reciver if home directory could no be resolved.")
         }
     }
