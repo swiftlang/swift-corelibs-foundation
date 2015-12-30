@@ -47,6 +47,7 @@ XCTMain([
     TestNSRunLoop(),
     TestNSScanner(),
     TestNSSet(),
+    TestNSOrderedSet(),
     TestNSString(),
     TestNSTask(),
     TestNSThread(),
