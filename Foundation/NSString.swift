@@ -331,7 +331,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public override var hash: Int {
-        return Int(CFStringHashNSString(self._cfObject))
+        return Int(bitPattern:CFStringHashNSString(self._cfObject))
     }
 }
 
