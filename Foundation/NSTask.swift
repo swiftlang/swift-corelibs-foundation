@@ -84,7 +84,7 @@ private func runloopIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) ->
     }
     
     managerThreadRunLoop?.run()
-    fatalError()
+    fatalError("NSTask manager run loop exited unexpectedly; it should run forever once initialized")
 }
 
 private func managerThreadSetup() -> Void {
