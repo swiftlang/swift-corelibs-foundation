@@ -31,6 +31,10 @@ private var managerThreadRunLoop : NSRunLoop? = nil
 private var managerThreadRunLoopIsRunning = false
 private var managerThreadRunLoopIsRunningCondition = NSCondition()
 
+#if os(OSX) || os(iOS)
+internal let kCFSocketDataCallBack = CFSocketCallBackType.DataCallBack.rawValue
+#endif
+
 private func emptyRunLoopCallback(context : UnsafeMutablePointer<Void>) -> Void {}
 
 
@@ -195,7 +199,7 @@ public class NSTask : NSObject {
         var context = CFSocketContext(version: 0, info: UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque()),
                                                retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil)
         
-        let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFSocketCallBackType.DataCallBack.rawValue, {
+        let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], kCFSocketDataCallBack, {
             (socket, type, address, data, info )  in
             
             let task = Unmanaged<NSTask>.fromOpaque(COpaquePointer(info)).takeUnretainedValue()
