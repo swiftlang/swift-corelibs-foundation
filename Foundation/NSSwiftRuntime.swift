@@ -83,7 +83,7 @@ internal func _CFSwiftGetTypeID(cf: AnyObject) -> CFTypeID {
 
 
 internal func _CFSwiftGetHash(cf: AnyObject) -> CFHashCode {
-    return CFHashCode((cf as! NSObject).hash)
+    return CFHashCode(bitPattern: (cf as! NSObject).hash)
 }
 
 
