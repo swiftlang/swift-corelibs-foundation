@@ -26,6 +26,20 @@ public var NSTimeIntervalSince1970: Double {
 public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFDateRef
     
+    public override var hash: Int {
+        get {
+            return Int(bitPattern: CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let date = object as? NSDate {
+            return isEqualToDate(date)
+        } else {
+            return false
+        }
+    }
+    
     deinit {
         _CFDeinit(self)
     }

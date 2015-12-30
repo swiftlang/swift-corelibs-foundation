@@ -58,6 +58,26 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         }
     }
     
+    public override var hash: Int {
+        get {
+            return Int(bitPattern: CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let url = object as? NSURL {
+            return CFEqual(_cfObject, url._cfObject)
+        } else {
+            return false
+        }
+    }
+    
+    public override var description: String {
+        get {
+            return CFCopyDescription(_cfObject)._swiftObject
+        }
+    }
+
     deinit {
         _CFDeinit(self)
     }
