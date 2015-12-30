@@ -209,19 +209,7 @@ public class NSXMLElement : NSXMLNode {
         @abstract Inserts a child at a particular index.
     */
     public func insertChild(child: NSXMLNode, atIndex index: Int) {
-        precondition(index >= 0)
-        precondition(index <= childCount)
-        precondition(child.parent == nil)
-
-        _childNodes.insert(child)
-
-        if index == 0 {
-            let first = _xmlNode.memory.children
-            xmlAddPrevSibling(first, child._xmlNode)
-        } else {
-            let currChild = childAtIndex(index - 1)!._xmlNode
-            xmlAddNextSibling(currChild, child._xmlNode)
-        }
+        _insertChild(child, atIndex: index)
     } //primitive
 
     /*!
@@ -229,9 +217,7 @@ public class NSXMLElement : NSXMLNode {
         @abstract Insert several children at a particular index.
     */
     public func insertChildren(children: [NSXMLNode], atIndex index: Int) {
-        for (childIndex, node) in children.enumerate() {
-            insertChild(node, atIndex: index + childIndex)
-        }
+        _insertChildren(children, atIndex: index)
     }
 
     /*!
@@ -239,12 +225,7 @@ public class NSXMLElement : NSXMLNode {
         @abstract Removes a child at a particular index.
     */
     public func removeChildAtIndex(index: Int) {
-        guard let child = childAtIndex(index) else {
-            fatalError("index out of bounds")
-        }
-
-        _childNodes.remove(child)
-        xmlUnlinkNode(child._xmlNode)
+        _removeChildAtIndex(index)
     } //primitive
 
     /*!
@@ -252,14 +233,7 @@ public class NSXMLElement : NSXMLNode {
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
     public func setChildren(children: [NSXMLNode]?) {
-        _removeAllChildren()
-        guard let children = children else {
-            return
-        }
-
-        for child in children {
-            addChild(child)
-        }
+        _setChildren(children)
     } //primitive
 
     /*!
@@ -267,10 +241,7 @@ public class NSXMLElement : NSXMLNode {
         @abstract Adds a child to the end of the existing children.
     */
     public func addChild(child: NSXMLNode) {
-        precondition(child.parent == nil)
-
-        xmlAddChild(_xmlNode, child._xmlNode)
-        _childNodes.insert(child)
+        _addChild(child)
     }
 
     /*!
@@ -278,10 +249,7 @@ public class NSXMLElement : NSXMLNode {
         @abstract Replaces a child at a particular index with another child.
     */
     public func replaceChildAtIndex(index: Int, withNode node: NSXMLNode) {
-        let child = childAtIndex(index)!
-        _childNodes.remove(child)
-        xmlReplaceNode(child._xmlNode, node._xmlNode)
-        _childNodes.insert(node)
+        _replaceChildAtIndex(index, withNode: node)
     }
 
     /*!

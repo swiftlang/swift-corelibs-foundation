@@ -75,7 +75,11 @@ public class NSXMLDocument : NSXMLNode {
         @method initWithContentsOfURL:options:error:
         @abstract Returns a document created from the contents of an XML or HTML URL. Connection problems such as 404, parse errors are returned in <tt>error</tt>.
     */
-    public convenience init(contentsOfURL url: NSURL, options mask: Int) throws { NSUnimplemented() }
+    public convenience init(contentsOfURL url: NSURL, options mask: Int) throws {
+        let data = try NSData(contentsOfURL: url, options: .DataReadingMappedIfSafe)
+
+        try self.init(data: data, options: mask)
+    }
 
     /*!
         @method initWithData:options:error:
@@ -83,16 +87,18 @@ public class NSXMLDocument : NSXMLNode {
     */
     public init(data: NSData, options mask: Int) throws {
         var xmlOptions: UInt32 = 0
-        if mask & NSXMLNodePreserveWhitespace != 0 {
+        if mask & NSXMLNodePreserveWhitespace == 0 {
             xmlOptions |= XML_PARSE_NOBLANKS.rawValue
         }
 
         if mask & NSXMLNodeLoadExternalEntitiesNever != 0 {
+            xmlOptions &= ~(XML_PARSE_NOENT.rawValue)
+        } else {
             xmlOptions |= XML_PARSE_NOENT.rawValue
         }
 
-        if mask & NSXMLNodeLoadExternalEntitiesAlways == 0 {
-            xmlOptions |= XML_PARSE_NOENT.rawValue
+        if mask & NSXMLNodeLoadExternalEntitiesAlways != 0 {
+            xmlOptions |= XML_PARSE_DTDLOAD.rawValue
         }
 
         let docPtr = xmlReadMemory(UnsafePointer<Int8>(data.bytes), Int32(data.length), nil, nil, Int32(xmlOptions))
@@ -174,11 +180,23 @@ public class NSXMLDocument : NSXMLNode {
     */
     public var documentContentKind: NSXMLDocumentContentKind  {
         get {
+            let properties = _xmlDoc.memory.properties
+
+            if properties & Int32(XML_DOC_HTML.rawValue) != 0 {
+                return .HTMLKind
+            }
+
             return .XMLKind
         }
 
         set {
+            switch newValue {
+            case .HTMLKind:
+                _xmlDoc.memory.properties |= Int32(XML_DOC_HTML.rawValue)
 
+            default:
+                _xmlDoc.memory.properties &= ~Int32(XML_DOC_HTML.rawValue)
+            }
         }
     }//primitive
 
@@ -226,40 +244,49 @@ public class NSXMLDocument : NSXMLNode {
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(child: NSXMLNode, atIndex index: Int) { NSUnimplemented() } //primitive
+    public func insertChild(child: NSXMLNode, atIndex index: Int) {
+        _insertChild(child, atIndex: index)
+    } //primitive
 
     /*!
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(children: [NSXMLNode], atIndex index: Int) { NSUnimplemented() }
+    public func insertChildren(children: [NSXMLNode], atIndex index: Int) {
+        _insertChildren(children, atIndex: index)
+    }
 
     /*!
         @method removeChildAtIndex:atIndex:
         @abstract Removes a child at a particular index.
     */
-    public func removeChildAtIndex(index: Int) { NSUnimplemented() } //primitive
+    public func removeChildAtIndex(index: Int) {
+        _removeChildAtIndex(index)
+    } //primitive
 
     /*!
         @method setChildren:
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
-    public func setChildren(children: [NSXMLNode]?) { NSUnimplemented() } //primitive
+    public func setChildren(children: [NSXMLNode]?) {
+        _setChildren(children)
+    } //primitive
 
     /*!
         @method addChild:
         @abstract Adds a child to the end of the existing children.
     */
     public func addChild(child: NSXMLNode) {
-        xmlAddChild(_xmlNode, child._xmlNode)
-        _childNodes.insert(child)
+        _addChild(child)
     }
 
     /*!
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChildAtIndex(index: Int, withNode node: NSXMLNode) { NSUnimplemented() }
+    public func replaceChildAtIndex(index: Int, withNode node: NSXMLNode) {
+        _replaceChildAtIndex(index, withNode: node)
+    }
 
     /*!
         @method XMLData

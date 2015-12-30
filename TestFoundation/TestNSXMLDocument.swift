@@ -237,10 +237,23 @@ class TestNSXMLDocument : XCTestCase {
         do {
             let doc = try NSXMLDocument(XMLString: string, options: NSXMLNodeLoadExternalEntitiesNever)
             XCTAssert(doc.childCount == 1)
+            XCTAssertEqual(doc.rootElement()?.children?[0].stringValue, "Robert Thompson")
+
+            // NSURLSession is still unimplemented
+            //let newDoc = try NSXMLDocument(contentsOfURL: NSURL(string:"https://mandelbrotsetapp.com")!, options: 0)
+
+            let newDoc = try NSXMLDocument(contentsOfURL: NSBundle.mainBundle().URLForResource("NSXMLDocumentTestData", withExtension: "xml")!, options: 0)
+            XCTAssertEqual(newDoc.rootElement()?.name, "root")
+            let root = newDoc.rootElement()!
+            let children = root.children!
+            XCTAssertEqual(children[0].stringValue, "Hello world", children[0].stringValue!)
+            XCTAssertEqual(children[1].children?[0].stringValue, "I'm here", (children[1].children?[0].stringValue)!)
+
+            doc.insertChild(NSXMLElement(name: "body"), atIndex: 1)
+            XCTAssertEqual(doc.children?[1].name, "body")
+            XCTAssertEqual(doc.children?[2].name, "root", (doc.children?[2].name)!)
         } catch {
             XCTFail("\(error)")
         }
-
-
     }
 }

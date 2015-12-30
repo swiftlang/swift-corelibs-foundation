@@ -846,6 +846,82 @@ public class NSXMLNode : NSObject, NSCopying {
             return NSXMLNode(ptr: node)
         }
     }
+
+    // libxml2 believes any node can have children, though NSXMLNode disagrees.
+    // Nevertheless, this belongs here so that NSXMLElement and NSXMLDocument can share
+    // the same implementation.
+    internal func _insertChild(child: NSXMLNode, atIndex index: Int) {
+        precondition(index >= 0)
+        precondition(index <= childCount)
+        precondition(child.parent == nil)
+
+        _childNodes.insert(child)
+
+        if index == 0 {
+            let first = _xmlNode.memory.children
+            xmlAddPrevSibling(first, child._xmlNode)
+        } else {
+            let currChild = childAtIndex(index - 1)!._xmlNode
+            xmlAddNextSibling(currChild, child._xmlNode)
+        }
+    } //primitive
+
+    // see above
+    internal func _insertChildren(children: [NSXMLNode], atIndex index: Int) {
+        for (childIndex, node) in children.enumerate() {
+            _insertChild(node, atIndex: index + childIndex)
+        }
+    }
+
+    /*!
+     @method removeChildAtIndex:atIndex:
+     @abstract Removes a child at a particular index.
+     */
+    // See above!
+    internal func _removeChildAtIndex(index: Int) {
+        guard let child = childAtIndex(index) else {
+            fatalError("index out of bounds")
+        }
+
+        _childNodes.remove(child)
+        xmlUnlinkNode(child._xmlNode)
+    } //primitive
+
+    // see above
+    internal func _setChildren(children: [NSXMLNode]?) {
+        _removeAllChildren()
+        guard let children = children else {
+            return
+        }
+
+        for child in children {
+            _addChild(child)
+        }
+    } //primitive
+
+    /*!
+     @method addChild:
+     @abstract Adds a child to the end of the existing children.
+     */
+    // see above
+    internal func _addChild(child: NSXMLNode) {
+        precondition(child.parent == nil)
+
+        xmlAddChild(_xmlNode, child._xmlNode)
+        _childNodes.insert(child)
+    }
+
+    /*!
+     @method replaceChildAtIndex:withNode:
+     @abstract Replaces a child at a particular index with another child.
+     */
+    // see above
+    internal func _replaceChildAtIndex(index: Int, withNode node: NSXMLNode) {
+        let child = childAtIndex(index)!
+        _childNodes.remove(child)
+        xmlReplaceNode(child._xmlNode, node._xmlNode)
+        _childNodes.insert(node)
+    }
 }
 
 extension NSXMLNode: CollectionType {
