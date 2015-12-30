@@ -78,7 +78,9 @@ public class NSXMLNode : NSObject, NSCopying {
 
         switch kind {
         case .DocumentKind:
-            _xmlNode = UnsafeMutablePointer<xmlNode>(xmlNewDoc("1.0"))
+            let docPtr = xmlNewDoc("1.0")
+            docPtr.memory.standalone = 0 // same default as on Darwin
+            _xmlNode = UnsafeMutablePointer<xmlNode>(docPtr)
 
         case .ElementKind:
             _xmlNode = xmlNewNode(nil, "")
@@ -268,7 +270,9 @@ public class NSXMLNode : NSObject, NSCopying {
         }
         set {
             _objectValue = newValue
-            if let value = newValue {
+            if let describableValue = newValue as? CustomStringConvertible {
+                stringValue = "\(describableValue.description)"
+            } else if let value = newValue {
                 stringValue = "\(value)"
             } else {
                 stringValue = nil

@@ -18,13 +18,14 @@
 #endif
 
 import libxml2
-
+import CoreFoundation
 
 class TestNSXMLDocument : XCTestCase {
 
     var allTests: [(String, () -> Void)] {
         return [
             ("test_basicCreation", test_basicCreation),
+            ("test_nextPreviousNode", test_nextPreviousNode),
             ("test_xpath", test_xpath),
             ("test_elementCreation", test_elementCreation),
             ("test_elementChildren", test_elementChildren),
@@ -44,36 +45,34 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssert(doc.version == "1.1", "expected 1.1, got \(doc.version)")
         let node = NSXMLElement(name: "Hello", URI: "http://www.example.com")
 
-        let fooNode = NSXMLElement(name: "Foo")
-        let barNode = NSXMLElement(name: "msxml:Bar")
-        let bazNode = NSXMLElement(name: "Baz")
-
         doc.setRootElement(node)
 
         let element = doc.rootElement()!
-        element.addChild(fooNode)
+        XCTAssert(element === node)
+    }
+
+    func test_nextPreviousNode() {
+        let doc = NSXMLDocument(rootElement: nil)
+        let node = NSXMLElement(name: "Hello", URI: "http://www.example.com")
+
+        let fooNode = NSXMLElement(name: "Foo")
+        let barNode = NSXMLElement(name: "Bar")
+        let bazNode = NSXMLElement(name: "Baz")
+
+        doc.setRootElement(node)
+        node.addChild(fooNode)
         fooNode.addChild(bazNode)
-        element.addChild(barNode)
-//        doc.setRootElement(element)
+        node.addChild(barNode)
 
-        print("RootDocument:\n\(element.rootDocument?.description ?? "")")
+        XCTAssert(doc.nextNode === node)
+        XCTAssert(doc.nextNode?.nextNode === fooNode)
+        XCTAssert(doc.nextNode?.nextNode?.nextNode === bazNode)
+        XCTAssert(doc.nextNode?.nextNode?.nextNode?.nextNode === barNode)
 
-        print(doc.rootElement()?.name ?? "")
-
-        print(doc.nextNode)
-        print(doc.nextNode?.nextNode)
-        print(doc.nextNode?.nextNode?.nextNode)
-        print(doc.nextNode?.nextNode?.nextNode?.nextNode)
-        print(doc.nextNode?.nextNode?.nextNode?.nextNode?.nextNode)
-
-        print(barNode)
-        print(barNode.previousNode)
-        print(barNode.previousNode?.previousNode)
-        print(barNode.previousNode?.previousNode?.previousNode)
-        print(barNode.previousNode?.previousNode?.previousNode?.previousNode)
-
-        print(barNode.prefix)
-        print(fooNode.prefix)
+        XCTAssert(barNode.previousNode === bazNode)
+        XCTAssert(barNode.previousNode?.previousNode === fooNode)
+        XCTAssert(barNode.previousNode?.previousNode?.previousNode === node)
+        XCTAssert(barNode.previousNode?.previousNode?.previousNode?.previousNode === doc)
     }
 
     func test_xpath() {
@@ -172,12 +171,13 @@ class TestNSXMLDocument : XCTestCase {
 	*/
     }
 
+
     func test_objectValue() {
         let element = NSXMLElement(name: "root")
         let dict: [String: AnyObject] = ["hello": "world"._bridgeToObject()]
         element.objectValue = dict._bridgeToObject()
 
-        //XCTAssertEqual(element.XMLString, "<root>{\n    hello = world;\n}</root>", element.XMLString)
+        XCTAssertEqual(element.XMLString, "<root>{\n    hello = world;\n}</root>", element.XMLString)
     }
 
     func test_attributes() {
@@ -238,9 +238,6 @@ class TestNSXMLDocument : XCTestCase {
             let doc = try NSXMLDocument(XMLString: string, options: NSXMLNodeLoadExternalEntitiesNever)
             XCTAssert(doc.childCount == 1)
             XCTAssertEqual(doc.rootElement()?.children?[0].stringValue, "Robert Thompson")
-
-            // NSURLSession is still unimplemented
-            //let newDoc = try NSXMLDocument(contentsOfURL: NSURL(string:"https://mandelbrotsetapp.com")!, options: 0)
 
             let newDoc = try NSXMLDocument(contentsOfURL: NSBundle.mainBundle().URLForResource("NSXMLDocumentTestData", withExtension: "xml")!, options: 0)
             XCTAssertEqual(newDoc.rootElement()?.name, "root")
