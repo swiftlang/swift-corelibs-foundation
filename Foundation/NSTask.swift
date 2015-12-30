@@ -194,12 +194,12 @@ public class NSTask : NSObject {
         }
         
         var taskSocketPair : [Int32] = [0, 0]
-        socketpair(AF_UNIX, SOCK_STREAM, 0, &taskSocketPair)
+        socketpair(AF_UNIX, _CF_SOCK_STREAM(), 0, &taskSocketPair)
         
         var context = CFSocketContext(version: 0, info: UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque()),
                                                retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil)
         
-        let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], kCFSocketDataCallBack, {
+        let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
             (socket, type, address, data, info )  in
             
             let task = Unmanaged<NSTask>.fromOpaque(COpaquePointer(info)).takeUnretainedValue()
