@@ -95,7 +95,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     public override var hash: Int {
         get {
-            return Int(CFHash(_cfObject))
+            return Int(bitPattern: CFHash(_cfObject))
         }
     }
     

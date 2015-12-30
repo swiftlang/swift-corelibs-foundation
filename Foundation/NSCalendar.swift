@@ -149,7 +149,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     public override var hash: Int {
         get {
-            return Int(CFHash(_cfObject))
+            return Int(bitPattern: CFHash(_cfObject))
         }
     }
     

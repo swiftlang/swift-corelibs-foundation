@@ -41,7 +41,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public override var hash: Int {
         get {
-            return Int(CFHash(_cfObject))
+            return Int(bitPattern: CFHash(_cfObject))
         }
     }
     

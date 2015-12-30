@@ -47,7 +47,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     
     public override var hash: Int {
         get {
-            return Int(CFHash(_cfObject))
+            return Int(bitPattern: CFHash(_cfObject))
         }
     }
     
