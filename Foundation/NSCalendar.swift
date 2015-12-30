@@ -147,6 +147,26 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
+    public override var hash: Int {
+        get {
+            return Int(CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let cal = object as? NSCalendar {
+            return CFEqual(_cfObject, cal._cfObject)
+        } else {
+            return false
+        }
+    }
+    
+    public override var description: String {
+        get {
+            return CFCopyDescription(_cfObject)._swiftObject
+        }
+    }
+
     deinit {
         _CFDeinit(self)
     }

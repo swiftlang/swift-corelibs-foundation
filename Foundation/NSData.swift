@@ -93,6 +93,20 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         self.init(bytes: nil, length: 0, copy: false, deallocator: nil)
     }
     
+    public override var hash: Int {
+        get {
+            return Int(CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let data = object as? NSData {
+            return self.isEqualToData(data)
+        } else {
+            return false
+        }
+    }
+    
     deinit {
         if _bytes != nil {
             _deallocHandler?.handler(_bytes, _length)
