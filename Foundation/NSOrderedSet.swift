@@ -32,6 +32,14 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return true
     }
     
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let orderedSet = object as? NSOrderedSet {
+            return isEqualToOrderedSet(orderedSet)
+        } else {
+            return false
+        }
+    }
+    
     public func encodeWithCoder(aCoder: NSCoder) {
         NSUnimplemented()
     }
@@ -129,7 +137,24 @@ extension NSOrderedSet {
         return _orderedStorage.last
     }
     
-    public func isEqualToOrderedSet(other: NSOrderedSet) -> Bool { NSUnimplemented() }
+    public func isEqualToOrderedSet(otherOrderedSet: NSOrderedSet) -> Bool {
+        if count != otherOrderedSet.count {
+            return false
+        }
+        
+        for idx in 0..<count {
+            let obj1 = objectAtIndex(idx) as! NSObject
+            let obj2 = otherOrderedSet.objectAtIndex(idx) as! NSObject
+            if obj1 === obj2 {
+                continue
+            }
+            if !obj1.isEqual(obj2) {
+                return false
+            }
+        }
+        
+        return true
+    }
     
     public func containsObject(object: AnyObject) -> Bool {
         if let object = object as? NSObject {
