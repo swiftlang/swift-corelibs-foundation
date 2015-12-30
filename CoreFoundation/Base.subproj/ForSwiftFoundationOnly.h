@@ -17,6 +17,7 @@
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/CFXMLInterface.h>
+#include <CoreFoundation/CFLogUtilities.h>
 #include <fts.h>
 
 CF_ASSUME_NONNULL_BEGIN
