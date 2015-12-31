@@ -37,6 +37,9 @@ class TestNSData: XCTestCase {
             ("test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth", test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth),
             ("test_base64EncodedStringGetsEncodedText", test_base64EncodedStringGetsEncodedText),
             ("test_initializeWithBase64EncodedStringGetsDecodedData", test_initializeWithBase64EncodedStringGetsDecodedData),
+            ("test_base64DecodeWithPadding1", test_base64DecodeWithPadding1),
+            ("test_base64DecodeWithPadding2", test_base64DecodeWithPadding2)
+
         ]
     }
     
@@ -136,7 +139,7 @@ class TestNSData: XCTestCase {
         }
 
         XCTAssertEqual(decodedText, plainText)
-    }
+        XCTAssertTrue(decodedData.isEqualToData(plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding)!))    }
     
     func test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil() {
         let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHBya$W11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
@@ -165,6 +168,7 @@ class TestNSData: XCTestCase {
         }
         
         XCTAssertEqual(decodedText, plainText)
+        XCTAssertTrue(decodedData.isEqualToData(plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding)!))
     }
     
     func test_initializeWithBase64EncodedStringGetsDecodedData() {
@@ -251,5 +255,30 @@ class TestNSData: XCTestCase {
         }
         let encodedTextResult = data.base64EncodedStringWithOptions([])
         XCTAssertEqual(encodedTextResult, encodedText)
+
+    }
+    func test_base64DecodeWithPadding1() {
+        let encodedPadding1 = "AoR="
+        let dataPadding1Bytes : [UInt8] = [0x02,0x84]
+        let dataPadding1 = NSData(bytes: dataPadding1Bytes, length: dataPadding1Bytes.count)
+        
+        
+        guard let decodedPadding1 = NSData(base64EncodedString:encodedPadding1, options: []) else {
+            XCTFail("Could not Base-64 decode data")
+            return
+        }
+        XCTAssert(dataPadding1.isEqualToData(decodedPadding1))
+    }
+    func test_base64DecodeWithPadding2() {
+        let encodedPadding2 = "Ao=="
+        let dataPadding2Bytes : [UInt8] = [0x02]
+        let dataPadding2 = NSData(bytes: dataPadding2Bytes, length: dataPadding2Bytes.count)
+        
+        
+        guard let decodedPadding2 = NSData(base64EncodedString:encodedPadding2, options: []) else {
+            XCTFail("Could not Base-64 decode data")
+            return
+        }
+        XCTAssert(dataPadding2.isEqualToData(decodedPadding2))
     }
 }
