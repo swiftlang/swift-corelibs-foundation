@@ -215,8 +215,8 @@ public class NSTask : NSObject {
             var waitResult : Int32 = 0
             
             repeat {
-                waitResult = waitpid( task.processIdentifier, &exitCode, 0);
-            } while ( (waitResult == -1) && (errno == EINTR) );
+                waitResult = waitpid( task.processIdentifier, &exitCode, 0)
+            } while ( (waitResult == -1) && (errno == EINTR) )
             
             task.terminationStatus = WEXITSTATUS( exitCode )
             
@@ -248,12 +248,12 @@ public class NSTask : NSObject {
             
             CFSocketInvalidate( socket )
             
-            }, &context );
+            }, &context )
         
         CFSocketSetSocketFlags( socket, CFOptionFlags(kCFSocketCloseOnInvalidate))
         
-        let source = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0);
-        CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode);
+        let source = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
+        CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
         
         // Launch
         
@@ -264,7 +264,7 @@ public class NSTask : NSObject {
             fatalError()
         }
         
-        close(taskSocketPair[1]);
+        close(taskSocketPair[1])
         
         self.runLoop = NSRunLoop.currentRunLoop()
         
