@@ -250,7 +250,7 @@ public class NSTask : NSObject {
             
             }, &context );
         
-        CFSocketSetSocketFlags( socket, kCFSocketCloseOnInvalidate );
+        CFSocketSetSocketFlags( socket, CFOptionFlags(kCFSocketCloseOnInvalidate))
         
         let source = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0);
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode);
