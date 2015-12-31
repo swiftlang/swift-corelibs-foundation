@@ -50,9 +50,20 @@ public class NSCoder : NSObject {
     public func decodeObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
         NSUnimplemented()
     }
-    
+   
+    /*!
+     @method decodeObjectOfClasses:forKey:
+        @abstract Decodes an object for the key, restricted to the specified classes.
+        @param classes An array of the expected classes.
+        @param key The code key.
+        @return The decoded object.
+        @discussion This function signature differs from Foundation OS X in that
+        classes is an array of Classes, not a NSSet. This is because AnyClass cannot
+        be casted to NSObject, nor is it Hashable.
+     */
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     @warn_unused_result
-    public func decodeObjectOfClasses(classes: NSSet?, forKey key: String) -> AnyObject? {
+    public func decodeObjectOfClasses(classes: [AnyClass], forKey key: String) -> AnyObject? {
         NSUnimplemented()
     }
     
@@ -71,8 +82,19 @@ public class NSCoder : NSObject {
         NSUnimplemented()
     }
     
+    /*!
+     @method decodeTopLevelObjectOfClasses:
+     @abstract Decodes an top-level object for the key, restricted to the specified classes.
+     @param classes An array of the expected classes.
+     @param key The code key.
+     @return The decoded object.
+     @discussion This function signature differs from Foundation OS X in that
+     classes is an array of Classes, not a NSSet. This is because AnyClass cannot
+     be casted to NSObject, nor is it Hashable.
+     */
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     @warn_unused_result
-    public func decodeTopLevelObjectOfClasses(classes: NSSet?, forKey key: String) throws -> AnyObject? {
+    public func decodeTopLevelObjectOfClasses(classes: [AnyClass], forKey key: String) throws -> AnyObject? {
         NSUnimplemented()
     }
     
@@ -253,13 +275,42 @@ public class NSCoder : NSObject {
         NSUnimplemented()
     }
     
-    public var allowedClasses: Set<NSObject>? {
+    /*!
+     @property allowedClasses
+     @abstract The set of coded classes allowed for secure coding. (read-only)
+     @discussion This property type differs from Foundation OS X in that
+     classes is an array of Classes, not a Set. This is because AnyClass is not
+     hashable.
+     */
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    public var allowedClasses: [AnyClass]? {
         get {
             NSUnimplemented()
         }
     }
     
     public func failWithError(error: NSError) {
-        NSUnimplemented()
+        if let debugDescription = error.userInfo["NSDebugDescription"] {
+            fatalError("*** NSKeyedUnarchiver.init: \(debugDescription)")
+        }
+    }
+    
+    internal func _decodeArrayOfObjectsForKey(key: String) -> [AnyObject] {
+        NSRequiresConcreteImplementation()
+    }
+    
+    internal func _decodePropertyListForKey(key: String) -> Any {
+        NSRequiresConcreteImplementation()
+    }
+}
+
+// TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
+extension NSObject {
+    public var classForCoder: AnyClass {
+        return self.dynamicType
+    }
+ 
+    public func replacementObjectForCoder(aCoder: NSCoder) -> AnyObject? {
+        return self
     }
 }
