@@ -294,6 +294,15 @@ extern void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out);
 extern void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
 
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
+#if !__COREFOUNDATION_FORFOUNDATIONONLY__
+typedef const struct __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
+extern CFTypeID _CFKeyedArchiverUIDGetTypeID(void);
+extern CFKeyedArchiverUIDRef _CFKeyedArchiverUIDCreate(CFAllocatorRef allocator, uint32_t value);
+extern uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
+#endif
+
+extern CFIndex __CFBinaryPlistWriteToStream(CFPropertyListRef plist, CFTypeRef stream);
+extern CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
 
 CF_IMPLICIT_BRIDGING_DISABLED
 CF_ASSUME_NONNULL_END

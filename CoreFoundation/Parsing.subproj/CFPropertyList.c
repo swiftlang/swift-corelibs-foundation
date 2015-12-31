@@ -25,7 +25,7 @@
 #include "CFInternal.h"
 #include <CoreFoundation/CFBurstTrie.h>
 #include <CoreFoundation/CFString.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 #include <CoreFoundation/CFStream.h>
 #endif
 #include <CoreFoundation/CFCalendar.h>
@@ -101,6 +101,7 @@ CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number);
 
 static CFTypeID stringtype, datatype, numbertype, datetype;
 static CFTypeID booltype, nulltype, dicttype, arraytype, settype;
+static CFTypeID uidtype; /* for debugging */
 
 static void initStatics() {
     static dispatch_once_t once = 0;
@@ -114,6 +115,7 @@ static void initStatics() {
         arraytype = CFArrayGetTypeID();
         settype = CFSetGetTypeID();
         nulltype = CFNullGetTypeID();
+        uidtype = _CFKeyedArchiverUIDGetTypeID();
     });
 }
 
@@ -663,6 +665,14 @@ if (date.year != y || date.month != M || date.day != d || date.hour != H || date
             _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[FALSE_IX], FALSE_TAG_LENGTH);
             _plistAppendUTF8CString(xmlString, "/>\n");
         }
+    } else if (typeID == uidtype) {
+        CFStringRef key = CFSTR("CF$UID");
+        CFIndex n = _CFKeyedArchiverUIDGetValue((CFKeyedArchiverUIDRef)object);
+        CFNumberRef value = CFNumberCreate(kCFAllocatorSystemDefault, kCFNumberCFIndexType, &n);
+        CFDictionaryRef dict = CFDictionaryCreate(kCFAllocatorSystemDefault, (const void **)(&key), (const void **)(&value), 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        _CFAppendXML0(dict, indentation, xmlString);
+        CFRelease(value);
+        CFRelease(dict);
     }
 }
 
@@ -2794,7 +2804,7 @@ CFDataRef CFPropertyListCreateData(CFAllocatorRef allocator, CFPropertyListRef p
     } else if (format == kCFPropertyListXMLFormat_v1_0) {
         data = _CFPropertyListCreateXMLData(allocator, propertyList, true);
     } else if (format == kCFPropertyListBinaryFormat_v1_0) {
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         // TODO: Is it more efficient to create a stream here or just use a mutable data?
         CFWriteStreamRef stream = CFWriteStreamCreateWithAllocatedBuffers(kCFAllocatorSystemDefault, allocator);
         CFWriteStreamOpen(stream);
@@ -2816,7 +2826,7 @@ CFDataRef CFPropertyListCreateData(CFAllocatorRef allocator, CFPropertyListRef p
     return data;
 }
 
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 
 CFIndex CFPropertyListWrite(CFPropertyListRef propertyList, CFWriteStreamRef stream, CFPropertyListFormat format, CFOptionFlags options, CFErrorRef *error) {
     initStatics();
@@ -3011,7 +3021,7 @@ CFPropertyListRef CFPropertyListCreateFromStream(CFAllocatorRef allocator, CFRea
     return result;
 }
 
-#endif //(DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
+#endif //(DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX)
 
 #pragma mark -
 #pragma mark Property List Copies
