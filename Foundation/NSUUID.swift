@@ -82,7 +82,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public override var hash: Int {
-        return Int(CFHashBytes(buffer, 16))
+        return Int(bitPattern: CFHashBytes(buffer, 16))
     }
     
     public override var description: String {
