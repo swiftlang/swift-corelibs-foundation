@@ -48,6 +48,7 @@ class TestNSOrderedSet : XCTestCase {
             ("test_Subtraction", test_Subtraction),
             ("test_Union", test_Union),
             ("test_Initializers", test_Initializers),
+            ("test_Sorting", test_Sorting),
         ]
     }
 
@@ -293,5 +294,35 @@ class TestNSOrderedSet : XCTestCase {
         let newSet = NSOrderedSet(orderedSet: set)
         XCTAssert(newSet.isEqualToOrderedSet(set))
         XCTAssert(set[0] === newSet[0])
+
+        let unorderedSet = Set(["foo".bridge(), "bar".bridge(), "baz".bridge()])
+        let newSetFromUnorderedSet = NSOrderedSet(set: unorderedSet)
+        XCTAssertEqual(newSetFromUnorderedSet.count, 3)
+        XCTAssert(newSetFromUnorderedSet.containsObject("foo".bridge()))
+    }
+
+    func test_Sorting() {
+        let set = NSMutableOrderedSet(arrayLiteral: "a".bridge(), "d".bridge(), "c".bridge(), "b".bridge())
+        set.sortUsingComparator { lhs, rhs in
+            if let lhs = lhs as? NSString, rhs = rhs as? NSString {
+                return lhs.compare(rhs.bridge())
+            }
+            return NSComparisonResult.OrderedSame
+        }
+        XCTAssertEqual(set[0] as? NSString, "a")
+        XCTAssertEqual(set[1] as? NSString, "b")
+        XCTAssertEqual(set[2] as? NSString, "c")
+        XCTAssertEqual(set[3] as? NSString, "d")
+
+        set.sortRange(NSMakeRange(1, 2), options: []) { lhs, rhs in
+            if let lhs = lhs as? NSString, rhs = rhs as? NSString {
+                return rhs.compare(lhs.bridge())
+            }
+            return NSComparisonResult.OrderedSame
+        }
+        XCTAssertEqual(set[0] as? NSString, "a")
+        XCTAssertEqual(set[1] as? NSString, "c")
+        XCTAssertEqual(set[2] as? NSString, "b")
+        XCTAssertEqual(set[3] as? NSString, "d")
     }
 }

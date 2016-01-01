@@ -456,8 +456,23 @@ extension NSMutableOrderedSet {
         other.forEach(addObject)
     }
     
-    public func sortUsingComparator(cmptr: NSComparator) { NSUnimplemented() }
-    public func sortWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) { NSUnimplemented() }
-    public func sortRange(range: NSRange, options opts: NSSortOptions, usingComparator cmptr: NSComparator) { NSUnimplemented() }
-}
+    public func sortUsingComparator(cmptr: NSComparator) {
+        sortRange(NSMakeRange(0, count), options: [], usingComparator: cmptr)
+    }
 
+    public func sortWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+        sortRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
+    }
+
+    public func sortRange(range: NSRange, options opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+        // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
+        guard opts.isEmpty else {
+            NSUnimplemented()
+        }
+
+        let swiftRange = range.toRange()!
+        _orderedStorage[swiftRange].sortInPlace { lhs, rhs in
+            return cmptr(lhs, rhs) == .OrderedAscending
+        }
+    }
+}
