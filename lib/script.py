@@ -98,7 +98,7 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
         
         c_flags += Configuration.current.extra_c_flags
 
-        swift_flags = "\nTARGET_SWIFTCFLAGS    = -I${SDKROOT}/lib/swift/" + Configuration.current.target.swift_sdk_name + " "
+        swift_flags = "\nTARGET_SWIFTCFLAGS    = -I${SDKROOT}/lib/swift/" + Configuration.current.target.swift_sdk_name + " -Xcc -fblocks "
         if swift_triple is not None:
             swift_flags += "-target ${SWIFT_TARGET} "
         if Configuration.current.system_root is not None:

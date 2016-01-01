@@ -137,6 +137,20 @@ public class NSNumber : NSValue {
         }
     }
     
+    public override var hash: Int {
+        get {
+            return Int(bitPattern: CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let number = object as? NSNumber {
+            return CFEqual(_cfObject, number._cfObject)
+        } else {
+            return false
+        }
+    }
+    
     deinit {
         _CFDeinit(self)
     }

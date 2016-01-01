@@ -39,6 +39,26 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         NSUnimplemented()
     }
     
+    public override var hash: Int {
+        get {
+            return Int(bitPattern: CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let tz = object as? NSTimeZone {
+            return isEqualToTimeZone(tz)
+        } else {
+            return false
+        }
+    }
+    
+    public override var description: String {
+        get {
+            return CFCopyDescription(_cfObject)._swiftObject
+        }
+    }
+
     deinit {
         _CFDeinit(self)
     }
@@ -179,7 +199,9 @@ extension NSTimeZone {
     public var daylightSavingTimeOffset: NSTimeInterval { NSUnimplemented() }
     /*@NSCopying*/ public var nextDaylightSavingTimeTransition: NSDate?  { NSUnimplemented() }
     
-    public func isEqualToTimeZone(aTimeZone: NSTimeZone) -> Bool { NSUnimplemented() }
+    public func isEqualToTimeZone(aTimeZone: NSTimeZone) -> Bool {
+        return CFEqual(self._cfObject, aTimeZone._cfObject)
+    }
     
     public func localizedName(style: NSTimeZoneNameStyle, locale: NSLocale?) -> String? { NSUnimplemented() }
 }

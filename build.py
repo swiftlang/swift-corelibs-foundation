@@ -15,7 +15,8 @@ foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefi
 
 if Configuration.current.target.sdk == OSType.Linux:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE '
-	foundation.LDFLAGS = '-Wl,@./CoreFoundation/linux.ld -lswiftGlibc `icu-config --ldflags` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString '
+	foundation.LDFLAGS = '-Wl,@./CoreFoundation/linux.ld -Xlinker -T ${SDKROOT}/lib/swift/linux/${ARCH}/swift.ld -lswiftGlibc `icu-config --ldflags` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString '
+
 elif Configuration.current.target.sdk == OSType.FreeBSD:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 '
 	foundation.LDFLAGS = ''
@@ -25,12 +26,12 @@ elif Configuration.current.target.sdk == OSType.MacOSX:
 
 # For now, we do not distinguish between public and private headers (they are all private to Foundation)
 # These are really part of CF, which should ultimately be a separate target
-foundation.ROOT_HEADERS_FOLDER_PATH = "/usr/lib/swift"
-foundation.PUBLIC_HEADERS_FOLDER_PATH = "/usr/lib/swift/CoreFoundation"
-foundation.PRIVATE_HEADERS_FOLDER_PATH = "/usr/lib/swift/CoreFoundation"
-foundation.PROJECT_HEADERS_FOLDER_PATH = "/usr/lib/swift/CoreFoundation"
+foundation.ROOT_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift"
+foundation.PUBLIC_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift/CoreFoundation"
+foundation.PRIVATE_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift/CoreFoundation"
+foundation.PROJECT_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift/CoreFoundation"
 
-foundation.PUBLIC_MODULE_FOLDER_PATH = "/usr/lib/swift/CoreFoundation"
+foundation.PUBLIC_MODULE_FOLDER_PATH = "${PREFIX}/lib/swift/CoreFoundation"
 
 foundation.CFLAGS += " ".join([
 	'-DU_SHOW_DRAFT_API',
