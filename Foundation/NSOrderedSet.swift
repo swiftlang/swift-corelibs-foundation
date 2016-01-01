@@ -144,8 +144,21 @@ extension NSOrderedSet {
         return false
     }
 
-    public func intersectsOrderedSet(other: NSOrderedSet) -> Bool { NSUnimplemented() }
-    public func intersectsSet(set: Set<NSObject>) -> Bool { NSUnimplemented() }
+    public func intersectsOrderedSet(other: NSOrderedSet) -> Bool {
+        if count < other.count {
+            return contains { obj in other.containsObject(obj as! NSObject) }
+        } else {
+            return other.contains { obj in containsObject(obj) }
+        }
+    }
+
+    public func intersectsSet(set: Set<NSObject>) -> Bool {
+        if count < set.count {
+            return contains { obj in set.contains(obj as! NSObject) }
+        } else {
+            return set.contains { obj in containsObject(obj) }
+        }
+    }
     
     public func isSubsetOfOrderedSet(other: NSOrderedSet) -> Bool {
         return !self.contains { obj in

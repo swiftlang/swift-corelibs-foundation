@@ -250,7 +250,9 @@ class TestNSOrderedSet : XCTestCase {
     func test_Intersection() {
         let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
         let otherSet = NSOrderedSet(array: ["foo", "baz"].bridge().bridge())
+        XCTAssert(set.intersectsOrderedSet(otherSet))
         let otherOtherSet = Set(["foo".bridge(), "123".bridge()])
+        XCTAssert(set.intersectsSet(otherOtherSet))
         set.intersectOrderedSet(otherSet)
         XCTAssertEqual(set.count, 2)
         XCTAssertEqual(set[0] as? NSString, "foo")
@@ -258,6 +260,9 @@ class TestNSOrderedSet : XCTestCase {
         set.intersectSet(otherOtherSet)
         XCTAssertEqual(set.count, 1)
         XCTAssertEqual(set[0] as? NSString, "foo")
+
+        let nonIntersectingSet = Set(["asdf".bridge()])
+        XCTAssertFalse(set.intersectsSet(nonIntersectingSet))
     }
 
     func test_Subtraction() {
