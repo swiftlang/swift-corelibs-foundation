@@ -47,6 +47,7 @@ class TestNSOrderedSet : XCTestCase {
             ("test_Intersection", test_Intersection),
             ("test_Subtraction", test_Subtraction),
             ("test_Union", test_Union),
+            ("test_Initializers", test_Initializers),
         ]
     }
 
@@ -284,5 +285,13 @@ class TestNSOrderedSet : XCTestCase {
         set.unionSet(otherOtherSet)
         XCTAssertEqual(set.count, 5)
         XCTAssertEqual(set[4] as? NSString, "456")
+    }
+
+    func test_Initializers() {
+        let copyableObject = NSObject()
+        let set = NSMutableOrderedSet(arrayLiteral: copyableObject, "bar".bridge(), "baz".bridge())
+        let newSet = NSOrderedSet(orderedSet: set)
+        XCTAssert(newSet.isEqualToOrderedSet(set))
+        XCTAssert(set[0] === newSet[0])
     }
 }

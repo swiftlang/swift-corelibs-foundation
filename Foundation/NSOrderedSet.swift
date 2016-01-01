@@ -216,7 +216,8 @@ extension NSOrderedSet {
     }
 
     public convenience init(orderedSet set: NSOrderedSet, range: NSRange, copyItems flag: Bool) {
-        self.init(array: set.array, range: range, copyItems: flag)
+        // TODO: Use the array method here when available.
+        self.init(array: set.map { $0 }, range: range, copyItems: flag)
     }
 
     public convenience init(array: [AnyObject]) {
@@ -236,15 +237,12 @@ extension NSOrderedSet {
     public convenience init(array set: [AnyObject], range: NSRange, copyItems flag: Bool) {
         var objects = set
 
-        if range.length != set.count || flag {
+        if let range = range.toRange() where range.count != set.count || flag {
             objects = [AnyObject]()
-            if let range = range.toRange() {
-                for index in range.indices {
-                    let object = set[index]
-                    objects.append(flag ? object.copy() : object)
-                }
+            for index in range.indices {
+                let object = set[index]
+                objects.append(flag ? object.copy() : object)
             }
-
         }
 
         self.init(array: objects)
