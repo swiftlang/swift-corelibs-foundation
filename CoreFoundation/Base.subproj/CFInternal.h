@@ -662,6 +662,9 @@ CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
     return (typeID < __CFRuntimeClassTableSize) ? __CFRuntimeObjCClassTable[typeID] : 0;
 }
 
+/* For Swift, which can't allocate any CF objects until after the bridge is initialized */
+CF_PRIVATE void __CFNumberInitialize(void);
+
 /* See comments in CFBase.c
 */
 #define FAULT_CALLBACK(V)
