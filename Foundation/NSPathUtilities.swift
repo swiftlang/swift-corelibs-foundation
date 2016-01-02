@@ -542,3 +542,26 @@ public func NSUserName() -> String {
     }
     fatalError("Could not get current logon name.")
 }
+
+internal func _NSCreateTemporaryFile(filePath: String) throws -> (Int32, String) {
+    let template = "." + filePath + ".tmp.XXXXXX"
+    let maxLength = Int(PATH_MAX) + 1
+    var buf = [Int8](count: maxLength, repeatedValue: 0)
+    template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
+    let fd = mkstemp(&buf)
+    if fd == -1 {
+        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+    }
+    let pathResult = NSFileManager.defaultManager().stringWithFileSystemRepresentation(buf, length: Int(strlen(buf)))
+    return (fd, pathResult)
+}
+
+internal func _NSCleanupTemporaryFile(auxFilePath: String, _ filePath: String) throws  {
+    if rename(auxFilePath, filePath) != 0 {
+        do {
+            try NSFileManager.defaultManager().removeItemAtPath(auxFilePath)
+        } catch _ {
+        }
+        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+    }
+}
