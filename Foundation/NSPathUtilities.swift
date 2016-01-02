@@ -601,27 +601,18 @@ public func NSHomeDirectory() -> String {
 }
 
 public func NSHomeDirectoryForUser(user: String?) -> String? {
-    let usr = user ?? NSUserName()
-    var info = passwd()
-    let bufSize = Int(BUFSIZ * 10)
-    var buffer = [Int8](count: bufSize, repeatedValue: 0)
-    var result: UnsafeMutablePointer<passwd> = nil
-
-    var homeDir: String? = nil
-    if getpwnam_r(usr, &info, &buffer, bufSize, &result) == 0 && result != nil && result.memory.pw_dir != nil {
-        homeDir = String.fromCString(result.memory.pw_dir)
+    let userName = user?._cfObject
+    guard let homeDir = CFCopyHomeDirectoryURLForUser(userName)?.takeRetainedValue() else {
+        return nil
     }
-
-    return homeDir
+    
+    let url: NSURL = homeDir._nsObject
+    return url.path
 }
 
 public func NSUserName() -> String {
-    let bufSize = Int(BUFSIZ)
-    var buffer = [Int8](count: bufSize, repeatedValue: 0)
-    if getlogin_r(&buffer, bufSize) == 0 {
-        return String.fromCString(buffer)!
-    }
-    fatalError("Could not get current logon name.")
+    let userName = CFCopyUserName().takeRetainedValue()
+    return userName._swiftObject
 }
 
 internal func _NSCreateTemporaryFile(filePath: String) throws -> (Int32, String) {
