@@ -527,8 +527,8 @@ public func NSHomeDirectoryForUser(user: String?) -> String? {
     var result: UnsafeMutablePointer<passwd> = nil
 
     var homeDir: String? = nil
-    if getpwnam_r(usr, &info, &buffer, bufSize, &result) == 0 && info.pw_dir != nil {
-        homeDir = String.fromCString(info.pw_dir)
+    if getpwnam_r(usr, &info, &buffer, bufSize, &result) == 0 && result != nil && result.memory.pw_dir != nil {
+        homeDir = String.fromCString(result.memory.pw_dir)
     }
 
     return homeDir
