@@ -177,6 +177,29 @@ internal extension String {
         }
         return result
     }
+    
+    internal func _stringByRemovingPrefix(prefix: String) -> String {
+        guard hasPrefix(prefix) else {
+            return self
+        }
+
+        var temp = self
+        temp.removeRange(startIndex..<prefix.endIndex)
+        return temp
+    }
+    
+    internal func _tryToRemovePathPrefix(prefix: String) -> String? {
+        guard self != prefix else {
+            return nil
+        }
+        
+        let temp = _stringByRemovingPrefix(prefix)
+        if NSFileManager.defaultManager().fileExistsAtPath(temp) {
+            return temp
+        }
+        
+        return nil
+    }
 }
 
 public extension NSString {
@@ -347,12 +370,70 @@ public extension NSString {
         return result._stringByFixingSlashes()
     }
 
+    public var stringByExpandingTildeInPath: String {
+        guard hasPrefix("~") else {
+            return _swiftObject
+        }
+
+        let endOfUserName = _swiftObject.characters.indexOf("/") ?? _swiftObject.endIndex
+        let userName = String(_swiftObject.characters[_swiftObject.startIndex.successor()..<endOfUserName])
+        let optUserName: String? = userName.isEmpty ? nil : userName
+        
+        guard let homeDir = NSHomeDirectoryForUser(optUserName) else {
+            return _swiftObject._stringByFixingSlashes(compress: false, stripTrailing: true)
+        }
+        
+        var result = _swiftObject
+        result.replaceRange(_swiftObject.startIndex..<endOfUserName, with: homeDir)
+        result = result._stringByFixingSlashes(compress: false, stripTrailing: true)
+        
+        return result
+    }
+    
     public var stringByStandardizingPath: String {
-        NSUnimplemented()
+        let expanded = stringByExpandingTildeInPath
+        var resolved = expanded.bridge().stringByResolvingSymlinksInPath
+        
+        let automount = "/var/automount"
+        resolved = resolved._tryToRemovePathPrefix(automount) ?? resolved
+        return resolved
     }
     
     public var stringByResolvingSymlinksInPath: String {
-        NSUnimplemented()
+        var components = pathComponents
+        guard !components.isEmpty else {
+            return _swiftObject
+        }
+        
+        // TODO: pathComponents keeps final path separator if any. Check that logic.
+        if components.last == "/" {
+            components.removeLast()
+        }
+        
+        let isAbsolutePath = components.first == "/"
+        
+        var resolvedPath = components.removeFirst()
+        for component in components {
+            switch component {
+                
+            case "", ".":
+                break
+                
+            case ".." where isAbsolutePath:
+                resolvedPath = resolvedPath.bridge().stringByDeletingLastPathComponent
+                
+            default:
+                resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
+                if let destination = NSFileManager.defaultManager()._tryToResolveTrailingSymlinkInPath(resolvedPath) {
+                    resolvedPath = destination
+                }
+            }
+        }
+        
+        let privatePrefix = "/private"
+        resolvedPath = resolvedPath._tryToRemovePathPrefix(privatePrefix) ?? resolvedPath
+        
+        return resolvedPath
     }
     
     public func stringsByAppendingPaths(paths: [String]) -> [String] {
@@ -520,25 +601,39 @@ public func NSHomeDirectory() -> String {
 }
 
 public func NSHomeDirectoryForUser(user: String?) -> String? {
-    let usr = user ?? NSUserName()
-    var info = passwd()
-    let bufSize = Int(BUFSIZ * 10)
-    var buffer = [Int8](count: bufSize, repeatedValue: 0)
-    var result: UnsafeMutablePointer<passwd> = nil
-
-    var homeDir: String? = nil
-    if getpwnam_r(usr, &info, &buffer, bufSize, &result) == 0 && info.pw_dir != nil {
-        homeDir = String.fromCString(info.pw_dir)
+    let userName = user?._cfObject
+    guard let homeDir = CFCopyHomeDirectoryURLForUser(userName)?.takeRetainedValue() else {
+        return nil
     }
-
-    return homeDir
+    
+    let url: NSURL = homeDir._nsObject
+    return url.path
 }
 
 public func NSUserName() -> String {
-    let bufSize = Int(BUFSIZ)
-    var buffer = [Int8](count: bufSize, repeatedValue: 0)
-    if getlogin_r(&buffer, bufSize) == 0 {
-        return String.fromCString(buffer)!
+    let userName = CFCopyUserName().takeRetainedValue()
+    return userName._swiftObject
+}
+
+internal func _NSCreateTemporaryFile(filePath: String) throws -> (Int32, String) {
+    let template = "." + filePath + ".tmp.XXXXXX"
+    let maxLength = Int(PATH_MAX) + 1
+    var buf = [Int8](count: maxLength, repeatedValue: 0)
+    template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
+    let fd = mkstemp(&buf)
+    if fd == -1 {
+        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
     }
-    fatalError("Could not get current logon name.")
+    let pathResult = NSFileManager.defaultManager().stringWithFileSystemRepresentation(buf, length: Int(strlen(buf)))
+    return (fd, pathResult)
+}
+
+internal func _NSCleanupTemporaryFile(auxFilePath: String, _ filePath: String) throws  {
+    if rename(auxFilePath, filePath) != 0 {
+        do {
+            try NSFileManager.defaultManager().removeItemAtPath(auxFilePath)
+        } catch _ {
+        }
+        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+    }
 }

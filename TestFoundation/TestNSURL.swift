@@ -66,6 +66,7 @@ class TestNSURL : XCTestCase {
             // TODO: these tests fail on linux, more investigation is needed
             // ("test_fileURLWithPath", test_fileURLWithPath),
             // ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
+            ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath)
         ]
     }
     
@@ -345,6 +346,61 @@ class TestNSURL : XCTestCase {
         XCTAssertTrue(strncmp(gBaseCurrentWorkingDirectoryPath, fileSystemRep, strlen(gBaseCurrentWorkingDirectoryPath)) == 0, @"fileSystemRepresentation of base path is wrong");
         XCTAssertTrue(strncmp(gFileDoesNotExistName, &fileSystemRep[gRelativeOffsetFromBaseCurrentWorkingDirectory], strlen(gFileDoesNotExistName)) == 0, @"fileSystemRepresentation of file path is wrong");
         */
+    }
+    
+    func test_URLByResolvingSymlinksInPath() {
+        let files = [
+            "/tmp/ABC/test_URLByResolvingSymlinksInPath"
+        ]
+        
+        guard ensureFiles(files) else {
+            XCTAssert(false, "Could create files for testing.")
+            return
+        }
+        
+        // tmp is special because it is symlinked to /private/tmp and this /private prefix should be dropped,
+        // so tmp is tmp. On Linux tmp is not symlinked so it would be the same.
+        do {
+            let url = NSURL(fileURLWithPath: "/.//tmp/ABC/..")
+            let result = url.URLByResolvingSymlinksInPath?.absoluteString
+            XCTAssertEqual(result, "file:///tmp/", "URLByResolvingSymlinksInPath removes extraneous path components and resolve symlinks.")
+        }
+            
+        do {
+            let url = NSURL(fileURLWithPath: "~")
+            let result = url.URLByResolvingSymlinksInPath?.absoluteString
+            let expected = "file://" + NSFileManager.defaultManager().currentDirectoryPath + "/~"
+            XCTAssertEqual(result, expected, "URLByResolvingSymlinksInPath resolves relative paths using current working directory.")
+        }
+
+        // relative file paths depend on file path standardizing that is not yet implemented
+//        do {
+//            let url = NSURL(fileURLWithPath: "anysite.com/search")
+//            let result = url.URLByResolvingSymlinksInPath?.absoluteString
+//            let expected = "file://" + NSFileManager.defaultManager().currentDirectoryPath + "/anysite.com/search"
+//            XCTAssertEqual(result, expected)
+//        }
+
+        // tmp is symlinked on OS X only
+        #if os(OSX)
+        do {
+            let url = NSURL(fileURLWithPath: "/tmp/..")
+            let result = url.URLByResolvingSymlinksInPath?.absoluteString
+            XCTAssertEqual(result, "file:///private/")
+        }
+        #endif
+        
+        do {
+            let url = NSURL(fileURLWithPath: "/tmp/ABC/test_URLByResolvingSymlinksInPath")
+            let result = url.URLByResolvingSymlinksInPath?.absoluteString
+            XCTAssertEqual(result, "file:///tmp/ABC/test_URLByResolvingSymlinksInPath", "URLByResolvingSymlinksInPath appends trailing slash for existing directories only")
+        }
+        
+        do {
+            let url = NSURL(fileURLWithPath: "/tmp/ABC/..")
+            let result = url.URLByResolvingSymlinksInPath?.absoluteString
+            XCTAssertEqual(result, "file:///tmp/")
+        }
     }
 }
     

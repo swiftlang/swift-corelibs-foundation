@@ -477,11 +477,70 @@ extension NSURL {
     /* The following methods work only on `file:` scheme URLs; for non-`file:` scheme URLs, these methods return the URL unchanged.
     */
     public var URLByStandardizingPath: NSURL? {
-        NSUnimplemented()
+        // Documentation says it should expand initial tilde, but it does't do this on OS X.
+        // In remaining cases it works just like URLByResolvingSymlinksInPath.
+        return URLByResolvingSymlinksInPath
     }
     
     public var URLByResolvingSymlinksInPath: NSURL? {
-        NSUnimplemented()
+        guard fileURL else {
+            return NSURL(string: absoluteString!)
+        }
+        
+        guard let selfPath = path else {
+            return NSURL(string: absoluteString!)
+        }
+        
+        let absolutePath: String
+        if selfPath.hasPrefix("/") {
+            absolutePath = selfPath
+        } else {
+            let workingDir = NSFileManager.defaultManager().currentDirectoryPath
+            absolutePath = workingDir.bridge().stringByAppendingPathComponent(selfPath)
+        }
+        
+        var components = absolutePath.pathComponents
+        guard !components.isEmpty else {
+            return NSURL(string: absoluteString!)
+        }
+        
+        var resolvedPath = components.removeFirst()
+        for component in components {
+            switch component {
+            
+            case "", ".":
+                break
+            
+            case "..":
+                resolvedPath = resolvedPath.bridge().stringByDeletingLastPathComponent
+            
+            default:
+                resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
+                if let destination = NSFileManager.defaultManager()._tryToResolveTrailingSymlinkInPath(resolvedPath) {
+                    resolvedPath = destination
+                }
+            }
+        }
+        
+        // It might be a responsibility of NSURL(fileURLWithPath:). Check it.
+        var isExistingDirectory = false
+        NSFileManager.defaultManager().fileExistsAtPath(resolvedPath, isDirectory: &isExistingDirectory)
+        
+        let privatePrefix = "/private"
+        
+        if resolvedPath.hasPrefix(privatePrefix) && resolvedPath != privatePrefix {
+            var temp = resolvedPath
+            temp.removeRange(resolvedPath.startIndex..<privatePrefix.endIndex)
+            if NSFileManager.defaultManager().fileExistsAtPath(temp) {
+                resolvedPath = temp
+            }
+        }
+        
+        if isExistingDirectory && !resolvedPath.hasSuffix("/") {
+            resolvedPath += "/"
+        }
+        
+        return NSURL(fileURLWithPath: resolvedPath)
     }
 }
 

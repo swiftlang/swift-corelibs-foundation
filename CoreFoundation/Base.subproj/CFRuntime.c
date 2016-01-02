@@ -1169,6 +1169,7 @@ void __CFInitialize(void) {
         extern void __CFInitializeSwift();
         __CFInitializeSwift();
 #endif
+        __CFNumberInitialize(); /* needs to happen after Swift bridge is initialized */
         {
             CFIndex idx, cnt = 0;
             char **args = NULL;

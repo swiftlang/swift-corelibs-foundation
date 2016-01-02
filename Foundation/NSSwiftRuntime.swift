@@ -53,7 +53,7 @@ internal class __NSCFType : NSObject {
     
     override var hash: Int {
         get {
-            return Int(CFHash(self))
+            return Int(bitPattern: CFHash(self))
         }
     }
     

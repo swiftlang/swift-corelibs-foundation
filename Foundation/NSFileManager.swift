@@ -719,6 +719,38 @@ public class NSFileManager : NSObject {
     public func replaceItemAtURL(originalItemURL: NSURL, withItemAtURL newItemURL: NSURL, backupItemName: String?, options: NSFileManagerItemReplacementOptions) throws -> NSURL {
         NSUnimplemented()
     }
+    
+    internal func _tryToResolveTrailingSymlinkInPath(path: String) -> String? {
+        guard _pathIsSymbolicLink(path) else {
+            return nil
+        }
+        
+        guard let destination = try? NSFileManager.defaultManager().destinationOfSymbolicLinkAtPath(path) else {
+            return nil
+        }
+        
+        return _appendSymlinkDestination(destination, toPath: path)
+    }
+    
+    internal func _appendSymlinkDestination(dest: String, toPath: String) -> String {
+        if dest.hasPrefix("/") {
+            return dest
+        } else {
+            let temp = toPath.bridge().stringByDeletingLastPathComponent
+            return temp.bridge().stringByAppendingPathComponent(dest)
+        }
+    }
+    
+    internal func _pathIsSymbolicLink(path: String) -> Bool {
+        guard let
+            attrs = try? attributesOfItemAtPath(path),
+            fileType = attrs[NSFileType] as? String
+        else {
+            return false
+        }
+        
+        return fileType == NSFileTypeSymbolicLink
+    }
 }
 
 extension NSFileManagerDelegate {

@@ -618,37 +618,41 @@ extension NSData {
     /**
       The ranges of ASCII characters that are used to encode data in Base64.
       */
-    private static var base64ByteMappings: [Range<UInt8>] {
-        return [
-            65 ..< 91,      // A-Z
-            97 ..< 123,     // a-z
-            48 ..< 58,      // 0-9
-            43 ..< 44,      // +
-            47 ..< 48,      // /
-            61 ..< 62       // =
-        ]
-    }
-
+    private static let base64ByteMappings: [Range<UInt8>] = [
+        65 ..< 91,      // A-Z
+        97 ..< 123,     // a-z
+        48 ..< 58,      // 0-9
+        43 ..< 44,      // +
+        47 ..< 48,      // /
+    ]
+    /**
+     Padding character used when the number of bytes to encode is not divisible by 3
+     */
+    private static let base64Padding : UInt8 = 61 // =
+    
     /**
         This method takes a byte with a character from Base64-encoded string
         and gets the binary value that the character corresponds to.
      
-        If the byte is not a valid character in Base64, this will return nil.
-     
         - parameter byte:       The byte with the Base64 character.
-        - returns:              The numeric value that the character corresponds
-                                to.
+        - returns:              Base64DecodedByte value containing the result (Valid , Invalid, Padding)
         */
-    private static func base64DecodeByte(byte: UInt8) -> UInt8? {
+    private enum Base64DecodedByte {
+        case Valid(UInt8)
+        case Invalid
+        case Padding
+    }
+    private static func base64DecodeByte(byte: UInt8) -> Base64DecodedByte {
+        guard byte != base64Padding else {return .Padding}
         var decodedStart: UInt8 = 0
         for range in base64ByteMappings {
             if range.contains(byte) {
                 let result = decodedStart + (byte - range.startIndex)
-                return result == 64 ? 0 : result
+                return .Valid(result)
             }
             decodedStart += range.endIndex - range.startIndex
         }
-        return nil
+        return .Invalid
     }
     
     /**
@@ -674,69 +678,6 @@ extension NSData {
         return 0
     }
     
-    /**
-        This method takes an array of bytes and either adds or removes padding
-        as part of Base64 encoding and decoding.
- 
-        If the fromSize is larger than the toSize, this will inflate the bytes
-        by adding zero between the bits. If the fromSize is smaller than the
-        toSize, this will deflate the bytes by removing the most significant
-        bits and recompacting the bytes.
- 
-        For instance, if you were going from 6 bits to 8 bits, and you had
-        an array of bytes with `[0b00010000, 0b00010101, 0b00001001 0b00001101]`,
-        this would give a result of: `[0b01000001 0b01010010 0b01001101]`.
-        This transition is done when decoding Base64 data.
-     
-        If you were going from 8 bits to 6 bits, and you had an array of bytes
-        with `[0b01000011 0b01101111 0b01101110], this would give a result of:
-        `[0b00010000 0b00110110 0b00111101 0b00101110]. This transition is done
-        when encoding data in Base64.
-     
-        - parameter bytes:      The original bytes
-        - parameter fromSize:   The number of useful bits in each byte of the
-                                input.
-        - parameter toSize:     The number of useful bits in each byte of the
-                                output.
-        - returns:              The resized bytes
-        */
-    private static func base64ResizeBytes(bytes: [UInt8], fromSize: UInt32, toSize: UInt32) -> [UInt8] {
-        var bitBuffer: UInt32 = 0
-        var bitCount: UInt32 = 0
-        
-        var result = [UInt8]()
-        
-        result.reserveCapacity(bytes.count * Int(fromSize) / Int(toSize))
-        
-        let mask = UInt32(1 << toSize - 1)
-        
-        for byte in bytes {
-            bitBuffer = bitBuffer << fromSize | UInt32(byte)
-            bitCount += fromSize
-            if bitCount % toSize == 0 {
-                while(bitCount > 0) {
-                    let byte = UInt8(mask & (bitBuffer >> (bitCount - toSize)))
-                    result.append(byte)
-                    bitCount -= toSize
-                }
-            }
-        }
-        
-        let paddingBits = toSize - (bitCount % toSize)
-        if paddingBits != toSize {
-            bitBuffer = bitBuffer << paddingBits
-            bitCount += paddingBits
-        }
-        
-        while(bitCount > 0) {
-            let byte = UInt8(mask & (bitBuffer >> (bitCount - toSize)))
-            result.append(byte)
-            bitCount -= toSize
-        }
-        
-        return result
-
-    }
     
     /**
         This method decodes Base64-encoded data.
@@ -750,19 +691,64 @@ extension NSData {
         */
     private static func base64DecodeBytes(bytes: [UInt8], options: NSDataBase64DecodingOptions = []) -> [UInt8]? {
         var decodedBytes = [UInt8]()
-        decodedBytes.reserveCapacity(bytes.count)
-        for byte in bytes {
-            guard let decoded = base64DecodeByte(byte) else {
+        decodedBytes.reserveCapacity((bytes.count/3)*2)
+
+        var currentByte : UInt8 = 0
+        var validCharacterCount = 0
+        var paddingCount = 0
+        var index = 0
+        
+        
+        for base64Char in bytes {
+            
+            let value : UInt8
+            
+            switch base64DecodeByte(base64Char) {
+            case .Valid(let v):
+                value = v
+                validCharacterCount += 1
+            case .Invalid:
                 if options.contains(.IgnoreUnknownCharacters) {
                     continue
-                }
-                else {
+                } else {
                     return nil
                 }
+            case .Padding:
+                paddingCount += 1
+                continue
             }
-            decodedBytes.append(decoded)
+            
+            //padding found in the middle of the sequence is invalid
+            if paddingCount > 0 {
+                return nil
+            }
+            
+            switch index%4 {
+            case 0:
+                currentByte = (value << 2)
+            case 1:
+                currentByte |= (value >> 4)
+                decodedBytes.append(currentByte)
+                currentByte = (value << 4)
+            case 2:
+                currentByte |= (value >> 2)
+                decodedBytes.append(currentByte)
+                currentByte = (value << 6)
+            case 3:
+                currentByte |= value
+                decodedBytes.append(currentByte)
+            default:
+                fatalError()
+            }
+            
+            index += 1
         }
-        return base64ResizeBytes(decodedBytes, fromSize: 6, toSize: 8)
+        
+        guard (validCharacterCount + paddingCount)%4 == 0 else {
+            //invalid character count
+            return nil
+        }
+        return decodedBytes
     }
     
     
@@ -774,29 +760,73 @@ extension NSData {
         - returns:              The Base64-encoding for those bytes.
         */
     private static func base64EncodeBytes(bytes: [UInt8], options: NSDataBase64EncodingOptions = []) -> [UInt8] {
-        var encodedBytes = base64ResizeBytes(bytes, fromSize: 8, toSize: 6)
-        encodedBytes = encodedBytes.map(base64EncodeByte)
+        var result = [UInt8]()
+        result.reserveCapacity((bytes.count/3)*4)
         
-        let paddingBytes = (4 - (encodedBytes.count % 4)) % 4
-        for _ in 0..<paddingBytes {
-            encodedBytes.append(61)
-        }
-        let lineLength: Int
-        if options.contains(.Encoding64CharacterLineLength) { lineLength = 64 }
-        else if options.contains(.Encoding76CharacterLineLength) { lineLength = 76 }
-        else { lineLength = 0 }
-        if lineLength > 0 {
+        let lineOptions : (lineLength : Int, separator : [UInt8])? = {
+            let lineLength: Int
+            
+            if options.contains(.Encoding64CharacterLineLength) { lineLength = 64 }
+            else if options.contains(.Encoding76CharacterLineLength) { lineLength = 76 }
+            else {
+                return nil
+            }
+            
             var separator = [UInt8]()
             if options.contains(.EncodingEndLineWithCarriageReturn) { separator.append(13) }
             if options.contains(.EncodingEndLineWithLineFeed) { separator.append(10) }
-            let lines = encodedBytes.count / lineLength
-            for line in 0..<lines {
-                for (index,character) in separator.enumerate() {
-                    encodedBytes.insert(character, atIndex: (lineLength + separator.count) * line + index + lineLength)
-                }
+            
+            //if the kind of line ending to insert is not specified, the default line ending is Carriage Return + Line Feed.
+            if separator.count == 0 {separator = [13,10]}
+            
+            return (lineLength,separator)
+        }()
+        
+        var currentLineCount = 0
+        let appendByteToResult : (UInt8) -> () = {
+            result.append($0)
+            currentLineCount += 1
+            if let options = lineOptions where currentLineCount == options.lineLength {
+                result.appendContentsOf(options.separator)
+                currentLineCount = 0
             }
         }
-        return encodedBytes
+        
+        var currentByte : UInt8 = 0
+        
+        for (index,value) in bytes.enumerate() {
+            switch index%3 {
+            case 0:
+                currentByte = (value >> 2)
+                appendByteToResult(NSData.base64EncodeByte(currentByte))
+                currentByte = ((value << 6) >> 2)
+            case 1:
+                currentByte |= (value >> 4)
+                appendByteToResult(NSData.base64EncodeByte(currentByte))
+                currentByte = ((value << 4) >> 2)
+            case 2:
+                currentByte |= (value >> 6)
+                appendByteToResult(NSData.base64EncodeByte(currentByte))
+                currentByte = ((value << 2) >> 2)
+                appendByteToResult(NSData.base64EncodeByte(currentByte))
+            default:
+                fatalError()
+            }
+        }
+        //add padding
+        switch bytes.count%3 {
+        case 0: break //no padding needed
+        case 1:
+            appendByteToResult(NSData.base64EncodeByte(currentByte))
+            appendByteToResult(self.base64Padding)
+            appendByteToResult(self.base64Padding)
+        case 2:
+            appendByteToResult(NSData.base64EncodeByte(currentByte))
+            appendByteToResult(self.base64Padding)
+        default:
+            fatalError()
+        }
+        return result
     }
 }
 
