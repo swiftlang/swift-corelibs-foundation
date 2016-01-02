@@ -11,18 +11,20 @@
 #ifndef __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__
 #define __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ 1
 
+#if !defined(CF_PRIVATE)
+#define CF_PRIVATE __attribute__((__visibility__("hidden")))
+#endif
+
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFLocaleInternal.h>
-#include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/CFXMLInterface.h>
 #include <CoreFoundation/CFLogUtilities.h>
-#include <CoreFoundation/CFStream.h>
+#include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
 
-CF_ASSUME_NONNULL_BEGIN
-CF_IMPLICIT_BRIDGING_ENABLED
+_CF_EXPORT_SCOPE_BEGIN
 
 struct __CFSwiftObject {
     uintptr_t isa;
@@ -38,8 +40,8 @@ typedef struct __CFSwiftObject *CFSwiftRef;
     } \
 } while (0)
 
-extern bool _CFIsSwift(CFTypeID type, CFSwiftRef obj);
-extern void _CFDeinit(CFTypeRef cf);
+CF_PRIVATE CF_EXPORT bool _CFIsSwift(CFTypeID type, CFSwiftRef obj);
+CF_PRIVATE CF_EXPORT void _CFDeinit(CFTypeRef cf);
 
 struct _NSObjectBridge {
     CFTypeID (*_cfTypeID)(CFTypeRef object);
@@ -197,105 +199,30 @@ struct _CFSwiftBridge {
     struct _NSRunLoop NSRunLoop;
 };
 
-__attribute__((__visibility__("hidden"))) extern struct _CFSwiftBridge __CFSwiftBridge;
+CF_PRIVATE CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
 
-
-CF_EXPORT CFStringEncoding __CFDefaultEightBitStringEncoding;
-
-extern void _CFRuntimeBridgeTypeToClass(CFTypeID type, const void *isa);
-
-extern void _CFNumberInitBool(CFNumberRef result, Boolean value);
-extern void _CFNumberInitInt8(CFNumberRef result, int8_t value);
-extern void _CFNumberInitUInt8(CFNumberRef result, uint8_t value);
-extern void _CFNumberInitInt16(CFNumberRef result, int16_t value);
-extern void _CFNumberInitUInt16(CFNumberRef result, uint16_t value);
-extern void _CFNumberInitInt32(CFNumberRef result, int32_t value);
-extern void _CFNumberInitUInt32(CFNumberRef result, uint32_t value);
-extern void _CFNumberInitInt(CFNumberRef result, long value);
-extern void _CFNumberInitUInt(CFNumberRef result, unsigned long value);
-extern void _CFNumberInitInt64(CFNumberRef result, int64_t value);
-extern void _CFNumberInitUInt64(CFNumberRef result, uint64_t value);
-extern void _CFNumberInitFloat(CFNumberRef result, float value);
-extern void _CFNumberInitDouble(CFNumberRef result, double value);
-
-extern void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CFStringRef fileSystemPath, CFURLPathStyle pathStyle, Boolean isDirectory, _Nullable CFURLRef baseURL);
-extern Boolean _CFURLInitWithURLString(CFURLRef url, CFStringRef string, Boolean checkForLegalCharacters, _Nullable CFURLRef baseURL);
-extern Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding, _Nullable CFURLRef baseURL);
-
-extern CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length);
-extern CFIndex __CFProcessorCount();
-extern uint64_t __CFMemorySize();
-extern CFStringRef _CFProcessNameString(void);
-extern CFIndex __CFActiveProcessorCount();
-extern CFDictionaryRef __CFGetEnvironment();
-extern int32_t __CFGetPid();
-
-extern void _CFDataInit(CFMutableDataRef memory, CFOptionFlags flags, CFIndex capacity, const uint8_t *bytes, CFIndex length, Boolean noCopy);
-
-extern int32_t _CF_SOCK_STREAM();
-
-extern CFStringRef CFCopySystemVersionString(void);
-extern CFDictionaryRef _CFCopySystemVersionDictionary(void);
-
-extern Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier);
-extern Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbsoluteTime *atp, const char *componentDesc, int32_t *vector, int32_t count);
-extern Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
-extern Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int32_t *vector, int32_t count);
-extern Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
-extern Boolean _CFCalendarIsWeekend(CFCalendarRef calendar, CFAbsoluteTime at);
-
-typedef struct {
-    CFTimeInterval onsetTime;
-    CFTimeInterval ceaseTime;
-    CFIndex start;
-    CFIndex end;
-} _CFCalendarWeekendRange;
-
-extern Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
-
-extern Boolean _CFLocaleInit(CFLocaleRef locale, CFStringRef identifier);
-
-extern Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, _Nullable CFDataRef data);
-
-extern Boolean _CFCharacterSetInitWithCharactersInRange(CFMutableCharacterSetRef cset, CFRange theRange);
-extern Boolean _CFCharacterSetInitWithCharactersInString(CFMutableCharacterSetRef cset, CFStringRef theString);
-extern Boolean _CFCharacterSetInitMutable(CFMutableCharacterSetRef cset);
-extern Boolean _CFCharacterSetInitWithBitmapRepresentation(CFMutableCharacterSetRef cset, CFDataRef theData);
-extern CFIndex __CFCharDigitValue(UniChar ch);
-
-extern CFTimeInterval CFGetSystemUptime(void);
-
-extern int _CFOpenFileWithMode(const char *path, int opts, mode_t mode);
-extern int _CFOpenFile(const char *path, int opts);
-extern void *_CFReallocf(void *ptr, size_t size);
-
-CFHashCode CFStringHashNSString(CFStringRef str);
-
-extern CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
-extern Boolean _CFRunLoopFinished(CFRunLoopRef rl, CFStringRef modeName);
-
-extern CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding, uint8_t lossByte,  UInt8 * _Nullable buffer, CFIndex max, CFIndex * _Nullable usedBufLen);
+CF_PRIVATE CF_EXPORT void _CFRuntimeBridgeTypeToClass(CFTypeID type, const void *isa);
 
 typedef	unsigned char __cf_uuid[16];
 typedef	char __cf_uuid_string[37];
 typedef __cf_uuid _cf_uuid_t;
 typedef __cf_uuid_string _cf_uuid_string_t;
 
-extern void _cf_uuid_clear(_cf_uuid_t uu);
-extern int _cf_uuid_compare(const _cf_uuid_t uu1, const _cf_uuid_t uu2);
-extern void _cf_uuid_copy(_cf_uuid_t dst, const _cf_uuid_t src);
-extern void _cf_uuid_generate(_cf_uuid_t out);
-extern void _cf_uuid_generate_random(_cf_uuid_t out);
-extern void _cf_uuid_generate_time(_cf_uuid_t out);
-extern int _cf_uuid_is_null(const _cf_uuid_t uu);
-extern int _cf_uuid_parse(const _cf_uuid_string_t in, _cf_uuid_t uu);
-extern void _cf_uuid_unparse(const _cf_uuid_t uu, _cf_uuid_string_t out);
-extern void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out);
-extern void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
+CF_PRIVATE CF_EXPORT void _cf_uuid_clear(_cf_uuid_t uu);
+CF_PRIVATE CF_EXPORT int _cf_uuid_compare(const _cf_uuid_t uu1, const _cf_uuid_t uu2);
+CF_PRIVATE CF_EXPORT void _cf_uuid_copy(_cf_uuid_t dst, const _cf_uuid_t src);
+CF_PRIVATE CF_EXPORT void _cf_uuid_generate(_cf_uuid_t out);
+CF_PRIVATE CF_EXPORT void _cf_uuid_generate_random(_cf_uuid_t out);
+CF_PRIVATE CF_EXPORT void _cf_uuid_generate_time(_cf_uuid_t out);
+CF_PRIVATE CF_EXPORT int _cf_uuid_is_null(const _cf_uuid_t uu);
+CF_PRIVATE CF_EXPORT int _cf_uuid_parse(const _cf_uuid_string_t in, _cf_uuid_t uu);
+CF_PRIVATE CF_EXPORT void _cf_uuid_unparse(const _cf_uuid_t uu, _cf_uuid_string_t out);
+CF_PRIVATE CF_EXPORT void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out);
+CF_PRIVATE CF_EXPORT void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
 
-extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
 
-CF_IMPLICIT_BRIDGING_DISABLED
-CF_ASSUME_NONNULL_END
+CF_PRIVATE CF_EXPORT int32_t _CF_SOCK_STREAM();
+
+_CF_EXPORT_SCOPE_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */
