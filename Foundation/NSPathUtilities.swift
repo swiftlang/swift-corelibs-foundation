@@ -601,7 +601,18 @@ public func NSHomeDirectory() -> String {
 }
 
 public func NSHomeDirectoryForUser(user: String?) -> String? {
-    let usr = user ?? NSUserName()
+    let currentUserName = NSUserName()
+    let usr = user ?? currentUserName
+    
+    if usr == currentUserName {
+        // From http://linux.die.net/man/3/getpwuid
+        // An application that wants to determine its user's home directory should inspect the value of HOME (rather than the value getpwuid(getuid())->pw_dir) 
+        // since this allows the user to modify their notion of "the home directory" during a login session.
+        if let envHome = NSProcessInfo.processInfo().environment["HOME"] {
+            return envHome
+        }
+    }
+    
     var info = passwd()
     let recommendedBufSize = sysconf(Int32(_SC_GETPW_R_SIZE_MAX))
     let bufSize = recommendedBufSize > 0 ? recommendedBufSize : Int(BUFSIZ * 10)
