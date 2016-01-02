@@ -52,7 +52,10 @@ class TestNSString : XCTestCase {
             ("test_stringByDeletingLastPathComponent", test_stringByDeletingLastPathComponent),
             ("test_getCString_simple", test_getCString_simple),
             ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
-            ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser)
+            ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser),
+            ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath),
+            ("test_stringByExpandingTildeInPath", test_stringByExpandingTildeInPath),
+            ("test_stringByStandardizingPath", test_stringByStandardizingPath)
         ]
     }
 
@@ -492,33 +495,6 @@ class TestNSString : XCTestCase {
     	return lhs.compare(rhs.bridge(), options: .CaseInsensitiveSearch) == .OrderedSame
     }
 
-    private func ensureFiles(fileNames: [String]) -> Bool {
-        var result = true
-        let fm = NSFileManager.defaultManager()
-        for name in fileNames {
-            guard !fm.fileExistsAtPath(name) else {
-                continue
-            }
-            
-            var isDir: ObjCBool = false
-            let dir = name.bridge().stringByDeletingLastPathComponent
-            if !fm.fileExistsAtPath(dir, isDirectory: &isDir) {
-                do {
-                    try fm.createDirectoryAtPath(dir, withIntermediateDirectories: true, attributes: nil)
-                } catch let err {
-                    print(err)
-                    return false
-                }
-            } else if !isDir {
-                return false
-            }
-            
-            
-            result = result && fm.createFileAtPath(name, contents: nil, attributes: nil)
-        }
-        return result
-    }
-
     func test_stringByTrimmingCharactersInSet() {
         let characterSet = NSCharacterSet.whitespaceCharacterSet()
         let string: NSString = " abc   "
@@ -578,6 +554,51 @@ class TestNSString : XCTestCase {
         }
     }
     
+    func test_stringByResolvingSymlinksInPath() {
+        do {
+            let path: NSString = "foo/bar"
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "foo/bar", "For relative paths, symbolic links that can’t be resolved are left unresolved in the returned string.")
+        }
+        
+        do {
+            let path: NSString = "/tmp/.."
+            let result = path.stringByResolvingSymlinksInPath
+            
+            #if os(OSX)
+            let expected = "/private"
+            #else
+            let expected = "/"
+            #endif
+            
+            XCTAssertEqual(result, expected, "For absolute paths, all symbolic links are guaranteed to be removed.")
+        }
+
+        do {
+            let path: NSString = "tmp/.."
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "tmp/..", "Parent links could be resolved for absolute paths only.")
+        }
+        
+        do {
+            let path: NSString = "/tmp/"
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "/tmp", "Result doesn't contain trailing slash.")
+        }
+        
+        do {
+            let path: NSString = "http://google.com/search/.."
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "http:/google.com/search/..", "stringByResolvingSymlinksInPath treats receiver as file path always")
+        }
+        
+        do {
+            let path: NSString = "file:///tmp/.."
+            let result = path.stringByResolvingSymlinksInPath
+            XCTAssertEqual(result, "file:/tmp/..", "stringByResolvingSymlinksInPath treats receiver as file path always")
+        }
+    }
+
     func test_getCString_simple() {
         let str: NSString = "foo"
         var chars = [Int8](count:4, repeatedValue:0xF)
@@ -617,5 +638,89 @@ class TestNSString : XCTestCase {
         let homeDir2 = NSHomeDirectoryForUser(userName)
         let homeDir3 = NSHomeDirectory()
         XCTAssert(homeDir != nil && homeDir == homeDir2 && homeDir == homeDir3, "Could get user' home directory")
+    }
+    
+    func test_stringByExpandingTildeInPath() {
+        do {
+            let path: NSString = "~"
+            let result = path.stringByExpandingTildeInPath
+            XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
+            XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
+        }
+        
+        do {
+            let path: NSString = "~/"
+            let result = path.stringByExpandingTildeInPath
+            XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
+            XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
+        }
+        
+        do {
+            let path = NSString(string: "~\(NSUserName())")
+            let result = path.stringByExpandingTildeInPath
+            XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for specific user")
+            XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
+        }
+        
+        do {
+            let userName = NSUUID().UUIDString
+            let path = NSString(string: "~\(userName)/")
+            let result = path.stringByExpandingTildeInPath
+          	// next assert fails in VirtualBox because home directory for unknown user resolved to /var/run/vboxadd
+            XCTAssert(result == "~\(userName)", "Return copy of reciver if home directory could no be resolved.")
+        }
+    }
+    
+    func test_stringByStandardizingPath() {
+        
+        // tmp is special because it is symlinked to /private/tmp and this /private prefix should be dropped,
+        // so tmp is tmp. On Linux tmp is not symlinked so it would be the same.
+        do {
+            let path: NSString = "/.//tmp/ABC/.."
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, "/tmp", "stringByStandardizingPath removes extraneous path components and resolve symlinks.")
+        }
+        
+        do {
+            let path: NSString =  "~"
+            let result = path.stringByStandardizingPath
+            let expected = NSHomeDirectory()
+            XCTAssertEqual(result, expected, "stringByStandardizingPath expanding initial tilde.")
+        }
+        
+        do {
+            let path: NSString =  "~/foo/bar/"
+            let result = path.stringByStandardizingPath
+            let expected = NSHomeDirectory() + "/foo/bar"
+            XCTAssertEqual(result, expected, "stringByStandardizingPath expanding initial tilde.")
+        }
+        
+        // relative file paths depend on file path standardizing that is not yet implemented
+        do {
+            let path: NSString = "foo/bar"
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, path.bridge(), "stringByStandardizingPath doesn't resolve relative paths")
+        }
+        
+        // tmp is symlinked on OS X only
+        #if os(OSX)
+        do {
+            let path: NSString = "/tmp/.."
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, "/private")
+        }
+        #endif
+        
+        do {
+            let path: NSString = "/tmp/ABC/.."
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, "/tmp", "parent links could be resolved for absolute paths")
+        }
+        
+        do {
+            let path: NSString = "tmp/ABC/.."
+            let result = path.stringByStandardizingPath
+            XCTAssertEqual(result, path.bridge(), "parent links could not be resolved for relative paths")
+        }
     }
 }

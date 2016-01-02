@@ -177,6 +177,29 @@ internal extension String {
         }
         return result
     }
+    
+    internal func _stringByRemovingPrefix(prefix: String) -> String {
+        guard hasPrefix(prefix) else {
+            return self
+        }
+
+        var temp = self
+        temp.removeRange(startIndex..<prefix.endIndex)
+        return temp
+    }
+    
+    internal func _tryToRemovePathPrefix(prefix: String) -> String? {
+        guard self != prefix else {
+            return nil
+        }
+        
+        let temp = _stringByRemovingPrefix(prefix)
+        if NSFileManager.defaultManager().fileExistsAtPath(temp) {
+            return temp
+        }
+        
+        return nil
+    }
 }
 
 public extension NSString {
@@ -347,12 +370,70 @@ public extension NSString {
         return result._stringByFixingSlashes()
     }
 
+    public var stringByExpandingTildeInPath: String {
+        guard hasPrefix("~") else {
+            return _swiftObject
+        }
+
+        let endOfUserName = _swiftObject.characters.indexOf("/") ?? _swiftObject.endIndex
+        let userName = String(_swiftObject.characters[_swiftObject.startIndex.successor()..<endOfUserName])
+        let optUserName: String? = userName.isEmpty ? nil : userName
+        
+        guard let homeDir = NSHomeDirectoryForUser(optUserName) else {
+            return _swiftObject._stringByFixingSlashes(compress: false, stripTrailing: true)
+        }
+        
+        var result = _swiftObject
+        result.replaceRange(_swiftObject.startIndex..<endOfUserName, with: homeDir)
+        result = result._stringByFixingSlashes(compress: false, stripTrailing: true)
+        
+        return result
+    }
+    
     public var stringByStandardizingPath: String {
-        NSUnimplemented()
+        let expanded = stringByExpandingTildeInPath
+        var resolved = expanded.bridge().stringByResolvingSymlinksInPath
+        
+        let automount = "/var/automount"
+        resolved = resolved._tryToRemovePathPrefix(automount) ?? resolved
+        return resolved
     }
     
     public var stringByResolvingSymlinksInPath: String {
-        NSUnimplemented()
+        var components = pathComponents
+        guard !components.isEmpty else {
+            return _swiftObject
+        }
+        
+        // TODO: pathComponents keeps final path separator if any. Check that logic.
+        if components.last == "/" {
+            components.removeLast()
+        }
+        
+        let isAbsolutePath = components.first == "/"
+        
+        var resolvedPath = components.removeFirst()
+        for component in components {
+            switch component {
+                
+            case "", ".":
+                break
+                
+            case ".." where isAbsolutePath:
+                resolvedPath = resolvedPath.bridge().stringByDeletingLastPathComponent
+                
+            default:
+                resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
+                if let destination = NSFileManager.defaultManager()._tryToResolveTrailingSymlinkInPath(resolvedPath) {
+                    resolvedPath = destination
+                }
+            }
+        }
+        
+        let privatePrefix = "/private"
+        resolvedPath = resolvedPath._tryToRemovePathPrefix(privatePrefix) ?? resolvedPath
+        
+        return resolvedPath
     }
     
     public func stringsByAppendingPaths(paths: [String]) -> [String] {
