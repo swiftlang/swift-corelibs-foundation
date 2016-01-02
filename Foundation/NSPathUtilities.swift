@@ -601,49 +601,18 @@ public func NSHomeDirectory() -> String {
 }
 
 public func NSHomeDirectoryForUser(user: String?) -> String? {
-    let currentUserName = NSUserName()
-    let usr = user ?? currentUserName
-    
-    if usr == currentUserName {
-        // From http://linux.die.net/man/3/getpwuid
-        // An application that wants to determine its user's home directory should inspect the value of HOME (rather than the value getpwuid(getuid())->pw_dir) 
-        // since this allows the user to modify their notion of "the home directory" during a login session.
-        if let envHome = NSProcessInfo.processInfo().environment["HOME"] {
-            return envHome
-        }
+    let userName = user?._cfObject
+    guard let homeDir = CFCopyHomeDirectoryURLForUser(userName)?.takeRetainedValue() else {
+        return nil
     }
     
-    var info = passwd()
-    let recommendedBufSize = sysconf(Int32(_SC_GETPW_R_SIZE_MAX))
-    let bufSize = recommendedBufSize > 0 ? recommendedBufSize : Int(BUFSIZ * 10)
-    var buffer = [Int8](count: bufSize, repeatedValue: 0)
-    var result: UnsafeMutablePointer<passwd> = nil
-
-    var homeDir: String? = nil
-    if getpwnam_r(usr, &info, &buffer, bufSize, &result) == 0 && result != nil && result.memory.pw_dir != nil {
-        homeDir = String.fromCString(result.memory.pw_dir)
-    }
-
-    return homeDir
+    let url: NSURL = homeDir._nsObject
+    return url.path
 }
 
 public func NSUserName() -> String {
-    let euid = geteuid()
-    
-    var info = passwd()
-    let recommendedBufSize = sysconf(Int32(_SC_GETPW_R_SIZE_MAX))
-    let bufSize = recommendedBufSize > 0 ? recommendedBufSize : Int(BUFSIZ * 10)
-    var buffer = [Int8](count: bufSize, repeatedValue: 0)
-    var result: UnsafeMutablePointer<passwd> = nil
-    
-    let errno = getpwuid_r(euid, &info, &buffer, bufSize, &result)
-    if errno == 0 && result != nil && result.memory.pw_name != nil {
-        return String.fromCString(result.memory.pw_name)!
-    }
-    
-    // maybe NSUserName should return optional string
-    print("Could not get current logon name. \(errno) Return `unknown`.")
-    return "unknown"
+    let userName = CFCopyUserName().takeRetainedValue()
+    return String(userName)
 }
 
 internal func _NSCreateTemporaryFile(filePath: String) throws -> (Int32, String) {
