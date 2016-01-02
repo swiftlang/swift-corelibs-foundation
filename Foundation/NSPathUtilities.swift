@@ -616,12 +616,21 @@ public func NSHomeDirectoryForUser(user: String?) -> String? {
 }
 
 public func NSUserName() -> String {
-    let bufSize = Int(BUFSIZ)
+    let euid = geteuid()
+    
+    var info = passwd()
+    let bufSize = Int(BUFSIZ * 10)
     var buffer = [Int8](count: bufSize, repeatedValue: 0)
-    if getlogin_r(&buffer, bufSize) == 0 {
-        return String.fromCString(buffer)!
+    var result: UnsafeMutablePointer<passwd> = nil
+    
+    let errno = getpwuid_r(euid, &info, &buffer, bufSize, &result)
+    if errno == 0 && result != nil && result.memory.pw_name != nil {
+        return String.fromCString(result.memory.pw_name)!
     }
-    fatalError("Could not get current logon name.")
+    
+    // maybe NSUserName should return optional string
+    print("Could not get current logon name. \(errno) Return `unknown`.")
+    return "unknown"
 }
 
 internal func _NSCreateTemporaryFile(filePath: String) throws -> (Int32, String) {
