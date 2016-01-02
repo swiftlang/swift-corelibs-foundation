@@ -276,7 +276,7 @@ extension NSOrderedSet {
         if let range = range.toRange() where range.count != set.count || flag {
             objects = [AnyObject]()
             for index in range.indices {
-                let object = set[index]
+                let object = set[index] as! NSObject
                 objects.append(flag ? object.copy() : object)
             }
         }
@@ -289,7 +289,7 @@ extension NSOrderedSet {
     }
 
     public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
-        self.init(array: Array(set), copyItems: flag)
+        self.init(array: set.map { $0 as AnyObject }, copyItems: flag)
     }
 }
 
