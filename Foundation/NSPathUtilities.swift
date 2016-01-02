@@ -612,7 +612,7 @@ public func NSHomeDirectoryForUser(user: String?) -> String? {
 
 public func NSUserName() -> String {
     let userName = CFCopyUserName().takeRetainedValue()
-    return String(userName)
+    return userName._swiftObject
 }
 
 internal func _NSCreateTemporaryFile(filePath: String) throws -> (Int32, String) {
