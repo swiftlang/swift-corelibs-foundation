@@ -603,7 +603,8 @@ public func NSHomeDirectory() -> String {
 public func NSHomeDirectoryForUser(user: String?) -> String? {
     let usr = user ?? NSUserName()
     var info = passwd()
-    let bufSize = Int(BUFSIZ * 10)
+    let recommendedBufSize = sysconf(_SC_GETPW_R_SIZE_MAX)
+    let bufSize = recommendedBufSize > 0 ? recommendedBufSize : Int(BUFSIZ * 10)
     var buffer = [Int8](count: bufSize, repeatedValue: 0)
     var result: UnsafeMutablePointer<passwd> = nil
 
@@ -619,7 +620,8 @@ public func NSUserName() -> String {
     let euid = geteuid()
     
     var info = passwd()
-    let bufSize = Int(BUFSIZ * 10)
+    let recommendedBufSize = sysconf(_SC_GETPW_R_SIZE_MAX)
+    let bufSize = recommendedBufSize > 0 ? recommendedBufSize : Int(BUFSIZ * 10)
     var buffer = [Int8](count: bufSize, repeatedValue: 0)
     var result: UnsafeMutablePointer<passwd> = nil
     
