@@ -39,6 +39,8 @@ class TestNSArray : XCTestCase {
             ("test_sortUsingFunction", test_sortUsingFunction),
             ("test_sortUsingComparator", test_sortUsingComparator),
             ("test_equality", test_equality),
+            ("test_copying", test_copying),
+            ("test_mutableCopying", test_mutableCopying),
         ]
     }
     
@@ -367,6 +369,40 @@ class TestNSArray : XCTestCase {
 
         XCTAssertFalse(array1.isEqual(nil))
         XCTAssertFalse(array1.isEqual(NSObject()))
+    }
+
+    func test_copying() {
+        let array = ["this", "is", "a", "test", "of", "copy", "with", "strings"].bridge()
+
+        let arrayCopy1 = array.copy() as! NSArray
+        XCTAssertTrue(array === arrayCopy1)
+
+        let arrayMutableCopy = array.mutableCopy() as! NSMutableArray
+        let arrayCopy2 = arrayMutableCopy.copy() as! NSArray
+        XCTAssertTrue(arrayCopy2.dynamicType === NSArray.self)
+        XCTAssertFalse(arrayMutableCopy === arrayCopy2)
+        for entry in arrayCopy2 {
+            XCTAssertTrue(array.indexOfObjectIdenticalTo(entry) != NSNotFound)
+        }
+
+    }
+
+    func test_mutableCopying() {
+        let array = ["this", "is", "a", "test", "of", "mutableCopy", "with", "strings"].bridge()
+
+        let arrayMutableCopy1 = array.mutableCopy() as! NSMutableArray
+        XCTAssertTrue(arrayMutableCopy1.dynamicType === NSMutableArray.self)
+        XCTAssertFalse(array === arrayMutableCopy1)
+        for entry in arrayMutableCopy1 {
+            XCTAssertTrue(array.indexOfObjectIdenticalTo(entry) != NSNotFound)
+        }
+
+        let arrayMutableCopy2 = arrayMutableCopy1.mutableCopy() as! NSMutableArray
+        XCTAssertTrue(arrayMutableCopy2.dynamicType === NSMutableArray.self)
+        XCTAssertFalse(arrayMutableCopy2 === arrayMutableCopy1)
+        for entry in arrayMutableCopy2 {
+            XCTAssertTrue(arrayMutableCopy1.indexOfObjectIdenticalTo(entry) != NSNotFound)
+        }
     }
 
 }

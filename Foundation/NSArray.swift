@@ -84,7 +84,15 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        return self
+        if self.dynamicType === NSArray.self {
+            // return self for immutable type
+            return self
+        } else if self.dynamicType === NSMutableArray.self {
+            let array = NSArray()
+            array._storage = self._storage
+            return array
+        }
+        return NSArray(array: self.allObjects)
     }
     
     public override func mutableCopy() -> AnyObject {
@@ -92,7 +100,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
-        return NSMutableArray(array: _swiftObject)
+        if self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self {
+            // always create and return an NSMutableArray
+            let mutableArray = NSMutableArray()
+            mutableArray._storage = self._storage
+            return mutableArray
+        }
+        return NSMutableArray(array: self.allObjects)
     }
 
     public convenience init(object anObject: AnyObject) {

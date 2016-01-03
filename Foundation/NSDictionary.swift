@@ -150,17 +150,31 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     public override func copy() -> AnyObject {
         return copyWithZone(nil)
     }
-    
+
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        if self.dynamicType === NSDictionary.self {
+            // return self for immutable type
+            return self
+        } else if self.dynamicType === NSMutableDictionary.self {
+            let dictionary = NSDictionary()
+            dictionary._storage = self._storage
+            return dictionary
+        }
+        return NSDictionary(objects: self.allValues, forKeys: self.allKeys as! [NSObject])
     }
-    
+
     public override func mutableCopy() -> AnyObject {
         return mutableCopyWithZone(nil)
     }
-    
+
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+            // always create and return an NSMutableDictionary
+            let mutableDictionary = NSMutableDictionary()
+            mutableDictionary._storage = self._storage
+            return mutableDictionary
+        }
+        return NSMutableDictionary(objects: self.allValues, forKeys: self.allKeys as! [NSObject])
     }
 
     public convenience init(object: AnyObject, forKey key: NSCopying) {
