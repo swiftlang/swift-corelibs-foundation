@@ -110,7 +110,7 @@ internal class NSConcreteValue : NSValue {
         return NSString(self._typeInfo.name).UTF8String // XXX leaky
     }
     
-    override var classForKeyedArchiver: AnyClass? {
+    override var classForCoder: AnyClass {
         return NSValue.self
     }
     

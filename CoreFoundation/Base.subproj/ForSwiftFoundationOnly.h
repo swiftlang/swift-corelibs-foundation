@@ -243,6 +243,8 @@ extern Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsol
 extern Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int32_t *vector, int32_t count);
 extern Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
 extern Boolean _CFCalendarIsWeekend(CFCalendarRef calendar, CFAbsoluteTime at);
+extern _Nullable CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
+extern void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date);
 
 typedef struct {
     CFTimeInterval onsetTime;
