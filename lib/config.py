@@ -9,7 +9,7 @@
 
 import json
 
-from path import Path
+from .path import Path
 
 class Configuration:
     Debug = "debug"
