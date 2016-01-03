@@ -1232,6 +1232,13 @@ extension NSString {
         NSUnimplemented()    
     }
     
+    public convenience init(format: NSString, _ args: CVarArgType...) {
+        let str = withVaList(args) { (vaPtr) -> CFString! in
+            CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, vaPtr)
+        }
+        self.init(str._swiftObject)
+    }
+    
     public convenience init?(data: NSData, encoding: UInt) {
         self.init(bytes: data.bytes, length: data.length, encoding: encoding)
     }

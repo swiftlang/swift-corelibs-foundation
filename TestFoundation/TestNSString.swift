@@ -49,6 +49,7 @@ class TestNSString : XCTestCase {
             ("test_completePathIntoString", test_completePathIntoString),
             ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
             ("test_initializeWithFormat", test_initializeWithFormat),
+            ("test_initializeWithFormat2", test_initializeWithFormat2),
             ("test_stringByDeletingLastPathComponent", test_stringByDeletingLastPathComponent),
             ("test_getCString_simple", test_getCString_simple),
             ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
@@ -508,6 +509,12 @@ class TestNSString : XCTestCase {
             let string = NSString(format: "Value is %d (%.1f)", arguments: pointer)
             XCTAssertEqual(string, "Value is 42 (42.0)")
         }
+    }
+    
+    func test_initializeWithFormat2() {
+        let argument: UInt8 = 75
+        let string = NSString(format: "%02X", argument)
+        XCTAssertEqual(string, "4B")
     }
     
     func test_stringByDeletingLastPathComponent() {
