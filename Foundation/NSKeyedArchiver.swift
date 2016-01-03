@@ -120,8 +120,8 @@ public class NSKeyedUnarchiver : NSCoder {
         NSUnimplemented()
     }
     
-    public func setClass(cls: AnyClass?, forClassName codedName: String) {
-        NSUnimplemented()
+    internal func _encodeValue<T: NSObject where T: NSCoding>(objv: T, forKey key: String? = nil) {
+        _encodePropertyList(objv, forKey: key)
     }
     
     // During decoding, the coder first checks with the coder's
