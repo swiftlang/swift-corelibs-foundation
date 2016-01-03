@@ -243,6 +243,8 @@ extern Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsol
 extern Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int32_t *vector, int32_t count);
 extern Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
 extern Boolean _CFCalendarIsWeekend(CFCalendarRef calendar, CFAbsoluteTime at);
+extern _Nullable CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
+extern void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date);
 
 typedef struct {
     CFTimeInterval onsetTime;
@@ -293,6 +295,16 @@ extern void _cf_uuid_unparse(const _cf_uuid_t uu, _cf_uuid_string_t out);
 extern void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out);
 extern void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
 
+extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
+#if !__COREFOUNDATION_FORFOUNDATIONONLY__
+typedef const struct __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
+extern CFTypeID _CFKeyedArchiverUIDGetTypeID(void);
+extern CFKeyedArchiverUIDRef _CFKeyedArchiverUIDCreate(CFAllocatorRef allocator, uint32_t value);
+extern uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
+#endif
+
+extern CFIndex __CFBinaryPlistWriteToStream(CFPropertyListRef plist, CFTypeRef stream);
+extern CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
 
 CF_IMPLICIT_BRIDGING_DISABLED

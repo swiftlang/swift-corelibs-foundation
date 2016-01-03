@@ -16,6 +16,128 @@ internal let kCFCompareEqualTo = CFComparisonResult.CompareEqualTo
 internal let kCFCompareGreaterThan = CFComparisonResult.CompareGreaterThan
 #endif
 
+internal enum _NSSimpleObjCType : UnicodeScalar {
+    case ID = "@"
+    case Class = "#"
+    case Sel = ":"
+    case Char = "c"
+    case UChar = "C"
+    case Short = "s"
+    case UShort = "S"
+    case Int = "i"
+    case UInt = "I"
+    case Long = "l"
+    case ULong = "L"
+    case LongLong = "q"
+    case ULongLong = "Q"
+    case Float = "f"
+    case Double = "d"
+    case Bitfield = "b"
+    case Bool = "B"
+    case Void = "v"
+    case Undef = "?"
+    case Ptr = "^"
+    case CharPtr = "*"
+    case Atom = "%"
+    case ArrayBegin = "["
+    case ArrayEnd = "]"
+    case UnionBegin = "("
+    case UnionEnd = ")"
+    case StructBegin = "{"
+    case StructEnd = "}"
+    case Vector = "!"
+    case Const = "r"
+}
+
+extension Int {
+    init(_ v: _NSSimpleObjCType) {
+        self.init(UInt8(ascii: v.rawValue))
+    }
+}
+
+extension Int8 {
+    init(_ v: _NSSimpleObjCType) {
+        self.init(Int(v))
+    }
+}
+
+extension String {
+    init(_ v: _NSSimpleObjCType) {
+        self.init(v.rawValue)
+    }
+}
+
+extension _NSSimpleObjCType {
+    init?(_ v: UInt8) {
+        self.init(rawValue: UnicodeScalar(v))
+    }
+    
+    init?(_ v: String?) {
+        if let rawValue = v?.unicodeScalars.first {
+            self.init(rawValue: rawValue)
+        } else {
+            return nil
+        }
+    }
+}
+
+// mapping of ObjC types to sizes and alignments (note that .Int is 32-bit)
+// FIXME use a generic function, unfortuantely this seems to promote the size to 8
+private let _NSObjCSizesAndAlignments : Dictionary<_NSSimpleObjCType, (Int, Int)> = [
+    .ID         : ( sizeof(AnyObject),              alignof(AnyObject)          ),
+    .Class      : ( sizeof(AnyClass),               alignof(AnyClass)           ),
+    .Char       : ( sizeof(CChar),                  alignof(CChar)              ),
+    .UChar      : ( sizeof(UInt8),                  alignof(UInt8)              ),
+    .Short      : ( sizeof(Int16),                  alignof(Int16)              ),
+    .UShort     : ( sizeof(UInt16),                 alignof(UInt16)             ),
+    .Int        : ( sizeof(Int32),                  alignof(Int32)              ),
+    .UInt       : ( sizeof(UInt32),                 alignof(UInt32)             ),
+    .Long       : ( sizeof(Int32),                  alignof(Int32)              ),
+    .ULong      : ( sizeof(UInt32),                 alignof(UInt32)             ),
+    .LongLong   : ( sizeof(Int64),                  alignof(Int64)              ),
+    .ULongLong  : ( sizeof(UInt64),                 alignof(UInt64)             ),
+    .Float      : ( sizeof(Float),                  alignof(Float)              ),
+    .Double     : ( sizeof(Double),                 alignof(Double)             ),
+    .Bool       : ( sizeof(Bool),                   alignof(Bool)               ),
+    .CharPtr    : ( sizeof(UnsafePointer<CChar>),   alignof(UnsafePointer<CChar>))
+]
+
+internal func _NSGetSizeAndAlignment(type: _NSSimpleObjCType,
+                                     inout _ size : Int,
+                                     inout _ align : Int) -> Bool {
+    guard let sizeAndAlignment = _NSObjCSizesAndAlignments[type] else {
+        return false
+    }
+    
+    size = sizeAndAlignment.0
+    align = sizeAndAlignment.1
+    
+    return true
+}
+
+public func NSGetSizeAndAlignment(typePtr: UnsafePointer<Int8>,
+                                  _ sizep: UnsafeMutablePointer<Int>,
+                                  _ alignp: UnsafeMutablePointer<Int>) -> UnsafePointer<Int8> {
+    let type = _NSSimpleObjCType(UInt8(typePtr.memory))!
+
+    var size : Int = 0
+    var align : Int = 0
+    
+    if !_NSGetSizeAndAlignment(type, &size, &align) {
+        return nil
+    }
+    
+    if sizep != nil {
+        sizep.memory = size
+    }
+    
+    if alignp != nil {
+        alignp.memory = align
+    }
+
+    return typePtr.advancedBy(1)
+}
+
 public enum NSComparisonResult : Int {
     
     case OrderedAscending = -1

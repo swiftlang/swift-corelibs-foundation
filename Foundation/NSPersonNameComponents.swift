@@ -10,9 +10,46 @@
 
 public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
-    public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
+    public convenience required init?(coder aDecoder: NSCoder) {
+        self.init()
+        if aDecoder.allowsKeyedCoding {
+            self.namePrefix = (aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.namePrefix") as NSString?)?.bridge()
+            self.givenName = (aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.givenName") as NSString?)?.bridge()
+            self.middleName = (aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.middleName") as NSString?)?.bridge()
+            self.familyName = (aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.familyName") as NSString?)?.bridge()
+            self.nameSuffix = (aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.nameSuffix") as NSString?)?.bridge()
+            self.nickname = (aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.nickname") as NSString?)?.bridge()
+        } else {
+            self.namePrefix = (aDecoder.decodeObject() as? NSString)?.bridge()
+            self.givenName = (aDecoder.decodeObject() as? NSString)?.bridge()
+            self.middleName = (aDecoder.decodeObject() as? NSString)?.bridge()
+            self.familyName = (aDecoder.decodeObject() as? NSString)?.bridge()
+            self.nameSuffix = (aDecoder.decodeObject() as? NSString)?.bridge()
+            self.nickname = (aDecoder.decodeObject() as? NSString)?.bridge()
+        }
+    }
+    
     static public func supportsSecureCoding() -> Bool { return true }
-    public func encodeWithCoder(aCoder: NSCoder) { NSUnimplemented() }
+    
+    public func encodeWithCoder(aCoder: NSCoder) {
+        if aCoder.allowsKeyedCoding {
+            aCoder.encodeObject(self.namePrefix?.bridge(), forKey: "NS.namePrefix")
+            aCoder.encodeObject(self.givenName?.bridge(), forKey: "NS.givenName")
+            aCoder.encodeObject(self.middleName?.bridge(), forKey: "NS.middleName")
+            aCoder.encodeObject(self.familyName?.bridge(), forKey: "NS.familyName")
+            aCoder.encodeObject(self.nameSuffix?.bridge(), forKey: "NS.nameSuffix")
+            aCoder.encodeObject(self.nickname?.bridge(), forKey: "NS.nickname")
+        } else {
+            // FIXME check order
+            aCoder.encodeObject(self.namePrefix?.bridge())
+            aCoder.encodeObject(self.givenName?.bridge())
+            aCoder.encodeObject(self.middleName?.bridge())
+            aCoder.encodeObject(self.familyName?.bridge())
+            aCoder.encodeObject(self.nameSuffix?.bridge())
+            aCoder.encodeObject(self.nickname?.bridge())
+        }
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject { NSUnimplemented() }
     
     /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
