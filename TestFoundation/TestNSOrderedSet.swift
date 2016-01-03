@@ -161,8 +161,8 @@ class TestNSOrderedSet : XCTestCase {
     func test_Subsets() {
         let set = NSOrderedSet(array: ["foo", "bar", "baz"].bridge().bridge())
         let otherOrderedSet = NSOrderedSet(array: ["foo", "bar"].bridge().bridge())
-        let otherSet = Set(["foo".bridge(), "baz".bridge()])
-        let otherOtherSet = Set(["foo".bridge(), "bar".bridge(), "baz".bridge(), "123".bridge()])
+        let otherSet = Set<NSObject>(["foo" as NSString, "baz" as NSString])
+        let otherOtherSet = Set<NSObject>(["foo".bridge(), "bar".bridge(), "baz".bridge(), "123".bridge()])
         XCTAssert(otherOrderedSet.isSubsetOfOrderedSet(set))
         XCTAssertFalse(set.isSubsetOfOrderedSet(otherOrderedSet))
         XCTAssertFalse(set.isSubsetOfSet(otherSet))
@@ -251,7 +251,7 @@ class TestNSOrderedSet : XCTestCase {
         let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
         let otherSet = NSOrderedSet(array: ["foo", "baz"].bridge().bridge())
         XCTAssert(set.intersectsOrderedSet(otherSet))
-        let otherOtherSet = Set(["foo".bridge(), "123".bridge()])
+        let otherOtherSet = Set<NSObject>(["foo".bridge(), "123".bridge()])
         XCTAssert(set.intersectsSet(otherOtherSet))
         set.intersectOrderedSet(otherSet)
         XCTAssertEqual(set.count, 2)
@@ -261,14 +261,14 @@ class TestNSOrderedSet : XCTestCase {
         XCTAssertEqual(set.count, 1)
         XCTAssertEqual(set[0] as? NSString, "foo")
 
-        let nonIntersectingSet = Set(["asdf".bridge()])
+        let nonIntersectingSet = Set<NSObject>(["asdf".bridge()])
         XCTAssertFalse(set.intersectsSet(nonIntersectingSet))
     }
 
     func test_Subtraction() {
         let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
         let otherSet = NSOrderedSet(array: ["baz"].bridge().bridge())
-        let otherOtherSet = Set(["foo".bridge()])
+        let otherOtherSet = Set<NSObject>(["foo".bridge()])
         set.minusOrderedSet(otherSet)
         XCTAssertEqual(set.count, 2)
         XCTAssertEqual(set[0] as? NSString, "foo")
@@ -281,7 +281,7 @@ class TestNSOrderedSet : XCTestCase {
     func test_Union() {
         let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
         let otherSet = NSOrderedSet(array: ["123", "baz"].bridge().bridge())
-        let otherOtherSet = Set(["foo".bridge(), "456".bridge()])
+        let otherOtherSet = Set<NSObject>(["foo".bridge(), "456".bridge()])
         set.unionOrderedSet(otherSet)
         XCTAssertEqual(set.count, 4)
         XCTAssertEqual(set[0] as? NSString, "foo")
@@ -300,7 +300,7 @@ class TestNSOrderedSet : XCTestCase {
         XCTAssert(newSet.isEqualToOrderedSet(set))
         XCTAssert(set[0] === newSet[0])
 
-        let unorderedSet = Set(["foo".bridge(), "bar".bridge(), "baz".bridge()])
+        let unorderedSet = Set<NSObject>(["foo".bridge(), "bar".bridge(), "baz".bridge()])
         let newSetFromUnorderedSet = NSOrderedSet(set: unorderedSet)
         XCTAssertEqual(newSetFromUnorderedSet.count, 3)
         XCTAssert(newSetFromUnorderedSet.containsObject("foo".bridge()))
