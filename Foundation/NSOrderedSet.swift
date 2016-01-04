@@ -75,8 +75,13 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         _insertObjects(objects, count: cnt)
     }
     
-    required public convenience init(arrayLiteral elements: AnyObject...) { NSUnimplemented() }
-    public convenience init(objects elements: AnyObject...) { NSUnimplemented() }
+    required public convenience init(arrayLiteral elements: AnyObject...) {
+      self.init(array: elements)
+    }
+
+    public convenience init(objects elements: AnyObject...) {
+      self.init(array: elements)
+    }
     
     public subscript (idx: Int) -> AnyObject {
         return objectAtIndex(idx)
@@ -98,7 +103,6 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
 }
-
 
 extension NSOrderedSet : SequenceType {
     /// Return a *generator* over the elements of this *sequence*.
@@ -136,7 +140,7 @@ extension NSOrderedSet {
     public var lastObject: AnyObject? {
         return _orderedStorage.last
     }
-    
+
     public func isEqualToOrderedSet(otherOrderedSet: NSOrderedSet) -> Bool {
         if count != otherOrderedSet.count {
             return false
@@ -163,11 +167,33 @@ extension NSOrderedSet {
         return false
     }
 
-    public func intersectsOrderedSet(other: NSOrderedSet) -> Bool { NSUnimplemented() }
-    public func intersectsSet(set: Set<NSObject>) -> Bool { NSUnimplemented() }
+    public func intersectsOrderedSet(other: NSOrderedSet) -> Bool {
+        if count < other.count {
+            return contains { obj in other.containsObject(obj as! NSObject) }
+        } else {
+            return other.contains { obj in containsObject(obj) }
+        }
+    }
+
+    public func intersectsSet(set: Set<NSObject>) -> Bool {
+        if count < set.count {
+            return contains { obj in set.contains(obj as! NSObject) }
+        } else {
+            return set.contains { obj in containsObject(obj) }
+        }
+    }
     
-    public func isSubsetOfOrderedSet(other: NSOrderedSet) -> Bool { NSUnimplemented() }
-    public func isSubsetOfSet(set: Set<NSObject>) -> Bool { NSUnimplemented() }
+    public func isSubsetOfOrderedSet(other: NSOrderedSet) -> Bool {
+        return !self.contains { obj in
+            !other.containsObject(obj as! NSObject)
+        }
+    }
+
+    public func isSubsetOfSet(set: Set<NSObject>) -> Bool {
+        return !self.contains { obj in
+            !set.contains(obj as! NSObject)
+        }
+    }
     
     public func objectEnumerator() -> NSEnumerator {
         if self.dynamicType === NSOrderedSet.self || self.dynamicType === NSMutableOrderedSet.self {
@@ -217,9 +243,18 @@ extension NSOrderedSet {
         self.init(array: [object])
     }
     
-    public convenience init(orderedSet set: NSOrderedSet) { NSUnimplemented() }
-    public convenience init(orderedSet set: NSOrderedSet, copyItems flag: Bool) { NSUnimplemented() }
-    public convenience init(orderedSet set: NSOrderedSet, range: NSRange, copyItems flag: Bool) { NSUnimplemented() }
+    public convenience init(orderedSet set: NSOrderedSet) {
+        self.init(orderedSet: set, copyItems: false)
+    }
+
+    public convenience init(orderedSet set: NSOrderedSet, copyItems flag: Bool) {
+        self.init(orderedSet: set, range: NSMakeRange(0, set.count), copyItems: flag)
+    }
+
+    public convenience init(orderedSet set: NSOrderedSet, range: NSRange, copyItems flag: Bool) {
+        // TODO: Use the array method here when available.
+        self.init(array: set.map { $0 }, range: range, copyItems: flag)
+    }
 
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
@@ -231,10 +266,31 @@ extension NSOrderedSet {
         buffer.dealloc(array.count)
     }
 
-    public convenience init(array set: [AnyObject], copyItems flag: Bool) { NSUnimplemented() }
-    public convenience init(array set: [AnyObject], range: NSRange, copyItems flag: Bool) { NSUnimplemented() }
-    public convenience init(set: Set<NSObject>) { NSUnimplemented() }
-    public convenience init(set: Set<NSObject>, copyItems flag: Bool) { NSUnimplemented() }
+    public convenience init(array set: [AnyObject], copyItems flag: Bool) {
+        self.init(array: set, range: NSMakeRange(0, set.count), copyItems: flag)
+    }
+
+    public convenience init(array set: [AnyObject], range: NSRange, copyItems flag: Bool) {
+        var objects = set
+
+        if let range = range.toRange() where range.count != set.count || flag {
+            objects = [AnyObject]()
+            for index in range.indices {
+                let object = set[index] as! NSObject
+                objects.append(flag ? object.copy() : object)
+            }
+        }
+
+        self.init(array: objects)
+    }
+
+    public convenience init(set: Set<NSObject>) {
+        self.init(set: set, copyItems: false)
+    }
+
+    public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
+        self.init(array: set.map { $0 as AnyObject }, copyItems: flag)
+    }
 }
 
 
@@ -258,10 +314,22 @@ public class NSMutableOrderedSet : NSOrderedSet {
     }
 
     public func removeObjectAtIndex(idx: Int) {
-        removeObject(objectAtIndex(idx))
+        _storage.remove(_orderedStorage[idx])
+        _orderedStorage.removeAtIndex(idx)
     }
 
-    public func replaceObjectAtIndex(idx: Int, withObject object: AnyObject) { NSUnimplemented() }
+    public func replaceObjectAtIndex(idx: Int, withObject object: AnyObject) {
+        guard idx < count && idx >= 0 else {
+            fatalError("\(self): Index out of bounds")
+        }
+
+        if let objectToReplace = objectAtIndex(idx) as? NSObject, object = object as? NSObject {
+            _orderedStorage[idx] = object
+            _storage.remove(objectToReplace)
+            _storage.insert(object)
+        }
+    }
+
     public init(capacity numItems: Int) {
         super.init(objects: nil, count: 0)
     }
@@ -274,7 +342,7 @@ public class NSMutableOrderedSet : NSOrderedSet {
 
     public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
 
-    private func _removeEntry(object: AnyObject) {
+    private func _removeObject(object: AnyObject) {
       guard containsObject(object), let object = object as? NSObject else {
         return
       }
@@ -300,18 +368,81 @@ extension NSMutableOrderedSet {
         }
     }
     
-    public func exchangeObjectAtIndex(idx1: Int, withObjectAtIndex idx2: Int) { NSUnimplemented() }
-    public func moveObjectsAtIndexes(indexes: NSIndexSet, toIndex idx: Int) { NSUnimplemented() }
+    public func exchangeObjectAtIndex(idx1: Int, withObjectAtIndex idx2: Int) {
+        guard idx1 < count && idx1 >= 0 && idx2 < count && idx2 >= 0 else {
+            fatalError("\(self): Index out of bounds")
+        }
+
+        if let object1 = objectAtIndex(idx1) as? NSObject, object2 = objectAtIndex(idx2) as? NSObject {
+            _orderedStorage[idx1] = object2
+            _orderedStorage[idx2] = object1
+        }
+    }
+
+    public func moveObjectsAtIndexes(indexes: NSIndexSet, toIndex idx: Int) {
+        var removedObjects = [NSObject]()
+        for index in indexes.lazy.reverse() {
+            if let object = objectAtIndex(index) as? NSObject {
+                removedObjects.append(object)
+                removeObjectAtIndex(index)
+            }
+        }
+        for removedObject in removedObjects {
+            insertObject(removedObject, atIndex: idx)
+        }
+    }
     
-    public func insertObjects(objects: [AnyObject], atIndexes indexes: NSIndexSet) { NSUnimplemented() }
+    public func insertObjects(objects: [AnyObject], atIndexes indexes: NSIndexSet) {
+        for (indexLocation, index) in indexes.enumerate() {
+            if let object = objects[indexLocation] as? NSObject {
+                insertObject(object, atIndex: index)
+            }
+        }
+    }
     
-    public func setObject(obj: AnyObject, atIndex idx: Int) { NSUnimplemented() }
+    public func setObject(obj: AnyObject, atIndex idx: Int) {
+        if let object = obj as? NSObject {
+            _storage.insert(object)
+            if idx == _orderedStorage.count {
+                _orderedStorage.append(object)
+            } else {
+                _orderedStorage[idx] = object
+            }
+        }
+    }
     
-    public func replaceObjectsInRange(range: NSRange, withObjects objects: UnsafePointer<AnyObject?>, count: Int) { NSUnimplemented() }
-    public func replaceObjectsAtIndexes(indexes: NSIndexSet, withObjects objects: [AnyObject]) { NSUnimplemented() }
+    public func replaceObjectsInRange(range: NSRange, withObjects objects: UnsafePointer<AnyObject?>, count: Int) {
+        if let range = range.toRange() {
+            let buffer = UnsafeBufferPointer(start: objects, count: count)
+            for (indexLocation, index) in range.indices.lazy.reverse().enumerate() {
+                if let object = buffer[indexLocation] as? NSObject {
+                    replaceObjectAtIndex(index, withObject: object)
+                }
+            }
+        }
+    }
+
+    public func replaceObjectsAtIndexes(indexes: NSIndexSet, withObjects objects: [AnyObject]) {
+        for (indexLocation, index) in indexes.enumerate() {
+            if let object = objects[indexLocation] as? NSObject {
+                replaceObjectAtIndex(index, withObject: object)
+            }
+        }
+    }
     
-    public func removeObjectsInRange(range: NSRange) { NSUnimplemented() }
-    public func removeObjectsAtIndexes(indexes: NSIndexSet) { NSUnimplemented() }
+    public func removeObjectsInRange(range: NSRange) {
+        if let range = range.toRange() {
+            for index in range.indices.lazy.reverse() {
+                removeObjectAtIndex(index)
+            }
+        }
+    }
+
+    public func removeObjectsAtIndexes(indexes: NSIndexSet) {
+        for index in indexes.lazy.reverse() {
+            removeObjectAtIndex(index)
+        }
+    }
 
     public func removeAllObjects() {
         _storage.removeAll()
@@ -329,16 +460,55 @@ extension NSMutableOrderedSet {
         array.forEach(removeObject)
     }
     
-    public func intersectOrderedSet(other: NSOrderedSet) { NSUnimplemented() }
-    public func minusOrderedSet(other: NSOrderedSet) { NSUnimplemented() }
-    public func unionOrderedSet(other: NSOrderedSet) { NSUnimplemented() }
-    
-    public func intersectSet(other: Set<NSObject>) { NSUnimplemented() }
-    public func minusSet(other: Set<NSObject>) { NSUnimplemented() }
-    public func unionSet(other: Set<NSObject>) { NSUnimplemented() }
-    
-    public func sortUsingComparator(cmptr: NSComparator) { NSUnimplemented() }
-    public func sortWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) { NSUnimplemented() }
-    public func sortRange(range: NSRange, options opts: NSSortOptions, usingComparator cmptr: NSComparator) { NSUnimplemented() }
-}
+    public func intersectOrderedSet(other: NSOrderedSet) {
+        for case let item as NSObject in self where !other.containsObject(item) {
+            removeObject(item)
+        }
+    }
 
+    public func minusOrderedSet(other: NSOrderedSet) {
+        for item in other where containsObject(item) {
+            removeObject(item)
+        }
+    }
+
+    public func unionOrderedSet(other: NSOrderedSet) {
+        other.forEach(addObject)
+    }
+    
+    public func intersectSet(other: Set<NSObject>) {
+        for case let item as NSObject in self where !other.contains(item) {
+            removeObject(item)
+        }
+    }
+
+    public func minusSet(other: Set<NSObject>) {
+        for item in other where containsObject(item) {
+            removeObject(item)
+        }
+    }
+
+    public func unionSet(other: Set<NSObject>) {
+        other.forEach(addObject)
+    }
+    
+    public func sortUsingComparator(cmptr: NSComparator) {
+        sortRange(NSMakeRange(0, count), options: [], usingComparator: cmptr)
+    }
+
+    public func sortWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+        sortRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
+    }
+
+    public func sortRange(range: NSRange, options opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+        // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
+        guard opts.isEmpty else {
+            NSUnimplemented()
+        }
+
+        let swiftRange = range.toRange()!
+        _orderedStorage[swiftRange].sortInPlace { lhs, rhs in
+            return cmptr(lhs, rhs) == .OrderedAscending
+        }
+    }
+}
