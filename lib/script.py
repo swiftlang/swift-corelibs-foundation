@@ -7,7 +7,7 @@
 # See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 #
 
-from config import Configuration
+from .config import Configuration
 import os
 
 class Script:
@@ -31,7 +31,7 @@ class Script:
 
     def generate_products(self):
         variables = ""
-        for key, val in Configuration.current.variables.iteritems():
+        for key, val in Configuration.current.variables.items():
             variables += key + "=" + val
         variables += "\n"
         verbose_flags = """

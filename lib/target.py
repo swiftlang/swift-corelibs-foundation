@@ -7,7 +7,7 @@
 # See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 #
 
-from config import Configuration
+from .config import Configuration
 import platform
 
 class ArchType:

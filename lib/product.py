@@ -7,14 +7,14 @@
 # See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 #
 
-from config import Configuration
-from phases import CompileC
-from phases import CompileCxx
-from phases import Assemble
-from phases import BuildAction
-from phases import MergeSwiftModule
-from target import OSType
-from path import Path
+from .config import Configuration
+from .phases import CompileC
+from .phases import CompileCxx
+from .phases import Assemble
+from .phases import BuildAction
+from .phases import MergeSwiftModule
+from .target import OSType
+from .path import Path
 
 import os
 
