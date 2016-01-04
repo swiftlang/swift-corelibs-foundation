@@ -24,6 +24,7 @@ class TestNSSet : XCTestCase {
     var allTests : [(String, () -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
+            ("testInitWithSet", testInitWithSet),
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_setOperations", test_setOperations),
@@ -38,6 +39,19 @@ class TestNSSet : XCTestCase {
         let set2 = NSSet(array: ["foo", "bar"].bridge().bridge())
         XCTAssertEqual(set.count, 0)
         XCTAssertEqual(set2.count, 2)
+    }
+
+    func testInitWithSet() {
+        let genres: Set<NSObject> = ["Rock".bridge(), "Classical".bridge(), "Hip hop".bridge()]
+        let set1 = NSSet(set: genres)
+        let set2 = NSSet(set: genres, copyItems: false)
+        XCTAssertEqual(set1.count, 3)
+        XCTAssertEqual(set2.count, 3)
+        XCTAssertEqual(set1, set2)
+
+        let set3 = NSSet(set: genres, copyItems: true)
+        XCTAssertEqual(set3.count, 3)
+        XCTAssertEqual(set3, set2)
     }
     
     func test_enumeration() {
