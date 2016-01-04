@@ -1245,6 +1245,7 @@
 			children = (
 				EADE0B641BD15DFF00C49C64 /* NSJSONSerialization.swift */,
 				EADE0B651BD15DFF00C49C64 /* NSKeyedArchiver.swift */,
+				D3047AE91C38B02400295652 /* NSKeyedCoderOldStyleArray.swift */,
 				5BDC3F321BCC5DCB00ED97BB /* NSCoder.swift */,
 				5BDC3F421BCC5DCB00ED97BB /* NSPropertyList.swift */,
 			);
@@ -1323,6 +1324,8 @@
 		EAB57B741BD2C4A9004AC5C5 /* Number */ = {
 			isa = PBXGroup;
 			children = (
+				D3047AE31C38ADEE00295652 /* NSConcreteValue.swift */,
+				D3047AE41C38ADEE00295652 /* NSSpecialValue.swift */,
 				5BDC3F431BCC5DCB00ED97BB /* NSRange.swift */,
 				EADE0B591BD15DFF00C49C64 /* NSDecimal.swift */,
 				EADE0B5A1BD15DFF00C49C64 /* NSDecimalNumber.swift */,
@@ -1346,6 +1349,7 @@
 		EAB57B761BD2C568004AC5C5 /* OS */ = {
 			isa = PBXGroup;
 			children = (
+				D3047AE71C38B01500295652 /* NSLog.swift */,
 				EADE0B5D1BD15DFF00C49C64 /* NSFileHandle.swift */,
 				EADE0B5E1BD15DFF00C49C64 /* NSFileManager.swift */,
 				EADE0B7A1BD15DFF00C49C64 /* NSTask.swift */,
@@ -1656,6 +1660,7 @@
 				EADE0BB01BD15E0000C49C64 /* NSPort.swift in Sources */,
 				EADE0BB91BD15E0000C49C64 /* NSTextCheckingResult.swift in Sources */,
 				5BF7AEBE1BCD51F9008F214A /* NSTimeZone.swift in Sources */,
+				D3047AE61C38ADEE00295652 /* NSSpecialValue.swift in Sources */,
 				EADE0B951BD15DFF00C49C64 /* NSDateComponentsFormatter.swift in Sources */,
 				EADE0BBD1BD15E0000C49C64 /* NSURLCredential.swift in Sources */,
 				EADE0BCA1BD15E0000C49C64 /* NSXMLElement.swift in Sources */,
@@ -1674,6 +1679,7 @@
 				5BF7AEAD1BCD51F9008F214A /* NSError.swift in Sources */,
 				EADE0BB61BD15E0000C49C64 /* NSSortDescriptor.swift in Sources */,
 				5BF7AEA41BCD51F9008F214A /* NSBundle.swift in Sources */,
+				D3047AE51C38ADEE00295652 /* NSConcreteValue.swift in Sources */,
 				EAB57B721BD1C7A5004AC5C5 /* NSPortMessage.swift in Sources */,
 				EADE0BBB1BD15E0000C49C64 /* NSURLAuthenticationChallenge.swift in Sources */,
 				EADE0BA11BD15DFF00C49C64 /* NSIndexSet.swift in Sources */,
@@ -1717,7 +1723,9 @@
 				61E0117D1C1B5590000037DD /* NSRunLoop.swift in Sources */,
 				EADE0BC81BD15E0000C49C64 /* NSXMLDTD.swift in Sources */,
 				EADE0BA61BD15E0000C49C64 /* NSMassFormatter.swift in Sources */,
+				D3047AE81C38B01500295652 /* NSLog.swift in Sources */,
 				EADE0BCC1BD15E0000C49C64 /* NSXMLNodeOptions.swift in Sources */,
+				D3047AEA1C38B02400295652 /* NSKeyedCoderOldStyleArray.swift in Sources */,
 				5BF7AEB21BCD51F9008F214A /* NSNumber.swift in Sources */,
 				EADE0BBC1BD15E0000C49C64 /* NSURLCache.swift in Sources */,
 				EADE0BC51BD15E0000C49C64 /* NSUserDefaults.swift in Sources */,

@@ -305,3 +305,4 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
 }
+

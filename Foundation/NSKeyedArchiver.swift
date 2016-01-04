@@ -88,6 +88,18 @@ public class NSKeyedArchiver : NSCoder {
         NSUnimplemented()
     }
     
+    public func _encodePropertyList(aPropertyList: AnyObject, forKey key: String? = nil) {
+        NSUnimplemented()
+    }
+
+    internal func _encodeValue<T: NSObject where T: NSCoding>(objv: T, forKey key: String? = nil) {
+        _encodePropertyList(objv, forKey: key)
+    }
+
+    internal func _encodeArrayOfObjects(objects : NSArray, forKey key : String) {
+        NSUnimplemented()
+    }
+
     // Enables secure coding support on this keyed archiver. You do not need to enable secure coding on the archiver to enable secure coding on the unarchiver. Enabling secure coding on the archiver is a way for you to be sure that all classes that are encoded conform with NSSecureCoding (it will throw an exception if a class which does not NSSecureCoding is archived). Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
     public override var requiresSecureCoding: Bool {
         get {
@@ -120,6 +132,11 @@ public class NSKeyedUnarchiver : NSCoder {
         NSUnimplemented()
     }
     
+    public func _encodePropertyList(aPropertyList: AnyObject, forKey key: String? = nil) {
+        NSUnimplemented()
+
+    }
+    
     internal func _encodeValue<T: NSObject where T: NSCoding>(objv: T, forKey key: String? = nil) {
         _encodePropertyList(objv, forKey: key)
     }
@@ -136,6 +153,10 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     public override func containsValueForKey(key: String) -> Bool {
+        NSUnimplemented()
+    }
+    
+    internal func _decodeValue<T>(forKey key: String? = nil) -> T? {
         NSUnimplemented()
     }
     
