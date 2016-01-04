@@ -1158,7 +1158,7 @@ CFStringRef  CFURLCreateStringByReplacingPercentEscapes(CFAllocatorRef alloc, CF
         }
         if (percentRange.location - mark > 0) {
             CFRange charRange = CFRangeMake(mark, percentRange.location - mark);
-            UniChar *charBuffer = (UniChar)charRange.length;
+            UniChar charBuffer[charRange.length];
             CFStringGetCharacters(originalString, charRange, charBuffer);
             CFStringAppendCharacters(newStr, charBuffer, charRange.length);
         }
