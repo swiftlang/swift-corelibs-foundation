@@ -5150,6 +5150,80 @@ static Boolean _CFURLHasFileURLScheme(CFURLRef url, Boolean *hasScheme)
     return ( result );
 }
 
+CFURLRef _CFCopyStandardizedURL(CFURLRef url)
+{
+    CFAllocatorRef alloc = CFGetAllocator(url);
+
+    if (!CFURLCanBeDecomposed(url)) {
+        return CFURLCreateWithString(alloc, CFURLGetString(url), CFURLGetBaseURL(url));
+    }
+
+    CFURLComponentsRFC1808 components1808;
+    _CFURLCopyComponents(url, kCFURLComponentDecompositionRFC1808, &components1808);
+    CFArrayRef pathComponents = components1808.pathComponents;
+    
+    if (pathComponents == NULL) {
+        if (_CFURLIsFileURL(url)) {
+            // for empty file URL
+            CFMutableArrayRef array = CFArrayCreateMutable(alloc, 2, & kCFTypeArrayCallBacks);
+            CFArrayAppendValue(array, CFSTR(""));
+            CFArrayAppendValue(array, CFSTR(""));
+            pathComponents = array;
+        } else {
+            CFURLRef resultURL = _CFURLCreateFromComponents(alloc, kCFURLComponentDecompositionRFC1808, &components1808);
+            return resultURL;
+        }
+    }
+    
+    
+    CFIndex len = CFArrayGetCount(pathComponents);
+    
+    CFMutableArrayRef resultComponents = CFArrayCreateMutableCopy(kCFAllocatorDefault ,len, pathComponents);
+    CFIndex resultLen = CFArrayGetCount(resultComponents);
+    CFIndex pos = 0;
+    
+    for (CFIndex i=0; i<len && 0 < resultLen; i++) {
+        CFStringRef component = CFArrayGetValueAtIndex(pathComponents, i);
+        
+        if (CFStringCompare(component, CFSTR("."), 0) == kCFCompareEqualTo) {
+            if (i == len-1) {
+                CFArraySetValueAtIndex(resultComponents, pos, CFSTR(""));
+            } else {
+                CFArrayRemoveValueAtIndex(resultComponents, pos);
+                --resultLen;
+            }
+        } else if (CFStringCompare(component, CFSTR(".."), 0) == kCFCompareEqualTo) {
+            CFArrayRemoveValueAtIndex(resultComponents, pos);
+            --resultLen;
+            if (pos > 0 && resultLen > 0) {
+                CFArrayRemoveValueAtIndex(resultComponents, pos- 1);
+                --resultLen;
+                --pos;
+            }
+        } else {
+            ++pos;
+        }
+    }
+    
+    //FIXME: composeFromRFC1808 expects to get CFMutableString array as pathComponents
+    CFIndex resultCount = CFArrayGetCount(resultComponents);
+    for(CFIndex i=0; i<resultLen; i++) {
+        CFStringRef str =  CFArrayGetValueAtIndex(resultComponents, i);
+        CFArraySetValueAtIndex(resultComponents, i, CFStringCreateMutableCopy(CFGetAllocator(str), 0, str));
+    }
+    
+    components1808.pathComponents = resultComponents;
+    CFURLRef resultURL = _CFURLCreateFromComponents(alloc, kCFURLComponentDecompositionRFC1808, &components1808);
+    
+    for(CFIndex i=0; i<resultLen; i++) {
+        CFMutableStringRef str =  (CFMutableStringRef) CFArrayGetValueAtIndex(resultComponents, i);
+        CFRelease(str);
+    }
+    CFRelease(resultComponents);
+    
+    return resultURL;
+}
+
 Boolean _CFURLIsFileURL(CFURLRef url)
 {
     Boolean result = _CFURLHasFileURLScheme(url, NULL);
