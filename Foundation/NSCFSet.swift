@@ -27,4 +27,8 @@ internal final class _NSCFSet : NSMutableSet {
     required init(capacity numItems: Int) {
         fatalError()
     }
+    
+    override var classForCoder: AnyClass {
+        return NSMutableSet.self
+    }
 }

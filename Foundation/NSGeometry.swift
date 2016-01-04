@@ -31,6 +31,10 @@ public struct CGFloat {
     }
     /// The native value.
     public var native: NativeType
+    
+    private var hash: Int {
+        return Int(self.native._toBitPattern())
+    }
 }
 
 extension CGFloat: Comparable { }
@@ -91,6 +95,55 @@ public func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
     return lhs.x == rhs.x && lhs.y == rhs.y
 }
 
+extension CGPoint: NSSpecialValueCoding {
+    init(bytes: UnsafePointer<Void>) {
+        let buffer = UnsafePointer<CGFloat>(bytes)
+
+        self.x = buffer.memory
+        self.y = buffer.advancedBy(1).memory
+    }
+    
+    init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            self = aDecoder.decodePointForKey("NS.pointval")
+        } else {
+            self = aDecoder.decodePoint()
+        }
+    }
+    
+    func encodeWithCoder(aCoder: NSCoder) {
+        if aCoder.allowsKeyedCoding {
+            aCoder.encodePoint(self, forKey: "NS.pointval")
+        } else {
+            aCoder.encodePoint(self)
+        }
+    }
+    
+    static func objCType() -> String {
+        return "{CGPoint=dd}"
+    }
+
+    func getValue(value: UnsafeMutablePointer<Void>) {
+        UnsafeMutablePointer<CGPoint>(value).memory = self
+    }
+
+    func isEqual(aValue: Any) -> Bool {
+        if let other = aValue as? CGPoint {
+            return other == self
+        } else {
+            return false
+        }
+    }
+    
+    var hash: Int {
+        return self.x.hash &+ self.y.hash
+    }
+    
+     var description: String? {
+        return NSStringFromPoint(self)
+    }
+}
+
 public struct CGSize {
     public var width: CGFloat
     public var height: CGFloat
@@ -107,6 +160,55 @@ extension CGSize: Equatable { }
 
 public func ==(lhs: CGSize, rhs: CGSize) -> Bool {
     return lhs.width == rhs.width && lhs.height == rhs.height
+}
+
+extension CGSize: NSSpecialValueCoding {
+    init(bytes: UnsafePointer<Void>) {
+        let buffer = UnsafePointer<CGFloat>(bytes)
+
+        self.width = buffer.memory
+        self.height = buffer.advancedBy(1).memory
+    }
+    
+    init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            self = aDecoder.decodeSizeForKey("NS.sizeval")
+        } else {
+            self = aDecoder.decodeSize()
+        }
+    }
+    
+    func encodeWithCoder(aCoder: NSCoder) {
+        if aCoder.allowsKeyedCoding {
+            aCoder.encodeSize(self, forKey: "NS.sizeval")
+        } else {
+            aCoder.encodeSize(self)
+        }
+    }
+    
+    static func objCType() -> String {
+        return "{CGSize=dd}"
+    }
+    
+    func getValue(value: UnsafeMutablePointer<Void>) {
+        UnsafeMutablePointer<CGSize>(value).memory = self
+    }
+    
+    func isEqual(aValue: Any) -> Bool {
+        if let other = aValue as? CGSize {
+            return other == self
+        } else {
+            return false
+        }
+    }
+    
+    var hash: Int {
+        return self.width.hash &+ self.height.hash
+    }
+    
+    var description: String? {
+        return NSStringFromSize(self)
+    }
 }
 
 public struct CGRect {
@@ -142,6 +244,55 @@ public typealias NSRect = CGRect
 public typealias NSRectPointer = UnsafeMutablePointer<NSRect>
 public typealias NSRectArray = UnsafeMutablePointer<NSRect>
 
+extension CGRect: NSSpecialValueCoding {
+    init(bytes: UnsafePointer<Void>) {
+        let buffer = UnsafePointer<CGFloat>(bytes)
+
+        self.origin = CGPoint(x: buffer.memory, y: buffer.advancedBy(1).memory)
+        self.size = CGSize(width: buffer.advancedBy(2).memory, height: buffer.advancedBy(3).memory)
+    }
+
+    init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            self = aDecoder.decodeRectForKey("NS.rectval")
+        } else {
+            self = aDecoder.decodeRect()
+        }
+    }
+    
+    func encodeWithCoder(aCoder: NSCoder) {
+        if aCoder.allowsKeyedCoding {
+            aCoder.encodeRect(self, forKey: "NS.rectval")
+        } else {
+            aCoder.encodeRect(self)
+        }
+    }
+    
+    static func objCType() -> String {
+        return "{CGRect={CGPoint=dd}{CGSize=dd}}"
+    }
+    
+    func getValue(value: UnsafeMutablePointer<Void>) {
+        UnsafeMutablePointer<CGRect>(value).memory = self
+    }
+    
+    func isEqual(aValue: Any) -> Bool {
+        if let other = aValue as? CGRect {
+            return other == self
+        } else {
+            return false
+        }
+    }
+    
+    var hash: Int {
+        return self.origin.hash &+ self.size.hash
+    }
+    
+    var description: String? {
+        return NSStringFromRect(self)
+    }
+}
+
 public enum NSRectEdge : UInt {
     
     case MinX
@@ -169,6 +320,7 @@ extension NSRectEdge {
     }
 }
 
+
 public struct NSEdgeInsets {
     public var top: CGFloat
     public var left: CGFloat
@@ -184,6 +336,64 @@ public struct NSEdgeInsets {
         self.left = left
         self.bottom = bottom
         self.right = right
+    }
+}
+
+extension NSEdgeInsets: NSSpecialValueCoding {
+    init(bytes: UnsafePointer<Void>) {
+        let buffer = UnsafePointer<CGFloat>(bytes)
+
+        self.top = buffer.memory
+        self.left = buffer.advancedBy(1).memory
+        self.bottom = buffer.advancedBy(2).memory
+        self.right = buffer.advancedBy(3).memory
+    }
+
+    init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            self.top = aDecoder._decodeCGFloatForKey("NS.edgeval.top")
+            self.left = aDecoder._decodeCGFloatForKey("NS.edgeval.left")
+            self.bottom = aDecoder._decodeCGFloatForKey("NS.edgeval.bottom")
+            self.right = aDecoder._decodeCGFloatForKey("NS.edgeval.right")
+        } else {
+            NSUnimplemented()
+        }
+    }
+    
+    func encodeWithCoder(aCoder: NSCoder) {
+        if aCoder.allowsKeyedCoding {
+            aCoder._encodeCGFloat(self.top, forKey: "NS.edgeval.top")
+            aCoder._encodeCGFloat(self.left, forKey: "NS.edgeval.left")
+            aCoder._encodeCGFloat(self.bottom, forKey: "NS.edgeval.bottom")
+            aCoder._encodeCGFloat(self.right, forKey: "NS.edgeval.right")
+        } else {
+            NSUnimplemented()
+        }
+    }
+    
+    static func objCType() -> String {
+        return "{NSEdgeInsets=dddd}"
+    }
+    
+    func getValue(value: UnsafeMutablePointer<Void>) {
+        UnsafeMutablePointer<NSEdgeInsets>(value).memory = self
+    }
+    
+    func isEqual(aValue: Any) -> Bool {
+        if let other = aValue as? NSEdgeInsets {
+            return other.top == self.top && other.left == self.left &&
+                other.bottom == self.bottom && other.right == self.right
+        } else {
+            return false
+        }
+    }
+    
+    var hash: Int {
+        return self.top.hash &+ self.left.hash &+ self.bottom.hash &+ self.right.hash
+    }
+    
+    var description: String? {
+        return nil
     }
 }
 
@@ -630,38 +840,141 @@ public func NSRectFromString(aString: String) -> NSRect {
 }
 
 extension NSValue {
+    public convenience init(point: NSPoint) {
+        self.init()
+        self._concreteValue = NSSpecialValue(point)
+    }
     
-    public convenience init(point: NSPoint) { NSUnimplemented() }
-    public convenience init(size: NSSize) { NSUnimplemented() }
-    public convenience init(rect: NSRect) { NSUnimplemented() }
-    public convenience init(edgeInsets insets: NSEdgeInsets) { NSUnimplemented() }
+    public convenience init(size: NSSize) {
+        self.init()
+        self._concreteValue = NSSpecialValue(size)
+    }
     
-    public var pointValue: NSPoint { NSUnimplemented() }
-    public var sizeValue: NSSize { NSUnimplemented() }
+    public convenience init(rect: NSRect) {
+        self.init()
+        self._concreteValue = NSSpecialValue(rect)
+    }
     
-    public var rectValue: NSRect { NSUnimplemented() }
-    public var edgeInsetsValue: NSEdgeInsets { NSUnimplemented() }
+    public convenience init(edgeInsets insets: NSEdgeInsets) {
+        self.init()
+        self._concreteValue = NSSpecialValue(insets)
+    }
+    
+    public var pointValue: NSPoint {
+        let specialValue = self._concreteValue as! NSSpecialValue
+        return specialValue._value as! NSPoint
+    }
+    
+    public var sizeValue: NSSize {
+        let specialValue = self._concreteValue as! NSSpecialValue
+        return specialValue._value as! NSSize
+    }
+    
+    public var rectValue: NSRect {
+        let specialValue = self._concreteValue as! NSSpecialValue
+        return specialValue._value as! NSRect
+    }
+    
+    public var edgeInsetsValue: NSEdgeInsets {
+        let specialValue = self._concreteValue as! NSSpecialValue
+        return specialValue._value as! NSEdgeInsets
+    }
 }
 
 extension NSCoder {
     
-    public func encodePoint(point: NSPoint) { NSUnimplemented() }
-    public func decodePoint() -> NSPoint { NSUnimplemented() }
+    public func encodePoint(point: NSPoint) {
+        self._encodeCGFloat(point.x)
+        self._encodeCGFloat(point.y)
+    }
     
-    public func encodeSize(size: NSSize) { NSUnimplemented() }
-    public func decodeSize() -> NSSize { NSUnimplemented() }
+    public func decodePoint() -> NSPoint {
+        return NSPoint(x: _decodeCGFloat(), y: _decodeCGFloat())
+    }
     
-    public func encodeRect(rect: NSRect) { NSUnimplemented() }
-    public func decodeRect() -> NSRect { NSUnimplemented() }
+    public func encodeSize(size: NSSize) {
+        self._encodeCGFloat(size.width)
+        self._encodeCGFloat(size.height)
+    }
+    
+    public func decodeSize() -> NSSize {
+        return NSSize(width: _decodeCGFloat(), height: _decodeCGFloat())
+    }
+    
+    public func encodeRect(rect: NSRect) {
+        self.encodePoint(rect.origin)
+        self.encodeSize(rect.size)
+    }
+    
+    public func decodeRect() -> NSRect {
+        return NSRect(origin: decodePoint(), size: decodeSize())
+    }
 }
 
 extension NSCoder {
     
-    public func encodePoint(point: NSPoint, forKey key: String) { NSUnimplemented() }
-    public func encodeSize(size: NSSize, forKey key: String) { NSUnimplemented() }
-    public func encodeRect(rect: NSRect, forKey key: String) { NSUnimplemented() }
+    public func encodePoint(point: NSPoint, forKey key: String) {
+        self.encodeObject(NSStringFromPoint(point).bridge(), forKey: key)
+    }
     
-    public func decodePointForKey(key: String) -> NSPoint { NSUnimplemented() }
-    public func decodeSizeForKey(key: String) -> NSSize { NSUnimplemented() }
-    public func decodeRectForKey(key: String) -> NSRect { NSUnimplemented() }
+    public func encodeSize(size: NSSize, forKey key: String) {
+        self.encodeObject(NSStringFromSize(size).bridge(), forKey: key)
+    }
+    
+    public func encodeRect(rect: NSRect, forKey key: String) {
+        self.encodeObject(NSStringFromRect(rect).bridge(), forKey: key)
+    }
+    
+    public func decodePointForKey(key: String) -> NSPoint {
+        if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
+            return NSPointFromString(string.bridge())
+        } else {
+            return NSPoint()
+        }
+    }
+    
+    public func decodeSizeForKey(key: String) -> NSSize {
+        if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
+            return NSSizeFromString(string.bridge())
+        } else {
+            return NSSize()
+        }
+    }
+    
+    public func decodeRectForKey(key: String) -> NSRect {
+        if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
+            return NSRectFromString(string.bridge())
+        } else {
+            return NSRect()
+        }
+    }
+}
+
+private extension NSCoder {
+    func _encodeCGFloat(value: CGFloat) {
+        if let keyedArchiver = self as? NSKeyedArchiver {
+            keyedArchiver._encodeValue(NSNumber(double: value.native))
+        } else {
+            NSUnimplemented()
+        }
+    }
+    
+    func _decodeCGFloat() -> CGFloat {
+        if let keyedUnarchiver = self as? NSKeyedUnarchiver {
+            guard let result : NSNumber = keyedUnarchiver._decodeValue() else {
+                return CGFloat(0.0)
+            }
+            return CGFloat(result.doubleValue)
+        } else {
+            NSUnimplemented()
+        }
+    }
+    
+    func _encodeCGFloat(value: CGFloat, forKey key: String) {
+        self.encodeDouble(value.native, forKey: key)
+    }
+    
+    func _decodeCGFloatForKey(key: String) -> CGFloat {
+        return CGFloat(self.decodeDoubleForKey(key))
+    }
 }

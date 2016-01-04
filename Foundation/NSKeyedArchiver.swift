@@ -88,6 +88,18 @@ public class NSKeyedArchiver : NSCoder {
         NSUnimplemented()
     }
     
+    public func _encodePropertyList(aPropertyList: AnyObject, forKey key: String? = nil) {
+        NSUnimplemented()
+    }
+
+    internal func _encodeValue<T: NSObject where T: NSCoding>(objv: T, forKey key: String? = nil) {
+        _encodePropertyList(objv, forKey: key)
+    }
+
+    internal func _encodeArrayOfObjects(objects : NSArray, forKey key : String) {
+        NSUnimplemented()
+    }
+
     // Enables secure coding support on this keyed archiver. You do not need to enable secure coding on the archiver to enable secure coding on the unarchiver. Enabling secure coding on the archiver is a way for you to be sure that all classes that are encoded conform with NSSecureCoding (it will throw an exception if a class which does not NSSecureCoding is archived). Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
     public override var requiresSecureCoding: Bool {
         get {
@@ -120,8 +132,13 @@ public class NSKeyedUnarchiver : NSCoder {
         NSUnimplemented()
     }
     
-    public func setClass(cls: AnyClass?, forClassName codedName: String) {
+    public func _encodePropertyList(aPropertyList: AnyObject, forKey key: String? = nil) {
         NSUnimplemented()
+
+    }
+    
+    internal func _encodeValue<T: NSObject where T: NSCoding>(objv: T, forKey key: String? = nil) {
+        _encodePropertyList(objv, forKey: key)
     }
     
     // During decoding, the coder first checks with the coder's
@@ -136,6 +153,10 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     public override func containsValueForKey(key: String) -> Bool {
+        NSUnimplemented()
+    }
+    
+    internal func _decodeValue<T>(forKey key: String? = nil) -> T? {
         NSUnimplemented()
     }
     
@@ -279,46 +300,3 @@ public protocol NSKeyedUnarchiverDelegate : class {
     // Notifies the delegate that decoding has finished.
     func unarchiverDidFinish(unarchiver: NSKeyedUnarchiver)
 }
-
-// TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
-extension NSObject {
-    
-    public var classForKeyedArchiver: AnyClass? {
-        NSUnimplemented()
-    }
-    
-    // Implemented by classes to substitute a new class for instances during
-    // encoding.  The object will be encoded as if it were a member of the
-    // returned class.  The results of this method are overridden by the archiver
-    // class and instance name<->class encoding tables.  If nil is returned,
-    // the result of this method is ignored.  This method returns the result of
-    // [self classForArchiver] by default, NOT -classForCoder as might be
-    // expected.  This is a concession to source compatibility.
-    
-    public func replacementObjectForKeyedArchiver(archiver: NSKeyedArchiver) -> AnyObject? {
-        NSUnimplemented()
-    }
-    
-    // Implemented by classes to substitute new instances for the receiving
-    // instance during encoding.  The returned object will be encoded instead
-    // of the receiver (if different).  This method is called only if no
-    // replacement mapping for the object has been set up in the archiver yet
-    // (for example, due to a previous call of replacementObjectForKeyedArchiver:
-    // to that object).  This method returns the result of
-    // [self replacementObjectForArchiver:nil] by default, NOT
-    // -replacementObjectForCoder: as might be expected.  This is a concession
-    // to source compatibility.
-    
-    public class func classFallbacksForKeyedArchiver() -> [String] {
-        NSUnimplemented()
-    }
-}
-
-// TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
-extension NSObject {
-    public class func classForKeyedUnarchiver() -> AnyClass {
-        NSUnimplemented()
-    }
-}
-
-
