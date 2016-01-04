@@ -77,15 +77,15 @@ class TestNSURL : XCTestCase {
         XCTAssertNotNil(baseURL, "fileURLWithPath:isDirectory: failed")
         XCTAssertEqual(homeDirectory, baseURL.path)
 
-        // we're telling fileURLWithPath:isDirectory:relativeToURL: Library is a directory
-        let url1 = NSURL(fileURLWithFileSystemRepresentation: "Library", isDirectory: true, relativeToURL: baseURL)
+        // we're telling fileURLWithPath:isDirectory:relativeToURL: Documents is a directory
+        let url1 = NSURL(fileURLWithFileSystemRepresentation: "Documents", isDirectory: true, relativeToURL: baseURL)
         XCTAssertNotNil(url1, "fileURLWithPath:isDirectory:relativeToURL: failed")
-        // we're letting fileURLWithPath:relativeToURL: determine Library is a directory with I/O
-        let url2 = NSURL(fileURLWithPath: "Library", relativeToURL: baseURL)
+        // we're letting fileURLWithPath:relativeToURL: determine Documents is a directory with I/O
+        let url2 = NSURL(fileURLWithPath: "Documents", relativeToURL: baseURL)
         XCTAssertNotNil(url2, "fileURLWithPath:relativeToURL: failed")
         XCTAssertEqual(url1, url2, "\(url1) was not equal to \(url2)")
-        // we're telling fileURLWithPath:relativeToURL: Library is a directory with a trailing slash
-        let url3 = NSURL(fileURLWithPath: "Library/", relativeToURL: baseURL)
+        // we're telling fileURLWithPath:relativeToURL: Documents is a directory with a trailing slash
+        let url3 = NSURL(fileURLWithPath: "Documents/", relativeToURL: baseURL)
         XCTAssertNotNil(url3, "fileURLWithPath:relativeToURL: failed")
         XCTAssertEqual(url1, url3, "\(url1) was not equal to \(url3)")
     }
