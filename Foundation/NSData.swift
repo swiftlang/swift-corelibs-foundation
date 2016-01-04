@@ -206,7 +206,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return "<\(byteDescription())>"
     }
     
-    override internal var _cfTypeID: CFTypeID {
+    override public var _cfTypeID: CFTypeID {
         return CFDataGetTypeID()
     }
 }

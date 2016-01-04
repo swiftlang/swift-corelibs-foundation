@@ -146,7 +146,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     
     public func descriptionWithLocale(locale: AnyObject?) -> String { NSUnimplemented() }
     
-    override internal var _cfTypeID: CFTypeID {
+    override public var _cfTypeID: CFTypeID {
         return CFSetGetTypeID()
     }
 
