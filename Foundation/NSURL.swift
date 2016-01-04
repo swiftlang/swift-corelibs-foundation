@@ -366,7 +366,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    override internal var _cfTypeID: CFTypeID {
+    override public var _cfTypeID: CFTypeID {
         return CFURLGetTypeID()
     }
 }

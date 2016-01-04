@@ -137,7 +137,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, dateFormatterRef, _cfObject)._swiftObject
     }
     
-    override internal var _cfTypeID: CFTypeID {
+    override public var _cfTypeID: CFTypeID {
         return CFDateGetTypeID()
     }
 }
