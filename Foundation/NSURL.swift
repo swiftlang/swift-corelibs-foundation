@@ -149,11 +149,9 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeToURL: nil)
     }
     
-    public init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeToURL baseURL: NSURL?) {
-        super.init()
-        var pathString = String.fromCString(path)!
-        pathString = _standardizedPath(pathString)
-        _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, pathString._cfObject, .CFURLPOSIXPathStyle, isDir, baseURL?._cfObject)
+    public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeToURL baseURL: NSURL?) {
+        let pathString = String.fromCString(path)!
+        self.init(fileURLWithPath: pathString, isDirectory: isDir, relativeToURL: baseURL)
     }
     
     public convenience init?(string URLString: String) {
