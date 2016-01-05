@@ -160,7 +160,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             dictionary._storage = self._storage
             return dictionary
         }
-        return NSDictionary(objects: self.allValues, forKeys: self.allKeys as! [NSObject])
+        return NSDictionary(objects: self.allValues, forKeys: self.allKeys.map({ $0 as! NSObject}))
     }
 
     public override func mutableCopy() -> AnyObject {
@@ -174,7 +174,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             mutableDictionary._storage = self._storage
             return mutableDictionary
         }
-        return NSMutableDictionary(objects: self.allValues, forKeys: self.allKeys as! [NSObject])
+        return NSMutableDictionary(objects: self.allValues, forKeys: self.allKeys.map({ $0 as! NSObject}))
     }
 
     public convenience init(object: AnyObject, forKey key: NSCopying) {
