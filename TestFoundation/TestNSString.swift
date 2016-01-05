@@ -376,12 +376,7 @@ class TestNSString : XCTestCase {
         }
 
         let tmpPath = { (path: String) -> NSString in
-        	#if os(Linux)
-        	let tmp = "/tmp/"
-        	#else
-        	let tmp = "/private/tmp/" // no symlink support yet
-        	#endif
-        	return "\(tmp)\(path)".bridge()
+        	return "/tmp/\(path)".bridge()
         }
 
         do {
@@ -473,6 +468,17 @@ class TestNSString : XCTestCase {
             XCTAssert(matches.count == 3 && count == 3, "Supports filtration by type")
         }
         
+        do {
+            // will be resolved against current working directory that is directory there results of build process are stored
+            let path: NSString = "TestFoundation"
+            var outName: NSString?
+            var matches: [NSString] = []
+            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            // Build directory at least contains executable itself and *.swiftmodule directory
+            XCTAssert(matches.count == count && count >= 2, "Supports relative paths.")
+            XCTAssert(startWith(path.bridge(), strings: matches), "For relative paths matches are relative too.")
+        }
+        
         // Next check has no sense on Linux due to case sensitive file system.
         #if os(OSX)
         guard ensureFiles(["/tmp/ABC/temp.txt"]) else {
@@ -490,6 +496,16 @@ class TestNSString : XCTestCase {
             XCTAssert(matches.count >= 1 && count >= 1, "There are matches")
         }
         #endif
+    }
+    
+    private func startWith(prefix: String, strings: [NSString]) -> Bool {
+        for item in strings {
+            guard item.hasPrefix(prefix) else {
+                return false
+            }
+        }
+        
+        return true
     }
     
     private func stringsAreCaseInsensitivelyEqual(lhs: NSString, _ rhs: NSString) -> Bool {

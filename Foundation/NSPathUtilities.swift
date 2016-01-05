@@ -451,10 +451,7 @@ public extension NSString {
             return 0
         }
         
-        guard let url = NSURL(string: _storage) else {
-            return 0
-        }
-        
+        let url = NSURL(fileURLWithPath: _storage)
         let normalizedTypes = flag ? filterTypes : filterTypes?.map { $0.lowercaseString }
         let types = Set<String>(normalizedTypes ?? [])
         let compareOptions = flag ? [] : NSStringCompareOptions.CaseInsensitiveSearch
@@ -471,7 +468,11 @@ public extension NSString {
         
         let namePrefix = url.lastPathComponent ?? ""
 
-        let enumerator = NSFileManager.defaultManager().enumeratorAtURL(urlWhereToSearch, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil)
+        guard let resolvedSearchURL = urlWhereToSearch._resolveSymlinksInPath(excludeSystemDirs: false) else {
+            return 0
+        }
+
+        let enumerator = NSFileManager.defaultManager().enumeratorAtURL(resolvedSearchURL, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil)
         
         while let item = enumerator?.nextObject() as? NSURL {
             
@@ -487,7 +488,7 @@ public extension NSString {
             }
         }
         
-        let commonPath = urlWhereToSearch.absoluteString!.bridge().stringByReplacingOccurrencesOfString("file://", withString: "")
+        let commonPath = searchAllFilesInDirectory ? _storage : _ensureLastPathSeparator(stringByDeletingLastPathComponent)
         
         if let lcp = _longestCommonPrefix(matches, caseSensitive: flag) {
            outputName = (commonPath + lcp).bridge()
@@ -534,6 +535,14 @@ public extension NSString {
         }
         
         return String(prefix)
+    }
+    
+    internal func _ensureLastPathSeparator(path: String) -> String {
+        if path.hasSuffix("/") || path.isEmpty {
+            return path
+        }
+        
+        return path + "/"
     }
     
     public var fileSystemRepresentation : UnsafePointer<Int8> {
