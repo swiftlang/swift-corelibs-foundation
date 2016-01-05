@@ -464,39 +464,12 @@ public extension NSString {
             return 0
         }
 
-        var matches: [String] = []
-        
-        if let enumerator = NSFileManager.defaultManager().enumeratorAtURL(urlWhereToSearch, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
-            for item in enumerator.lazy.map({ $0 as! NSURL }) {
-                let itemName = item.lastPathComponent
-                
-                let matchByName = checkFileName(itemName)
-                let matchByExtension = checkExtension(item.pathExtension)
-                
-                if matchByName && matchByExtension {
-                    matches.append(itemName!)
-                }
-            }
-        }
+        var matches = _getNamesAtURL(urlWhereToSearch, prependWith: "", nameValidator: checkFileName, typeValidator: checkExtension)
         
         if matches.count == 1 {
-            let u = NSURL(fileURLWithPath: matches[0], relativeToURL: urlWhereToSearch)
-            if u.hasDirectoryPath {
-                var newMatches: [String] = []
-                if let enumerator = NSFileManager.defaultManager().enumeratorAtURL(u, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
-                    for item in enumerator.lazy.map({ $0 as! NSURL }) {
-                        let itemName = item.lastPathComponent!
-                        let matchByExtension = checkExtension(item.pathExtension)
-                        
-                        if matchByExtension {
-                            newMatches.append(_storage.bridge().stringByAppendingPathComponent(itemName))
-                        }
-                    }
-                }
-                
-                outputArray = newMatches.map { $0.bridge() }
-                outputName = (_storage + "/").bridge()
-                return outputArray.count
+            let theOnlyFoundItem = NSURL(fileURLWithPath: matches[0], relativeToURL: urlWhereToSearch)
+            if theOnlyFoundItem.hasDirectoryPath {
+                matches = _getNamesAtURL(theOnlyFoundItem, prependWith: matches[0], nameValidator: { _ in true }, typeValidator: checkExtension)
             }
         }
         
@@ -514,7 +487,7 @@ public extension NSString {
         
         return matches.count
     }
-    
+
     internal func _stringIsPathToDirectory(path: String) -> Bool {
         if !path.hasSuffix("/") {
             return false
@@ -525,7 +498,32 @@ public extension NSString {
         return isAbsolutePath && isDirectory
     }
     
-    internal func _getExtensionChecker(extensions: [String]?, caseSensetive: Bool) -> (String?) -> Bool {
+    internal typealias _FileNamePredicate = String? -> Bool
+    
+    internal func _getNamesAtURL(filePathURL: NSURL, prependWith: String, nameValidator: _FileNamePredicate, typeValidator: _FileNamePredicate) -> [String] {
+        var result: [String] = []
+        
+        if let enumerator = NSFileManager.defaultManager().enumeratorAtURL(filePathURL, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
+            for item in enumerator.lazy.map({ $0 as! NSURL }) {
+                let itemName = item.lastPathComponent
+                
+                let matchByName = nameValidator(itemName)
+                let matchByExtension = typeValidator(item.pathExtension)
+                
+                if matchByName && matchByExtension {
+                    if prependWith.isEmpty {
+                        result.append(itemName!)
+                    } else {
+                        result.append(prependWith.bridge().stringByAppendingPathComponent(itemName!))
+                    }
+                }
+            }
+        }
+        
+        return result
+    }
+    
+    internal func _getExtensionChecker(extensions: [String]?, caseSensetive: Bool) -> _FileNamePredicate {
         guard let exts = extensions else {
             return { _ in true }
         }
@@ -539,7 +537,7 @@ public extension NSString {
         }
     }
     
-    internal func _getFileNameChecker(prefix: String?, caseSensetive: Bool) -> (String?) -> Bool {
+    internal func _getFileNameChecker(prefix: String?, caseSensetive: Bool) -> _FileNamePredicate {
         guard let thePrefix = prefix else {
             return { _ in true }
         }
