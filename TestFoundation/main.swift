@@ -39,6 +39,7 @@ XCTMain([
     TestNSLocale(),
     TestNSNotificationCenter(),
     TestNSNull(),
+    TestNSNotificationQueue(),
     TestNSNumber(),
     TestNSNumberFormatter(),
     TestNSPipe(),
