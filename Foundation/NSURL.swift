@@ -483,10 +483,10 @@ extension NSURL {
     }
     
     public var URLByResolvingSymlinksInPath: NSURL? {
-        return _resolveSymlinksInPath(self, excludeSystemDirs: true)
+        return _resolveSymlinksInPath(excludeSystemDirs: true)
     }
     
-    internal func _resolveSymlinksInPath(filePathURL: NSURL, excludeSystemDirs: Bool) -> NSURL? {
+    internal func _resolveSymlinksInPath(excludeSystemDirs excludeSystemDirs: Bool) -> NSURL? {
         guard fileURL else {
             return NSURL(string: absoluteString!)
         }
