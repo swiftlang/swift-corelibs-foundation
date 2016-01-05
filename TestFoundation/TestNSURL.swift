@@ -73,19 +73,26 @@ class TestNSURL : XCTestCase {
     func test_fileURLWithPath_relativeToURL() {
         let homeDirectory = NSHomeDirectory()
         XCTAssertNotNil(homeDirectory, "Failed to find home directory")
-        let baseURL = NSURL(fileURLWithPath: homeDirectory, isDirectory: true)
-        XCTAssertNotNil(baseURL, "fileURLWithPath:isDirectory: failed")
-        XCTAssertEqual(homeDirectory, baseURL.path)
+        let homeURL = NSURL(fileURLWithPath: homeDirectory, isDirectory: true)
+        XCTAssertNotNil(homeURL, "fileURLWithPath:isDirectory: failed")
+        XCTAssertEqual(homeDirectory, homeURL.path)
 
+        #if os(OSX)
+        let baseURL = NSURL(fileURLWithPath: homeDirectory, isDirectory: true)
+        let relativePath = "Documents"
+        #else
+        let baseURL = NSURL(fileURLWithPath: "/usr", isDirectory: true)
+        let relativePath = "include"
+        #endif
         // we're telling fileURLWithPath:isDirectory:relativeToURL: Documents is a directory
-        let url1 = NSURL(fileURLWithFileSystemRepresentation: "Documents", isDirectory: true, relativeToURL: baseURL)
+        let url1 = NSURL(fileURLWithFileSystemRepresentation: relativePath, isDirectory: true, relativeToURL: baseURL)
         XCTAssertNotNil(url1, "fileURLWithPath:isDirectory:relativeToURL: failed")
         // we're letting fileURLWithPath:relativeToURL: determine Documents is a directory with I/O
-        let url2 = NSURL(fileURLWithPath: "Documents", relativeToURL: baseURL)
+        let url2 = NSURL(fileURLWithPath: relativePath, relativeToURL: baseURL)
         XCTAssertNotNil(url2, "fileURLWithPath:relativeToURL: failed")
         XCTAssertEqual(url1, url2, "\(url1) was not equal to \(url2)")
         // we're telling fileURLWithPath:relativeToURL: Documents is a directory with a trailing slash
-        let url3 = NSURL(fileURLWithPath: "Documents/", relativeToURL: baseURL)
+        let url3 = NSURL(fileURLWithPath: relativePath + "/", relativeToURL: baseURL)
         XCTAssertNotNil(url3, "fileURLWithPath:relativeToURL: failed")
         XCTAssertEqual(url1, url3, "\(url1) was not equal to \(url3)")
     }
