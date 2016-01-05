@@ -483,10 +483,10 @@ extension NSURL {
     }
     
     public var URLByResolvingSymlinksInPath: NSURL? {
-        return _resolveSymlinksInPath(self, keepSystemDirs: false)
+        return _resolveSymlinksInPath(self, excludeSystemDirs: true)
     }
     
-    internal func _resolveSymlinksInPath(filePathURL: NSURL, keepSystemDirs: Bool) -> NSURL? {
+    internal func _resolveSymlinksInPath(filePathURL: NSURL, excludeSystemDirs: Bool) -> NSURL? {
         guard fileURL else {
             return NSURL(string: absoluteString!)
         }
@@ -530,16 +530,8 @@ extension NSURL {
         var isExistingDirectory = false
         NSFileManager.defaultManager().fileExistsAtPath(resolvedPath, isDirectory: &isExistingDirectory)
         
-        if !keepSystemDirs {
-            let privatePrefix = "/private"
-            
-            if resolvedPath.hasPrefix(privatePrefix) && resolvedPath != privatePrefix {
-                var temp = resolvedPath
-                temp.removeRange(resolvedPath.startIndex..<privatePrefix.endIndex)
-                if NSFileManager.defaultManager().fileExistsAtPath(temp) {
-                    resolvedPath = temp
-                }
-            }
+        if excludeSystemDirs {
+            resolvedPath = resolvedPath._tryToRemovePathPrefix("/private") ?? resolvedPath
         }
         
         if isExistingDirectory && !resolvedPath.hasSuffix("/") {
