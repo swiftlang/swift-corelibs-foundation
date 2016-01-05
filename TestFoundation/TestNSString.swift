@@ -407,8 +407,8 @@ class TestNSString : XCTestCase {
         }
         
         let fileNames2 = [
-            "/tmp/ABC",
-            "/tmp/ABCD",
+            "/tmp/ABC/",
+            "/tmp/ABCD/",
             "/tmp/abcde"
         ]
         
