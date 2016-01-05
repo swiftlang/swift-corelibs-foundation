@@ -457,17 +457,16 @@ public extension NSString {
         let checkFileName = _getFileNameChecker(namePrefix, caseSensetive: flag)
         let checkExtension = _getExtensionChecker(filterTypes, caseSensetive: flag)
         
-        guard let urlWhereToSearch = searchAllFilesInDirectory ? url : url.URLByDeletingLastPathComponent else {
-            return 0
-        }
-
-        guard let resolvedSearchURL = urlWhereToSearch._resolveSymlinksInPath(excludeSystemDirs: false) else {
+        guard let
+            resolvedURL = url._resolveSymlinksInPath(excludeSystemDirs: false),
+            urlWhereToSearch = searchAllFilesInDirectory ? resolvedURL : resolvedURL.URLByDeletingLastPathComponent
+        else {
             return 0
         }
 
         var matches: [String] = []
         
-        if let enumerator = NSFileManager.defaultManager().enumeratorAtURL(resolvedSearchURL, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
+        if let enumerator = NSFileManager.defaultManager().enumeratorAtURL(urlWhereToSearch, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
             for item in enumerator.lazy.map({ $0 as! NSURL }) {
                 let itemName = item.lastPathComponent
                 
@@ -480,10 +479,35 @@ public extension NSString {
             }
         }
         
+        if matches.count == 1 {
+            let u = NSURL(fileURLWithPath: matches[0], relativeToURL: urlWhereToSearch)
+            if u.hasDirectoryPath {
+                var newMatches: [String] = []
+                if let enumerator = NSFileManager.defaultManager().enumeratorAtURL(u, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
+                    for item in enumerator.lazy.map({ $0 as! NSURL }) {
+                        let itemName = item.lastPathComponent!
+                        let matchByExtension = checkExtension(item.pathExtension)
+                        
+                        if matchByExtension {
+                            newMatches.append(_storage.bridge().stringByAppendingPathComponent(itemName))
+                        }
+                    }
+                }
+                
+                outputArray = newMatches.map { $0.bridge() }
+                outputName = (_storage + "/").bridge()
+                return outputArray.count
+            }
+        }
+        
         let commonPath = searchAllFilesInDirectory ? _storage : _ensureLastPathSeparator(stringByDeletingLastPathComponent)
         
-        if let lcp = _longestCommonPrefix(matches, caseSensitive: flag) {
-           outputName = (commonPath + lcp).bridge()
+        if searchAllFilesInDirectory {
+            outputName = "/"
+        } else {            
+            if let lcp = _longestCommonPrefix(matches, caseSensitive: flag) {
+                outputName = (commonPath + lcp).bridge()
+            }
         }
         
         outputArray = matches.map({ (commonPath + $0).bridge() })
@@ -492,6 +516,10 @@ public extension NSString {
     }
     
     internal func _stringIsPathToDirectory(path: String) -> Bool {
+        if !path.hasSuffix("/") {
+            return false
+        }
+        
         var isDirectory = false
         let isAbsolutePath = NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDirectory)
         return isAbsolutePath && isDirectory

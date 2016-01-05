@@ -385,11 +385,45 @@ class TestNSString : XCTestCase {
             var matches: [NSString] = []
             let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
             let content = try NSFileManager.defaultManager().contentsOfDirectoryAtURL(NSURL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
-            XCTAssert(outName == path, "If NSString is valid path to directory then outName is string itself.")
+            XCTAssert(outName == "/", "If NSString is valid path to directory which has '/' suffix then outName is '/'.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389
 //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")
         } catch {
             XCTAssert(false, "Could not finish test due to error")
+        }
+        
+        do {
+            let path: NSString = "/tmp"
+            var outName: NSString?
+            var matches: [NSString] = []
+            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            let urlToTmp = NSURL(fileURLWithPath: "/private/tmp/").URLByStandardizingPath!
+            let content = try NSFileManager.defaultManager().contentsOfDirectoryAtURL(urlToTmp, includingPropertiesForKeys: nil, options: [])
+            XCTAssert(outName == "/tmp/", "If path could be completed to existing directory then outName is a string itself plus '/'.")
+            // This assert fails on CI; https://bugs.swift.org/browse/SR-389
+            //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")
+        } catch {
+            XCTAssert(false, "Could not finish test due to error")
+        }
+        
+        let fileNames2 = [
+            "/tmp/ABC",
+            "/tmp/ABCD",
+            "/tmp/abcde"
+        ]
+        
+        guard ensureFiles(fileNames2) else {
+            XCTAssert(false, "Could not create temp files for testing.")
+            return
+        }
+        
+        do {
+            let path: NSString = tmpPath("ABC")
+            var outName: NSString?
+            var matches: [NSString] = []
+            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            XCTAssert(outName == path, "If NSString is valid path to directory then outName is string itself.")
+            XCTAssert(matches.count == count && count == fileNames2.count, "")
         }
         
         do {
