@@ -120,7 +120,13 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         if thePath.hasSuffix("/") {
             isDir = true
         } else {
-            NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDir)
+            let absolutePath: String
+            if let absPath = baseURL?.URLByAppendingPathComponent(path)?.path {
+                absolutePath = absPath
+            } else {
+                absolutePath = path
+            }
+            NSFileManager.defaultManager().fileExistsAtPath(absolutePath, isDirectory: &isDir)
         }
 
         self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeToURL: baseURL)
