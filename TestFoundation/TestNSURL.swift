@@ -80,7 +80,7 @@ class TestNSURL : XCTestCase {
         #if os(OSX)
         let baseURL = NSURL(fileURLWithPath: homeDirectory, isDirectory: true)
         let relativePath = "Documents"
-        #else
+        #elseif os(Linux)
         let baseURL = NSURL(fileURLWithPath: "/usr", isDirectory: true)
         let relativePath = "include"
         #endif
