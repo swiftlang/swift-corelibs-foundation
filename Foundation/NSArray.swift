@@ -618,7 +618,7 @@ public class NSMutableArray : NSArray {
     
     public func replaceObjectAtIndex(index: Int, withObject anObject: AnyObject) {
         if self.dynamicType === NSMutableArray.self {
-            _storage.replaceRange(Range<Int>(start: index, end: index), with: [anObject])
+            _storage.replaceRange(Range<Int>(start: index, end: index + 1), with: [anObject])
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -713,7 +713,7 @@ public class NSMutableArray : NSArray {
     }
     
     public func removeObjectsInArray(otherArray: [AnyObject]) {
-        let set = NSSet(array : _swiftObject)
+        let set = NSSet(array : otherArray)
         for idx in (0..<count).reverse() {
             if set.containsObject(objectAtIndex(idx)) {
                 removeObjectAtIndex(idx)
