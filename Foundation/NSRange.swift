@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
 
 public struct _NSRange {
     public var location: Int
@@ -20,26 +21,34 @@ public struct _NSRange {
         self.location = location
         self.length = length
     }
+    
+    internal init(_ range: CFRange) {
+        location = range.location == kCFNotFound ? NSNotFound : range.location
+        length = range.length
+    }
 }
 
-extension _NSRange {
-    public init(_ x: Range<Int>) {
-        if let start = x.first {
-            if let end = x.last {
-                self.init(location: start, length: end - start)
-                return
-            }
-        }
-        self.init(location: 0, length: 0)
-    }
-    
-    @warn_unused_result
-    public func toRange() -> Range<Int>? {
-        return Range<Int>(start: location, end: location + length)
+extension CFRange {
+    internal init(_ range: NSRange) {
+        location = range.location == NSNotFound ? kCFNotFound : range.location
+        length = range.length
     }
 }
 
 public typealias NSRange = _NSRange
+
+extension NSRange {
+    public init(_ x: Range<Int>) {
+        location = x.startIndex
+        length = x.count
+    }
+    
+    @warn_unused_result
+    public func toRange() -> Range<Int>? {
+        if location == NSNotFound { return nil }
+        return Range(start: location, end: location + length)
+    }
+}
 
 public typealias NSRangePointer = UnsafeMutablePointer<NSRange>
 

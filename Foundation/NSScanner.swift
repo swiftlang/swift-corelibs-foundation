@@ -17,6 +17,10 @@ public class NSScanner : NSObject, NSCopying {
     internal var _invertedSkipSet: NSCharacterSet?
     internal var _scanLocation: Int
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return NSScanner(string: string)
     }
@@ -72,30 +76,50 @@ public class NSScanner : NSObject, NSCopying {
     }
 }
 
-private struct _NSStringBuffer {
+internal struct _NSStringBuffer {
     var bufferLen: Int
     var bufferLoc: Int
     var string: NSString
     var stringLen: Int
-    var stringLoc: Int
+    var _stringLoc: Int
     var buffer = Array<unichar>(count: 32, repeatedValue: 0)
-    var curChar: unichar
+    var curChar: unichar?
     
     static let EndCharacter = unichar(0xffff)
     
     init(string: String, start: Int, end: Int) {
-        self.string = string._bridgeToObjectiveC()
-        stringLoc = start
+        self.string = string._bridgeToObject()
+        _stringLoc = start
         stringLen = end
     
-        if stringLoc < stringLen {
-            bufferLen = min(32, stringLen - stringLoc);
-            let range = NSMakeRange(stringLoc, bufferLen)
+        if _stringLoc < stringLen {
+            bufferLen = min(32, stringLen - _stringLoc);
+            let range = NSMakeRange(_stringLoc, bufferLen)
             bufferLoc = 1
-            curChar = buffer[0]
             buffer.withUnsafeMutableBufferPointer({ (inout ptr: UnsafeMutableBufferPointer<unichar>) -> Void in
                 self.string.getCharacters(ptr.baseAddress, range: range)
             })
+            curChar = buffer[0]
+        } else {
+            bufferLen = 0
+            bufferLoc = 1
+            curChar = _NSStringBuffer.EndCharacter
+        }
+    }
+    
+    init(string: NSString, start: Int, end: Int) {
+        self.string = string
+        _stringLoc = start
+        stringLen = end
+        
+        if _stringLoc < stringLen {
+            bufferLen = min(32, stringLen - _stringLoc);
+            let range = NSMakeRange(_stringLoc, bufferLen)
+            bufferLoc = 1
+            buffer.withUnsafeMutableBufferPointer({ (inout ptr: UnsafeMutableBufferPointer<unichar>) -> Void in
+                self.string.getCharacters(ptr.baseAddress, range: range)
+            })
+            curChar = buffer[0]
         } else {
             bufferLen = 0
             bufferLoc = 1
@@ -104,7 +128,7 @@ private struct _NSStringBuffer {
     }
     
     var currentCharacter: unichar {
-        return curChar
+        return curChar!
     }
     
     var isAtEnd: Bool {
@@ -112,8 +136,8 @@ private struct _NSStringBuffer {
     }
     
     mutating func fill() {
-        bufferLen = min(32, stringLen - stringLoc);
-        let range = NSMakeRange(stringLoc, bufferLen)
+        bufferLen = min(32, stringLen - _stringLoc);
+        let range = NSMakeRange(_stringLoc, bufferLen)
         buffer.withUnsafeMutableBufferPointer({ (inout ptr: UnsafeMutableBufferPointer<unichar>) -> Void in
             string.getCharacters(ptr.baseAddress, range: range)
         })
@@ -123,12 +147,31 @@ private struct _NSStringBuffer {
     
     mutating func advance() {
         if bufferLoc < bufferLen { /*buffer is OK*/
-            curChar = buffer[bufferLoc++]
-        } else if (stringLoc + bufferLen < stringLen) { /* Buffer is empty but can be filled */
-            stringLoc += bufferLen
+            curChar = buffer[bufferLoc]
+            bufferLoc += 1
+        } else if (_stringLoc + bufferLen < stringLen) { /* Buffer is empty but can be filled */
+            _stringLoc += bufferLen
             fill()
         } else { /* Buffer is empty and we're at the end */
             bufferLoc = bufferLen + 1
+            curChar = _NSStringBuffer.EndCharacter
+        }
+    }
+    
+    mutating func rewind() {
+        if bufferLoc > 1 { /* Buffer is OK */
+            bufferLoc -= 1
+            curChar = buffer[bufferLoc - 1]
+        } else if _stringLoc > 0 { /* Buffer is empty but can be filled */
+            bufferLoc = min(32, _stringLoc)
+            bufferLen = bufferLoc
+            _stringLoc -= bufferLen
+            let range = NSMakeRange(_stringLoc, bufferLen)
+            buffer.withUnsafeMutableBufferPointer({ (inout ptr: UnsafeMutableBufferPointer<unichar>) -> Void in
+                string.getCharacters(ptr.baseAddress, range: range)
+            })
+        } else {
+            bufferLoc = 0
             curChar = _NSStringBuffer.EndCharacter
         }
     }
@@ -138,6 +181,27 @@ private struct _NSStringBuffer {
             while set.characterIsMember(currentCharacter) && !isAtEnd {
                 advance()
             }
+        }
+    }
+    
+    var location: Int {
+        get {
+            return _stringLoc + bufferLoc - 1
+        }
+        mutating set {
+            if newValue < _stringLoc || newValue >= _stringLoc + bufferLen {
+                if newValue < 16 { /* Get the first NSStringBufferSize chars */
+                    _stringLoc = 0
+                } else if newValue > stringLen - 16 { /* Get the last NSStringBufferSize chars */
+                    _stringLoc = stringLen < 32 ? 0 : stringLen - 32
+                } else {
+                    _stringLoc = newValue - 16 /* Center around loc */
+                }
+                fill()
+            }
+            bufferLoc = newValue - _stringLoc
+            curChar = buffer[bufferLoc]
+            bufferLoc += 1
         }
     }
 }
@@ -258,7 +322,7 @@ extension String {
             buf.advance()
         } while (isADigit(buf.currentCharacter))
         to(neg ? -1 * localResult : localResult)
-        locationToScanFrom = buf.stringLoc
+        locationToScanFrom = buf.location
         return true
     }
     
@@ -269,7 +333,7 @@ extension String {
         var curDigit: Int
         if buf.currentCharacter == unichar(unicodeScalarLiteral: "0") {
             buf.advance()
-            let locRewindTo = buf.stringLoc
+            let locRewindTo = buf.location
             curDigit = numericOrHexValue(buf.currentCharacter)
             if curDigit == -1 {
                 if buf.currentCharacter == unichar(unicodeScalarLiteral: "x") || buf.currentCharacter == unichar(unicodeScalarLiteral: "X") {
@@ -300,7 +364,7 @@ extension String {
         } while (curDigit != -1)
         
         to(localResult)
-        locationToScanFrom = buf.stringLoc
+        locationToScanFrom = buf.location
         return true
     }
     
@@ -359,7 +423,7 @@ extension String {
         }
         
         to(neg ? T(-1) * localResult : localResult)
-        locationToScanFrom = buf.stringLoc
+        locationToScanFrom = buf.location
         return true
     }
     
@@ -372,61 +436,61 @@ extension NSScanner {
     
     // On overflow, the below methods will return success and clamp
     public func scanInt(result: UnsafeMutablePointer<Int32>) -> Bool {
-        return _scanString.scan(_skipSet, locationToScanFrom: &scanLocation) { (value: Int32) -> Void in
+        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int32) -> Void in
             result.memory = value
         }
     }
     
     public func scanInteger(result: UnsafeMutablePointer<Int>) -> Bool {
-        return _scanString.scan(_skipSet, locationToScanFrom: &scanLocation) { (value: Int) -> Void in
+        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int) -> Void in
             result.memory = value
         }
     }
     
     public func scanLongLong(result: UnsafeMutablePointer<Int64>) -> Bool {
-        return _scanString.scan(_skipSet, locationToScanFrom: &scanLocation) { (value: Int64) -> Void in
+        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int64) -> Void in
             result.memory = value
         }
     }
     
     public func scanUnsignedLongLong(result: UnsafeMutablePointer<UInt64>) -> Bool {
-        return _scanString.scan(_skipSet, locationToScanFrom: &scanLocation) { (value: UInt64) -> Void in
+        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
             result.memory = value
         }
     }
     
     public func scanFloat(result: UnsafeMutablePointer<Float>) -> Bool {
-        return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &scanLocation) { (value: Float) -> Void in
+        return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
             result.memory = value
         }
     }
     
     public func scanDouble(result: UnsafeMutablePointer<Double>) -> Bool {
-        return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &scanLocation) { (value: Double) -> Void in
+        return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
             result.memory = value
         }
     }
     
     public func scanHexInt(result: UnsafeMutablePointer<UInt32>) -> Bool {
-        return _scanString.scanHex(_skipSet, locationToScanFrom: &scanLocation) { (value: UInt32) -> Void in
+        return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt32) -> Void in
             result.memory = value
         }
     }
     
     public func scanHexLongLong(result: UnsafeMutablePointer<UInt64>) -> Bool {
-        return _scanString.scanHex(_skipSet, locationToScanFrom: &scanLocation) { (value: UInt64) -> Void in
+        return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
             result.memory = value
         }
     }
     
     public func scanHexFloat(result: UnsafeMutablePointer<Float>) -> Bool {
-        return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &scanLocation) { (value: Float) -> Void in
+        return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
             result.memory = value
         }
     }
     
     public func scanHexDouble(result: UnsafeMutablePointer<Double>) -> Bool {
-        return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &scanLocation) { (value: Double) -> Void in
+        return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
             result.memory = value
         }
     }
@@ -562,7 +626,7 @@ extension NSScanner {
     // These methods avoid calling the private API for _invertedSkipSet and manually re-construct them so that it is only usage of public API usage
     // Future implementations on Darwin of these methods will likely be more optimized to take advantage of the cached values.
     public func scanString(string searchString: String) -> String? {
-        let str = self.string._bridgeToObjectiveC()
+        let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSStringCompareOptions = [caseSensitive ? [] : NSStringCompareOptions.CaseInsensitiveSearch, NSStringCompareOptions.AnchoredSearch]
@@ -583,7 +647,7 @@ extension NSScanner {
     }
     
     public func scanCharactersFromSet(set: NSCharacterSet) -> String? {
-        let str = self.string._bridgeToObjectiveC()
+        let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.CaseInsensitiveSearch
@@ -604,7 +668,7 @@ extension NSScanner {
     }
     
     public func scanUpToString(string: String) -> String? {
-        let str = self.string._bridgeToObjectiveC()
+        let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.CaseInsensitiveSearch
@@ -625,7 +689,7 @@ extension NSScanner {
     }
     
     public func scanUpToCharactersFromSet(set: NSCharacterSet) -> String? {
-        let str = self.string._bridgeToObjectiveC()
+        let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.CaseInsensitiveSearch

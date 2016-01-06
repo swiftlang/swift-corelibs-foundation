@@ -39,6 +39,26 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         NSUnimplemented()
     }
     
+    public override var hash: Int {
+        get {
+            return Int(bitPattern: CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let tz = object as? NSTimeZone {
+            return isEqualToTimeZone(tz)
+        } else {
+            return false
+        }
+    }
+    
+    public override var description: String {
+        get {
+            return CFCopyDescription(_cfObject)._swiftObject
+        }
+    }
+
     deinit {
         _CFDeinit(self)
     }
@@ -56,6 +76,10 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public static func supportsSecureCoding() -> Bool {
         return true
+    }
+    
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
@@ -162,12 +186,22 @@ extension NSTimeZone {
     public class func timeZoneDataVersion() -> String { NSUnimplemented() }
     
     public var secondsFromGMT: Int { NSUnimplemented() }
-    public var abbreviation: String? { NSUnimplemented() }
+
+    /// The abbreviation for the receiver, such as "EDT" (Eastern Daylight Time). (read-only)
+    ///
+    /// This invokes `abbreviationForDate:` with the current date as the argument.
+    public var abbreviation: String? {
+        let currentDate = NSDate()
+        return abbreviationForDate(currentDate)
+    }
+
     public var daylightSavingTime: Bool { NSUnimplemented() }
     public var daylightSavingTimeOffset: NSTimeInterval { NSUnimplemented() }
     /*@NSCopying*/ public var nextDaylightSavingTimeTransition: NSDate?  { NSUnimplemented() }
     
-    public func isEqualToTimeZone(aTimeZone: NSTimeZone) -> Bool { NSUnimplemented() }
+    public func isEqualToTimeZone(aTimeZone: NSTimeZone) -> Bool {
+        return CFEqual(self._cfObject, aTimeZone._cfObject)
+    }
     
     public func localizedName(style: NSTimeZoneNameStyle, locale: NSLocale?) -> String? { NSUnimplemented() }
 }

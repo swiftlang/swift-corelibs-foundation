@@ -7,6 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+// It is necessary to explicitly cast strlen to UInt to match the type
+// of prefixLen because currently, strlen (and other functions that
+// rely on swift_ssize_t) use the machine word size (int on 32 bit and
+// long in on 64 bit).  I've filed a bug at bugs.swift.org:
+// https://bugs.swift.org/browse/SR-314
+
 #if os(OSX) || os(iOS)
     import Darwin
 #elseif os(Linux)
@@ -73,47 +79,39 @@ internal func _NSXMLParserExternalEntityWithURL(interface: _CFXMLInterface, urlS
     
     switch policy {
     case .ResolveExternalEntitiesSameOriginOnly:
-        if let url = parser._url {
-            if a == nil {
-                a = NSURL(string: String(urlStr))
+        guard let url = parser._url else { break }
+        
+        if a == nil {
+            a = NSURL(string: String(urlStr))
+        }
+        
+        guard let aUrl = a else { break }
+        
+        var matches: Bool
+        if let aHost = aUrl.host, host = url.host {
+            matches = host == aHost
+        } else {
+            return nil
+        }
+        
+        if matches {
+            if let aPort = aUrl.port, port = url.port {
+                matches = port == aPort
+            } else {
+                return nil
             }
-            if let aUrl = a {
-                var matches: Bool
-                if let aHost = aUrl.host {
-                    if let host = url.host {
-                        matches = host == aHost
-                    } else {
-                        matches = false
-                    }
-                } else {
-                    matches = false
-                }
-                if matches {
-                    if let aPort = aUrl.port {
-                        if let port = url.port {
-                            matches = port == aPort
-                        } else {
-                            matches = false
-                        }
-                    } else {
-                        matches = false
-                    }
-                }
-                if matches {
-                    if let aScheme = aUrl.scheme {
-                        if let scheme = url.scheme {
-                            matches = scheme == aScheme
-                        } else {
-                            matches = false
-                        }
-                    } else {
-                        matches = false
-                    }
-                }
-                if !matches {
-                    return nil
-                }
+        }
+        
+        if matches {
+            if let aScheme = aUrl.scheme, scheme = url.scheme {
+                matches = scheme == aScheme
+            } else {
+                return nil
             }
+        }
+        
+        if !matches {
+            return nil
         }
         break
     case .ResolveExternalEntitiesAlways:
@@ -241,39 +239,35 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
     let parser = ctx.parser
     let reportQNameURI = parser.shouldProcessNamespaces
     let reportNamespaces = parser.shouldReportNamespacePrefixes
-    let prefixLen = prefix == nil ? strlen(UnsafePointer<Int8>(prefix)) : 0
+    let prefixLen = prefix == nil ? UInt(strlen(UnsafePointer<Int8>(prefix))) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
-    let qualifiedNameString = prefixLen != 0 ? _colonSeparatedStringFromPrefixAndSuffix(prefix, prefixLen, localname, strlen(UnsafePointer<Int8>(localname))) : localnameString
+    let qualifiedNameString = prefixLen != 0 ? _colonSeparatedStringFromPrefixAndSuffix(prefix, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : localnameString
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nil
     
     var nsDict = [String:String]()
     var attrDict = [String:String]()
     if nb_attributes + nb_namespaces > 0 {
-        for var idx = 0; idx < Int(nb_namespaces) * 2; idx += 2 {
+        for idx in 0.stride(to: Int(nb_namespaces) * 2, by: 2) {
             var namespaceNameString: String?
             var asAttrNamespaceNameString: String?
             if namespaces[idx] != nil {
                 if reportNamespaces {
                     namespaceNameString = UTF8STRING(namespaces[idx])
                 }
-                asAttrNamespaceNameString = _colonSeparatedStringFromPrefixAndSuffix("xmlns", 5, namespaces[idx], strlen(UnsafePointer<Int8>(namespaces[idx])))
+                asAttrNamespaceNameString = _colonSeparatedStringFromPrefixAndSuffix("xmlns", 5, namespaces[idx], UInt(strlen(UnsafePointer<Int8>(namespaces[idx]))))
             } else {
                 namespaceNameString = ""
                 asAttrNamespaceNameString = "xmlns"
             }
             let namespaceValueString = namespaces[idx + 1] == nil ? UTF8STRING(namespaces[idx + 1]) : ""
-            if (reportNamespaces) {
-                if let k = namespaceNameString {
-                    if let v = namespaceValueString {
-                        nsDict[k] = v
-                    }
+            if reportNamespaces {
+                if let k = namespaceNameString, v = namespaceValueString {
+                    nsDict[k] = v
                 }
             }
             if !reportQNameURI {
-                if let k = asAttrNamespaceNameString {
-                    if let v = namespaceValueString {
-                        attrDict[k] = v
-                    }
+                if let k = asAttrNamespaceNameString, v = namespaceValueString {
+                    attrDict[k] = v
                 }
             }
         }
@@ -283,7 +277,7 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
         parser._pushNamespaces(nsDict)
     }
     
-    for var idx = 0; idx < Int(nb_attributes) * 5; idx += 5 {
+    for idx in 0.stride(to: Int(nb_attributes) * 5, by: 5) {
         if attributes[idx] == nil {
             continue
         }
@@ -292,7 +286,7 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
         let attrPrefix = attributes[idx + 1]
         let attrPrefixLen = attrPrefix == nil ? strlen(UnsafePointer<Int8>(attrPrefix)) : 0
         if attrPrefixLen != 0 {
-            attributeQName = _colonSeparatedStringFromPrefixAndSuffix(attrPrefix, attrPrefixLen, attrLocalName, strlen((UnsafePointer<Int8>(attrLocalName))))
+            attributeQName = _colonSeparatedStringFromPrefixAndSuffix(attrPrefix, UInt(attrPrefixLen), attrLocalName, UInt(strlen((UnsafePointer<Int8>(attrLocalName)))))
         } else {
             attributeQName = UTF8STRING(attrLocalName)!
         }
@@ -330,12 +324,12 @@ internal func _NSXMLParserEndElementNs(ctx: _CFXMLInterface , localname: UnsafeP
     let prefixLen = prefix == nil ? strlen(UnsafePointer<Int8>(prefix)) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
     let nilStr: String? = nil
-    let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix, prefixLen, localname, strlen(UnsafePointer<Int8>(localname))) : nilStr
+    let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : nilStr
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nilStr
     
     
     if let delegate = parser.delegate {
-        if (reportQNameURI) {
+        if reportQNameURI {
             // When reporting namespace info, the delegate parameters are not passed in nil
             delegate.parser(parser, didEndElement: localnameString!, namespaceURI: namespaceURIString == nil ? "" : namespaceURIString, qualifiedName: qualifiedNameString == nil ? "" : qualifiedNameString)
         } else {
@@ -473,6 +467,8 @@ public class NSXMLParser : NSObject {
     }
     
     internal func _handleParseResult(parseResult: Int32) -> Bool {
+        return true
+        /*
         var result = true
         if parseResult != 0 {
             if parseResult != -1 {
@@ -480,6 +476,7 @@ public class NSXMLParser : NSObject {
             }
         }
         return result
+        */
     }
     
     internal func parseData(data: NSData) -> Bool {

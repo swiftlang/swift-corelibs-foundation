@@ -7,16 +7,24 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		22B9C1E11C165D7A00DECFF9 /* TestNSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */; };
+		400E22651C1A4E58007C5933 /* TestNSProcessInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */; };
+		45BBD92B1C30E9C200540DDB /* TestNSTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BBD92A1C30E9C200540DDB /* TestNSTask.swift */; };
+		4AE109271C17CCBF007367B5 /* TestNSIndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */; };
+		4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */; };
 		525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
+		52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52829AD61C160D64003BC4EF /* TestNSCalendar.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
+		5B2B59821C24D00500271109 /* CFStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89031BBC9BC300234F36 /* CFStream.c */; };
+		5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89871BBDB1B400234F36 /* CFSocketStream.c */; };
+		5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89831BBDB13800234F36 /* CFConcreteStreams.c */; };
 		5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
 		5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B40F9F21C125187000E72E3 /* TestNSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */; };
 		5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B40F9F31C12524C000E72E3 /* libxml2.dylib */; };
 		5B5D89761BBDADD300234F36 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89751BBDADD300234F36 /* libicucore.dylib */; };
 		5B5D89781BBDADDB00234F36 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89771BBDADDB00234F36 /* libz.dylib */; };
-		5B5D897A1BBDADDF00234F36 /* libobjc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89791BBDADDF00234F36 /* libobjc.dylib */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
 		5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D897B1BBDAE0800234F36 /* CFPlatform.c */; };
@@ -155,8 +163,10 @@
 		5B7C8B011BEA82F800C5B690 /* CFError_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88A61BBC970D00234F36 /* CFError_Private.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8B021BEA830200C5B690 /* CFBurstTrie.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89341BBDA76300234F36 /* CFBurstTrie.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8B031BEA86A900C5B690 /* libCoreFoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */; };
+		5B915F0F1C1A320E00BE40C5 /* TestNSJSONSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */; };
 		5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BC1D8BE1BF3B09E009D3973 /* TestNSCharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */; };
+		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
 		5BDC3FCA1BCF176100ED97BB /* NSCFArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FC91BCF176100ED97BB /* NSCFArray.swift */; };
 		5BDC3FCC1BCF177E00ED97BB /* NSCFString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FCB1BCF177E00ED97BB /* NSCFString.swift */; };
 		5BDC3FCE1BCF17D300ED97BB /* NSCFDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FCD1BCF17D300ED97BB /* NSCFDictionary.swift */; };
@@ -193,6 +203,34 @@
 		5BF7AEBF1BCD51F9008F214A /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4A1BCC5DCB00ED97BB /* NSURL.swift */; };
 		5BF7AEC01BCD51F9008F214A /* NSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */; };
 		5BF7AEC11BCD51F9008F214A /* NSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */; };
+		5E5835F41C20C9B500C81317 /* TestNSThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5835F31C20C9B500C81317 /* TestNSThread.swift */; };
+		5EF673AC1C28B527006212A3 /* TestNSNotificationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */; };
+		612952F91C1B235900BE0FD9 /* TestNSNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 612952F81C1B235900BE0FD9 /* TestNSNull.swift */; };
+		61A395FA1C2484490029B337 /* TestNSLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A395F91C2484490029B337 /* TestNSLocale.swift */; };
+		61D6C9EF1C1DFE9500DEF583 /* TestNSTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */; };
+		61E0117C1C1B554D000037DD /* TestNSRunLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E0117B1C1B554D000037DD /* TestNSRunLoop.swift */; };
+		61E0117D1C1B5590000037DD /* NSRunLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B761BD15DFF00C49C64 /* NSRunLoop.swift */; };
+		61E0117E1C1B55B9000037DD /* NSTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F481BCC5DCB00ED97BB /* NSTimer.swift */; };
+		61E0117F1C1B5990000037DD /* CFRunLoop.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88D81BBC9AD800234F36 /* CFRunLoop.c */; };
+		61E011801C1B5994000037DD /* CFSocket.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88E01BBC9B0300234F36 /* CFSocket.c */; };
+		61E011811C1B5998000037DD /* CFMessagePort.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88DC1BBC9AEC00234F36 /* CFMessagePort.c */; };
+		61E011821C1B599A000037DD /* CFMachPort.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88D01BBC9AAC00234F36 /* CFMachPort.c */; };
+		61F8AE7D1C180FC600FB62F0 /* TestNSNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */; };
+		6E203B8D1C1303BB003B2576 /* TestNSBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E203B8C1C1303BB003B2576 /* TestNSBundle.swift */; };
+		7A7D6FBB1C16439400957E2E /* TestNSURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */; };
+		83712C8E1C1684900049AD49 /* TestNSURLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */; };
+		844DC3331C17584F005611F9 /* TestNSScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 844DC3321C17584F005611F9 /* TestNSScanner.swift */; };
+		8460AACC1C3307D800B01413 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8460AACB1C3307D700B01413 /* TestUtils.swift */; };
+		848A30581C137B3500C83206 /* TestNSHTTPCookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */; };
+		84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */; };
+		88D28DE71C13AE9000494606 /* TestNSGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D28DE61C13AE9000494606 /* TestNSGeometry.swift */; };
+		A5A34B561C18C85D00FD972B /* TestNSByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */; };
+		AA664D4F1C1B03CA00C22186 /* TestNSNumberFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA664D4E1C1B03CA00C22186 /* TestNSNumberFormatter.swift */; };
+		C2A9D75C1C15C08B00993803 /* TestNSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */; };
+		C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */; };
+		CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */; };
+		D834F9941C31C4060023812A /* TestNSOrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D834F9931C31C4060023812A /* TestNSOrderedSet.swift */; };
+		DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
 		E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
 		EA66F6361BEED03E00136161 /* TargetConditionals.h in Headers */ = {isa = PBXBuildFile; fileRef = EA66F6351BEED03E00136161 /* TargetConditionals.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EA66F6441BF1619600136161 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6381BF1619600136161 /* main.swift */; };
@@ -313,8 +351,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDate.swift; sourceTree = "<group>"; };
+		400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSProcessInfo.swift; sourceTree = "<group>"; };
+		45BBD92A1C30E9C200540DDB /* TestNSTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTask.swift; sourceTree = "<group>"; };
+		4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSIndexPath.swift; sourceTree = "<group>"; };
+		4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSPipe.swift; sourceTree = "<group>"; };
 		522C253A1BF16E1600804FC6 /* FoundationErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationErrors.swift; sourceTree = "<group>"; };
 		525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileManager.swift; sourceTree = "<group>"; };
+		52829AD61C160D64003BC4EF /* TestNSCalendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCalendar.swift; sourceTree = "<group>"; };
 		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Test.plist; sourceTree = "<group>"; };
 		5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInterface.c; sourceTree = "<group>"; };
 		5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLInterface.h; sourceTree = "<group>"; };
@@ -472,6 +516,7 @@
 		5B5D89A91BBDC11100234F36 /* CFLocaleKeys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFLocaleKeys.c; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCharacterSet.swift; sourceTree = "<group>"; };
+		5BC2C00D1C07832E00CC214E /* CFStringTransform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringTransform.c; sourceTree = "<group>"; };
 		5BDC3F191BCC440100ED97BB /* CFICULogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFICULogging.h; sourceTree = "<group>"; };
 		5BDC3F1C1BCC447900ED97BB /* CFStringLocalizedFormattingInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFStringLocalizedFormattingInternal.h; sourceTree = "<group>"; };
 		5BDC3F2E1BCC5DCB00ED97BB /* NSArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSArray.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -512,6 +557,29 @@
 		5BDC3FCF1BCF17E600ED97BB /* NSCFSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSCFSet.swift; sourceTree = "<group>"; };
 		5BDC405C1BD6D83B00ED97BB /* TestFoundation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestFoundation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
+		5E5835F31C20C9B500C81317 /* TestNSThread.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSThread.swift; sourceTree = "<group>"; };
+		5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSJSONSerialization.swift; sourceTree = "<group>"; };
+		5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNotificationQueue.swift; sourceTree = "<group>"; };
+		612952F81C1B235900BE0FD9 /* TestNSNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNull.swift; sourceTree = "<group>"; };
+		61A395F91C2484490029B337 /* TestNSLocale.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSLocale.swift; sourceTree = "<group>"; };
+		61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTimer.swift; sourceTree = "<group>"; };
+		61E0117B1C1B554D000037DD /* TestNSRunLoop.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRunLoop.swift; sourceTree = "<group>"; };
+		61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNotificationCenter.swift; sourceTree = "<group>"; };
+		6E203B8C1C1303BB003B2576 /* TestNSBundle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSBundle.swift; sourceTree = "<group>"; };
+		7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLResponse.swift; sourceTree = "<group>"; };
+		83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLRequest.swift; sourceTree = "<group>"; };
+		844DC3321C17584F005611F9 /* TestNSScanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSScanner.swift; sourceTree = "<group>"; };
+		8460AACB1C3307D700B01413 /* TestUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
+		848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSHTTPCookie.swift; path = TestFoundation/TestNSHTTPCookie.swift; sourceTree = SOURCE_ROOT; };
+		84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTimeZone.swift; sourceTree = "<group>"; };
+		88D28DE61C13AE9000494606 /* TestNSGeometry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSGeometry.swift; sourceTree = "<group>"; };
+		A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSByteCountFormatter.swift; sourceTree = "<group>"; };
+		AA664D4E1C1B03CA00C22186 /* TestNSNumberFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNumberFormatter.swift; sourceTree = "<group>"; };
+		C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUUID.swift; sourceTree = "<group>"; };
+		C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAffineTransform.swift; sourceTree = "<group>"; };
+		CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NSStringTestData.txt; sourceTree = "<group>"; };
+		D834F9931C31C4060023812A /* TestNSOrderedSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOrderedSet.swift; sourceTree = "<group>"; };
+		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
 		EA313DFC1BE7F2E90060A403 /* CFURLComponents_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLComponents_Internal.h; sourceTree = "<group>"; };
 		EA313DFD1BE7F2E90060A403 /* CFURLComponents_URIParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLComponents_URIParser.c; sourceTree = "<group>"; };
@@ -608,7 +676,6 @@
 			files = (
 				5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */,
 				5B7C8B031BEA86A900C5B690 /* libCoreFoundation.a in Frameworks */,
-				5B5D897A1BBDADDF00234F36 /* libobjc.dylib in Frameworks */,
 				5B5D89781BBDADDB00234F36 /* libz.dylib in Frameworks */,
 				5B5D89761BBDADD300234F36 /* libicucore.dylib in Frameworks */,
 			);
@@ -651,7 +718,10 @@
 				5B5D89AB1BBDCD0B00234F36 /* Frameworks */,
 				5B5D885E1BBC938800234F36 /* Products */,
 			);
+			indentWidth = 4;
 			sourceTree = "<group>";
+			tabWidth = 4;
+			usesTabs = 0;
 		};
 		5B5D885E1BBC938800234F36 /* Products */ = {
 			isa = PBXGroup;
@@ -750,6 +820,7 @@
 				5B5D89A71BBDC09700234F36 /* CFStringScanner.c */,
 				5B5D88801BBC960100234F36 /* CFStringUtilities.c */,
 				5BDC3F1C1BCC447900ED97BB /* CFStringLocalizedFormattingInternal.h */,
+				5BC2C00D1C07832E00CC214E /* CFStringTransform.c */,
 			);
 			name = String;
 			path = CoreFoundation/String.subproj;
@@ -947,7 +1018,7 @@
 		5BDC3F2C1BCC5DB500ED97BB /* Foundation */ = {
 			isa = PBXGroup;
 			children = (
-				EADE0B531BD15DFF00C49C64 /* Info.plist */,
+				EAD73D791C1A62BA00A0734B /* Resources */,
 				EAB57B6E1BD1BE38004AC5C5 /* Runtime */,
 				EAB57B6B1BD1A7F6004AC5C5 /* URL */,
 				EAB57B6A1BD1A7D4004AC5C5 /* Formatters */,
@@ -991,6 +1062,7 @@
 			isa = PBXGroup;
 			children = (
 				EA66F6791BF9401E00136161 /* Info.plist */,
+				CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */,
 				528776181BF27D9500CB0090 /* Test.plist */,
 				EA66F63B1BF1619600136161 /* NSURLTestData.plist */,
 			);
@@ -1000,18 +1072,46 @@
 		EA66F65A1BF1976100136161 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */,
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
+				6E203B8C1C1303BB003B2576 /* TestNSBundle.swift */,
+				52829AD61C160D64003BC4EF /* TestNSCalendar.swift */,
+				5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */,
 				EA66F63D1BF1619600136161 /* TestNSDictionary.swift */,
+				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
+				88D28DE61C13AE9000494606 /* TestNSGeometry.swift */,
+				848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */,
+				4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */,
 				EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */,
+				5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */,
+				61A395F91C2484490029B337 /* TestNSLocale.swift */,
+				61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */,
+				5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */,
 				EA66F63F1BF1619600136161 /* TestNSNumber.swift */,
+				4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */,
+				400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */,
 				EA66F6401BF1619600136161 /* TestNSPropertyList.swift */,
 				E876A73D1C1180E000F279EC /* TestNSRange.swift */,
+				844DC3321C17584F005611F9 /* TestNSScanner.swift */,
+				61E0117B1C1B554D000037DD /* TestNSRunLoop.swift */,
 				EA66F6411BF1619600136161 /* TestNSSet.swift */,
+				D834F9931C31C4060023812A /* TestNSOrderedSet.swift */,
 				EA66F6421BF1619600136161 /* TestNSString.swift */,
+				5E5835F31C20C9B500C81317 /* TestNSThread.swift */,
+				22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */,
+				DCDBB8321C1768AC00313299 /* TestNSData.swift */,
+				61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */,
+				84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */,
 				EA66F6431BF1619600136161 /* TestNSURL.swift */,
-				5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */,
-				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
+				83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */,
+				7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */,
+				C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */,
 				5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */,
+				A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */,
+				612952F81C1B235900BE0FD9 /* TestNSNull.swift */,
+				AA664D4E1C1B03CA00C22186 /* TestNSNumberFormatter.swift */,
+				45BBD92A1C30E9C200540DDB /* TestNSTask.swift */,
+				8460AACB1C3307D700B01413 /* TestUtils.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1283,6 +1383,14 @@
 			name = Model;
 			sourceTree = "<group>";
 		};
+		EAD73D791C1A62BA00A0734B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				EADE0B531BD15DFF00C49C64 /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -1508,6 +1616,7 @@
 			files = (
 				528776191BF27D9500CB0090 /* Test.plist in Resources */,
 				EA66F6481BF1619600136161 /* NSURLTestData.plist in Resources */,
+				CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1528,6 +1637,7 @@
 				EADE0BA91BD15E0000C49C64 /* NSNull.swift in Sources */,
 				EADE0BC01BD15E0000C49C64 /* NSURLProtectionSpace.swift in Sources */,
 				5BF7AEAC1BCD51F9008F214A /* NSEnumerator.swift in Sources */,
+				61E0117E1C1B55B9000037DD /* NSTimer.swift in Sources */,
 				EADE0BCD1BD15E0000C49C64 /* NSXMLParser.swift in Sources */,
 				5BDC3FD01BCF17E600ED97BB /* NSCFSet.swift in Sources */,
 				EADE0B931BD15DFF00C49C64 /* NSComparisonPredicate.swift in Sources */,
@@ -1595,6 +1705,7 @@
 				5BF7AEB41BCD51F9008F214A /* NSObject.swift in Sources */,
 				EADE0B521BD09F2F00C49C64 /* NSByteCountFormatter.swift in Sources */,
 				EADE0BC11BD15E0000C49C64 /* NSURLProtocol.swift in Sources */,
+				61E0117D1C1B5590000037DD /* NSRunLoop.swift in Sources */,
 				EADE0BC81BD15E0000C49C64 /* NSXMLDTD.swift in Sources */,
 				EADE0BA61BD15E0000C49C64 /* NSMassFormatter.swift in Sources */,
 				EADE0BCC1BD15E0000C49C64 /* NSXMLNodeOptions.swift in Sources */,
@@ -1620,6 +1731,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B7C8A871BEA7FDB00C5B690 /* CFLocale.c in Sources */,
+				61E011801C1B5994000037DD /* CFSocket.c in Sources */,
 				5B7C8AB71BEA801700C5B690 /* CFUnicodePrecomposition.c in Sources */,
 				5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */,
 				5B7C8A951BEA7FEC00C5B690 /* CFXMLTree.c in Sources */,
@@ -1629,12 +1741,15 @@
 				5B7C8A7F1BEA7FCE00C5B690 /* CFData.c in Sources */,
 				5B7C8A9C1BEA7FF900C5B690 /* CFBundle.c in Sources */,
 				5B7C8AB51BEA801700C5B690 /* CFUniChar.c in Sources */,
+				61E011811C1B5998000037DD /* CFMessagePort.c in Sources */,
 				5B7C8AB61BEA801700C5B690 /* CFUnicodeDecomposition.c in Sources */,
 				5B7C8A881BEA7FDB00C5B690 /* CFLocaleIdentifier.c in Sources */,
 				5B7C8AB01BEA801700C5B690 /* CFBuiltinConverters.c in Sources */,
 				5B7C8A761BEA7FCE00C5B690 /* CFSortFunctions.c in Sources */,
+				5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */,
 				5B7C8A941BEA7FEC00C5B690 /* CFXMLParser.c in Sources */,
 				5B7C8AA11BEA800400C5B690 /* CFApplicationPreferences.c in Sources */,
+				5B2B59821C24D00500271109 /* CFStream.c in Sources */,
 				5B7C8A8B1BEA7FE200C5B690 /* CFBigNumber.c in Sources */,
 				5B7C8A7D1BEA7FCE00C5B690 /* CFBinaryHeap.c in Sources */,
 				5B7C8A7E1BEA7FCE00C5B690 /* CFBitVector.c in Sources */,
@@ -1652,10 +1767,12 @@
 				5B7C8A8C1BEA7FE200C5B690 /* CFDate.c in Sources */,
 				5B7C8A751BEA7FCE00C5B690 /* CFRuntime.c in Sources */,
 				5B7C8A7C1BEA7FCE00C5B690 /* CFBasicHash.c in Sources */,
+				61E011821C1B599A000037DD /* CFMachPort.c in Sources */,
 				5B7C8A921BEA7FEC00C5B690 /* CFXMLInputStream.c in Sources */,
 				5B7C8AAA1BEA800D00C5B690 /* CFBurstTrie.c in Sources */,
 				5B7C8A9E1BEA7FF900C5B690 /* CFPlugIn_Instance.c in Sources */,
 				5B7C8A801BEA7FCE00C5B690 /* CFDictionary.c in Sources */,
+				5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */,
 				5B7C8AAE1BEA800D00C5B690 /* CFStringScanner.c in Sources */,
 				5B7C8A771BEA7FCE00C5B690 /* CFSystemDirectories.c in Sources */,
 				5B7C8AAD1BEA800D00C5B690 /* CFStringEncodings.c in Sources */,
@@ -1670,11 +1787,13 @@
 				5B7C8A971BEA7FF900C5B690 /* CFBundle_Grok.c in Sources */,
 				5B7C8ABB1BEA802100C5B690 /* CFURLAccess.c in Sources */,
 				5B7C8A901BEA7FEC00C5B690 /* CFOldStylePList.c in Sources */,
+				61E0117F1C1B5990000037DD /* CFRunLoop.c in Sources */,
 				5B7C8A7B1BEA7FCE00C5B690 /* CFBag.c in Sources */,
 				5B7C8AA21BEA800400C5B690 /* CFPreferences.c in Sources */,
 				5B7C8A811BEA7FCE00C5B690 /* CFSet.c in Sources */,
 				5B7C8A8A1BEA7FDB00C5B690 /* CFLocaleKeys.c in Sources */,
 				5B7C8A9B1BEA7FF900C5B690 /* CFBundle_Strings.c in Sources */,
+				5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */,
 				5B7C8A851BEA7FDB00C5B690 /* CFCalendar.c in Sources */,
 				5B7C8A9F1BEA7FF900C5B690 /* CFPlugIn_PlugIn.c in Sources */,
 				5B7C8AB11BEA801700C5B690 /* CFICUConverters.c in Sources */,
@@ -1694,18 +1813,47 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				400E22651C1A4E58007C5933 /* TestNSProcessInfo.swift in Sources */,
 				525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */,
+				5B915F0F1C1A320E00BE40C5 /* TestNSJSONSerialization.swift in Sources */,
 				EA66F6501BF1619600136161 /* TestNSNumber.swift in Sources */,
+				844DC3331C17584F005611F9 /* TestNSScanner.swift in Sources */,
+				8460AACC1C3307D800B01413 /* TestUtils.swift in Sources */,
 				E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */,
+				5E5835F41C20C9B500C81317 /* TestNSThread.swift in Sources */,
+				C2A9D75C1C15C08B00993803 /* TestNSUUID.swift in Sources */,
+				A5A34B561C18C85D00FD972B /* TestNSByteCountFormatter.swift in Sources */,
+				612952F91C1B235900BE0FD9 /* TestNSNull.swift in Sources */,
 				EA66F6521BF1619600136161 /* TestNSPropertyList.swift in Sources */,
+				4AE109271C17CCBF007367B5 /* TestNSIndexPath.swift in Sources */,
+				4DC1D0801C12EEEF00B5948A /* TestNSPipe.swift in Sources */,
+				84BA558E1C16F90900F48C54 /* TestNSTimeZone.swift in Sources */,
+				52829AD71C160D64003BC4EF /* TestNSCalendar.swift in Sources */,
+				45BBD92B1C30E9C200540DDB /* TestNSTask.swift in Sources */,
+				5EF673AC1C28B527006212A3 /* TestNSNotificationQueue.swift in Sources */,
+				C93559291C12C49F009FD6A9 /* TestNSAffineTransform.swift in Sources */,
+				DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */,
+				83712C8E1C1684900049AD49 /* TestNSURLRequest.swift in Sources */,
 				EA66F64E1BF1619600136161 /* TestNSIndexSet.swift in Sources */,
+				22B9C1E11C165D7A00DECFF9 /* TestNSDate.swift in Sources */,
+				848A30581C137B3500C83206 /* TestNSHTTPCookie.swift in Sources */,
+				D834F9941C31C4060023812A /* TestNSOrderedSet.swift in Sources */,
 				EA66F6541BF1619600136161 /* TestNSSet.swift in Sources */,
 				EA66F64A1BF1619600136161 /* TestNSArray.swift in Sources */,
 				5BC1D8BE1BF3B09E009D3973 /* TestNSCharacterSet.swift in Sources */,
 				EA66F6561BF1619600136161 /* TestNSString.swift in Sources */,
+				7A7D6FBB1C16439400957E2E /* TestNSURLResponse.swift in Sources */,
+				61F8AE7D1C180FC600FB62F0 /* TestNSNotificationCenter.swift in Sources */,
 				5B40F9F21C125187000E72E3 /* TestNSXMLParser.swift in Sources */,
+				61A395FA1C2484490029B337 /* TestNSLocale.swift in Sources */,
+				6E203B8D1C1303BB003B2576 /* TestNSBundle.swift in Sources */,
+				88D28DE71C13AE9000494606 /* TestNSGeometry.swift in Sources */,
 				EA66F64C1BF1619600136161 /* TestNSDictionary.swift in Sources */,
+				ED58F76F1C134B3A00E6A5BE /* (null) in Sources */,
+				AA664D4F1C1B03CA00C22186 /* TestNSNumberFormatter.swift in Sources */,
 				EA66F6581BF1619600136161 /* TestNSURL.swift in Sources */,
+				61D6C9EF1C1DFE9500DEF583 /* TestNSTimer.swift in Sources */,
+				61E0117C1C1B554D000037DD /* TestNSRunLoop.swift in Sources */,
 				EA66F6441BF1619600136161 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1735,6 +1883,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
 				CLANG_MODULES_AUTOLINK = NO;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
@@ -1753,6 +1902,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1780,6 +1930,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
 				CLANG_MODULES_AUTOLINK = NO;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
@@ -1797,6 +1948,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -1826,7 +1978,7 @@
 				FRAMEWORK_VERSION = A;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
-				INFOPLIST_FILE = CoreFoundation/Info.plist;
+				INFOPLIST_FILE = Foundation/Info.plist;
 				INIT_ROUTINE = "___CFInitialize";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
@@ -1870,8 +2022,7 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = com.apple.CoreFoundation;
+				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
@@ -1894,7 +2045,7 @@
 				FRAMEWORK_VERSION = A;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
-				INFOPLIST_FILE = CoreFoundation/Info.plist;
+				INFOPLIST_FILE = Foundation/Info.plist;
 				INIT_ROUTINE = "___CFInitialize";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
@@ -1938,8 +2089,7 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = com.apple.CoreFoundation;
+				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
@@ -1950,7 +2100,6 @@
 		5B7C8A6F1BEA7F8F00C5B690 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "-";
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
@@ -1984,7 +2133,6 @@
 		5B7C8A701BEA7F8F00C5B690 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "-";
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
@@ -2026,7 +2174,7 @@
 				INFOPLIST_FILE = TestFoundation/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACH_O_TYPE = mh_execute;
-				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFoundation;
+				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -2045,7 +2193,7 @@
 				INFOPLIST_FILE = TestFoundation/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACH_O_TYPE = mh_execute;
-				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFoundation;
+				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = app;

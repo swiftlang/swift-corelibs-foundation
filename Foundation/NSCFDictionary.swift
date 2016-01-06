@@ -54,7 +54,9 @@ internal final class _NSCFDictionary : NSMutableDictionary {
             if index == count {
                 return nil
             } else {
-                return keyArray[index++]
+                let item = keyArray[index]
+                index += 1
+                return item
             }
         }
         
@@ -65,7 +67,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
             let keys = UnsafeMutablePointer<UnsafePointer<Void>>.alloc(count)            
             CFDictionaryGetKeysAndValues(cf, keys, nil)
             
-            for var idx = 0; idx < count; idx++ {
+            for idx in 0..<count {
                 let key = unsafeBitCast(keys.advancedBy(idx).memory, NSObject.self)
                 keyArray.append(key)
             }
@@ -134,12 +136,19 @@ internal func _CFSwiftDictionaryContainsValue(dictionary: AnyObject, value: AnyO
     NSUnimplemented()
 }
 
-internal func _CFSwiftDictionaryGetKeysAndValues(dictionary: AnyObject, keybuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>, valuebuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>) {
+internal func _CFSwiftDictionaryGetValuesAndKeys(dictionary: AnyObject, valuebuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>, keybuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>) {
     var idx = 0
+    if valuebuf == nil && keybuf == nil {
+        return
+    }
     (dictionary as! NSDictionary).enumerateKeysAndObjectsUsingBlock { key, value, _ in
-        keybuf[idx] = Unmanaged<AnyObject>.passUnretained(key)
-        valuebuf[idx] = Unmanaged<AnyObject>.passUnretained(value)
-        idx++
+	if valuebuf != nil {
+	    valuebuf[idx] = Unmanaged<AnyObject>.passUnretained(value)
+	}
+	if keybuf != nil {
+	    keybuf[idx] = Unmanaged<AnyObject>.passUnretained(key)
+	}
+        idx += 1
     }
 }
 

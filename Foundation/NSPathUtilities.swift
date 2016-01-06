@@ -9,6 +9,12 @@
 
 import CoreFoundation
 
+#if os(OSX) || os(iOS)
+import Darwin
+#elseif os(Linux)
+import Glibc
+#endif
+
 internal extension String {
     
     internal var _startOfLastPathComponent : String.CharacterView.Index {
@@ -87,14 +93,14 @@ internal extension String {
             
             while curPos < endPos {
                 while curPos < endPos && characterView[curPos] == "/" {
-                    curPos++
+                    curPos = curPos.successor()
                 }
                 if curPos == endPos {
                     break
                 }
                 var curEnd = curPos
                 while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd++
+                    curEnd = curEnd.successor()
                 }
                 result.append(String(characterView[curPos ..< curEnd]))
                 curPos = curEnd
@@ -171,6 +177,29 @@ internal extension String {
         }
         return result
     }
+    
+    internal func _stringByRemovingPrefix(prefix: String) -> String {
+        guard hasPrefix(prefix) else {
+            return self
+        }
+
+        var temp = self
+        temp.removeRange(startIndex..<prefix.endIndex)
+        return temp
+    }
+    
+    internal func _tryToRemovePathPrefix(prefix: String) -> String? {
+        guard self != prefix else {
+            return nil
+        }
+        
+        let temp = _stringByRemovingPrefix(prefix)
+        if NSFileManager.defaultManager().fileExistsAtPath(temp) {
+            return temp
+        }
+        
+        return nil
+    }
 }
 
 public extension NSString {
@@ -204,14 +233,14 @@ public extension NSString {
             
             while curPos < endPos {
                 while curPos < endPos && characterView[curPos] == "/" {
-                    curPos++
+                    curPos = curPos.successor()
                 }
                 if curPos == endPos {
                     break
                 }
                 var curEnd = curPos
                 while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd++
+                    curEnd = curEnd.successor()
                 }
                 result.append(String(characterView[curPos ..< curEnd]))
                 curPos = curEnd
@@ -237,14 +266,28 @@ public extension NSString {
         if fixedSelf == "/" {
             return fixedSelf
         }
-        if fixedSelf.length <= 1 {
-            return ""
-        }
         
-        return String(fixedSelf.characters.prefixUpTo(fixedSelf._startOfLastPathComponent))
+        switch fixedSelf._startOfLastPathComponent {
+        
+        // relative path, single component
+        case fixedSelf.startIndex:
+            return ""
+        
+        // absolute path, single component
+        case fixedSelf.startIndex.successor():
+            return "/"
+        
+        // all common cases
+        case let startOfLast:
+            return String(fixedSelf.characters.prefixUpTo(startOfLast.predecessor()))
+        }
     }
     
     internal func _stringByFixingSlashes(compress compress : Bool = true, stripTrailing: Bool = true) -> String {
+        if _swiftObject == "/" {
+            return _swiftObject
+        }
+        
         var result = _swiftObject
         if compress {
             result.withMutableCharacters { characterView in
@@ -327,12 +370,70 @@ public extension NSString {
         return result._stringByFixingSlashes()
     }
 
+    public var stringByExpandingTildeInPath: String {
+        guard hasPrefix("~") else {
+            return _swiftObject
+        }
+
+        let endOfUserName = _swiftObject.characters.indexOf("/") ?? _swiftObject.endIndex
+        let userName = String(_swiftObject.characters[_swiftObject.startIndex.successor()..<endOfUserName])
+        let optUserName: String? = userName.isEmpty ? nil : userName
+        
+        guard let homeDir = NSHomeDirectoryForUser(optUserName) else {
+            return _swiftObject._stringByFixingSlashes(compress: false, stripTrailing: true)
+        }
+        
+        var result = _swiftObject
+        result.replaceRange(_swiftObject.startIndex..<endOfUserName, with: homeDir)
+        result = result._stringByFixingSlashes(compress: false, stripTrailing: true)
+        
+        return result
+    }
+    
     public var stringByStandardizingPath: String {
-        NSUnimplemented()
+        let expanded = stringByExpandingTildeInPath
+        var resolved = expanded.bridge().stringByResolvingSymlinksInPath
+        
+        let automount = "/var/automount"
+        resolved = resolved._tryToRemovePathPrefix(automount) ?? resolved
+        return resolved
     }
     
     public var stringByResolvingSymlinksInPath: String {
-        NSUnimplemented()
+        var components = pathComponents
+        guard !components.isEmpty else {
+            return _swiftObject
+        }
+        
+        // TODO: pathComponents keeps final path separator if any. Check that logic.
+        if components.last == "/" {
+            components.removeLast()
+        }
+        
+        let isAbsolutePath = components.first == "/"
+        
+        var resolvedPath = components.removeFirst()
+        for component in components {
+            switch component {
+                
+            case "", ".":
+                break
+                
+            case ".." where isAbsolutePath:
+                resolvedPath = resolvedPath.bridge().stringByDeletingLastPathComponent
+                
+            default:
+                resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
+                if let destination = NSFileManager.defaultManager()._tryToResolveTrailingSymlinkInPath(resolvedPath) {
+                    resolvedPath = destination
+                }
+            }
+        }
+        
+        let privatePrefix = "/private"
+        resolvedPath = resolvedPath._tryToRemovePathPrefix(privatePrefix) ?? resolvedPath
+        
+        return resolvedPath
     }
     
     public func stringsByAppendingPaths(paths: [String]) -> [String] {
@@ -342,8 +443,97 @@ public extension NSString {
         return paths.map(stringByAppendingPathComponent)
     }
     
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePathIntoString(inout outputName: NSString?, caseSensitive flag: Bool, inout matchesIntoArray outputArray: [NSString], filterTypes: [String]?) -> Int {
-        NSUnimplemented()
+        // FIXME: I guess, it should be NSURL(fileURLWithPath: _storage), but it is not implemented yet.
+        guard !_storage.isEmpty else {
+            return 0
+        }
+        
+        guard let url = NSURL(string: _storage) else {
+            return 0
+        }
+        
+        let normalizedTypes = flag ? filterTypes : filterTypes?.map { $0.lowercaseString }
+        let types = Set<String>(normalizedTypes ?? [])
+        let compareOptions = flag ? [] : NSStringCompareOptions.CaseInsensitiveSearch
+        
+        var isDirectory = false
+        let isAbsolutePath = NSFileManager.defaultManager().fileExistsAtPath(_storage, isDirectory: &isDirectory)
+        let searchAllFilesInDirectory = isAbsolutePath && isDirectory
+        
+        guard let urlWhereToSearch = searchAllFilesInDirectory ? url : url.URLByDeletingLastPathComponent else {
+            return 0
+        }
+        
+        var matches: [String] = []
+        
+        let namePrefix = url.lastPathComponent ?? ""
+
+        let enumerator = NSFileManager.defaultManager().enumeratorAtURL(urlWhereToSearch, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil)
+        
+        while let item = enumerator?.nextObject() as? NSURL {
+            
+            let itemName = item.lastPathComponent ?? ""
+            let itemExtension = item.pathExtension ?? ""
+            let normalizedExtension = flag ? itemExtension : itemExtension.lowercaseString
+            
+            let matchByName = searchAllFilesInDirectory || itemName.bridge().rangeOfString(namePrefix, options: compareOptions).location == 0
+            let matchByExtension = types.isEmpty || types.contains(normalizedExtension)
+            
+            if matchByName && matchByExtension {
+                matches.append(itemName)
+            }
+        }
+        
+        let commonPath = urlWhereToSearch.absoluteString!.bridge().stringByReplacingOccurrencesOfString("file://", withString: "")
+        
+        if let lcp = _longestCommonPrefix(matches, caseSensitive: flag) {
+           outputName = (commonPath + lcp).bridge()
+        }
+        
+        outputArray = matches.map({ (commonPath + $0).bridge() })
+        
+        return matches.count
+    }
+    
+    internal func _longestCommonPrefix(strings: [String], caseSensitive: Bool) -> String? {
+        guard strings.count > 0 else {
+            return nil
+        }
+        
+        guard strings.count > 1 else {
+            return strings.first
+        }
+        
+        var sequences = strings.map({ $0.characters.generate() })
+        var prefix: [Character] = []
+        loop: while true {
+            var char: Character? = nil
+            for (idx, s) in sequences.enumerate() {
+                var seq = s
+                
+                guard let c = seq.next() else {
+                    break loop
+                }
+                
+                if char != nil {
+                    let lhs = caseSensitive ? char : String(char!).lowercaseString.characters.first!
+                    let rhs = caseSensitive ? c : String(c).lowercaseString.characters.first!
+                    if lhs != rhs {
+                        break loop
+                    }
+                } else {
+                    char = c
+                }
+                
+                sequences[idx] = seq
+            }
+            prefix.append(char!)
+        }
+        
+        return String(prefix)
     }
     
     public var fileSystemRepresentation : UnsafePointer<Int8> {
@@ -404,4 +594,46 @@ public struct NSSearchPathDomainMask : OptionSetType {
 
 public func NSSearchPathForDirectoriesInDomains(directory: NSSearchPathDirectory, _ domainMask: NSSearchPathDomainMask, _ expandTilde: Bool) -> [String] {
     NSUnimplemented()
+}
+
+public func NSHomeDirectory() -> String {
+    return NSHomeDirectoryForUser(nil)!
+}
+
+public func NSHomeDirectoryForUser(user: String?) -> String? {
+    let userName = user?._cfObject
+    guard let homeDir = CFCopyHomeDirectoryURLForUser(userName)?.takeRetainedValue() else {
+        return nil
+    }
+    
+    let url: NSURL = homeDir._nsObject
+    return url.path
+}
+
+public func NSUserName() -> String {
+    let userName = CFCopyUserName().takeRetainedValue()
+    return userName._swiftObject
+}
+
+internal func _NSCreateTemporaryFile(filePath: String) throws -> (Int32, String) {
+    let template = "." + filePath + ".tmp.XXXXXX"
+    let maxLength = Int(PATH_MAX) + 1
+    var buf = [Int8](count: maxLength, repeatedValue: 0)
+    template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
+    let fd = mkstemp(&buf)
+    if fd == -1 {
+        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+    }
+    let pathResult = NSFileManager.defaultManager().stringWithFileSystemRepresentation(buf, length: Int(strlen(buf)))
+    return (fd, pathResult)
+}
+
+internal func _NSCleanupTemporaryFile(auxFilePath: String, _ filePath: String) throws  {
+    if rename(auxFilePath, filePath) != 0 {
+        do {
+            try NSFileManager.defaultManager().removeItemAtPath(auxFilePath)
+        } catch _ {
+        }
+        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+    }
 }

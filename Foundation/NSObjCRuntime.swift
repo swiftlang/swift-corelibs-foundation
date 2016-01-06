@@ -10,11 +10,27 @@
 
 import CoreFoundation
 
+#if os(OSX) || os(iOS)
+internal let kCFCompareLessThan = CFComparisonResult.CompareLessThan
+internal let kCFCompareEqualTo = CFComparisonResult.CompareEqualTo
+internal let kCFCompareGreaterThan = CFComparisonResult.CompareGreaterThan
+#endif
+
 public enum NSComparisonResult : Int {
     
-    case OrderedAscending
+    case OrderedAscending = -1
     case OrderedSame
     case OrderedDescending
+    
+    internal static func _fromCF(val: CFComparisonResult) -> NSComparisonResult {
+        if val == kCFCompareLessThan {
+            return .OrderedAscending
+        } else if  val == kCFCompareGreaterThan {
+            return .OrderedDescending
+        } else {
+            return .OrderedSame
+        }
+    }
 }
 
 /* Note: QualityOfService enum is available on all platforms, but it may not be implemented on all platforms. */
@@ -56,12 +72,16 @@ public typealias NSComparator = (AnyObject, AnyObject) -> NSComparisonResult
 
 public let NSNotFound: Int = Int.max
 
-@noreturn internal func NSRequiresConcreteImplementation(fn: String = __FUNCTION__) {
-    fatalError("\(fn) must be overriden in subclass implementations")
+@noreturn internal func NSRequiresConcreteImplementation(fn: String = __FUNCTION__, file: StaticString = __FILE__, line: UInt = __LINE__) {
+    fatalError("\(fn) must be overriden in subclass implementations", file: file, line: line)
 }
 
-@noreturn internal func NSUnimplemented(fn: String = __FUNCTION__) {
-    fatalError("\(fn) is not yet implemented")
+@noreturn internal func NSUnimplemented(fn: String = __FUNCTION__, file: StaticString = __FILE__, line: UInt = __LINE__) {
+    fatalError("\(fn) is not yet implemented", file: file, line: line)
+}
+
+@noreturn internal func NSInvalidArgument(message: String, method: String = __FUNCTION__, file: StaticString = __FILE__, line: UInt = __LINE__) {
+    fatalError("\(method): \(message)", file: file, line: line)
 }
 
 internal struct _CFInfo {
@@ -72,6 +92,10 @@ internal struct _CFInfo {
         // This matches what _CFRuntimeCreateInstance does to initialize the info value
         info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
         pad = 0
+    }
+    init(typeID: CFTypeID, extra: UInt32) {
+        info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
+        pad = extra
     }
 }
 

@@ -19,12 +19,13 @@ import SwiftXCTest
 
 class TestNSIndexSet : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_removal", test_removal),
+            ("test_addition",test_addition),
         ]
     }
     
@@ -101,6 +102,70 @@ class TestNSIndexSet : XCTestCase {
         
         XCTAssertTrue(removalSet.isEqualToIndexSet(additionSet))
         
+    }
+    
+    func test_addition() {
+        
+        let testSetA = NSMutableIndexSet(index: 0)
+        testSetA.addIndex(5)
+        testSetA.addIndex(6)
+        testSetA.addIndex(7)
+        testSetA.addIndex(8)
+        testSetA.addIndex(42)
+        
+        let testInputA1 = [0,5,6,7,8,42]
+        var i = 0
+        
+        if testInputA1.count == testSetA.count {
+            testSetA.enumerateIndexesUsingBlock { (idx, _) in
+                XCTAssertEqual(idx, testInputA1[i])
+                i += 1
+            }
+        }
+        else {
+            XCTFail("IndexSet does not contain correct number of indexes")
+        }
+        
+        
+        let testInputA2 = [NSMakeRange(0, 1),NSMakeRange(5, 4),NSMakeRange(42, 1)]
+        i = 0
+        
+        testSetA.enumerateRangesUsingBlock { (range, _) in
+            let testRange = testInputA2[i]
+            XCTAssertEqual(range.location, testRange.location)
+            XCTAssertEqual(range.length, testRange.length)
+            i += 1
+        }
+        
+        let testSetB = NSMutableIndexSet(indexesInRange: NSMakeRange(0,5))
+        testSetB.addIndexesInRange(NSMakeRange(42, 3))
+        testSetB.addIndexesInRange(NSMakeRange(2, 2))
+        testSetB.addIndexesInRange(NSMakeRange(18, 1))
+        
+        let testInputB1 = [0,1,2,3,4,18,42,43,44]
+        i = 0
+        
+        if testInputB1.count == testSetB.count {
+            testSetB.enumerateIndexesUsingBlock { (idx, _) in
+                XCTAssertEqual(idx, testInputB1[i])
+                i += 1
+            }
+        }
+        else {
+            XCTFail("IndexSet does not contain correct number of indexes")
+        }
+        
+        
+        let testInputB2 = [NSMakeRange(0, 5),NSMakeRange(18, 1),NSMakeRange(42, 3)]
+        i = 0
+        
+        testSetB.enumerateRangesUsingBlock { (range, _) in
+            let testRange = testInputB2[i]
+            XCTAssertEqual(range.location, testRange.location)
+            XCTAssertEqual(range.length, testRange.length)
+            i += 1
+        }
+    
     }
     
 }

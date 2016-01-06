@@ -23,7 +23,7 @@
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFURLAccess.h>
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_FREEBSD
 #include <dirent.h>
 #include <sys/sysctl.h>
 #include <sys/mman.h>
@@ -159,6 +159,8 @@ CF_EXPORT CFStringRef _CFGetAlternatePlatformName(void) {
     return CFSTR("");
 #elif DEPLOYMENT_TARGET_LINUX
     return CFSTR("Linux");
+#elif DEPLOYMENT_TARGET_FREEBSD
+    return CFSTR("FreeBSD");
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
@@ -419,14 +421,14 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectory(CFAllocatorRef
 
         localVersion = _CFBundleGetBundleVersionForURL(newURL);
         
-        dict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(alloc, newURL, localVersion);
+        dict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(alloc, newURL, NULL, localVersion);
         CFRelease(newURL);
     }
     if (version) *version = localVersion;
     return dict;
 }
 
-CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, uint8_t version) {
+CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, CFURLRef * infoPlistUrl, uint8_t version) {
     // We only return NULL for a bad URL, otherwise we create a dummy dictionary
     if (!url) return NULL;
 
@@ -469,7 +471,7 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
         CFStringRef directoryPath = CFURLCopyFileSystemPath(absoluteURL, PLATFORM_PATH_STYLE);
         CFRelease(absoluteURL);
 
-        __block CFURLRef infoPlistURL = NULL;
+        __block CFURLRef localInfoPlistURL = NULL;
         __block CFURLRef platformInfoPlistURL = NULL;
 
         if (directoryPath) {
@@ -487,16 +489,16 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
                     }
                 }
                 
-                if (!infoPlistURL && CFStringGetLength(fileName) == infoPlistLength && CFStringCompareWithOptions(fileName, _CFBundleInfoPlistName, CFRangeMake(0, infoPlistLength), kCFCompareCaseInsensitive | kCFCompareAnchored) == kCFCompareEqualTo) {
+                if (!localInfoPlistURL && CFStringGetLength(fileName) == infoPlistLength && CFStringCompareWithOptions(fileName, _CFBundleInfoPlistName, CFRangeMake(0, infoPlistLength), kCFCompareCaseInsensitive | kCFCompareAnchored) == kCFCompareEqualTo) {
                     // Make a URL out of this file
-                    infoPlistURL = CFURLCreateWithString(kCFAllocatorSystemDefault, infoURLFromBase, url);
+                    localInfoPlistURL = CFURLCreateWithString(kCFAllocatorSystemDefault, infoURLFromBase, url);
                 }
                 
-                // If by some chance we have both URLs, just bail early (or just the infoPlistURL on platforms that have no platform-specific name)
+                // If by some chance we have both URLs, just bail early (or just the localInfoPlistURL on platforms that have no platform-specific name)
                 if (_CFBundlePlatformInfoPlistName != _CFBundleInfoPlistName) {
-                    if (infoPlistURL && platformInfoPlistURL) return false;
+                    if (localInfoPlistURL && platformInfoPlistURL) return false;
                 } else {
-                    if (infoPlistURL) return false;
+                    if (localInfoPlistURL) return false;
                 }
                 
                 return true;
@@ -518,21 +520,19 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
             if (infoData) finalInfoPlistURL = platformInfoPlistURL;
         }
         
-        if (!infoData && infoPlistURL) {
+        if (!infoData && localInfoPlistURL) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
-            CFURLCreateDataAndPropertiesFromResource(kCFAllocatorSystemDefault, infoPlistURL, &infoData, NULL, NULL, NULL);
+            CFURLCreateDataAndPropertiesFromResource(kCFAllocatorSystemDefault, localInfoPlistURL, &infoData, NULL, NULL, NULL);
 #pragma GCC diagnostic pop
-            if (infoData) finalInfoPlistURL = infoPlistURL;
+            if (infoData) finalInfoPlistURL = localInfoPlistURL;
         }
         
         if (infoData) {
             CFErrorRef error = NULL;
             result = (CFDictionaryRef)CFPropertyListCreateWithData(alloc, infoData, kCFPropertyListMutableContainers, NULL, &error);
             if (result) {
-                if (CFDictionaryGetTypeID() == CFGetTypeID(result)) {
-                    CFDictionarySetValue((CFMutableDictionaryRef)result, _kCFBundleInfoPlistURLKey, finalInfoPlistURL);
-                } else {
+                if (CFDictionaryGetTypeID() != CFGetTypeID(result)) {
                     CFRelease(result);
                     result = NULL;
                 }
@@ -541,21 +541,25 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
                 CFDictionaryRef userInfo = CFErrorCopyUserInfo(error);
                 CFStringRef domain = CFErrorGetDomain(error);
                 CFIndex code = CFErrorGetCode(error);
-                CFLog(kCFLogLevelError, CFSTR("There was an error parsing the Info.plist for the bundle at URL %@\n %@ - %ld\n %@"), infoPlistURL, domain, code, userInfo);
+                CFLog(kCFLogLevelError, CFSTR("There was an error parsing the Info.plist for the bundle at URL %@\n %@ - %ld\n %@"), localInfoPlistURL, domain, code, userInfo);
                 if (userInfo) CFRelease(userInfo);
                 CFRelease(error);
             }
             
             if (!result) {
                 result = CFDictionaryCreateMutable(alloc, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-                CFDictionarySetValue((CFMutableDictionaryRef)result, _kCFBundleRawInfoPlistURLKey, finalInfoPlistURL);
             }
             
             CFRelease(infoData);
         }
         
+        if (infoPlistUrl && finalInfoPlistURL) {
+            CFRetain(finalInfoPlistURL);
+            *infoPlistUrl = finalInfoPlistURL;
+        }
+        
         if (platformInfoPlistURL) CFRelease(platformInfoPlistURL);
-        if (infoPlistURL) CFRelease(infoPlistURL);
+        if (localInfoPlistURL) CFRelease(localInfoPlistURL);
     }
     
     if (!result) {
@@ -742,7 +746,9 @@ static void _CFBundleInfoPlistFixupInfoDictionary(CFBundleRef bundle, CFMutableD
 CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle) {
     __CFLock(&bundle->_lock);
     if (!bundle->_infoDict) {
-        bundle->_infoDict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(kCFAllocatorSystemDefault, bundle->_url, bundle->_version);
+        CFURLRef infoPlistUrl;
+        bundle->_infoDict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(kCFAllocatorSystemDefault, bundle->_url, &infoPlistUrl, bundle->_version);
+        bundle->_infoPlistUrl = infoPlistUrl;
 
         // Add or fixup any keys that will be expected later
         if (bundle->_infoDict) _CFBundleInfoPlistFixupInfoDictionary(bundle, (CFMutableDictionaryRef)bundle->_infoDict);
@@ -931,8 +937,6 @@ CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRe
 }
 
 CF_EXPORT CFURLRef _CFBundleCopyInfoPlistURL(CFBundleRef bundle) {
-    CFDictionaryRef infoDict = CFBundleGetInfoDictionary(bundle);
-    CFURLRef url = (CFURLRef)CFDictionaryGetValue(infoDict, _kCFBundleInfoPlistURLKey);
-    if (!url) url = (CFURLRef)CFDictionaryGetValue(infoDict, _kCFBundleRawInfoPlistURLKey);
-    return (url ? (CFURLRef)CFRetain(url) : NULL);
+    CFURLRef url = bundle->_infoPlistUrl;
+    return (url ? (CFURLRef) CFRetain(url) : NULL);
 }

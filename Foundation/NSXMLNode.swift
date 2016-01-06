@@ -51,6 +51,10 @@ public enum NSXMLNodeKind : UInt {
 */
 public class NSXMLNode : NSObject, NSCopying {
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }

@@ -55,6 +55,8 @@ __kCFReleaseEvent = 29
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 #include <malloc.h>
+#elif DEPLOYMENT_TARGET_FREEBSD
+#include <stdlib.h> // malloc()
 #else
 #include <malloc/malloc.h>
 #endif
@@ -484,7 +486,7 @@ enum {
 #if DEPLOYMENT_TARGET_MACOSX
 #define NUM_EXTERN_TABLES 8
 #define EXTERN_TABLE_IDX(O) (((uintptr_t)(O) >> 8) & 0x7)
-#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #define NUM_EXTERN_TABLES 1
 #define EXTERN_TABLE_IDX(O) 0
 #else
@@ -722,11 +724,7 @@ static CFLock_t __CFRuntimeExternRefCountTableLock = CFLockInit;
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-CFIndex CFGetRetainCount(CFTypeRef cf) {
-    extern size_t swift_retainCount(void *object);
-    // size_t and CFIndex aren't really the same, but you are already playing with fire by calling this function.
-    return (CFIndex)swift_retainCount((void *)cf);
-}
+// using CFGetRetainCount is very dangerous; there is no real reason to use it in the swift version of CF.
 #else
 static uint64_t __CFGetFullRetainCount(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** __CFGetFullRetainCount() called with NULL ***"); HALT; }
@@ -988,7 +986,7 @@ CF_PRIVATE Boolean __CFInitialized = 0;
 // move the next 2 lines down into the #if below, and make it static, after Foundation gets off this symbol on other platforms
 CF_EXPORT pthread_t _CFMainPThread;
 pthread_t _CFMainPThread = kNilPthreadT;
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR
+#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR || DEPLOYMENT_TARGET_LINUX
 
 CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
 pthread_t _CF_pthread_main_thread_np(void) {
@@ -1171,6 +1169,7 @@ void __CFInitialize(void) {
         extern void __CFInitializeSwift();
         __CFInitializeSwift();
 #endif
+        __CFNumberInitialize(); /* needs to happen after Swift bridge is initialized */
         {
             CFIndex idx, cnt = 0;
             char **args = NULL;
@@ -1808,11 +1807,14 @@ const char *_NSPrintForDebugger(void *cf) {
     }
 }
 
-#if DEPLOYMENT_RUNTIME_SWIFT && DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_RUNTIME_SWIFT
 
 // For CF functions with 'Get' semantics, the compiler currently assumes that the result is autoreleased and must be retained. It does so on all platforms by emitting a call to objc_retainAutoreleasedReturnValue. On Darwin, this is implemented by the ObjC runtime. On Linux, there is no runtime, and therefore we have to stub it out here ourselves. The compiler will eventually call swift_release to balance the retain below. This is a workaround until the compiler no longer emits this callout on Linux.
-CFTypeRef objc_retainAutoreleasedReturnValue(CFTypeRef cf) {
-    if (cf) return CFRetain(cf);
+void * objc_retainAutoreleasedReturnValue(void *obj) {
+    if (obj) {
+        swift_retain(obj);
+        return obj;
+    }
     else return NULL;
 }
 

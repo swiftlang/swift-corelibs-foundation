@@ -125,9 +125,6 @@ CFTypeID _CFKeyedArchiverUIDGetTypeID(void) {
 CFKeyedArchiverUIDRef _CFKeyedArchiverUIDCreate(CFAllocatorRef allocator, uint32_t value) {
     CFKeyedArchiverUIDRef uid;
     uid = (CFKeyedArchiverUIDRef)_CFRuntimeCreateInstance(allocator, _CFKeyedArchiverUIDGetTypeID(), sizeof(struct __CFKeyedArchiverUID) - sizeof(CFRuntimeBase), NULL);
-    if (NULL == uid) {
-	return NULL;
-    }
     ((struct __CFKeyedArchiverUID *)uid)->_value = value;
     return uid;
 }

@@ -19,10 +19,11 @@ import SwiftXCTest
 
 class TestNSRange : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             // currently disabled due to pending requirements for NSString
             // ("test_NSRangeFromString", test_NSRangeFromString ),
+            ("test_NSRangeBridging", test_NSRangeBridging)
         ]
     }
     
@@ -57,5 +58,12 @@ class TestNSRange : XCTestCase {
         for string in fullRangeStrings {
             XCTAssert(NSEqualRanges(NSRangeFromString(string), fullRange))
         }
+    }
+    
+    func test_NSRangeBridging() {
+        let swiftRange = 1..<7
+        let range = NSRange(swiftRange)
+        let swiftRange2 = range.toRange()
+        XCTAssertEqual(swiftRange, swiftRange2)
     }
 }

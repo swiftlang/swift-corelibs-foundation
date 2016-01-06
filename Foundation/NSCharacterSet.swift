@@ -45,6 +45,26 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return unsafeBitCast(self, CFMutableCharacterSetRef.self)
     }
     
+    public override var hash: Int {
+        get {
+            return Int(bitPattern: CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let cs = object as? NSCharacterSet {
+            return CFEqual(_cfObject, cs._cfObject)
+        } else {
+            return false
+        }
+    }
+    
+    public override var description: String {
+        get {
+            return CFCopyDescription(_cfObject)._swiftObject
+        }
+    }
+
     deinit {
         _CFDeinit(self)
     }
@@ -164,8 +184,16 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(thePlane))
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
+    }
+    
+    public override func mutableCopy() -> AnyObject {
+        return mutableCopyWithZone(nil)
     }
     
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {

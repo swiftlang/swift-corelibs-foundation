@@ -21,12 +21,15 @@ import SwiftXCTest
 
 class TestNSSet : XCTestCase {
     
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_setOperations", test_setOperations),
+            ("test_equality", test_equality),
+            ("test_copying", test_copying),
+            ("test_mutableCopying", test_mutableCopying),
         ]
     }
     
@@ -66,4 +69,61 @@ class TestNSSet : XCTestCase {
 //        set.unionSet(["bar", "baz"])
 //        XCTAssertTrue(set.isEqualToSet(["foo", "bar", "baz"]))
     }
+
+    func test_equality() {
+        let inputArray1 = ["this", "is", "a", "test", "of", "equality", "with", "strings"].bridge()
+        let inputArray2 = ["this", "is", "a", "test", "of", "equality", "with", "objects"].bridge()
+        let set1 = NSSet(array: inputArray1.bridge())
+        let set2 = NSSet(array: inputArray1.bridge())
+        let set3 = NSSet(array: inputArray2.bridge())
+
+        XCTAssertTrue(set1 == set2)
+        XCTAssertTrue(set1.isEqual(set2))
+        XCTAssertTrue(set1.isEqualToSet(set2.bridge()))
+        XCTAssertEqual(set1.hash, set2.hash)
+        XCTAssertEqual(set1.hashValue, set2.hashValue)
+
+        XCTAssertFalse(set1 == set3)
+        XCTAssertFalse(set1.isEqual(set3))
+        XCTAssertFalse(set1.isEqualToSet(set3.bridge()))
+
+        XCTAssertFalse(set1.isEqual(nil))
+        XCTAssertFalse(set1.isEqual(NSObject()))
+    }
+
+    func test_copying() {
+        let inputArray = ["this", "is", "a", "test", "of", "copy", "with", "strings"].bridge()
+        
+        let set = NSSet(array: inputArray.bridge())
+        let setCopy1 = set.copy() as! NSSet
+        XCTAssertTrue(set === setCopy1)
+
+        let setMutableCopy = set.mutableCopy() as! NSMutableSet
+        let setCopy2 = setMutableCopy.copy() as! NSSet
+        XCTAssertTrue(setCopy2.dynamicType === NSSet.self)
+        XCTAssertFalse(setMutableCopy === setCopy2)
+        for entry in setCopy2 {
+            XCTAssertTrue(setMutableCopy.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+        }
+    }
+
+    func test_mutableCopying() {
+        let inputArray = ["this", "is", "a", "test", "of", "mutableCopy", "with", "strings"].bridge()
+        let set = NSSet(array: inputArray.bridge())
+
+        let setMutableCopy1 = set.mutableCopy() as! NSMutableSet
+        XCTAssertTrue(setMutableCopy1.dynamicType === NSMutableSet.self)
+        XCTAssertFalse(set === setMutableCopy1)
+        for entry in setMutableCopy1 {
+            XCTAssertTrue(set.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+        }
+
+        let setMutableCopy2 = setMutableCopy1.mutableCopy() as! NSMutableSet
+        XCTAssertTrue(setMutableCopy2.dynamicType === NSMutableSet.self)
+        XCTAssertFalse(setMutableCopy2 === setMutableCopy1)
+        for entry in setMutableCopy2 {
+            XCTAssertTrue(setMutableCopy1.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+        }
+    }
+
 }

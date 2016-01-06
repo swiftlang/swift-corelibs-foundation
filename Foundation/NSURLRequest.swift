@@ -164,8 +164,20 @@ public enum NSURLRequestNetworkServiceType : UInt {
 */
 public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
+    private var _URL : NSURL?
+    private var _mainDocumentURL: NSURL?
+    private var _httpHeaderFields: [String: String]?
+    
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
+    }
+    
+    public override func mutableCopy() -> AnyObject {
+        return mutableCopyWithZone(nil)
     }
     
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
@@ -179,6 +191,8 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     public func encodeWithCoder(aCoder: NSCoder) {
         NSUnimplemented()
     }
+    
+    private override init() {}
     
     /*! 
         @method requestWithURL:
@@ -219,14 +233,17 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         @param URL The URL for the request. 
         @result An initialized NSURLRequest. 
     */
-    public convenience init(URL: NSURL) { NSUnimplemented() }
+    public convenience init(URL: NSURL) {
+        self.init()
+        _URL = URL
+    }
     
     /*!
         @method URL
         @abstract Returns the URL of the receiver. 
         @result The URL of the receiver. 
     */
-    /*@NSCopying */public var URL: NSURL? { NSUnimplemented() }
+    /*@NSCopying */public var URL: NSURL? { return _URL }
     
     /*!
         @method mainDocumentURL
@@ -236,14 +253,14 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         See setMainDocumentURL:
         @result The main document URL.
     */
-    /*@NSCopying*/ public var mainDocumentURL: NSURL? { NSUnimplemented() }
+    /*@NSCopying*/ public var mainDocumentURL: NSURL? { return _mainDocumentURL }
     
     /*!
     @method HTTPMethod
     @abstract Returns the HTTP request method of the receiver.
     @result the HTTP request method of the receiver.
     */
-    public var HTTPMethod: String? { get { NSUnimplemented() }}
+    public var HTTPMethod: String? { get { return "GET" } }
     
     /*!
     @method allHTTPHeaderFields
@@ -252,7 +269,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @result a dictionary containing all the HTTP header fields of the
     receiver.
     */
-    public var allHTTPHeaderFields: [String : String]? { NSUnimplemented() }
+    public var allHTTPHeaderFields: [String : String]? { return _httpHeaderFields  }
     
     /*!
     @method valueForHTTPHeaderField:
@@ -264,7 +281,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @result the value associated with the given header field, or nil if
     there is no value associated with the given header field.
     */
-    public func valueForHTTPHeaderField(field: String) -> String? { NSUnimplemented() }
+    public func valueForHTTPHeaderField(field: String) -> String? { return _httpHeaderFields?[field.lowercaseString] }
     
 }
 
@@ -299,15 +316,27 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
 */
 public class NSMutableURLRequest : NSURLRequest {
     
+    private var _HTTPMethod: String? = "GET"
+    
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        super.init()
     }
-    /*! 
+    
+    private override init() { super.init() }
+    
+    /*!
         @method URL
         @abstract Sets the URL of the receiver. 
         @param URL The new URL for the receiver. 
     */
-    /*@NSCopying */ public override var URL: NSURL? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    /*@NSCopying */ public override var URL: NSURL? {
+        get {
+            return _URL
+        }
+        set(newURL) {
+            _URL = newURL
+        }
+    }
 
     /*!
         @method setMainDocumentURL:
@@ -320,14 +349,27 @@ public class NSMutableURLRequest : NSURLRequest {
         "only from same domain as main document" policy, and possibly
         other things in the future.
     */
-    /*@NSCopying*/ public override var mainDocumentURL: NSURL? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    /*@NSCopying*/ public override var mainDocumentURL: NSURL? {
+        get {
+            return _mainDocumentURL
+        } set(newMainDocumentURL) {
+            _mainDocumentURL = newMainDocumentURL
+        }
+    }
+    
     
     /*!
         @method HTTPMethod
         @abstract Sets the HTTP request method of the receiver.
         @result the HTTP request method of the receiver.
     */
-    public override var HTTPMethod: String? { get { NSUnimplemented() } set { NSUnimplemented() } }
+    public override var HTTPMethod: String? {
+        get {
+            return _HTTPMethod
+        } set(newHTTPMethod) {
+            _HTTPMethod = newHTTPMethod
+        }
+    }
     
     /*!
         @method setValue:forHTTPHeaderField:
@@ -339,7 +381,18 @@ public class NSMutableURLRequest : NSURLRequest {
         @param value the header field value. 
         @param field the header field name (case-insensitive). 
     */
-    public func setValue(value: String?, forHTTPHeaderField field: String) { NSUnimplemented() }
+    public func setValue(value: String?, forHTTPHeaderField field: String) {
+        if _httpHeaderFields == nil {
+            _httpHeaderFields = [:]
+        }
+        if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
+            return existingField.lowercaseString == field.lowercaseString
+        }).first {
+            let (existingField, _) = existingHeader
+            _httpHeaderFields?.removeValueForKey(existingField)
+        }
+        _httpHeaderFields?[field] = value
+    }
     
     /*! 
         @method addValue:forHTTPHeaderField:
@@ -355,7 +408,19 @@ public class NSMutableURLRequest : NSURLRequest {
         @param value the header field value. 
         @param field the header field name (case-insensitive). 
     */
-    public func addValue(value: String, forHTTPHeaderField field: String) { NSUnimplemented() }
+    public func addValue(value: String, forHTTPHeaderField field: String) {
+        if _httpHeaderFields == nil {
+            _httpHeaderFields = [:]
+        }
+        if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
+            return existingField.lowercaseString == field.lowercaseString
+        }).first {
+            let (existingField, existingValue) = existingHeader
+            _httpHeaderFields?[existingField] = "\(existingValue),\(value)"
+        } else {
+            _httpHeaderFields?[field] = value
+        }
+    }
 }
 
 

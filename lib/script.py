@@ -7,7 +7,7 @@
 # See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 #
 
-from config import Configuration
+from .config import Configuration
 import os
 
 class Script:
@@ -31,7 +31,7 @@ class Script:
 
     def generate_products(self):
         variables = ""
-        for key, val in Configuration.current.variables.iteritems():
+        for key, val in Configuration.current.variables.items():
             variables += key + "=" + val
         variables += "\n"
         verbose_flags = """
@@ -98,7 +98,7 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
         
         c_flags += Configuration.current.extra_c_flags
 
-        swift_flags = "\nTARGET_SWIFTCFLAGS    = -I${SDKROOT}/lib/swift/" + Configuration.current.target.swift_sdk_name + " "
+        swift_flags = "\nTARGET_SWIFTCFLAGS    = -I${SDKROOT}/lib/swift/" + Configuration.current.target.swift_sdk_name + " -Xcc -fblocks "
         if swift_triple is not None:
             swift_flags += "-target ${SWIFT_TARGET} "
         if Configuration.current.system_root is not None:
@@ -118,7 +118,7 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
         swift_flags += """
 TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """  -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
         if Configuration.current.build_mode == Configuration.Debug:
-            swift_flags += "-g -Onone "
+            swift_flags += "-g -Onone -enable-testing "
         elif Configuration.current.build_mode == Configuration.Release:
             swift_flags += " "
         swift_flags += Configuration.current.extra_swift_flags

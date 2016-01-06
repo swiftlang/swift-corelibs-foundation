@@ -24,6 +24,10 @@ public struct NSRegularExpressionOptions : OptionSetType {
 }
 
 public class NSRegularExpression : NSObject, NSCopying, NSCoding {
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }

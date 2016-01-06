@@ -161,7 +161,7 @@ static const Float64Bits doubleOneBits = {.floatValue = 1.0f};
 #define BITSFORDOUBLEZERO doubleZeroBits.bits
 #define BITSFORDOUBLEONE  doubleOneBits.bits
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #define FLOAT_POSITIVE_2_TO_THE_64	0x1.0p+64L
 #define FLOAT_NEGATIVE_2_TO_THE_127	-0x1.0p+127L
 #define FLOAT_POSITIVE_2_TO_THE_127	0x1.0p+127L
@@ -1045,39 +1045,40 @@ CFTypeID CFNumberGetTypeID(void) {
     dispatch_once(&initOnce, ^{
         __kCFNumberTypeID = _CFRuntimeRegisterClass(&__CFNumberClass); // initOnce covered
 
-        _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFNumberNaN, __kCFNumberTypeID);
-        __CFBitfieldSetValue(__kCFNumberNaN._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-        __kCFNumberNaN._pad = BITSFORDOUBLENAN;
-
-        _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberNegativeInfinity, __kCFNumberTypeID);
-        __CFBitfieldSetValue(__kCFNumberNegativeInfinity._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-        __kCFNumberNegativeInfinity._pad = BITSFORDOUBLENEGINF;
-
-        _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberPositiveInfinity, __kCFNumberTypeID);
-        __CFBitfieldSetValue(__kCFNumberPositiveInfinity._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-        __kCFNumberPositiveInfinity._pad = BITSFORDOUBLEPOSINF;
-
-        _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32Zero, __kCFNumberTypeID);
-        __CFBitfieldSetValue(__kCFNumberFloat32Zero._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat32Type);
-        __kCFNumberFloat32Zero._pad = BITSFORFLOATZERO;
-
-        _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32One, __kCFNumberTypeID);
-        __CFBitfieldSetValue(__kCFNumberFloat32One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat32Type);
-        __kCFNumberFloat32One._pad = BITSFORFLOATONE;
-
-        _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64Zero, __kCFNumberTypeID);
-        __CFBitfieldSetValue(__kCFNumberFloat64Zero._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-        __kCFNumberFloat64Zero._pad = BITSFORDOUBLEZERO;
-
-        _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64One, __kCFNumberTypeID);
-        __CFBitfieldSetValue(__kCFNumberFloat64One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-        __kCFNumberFloat64One._pad = BITSFORDOUBLEONE;
-
-
         const char *caching = __CFgetenv("CFNumberDisableCache");	// "all" to disable caching and tagging; anything else to disable caching; nothing to leave both enabled
         if (caching) __CFNumberCaching = (!strcmp(caching, "all")) ? kCFNumberCachingFullyDisabled : kCFNumberCachingDisabled;	// initial state above is kCFNumberCachingEnabled
     });
     return __kCFNumberTypeID;
+}
+
+CF_PRIVATE void __CFNumberInitialize(void) {
+    _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFNumberNaN, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberNaN._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberNaN._pad = BITSFORDOUBLENAN;
+
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberNegativeInfinity, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberNegativeInfinity._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberNegativeInfinity._pad = BITSFORDOUBLENEGINF;
+
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberPositiveInfinity, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberPositiveInfinity._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberPositiveInfinity._pad = BITSFORDOUBLEPOSINF;
+
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32Zero, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberFloat32Zero._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat32Type);
+    __kCFNumberFloat32Zero._pad = BITSFORFLOATZERO;
+
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32One, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberFloat32One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat32Type);
+    __kCFNumberFloat32One._pad = BITSFORFLOATONE;
+
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64Zero, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberFloat64Zero._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberFloat64Zero._pad = BITSFORDOUBLEZERO;
+
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64One, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberFloat64One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberFloat64One._pad = BITSFORDOUBLEONE;
 }
 
 #define MinCachedInt (-1)

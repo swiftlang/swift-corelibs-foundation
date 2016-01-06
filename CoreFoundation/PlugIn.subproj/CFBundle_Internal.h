@@ -121,6 +121,8 @@ struct __CFBundle {
     CFLock_t _additionalResourceLock;
     CFMutableDictionaryRef _additionalResourceBundles;
     
+    CFURLRef _infoPlistUrl;
+    
 #if defined(BINARY_SUPPORT_DLL)
     HMODULE _hModule;
 #endif /* BINARY_SUPPORT_DLL */
@@ -167,7 +169,7 @@ extern Boolean _CFIsResourceAtPath(CFStringRef path, Boolean *isDir);
 
 CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url);
 extern CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectory(CFAllocatorRef alloc, CFURLRef url, UInt8 *version);
-extern CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, UInt8 version);
+extern CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, CFURLRef *infoPlistUrl, UInt8 version);
 extern CFURLRef _CFBundleCopySupportFilesDirectoryURLInDirectory(CFURLRef bundleURL, UInt8 version);
 extern CFURLRef _CFBundleCopyResourcesDirectoryURLInDirectory(CFURLRef bundleURL, UInt8 version);
 

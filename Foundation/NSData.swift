@@ -58,23 +58,25 @@ public struct NSDataBase64DecodingOptions : OptionSetType {
     public static let Anchored = NSDataSearchOptions(rawValue: UInt(1 << 1))
 }
 
-private class _NSDataDeallocator {
-    var handler: (() -> ())?
-    init(handler: (() -> ())?) {
-        self.handler = handler
-    }
-    
-    deinit {
-        handler?()
-    }
+private final class _NSDataDeallocator {
+    var handler: (UnsafeMutablePointer<Void>, Int) -> Void = {_,_ in }
 }
+
+private let __kCFMutable: CFOptionFlags = 0x01
+private let __kCFGrowable: CFOptionFlags = 0x02
+private let __kCFMutableVarietyMask: CFOptionFlags = 0x03
+private let __kCFBytesInline: CFOptionFlags = 0x04
+private let __kCFUseAllocator: CFOptionFlags = 0x08
+private let __kCFDontDeallocate: CFOptionFlags = 0x10
+private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
 
 public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFDataRef
     private var _base = _CFInfo(typeID: CFDataGetTypeID())
     private var _length: CFIndex = 0
     private var _capacity: CFIndex = 0
-    private var deallocHandler: _NSDataDeallocator?
+    private var _deallocator: UnsafeMutablePointer<Void> = nil // for CF only
+    private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
     private var _bytes: UnsafeMutablePointer<UInt8> = nil
     
     internal var _cfObject: CFType {
@@ -91,25 +93,43 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         self.init(bytes: nil, length: 0, copy: false, deallocator: nil)
     }
     
+    public override var hash: Int {
+        get {
+            return Int(bitPattern: CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let data = object as? NSData {
+            return self.isEqualToData(data)
+        } else {
+            return false
+        }
+    }
+    
     deinit {
-        deallocHandler = nil
-        _CFDeinit(self)
+        if _bytes != nil {
+            _deallocHandler?.handler(_bytes, _length)
+        }
+        if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
+            _CFDeinit(self._cfObject)
+        }
     }
     
     internal init(bytes: UnsafeMutablePointer<Void>, length: Int, copy: Bool, deallocator: ((UnsafeMutablePointer<Void>, Int) -> Void)?) {
-        deallocHandler = _NSDataDeallocator {
-            deallocator?(bytes, length)
-        }
-        
         super.init()
-        let options : CFOptionFlags = (self.dynamicType == NSMutableData.self) ? 0x1 | 0x2 : 0x0
+        let options : CFOptionFlags = (self.dynamicType == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
         if copy {
             _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, false)
-            deallocHandler = nil
-
-            deallocator?(bytes, length)
+            if let handler = deallocator {
+                handler(bytes, length)
+            }
         } else {
-            _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
+            if let handler = deallocator {
+                _deallocHandler!.handler = handler
+            }
+            // The data initialization should flag that CF should not deallocate which leaves the handler a chance to deallocate instead
+            _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options | __kCFDontDeallocate, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
         }
     }
     
@@ -125,8 +145,16 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return self
+    }
+    
+    public override func mutableCopy() -> AnyObject {
+        return mutableCopyWithZone(nil)
     }
     
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
@@ -145,13 +173,40 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return true
     }
     
-    override public var description: String {
-        get {
-            return "Fixme"
+    private func byteDescription(limit limit: Int? = nil) -> String {
+        var s = ""
+        let buffer = UnsafePointer<UInt8>(bytes)
+        var i = 0
+        while i < self.length {
+            if i > 0 && i % 4 == 0 {
+                // if there's a limit, and we're at the barrier where we'd add the ellipses, don't add a space.
+                if let limit = limit where self.length > limit && i == self.length - (limit / 2) { /* do nothing */ }
+                else { s += " " }
+            }
+            let byte = buffer[i]
+            var byteStr = String(byte, radix: 16, uppercase: false)
+            if byte <= 0xf { byteStr = "0\(byteStr)" }
+            s += byteStr
+            // if we've hit the midpoint of the limit, skip to the last (limit / 2) bytes.
+            if let limit = limit where self.length > limit && i == (limit / 2) - 1 {
+                s += " ... "
+                i = self.length - (limit / 2)
+            } else {
+                i += 1
+            }
         }
+        return s
     }
     
-    override internal var _cfTypeID: CFTypeID {
+    override public var debugDescription: String {
+        return "<\(byteDescription(limit: 1024))>"
+    }
+    
+    override public var description: String {
+        return "<\(byteDescription())>"
+    }
+    
+    override public var _cfTypeID: CFTypeID {
         return CFDataGetTypeID()
     }
 }
@@ -167,7 +222,7 @@ extension NSData {
     }
     
     public convenience init(bytesNoCopy bytes: UnsafeMutablePointer<Void>, length: Int, freeWhenDone b: Bool) {
-        self.init(bytes: bytes, length: length, copy: true) { buffer, length in
+        self.init(bytes: bytes, length: length, copy: false) { buffer, length in
             if b {
                 free(buffer)
             }
@@ -190,7 +245,10 @@ extension NSData {
         if fd < 0 {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
-        
+        defer {
+            close(fd)
+        }
+
         var info = stat()
         let ret = withUnsafeMutablePointer(&info) { infoPointer -> Bool in
             if fstat(fd, infoPointer) < 0 {
@@ -200,7 +258,6 @@ extension NSData {
         }
         
         if !ret {
-            close(fd)
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
         
@@ -211,9 +268,8 @@ extension NSData {
             
             // Swift does not currently expose MAP_FAILURE
             if data != UnsafeMutablePointer<Void>(bitPattern: -1) {
-                close(fd)
                 return NSDataReadResult(bytes: data, length: length) { buffer, length in
-                    munmap(data, length)
+                    munmap(buffer, length)
                 }
             }
             
@@ -230,8 +286,8 @@ extension NSData {
             remaining -= amt
             total += amt
         }
+
         if remaining != 0 {
-            close(fd)
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
         
@@ -431,9 +487,22 @@ extension NSData {
         }
         return false
     }
-    
+
+    ///    Write the contents of the receiver to a location specified by the given file URL.
+    ///
+    ///    - parameter url:              The location to which the receiver’s contents will be written.
+    ///    - parameter writeOptionsMask: An option set specifying file writing options.
+    ///
+    ///    - throws: This method returns Void and is marked with the `throws` keyword to indicate that it throws an error in the event of failure.
+    ///
+    ///      This method is invoked in a `try` expression and the caller is responsible for handling any errors in the `catch` clauses of a `do` statement, as described in [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/ErrorHandling.html#//apple_ref/doc/uid/TP40014097-CH42) in [The Swift Programming Language](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/index.html#//apple_ref/doc/uid/TP40014097) and [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/AdoptingCocoaDesignPatterns.html#//apple_ref/doc/uid/TP40014216-CH7-ID10) in [Using Swift with Cocoa and Objective-C](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/index.html#//apple_ref/doc/uid/TP40014216).
     public func writeToURL(url: NSURL, options writeOptionsMask: NSDataWritingOptions) throws {
-        NSUnimplemented()
+        guard let path = url.path where url.fileURL == true else {
+            let userInfo = [NSLocalizedDescriptionKey : "The folder at “\(url)” does not exist or is not a file URL.", // NSLocalizedString() not yet available
+                            NSURLErrorKey             : url.absoluteString ?? ""] as Dictionary<String, Any>
+            throw NSError(domain: NSCocoaErrorDomain, code: 4, userInfo: userInfo)
+        }
+        try writeToFile(path, options: writeOptionsMask)
     }
     
     internal func enumerateByteRangesUsingBlockRethrows(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
@@ -509,25 +578,255 @@ extension NSData {
     /* Create an NSData from a Base-64 encoded NSString using the given options. By default, returns nil when the input is not recognized as valid Base-64.
     */
     public convenience init?(base64EncodedString base64String: String, options: NSDataBase64DecodingOptions) {
-        NSUnimplemented()
+        let encodedBytes = Array(base64String.utf8)
+        guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
+            return nil
+        }
+        self.init(bytes: decodedBytes, length: decodedBytes.count)
     }
     
     /* Create a Base-64 encoded NSString from the receiver's contents using the given options.
     */
     public func base64EncodedStringWithOptions(options: NSDataBase64EncodingOptions) -> String {
-        NSUnimplemented()
+        var decodedBytes = [UInt8](count: self.length, repeatedValue: 0)
+        getBytes(&decodedBytes, length: decodedBytes.count)
+        let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
+        let characters = encodedBytes.map { Character(UnicodeScalar($0)) }
+        return String(characters)
     }
     
     /* Create an NSData from a Base-64, UTF-8 encoded NSData. By default, returns nil when the input is not recognized as valid Base-64.
     */
     public convenience init?(base64EncodedData base64Data: NSData, options: NSDataBase64DecodingOptions) {
-        NSUnimplemented()
+        var encodedBytes = [UInt8](count: base64Data.length, repeatedValue: 0)
+        base64Data.getBytes(&encodedBytes, length: encodedBytes.count)
+        guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
+            return nil
+        }
+        self.init(bytes: decodedBytes, length: decodedBytes.count)
     }
     
     /* Create a Base-64, UTF-8 encoded NSData from the receiver's contents using the given options.
     */
     public func base64EncodedDataWithOptions(options: NSDataBase64EncodingOptions) -> NSData {
-        NSUnimplemented()
+        var decodedBytes = [UInt8](count: self.length, repeatedValue: 0)
+        getBytes(&decodedBytes, length: decodedBytes.count)
+        let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
+        return NSData(bytes: encodedBytes, length: encodedBytes.count)
+    }
+    
+    /**
+      The ranges of ASCII characters that are used to encode data in Base64.
+      */
+    private static let base64ByteMappings: [Range<UInt8>] = [
+        65 ..< 91,      // A-Z
+        97 ..< 123,     // a-z
+        48 ..< 58,      // 0-9
+        43 ..< 44,      // +
+        47 ..< 48,      // /
+    ]
+    /**
+     Padding character used when the number of bytes to encode is not divisible by 3
+     */
+    private static let base64Padding : UInt8 = 61 // =
+    
+    /**
+        This method takes a byte with a character from Base64-encoded string
+        and gets the binary value that the character corresponds to.
+     
+        - parameter byte:       The byte with the Base64 character.
+        - returns:              Base64DecodedByte value containing the result (Valid , Invalid, Padding)
+        */
+    private enum Base64DecodedByte {
+        case Valid(UInt8)
+        case Invalid
+        case Padding
+    }
+    private static func base64DecodeByte(byte: UInt8) -> Base64DecodedByte {
+        guard byte != base64Padding else {return .Padding}
+        var decodedStart: UInt8 = 0
+        for range in base64ByteMappings {
+            if range.contains(byte) {
+                let result = decodedStart + (byte - range.startIndex)
+                return .Valid(result)
+            }
+            decodedStart += range.endIndex - range.startIndex
+        }
+        return .Invalid
+    }
+    
+    /**
+        This method takes six bits of binary data and encodes it as a character
+        in Base64.
+ 
+        The value in the byte must be less than 64, because a Base64 character
+        can only represent 6 bits.
+ 
+        - parameter byte:       The byte to encode
+        - returns:              The ASCII value for the encoded character.
+        */
+    private static func base64EncodeByte(byte: UInt8) -> UInt8 {
+        assert(byte < 64)
+        var decodedStart: UInt8 = 0
+        for range in base64ByteMappings {
+            let decodedRange = decodedStart ..< decodedStart + (range.endIndex - range.startIndex)
+            if decodedRange.contains(byte) {
+                return range.startIndex + (byte - decodedStart)
+            }
+            decodedStart += range.endIndex - range.startIndex
+        }
+        return 0
+    }
+    
+    
+    /**
+        This method decodes Base64-encoded data.
+     
+        If the input contains any bytes that are not valid Base64 characters,
+        this will return nil.
+ 
+        - parameter bytes:      The Base64 bytes
+        - parameter options:    Options for handling invalid input
+        - returns:              The decoded bytes.
+        */
+    private static func base64DecodeBytes(bytes: [UInt8], options: NSDataBase64DecodingOptions = []) -> [UInt8]? {
+        var decodedBytes = [UInt8]()
+        decodedBytes.reserveCapacity((bytes.count/3)*2)
+
+        var currentByte : UInt8 = 0
+        var validCharacterCount = 0
+        var paddingCount = 0
+        var index = 0
+        
+        
+        for base64Char in bytes {
+            
+            let value : UInt8
+            
+            switch base64DecodeByte(base64Char) {
+            case .Valid(let v):
+                value = v
+                validCharacterCount += 1
+            case .Invalid:
+                if options.contains(.IgnoreUnknownCharacters) {
+                    continue
+                } else {
+                    return nil
+                }
+            case .Padding:
+                paddingCount += 1
+                continue
+            }
+            
+            //padding found in the middle of the sequence is invalid
+            if paddingCount > 0 {
+                return nil
+            }
+            
+            switch index%4 {
+            case 0:
+                currentByte = (value << 2)
+            case 1:
+                currentByte |= (value >> 4)
+                decodedBytes.append(currentByte)
+                currentByte = (value << 4)
+            case 2:
+                currentByte |= (value >> 2)
+                decodedBytes.append(currentByte)
+                currentByte = (value << 6)
+            case 3:
+                currentByte |= value
+                decodedBytes.append(currentByte)
+            default:
+                fatalError()
+            }
+            
+            index += 1
+        }
+        
+        guard (validCharacterCount + paddingCount)%4 == 0 else {
+            //invalid character count
+            return nil
+        }
+        return decodedBytes
+    }
+    
+    
+    /**
+        This method encodes data in Base64.
+     
+        - parameter bytes:      The bytes you want to encode
+        - parameter options:    Options for formatting the result
+        - returns:              The Base64-encoding for those bytes.
+        */
+    private static func base64EncodeBytes(bytes: [UInt8], options: NSDataBase64EncodingOptions = []) -> [UInt8] {
+        var result = [UInt8]()
+        result.reserveCapacity((bytes.count/3)*4)
+        
+        let lineOptions : (lineLength : Int, separator : [UInt8])? = {
+            let lineLength: Int
+            
+            if options.contains(.Encoding64CharacterLineLength) { lineLength = 64 }
+            else if options.contains(.Encoding76CharacterLineLength) { lineLength = 76 }
+            else {
+                return nil
+            }
+            
+            var separator = [UInt8]()
+            if options.contains(.EncodingEndLineWithCarriageReturn) { separator.append(13) }
+            if options.contains(.EncodingEndLineWithLineFeed) { separator.append(10) }
+            
+            //if the kind of line ending to insert is not specified, the default line ending is Carriage Return + Line Feed.
+            if separator.count == 0 {separator = [13,10]}
+            
+            return (lineLength,separator)
+        }()
+        
+        var currentLineCount = 0
+        let appendByteToResult : (UInt8) -> () = {
+            result.append($0)
+            currentLineCount += 1
+            if let options = lineOptions where currentLineCount == options.lineLength {
+                result.appendContentsOf(options.separator)
+                currentLineCount = 0
+            }
+        }
+        
+        var currentByte : UInt8 = 0
+        
+        for (index,value) in bytes.enumerate() {
+            switch index%3 {
+            case 0:
+                currentByte = (value >> 2)
+                appendByteToResult(NSData.base64EncodeByte(currentByte))
+                currentByte = ((value << 6) >> 2)
+            case 1:
+                currentByte |= (value >> 4)
+                appendByteToResult(NSData.base64EncodeByte(currentByte))
+                currentByte = ((value << 4) >> 2)
+            case 2:
+                currentByte |= (value >> 6)
+                appendByteToResult(NSData.base64EncodeByte(currentByte))
+                currentByte = ((value << 2) >> 2)
+                appendByteToResult(NSData.base64EncodeByte(currentByte))
+            default:
+                fatalError()
+            }
+        }
+        //add padding
+        switch bytes.count%3 {
+        case 0: break //no padding needed
+        case 1:
+            appendByteToResult(NSData.base64EncodeByte(currentByte))
+            appendByteToResult(self.base64Padding)
+            appendByteToResult(self.base64Padding)
+        case 2:
+            appendByteToResult(NSData.base64EncodeByte(currentByte))
+            appendByteToResult(self.base64Padding)
+        default:
+            fatalError()
+        }
+        return result
     }
 }
 

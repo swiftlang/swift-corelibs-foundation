@@ -42,8 +42,13 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     // ErrorType forbids this being internal
     public var _domain: String
     public var _code: Int
-    public var _userInfo: [String : AnyObject]?
-    public init(domain: String, code: Int, userInfo dict: [String : AnyObject]?) {
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
+    private var _userInfo: [String : Any]?
+    
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
+    public init(domain: String, code: Int, userInfo dict: [String : Any]?) {
         _domain = domain
         _code = code
         _userInfo = dict
@@ -62,6 +67,10 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         return self
     }
@@ -78,12 +87,14 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
 
-    public var userInfo: [String : AnyObject] {
+    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
+    public var userInfo: [String : Any] {
         get {
             if let info = _userInfo {
                 return info
             } else {
-                return Dictionary<String, AnyObject>()
+                return Dictionary<String, Any>()
             }
         }
     }
@@ -116,7 +127,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public var recoveryAttempter: AnyObject? {
         get {
-            return userInfo[NSRecoveryAttempterErrorKey]
+            return userInfo[NSRecoveryAttempterErrorKey] as? AnyObject
         }
     }
     
@@ -149,7 +160,7 @@ extension CFErrorRef : _NSBridgable {
 }
 
 
-public protocol _ObjectiveCBridgeableErrorType : ErrorType {
+public protocol _ObjectTypeBridgeableErrorType : ErrorType {
     init?(_bridgedNSError: NSError)
 }
 

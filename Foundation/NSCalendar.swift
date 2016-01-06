@@ -118,6 +118,10 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         return true
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
@@ -143,6 +147,26 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
+    public override var hash: Int {
+        get {
+            return Int(bitPattern: CFHash(_cfObject))
+        }
+    }
+    
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let cal = object as? NSCalendar {
+            return CFEqual(_cfObject, cal._cfObject)
+        } else {
+            return false
+        }
+    }
+    
+    public override var description: String {
+        get {
+            return CFCopyDescription(_cfObject)._swiftObject
+        }
+    }
+
     deinit {
         _CFDeinit(self)
     }
@@ -411,7 +435,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private func _setComp(unitFlags: NSCalendarUnit, field: NSCalendarUnit, vector: [Int32], inout compIndex: Int, setter: (Int32) -> Void) {
         if unitFlags.contains(field) {
             setter(vector[compIndex])
-            compIndex++
+            compIndex += 1
         }
     }
     
@@ -1089,7 +1113,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     internal var _calendar: NSCalendar?
     internal var _timeZone: NSTimeZone?
     internal var _values = [Int](count: 19, repeatedValue: NSDateComponentUndefined)
-    internal override init() {
+    public override init() {
         super.init()
     }
     
@@ -1200,6 +1224,10 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     
     static public func supportsSecureCoding() -> Bool {
         return true
+    }
+    
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {

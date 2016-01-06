@@ -24,6 +24,10 @@ public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
+    public override func copy() -> AnyObject {
+        return copyWithZone(nil)
+    }
+    
     public func copyWithZone(zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }

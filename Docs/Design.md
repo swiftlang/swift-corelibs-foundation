@@ -32,7 +32,7 @@ Note that under the Swift runtime, all CoreFoundation objects are instances of t
 ### Has-a relationship
 
 This is the most common kind of type when implementation is shared between CoreFoundation and Foundation. In this case, a Swift class exists in Foundation that contains a `CFTypeRef` as an ivar. For example, `NSRunLoop` has-a `CFRunLoopRef`.
-```
+```swift
 public class NSRunLoop : NSObject {
     private var _cfRunLoop : CFRunLoopRef
     // ...
@@ -40,7 +40,7 @@ public class NSRunLoop : NSObject {
 ```
 
 It is very common inside the implementation of Foundation to receive a result from calling into CF that needs to be returned to the caller as a Foundation object. For this reason, has-a classes must provide an internal constructor of the following form:
-```
+```swift
 internal init(cfObject : CFRunLoopRef) {
     _cfRunLoop = cfObject
 }
@@ -75,7 +75,7 @@ Additionally, some classes share the same memory layout in CF, Foundation, and t
 In general, avoid platform-specific code if possible. When it is required, try to put it in a few key funnel points.
 
 When different logic is required for the Swift runtime in CF, use the following macro:
-```
+```c
 #if DEPLOYMENT_RUNTIME_SWIFT
 // Swift Open Source Stack
 #else
@@ -84,7 +84,7 @@ When different logic is required for the Swift runtime in CF, use the following 
 ```
 
 In Swift, the OS-check macro is also available:
-```
+```swift
 #if os(OSX) || os(iOS)
 import Darwin
 #elseif os(Linux)

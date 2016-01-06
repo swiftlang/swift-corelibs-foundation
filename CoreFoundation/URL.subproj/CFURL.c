@@ -1157,10 +1157,10 @@ CFStringRef  CFURLCreateStringByReplacingPercentEscapes(CFAllocatorRef alloc, CF
             newStr = CFStringCreateMutable(alloc, length);
         }
         if (percentRange.location - mark > 0) {
-            // FIXME: The creation of this temporary string is unfortunate.
-            CFStringRef substring = CFStringCreateWithSubstring(alloc, originalString, CFRangeMake(mark, percentRange.location - mark));
-            CFStringAppend(newStr, substring);
-            CFRelease(substring);
+            CFRange charRange = CFRangeMake(mark, percentRange.location - mark);
+            UniChar charBuffer[charRange.length];
+            CFStringGetCharacters(originalString, charRange, charBuffer);
+            CFStringAppendCharacters(newStr, charBuffer, charRange.length);
         }
         CFStringAppend(newStr, escapedStr);
         if (escapedStr) {

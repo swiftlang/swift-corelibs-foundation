@@ -175,8 +175,9 @@ def main():
     config.write(config.config_path.absolute())
     Configuration.current = config
 
-    execfile(config.script_path.absolute())
+    exec(compile(open(config.script_path.absolute()).read(), config.script_path.absolute(), 'exec'))
 
 
 if __name__ == "__main__":
     main()
+
