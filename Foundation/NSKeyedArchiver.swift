@@ -655,7 +655,7 @@ public class NSKeyedArchiver : NSCoder {
         _encodePropertyList(objv, forKey: key)
     }
 
-    private func _encodeValueOfObjCType(type: NSObjCType, at addr: UnsafePointer<Void>) {
+    private func _encodeValueOfObjCType(type: _NSSimpleObjCType, at addr: UnsafePointer<Void>) {
         switch type {
         case .ID:
             let objectp = unsafeBitCast(addr, UnsafePointer<AnyObject>.self)
@@ -712,7 +712,7 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     public override func encodeValueOfObjCType(typep: UnsafePointer<Int8>, at addr: UnsafePointer<Void>) {
-        guard let type = NSObjCType(UInt8(typep.memory)) else {
+        guard let type = _NSSimpleObjCType(UInt8(typep.memory)) else {
             let spec = String(typep.memory)
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unsupported type encoding spec '\(spec)'")
         }
@@ -729,7 +729,7 @@ public class NSKeyedArchiver : NSCoder {
                 fatalError("NSKeyedArchiver.encodeValueOfObjCType: array count is missing or zero")
             }
             
-            guard let elementType = NSObjCType(scanner.scanUpToString(String(NSObjCType.ArrayEnd))) else {
+            guard let elementType = _NSSimpleObjCType(scanner.scanUpToString(String(_NSSimpleObjCType.ArrayEnd))) else {
                 fatalError("NSKeyedArchiver.encodeValueOfObjCType: array type is missing")
             }
             

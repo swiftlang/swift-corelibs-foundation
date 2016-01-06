@@ -97,12 +97,6 @@ public class NSKeyedUnarchiver : NSCoder {
         }
     }
   
-    private func _logError(error: NSError, function: String = __FUNCTION__) {
-        if let debugDescription = error.userInfo["NSDebugDescription"] {
-            NSLog("*** \(function): \(debugDescription)")
-        }
-    }
- 
     private func _readPropertyList() throws {
         var plist : Any? = nil
         var format = NSPropertyListFormat.BinaryFormat_v1_0
@@ -561,7 +555,7 @@ public class NSKeyedUnarchiver : NSCoder {
                 }
             }
         } catch let error as NSError {
-            _logError(error)
+            failWithError(error)
             self._error = error
         } catch {
         }
@@ -626,7 +620,7 @@ public class NSKeyedUnarchiver : NSCoder {
         do {
             return try _decodeObject(forKey: key)
         } catch let error as NSError {
-            _logError(error)
+            failWithError(error)
             self._error = error
         } catch {
         }
@@ -641,7 +635,7 @@ public class NSKeyedUnarchiver : NSCoder {
             
             return try _decodeObject(forKey: key)
         } catch let error as NSError {
-            _logError(error)
+            failWithError(error)
             self._error = error
         } catch {
         }
@@ -683,7 +677,7 @@ public class NSKeyedUnarchiver : NSCoder {
         do {
             return try _decodeObject(forKey: nil)
         } catch let error as NSError {
-            _logError(error)
+            failWithError(error)
             self._error = error
         } catch {
         }
@@ -773,7 +767,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return decodeObject() as? NSData
     }
     
-    private func _decodeValueOfObjCType(type: NSObjCType, at addr: UnsafeMutablePointer<Void>) {
+    private func _decodeValueOfObjCType(type: _NSSimpleObjCType, at addr: UnsafeMutablePointer<Void>) {
         switch type {
         case .ID:
             if let ns = decodeObject() {
@@ -845,7 +839,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     public override func decodeValueOfObjCType(typep: UnsafePointer<Int8>, at addr: UnsafeMutablePointer<Void>) {
-        guard let type = NSObjCType(UInt8(typep.memory)) else {
+        guard let type = _NSSimpleObjCType(UInt8(typep.memory)) else {
             let spec = String(typep.memory)
             fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: unsupported type encoding spec '\(spec)'")
         }
@@ -862,7 +856,7 @@ public class NSKeyedUnarchiver : NSCoder {
                 fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: array count is missing or zero")
             }
             
-            guard let elementType = NSObjCType(scanner.scanUpToString(String(NSObjCType.ArrayEnd))) else {
+            guard let elementType = _NSSimpleObjCType(scanner.scanUpToString(String(_NSSimpleObjCType.ArrayEnd))) else {
                 fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: array type is missing")
             }
             

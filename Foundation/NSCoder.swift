@@ -291,7 +291,9 @@ public class NSCoder : NSObject {
     
     public func failWithError(error: NSError) {
         if let debugDescription = error.userInfo["NSDebugDescription"] {
-            fatalError("*** NSKeyedUnarchiver.init: \(debugDescription)")
+            NSLog("*** NSKeyedUnarchiver.init: \(debugDescription)")
+        } else {
+            NSLog("*** NSKeyedUnarchiver.init: decoding error")
         }
     }
     
@@ -301,16 +303,5 @@ public class NSCoder : NSObject {
     
     internal func _decodePropertyListForKey(key: String) -> Any {
         NSRequiresConcreteImplementation()
-    }
-}
-
-// TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
-extension NSObject {
-    public var classForCoder: AnyClass {
-        return self.dynamicType
-    }
- 
-    public func replacementObjectForCoder(aCoder: NSCoder) -> AnyObject? {
-        return self
     }
 }

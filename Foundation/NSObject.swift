@@ -120,7 +120,14 @@ public class NSObject : NSObjectProtocol {
     }
     
     // TODO move these back into extensions once extension methods can be overriden
-    
+    public var classForCoder: AnyClass {
+        return self.dynamicType
+    }
+ 
+    public func replacementObjectForCoder(aCoder: NSCoder) -> AnyObject? {
+        return self
+    }
+
     // TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
     public var classForKeyedArchiver: AnyClass? {
         return self.classForCoder

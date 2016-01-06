@@ -117,11 +117,38 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        if !aDecoder.allowsKeyedCoding {
+            var cnt: UInt32 = 0
+            // We're stuck with (int) here (rather than unsigned int)
+            // because that's the way the code was originally written, unless
+            // we go to a new version of the class, which has its own problems.
+            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+                aDecoder.decodeValueOfObjCType("i", at: UnsafeMutablePointer<Void>(ptr))
+            }
+            let objects = UnsafeMutablePointer<AnyObject?>.alloc(Int(cnt))
+            for idx in 0..<cnt {
+                objects.advancedBy(Int(idx)).initialize(aDecoder.decodeObject())
+            }
+            self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
+            objects.destroy(Int(cnt))
+            objects.dealloc(Int(cnt))
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.objects") {
+            let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
+            self.init(array: objects)
+        } else {
+            var objects = [AnyObject]()
+            var count = 0
+            while let object = aDecoder.decodeObjectForKey("NS.object.\(count)") {
+                objects.append(object)
+                count += 1
+            }
+            self.init(array: objects)
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        // The encoding of a NSSet is identical to the encoding of an NSArray of its contents
+        self.allObjects._nsObject.encodeWithCoder(aCoder)
     }
     
     public override func copy() -> AnyObject {

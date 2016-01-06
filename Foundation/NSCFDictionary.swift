@@ -87,6 +87,10 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     override func setObject(anObject: AnyObject, forKey aKey: NSObject) {
         CFDictionarySetValue(_cfMutableObject, unsafeBitCast(aKey, UnsafePointer<Void>.self), unsafeBitCast(anObject, UnsafePointer<Void>.self))
     }
+    
+    override var classForCoder: AnyClass {
+        return NSMutableDictionary.self
+    }
 }
 
 internal func _CFSwiftDictionaryGetCount(dictionary: AnyObject) -> CFIndex {
