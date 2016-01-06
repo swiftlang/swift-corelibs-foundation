@@ -422,7 +422,7 @@ class TestNSString : XCTestCase {
             var outName: NSString?
             var matches: [NSString] = []
             let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(outName == path, "If NSString is valid path to directory then outName is string itself.")
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, path), "If NSString is valid path to directory then outName is string itself.")
             XCTAssert(matches.count == count && count == fileNames2.count, "")
         }
         
@@ -431,7 +431,7 @@ class TestNSString : XCTestCase {
             var outName: NSString?
             var matches: [NSString] = []
             let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, path), "If NSString is valid path to file and search is case sensitive then outName is string itself.")
+            XCTAssert(outName == path, "If NSString is valid path to file and search is case sensitive then outName is string itself.")
             XCTAssert(matches.count == 1 && count == 1 && stringsAreCaseInsensitivelyEqual(matches[0], path), "If NSString is valid path to file and search is case sensitive then matches contain that file path only")
         }
         
