@@ -129,24 +129,38 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        if self.dynamicType === NSSet.self {
+            // return self for immutable type
+            return self
+        } else if self.dynamicType === NSMutableSet.self {
+            let set = NSSet()
+            set._storage = self._storage
+            return set
+        }
+        return NSSet(array: self.allObjects)
     }
     
     public override func mutableCopy() -> AnyObject {
         return mutableCopyWithZone(nil)
     }
-    
+
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
+            // always create and return an NSMutableSet
+            let mutableSet = NSMutableSet()
+            mutableSet._storage = self._storage
+            return mutableSet
+        }
+        return NSMutableSet(array: self.allObjects)
     }
-    
+
     public static func supportsSecureCoding() -> Bool {
         return true
     }
     
     public func descriptionWithLocale(locale: AnyObject?) -> String { NSUnimplemented() }
     
-    override internal var _cfTypeID: CFTypeID {
+    override public var _cfTypeID: CFTypeID {
         return CFSetGetTypeID()
     }
 

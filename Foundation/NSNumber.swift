@@ -400,7 +400,7 @@ public class NSNumber : NSValue {
         return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
     }
     
-    override internal var _cfTypeID: CFTypeID {
+    override public var _cfTypeID: CFTypeID {
         return CFNumberGetTypeID()
     }
     

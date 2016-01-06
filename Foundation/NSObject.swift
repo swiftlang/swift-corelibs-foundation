@@ -115,7 +115,7 @@ public class NSObject : NSObjectProtocol {
         }
     }
     
-    internal var _cfTypeID: CFTypeID {
+    public var _cfTypeID: CFTypeID {
         return 0
     }
 }

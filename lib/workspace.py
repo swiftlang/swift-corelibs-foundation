@@ -8,8 +8,8 @@
 #
 
 from subprocess import call
-from config import Configuration
-from path import Path
+from .config import Configuration
+from .path import Path
 import os
 
 class Workspace:
@@ -36,8 +36,8 @@ class Workspace:
 
             if Configuration.current.verbose:
                 cmd.append("--verbose")
-                print "cd " + working_dir
-                print "    " + " ".join(cmd)
+                print("cd " + working_dir)
+                print("    " + " ".join(cmd))
             status = call(cmd, cwd=working_dir)
             if status != 0:
                 exit(status) # pass the exit value along if one of the sub-configurations fails

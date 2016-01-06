@@ -28,6 +28,8 @@ class TestNSDictionary : XCTestCase {
             ("test_description", test_description),
             ("test_enumeration", test_enumeration),
             ("test_equality", test_equality),
+            ("test_copying", test_copying),
+            ("test_mutableCopying", test_mutableCopying),
         ]
     }
         
@@ -123,6 +125,33 @@ class TestNSDictionary : XCTestCase {
 
         XCTAssertFalse(dict1.isEqual(nil))
         XCTAssertFalse(dict1.isEqual(NSObject()))
+    }
+
+    func test_copying() {
+        let inputDictionary : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"].bridge()
+
+        let copy: NSDictionary = inputDictionary.copy() as! NSDictionary
+        XCTAssertTrue(inputDictionary === copy)
+
+        let dictMutableCopy = inputDictionary.mutableCopy() as! NSMutableDictionary
+        let dictCopy2 = dictMutableCopy.copy() as! NSDictionary
+        XCTAssertTrue(dictCopy2.dynamicType === NSDictionary.self)
+        XCTAssertFalse(dictMutableCopy === dictCopy2)
+        XCTAssertTrue(dictMutableCopy == dictCopy2)
+    }
+
+    func test_mutableCopying() {
+        let inputDictionary : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"].bridge()
+
+        let dictMutableCopy1 = inputDictionary.mutableCopy() as! NSMutableDictionary
+        XCTAssertTrue(dictMutableCopy1.dynamicType === NSMutableDictionary.self)
+        XCTAssertFalse(inputDictionary === dictMutableCopy1)
+        XCTAssertTrue(inputDictionary == dictMutableCopy1)
+
+        let dictMutableCopy2 = dictMutableCopy1.mutableCopy() as! NSMutableDictionary
+        XCTAssertTrue(dictMutableCopy2.dynamicType === NSMutableDictionary.self)
+        XCTAssertFalse(dictMutableCopy2 === dictMutableCopy1)
+        XCTAssertTrue(dictMutableCopy2 == dictMutableCopy1)
     }
 
 }

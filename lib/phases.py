@@ -7,9 +7,9 @@
 # See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 #
 
-from config import Configuration
-from target import TargetConditional
-from path import Path
+from .config import Configuration
+from .target import TargetConditional
+from .path import Path
 import os
 
 class BuildAction:

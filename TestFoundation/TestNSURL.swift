@@ -238,9 +238,9 @@ class TestNSURL : XCTestCase {
         }
     }
     static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
-    static let gFileExistsName = "TestCFURL_file_exists"
+    static let gFileExistsName = "TestCFURL_file_exists\(NSProcessInfo.processInfo().globallyUniqueString)"
     static let gFileDoesNotExistName = "TestCFURL_file_does_not_exist"
-    static let gDirectoryExistsName = "TestCFURL_directory_exists"
+    static let gDirectoryExistsName = "TestCFURL_directory_exists\(NSProcessInfo.processInfo().globallyUniqueString)"
     static let gDirectoryDoesNotExistName = "TestCFURL_directory_does_not_exist"
     static let gFileExistsPath = gBaseTemporaryDirectoryPath + gFileExistsName
     static let gFileDoesNotExistPath = gBaseTemporaryDirectoryPath + gFileDoesNotExistName
@@ -270,8 +270,10 @@ class TestNSURL : XCTestCase {
     }
         
     func test_fileURLWithPath() {
-                
-        XCTAssertTrue(TestNSURL.setup_test_paths(), "Failed to set up test paths")
+        if !TestNSURL.setup_test_paths() {
+            let error = strerror(errno)
+            XCTFail("Failed to set up test paths: \(NSString(bytes: error, length: Int(strlen(error)), encoding: NSASCIIStringEncoding)!.bridge())")
+        }
         
         // test with file that exists
         var path = TestNSURL.gFileExistsPath
@@ -313,7 +315,10 @@ class TestNSURL : XCTestCase {
     }
         
     func test_fileURLWithPath_isDirectory() {
-        XCTAssertTrue(TestNSURL.setup_test_paths(), "Failed to set up test paths")
+        if !TestNSURL.setup_test_paths() {
+            let error = strerror(errno)
+            XCTFail("Failed to set up test paths: \(NSString(bytes: error, length: Int(strlen(error)), encoding: NSASCIIStringEncoding)!.bridge())")
+        }
             
         // test with file that exists
         var path = TestNSURL.gFileExistsPath

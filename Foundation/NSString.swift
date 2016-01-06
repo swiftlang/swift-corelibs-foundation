@@ -317,7 +317,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         return false
     }
     
-    override internal var _cfTypeID: CFTypeID {
+    override public var _cfTypeID: CFTypeID {
         return CFStringGetTypeID()
     }
   
@@ -1230,6 +1230,13 @@ extension NSString {
     
     public convenience init(format: String, locale: AnyObject?, arguments argList: CVaListPointer) {
         NSUnimplemented()    
+    }
+    
+    public convenience init(format: NSString, _ args: CVarArgType...) {
+        let str = withVaList(args) { (vaPtr) -> CFString! in
+            CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, vaPtr)
+        }
+        self.init(str._swiftObject)
     }
     
     public convenience init?(data: NSData, encoding: UInt) {
