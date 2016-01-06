@@ -233,6 +233,9 @@ extern uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
 extern CFIndex __CFBinaryPlistWriteToStream(CFPropertyListRef plist, CFTypeRef stream);
 extern CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
 
+extern _Nullable CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
+extern void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date);
+
 _CF_EXPORT_SCOPE_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */
