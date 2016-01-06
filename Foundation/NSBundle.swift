@@ -290,7 +290,7 @@ public class NSBundle : NSObject {
 	
 	public var executableArchitectures: [NSNumber]? {
         let architectures = CFBundleCopyExecutableArchitectures(_bundle)
-        return architectures._swiftObject as? [NSNumber]
+        return architectures._swiftObject.map() { $0 as! NSNumber }
     }
 }
 
