@@ -388,8 +388,8 @@ class TestNSString : XCTestCase {
             let path: NSString = tmpPath("")
             var outName: NSString?
             var matches: [NSString] = []
-            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            let content = try NSFileManager.defaultManager().contentsOfDirectoryAtURL(NSURL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
+            _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            _ = try NSFileManager.defaultManager().contentsOfDirectoryAtURL(NSURL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
             XCTAssert(outName == path, "If NSString is valid path to directory then outName is string itself.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389
 //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")

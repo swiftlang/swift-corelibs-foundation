@@ -583,7 +583,7 @@ CFRunLoopSourceRef CFMachPortCreateRunLoopSource(CFAllocatorRef allocator, CFMac
             context.retain = (const void *(*)(const void *))CFRetain;
             context.release = (void (*)(const void *))CFRelease;
             context.copyDescription = (CFStringRef (*)(const void *))__CFMachPortCopyDescription;
-            context.equal = (Boolean (*)(const void *, const void *))__CFMachPortEqual;
+            context.equal = __CFMachPortEqual;
             context.hash = (CFHashCode (*)(const void *))__CFMachPortHash;
             context.getPort = __CFMachPortGetPort;
             context.perform = __CFMachPortPerform;
