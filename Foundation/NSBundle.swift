@@ -253,7 +253,7 @@ public class NSBundle : NSObject {
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    public func objectForInfoDictionaryKey(key: String) -> AnyObject? {
+    public func objectForInfoDictionaryKey(key: String) -> Any? {
         if let localizedInfoDictionary = localizedInfoDictionary {
             return localizedInfoDictionary[key]
         } else {
@@ -285,7 +285,7 @@ public class NSBundle : NSObject {
     
 	public class func preferredLocalizationsFromArray(localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] {
         let localizations = CFBundleCopyLocalizationsForPreferences(localizationsArray._cfObject, preferencesArray?._cfObject)
-        return localizations._swiftObject as! [String]
+        return localizations._swiftObject.map { return ($0 as! NSString)._swiftObject }
     }
 	
 	public var executableArchitectures: [NSNumber]? {
