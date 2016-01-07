@@ -82,7 +82,7 @@
 
   #if ((TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) && !DEPLOYMENT_RUNTIME_SWIFT
     #include <libkern/OSTypes.h>
-  #else
+  #elif TARGET_OS_MAC
     #include <pthread.h>
   #endif
 
