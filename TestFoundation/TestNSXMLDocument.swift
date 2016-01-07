@@ -158,7 +158,6 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(element.XMLString, "<root>Hello!&lt;evil/&gt;</root>")
         XCTAssertEqual(element.stringValue, "Hello!<evil/>", element.stringValue ?? "stringValue unexpectedly nil")
 
-	/*
         element.stringValue = nil
 
         let doc = NSXMLDocument(rootElement: element)
@@ -166,9 +165,8 @@ class TestNSXMLDocument : XCTestCase {
         xmlAddDocEntity(xmlDocPtr(doc._xmlNode), "author", Int32(XML_INTERNAL_GENERAL_ENTITY.rawValue), nil, nil, "Robert Thompson")
         let author = NSXMLElement(name: "author")
         doc.rootElement()?.addChild(author)
-        author.setStringValue("&author;&03A3;", resolvingEntities: true)
-        print(doc)
-	*/
+        author.setStringValue("&author;", resolvingEntities: true)
+        XCTAssertEqual(author.stringValue, "Robert Thompson", author.stringValue ?? "")
     }
 
 

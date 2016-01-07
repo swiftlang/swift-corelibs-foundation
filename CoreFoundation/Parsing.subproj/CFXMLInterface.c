@@ -18,6 +18,8 @@
 #include <libxml/parserInternals.h>
 #include <libxml/tree.h>
 #include <libxml/xmlmemory.h>
+#include <libxml/xmlsave.h>
+#include <libxml/xpath.h>
 #include "CFInternal.h"
 
 /*
@@ -47,6 +49,17 @@ CFIndex _kCFXMLInterfaceHuge = XML_PARSE_HUGE;
 CFIndex _kCFXMLInterfaceOldsax = XML_PARSE_OLDSAX;
 CFIndex _kCFXMLInterfaceIgnoreEnc = XML_PARSE_IGNORE_ENC;
 CFIndex _kCFXMLInterfaceBigLines = XML_PARSE_BIG_LINES;
+CFIndex _kCFXMLTypeDocument = XML_DOCUMENT_NODE;
+CFIndex _kCFXMLTypeElement = XML_ELEMENT_NODE;
+CFIndex _kCFXMLTypeAttribute = XML_ATTRIBUTE_NODE;
+CFIndex _kCFXMLTypeDTD = XML_DTD_NODE;
+CFIndex _kCFXMLDocTypeHTML = XML_DOC_HTML;
+
+CFIndex _kCFXMLNodePreserveWhitespace = 1 << 25;
+CFIndex _kCFXMLNodeCompactEmptyElement = 1 << 2;
+CFIndex _kCFXMLNodePrettyPrint = 1 << 17;
+CFIndex _kCFXMLNodeLoadExternalEntitiesNever = 1 << 19;
+CFIndex _kCFXMLNodeLoadExternalEntitiesAlways = 1 << 14;
 
 static xmlExternalEntityLoader __originalLoader = NULL;
 
@@ -216,4 +229,369 @@ void _CFXMLInterfaceSAX2UnparsedEntityDecl(_CFXMLInterfaceParserContext ctx, con
 
 CFErrorRef _CFErrorCreateFromXMLInterface(_CFXMLInterfaceError err) {
     return CFErrorCreate(kCFAllocatorSystemDefault, CFSTR("NSXMLParserErrorDomain"), err->code, nil);
+}
+
+_CFXMLNodePtr _CFXMLNewNode(_CFXMLNamespacePtr namespace, const char* name) {
+    return xmlNewNode(namespace, (const xmlChar*)name);
+}
+
+_CFXMLNodePtr _CFXMLCopyNode(_CFXMLNodePtr node, bool recursive) {
+    return xmlCopyNode(node, recursive ? 1 : 0);
+}
+
+_CFXMLDocPtr _CFXMLNewDoc(const unsigned char* version) {
+    return xmlNewDoc(version);
+}
+
+_CFXMLNodePtr _CFXMLNewProcessingInstruction(const unsigned char* name, const unsigned char* value) {
+    return xmlNewPI(name, value);
+}
+
+_CFXMLNodePtr _CFXMLNewTextNode(const unsigned char* value) {
+    return xmlNewText(value);
+}
+
+_CFXMLNodePtr _CFXMLNewComment(const unsigned char* value) {
+    return xmlNewComment(value);
+}
+
+_CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr __nullable node, const unsigned char* name, const unsigned char* value) {
+    return xmlNewProp(node, name, value);
+}
+
+_CFXMLNamespacePtr _CFXMLNewNamespace(_CFXMLNodePtr __nullable node, const unsigned char* uri, const unsigned char* prefix) {
+    return xmlNewNs(node, uri, prefix);
+}
+
+CF_RETURNS_RETAINED CFStringRef _CFXMLNodeURI(_CFXMLNodePtr node) {
+    xmlNodePtr nodePtr = (xmlNodePtr)node;
+    switch (nodePtr->type) {
+        case XML_ATTRIBUTE_NODE:
+        case XML_ELEMENT_NODE:
+            return CFStringCreateWithCString(NULL, (const char*)nodePtr->ns->href, kCFStringEncodingUTF8);
+
+        case XML_DOCUMENT_NODE:
+        {
+            xmlDocPtr doc = (xmlDocPtr)node;
+            return CFStringCreateWithCString(NULL, (const char*)doc->URL, kCFStringEncodingUTF8);
+        }
+
+        default:
+            return NULL;
+    }
+}
+
+void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
+    xmlNodePtr nodePtr = (xmlNodePtr)node;
+    switch (nodePtr->type) {
+        case XML_ATTRIBUTE_NODE:
+        case XML_ELEMENT_NODE:
+
+            if (!URI) {
+                if (nodePtr->ns) {
+                    xmlFree(nodePtr->ns);
+                }
+                nodePtr->ns = NULL;
+                return;
+            }
+
+            xmlNsPtr ns = xmlSearchNsByHref(nodePtr->doc, nodePtr, URI);
+            if (!ns) {
+                if (nodePtr->ns && (nodePtr->ns->href == NULL)) {
+                    nodePtr->ns->href = xmlStrdup(URI);
+                    return;
+                }
+
+                ns = xmlNewNs(nodePtr, URI, NULL);
+            }
+
+            xmlSetNs(nodePtr, ns);
+            break;
+
+        case XML_DOCUMENT_NODE:
+        {
+            xmlDocPtr doc = (xmlDocPtr)node;
+            if (doc->URL) {
+                xmlFree((xmlChar*)doc->URL);
+            }
+            doc->URL = URI;
+        }
+            break;
+
+        default:
+            return;
+    }
+}
+
+void _CFXMLNodeSetPrivateData(_CFXMLNodePtr node, void* data) {
+    ((xmlNodePtr)node)->_private = data;
+}
+
+void* _Nullable  _CFXMLNodeGetPrivateData(_CFXMLNodePtr node) {
+    return ((xmlNodePtr)node)->_private;
+}
+
+__nullable _CFXMLNodePtr _CFXMLNodeProperties(_CFXMLNodePtr node) {
+    return ((xmlNodePtr)node)->properties;
+}
+
+CFIndex _CFXMLNodeGetType(_CFXMLNodePtr node) {
+    return ((xmlNodePtr)node)->type;
+}
+
+const char* _CFXMLNodeGetName(_CFXMLNodePtr node) {
+    return (const char*)(((xmlNodePtr)node)->name);
+}
+
+void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name) {
+    xmlNodeSetName(node, (const xmlChar*)name);
+}
+
+CFStringRef _CFXMLNodeGetContent(_CFXMLNodePtr node) {
+    xmlChar* content = xmlNodeGetContent(node);
+    if (content == NULL) {
+        return NULL;
+    }
+    CFStringRef result = CFStringCreateWithCString(NULL, (const char*)content, kCFStringEncodingUTF8);
+    xmlFree(content);
+
+    return result;
+}
+
+const char* _getCStringFromCFString(CFStringRef string);
+
+void _CFXMLNodeSetContent(_CFXMLNodePtr node, const unsigned char* _Nullable  content) {
+    if (content == NULL) {
+        xmlNodeSetContent(node, nil);
+        return;
+    }
+
+    xmlNodeSetContent(node, content);
+}
+
+__nullable _CFXMLDocPtr _CFXMLNodeGetDocument(_CFXMLNodePtr node) {
+    return ((xmlNodePtr)node)->doc;
+}
+
+__nullable CFStringRef _CFXMLEncodeEntities(_CFXMLDocPtr doc, const unsigned char* string) {
+    if (!string) {
+        return NULL;
+    }
+    
+    const xmlChar* stringResult = xmlEncodeEntitiesReentrant(doc, string);
+    
+    CFStringRef result = CFStringCreateWithCString(NULL, (const char*)stringResult, kCFStringEncodingUTF8);
+
+    xmlFree((xmlChar*)stringResult);
+
+    return result;
+}
+
+void _CFXMLUnlinkNode(_CFXMLNodePtr node) {
+    xmlUnlinkNode(node);
+}
+
+__nullable _CFXMLNodePtr _CFXMLNodeGetFirstChild(_CFXMLNodePtr node) {
+    return ((xmlNodePtr)node)->children;
+}
+
+__nullable _CFXMLNodePtr _CFXMLNodeGetLastChild(_CFXMLNodePtr node) {
+    return ((xmlNodePtr)node)->last;
+}
+
+__nullable _CFXMLNodePtr _CFXMLNodeGetNextSibling(_CFXMLNodePtr node) {
+    return ((xmlNodePtr)node)->next;
+}
+
+__nullable _CFXMLNodePtr _CFXMLNodeGetPrevSibling(_CFXMLNodePtr node) {
+    return ((xmlNodePtr)node)->prev;
+}
+
+__nullable _CFXMLNodePtr _CFXMLNodeGetParent(_CFXMLNodePtr node) {
+    return ((xmlNodePtr)node)->parent;
+}
+
+bool _CFXMLDocStandalone(_CFXMLDocPtr doc) {
+    return ((xmlDocPtr)doc)->standalone == 1;
+}
+void _CFXMLDocSetStandalone(_CFXMLDocPtr doc, bool standalone) {
+    ((xmlDocPtr)doc)->standalone = standalone ? 1 : 0;
+}
+
+__nullable _CFXMLNodePtr _CFXMLDocRootElement(_CFXMLDocPtr doc) {
+    return xmlDocGetRootElement(doc);
+}
+
+void _CFXMLDocSetRootElement(_CFXMLDocPtr doc, _CFXMLNodePtr node) {
+    xmlDocSetRootElement(doc, node);
+}
+
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLDocCharacterEncoding(_CFXMLDocPtr doc) {
+    return CFStringCreateWithCString(NULL, (const char*)((xmlDocPtr)doc)->encoding, kCFStringEncodingUTF8);
+}
+
+void _CFXMLDocSetCharacterEncoding(_CFXMLDocPtr doc,  const unsigned char* _Nullable  encoding) {
+    xmlDocPtr docPtr = (xmlDocPtr)doc;
+
+    if (docPtr->encoding) {
+        xmlFree((xmlChar*)docPtr->encoding);
+    }
+
+    docPtr->encoding = encoding;
+}
+
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLDocVersion(_CFXMLDocPtr doc) {
+    return CFStringCreateWithCString(NULL, (const char*)((xmlDocPtr)doc)->version, kCFStringEncodingUTF8);
+}
+
+void _CFXMLDocSetVersion(_CFXMLDocPtr doc, const unsigned char* version) {
+    xmlDocPtr docPtr = (xmlDocPtr)doc;
+
+    if (docPtr->version) {
+        xmlFree((xmlChar*)docPtr->version);
+    }
+
+    docPtr->version = xmlStrdup(version);
+}
+
+int _CFXMLDocProperties(_CFXMLDocPtr doc) {
+    return ((xmlDocPtr)doc)->properties;
+}
+
+void _CFXMLDocSetProperties(_CFXMLDocPtr doc, int newProperties) {
+    ((xmlDocPtr)doc)->properties = newProperties;
+}
+
+CFIndex _CFXMLNodeGetElementChildCount(_CFXMLNodePtr node) {
+    return xmlChildElementCount(node);
+}
+
+void _CFXMLNodeAddChild(_CFXMLNodePtr node, _CFXMLNodePtr child) {
+    xmlAddChild(node, child);
+}
+
+void _CFXMLNodeAddPrevSibling(_CFXMLNodePtr node, _CFXMLNodePtr prevSibling) {
+    xmlAddPrevSibling(node, prevSibling);
+}
+
+void _CFXMLNodeAddNextSibling(_CFXMLNodePtr node, _CFXMLNodePtr nextSibling) {
+    xmlAddNextSibling(node, nextSibling);
+}
+
+void _CFXMLNodeReplaceNode(_CFXMLNodePtr node, _CFXMLNodePtr replacement) {
+    xmlReplaceNode(node, replacement);
+}
+
+__nullable _CFXMLEntityPtr _CFXMLGetDocEntity(_CFXMLDocPtr doc, const char* entity) {
+    return xmlGetDocEntity(doc, (const xmlChar*)entity);
+}
+
+__nullable _CFXMLEntityPtr _CFXMLGetDTDEntity(_CFXMLDocPtr doc, const char* entity) {
+    return xmlGetDtdEntity(doc, (const xmlChar*)entity);
+}
+
+__nullable _CFXMLEntityPtr _CFXMLGetParameterEntity(_CFXMLDocPtr doc, const char* entity) {
+    return xmlGetParameterEntity(doc, (const xmlChar*)entity);
+}
+
+__nullable CFStringRef _CFXMLGetEntityContent(_CFXMLEntityPtr entity) {
+    const xmlChar* content = ((xmlEntityPtr)entity)->content;
+    if (!content) {
+        return NULL;
+    }
+
+    CFIndex length = ((xmlEntityPtr)entity)->length;
+    CFStringRef result = CFStringCreateWithBytes(NULL, content, length, kCFStringEncodingUTF8, false);
+
+    return result;
+}
+
+CFStringRef _CFXMLStringWithOptions(_CFXMLNodePtr node, uint32_t options) {
+    xmlBufferPtr buffer = xmlBufferCreate();
+
+    uint32_t xmlOptions = XML_SAVE_AS_XML;
+
+    if (options & _kCFXMLNodePreserveWhitespace) {
+        xmlOptions |= XML_SAVE_WSNONSIG;
+    }
+
+    if (!(options & _kCFXMLNodeCompactEmptyElement)) {
+        xmlOptions |= XML_SAVE_NO_EMPTY;
+    }
+
+    if (options & _kCFXMLNodePrettyPrint) {
+        xmlOptions |= XML_SAVE_FORMAT;
+    }
+
+    xmlSaveCtxtPtr ctx = xmlSaveToBuffer(buffer, "utf-8", xmlOptions);
+    xmlSaveTree(ctx, node);
+    int error = xmlSaveClose(ctx);
+
+    if (error == -1) {
+        return CFSTR("");
+    }
+
+    const xmlChar* bufferContents = xmlBufferContent(buffer);
+
+    CFStringRef result = CFStringCreateWithCString(NULL, (const char*)bufferContents, kCFStringEncodingUTF8);
+
+    xmlBufferFree(buffer);
+
+    return result;
+}
+
+CF_RETURNS_RETAINED CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const unsigned char* xpath) {
+
+    if (((xmlNodePtr)node)->doc == NULL) {
+        return NULL;
+    }
+
+    xmlXPathContextPtr context = xmlXPathNewContext(((xmlNodePtr)node)->doc);
+    xmlXPathObjectPtr evalResult = xmlXPathNodeEval(node, xpath, context);
+
+    xmlNodeSetPtr nodes = evalResult->nodesetval;
+
+    int count = nodes->nodeNr;
+
+    CFMutableArrayRef results = CFArrayCreateMutable(NULL, count, NULL);
+    for (int i = 0; i < count; i++) {
+        CFArrayAppendValue(results, nodes->nodeTab[i]);
+    }
+
+    xmlFree(context);
+    xmlFree(evalResult);
+
+    return results;
+}
+
+_CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const unsigned char* propertyName) {
+    return xmlHasProp(node, propertyName);
+}
+
+_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options) {
+    uint32_t xmlOptions = 0;
+
+    if ((options & _kCFXMLNodePreserveWhitespace) == 0) {
+        xmlOptions |= XML_PARSE_NOBLANKS;
+    }
+
+    if (options & _kCFXMLNodeLoadExternalEntitiesNever) {
+        xmlOptions &= ~(XML_PARSE_NOENT);
+    } else {
+        xmlOptions |= XML_PARSE_NOENT;
+    }
+
+    if (options & _kCFXMLNodeLoadExternalEntitiesAlways) {
+        xmlOptions |= XML_PARSE_DTDLOAD;
+    }
+
+    return xmlReadMemory((const char*)CFDataGetBytePtr(data), CFDataGetLength(data), NULL, NULL, xmlOptions);
+}
+
+void _CFXMLFreeNode(_CFXMLNodePtr node) {
+    xmlFreeNode(node);
+}
+
+void _CFXMLFreeDocument(_CFXMLDocPtr doc) {
+    xmlFreeDoc(doc);
 }

@@ -231,7 +231,6 @@
 		CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */; };
 		D834F9941C31C4060023812A /* TestNSOrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D834F9931C31C4060023812A /* TestNSOrderedSet.swift */; };
 		DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
-		E19E17D81C221FFB0023AF4D /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = E19E17CE1C221FB80023AF4D /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
 		E19E17DC1C2225930023AF4D /* TestNSXMLDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */; };
 		E1A3726F1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */; };
 		E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
@@ -312,13 +311,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		E19E17D91C2220220023AF4D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = E19E17D31C221FDE0023AF4D;
-			remoteInfo = libxml2;
-		};
 		EA993CE21BEACD8E000969A2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
@@ -590,8 +582,6 @@
 		CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NSStringTestData.txt; sourceTree = "<group>"; };
 		D834F9931C31C4060023812A /* TestNSOrderedSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOrderedSet.swift; sourceTree = "<group>"; };
 		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
-		E19E17CE1C221FB80023AF4D /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = libxml2/module.modulemap; sourceTree = "<group>"; };
-		E19E17D41C221FDE0023AF4D /* liblibxml2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liblibxml2.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLDocument.swift; sourceTree = "<group>"; };
 		E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = NSXMLDocumentTestData.xml; sourceTree = "<group>"; };
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
@@ -710,13 +700,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E19E17D11C221FDE0023AF4D /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		EA66F66C1BF56CCB00136161 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -751,7 +734,6 @@
 				5BDC405C1BD6D83B00ED97BB /* TestFoundation.app */,
 				5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */,
 				EA66F66F1BF56CCB00136161 /* plutil */,
-				E19E17D41C221FDE0023AF4D /* liblibxml2.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1060,14 +1042,6 @@
 			path = Foundation;
 			sourceTree = "<group>";
 		};
-		E19E17CF1C221FBC0023AF4D /* libxml2 */ = {
-			isa = PBXGroup;
-			children = (
-				E19E17CE1C221FB80023AF4D /* module.modulemap */,
-			);
-			name = libxml2;
-			sourceTree = "<group>";
-		};
 		EA66F6321BEECC7400136161 /* SwiftRuntime */ = {
 			isa = PBXGroup;
 			children = (
@@ -1284,7 +1258,6 @@
 				EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */,
 				EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */,
 				EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */,
-				E19E17CF1C221FBC0023AF4D /* libxml2 */,
 			);
 			name = XML;
 			sourceTree = "<group>";
@@ -1515,14 +1488,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E19E17D21C221FDE0023AF4D /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				E19E17D81C221FFB0023AF4D /* module.modulemap in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -1540,7 +1505,6 @@
 			);
 			dependencies = (
 				EA993CE31BEACD8E000969A2 /* PBXTargetDependency */,
-				E19E17DA1C2220220023AF4D /* PBXTargetDependency */,
 			);
 			name = SwiftFoundation;
 			productName = CoreFoundation;
@@ -1582,23 +1546,6 @@
 			productReference = 5BDC405C1BD6D83B00ED97BB /* TestFoundation.app */;
 			productType = "com.apple.product-type.bundle";
 		};
-		E19E17D31C221FDE0023AF4D /* libxml2 */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = E19E17D51C221FDE0023AF4D /* Build configuration list for PBXNativeTarget "libxml2" */;
-			buildPhases = (
-				E19E17D01C221FDE0023AF4D /* Sources */,
-				E19E17D11C221FDE0023AF4D /* Frameworks */,
-				E19E17D21C221FDE0023AF4D /* Headers */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = libxml2;
-			productName = libxml2;
-			productReference = E19E17D41C221FDE0023AF4D /* liblibxml2.a */;
-			productType = "com.apple.product-type.library.static";
-		};
 		EA66F66E1BF56CCB00136161 /* plutil */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = EA66F6751BF56CCB00136161 /* Build configuration list for PBXNativeTarget "plutil" */;
@@ -1635,9 +1582,6 @@
 					5BDC405B1BD6D83B00ED97BB = {
 						CreatedOnToolsVersion = 7.1;
 					};
-					E19E17D31C221FDE0023AF4D = {
-						CreatedOnToolsVersion = 7.2;
-					};
 					EA66F66E1BF56CCB00136161 = {
 						CreatedOnToolsVersion = 7.1;
 					};
@@ -1659,7 +1603,6 @@
 				5BDC405B1BD6D83B00ED97BB /* TestFoundation */,
 				5B7C8A6D1BEA7F8F00C5B690 /* CoreFoundation */,
 				EA66F66E1BF56CCB00136161 /* plutil */,
-				E19E17D31C221FDE0023AF4D /* libxml2 */,
 			);
 		};
 /* End PBXProject section */
@@ -1914,19 +1857,11 @@
 				6E203B8D1C1303BB003B2576 /* TestNSBundle.swift in Sources */,
 				88D28DE71C13AE9000494606 /* TestNSGeometry.swift in Sources */,
 				EA66F64C1BF1619600136161 /* TestNSDictionary.swift in Sources */,
-				ED58F76F1C134B3A00E6A5BE /* (null) in Sources */,
 				AA664D4F1C1B03CA00C22186 /* TestNSNumberFormatter.swift in Sources */,
 				EA66F6581BF1619600136161 /* TestNSURL.swift in Sources */,
 				61D6C9EF1C1DFE9500DEF583 /* TestNSTimer.swift in Sources */,
 				61E0117C1C1B554D000037DD /* TestNSRunLoop.swift in Sources */,
 				EA66F6441BF1619600136161 /* main.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		E19E17D01C221FDE0023AF4D /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1941,11 +1876,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E19E17DA1C2220220023AF4D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = E19E17D31C221FDE0023AF4D /* libxml2 */;
-			targetProxy = E19E17D91C2220220023AF4D /* PBXContainerItemProxy */;
-		};
 		EA993CE31BEACD8E000969A2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 5B7C8A6D1BEA7F8F00C5B690 /* CoreFoundation */;
@@ -2289,30 +2219,6 @@
 			};
 			name = Release;
 		};
-		E19E17D61C221FDE0023AF4D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CODE_SIGN_IDENTITY = "-";
-				EXECUTABLE_PREFIX = lib;
-				HEADER_SEARCH_PATHS = /usr/include/libxml2;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		E19E17D71C221FDE0023AF4D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CODE_SIGN_IDENTITY = "-";
-				EXECUTABLE_PREFIX = lib;
-				HEADER_SEARCH_PATHS = /usr/include/libxml2;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		EA66F6731BF56CCB00136161 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2369,15 +2275,6 @@
 			buildConfigurations = (
 				5BDC40601BD6D83B00ED97BB /* Debug */,
 				5BDC40611BD6D83B00ED97BB /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		E19E17D51C221FDE0023AF4D /* Build configuration list for PBXNativeTarget "libxml2" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				E19E17D61C221FDE0023AF4D /* Debug */,
-				E19E17D71C221FDE0023AF4D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

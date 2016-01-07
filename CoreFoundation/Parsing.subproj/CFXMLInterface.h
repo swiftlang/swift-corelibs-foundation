@@ -48,6 +48,11 @@ extern CFIndex _kCFXMLInterfaceHuge;
 extern CFIndex _kCFXMLInterfaceOldsax;
 extern CFIndex _kCFXMLInterfaceIgnoreEnc;
 extern CFIndex _kCFXMLInterfaceBigLines;
+extern CFIndex _kCFXMLTypeDocument;
+extern CFIndex _kCFXMLTypeElement;
+extern CFIndex _kCFXMLTypeAttribute;
+extern CFIndex _kCFXMLTypeDTD;
+extern CFIndex _kCFXMLDocTypeHTML;
 
 typedef struct _xmlParserInput *_CFXMLInterfaceParserInput;
 typedef struct _xmlParserCtxt *_CFXMLInterfaceParserContext;
@@ -92,6 +97,76 @@ int _CFXMLInterfaceHasDocument(_CFXMLInterfaceParserContext _Nullable ctx);
 void _CFXMLInterfaceFreeEnumeration(_CFXMLInterfaceEnumeration _Nullable enumeration);
 void _CFXMLInterfaceSAX2UnparsedEntityDecl(_CFXMLInterfaceParserContext _Nullable ctx, const unsigned char * name, const unsigned char *_Nullable publicId, const unsigned char *_Nullable systemId, const unsigned char *_Nullable notationName);
 CFErrorRef _CFErrorCreateFromXMLInterface(_CFXMLInterfaceError err) CF_RETURNS_RETAINED;
+
+typedef void* _CFXMLNodePtr;
+typedef void* _CFXMLDocPtr;
+typedef void* _CFXMLNamespacePtr;
+typedef void* _CFXMLEntityPtr;
+
+_CFXMLNodePtr _CFXMLNewNode(_CFXMLNamespacePtr namespace, const char* name);
+_CFXMLNodePtr _CFXMLCopyNode(_CFXMLNodePtr node, bool recursive);
+
+_CFXMLDocPtr _CFXMLNewDoc(const unsigned char* version);
+_CFXMLNodePtr _CFXMLNewProcessingInstruction(const unsigned char* name, const unsigned char* value);
+_CFXMLNodePtr _CFXMLNewTextNode(const unsigned char* value);
+_CFXMLNodePtr _CFXMLNewComment(const unsigned char* value);
+_CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr __nullable node, const unsigned char* name, const unsigned char* value);
+_CFXMLNamespacePtr _CFXMLNewNamespace(_CFXMLNodePtr __nullable node, const unsigned char* uri, const unsigned char* prefix);
+
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodeURI(_CFXMLNodePtr node);
+void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI);
+
+void _CFXMLNodeSetPrivateData(_CFXMLNodePtr node, void* data);
+void* _Nullable  _CFXMLNodeGetPrivateData(_CFXMLNodePtr node);
+__nullable _CFXMLNodePtr _CFXMLNodeProperties(_CFXMLNodePtr node);
+CFIndex _CFXMLNodeGetType(_CFXMLNodePtr node);
+const char* _CFXMLNodeGetName(_CFXMLNodePtr node);
+void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name);
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodeGetContent(_CFXMLNodePtr node);
+void _CFXMLNodeSetContent(_CFXMLNodePtr node,  const unsigned char* _Nullable  content);
+void _CFXMLUnlinkNode(_CFXMLNodePtr node);
+
+__nullable _CFXMLNodePtr _CFXMLNodeGetFirstChild(_CFXMLNodePtr node);
+__nullable _CFXMLNodePtr _CFXMLNodeGetLastChild(_CFXMLNodePtr node);
+__nullable _CFXMLNodePtr _CFXMLNodeGetNextSibling(_CFXMLNodePtr node);
+__nullable _CFXMLNodePtr _CFXMLNodeGetPrevSibling(_CFXMLNodePtr node);
+__nullable _CFXMLNodePtr _CFXMLNodeGetParent(_CFXMLNodePtr node);
+CFIndex _CFXMLNodeGetElementChildCount(_CFXMLNodePtr node);
+void _CFXMLNodeAddChild(_CFXMLNodePtr node, _CFXMLNodePtr child);
+void _CFXMLNodeAddPrevSibling(_CFXMLNodePtr node, _CFXMLNodePtr prevSibling);
+void _CFXMLNodeAddNextSibling(_CFXMLNodePtr node, _CFXMLNodePtr nextSibling);
+void _CFXMLNodeReplaceNode(_CFXMLNodePtr node, _CFXMLNodePtr replacement);
+
+__nullable _CFXMLDocPtr _CFXMLNodeGetDocument(_CFXMLNodePtr node);
+
+bool _CFXMLDocStandalone(_CFXMLDocPtr doc);
+void _CFXMLDocSetStandalone(_CFXMLDocPtr doc, bool standalone);
+__nullable _CFXMLNodePtr _CFXMLDocRootElement(_CFXMLDocPtr doc);
+void _CFXMLDocSetRootElement(_CFXMLDocPtr doc, _CFXMLNodePtr node);
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLDocCharacterEncoding(_CFXMLDocPtr doc);
+void _CFXMLDocSetCharacterEncoding(_CFXMLDocPtr doc,  const unsigned char* _Nullable  encoding);
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLDocVersion(_CFXMLDocPtr doc);
+void _CFXMLDocSetVersion(_CFXMLDocPtr doc, const unsigned char* version);
+int _CFXMLDocProperties(_CFXMLDocPtr doc);
+void _CFXMLDocSetProperties(_CFXMLDocPtr doc, int newProperties);
+
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLEncodeEntities(_CFXMLDocPtr doc, const unsigned char* string);
+__nullable _CFXMLEntityPtr _CFXMLGetDocEntity(_CFXMLDocPtr doc, const char* entity);
+__nullable _CFXMLEntityPtr _CFXMLGetDTDEntity(_CFXMLDocPtr doc, const char* entity);
+__nullable _CFXMLEntityPtr _CFXMLGetParameterEntity(_CFXMLDocPtr doc, const char* entity);
+
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLGetEntityContent(_CFXMLEntityPtr entity);
+
+CF_RETURNS_RETAINED CFStringRef _CFXMLStringWithOptions(_CFXMLNodePtr node, uint32_t options);
+
+CF_RETURNS_RETAINED __nullable CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const unsigned char* xpath);
+
+__nullable _CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const unsigned char* propertyName);
+
+_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options);
+
+void _CFXMLFreeNode(_CFXMLNodePtr node);
+void _CFXMLFreeDocument(_CFXMLDocPtr doc);
 
 CF_EXTERN_C_END
 CF_ASSUME_NONNULL_END

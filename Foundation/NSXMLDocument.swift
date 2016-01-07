@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import libxml2
+import CoreFoundation
 // Input options
 //  NSXMLNodeOptionsNone
 //  NSXMLNodePreserveAll
@@ -53,9 +53,9 @@ public enum NSXMLDocumentContentKind : UInt {
 	@discussion Note: if the application of a method would result in more than one element in the children array, an exception is thrown. Trying to add a document, namespace, attribute, or node with a parent also throws an exception. To add a node with a parent first detach or create a copy of it.
 */
 public class NSXMLDocument : NSXMLNode {
-    private var _xmlDoc: xmlDocPtr {
+    private var _xmlDoc: _CFXMLDocPtr {
         get {
-            return xmlDocPtr(_xmlNode)
+            return _CFXMLDocPtr(_xmlNode)
         }
     }
     /*!
@@ -86,23 +86,8 @@ public class NSXMLDocument : NSXMLNode {
         @abstract Returns a document created from data. Parse errors are returned in <tt>error</tt>.
     */
     public init(data: NSData, options mask: Int) throws {
-        var xmlOptions: UInt32 = 0
-        if mask & NSXMLNodePreserveWhitespace == 0 {
-            xmlOptions |= XML_PARSE_NOBLANKS.rawValue
-        }
-
-        if mask & NSXMLNodeLoadExternalEntitiesNever != 0 {
-            xmlOptions &= ~(XML_PARSE_NOENT.rawValue)
-        } else {
-            xmlOptions |= XML_PARSE_NOENT.rawValue
-        }
-
-        if mask & NSXMLNodeLoadExternalEntitiesAlways != 0 {
-            xmlOptions |= XML_PARSE_DTDLOAD.rawValue
-        }
-
-        let docPtr = xmlReadMemory(UnsafePointer<Int8>(data.bytes), Int32(data.length), nil, nil, Int32(xmlOptions))
-        super.init(ptr: xmlNodePtr(docPtr))
+        let docPtr = _CFXMLDocPtrFromDataWithOptions(data._cfObject, Int32(mask))
+        super.init(ptr: _CFXMLNodePtr(docPtr))
     } //primitive
 
     /*!
@@ -114,7 +99,7 @@ public class NSXMLDocument : NSXMLNode {
 
         super.init(kind: .DocumentKind, options: NSXMLNodeOptionsNone)
         if let element = element {
-            xmlDocSetRootElement(_xmlDoc, element._xmlNode)
+            _CFXMLDocSetRootElement(_xmlDoc, element._xmlNode)
             _childNodes.insert(element)
         }
     }
@@ -127,16 +112,13 @@ public class NSXMLDocument : NSXMLNode {
     */
     public var characterEncoding: String? {
         get {
-            return String.fromCString(UnsafePointer<CChar>(_xmlDoc.memory.encoding))
+            return _CFXMLDocCharacterEncoding(_xmlDoc)?._swiftObject
         }
         set {
-            if _xmlDoc.memory.encoding != nil {
-                xmlFree(UnsafeMutablePointer<xmlChar>(_xmlDoc.memory.encoding))
-            }
-            if let encoding = newValue {
-                _xmlDoc.memory.encoding = encoding._xmlString
+            if let value = newValue {
+                _CFXMLDocSetCharacterEncoding(_xmlDoc, value)
             } else {
-                _xmlDoc.memory.encoding = nil
+                _CFXMLDocSetCharacterEncoding(_xmlDoc, nil)
             }
         }
     } //primitive
@@ -147,12 +129,13 @@ public class NSXMLDocument : NSXMLNode {
     */
     public var version: String? {
         get {
-            return String.fromCString(UnsafePointer<CChar>(_xmlDoc.memory.version))
+            return _CFXMLDocVersion(_xmlDoc)?._swiftObject
         }
         set {
-            newValue?.withCString {
-                ptr -> Void in
-                memcpy(UnsafeMutablePointer<Void>(_xmlDoc.memory.version), ptr, 3)
+            if let value = newValue {
+                _CFXMLDocSetVersion(_xmlDoc, value)
+            } else {
+                _CFXMLDocSetVersion(_xmlDoc, nil)
             }
         }
     } //primitive
@@ -163,14 +146,10 @@ public class NSXMLDocument : NSXMLNode {
     */
     public var standalone: Bool {
         get {
-            return _xmlDoc.memory.standalone != 0
+            return _CFXMLDocStandalone(_xmlDoc)
         }
         set {
-            if newValue {
-                _xmlDoc.memory.standalone = 1
-            } else {
-                _xmlDoc.memory.standalone = 0
-            }
+            _CFXMLDocSetStandalone(_xmlDoc, newValue)
         }
     }//primitive
 
@@ -180,9 +159,9 @@ public class NSXMLDocument : NSXMLNode {
     */
     public var documentContentKind: NSXMLDocumentContentKind  {
         get {
-            let properties = _xmlDoc.memory.properties
+            let properties = _CFXMLDocProperties(_xmlDoc);
 
-            if properties & Int32(XML_DOC_HTML.rawValue) != 0 {
+            if properties & Int32(_kCFXMLDocTypeHTML) != 0 {
                 return .HTMLKind
             }
 
@@ -190,13 +169,16 @@ public class NSXMLDocument : NSXMLNode {
         }
 
         set {
+            var properties = _CFXMLDocProperties(_xmlDoc)
             switch newValue {
             case .HTMLKind:
-                _xmlDoc.memory.properties |= Int32(XML_DOC_HTML.rawValue)
+                properties |= Int32(_kCFXMLDocTypeHTML)
 
             default:
-                _xmlDoc.memory.properties &= ~Int32(XML_DOC_HTML.rawValue)
+                properties &= ~Int32(_kCFXMLDocTypeHTML)
             }
+
+            _CFXMLDocSetProperties(_xmlDoc, properties)
         }
     }//primitive
 
@@ -223,7 +205,7 @@ public class NSXMLDocument : NSXMLNode {
             child.detach()
         }
 
-        xmlDocSetRootElement(_xmlDoc, root._xmlNode)
+        _CFXMLDocSetRootElement(_xmlDoc, root._xmlNode)
         _childNodes.insert(root)
     }
 
@@ -232,7 +214,7 @@ public class NSXMLDocument : NSXMLNode {
         @abstract The root element.
     */
     public func rootElement() -> NSXMLElement? {
-        let rootPtr = xmlDocGetRootElement(_xmlDoc)
+        let rootPtr = _CFXMLDocRootElement(_xmlDoc)
         if rootPtr == nil {
             return nil
         }
@@ -320,30 +302,30 @@ public class NSXMLDocument : NSXMLNode {
 
     public func validate() throws { NSUnimplemented() }
 
-    internal override class func _objectNodeForNode(node: xmlNodePtr) -> NSXMLDocument {
-        precondition(node.memory.type == XML_DOCUMENT_NODE)
+    internal override class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLDocument {
+        precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDocument)
 
-        if node.memory._private != nil {
-            let unmanaged = Unmanaged<NSXMLDocument>.fromOpaque(node.memory._private)
+        if _CFXMLNodeGetPrivateData(node) != nil {
+            let unmanaged = Unmanaged<NSXMLDocument>.fromOpaque(_CFXMLNodeGetPrivateData(node))
             return unmanaged.takeUnretainedValue()
         }
 
         return NSXMLDocument(ptr: node)
     }
 
-    internal override init(ptr: xmlNodePtr) {
+    internal override init(ptr: _CFXMLNodePtr) {
         super.init(ptr: ptr)
     }
 }
 
-internal extension String {
-    internal var _xmlString: UnsafePointer<xmlChar> {
-        return self.withCString {
-            (ptr: UnsafePointer<CChar>) -> UnsafePointer<xmlChar> in
-            let length = self.utf8.count + 1
-            let result = UnsafeMutablePointer<CChar>.alloc(length)
-            strncpy(result, ptr, length)
-            return UnsafePointer<xmlChar>(result)
-        }
-    }
-}
+//internal extension String {
+//    internal var _xmlString: UnsafePointer<xmlChar> {
+//        return self.withCString {
+//            (ptr: UnsafePointer<CChar>) -> UnsafePointer<xmlChar> in
+//            let length = self.utf8.count + 1
+//            let result = UnsafeMutablePointer<CChar>.alloc(length)
+//            strncpy(result, ptr, length)
+//            return UnsafePointer<xmlChar>(result)
+//        }
+//    }
+//}

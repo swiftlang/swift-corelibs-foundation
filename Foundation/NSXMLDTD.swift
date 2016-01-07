@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import libxml2
+import CoreFoundation
 /*!
     @class NSXMLDTD
     @abstract Defines the order, repetition, and allowable values for a document
@@ -97,18 +97,18 @@ public class NSXMLDTD : NSXMLNode {
     */
     public class func predefinedEntityDeclarationForName(name: String) -> NSXMLDTDNode? { NSUnimplemented() }
     
-    internal override class func _objectNodeForNode(node: xmlNodePtr) -> NSXMLDTD {
-        precondition(node.memory.type == XML_DTD_NODE)
-        
-        if node.memory._private != nil {
-            let unmanaged = Unmanaged<NSXMLDTD>.fromOpaque(node.memory._private)
+    internal override class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLDTD {
+        precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDTD)
+
+        if _CFXMLNodeGetPrivateData(node) != nil {
+            let unmanaged = Unmanaged<NSXMLDTD>.fromOpaque(_CFXMLNodeGetPrivateData(node))
             return unmanaged.takeUnretainedValue()
         }
         
         return NSXMLDTD(ptr: node)
     }
     
-    internal override init(ptr: xmlNodePtr) {
+    internal override init(ptr: _CFXMLNodePtr) {
         super.init(ptr: ptr)
     }
 }
