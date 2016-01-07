@@ -133,6 +133,7 @@ public class NSXMLDocument : NSXMLNode {
         }
         set {
             if let value = newValue {
+                precondition(value == "1.0" || value == "1.1")
                 _CFXMLDocSetVersion(_xmlDoc, value)
             } else {
                 _CFXMLDocSetVersion(_xmlDoc, nil)
@@ -274,13 +275,18 @@ public class NSXMLDocument : NSXMLNode {
         @method XMLData
         @abstract Invokes XMLDataWithOptions with NSXMLNodeOptionsNone.
     */
-    /*@NSCopying*/ public var XMLData: NSData { NSUnimplemented() }
+    /*@NSCopying*/ public var XMLData: NSData { return XMLDataWithOptions(NSXMLNodeOptionsNone) }
 
     /*!
         @method XMLDataWithOptions:
         @abstract The representation of this node as it would appear in an XML document, encoded based on characterEncoding.
     */
-    public func XMLDataWithOptions(options: Int) -> NSData { NSUnimplemented() }
+    public func XMLDataWithOptions(options: Int) -> NSData {
+        let string = XMLStringWithOptions(options)
+        // TODO: support encodings other than UTF-8
+
+        return string._bridgeToObject().dataUsingEncoding(NSUTF8StringEncoding) ?? NSData()
+    }
 
     /*!
         @method objectByApplyingXSLT:arguments:error:
@@ -317,15 +323,3 @@ public class NSXMLDocument : NSXMLNode {
         super.init(ptr: ptr)
     }
 }
-
-//internal extension String {
-//    internal var _xmlString: UnsafePointer<xmlChar> {
-//        return self.withCString {
-//            (ptr: UnsafePointer<CChar>) -> UnsafePointer<xmlChar> in
-//            let length = self.utf8.count + 1
-//            let result = UnsafeMutablePointer<CChar>.alloc(length)
-//            strncpy(result, ptr, length)
-//            return UnsafePointer<xmlChar>(result)
-//        }
-//    }
-//}
