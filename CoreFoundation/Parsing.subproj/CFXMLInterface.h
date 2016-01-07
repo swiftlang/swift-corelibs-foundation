@@ -165,6 +165,9 @@ __nullable _CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const unsigned ch
 
 _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options);
 
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodeLocalName(_CFXMLNodePtr node);
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodePrefix(_CFXMLNodePtr node);
+
 void _CFXMLFreeNode(_CFXMLNodePtr node);
 void _CFXMLFreeDocument(_CFXMLDocPtr doc);
 

@@ -34,7 +34,8 @@ class TestNSXMLDocument : XCTestCase {
             ("test_attributes", test_attributes),
             ("test_comments", test_comments),
             ("test_processingInstruction", test_processingInstruction),
-            ("test_parseXMLString", test_parseXMLString)
+            ("test_parseXMLString", test_parseXMLString),
+            ("test_prefixes", test_prefixes)
         ]
     }
 
@@ -250,5 +251,11 @@ class TestNSXMLDocument : XCTestCase {
         } catch {
             XCTFail("\(error)")
         }
+    }
+
+    func test_prefixes() {
+        let element = NSXMLElement(name: "xml:root")
+        XCTAssertEqual(element.prefix, "xml")
+        XCTAssertEqual(element.localName, "root")
     }
 }

@@ -588,6 +588,23 @@ _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options) {
     return xmlReadMemory((const char*)CFDataGetBytePtr(data), CFDataGetLength(data), NULL, NULL, xmlOptions);
 }
 
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodeLocalName(_CFXMLNodePtr node) {
+    int length = 0;
+    const xmlChar* result = xmlSplitQName3(((xmlNodePtr)node)->name, &length);
+    return CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
+}
+
+CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodePrefix(_CFXMLNodePtr node) {
+    xmlChar* result = NULL;
+    xmlChar* unused = xmlSplitQName2(((xmlNodePtr)node)->name, &result);
+
+    CFStringRef resultString = CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
+    xmlFree(result);
+    xmlFree(unused);
+
+    return resultString;
+}
+
 void _CFXMLFreeNode(_CFXMLNodePtr node) {
     xmlFreeNode(node);
 }

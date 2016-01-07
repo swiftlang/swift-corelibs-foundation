@@ -597,10 +597,7 @@ public class NSXMLNode : NSObject, NSCopying {
     	@abstract Returns the local name bar if this attribute or element's name is foo:bar
     */
     public var localName: String? {
-//        var length: Int32 = 0
-//        let result = xmlSplitQName3(_xmlNode.memory.name, &length)
-//        return String.fromCString(UnsafePointer<CChar>(result))
-        NSUnimplemented()
+        return _CFXMLNodeLocalName(_xmlNode)?._swiftObject
     } //primitive
 
     /*!
@@ -608,14 +605,7 @@ public class NSXMLNode : NSObject, NSCopying {
     	@abstract Returns the prefix foo if this attribute or element's name if foo:bar
     */
     public var prefix: String? {
-//        var result: UnsafeMutablePointer<xmlChar> = nil
-//        let unused = xmlSplitQName2(_xmlNode.memory.name, &result)
-//        defer {
-//            xmlFree(result)
-//            xmlFree(UnsafeMutablePointer<xmlChar>(unused))
-//        }
-//        return String.fromCString(UnsafePointer<CChar>(result))
-        NSUnimplemented()
+        return _CFXMLNodePrefix(_xmlNode)?._swiftObject
     } //primitive
 
     /*!
