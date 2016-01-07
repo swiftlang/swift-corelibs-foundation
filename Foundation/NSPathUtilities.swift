@@ -446,13 +446,14 @@ public extension NSString {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePathIntoString(inout outputName: NSString?, caseSensitive flag: Bool, inout matchesIntoArray outputArray: [NSString], filterTypes: [String]?) -> Int {
-        guard !_storage.isEmpty else {
+        let path = _swiftObject
+        guard !path.isEmpty else {
             return 0
         }
         
-        let url = NSURL(fileURLWithPath: _storage)
+        let url = NSURL(fileURLWithPath: path)
         
-        let searchAllFilesInDirectory = _stringIsPathToDirectory(_storage)
+        let searchAllFilesInDirectory = _stringIsPathToDirectory(path)
         let namePrefix = searchAllFilesInDirectory ? nil : url.lastPathComponent
         let checkFileName = _getFileNamePredicate(namePrefix, caseSensetive: flag)
         let checkExtension = _getExtensionPredicate(filterTypes, caseSensetive: flag)
@@ -473,7 +474,7 @@ public extension NSString {
             }
         }
         
-        let commonPath = searchAllFilesInDirectory ? _storage : _ensureLastPathSeparator(stringByDeletingLastPathComponent)
+        let commonPath = searchAllFilesInDirectory ? path : _ensureLastPathSeparator(stringByDeletingLastPathComponent)
         
         if searchAllFilesInDirectory {
             outputName = "/"
