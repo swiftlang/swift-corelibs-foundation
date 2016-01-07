@@ -54,6 +54,10 @@ CFIndex _kCFXMLTypeElement = XML_ELEMENT_NODE;
 CFIndex _kCFXMLTypeAttribute = XML_ATTRIBUTE_NODE;
 CFIndex _kCFXMLTypeDTD = XML_DTD_NODE;
 CFIndex _kCFXMLDocTypeHTML = XML_DOC_HTML;
+CFIndex _kCFXMLDTDNodeTypeEntity = XML_ENTITY_DECL;
+CFIndex _kCFXMLDTDNodeTypeAttribute = XML_ATTRIBUTE_DECL;
+CFIndex _kCFXMLDTDNodeTypeElement = XML_ELEMENT_DECL;
+CFIndex _kCFXMLDTDNodeTypeNotation = XML_NOTATION_NODE;
 
 CFIndex _kCFXMLNodePreserveWhitespace = 1 << 25;
 CFIndex _kCFXMLNodeCompactEmptyElement = 1 << 2;
@@ -255,11 +259,11 @@ _CFXMLNodePtr _CFXMLNewComment(const unsigned char* value) {
     return xmlNewComment(value);
 }
 
-_CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr __nullable node, const unsigned char* name, const unsigned char* value) {
+_CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr node, const unsigned char* name, const unsigned char* value) {
     return xmlNewProp(node, name, value);
 }
 
-_CFXMLNamespacePtr _CFXMLNewNamespace(_CFXMLNodePtr __nullable node, const unsigned char* uri, const unsigned char* prefix) {
+_CFXMLNamespacePtr _CFXMLNewNamespace(_CFXMLNodePtr node, const unsigned char* uri, const unsigned char* prefix) {
     return xmlNewNs(node, uri, prefix);
 }
 
@@ -331,7 +335,7 @@ void* _Nullable  _CFXMLNodeGetPrivateData(_CFXMLNodePtr node) {
     return ((xmlNodePtr)node)->_private;
 }
 
-__nullable _CFXMLNodePtr _CFXMLNodeProperties(_CFXMLNodePtr node) {
+_CFXMLNodePtr _CFXMLNodeProperties(_CFXMLNodePtr node) {
     return ((xmlNodePtr)node)->properties;
 }
 
@@ -369,11 +373,11 @@ void _CFXMLNodeSetContent(_CFXMLNodePtr node, const unsigned char* _Nullable  co
     xmlNodeSetContent(node, content);
 }
 
-__nullable _CFXMLDocPtr _CFXMLNodeGetDocument(_CFXMLNodePtr node) {
+_CFXMLDocPtr _CFXMLNodeGetDocument(_CFXMLNodePtr node) {
     return ((xmlNodePtr)node)->doc;
 }
 
-__nullable CFStringRef _CFXMLEncodeEntities(_CFXMLDocPtr doc, const unsigned char* string) {
+CFStringRef _CFXMLEncodeEntities(_CFXMLDocPtr doc, const unsigned char* string) {
     if (!string) {
         return NULL;
     }
@@ -391,23 +395,23 @@ void _CFXMLUnlinkNode(_CFXMLNodePtr node) {
     xmlUnlinkNode(node);
 }
 
-__nullable _CFXMLNodePtr _CFXMLNodeGetFirstChild(_CFXMLNodePtr node) {
+_CFXMLNodePtr _CFXMLNodeGetFirstChild(_CFXMLNodePtr node) {
     return ((xmlNodePtr)node)->children;
 }
 
-__nullable _CFXMLNodePtr _CFXMLNodeGetLastChild(_CFXMLNodePtr node) {
+_CFXMLNodePtr _CFXMLNodeGetLastChild(_CFXMLNodePtr node) {
     return ((xmlNodePtr)node)->last;
 }
 
-__nullable _CFXMLNodePtr _CFXMLNodeGetNextSibling(_CFXMLNodePtr node) {
+_CFXMLNodePtr _CFXMLNodeGetNextSibling(_CFXMLNodePtr node) {
     return ((xmlNodePtr)node)->next;
 }
 
-__nullable _CFXMLNodePtr _CFXMLNodeGetPrevSibling(_CFXMLNodePtr node) {
+_CFXMLNodePtr _CFXMLNodeGetPrevSibling(_CFXMLNodePtr node) {
     return ((xmlNodePtr)node)->prev;
 }
 
-__nullable _CFXMLNodePtr _CFXMLNodeGetParent(_CFXMLNodePtr node) {
+_CFXMLNodePtr _CFXMLNodeGetParent(_CFXMLNodePtr node) {
     return ((xmlNodePtr)node)->parent;
 }
 
@@ -418,7 +422,7 @@ void _CFXMLDocSetStandalone(_CFXMLDocPtr doc, bool standalone) {
     ((xmlDocPtr)doc)->standalone = standalone ? 1 : 0;
 }
 
-__nullable _CFXMLNodePtr _CFXMLDocRootElement(_CFXMLDocPtr doc) {
+_CFXMLNodePtr _CFXMLDocRootElement(_CFXMLDocPtr doc) {
     return xmlDocGetRootElement(doc);
 }
 
@@ -426,7 +430,7 @@ void _CFXMLDocSetRootElement(_CFXMLDocPtr doc, _CFXMLNodePtr node) {
     xmlDocSetRootElement(doc, node);
 }
 
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLDocCharacterEncoding(_CFXMLDocPtr doc) {
+CF_RETURNS_RETAINED CFStringRef _CFXMLDocCharacterEncoding(_CFXMLDocPtr doc) {
     return CFStringCreateWithCString(NULL, (const char*)((xmlDocPtr)doc)->encoding, kCFStringEncodingUTF8);
 }
 
@@ -440,7 +444,7 @@ void _CFXMLDocSetCharacterEncoding(_CFXMLDocPtr doc,  const unsigned char* _Null
     docPtr->encoding = encoding;
 }
 
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLDocVersion(_CFXMLDocPtr doc) {
+CF_RETURNS_RETAINED CFStringRef _CFXMLDocVersion(_CFXMLDocPtr doc) {
     return CFStringCreateWithCString(NULL, (const char*)((xmlDocPtr)doc)->version, kCFStringEncodingUTF8);
 }
 
@@ -482,19 +486,19 @@ void _CFXMLNodeReplaceNode(_CFXMLNodePtr node, _CFXMLNodePtr replacement) {
     xmlReplaceNode(node, replacement);
 }
 
-__nullable _CFXMLEntityPtr _CFXMLGetDocEntity(_CFXMLDocPtr doc, const char* entity) {
+_CFXMLEntityPtr _CFXMLGetDocEntity(_CFXMLDocPtr doc, const char* entity) {
     return xmlGetDocEntity(doc, (const xmlChar*)entity);
 }
 
-__nullable _CFXMLEntityPtr _CFXMLGetDTDEntity(_CFXMLDocPtr doc, const char* entity) {
+_CFXMLEntityPtr _CFXMLGetDTDEntity(_CFXMLDocPtr doc, const char* entity) {
     return xmlGetDtdEntity(doc, (const xmlChar*)entity);
 }
 
-__nullable _CFXMLEntityPtr _CFXMLGetParameterEntity(_CFXMLDocPtr doc, const char* entity) {
+_CFXMLEntityPtr _CFXMLGetParameterEntity(_CFXMLDocPtr doc, const char* entity) {
     return xmlGetParameterEntity(doc, (const xmlChar*)entity);
 }
 
-__nullable CFStringRef _CFXMLGetEntityContent(_CFXMLEntityPtr entity) {
+CFStringRef _CFXMLGetEntityContent(_CFXMLEntityPtr entity) {
     const xmlChar* content = ((xmlEntityPtr)entity)->content;
     if (!content) {
         return NULL;
@@ -588,13 +592,13 @@ _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options) {
     return xmlReadMemory((const char*)CFDataGetBytePtr(data), CFDataGetLength(data), NULL, NULL, xmlOptions);
 }
 
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodeLocalName(_CFXMLNodePtr node) {
+CF_RETURNS_RETAINED CFStringRef _CFXMLNodeLocalName(_CFXMLNodePtr node) {
     int length = 0;
     const xmlChar* result = xmlSplitQName3(((xmlNodePtr)node)->name, &length);
     return CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
 }
 
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodePrefix(_CFXMLNodePtr node) {
+CF_RETURNS_RETAINED CFStringRef _CFXMLNodePrefix(_CFXMLNodePtr node) {
     xmlChar* result = NULL;
     xmlChar* unused = xmlSplitQName2(((xmlNodePtr)node)->name, &result);
 

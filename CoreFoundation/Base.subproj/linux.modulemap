@@ -8,14 +8,3 @@ module CoreFoundation [extern_c] [system] {
     }
 }
 
-module libxml2 [extern_c] [system] {
-    header "/usr/include/libxml2/libxml/tree.h"
-    header "/usr/include/libxml2/libxml/xmlmemory.h"
-    header "/usr/include/libxml2/libxml/xpath.h"
-    header "/usr/include/libxml2/libxml/xmlsave.h"
-    header "/usr/include/libxml2/libxml/xmlwriter.h"
-    header "/usr/include/string.h"
-
-    export *
-    link "xml2"
-}

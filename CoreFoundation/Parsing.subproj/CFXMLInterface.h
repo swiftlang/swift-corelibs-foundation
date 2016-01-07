@@ -53,6 +53,11 @@ extern CFIndex _kCFXMLTypeElement;
 extern CFIndex _kCFXMLTypeAttribute;
 extern CFIndex _kCFXMLTypeDTD;
 extern CFIndex _kCFXMLDocTypeHTML;
+extern CFIndex _kCFXMLDTDNodeTypeEntity;
+extern CFIndex _kCFXMLDTDNodeTypeAttribute;
+extern CFIndex _kCFXMLDTDNodeTypeElement;
+extern CFIndex _kCFXMLDTDNodeTypeNotation;
+
 
 typedef struct _xmlParserInput *_CFXMLInterfaceParserInput;
 typedef struct _xmlParserCtxt *_CFXMLInterfaceParserContext;
@@ -110,63 +115,63 @@ _CFXMLDocPtr _CFXMLNewDoc(const unsigned char* version);
 _CFXMLNodePtr _CFXMLNewProcessingInstruction(const unsigned char* name, const unsigned char* value);
 _CFXMLNodePtr _CFXMLNewTextNode(const unsigned char* value);
 _CFXMLNodePtr _CFXMLNewComment(const unsigned char* value);
-_CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr __nullable node, const unsigned char* name, const unsigned char* value);
-_CFXMLNamespacePtr _CFXMLNewNamespace(_CFXMLNodePtr __nullable node, const unsigned char* uri, const unsigned char* prefix);
+_CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr _Nullable node, const unsigned char* name, const unsigned char* value);
+_CFXMLNamespacePtr _CFXMLNewNamespace(_CFXMLNodePtr _Nullable node, const unsigned char* uri, const unsigned char* prefix);
 
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodeURI(_CFXMLNodePtr node);
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNodeURI(_CFXMLNodePtr node);
 void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI);
 
 void _CFXMLNodeSetPrivateData(_CFXMLNodePtr node, void* data);
 void* _Nullable  _CFXMLNodeGetPrivateData(_CFXMLNodePtr node);
-__nullable _CFXMLNodePtr _CFXMLNodeProperties(_CFXMLNodePtr node);
+_CFXMLNodePtr _Nullable _CFXMLNodeProperties(_CFXMLNodePtr node);
 CFIndex _CFXMLNodeGetType(_CFXMLNodePtr node);
 const char* _CFXMLNodeGetName(_CFXMLNodePtr node);
 void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name);
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodeGetContent(_CFXMLNodePtr node);
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNodeGetContent(_CFXMLNodePtr node);
 void _CFXMLNodeSetContent(_CFXMLNodePtr node,  const unsigned char* _Nullable  content);
 void _CFXMLUnlinkNode(_CFXMLNodePtr node);
 
-__nullable _CFXMLNodePtr _CFXMLNodeGetFirstChild(_CFXMLNodePtr node);
-__nullable _CFXMLNodePtr _CFXMLNodeGetLastChild(_CFXMLNodePtr node);
-__nullable _CFXMLNodePtr _CFXMLNodeGetNextSibling(_CFXMLNodePtr node);
-__nullable _CFXMLNodePtr _CFXMLNodeGetPrevSibling(_CFXMLNodePtr node);
-__nullable _CFXMLNodePtr _CFXMLNodeGetParent(_CFXMLNodePtr node);
+_CFXMLNodePtr _Nullable _CFXMLNodeGetFirstChild(_CFXMLNodePtr node);
+_CFXMLNodePtr _Nullable _CFXMLNodeGetLastChild(_CFXMLNodePtr node);
+_CFXMLNodePtr _Nullable _CFXMLNodeGetNextSibling(_CFXMLNodePtr node);
+_CFXMLNodePtr _Nullable _CFXMLNodeGetPrevSibling(_CFXMLNodePtr node);
+_CFXMLNodePtr _Nullable _CFXMLNodeGetParent(_CFXMLNodePtr node);
 CFIndex _CFXMLNodeGetElementChildCount(_CFXMLNodePtr node);
 void _CFXMLNodeAddChild(_CFXMLNodePtr node, _CFXMLNodePtr child);
 void _CFXMLNodeAddPrevSibling(_CFXMLNodePtr node, _CFXMLNodePtr prevSibling);
 void _CFXMLNodeAddNextSibling(_CFXMLNodePtr node, _CFXMLNodePtr nextSibling);
 void _CFXMLNodeReplaceNode(_CFXMLNodePtr node, _CFXMLNodePtr replacement);
 
-__nullable _CFXMLDocPtr _CFXMLNodeGetDocument(_CFXMLNodePtr node);
+_CFXMLDocPtr _Nullable _CFXMLNodeGetDocument(_CFXMLNodePtr node);
 
 bool _CFXMLDocStandalone(_CFXMLDocPtr doc);
 void _CFXMLDocSetStandalone(_CFXMLDocPtr doc, bool standalone);
-__nullable _CFXMLNodePtr _CFXMLDocRootElement(_CFXMLDocPtr doc);
+_CFXMLNodePtr _Nullable _CFXMLDocRootElement(_CFXMLDocPtr doc);
 void _CFXMLDocSetRootElement(_CFXMLDocPtr doc, _CFXMLNodePtr node);
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLDocCharacterEncoding(_CFXMLDocPtr doc);
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDocCharacterEncoding(_CFXMLDocPtr doc);
 void _CFXMLDocSetCharacterEncoding(_CFXMLDocPtr doc,  const unsigned char* _Nullable  encoding);
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLDocVersion(_CFXMLDocPtr doc);
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDocVersion(_CFXMLDocPtr doc);
 void _CFXMLDocSetVersion(_CFXMLDocPtr doc, const unsigned char* version);
 int _CFXMLDocProperties(_CFXMLDocPtr doc);
 void _CFXMLDocSetProperties(_CFXMLDocPtr doc, int newProperties);
 
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLEncodeEntities(_CFXMLDocPtr doc, const unsigned char* string);
-__nullable _CFXMLEntityPtr _CFXMLGetDocEntity(_CFXMLDocPtr doc, const char* entity);
-__nullable _CFXMLEntityPtr _CFXMLGetDTDEntity(_CFXMLDocPtr doc, const char* entity);
-__nullable _CFXMLEntityPtr _CFXMLGetParameterEntity(_CFXMLDocPtr doc, const char* entity);
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLEncodeEntities(_CFXMLDocPtr doc, const unsigned char* string);
+_CFXMLEntityPtr _Nullable _CFXMLGetDocEntity(_CFXMLDocPtr doc, const char* entity);
+_CFXMLEntityPtr _Nullable _CFXMLGetDTDEntity(_CFXMLDocPtr doc, const char* entity);
+_CFXMLEntityPtr _Nullable _CFXMLGetParameterEntity(_CFXMLDocPtr doc, const char* entity);
 
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLGetEntityContent(_CFXMLEntityPtr entity);
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLGetEntityContent(_CFXMLEntityPtr entity);
 
 CF_RETURNS_RETAINED CFStringRef _CFXMLStringWithOptions(_CFXMLNodePtr node, uint32_t options);
 
-CF_RETURNS_RETAINED __nullable CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const unsigned char* xpath);
+CF_RETURNS_RETAINED CFArrayRef _Nullable _CFXMLNodesForXPath(_CFXMLNodePtr node, const unsigned char* xpath);
 
-__nullable _CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const unsigned char* propertyName);
+_CFXMLNodePtr _Nullable _CFXMLNodeHasProp(_CFXMLNodePtr node, const unsigned char* propertyName);
 
 _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options);
 
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodeLocalName(_CFXMLNodePtr node);
-CF_RETURNS_RETAINED __nullable CFStringRef _CFXMLNodePrefix(_CFXMLNodePtr node);
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNodeLocalName(_CFXMLNodePtr node);
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNodePrefix(_CFXMLNodePtr node);
 
 void _CFXMLFreeNode(_CFXMLNodePtr node);
 void _CFXMLFreeDocument(_CFXMLDocPtr doc);
