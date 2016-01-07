@@ -184,21 +184,17 @@ extension NSSet {
         self.init(array: [object])
     }
     
-    // public convenience init(set: Set<NSObject>) {
-    //     self.init(set: set, copyItems: false)
-    // }
+     public convenience init(set: Set<NSObject>) {
+         self.init(set: set, copyItems: false)
+     }
 
-    // public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
-    //     var array = Array<NSObject>()
-    //     for object in set {
-    //         var value = object
-    //         if flag {
-    //             value = object.copy() as! NSObject
-    //         }
-    //         array.append(value)
-    //     }
-    //     self.init(array: array)
-    // }
+     public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
+        var array = set.bridge().allObjects
+        if (flag) {
+            array = array.map() { ($0 as! NSObject).copy() }
+        }
+        self.init(array: array)
+     }
 
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
@@ -431,7 +427,7 @@ public class NSCountedSet : NSMutableSet {
     public required init(capacity numItems: Int) { NSUnimplemented() }
     
 //    public convenience init(array: [AnyObject]) { NSUnimplemented() }
-    public convenience init(set: Set<NSObject>) { NSUnimplemented() }
+//    public convenience init(set: Set<NSObject>) { NSUnimplemented() }
     public required convenience init?(coder: NSCoder) { NSUnimplemented() }
     
     public func countForObject(object: AnyObject) -> Int { NSUnimplemented() }
