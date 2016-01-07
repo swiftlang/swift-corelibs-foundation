@@ -76,18 +76,6 @@ CF_PRIVATE void _CFBundleResourcesInitialize() { }
 #pragma mark -
 #pragma mark Product and Platform Getters - Exported
 
-static CFStringRef _cfBundlePlatform = NULL;
-CF_EXPORT void _CFSetProductName(CFStringRef str) {
-    // TODO: This should be removed. The "CLASSIC" check below removes the need to set the product name manually.
-    if (str) CFRetain(str);
-    _cfBundlePlatform = str;
-    // Note that the previous value is leaked, which is fine normally
-    // because the initial values would tend to be the constant strings
-    // below. That is required for thread-safety value due to the Get
-    // function [not being Copy]. It is also fine because people
-    // shouldn't be screwing around with this value casually.
-}
-
 CF_EXPORT CFStringRef _CFGetProductName(void) {
 #if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     if (!_cfBundlePlatform) {
