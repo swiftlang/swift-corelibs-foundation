@@ -446,56 +446,108 @@ public extension NSString {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePathIntoString(inout outputName: NSString?, caseSensitive flag: Bool, inout matchesIntoArray outputArray: [NSString], filterTypes: [String]?) -> Int {
-        // FIXME: I guess, it should be NSURL(fileURLWithPath: _storage), but it is not implemented yet.
-        guard !_storage.isEmpty else {
+        let path = _swiftObject
+        guard !path.isEmpty else {
             return 0
         }
         
-        guard let url = NSURL(string: _storage) else {
+        let url = NSURL(fileURLWithPath: path)
+        
+        let searchAllFilesInDirectory = _stringIsPathToDirectory(path)
+        let namePrefix = searchAllFilesInDirectory ? nil : url.lastPathComponent
+        let checkFileName = _getFileNamePredicate(namePrefix, caseSensetive: flag)
+        let checkExtension = _getExtensionPredicate(filterTypes, caseSensetive: flag)
+        
+        guard let
+            resolvedURL = url._resolveSymlinksInPath(excludeSystemDirs: false),
+            urlWhereToSearch = searchAllFilesInDirectory ? resolvedURL : resolvedURL.URLByDeletingLastPathComponent
+        else {
             return 0
         }
-        
-        let normalizedTypes = flag ? filterTypes : filterTypes?.map { $0.lowercaseString }
-        let types = Set<String>(normalizedTypes ?? [])
-        let compareOptions = flag ? [] : NSStringCompareOptions.CaseInsensitiveSearch
-        
-        var isDirectory = false
-        let isAbsolutePath = NSFileManager.defaultManager().fileExistsAtPath(_storage, isDirectory: &isDirectory)
-        let searchAllFilesInDirectory = isAbsolutePath && isDirectory
-        
-        guard let urlWhereToSearch = searchAllFilesInDirectory ? url : url.URLByDeletingLastPathComponent else {
-            return 0
-        }
-        
-        var matches: [String] = []
-        
-        let namePrefix = url.lastPathComponent ?? ""
 
-        let enumerator = NSFileManager.defaultManager().enumeratorAtURL(urlWhereToSearch, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil)
+        var matches = _getNamesAtURL(urlWhereToSearch, prependWith: "", namePredicate: checkFileName, typePredicate: checkExtension)
         
-        while let item = enumerator?.nextObject() as? NSURL {
-            
-            let itemName = item.lastPathComponent ?? ""
-            let itemExtension = item.pathExtension ?? ""
-            let normalizedExtension = flag ? itemExtension : itemExtension.lowercaseString
-            
-            let matchByName = searchAllFilesInDirectory || itemName.bridge().rangeOfString(namePrefix, options: compareOptions).location == 0
-            let matchByExtension = types.isEmpty || types.contains(normalizedExtension)
-            
-            if matchByName && matchByExtension {
-                matches.append(itemName)
+        if matches.count == 1 {
+            let theOnlyFoundItem = NSURL(fileURLWithPath: matches[0], relativeToURL: urlWhereToSearch)
+            if theOnlyFoundItem.hasDirectoryPath {
+                matches = _getNamesAtURL(theOnlyFoundItem, prependWith: matches[0], namePredicate: { _ in true }, typePredicate: checkExtension)
             }
         }
         
-        let commonPath = urlWhereToSearch.absoluteString!.bridge().stringByReplacingOccurrencesOfString("file://", withString: "")
+        let commonPath = searchAllFilesInDirectory ? path : _ensureLastPathSeparator(stringByDeletingLastPathComponent)
         
-        if let lcp = _longestCommonPrefix(matches, caseSensitive: flag) {
-           outputName = (commonPath + lcp).bridge()
+        if searchAllFilesInDirectory {
+            outputName = "/"
+        } else {            
+            if let lcp = _longestCommonPrefix(matches, caseSensitive: flag) {
+                outputName = (commonPath + lcp).bridge()
+            }
         }
         
         outputArray = matches.map({ (commonPath + $0).bridge() })
         
         return matches.count
+    }
+
+    internal func _stringIsPathToDirectory(path: String) -> Bool {
+        if !path.hasSuffix("/") {
+            return false
+        }
+        
+        var isDirectory = false
+        let exists = NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDirectory)
+        return exists && isDirectory
+    }
+    
+    internal typealias _FileNamePredicate = String? -> Bool
+    
+    internal func _getNamesAtURL(filePathURL: NSURL, prependWith: String, namePredicate: _FileNamePredicate, typePredicate: _FileNamePredicate) -> [String] {
+        var result: [String] = []
+        
+        if let enumerator = NSFileManager.defaultManager().enumeratorAtURL(filePathURL, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
+            for item in enumerator.lazy.map({ $0 as! NSURL }) {
+                let itemName = item.lastPathComponent
+                
+                let matchByName = namePredicate(itemName)
+                let matchByExtension = typePredicate(item.pathExtension)
+                
+                if matchByName && matchByExtension {
+                    if prependWith.isEmpty {
+                        result.append(itemName!)
+                    } else {
+                        result.append(prependWith.bridge().stringByAppendingPathComponent(itemName!))
+                    }
+                }
+            }
+        }
+        
+        return result
+    }
+    
+    internal func _getExtensionPredicate(extensions: [String]?, caseSensetive: Bool) -> _FileNamePredicate {
+        guard let exts = extensions else {
+            return { _ in true }
+        }
+        
+        if caseSensetive {
+            let set = Set(exts)
+            return { $0 != nil && set.contains($0!) }
+        } else {
+            let set = Set(exts.map { $0.lowercaseString })
+            return { $0 != nil && set.contains($0!.lowercaseString) }
+        }
+    }
+    
+    internal func _getFileNamePredicate(prefix: String?, caseSensetive: Bool) -> _FileNamePredicate {
+        guard let thePrefix = prefix else {
+            return { _ in true }
+        }
+
+        if caseSensetive {
+            return { $0 != nil && $0!.hasPrefix(thePrefix) }
+        } else {
+            return { $0 != nil && $0!.bridge().rangeOfString(thePrefix, options: .CaseInsensitiveSearch).location == 0 }
+        }
     }
     
     internal func _longestCommonPrefix(strings: [String], caseSensitive: Bool) -> String? {
@@ -534,6 +586,14 @@ public extension NSString {
         }
         
         return String(prefix)
+    }
+    
+    internal func _ensureLastPathSeparator(path: String) -> String {
+        if path.hasSuffix("/") || path.isEmpty {
+            return path
+        }
+        
+        return path + "/"
     }
     
     public var fileSystemRepresentation : UnsafePointer<Int8> {

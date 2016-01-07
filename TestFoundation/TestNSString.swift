@@ -376,12 +376,7 @@ class TestNSString : XCTestCase {
         }
 
         let tmpPath = { (path: String) -> NSString in
-        	#if os(Linux)
-        	let tmp = "/tmp/"
-        	#else
-        	let tmp = "/private/tmp/" // no symlink support yet
-        	#endif
-        	return "\(tmp)\(path)".bridge()
+        	return "/tmp/\(path)".bridge()
         }
 
         do {
@@ -390,7 +385,7 @@ class TestNSString : XCTestCase {
             var matches: [NSString] = []
             _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
             _ = try NSFileManager.defaultManager().contentsOfDirectoryAtURL(NSURL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
-            XCTAssert(outName == path, "If NSString is valid path to directory then outName is string itself.")
+            XCTAssert(outName == "/", "If NSString is valid path to directory which has '/' suffix then outName is '/'.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389
 //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")
         } catch {
@@ -398,11 +393,45 @@ class TestNSString : XCTestCase {
         }
         
         do {
+            let path: NSString = "/tmp"
+            var outName: NSString?
+            var matches: [NSString] = []
+            _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            let urlToTmp = NSURL(fileURLWithPath: "/private/tmp/").URLByStandardizingPath!
+            _ = try NSFileManager.defaultManager().contentsOfDirectoryAtURL(urlToTmp, includingPropertiesForKeys: nil, options: [])
+            XCTAssert(outName == "/tmp/", "If path could be completed to existing directory then outName is a string itself plus '/'.")
+            // This assert fails on CI; https://bugs.swift.org/browse/SR-389
+            //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")
+        } catch {
+            XCTAssert(false, "Could not finish test due to error")
+        }
+        
+        let fileNames2 = [
+            "/tmp/ABC/",
+            "/tmp/ABCD/",
+            "/tmp/abcde"
+        ]
+        
+        guard ensureFiles(fileNames2) else {
+            XCTAssert(false, "Could not create temp files for testing.")
+            return
+        }
+        
+        do {
+            let path: NSString = tmpPath("ABC")
+            var outName: NSString?
+            var matches: [NSString] = []
+            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, path), "If NSString is valid path to directory then outName is string itself.")
+            XCTAssert(matches.count == count && count == fileNames2.count, "")
+        }
+        
+        do {
             let path: NSString = tmpPath("Test_completePathIntoString_01")
             var outName: NSString?
             var matches: [NSString] = []
             let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, path), "If NSString is valid path to file and search is case sensitive then outName is string itself.")
+            XCTAssert(outName == path, "If NSString is valid path to file and search is case sensitive then outName is string itself.")
             XCTAssert(matches.count == 1 && count == 1 && stringsAreCaseInsensitivelyEqual(matches[0], path), "If NSString is valid path to file and search is case sensitive then matches contain that file path only")
         }
         
@@ -473,6 +502,17 @@ class TestNSString : XCTestCase {
             XCTAssert(matches.count == 3 && count == 3, "Supports filtration by type")
         }
         
+        do {
+            // will be resolved against current working directory that is directory there results of build process are stored
+            let path: NSString = "TestFoundation"
+            var outName: NSString?
+            var matches: [NSString] = []
+            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            // Build directory at least contains executable itself and *.swiftmodule directory
+            XCTAssert(matches.count == count && count >= 2, "Supports relative paths.")
+            XCTAssert(startWith(path.bridge(), strings: matches), "For relative paths matches are relative too.")
+        }
+        
         // Next check has no sense on Linux due to case sensitive file system.
         #if os(OSX)
         guard ensureFiles(["/tmp/ABC/temp.txt"]) else {
@@ -490,6 +530,16 @@ class TestNSString : XCTestCase {
             XCTAssert(matches.count >= 1 && count >= 1, "There are matches")
         }
         #endif
+    }
+    
+    private func startWith(prefix: String, strings: [NSString]) -> Bool {
+        for item in strings {
+            guard item.hasPrefix(prefix) else {
+                return false
+            }
+        }
+        
+        return true
     }
     
     private func stringsAreCaseInsensitivelyEqual(lhs: NSString, _ rhs: NSString) -> Bool {

@@ -23,21 +23,30 @@ func ensureFiles(fileNames: [String]) -> Bool {
             continue
         }
         
-        var isDir: ObjCBool = false
-        let dir = name.bridge().stringByDeletingLastPathComponent
-        if !fm.fileExistsAtPath(dir, isDirectory: &isDir) {
+        if name.hasSuffix("/") {
             do {
-                try fm.createDirectoryAtPath(dir, withIntermediateDirectories: true, attributes: nil)
+                try fm.createDirectoryAtPath(name, withIntermediateDirectories: true, attributes: nil)
             } catch let err {
                 print(err)
                 return false
             }
-        } else if !isDir {
-            return false
+        } else {
+        
+            var isDir: ObjCBool = false
+            let dir = name.bridge().stringByDeletingLastPathComponent
+            if !fm.fileExistsAtPath(dir, isDirectory: &isDir) {
+                do {
+                    try fm.createDirectoryAtPath(dir, withIntermediateDirectories: true, attributes: nil)
+                } catch let err {
+                    print(err)
+                    return false
+                }
+            } else if !isDir {
+                return false
+            }
+            
+            result = result && fm.createFileAtPath(name, contents: nil, attributes: nil)
         }
-        
-        
-        result = result && fm.createFileAtPath(name, contents: nil, attributes: nil)
     }
     return result
 }
