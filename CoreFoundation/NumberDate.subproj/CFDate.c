@@ -99,16 +99,16 @@ CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
     CFDateGetTypeID();
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     uint64_t tsr = mach_absolute_time();
+    return (CFTimeInterval)((double)tsr * __CF1_TSRRate);
 #elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     struct timespec res;
     if (clock_gettime(CLOCK_MONOTONIC, &res) != 0) {
         HALT;
     }
-    uint64_t tsr = res.tv_sec + (1000000000 * res.tv_nsec);
+    return (double)res.tv_sec + ((double)res.tv_nsec)/1.0E9;
 #else
 #error Unable to calculate uptime for this platform
 #endif
-    return (CFTimeInterval)((double)tsr * __CF1_TSRRate);
 }
 #endif
 
