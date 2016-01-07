@@ -129,17 +129,31 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        if self.dynamicType === NSSet.self {
+            // return self for immutable type
+            return self
+        } else if self.dynamicType === NSMutableSet.self {
+            let set = NSSet()
+            set._storage = self._storage
+            return set
+        }
+        return NSSet(array: self.allObjects)
     }
     
     public override func mutableCopy() -> AnyObject {
         return mutableCopyWithZone(nil)
     }
-    
+
     public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
-        NSUnimplemented()
+        if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
+            // always create and return an NSMutableSet
+            let mutableSet = NSMutableSet()
+            mutableSet._storage = self._storage
+            return mutableSet
+        }
+        return NSMutableSet(array: self.allObjects)
     }
-    
+
     public static func supportsSecureCoding() -> Bool {
         return true
     }
@@ -170,21 +184,17 @@ extension NSSet {
         self.init(array: [object])
     }
     
-    // public convenience init(set: Set<NSObject>) {
-    //     self.init(set: set, copyItems: false)
-    // }
+     public convenience init(set: Set<NSObject>) {
+         self.init(set: set, copyItems: false)
+     }
 
-    // public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
-    //     var array = Array<NSObject>()
-    //     for object in set {
-    //         var value = object
-    //         if flag {
-    //             value = object.copy() as! NSObject
-    //         }
-    //         array.append(value)
-    //     }
-    //     self.init(array: array)
-    // }
+     public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
+        var array = set.bridge().allObjects
+        if (flag) {
+            array = array.map() { ($0 as! NSObject).copy() }
+        }
+        self.init(array: array)
+     }
 
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
@@ -417,7 +427,7 @@ public class NSCountedSet : NSMutableSet {
     public required init(capacity numItems: Int) { NSUnimplemented() }
     
 //    public convenience init(array: [AnyObject]) { NSUnimplemented() }
-    public convenience init(set: Set<NSObject>) { NSUnimplemented() }
+//    public convenience init(set: Set<NSObject>) { NSUnimplemented() }
     public required convenience init?(coder: NSCoder) { NSUnimplemented() }
     
     public func countForObject(object: AnyObject) -> Int { NSUnimplemented() }

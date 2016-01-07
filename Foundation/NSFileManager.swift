@@ -293,20 +293,17 @@ public class NSFileManager : NSObject {
                         return Int32(int32Ptr.memory)
                     }) {
                         #if os(OSX) || os(iOS)
-                            if entryType == DT_DIR {
-                                let subPath: String = path + "/" + entryName
-                                
-                                let entries =  try subpathsOfDirectoryAtPath(subPath)
-                                contents.appendContentsOf(entries.map({file in "\(entryName)/\(file)"}))
-                            }
+                            let tempEntryType = entryType
                         #elseif os(Linux)
-                            if Int(entryType) == DT_DIR {
-                                let subPath: String = path + "/" + entryName
-                                
-                                let entries =  try subpathsOfDirectoryAtPath(subPath)
-                                contents.appendContentsOf(entries.map({file in "\(entryName)/\(file)"}))
-                            }
+                            let tempEntryType = Int(entryType)
                         #endif
+                        
+                        if tempEntryType == DT_DIR {
+                            let subPath: String = path + "/" + entryName
+                            
+                            let entries =  try subpathsOfDirectoryAtPath(subPath)
+                            contents.appendContentsOf(entries.map({file in "\(entryName)/\(file)"}))
+                        }
                     }
                 }
             }

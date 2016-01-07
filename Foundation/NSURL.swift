@@ -149,9 +149,9 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeToURL: nil)
     }
     
-    public init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeToURL baseURL: NSURL?) {
-        // TODO: Not sure if this one is required
-        NSUnimplemented()
+    public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeToURL baseURL: NSURL?) {
+        let pathString = String.fromCString(path)!
+        self.init(fileURLWithPath: pathString, isDirectory: isDir, relativeToURL: baseURL)
     }
     
     public convenience init?(string URLString: String) {
@@ -344,8 +344,22 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     /* Returns the URL's path in file system representation. File system representation is a null-terminated C string with canonical UTF-8 encoding. The returned C string will be automatically freed just as a returned object would be released; your code should copy the representation or use getFileSystemRepresentation:maxLength: if it needs to store the representation outside of the autorelease context in which the representation is created.
     */
+    
+    // Memory leak. See https://github.com/apple/swift-corelibs-foundation/blob/master/Docs/Issues.md
     public var fileSystemRepresentation: UnsafePointer<Int8> {
-        NSUnimplemented()
+        
+        let bufSize = Int(PATH_MAX + 1)
+        
+        let _fsrBuffer = UnsafeMutablePointer<Int8>.alloc(bufSize)
+        for i in 0..<bufSize {
+            _fsrBuffer.advancedBy(i).initialize(0)
+        }
+        
+        if getFileSystemRepresentation(_fsrBuffer, maxLength: bufSize) {
+            return UnsafePointer(_fsrBuffer)
+        }
+
+        return nil
     }
     
     // Whether the scheme is file:; if [myURL isFileURL] is YES, then [myURL path] is suitable for input into NSFileManager or NSPathUtilities.

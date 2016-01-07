@@ -225,8 +225,10 @@ public class NSBundle : NSObject {
     // -----------------------------------------------------------------------------------
     // MARK: - Localized Strings
     
-    public func localizedStringForKey(key: String, value: String?, table tableName: String?) -> String { NSUnimplemented() }
-    
+    public func localizedStringForKey(key: String, value: String?, table tableName: String?) -> String {
+        let localizedString = CFBundleCopyLocalizedString(_bundle, key._cfObject, value?._cfObject, tableName?._cfObject)
+        return localizedString._swiftObject
+    }
     
     // -----------------------------------------------------------------------------------
     // MARK: - Other
@@ -251,7 +253,13 @@ public class NSBundle : NSObject {
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    public func objectForInfoDictionaryKey(key: String) -> AnyObject? { NSUnimplemented() }
+    public func objectForInfoDictionaryKey(key: String) -> Any? {
+        if let localizedInfoDictionary = localizedInfoDictionary {
+            return localizedInfoDictionary[key]
+        } else {
+            return infoDictionary?[key]
+        }
+    }
     
     public func classNamed(className: String) -> AnyClass? { NSUnimplemented() }
     public var principalClass: AnyClass? { NSUnimplemented() }
@@ -263,13 +271,26 @@ public class NSBundle : NSObject {
         let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
         return nsLocalizations?.map { $0 as! String } ?? []
     }
-    public var developmentLocalization: String? { NSUnimplemented() }
+
+    public var developmentLocalization: String? {
+        let region = CFBundleGetDevelopmentRegion(_bundle)
+        return region._swiftObject
+    }
+
     public class func preferredLocalizationsFromArray(localizationsArray: [String]) -> [String] {
         let cfLocalizations: CFArray? = CFBundleCopyPreferredLocalizationsFromArray(localizationsArray._cfObject)
         let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
         return nsLocalizations?.map { $0 as! String } ?? []
     }
-    public class func preferredLocalizationsFromArray(localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] { NSUnimplemented() }
-    public var executableArchitectures: [NSNumber]? { NSUnimplemented() }
+    
+	public class func preferredLocalizationsFromArray(localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] {
+        let localizations = CFBundleCopyLocalizationsForPreferences(localizationsArray._cfObject, preferencesArray?._cfObject)
+        return localizations._swiftObject.map { return ($0 as! NSString)._swiftObject }
+    }
+	
+	public var executableArchitectures: [NSNumber]? {
+        let architectures = CFBundleCopyExecutableArchitectures(_bundle)
+        return architectures._swiftObject.map() { $0 as! NSNumber }
+    }
 }
 
