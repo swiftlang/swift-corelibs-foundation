@@ -454,8 +454,8 @@ public extension NSString {
         
         let searchAllFilesInDirectory = _stringIsPathToDirectory(_storage)
         let namePrefix = searchAllFilesInDirectory ? nil : url.lastPathComponent
-        let checkFileName = _getFileNameChecker(namePrefix, caseSensetive: flag)
-        let checkExtension = _getExtensionChecker(filterTypes, caseSensetive: flag)
+        let checkFileName = _getFileNamePredicate(namePrefix, caseSensetive: flag)
+        let checkExtension = _getExtensionPredicate(filterTypes, caseSensetive: flag)
         
         guard let
             resolvedURL = url._resolveSymlinksInPath(excludeSystemDirs: false),
@@ -464,12 +464,12 @@ public extension NSString {
             return 0
         }
 
-        var matches = _getNamesAtURL(urlWhereToSearch, prependWith: "", nameValidator: checkFileName, typeValidator: checkExtension)
+        var matches = _getNamesAtURL(urlWhereToSearch, prependWith: "", namePredicate: checkFileName, typePredicate: checkExtension)
         
         if matches.count == 1 {
             let theOnlyFoundItem = NSURL(fileURLWithPath: matches[0], relativeToURL: urlWhereToSearch)
             if theOnlyFoundItem.hasDirectoryPath {
-                matches = _getNamesAtURL(theOnlyFoundItem, prependWith: matches[0], nameValidator: { _ in true }, typeValidator: checkExtension)
+                matches = _getNamesAtURL(theOnlyFoundItem, prependWith: matches[0], namePredicate: { _ in true }, typePredicate: checkExtension)
             }
         }
         
@@ -494,21 +494,21 @@ public extension NSString {
         }
         
         var isDirectory = false
-        let isAbsolutePath = NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDirectory)
-        return isAbsolutePath && isDirectory
+        let exists = NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDirectory)
+        return exists && isDirectory
     }
     
     internal typealias _FileNamePredicate = String? -> Bool
     
-    internal func _getNamesAtURL(filePathURL: NSURL, prependWith: String, nameValidator: _FileNamePredicate, typeValidator: _FileNamePredicate) -> [String] {
+    internal func _getNamesAtURL(filePathURL: NSURL, prependWith: String, namePredicate: _FileNamePredicate, typePredicate: _FileNamePredicate) -> [String] {
         var result: [String] = []
         
         if let enumerator = NSFileManager.defaultManager().enumeratorAtURL(filePathURL, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
             for item in enumerator.lazy.map({ $0 as! NSURL }) {
                 let itemName = item.lastPathComponent
                 
-                let matchByName = nameValidator(itemName)
-                let matchByExtension = typeValidator(item.pathExtension)
+                let matchByName = namePredicate(itemName)
+                let matchByExtension = typePredicate(item.pathExtension)
                 
                 if matchByName && matchByExtension {
                     if prependWith.isEmpty {
@@ -523,7 +523,7 @@ public extension NSString {
         return result
     }
     
-    internal func _getExtensionChecker(extensions: [String]?, caseSensetive: Bool) -> _FileNamePredicate {
+    internal func _getExtensionPredicate(extensions: [String]?, caseSensetive: Bool) -> _FileNamePredicate {
         guard let exts = extensions else {
             return { _ in true }
         }
@@ -537,7 +537,7 @@ public extension NSString {
         }
     }
     
-    internal func _getFileNameChecker(prefix: String?, caseSensetive: Bool) -> _FileNamePredicate {
+    internal func _getFileNamePredicate(prefix: String?, caseSensetive: Bool) -> _FileNamePredicate {
         guard let thePrefix = prefix else {
             return { _ in true }
         }
