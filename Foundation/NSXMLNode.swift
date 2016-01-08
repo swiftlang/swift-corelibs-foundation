@@ -849,7 +849,9 @@ public class NSXMLNode : NSObject, NSCopying {
     }
 }
 
-extension NSXMLNode: CollectionType {
+internal protocol _NSXMLNodeCollectionType: CollectionType { }
+
+extension NSXMLNode: _NSXMLNodeCollectionType {
     public struct Index: BidirectionalIndexType {
         private let node: _CFXMLNodePtr
 

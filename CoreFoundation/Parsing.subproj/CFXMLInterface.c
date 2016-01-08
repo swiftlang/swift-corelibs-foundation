@@ -362,8 +362,6 @@ CFStringRef _CFXMLNodeGetContent(_CFXMLNodePtr node) {
     return result;
 }
 
-const char* _getCStringFromCFString(CFStringRef string);
-
 void _CFXMLNodeSetContent(_CFXMLNodePtr node, const unsigned char* _Nullable  content) {
     if (content == NULL) {
         xmlNodeSetContent(node, nil);

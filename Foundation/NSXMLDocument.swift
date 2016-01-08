@@ -63,9 +63,9 @@ public class NSXMLDocument : NSXMLNode {
         @abstract Returns a document created from either XML or HTML, if the HTMLTidy option is set. Parse errors are returned in <tt>error</tt>.
     */
     public convenience init(XMLString string: String, options mask: Int) throws {
-        let data: NSData = string.withCString {
-            (stringPtr: UnsafePointer<CChar>) -> NSData in
-            return NSData(bytes: UnsafeMutablePointer<Void>(stringPtr), length: Int(strlen(stringPtr)) + 1, copy: true, deallocator: nil)
+        guard let data = string._bridgeToObject().dataUsingEncoding(NSUTF8StringEncoding) else {
+            // TODO: Throw an error
+            fatalError("String: '\(string)' could not be converted to NSData using UTF-8 encoding")
         }
 
         try self.init(data: data, options: mask)
