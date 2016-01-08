@@ -21,6 +21,7 @@ class TestNSThread : XCTestCase {
     var allTests : [(String, () -> Void)] {
         return [
             ("test_currentThread", test_currentThread ),
+            ("test_threadStart", test_threadStart),
         ]
     }
 
@@ -30,5 +31,22 @@ class TestNSThread : XCTestCase {
         XCTAssertNotNil(thread1)
         XCTAssertNotNil(thread2)
         XCTAssertEqual(thread1, thread2)
+    }
+    
+    func test_threadStart() {
+        var started = false
+        let condition = NSCondition()
+        let thread = NSThread() {
+            condition.lock()
+            started = true
+            condition.broadcast()
+            condition.unlock()
+        }
+        thread.start()
+        
+        condition.lock()
+        condition.wait()
+        condition.unlock()
+        XCTAssertTrue(started)
     }
 }

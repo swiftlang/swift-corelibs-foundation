@@ -169,6 +169,9 @@ public class NSThread : NSObject {
     
     public init(_ main: (Void) -> Void) {
         _main = main
+        withUnsafeMutablePointer(&_attr) { attr in
+            pthread_attr_init(attr)
+        }
     }
     
     public func start() {
