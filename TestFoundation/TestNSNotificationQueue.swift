@@ -123,28 +123,37 @@ class TestNSNotificationQueue : XCTestCase {
             notificationQueue = NSNotificationQueue(notificationCenter: NSNotificationCenter())
             XCTAssertNotNil(notificationQueue)
         }
-
+        
         XCTAssertNil(notificationQueue)
     }
 
     // MARK: Private
 
-    private func executeInBackgroundThread(operation: () -> ()) {
+    private func executeInBackgroundThread(operation: () -> ()) -> Bool {
         var isFinished = false
+        let lock = NSLock()
         let bgThread = NSThread() {
             operation()
+            lock.lock()
             isFinished = true
+            lock.unlock()
         }
         bgThread.start()
 
-        self.waitForExpectation({ isFinished }, withTimeout: 0.2)
+        return self.waitForExpectation({
+            lock.lock()
+            let finished = isFinished
+            lock.unlock()
+            return finished
+        }, withTimeout: 0.2)
     }
 
-    private func waitForExpectation(expectation: () -> Bool, withTimeout timeout: NSTimeInterval) {
+    private func waitForExpectation(expectation: () -> Bool, withTimeout timeout: NSTimeInterval) -> Bool {
         let timeoutDate = NSDate(timeIntervalSinceNow: timeout)
         while !expectation() && timeoutDate.timeIntervalSinceNow > 0.0 {
             NSRunLoop.currentRunLoop().runUntilDate(NSDate(timeIntervalSinceNow: 0.01))
         }
+        return expectation()
     }
 
 }
