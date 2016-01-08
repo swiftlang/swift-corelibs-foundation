@@ -155,7 +155,15 @@ extension NSError : _CFBridgable { }
 extension CFErrorRef : _NSBridgable {
     typealias NSType = NSError
     internal var _nsObject: NSType {
-        return NSError(domain: CFErrorGetDomain(self)._swiftObject, code: CFErrorGetCode(self), userInfo: nil)
+        let userInfo = CFErrorCopyUserInfo(self)._swiftObject
+        var newUserInfo: [String: Any] = [:]
+        for (key, value) in userInfo {
+            if let key = key as? NSString {
+                newUserInfo[key._swiftObject] = value
+            }
+        }
+
+        return NSError(domain: CFErrorGetDomain(self)._swiftObject, code: CFErrorGetCode(self), userInfo: newUserInfo)
     }
 }
 
