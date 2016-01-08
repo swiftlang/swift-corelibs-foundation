@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
+import CoreFoundation
 /*!
     @class NSXMLDTD
     @abstract Defines the order, repetition, and allowable values for a document
@@ -96,6 +96,21 @@ public class NSXMLDTD : NSXMLNode {
     	<ul><li>&amp;lt; - &lt;</li><li>&amp;gt; - &gt;</li><li>&amp;amp; - &amp;</li><li>&amp;quot; - &quot;</li><li>&amp;apos; - &amp;</li></ul>
     */
     public class func predefinedEntityDeclarationForName(name: String) -> NSXMLDTDNode? { NSUnimplemented() }
+    
+    internal override class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLDTD {
+        precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDTD)
+
+        if _CFXMLNodeGetPrivateData(node) != nil {
+            let unmanaged = Unmanaged<NSXMLDTD>.fromOpaque(_CFXMLNodeGetPrivateData(node))
+            return unmanaged.takeUnretainedValue()
+        }
+        
+        return NSXMLDTD(ptr: node)
+    }
+    
+    internal override init(ptr: _CFXMLNodePtr) {
+        super.init(ptr: ptr)
+    }
 }
 
 

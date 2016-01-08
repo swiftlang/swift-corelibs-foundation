@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
+import CoreFoundation
 /*!
     @typedef NSXMLDTDNodeKind
 	@abstract The subkind of a DTD node kind.

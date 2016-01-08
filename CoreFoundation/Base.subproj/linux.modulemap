@@ -7,3 +7,4 @@ module CoreFoundation [extern_c] [system] {
         export *
     }
 }
+

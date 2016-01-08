@@ -231,6 +231,8 @@
 		CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */; };
 		D834F9941C31C4060023812A /* TestNSOrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D834F9931C31C4060023812A /* TestNSOrderedSet.swift */; };
 		DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
+		E19E17DC1C2225930023AF4D /* TestNSXMLDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */; };
+		E1A3726F1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */; };
 		E876A73E1C1180E000F279EC /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
 		EA66F6361BEED03E00136161 /* TargetConditionals.h in Headers */ = {isa = PBXBuildFile; fileRef = EA66F6351BEED03E00136161 /* TargetConditionals.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EA66F6441BF1619600136161 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6381BF1619600136161 /* main.swift */; };
@@ -580,6 +582,8 @@
 		CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NSStringTestData.txt; sourceTree = "<group>"; };
 		D834F9931C31C4060023812A /* TestNSOrderedSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOrderedSet.swift; sourceTree = "<group>"; };
 		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
+		E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLDocument.swift; sourceTree = "<group>"; };
+		E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = NSXMLDocumentTestData.xml; sourceTree = "<group>"; };
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
 		EA313DFC1BE7F2E90060A403 /* CFURLComponents_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLComponents_Internal.h; sourceTree = "<group>"; };
 		EA313DFD1BE7F2E90060A403 /* CFURLComponents_URIParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLComponents_URIParser.c; sourceTree = "<group>"; };
@@ -1065,6 +1069,7 @@
 				CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */,
 				528776181BF27D9500CB0090 /* Test.plist */,
 				EA66F63B1BF1619600136161 /* NSURLTestData.plist */,
+				E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -1112,6 +1117,7 @@
 				AA664D4E1C1B03CA00C22186 /* TestNSNumberFormatter.swift */,
 				45BBD92A1C30E9C200540DDB /* TestNSTask.swift */,
 				8460AACB1C3307D700B01413 /* TestUtils.swift */,
+				E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1617,6 +1623,7 @@
 				528776191BF27D9500CB0090 /* Test.plist in Resources */,
 				EA66F6481BF1619600136161 /* NSURLTestData.plist in Resources */,
 				CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */,
+				E1A3726F1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1813,6 +1820,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E19E17DC1C2225930023AF4D /* TestNSXMLDocument.swift in Sources */,
 				400E22651C1A4E58007C5933 /* TestNSProcessInfo.swift in Sources */,
 				525AECED1BF2C9C500D15BB0 /* TestNSFileManager.swift in Sources */,
 				5B915F0F1C1A320E00BE40C5 /* TestNSJSONSerialization.swift in Sources */,
@@ -1849,7 +1857,6 @@
 				6E203B8D1C1303BB003B2576 /* TestNSBundle.swift in Sources */,
 				88D28DE71C13AE9000494606 /* TestNSGeometry.swift in Sources */,
 				EA66F64C1BF1619600136161 /* TestNSDictionary.swift in Sources */,
-				ED58F76F1C134B3A00E6A5BE /* (null) in Sources */,
 				AA664D4F1C1B03CA00C22186 /* TestNSNumberFormatter.swift in Sources */,
 				EA66F6581BF1619600136161 /* TestNSURL.swift in Sources */,
 				61D6C9EF1C1DFE9500DEF583 /* TestNSTimer.swift in Sources */,
@@ -1977,7 +1984,10 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
-				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
+				HEADER_SEARCH_PATHS = (
+					"$(CONFIGURATION_BUILD_DIR)/usr/local/include",
+					/usr/include/libxml2,
+				);
 				INFOPLIST_FILE = Foundation/Info.plist;
 				INIT_ROUTINE = "___CFInitialize";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -2044,7 +2054,10 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
-				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
+				HEADER_SEARCH_PATHS = (
+					"$(CONFIGURATION_BUILD_DIR)/usr/local/include",
+					/usr/include/libxml2,
+				);
 				INFOPLIST_FILE = Foundation/Info.plist;
 				INIT_ROUTINE = "___CFInitialize";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -2170,7 +2183,10 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
-				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
+				HEADER_SEARCH_PATHS = (
+					"$(CONFIGURATION_BUILD_DIR)/usr/local/include",
+					/usr/include/libxml2,
+				);
 				INFOPLIST_FILE = TestFoundation/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACH_O_TYPE = mh_execute;
@@ -2189,7 +2205,10 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
-				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
+				HEADER_SEARCH_PATHS = (
+					"$(CONFIGURATION_BUILD_DIR)/usr/local/include",
+					/usr/include/libxml2,
+				);
 				INFOPLIST_FILE = TestFoundation/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACH_O_TYPE = mh_execute;

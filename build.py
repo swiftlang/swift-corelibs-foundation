@@ -51,13 +51,15 @@ foundation.CFLAGS += " ".join([
 ])
 
 swift_cflags = [
-	'-I${BUILD_DIR}/Foundation/usr/lib/swift'
+	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
+	'-I/usr/include/libxml2'
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	swift_cflags += [
 		'-I${XCTEST_BUILD_DIR}',
 		'-L${XCTEST_BUILD_DIR}',
+		'-I/usr/include/libxml2'
 	]
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
@@ -351,6 +353,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
     'TestFoundation/Resources/NSURLTestData.plist',
     'TestFoundation/Resources/Test.plist',
     'TestFoundation/Resources/NSStringTestData.txt',
+    'TestFoundation/Resources/NSXMLDocumentTestData.xml',
 ])
 
 # TODO: Probably this should be another 'product', but for now it's simply a phase
