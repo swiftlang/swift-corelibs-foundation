@@ -18,6 +18,24 @@ import SwiftXCTest
 
 import CoreFoundation
 
+#if os(OSX) || os(iOS)
+internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.MacRoman.rawValue
+internal let kCFStringEncodingWindowsLatin1 =  CFStringBuiltInEncodings.WindowsLatin1.rawValue
+internal let kCFStringEncodingISOLatin1 =  CFStringBuiltInEncodings.ISOLatin1.rawValue
+internal let kCFStringEncodingNextStepLatin =  CFStringBuiltInEncodings.NextStepLatin.rawValue
+internal let kCFStringEncodingASCII =  CFStringBuiltInEncodings.ASCII.rawValue
+internal let kCFStringEncodingUnicode =  CFStringBuiltInEncodings.Unicode.rawValue
+internal let kCFStringEncodingUTF8 =  CFStringBuiltInEncodings.UTF8.rawValue
+internal let kCFStringEncodingNonLossyASCII =  CFStringBuiltInEncodings.NonLossyASCII.rawValue
+internal let kCFStringEncodingUTF16 = CFStringBuiltInEncodings.UTF16.rawValue
+internal let kCFStringEncodingUTF16BE =  CFStringBuiltInEncodings.UTF16BE.rawValue
+internal let kCFStringEncodingUTF16LE =  CFStringBuiltInEncodings.UTF16LE.rawValue
+internal let kCFStringEncodingUTF32 =  CFStringBuiltInEncodings.UTF32.rawValue
+internal let kCFStringEncodingUTF32BE =  CFStringBuiltInEncodings.UTF32BE.rawValue
+internal let kCFStringEncodingUTF32LE =  CFStringBuiltInEncodings.UTF32LE.rawValue
+#endif
+
+
 class TestNSString : XCTestCase {
     
     var allTests : [(String, () -> Void)] {
@@ -56,7 +74,8 @@ class TestNSString : XCTestCase {
             ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser),
             ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath),
             ("test_stringByExpandingTildeInPath", test_stringByExpandingTildeInPath),
-            ("test_stringByStandardizingPath", test_stringByStandardizingPath)
+            ("test_stringByStandardizingPath", test_stringByStandardizingPath),
+            ("test_ExternalRepresentation", test_ExternalRepresentation)
         ]
     }
 
@@ -778,6 +797,43 @@ class TestNSString : XCTestCase {
             let path: NSString = "tmp/ABC/.."
             let result = path.stringByStandardizingPath
             XCTAssertEqual(result, path.bridge(), "parent links could not be resolved for relative paths")
+        }
+    }
+    
+    func test_ExternalRepresentation() {
+        // Ensure NSString can be used to create an external data representation
+        
+        let UTF8Encoding = kCFStringEncodingUTF8
+        let UTF16Encoding = kCFStringEncodingUTF16
+        let ISOLatin1Encoding = kCFStringEncodingISOLatin1
+        
+        do {
+            let string = unsafeBitCast(NSString(string: "this is an external string that should be representable by data"), CFStringRef.self)
+            let UTF8Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF8Encoding, 0)
+            let UTF8Length = CFDataGetLength(UTF8Data)
+            XCTAssertEqual(UTF8Length, 63, "NSString should successfully produce an external UTF8 representation with a length of 63 but got \(UTF8Length) bytes")
+            
+            let UTF16Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF16Encoding, 0)
+            let UTF16Length = CFDataGetLength(UTF16Data)
+            XCTAssertEqual(UTF16Length, 128, "NSString should successfully produce an external UTF16 representation with a length of 128 but got \(UTF16Length) bytes")
+            
+            let ISOLatin1Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, ISOLatin1Encoding, 0)
+            let ISOLatin1Length = CFDataGetLength(ISOLatin1Data)
+            XCTAssertEqual(ISOLatin1Length, 63, "NSString should successfully produce an external ISOLatin1 representation with a length of 63 but got \(ISOLatin1Length) bytes")
+        }
+        
+        do {
+            let string = unsafeBitCast(NSString(string: "🐢 encoding all the way down. 🐢🐢🐢"), CFStringRef.self)
+            let UTF8Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF8Encoding, 0)
+            let UTF8Length = CFDataGetLength(UTF8Data)
+            XCTAssertEqual(UTF8Length, 44, "NSString should successfully produce an external UTF8 representation with a length of 44 but got \(UTF8Length) bytes")
+            
+            let UTF16Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF16Encoding, 0)
+            let UTF16Length = CFDataGetLength(UTF16Data)
+            XCTAssertEqual(UTF16Length, 74, "NSString should successfully produce an external UTF16 representation with a length of 74 but got \(UTF16Length) bytes")
+            
+            let ISOLatin1Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, ISOLatin1Encoding, 0)
+            XCTAssertNil(ISOLatin1Data)
         }
     }
 }
