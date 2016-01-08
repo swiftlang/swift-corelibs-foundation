@@ -803,9 +803,9 @@ class TestNSString : XCTestCase {
     func test_ExternalRepresentation() {
         // Ensure NSString can be used to create an external data representation
         
-        let UTF8Encoding = kCFStringEncodingUTF8
-        let UTF16Encoding = kCFStringEncodingUTF16
-        let ISOLatin1Encoding = kCFStringEncodingISOLatin1
+        let UTF8Encoding = CFStringEncoding(kCFStringEncodingUTF8)
+        let UTF16Encoding = CFStringEncoding(kCFStringEncodingUTF16)
+        let ISOLatin1Encoding = CFStringEncoding(kCFStringEncodingISOLatin1)
         
         do {
             let string = unsafeBitCast(NSString(string: "this is an external string that should be representable by data"), CFStringRef.self)
