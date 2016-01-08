@@ -173,6 +173,8 @@ _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options);
 CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNodeLocalName(_CFXMLNodePtr node);
 CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNodePrefix(_CFXMLNodePtr node);
 
+bool _CFXMLDocValidate(_CFXMLDocPtr doc, CFErrorRef _Nullable * error);
+
 void _CFXMLFreeNode(_CFXMLNodePtr node);
 void _CFXMLFreeDocument(_CFXMLDocPtr doc);
 

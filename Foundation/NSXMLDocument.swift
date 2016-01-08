@@ -88,6 +88,10 @@ public class NSXMLDocument : NSXMLNode {
     public init(data: NSData, options mask: Int) throws {
         let docPtr = _CFXMLDocPtrFromDataWithOptions(data._cfObject, Int32(mask))
         super.init(ptr: _CFXMLNodePtr(docPtr))
+
+        if mask & NSXMLDocumentValidate != 0 {
+            try validate()
+        }
     } //primitive
 
     /*!
@@ -306,7 +310,15 @@ public class NSXMLDocument : NSXMLNode {
     */
     public func objectByApplyingXSLTAtURL(xsltURL: NSURL, arguments argument: [String : String]?) throws -> AnyObject { NSUnimplemented() }
 
-    public func validate() throws { NSUnimplemented() }
+    public func validate() throws {
+        var unmanagedError: Unmanaged<CFError>? = nil
+        let result = _CFXMLDocValidate(_xmlDoc, &unmanagedError)
+        if !result,
+            let unmanagedError = unmanagedError {
+            let error = unmanagedError.takeRetainedValue()
+            throw error._nsObject
+        }
+    }
 
     internal override class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLDocument {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDocument)

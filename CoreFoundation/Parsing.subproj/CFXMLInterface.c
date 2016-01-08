@@ -607,6 +607,46 @@ CF_RETURNS_RETAINED CFStringRef _CFXMLNodePrefix(_CFXMLNodePtr node) {
     return resultString;
 }
 
+void _CFXMLValidityErrorHandler(void* ctxt, const char* msg, ...);
+void _CFXMLValidityErrorHandler(void* ctxt, const char* msg, ...) {
+    char* formattedMessage = calloc(1, 1024);
+
+    va_list args;
+    va_start(args, msg);
+    vsprintf(formattedMessage, msg, args);
+    va_end(args);
+
+    CFStringRef message = CFStringCreateWithCString(NULL, formattedMessage, kCFStringEncodingUTF8);
+    CFStringAppend(ctxt, message);
+    CFRelease(message);
+    free(formattedMessage);
+}
+
+bool _CFXMLDocValidate(_CFXMLDocPtr doc, CFErrorRef _Nullable * error) {
+    CFMutableStringRef errorMessage = CFStringCreateMutable(NULL, 0);
+
+    xmlValidCtxtPtr ctxt = xmlNewValidCtxt();
+    ctxt->error = &_CFXMLValidityErrorHandler;
+    ctxt->userData = errorMessage;
+
+    int result = xmlValidateDocument(ctxt, doc);
+
+    xmlFreeValidCtxt(ctxt);
+
+    if (result == 0 && error != NULL) {
+        CFMutableDictionaryRef userInfo = CFDictionaryCreateMutable(NULL, 1, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        CFDictionarySetValue(userInfo, kCFErrorLocalizedDescriptionKey, errorMessage);
+
+        *error = CFErrorCreate(NULL, CFSTR("NSXMLParserErrorDomain"), 0, userInfo);
+
+        CFRelease(userInfo);
+    }
+
+    CFRelease(errorMessage);
+
+    return error != NULL && *error != NULL;
+}
+
 void _CFXMLFreeNode(_CFXMLNodePtr node) {
     xmlFreeNode(node);
 }

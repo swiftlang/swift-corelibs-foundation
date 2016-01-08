@@ -34,7 +34,8 @@ class TestNSXMLDocument : XCTestCase {
             ("test_comments", test_comments),
             ("test_processingInstruction", test_processingInstruction),
             ("test_parseXMLString", test_parseXMLString),
-            ("test_prefixes", test_prefixes)
+            ("test_prefixes", test_prefixes),
+            ("test_validation", test_validation)
         ]
     }
 
@@ -261,5 +262,29 @@ class TestNSXMLDocument : XCTestCase {
         let element = NSXMLElement(name: "xml:root")
         XCTAssertEqual(element.prefix, "xml")
         XCTAssertEqual(element.localName, "root")
+    }
+
+    func test_validation() {
+        let xmlString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT img EMPTY> ]><foo><img>not empty</img></foo>"
+        do {
+            let doc = try NSXMLDocument(XMLString: xmlString, options: 0)
+            try doc.validate()
+        } catch {
+            if let error = error as? NSError {
+                XCTAssert(error.code == NSXMLParserError.InternalError.rawValue)
+                XCTAssert(error.domain == NSXMLParserErrorDomain)
+                XCTAssert((error.userInfo[NSLocalizedDescriptionKey] as! NSString).containsString("Element img was declared EMPTY this one has content"))
+            } else {
+                XCTFail("\(error)")
+            }
+        }
+
+        let validString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT foo (#PCDATA)> ]><foo>Hello world</foo>"
+        do {
+            let doc = try NSXMLDocument(XMLString: validString, options: 0)
+            try doc.validate()
+        } catch {
+            XCTFail("\(error)")
+        }
     }
 }
