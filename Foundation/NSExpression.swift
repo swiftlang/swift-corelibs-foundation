@@ -136,6 +136,7 @@ public class NSExpression : NSObject, NSSecureCoding, NSCopying {
 
         guard let fn = _NSExpressionFunctions[name] else {
             // TODO: failable init. Decide if we should throw instead. (Apple Foundation throws an Exception)
+            print("\(name) is not a supported method")
             return nil
         }
 
