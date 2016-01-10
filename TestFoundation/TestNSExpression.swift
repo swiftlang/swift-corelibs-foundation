@@ -151,7 +151,7 @@ class TestNSExpression: XCTestCase {
                                                                       ["Kid1", "Girl1"]]]
 
         let collection = NSExpression(forKeyPath: "Record1.Children")
-        let predicate = NSPredicate(format:"%K BEGINSWITH %K", argumentArray:["x".bridge(), "KidVariable".bridge()])
+        let predicate = NSComparisonPredicate(leftExpression: NSExpression(forVariable:"x"), rightExpression: NSExpression(forVariable:"KidVariable"), modifier: .DirectPredicateModifier, type: .BeginsWithPredicateOperatorType, options: .CaseInsensitivePredicateOption)
         let bindings = NSMutableDictionary(object: NSExpression(forConstantValue:"Kid".bridge()), forKey: "KidVariable".bridge())
         let exp = NSExpression(forSubquery: collection, usingIteratorVariable: "x", predicate: predicate)
         let eval = exp.expressionValueWithObject(object.bridge(), context: bindings)
