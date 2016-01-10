@@ -529,9 +529,9 @@ internal enum NSExpressionError : ErrorType {
     case InvalidArgumentType(expected:Any)
 }
 
-internal func _invokeFunction<T ,U, V>(function:(Array<T>) -> U, with arguments:Array<V>) throws -> U?{
-    guard let args = arguments.map({ $0 as? T }) as? [T] else {
-        throw NSExpressionError.InvalidArgumentType(expected:T.self)
+internal func _invokeFunction<T ,U, V>(function:(Array<T>) -> U, with arguments:Array<V>) throws -> U? {
+    guard let args = arguments.map({ $0 as? T }) as? Array<T> else {
+        throw NSExpressionError.InvalidArgumentType(expected:Array<T>.self)
     }
 
     return function(args)
