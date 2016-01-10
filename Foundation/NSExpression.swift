@@ -516,7 +516,7 @@ internal extension SequenceType where Generator.Element == NSExpression {
 
 
 //MARK - Predefined functions and function utilities
-// TODO: implement all pre-defined function which can have to following types :
+// TODO: implement all pre-defined functions which can have to following types :
 //([NSNumber]) -> NSNumber
 //(NSNumber) -> NSNumber
 //(NSNumber) -> NSString
