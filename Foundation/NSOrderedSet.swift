@@ -54,7 +54,10 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         if aDecoder.allowsKeyedCoding {
             var idx = 0
             var objects : [AnyObject] = []
-            while let object = aDecoder.decodeObjectForKey("NS.object.\(idx)") {
+            while aDecoder.containsValueForKey(("NS.object.\(idx)")) {
+                guard let object = aDecoder.decodeObjectForKey("NS.object.\(idx)") else {
+                    return nil
+                }
                 objects.append(object)
                 idx += 1
             }
