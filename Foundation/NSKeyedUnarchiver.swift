@@ -518,7 +518,7 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
         Decode a value type in the current decoding context
      */
-    private func _decodeValue<T>(forKey key: String? = nil) -> T? {
+    internal func _decodeValue<T>(forKey key: String? = nil) -> T? {
         _validateStillDecoding()
         return _objectInCurrentDecodingContext(forKey: key)
     }
