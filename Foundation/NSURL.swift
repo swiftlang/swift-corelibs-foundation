@@ -444,7 +444,7 @@ extension NSURL {
     /* The following methods work on the path portion of a URL in the same manner that the NSPathUtilities methods on NSString do.
     */
     public class func fileURLWithPathComponents(components: [String]) -> NSURL? {
-        let path = String.pathWithComponents(components)
+        let path = NSString.pathWithComponents(components)
         if components.last == "/" {
             return NSURL(fileURLWithPath: path, isDirectory: true)
         } else {

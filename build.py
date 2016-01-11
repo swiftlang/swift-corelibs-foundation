@@ -315,6 +315,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSSortDescriptor.swift',
 	'Foundation/NSStream.swift',
 	'Foundation/NSString.swift',
+	'Foundation/String.swift',
 	'Foundation/NSSwiftRuntime.swift',
 	'Foundation/NSTask.swift',
 	'Foundation/NSTextCheckingResult.swift',

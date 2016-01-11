@@ -164,6 +164,7 @@
 		5B7C8B021BEA830200C5B690 /* CFBurstTrie.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89341BBDA76300234F36 /* CFBurstTrie.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8B031BEA86A900C5B690 /* libCoreFoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */; };
 		5B915F0F1C1A320E00BE40C5 /* TestNSJSONSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */; };
+		5B94E8821C430DE70055C035 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B94E8811C430DE70055C035 /* String.swift */; };
 		5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BC1D8BE1BF3B09E009D3973 /* TestNSCharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */; };
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
@@ -517,6 +518,7 @@
 		5B5D89A71BBDC09700234F36 /* CFStringScanner.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringScanner.c; sourceTree = "<group>"; };
 		5B5D89A91BBDC11100234F36 /* CFLocaleKeys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFLocaleKeys.c; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B94E8811C430DE70055C035 /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCharacterSet.swift; sourceTree = "<group>"; };
 		5BC2C00D1C07832E00CC214E /* CFStringTransform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringTransform.c; sourceTree = "<group>"; };
 		5BDC3F191BCC440100ED97BB /* CFICULogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFICULogging.h; sourceTree = "<group>"; };
@@ -1313,6 +1315,7 @@
 				5BDC3F311BCC5DCB00ED97BB /* NSCharacterSet.swift */,
 				5BDC3F451BCC5DCB00ED97BB /* NSString.swift */,
 				5BDC3FCB1BCF177E00ED97BB /* NSCFString.swift */,
+				5B94E8811C430DE70055C035 /* String.swift */,
 			);
 			name = String;
 			sourceTree = "<group>";
@@ -1699,6 +1702,7 @@
 				5BF7AEA51BCD51F9008F214A /* NSCalendar.swift in Sources */,
 				EADE0BB81BD15E0000C49C64 /* NSTask.swift in Sources */,
 				5BF7AEB31BCD51F9008F214A /* NSObjCRuntime.swift in Sources */,
+				5B94E8821C430DE70055C035 /* String.swift in Sources */,
 				5BF7AEAB1BCD51F9008F214A /* NSDictionary.swift in Sources */,
 				EADE0BAA1BD15E0000C49C64 /* NSNumberFormatter.swift in Sources */,
 				5BF7AEAF1BCD51F9008F214A /* NSHost.swift in Sources */,

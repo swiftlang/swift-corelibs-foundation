@@ -102,7 +102,7 @@ class TestNSString : XCTestCase {
         XCTAssertTrue(t == 52)
         
         let externalString: NSString = String.localizedNameOfStringEncoding(String.defaultCStringEncoding()).bridge()
-        XCTAssertTrue(externalString.length > 4)
+        XCTAssertTrue(externalString.length >= 4)
         
         let cluster: NSString = "✌🏾"
         XCTAssertEqual(cluster.length, 3)

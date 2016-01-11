@@ -1430,112 +1430,11 @@ extension NSMutableString {
 }
 
 
-extension String {
-    /// Returns an Array of the encodings string objects support
-    /// in the application’s environment.
-    private static func _getAvailableStringEncodings() -> [NSStringEncoding] {
-        let encodings = CFStringGetListOfAvailableEncodings()
-        var numEncodings = 0
-        var encodingArray = Array<NSStringEncoding>()
-        while encodings.advancedBy(numEncodings).memory != CoreFoundation.kCFStringEncodingInvalidId {
-            encodingArray.append(CFStringConvertEncodingToNSStringEncoding(encodings.advancedBy(numEncodings).memory))
-            numEncodings += 1
-        }
-        return encodingArray
-    }
-    
-    
-    private static var _availableStringEncodings = String._getAvailableStringEncodings()
-    @warn_unused_result
-    public static func availableStringEncodings() -> [NSStringEncoding] {
-        return _availableStringEncodings
-    }
-    
-    @warn_unused_result
-    public static func defaultCStringEncoding() -> NSStringEncoding {
-        return NSUTF8StringEncoding
-    }
-    
-    @warn_unused_result
-    public static func localizedNameOfStringEncoding(encoding: NSStringEncoding) -> String {
-        return CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(encoding))._swiftObject
-    }
-    
+extension String {  
     // this is only valid for the usage for CF since it expects the length to be in unicode characters instead of grapheme clusters "✌🏾".utf16.count = 3 and CFStringGetLength(CFSTR("✌🏾")) = 3 not 1 as it would be represented with grapheme clusters
     internal var length: Int {
         return utf16.count
     }
-    
-    public func canBeConvertedToEncoding(encoding: NSStringEncoding) -> Bool {
-        if encoding == NSUnicodeStringEncoding || encoding == NSNonLossyASCIIStringEncoding || encoding == NSUTF8StringEncoding {
-            return true
-        }
-        
-        return false
-    }
-    
-    public var capitalizedString: String {
-        get {
-            return capitalizedStringWithLocale(nil)
-        }
-    }
-    
-    public var localizedCapitalizedString: String {
-        get {
-            return capitalizedStringWithLocale(NSLocale.currentLocale())
-        }
-    }
-    
-    @warn_unused_result
-    public func capitalizedStringWithLocale(locale: NSLocale?) -> String {
-        NSUnimplemented()
-    }
-    
-    public func caseInsensitiveCompare(aString: String) -> NSComparisonResult {
-        return compare(aString, options: .CaseInsensitiveSearch, range: NSMakeRange(0, length), locale: NSLocale.currentLocale())
-    }
-    
-    public func compare(aString: String, options mask: NSStringCompareOptions = [], range: NSRange? = nil, locale: NSLocale? = nil) -> NSComparisonResult {
-        NSUnimplemented()
-    }
-    
-#if os(Linux)
-    public func hasPrefix(prefix: String) -> Bool {
-        let characters = utf16
-        let prefixCharacters = prefix.utf16
-        let start = characters.startIndex
-        let prefixStart = prefixCharacters.startIndex
-        if characters.count < prefixCharacters.count {
-            return false
-        }
-        for idx in 0..<prefixCharacters.count {
-            if characters[start.advancedBy(idx)] != prefixCharacters[prefixStart.advancedBy(idx)] {
-                return false
-            }
-        }
-        return true
-    }
-
-    public func hasSuffix(suffix: String) -> Bool {
-        let characters = utf16
-        let suffixCharacters = suffix.utf16
-        let start = characters.startIndex
-        let suffixStart = suffixCharacters.startIndex
-        
-        if characters.count < suffixCharacters.count {
-            return false
-        }
-        for idx in 0..<suffixCharacters.count {
-            let charactersIdx = start.advancedBy(characters.count - idx - 1)
-            let suffixIdx = suffixStart.advancedBy(suffixCharacters.count - idx - 1)
-            if characters[charactersIdx] != suffixCharacters[suffixIdx] {
-                return false
-            }
-        }
-        return true
-    }
-#endif
-    
 }
 
 extension NSString : _CFBridgable, _SwiftBridgable {

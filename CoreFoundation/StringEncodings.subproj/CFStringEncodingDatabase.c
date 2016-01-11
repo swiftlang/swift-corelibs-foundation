@@ -573,7 +573,7 @@ CF_PRIVATE CFStringEncoding __CFStringEncodingGetFromCanonicalName(const char *c
 }
 #undef LENGTH_LIMIT
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
 // This list indexes from DOS range
 static uint16_t __CFISO8859SimilarScriptList[] = {
     kCFStringEncodingMacRoman,
@@ -785,7 +785,7 @@ static const char *__CFOtherNameList[] = {
 #endif /* DEPLOYMENT_TARGET_MACOSX */
 
 CF_PRIVATE CFStringEncoding __CFStringEncodingGetMostCompatibleMacScript(CFStringEncoding encoding) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
     switch (encoding & 0x0F00) {
         case 0: return encoding & 0xFF; break; // Mac scripts
 
@@ -822,7 +822,7 @@ CF_PRIVATE const char *__CFStringEncodingGetName(CFStringEncoding encoding) {
         case kCFStringEncodingUTF7: return "Unicode (UTF-7)"; break;
     }
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
     if (0x0200 == (encoding & 0x0F00)) {
         encoding &= 0x00FF;
 

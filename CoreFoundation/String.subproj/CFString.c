@@ -397,8 +397,10 @@ static CFStringEncoding __CFDefaultFileSystemEncoding = kCFStringEncodingInvalid
 CFStringEncoding __CFDefaultEightBitStringEncoding = kCFStringEncodingInvalidId;
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 #define __defaultEncoding kCFStringEncodingMacRoman
+#elif DEPLOYMENT_TARGET_LINUX
+#define __defaultEncoding kCFStringEncodingUTF8
 #elif DEPLOYMENT_TARGET_WINDOWS
 #define __defaultEncoding kCFStringEncodingWindowsLatin1
 #else
