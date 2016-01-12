@@ -23,14 +23,14 @@ class TestNSSet : XCTestCase {
     
     var allTests : [(String, () -> Void)] {
         return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("testInitWithSet", testInitWithSet),
-            ("test_enumeration", test_enumeration),
-            ("test_sequenceType", test_sequenceType),
-            ("test_setOperations", test_setOperations),
-            ("test_equality", test_equality),
-            ("test_copying", test_copying),
-            ("test_mutableCopying", test_mutableCopying),
+//            ("test_BasicConstruction", test_BasicConstruction),
+//            ("testInitWithSet", testInitWithSet),
+//            ("test_enumeration", test_enumeration),
+//            ("test_sequenceType", test_sequenceType),
+//            ("test_setOperations", test_setOperations),
+//            ("test_equality", test_equality),
+//            ("test_copying", test_copying),
+//            ("test_mutableCopying", test_mutableCopying),
         ]
     }
     
