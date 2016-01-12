@@ -89,6 +89,9 @@ public class NSXMLNode : NSObject, NSCopying {
         case .AttributeKind:
             _xmlNode = _CFXMLNodePtr(_CFXMLNewProperty(nil, "", ""))
 
+        case .DTDKind:
+            _xmlNode = _CFXMLNewDTD(nil, "", "", "")
+            
         default:
             _xmlNode = nil
         }
@@ -212,7 +215,14 @@ public class NSXMLNode : NSObject, NSCopying {
         @method DTDNodeWithXMLString:
         @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
     */
-    public class func DTDNodeWithXMLString(string: String) -> AnyObject? { NSUnimplemented() }
+    public class func DTDNodeWithXMLString(string: String) -> AnyObject? {
+        let node = _CFXMLParseDTDNode(string)
+        if node == nil {
+            return nil
+        }
+
+        return NSXMLDTDNode(ptr: node)
+    }
 
     /*!
         @method kind
@@ -232,6 +242,18 @@ public class NSXMLNode : NSObject, NSCopying {
 
         case _kCFXMLTypeDTD:
             return .DTDKind
+
+        case _kCFXMLDTDNodeTypeElement:
+            return .ElementDeclarationKind
+
+        case _kCFXMLDTDNodeTypeEntity:
+            return .EntityDeclarationKind
+
+        case _kCFXMLDTDNodeTypeNotation:
+            return .NotationDeclarationKind
+
+        case _kCFXMLDTDNodeTypeAttribute:
+            return .AttributeDeclarationKind
 
         default:
             return .InvalidKind
@@ -287,7 +309,13 @@ public class NSXMLNode : NSObject, NSCopying {
     */
     public var stringValue: String? {
         get {
-            return _CFXMLNodeGetContent(_xmlNode)?._swiftObject
+            switch kind {
+            case .EntityDeclarationKind:
+                return _CFXMLGetEntityContent(_CFXMLEntityPtr(_xmlNode))?._swiftObject
+
+            default:
+                return _CFXMLNodeGetContent(_xmlNode)?._swiftObject
+            }
         }
         set {
             _removeAllChildNodesExceptAttributes() // in case anyone is holding a reference to any of these children we're about to destroy
@@ -726,9 +754,17 @@ public class NSXMLNode : NSObject, NSCopying {
             node.detach()
         }
 
-        if case .DocumentKind = kind { // documents have to be free'd explicitly as a document in order to not leak memory
+        switch kind {
+        case .DocumentKind:
             _CFXMLFreeDocument(_CFXMLDocPtr(_xmlNode))
-        } else {
+
+        case .DTDKind:
+            _CFXMLFreeDTD(_CFXMLDTDPtr(_xmlNode))
+
+        case .AttributeKind:
+            _CFXMLFreeProperty(_xmlNode)
+            
+        default:
             _CFXMLFreeNode(_xmlNode)
         }
     }
@@ -760,6 +796,15 @@ public class NSXMLNode : NSObject, NSCopying {
 
         case _kCFXMLTypeDTD:
             return NSXMLDTD._objectNodeForNode(node)
+
+        case _kCFXMLDTDNodeTypeEntity:
+            fallthrough
+        case _kCFXMLDTDNodeTypeElement:
+            fallthrough
+        case _kCFXMLDTDNodeTypeNotation:
+            fallthrough
+        case _kCFXMLDTDNodeTypeAttribute:
+            return NSXMLDTDNode._objectNodeForNode(node)
 
         default:
             let _private = _CFXMLNodeGetPrivateData(node)

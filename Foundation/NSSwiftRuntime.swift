@@ -387,7 +387,7 @@ public protocol Bridgeable {
 }
 
 #if os(OSX) || os(iOS)
-internal typealias _DarwinCompatibleBoolean = DarwinBoolean
+    internal typealias _DarwinCompatibleBoolean = DarwinBoolean
 #else
-internal typealias _DarwinCompatibleBoolean = Bool
+    internal typealias _DarwinCompatibleBoolean = Bool
 #endif
