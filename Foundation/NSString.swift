@@ -1276,7 +1276,24 @@ extension NSString {
     }
     
     public convenience init(contentsOfURL url: NSURL, encoding enc: UInt) throws {
-        NSUnimplemented()    
+        if url.fileURL, let path = url.path {
+            try self.init(contentsOfFile: path, encoding: enc)
+        } else {
+            let readResult = try NSData.init(contentsOfURL: url, options: [])
+            guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
+                    "NSDebugDescription" : "Unable to create a string using the specified encoding."
+                    ])
+            }
+            var str: String?
+            if String._conditionallyBridgeFromObject(cf._nsObject, result: &str) {
+                self.init(str!)
+            } else {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
+                    "NSDebugDescription" : "Unable to bridge CFString to String."
+                    ])
+            }
+        }
     }
     
     public convenience init(contentsOfFile path: String, encoding enc: UInt) throws {
