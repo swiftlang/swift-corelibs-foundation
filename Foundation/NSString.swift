@@ -241,6 +241,10 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         NSUnimplemented()
     }
     
+    public required convenience init(string aString: String) {
+        self.init(aString)
+    }
+    
     public override func copy() -> AnyObject {
         return copyWithZone(nil)
     }
@@ -1219,10 +1223,6 @@ extension NSString {
         }
     }
     
-    public convenience init(string aString: String) {
-        self.init(aString)
-    }
-    
     public convenience init(format: String, arguments argList: CVaListPointer) {
         let str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, argList)
         self.init(str._swiftObject)
@@ -1347,6 +1347,10 @@ public class NSMutableString : NSString {
             var uintValue = value.unicodeScalar.value
             super.init(String._fromWellFormedCodeUnitSequence(UTF32.self, input: UnsafeBufferPointer(start: &uintValue, count: 1)))
         }
+    }
+
+    public required init(string aString: String) {
+        super.init(aString)
     }
     
     internal func appendCharacters(characters: UnsafePointer<unichar>, length: Int) {

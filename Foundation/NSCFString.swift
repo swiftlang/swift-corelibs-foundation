@@ -30,6 +30,10 @@ internal class _NSCFString : NSMutableString {
     required init(capacity: Int) {
         fatalError()
     }
+
+    public required init(string aString: String) {
+        fatalError("init(string:) has not been implemented")
+    }
     
     deinit {
         _CFDeinit(self)
@@ -82,6 +86,10 @@ internal final class _NSCFConstantString : _NSCFString {
     
     required init(capacity: Int) {
         fatalError()
+    }
+
+    required init(string aString: String) {
+        fatalError("init(string:) has not been implemented")
     }
     
     deinit {
