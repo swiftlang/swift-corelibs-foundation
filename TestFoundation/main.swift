@@ -46,6 +46,7 @@ XCTMain([
     TestNSProcessInfo(),
     TestNSPropertyList(),
     TestNSRange(),
+    TestNSRegularExpression(),
     TestNSRunLoop(),
     TestNSScanner(),
     TestNSSet(),
