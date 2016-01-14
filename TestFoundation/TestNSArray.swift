@@ -32,6 +32,8 @@ class TestNSArray : XCTestCase {
             ("test_binarySearchFringeCases", test_binarySearchFringeCases),
             ("test_replaceObjectsInRange_withObjectsFromArray", test_replaceObjectsInRange_withObjectsFromArray),
             ("test_replaceObjectsInRange_withObjectsFromArray_range", test_replaceObjectsInRange_withObjectsFromArray_range),
+            ("test_replaceObjectAtIndex", test_replaceObjectAtIndex),
+            ("test_removeObjectsInArray", test_removeObjectsInArray),
             ("test_sortedArrayUsingComparator", test_sortedArrayUsingComparator),
             ("test_sortedArrayWithOptionsUsingComparator", test_sortedArrayWithOptionsUsingComparator),
             ("test_arrayReplacement", test_arrayReplacement),
@@ -176,7 +178,42 @@ class TestNSArray : XCTestCase {
         XCTAssertTrue((array[1] as! NSNumber).integerValue == 10)
         XCTAssertTrue((array[2] as! NSNumber).integerValue == 2)
     }
-    
+
+    func test_replaceObjectAtIndex() {
+        let array = NSMutableArray(array: [
+            NSNumber(int: 0), NSNumber(int: 1), NSNumber(int: 2), NSNumber(int: 3),
+            NSNumber(int: 4), NSNumber(int: 5), NSNumber(int: 7)])
+
+        // 1. Check replacement in the middle of the array
+        array.replaceObjectAtIndex(3, withObject: NSNumber(int: 8))
+        XCTAssertEqual(array.count, 7)
+        XCTAssertEqual((array[3] as! NSNumber).integerValue, 8)
+
+        // 2. Check replacement of the first element
+        array.replaceObjectAtIndex(0, withObject: NSNumber(int: 7))
+        XCTAssertEqual(array.count, 7)
+        XCTAssertEqual((array[0] as! NSNumber).integerValue, 7)
+
+        // 3. Check replacement of the last element
+        array.replaceObjectAtIndex(6, withObject: NSNumber(int: 6))
+        XCTAssertEqual(array.count, 7)
+        XCTAssertEqual((array[6] as! NSNumber).integerValue, 6)
+    }
+
+    func test_removeObjectsInArray() {
+        let array = NSMutableArray(array: [
+            NSNumber(int: 0), NSNumber(int: 1), NSNumber(int: 2), NSNumber(int: 3),
+            NSNumber(int: 4), NSNumber(int: 5), NSNumber(int: 7)])
+        let objectsToRemove: Array<AnyObject> = [
+            NSNumber(int: 1), NSNumber(int: 22), NSNumber(int: 7), NSNumber(int: 5)]
+        array.removeObjectsInArray(objectsToRemove)
+        XCTAssertEqual(array.count, 4)
+        XCTAssertEqual((array[0] as! NSNumber).integerValue, 0)
+        XCTAssertEqual((array[1] as! NSNumber).integerValue, 2)
+        XCTAssertEqual((array[2] as! NSNumber).integerValue, 3)
+        XCTAssertEqual((array[3] as! NSNumber).integerValue, 4)
+    }
+
     func test_binarySearchFringeCases() {
         let array = NSArray(array: [
             NSNumber(int: 0), NSNumber(int: 1), NSNumber(int: 2), NSNumber(int: 2), NSNumber(int: 3),
