@@ -82,8 +82,6 @@
 
   #if ((TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) && !DEPLOYMENT_RUNTIME_SWIFT
     #include <libkern/OSTypes.h>
-  #elif TARGET_OS_MAC
-    #include <pthread.h>
   #endif
 
 #if !defined(__MACTYPES__)
@@ -126,11 +124,6 @@
     typedef UInt8                   UTF8Char;
 #endif
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-    typedef _Bool                   CFBool; /* avoid DarwinBoolean confusion with Swift compiler */
-#else
-    typedef Boolean                 CFBool;
-#endif
 
 #if !defined(CF_EXTERN_C_BEGIN)
 #if defined(__cplusplus)

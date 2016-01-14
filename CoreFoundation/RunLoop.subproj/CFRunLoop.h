@@ -97,7 +97,7 @@ typedef struct {
     const void *(*retain)(const void *info);
     void	(*release)(const void *info);
     CFStringRef	(*copyDescription)(const void *info);
-    CFBool	(*equal)(const void *info1, const void *info2);
+    Boolean	(*equal)(const void *info1, const void *info2);
     CFHashCode	(*hash)(const void *info);
     void	(*schedule)(void *info, CFRunLoopRef rl, CFStringRef mode);
     void	(*cancel)(void *info, CFRunLoopRef rl, CFStringRef mode);
@@ -110,7 +110,7 @@ typedef struct {
     const void *(*retain)(const void *info);
     void	(*release)(const void *info);
     CFStringRef	(*copyDescription)(const void *info);
-    CFBool	(*equal)(const void *info1, const void *info2);
+    Boolean	(*equal)(const void *info1, const void *info2);
     CFHashCode	(*hash)(const void *info);
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
     mach_port_t	(*getPort)(void *info);

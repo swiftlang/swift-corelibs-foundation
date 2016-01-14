@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 #if DEPLOYMENT_TARGET_IPHONESIMULATOR // work around <rdar://problem/16507706>
+#include <pthread.h>
 #include <pthread/qos.h>
 #define qos_class_self() (QOS_CLASS_UTILITY)
 #define qos_class_main() (QOS_CLASS_UTILITY)
@@ -36,6 +37,7 @@ extern "C" {
 #define pthread_override_qos_class_start_np(A, B, C) (NULL)
 #define pthread_override_qos_class_end_np(A) do {} while (0)
 #elif (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
+#include <pthread.h>
 #include <pthread/qos.h>
 #endif
 
