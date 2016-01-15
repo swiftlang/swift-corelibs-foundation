@@ -50,7 +50,16 @@ private func runLoopSourceRelease(pointer : UnsafePointer<Void>) -> Void {
 }
 
 // Equal method for run loop source
-private func runloopIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> Bool {
+
+// The import of CoreFoundation inappropriately imports this as DarwinBoolean which is not compatible with Bool on linux
+// this is an ugly work-around that avoids altering the CF headers which need to remain the same
+#if os(OSX) || os(iOS)
+internal typealias IsEqualCallbackCompatibleBoolean = DarwinBoolean
+#else
+internal typealias IsEqualCallbackCompatibleBoolean = Bool
+#endif
+
+private func runloopIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> IsEqualCallbackCompatibleBoolean {
     
     let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
     guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? NSRunLoop else {
@@ -104,7 +113,7 @@ private func managerThreadSetup() -> Void {
 
 
 // Equal method for task in run loop source
-private func nstaskIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> Bool {
+private func nstaskIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> IsEqualCallbackCompatibleBoolean {
     
     let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
     guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
