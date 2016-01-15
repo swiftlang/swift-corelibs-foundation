@@ -223,6 +223,8 @@ CF_PRIVATE CF_EXPORT void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_s
 
 CF_PRIVATE CF_EXPORT int32_t _CF_SOCK_STREAM();
 
+CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
+
 _CF_EXPORT_SCOPE_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */
