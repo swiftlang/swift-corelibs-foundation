@@ -21,7 +21,7 @@ import CoreFoundation
 
 class TestNSXMLDocument : XCTestCase {
 
-    var allTests: [(String, () -> Void)] {
+    var allTests: [(String, () throws -> Void)] {
         return [
             ("test_basicCreation", test_basicCreation),
             ("test_nextPreviousNode", test_nextPreviousNode),

@@ -19,7 +19,7 @@ import SwiftXCTest
 
 class TestNSRange : XCTestCase {
     
-    var allTests : [(String, () -> Void)] {
+    var allTests : [(String, () throws -> Void)] {
         return [
             // currently disabled due to pending requirements for NSString
             // ("test_NSRangeFromString", test_NSRangeFromString ),

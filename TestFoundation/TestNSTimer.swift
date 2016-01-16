@@ -18,7 +18,7 @@
 
 
 class TestNSTimer : XCTestCase {
-    var allTests : [(String, () -> ())] {
+    var allTests : [(String, () throws -> ())] {
         return [
             ("test_timerInit", test_timerInit),
             ("test_timerTickOnce", test_timerTickOnce),

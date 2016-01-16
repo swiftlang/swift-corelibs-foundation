@@ -18,7 +18,7 @@ import SwiftXCTest
 
 
 class TestNSNumber : XCTestCase {
-    var allTests : [(String, () -> Void)] {
+    var allTests : [(String, () throws -> Void)] {
         return [
             ("test_NumberWithBool", test_NumberWithBool ),
             ("test_numberWithChar", test_numberWithChar ),

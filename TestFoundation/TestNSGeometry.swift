@@ -22,7 +22,7 @@
 
 class TestNSGeometry : XCTestCase {
 
-    var allTests : [(String, () -> Void)] {
+    var allTests : [(String, () throws -> Void)] {
         return [
             ("test_CGFloat_BasicConstruction", test_CGFloat_BasicConstruction),
             ("test_CGFloat_Equality", test_CGFloat_Equality),

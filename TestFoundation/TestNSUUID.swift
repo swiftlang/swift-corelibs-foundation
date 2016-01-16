@@ -19,7 +19,7 @@
 
 class TestNSUUID : XCTestCase {
     
-    var allTests : [(String, () -> Void)] {
+    var allTests : [(String, () throws -> Void)] {
         return [
             ("test_Equality", test_Equality),
             ("test_InvalidUUID", test_InvalidUUID),

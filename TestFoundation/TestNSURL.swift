@@ -59,7 +59,7 @@ private func getTestData() -> [Any]? {
 }
 
 class TestNSURL : XCTestCase {
-    var allTests : [(String, () -> Void)] {
+    var allTests : [(String, () throws -> Void)] {
         return [
             ("test_URLStrings", test_URLStrings),
             ("test_fileURLWithPath_relativeToURL", test_fileURLWithPath_relativeToURL ),
@@ -428,7 +428,7 @@ class TestNSURL : XCTestCase {
 }
     
 class TestNSURLComponents : XCTestCase {
-    var allTests : [(String, () -> Void)] {
+    var allTests : [(String, () throws -> Void)] {
         return [
             ("test_string", test_string),
         ]

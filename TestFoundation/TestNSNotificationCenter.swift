@@ -18,7 +18,7 @@
 
 
 class TestNSNotificationCenter : XCTestCase {
-    var allTests : [(String, () -> Void)] {
+    var allTests : [(String, () throws -> Void)] {
         return [
             ("test_defaultCenter", test_defaultCenter),
             ("test_postNotification", test_postNotification),
