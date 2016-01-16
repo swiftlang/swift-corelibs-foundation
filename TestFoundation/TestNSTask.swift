@@ -16,7 +16,7 @@
 import CoreFoundation
 
 class TestNSTask : XCTestCase {
-    var allTests: [(String, () -> Void)] {
+    var allTests: [(String, () throws -> Void)] {
         return [("test_exit0" , test_exit0),
                 ("test_exit1" , test_exit1),
                 ("test_exit100" , test_exit100),

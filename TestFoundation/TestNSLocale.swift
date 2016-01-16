@@ -16,7 +16,7 @@
 #endif
 
 class TestNSLocale : XCTestCase {
-    var allTests : [(String, () -> Void)] {
+    var allTests : [(String, () throws -> Void)] {
         return [
             ("test_constants", test_constants),
         ]
