@@ -100,17 +100,17 @@ internal struct _CFInfo {
 }
 
 internal protocol _CFBridgable {
-    typealias CFType
+    associatedtype CFType
     var _cfObject: CFType { get }
 }
 
 internal protocol  _SwiftBridgable {
-    typealias SwiftType
+    associatedtype SwiftType
     var _swiftObject: SwiftType { get }
 }
 
 internal protocol _NSBridgable {
-    typealias NSType
+    associatedtype NSType
     var _nsObject: NSType { get }
 }
 

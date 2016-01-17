@@ -205,7 +205,7 @@ internal func __CFInitializeSwift() {
 }
 
 public protocol _ObjectTypeBridgeable {
-    typealias _ObjectType : AnyObject
+    associatedtype _ObjectType : AnyObject
     
     /// Convert `self` to an Object type
     @warn_unused_result
@@ -380,7 +380,7 @@ extension Array {
 }
 
 public protocol Bridgeable {
-    typealias BridgeType
+    associatedtype BridgeType
     func bridge() -> BridgeType
 }
 
