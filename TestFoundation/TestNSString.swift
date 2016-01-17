@@ -75,7 +75,8 @@ class TestNSString : XCTestCase {
             ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath),
             ("test_stringByExpandingTildeInPath", test_stringByExpandingTildeInPath),
             ("test_stringByStandardizingPath", test_stringByStandardizingPath),
-            ("test_ExternalRepresentation", test_ExternalRepresentation)
+            ("test_ExternalRepresentation", test_ExternalRepresentation),
+            ("test_mutableStringConstructor", test_mutableStringConstructor)
         ]
     }
 
@@ -835,5 +836,10 @@ class TestNSString : XCTestCase {
             let ISOLatin1Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, ISOLatin1Encoding, 0)
             XCTAssertNil(ISOLatin1Data)
         }
+    }
+    
+    func test_mutableStringConstructor() {
+        let mutableString = NSMutableString(string: "Test")
+        XCTAssertEqual(mutableString, "Test")
     }
 }
