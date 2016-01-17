@@ -24,6 +24,7 @@ class TestNSFileManger : XCTestCase {
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
             ("test_fileAttributes", test_fileAttributes),
             ("test_directoryEnumerator", test_directoryEnumerator),
+            ("test_pathEnumerator",test_pathEnumerator),
             ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
             ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath)
         ]
@@ -134,6 +135,38 @@ class TestNSFileManger : XCTestCase {
         } catch {
             XCTFail("Failed to clean up files")
         }
+    }
+    
+    func test_pathEnumerator() {
+        let fm = NSFileManager.defaultManager()
+        let basePath = "/tmp/testdir"
+        let itemPath = "/tmp/testdir/item"
+        let basePath2 = "/tmp/testdir/path2"
+        let itemPath2 = "/tmp/testdir/path2/item"
+        
+        ignoreError { try fm.removeItemAtPath(basePath) }
+        
+        do {
+            try fm.createDirectoryAtPath(basePath, withIntermediateDirectories: false, attributes: nil)
+            try fm.createDirectoryAtPath(basePath2, withIntermediateDirectories: false, attributes: nil)
+
+            fm.createFileAtPath(itemPath, contents: NSData(), attributes: nil)
+            fm.createFileAtPath(itemPath2, contents: NSData(), attributes: nil)
+
+        } catch _ {
+            XCTFail()
+        }
+        
+        if let e = NSFileManager.defaultManager().enumeratorAtPath(basePath) {
+            var foundItems : [String] = []
+            while let item = e.nextObject() as? NSString {
+                    foundItems.append(item.bridge())
+            }
+            XCTAssertEqual(foundItems, ["item","path2","path2/item"])
+        } else {
+            XCTFail()
+        }
+
     }
     
     func test_directoryEnumerator() {
