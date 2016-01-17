@@ -89,7 +89,7 @@ internal final class _NSCFConstantString : _NSCFString {
     }
 
     required init(string aString: String) {
-        fatalError("init(string:) has not been implemented")
+        fatalError("Constant strings cannot be constructed in code")
     }
     
     deinit {
