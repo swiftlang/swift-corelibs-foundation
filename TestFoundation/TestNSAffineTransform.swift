@@ -17,11 +17,6 @@
     import SwiftXCTest
 #endif
 
-#if os(OSX) || os(iOS)
-    import Darwin
-#elseif os(Linux)
-    import Glibc
-#endif
 
 class TestNSAffineTransform : XCTestCase {
     private let accuracyThreshold = 0.001

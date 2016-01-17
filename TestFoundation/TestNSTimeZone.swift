@@ -12,11 +12,9 @@
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
     import Foundation
     import XCTest
-    import Glibc
 #else
     import SwiftFoundation
     import SwiftXCTest
-    import Darwin
 #endif
 
 

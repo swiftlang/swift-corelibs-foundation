@@ -16,12 +16,6 @@ import SwiftFoundation
 import SwiftXCTest
 #endif
 
-#if os(OSX) || os(iOS)
-    import Darwin
-#elseif os(Linux)
-    import Glibc
-#endif
-
 
 let kURLTestParsingTestsKey = "ParsingTests"
 

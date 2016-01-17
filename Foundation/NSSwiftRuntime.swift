@@ -10,10 +10,12 @@
 
 import CoreFoundation
 
+// Re-export Darwin and Glibc by importing Foundation
+// This mimics the behavior of the swift sdk overlay on Darwin
 #if os(OSX) || os(iOS)
-import Darwin
+@_exported import Darwin
 #elseif os(Linux)
-import Glibc
+@_exported import Glibc
 #endif
 
 public typealias ObjCBool = Bool
