@@ -31,8 +31,8 @@ internal class _NSCFString : NSMutableString {
         fatalError()
     }
 
-    public required init(string aString: String) {
-        fatalError("init(string:) has not been implemented")
+    required init(string aString: String) {
+        fatalError()
     }
     
     deinit {
