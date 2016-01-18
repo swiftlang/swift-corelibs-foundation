@@ -30,6 +30,7 @@ XCTMain([
     TestNSData(),
     TestNSDate(),
     TestNSDictionary(),
+    TestNSExpression(),
     TestNSFileManger(),
     TestNSGeometry(),
     TestNSHTTPCookie(),
