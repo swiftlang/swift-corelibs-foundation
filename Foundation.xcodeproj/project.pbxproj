@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A3E52821C25715F0011AB14 /* TestNSOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E52811C25715F0011AB14 /* TestNSOperation.swift */; };
 		22B9C1E11C165D7A00DECFF9 /* TestNSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */; };
 		400E22651C1A4E58007C5933 /* TestNSProcessInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */; };
 		45BBD92B1C30E9C200540DDB /* TestNSTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BBD92A1C30E9C200540DDB /* TestNSTask.swift */; };
@@ -354,6 +355,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A3E52811C25715F0011AB14 /* TestNSOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOperation.swift; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDate.swift; sourceTree = "<group>"; };
 		400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSProcessInfo.swift; sourceTree = "<group>"; };
 		45BBD92A1C30E9C200540DDB /* TestNSTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTask.swift; sourceTree = "<group>"; };
@@ -1095,6 +1097,7 @@
 				61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */,
 				5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */,
 				EA66F63F1BF1619600136161 /* TestNSNumber.swift */,
+				1A3E52811C25715F0011AB14 /* TestNSOperation.swift */,
 				4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */,
 				400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */,
 				EA66F6401BF1619600136161 /* TestNSPropertyList.swift */,
@@ -1862,6 +1865,8 @@
 				88D28DE71C13AE9000494606 /* TestNSGeometry.swift in Sources */,
 				EA66F64C1BF1619600136161 /* TestNSDictionary.swift in Sources */,
 				AA664D4F1C1B03CA00C22186 /* TestNSNumberFormatter.swift in Sources */,
+				1A3E52821C25715F0011AB14 /* TestNSOperation.swift in Sources */,
+				ED58F76F1C134B3A00E6A5BE /* (null) in Sources */,
 				EA66F6581BF1619600136161 /* TestNSURL.swift in Sources */,
 				61D6C9EF1C1DFE9500DEF583 /* TestNSTimer.swift in Sources */,
 				61E0117C1C1B554D000037DD /* TestNSRunLoop.swift in Sources */,
