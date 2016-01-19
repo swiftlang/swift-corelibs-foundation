@@ -49,7 +49,12 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
     
     public init(pattern: String, options: NSRegularExpressionOptions) throws {
         var error: Unmanaged<CFErrorRef>?
-        if let regex = _CFRegularExpressionCreate(kCFAllocatorSystemDefault, pattern._cfObject, _CFRegularExpressionOptions(rawValue: options.rawValue), &error) {
+#if os(OSX) || os(iOS)
+        let opt =  _CFRegularExpressionOptions(rawValue: options.rawValue)
+#else
+        let opt = _CFRegularExpressionOptions(options.rawValue)
+#endif
+        if let regex = _CFRegularExpressionCreate(kCFAllocatorSystemDefault, pattern._cfObject, opt, &error) {
             _internal = regex
         } else {
             throw error!.takeRetainedValue()._nsObject
@@ -61,7 +66,13 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
     }
     
     public var options: NSRegularExpressionOptions {
-        return NSRegularExpressionOptions(rawValue:_CFRegularExpressionGetOptions(_internal).rawValue)
+#if os(OSX) || os(iOS)
+        let opt = _CFRegularExpressionGetOptions(_internal).rawValue
+#else
+        let opt = _CFRegularExpressionGetOptions(_internal)
+#endif
+    
+        return NSRegularExpressionOptions(rawValue: opt)
     }
     
     public var numberOfCaptureGroups: Int {
