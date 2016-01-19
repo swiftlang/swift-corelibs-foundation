@@ -522,8 +522,6 @@ void _CFXMLNodeSetContent(_CFXMLNodePtr node, const unsigned char* _Nullable  co
                 resultNode->attributes = NULL;
                 resultNode->contModel = NULL;
                 _CFXMLFreeNode(resultNode);
-
-                xmlDtdPtr dtd = element->parent;
             }
 
             return;
@@ -711,7 +709,17 @@ CFIndex _CFXMLNodeGetElementChildCount(_CFXMLNodePtr node) {
 
 void _CFXMLNodeAddChild(_CFXMLNodePtr node, _CFXMLNodePtr child) {
     if (((xmlNodePtr)node)->type == XML_NOTATION_NODE) {// the "artificial" node we created
-        
+        if (((xmlNodePtr)node)->type == XML_DTD_NODE) {// the only circumstance under which this actually makes sense
+            xmlNotationPtr notation = ((_cfxmlNotation*)child)->notation;
+            xmlDtdPtr dtd = (xmlDtdPtr)node;
+
+            if (dtd->notations == NULL) {
+                xmlDictPtr dict = dtd->doc ? dtd->doc->dict : NULL;
+                dtd->notations = xmlHashCreateDict(0, dict);
+            }
+            xmlHashAddEntry(dtd->notations, notation->name, notation);
+        }
+        return;
     }
     xmlAddChild(node, child);
 }
