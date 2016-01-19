@@ -1272,6 +1272,18 @@ int _CFOpenFile(const char *path, int opts) {
 }
 #endif
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+CF_PRIVATE char **_CFEnviron(void) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+    return *_NSGetEnviron();
+#elif DEPLOYMENT_TARGET_WINDOWS
+    return _environ;
+#else
+    return environ;
+#endif
+}
+#endif
+
 void *_CFReallocf(void *ptr, size_t size) {
 #if DEPLOYMENT_TARGET_WINDOWS | DEPLOYMENT_TARGET_LINUX
     void *mem = realloc(ptr, size);

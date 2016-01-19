@@ -223,6 +223,8 @@ CF_PRIVATE CF_EXPORT void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_s
 
 CF_PRIVATE CF_EXPORT int32_t _CF_SOCK_STREAM();
 
+CF_PRIVATE CF_EXPORT char *_Nonnull*_Nonnull _CFEnviron(void);
+
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
 _CF_EXPORT_SCOPE_END
