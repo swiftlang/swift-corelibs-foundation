@@ -51,14 +51,6 @@ private func runLoopSourceRelease(pointer : UnsafePointer<Void>) -> Void {
 
 // Equal method for run loop source
 
-// The import of CoreFoundation inappropriately imports this as DarwinBoolean which is not compatible with Bool on linux
-// this is an ugly work-around that avoids altering the CF headers which need to remain the same
-#if os(OSX) || os(iOS)
-internal typealias _DarwinCompatibleBoolean = DarwinBoolean
-#else
-internal typealias _DarwinCompatibleBoolean = Bool
-#endif
-
 private func runloopIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> _DarwinCompatibleBoolean {
     
     let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
