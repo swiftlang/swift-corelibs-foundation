@@ -242,6 +242,7 @@ sources = CompileSources([
 	'CoreFoundation/String.subproj/CFCharacterSetData.S',
 	'CoreFoundation/String.subproj/CFUnicodeDataL.S',
 	'CoreFoundation/String.subproj/CFUniCharPropertyDatabase.S',
+	'CoreFoundation/String.subproj/CFRegularExpression.c',
 ])
 
 sources.add_dependency(headers)
