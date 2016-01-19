@@ -151,6 +151,7 @@ private = [
 	'CoreFoundation/String.subproj/CFCharacterSetPriv.h',
 	'CoreFoundation/Stream.subproj/CFStreamPriv.h',
 	'CoreFoundation/StringEncodings.subproj/CFICUConverters.h',
+	'CoreFoundation/String.subproj/CFRegularExpression.h',
 ],
 project = [
 ])
