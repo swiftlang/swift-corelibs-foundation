@@ -105,7 +105,7 @@ internal class _NSRegularExpressionMatcher {
     }
 }
 
-internal func _NSRegularExpressionMatch(context: UnsafeMutablePointer<Void>, ranges: UnsafeMutablePointer<CFRange>, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<DarwinBoolean>) -> Void {
+internal func _NSRegularExpressionMatch(context: UnsafeMutablePointer<Void>, ranges: UnsafeMutablePointer<CFRange>, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
     let matcher = unsafeBitCast(context, _NSRegularExpressionMatcher.self)
     if ranges == nil {
         matcher.block(nil, NSMatchingFlags(rawValue: options.rawValue), UnsafeMutablePointer<ObjCBool>(stop))
