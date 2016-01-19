@@ -119,10 +119,20 @@ internal class _NSRegularExpressionMatcher {
 internal func _NSRegularExpressionMatch(context: UnsafeMutablePointer<Void>, ranges: UnsafeMutablePointer<CFRange>, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
     let matcher = unsafeBitCast(context, _NSRegularExpressionMatcher.self)
     if ranges == nil {
-        matcher.block(nil, NSMatchingFlags(rawValue: options.rawValue), UnsafeMutablePointer<ObjCBool>(stop))
+#if os(OSX) || os(iOS)
+        let opts = options.rawValue
+#else
+        let opts = options
+#endif
+        matcher.block(nil, NSMatchingFlags(rawValue: opts), UnsafeMutablePointer<ObjCBool>(stop))
     } else {
         let result = NSTextCheckingResult.regularExpressionCheckingResultWithRanges(NSRangePointer(ranges), count: count, regularExpression: matcher.regex)
-        matcher.block(result, NSMatchingFlags(rawValue: options.rawValue), UnsafeMutablePointer<ObjCBool>(stop))
+#if os(OSX) || os(iOS)
+        let flags = NSMatchingFlags(rawValue: options.rawValue)
+#else
+        let flags = NSMatchingFlags(rawValue: options)
+#endif
+        matcher.block(result, flags, UnsafeMutablePointer<ObjCBool>(stop))
     }
 }
 
@@ -134,7 +144,12 @@ extension NSRegularExpression {
     public func enumerateMatchesInString(string: String, options: NSMatchingOptions, range: NSRange, usingBlock block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
         let matcher = _NSRegularExpressionMatcher(regex: self, block: block)
         withExtendedLifetime(matcher) { (m: _NSRegularExpressionMatcher) -> Void in
-            _CFRegularExpressionEnumerateMatchesInString(_internal, string._cfObject, _CFRegularExpressionMatchingOptions(rawValue: options.rawValue), CFRange(range), unsafeBitCast(matcher, UnsafeMutablePointer<Void>.self), _NSRegularExpressionMatch)
+#if os(OSX) || os(iOS)
+        let opts = _CFRegularExpressionMatchingOptions(rawValue: options.rawValue)
+#else
+        let opts = _CFRegularExpressionMatchingOptions(options.rawValue)
+#endif
+            _CFRegularExpressionEnumerateMatchesInString(_internal, string._cfObject, opts, CFRange(range), unsafeBitCast(matcher, UnsafeMutablePointer<Void>.self), _NSRegularExpressionMatch)
         }
     }
     
