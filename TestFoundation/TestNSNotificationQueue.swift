@@ -25,6 +25,10 @@ class TestNSNotificationQueue : XCTestCase {
             ("test_postNowToCustomQueue", test_postNowToCustomQueue),
             ("test_postNowForDefaultRunLoopMode", test_postNowForDefaultRunLoopMode),
             ("test_notificationQueueLifecycle", test_notificationQueueLifecycle),
+            ("test_postAsapToDefaultQueue", test_postAsapToDefaultQueue),
+            ("test_postAsapToDefaultQueueWithCoalescingOnNameAndSender", test_postAsapToDefaultQueueWithCoalescingOnNameAndSender),
+            ("test_postAsapToDefaultQueueWithCoalescingOnNameOrSender", test_postAsapToDefaultQueueWithCoalescingOnNameOrSender),
+            ("test_postIdleToDefaultQueue", test_postIdleToDefaultQueue),
         ]
     }
 
@@ -115,6 +119,85 @@ class TestNSNotificationQueue : XCTestCase {
         XCTAssertEqual(numberOfCalls, 2)
     }
 
+    func test_postAsapToDefaultQueue() {
+        let notificationName = "test_postAsapToDefaultQueue"
+        let dummyObject = NSObject()
+        let notification = NSNotification(name: notificationName, object: dummyObject)
+        var numberOfCalls = 0
+        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+            numberOfCalls += 1
+        }
+        let queue = NSNotificationQueue.defaultQueue()
+        queue.enqueueNotification(notification, postingStyle: .PostASAP)
+
+        scheduleTimer(withInterval: 0.001); // run timer trigger the notifications
+        XCTAssertEqual(numberOfCalls, 1)
+    }
+
+    func test_postAsapToDefaultQueueWithCoalescingOnNameAndSender() {
+        // Check coalescing on name and object
+        let notificationName = "test_postAsapToDefaultQueueWithCoalescingOnNameAndSender"
+        let notification = NSNotification(name: notificationName, object: NSObject())
+        var numberOfCalls = 0
+        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: notification.object, queue: nil) { notification in
+            numberOfCalls += 1
+        }
+        let queue = NSNotificationQueue.defaultQueue()
+        queue.enqueueNotification(notification, postingStyle: .PostASAP)
+        queue.enqueueNotification(notification, postingStyle: .PostASAP)
+        queue.enqueueNotification(notification, postingStyle: .PostASAP)
+
+        scheduleTimer(withInterval: 0.001);
+        XCTAssertEqual(numberOfCalls, 1)
+    }
+
+    func test_postAsapToDefaultQueueWithCoalescingOnNameOrSender() {
+        // Check coalescing on name or sender
+        let notificationName = "test_postAsapToDefaultQueueWithCoalescingOnNameOrSender"
+        let notification1 = NSNotification(name: notificationName, object: NSObject())
+        var numberOfNameCoalescingCalls = 0
+        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: notification1.object, queue: nil) { notification in
+            numberOfNameCoalescingCalls += 1
+        }
+        let notification2 = NSNotification(name: notificationName, object: NSObject())
+        var numberOfObjectCoalescingCalls = 0
+        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: notification2.object, queue: nil) { notification in
+            numberOfObjectCoalescingCalls += 1
+        }
+
+        let queue = NSNotificationQueue.defaultQueue()
+        // #1
+        queue.enqueueNotification(notification1, postingStyle: .PostASAP,  coalesceMask: .CoalescingOnName, forModes: nil)
+        // #2
+        queue.enqueueNotification(notification2, postingStyle: .PostASAP,  coalesceMask: .CoalescingOnSender, forModes: nil)
+        // #3, coalesce with 1 & 2
+        queue.enqueueNotification(notification1, postingStyle: .PostASAP,  coalesceMask: .CoalescingOnName, forModes: nil)
+        // #4, coalesce with #3
+        queue.enqueueNotification(notification2, postingStyle: .PostASAP,  coalesceMask: .CoalescingOnName, forModes: nil)
+        // #5
+        queue.enqueueNotification(notification1, postingStyle: .PostASAP,  coalesceMask: .CoalescingOnSender, forModes: nil)
+        scheduleTimer(withInterval: 0.001);
+        // check that we received notifications #4 and #5
+        XCTAssertEqual(numberOfNameCoalescingCalls, 1)
+        XCTAssertEqual(numberOfObjectCoalescingCalls, 1)
+    }
+
+
+    func test_postIdleToDefaultQueue() {
+        let notificationName = "test_postIdleToDefaultQueue"
+        let dummyObject = NSObject()
+        let notification = NSNotification(name: notificationName, object: dummyObject)
+        var numberOfCalls = 0
+
+        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+            numberOfCalls += 1
+        }
+        NSNotificationQueue.defaultQueue().enqueueNotification(notification, postingStyle: .PostWhenIdle)
+        // add a timer to wakeup the runloop, process the timer and call the observer awaiting for any input sources/timers
+        scheduleTimer(withInterval: 0.001);
+        XCTAssertEqual(numberOfCalls, 1)
+    }
+
     func test_notificationQueueLifecycle() {
         // check that notificationqueue is associated with current thread. when the thread is destroyed, the queue should be deallocated as well
         weak var notificationQueue: NSNotificationQueue?
@@ -128,6 +211,17 @@ class TestNSNotificationQueue : XCTestCase {
     }
 
     // MARK: Private
+
+    private func scheduleTimer(withInterval interval: NSTimeInterval) {
+        var isInvoked = false
+        let dummyTimer = NSTimer.scheduledTimer(interval, repeats: false) { _ in
+            isInvoked = true
+        }
+        NSRunLoop.currentRunLoop().addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
+        self.waitForExpectation({
+            return isInvoked
+        }, withTimeout: 0.1)
+    }
 
     private func executeInBackgroundThread(operation: () -> ()) -> Bool {
         var isFinished = false

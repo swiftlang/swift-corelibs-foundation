@@ -34,12 +34,12 @@ public class NSNotificationQueue : NSObject {
     internal var asapList = NSNotificationList()
     internal var idleList = NSNotificationList()
     internal lazy var idleRunloopObserver: CFRunLoopObserverRef = {
-        return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFRunLoopActivity.BeforeWaiting.rawValue, true, 0) {[weak self] observer, activity in
+        return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CUnsignedLong(1) << 5, true, 0) {[weak self] observer, activity in
             self!.notifyQueues(.PostWhenIdle)
         }
     }()
     internal lazy var asapRunloopObserver: CFRunLoopObserverRef = {
-        return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFRunLoopActivity.BeforeTimers.rawValue | CFRunLoopActivity.Exit.rawValue, true, 0) {[weak self] observer, activity in
+        return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CUnsignedLong(1) << 1 | CUnsignedLong(1) << 7, true, 0) {[weak self] observer, activity in
             self!.notifyQueues(.PostASAP)
         }
     }()
@@ -111,15 +111,15 @@ public class NSNotificationQueue : NSObject {
         switch coalesceMask {
         case [.CoalescingOnName, .CoalescingOnSender]:
             predicate = { (entryNotification, _) in
-                return notification.object === entryNotification.object && notification.name == entryNotification.name
+                return notification.object !== entryNotification.object || notification.name != entryNotification.name
             }
         case [.CoalescingOnName]:
             predicate = { (entryNotification, _) in
-                return notification.name == entryNotification.name
+                return notification.name != entryNotification.name
             }
         case [.CoalescingOnSender]:
             predicate = { (entryNotification, _) in
-                return notification.object === entryNotification.object
+                return notification.object !== entryNotification.object
             }
         default:
             return
@@ -132,7 +132,7 @@ public class NSNotificationQueue : NSObject {
     // MARK: Private
 
     private func notify(currentMode: String?, inout notificationList: NSNotificationList) {
-        for (idx, (notification, modes)) in notificationList.enumerate() {
+        for (idx, (notification, modes)) in notificationList.enumerate().reverse() {
             if currentMode == nil || modes.contains(currentMode!) {
                 self.notificationCenter.postNotification(notification)
                 notificationList.removeAtIndex(idx)
