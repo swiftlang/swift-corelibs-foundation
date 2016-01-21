@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
 public enum NSPostingStyle : UInt {
     
     case PostWhenIdle
@@ -31,6 +33,16 @@ public class NSNotificationQueue : NSObject {
     internal let notificationCenter: NSNotificationCenter
     internal var asapList = NSNotificationList()
     internal var idleList = NSNotificationList()
+    internal lazy var idleRunloopObserver: CFRunLoopObserverRef = {
+        return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFRunLoopActivity.BeforeWaiting.rawValue, true, 0) {[weak self] observer, activity in
+            self!.notifyQueues(.PostWhenIdle)
+        }
+    }()
+    internal lazy var asapRunloopObserver: CFRunLoopObserverRef = {
+        return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFRunLoopActivity.BeforeTimers.rawValue | CFRunLoopActivity.Exit.rawValue, true, 0) {[weak self] observer, activity in
+            self!.notifyQueues(.PostASAP)
+        }
+    }()
 
     // The NSNotificationQueue instance is associated with current thread.
     // The _notificationQueueList represents a list of notification queues related to the current thread.
@@ -53,10 +65,18 @@ public class NSNotificationQueue : NSObject {
         self.notificationCenter = notificationCenter
         super.init()
         NSNotificationQueue.registerQueue(self)
+        CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, self.idleRunloopObserver, kCFRunLoopDefaultMode)
+        CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, self.idleRunloopObserver, kCFRunLoopCommonModes)
+        CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, self.asapRunloopObserver, kCFRunLoopDefaultMode)
+        CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, self.asapRunloopObserver, kCFRunLoopCommonModes)
     }
 
     deinit {
         NSNotificationQueue.unregisterQueue(self)
+        CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, self.idleRunloopObserver, kCFRunLoopDefaultMode)
+        CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, self.idleRunloopObserver, kCFRunLoopCommonModes)
+        CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, self.asapRunloopObserver, kCFRunLoopDefaultMode)
+        CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, self.asapRunloopObserver, kCFRunLoopCommonModes)
     }
 
     public func enqueueNotification(notification: NSNotification, postingStyle: NSPostingStyle) {
@@ -79,12 +99,10 @@ public class NSNotificationQueue : NSObject {
             if currentMode == nil || runloopModes.contains(currentMode!) {
                 self.notificationCenter.postNotification(notification)
             }
-        case .PostASAP:
+        case .PostASAP: // post at the end of the current notification callout or timer
             self.asapList.append((notification, runloopModes))
-            NSUnimplemented() // post at the end of the current notification callout or timer
-        case .PostWhenIdle:
+        case .PostWhenIdle: // wait until the runloop is idle, then post the notification
             self.idleList.append((notification, runloopModes))
-            NSUnimplemented() // wait until the runloop is idle, then post the notification
         }
     }
     
@@ -112,6 +130,30 @@ public class NSNotificationQueue : NSObject {
     }
 
     // MARK: Private
+
+    private func notify(currentMode: String?, inout notificationList: NSNotificationList) {
+        for (idx, (notification, modes)) in notificationList.enumerate() {
+            if currentMode == nil || modes.contains(currentMode!) {
+                self.notificationCenter.postNotification(notification)
+                notificationList.removeAtIndex(idx)
+            }
+        }
+    }
+
+    /**
+     Gets queues from the notificationQueueList and posts all notification from the list related to the postingStyle parameter.
+     */
+    private func notifyQueues(postingStyle: NSPostingStyle) {
+        let currentMode = NSRunLoop.currentRunLoop().currentMode
+        for queue in NSNotificationQueue.notificationQueueList {
+            let notificationQueue = queue as! NSNotificationQueue
+            if postingStyle == .PostWhenIdle {
+                notificationQueue.notify(currentMode, notificationList: &notificationQueue.idleList)
+            } else {
+                notificationQueue.notify(currentMode, notificationList: &notificationQueue.asapList)
+            }
+        }
+    }
 
     private static func registerQueue(notificationQueue: NSNotificationQueue) {
         self.notificationQueueList.addObject(notificationQueue)
