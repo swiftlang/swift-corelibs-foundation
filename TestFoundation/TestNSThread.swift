@@ -45,7 +45,9 @@ class TestNSThread : XCTestCase {
         thread.start()
         
         condition.lock()
-        condition.wait()
+        if !started {
+            condition.wait()
+        }
         condition.unlock()
         XCTAssertTrue(started)
     }
