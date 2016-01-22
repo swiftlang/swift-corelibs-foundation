@@ -62,6 +62,7 @@ class TestNSString : XCTestCase {
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
             ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
+            ("test_FromContentsOfURL",test_FromContentsOfURL),
             ("test_FromContentOfFile",test_FromContentOfFile),
             ("test_swiftStringUTF16", test_swiftStringUTF16),
             ("test_completePathIntoString", test_completePathIntoString),
@@ -259,7 +260,27 @@ class TestNSString : XCTestCase {
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
     }
-    
+
+    func test_FromContentsOfURL() {
+        guard let testFileURL = testBundle().URLForResource("NSStringTestData", withExtension: "txt") else {
+            XCTFail("URL for NSStringTestData.txt is nil")
+            return
+        }
+
+        do {
+            let string = try NSString(contentsOfURL: testFileURL, encoding: NSUTF8StringEncoding)
+            XCTAssertEqual(string, "swift-corelibs-foundation")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfURL:encoding:")
+        }
+        do {
+            let string = try NSString(contentsOfURL: testFileURL, encoding: NSUTF16StringEncoding)
+            XCTAssertNotEqual(string, "swift-corelibs-foundation", "Wrong result when reading UTF-8 file with UTF-16 encoding in contentsOfURL:encoding")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfURL:encoding:")
+        }
+    }
+
     func test_FromContentOfFile() {
         let testFilePath = testBundle().pathForResource("NSStringTestData", ofType: "txt")
         XCTAssertNotNil(testFilePath)
