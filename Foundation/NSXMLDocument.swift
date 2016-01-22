@@ -88,6 +88,10 @@ public class NSXMLDocument : NSXMLNode {
     public init(data: NSData, options mask: Int) throws {
         let docPtr = _CFXMLDocPtrFromDataWithOptions(data._cfObject, Int32(mask))
         super.init(ptr: _CFXMLNodePtr(docPtr))
+
+        if mask & NSXMLDocumentValidate != 0 {
+            try validate()
+        }
     } //primitive
 
     /*!
@@ -193,7 +197,33 @@ public class NSXMLDocument : NSXMLNode {
         @method DTD
         @abstract Set the associated DTD. This DTD will be output with the document.
     */
-    /*@NSCopying*/ public var DTD: NSXMLDTD? //primitive
+    /*@NSCopying*/ public var DTD: NSXMLDTD? {
+        get {
+            return NSXMLDTD._objectNodeForNode(_CFXMLDocDTD(_xmlDoc));
+        }
+        set {
+            let currDTD = _CFXMLDocDTD(_xmlDoc)
+            if currDTD != nil {
+                if _CFXMLNodeGetPrivateData(currDTD) != nil {
+                    let DTD = NSXMLDTD._objectNodeForNode(currDTD)
+                    _CFXMLUnlinkNode(currDTD)
+                    _childNodes.remove(DTD)
+                } else {
+                    _CFXMLFreeDTD(currDTD)
+                }
+            }
+
+            if let value = newValue {
+                guard let dtd = value.copy() as? NSXMLDTD else {
+                    fatalError("Failed to copy DTD")
+                }
+                _CFXMLDocSetDTD(_xmlDoc, dtd._xmlDTD)
+                _childNodes.insert(dtd)
+            } else {
+                _CFXMLDocSetDTD(_xmlDoc, nil)
+            }
+        }
+    }//primitive
 
     /*!
         @method setRootElement:
@@ -306,7 +336,15 @@ public class NSXMLDocument : NSXMLNode {
     */
     public func objectByApplyingXSLTAtURL(xsltURL: NSURL, arguments argument: [String : String]?) throws -> AnyObject { NSUnimplemented() }
 
-    public func validate() throws { NSUnimplemented() }
+    public func validate() throws {
+        var unmanagedError: Unmanaged<CFError>? = nil
+        let result = _CFXMLDocValidate(_xmlDoc, &unmanagedError)
+        if !result,
+            let unmanagedError = unmanagedError {
+            let error = unmanagedError.takeRetainedValue()
+            throw error._nsObject
+        }
+    }
 
     internal override class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLDocument {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDocument)

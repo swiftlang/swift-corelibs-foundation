@@ -22,20 +22,47 @@ import CoreFoundation
 class TestNSXMLDocument : XCTestCase {
 
     var allTests: [(String, () throws -> Void)] {
-        return [
-            ("test_basicCreation", test_basicCreation),
-            ("test_nextPreviousNode", test_nextPreviousNode),
-            ("test_xpath", test_xpath),
-            ("test_elementCreation", test_elementCreation),
-            ("test_elementChildren", test_elementChildren),
-            ("test_stringValue", test_stringValue),
-            ("test_objectValue", test_objectValue),
-            ("test_attributes", test_attributes),
-            ("test_comments", test_comments),
-            ("test_processingInstruction", test_processingInstruction),
-            ("test_parseXMLString", test_parseXMLString),
-            ("test_prefixes", test_prefixes)
-        ]
+        #if os(OSX) || os(iOS)
+            return [
+                ("test_basicCreation", test_basicCreation),
+                ("test_nextPreviousNode", test_nextPreviousNode),
+                ("test_xpath", test_xpath),
+                ("test_elementCreation", test_elementCreation),
+                ("test_elementChildren", test_elementChildren),
+                ("test_stringValue", test_stringValue),
+                ("test_objectValue", test_objectValue),
+                ("test_attributes", test_attributes),
+                ("test_comments", test_comments),
+                ("test_processingInstruction", test_processingInstruction),
+                ("test_parseXMLString", test_parseXMLString),
+                ("test_prefixes", test_prefixes),
+                ("test_validation_success", test_validation_success),
+                ("test_validation_failure", test_validation_failure),
+                ("test_dtd", test_dtd),
+                ("test_documentWithDTD", test_documentWithDTD),
+                ("test_dtd_attributes", test_dtd_attributes)
+            ]
+        #else // On Linux, currently the tests that rely on NSError are segfaulting in swift_dynamicCast
+            return [
+                ("test_basicCreation", test_basicCreation),
+                ("test_nextPreviousNode", test_nextPreviousNode),
+                ("test_xpath", test_xpath),
+                ("test_elementCreation", test_elementCreation),
+                ("test_elementChildren", test_elementChildren),
+                ("test_stringValue", test_stringValue),
+                ("test_objectValue", test_objectValue),
+                ("test_attributes", test_attributes),
+                ("test_comments", test_comments),
+                ("test_processingInstruction", test_processingInstruction),
+                ("test_parseXMLString", test_parseXMLString),
+                ("test_prefixes", test_prefixes),
+                ("test_validation_success", test_validation_success),
+                //                ("test_validation_failure", test_validation_failure),
+                ("test_dtd", test_dtd),
+                //                ("test_documentWithDTD", test_documentWithDTD),
+                ("test_dtd_attributes", test_dtd_attributes)
+            ]
+        #endif
     }
 
     func test_basicCreation() {
@@ -160,13 +187,13 @@ class TestNSXMLDocument : XCTestCase {
 
         element.stringValue = nil
 
-//        let doc = NSXMLDocument(rootElement: element)
-//        xmlCreateIntSubset(xmlDocPtr(doc._xmlNode), "test.dtd", nil, nil)
-//        xmlAddDocEntity(xmlDocPtr(doc._xmlNode), "author", Int32(XML_INTERNAL_GENERAL_ENTITY.rawValue), nil, nil, "Robert Thompson")
-//        let author = NSXMLElement(name: "author")
-//        doc.rootElement()?.addChild(author)
-//        author.setStringValue("&author;", resolvingEntities: true)
-//        XCTAssertEqual(author.stringValue, "Robert Thompson", author.stringValue ?? "")
+        //        let doc = NSXMLDocument(rootElement: element)
+        //        xmlCreateIntSubset(xmlDocPtr(doc._xmlNode), "test.dtd", nil, nil)
+        //        xmlAddDocEntity(xmlDocPtr(doc._xmlNode), "author", Int32(XML_INTERNAL_GENERAL_ENTITY.rawValue), nil, nil, "Robert Thompson")
+        //        let author = NSXMLElement(name: "author")
+        //        doc.rootElement()?.addChild(author)
+        //        author.setStringValue("&author;", resolvingEntities: true)
+        //        XCTAssertEqual(author.stringValue, "Robert Thompson", author.stringValue ?? "")
     }
 
 
@@ -230,36 +257,149 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(pi.XMLString, "<?xml-stylesheet type=\"text/css\" href=\"style.css\"?>")
     }
 
-    func test_parseXMLString() {
+    func test_parseXMLString() throws {
         let string = "<?xml version=\"1.0\" encoding=\"utf-8\"?><!DOCTYPE test.dtd [\n        <!ENTITY author \"Robert Thompson\">\n        ]><root><author>&author;</author></root>"
-        do {
-            let doc = try NSXMLDocument(XMLString: string, options: NSXMLNodeLoadExternalEntitiesNever)
-            XCTAssert(doc.childCount == 1)
-            XCTAssertEqual(doc.rootElement()?.children?[0].stringValue, "Robert Thompson")
 
-            guard let testDataURL = testBundle().URLForResource("NSXMLDocumentTestData", withExtension: "xml") else {
-                XCTFail("Could not find XML test data")
-                return
-            }
+        let doc = try NSXMLDocument(XMLString: string, options: NSXMLNodeLoadExternalEntitiesNever)
+        XCTAssert(doc.childCount == 1)
+        XCTAssertEqual(doc.rootElement()?.children?[0].stringValue, "Robert Thompson")
 
-            let newDoc = try NSXMLDocument(contentsOfURL: testDataURL, options: 0)
-            XCTAssertEqual(newDoc.rootElement()?.name, "root")
-            let root = newDoc.rootElement()!
-            let children = root.children!
-            XCTAssertEqual(children[0].stringValue, "Hello world", children[0].stringValue!)
-            XCTAssertEqual(children[1].children?[0].stringValue, "I'm here", (children[1].children?[0].stringValue)!)
-
-            doc.insertChild(NSXMLElement(name: "body"), atIndex: 1)
-            XCTAssertEqual(doc.children?[1].name, "body")
-            XCTAssertEqual(doc.children?[2].name, "root", (doc.children?[2].name)!)
-        } catch {
-            XCTFail("\(error)")
+        guard let testDataURL = testBundle().URLForResource("NSXMLDocumentTestData", withExtension: "xml") else {
+            XCTFail("Could not find XML test data")
+            return
         }
+
+        let newDoc = try NSXMLDocument(contentsOfURL: testDataURL, options: 0)
+        XCTAssertEqual(newDoc.rootElement()?.name, "root")
+        let root = newDoc.rootElement()!
+        let children = root.children!
+        XCTAssertEqual(children[0].stringValue, "Hello world", children[0].stringValue!)
+        XCTAssertEqual(children[1].children?[0].stringValue, "I'm here", (children[1].children?[0].stringValue)!)
+
+        doc.insertChild(NSXMLElement(name: "body"), atIndex: 1)
+        XCTAssertEqual(doc.children?[1].name, "body")
+        XCTAssertEqual(doc.children?[2].name, "root", (doc.children?[2].name)!)
     }
 
     func test_prefixes() {
         let element = NSXMLElement(name: "xml:root")
         XCTAssertEqual(element.prefix, "xml")
         XCTAssertEqual(element.localName, "root")
+    }
+
+    func test_validation_success() throws {
+        let validString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT foo (#PCDATA)> ]><foo>Hello world</foo>"
+        do {
+            let doc = try NSXMLDocument(XMLString: validString, options: 0)
+            try doc.validate()
+        } catch {
+            XCTFail("\(error)")
+        }
+
+        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string></dict></plist>"
+        let plistDoc = try NSXMLDocument(XMLString: plistDocString, options: 0)
+        do {
+            try plistDoc.validate()
+            XCTAssert(plistDoc.rootElement()?.name == "plist")
+            let plist = try NSPropertyListSerialization.propertyListWithData(plistDoc.XMLData, options: [], format: nil) as! [String: Any]
+            XCTAssert((plist["MyKey"] as? String) == "Hello!")
+        } catch let nsError as NSError {
+            XCTFail("\(nsError.userInfo)")
+        }
+    }
+
+    func test_validation_failure() throws {
+        let xmlString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT img EMPTY> ]><foo><img>not empty</img></foo>"
+        do {
+            let doc = try NSXMLDocument(XMLString: xmlString, options: 0)
+            try doc.validate()
+            XCTFail("Should have thrown")
+        } catch let nsError as NSError {
+            XCTAssert(nsError.code == NSXMLParserError.InternalError.rawValue)
+            XCTAssert(nsError.domain == NSXMLParserErrorDomain)
+            XCTAssert((nsError.userInfo[NSLocalizedDescriptionKey] as! NSString).containsString("Element img was declared EMPTY this one has content"))
+        }
+
+        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string><key>MyBooleanThing</key><true>foobar</true></dict></plist>"
+        let plistDoc = try NSXMLDocument(XMLString: plistDocString, options: 0)
+        do {
+            try plistDoc.validate()
+            XCTFail("Should have thrown!")
+        } catch let error as NSError {
+            XCTAssert((error.userInfo[NSLocalizedDescriptionKey] as! NSString).containsString("Element true was declared EMPTY this one has content"))
+        }
+    }
+
+    func test_dtd() throws {
+        let node = NSXMLNode.DTDNodeWithXMLString("<!ELEMENT foo (#PCDATA)>") as! NSXMLDTDNode
+        XCTAssert(node.name == "foo")
+
+        let dtd = try NSXMLDTD(contentsOfURL: testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")!, options: 0)
+        //        dtd.systemID = testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")?.absoluteString
+        dtd.name = "plist"
+        //        dtd.publicID = "-//Apple//DTD PLIST 1.0//EN"
+        let plistNode = dtd.elementDeclarationForName("plist")
+        XCTAssert(plistNode?.name == "plist")
+        let plistObjectNode = dtd.entityDeclarationForName("plistObject")
+        XCTAssert(plistObjectNode?.name == "plistObject")
+        XCTAssert(plistObjectNode?.stringValue == "(array | data | date | dict | real | integer | string | true | false )")
+        let plistAttribute = dtd.attributeDeclarationForName("version", elementName: "plist")
+        XCTAssert(plistAttribute?.name == "version")
+
+        let doc = try NSXMLDocument(XMLString: "<?xml version='1.0' encoding='utf-8'?><plist version='1.0'><dict><key>hello</key><string>world</string></dict></plist>", options: 0)
+        doc.DTD = dtd
+        do {
+            try doc.validate()
+        } catch let error as NSError {
+            XCTFail("\(error.userInfo)")
+        }
+
+        let amp = NSXMLDTD.predefinedEntityDeclarationForName("amp")
+        XCTAssert(amp?.name == "amp", amp?.name ?? "")
+        XCTAssert(amp?.stringValue == "&", amp?.stringValue ?? "")
+        if let entityNode = NSXMLNode.DTDNodeWithXMLString("<!ENTITY author 'Robert Thompson'>") as? NSXMLDTDNode {
+            XCTAssert(entityNode.name == "author")
+            XCTAssert(entityNode.stringValue == "Robert Thompson")
+        }
+
+        let elementDecl = NSXMLDTDNode(kind: .ElementDeclarationKind)
+        elementDecl.name = "MyElement"
+        elementDecl.stringValue = "(#PCDATA | array)*"
+        XCTAssert(elementDecl.stringValue == "(#PCDATA | array)*", elementDecl.stringValue ?? "nil string value")
+    }
+
+    func test_documentWithDTD() throws {
+        let doc = try NSXMLDocument(contentsOfURL: testBundle().URLForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
+        let dtd = doc.DTD
+        XCTAssert(dtd?.name == "root")
+
+        let notation = dtd?.notationDeclarationForName("myNotation")
+        notation?.detach()
+        XCTAssert(notation?.name == "myNotation")
+        XCTAssert(notation?.systemID == "http://www.example.com", notation?.systemID ?? "nil system id!")
+
+        do {
+            try doc.validate()
+        } catch {
+            XCTFail("\(error)")
+        }
+
+        let root = dtd?.elementDeclarationForName("root")
+        root?.stringValue = "(#PCDATA)"
+        do {
+            try doc.validate()
+            XCTFail("should have thrown")
+        } catch let error as NSError {
+            XCTAssert(error.code == NSXMLParserError.InternalError.rawValue)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+    
+    func test_dtd_attributes() throws {
+        let doc = try NSXMLDocument(contentsOfURL: testBundle().URLForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
+        let dtd = doc.DTD!
+        let attrDecl = dtd.attributeDeclarationForName("print", elementName: "foo")!
+        XCTAssert(attrDecl.DTDKind == .NSXMLAttributeEnumerationKind)
     }
 }

@@ -20,6 +20,7 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/xmlsave.h>
 #include <libxml/xpath.h>
+#include <libxml/dict.h>
 #include "CFInternal.h"
 
 /*
@@ -49,21 +50,63 @@ CFIndex _kCFXMLInterfaceHuge = XML_PARSE_HUGE;
 CFIndex _kCFXMLInterfaceOldsax = XML_PARSE_OLDSAX;
 CFIndex _kCFXMLInterfaceIgnoreEnc = XML_PARSE_IGNORE_ENC;
 CFIndex _kCFXMLInterfaceBigLines = XML_PARSE_BIG_LINES;
+
+CFIndex _kCFXMLTypeInvalid = 0;
 CFIndex _kCFXMLTypeDocument = XML_DOCUMENT_NODE;
 CFIndex _kCFXMLTypeElement = XML_ELEMENT_NODE;
 CFIndex _kCFXMLTypeAttribute = XML_ATTRIBUTE_NODE;
 CFIndex _kCFXMLTypeDTD = XML_DTD_NODE;
 CFIndex _kCFXMLDocTypeHTML = XML_DOC_HTML;
+
 CFIndex _kCFXMLDTDNodeTypeEntity = XML_ENTITY_DECL;
 CFIndex _kCFXMLDTDNodeTypeAttribute = XML_ATTRIBUTE_DECL;
 CFIndex _kCFXMLDTDNodeTypeElement = XML_ELEMENT_DECL;
 CFIndex _kCFXMLDTDNodeTypeNotation = XML_NOTATION_NODE;
+
+CFIndex _kCFXMLDTDNodeElementTypeUndefined = XML_ELEMENT_TYPE_UNDEFINED;
+CFIndex _kCFXMLDTDNodeElementTypeEmpty = XML_ELEMENT_TYPE_EMPTY;
+CFIndex _kCFXMLDTDNodeElementTypeAny = XML_ELEMENT_TYPE_ANY;
+CFIndex _kCFXMLDTDNodeElementTypeMixed = XML_ELEMENT_TYPE_MIXED;
+CFIndex _kCFXMLDTDNodeElementTypeElement = XML_ELEMENT_TYPE_ELEMENT;
+
+CFIndex _kCFXMLDTDNodeEntityTypeInternalGeneral = XML_INTERNAL_GENERAL_ENTITY;
+CFIndex _kCFXMLDTDNodeEntityTypeExternalGeneralParsed = XML_EXTERNAL_GENERAL_PARSED_ENTITY;
+CFIndex _kCFXMLDTDNodeEntityTypeExternalGeneralUnparsed = XML_EXTERNAL_GENERAL_UNPARSED_ENTITY;
+CFIndex _kCFXMLDTDNodeEntityTypeInternalParameter = XML_INTERNAL_PARAMETER_ENTITY;
+CFIndex _kCFXMLDTDNodeEntityTypeExternalParameter = XML_EXTERNAL_PARAMETER_ENTITY;
+CFIndex _kCFXMLDTDNodeEntityTypeInternalPredefined = XML_INTERNAL_PREDEFINED_ENTITY;
+
+CFIndex _kCFXMLDTDNodeAttributeTypeCData = XML_ATTRIBUTE_CDATA;
+CFIndex _kCFXMLDTDNodeAttributeTypeID = XML_ATTRIBUTE_ID;
+CFIndex _kCFXMLDTDNodeAttributeTypeIDRef = XML_ATTRIBUTE_IDREF;
+CFIndex _kCFXMLDTDNodeAttributeTypeIDRefs = XML_ATTRIBUTE_IDREFS;
+CFIndex _kCFXMLDTDNodeAttributeTypeEntity = XML_ATTRIBUTE_ENTITY;
+CFIndex _kCFXMLDTDNodeAttributeTypeEntities = XML_ATTRIBUTE_ENTITIES;
+CFIndex _kCFXMLDTDNodeAttributeTypeNMToken = XML_ATTRIBUTE_NMTOKEN;
+CFIndex _kCFXMLDTDNodeAttributeTypeNMTokens = XML_ATTRIBUTE_NMTOKENS;
+CFIndex _kCFXMLDTDNodeAttributeTypeEnumeration = XML_ATTRIBUTE_ENUMERATION;
+CFIndex _kCFXMLDTDNodeAttributeTypeNotation = XML_ATTRIBUTE_NOTATION;
 
 CFIndex _kCFXMLNodePreserveWhitespace = 1 << 25;
 CFIndex _kCFXMLNodeCompactEmptyElement = 1 << 2;
 CFIndex _kCFXMLNodePrettyPrint = 1 << 17;
 CFIndex _kCFXMLNodeLoadExternalEntitiesNever = 1 << 19;
 CFIndex _kCFXMLNodeLoadExternalEntitiesAlways = 1 << 14;
+
+// We define this structure because libxml2's "notation" node does not contain the fields
+// nearly all other libxml2 node fields contain, that we use extensively.
+typedef struct {
+    void * _private;
+    xmlElementType type;
+    const xmlChar* name;
+    xmlNodePtr children;
+    xmlNodePtr last;
+    xmlNodePtr parent;
+    xmlNodePtr next;
+    xmlNodePtr prev;
+    xmlDocPtr doc;
+    xmlNotationPtr notation;
+} _cfxmlNotation;
 
 static xmlExternalEntityLoader __originalLoader = NULL;
 
@@ -201,6 +244,50 @@ _CFXMLInterfaceEntity _CFXMLInterfaceGetPredefinedEntity(const unsigned char *na
     return xmlGetPredefinedEntity(name);
 }
 
+_CFXMLDTDNodePtr _Nullable _CFXMLDTDNewElementDesc(_CFXMLDTDPtr dtd, const unsigned char* name) {
+    bool freeDTD = false;
+    if (!dtd) {
+        dtd = xmlNewDtd(NULL, (const xmlChar*)"tempDTD", NULL, NULL);
+        freeDTD = true;
+    }
+
+    if (!name) {
+        name = (const xmlChar*)"";
+    }
+
+    xmlElementPtr result = xmlAddElementDecl(NULL, dtd, name, XML_ELEMENT_TYPE_ANY, NULL);
+
+    if (freeDTD) {
+        _CFXMLUnlinkNode(result);
+        xmlFreeDtd(dtd);
+    }
+
+    return result;
+}
+
+_CFXMLDTDNodePtr _Nullable _CFXMLDTDNewAttributeDesc(_CFXMLDTDPtr dtd, const unsigned char* name)
+{
+    bool freeDTD = false;
+    if (!dtd) {
+        dtd = xmlNewDtd(NULL, (const xmlChar*)"tempDTD", NULL, NULL);
+        freeDTD = true;
+    }
+
+    if (!name) {
+        name = (const xmlChar*)"";
+    }
+
+    xmlAttributePtr result = xmlAddAttributeDecl(NULL, dtd, NULL, name, NULL, XML_ATTRIBUTE_ID, XML_ATTRIBUTE_NONE, NULL, NULL);
+
+    if (freeDTD) {
+        _CFXMLUnlinkNode(result);
+        xmlFreeDtd(dtd);
+    }
+
+    return result;
+}
+
+
 _CFXMLInterfaceEntity _CFXMLInterfaceSAX2GetEntity(_CFXMLInterfaceParserContext ctx, const unsigned char *name) {
     if (ctx == NULL) return NULL;
     _CFXMLInterfaceEntity entity = xmlSAX2GetEntity(ctx, name);
@@ -240,7 +327,17 @@ _CFXMLNodePtr _CFXMLNewNode(_CFXMLNamespacePtr namespace, const char* name) {
 }
 
 _CFXMLNodePtr _CFXMLCopyNode(_CFXMLNodePtr node, bool recursive) {
-    return xmlCopyNode(node, recursive ? 1 : 0);
+    int recurse = recursive ? 1 : 0;
+    switch (((xmlNodePtr)node)->type) {
+        case XML_DOCUMENT_NODE:
+            return xmlCopyDoc(node, recurse);
+
+        case XML_DTD_NODE:
+            return xmlCopyDtd(node);
+
+        default:
+            return xmlCopyNode(node, recurse);
+    }
 }
 
 _CFXMLDocPtr _CFXMLNewDoc(const unsigned char* version) {
@@ -328,6 +425,10 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
 }
 
 void _CFXMLNodeSetPrivateData(_CFXMLNodePtr node, void* data) {
+    if (!node) {
+        return;
+    }
+    
     ((xmlNodePtr)node)->_private = data;
 }
 
@@ -340,6 +441,9 @@ _CFXMLNodePtr _CFXMLNodeProperties(_CFXMLNodePtr node) {
 }
 
 CFIndex _CFXMLNodeGetType(_CFXMLNodePtr node) {
+    if (!node) {
+        return _kCFXMLTypeInvalid;
+    }
     return ((xmlNodePtr)node)->type;
 }
 
@@ -352,23 +456,85 @@ void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name) {
 }
 
 CFStringRef _CFXMLNodeGetContent(_CFXMLNodePtr node) {
-    xmlChar* content = xmlNodeGetContent(node);
-    if (content == NULL) {
-        return NULL;
-    }
-    CFStringRef result = CFStringCreateWithCString(NULL, (const char*)content, kCFStringEncodingUTF8);
-    xmlFree(content);
+    switch (((xmlNodePtr)node)->type) {
+        case XML_ELEMENT_DECL:
+        {
+            char* buffer = calloc(2048, 1);
+            xmlSnprintfElementContent(buffer, 2047, ((xmlElementPtr)node)->content, 1);
+            CFStringRef result = CFStringCreateWithCString(NULL, buffer, kCFStringEncodingUTF8);
+            free(buffer);
+            return result;
+        }
 
-    return result;
+        default:
+        {
+            xmlChar* content = xmlNodeGetContent(node);
+            if (content == NULL) {
+                return NULL;
+            }
+            CFStringRef result = CFStringCreateWithCString(NULL, (const char*)content, kCFStringEncodingUTF8);
+            xmlFree(content);
+            
+            return result;
+        }
+    }
 }
 
 void _CFXMLNodeSetContent(_CFXMLNodePtr node, const unsigned char* _Nullable  content) {
-    if (content == NULL) {
-        xmlNodeSetContent(node, nil);
-        return;
-    }
+    // So handling set content on XML_ELEMENT_DECL is listed as a TODO !!! in libxml2's source code.
+    // that means we have to do it ourselves.
+    switch (((xmlNodePtr)node)->type) {
+        case XML_ELEMENT_DECL:
+        {
+            xmlElementPtr element = (xmlElementPtr)node;
+            if (content == NULL) {
+                xmlFreeDocElementContent(element->doc, element->content);
+                element->content = NULL;
+                return;
+            }
 
-    xmlNodeSetContent(node, content);
+            // rather than writing custom code to parse the new content into the correct
+            // xmlElementContent structures, let's leverage what we've already got.
+            CFMutableStringRef xmlString = CFStringCreateMutable(NULL, 0);
+            CFStringAppend(xmlString, CFSTR("<!ELEMENT "));
+            CFStringAppendCString(xmlString, _CFXMLNodeGetName(node), kCFStringEncodingUTF8);
+            CFStringAppend(xmlString, CFSTR(" "));
+            CFStringAppendCString(xmlString, (const char*)content, kCFStringEncodingUTF8);
+            CFStringAppend(xmlString, CFSTR(">"));
+
+            size_t bufferSize = CFStringGetMaximumSizeForEncoding(CFStringGetLength(xmlString), kCFStringEncodingUTF8) + 1;
+            char* buffer = calloc(bufferSize, 1);
+            CFStringGetCString(xmlString, buffer, bufferSize, kCFStringEncodingUTF8);
+            xmlElementPtr resultNode = _CFXMLParseDTDNode((const xmlChar*)buffer);
+
+            if (resultNode) {
+                xmlFreeDocElementContent(element->doc, element->content);
+                _CFXMLFreeNode(element->attributes);
+                xmlRegFreeRegexp(element->contModel);
+
+                element->type = resultNode->type;
+                element->etype = resultNode->etype;
+                element->content = resultNode->content;
+                element->attributes = resultNode->attributes;
+                element->contModel = resultNode->contModel;
+
+                resultNode->content = NULL;
+                resultNode->attributes = NULL;
+                resultNode->contModel = NULL;
+                _CFXMLFreeNode(resultNode);
+            }
+
+            return;
+        }
+
+        default:
+            if (content == NULL) {
+                xmlNodeSetContent(node, nil);
+                return;
+            }
+
+            xmlNodeSetContent(node, content);
+    }
 }
 
 _CFXMLDocPtr _CFXMLNodeGetDocument(_CFXMLNodePtr node) {
@@ -389,7 +555,60 @@ CFStringRef _CFXMLEncodeEntities(_CFXMLDocPtr doc, const unsigned char* string) 
     return result;
 }
 
+static inline void _removeHashEntry(xmlHashTablePtr table, const xmlChar* name, xmlNodePtr node);
+static inline void _removeHashEntry(xmlHashTablePtr table, const xmlChar* name, xmlNodePtr node) {
+    if (xmlHashLookup(table, name) == node) {
+        xmlHashRemoveEntry(table, name, NULL);
+    }
+}
+
 void _CFXMLUnlinkNode(_CFXMLNodePtr node) {
+    // DTD DECL nodes have references in the parent DTD's various hash tables.
+    // For some reason, libxml2's xmlUnlinkNode doesn't actually remove those references for
+    // anything other than entities, and even then only if there is a parent document!
+    // To make matters worse, when you run xmlFreeDtd on the dtd, it actually deallocs everything
+    // that it has a hash table reference to in addition to all of it's children. So, we need
+    // to manually remove the node from the correct hash table before we can unlink it.
+    switch (((xmlNodePtr)node)->type) {
+        case XML_ELEMENT_DECL:
+        {
+            xmlElementPtr elemDecl = (xmlElementPtr)node;
+            xmlDtdPtr dtd = elemDecl->parent;
+            _removeHashEntry(dtd->elements, elemDecl->name, node);
+        }
+            break;
+
+        case XML_ENTITY_DECL:
+        {
+            xmlEntityPtr entityDecl = (xmlEntityPtr)node;
+            xmlDtdPtr dtd = entityDecl->parent;
+            _removeHashEntry(dtd->entities, entityDecl->name, node);
+            _removeHashEntry(dtd->pentities, entityDecl->name, node);
+        }
+            break;
+
+        case XML_ATTRIBUTE_DECL:
+        {
+            xmlAttributePtr attrDecl = (xmlAttributePtr)node;
+            xmlDtdPtr dtd = attrDecl->parent;
+            if (xmlHashLookup3(dtd->attributes, attrDecl->name, NULL, attrDecl->elem) == node) {
+                xmlHashRemoveEntry3(dtd->attributes, attrDecl->name, NULL, attrDecl->elem, NULL);
+            }
+        }
+            break;
+
+        case XML_NOTATION_NODE:
+        {
+            // Since we're handling notation nodes instead of libxml2, we need to do some extra work here
+            xmlNotationPtr notation = ((_cfxmlNotation*)node)->notation;
+            xmlDtdPtr dtd = (xmlDtdPtr)((_cfxmlNotation*)node)->parent;
+            _removeHashEntry(dtd->notations, notation->name, (xmlNodePtr)notation);
+            return;
+        }
+
+        default:
+            break;
+    }
     xmlUnlinkNode(node);
 }
 
@@ -464,11 +683,44 @@ void _CFXMLDocSetProperties(_CFXMLDocPtr doc, int newProperties) {
     ((xmlDocPtr)doc)->properties = newProperties;
 }
 
+_CFXMLDTDPtr _Nullable _CFXMLDocDTD(_CFXMLDocPtr doc) {
+    return xmlGetIntSubset(doc);
+}
+
+void _CFXMLDocSetDTD(_CFXMLDocPtr doc, _CFXMLDTDPtr _Nullable dtd) {
+    if (!dtd) {
+        ((xmlDocPtr)doc)->intSubset = NULL;
+        return;
+    }
+
+    xmlDocPtr docPtr = (xmlDocPtr)doc;
+    xmlDtdPtr dtdPtr = (xmlDtdPtr)dtd;
+    docPtr->intSubset = dtdPtr;
+    if (docPtr->children == NULL) {
+        xmlAddChild(doc, dtd);
+    } else {
+        xmlAddPrevSibling(docPtr->children, dtd);
+    }
+}
+
 CFIndex _CFXMLNodeGetElementChildCount(_CFXMLNodePtr node) {
     return xmlChildElementCount(node);
 }
 
 void _CFXMLNodeAddChild(_CFXMLNodePtr node, _CFXMLNodePtr child) {
+    if (((xmlNodePtr)node)->type == XML_NOTATION_NODE) {// the "artificial" node we created
+        if (((xmlNodePtr)node)->type == XML_DTD_NODE) {// the only circumstance under which this actually makes sense
+            xmlNotationPtr notation = ((_cfxmlNotation*)child)->notation;
+            xmlDtdPtr dtd = (xmlDtdPtr)node;
+
+            if (dtd->notations == NULL) {
+                xmlDictPtr dict = dtd->doc ? dtd->doc->dict : NULL;
+                dtd->notations = xmlHashCreateDict(0, dict);
+            }
+            xmlHashAddEntry(dtd->notations, notation->name, notation);
+        }
+        return;
+    }
     xmlAddChild(node, child);
 }
 
@@ -509,6 +761,44 @@ CFStringRef _CFXMLGetEntityContent(_CFXMLEntityPtr entity) {
 }
 
 CFStringRef _CFXMLStringWithOptions(_CFXMLNodePtr node, uint32_t options) {
+    if (((xmlNodePtr)node)->type == XML_ENTITY_DECL &&
+        ((xmlEntityPtr)node)->etype == XML_INTERNAL_PREDEFINED_ENTITY) {
+        // predefined entities need special handling, libxml2 just tosses an error and returns a NULL string
+        // if we try to use xmlSaveTree on a predefined entity
+        CFMutableStringRef result = CFStringCreateMutable(NULL, 0);
+        CFStringAppend(result, CFSTR("<!ENTITY "));
+        CFStringAppendCString(result, (const char*)((xmlEntityPtr)node)->name, kCFStringEncodingUTF8);
+        CFStringAppend(result, CFSTR(" \""));
+        CFStringAppendCString(result, (const char*)((xmlEntityPtr)node)->content, kCFStringEncodingUTF8);
+        CFStringAppend(result, CFSTR("\">"));
+
+        return result;
+    } else if (((xmlNodePtr)node)->type == XML_NOTATION_NODE) {
+        // This is not actually a thing that occurs naturally in libxml2
+        xmlNotationPtr notation = ((_cfxmlNotation*)node)->notation;
+        CFMutableStringRef result = CFStringCreateMutable(NULL, 0);
+        CFStringAppend(result, CFSTR("<!NOTATION "));
+        CFStringAppendCString(result, (const char*)notation->name, kCFStringEncodingUTF8);
+        CFStringAppend(result, CFSTR(" "));
+        if (notation->PublicID == NULL && notation->SystemID != NULL) {
+            CFStringAppend(result, CFSTR("SYSTEM "));
+        } else if (notation->PublicID != NULL) {
+            CFStringAppend(result, CFSTR("PUBLIC \""));
+            CFStringAppendCString(result, (const char*)notation->PublicID, kCFStringEncodingUTF8);
+            CFStringAppend(result, CFSTR("\""));
+        }
+
+        if (notation->SystemID != NULL) {
+            CFStringAppend(result, CFSTR("\""));
+            CFStringAppendCString(result, (const char*)notation->SystemID, kCFStringEncodingUTF8);
+            CFStringAppend(result, CFSTR("\""));
+        }
+
+        CFStringAppend(result, CFSTR(" >"));
+
+        return result;
+    }
+    
     xmlBufferPtr buffer = xmlBufferCreate();
 
     uint32_t xmlOptions = XML_SAVE_AS_XML;
@@ -607,10 +897,352 @@ CF_RETURNS_RETAINED CFStringRef _CFXMLNodePrefix(_CFXMLNodePtr node) {
     return resultString;
 }
 
+void _CFXMLValidityErrorHandler(void* ctxt, const char* msg, ...);
+void _CFXMLValidityErrorHandler(void* ctxt, const char* msg, ...) {
+    char* formattedMessage = calloc(1, 1024);
+
+    va_list args;
+    va_start(args, msg);
+    vsprintf(formattedMessage, msg, args);
+    va_end(args);
+
+    CFStringRef message = CFStringCreateWithCString(NULL, formattedMessage, kCFStringEncodingUTF8);
+    CFStringAppend(ctxt, message);
+    CFRelease(message);
+    free(formattedMessage);
+}
+
+bool _CFXMLDocValidate(_CFXMLDocPtr doc, CFErrorRef _Nullable * error) {
+    CFMutableStringRef errorMessage = CFStringCreateMutable(NULL, 0);
+
+    xmlValidCtxtPtr ctxt = xmlNewValidCtxt();
+    ctxt->error = &_CFXMLValidityErrorHandler;
+    ctxt->userData = errorMessage;
+
+    int result = xmlValidateDocument(ctxt, doc);
+    
+    xmlFreeValidCtxt(ctxt);
+
+    if (result == 0 && error != NULL) {
+        CFMutableDictionaryRef userInfo = CFDictionaryCreateMutable(NULL, 1, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        CFDictionarySetValue(userInfo, kCFErrorLocalizedDescriptionKey, errorMessage);
+
+        *error = CFErrorCreate(NULL, CFSTR("NSXMLParserErrorDomain"), 0, userInfo);
+
+        CFRelease(userInfo);
+    }
+
+    CFRelease(errorMessage);
+
+    return result != 0;
+}
+
+_CFXMLDTDPtr _CFXMLNewDTD(_CFXMLDocPtr doc, const unsigned char* name, const unsigned char* publicID, const unsigned char* systemID) {
+    return xmlNewDtd(doc, name, publicID, systemID);
+}
+
+_CFXMLDTDNodePtr _CFXMLParseDTDNode(const unsigned char* xmlString) {
+    CFDataRef data = CFDataCreateWithBytesNoCopy(NULL, xmlString, xmlStrlen(xmlString), kCFAllocatorNull);
+    xmlDtdPtr dtd = _CFXMLParseDTDFromData(data, NULL);
+    CFRelease(data);
+
+    if (dtd == NULL) {
+        return NULL;
+    }
+    
+    xmlNodePtr node = dtd->children;
+    xmlUnlinkNode(node);
+
+    return node;
+}
+
+_CFXMLDTDPtr _Nullable _CFXMLParseDTD(const unsigned char* URL) {
+    return xmlParseDTD(NULL, URL);
+}
+
+_CFXMLDTDPtr _Nullable _CFXMLParseDTDFromData(CFDataRef data, CFErrorRef _Nullable * error) {
+    xmlParserInputBufferPtr inBuffer = xmlParserInputBufferCreateMem((const char*)CFDataGetBytePtr(data), CFDataGetLength(data), XML_CHAR_ENCODING_UTF8);
+
+    xmlSAXHandler handler;
+    handler.error = &_CFXMLValidityErrorHandler;
+    CFMutableStringRef errorMessage = CFStringCreateMutable(NULL, 0);
+    handler._private = errorMessage;
+
+    xmlDtdPtr dtd = xmlIOParseDTD(NULL, inBuffer, XML_CHAR_ENCODING_UTF8);
+
+    if (dtd == NULL && error != NULL) {
+        CFMutableDictionaryRef userInfo = CFDictionaryCreateMutable(NULL, 1, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        CFDictionarySetValue(userInfo, kCFErrorLocalizedDescriptionKey, errorMessage);
+
+        *error = CFErrorCreate(NULL, CFSTR("NSXMLParserErrorDomain"), 0, userInfo);
+
+        CFRelease(userInfo);
+    }
+    CFRelease(errorMessage);
+
+    return dtd;
+}
+
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDTDExternalID(_CFXMLDTDPtr dtd) {
+    const unsigned char* externalID = ((xmlDtdPtr)dtd)->ExternalID;
+    if (externalID) {
+        return CFStringCreateWithCString(NULL, (const char*)externalID, kCFStringEncodingUTF8);
+    }
+
+    return NULL;
+}
+
+void _CFXMLDTDSetExternalID(_CFXMLDTDPtr dtd, const unsigned char* externalID) {
+    xmlDtdPtr dtdPtr = (xmlDtdPtr)dtd;
+    if (dtdPtr->ExternalID) {
+        xmlDictPtr dict = dtdPtr->doc ? dtdPtr->doc->dict : NULL;
+        if (dict) {
+            if (!xmlDictOwns(dict, dtdPtr->ExternalID)) {
+                xmlFree((xmlChar*)dtdPtr->ExternalID);
+            }
+        } else {
+            xmlFree((xmlChar*)dtdPtr->ExternalID);
+        }
+    }
+
+    dtdPtr->ExternalID = xmlStrdup(externalID);
+}
+
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDTDSystemID(_CFXMLDTDPtr dtd) {
+    const unsigned char* systemID = ((xmlDtdPtr)dtd)->SystemID;
+    if (systemID) {
+        return CFStringCreateWithCString(NULL, (const char*)systemID, kCFStringEncodingUTF8);
+    }
+
+    return NULL;
+}
+
+void _CFXMLDTDSetSystemID(_CFXMLDTDPtr dtd, const unsigned char* systemID) {
+    xmlDtdPtr dtdPtr = (xmlDtdPtr)dtd;
+
+    if (dtdPtr->SystemID) {
+        xmlDictPtr dict = dtdPtr->doc ? dtdPtr->doc->dict : NULL;
+        if (dict) {
+            if (!xmlDictOwns(dict, dtdPtr->SystemID)) {
+                xmlFree((xmlChar*)dtdPtr->SystemID);
+            }
+        } else {
+            xmlFree((xmlChar*)dtdPtr->SystemID);
+        }
+    }
+
+    dtdPtr->SystemID = xmlStrdup(systemID);
+}
+
+_CFXMLDTDNodePtr _Nullable _CFXMLDTDGetElementDesc(_CFXMLDTDPtr dtd, const unsigned char* name) {
+    return xmlGetDtdElementDesc(dtd, name);
+}
+
+_CFXMLDTDNodePtr _Nullable _CFXMLDTDGetAttributeDesc(_CFXMLDTDPtr dtd, const unsigned char* elementName, const unsigned char* name) {
+    return xmlGetDtdAttrDesc(dtd, elementName, name);
+}
+
+_CFXMLDTDNodePtr _Nullable _CFXMLDTDGetNotationDesc(_CFXMLDTDPtr dtd, const unsigned char* name) {
+    xmlNotationPtr notation = xmlGetDtdNotationDesc(dtd, name);
+    _cfxmlNotation *notationPtr = calloc(sizeof(_cfxmlNotation), 1);
+    notationPtr->type = XML_NOTATION_NODE;
+    notationPtr->notation = notation;
+    notationPtr->parent = dtd;
+    notationPtr->doc = ((xmlDtdPtr)dtd)->doc;
+    notationPtr->name = notation->name;
+    
+    return notationPtr;
+}
+
+_CFXMLDTDNodePtr _Nullable _CFXMLDTDGetEntityDesc(_CFXMLDTDPtr dtd, const unsigned char* name) {
+    xmlDocPtr doc = ((xmlDtdPtr)dtd)->doc;
+    bool createdDoc = false;
+    if (doc == NULL) {
+        doc = xmlNewDoc((const xmlChar*)"1.0");
+        doc->extSubset = dtd;
+        ((xmlDtdPtr)dtd)->doc = doc;
+        createdDoc = true;
+    }
+
+    xmlEntityPtr node = xmlGetDtdEntity(doc, name);
+
+    if (!node) {
+        node = xmlGetParameterEntity(doc, name);
+    }
+    
+    if (createdDoc) {
+        doc->extSubset = NULL;
+        ((xmlDtdPtr)dtd)->doc = NULL;
+        xmlFreeDoc(doc);
+    }
+
+    return node;
+}
+
+_CFXMLDTDNodePtr _Nullable _CFXMLDTDGetPredefinedEntity(const unsigned char* name) {
+    return xmlGetPredefinedEntity(name);
+}
+
+CFIndex _CFXMLDTDElementNodeGetType(_CFXMLDTDNodePtr node) {
+    return ((xmlElementPtr)node)->etype;
+}
+
+CFIndex _CFXMLDTDEntityNodeGetType(_CFXMLDTDNodePtr node) {
+    return ((xmlEntityPtr)node)->etype;
+}
+
+CFIndex _CFXMLDTDAttributeNodeGetType(_CFXMLDTDNodePtr node) {
+    return ((xmlAttributePtr)node)->atype;
+}
+
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDTDNodeGetSystemID(_CFXMLDTDNodePtr node) {
+    switch (((xmlNodePtr)node)->type) {
+        case XML_ENTITY_DECL:
+            return CFStringCreateWithCString(NULL, (const char*)((xmlEntityPtr)node)->SystemID, kCFStringEncodingUTF8);
+
+        case XML_NOTATION_NODE:
+            return CFStringCreateWithCString(NULL, (const char*)((_cfxmlNotation*)node)->notation->SystemID, kCFStringEncodingUTF8);
+
+        default:
+            return NULL;
+    }
+}
+
+void _CFXMLDTDNodeSetSystemID(_CFXMLDTDNodePtr node, const unsigned char* systemID) {
+    switch (((xmlNodePtr)node)->type) {
+        case XML_ENTITY_DECL:
+        {
+            xmlEntityPtr entity = (xmlEntityPtr)node;
+            xmlDictPtr dict = entity->doc ? entity->doc->dict : NULL;
+            if (dict) {
+                if (!xmlDictOwns(dict, entity->SystemID)) {
+                    xmlFree((xmlChar*)entity->SystemID);
+                }
+            } else {
+                xmlFree((xmlChar*)entity->SystemID);
+            }
+            entity->SystemID = systemID ? xmlStrdup(systemID) : NULL;
+            return;
+        }
+        case XML_NOTATION_NODE:
+        {
+            xmlNotationPtr notation = ((_cfxmlNotation*)node)->notation;
+            xmlFree((xmlChar*)notation->SystemID);
+            notation->SystemID = systemID ? xmlStrdup(systemID) : NULL;
+            return;
+        }
+
+        default:
+            return;
+    }
+}
+
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDTDNodeGetPublicID(_CFXMLDTDNodePtr node) {
+    switch (((xmlNodePtr)node)->type) {
+        case XML_ENTITY_DECL:
+            return CFStringCreateWithCString(NULL, (const char*)((xmlEntityPtr)node)->ExternalID, kCFStringEncodingUTF8);
+            
+        case XML_NOTATION_NODE:
+            return CFStringCreateWithCString(NULL, (const char*)((_cfxmlNotation*)node)->notation->PublicID, kCFStringEncodingUTF8);
+            
+        default:
+            return NULL;
+    }
+}
+
+void _CFXMLDTDNodeSetPublicID(_CFXMLDTDNodePtr node, const unsigned char* publicID) {
+    switch (((xmlNodePtr)node)->type) {
+        case XML_ENTITY_DECL:
+        {
+            xmlEntityPtr entity = (xmlEntityPtr)node;
+            xmlDictPtr dict = entity->doc ? entity->doc->dict : NULL;
+            if (dict) {
+                if (!xmlDictOwns(dict, entity->ExternalID)) {
+                    xmlFree((xmlChar*)entity->ExternalID);
+                }
+            } else {
+                xmlFree((xmlChar*)entity->ExternalID);
+            }
+            entity->ExternalID = publicID ? xmlStrdup(publicID) : NULL;
+            return;
+        }
+        case XML_NOTATION_NODE:
+        {
+            xmlNotationPtr notation = ((_cfxmlNotation*)node)->notation;
+            xmlFree((xmlChar*)notation->PublicID);
+            notation->PublicID = publicID ? xmlStrdup(publicID) : NULL;
+            return;
+        }
+
+        default:
+            return;
+    }
+}
+
 void _CFXMLFreeNode(_CFXMLNodePtr node) {
-    xmlFreeNode(node);
+    if (!node) {
+        return;
+    }
+    
+    switch (((xmlNodePtr)node)->type) {
+        case XML_ENTITY_DECL:
+            if (((xmlEntityPtr)node)->etype == XML_INTERNAL_PREDEFINED_ENTITY) {
+                // predefined entity nodes are statically declared in libxml2 and can't be free'd
+                return;
+            }
+
+        case XML_NOTATION_NODE:
+            xmlFree(((_cfxmlNotation*)node)->notation);
+            free(node);
+            return;
+
+        case XML_ATTRIBUTE_DECL:
+        {
+            // xmlFreeNode doesn't take into account peculiarities of xmlAttributePtr, such
+            // as not having a content field. So we need to handle freeing it the way libxml2 would if we were
+            // behaving as it expected us to.
+            xmlAttributePtr attribute = (xmlAttributePtr)node;
+            xmlDictPtr dict = attribute->doc ? attribute->doc->dict : NULL;
+            xmlUnlinkNode(node);
+            if (attribute->tree != NULL) {
+                xmlFreeEnumeration(attribute->tree);
+            }
+            if (dict) {
+                if (!xmlDictOwns(dict, attribute->elem)) {
+                    xmlFree((xmlChar*)attribute->elem);
+                }
+                if (!xmlDictOwns(dict, attribute->name)) {
+                    xmlFree((xmlChar*)attribute->name);
+                }
+                if (!xmlDictOwns(dict, attribute->prefix)) {
+                    xmlFree((xmlChar*)attribute->prefix);
+                }
+                if (!xmlDictOwns(dict, attribute->defaultValue)) {
+                    xmlFree((xmlChar*)attribute->defaultValue);
+                }
+            } else {
+                xmlFree((xmlChar*)attribute->elem);
+                xmlFree((xmlChar*)attribute->name);
+                xmlFree((xmlChar*)attribute->prefix);
+                xmlFree((xmlChar*)attribute->defaultValue);
+            }
+            xmlFree(attribute);
+            return;
+        }
+
+        default:
+            xmlFreeNode(node);
+    }
 }
 
 void _CFXMLFreeDocument(_CFXMLDocPtr doc) {
     xmlFreeDoc(doc);
+}
+
+void _CFXMLFreeDTD(_CFXMLDTDPtr dtd) {
+    xmlFreeDtd(dtd);
+}
+
+void _CFXMLFreeProperty(_CFXMLNodePtr prop) {
+    xmlFreeProp(prop);
 }
