@@ -888,13 +888,13 @@ struct ComparisonTest {
 }
 
 let comparisonTests = [
-    ComparisonTest("", ""),
-    ComparisonTest("", "a"),
+    ComparisonTest("", "", reason: "bug"),
+    ComparisonTest("", "a", reason: "bug"),
 
     // ASCII cases
     ComparisonTest("t", "tt"),
     ComparisonTest("t", "Tt"),
-    ComparisonTest("\u{0}", ""),
+    ComparisonTest("\u{0}", "", reason: "bug"),
     ComparisonTest("\u{0}", "\u{0}",
         reason: "https://bugs.swift.org/browse/SR-332"),
     ComparisonTest("\r\n", "t"),
@@ -919,47 +919,47 @@ let comparisonTests = [
 
     // U+0301 COMBINING ACUTE ACCENT
     // U+00E1 LATIN SMALL LETTER A WITH ACUTE
-    ComparisonTest("a\u{301}", "\u{e1}"),
-    ComparisonTest("a", "a\u{301}"),
-    ComparisonTest("a", "\u{e1}"),
+    ComparisonTest("a\u{301}", "\u{e1}", reason: "unicode"),
+    ComparisonTest("a", "a\u{301}", reason: "unicode"),
+    ComparisonTest("a", "\u{e1}", reason: "unicode"),
 
     // U+304B HIRAGANA LETTER KA
     // U+304C HIRAGANA LETTER GA
     // U+3099 COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK
-    ComparisonTest("\u{304b}", "\u{304b}"),
-    ComparisonTest("\u{304c}", "\u{304c}"),
+    ComparisonTest("\u{304b}", "\u{304b}", reason: "unicode"),
+    ComparisonTest("\u{304c}", "\u{304c}", reason: "unicode"),
     ComparisonTest("\u{304b}", "\u{304c}"),
     ComparisonTest("\u{304b}", "\u{304c}\u{3099}"),
-    ComparisonTest("\u{304c}", "\u{304b}\u{3099}"),
-    ComparisonTest("\u{304c}", "\u{304c}\u{3099}"),
+    ComparisonTest("\u{304c}", "\u{304b}\u{3099}", reason: "unicode"),
+    ComparisonTest("\u{304c}", "\u{304c}\u{3099}", reason: "unicode"),
 
     // U+212B ANGSTROM SIGN
     // U+030A COMBINING RING ABOVE
     // U+00C5 LATIN CAPITAL LETTER A WITH RING ABOVE
-    ComparisonTest("\u{212b}", "A\u{30a}"),
-    ComparisonTest("\u{212b}", "\u{c5}"),
-    ComparisonTest("A\u{30a}", "\u{c5}"),
+    ComparisonTest("\u{212b}", "A\u{30a}", reason: "unicode"),
+    ComparisonTest("\u{212b}", "\u{c5}", reason: "unicode"),
+    ComparisonTest("A\u{30a}", "\u{c5}", reason: "unicode"),
     ComparisonTest("A\u{30a}", "a"),
-    ComparisonTest("A", "A\u{30a}"),
+    ComparisonTest("A", "A\u{30a}", reason: "unicode"),
 
     // U+2126 OHM SIGN
     // U+03A9 GREEK CAPITAL LETTER OMEGA
-    ComparisonTest("\u{2126}", "\u{03a9}"),
+    ComparisonTest("\u{2126}", "\u{03a9}", reason: "unicode"),
 
     // U+0323 COMBINING DOT BELOW
     // U+0307 COMBINING DOT ABOVE
     // U+1E63 LATIN SMALL LETTER S WITH DOT BELOW
     // U+1E69 LATIN SMALL LETTER S WITH DOT BELOW AND DOT ABOVE
-    ComparisonTest("\u{1e69}", "s\u{323}\u{307}"),
-    ComparisonTest("\u{1e69}", "s\u{307}\u{323}"),
-    ComparisonTest("\u{1e69}", "\u{1e63}\u{307}"),
-    ComparisonTest("\u{1e63}", "s\u{323}"),
-    ComparisonTest("\u{1e63}\u{307}", "s\u{323}\u{307}"),
-    ComparisonTest("\u{1e63}\u{307}", "s\u{307}\u{323}"),
+    ComparisonTest("\u{1e69}", "s\u{323}\u{307}", reason: "unicode"),
+    ComparisonTest("\u{1e69}", "s\u{307}\u{323}", reason: "unicode"),
+    ComparisonTest("\u{1e69}", "\u{1e63}\u{307}", reason: "unicode"),
+    ComparisonTest("\u{1e63}", "s\u{323}", reason: "unicode"),
+    ComparisonTest("\u{1e63}\u{307}", "s\u{323}\u{307}", reason: "unicode"),
+    ComparisonTest("\u{1e63}\u{307}", "s\u{307}\u{323}", reason: "unicode"),
     ComparisonTest("s\u{323}", "\u{1e69}"),
 
     // U+FB01 LATIN SMALL LIGATURE FI
-    ComparisonTest("\u{fb01}", "\u{fb01}"),
+    ComparisonTest("\u{fb01}", "\u{fb01}", reason: "unicode"),
     ComparisonTest("fi", "\u{fb01}"),
 
     // U+1F1E7 REGIONAL INDICATOR SYMBOL LETTER B
