@@ -38,8 +38,8 @@ class TestNSData: XCTestCase {
             ("test_base64EncodedStringGetsEncodedText", test_base64EncodedStringGetsEncodedText),
             ("test_initializeWithBase64EncodedStringGetsDecodedData", test_initializeWithBase64EncodedStringGetsDecodedData),
             ("test_base64DecodeWithPadding1", test_base64DecodeWithPadding1),
-            ("test_base64DecodeWithPadding2", test_base64DecodeWithPadding2)
-
+            ("test_base64DecodeWithPadding2", test_base64DecodeWithPadding2),
+            ("test_rangeOfData",test_rangeOfData)
         ]
     }
     
@@ -281,4 +281,60 @@ class TestNSData: XCTestCase {
         }
         XCTAssert(dataPadding2.isEqualToData(decodedPadding2))
     }
+    func test_rangeOfData() {
+        let baseData : [UInt8] = [0x00,0x01,0x02,0x03,0x04]
+        let base = NSData(bytes: baseData, length: baseData.count)
+        let baseFullRange = NSRange(location : 0,length : baseData.count)
+        let noPrefixRange = NSRange(location : 2,length : baseData.count-2)
+        let noSuffixRange = NSRange(location : 0,length : baseData.count-2)
+        let notFoundRange = NSMakeRange(NSNotFound, 0)
+        
+        
+        let prefixData : [UInt8] = [0x00,0x01]
+        let prefix = NSData(bytes: prefixData, length: prefixData.count)
+        let prefixRange = NSMakeRange(0, prefixData.count)
+        
+        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [], range: baseFullRange),prefixRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Anchored], range: baseFullRange),prefixRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Backwards], range: baseFullRange),prefixRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Backwards,.Anchored], range: baseFullRange),notFoundRange))
+        
+        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [], range: noPrefixRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Backwards], range: noPrefixRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [], range: noSuffixRange),prefixRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Backwards], range: noSuffixRange),prefixRange))
+        
+        
+        let suffixData : [UInt8] = [0x03,0x04]
+        let suffix = NSData(bytes: suffixData, length: suffixData.count)
+        let suffixRange = NSMakeRange(3, suffixData.count)
+        
+        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [], range: baseFullRange),suffixRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Anchored], range: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Backwards], range: baseFullRange),suffixRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Backwards,.Anchored], range: baseFullRange),suffixRange))
+        
+        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [], range: noPrefixRange),suffixRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Backwards], range: noPrefixRange),suffixRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [], range: noSuffixRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Backwards], range: noSuffixRange),notFoundRange))
+        
+        
+        let sliceData : [UInt8] = [0x02,0x03]
+        let slice = NSData(bytes: sliceData, length: sliceData.count)
+        let sliceRange = NSMakeRange(2, sliceData.count)
+        
+        XCTAssert(NSEqualRanges(base.rangeOfData(slice, options: [], range: baseFullRange),sliceRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(slice, options: [.Anchored], range: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(slice, options: [.Backwards], range: baseFullRange),sliceRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(slice, options: [.Backwards,.Anchored], range: baseFullRange),notFoundRange))
+        
+        let empty = NSData()
+        XCTAssert(NSEqualRanges(base.rangeOfData(empty, options: [], range: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(empty, options: [.Anchored], range: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(empty, options: [.Backwards], range: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.rangeOfData(empty, options: [.Backwards,.Anchored], range: baseFullRange),notFoundRange))
+        
+    }
+
 }

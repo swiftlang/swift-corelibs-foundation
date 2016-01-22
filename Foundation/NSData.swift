@@ -505,6 +505,34 @@ extension NSData {
         try writeToFile(path, options: writeOptionsMask)
     }
     
+    public func rangeOfData(dataToFind: NSData, options mask: NSDataSearchOptions, range searchRange: NSRange) -> NSRange {
+        guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
+        guard let searchRange = searchRange.toRange() else {fatalError("invalid range")}
+        
+        precondition(searchRange.endIndex <= self.length, "range outside the bounds of data")
+        
+        let baseData = UnsafeBufferPointer<UInt8>(start: UnsafePointer<UInt8>(self.bytes), count: self.length)[searchRange]
+        let search = UnsafeBufferPointer<UInt8>(start: UnsafePointer<UInt8>(dataToFind.bytes), count: dataToFind.length)
+        
+        let location : Int?
+        let anchored = mask.contains(.Anchored)
+        if mask.contains(.Backwards) {
+            location = NSData.searchSubSequence(search.reverse(), inSequence: baseData.reverse(),anchored : anchored).map {$0.base-search.count}
+        } else {
+            location = NSData.searchSubSequence(search, inSequence: baseData,anchored : anchored)
+        }
+        return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
+    }
+    private static func searchSubSequence<T : CollectionType,T2 : SequenceType where T.Generator.Element : Equatable, T.Generator.Element == T2.Generator.Element, T.SubSequence.Generator.Element == T.Generator.Element>(subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
+        for index in seq.indices {
+            if seq.suffixFrom(index).startsWith(subSequence) {
+                return index
+            }
+            if anchored {return nil}
+        }
+        return nil
+    }
+    
     internal func enumerateByteRangesUsingBlockRethrows(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
         var err : ErrorType? = nil
         self.enumerateByteRangesUsingBlock() { (buf, range, stop) -> Void in
