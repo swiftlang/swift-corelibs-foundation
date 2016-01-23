@@ -100,8 +100,8 @@ extension TestNSJSONSerialization {
             ("test_deserialize_simpleEscapeSequences", test_deserialize_simpleEscapeSequences),
             ("test_deserialize_unicodeEscapeSequence", test_deserialize_unicodeEscapeSequence),
             ("test_deserialize_unicodeSurrogatePairEscapeSequence", test_deserialize_unicodeSurrogatePairEscapeSequence),
-
-            ("test_deserialize_allowFragments", test_deserialize_allowFragments),
+            // Disabled due to uninitialized memory SR-606
+            // ("test_deserialize_allowFragments", test_deserialize_allowFragments),
             
             ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
             ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
