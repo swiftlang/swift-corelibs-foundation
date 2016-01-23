@@ -1588,17 +1588,21 @@ extension String {
     public func hasPrefix(prefix: String) -> Bool {
         let cfstring = self._cfObject
         let range = CFRangeMake(0, CFStringGetLength(cfstring))
-        let opts = CFStringCompareFlags(kCFCompareAnchored + kCFCompareNonliteral)
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareNonliteral)
 
-        return CFStringFindWithOptions(cfstring, prefix._cfObject, range, opts, nil)
+        return CFStringFindWithOptions(cfstring, prefix._cfObject,
+            range, opts, nil)
     }
 
     public func hasSuffix(suffix: String) -> Bool {
         let cfstring = self._cfObject
         let range = CFRangeMake(0, CFStringGetLength(cfstring))
-        let opts = CFStringCompareFlags(kCFCompareAnchored + kCFCompareBackwards + kCFCompareNonliteral)
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareBackwards | kCFCompareNonliteral)
 
-        return CFStringFindWithOptions(cfstring, suffix._cfObject, range, opts, nil)
+        return CFStringFindWithOptions(cfstring, suffix._cfObject,
+            range, opts, nil)
     }
 }
 #endif
