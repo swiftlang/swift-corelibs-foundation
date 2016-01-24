@@ -46,9 +46,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public override var hash: Int {
-        get {
-            return Int(bitPattern: CFHash(_cfObject))
-        }
+        return Int(bitPattern: CFHash(_cfObject))
     }
     
     public override func isEqual(object: AnyObject?) -> Bool {
@@ -60,9 +58,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public override var description: String {
-        get {
-            return CFCopyDescription(_cfObject)._swiftObject
-        }
+        return CFCopyDescription(_cfObject)._swiftObject
     }
 
     deinit {
@@ -161,15 +157,11 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public var bitmapRepresentation: NSData {
-        get {
-            return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _cfObject)._nsObject
-        }
+        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _cfObject)._nsObject
     }
     
     public var invertedSet: NSCharacterSet {
-        get {
-            return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, _cfObject)._nsObject
-        }
+        return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, _cfObject)._nsObject
     }
     
     public func longCharacterIsMember(theLongChar: UTF32Char) -> Bool {
