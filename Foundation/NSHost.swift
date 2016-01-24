@@ -112,35 +112,25 @@ public class NSHost : NSObject {
     }
     
     public var name: String? {
-        get {
-            return names.first
-        }
+        return names.first
     }
     
     public var names: [String] {
-        get {
-            _resolve()
-            return _names
-        }
+        _resolve()
+        return _names
     }
     
     public var address: String? {
-        get {
-            return addresses.first
-        }
+        return addresses.first
     }
     
     public var addresses: [String] {
-        get {
-            _resolve()
-            return _addresses
-        }
+        _resolve()
+        return _addresses
     }
     
     public var localizedName: String? {
-        get {
-            return nil
-        }
+        return nil
     }
 }
 
