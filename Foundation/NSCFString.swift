@@ -55,17 +55,13 @@ internal class _NSCFString : NSMutableString {
 
 internal final class _NSCFConstantString : _NSCFString {
     internal var _ptr : UnsafePointer<UInt8> {
-        get {
-            let ptr = unsafeAddressOf(self) + sizeof(COpaquePointer) + sizeof(Int32) + sizeof(Int32) + sizeof(_CFInfo)
-            return UnsafePointer<UnsafePointer<UInt8>>(ptr).memory
-        }
+        let ptr = unsafeAddressOf(self) + sizeof(COpaquePointer) + sizeof(Int32) + sizeof(Int32) + sizeof(_CFInfo)
+        return UnsafePointer<UnsafePointer<UInt8>>(ptr).memory
     }
     internal var _length : UInt32 {
-        get {
-            let offset = sizeof(COpaquePointer) + sizeof(Int32) + sizeof(Int32) + sizeof(_CFInfo) + sizeof(UnsafePointer<UInt8>)
-            let ptr = unsafeAddressOf(self) + offset
-            return UnsafePointer<UInt32>(ptr).memory
-        }
+        let offset = sizeof(COpaquePointer) + sizeof(Int32) + sizeof(Int32) + sizeof(_CFInfo) + sizeof(UnsafePointer<UInt8>)
+        let ptr = unsafeAddressOf(self) + offset
+        return UnsafePointer<UInt32>(ptr).memory
     }
     
     required init(characters: UnsafePointer<unichar>, length: Int) {
