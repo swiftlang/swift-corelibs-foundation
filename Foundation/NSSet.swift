@@ -75,12 +75,10 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     internal var _storage: Set<NSObject>
     
     public var count: Int {
-        get {
-            if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
-                return _storage.count
-            } else {
-                NSRequiresConcreteImplementation()
-            }
+        if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
+            return _storage.count
+        } else {
+            NSRequiresConcreteImplementation()
         }
     }
     
@@ -210,11 +208,9 @@ extension NSSet {
 extension NSSet {
     
     public var allObjects: [AnyObject] {
-        get {
-            // Would be nice to use `Array(self)` here but compiler
-            // crashes on Linux @ swift 6e3e83c
-            return map { $0 }
-        }
+        // Would be nice to use `Array(self)` here but compiler
+        // crashes on Linux @ swift 6e3e83c
+        return map { $0 }
     }
     
     public func anyObject() -> AnyObject? {
