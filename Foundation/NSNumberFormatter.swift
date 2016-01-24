@@ -27,21 +27,19 @@ public class NSNumberFormatter : NSFormatter {
     typealias CFType = CFNumberFormatterRef
     private var _currentCfFormatter: CFType?
     private var _cfFormatter: CFType {
-        get {
-            if let obj = _currentCfFormatter {
-                return obj
-            } else {
-                #if os(OSX) || os(iOS)
-                    let numberStyle = CFNumberFormatterStyle(rawValue: CFIndex(self.numberStyle.rawValue))!
-                #else
-                    let numberStyle = CFNumberFormatterStyle(self.numberStyle.rawValue)
-                #endif
-                
-                let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)
-                _setFormatterAttributes(obj)
-                _currentCfFormatter = obj
-                return obj
-            }
+        if let obj = _currentCfFormatter {
+            return obj
+        } else {
+            #if os(OSX) || os(iOS)
+                let numberStyle = CFNumberFormatterStyle(rawValue: CFIndex(self.numberStyle.rawValue))!
+            #else
+                let numberStyle = CFNumberFormatterStyle(self.numberStyle.rawValue)
+            #endif
+            
+            let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)
+            _setFormatterAttributes(obj)
+            _currentCfFormatter = obj
+            return obj
         }
     }
     
