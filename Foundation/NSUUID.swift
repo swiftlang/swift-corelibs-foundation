@@ -64,7 +64,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        super.init(coder: coder)
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {

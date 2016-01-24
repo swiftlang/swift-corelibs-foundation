@@ -49,7 +49,8 @@ public class NSFormatter : NSObject, NSCopying, NSCoding {
     }
     
     public required init?(coder: NSCoder) {
-        
+        super.init(coder: coder)
+
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {

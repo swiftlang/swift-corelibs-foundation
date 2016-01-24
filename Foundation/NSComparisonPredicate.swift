@@ -49,7 +49,7 @@ public enum NSPredicateOperatorType : UInt {
 public class NSComparisonPredicate : NSPredicate {
     
     public init(leftExpression lhs: NSExpression, rightExpression rhs: NSExpression, modifier: NSComparisonPredicateModifier, type: NSPredicateOperatorType, options: NSComparisonPredicateOptions) { NSUnimplemented() }
-    public required init?(coder: NSCoder) { NSUnimplemented() }
+    public required init?(coder: NSCoder) { super.init(coder: coder) }
     
     public var predicateOperatorType: NSPredicateOperatorType { NSUnimplemented() }
     public var comparisonPredicateModifier: NSComparisonPredicateModifier { NSUnimplemented() }

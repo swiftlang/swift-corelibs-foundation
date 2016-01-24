@@ -23,7 +23,8 @@ public enum NSLengthFormatterUnit : Int {
 public class NSLengthFormatter : NSFormatter {
     
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        super.init(coder: coder)
+
     }
     
     /*@NSCopying*/ public var numberFormatter: NSNumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
