@@ -210,12 +210,10 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     internal var _storage: String
     
     public var length: Int {
-        get {
-            if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
-                return _storage.utf16.count
-            } else {
-                NSRequiresConcreteImplementation()
-            }
+        if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
+            return _storage.utf16.count
+        } else {
+            NSRequiresConcreteImplementation()
         }
     }
     
@@ -599,97 +597,73 @@ extension NSString {
     }
     
     public var doubleValue: Double {
-        get {
-            var start: Int = 0
-            var result = 0.0
-            _swiftObject.scan(NSCharacterSet.whitespaceCharacterSet(), locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
-                result = value
-            }
-            return result
+        var start: Int = 0
+        var result = 0.0
+        _swiftObject.scan(NSCharacterSet.whitespaceCharacterSet(), locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
+            result = value
         }
+        return result
     }
     
     public var floatValue: Float {
-        get {
-            var start: Int = 0
-            var result: Float = 0.0
-            _swiftObject.scan(NSCharacterSet.whitespaceCharacterSet(), locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
-                result = value
-            }
-            return result
+        var start: Int = 0
+        var result: Float = 0.0
+        _swiftObject.scan(NSCharacterSet.whitespaceCharacterSet(), locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
+            result = value
         }
+        return result
     }
     
     public var intValue: Int32 {
-        get {
-            return NSScanner(string: _swiftObject).scanInt() ?? 0
-        }
+        return NSScanner(string: _swiftObject).scanInt() ?? 0
     }
     
     public var integerValue: Int {
-        get {
-            let scanner = NSScanner(string: _swiftObject)
-            var value: Int = 0
-            scanner.scanInteger(&value)
-            return value
-        }
+        let scanner = NSScanner(string: _swiftObject)
+        var value: Int = 0
+        scanner.scanInteger(&value)
+        return value
     }
     
     public var longLongValue: Int64 {
-        get {
-            return NSScanner(string: _swiftObject).scanLongLong() ?? 0
-        }
+        return NSScanner(string: _swiftObject).scanLongLong() ?? 0
     }
     
     public var boolValue: Bool {
-        get {
-            let scanner = NSScanner(string: _swiftObject)
-            // skip initial whitespace if present
-            scanner.scanCharactersFromSet(NSCharacterSet.whitespaceCharacterSet())
-            // scan a single optional '+' or '-' character, followed by zeroes
-            if scanner.scanString(string: "+") == nil {
-                scanner.scanString(string: "-")
-            }
-            // scan any following zeroes
-            scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "0"))
-            return scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "tTyY123456789")) != nil
+        let scanner = NSScanner(string: _swiftObject)
+        // skip initial whitespace if present
+        scanner.scanCharactersFromSet(NSCharacterSet.whitespaceCharacterSet())
+        // scan a single optional '+' or '-' character, followed by zeroes
+        if scanner.scanString(string: "+") == nil {
+            scanner.scanString(string: "-")
         }
+        // scan any following zeroes
+        scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "0"))
+        return scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "tTyY123456789")) != nil
     }
     
     public var uppercaseString: String {
-        get {
-            return uppercaseStringWithLocale(nil)
-        }
+        return uppercaseStringWithLocale(nil)
     }
 
     public var lowercaseString: String {
-        get {
-            return lowercaseStringWithLocale(nil)
-        }
+        return lowercaseStringWithLocale(nil)
     }
     
     public var capitalizedString: String {
-        get {
-            return capitalizedStringWithLocale(nil)
-        }
+        return capitalizedStringWithLocale(nil)
     }
     
     public var localizedUppercaseString: String {
-        get {
-            return uppercaseStringWithLocale(NSLocale.currentLocale())
-        }
+        return uppercaseStringWithLocale(NSLocale.currentLocale())
     }
     
     public var localizedLowercaseString: String {
-        get {
-            return lowercaseStringWithLocale(NSLocale.currentLocale())
-        }
+        return lowercaseStringWithLocale(NSLocale.currentLocale())
     }
     
     public var localizedCapitalizedString: String {
-        get {
-            return capitalizedStringWithLocale(NSLocale.currentLocale())
-        }
+        return capitalizedStringWithLocale(NSLocale.currentLocale())
     }
     
     public func uppercaseStringWithLocale(locale: NSLocale?) -> String {
@@ -829,24 +803,18 @@ extension NSString {
     }
     
     public var UTF8String: UnsafePointer<Int8> {
-        get {
-            return _bytesInEncoding(self, NSUTF8StringEncoding, false, false, false)
-        }
+        return _bytesInEncoding(self, NSUTF8StringEncoding, false, false, false)
     }
     
     public var fastestEncoding: UInt {
-        get {
-            return NSUnicodeStringEncoding
-        }
+        return NSUnicodeStringEncoding
     }
     
     public var smallestEncoding: UInt {
-        get {
-            if canBeConvertedToEncoding(NSASCIIStringEncoding) {
-                return NSASCIIStringEncoding
-            }
-            return NSUnicodeStringEncoding
+        if canBeConvertedToEncoding(NSASCIIStringEncoding) {
+            return NSASCIIStringEncoding
         }
+        return NSUnicodeStringEncoding
     }
     
     public func dataUsingEncoding(encoding: UInt, allowLossyConversion lossy: Bool) -> NSData? {
@@ -991,39 +959,31 @@ extension NSString {
     }
     
     public var decomposedStringWithCanonicalMapping: String {
-        get {
-            let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
-            CFStringReplaceAll(string, self._cfObject)
-            CFStringNormalize(string, kCFStringNormalizationFormD)
-            return string._swiftObject
-        }
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        CFStringReplaceAll(string, self._cfObject)
+        CFStringNormalize(string, kCFStringNormalizationFormD)
+        return string._swiftObject
     }
     
     public var precomposedStringWithCanonicalMapping: String {
-        get {
-            let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
-            CFStringReplaceAll(string, self._cfObject)
-            CFStringNormalize(string, kCFStringNormalizationFormC)
-            return string._swiftObject
-        }
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        CFStringReplaceAll(string, self._cfObject)
+        CFStringNormalize(string, kCFStringNormalizationFormC)
+        return string._swiftObject
     }
     
     public var decomposedStringWithCompatibilityMapping: String {
-        get {
-            let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
-            CFStringReplaceAll(string, self._cfObject)
-            CFStringNormalize(string, kCFStringNormalizationFormKD)
-            return string._swiftObject
-        }
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        CFStringReplaceAll(string, self._cfObject)
+        CFStringNormalize(string, kCFStringNormalizationFormKD)
+        return string._swiftObject
     }
     
     public var precomposedStringWithCompatibilityMapping: String {
-        get {
-            let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
-            CFStringReplaceAll(string, self._cfObject)
-            CFStringNormalize(string, kCFStringNormalizationFormKC)
-            return string._swiftObject
-        }
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        CFStringReplaceAll(string, self._cfObject)
+        CFStringNormalize(string, kCFStringNormalizationFormKC)
+        return string._swiftObject
     }
     
     public func componentsSeparatedByString(separator: String) -> [String] {
