@@ -34,9 +34,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFErrorRef
     
     internal var _cfObject: CFType {
-        get {
-            return CFErrorCreate(kCFAllocatorSystemDefault, domain._cfObject, code, nil)
-        }
+        return CFErrorCreate(kCFAllocatorSystemDefault, domain._cfObject, code, nil)
     }
     
     // ErrorType forbids this being internal
@@ -76,65 +74,47 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public var domain: String {
-        get {
-            return _domain
-        }
+        return _domain
     }
     
     public var code: Int {
-        get {
-            return _code
-        }
+        return _code
     }
 
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     public var userInfo: [String : Any] {
-        get {
-            if let info = _userInfo {
-                return info
-            } else {
-                return Dictionary<String, Any>()
-            }
+        if let info = _userInfo {
+            return info
+        } else {
+            return Dictionary<String, Any>()
         }
     }
     
     public var localizedDescription: String {
-        get {
-            let desc = userInfo[NSLocalizedDescriptionKey] as? String
-            
-            return desc ?? "The operation could not be completed"
-        }
+        let desc = userInfo[NSLocalizedDescriptionKey] as? String
+        
+        return desc ?? "The operation could not be completed"
     }
     
     public var localizedFailureReason: String? {
-        get {
-            return userInfo[NSLocalizedFailureReasonErrorKey] as? String
-        }
+        return userInfo[NSLocalizedFailureReasonErrorKey] as? String
     }
     
     public var localizedRecoverySuggestion: String? {
-        get {
-            return userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String
-        }
+        return userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String
     }
 
     public var localizedRecoveryOptions: [String]? {
-        get {
-            return userInfo[NSLocalizedRecoveryOptionsErrorKey] as? [String]
-        }
+        return userInfo[NSLocalizedRecoveryOptionsErrorKey] as? [String]
     }
     
     public var recoveryAttempter: AnyObject? {
-        get {
-            return userInfo[NSRecoveryAttempterErrorKey] as? AnyObject
-        }
+        return userInfo[NSRecoveryAttempterErrorKey] as? AnyObject
     }
     
     public var helpAnchor: String? {
-        get {
-            return userInfo[NSHelpAnchorErrorKey] as? String
-        }
+        return userInfo[NSHelpAnchorErrorKey] as? String
     }
     
     internal typealias NSErrorProvider = (error: NSError, key: String) -> AnyObject?
