@@ -158,9 +158,7 @@ public class NSCoder : NSObject {
     }
     
     public var allowsKeyedCoding: Bool {
-        get {
-            return false
-        }
+        return false
     }
     
     public func encodeObject(objv: AnyObject?, forKey key: String) {
@@ -244,9 +242,7 @@ public class NSCoder : NSObject {
     }
     
     public var requiresSecureCoding: Bool {
-        get {
-            return false
-        }
+        return false
     }
     
     public func decodePropertyListForKey(key: String) -> AnyObject? {
@@ -254,9 +250,7 @@ public class NSCoder : NSObject {
     }
     
     public var allowedClasses: Set<NSObject>? {
-        get {
-            NSUnimplemented()
-        }
+        NSUnimplemented()
     }
     
     public func failWithError(error: NSError) {
