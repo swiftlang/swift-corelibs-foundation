@@ -83,9 +83,7 @@ public class NSConditionLock : NSObject, NSLocking {
     }
     
     public var condition: Int {
-        get {
-            return _value
-        }
+        return _value
     }
     
     public func lockWhenCondition(condition: Int) {
