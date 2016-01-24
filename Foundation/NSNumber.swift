@@ -132,15 +132,11 @@ public class NSNumber : NSValue {
     private var _pad: UInt64 = 0
     
     internal var _cfObject: CFType {
-        get {
-            return unsafeBitCast(self, CFType.self)
-        }
+        return unsafeBitCast(self, CFType.self)
     }
     
     public override var hash: Int {
-        get {
-            return Int(bitPattern: CFHash(_cfObject))
-        }
+        return Int(bitPattern: CFHash(_cfObject))
     }
     
     public override func isEqual(object: AnyObject?) -> Bool {
@@ -236,149 +232,119 @@ public class NSNumber : NSValue {
     }
 
     public var charValue: Int8 {
-        get {
-            var val: Int8 = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int8>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberCharType, value)
-            }
-            return val
+        var val: Int8 = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int8>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberCharType, value)
         }
+        return val
     }
 
     public var unsignedCharValue: UInt8 {
-        get {
-            var val: UInt8 = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt8>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberCharType, value)
-            }
-            return val
+        var val: UInt8 = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt8>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberCharType, value)
         }
+        return val
     }
     
     public var shortValue: Int16 {
-        get {
-            var val: Int16 = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int16>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberShortType, value)
-            }
-            return val
+        var val: Int16 = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int16>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberShortType, value)
         }
+        return val
     }
     
     public var unsignedShortValue: UInt16 {
-        get {
-            var val: UInt16 = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt16>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberShortType, value)
-            }
-            return val
+        var val: UInt16 = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt16>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberShortType, value)
         }
+        return val
     }
     
     public var intValue: Int32 {
-        get {
-            var val: Int32 = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int32>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberIntType, value)
-            }
-            return val
+        var val: Int32 = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int32>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberIntType, value)
         }
+        return val
     }
     
     public var unsignedIntValue: UInt32 {
-        get {
-            var val: UInt32 = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt32>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberIntType, value)
-            }
-            return val
+        var val: UInt32 = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt32>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberIntType, value)
         }
+        return val
     }
     
     public var longValue: Int {
-        get {
-            var val: Int = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberLongType, value)
-            }
-            return val
+        var val: Int = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberLongType, value)
         }
+        return val
     }
     
     public var unsignedLongValue: UInt {
-        get {
-            var val: UInt = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberLongType, value)
-            }
-            return val
+        var val: UInt = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberLongType, value)
         }
+        return val
     }
     
     public var longLongValue: Int64 {
-        get {
-            var val: Int64 = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int64>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberLongLongType, value)
-            }
-            return val
+        var val: Int64 = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int64>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberLongLongType, value)
         }
+        return val
     }
     
     public var unsignedLongLongValue: UInt64 {
-        get {
-            var val: UInt64 = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt64>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberLongLongType, value)
-            }
-            return val
+        var val: UInt64 = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt64>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberLongLongType, value)
         }
+        return val
     }
     
     public var floatValue: Float {
-        get {
-            var val: Float = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Float>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberFloatType, value)
-            }
-            return val
+        var val: Float = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Float>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberFloatType, value)
         }
+        return val
     }
     
     public var doubleValue: Double {
-        get {
-            var val: Double = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Double>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberDoubleType, value)
-            }
-            return val
+        var val: Double = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Double>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberDoubleType, value)
         }
+        return val
     }
     
     public var boolValue: Bool {
-        get {
-            return longLongValue != 0
-        }
+        return longLongValue != 0
     }
     
     public var integerValue: Int {
-        get {
-            var val: Int = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberLongType, value)
-            }
-            return val
+        var val: Int = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberLongType, value)
         }
+        return val
     }
     
     public var unsignedIntegerValue: UInt {
-        get {
-            var val: UInt = 0
-            withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt>) -> Void in
-                CFNumberGetValue(_cfObject, kCFNumberLongType, value)
-            }
-            return val
+        var val: UInt = 0
+        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt>) -> Void in
+            CFNumberGetValue(_cfObject, kCFNumberLongType, value)
         }
+        return val
     }
     
     /// Create an instance initialized to `value`.
