@@ -80,12 +80,10 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     private var _bytes: UnsafeMutablePointer<UInt8> = nil
     
     internal var _cfObject: CFType {
-        get {
-            if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
-                return unsafeBitCast(self, CFType.self)
-            } else {
-                return CFDataCreate(kCFAllocatorSystemDefault, unsafeBitCast(self.bytes, UnsafePointer<UInt8>.self), self.length)
-            }
+        if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
+            return unsafeBitCast(self, CFType.self)
+        } else {
+            return CFDataCreate(kCFAllocatorSystemDefault, unsafeBitCast(self.bytes, UnsafePointer<UInt8>.self), self.length)
         }
     }
     
@@ -94,9 +92,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     public override var hash: Int {
-        get {
-            return Int(bitPattern: CFHash(_cfObject))
-        }
+        return Int(bitPattern: CFHash(_cfObject))
     }
     
     public override func isEqual(object: AnyObject?) -> Bool {
@@ -134,15 +130,11 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     public var length: Int {
-        get {
-            return CFDataGetLength(_cfObject)
-        }
+        return CFDataGetLength(_cfObject)
     }
 
     public var bytes: UnsafePointer<Void> {
-        get {
-            return UnsafePointer<Void>(CFDataGetBytePtr(_cfObject))
-        }
+        return UnsafePointer<Void>(CFDataGetBytePtr(_cfObject))
     }
     
     public override func copy() -> AnyObject {
@@ -582,9 +574,7 @@ public class NSMutableData : NSData {
     }
     
     public var mutableBytes: UnsafeMutablePointer<Void> {
-        get {
-            return UnsafeMutablePointer(CFDataGetMutableBytePtr(_cfMutableObject))
-        }
+        return UnsafeMutablePointer(CFDataGetMutableBytePtr(_cfMutableObject))
     }
     
     public override var length: Int {
