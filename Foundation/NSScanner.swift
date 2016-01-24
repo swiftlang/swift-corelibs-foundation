@@ -51,16 +51,14 @@ public class NSScanner : NSObject, NSCopying {
     }
     
     internal var invertedSkipSet: NSCharacterSet? {
-        get {
-            if let inverted = _invertedSkipSet {
-                return inverted
-            } else {
-                if let set = charactersToBeSkipped {
-                    _invertedSkipSet = set.invertedSet
-                    return _invertedSkipSet
-                }
-                return nil
+        if let inverted = _invertedSkipSet {
+            return inverted
+        } else {
+            if let set = charactersToBeSkipped {
+                _invertedSkipSet = set.invertedSet
+                return _invertedSkipSet
             }
+            return nil
         }
     }
     
