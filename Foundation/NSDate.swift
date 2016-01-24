@@ -18,18 +18,14 @@ import CoreFoundation
 public typealias NSTimeInterval = Double
 
 public var NSTimeIntervalSince1970: Double {
-    get {
-        return 978307200.0
-    }
+    return 978307200.0
 }
 
 public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFDateRef
     
     public override var hash: Int {
-        get {
-            return Int(bitPattern: CFHash(_cfObject))
-        }
+        return Int(bitPattern: CFHash(_cfObject))
     }
     
     public override func isEqual(object: AnyObject?) -> Bool {
@@ -52,9 +48,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     internal let _timeIntervalSinceReferenceDate: NSTimeInterval
     
     public var timeIntervalSinceReferenceDate: NSTimeInterval {
-        get {
-            return _timeIntervalSinceReferenceDate
-        }
+        return _timeIntervalSinceReferenceDate
     }
     
     public convenience override init() {
@@ -105,14 +99,12 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
      `descriptionWithCalendarFormat:timeZone:locale:`.
      */
     public override var description: String {
-        get {
-            let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, nil, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
-            let timeZone = CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0)
-            CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey, timeZone)
-            CFDateFormatterSetFormat(dateFormatterRef, "uuuu-MM-dd HH:mm:ss '+0000'"._cfObject)
+        let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, nil, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
+        let timeZone = CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0)
+        CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey, timeZone)
+        CFDateFormatterSetFormat(dateFormatterRef, "uuuu-MM-dd HH:mm:ss '+0000'"._cfObject)
 
-            return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, dateFormatterRef, _cfObject)._swiftObject
-        }
+        return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, dateFormatterRef, _cfObject)._swiftObject
     }
 
     /**
@@ -149,15 +141,11 @@ extension NSDate {
     }
     
     public var timeIntervalSinceNow: NSTimeInterval {
-        get {
-            return timeIntervalSinceDate(NSDate())
-        }
+        return timeIntervalSinceDate(NSDate())
     }
     
     public var timeIntervalSince1970: NSTimeInterval {
-        get {
-            return timeIntervalSinceReferenceDate + NSTimeIntervalSince1970
-        }
+        return timeIntervalSinceReferenceDate + NSTimeIntervalSince1970
     }
     
     public func dateByAddingTimeInterval(ti: NSTimeInterval) -> NSDate {
