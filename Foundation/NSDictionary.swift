@@ -98,12 +98,10 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     internal var _storage = [NSObject: AnyObject]()
     
     public var count: Int {
-        get {
-            if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
-                return _storage.count
-            } else {
-                NSRequiresConcreteImplementation()
-            }
+        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+            return _storage.count
+        } else {
+            NSRequiresConcreteImplementation()
         }
     }
     
@@ -229,32 +227,28 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public var allKeys: [AnyObject] {
-        get {
-            if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
-                return _storage.keys.map { $0 }
-            } else {
-                var keys = [AnyObject]()
-                let enumerator = keyEnumerator()
-                while let key = enumerator.nextObject() {
-                    keys.append(key)
-                }
-                return keys
+        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+            return _storage.keys.map { $0 }
+        } else {
+            var keys = [AnyObject]()
+            let enumerator = keyEnumerator()
+            while let key = enumerator.nextObject() {
+                keys.append(key)
             }
+            return keys
         }
     }
     
     public var allValues: [AnyObject] {
-        get {
-            if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
-                return _storage.values.map { $0 }
-            } else {
-                var values = [AnyObject]()
-                let enumerator = keyEnumerator()
-                while let key = enumerator.nextObject() {
-                    values.append(objectForKey(key)!)
-                }
-                return values
+        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+            return _storage.values.map { $0 }
+        } else {
+            var values = [AnyObject]()
+            let enumerator = keyEnumerator()
+            while let key = enumerator.nextObject() {
+                values.append(objectForKey(key)!)
             }
+            return values
         }
     }
     
@@ -279,9 +273,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     public subscript (key: AnyObject) -> AnyObject? {
-        get {
-            return objectForKey(key)
-        }
+        return objectForKey(key)
     }
     
     
@@ -306,9 +298,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     /// [Property List Programming Guide](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/PropertyLists/Introduction/Introduction.html#//apple_ref/doc/uid/10000048i)
     /// and [Archives and Serializations Programming Guide](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Archiving/Archiving.html#//apple_ref/doc/uid/10000047i).
     public override var description: String {
-        get {
-            return descriptionWithLocale(nil)
-        }
+        return descriptionWithLocale(nil)
     }
 
     public var descriptionInStringsFileFormat: String { NSUnimplemented() }
