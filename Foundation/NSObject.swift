@@ -26,9 +26,7 @@ public protocol NSObjectProtocol {
 
 extension NSObjectProtocol {
     public var debugDescription: String {
-        get {
-            return description
-        }
+        return description
     }
 }
 
@@ -90,9 +88,7 @@ public class NSObject : NSObjectProtocol {
     }
     
     public var hash: Int {
-        get {
-            return ObjectIdentifier(self).hashValue
-        }
+        return ObjectIdentifier(self).hashValue
     }
     
     public func `self`() -> Self {
@@ -104,15 +100,11 @@ public class NSObject : NSObjectProtocol {
     }
     
     public var description: String {
-        get {
-            return "<\(self.dynamicType): \(unsafeAddressOf(self))>"
-        }
+        return "<\(self.dynamicType): \(unsafeAddressOf(self))>"
     }
     
     public var debugDescription: String {
-        get {
-            return description
-        }
+        return description
     }
     
     public var _cfTypeID: CFTypeID {
@@ -123,9 +115,7 @@ public class NSObject : NSObjectProtocol {
 
 extension NSObject : Equatable, Hashable {
     public var hashValue: Int {
-        get {
-            return hash
-        }
+        return hash
     }
 }
 
