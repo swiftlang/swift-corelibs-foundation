@@ -90,9 +90,7 @@ public class NSKeyedArchiver : NSCoder {
     
     // Enables secure coding support on this keyed archiver. You do not need to enable secure coding on the archiver to enable secure coding on the unarchiver. Enabling secure coding on the archiver is a way for you to be sure that all classes that are encoded conform with NSSecureCoding (it will throw an exception if a class which does not NSSecureCoding is archived). Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
     public override var requiresSecureCoding: Bool {
-        get {
-            return false
-        }
+        return false
     }
 }
 
@@ -174,9 +172,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     // Enables secure coding support on this keyed unarchiver. When enabled, anarchiving a disallowed class throws an exception. Once enabled, attempting to set requiresSecureCoding to NO will throw an exception. This is to prevent classes from selectively turning secure coding off. This is designed to be set once at the top level and remain on. Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
     public override var requiresSecureCoding: Bool {
-        get {
             return false
-        }
     }
 }
 
