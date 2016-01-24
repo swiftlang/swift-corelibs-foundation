@@ -42,20 +42,18 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
     }
     
     public override var description: String {
-        get {
-            var str = "\(self.dynamicType) \(unsafeAddressOf(self)) {"
-            
-            str += "name = \(self.name)"
-            if let object = self.object {
-                str += "; object = \(object)"
-            }
-            if let userInfo = self.userInfo {
-                str += "; userInfo = \(userInfo)"
-            }
-            str += "}"
-            
-            return str
+        var str = "\(self.dynamicType) \(unsafeAddressOf(self)) {"
+        
+        str += "name = \(self.name)"
+        if let object = self.object {
+            str += "; object = \(object)"
         }
+        if let userInfo = self.userInfo {
+            str += "; userInfo = \(userInfo)"
+        }
+        str += "}"
+        
+        return str
     }
 }
 
