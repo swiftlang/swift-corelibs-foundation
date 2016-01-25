@@ -40,9 +40,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public override var hash: Int {
-        get {
-            return Int(bitPattern: CFHash(_cfObject))
-        }
+        return Int(bitPattern: CFHash(_cfObject))
     }
     
     public override func isEqual(object: AnyObject?) -> Bool {
@@ -54,9 +52,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public override var description: String {
-        get {
-            return CFCopyDescription(_cfObject)._swiftObject
-        }
+        return CFCopyDescription(_cfObject)._swiftObject
     }
 
     deinit {
@@ -87,22 +83,18 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public var name: String {
-        get {
-            if self.dynamicType === NSTimeZone.self {
-                return CFTimeZoneGetName(_cfObject)._swiftObject
-            } else {
-                NSRequiresConcreteImplementation()
-            }
+        if self.dynamicType === NSTimeZone.self {
+            return CFTimeZoneGetName(_cfObject)._swiftObject
+        } else {
+            NSRequiresConcreteImplementation()
         }
     }
     
     public var data: NSData {
-        get {
-            if self.dynamicType === NSTimeZone.self {
-                return CFTimeZoneGetData(_cfObject)._nsObject
-            } else {
-                NSRequiresConcreteImplementation()
-            }
+        if self.dynamicType === NSTimeZone.self {
+            return CFTimeZoneGetData(_cfObject)._nsObject
+        } else {
+            NSRequiresConcreteImplementation()
         }
     }
     
