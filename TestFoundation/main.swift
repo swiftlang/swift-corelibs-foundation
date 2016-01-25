@@ -53,7 +53,7 @@ XCTMain([
     TestNSOrderedSet(),
     TestNSString(),
 //    TestNSTask(),
-    TestNSThread(),
+//    TestNSThread(),
     TestNSTimer(),
     TestNSTimeZone(),
     TestNSURL(),
