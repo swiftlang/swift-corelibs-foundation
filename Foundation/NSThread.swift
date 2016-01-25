@@ -27,16 +27,14 @@ internal class NSThreadSpecific<T: AnyObject> {
     private var NSThreadSpecificKey = pthread_key_t()
 
     private var key: pthread_key_t {
-        get {
-            NSThreadSpecificKeyLock.lock()
-            if !NSThreadSpecificKeySet {
-                withUnsafeMutablePointer(&NSThreadSpecificKey) { key in
-                    NSThreadSpecificKeySet = pthread_key_create(key, disposeTLS) == 0
-                }
+        NSThreadSpecificKeyLock.lock()
+        if !NSThreadSpecificKeySet {
+            withUnsafeMutablePointer(&NSThreadSpecificKey) { key in
+                NSThreadSpecificKeySet = pthread_key_create(key, disposeTLS) == 0
             }
-            NSThreadSpecificKeyLock.unlock()
-            return NSThreadSpecificKey
         }
+        NSThreadSpecificKeyLock.unlock()
+        return NSThreadSpecificKey
     }
     
     internal func get(generator: (Void) -> T) -> T {
