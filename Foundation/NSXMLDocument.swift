@@ -54,9 +54,7 @@ public enum NSXMLDocumentContentKind : UInt {
 */
 public class NSXMLDocument : NSXMLNode {
     private var _xmlDoc: _CFXMLDocPtr {
-        get {
-            return _CFXMLDocPtr(_xmlNode)
-        }
+        return _CFXMLDocPtr(_xmlNode)
     }
     /*!
         @method initWithXMLString:options:error:
