@@ -227,12 +227,10 @@ class TestNSURL : XCTestCase {
     
     static let gBaseTemporaryDirectoryPath = "/tmp/" // TODO: NSTemporaryDirectory()
     static var gBaseCurrentWorkingDirectoryPath : String {
-        get {
-            let count = Int(1024) // MAXPATHLEN is platform specific; this is the lowest common denominator for darwin and most linuxes
-            var buf : [Int8] = Array(count: count, repeatedValue: 0)
-            getcwd(&buf, count)
-            return String.fromCString(buf)!
-        }
+        let count = Int(1024) // MAXPATHLEN is platform specific; this is the lowest common denominator for darwin and most linuxes
+        var buf : [Int8] = Array(count: count, repeatedValue: 0)
+        getcwd(&buf, count)
+        return String.fromCString(buf)!
     }
     static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
     static let gFileExistsName = "TestCFURL_file_exists\(NSProcessInfo.processInfo().globallyUniqueString)"
