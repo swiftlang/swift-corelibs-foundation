@@ -44,11 +44,9 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public var UUIDString: String {
-        get {
-            let strPtr = UnsafeMutablePointer<Int8>.alloc(37)
-            _cf_uuid_unparse_lower(buffer, strPtr)
-            return String.fromCString(strPtr)!
-        }
+        let strPtr = UnsafeMutablePointer<Int8>.alloc(37)
+        _cf_uuid_unparse_lower(buffer, strPtr)
+        return String.fromCString(strPtr)!
     }
     
     public override func copy() -> AnyObject {
