@@ -260,7 +260,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @abstract Returns the HTTP request method of the receiver.
     @result the HTTP request method of the receiver.
     */
-    public var HTTPMethod: String? { get { return "GET" } }
+    public var HTTPMethod: String? { return "GET" }
     
     /*!
     @method allHTTPHeaderFields
