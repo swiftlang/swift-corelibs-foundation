@@ -49,19 +49,15 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     
     internal var _cfObject : CFType {
-        get {
-            if self.dynamicType === NSURL.self {
-                return unsafeBitCast(self, CFType.self)
-            } else {
-                return CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)
-            }
+        if self.dynamicType === NSURL.self {
+            return unsafeBitCast(self, CFType.self)
+        } else {
+            return CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)
         }
     }
     
     public override var hash: Int {
-        get {
-            return Int(bitPattern: CFHash(_cfObject))
-        }
+        return Int(bitPattern: CFHash(_cfObject))
     }
     
     public override func isEqual(object: AnyObject?) -> Bool {
@@ -73,9 +69,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     public override var description: String {
-        get {
-            return CFCopyDescription(_cfObject)._swiftObject
-        }
+        return CFCopyDescription(_cfObject)._swiftObject
     }
 
     deinit {
