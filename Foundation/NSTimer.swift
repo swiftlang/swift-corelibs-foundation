@@ -79,9 +79,7 @@ public class NSTimer : NSObject {
     }
     
     public var timeInterval: NSTimeInterval {
-        get {
-            return CFRunLoopTimerGetInterval(_timer!)
-        }
+        return CFRunLoopTimerGetInterval(_timer!)
     }
 
     public var tolerance: NSTimeInterval {
@@ -98,8 +96,6 @@ public class NSTimer : NSObject {
     }
 
     public var valid: Bool {
-        get {
-            return CFRunLoopTimerIsValid(_timer!)
-        }
+        return CFRunLoopTimerIsValid(_timer!)
     }
 }
