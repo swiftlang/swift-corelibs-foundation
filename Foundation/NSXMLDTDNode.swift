@@ -82,91 +82,89 @@ public class NSXMLDTDNode : NSXMLNode {
         @abstract Sets the DTD sub kind.
     */
     public var DTDKind: NSXMLDTDNodeKind {
-        get {
-            switch _CFXMLNodeGetType(_xmlNode) {
-            case _kCFXMLDTDNodeTypeElement:
-                switch _CFXMLDTDElementNodeGetType(_xmlNode) {
-                case _kCFXMLDTDNodeElementTypeAny:
-                    return .NSXMLElementDeclarationAnyKind
-
-                case _kCFXMLDTDNodeElementTypeEmpty:
-                    return .NSXMLElementDeclarationEmptyKind
-
-                case _kCFXMLDTDNodeElementTypeMixed:
-                    return .NSXMLElementDeclarationMixedKind
-
-                case _kCFXMLDTDNodeElementTypeElement:
-                    return .NSXMLElementDeclarationElementKind
-
-                default:
-                    return .NSXMLElementDeclarationUndefinedKind
-                }
-
-            case _kCFXMLDTDNodeTypeEntity:
-                switch _CFXMLDTDEntityNodeGetType(_xmlNode) {
-                case _kCFXMLDTDNodeEntityTypeInternalGeneral:
-                    return .NSXMLEntityGeneralKind
-
-                case _kCFXMLDTDNodeEntityTypeExternalGeneralUnparsed:
-                    return .NSXMLEntityUnparsedKind
-
-                case _kCFXMLDTDNodeEntityTypeExternalParameter:
-                    fallthrough
-                case _kCFXMLDTDNodeEntityTypeInternalParameter:
-                    return .NSXMLEntityParameterKind
-
-                case _kCFXMLDTDNodeEntityTypeInternalPredefined:
-                    return .NSXMLEntityPredefined
-
-                case _kCFXMLDTDNodeEntityTypeExternalGeneralParsed:
-                    return .NSXMLEntityParsedKind
-
-                default:
-                    fatalError("Invalid entity declaration type");
-                }
+        switch _CFXMLNodeGetType(_xmlNode) {
+        case _kCFXMLDTDNodeTypeElement:
+            switch _CFXMLDTDElementNodeGetType(_xmlNode) {
+            case _kCFXMLDTDNodeElementTypeAny:
+                return .NSXMLElementDeclarationAnyKind
                 
-            case _kCFXMLDTDNodeTypeAttribute:
-                switch _CFXMLDTDAttributeNodeGetType(_xmlNode) {
-                case _kCFXMLDTDNodeAttributeTypeCData:
-                    return .NSXMLAttributeCDATAKind
-
-                case _kCFXMLDTDNodeAttributeTypeID:
-                    return .NSXMLAttributeIDKind
-
-                case _kCFXMLDTDNodeAttributeTypeIDRef:
-                    return .NSXMLAttributeIDRefKind
-
-                case _kCFXMLDTDNodeAttributeTypeIDRefs:
-                    return .NSXMLAttributeIDRefsKind
-
-                case _kCFXMLDTDNodeAttributeTypeEntity:
-                    return .NSXMLAttributeEntityKind
-
-                case _kCFXMLDTDNodeAttributeTypeEntities:
-                    return .NSXMLAttributeEntitiesKind
-
-                case _kCFXMLDTDNodeAttributeTypeNMToken:
-                    return .NSXMLAttributeNMTokenKind
-
-                case _kCFXMLDTDNodeAttributeTypeNMTokens:
-                    return .NSXMLAttributeNMTokensKind
-
-                case _kCFXMLDTDNodeAttributeTypeEnumeration:
-                    return .NSXMLAttributeEnumerationKind
-
-                case _kCFXMLDTDNodeAttributeTypeNotation:
-                    return .NSXMLAttributeNotationKind
-
-                default:
-                    fatalError("Invalid attribute declaration type")
-                }
-
-            case _kCFXMLTypeInvalid:
-                return unsafeBitCast(0, NSXMLDTDNodeKind.self) // this mirrors Darwin
+            case _kCFXMLDTDNodeElementTypeEmpty:
+                return .NSXMLElementDeclarationEmptyKind
+                
+            case _kCFXMLDTDNodeElementTypeMixed:
+                return .NSXMLElementDeclarationMixedKind
+                
+            case _kCFXMLDTDNodeElementTypeElement:
+                return .NSXMLElementDeclarationElementKind
                 
             default:
-                fatalError("This is not actually a DTD node!")
+                return .NSXMLElementDeclarationUndefinedKind
             }
+            
+        case _kCFXMLDTDNodeTypeEntity:
+            switch _CFXMLDTDEntityNodeGetType(_xmlNode) {
+            case _kCFXMLDTDNodeEntityTypeInternalGeneral:
+                return .NSXMLEntityGeneralKind
+                
+            case _kCFXMLDTDNodeEntityTypeExternalGeneralUnparsed:
+                return .NSXMLEntityUnparsedKind
+                
+            case _kCFXMLDTDNodeEntityTypeExternalParameter:
+                fallthrough
+            case _kCFXMLDTDNodeEntityTypeInternalParameter:
+                return .NSXMLEntityParameterKind
+                
+            case _kCFXMLDTDNodeEntityTypeInternalPredefined:
+                return .NSXMLEntityPredefined
+                
+            case _kCFXMLDTDNodeEntityTypeExternalGeneralParsed:
+                return .NSXMLEntityParsedKind
+                
+            default:
+                fatalError("Invalid entity declaration type");
+            }
+            
+        case _kCFXMLDTDNodeTypeAttribute:
+            switch _CFXMLDTDAttributeNodeGetType(_xmlNode) {
+            case _kCFXMLDTDNodeAttributeTypeCData:
+                return .NSXMLAttributeCDATAKind
+                
+            case _kCFXMLDTDNodeAttributeTypeID:
+                return .NSXMLAttributeIDKind
+                
+            case _kCFXMLDTDNodeAttributeTypeIDRef:
+                return .NSXMLAttributeIDRefKind
+                
+            case _kCFXMLDTDNodeAttributeTypeIDRefs:
+                return .NSXMLAttributeIDRefsKind
+                
+            case _kCFXMLDTDNodeAttributeTypeEntity:
+                return .NSXMLAttributeEntityKind
+                
+            case _kCFXMLDTDNodeAttributeTypeEntities:
+                return .NSXMLAttributeEntitiesKind
+                
+            case _kCFXMLDTDNodeAttributeTypeNMToken:
+                return .NSXMLAttributeNMTokenKind
+                
+            case _kCFXMLDTDNodeAttributeTypeNMTokens:
+                return .NSXMLAttributeNMTokensKind
+                
+            case _kCFXMLDTDNodeAttributeTypeEnumeration:
+                return .NSXMLAttributeEnumerationKind
+                
+            case _kCFXMLDTDNodeAttributeTypeNotation:
+                return .NSXMLAttributeNotationKind
+                
+            default:
+                fatalError("Invalid attribute declaration type")
+            }
+            
+        case _kCFXMLTypeInvalid:
+            return unsafeBitCast(0, NSXMLDTDNodeKind.self) // this mirrors Darwin
+            
+        default:
+            fatalError("This is not actually a DTD node!")
         }
     }//primitive
     
