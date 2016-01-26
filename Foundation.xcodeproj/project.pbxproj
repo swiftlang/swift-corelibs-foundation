@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
+		5B13B3101C57F7B600651CE2 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3047AEB1C38BC3300295652 /* TestNSValue.swift */; };
+		5B13B3111C57F7E500651CE2 /* TestNSByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */; };
 		5B2B59821C24D00500271109 /* CFStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89031BBC9BC300234F36 /* CFStream.c */; };
 		5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89871BBDB1B400234F36 /* CFSocketStream.c */; };
 		5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89831BBDB13800234F36 /* CFConcreteStreams.c */; };
@@ -52,7 +54,6 @@
 		5B6F178C1C4862F100935030 /* TestNSURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */; };
 		5B6F178D1C4862F100935030 /* TestNSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */; };
 		5B6F178E1C4862F100935030 /* TestNSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */; };
-		5B6F178F1C4862F100935030 /* TestNSByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */; };
 		5B6F17901C4862F100935030 /* TestNSRegularExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */; };
 		5B6F17911C4862F500935030 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6381BF1619600136161 /* main.swift */; };
 		5B6F17971C48631C00935030 /* TestNSNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17921C48631C00935030 /* TestNSNull.swift */; };
@@ -245,6 +246,23 @@
 		61E011811C1B5998000037DD /* CFMessagePort.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88DC1BBC9AEC00234F36 /* CFMessagePort.c */; };
 		61E011821C1B599A000037DD /* CFMachPort.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88D01BBC9AAC00234F36 /* CFMachPort.c */; };
 		CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */; };
+		D31302011C30CEA900295652 /* NSConcreteValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31302001C30CEA900295652 /* NSConcreteValue.swift */; };
+		D370696E1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */; };
+		D39A14011C2D6E0A00295652 /* NSKeyedUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */; };
+		D3A597F01C33A9E500295652 /* TestNSKeyedUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A597EF1C33A9E500295652 /* TestNSKeyedUnarchiver.swift */; };
+		D3A597F21C33C68E00295652 /* TestNSKeyedArchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A597F11C33C68E00295652 /* TestNSKeyedArchiver.swift */; };
+		D3A597F41C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597F31C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist */; };
+		D3A597F71C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597F51C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist */; };
+		D3A597F81C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597F61C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist */; };
+		D3A597FA1C3415F000295652 /* NSKeyedUnarchiver-UUIDTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597F91C3415F000295652 /* NSKeyedUnarchiver-UUIDTest.plist */; };
+		D3A597FC1C3417EA00295652 /* NSKeyedUnarchiver-ComplexTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597FB1C3417EA00295652 /* NSKeyedUnarchiver-ComplexTest.plist */; };
+		D3A598001C341E9100295652 /* NSKeyedUnarchiver-ConcreteValueTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597FF1C341E9100295652 /* NSKeyedUnarchiver-ConcreteValueTest.plist */; };
+		D3A598041C349E6A00295652 /* NSKeyedUnarchiver-OrderedSetTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A598021C349E6A00295652 /* NSKeyedUnarchiver-OrderedSetTest.plist */; };
+		D3BCEB9E1C2EDED800295652 /* NSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BCEB9D1C2EDED800295652 /* NSLog.swift */; };
+		D3BCEBA01C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */; };
+		D3E8D6D11C367AB600295652 /* NSSpecialValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */; };
+		D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */; };
+		D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */; };
 		D834F9941C31C4060023812A /* TestNSOrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D834F9931C31C4060023812A /* TestNSOrderedSet.swift */; };
 		DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
 		E19E17DC1C2225930023AF4D /* TestNSXMLDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */; };
@@ -593,6 +611,24 @@
 		C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUUID.swift; sourceTree = "<group>"; };
 		C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAffineTransform.swift; sourceTree = "<group>"; };
 		CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NSStringTestData.txt; sourceTree = "<group>"; };
+		D3047AEB1C38BC3300295652 /* TestNSValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSValue.swift; sourceTree = "<group>"; };
+		D31302001C30CEA900295652 /* NSConcreteValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSConcreteValue.swift; sourceTree = "<group>"; };
+		D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-RangeTest.plist"; sourceTree = "<group>"; };
+		D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSKeyedUnarchiver.swift; sourceTree = "<group>"; };
+		D3A597EF1C33A9E500295652 /* TestNSKeyedUnarchiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSKeyedUnarchiver.swift; sourceTree = "<group>"; };
+		D3A597F11C33C68E00295652 /* TestNSKeyedArchiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSKeyedArchiver.swift; sourceTree = "<group>"; };
+		D3A597F31C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-NotificationTest.plist"; sourceTree = "<group>"; };
+		D3A597F51C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-ArrayTest.plist"; sourceTree = "<group>"; };
+		D3A597F61C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-URLTest.plist"; sourceTree = "<group>"; };
+		D3A597F91C3415F000295652 /* NSKeyedUnarchiver-UUIDTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-UUIDTest.plist"; sourceTree = "<group>"; };
+		D3A597FB1C3417EA00295652 /* NSKeyedUnarchiver-ComplexTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-ComplexTest.plist"; sourceTree = "<group>"; };
+		D3A597FF1C341E9100295652 /* NSKeyedUnarchiver-ConcreteValueTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-ConcreteValueTest.plist"; sourceTree = "<group>"; };
+		D3A598021C349E6A00295652 /* NSKeyedUnarchiver-OrderedSetTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-OrderedSetTest.plist"; sourceTree = "<group>"; };
+		D3BCEB9D1C2EDED800295652 /* NSLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSLog.swift; sourceTree = "<group>"; };
+		D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSKeyedCoderOldStyleArray.swift; sourceTree = "<group>"; };
+		D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSSpecialValue.swift; sourceTree = "<group>"; };
+		D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-EdgeInsetsTest.plist"; sourceTree = "<group>"; };
+		D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-RectTest.plist"; sourceTree = "<group>"; };
 		D834F9931C31C4060023812A /* TestNSOrderedSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOrderedSet.swift; sourceTree = "<group>"; };
 		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
 		E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLDocument.swift; sourceTree = "<group>"; };
@@ -1082,6 +1118,16 @@
 		EA66F6391BF1619600136161 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */,
+				D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */,
+				D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */,
+				D3A598021C349E6A00295652 /* NSKeyedUnarchiver-OrderedSetTest.plist */,
+				D3A597FF1C341E9100295652 /* NSKeyedUnarchiver-ConcreteValueTest.plist */,
+				D3A597FB1C3417EA00295652 /* NSKeyedUnarchiver-ComplexTest.plist */,
+				D3A597F91C3415F000295652 /* NSKeyedUnarchiver-UUIDTest.plist */,
+				D3A597F51C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist */,
+				D3A597F61C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist */,
+				D3A597F31C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist */,
 				EA66F6791BF9401E00136161 /* Info.plist */,
 				CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */,
 				528776181BF27D9500CB0090 /* Test.plist */,
@@ -1099,7 +1145,6 @@
 				C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */,
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
 				6E203B8C1C1303BB003B2576 /* TestNSBundle.swift */,
-				A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */,
 				52829AD61C160D64003BC4EF /* TestNSCalendar.swift */,
 				5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */,
 				DCDBB8321C1768AC00313299 /* TestNSData.swift */,
@@ -1111,6 +1156,8 @@
 				4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */,
 				EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */,
 				5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */,
+				D3A597F11C33C68E00295652 /* TestNSKeyedArchiver.swift */,
+				D3A597EF1C33A9E500295652 /* TestNSKeyedUnarchiver.swift */,
 				61A395F91C2484490029B337 /* TestNSLocale.swift */,
 				61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */,
 				5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */,
@@ -1138,6 +1185,9 @@
 				5B6F17951C48631C00935030 /* TestNSXMLDocument.swift */,
 				5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */,
 				5B6F17961C48631C00935030 /* TestUtils.swift */,
+				A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */,
+				D3047AEB1C38BC3300295652 /* TestNSValue.swift */,
+				E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1262,6 +1312,8 @@
 			children = (
 				EADE0B641BD15DFF00C49C64 /* NSJSONSerialization.swift */,
 				EADE0B651BD15DFF00C49C64 /* NSKeyedArchiver.swift */,
+				D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */,
+				D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */,
 				5BDC3F321BCC5DCB00ED97BB /* NSCoder.swift */,
 				5BDC3F421BCC5DCB00ED97BB /* NSPropertyList.swift */,
 			);
@@ -1347,6 +1399,8 @@
 				EADE0B5F1BD15DFF00C49C64 /* NSGeometry.swift */,
 				EADE0B4D1BD09E0800C49C64 /* NSAffineTransform.swift */,
 				5BDC3F3D1BCC5DCB00ED97BB /* NSNumber.swift */,
+				D31302001C30CEA900295652 /* NSConcreteValue.swift */,
+				D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */,
 				5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */,
 			);
 			name = Number;
@@ -1373,6 +1427,7 @@
 				EADE0B6D1BD15DFF00C49C64 /* NSOperation.swift */,
 				5BDC3F3C1BCC5DCB00ED97BB /* NSLock.swift */,
 				5BDC3F401BCC5DCB00ED97BB /* NSPathUtilities.swift */,
+				D3BCEB9D1C2EDED800295652 /* NSLog.swift */,
 			);
 			name = OS;
 			sourceTree = "<group>";
@@ -1642,12 +1697,22 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3A597F41C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist in Resources */,
 				528776191BF27D9500CB0090 /* Test.plist in Resources */,
 				EA66F6481BF1619600136161 /* NSURLTestData.plist in Resources */,
+				D3A597FA1C3415F000295652 /* NSKeyedUnarchiver-UUIDTest.plist in Resources */,
+				D3A598001C341E9100295652 /* NSKeyedUnarchiver-ConcreteValueTest.plist in Resources */,
+				D3A597FC1C3417EA00295652 /* NSKeyedUnarchiver-ComplexTest.plist in Resources */,
+				D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */,
+				D3A597F81C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist in Resources */,
+				D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */,
+				D370696E1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist in Resources */,
+				D3A597F71C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist in Resources */,
 				CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */,
 				E1A03F361C4828650023AF4D /* PropertyList-1.0.dtd in Resources */,
 				E1A3726F1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml in Resources */,
 				E1A03F381C482C730023AF4D /* NSXMLDTDTestData.xml in Resources */,
+				D3A598041C349E6A00295652 /* NSKeyedUnarchiver-OrderedSetTest.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1696,6 +1761,7 @@
 				5BF7AEAD1BCD51F9008F214A /* NSError.swift in Sources */,
 				EADE0BB61BD15E0000C49C64 /* NSSortDescriptor.swift in Sources */,
 				5BF7AEA41BCD51F9008F214A /* NSBundle.swift in Sources */,
+				D3E8D6D11C367AB600295652 /* NSSpecialValue.swift in Sources */,
 				EAB57B721BD1C7A5004AC5C5 /* NSPortMessage.swift in Sources */,
 				EADE0BBB1BD15E0000C49C64 /* NSURLAuthenticationChallenge.swift in Sources */,
 				EADE0BA11BD15DFF00C49C64 /* NSIndexSet.swift in Sources */,
@@ -1707,6 +1773,7 @@
 				EADE0BB71BD15E0000C49C64 /* NSStream.swift in Sources */,
 				5BF7AEBF1BCD51F9008F214A /* NSURL.swift in Sources */,
 				5BF7AEBC1BCD51F9008F214A /* NSThread.swift in Sources */,
+				D31302011C30CEA900295652 /* NSConcreteValue.swift in Sources */,
 				5BF7AEA81BCD51F9008F214A /* NSData.swift in Sources */,
 				EADE0BB51BD15E0000C49C64 /* NSScanner.swift in Sources */,
 				EADE0BA01BD15DFF00C49C64 /* NSIndexPath.swift in Sources */,
@@ -1726,6 +1793,7 @@
 				5B94E8821C430DE70055C035 /* String.swift in Sources */,
 				5BF7AEAB1BCD51F9008F214A /* NSDictionary.swift in Sources */,
 				EADE0BAA1BD15E0000C49C64 /* NSNumberFormatter.swift in Sources */,
+				D39A14011C2D6E0A00295652 /* NSKeyedUnarchiver.swift in Sources */,
 				5BF7AEAF1BCD51F9008F214A /* NSHost.swift in Sources */,
 				EADE0B4E1BD09E0800C49C64 /* NSAffineTransform.swift in Sources */,
 				EADE0BC71BD15E0000C49C64 /* NSXMLDocument.swift in Sources */,
@@ -1733,10 +1801,12 @@
 				EADE0BA81BD15E0000C49C64 /* NSNotificationQueue.swift in Sources */,
 				EADE0B981BD15DFF00C49C64 /* NSDecimalNumber.swift in Sources */,
 				5BF7AEA71BCD51F9008F214A /* NSCoder.swift in Sources */,
+				D3BCEBA01C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift in Sources */,
 				EADE0BA71BD15E0000C49C64 /* NSNotification.swift in Sources */,
 				5BF7AEB41BCD51F9008F214A /* NSObject.swift in Sources */,
 				EADE0B521BD09F2F00C49C64 /* NSByteCountFormatter.swift in Sources */,
 				EADE0BC11BD15E0000C49C64 /* NSURLProtocol.swift in Sources */,
+				D3BCEB9E1C2EDED800295652 /* NSLog.swift in Sources */,
 				61E0117D1C1B5590000037DD /* NSRunLoop.swift in Sources */,
 				EADE0BC81BD15E0000C49C64 /* NSXMLDTD.swift in Sources */,
 				EADE0BA61BD15E0000C49C64 /* NSMassFormatter.swift in Sources */,
@@ -1851,6 +1921,7 @@
 				5B6F177E1C4862F100935030 /* TestNSPropertyList.swift in Sources */,
 				5B6F17871C4862F100935030 /* TestNSData.swift in Sources */,
 				5B6F17751C4862F100935030 /* TestNSIndexPath.swift in Sources */,
+				5B13B3101C57F7B600651CE2 /* TestNSValue.swift in Sources */,
 				5B6F17831C4862F100935030 /* TestNSOrderedSet.swift in Sources */,
 				5B6F17801C4862F100935030 /* TestNSScanner.swift in Sources */,
 				5B6F17771C4862F100935030 /* TestNSJSONSerialization.swift in Sources */,
@@ -1861,6 +1932,7 @@
 				5B6F17781C4862F100935030 /* TestNSLocale.swift in Sources */,
 				5B6F177C1C4862F100935030 /* TestNSPipe.swift in Sources */,
 				5B6F177D1C4862F100935030 /* TestNSProcessInfo.swift in Sources */,
+				5B13B3111C57F7E500651CE2 /* TestNSByteCountFormatter.swift in Sources */,
 				5B6F178B1C4862F100935030 /* TestNSURLRequest.swift in Sources */,
 				5B6F176D1C4862F100935030 /* TestNSArray.swift in Sources */,
 				5B6F176C1C4862F100935030 /* TestNSAffineTransform.swift in Sources */,
@@ -1887,7 +1959,11 @@
 				5B6F17911C4862F500935030 /* main.swift in Sources */,
 				5B6F17721C4862F100935030 /* TestNSFileManager.swift in Sources */,
 				5B6F17891C4862F100935030 /* TestNSTimeZone.swift in Sources */,
-				5B6F178F1C4862F100935030 /* TestNSByteCountFormatter.swift in Sources */,
+				E19E17DC1C2225930023AF4D /* TestNSXMLDocument.swift in Sources */,
+				DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */,
+				D834F9941C31C4060023812A /* TestNSOrderedSet.swift in Sources */,
+				D3A597F01C33A9E500295652 /* TestNSKeyedUnarchiver.swift in Sources */,
+				D3A597F21C33C68E00295652 /* TestNSKeyedArchiver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

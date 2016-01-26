@@ -68,11 +68,45 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        self.init(objects: nil, count: 0)
+        if !aDecoder.allowsKeyedCoding {
+            var cnt: UInt32 = 0
+            // We're stuck with (int) here (rather than unsigned int)
+            // because that's the way the code was originally written, unless
+            // we go to a new version of the class, which has its own problems.
+            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+                aDecoder.decodeValueOfObjCType("i", at: UnsafeMutablePointer<Void>(ptr))
+            }
+            let objects = UnsafeMutablePointer<AnyObject?>.alloc(Int(cnt))
+            for idx in 0..<cnt {
+                objects.advancedBy(Int(idx)).initialize(aDecoder.decodeObject())
+            }
+            self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
+            objects.destroy(Int(cnt))
+            objects.dealloc(Int(cnt))
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.objects") {
+            let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
+            self.init(array: objects)
+        } else {
+            var objects = [AnyObject]()
+            var count = 0
+            while let object = aDecoder.decodeObjectForKey("NS.object.\(count)") {
+                objects.append(object)
+                count += 1
+            }
+            self.init(array: objects)
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        if let keyedArchiver = aCoder as? NSKeyedArchiver {
+            keyedArchiver._encodeArrayOfObjects(self, forKey:"NS.objects")
+        } else {
+            for object in self {
+                if let codable = object as? NSCoding {
+                    codable.encodeWithCoder(aCoder)
+                }
+            }
+        }
     }
     
     public static func supportsSecureCoding() -> Bool {
@@ -641,10 +675,6 @@ public class NSMutableArray : NSArray {
         for idx in 0..<cnt {
             _storage.append(objects[idx]!)
         }
-    }
-    
-    public required convenience init(coder: NSCoder) {
-        self.init()
     }
     
     public override subscript (idx: Int) -> AnyObject {

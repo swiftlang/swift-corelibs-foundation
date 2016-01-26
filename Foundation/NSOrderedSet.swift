@@ -41,10 +41,31 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        if aCoder.allowsKeyedCoding {
+            for idx in 0..<self.count {
+                aCoder.encodeObject(self.objectAtIndex(idx), forKey:"NS.object.\(idx)")
+            }
+        } else {
+            NSUnimplemented()
+        }
     }
     
-    public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
+    public required convenience init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            var idx = 0
+            var objects : [AnyObject] = []
+            while aDecoder.containsValueForKey(("NS.object.\(idx)")) {
+                guard let object = aDecoder.decodeObjectForKey("NS.object.\(idx)") else {
+                    return nil
+                }
+                objects.append(object)
+                idx += 1
+            }
+            self.init(array: objects)
+        } else {
+            NSUnimplemented()
+        }
+    }
     
     public var count: Int {
         return _storage.count

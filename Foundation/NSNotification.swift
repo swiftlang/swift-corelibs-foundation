@@ -25,12 +25,34 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
         self.userInfo = userInfo
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    public convenience required init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            guard let name = aDecoder.decodeObjectOfClass(NSString.self, forKey:"NS.name") else {
+                return nil
+            }
+            let object = aDecoder.decodeObjectForKey("NS.object")
+            let userInfo = aDecoder.decodeObjectOfClass(NSDictionary.self, forKey: "NS.userinfo")
+            self.init(name: name.bridge(), object: object, userInfo: userInfo?.bridge())
+        } else {
+            guard let name = aDecoder.decodeObject() as? NSString else {
+                return nil
+            }
+            let object = aDecoder.decodeObject()
+            let userInfo = aDecoder.decodeObject() as? NSDictionary
+            self.init(name: name.bridge(), object: object, userInfo: userInfo?.bridge())
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        if aCoder.allowsKeyedCoding {
+            aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
+            aCoder.encodeObject(self.object, forKey:"NS.object")
+            aCoder.encodeObject(self.userInfo?.bridge(), forKey:"NS.userinfo")
+        } else {
+            aCoder.encodeObject(self.name.bridge())
+            aCoder.encodeObject(self.object)
+            aCoder.encodeObject(self.userInfo?.bridge())
+        }
     }
     
     public override func copy() -> AnyObject {
