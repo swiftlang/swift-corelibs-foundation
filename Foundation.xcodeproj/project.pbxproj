@@ -9,8 +9,52 @@
 /* Begin PBXBuildFile section */
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
-		5B13B3101C57F7B600651CE2 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3047AEB1C38BC3300295652 /* TestNSValue.swift */; };
-		5B13B3111C57F7E500651CE2 /* TestNSByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */; };
+		5B13B3251C582D4700651CE2 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6381BF1619600136161 /* main.swift */; };
+		5B13B3261C582D4C00651CE2 /* TestNSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */; };
+		5B13B3271C582D4C00651CE2 /* TestNSArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63C1BF1619600136161 /* TestNSArray.swift */; };
+		5B13B3281C582D4C00651CE2 /* TestNSBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E203B8C1C1303BB003B2576 /* TestNSBundle.swift */; };
+		5B13B3291C582D4C00651CE2 /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52829AD61C160D64003BC4EF /* TestNSCalendar.swift */; };
+		5B13B32A1C582D4C00651CE2 /* TestNSCharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */; };
+		5B13B32B1C582D4C00651CE2 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
+		5B13B32C1C582D4C00651CE2 /* TestNSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */; };
+		5B13B32D1C582D4C00651CE2 /* TestNSDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63D1BF1619600136161 /* TestNSDictionary.swift */; };
+		5B13B32E1C582D4C00651CE2 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
+		5B13B32F1C582D4C00651CE2 /* TestNSGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D28DE61C13AE9000494606 /* TestNSGeometry.swift */; };
+		5B13B3301C582D4C00651CE2 /* TestNSHTTPCookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */; };
+		5B13B3311C582D4C00651CE2 /* TestNSIndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */; };
+		5B13B3321C582D4C00651CE2 /* TestNSIndexSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */; };
+		5B13B3331C582D4C00651CE2 /* TestNSJSONSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */; };
+		5B13B3341C582D4C00651CE2 /* TestNSKeyedArchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A597F11C33C68E00295652 /* TestNSKeyedArchiver.swift */; };
+		5B13B3351C582D4C00651CE2 /* TestNSKeyedUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A597EF1C33A9E500295652 /* TestNSKeyedUnarchiver.swift */; };
+		5B13B3361C582D4C00651CE2 /* TestNSLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A395F91C2484490029B337 /* TestNSLocale.swift */; };
+		5B13B3371C582D4C00651CE2 /* TestNSNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */; };
+		5B13B3381C582D4C00651CE2 /* TestNSNotificationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */; };
+		5B13B3391C582D4C00651CE2 /* TestNSNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17921C48631C00935030 /* TestNSNull.swift */; };
+		5B13B33A1C582D4C00651CE2 /* TestNSNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63F1BF1619600136161 /* TestNSNumber.swift */; };
+		5B13B33B1C582D4C00651CE2 /* TestNSNumberFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17931C48631C00935030 /* TestNSNumberFormatter.swift */; };
+		5B13B33C1C582D4C00651CE2 /* TestNSOrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D834F9931C31C4060023812A /* TestNSOrderedSet.swift */; };
+		5B13B33D1C582D4C00651CE2 /* TestNSPipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */; };
+		5B13B33E1C582D4C00651CE2 /* TestNSProcessInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */; };
+		5B13B33F1C582D4C00651CE2 /* TestNSPropertyList.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6401BF1619600136161 /* TestNSPropertyList.swift */; };
+		5B13B3401C582D4C00651CE2 /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
+		5B13B3411C582D4C00651CE2 /* TestNSRegularExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */; };
+		5B13B3421C582D4C00651CE2 /* TestNSRunLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E0117B1C1B554D000037DD /* TestNSRunLoop.swift */; };
+		5B13B3431C582D4C00651CE2 /* TestNSScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 844DC3321C17584F005611F9 /* TestNSScanner.swift */; };
+		5B13B3441C582D4C00651CE2 /* TestNSSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6411BF1619600136161 /* TestNSSet.swift */; };
+		5B13B3451C582D4C00651CE2 /* TestNSString.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6421BF1619600136161 /* TestNSString.swift */; };
+		5B13B3461C582D4C00651CE2 /* TestNSTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17941C48631C00935030 /* TestNSTask.swift */; };
+		5B13B3471C582D4C00651CE2 /* TestNSThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5835F31C20C9B500C81317 /* TestNSThread.swift */; };
+		5B13B3481C582D4C00651CE2 /* TestNSTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */; };
+		5B13B3491C582D4C00651CE2 /* TestNSTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */; };
+		5B13B34A1C582D4C00651CE2 /* TestNSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6431BF1619600136161 /* TestNSURL.swift */; };
+		5B13B34B1C582D4C00651CE2 /* TestNSURLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */; };
+		5B13B34C1C582D4C00651CE2 /* TestNSURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */; };
+		5B13B34D1C582D4C00651CE2 /* TestNSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */; };
+		5B13B34E1C582D4C00651CE2 /* TestNSXMLDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17951C48631C00935030 /* TestNSXMLDocument.swift */; };
+		5B13B34F1C582D4C00651CE2 /* TestNSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */; };
+		5B13B3501C582D4C00651CE2 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17961C48631C00935030 /* TestUtils.swift */; };
+		5B13B3511C582D4C00651CE2 /* TestNSByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */; };
+		5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3047AEB1C38BC3300295652 /* TestNSValue.swift */; };
 		5B2B59821C24D00500271109 /* CFStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89031BBC9BC300234F36 /* CFStream.c */; };
 		5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89871BBDB1B400234F36 /* CFSocketStream.c */; };
 		5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89831BBDB13800234F36 /* CFConcreteStreams.c */; };
@@ -19,48 +63,6 @@
 		5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B40F9F31C12524C000E72E3 /* libxml2.dylib */; };
 		5B5D89761BBDADD300234F36 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89751BBDADD300234F36 /* libicucore.dylib */; };
 		5B5D89781BBDADDB00234F36 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89771BBDADDB00234F36 /* libz.dylib */; };
-		5B6F176C1C4862F100935030 /* TestNSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */; };
-		5B6F176D1C4862F100935030 /* TestNSArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63C1BF1619600136161 /* TestNSArray.swift */; };
-		5B6F176E1C4862F100935030 /* TestNSBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E203B8C1C1303BB003B2576 /* TestNSBundle.swift */; };
-		5B6F176F1C4862F100935030 /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52829AD61C160D64003BC4EF /* TestNSCalendar.swift */; };
-		5B6F17701C4862F100935030 /* TestNSCharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */; };
-		5B6F17711C4862F100935030 /* TestNSDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63D1BF1619600136161 /* TestNSDictionary.swift */; };
-		5B6F17721C4862F100935030 /* TestNSFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */; };
-		5B6F17731C4862F100935030 /* TestNSGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D28DE61C13AE9000494606 /* TestNSGeometry.swift */; };
-		5B6F17741C4862F100935030 /* TestNSHTTPCookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */; };
-		5B6F17751C4862F100935030 /* TestNSIndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */; };
-		5B6F17761C4862F100935030 /* TestNSIndexSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */; };
-		5B6F17771C4862F100935030 /* TestNSJSONSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */; };
-		5B6F17781C4862F100935030 /* TestNSLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A395F91C2484490029B337 /* TestNSLocale.swift */; };
-		5B6F17791C4862F100935030 /* TestNSNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */; };
-		5B6F177A1C4862F100935030 /* TestNSNotificationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */; };
-		5B6F177B1C4862F100935030 /* TestNSNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63F1BF1619600136161 /* TestNSNumber.swift */; };
-		5B6F177C1C4862F100935030 /* TestNSPipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */; };
-		5B6F177D1C4862F100935030 /* TestNSProcessInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */; };
-		5B6F177E1C4862F100935030 /* TestNSPropertyList.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6401BF1619600136161 /* TestNSPropertyList.swift */; };
-		5B6F177F1C4862F100935030 /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E876A73D1C1180E000F279EC /* TestNSRange.swift */; };
-		5B6F17801C4862F100935030 /* TestNSScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 844DC3321C17584F005611F9 /* TestNSScanner.swift */; };
-		5B6F17811C4862F100935030 /* TestNSRunLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E0117B1C1B554D000037DD /* TestNSRunLoop.swift */; };
-		5B6F17821C4862F100935030 /* TestNSSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6411BF1619600136161 /* TestNSSet.swift */; };
-		5B6F17831C4862F100935030 /* TestNSOrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D834F9931C31C4060023812A /* TestNSOrderedSet.swift */; };
-		5B6F17841C4862F100935030 /* TestNSString.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6421BF1619600136161 /* TestNSString.swift */; };
-		5B6F17851C4862F100935030 /* TestNSThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5835F31C20C9B500C81317 /* TestNSThread.swift */; };
-		5B6F17861C4862F100935030 /* TestNSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */; };
-		5B6F17871C4862F100935030 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
-		5B6F17881C4862F100935030 /* TestNSTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */; };
-		5B6F17891C4862F100935030 /* TestNSTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */; };
-		5B6F178A1C4862F100935030 /* TestNSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6431BF1619600136161 /* TestNSURL.swift */; };
-		5B6F178B1C4862F100935030 /* TestNSURLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */; };
-		5B6F178C1C4862F100935030 /* TestNSURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */; };
-		5B6F178D1C4862F100935030 /* TestNSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */; };
-		5B6F178E1C4862F100935030 /* TestNSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */; };
-		5B6F17901C4862F100935030 /* TestNSRegularExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */; };
-		5B6F17911C4862F500935030 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6381BF1619600136161 /* main.swift */; };
-		5B6F17971C48631C00935030 /* TestNSNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17921C48631C00935030 /* TestNSNull.swift */; };
-		5B6F17981C48631C00935030 /* TestNSNumberFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17931C48631C00935030 /* TestNSNumberFormatter.swift */; };
-		5B6F17991C48631C00935030 /* TestNSTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17941C48631C00935030 /* TestNSTask.swift */; };
-		5B6F179A1C48631C00935030 /* TestNSXMLDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17951C48631C00935030 /* TestNSXMLDocument.swift */; };
-		5B6F179B1C48631C00935030 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17961C48631C00935030 /* TestUtils.swift */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
 		5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D897B1BBDAE0800234F36 /* CFPlatform.c */; };
@@ -249,8 +251,6 @@
 		D31302011C30CEA900295652 /* NSConcreteValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31302001C30CEA900295652 /* NSConcreteValue.swift */; };
 		D370696E1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */; };
 		D39A14011C2D6E0A00295652 /* NSKeyedUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */; };
-		D3A597F01C33A9E500295652 /* TestNSKeyedUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A597EF1C33A9E500295652 /* TestNSKeyedUnarchiver.swift */; };
-		D3A597F21C33C68E00295652 /* TestNSKeyedArchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A597F11C33C68E00295652 /* TestNSKeyedArchiver.swift */; };
 		D3A597F41C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597F31C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist */; };
 		D3A597F71C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597F51C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist */; };
 		D3A597F81C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597F61C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist */; };
@@ -263,9 +263,6 @@
 		D3E8D6D11C367AB600295652 /* NSSpecialValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */; };
 		D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */; };
 		D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */; };
-		D834F9941C31C4060023812A /* TestNSOrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D834F9931C31C4060023812A /* TestNSOrderedSet.swift */; };
-		DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
-		E19E17DC1C2225930023AF4D /* TestNSXMLDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */; };
 		E1A03F361C4828650023AF4D /* PropertyList-1.0.dtd in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F351C4828650023AF4D /* PropertyList-1.0.dtd */; };
 		E1A03F381C482C730023AF4D /* NSXMLDTDTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F371C482C730023AF4D /* NSXMLDTDTestData.xml */; };
 		E1A3726F1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */; };
@@ -1915,55 +1912,52 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B6F178C1C4862F100935030 /* TestNSURLResponse.swift in Sources */,
-				5B6F17791C4862F100935030 /* TestNSNotificationCenter.swift in Sources */,
-				5B6F17971C48631C00935030 /* TestNSNull.swift in Sources */,
-				5B6F177E1C4862F100935030 /* TestNSPropertyList.swift in Sources */,
-				5B6F17871C4862F100935030 /* TestNSData.swift in Sources */,
-				5B6F17751C4862F100935030 /* TestNSIndexPath.swift in Sources */,
-				5B13B3101C57F7B600651CE2 /* TestNSValue.swift in Sources */,
-				5B6F17831C4862F100935030 /* TestNSOrderedSet.swift in Sources */,
-				5B6F17801C4862F100935030 /* TestNSScanner.swift in Sources */,
-				5B6F17771C4862F100935030 /* TestNSJSONSerialization.swift in Sources */,
-				5B6F17821C4862F100935030 /* TestNSSet.swift in Sources */,
-				5B6F17881C4862F100935030 /* TestNSTimer.swift in Sources */,
-				5B6F178A1C4862F100935030 /* TestNSURL.swift in Sources */,
-				5B6F17701C4862F100935030 /* TestNSCharacterSet.swift in Sources */,
-				5B6F17781C4862F100935030 /* TestNSLocale.swift in Sources */,
-				5B6F177C1C4862F100935030 /* TestNSPipe.swift in Sources */,
-				5B6F177D1C4862F100935030 /* TestNSProcessInfo.swift in Sources */,
-				5B13B3111C57F7E500651CE2 /* TestNSByteCountFormatter.swift in Sources */,
-				5B6F178B1C4862F100935030 /* TestNSURLRequest.swift in Sources */,
-				5B6F176D1C4862F100935030 /* TestNSArray.swift in Sources */,
-				5B6F176C1C4862F100935030 /* TestNSAffineTransform.swift in Sources */,
-				5B6F177B1C4862F100935030 /* TestNSNumber.swift in Sources */,
-				5B6F17981C48631C00935030 /* TestNSNumberFormatter.swift in Sources */,
-				5B6F179A1C48631C00935030 /* TestNSXMLDocument.swift in Sources */,
-				5B6F17841C4862F100935030 /* TestNSString.swift in Sources */,
-				5B6F178E1C4862F100935030 /* TestNSXMLParser.swift in Sources */,
-				5B6F176F1C4862F100935030 /* TestNSCalendar.swift in Sources */,
-				5B6F179B1C48631C00935030 /* TestUtils.swift in Sources */,
-				5B6F17731C4862F100935030 /* TestNSGeometry.swift in Sources */,
-				5B6F17711C4862F100935030 /* TestNSDictionary.swift in Sources */,
-				5B6F17861C4862F100935030 /* TestNSDate.swift in Sources */,
-				5B6F176E1C4862F100935030 /* TestNSBundle.swift in Sources */,
-				5B6F17991C48631C00935030 /* TestNSTask.swift in Sources */,
-				5B6F177A1C4862F100935030 /* TestNSNotificationQueue.swift in Sources */,
-				5B6F17761C4862F100935030 /* TestNSIndexSet.swift in Sources */,
-				5B6F17811C4862F100935030 /* TestNSRunLoop.swift in Sources */,
-				5B6F17851C4862F100935030 /* TestNSThread.swift in Sources */,
-				5B6F17901C4862F100935030 /* TestNSRegularExpression.swift in Sources */,
-				5B6F17741C4862F100935030 /* TestNSHTTPCookie.swift in Sources */,
-				5B6F177F1C4862F100935030 /* TestNSRange.swift in Sources */,
-				5B6F178D1C4862F100935030 /* TestNSUUID.swift in Sources */,
-				5B6F17911C4862F500935030 /* main.swift in Sources */,
-				5B6F17721C4862F100935030 /* TestNSFileManager.swift in Sources */,
-				5B6F17891C4862F100935030 /* TestNSTimeZone.swift in Sources */,
-				E19E17DC1C2225930023AF4D /* TestNSXMLDocument.swift in Sources */,
-				DCDBB8331C1768AC00313299 /* TestNSData.swift in Sources */,
-				D834F9941C31C4060023812A /* TestNSOrderedSet.swift in Sources */,
-				D3A597F01C33A9E500295652 /* TestNSKeyedUnarchiver.swift in Sources */,
-				D3A597F21C33C68E00295652 /* TestNSKeyedArchiver.swift in Sources */,
+				5B13B3451C582D4C00651CE2 /* TestNSString.swift in Sources */,
+				5B13B3471C582D4C00651CE2 /* TestNSThread.swift in Sources */,
+				5B13B32E1C582D4C00651CE2 /* TestNSFileManager.swift in Sources */,
+				5B13B3381C582D4C00651CE2 /* TestNSNotificationQueue.swift in Sources */,
+				5B13B3331C582D4C00651CE2 /* TestNSJSONSerialization.swift in Sources */,
+				5B13B33C1C582D4C00651CE2 /* TestNSOrderedSet.swift in Sources */,
+				5B13B34A1C582D4C00651CE2 /* TestNSURL.swift in Sources */,
+				5B13B34D1C582D4C00651CE2 /* TestNSUUID.swift in Sources */,
+				5B13B3281C582D4C00651CE2 /* TestNSBundle.swift in Sources */,
+				5B13B32A1C582D4C00651CE2 /* TestNSCharacterSet.swift in Sources */,
+				5B13B3411C582D4C00651CE2 /* TestNSRegularExpression.swift in Sources */,
+				5B13B3491C582D4C00651CE2 /* TestNSTimeZone.swift in Sources */,
+				5B13B34B1C582D4C00651CE2 /* TestNSURLRequest.swift in Sources */,
+				5B13B33E1C582D4C00651CE2 /* TestNSProcessInfo.swift in Sources */,
+				5B13B33F1C582D4C00651CE2 /* TestNSPropertyList.swift in Sources */,
+				5B13B32C1C582D4C00651CE2 /* TestNSDate.swift in Sources */,
+				5B13B33B1C582D4C00651CE2 /* TestNSNumberFormatter.swift in Sources */,
+				5B13B3301C582D4C00651CE2 /* TestNSHTTPCookie.swift in Sources */,
+				5B13B3361C582D4C00651CE2 /* TestNSLocale.swift in Sources */,
+				5B13B3391C582D4C00651CE2 /* TestNSNull.swift in Sources */,
+				5B13B3421C582D4C00651CE2 /* TestNSRunLoop.swift in Sources */,
+				5B13B34E1C582D4C00651CE2 /* TestNSXMLDocument.swift in Sources */,
+				5B13B32B1C582D4C00651CE2 /* TestNSData.swift in Sources */,
+				5B13B34C1C582D4C00651CE2 /* TestNSURLResponse.swift in Sources */,
+				5B13B3481C582D4C00651CE2 /* TestNSTimer.swift in Sources */,
+				5B13B32D1C582D4C00651CE2 /* TestNSDictionary.swift in Sources */,
+				5B13B3261C582D4C00651CE2 /* TestNSAffineTransform.swift in Sources */,
+				5B13B3291C582D4C00651CE2 /* TestNSCalendar.swift in Sources */,
+				5B13B34F1C582D4C00651CE2 /* TestNSXMLParser.swift in Sources */,
+				5B13B32F1C582D4C00651CE2 /* TestNSGeometry.swift in Sources */,
+				5B13B3351C582D4C00651CE2 /* TestNSKeyedUnarchiver.swift in Sources */,
+				5B13B33D1C582D4C00651CE2 /* TestNSPipe.swift in Sources */,
+				5B13B3341C582D4C00651CE2 /* TestNSKeyedArchiver.swift in Sources */,
+				5B13B3441C582D4C00651CE2 /* TestNSSet.swift in Sources */,
+				5B13B3321C582D4C00651CE2 /* TestNSIndexSet.swift in Sources */,
+				5B13B3511C582D4C00651CE2 /* TestNSByteCountFormatter.swift in Sources */,
+				5B13B3501C582D4C00651CE2 /* TestUtils.swift in Sources */,
+				5B13B3431C582D4C00651CE2 /* TestNSScanner.swift in Sources */,
+				5B13B3401C582D4C00651CE2 /* TestNSRange.swift in Sources */,
+				5B13B3371C582D4C00651CE2 /* TestNSNotificationCenter.swift in Sources */,
+				5B13B3251C582D4700651CE2 /* main.swift in Sources */,
+				5B13B33A1C582D4C00651CE2 /* TestNSNumber.swift in Sources */,
+				5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */,
+				5B13B3311C582D4C00651CE2 /* TestNSIndexPath.swift in Sources */,
+				5B13B3271C582D4C00651CE2 /* TestNSArray.swift in Sources */,
+				5B13B3461C582D4C00651CE2 /* TestNSTask.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
