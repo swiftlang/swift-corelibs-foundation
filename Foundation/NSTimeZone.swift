@@ -35,8 +35,28 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    public convenience required init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            let name = aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.name")
+            let data = aDecoder.decodeObjectOfClass(NSData.self, forKey: "NS.data")
+            
+            if name == nil {
+                return nil
+            }
+            
+            self.init(name: name!.bridge(), data: data)
+        } else {
+            if let name = aDecoder.decodeObject() as? NSString {
+                if aDecoder.versionForClassName("NSTimeZone") == 0 {
+                    self.init(name: name._swiftObject)
+                } else {
+                    let data = aDecoder.decodeObject() as? NSData
+                    self.init(name: name._swiftObject, data: data)
+                }
+            } else {
+                return nil
+            }
+        }
     }
     
     public override var hash: Int {
@@ -67,7 +87,12 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public convenience init?(abbreviation: String) { NSUnimplemented() }
 
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        if aCoder.allowsKeyedCoding {
+            aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
+            // darwin versions of this method can and will encode mutable data, however it is not required for compatability
+            aCoder.encodeObject(self.data, forKey:"NS.data")
+        } else {
+        }
     }
     
     public static func supportsSecureCoding() -> Bool {

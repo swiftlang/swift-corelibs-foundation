@@ -1579,43 +1579,30 @@ extension String {
             ) != nil
         return r
     }
-    
-#if os(Linux)
+}
+
+#if !_runtime(_ObjC)
+import CoreFoundation
+
+extension String {
     public func hasPrefix(prefix: String) -> Bool {
-        let characters = utf16
-        let prefixCharacters = prefix.utf16
-        let start = characters.startIndex
-        let prefixStart = prefixCharacters.startIndex
-        if characters.count < prefixCharacters.count {
-            return false
-        }
-        for idx in 0..<prefixCharacters.count {
-            if characters[start.advancedBy(idx)] != prefixCharacters[prefixStart.advancedBy(idx)] {
-                return false
-            }
-        }
-        return true
+        let cfstring = self._cfObject
+        let range = CFRangeMake(0, CFStringGetLength(cfstring))
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareNonliteral)
+
+        return CFStringFindWithOptions(cfstring, prefix._cfObject,
+            range, opts, nil)
     }
 
     public func hasSuffix(suffix: String) -> Bool {
-        let characters = utf16
-        let suffixCharacters = suffix.utf16
-        let start = characters.startIndex
-        let suffixStart = suffixCharacters.startIndex
-        
-        if characters.count < suffixCharacters.count {
-            return false
-        }
-        for idx in 0..<suffixCharacters.count {
-            let charactersIdx = start.advancedBy(characters.count - idx - 1)
-            let suffixIdx = suffixStart.advancedBy(suffixCharacters.count - idx - 1)
-            if characters[charactersIdx] != suffixCharacters[suffixIdx] {
-                return false
-            }
-        }
-        return true
+        let cfstring = self._cfObject
+        let range = CFRangeMake(0, CFStringGetLength(cfstring))
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareBackwards | kCFCompareNonliteral)
+
+        return CFStringFindWithOptions(cfstring, suffix._cfObject,
+            range, opts, nil)
     }
-#endif
 }
-
-
+#endif

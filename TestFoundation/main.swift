@@ -36,6 +36,8 @@ XCTMain([
     TestNSIndexPath(),
     TestNSIndexSet(),
     TestNSJSONSerialization(),
+    TestNSKeyedArchiver(),
+    TestNSKeyedUnarchiver(),
     TestNSLocale(),
     TestNSNotificationCenter(),
     TestNSNull(),
@@ -53,7 +55,7 @@ XCTMain([
     TestNSOrderedSet(),
     TestNSString(),
 //    TestNSTask(),
-    TestNSThread(),
+//    TestNSThread(),
     TestNSTimer(),
     TestNSTimeZone(),
     TestNSURL(),
@@ -62,6 +64,7 @@ XCTMain([
     TestNSURLResponse(),
     TestNSNull(),
     TestNSUUID(),
+    TestNSValue(),
     TestNSXMLParser(),
     TestNSXMLDocument()
 ])

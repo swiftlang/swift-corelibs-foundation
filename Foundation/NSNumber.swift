@@ -226,9 +226,87 @@ public class NSNumber : NSValue {
         _CFNumberInitUInt(_cfObject, value)
     }
 
+    public required convenience init(bytes buffer: UnsafePointer<Void>, objCType: UnsafePointer<Int8>) {
+        guard let type = _NSSimpleObjCType(UInt8(objCType.memory)) else {
+            fatalError("NSNumber.init: unsupported type encoding spec '\(String.fromCString(objCType))'")
+        }
+        switch type {
+        case .Bool:
+            self.init(bool:UnsafePointer<Bool>(buffer).memory)
+            break
+        case .Char:
+            self.init(char:UnsafePointer<Int8>(buffer).memory)
+            break
+        case .UChar:
+            self.init(unsignedChar:UnsafePointer<UInt8>(buffer).memory)
+            break
+        case .Short:
+            self.init(short:UnsafePointer<Int16>(buffer).memory)
+            break
+        case .UShort:
+            self.init(unsignedShort:UnsafePointer<UInt16>(buffer).memory)
+            break
+        case .Int, .Long:
+            self.init(int:UnsafePointer<Int32>(buffer).memory)
+            break
+        case .UInt, .ULong:
+            self.init(unsignedInt:UnsafePointer<UInt32>(buffer).memory)
+            break
+        case .LongLong:
+            self.init(longLong:UnsafePointer<Int64>(buffer).memory)
+            break
+        case .ULongLong:
+            self.init(unsignedLongLong:UnsafePointer<UInt64>(buffer).memory)
+            break
+        case .Float:
+            self.init(float:UnsafePointer<Float>(buffer).memory)
+            break
+        case .Double:
+            self.init(double:UnsafePointer<Double>(buffer).memory)
+            break
+        default:
+            fatalError("NSNumber.init: unsupported type encoding spec '\(String.fromCString(objCType))'")
+            break
+        }
+    }
     
-    public required init?(coder aDecoder: NSCoder) {
-        super.init()
+    public required convenience init?(coder aDecoder: NSCoder) {
+        if !aDecoder.allowsKeyedCoding {
+            var objCType = UnsafeMutablePointer<Int8>()
+            var size: Int = 0
+            NSGetSizeAndAlignment(objCType, &size, nil)
+            let buffer = malloc(size)
+            aDecoder.decodeValueOfObjCType(objCType, at: buffer)
+            withUnsafeMutablePointer(&objCType, { (ptr: UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Void in
+                aDecoder.decodeValueOfObjCType(String(_NSSimpleObjCType.CharPtr), at: UnsafeMutablePointer<Void>(ptr))
+            })
+            if objCType == nil {
+                return nil
+            }
+            self.init(bytes: buffer, objCType: objCType)
+            free(buffer)
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.number") {
+            let number = aDecoder._decodePropertyListForKey("NS.number")
+            if let val = number as? Double {
+                self.init(double:val)
+            } else if let val = number as? Int {
+                self.init(long:val)
+            } else if let val = number as? Bool {
+                self.init(bool:val)
+            } else {
+                return nil
+            }
+        } else {
+            if aDecoder.containsValueForKey("NS.boolval") {
+                self.init(bool: aDecoder.decodeBoolForKey("NS.boolval"))
+            } else if aDecoder.containsValueForKey("NS.intval") {
+                self.init(longLong: aDecoder.decodeInt64ForKey("NS.intval"))
+            } else if aDecoder.containsValueForKey("NS.dblval") {
+                self.init(double: aDecoder.decodeDoubleForKey("NS.dblval"))
+            } else {
+                return nil
+            }
+        }
     }
 
     public var charValue: Int8 {

@@ -134,11 +134,51 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        self.init(objects: nil, forKeys: nil, count: 0)
+        if !aDecoder.allowsKeyedCoding {
+            var cnt: UInt32 = 0
+            // We're stuck with (int) here (rather than unsigned int)
+            // because that's the way the code was originally written, unless
+            // we go to a new version of the class, which has its own problems.
+            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+                aDecoder.decodeValueOfObjCType("i", at: UnsafeMutablePointer<Void>(ptr))
+            }
+            let keys = UnsafeMutablePointer<NSObject>.alloc(Int(cnt))
+            let objects = UnsafeMutablePointer<AnyObject>.alloc(Int(cnt))
+            for idx in 0..<cnt {
+                keys.advancedBy(Int(idx)).initialize(aDecoder.decodeObject()! as! NSObject)
+                objects.advancedBy(Int(idx)).initialize(aDecoder.decodeObject()!)
+            }
+            self.init(objects: UnsafePointer<AnyObject>(objects), forKeys: UnsafePointer<NSObject>(keys), count: Int(cnt))
+            keys.destroy(Int(cnt))
+            keys.dealloc(Int(cnt))
+            objects.destroy(Int(cnt))
+            objects.dealloc(Int(cnt))
+            
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.objects") {
+            let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
+            let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
+            self.init(objects: objects, forKeys: keys)
+        } else {
+            var objects = [AnyObject]()
+            var keys = [NSObject]()
+            var count = 0
+            while let key = aDecoder.decodeObjectForKey("NS.key.\(count)"),
+                let object = aDecoder.decodeObjectForKey("NS.object.\(count)") {
+                    keys.append(key as! NSObject)
+                    objects.append(object)
+                    count += 1
+            }
+            self.init(objects: objects, forKeys: keys)
+        }
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        NSUnimplemented()
+        if let keyedArchiver = aCoder as? NSKeyedArchiver {
+            keyedArchiver._encodeArrayOfObjects(self.allKeys._nsObject, forKey:"NS.keys")
+            keyedArchiver._encodeArrayOfObjects(self.allValues._nsObject, forKey:"NS.objects")
+        } else {
+            NSUnimplemented()
+        }
     }
     
     public static func supportsSecureCoding() -> Bool {
@@ -565,10 +605,6 @@ public class NSMutableDictionary : NSDictionary {
     
     public init(capacity numItems: Int) {
         super.init(objects: nil, forKeys: nil, count: 0)
-    }
-    
-    public convenience required init?(coder aDecoder: NSCoder) {
-        self.init()
     }
     
     public required init(objects: UnsafePointer<AnyObject>, forKeys keys: UnsafePointer<NSObject>, count cnt: Int) {

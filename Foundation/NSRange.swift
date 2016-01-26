@@ -50,6 +50,71 @@ extension NSRange {
     }
 }
 
+extension NSRange: NSSpecialValueCoding {
+    init(bytes: UnsafePointer<Void>) {
+        let buffer = UnsafePointer<Int>(bytes)
+        
+        self.location = buffer.memory
+        self.length = buffer.advancedBy(1).memory
+    }
+    
+    init?(coder aDecoder: NSCoder) {
+        if aDecoder.allowsKeyedCoding {
+            if let location = aDecoder.decodeObjectOfClass(NSNumber.self, forKey: "NS.rangeval.location") {
+                self.location = location.integerValue
+            } else {
+                self.location = 0
+            }
+            if let length = aDecoder.decodeObjectOfClass(NSNumber.self, forKey: "NS.rangeval.length") {
+                self.length = length.integerValue
+            } else {
+                self.length = 0
+            }
+        } else {
+            NSUnimplemented()
+        }
+    }
+    
+    func encodeWithCoder(aCoder: NSCoder) {
+        if aCoder.allowsKeyedCoding {
+            aCoder.encodeObject(NSNumber(integer: self.location), forKey: "NS.rangeval.location")
+            aCoder.encodeObject(NSNumber(integer: self.length), forKey: "NS.rangeval.length")
+        } else {
+            NSUnimplemented()
+        }
+    }
+    
+    static func objCType() -> String {
+#if arch(i386) || arch(arm)
+        return "{_NSRange=II}"
+#elseif arch(x86_64) || arch(arm64)
+        return "{_NSRange=QQ}"
+#else
+        NSUnimplemented()
+#endif
+    }
+    
+    func getValue(value: UnsafeMutablePointer<Void>) {
+        UnsafeMutablePointer<NSRange>(value).memory = self
+    }
+    
+    func isEqual(aValue: Any) -> Bool {
+        if let other = aValue as? NSRange {
+            return other.location == self.location && other.length == self.length
+        } else {
+            return false
+        }
+    }
+    
+    var hash: Int {
+        return self.location &+ self.length
+    }
+    
+    var description: String? {
+        return NSStringFromRange(self)
+    }
+}
+
 public typealias NSRangePointer = UnsafeMutablePointer<NSRange>
 
 public func NSMakeRange(loc: Int, _ len: Int) -> NSRange {
@@ -137,4 +202,16 @@ public func NSRangeFromString(aString: String) -> NSRange {
         return partialRange
     }
     return NSMakeRange(location, length)
+}
+
+extension NSValue {
+    public convenience init(range: NSRange) {
+        self.init()
+        self._concreteValue = NSSpecialValue(range)
+    }
+    
+    public var rangeValue: NSRange {
+        let specialValue = self._concreteValue as! NSSpecialValue
+        return specialValue._value as! NSRange
+    }
 }

@@ -53,8 +53,35 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        _domain = "None"
-        _code = 0
+        if aDecoder.allowsKeyedCoding {
+            _code = aDecoder.decodeIntegerForKey("NSCode")
+            _domain = aDecoder.decodeObjectOfClass(NSString.self, forKey: "NSDomain")!._swiftObject
+            if let info = aDecoder.decodeObjectOfClasses([NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
+                var filteredUserInfo = [String : Any]()
+                // user info must be filtered so that the keys are all strings
+                info.enumerateKeysAndObjectsUsingBlock() {
+                    if let key = $0.0 as? NSString {
+                        filteredUserInfo[key._swiftObject] = $0.1
+                    }
+                }
+                _userInfo = filteredUserInfo
+            }
+        } else {
+            var codeValue: Int32 = 0
+            aDecoder.decodeValueOfObjCType("i", at: &codeValue)
+            _code = Int(codeValue)
+            _domain = (aDecoder.decodeObject() as? NSString)!._swiftObject
+            if let info = aDecoder.decodeObject() as? NSDictionary {
+                var filteredUserInfo = [String : Any]()
+                // user info must be filtered so that the keys are all strings
+                info.enumerateKeysAndObjectsUsingBlock() {
+                    if let key = $0.0 as? NSString {
+                        filteredUserInfo[key._swiftObject] = $0.1
+                    }
+                }
+                _userInfo = filteredUserInfo
+            }
+        }
     }
     
     public static func supportsSecureCoding() -> Bool {
@@ -62,7 +89,16 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        
+        if aCoder.allowsKeyedCoding {
+            aCoder.encodeObject(_domain.bridge(), forKey: "NSDomain")
+            aCoder.encodeInt(Int32(_code), forKey: "NSCode")
+            aCoder.encodeObject(_userInfo?.bridge(), forKey: "NSUserInfo")
+        } else {
+            var codeValue: Int32 = Int32(self._code)
+            aCoder.encodeValueOfObjCType("i", at: &codeValue)
+            aCoder.encodeObject(self._domain.bridge())
+            aCoder.encodeObject(self._userInfo?.bridge())
+        }
     }
     
     public override func copy() -> AnyObject {
