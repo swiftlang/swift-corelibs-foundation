@@ -77,10 +77,31 @@ public class NSPropertyListSerialization : NSObject {
             format.memory = NSPropertyListFormat(rawValue: UInt(fmt))!
 #endif
         }
+
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
-            return _expensivePropertyListConversion(decoded!)            
+            return _expensivePropertyListConversion(decoded!)
+        }
+    }
+    
+    internal class func propertyListWithStream(stream: CFReadStream, length streamLength: Int, options opt: NSPropertyListReadOptions, format: UnsafeMutablePointer <NSPropertyListFormat>) throws -> Any {
+        var fmt = kCFPropertyListBinaryFormat_v1_0
+        var error: Unmanaged<CFError>? = nil
+        let decoded = withUnsafeMutablePointers(&fmt, &error) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>, outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> NSObject? in
+            return unsafeBitCast(CFPropertyListCreateWithStream(kCFAllocatorSystemDefault, stream, streamLength, CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), NSObject.self)
+        }
+        if format != nil {
+#if os(OSX) || os(iOS)
+            format.memory = NSPropertyListFormat(rawValue: UInt(fmt.rawValue))!
+#else
+            format.memory = NSPropertyListFormat(rawValue: UInt(fmt))!
+#endif
+        }
+        if let err = error {
+            throw err.takeUnretainedValue()._nsObject
+        } else {
+            return _expensivePropertyListConversion(decoded!)
         }
     }
 }
@@ -96,14 +117,14 @@ internal func _expensivePropertyListConversion(input : AnyObject) -> Any {
             
             result[k._swiftObject] = _expensivePropertyListConversion(value)
         }
-        
+
         return result
     } else if let array = input as? NSArray {
         var result : [Any] = []
         array.enumerateObjectsUsingBlock { value, _, _ in
             result.append(_expensivePropertyListConversion(value))
         }
-        
+
         return result
     } else if let str = input as? NSString {
         return str._swiftObject
@@ -117,6 +138,8 @@ internal func _expensivePropertyListConversion(input : AnyObject) -> Any {
         return true
     } else if input === kCFBooleanFalse {
         return false
+    } else if input is __NSCFType && CFGetTypeID(input) == _CFKeyedArchiverUIDGetTypeID() {
+        return input
     } else {
         fatalError("Attempt to convert a non-plist type \(input)")
     }
