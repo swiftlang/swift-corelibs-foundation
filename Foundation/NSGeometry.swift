@@ -109,6 +109,24 @@ public func ==(lhs: CGSize, rhs: CGSize) -> Bool {
     return lhs.width == rhs.width && lhs.height == rhs.height
 }
 
+public struct CGVector {
+    public var dx: CGFloat
+    public var dy: CGFloat
+    public init() {
+        self.init(dx: CGFloat(), dy: CGFloat())
+    }
+    public init(dx: CGFloat, dy: CGFloat) {
+        self.dx = dx
+        self.dy = dy
+    }
+}
+
+extension CGVector: Equatable { }
+
+public func ==(lhs: CGVector, rhs: CGVector) -> Bool {
+    return lhs.dx == rhs.dx && lhs.dy == rhs.dy
+}
+
 public struct CGRect {
     public var origin: CGPoint
     public var size: CGSize
