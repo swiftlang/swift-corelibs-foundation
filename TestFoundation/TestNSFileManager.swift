@@ -23,6 +23,7 @@ class TestNSFileManger : XCTestCase {
             ("test_createFile", test_createFile ),
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
             ("test_fileAttributes", test_fileAttributes),
+            ("test_setFileAttributes", test_setFileAttributes),
             ("test_directoryEnumerator", test_directoryEnumerator),
             ("test_pathEnumerator",test_pathEnumerator),
             ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
@@ -135,6 +136,26 @@ class TestNSFileManger : XCTestCase {
         } catch {
             XCTFail("Failed to clean up files")
         }
+    }
+    
+    func test_setFileAttributes() {
+        let path = "/tmp/testfile"
+        let fm = NSFileManager.defaultManager()
+        
+        ignoreError { try fm.removeItemAtPath(path) }
+        XCTAssertTrue(fm.createFileAtPath(path, contents: NSData(), attributes: nil))
+        
+        do {
+            try fm.setAttributes([NSFilePosixPermissions:NSNumber(short: 0o0600)], ofItemAtPath: path)
+        }
+        catch { XCTFail("\(error)") }
+        
+        //read back the attributes
+        do {
+            let attributes = try fm.attributesOfItemAtPath(path)
+            XCTAssert((attributes[NSFilePosixPermissions] as? NSNumber)?.shortValue == 0o0600)
+        }
+        catch { XCTFail("\(error)") }
     }
     
     func test_pathEnumerator() {

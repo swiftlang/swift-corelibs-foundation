@@ -172,7 +172,24 @@ public class NSFileManager : NSObject {
         This method replaces changeFileAttributes:atPath:.
      */
     public func setAttributes(attributes: [String : AnyObject], ofItemAtPath path: String) throws {
-        NSUnimplemented()
+        for attribute in attributes.keys {
+            switch attribute {
+            case NSFilePosixPermissions:
+                guard let number = attributes[attribute] as? NSNumber else {
+                    fatalError("Can't set file permissions to \(attributes[attribute])")
+                }
+                #if os(OSX) || os(iOS)
+                    let modeT = number.unsignedShortValue
+                #elseif os(Linux)
+                    let modeT = number.unsignedIntValue
+                #endif
+                if chmod(path, modeT) != 0 {
+                    fatalError("errno \(errno)")
+                }
+            default:
+                fatalError("Attribute type not implemented: \(attribute)")
+            }
+        }
     }
     
     /* createDirectoryAtPath:withIntermediateDirectories:attributes:error: creates a directory at the specified path. If you pass 'NO' for createIntermediates, the directory must not exist at the time this call is made. Passing 'YES' for 'createIntermediates' will create any necessary intermediate directories. This method returns YES if all directories specified in 'path' were created and attributes were set. Directories are created with attributes specified by the dictionary passed to 'attributes'. If no dictionary is supplied, directories are created according to the umask of the process. This method returns NO if a failure occurs at any stage of the operation. If an error parameter was provided, a presentable NSError will be returned by reference.
