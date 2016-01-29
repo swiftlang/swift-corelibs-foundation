@@ -65,7 +65,8 @@ class TestNSString : XCTestCase {
             ("test_FromContentsOfURL",test_FromContentsOfURL),
             ("test_FromContentOfFile",test_FromContentOfFile),
             ("test_swiftStringUTF16", test_swiftStringUTF16),
-            ("test_completePathIntoString", test_completePathIntoString),
+            // This test takes forever on build servers; it has been seen up to 1852.084 seconds
+//            ("test_completePathIntoString", test_completePathIntoString),
             ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
             ("test_initializeWithFormat", test_initializeWithFormat),
             ("test_initializeWithFormat2", test_initializeWithFormat2),
