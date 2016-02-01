@@ -417,7 +417,38 @@ public class NSFileManager : NSObject {
     }
     
     public func copyItemAtPath(srcPath: String, toPath dstPath: String) throws {
-        NSUnimplemented()
+        let fd_from = open(srcPath, O_RDONLY)
+        if fd_from < 0 {
+            throw _NSErrorWithErrno(errno, reading: true, path: dstPath, url: nil, extraUserInfo: nil)
+        }
+        defer { precondition(close(fd_from) >= 0) }
+        let permission = (try! attributesOfItemAtPath(srcPath)[NSFilePosixPermissions] as! NSNumber).unsignedShortValue
+        let fd_to = open(dstPath, O_WRONLY | O_CREAT | O_EXCL, permission)
+        if fd_to < 0 {
+            throw _NSErrorWithErrno(errno, reading: false, path: dstPath, url: nil, extraUserInfo: nil)
+        }
+        defer { precondition(close(fd_to) >= 0) }
+        
+        var buf = [UInt8](count: 4096, repeatedValue: 0)
+        
+        while true {
+            let nread = read(fd_from, &buf, buf.count)
+            if nread < 0 { throw _NSErrorWithErrno(errno, reading: true, path: srcPath, url: nil, extraUserInfo: nil) }
+            if nread == 0 { break }
+            var writeSlice = buf[0..<nread]
+            
+            while true {
+                var nwritten: Int! = nil
+                writeSlice.withUnsafeBufferPointer({ (ptr) -> () in
+                    nwritten = write(fd_to, ptr.baseAddress, ptr.count)
+                })
+                if nwritten < 0 {
+                    throw _NSErrorWithErrno(errno, reading: false, path: dstPath, url: nil, extraUserInfo: nil)
+                }
+                writeSlice = writeSlice[writeSlice.startIndex.advancedBy(nwritten)..<writeSlice.endIndex]
+                if writeSlice.count == 0 { break }
+            }
+        }
     }
     
     public func moveItemAtPath(srcPath: String, toPath dstPath: String) throws {

@@ -26,7 +26,8 @@ class TestNSFileManger : XCTestCase {
             ("test_directoryEnumerator", test_directoryEnumerator),
             ("test_pathEnumerator",test_pathEnumerator),
             ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
-            ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath)
+            ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
+            ("test_copyItemAtPath", test_copyItemAtPath)
         ]
     }
     
@@ -365,5 +366,27 @@ class TestNSFileManger : XCTestCase {
         } catch {
             XCTFail("Failed to clean up files")
         }
+    }
+    
+    func test_copyItemAtPath() {
+        let inFile = "/tmp/test_copyItemAtPath_\(NSUUID().UUIDString)"
+        let outFile = "/tmp/test_copyItemAtPath_\(NSUUID().UUIDString)"
+
+        let data = NSMutableData()
+        var nibble = [0,1,2,3,4,5]
+        while data.length < 10000 {
+            data.appendBytes(&nibble, length: nibble.count)
+        }
+        do {
+            try data.writeToFile(inFile, options: [])
+            try NSFileManager.defaultManager().copyItemAtPath(inFile, toPath: outFile)
+        }
+        catch {
+            XCTFail()
+        }
+        
+        let outData = NSData(contentsOfFile: outFile)
+        XCTAssert(data.isEqual(outData))
+        
     }
 }
