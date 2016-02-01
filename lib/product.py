@@ -71,6 +71,8 @@ class Product(BuildAction):
         return Path.path(Configuration.current.build_directory.path_by_appending(self.name).absolute() + "/" + self.PROJECT_HEADERS_FOLDER_PATH)
 
 class Library(Product):
+    conformance_begin = ""
+    conformance_end = ""
     rule = None
     def __init__(self, name):
         Product.__init__(self, name)
@@ -88,7 +90,7 @@ class Library(Product):
             product_flags += " -lstdc++"
 
         generated += """
-build """ + self.product.relative() + """: """ + self.rule + """ """ + " ".join(objects) + self.generate_dependencies() + """
+build """ + self.product.relative() + """: """ + self.rule + """ """ + self.conformance_begin + """ """ + " ".join(objects) + """ """ + self.conformance_end + """ """ + self.generate_dependencies() + """
     flags = """ + product_flags
         if self.needs_objc:
             generated += """
@@ -114,7 +116,9 @@ class DynamicLibrary(Library):
         self.product_name = Configuration.current.target.dynamic_library_prefix + name + Configuration.current.target.dynamic_library_suffix
 
     def generate(self):
-        if Configuration.current.target.sdk == OSType.Linux:
+        if Configuration.current.target.sdk == OSType.Linux or Configuration.current.target.sdk == OSType.FreeBSD:
+            self.conformance_begin = '${SDKROOT}/lib/swift/linux/${ARCH}/swift_begin.o' 
+            self.conformance_end = '${SDKROOT}/lib/swift/linux/${ARCH}/swift_end.o' 
             return Library.generate(self, ["-shared", "-Wl,-soname," + self.product_name, "-Wl,--no-undefined"])
         else:
             return Library.generate(self, ["-shared"])
