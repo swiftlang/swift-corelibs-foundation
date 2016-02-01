@@ -349,7 +349,7 @@ public class NSFileManager : NSObject {
         let grd = getgrgid(s.st_gid)
         if grd != nil && grd.memory.gr_name != nil {
             if let name = String.fromCString(grd.memory.gr_name) {
-                result[NSFileGroupOwnerAccountID] = name
+                result[NSFileGroupOwnerAccountName] = name
             }
         }
 
