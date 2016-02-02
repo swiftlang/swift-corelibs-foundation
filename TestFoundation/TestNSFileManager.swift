@@ -92,7 +92,7 @@ class TestNSFileManger : XCTestCase {
     
     func test_fileAttributes() {
         let fm = NSFileManager.defaultManager()
-        let path = "/tmp/testfile"
+        let path = "/tmp/test_fileAttributes\(NSUUID().UUIDString)"
 
         ignoreError { try fm.removeItemAtPath(path) }
         
@@ -139,7 +139,7 @@ class TestNSFileManger : XCTestCase {
     }
     
     func test_setFileAttributes() {
-        let path = "/tmp/testfile"
+        let path = "/tmp/test_setFileAttributes\(NSUUID().UUIDString)"
         let fm = NSFileManager.defaultManager()
         
         ignoreError { try fm.removeItemAtPath(path) }
