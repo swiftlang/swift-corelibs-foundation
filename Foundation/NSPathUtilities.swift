@@ -15,6 +15,20 @@ import Darwin
 import Glibc
 #endif
 
+public func NSTemporaryDirectory() -> String {
+    #if os(OSX) || os(iOS)
+    var buf = [Int8](count: 100, repeatedValue: 0)
+    let r = confstr(_CS_DARWIN_USER_TEMP_DIR, &buf, buf.count)
+    if r != 0 && r < buf.count {
+        return String(CString: buf, encoding: NSUTF8StringEncoding)!
+    }
+    #endif
+    if let tmpdir = NSProcessInfo.processInfo().environment["TMPDIR"] {
+        return tmpdir
+    }
+    return "/tmp/"
+}
+
 internal extension String {
     
     internal var _startOfLastPathComponent : String.CharacterView.Index {

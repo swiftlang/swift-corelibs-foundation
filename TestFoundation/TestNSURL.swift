@@ -225,7 +225,7 @@ class TestNSURL : XCTestCase {
         
     }
     
-    static let gBaseTemporaryDirectoryPath = "/tmp/" // TODO: NSTemporaryDirectory()
+    static let gBaseTemporaryDirectoryPath = NSTemporaryDirectory()
     static var gBaseCurrentWorkingDirectoryPath : String {
         let count = Int(1024) // MAXPATHLEN is platform specific; this is the lowest common denominator for darwin and most linuxes
         var buf : [Int8] = Array(count: count, repeatedValue: 0)
