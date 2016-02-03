@@ -93,35 +93,6 @@ public class NSUserDefaults : NSObject {
 			return
         } else if let bType = value as? NSData {
             cfType = bType._cfObject
-            //Swift types
-        } else if let bType = value as? String {
-            cfType = bType._cfObject
-        } else if let bType = value as? Int {
-            cfType = NSNumber(integer: bType)._cfObject
-        } else if let bType = value as? UInt {
-            cfType = NSNumber(unsignedInteger: bType)._cfObject
-        } else if let bType = value as? Int32 {
-            cfType = NSNumber(int: bType)._cfObject
-        } else if let bType = value as? UInt32 {
-            cfType = NSNumber(unsignedInt: bType)._cfObject
-        } else if let bType = value as? Int64 {
-            cfType = NSNumber(longLong: bType)._cfObject
-        } else if let bType = value as? UInt64 {
-            cfType = NSNumber(unsignedLongLong: bType)._cfObject
-        } else if let bType = value as? Bool {
-            cfType = NSNumber(bool: bType)._cfObject
-        } else if let bType = value as? [NSObject: AnyObject] {
-            cfType = bType._cfObject
-        } else if let bType = value as? [String: AnyObject] {
-            cfType = bType.map({ (str, obj) -> (NSString, AnyObject) in
-                return (str._nsObject, obj)
-            })._cfObject
-        } else if let bType = value as? [AnyObject] {
-            cfType = bType._cfObject
-        } else if let bType = value as? [String] {
-            cfType = bType.map({ (aStr) -> NSString in
-                return aStr._nsObject
-            })._cfObject
         }
         
         CFPreferencesSetAppValue(defaultName._cfObject, cfType, suite?._cfObject ?? kCFPreferencesCurrentApplication)
