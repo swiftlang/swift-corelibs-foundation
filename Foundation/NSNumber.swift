@@ -465,13 +465,13 @@ extension NSNumber : CustomPlaygroundQuickLookable {
     public func customPlaygroundQuickLook() -> PlaygroundQuickLook {
         let type = CFNumberGetType(_cfObject)
         switch type {
-        case kCFNumberSInt8Type:
+        case .SInt8Type:
             fallthrough
-        case kCFNumberSInt16Type:
+        case .SInt16Type:
             fallthrough
-        case kCFNumberSInt32Type:
+        case .SInt32Type:
             fallthrough
-        case kCFNumberSInt64Type:
+        case .SInt64Type:
             fallthrough
         case kCFNumberCharType:
             fallthrough
@@ -481,21 +481,21 @@ extension NSNumber : CustomPlaygroundQuickLookable {
             fallthrough
         case kCFNumberLongType:
             fallthrough
-        case kCFNumberCFIndexType:
+        case .CFIndexType:
             fallthrough
-        case kCFNumberNSIntegerType:
+        case .NSIntegerType:
             fallthrough
-        case kCFNumberLongLongType:
+        case .LongLongType:
             return .Int(self.longLongValue)
-        case kCFNumberFloat32Type:
+        case .Float32Type:
             fallthrough
         case kCFNumberFloatType:
             return .Float(self.floatValue)
-        case kCFNumberFloat64Type:
+        case .Float64Type:
             fallthrough
         case kCFNumberDoubleType:
             return .Double(self.doubleValue)
-        case kCFNumberCGFloatType:
+        case .CGFloatType:
             if sizeof(CGFloat) == sizeof(Float32) {
                 return .Float(self.floatValue)
             } else {
