@@ -460,3 +460,49 @@ extension CFNumberRef : _NSBridgable {
     typealias NSType = NSNumber
     internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
 }
+
+extension NSNumber : CustomPlaygroundQuickLookable {
+    public func customPlaygroundQuickLook() -> PlaygroundQuickLook {
+        let type = CFNumberGetType(_cfObject)
+        switch type {
+        case kCFNumberSInt8Type:
+            fallthrough
+        case kCFNumberSInt16Type:
+            fallthrough
+        case kCFNumberSInt32Type:
+            fallthrough
+        case kCFNumberSInt64Type:
+            fallthrough
+        case kCFNumberCharType:
+            fallthrough
+        case kCFNumberShortType:
+            fallthrough
+        case kCFNumberIntType:
+            fallthrough
+        case kCFNumberLongType:
+            fallthrough
+        case kCFNumberCFIndexType:
+            fallthrough
+        case kCFNumberNSIntegerType:
+            fallthrough
+        case kCFNumberLongLongType:
+            return .Int(self.longLongValue)
+        case kCFNumberFloat32Type:
+            fallthrough
+        case kCFNumberFloatType:
+            return .Float(self.floatValue)
+        case kCFNumberFloat64Type:
+            fallthrough
+        case kCFNumberDoubleType:
+            return .Double(self.doubleValue)
+        case kCFNumberCGFloatType:
+            if sizeof(CGFloat) == sizeof(Float32) {
+                return .Float(self.floatValue)
+            } else {
+                return .Double(self.doubleValue)
+            }
+        default:
+            return .Text("invalid NSNumber")
+        }
+    }
+}

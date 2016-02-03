@@ -32,6 +32,7 @@ class TestNSNumber : XCTestCase {
             ("test_compareNumberWithShort", test_compareNumberWithShort ),
             ("test_compareNumberWithFloat", test_compareNumberWithFloat ),
             ("test_compareNumberWithDouble", test_compareNumberWithDouble ),
+	    ("test_reflection", test_reflection ),
         ]
     }
     
@@ -363,5 +364,25 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(double: 42).compare(NSNumber(float: 42)), NSComparisonResult.OrderedSame)
         XCTAssertEqual(NSNumber(double: 0).compare(NSNumber(float: -37.5)), NSComparisonResult.OrderedDescending)
         XCTAssertEqual(NSNumber(double: -37.5).compare(NSNumber(float: 1234.5)), NSComparisonResult.OrderedAscending)
+    }
+
+    func test_reflection() {
+       let ql = NSNumber(integer: 1234).customPlaygroundQuickLook()
+       switch ql {
+           case .Int(let value): XCTAssertEqual(value, 1234)
+           default: XCTAssert(false, "NSNumber(integer:) quicklook is not an Int")
+       }
+
+       let ql = NSNumber(float: 1.25).customPlaygroundQuickLook()
+       switch ql {
+           case .Float(let value): XCTAssertEqual(value, 1.25)
+           default: XCTAssert(false, "NSNumber(float:) quicklook is not a Float")
+       }
+
+       let ql = NSNumber(double: 1.25).customPlaygroundQuickLook()
+       switch ql {
+           case .Double(let value): XCTAssertEqual(value, 1.25)
+           default: XCTAssert(false, "NSNumber(double:) quicklook is not a Double")
+       }
     }
 }
