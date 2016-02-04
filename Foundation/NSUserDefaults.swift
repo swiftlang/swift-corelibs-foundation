@@ -150,7 +150,7 @@ public class NSUserDefaults : NSObject {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSArray else {
             return nil
         }
-        return (bVal._swiftObject as? [NSString])?.map({ return $0._swiftObject})
+        return _expensivePropertyListConversion(bVal) as? [String]
     }
     public func integerForKey(defaultName: String) -> Int {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
