@@ -80,6 +80,7 @@ class TestNSString : XCTestCase {
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_PrefixSuffix", test_PrefixSuffix),
+            ("test_reflection", test_reflection),
         ]
     }
 
@@ -1059,5 +1060,16 @@ extension TestNSString {
             XCTAssert(test.xfail == fail, "Unexpected \(test.xfail ?"success":"failure"): \(test.loc)")
         }
 #endif
+    }
+}
+
+func test_reflection() {
+    let testString: NSString = "some text here"
+    
+    let ql = PlaygroundQuickLook(reflecting: testString)
+
+    switch ql {
+    case .Text(let str): XCTAssertEqual(testString.bridge(), str)
+    default: XCTAssertTrue(false, "mismatched quicklook")
     }
 }
