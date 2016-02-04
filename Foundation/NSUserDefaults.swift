@@ -24,8 +24,8 @@ public class NSUserDefaults : NSObject {
     }
     
     public class func resetStandardUserDefaults() {
-        sharedDefaults.synchronize()
-        sharedDefaults = NSUserDefaults()
+        //sharedDefaults.synchronize()
+        //sharedDefaults = NSUserDefaults()
     }
     
     public convenience override init() {
