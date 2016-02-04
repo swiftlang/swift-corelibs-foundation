@@ -445,7 +445,7 @@ extension NSString {
     
     // Returns a new string made from the receiver by replacing all percent encoded sequences with the matching UTF-8 characters.
     public var stringByRemovingPercentEncoding: String? {
-        return _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, self._cfObject)._swiftObject
+        return _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, self._cfObject)?._swiftObject
     }
 }
 

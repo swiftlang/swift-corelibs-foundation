@@ -77,6 +77,7 @@ class TestNSString : XCTestCase {
             ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath),
             ("test_stringByExpandingTildeInPath", test_stringByExpandingTildeInPath),
             ("test_stringByStandardizingPath", test_stringByStandardizingPath),
+            ("test_stringByRemovingPercentEncoding", test_stringByRemovingPercentEncoding),
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_PrefixSuffix", test_PrefixSuffix),
@@ -822,6 +823,13 @@ class TestNSString : XCTestCase {
             let result = path.stringByStandardizingPath
             XCTAssertEqual(result, path.bridge(), "parent links could not be resolved for relative paths")
         }
+    }
+
+    func test_stringByRemovingPercentEncoding() {
+        let s1 = "a%20b".stringByRemovingPercentEncoding
+        XCTAssertEqual(s1, "a b")
+        let s2 = "a%1 b".stringByRemovingPercentEncoding
+        XCTAssertNil(s2, "returns nil for a string with an invalid percent encoding")
     }
     
     func test_ExternalRepresentation() {

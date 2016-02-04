@@ -89,7 +89,7 @@ CF_EXPORT CFRange _CFURLComponentsGetRangeOfQuery(CFURLComponentsRef components)
 CF_EXPORT CFRange _CFURLComponentsGetRangeOfFragment(CFURLComponentsRef components);
 
 CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(CFAllocatorRef alloc, CFStringRef string, CFCharacterSetRef allowedCharacters);
-CF_EXPORT CFStringRef _CFStringCreateByRemovingPercentEncoding(CFAllocatorRef alloc, CFStringRef string);
+CF_EXPORT CFStringRef _Nullable _CFStringCreateByRemovingPercentEncoding(CFAllocatorRef alloc, CFStringRef string);
 
 // These return singletons
 CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLUserAllowedCharacterSet();
