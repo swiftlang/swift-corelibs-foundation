@@ -34,6 +34,11 @@ class TestNSProcessInfo : XCTestCase {
         
         let version = processInfo.operatingSystemVersion
         XCTAssertNotNil(version.majorVersion != 0)
+        
+        XCTAssertEqual(NSOperatingSystemVersion(), NSOperatingSystemVersion())
+        XCTAssertEqual(NSOperatingSystemVersion(majorVersion: 0, minorVersion: 0, patchVersion: 0), NSOperatingSystemVersion())
+        XCTAssertLessThan(NSOperatingSystemVersion(majorVersion: 0, minorVersion: 0, patchVersion: 1), NSOperatingSystemVersion(majorVersion: 0, minorVersion: 0, patchVersion: 2))
+        XCTAssertGreaterThan(NSOperatingSystemVersion(majorVersion: 0, minorVersion: 0, patchVersion: 2), NSOperatingSystemVersion(majorVersion: 0, minorVersion: 0, patchVersion: 1)) //Guards against false positives in LT test
     }
     
     func test_processName() {
