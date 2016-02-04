@@ -11,6 +11,12 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
+internal let kCFNumberSInt8Type = CFNumberType.SInt8Type
+internal let kCFNumberSInt16Type = CFNumberType.SInt16Type
+internal let kCFNumberSInt32Type = CFNumberType.SInt32Type
+internal let kCFNumberSInt64Type = CFNumberType.SInt64Type
+internal let kCFNumberFloat32Type = CFNumberType.Float32Type
+internal let kCFNumberFloat64Type = CFNumberType.Float64Type
 internal let kCFNumberCharType = CFNumberType.CharType
 internal let kCFNumberShortType = CFNumberType.ShortType
 internal let kCFNumberIntType = CFNumberType.IntType
@@ -18,6 +24,9 @@ internal let kCFNumberLongType = CFNumberType.LongType
 internal let kCFNumberLongLongType = CFNumberType.LongLongType
 internal let kCFNumberFloatType = CFNumberType.FloatType
 internal let kCFNumberDoubleType = CFNumberType.DoubleType
+internal let kCFNumberCFIndexType = CFNumberType.CFIndexType
+internal let kCFNumberNSIntegerType = CFNumberType.NSIntegerType
+internal let kCFNumberCGFloatType = CFNumberType.CGFloatType
 #endif
 
 extension Int : _ObjectTypeBridgeable {
@@ -459,4 +468,50 @@ public class NSNumber : NSValue {
 extension CFNumberRef : _NSBridgable {
     typealias NSType = NSNumber
     internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
+}
+
+extension NSNumber : CustomPlaygroundQuickLookable {
+    public func customPlaygroundQuickLook() -> PlaygroundQuickLook {
+        let type = CFNumberGetType(_cfObject)
+        switch type {
+        case kCFNumberCharType:
+            fallthrough
+        case kCFNumberSInt16Type:
+            fallthrough
+        case kCFNumberSInt32Type:
+            fallthrough
+        case kCFNumberSInt64Type:
+            fallthrough
+        case kCFNumberCharType:
+            fallthrough
+        case kCFNumberShortType:
+            fallthrough
+        case kCFNumberIntType:
+            fallthrough
+        case kCFNumberLongType:
+            fallthrough
+        case kCFNumberCFIndexType:
+            fallthrough
+        case kCFNumberNSIntegerType:
+            fallthrough
+        case kCFNumberLongLongType:
+            return .Int(self.longLongValue)
+        case kCFNumberFloat32Type:
+            fallthrough
+        case kCFNumberFloatType:
+            return .Float(self.floatValue)
+        case kCFNumberFloat64Type:
+            fallthrough
+        case kCFNumberDoubleType:
+            return .Double(self.doubleValue)
+        case kCFNumberCGFloatType:
+            if sizeof(CGFloat) == sizeof(Float32) {
+                return .Float(self.floatValue)
+            } else {
+                return .Double(self.doubleValue)
+            }
+        default:
+            return .Text("invalid NSNumber")
+        }
+    }
 }
