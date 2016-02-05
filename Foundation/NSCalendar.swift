@@ -1538,10 +1538,10 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
                 yearForWeekOfYear = value
                 break
             case NSCalendarUnit.Calendar:
-                print(".Calendar cannot be set via \(__FUNCTION__)")
+                print(".Calendar cannot be set via \(#function)")
                 break
             case NSCalendarUnit.TimeZone:
-                print(".TimeZone cannot be set via \(__FUNCTION__)")
+                print(".TimeZone cannot be set via \(#function)")
                 break
             default:
                 break

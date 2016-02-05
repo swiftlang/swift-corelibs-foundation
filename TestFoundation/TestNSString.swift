@@ -888,7 +888,7 @@ struct ComparisonTest {
 
     init(
         _ lhs: String, _ rhs: String,
-        reason: String = "", line: UInt = __LINE__
+          reason: String = "", line: UInt = #line
     ) {
         self.lhs = lhs
         self.rhs = rhs
@@ -1039,8 +1039,8 @@ func checkHasPrefixHasSuffix(lhs: String, _ rhs: String, _ stack: [UInt]) -> Int
     }
 
     var failures = 0
-    failures += testFailure(expectHasPrefix, lhs.hasPrefix(rhs), stack + [__LINE__])
-    failures += testFailure(expectHasSuffix, lhs.hasSuffix(rhs), stack + [__LINE__])
+    failures += testFailure(expectHasPrefix, lhs.hasPrefix(rhs), stack + [#line])
+    failures += testFailure(expectHasSuffix, lhs.hasSuffix(rhs), stack + [#line])
     return failures
 }
 
@@ -1049,16 +1049,16 @@ extension TestNSString {
 #if !_runtime(_ObjC)
         for test in comparisonTests {
             var failures = 0
-            failures += checkHasPrefixHasSuffix(test.lhs, test.rhs, [test.loc, __LINE__])
-            failures += checkHasPrefixHasSuffix(test.rhs, test.lhs, [test.loc, __LINE__])
+            failures += checkHasPrefixHasSuffix(test.lhs, test.rhs, [test.loc, #line])
+            failures += checkHasPrefixHasSuffix(test.rhs, test.lhs, [test.loc, #line])
 
             let fragment = "abc"
             let combiner = "\u{0301}"
 
-            failures += checkHasPrefixHasSuffix(test.lhs + fragment, test.rhs, [test.loc, __LINE__])
-            failures += checkHasPrefixHasSuffix(fragment + test.lhs, test.rhs, [test.loc, __LINE__])
-            failures += checkHasPrefixHasSuffix(test.lhs + combiner, test.rhs, [test.loc, __LINE__])
-            failures += checkHasPrefixHasSuffix(combiner + test.lhs, test.rhs, [test.loc, __LINE__])
+            failures += checkHasPrefixHasSuffix(test.lhs + fragment, test.rhs, [test.loc, #line])
+            failures += checkHasPrefixHasSuffix(fragment + test.lhs, test.rhs, [test.loc, #line])
+            failures += checkHasPrefixHasSuffix(test.lhs + combiner, test.rhs, [test.loc, #line])
+            failures += checkHasPrefixHasSuffix(combiner + test.lhs, test.rhs, [test.loc, #line])
 
             let fail = (failures > 0)
             if fail {
