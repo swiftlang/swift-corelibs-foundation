@@ -1690,7 +1690,11 @@ static void _perform(void* info)
 
 static void* _legacyStreamRunLoop_workThread(void* arg)
 {
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+    pthread_setname_np(pthread_self(), "com.apple.CFStream.LegacyThread");
+#else
     pthread_setname_np("com.apple.CFStream.LegacyThread");
+#endif
     sLegacyRL = CFRunLoopGetCurrent();
 
 #if defined(LOG_STREAM)

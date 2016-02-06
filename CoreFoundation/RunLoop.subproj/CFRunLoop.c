@@ -2541,7 +2541,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
     }
     
 #if __HAS_DISPATCH__
-    mach_port_name_t dispatchPort = MACH_PORT_NULL;
+    __CFPort dispatchPort = CFPORT_NULL;
     Boolean libdispatchQSafe = pthread_main_np() && ((HANDLE_DISPATCH_ON_BASE_INVOCATION_ONLY && NULL == previousMode) || (!HANDLE_DISPATCH_ON_BASE_INVOCATION_ONLY && 0 == _CFGetTSD(__CFTSDKeyIsInGCDMainQ)));
     if (libdispatchQSafe && (CFRunLoopGetMain() == rl) && CFSetContainsValue(rl->_commonModes, rlm->_name)) dispatchPort = _dispatch_get_main_queue_port_4CF();
 #endif
@@ -2798,7 +2798,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             __CFRunLoopModeUnlock(rlm);
             __CFRunLoopUnlock(rl);
             _CFSetTSD(__CFTSDKeyIsInGCDMainQ, (void *)6, NULL);
-#if DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
             void *msg = 0;
 #endif
             __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__(msg);
