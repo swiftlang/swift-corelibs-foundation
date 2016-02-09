@@ -95,10 +95,6 @@ extension NSRunLoop {
             return false
         }
         let modeArg = mode._cfObject
-        if _CFRunLoopFinished(_cfRunLoop, modeArg) {
-            return false
-        }
-        
         let limitTime = limitDate.timeIntervalSinceReferenceDate
         let ti = limitTime - CFAbsoluteTimeGetCurrent()
         CFRunLoopRunInMode(modeArg, ti, true)
