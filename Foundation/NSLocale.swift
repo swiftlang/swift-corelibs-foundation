@@ -11,7 +11,7 @@
 import CoreFoundation
 
 public class NSLocale : NSObject, NSCopying, NSSecureCoding {
-    typealias CFType = CFLocaleRef
+    typealias CFType = CFLocale
     private var _base = _CFInfo(typeID: CFLocaleGetTypeID())
     private var _identifier = UnsafeMutablePointer<Void>()
     private var _cache = UnsafeMutablePointer<Void>()
@@ -209,7 +209,7 @@ public let NSLocaleCalendarIdentifier: String = "kCFLocaleCalendarIdentifierKey"
 public let NSLocaleAlternateQuotationBeginDelimiterKey: String = "kCFLocaleAlternateQuotationBeginDelimiterKey"
 public let NSLocaleAlternateQuotationEndDelimiterKey: String = "kCFLocaleAlternateQuotationEndDelimiterKey"
 
-extension CFLocaleRef : _NSBridgable {
+extension CFLocale : _NSBridgable {
     typealias NSType = NSLocale
     internal var _nsObject: NSLocale {
         return unsafeBitCast(self, NSType.self)

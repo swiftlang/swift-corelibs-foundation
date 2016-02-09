@@ -33,7 +33,7 @@ public class NSXMLDTD : NSXMLNode {
     }
 
     public convenience init(data: NSData, options mask: Int) throws {
-        var unmanagedError: Unmanaged<CFErrorRef>? = nil
+        var unmanagedError: Unmanaged<CFError>? = nil
         let node = _CFXMLParseDTDFromData(data._cfObject, &unmanagedError)
         if node == nil {
             if let error = unmanagedError?.takeRetainedValue()._nsObject {

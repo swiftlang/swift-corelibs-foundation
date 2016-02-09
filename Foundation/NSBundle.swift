@@ -10,7 +10,7 @@
 import CoreFoundation
 
 public class NSBundle : NSObject {
-    private var _bundle : CFBundleRef!
+    private var _bundle : CFBundle!
 
     private static var _mainBundle : NSBundle = {
         return NSBundle(cfBundle: CFBundleGetMainBundle())
@@ -20,7 +20,7 @@ public class NSBundle : NSObject {
         return _mainBundle
     }
     
-    internal init(cfBundle: CFBundleRef) {
+    internal init(cfBundle: CFBundle) {
         super.init()
         _bundle = cfBundle
     }
@@ -36,7 +36,7 @@ public class NSBundle : NSObject {
         }
         
         let url = NSURL(fileURLWithPath: resolvedPath)
-        _bundle = CFBundleCreate(kCFAllocatorSystemDefault, unsafeBitCast(url, CFURLRef.self))
+        _bundle = CFBundleCreate(kCFAllocatorSystemDefault, unsafeBitCast(url, CFURL.self))
     }
     
     public convenience init?(URL url: NSURL) {

@@ -11,7 +11,7 @@
 import CoreFoundation
 
 public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    typealias CFType = CFTimeZoneRef
+    typealias CFType = CFTimeZone
     private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())
     private var _name = UnsafeMutablePointer<Void>()
     private var _data = UnsafeMutablePointer<Void>()
@@ -185,7 +185,7 @@ extension NSTimeZone {
 
 extension NSTimeZone : _CFBridgable { }
 
-extension CFTimeZoneRef : _NSBridgable {
+extension CFTimeZone : _NSBridgable {
     typealias NSType = NSTimeZone
     internal var _nsObject : NSType {
         return unsafeBitCast(self, NSType.self)

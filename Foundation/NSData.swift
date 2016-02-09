@@ -71,7 +71,7 @@ private let __kCFDontDeallocate: CFOptionFlags = 0x10
 private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
 
 public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
-    typealias CFType = CFDataRef
+    typealias CFType = CFData
     private var _base = _CFInfo(typeID: CFDataGetTypeID())
     private var _length: CFIndex = 0
     private var _capacity: CFIndex = 0
@@ -116,7 +116,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         super.init()
         let options : CFOptionFlags = (self.dynamicType == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
         if copy {
-            _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, false)
+            _CFDataInit(unsafeBitCast(self, CFMutableData.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, false)
             if let handler = deallocator {
                 handler(bytes, length)
             }
@@ -125,7 +125,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 _deallocHandler!.handler = handler
             }
             // The data initialization should flag that CF should not deallocate which leaves the handler a chance to deallocate instead
-            _CFDataInit(unsafeBitCast(self, CFMutableDataRef.self), options | __kCFDontDeallocate, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
+            _CFDataInit(unsafeBitCast(self, CFMutableData.self), options | __kCFDontDeallocate, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
         }
     }
     
@@ -568,13 +568,13 @@ extension NSData {
 
 extension NSData : _CFBridgable { }
 
-extension CFDataRef : _NSBridgable {
+extension CFData : _NSBridgable {
     typealias NSType = NSData
     internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
 }
 
 extension NSMutableData {
-    internal var _cfMutableObject: CFMutableDataRef { return unsafeBitCast(self, CFMutableDataRef.self) }
+    internal var _cfMutableObject: CFMutableData { return unsafeBitCast(self, CFMutableData.self) }
 }
 
 public class NSMutableData : NSData {

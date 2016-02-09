@@ -10,7 +10,7 @@
 import CoreFoundation
 
 public class NSDateFormatter : NSFormatter {
-    typealias CFType = CFDateFormatterRef
+    typealias CFType = CFDateFormatter
     private var __cfObject: CFType?
     private var _cfObject: CFType {
         guard let obj = __cfObject else {

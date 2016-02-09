@@ -94,7 +94,7 @@ public struct NSCalendarOptions : OptionSetType {
 }
 
 public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
-    typealias CFType = CFCalendarRef
+    typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
     private var _identifier = UnsafeMutablePointer<Void>()
     private var _locale = UnsafeMutablePointer<Void>()
@@ -103,7 +103,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private var _cal = UnsafeMutablePointer<Void>()
     
     internal var _cfObject: CFType {
-        return unsafeBitCast(self, CFCalendarRef.self)
+        return unsafeBitCast(self, CFCalendar.self)
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
@@ -1720,7 +1720,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
 
 extension NSCalendar : _CFBridgable { }
 
-extension CFCalendarRef : _NSBridgable {
+extension CFCalendar : _NSBridgable {
     typealias NSType = NSCalendar
     internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
 }

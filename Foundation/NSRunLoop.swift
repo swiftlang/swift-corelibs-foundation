@@ -12,18 +12,18 @@ import CoreFoundation
 public let NSDefaultRunLoopMode: String = "kCFRunLoopDefaultMode"
 public let NSRunLoopCommonModes: String = "kCFRunLoopCommonModes"
 
-internal func _NSRunLoopNew(cf: CFRunLoopRef) -> Unmanaged<AnyObject> {
+internal func _NSRunLoopNew(cf: CFRunLoop) -> Unmanaged<AnyObject> {
     let rl = Unmanaged<NSRunLoop>.passRetained(NSRunLoop(cfObject: cf))
     return unsafeBitCast(rl, Unmanaged<AnyObject>.self) // this retain is balanced on the other side of the CF fence
 }
 
 public class NSRunLoop : NSObject {
-    internal var _cfRunLoop : CFRunLoopRef!
+    internal var _cfRunLoop : CFRunLoop!
     internal static var _mainRunLoop : NSRunLoop = {
         return NSRunLoop(cfObject: CFRunLoopGetMain())
     }()
 
-    internal init(cfObject : CFRunLoopRef) {
+    internal init(cfObject : CFRunLoop) {
         _cfRunLoop = cfObject
     }
 

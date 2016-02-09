@@ -31,7 +31,7 @@ public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
 
 
 public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    typealias CFType = CFErrorRef
+    typealias CFType = CFError
     
     internal var _cfObject: CFType {
         return CFErrorCreate(kCFAllocatorSystemDefault, domain._cfObject, code, nil)
@@ -168,7 +168,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
 extension NSError : ErrorType { }
 
 extension NSError : _CFBridgable { }
-extension CFErrorRef : _NSBridgable {
+extension CFError : _NSBridgable {
     typealias NSType = NSError
     internal var _nsObject: NSType {
         let userInfo = CFErrorCopyUserInfo(self)._swiftObject

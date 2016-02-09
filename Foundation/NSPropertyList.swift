@@ -68,7 +68,7 @@ public class NSPropertyListSerialization : NSObject {
         var fmt = kCFPropertyListBinaryFormat_v1_0
         var error: Unmanaged<CFError>? = nil
         let decoded = withUnsafeMutablePointers(&fmt, &error) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>, outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> NSObject? in
-            return unsafeBitCast(CFPropertyListCreateWithData(kCFAllocatorSystemDefault, unsafeBitCast(data, CFDataRef.self), CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), NSObject.self)
+            return unsafeBitCast(CFPropertyListCreateWithData(kCFAllocatorSystemDefault, unsafeBitCast(data, CFData.self), CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), NSObject.self)
         }
         if format != nil {
 #if os(OSX) || os(iOS)

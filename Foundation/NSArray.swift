@@ -565,7 +565,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
 }
 
 extension NSArray : _CFBridgable, _SwiftBridgable {
-    internal var _cfObject: CFArrayRef { return unsafeBitCast(self, CFArrayRef.self) }
+    internal var _cfObject: CFArray { return unsafeBitCast(self, CFArray.self) }
     internal var _swiftObject: [AnyObject] {
         var array: [AnyObject]?
         Array._forceBridgeFromObject(self, result: &array)
@@ -574,15 +574,15 @@ extension NSArray : _CFBridgable, _SwiftBridgable {
 }
 
 extension NSMutableArray {
-    internal var _cfMutableObject: CFMutableArrayRef { return unsafeBitCast(self, CFMutableArrayRef.self) }
+    internal var _cfMutableObject: CFMutableArray { return unsafeBitCast(self, CFMutableArray.self) }
 }
 
-extension CFArrayRef : _NSBridgable, _SwiftBridgable {
+extension CFArray : _NSBridgable, _SwiftBridgable {
     internal var _nsObject: NSArray { return unsafeBitCast(self, NSArray.self) }
     internal var _swiftObject: Array<AnyObject> { return _nsObject._swiftObject }
 }
 
-extension CFArrayRef {
+extension CFArray {
     /// Bridge something returned from CF to an Array<T>. Useful when we already know that a CFArray contains objects that are toll-free bridged with Swift objects, e.g. CFArray<CFURLRef>.
     /// - Note: This bridging operation is unfortunately still O(n), but it only traverses the NSArray once, creating the Swift array and casting at the same time.
     func _unsafeTypedBridge<T : AnyObject>() -> Array<T> {
@@ -598,7 +598,7 @@ extension CFArrayRef {
 
 extension Array : _NSBridgable, _CFBridgable {
     internal var _nsObject: NSArray { return _bridgeToObject() }
-    internal var _cfObject: CFArrayRef { return _nsObject._cfObject }
+    internal var _cfObject: CFArray { return _nsObject._cfObject }
 }
 
 public struct NSBinarySearchingOptions : OptionSetType {

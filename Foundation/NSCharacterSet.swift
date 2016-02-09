@@ -30,7 +30,7 @@ let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.Illegal
 
 
 public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
-    typealias CFType = CFCharacterSetRef
+    typealias CFType = CFCharacterSet
     private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
     private var _hashValue = CFHashCode(0)
     private var _buffer = UnsafeMutablePointer<Void>()
@@ -41,8 +41,8 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return unsafeBitCast(self, CFType.self)
     }
     
-    internal var _cfMutableObject: CFMutableCharacterSetRef {
-        return unsafeBitCast(self, CFMutableCharacterSetRef.self)
+    internal var _cfMutableObject: CFMutableCharacterSet {
+        return unsafeBitCast(self, CFMutableCharacterSet.self)
     }
     
     public override var hash: Int {
@@ -292,7 +292,7 @@ public class NSMutableCharacterSet : NSCharacterSet {
     }
 }
 
-extension CFCharacterSetRef : _NSBridgable {
+extension CFCharacterSet : _NSBridgable {
     typealias NSType = NSCharacterSet
     internal var _nsObject: NSType {
         return unsafeBitCast(self, NSType.self)

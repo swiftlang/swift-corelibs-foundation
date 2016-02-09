@@ -82,7 +82,7 @@ extension String : _ObjectTypeBridgeable {
         if x.dynamicType == NSString.self || x.dynamicType == NSMutableString.self {
             result = x._storage
         } else if x.dynamicType == _NSCFString.self {
-            let cf = unsafeBitCast(x, CFStringRef.self)
+            let cf = unsafeBitCast(x, CFString.self)
             let str = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8))
             if str != nil {
                 result = String.fromCString(str)
@@ -453,7 +453,7 @@ extension NSString {
     }
     
     public func commonPrefixWithString(str: String, options mask: NSStringCompareOptions) -> String {
-        var currentSubstring: CFMutableStringRef?
+        var currentSubstring: CFMutableString?
         let isLiteral = mask.contains(.LiteralSearch)
         var lastMatch = NSRange()
         let selfLen = length
@@ -1430,7 +1430,7 @@ extension String {
 
 extension NSString : _CFBridgable, _SwiftBridgable {
     typealias SwiftType = String
-    internal var _cfObject: CFStringRef { return unsafeBitCast(self, CFStringRef.self) }
+    internal var _cfObject: CFString { return unsafeBitCast(self, CFString.self) }
     internal var _swiftObject: String {
         var str: String?
         String._forceBridgeFromObject(self, result: &str)
@@ -1439,10 +1439,10 @@ extension NSString : _CFBridgable, _SwiftBridgable {
 }
 
 extension NSMutableString {
-    internal var _cfMutableObject: CFMutableStringRef { return unsafeBitCast(self, CFMutableStringRef.self) }
+    internal var _cfMutableObject: CFMutableString { return unsafeBitCast(self, CFMutableString.self) }
 }
 
-extension CFStringRef : _NSBridgable, _SwiftBridgable {
+extension CFString : _NSBridgable, _SwiftBridgable {
     typealias NSType = NSString
     typealias SwiftType = String
     internal var _nsObject: NSType { return unsafeBitCast(self, NSString.self) }
@@ -1451,7 +1451,7 @@ extension CFStringRef : _NSBridgable, _SwiftBridgable {
 
 extension String : _NSBridgable, _CFBridgable {
     typealias NSType = NSString
-    typealias CFType = CFStringRef
+    typealias CFType = CFString
     internal var _nsObject: NSType { return _bridgeToObject() }
     internal var _cfObject: CFType { return _nsObject._cfObject }
 }

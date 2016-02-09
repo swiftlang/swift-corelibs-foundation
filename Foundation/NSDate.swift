@@ -22,7 +22,7 @@ public var NSTimeIntervalSince1970: Double {
 }
 
 public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    typealias CFType = CFDateRef
+    typealias CFType = CFDate
     
     public override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
@@ -224,7 +224,7 @@ extension NSDate {
 
 extension NSDate : _CFBridgable { }
 
-extension CFDateRef : _NSBridgable {
+extension CFDate : _NSBridgable {
     typealias NSType = NSDate
     internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
 }

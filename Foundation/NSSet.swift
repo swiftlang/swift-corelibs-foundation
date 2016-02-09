@@ -328,7 +328,7 @@ extension NSSet {
 }
 
 extension NSSet : _CFBridgable, _SwiftBridgable {
-    internal var _cfObject: CFSetRef { return unsafeBitCast(self, CFSetRef.self) }
+    internal var _cfObject: CFSet { return unsafeBitCast(self, CFSet.self) }
     internal var _swiftObject: Set<NSObject> {
         var set: Set<NSObject>?
         Set._forceBridgeFromObject(self, result: &set)
@@ -336,14 +336,14 @@ extension NSSet : _CFBridgable, _SwiftBridgable {
     }
 }
 
-extension CFSetRef : _NSBridgable, _SwiftBridgable {
+extension CFSet : _NSBridgable, _SwiftBridgable {
     internal var _nsObject: NSSet { return unsafeBitCast(self, NSSet.self) }
     internal var _swiftObject: Set<NSObject> { return _nsObject._swiftObject }
 }
 
 extension Set : _NSBridgable, _CFBridgable {
     internal var _nsObject: NSSet { return _bridgeToObject() }
-    internal var _cfObject: CFSetRef { return _nsObject._cfObject }
+    internal var _cfObject: CFSet { return _nsObject._cfObject }
 }
 
 extension NSSet : SequenceType {

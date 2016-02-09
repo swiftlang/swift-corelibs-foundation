@@ -29,7 +29,7 @@ private func _standardizedPath(path: String) -> String {
 }
 
 public class NSURL : NSObject, NSSecureCoding, NSCopying {
-    typealias CFType = CFURLRef
+    typealias CFType = CFURL
     internal var _base = _CFInfo(typeID: CFURLGetTypeID())
     internal var _flags : UInt32 = 0
     internal var _encoding : CFStringEncoding = 0
@@ -604,7 +604,7 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
 }
 
 public class NSURLComponents : NSObject, NSCopying {
-    private let _components : CFURLComponentsRef!
+    private let _components : CFURLComponents!
     
     public override func copy() -> AnyObject {
         return copyWithZone(nil)
@@ -894,7 +894,7 @@ public class NSURLComponents : NSObject, NSCopying {
 
 extension NSURL : _CFBridgable { }
 
-extension CFURLRef : _NSBridgable {
+extension CFURL : _NSBridgable {
     typealias NSType = NSURL
     internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
 }

@@ -124,7 +124,7 @@ extension Bool : _ObjectTypeBridgeable {
 }
 
 extension Bool : _CFBridgable {
-    typealias CFType = CFBooleanRef
+    typealias CFType = CFBoolean
     var _cfObject: CFType {
         return self ? kCFBooleanTrue : kCFBooleanFalse
     }
@@ -135,7 +135,7 @@ extension NSNumber : FloatLiteralConvertible, IntegerLiteralConvertible, Boolean
 }
 
 public class NSNumber : NSValue {
-    typealias CFType = CFNumberRef
+    typealias CFType = CFNumber
     // This layout MUST be the same as CFNumber so that they are bridgeable
     private var _base = _CFInfo(typeID: CFNumberGetTypeID())
     private var _pad: UInt64 = 0
@@ -465,7 +465,7 @@ public class NSNumber : NSValue {
     }
 }
 
-extension CFNumberRef : _NSBridgable {
+extension CFNumber : _NSBridgable {
     typealias NSType = NSNumber
     internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
 }

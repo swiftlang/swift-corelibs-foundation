@@ -26,7 +26,7 @@ public struct NSRegularExpressionOptions : OptionSetType {
 }
 
 public class NSRegularExpression : NSObject, NSCopying, NSCoding {
-    internal var _internal: _CFRegularExpressionRef
+    internal var _internal: _CFRegularExpression
     
     public override func copy() -> AnyObject {
         return copyWithZone(nil)

@@ -554,7 +554,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
 }
 
 extension NSDictionary : _CFBridgable, _SwiftBridgable {
-    internal var _cfObject: CFDictionaryRef { return unsafeBitCast(self, CFDictionaryRef.self) }
+    internal var _cfObject: CFDictionary { return unsafeBitCast(self, CFDictionary.self) }
     internal var _swiftObject: Dictionary<NSObject, AnyObject> {
         var dictionary: [NSObject: AnyObject]?
         Dictionary._forceBridgeFromObject(self, result: &dictionary)
@@ -563,17 +563,17 @@ extension NSDictionary : _CFBridgable, _SwiftBridgable {
 }
 
 extension NSMutableDictionary {
-    internal var _cfMutableObject: CFMutableDictionaryRef { return unsafeBitCast(self, CFMutableDictionaryRef.self) }
+    internal var _cfMutableObject: CFMutableDictionary { return unsafeBitCast(self, CFMutableDictionary.self) }
 }
 
-extension CFDictionaryRef : _NSBridgable, _SwiftBridgable {
+extension CFDictionary : _NSBridgable, _SwiftBridgable {
     internal var _nsObject: NSDictionary { return unsafeBitCast(self, NSDictionary.self) }
     internal var _swiftObject: [NSObject: AnyObject] { return _nsObject._swiftObject }
 }
 
 extension Dictionary : _NSBridgable, _CFBridgable {
     internal var _nsObject: NSDictionary { return _bridgeToObject() }
-    internal var _cfObject: CFDictionaryRef { return _nsObject._cfObject }
+    internal var _cfObject: CFDictionary { return _nsObject._cfObject }
 }
 
 public class NSMutableDictionary : NSDictionary {

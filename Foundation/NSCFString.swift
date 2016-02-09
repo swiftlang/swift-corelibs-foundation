@@ -41,15 +41,15 @@ internal class _NSCFString : NSMutableString {
     }
     
     override var length: Int {
-        return CFStringGetLength(unsafeBitCast(self, CFStringRef.self))
+        return CFStringGetLength(unsafeBitCast(self, CFString.self))
     }
     
     override func characterAtIndex(index: Int) -> unichar {
-        return CFStringGetCharacterAtIndex(unsafeBitCast(self, CFStringRef.self), index)
+        return CFStringGetCharacterAtIndex(unsafeBitCast(self, CFString.self), index)
     }
     
     override func replaceCharactersInRange(range: NSRange, withString aString: String) {
-        CFStringReplace(unsafeBitCast(self, CFMutableStringRef.self), CFRangeMake(range.location, range.length), aString._cfObject)
+        CFStringReplace(unsafeBitCast(self, CFMutableString.self), CFRangeMake(range.location, range.length), aString._cfObject)
     }
     
     override var classForCoder: AnyClass {

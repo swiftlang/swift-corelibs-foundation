@@ -33,7 +33,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     }
     
     override var count: Int {
-        return CFDictionaryGetCount(unsafeBitCast(self, CFDictionaryRef.self))
+        return CFDictionaryGetCount(unsafeBitCast(self, CFDictionary.self))
     }
     
     override func objectForKey(aKey: AnyObject) -> AnyObject? {

@@ -375,7 +375,7 @@ class TestNSString : XCTestCase {
     
     func test_CFStringCreateMutableCopy() {
         let nsstring: NSString = "абВГ"
-        let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, CFStringRef.self))
+        let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, CFString.self))
         let str = unsafeBitCast(mCopy, NSString.self).bridge()
         XCTAssertEqual(nsstring.bridge(), str)
     }
@@ -388,7 +388,7 @@ class TestNSString : XCTestCase {
 
         let testString = "hello world"
         let string = NSString(string: testString)
-        let cfString = unsafeBitCast(string, CFStringRef.self)
+        let cfString = unsafeBitCast(string, CFString.self)
         
         // Get the bytes as UTF16
         let reservedLength = 50
@@ -841,7 +841,7 @@ class TestNSString : XCTestCase {
         let ISOLatin1Encoding = CFStringEncoding(kCFStringEncodingISOLatin1)
         
         do {
-            let string = unsafeBitCast(NSString(string: "this is an external string that should be representable by data"), CFStringRef.self)
+            let string = unsafeBitCast(NSString(string: "this is an external string that should be representable by data"), CFString.self)
             let UTF8Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF8Encoding, 0)
             let UTF8Length = CFDataGetLength(UTF8Data)
             XCTAssertEqual(UTF8Length, 63, "NSString should successfully produce an external UTF8 representation with a length of 63 but got \(UTF8Length) bytes")
@@ -856,7 +856,7 @@ class TestNSString : XCTestCase {
         }
         
         do {
-            let string = unsafeBitCast(NSString(string: "🐢 encoding all the way down. 🐢🐢🐢"), CFStringRef.self)
+            let string = unsafeBitCast(NSString(string: "🐢 encoding all the way down. 🐢🐢🐢"), CFString.self)
             let UTF8Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF8Encoding, 0)
             let UTF8Length = CFDataGetLength(UTF8Data)
             XCTAssertEqual(UTF8Length, 44, "NSString should successfully produce an external UTF8 representation with a length of 44 but got \(UTF8Length) bytes")
