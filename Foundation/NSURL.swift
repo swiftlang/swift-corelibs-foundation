@@ -604,7 +604,7 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
 }
 
 public class NSURLComponents : NSObject, NSCopying {
-    private let _components : CFURLComponents!
+    private let _components : CFURLComponentsRef!
     
     public override func copy() -> AnyObject {
         return copyWithZone(nil)
