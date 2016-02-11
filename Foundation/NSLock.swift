@@ -23,28 +23,26 @@ public protocol NSLocking {
 }
 
 public class NSLock : NSObject, NSLocking {
-    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.alloc(1)
+    internal var mutex = pthread_mutex_t()
     
     public override init() {
-        pthread_mutex_init(mutex, nil)
+        pthread_mutex_init(&mutex, nil)
     }
     
     deinit {
-        pthread_mutex_destroy(mutex)
-        mutex.destroy()
-        mutex.dealloc(1)
+        pthread_mutex_destroy(&mutex)
     }
     
     public func lock() {
-        pthread_mutex_lock(mutex)
+        pthread_mutex_lock(&mutex)
     }
     
     public func unlock() {
-        pthread_mutex_unlock(mutex)
+        pthread_mutex_unlock(&mutex)
     }
     
     public func tryLock() -> Bool {
-        return pthread_mutex_trylock(mutex) == 0
+        return pthread_mutex_trylock(&mutex) == 0
     }
     
     public var name: String?
@@ -136,66 +134,58 @@ public class NSConditionLock : NSObject, NSLocking {
 }
 
 public class NSRecursiveLock : NSObject, NSLocking {
-    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.alloc(1)
+    internal var mutex = pthread_mutex_t()
     
     public override init() {
         super.init()
         var attrib = pthread_mutexattr_t()
-        withUnsafeMutablePointer(&attrib) { attrs in
-            pthread_mutexattr_settype(attrs, Int32(PTHREAD_MUTEX_RECURSIVE))
-            pthread_mutex_init(mutex, attrs)
-        }
+        pthread_mutexattr_settype(&attrib, Int32(PTHREAD_MUTEX_RECURSIVE))
+        pthread_mutex_init(&mutex, &attrib)
     }
     
     deinit {
-        pthread_mutex_destroy(mutex)
-        mutex.destroy()
-        mutex.dealloc(1)
+        pthread_mutex_destroy(&mutex)
     }
     
     public func lock() {
-        pthread_mutex_lock(mutex)
+        pthread_mutex_lock(&mutex)
     }
     
     public func unlock() {
-        pthread_mutex_unlock(mutex)
+        pthread_mutex_unlock(&mutex)
     }
     
     public func tryLock() -> Bool {
-        return pthread_mutex_trylock(mutex) == 0
+        return pthread_mutex_trylock(&mutex) == 0
     }
 
     public var name: String?
 }
 
 public class NSCondition : NSObject, NSLocking {
-    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.alloc(1)
-    internal var cond = UnsafeMutablePointer<pthread_cond_t>.alloc(1)
+    internal var mutex = pthread_mutex_t()
+    internal var cond = pthread_cond_t()
     
     public override init() {
-        pthread_mutex_init(mutex, nil)
-        pthread_cond_init(cond, nil)
+        pthread_mutex_init(&mutex, nil)
+        pthread_cond_init(&cond, nil)
     }
     
     deinit {
-        pthread_mutex_destroy(mutex)
-        pthread_cond_destroy(cond)
-        mutex.destroy()
-        cond.destroy()
-        mutex.dealloc(1)
-        cond.dealloc(1)
+        pthread_mutex_destroy(&mutex)
+        pthread_cond_destroy(&cond)
     }
     
     public func lock() {
-        pthread_mutex_lock(mutex)
+        pthread_mutex_lock(&mutex)
     }
     
     public func unlock() {
-        pthread_mutex_unlock(mutex)
+        pthread_mutex_unlock(&mutex)
     }
     
     public func wait() {
-        pthread_cond_wait(cond, mutex)
+        pthread_cond_wait(&cond, &mutex)
     }
     
     public func waitUntilDate(limit: NSDate) -> Bool {
@@ -207,25 +197,22 @@ public class NSCondition : NSObject, NSLocking {
         var ts = timespec()
         ts.tv_sec = Int(floor(ti))
         ts.tv_nsec = Int((ti - Double(ts.tv_sec)) * 1000000000.0)
-        var tv = timeval()
-        withUnsafeMutablePointer(&tv) { t in
-            gettimeofday(t, nil)
-            ts.tv_sec += t.memory.tv_sec
-            ts.tv_nsec += Int((t.memory.tv_usec * 1000000) / 1000000000)
-        }
-        let retVal: Int32 = withUnsafePointer(&ts) { t in
-            return pthread_cond_timedwait(cond, mutex, t)
-        }
 
-        return retVal == 0
+        var tv = timeval()
+        gettimeofday(&tv, nil)
+
+        ts.tv_sec += tv.tv_sec
+        ts.tv_nsec += Int((tv.tv_usec * 1000000) / 1000000000)
+
+        return pthread_cond_timedwait(&cond, &mutex, &ts) == 0
     }
     
     public func signal() {
-        pthread_cond_signal(cond)
+        pthread_cond_signal(&cond)
     }
     
     public func broadcast() {
-        pthread_cond_broadcast(cond)
+        pthread_cond_broadcast(&cond)
     }
     
     public var name: String?
