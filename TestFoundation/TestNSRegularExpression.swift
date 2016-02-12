@@ -28,7 +28,7 @@ class TestNSRegularExpression : XCTestCase {
         ]
     }
     
-    func simpleRegularExpressionTestWithPattern(patternString: String, target searchString: String, looking: Bool, match: Bool, file: StaticString = __FILE__, line: UInt = __LINE__) {
+    func simpleRegularExpressionTestWithPattern(patternString: String, target searchString: String, looking: Bool, match: Bool, file: StaticString = #file, line: UInt = #line) {
         do {
             let str = searchString.bridge()
             var range = NSMakeRange(0, str.length)
@@ -159,7 +159,7 @@ class TestNSRegularExpression : XCTestCase {
         simpleRegularExpressionTestWithPattern("\\\\\\|\\(\\)\\[\\{\\~\\$\\*\\+\\?\\.", target:"\\|()[{~$*+?.", looking:true, match:true)
     }
     
-    func replaceRegularExpressionTest(patternString: String, _ patternOptions: NSRegularExpressionOptions, _ searchString: String, _ searchOptions: NSMatchingOptions, _ searchRange: NSRange, _ templ: String, _ numberOfMatches: Int, _ result: String, file: StaticString = __FILE__, line: UInt = __LINE__) {
+    func replaceRegularExpressionTest(patternString: String, _ patternOptions: NSRegularExpressionOptions, _ searchString: String, _ searchOptions: NSMatchingOptions, _ searchRange: NSRange, _ templ: String, _ numberOfMatches: Int, _ result: String, file: StaticString = #file, line: UInt = #line) {
         do {
             let regex = try NSRegularExpression(pattern: patternString, options: patternOptions)
             let mutableString = searchString.bridge().mutableCopy() as! NSMutableString
@@ -198,7 +198,7 @@ class TestNSRegularExpression : XCTestCase {
         replaceRegularExpressionTest("\\b(th[a-z]+) \\1\\b", .CaseInsensitive, "This this is the the way.", [], NSMakeRange(0, 25), "*\\\\\\$1*", 2, "*\\$1* is *\\$1* way.")
     }
     
-    func complexRegularExpressionTest(patternString: String, _ patternOptions: NSRegularExpressionOptions, _ searchString: String, _ searchOptions: NSMatchingOptions, _ searchRange: NSRange, _ numberOfMatches: Int, _ firstMatchOverallRange: NSRange, _ firstMatchFirstCaptureRange: NSRange, _ firstMatchLastCaptureRange: NSRange, file: StaticString = __FILE__, line: UInt = __LINE__) {
+    func complexRegularExpressionTest(patternString: String, _ patternOptions: NSRegularExpressionOptions, _ searchString: String, _ searchOptions: NSMatchingOptions, _ searchRange: NSRange, _ numberOfMatches: Int, _ firstMatchOverallRange: NSRange, _ firstMatchFirstCaptureRange: NSRange, _ firstMatchLastCaptureRange: NSRange, file: StaticString = #file, line: UInt = #line) {
         do {
             let regex = try NSRegularExpression(pattern: patternString, options: patternOptions)
             let matches = regex.matchesInString(searchString, options: searchOptions, range: searchRange)

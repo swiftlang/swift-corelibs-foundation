@@ -41,7 +41,7 @@ class TestNSAffineTransform : XCTestCase {
         ]
     }
     
-    func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
+    func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newPoint = transform.transformPoint(point)
         XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, file: file, line: line,
                                    "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)")
@@ -49,7 +49,7 @@ class TestNSAffineTransform : XCTestCase {
                                    "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)")
     }
     
-    func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
+    func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newSize = transform.transformSize(size)
         XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, file: file, line: line,
                                    "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)")
@@ -57,7 +57,7 @@ class TestNSAffineTransform : XCTestCase {
                                    "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)")
     }
     
-    func checkRectTransformation(transform: NSAffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = __FILE__, line: UInt = __LINE__) {
+    func checkRectTransformation(transform: NSAffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newRect = transform.transformRect(rect)
         
         checkPointTransformation(transform, point: newRect.origin, expectedPoint: expectedRect.origin, file: file, line: line,
