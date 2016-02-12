@@ -243,10 +243,9 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public override func isEqual(object: AnyObject?) -> Bool {
-        guard let otherObject = object where otherObject is NSDictionary else {
+        guard let otherDictionary = object as? NSDictionary else {
             return false
         }
-        let otherDictionary = otherObject as! NSDictionary
         return self.isEqualToDictionary(otherDictionary.bridge())
     }
 
