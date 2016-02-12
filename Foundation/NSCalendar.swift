@@ -250,19 +250,19 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     // Methods to return component name strings localized to the calendar's locale
     
-    private func _symbols(key: CFStringRef) -> [String] {
+    private func _symbols(key: CFString) -> [String] {
         let dateFormatter = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale?._cfObject, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle)
         CFDateFormatterSetProperty(dateFormatter, kCFDateFormatterCalendarKey, _cfObject)
-        let result = (CFDateFormatterCopyProperty(dateFormatter, key) as! CFArrayRef)._swiftObject
+        let result = (CFDateFormatterCopyProperty(dateFormatter, key) as! CFArray)._swiftObject
         return result.map {
             return ($0 as! NSString)._swiftObject
         }
     }
     
-    private func _symbol(key: CFStringRef) -> String {
+    private func _symbol(key: CFString) -> String {
         let dateFormatter = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale?._cfObject, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle)
         CFDateFormatterSetProperty(dateFormatter, kCFDateFormatterCalendarKey, self._cfObject)
-        return (CFDateFormatterCopyProperty(dateFormatter, key) as! CFStringRef)._swiftObject
+        return (CFDateFormatterCopyProperty(dateFormatter, key) as! CFString)._swiftObject
     }
     
     public var eraSymbols: [String] {
