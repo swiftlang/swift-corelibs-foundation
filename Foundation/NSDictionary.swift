@@ -41,7 +41,7 @@ extension Dictionary : _ObjectTypeBridgeable {
         
         if x.dynamicType == NSDictionary.self || x.dynamicType == NSMutableDictionary.self {
             x.enumerateKeysAndObjectsUsingBlock { key, value, stop in
-                guard let key = key as? Key, let value = value as? Value {
+                guard let key = key as? Key, let value = value as? Value else{
                     failedConversion = true
                     stop.memory = true
                 }
@@ -59,11 +59,11 @@ extension Dictionary : _ObjectTypeBridgeable {
             for idx in 0..<cnt {
                 let key = unsafeBitCast(keys.advancedBy(idx).memory, AnyObject.self)
                 let value = unsafeBitCast(values.advancedBy(idx).memory, AnyObject.self)
-                guard let key = key as? Key, let value = value as? Value {
+                guard let k = key as? Key, let v = value as? Value else {
                     failedConversion = true
                     break
                 }
-                dict[key] = value
+                dict[k] = v
             }
             keys.destroy(cnt)
             values.destroy(cnt)
