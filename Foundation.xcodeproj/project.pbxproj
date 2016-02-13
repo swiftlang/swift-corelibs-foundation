@@ -1643,7 +1643,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0720;
-				LastUpgradeCheck = 0710;
+				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = Apple;
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
@@ -2208,6 +2208,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = /usr/include/libxml2;
@@ -2241,6 +2242,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = /usr/include/libxml2;
