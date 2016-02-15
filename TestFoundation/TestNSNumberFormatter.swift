@@ -18,7 +18,7 @@ import CoreFoundation
 
 class TestNSNumberFormatter: XCTestCase {
 
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSNumberFormatter -> () throws -> Void)] {
         return [
             ("test_currencyCode", test_currencyCode),
             ("test_decimalSeparator", test_decimalSeparator),

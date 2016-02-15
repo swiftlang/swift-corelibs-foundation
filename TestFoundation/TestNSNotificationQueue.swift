@@ -17,7 +17,7 @@
 
 
 class TestNSNotificationQueue : XCTestCase {
-    var allTests : [(String, () throws -> ())] {
+    static var allTests : [(String, TestNSNotificationQueue -> () throws -> Void)] {
         return [
             ("test_defaultQueue", test_defaultQueue),
             ("test_postNowToDefaultQueueWithoutCoalescing", test_postNowToDefaultQueueWithoutCoalescing),

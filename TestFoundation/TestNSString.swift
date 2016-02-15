@@ -38,7 +38,7 @@ internal let kCFStringEncodingUTF32LE =  CFStringBuiltInEncodings.UTF32LE.rawVal
 
 class TestNSString : XCTestCase {
     
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSString -> () throws -> Void)] {
         return [
             ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
@@ -81,7 +81,7 @@ class TestNSString : XCTestCase {
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_PrefixSuffix", test_PrefixSuffix),
-            ("test_reflection", test_reflection),
+            ("test_reflection", { _ in test_reflection }),
         ]
     }
 

@@ -21,7 +21,7 @@ import SwiftXCTest
 
 class TestNSRegularExpression : XCTestCase {
     
-    var allTests : [(String, () throws -> ())] {
+    static var allTests : [(String, TestNSRegularExpression -> () throws -> Void)] {
         return [
             ("test_simpleRegularExpressions", test_simpleRegularExpressions),
             ("test_regularExpressionReplacement", test_regularExpressionReplacement)

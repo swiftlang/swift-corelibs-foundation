@@ -21,7 +21,7 @@ import CoreFoundation
 
 class TestNSXMLDocument : XCTestCase {
 
-    var allTests: [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSXMLDocument -> () throws -> Void)] {
         #if os(OSX) || os(iOS)
             return [
                 ("test_basicCreation", test_basicCreation),

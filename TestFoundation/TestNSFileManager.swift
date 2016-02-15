@@ -17,7 +17,7 @@
 
 class TestNSFileManger : XCTestCase {
     
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSFileManger -> () throws -> Void)] {
         return [
             ("test_createDirectory", test_createDirectory ),
             ("test_createFile", test_createFile ),

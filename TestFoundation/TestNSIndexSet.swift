@@ -19,7 +19,7 @@ import SwiftXCTest
 
 class TestNSIndexSet : XCTestCase {
     
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSIndexSet -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_enumeration", test_enumeration),
