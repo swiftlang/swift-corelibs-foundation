@@ -44,7 +44,7 @@ public class NSDateFormatter : NSFormatter {
         super.init(coder: coder)
     }
 
-    public var formattingContext: NSFormattingContext = .Unknown
+    public var formattingContext: NSFormattingContext = .Unknown // default is NSFormattingContextUnknown
 
     public func objectValue(string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
 
