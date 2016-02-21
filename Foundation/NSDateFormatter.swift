@@ -100,7 +100,16 @@ public class NSDateFormatter : NSFormatter {
 
     public var timeStyle: NSDateFormatterStyle = .NoStyle { willSet { _reset() } }
 
-    /*@NSCopying*/ public var locale: NSLocale! { willSet { _reset() } }
+    internal var _locale: NSLocale = NSLocale.currentLocale()
+    /*@NSCopying*/ public var locale: NSLocale! {
+        get {
+            return _locale
+        }
+        set {
+            _reset()
+            _locale = newValue
+        }
+    }
 
     public var generatesCalendarDates = false { willSet { _reset() } }
 
