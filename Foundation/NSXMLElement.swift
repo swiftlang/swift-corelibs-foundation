@@ -159,6 +159,7 @@ public class NSXMLElement : NSXMLNode {
     */
     public func attributeForName(name: String) -> NSXMLNode? {
         let attribute = _CFXMLNodeHasProp(_xmlNode, name)
+        if attribute == nil { return nil }
         return NSXMLNode._objectNodeForNode(attribute)
     }
 
