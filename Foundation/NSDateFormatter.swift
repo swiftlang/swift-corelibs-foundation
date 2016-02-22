@@ -23,6 +23,9 @@ public class NSDateFormatter : NSFormatter {
             #endif
             let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)
             // TODO: Set up attributes here
+            if let dateFormat = _dateFormat {
+                CFDateFormatterSetFormat(obj, dateFormat._cfObject)
+            }
             __cfObject = obj
             return obj
         }
@@ -51,7 +54,7 @@ public class NSDateFormatter : NSFormatter {
     }
 
     public func dateFromString(string: String) -> NSDate? {
-        var range = CFRange()
+        var range = CFRange(location: 0, length: string.length)
         let date = withUnsafeMutablePointer(&range) { (rangep: UnsafeMutablePointer<CFRange>) -> NSDate? in
             guard let res = CFDateFormatterCreateDateFromString(kCFAllocatorSystemDefault, _cfObject, string._cfObject, rangep) else {
                 return nil
