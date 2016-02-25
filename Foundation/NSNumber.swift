@@ -281,7 +281,7 @@ public class NSNumber : NSValue {
     
     public required convenience init?(coder aDecoder: NSCoder) {
         if !aDecoder.allowsKeyedCoding {
-            var objCType = UnsafeMutablePointer<Int8>()
+            var objCType: UnsafeMutablePointer<Int8> = nil
             var size: Int = 0
             NSGetSizeAndAlignment(objCType, &size, nil)
             let buffer = malloc(size)

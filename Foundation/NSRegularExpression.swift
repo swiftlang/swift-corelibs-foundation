@@ -219,14 +219,18 @@ extension NSRegularExpression {
             let currentRange = result.range
             let replacement = replacementStringForResult(result, inString: string, offset: 0, template: templ)
             if currentRange.location > NSMaxRange(previousRange) {
-                str += String(string.utf16[Range<String.UTF16View.Index>(start: start.advancedBy(NSMaxRange(previousRange)), end: start.advancedBy(currentRange.location))])
+                let min = start.advancedBy(NSMaxRange(previousRange))
+                let max = start.advancedBy(currentRange.location)
+                str += String(string.utf16[min..<max])
             }
             str += replacement
             previousRange = currentRange
         }
         
         if length > NSMaxRange(previousRange) {
-            str += String(string.utf16[Range<String.UTF16View.Index>(start: start.advancedBy(NSMaxRange(previousRange)), end: start.advancedBy(length))])
+            let min = start.advancedBy(NSMaxRange(previousRange))
+            let max = start.advancedBy(length)
+            str += String(string.utf16[min..<max])
         }
         
         return str
@@ -301,7 +305,9 @@ extension NSRegularExpression {
                         }
                         if substringRange.location != NSNotFound && substringRange.length > 0 {
                             let start = string.utf16.startIndex
-                            substring = String(string.utf16[Range<String.UTF16View.Index>(start: start.advancedBy(substringRange.location), end: start.advancedBy(substringRange.location + substringRange.length))])
+                            let min = start.advancedBy(substringRange.location)
+                            let max = start.advancedBy(substringRange.location + substringRange.length)
+                            substring = String(string.utf16[min..<max])
                         }
                         str.replaceCharactersInRange(rangeToReplace, withString: substring)
                         

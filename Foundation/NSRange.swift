@@ -46,7 +46,9 @@ extension NSRange {
     @warn_unused_result
     public func toRange() -> Range<Int>? {
         if location == NSNotFound { return nil }
-        return Range(start: location, end: location + length)
+        let min = location
+        let max = location + length
+        return min..<max
     }
 }
 

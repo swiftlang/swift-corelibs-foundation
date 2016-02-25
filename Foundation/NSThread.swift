@@ -39,7 +39,7 @@ internal class NSThreadSpecific<T: AnyObject> {
     
     internal func get(generator: (Void) -> T) -> T {
         let specific = pthread_getspecific(self.key)
-        if specific != UnsafeMutablePointer<Void>() {
+        if specific != nil {
             return Unmanaged<T>.fromOpaque(COpaquePointer(specific)).takeUnretainedValue()
         } else {
             let value = generator()
@@ -51,7 +51,7 @@ internal class NSThreadSpecific<T: AnyObject> {
     internal func set(value: T) {
         let specific = pthread_getspecific(self.key)
         var previous: Unmanaged<T>?
-        if specific != UnsafeMutablePointer<Void>() {
+        if specific != nil {
             previous = Unmanaged<T>.fromOpaque(COpaquePointer(specific))
         }
         if let prev = previous {
@@ -154,7 +154,11 @@ public class NSThread : NSObject {
     }
     
     internal var _main: (Void) -> Void = {}
-    internal var _thread = pthread_t()
+#if os(OSX) || os(iOS)
+    private var _thread: pthread_t = nil
+#elseif os(Linux)
+    private var _thread = pthread_t()
+#endif
     internal var _attr = pthread_attr_t()
     internal var _status = _NSThreadStatus.Initialized
     internal var _cancelled = false

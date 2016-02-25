@@ -640,7 +640,9 @@ public class NSMutableArray : NSArray {
     
     public func replaceObjectAtIndex(index: Int, withObject anObject: AnyObject) {
         if self.dynamicType === NSMutableArray.self {
-            _storage.replaceRange(Range<Int>(start: index, end: index + 1), with: [anObject])
+            let min = index
+            let max = index + 1
+            _storage.replaceRange(min..<max, with: [anObject])
         } else {
             NSRequiresConcreteImplementation()
         }

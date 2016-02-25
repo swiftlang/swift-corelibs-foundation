@@ -96,11 +96,11 @@ public struct NSCalendarOptions : OptionSetType {
 public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
-    private var _identifier = UnsafeMutablePointer<Void>()
-    private var _locale = UnsafeMutablePointer<Void>()
-    private var _localeID = UnsafeMutablePointer<Void>()
-    private var _tz = UnsafeMutablePointer<Void>()
-    private var _cal = UnsafeMutablePointer<Void>()
+    private var _identifier: UnsafeMutablePointer<Void> = nil
+    private var _locale: UnsafeMutablePointer<Void> = nil
+    private var _localeID: UnsafeMutablePointer<Void> = nil
+    private var _tz: UnsafeMutablePointer<Void> = nil
+    private var _cal: UnsafeMutablePointer<Void> = nil
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, CFCalendar.self)

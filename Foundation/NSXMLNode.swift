@@ -371,7 +371,9 @@ public class NSXMLNode : NSObject, NSCopying {
             }
             if char == ";" && inEntity {
                 inEntity = false
-                entities.append((Range<Int>(start: startIndex, end: index + 1),String(entityChars)))
+                let min = startIndex
+                let max = index + 1
+                entities.append((min..<max, String(entityChars)))
                 startIndex = 0
                 entityChars.removeAll()
             }

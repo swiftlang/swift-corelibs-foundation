@@ -387,7 +387,9 @@ extension NSString {
     public func substringWithRange(range: NSRange) -> String {
         if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
             let start = _storage.utf16.startIndex
-            return String(_storage.utf16[Range<String.UTF16View.Index>(start: start.advancedBy(range.location), end: start.advancedBy(range.location + range.length))])
+            let min = start.advancedBy(range.location)
+            let max = start.advancedBy(range.location + range.length)
+            return String(_storage.utf16[min..<max])
         } else {
             let buff = UnsafeMutablePointer<unichar>.alloc(range.length)
             getCharacters(buff, range: range)
@@ -1295,9 +1297,9 @@ public class NSMutableString : NSString {
         if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
             // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
             let start = _storage.startIndex
-            
-            let subrange = Range(start: start.advancedBy(range.location), end: start.advancedBy(range.location + range.length))
-            _storage.replaceRange(subrange, with: aString)
+            let min = start.advancedBy(range.location)
+            let max = start.advancedBy(range.location + range.length)
+            _storage.replaceRange(min..<max, with: aString)
         } else {
             NSRequiresConcreteImplementation()
         }

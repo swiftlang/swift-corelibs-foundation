@@ -30,7 +30,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
     
     public func readDataOfLength(length: Int) -> NSData {
         var statbuf = stat()
-        var dynamicBuffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>()
+        var dynamicBuffer: UnsafeMutablePointer<UInt8> = nil
         var total = 0
         if _closed || fstat(_fd, &statbuf) < 0 {
             fatalError("Unable to read file")

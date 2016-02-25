@@ -25,7 +25,12 @@ private func WEXITSTATUS(status: CInt) -> CInt {
 }
 
 private var managerThreadSetupOnceToken = pthread_once_t()
+// these are different sadly...
+#if os(OSX) || os(iOS)
+private var threadID: pthread_t = nil
+#elseif os(Linux)
 private var threadID = pthread_t()
+#endif
 
 private var managerThreadRunLoop : NSRunLoop? = nil
 private var managerThreadRunLoopIsRunning = false
@@ -40,8 +45,9 @@ private func emptyRunLoopCallback(context : UnsafeMutablePointer<Void>) -> Void 
 
 // Retain method for run loop source
 private func runLoopSourceRetain(pointer : UnsafePointer<Void>) -> UnsafePointer<Void> {
-    let _ = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(pointer)).retain()
-    return pointer
+    let ref = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(pointer)).takeUnretainedValue()
+    let retained = Unmanaged<AnyObject>.passRetained(ref)
+    return unsafeBitCast(retained, UnsafePointer<Void>.self)
 }
 
 // Release method for run loop source
@@ -243,7 +249,11 @@ public class NSTask : NSObject {
             // If a termination handler has been set, invoke it on a background thread
             
             if task.terminationHandler != nil {
+                #if os(OSX) || os(iOS)
+                var threadID: pthread_t = nil
+                #elseif os(Linux)
                 var threadID = pthread_t()
+                #endif
                 pthread_create(&threadID, nil, { (context) -> UnsafeMutablePointer<Void> in
                     
                     let unmanagedTask : Unmanaged<NSTask> = Unmanaged.fromOpaque(context)

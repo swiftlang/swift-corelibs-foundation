@@ -102,7 +102,8 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     public convenience override init() {
-        self.init(objects: UnsafePointer<AnyObject?>(), count: 0)
+        let objects: UnsafePointer<AnyObject?> = nil
+        self.init(objects: objects, count: 0)
     }
     
     public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
