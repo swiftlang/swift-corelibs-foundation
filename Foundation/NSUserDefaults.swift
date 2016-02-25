@@ -49,22 +49,22 @@ public class NSUserDefaults : NSObject {
         //Force the returned value to an NSObject
         switch CFGetTypeID(anObj) {
         case CFStringGetTypeID():
-            return (anObj as! CFStringRef)._nsObject
+            return (anObj as! CFString)._nsObject
             
         case CFNumberGetTypeID():
-            return (anObj as! CFNumberRef)._nsObject
+            return (anObj as! CFNumber)._nsObject
             
         case CFURLGetTypeID():
-            return (anObj as! CFURLRef)._nsObject
+            return (anObj as! CFURL)._nsObject
             
         case CFArrayGetTypeID():
-            return (anObj as! CFArrayRef)._nsObject
+            return (anObj as! CFArray)._nsObject
             
         case CFDictionaryGetTypeID():
-            return (anObj as! CFDictionaryRef)._nsObject
+            return (anObj as! CFDictionary)._nsObject
 
         case CFDataGetTypeID():
-            return (anObj as! CFDataRef)._nsObject
+            return (anObj as! CFData)._nsObject
             
         default:
             return getFromRegistered()
