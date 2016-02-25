@@ -275,7 +275,6 @@
 		EADE0B4E1BD09E0800C49C64 /* NSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B4D1BD09E0800C49C64 /* NSAffineTransform.swift */; };
 		EADE0B501BD09E3100C49C64 /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B4F1BD09E3100C49C64 /* NSAttributedString.swift */; };
 		EADE0B521BD09F2F00C49C64 /* NSByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B511BD09F2F00C49C64 /* NSByteCountFormatter.swift */; };
-		EADE0B911BD15DFF00C49C64 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EADE0B531BD15DFF00C49C64 /* Info.plist */; };
 		EADE0B921BD15DFF00C49C64 /* NSCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B541BD15DFF00C49C64 /* NSCache.swift */; };
 		EADE0B931BD15DFF00C49C64 /* NSComparisonPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B551BD15DFF00C49C64 /* NSComparisonPredicate.swift */; };
 		EADE0B941BD15DFF00C49C64 /* NSCompoundPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B561BD15DFF00C49C64 /* NSCompoundPredicate.swift */; };
@@ -1644,7 +1643,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0720;
-				LastUpgradeCheck = 0710;
+				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = Apple;
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
@@ -1686,7 +1685,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EADE0B911BD15DFF00C49C64 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2210,6 +2208,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = /usr/include/libxml2;
@@ -2243,6 +2242,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = /usr/include/libxml2;
