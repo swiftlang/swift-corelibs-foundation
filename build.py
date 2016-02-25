@@ -71,14 +71,6 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
                 '-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/tests'  # for include of dispatch/private.h in CF
         ])
 
-if Configuration.current.build_mode == Configuration.Release:
-        foundation.LDFLAGS += ' -lswiftSwiftOnoneSupport '
-        # In the future, remove the LDFLAGS line above and enable
-        # the optimizations. But currently, it results in a segmentation
-        # fault on one of the tests.
-        #swift_cflags += [
-        #        '-O'
-        #]
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
