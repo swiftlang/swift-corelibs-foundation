@@ -23,6 +23,10 @@ public class NSDateFormatter : NSFormatter {
             #endif
             let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)
             // TODO: Set up attributes here
+            if calendar != nil {
+                CFDateFormatterSetProperty(obj, kCFDateFormatterCalendar, calendar._cfObject)
+            }
+            CFDateFormatterSetProperty(obj, kCFDateFormatterTimeZone, timeZone._cfObject)
             if let dateFormat = _dateFormat {
                 CFDateFormatterSetFormat(obj, dateFormat._cfObject)
             }
