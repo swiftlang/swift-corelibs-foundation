@@ -32,7 +32,7 @@ class TestNSUserDefaults : XCTestCase {
 	func test_getRegisteredDefaultItem() {
 		let defaults = NSUserDefaults.standardUserDefaults()
 		
-		defaults.registerDefaults(["key1": 5])
+		defaults.registerDefaults(["key1": NSNumber(integer: 5)])
 		
 		//make sure we don't have anything in the saved plist.
 		defaults.removeObjectForKey("key1")
