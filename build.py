@@ -23,6 +23,9 @@ elif Configuration.current.target.sdk == OSType.MacOSX:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_MACOSX '
 	foundation.LDFLAGS = '-licucore -twolevel_namespace -Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases -sectcreate __UNICODE __csbitmaps CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap -sectcreate __UNICODE __properties CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data -sectcreate __UNICODE __data CoreFoundation/CharacterSets/CFUnicodeData-L.mapping -segprot __UNICODE r r '
 
+if Configuration.current.build_mode == Configuration.Debug:
+        foundation.LDFLAGS += ' -lswiftSwiftOnoneSupport '
+
 # For now, we do not distinguish between public and private headers (they are all private to Foundation)
 # These are really part of CF, which should ultimately be a separate target
 foundation.ROOT_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift"
@@ -67,6 +70,15 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
                 '-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
                 '-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/tests'  # for include of dispatch/private.h in CF
         ])
+
+if Configuration.current.build_mode == Configuration.Release:
+        foundation.LDFLAGS += ' -lswiftSwiftOnoneSupport '
+        # In the future, remove the LDFLAGS line above and enable
+        # the optimizations. But currently, it results in a segmentation
+        # fault on one of the tests.
+        #swift_cflags += [
+        #        '-O'
+        #]
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
