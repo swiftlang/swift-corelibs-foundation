@@ -61,6 +61,10 @@
 #define __HAS_DISPATCH__ 1
 #endif
 #endif
+#if DEPLOYMENT_TARGET_LINUX && DEPLOYMENT_RUNTIME_SWIFT && DEPLOYMENT_ENABLE_LIBDISPATCH
+#define __HAS_DISPATCH__ 1
+#endif
+
 // Some compilers provide the capability to test if certain features are available. This macro provides a compatibility path for other compilers.
 #ifndef __has_feature
 #define __has_feature(x) 0
