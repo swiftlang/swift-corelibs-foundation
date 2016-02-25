@@ -33,7 +33,11 @@ public struct CGFloat {
     public var native: NativeType
     
     private var hash: Int {
+#if arch(i386) || arch(arm)
+        return Int(Float(self.native)._toBitPattern())
+#else
         return Int(self.native._toBitPattern())
+#endif
     }
 }
 

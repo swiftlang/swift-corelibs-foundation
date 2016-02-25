@@ -59,7 +59,7 @@ public class NSNumberFormatter : NSFormatter {
     }
     
     public func numberFromString(string: String) -> NSNumber? {
-        var range = CFRange()
+        var range = CFRange(location: 0, length: string.length)
         let number = withUnsafeMutablePointer(&range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
             
             #if os(OSX) || os(iOS)
