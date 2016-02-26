@@ -1,4 +1,4 @@
-# Foundation
+# Foundation [![codebeat](https://codebeat.co/badges/8fe5809f-8db3-4d5b-bee7-d454bdddc9cc)](https://codebeat.co/projects/github-com-apple-swift-corelibs-foundation)
 
 The Foundation framework defines a base layer of functionality that is required for almost all applications. It provides primitive classes and introduces several paradigms that define functionality not provided by either the Objective-C runtime and language or Swift standard library and language.
 
