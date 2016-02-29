@@ -491,36 +491,29 @@ void CFAttributedStringSetAttributes(CFMutableAttributedStringRef attrStr, CFRan
         CFIndex numAdditionalItems = CFDictionaryGetCount(replacementAttrs);
         if (numAdditionalItems) {
             // Extract the new keys and values so we don't do it over and over for each range
-	    createLocalArray(additionalKeys, numAdditionalItems);
-	    createLocalArray(additionalValues, numAdditionalItems);
+            createLocalArray(additionalKeys, numAdditionalItems);
+            createLocalArray(additionalValues, numAdditionalItems);
             CFDictionaryGetKeysAndValues(replacementAttrs, additionalKeys, additionalValues);
-
-	    // CFAttributedStringBeginEditing(attrStr);
+            
+            // CFAttributedStringBeginEditing(attrStr);
             while (range.length) {
                 CFRange effectiveRange;
                 CFMutableDictionaryRef attrs = (CFMutableDictionaryRef)CFRunArrayGetValueAtIndex(attrStr->attributeArray, range.location, &effectiveRange, NULL);
-                if (effectiveRange.location == range.location && effectiveRange.length <= range.length && CFGetRetainCount(attrs) == 1) {
-		    // !!! Retain count check cheesy; need to keep our own reference count
-                    // The attributes dictionary can just be modified in place
-		    // Here we are assuming that CFRunArray is not under-reporting the effectiveRange for a given item!
-                    __CFDictionaryAddMultiple(attrs, additionalKeys, additionalValues, numAdditionalItems);
-                } else {
-			// Intersect effectiveRange and range
-			if (effectiveRange.location < range.location) {
-			    effectiveRange.length -= (range.location - effectiveRange.location);
-			    effectiveRange.location = range.location;	    
-			}
-			if (effectiveRange.length > range.length) effectiveRange.length = range.length;
-                    // We need to make a new copy
-                    attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
-                    __CFDictionaryAddMultiple(attrs, additionalKeys, additionalValues, numAdditionalItems);
-                    CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
-                    CFRelease(attrs);
+                // Intersect effectiveRange and range
+                if (effectiveRange.location < range.location) {
+                    effectiveRange.length -= (range.location - effectiveRange.location);
+                    effectiveRange.location = range.location;
                 }
+                if (effectiveRange.length > range.length) effectiveRange.length = range.length;
+                // We need to make a new copy
+                attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
+                __CFDictionaryAddMultiple(attrs, additionalKeys, additionalValues, numAdditionalItems);
+                CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
+                CFRelease(attrs);
                 range.length -= effectiveRange.length;
                 range.location += effectiveRange.length;
             }
-	    // CFAttributedStringEndEditing(attrStr);
+            // CFAttributedStringEndEditing(attrStr);
             
             freeLocalArray(additionalKeys);
             freeLocalArray(additionalValues);
@@ -538,27 +531,20 @@ void CFAttributedStringSetAttribute(CFMutableAttributedStringRef attrStr, CFRang
         CFRange effectiveRange;
         // effectiveRange.location returned here may be equal to or smaller than range.location
         CFMutableDictionaryRef attrs = (CFMutableDictionaryRef)CFRunArrayGetValueAtIndex(attrStr->attributeArray, range.location, &effectiveRange, NULL);
-        if (effectiveRange.location == range.location && effectiveRange.length <= range.length && CFGetRetainCount(attrs) == 1) {
-            // !!! Retain count check cheesy; need to keep our own reference count)
-            // The attributes dictionary can just be modified in place
-            // Here we are assuming that CFRunArray is not under-reporting the effectiveRange for a given item!
+        // Intersect effectiveRange and range
+        if (effectiveRange.location < range.location) {
+            effectiveRange.length -= (range.location - effectiveRange.location);
+            effectiveRange.location = range.location;	    
+        }
+        if (effectiveRange.length > range.length) effectiveRange.length = range.length;
+        // First check to see if the same value already exists; this will avoid a copy
+        CFTypeRef existingValue = CFDictionaryGetValue(attrs, attrName);
+        if (!existingValue || !CFEqual(existingValue, value)) {
+            // We need to make a new copy
+            attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
             CFDictionarySetValue(attrs, attrName, value);
-        } else {
-            // Intersect effectiveRange and range
-            if (effectiveRange.location < range.location) {
-                effectiveRange.length -= (range.location - effectiveRange.location);
-                effectiveRange.location = range.location;	    
-	     }
-	     if (effectiveRange.length > range.length) effectiveRange.length = range.length;
-            // First check to see if the same value already exists; this will avoid a copy
-            CFTypeRef existingValue = CFDictionaryGetValue(attrs, attrName);
-            if (!existingValue || !CFEqual(existingValue, value)) {
-                // We need to make a new copy
-                attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
-                CFDictionarySetValue(attrs, attrName, value);
-                CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
-                CFRelease(attrs);
-            }
+            CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
+            CFRelease(attrs);
         }
         range.length -= effectiveRange.length;
         range.location += effectiveRange.length;
@@ -575,26 +561,19 @@ void CFAttributedStringRemoveAttribute(CFMutableAttributedStringRef attrStr, CFR
     while (range.length) {
         CFRange effectiveRange;
         CFMutableDictionaryRef attrs = (CFMutableDictionaryRef)CFRunArrayGetValueAtIndex(attrStr->attributeArray, range.location, &effectiveRange, NULL);
-        if (effectiveRange.location == range.location && effectiveRange.length <= range.length && CFGetRetainCount(attrs) == 1) {
-	    // !!! Retain count check cheesy; need to keep our own reference count
-            // The attributes dictionary can just be modified in place
-	    // Here we are assuming that CFRunArray is not under-reporting the effectiveRange for a given item!
+        // Intersect effectiveRange and range
+        if (effectiveRange.location < range.location) {
+            effectiveRange.length -= (range.location - effectiveRange.location);
+            effectiveRange.location = range.location;	    
+        }
+        if (effectiveRange.length > range.length) effectiveRange.length = range.length;
+        // First check to see if the value is not there; this will avoid a copy
+        if (CFDictionaryContainsKey(attrs, attrName)) {
+            // We need to make a new copy
+            attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
             CFDictionaryRemoveValue(attrs, attrName);
-        } else {
-            // Intersect effectiveRange and range
-            if (effectiveRange.location < range.location) {
-                effectiveRange.length -= (range.location - effectiveRange.location);
-                effectiveRange.location = range.location;	    
-	     }
-	     if (effectiveRange.length > range.length) effectiveRange.length = range.length;
-            // First check to see if the value is not there; this will avoid a copy
-            if (CFDictionaryContainsKey(attrs, attrName)) {
-		// We need to make a new copy
-		attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
-		CFDictionaryRemoveValue(attrs, attrName);
-		CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
-		CFRelease(attrs);
-	    }
+            CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
+            CFRelease(attrs);
         }
         range.length -= effectiveRange.length;
         range.location += effectiveRange.length;
