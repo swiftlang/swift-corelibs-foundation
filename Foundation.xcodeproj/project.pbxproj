@@ -64,6 +64,10 @@
 		5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B40F9F31C12524C000E72E3 /* libxml2.dylib */; };
 		5B5D89761BBDADD300234F36 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89751BBDADD300234F36 /* libicucore.dylib */; };
 		5B5D89781BBDADDB00234F36 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89771BBDADDB00234F36 /* libz.dylib */; };
+		5B6228BB1C179041009587FE /* CFRunArray.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B6228BA1C179041009587FE /* CFRunArray.c */; };
+		5B6228BD1C179049009587FE /* CFRunArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6228BC1C179049009587FE /* CFRunArray.h */; };
+		5B6228BF1C179052009587FE /* CFAttributedString.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B6228BE1C179052009587FE /* CFAttributedString.c */; };
+		5B6228C11C17905B009587FE /* CFAttributedString.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6228C01C17905B009587FE /* CFAttributedString.h */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
 		5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D897B1BBDAE0800234F36 /* CFPlatform.c */; };
@@ -545,6 +549,10 @@
 		5B6F17941C48631C00935030 /* TestNSTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTask.swift; sourceTree = "<group>"; };
 		5B6F17951C48631C00935030 /* TestNSXMLDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLDocument.swift; sourceTree = "<group>"; };
 		5B6F17961C48631C00935030 /* TestUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
+		5B6228BA1C179041009587FE /* CFRunArray.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFRunArray.c; sourceTree = "<group>"; };
+		5B6228BC1C179049009587FE /* CFRunArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFRunArray.h; sourceTree = "<group>"; };
+		5B6228BE1C179052009587FE /* CFAttributedString.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFAttributedString.c; sourceTree = "<group>"; };
+		5B6228C01C17905B009587FE /* CFAttributedString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAttributedString.h; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B94E8811C430DE70055C035 /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCharacterSet.swift; sourceTree = "<group>"; };
@@ -876,6 +884,10 @@
 				5BC2C00D1C07832E00CC214E /* CFStringTransform.c */,
 				5BDF628E1C1A550800A89075 /* CFRegularExpression.c */,
 				5BDF628F1C1A550800A89075 /* CFRegularExpression.h */,
+				5B6228BC1C179049009587FE /* CFRunArray.h */,
+				5B6228BA1C179041009587FE /* CFRunArray.c */,
+				5B6228C01C17905B009587FE /* CFAttributedString.h */,
+				5B6228BE1C179052009587FE /* CFAttributedString.c */,
 			);
 			name = String;
 			path = CoreFoundation/String.subproj;
@@ -1492,6 +1504,7 @@
 				5B7C8ACC1BEA80FC00C5B690 /* CFDateFormatter.h in Headers */,
 				5B7C8AD41BEA80FC00C5B690 /* CFXMLParser.h in Headers */,
 				5B7C8AD11BEA80FC00C5B690 /* CFTimeZone.h in Headers */,
+				5B6228C11C17905B009587FE /* CFAttributedString.h in Headers */,
 				5B7C8AC31BEA80FC00C5B690 /* CFBag.h in Headers */,
 				5B7C8AE01BEA80FC00C5B690 /* CFStringEncodingExt.h in Headers */,
 				5B7C8AE11BEA80FC00C5B690 /* CFURL.h in Headers */,
@@ -1531,6 +1544,7 @@
 				5B7C8AE91BEA81AC00C5B690 /* CFLocaleInternal.h in Headers */,
 				5B7C8AE61BEA81AC00C5B690 /* ForSwiftFoundationOnly.h in Headers */,
 				5B7C8AC61BEA80FC00C5B690 /* CFData.h in Headers */,
+				5B6228BD1C179049009587FE /* CFRunArray.h in Headers */,
 				5B7C8AC01BEA807A00C5B690 /* CFUUID.h in Headers */,
 				5B7C8AD31BEA80FC00C5B690 /* CFXMLNode.h in Headers */,
 				5B7C8AC21BEA80FC00C5B690 /* CFArray.h in Headers */,
@@ -1886,6 +1900,7 @@
 				5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */,
 				5B7C8A971BEA7FF900C5B690 /* CFBundle_Grok.c in Sources */,
 				5B7C8ABB1BEA802100C5B690 /* CFURLAccess.c in Sources */,
+				5B6228BB1C179041009587FE /* CFRunArray.c in Sources */,
 				5B7C8A901BEA7FEC00C5B690 /* CFOldStylePList.c in Sources */,
 				61E0117F1C1B5990000037DD /* CFRunLoop.c in Sources */,
 				5B7C8A7B1BEA7FCE00C5B690 /* CFBag.c in Sources */,
@@ -1904,6 +1919,7 @@
 				5B7C8A931BEA7FEC00C5B690 /* CFXMLNode.c in Sources */,
 				5B7C8A781BEA7FCE00C5B690 /* CFUtilities.c in Sources */,
 				5B7C8AB31BEA801700C5B690 /* CFStringEncodingConverter.c in Sources */,
+				5B6228BF1C179052009587FE /* CFAttributedString.c in Sources */,
 				5B7C8A9A1BEA7FF900C5B690 /* CFBundle_Resources.c in Sources */,
 				5B7C8AA01BEA7FF900C5B690 /* CFPlugIn.c in Sources */,
 			);

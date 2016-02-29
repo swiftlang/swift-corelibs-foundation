@@ -124,6 +124,7 @@ public = [
 	'CoreFoundation/String.subproj/CFCharacterSet.h',
 	'CoreFoundation/NumberDate.subproj/CFNumber.h',
 	'CoreFoundation/Collections.subproj/CFData.h',
+	'CoreFoundation/String.subproj/CFAttributedString.h',
 ],
 private = [
 	'CoreFoundation/Base.subproj/ForSwiftFoundationOnly.h',
@@ -163,6 +164,7 @@ private = [
 	'CoreFoundation/Stream.subproj/CFStreamPriv.h',
 	'CoreFoundation/StringEncodings.subproj/CFICUConverters.h',
 	'CoreFoundation/String.subproj/CFRegularExpression.h',
+	'CoreFoundation/String.subproj/CFRunArray.h',
 ],
 project = [
 ])
@@ -254,6 +256,8 @@ sources = CompileSources([
 	'CoreFoundation/String.subproj/CFUnicodeDataL.S',
 	'CoreFoundation/String.subproj/CFUniCharPropertyDatabase.S',
 	'CoreFoundation/String.subproj/CFRegularExpression.c',
+	'CoreFoundation/String.subproj/CFAttributedString.c',
+	'CoreFoundation/String.subproj/CFRunArray.c',
 ])
 
 sources.add_dependency(headers)
