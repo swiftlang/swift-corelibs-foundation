@@ -75,7 +75,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     internal var _storage: Set<NSObject>
     
     public var count: Int {
-        if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
+        if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self || self.dynamicType === NSCountedSet.self {
             return _storage.count
         } else {
             NSRequiresConcreteImplementation()
@@ -83,7 +83,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public func member(object: AnyObject) -> AnyObject? {
-        if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
+        if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self || self.dynamicType === NSCountedSet.self {
             if let obj = object as? NSObject where _storage.contains(obj) {
                 return obj // this is not exactly the same behavior, but it is reasonably close
             }
@@ -94,7 +94,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public func objectEnumerator() -> NSEnumerator {
-        if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
+        if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self || self.dynamicType === NSCountedSet.self {
             return NSGeneratorEnumerator(_storage.generate())
         } else {
             NSRequiresConcreteImplementation()
@@ -201,26 +201,6 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return self.count
     }
 
-}
-
-extension NSSet {
-    
-    public convenience init(object: AnyObject) {
-        self.init(array: [object])
-    }
-    
-     public convenience init(set: Set<NSObject>) {
-         self.init(set: set, copyItems: false)
-     }
-
-     public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
-        var array = set.bridge().allObjects
-        if (flag) {
-            array = array.map() { ($0 as! NSObject).copy() }
-        }
-        self.init(array: array)
-     }
-
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
         for (idx, element) in array.enumerate() {
@@ -229,6 +209,25 @@ extension NSSet {
         self.init(objects: buffer, count: array.count)
         buffer.destroy(array.count)
         buffer.dealloc(array.count)
+    }
+
+    public convenience init(set: Set<NSObject>) {
+        self.init(set: set, copyItems: false)
+    }
+
+    public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
+        var array = set.bridge().allObjects
+        if (flag) {
+            array = array.map() { ($0 as! NSObject).copy() }
+        }
+        self.init(array: array)
+    }
+}
+
+extension NSSet {
+    
+    public convenience init(object: AnyObject) {
+        self.init(array: [object])
     }
 }
 
@@ -446,18 +445,105 @@ public class NSMutableSet : NSSet {
 
 /****************	Counted Set	****************/
 public class NSCountedSet : NSMutableSet {
-    
-    public required init(capacity numItems: Int) { NSUnimplemented() }
-    
-//    public convenience init(array: [AnyObject]) { NSUnimplemented() }
-//    public convenience init(set: Set<NSObject>) { NSUnimplemented() }
+    internal var _table: Dictionary<NSObject, Int>
+
+    public required init(capacity numItems: Int) {
+        _table = Dictionary<NSObject, Int>()
+        super.init(capacity: numItems)
+    }
+
+    public  convenience init() {
+        self.init(capacity: 0)
+    }
+
+    public convenience init(array: [AnyObject]) {
+        self.init(capacity: array.count)
+        for object in array {
+            if let object = object as? NSObject {
+                if let count = _table[object] {
+                    _table[object] = count + 1
+                } else {
+                    _table[object] = 1
+                    _storage.insert(object)
+                }
+            }
+        }
+    }
+
+    public convenience init(set: Set<NSObject>) {
+        self.init(array: set.map { $0 })
+    }
+
     public required convenience init?(coder: NSCoder) { NSUnimplemented() }
-    
-    public func countForObject(object: AnyObject) -> Int { NSUnimplemented() }
-    
-    public override func objectEnumerator() -> NSEnumerator { NSUnimplemented() }
-    public override func addObject(object: AnyObject) { NSUnimplemented() }
-    public override func removeObject(object: AnyObject) { NSUnimplemented() }
+
+    public override func copyWithZone(zone: NSZone) -> AnyObject {
+        if self.dynamicType === NSCountedSet.self {
+            let countedSet = NSCountedSet()
+            countedSet._storage = self._storage
+            countedSet._table = self._table
+            return countedSet
+        }
+        return NSCountedSet(array: self.allObjects)
+    }
+
+    public override func mutableCopyWithZone(zone: NSZone) -> AnyObject {
+        if self.dynamicType === NSCountedSet.self {
+            let countedSet = NSCountedSet()
+            countedSet._storage = self._storage
+            countedSet._table = self._table
+            return countedSet
+        }
+        return NSCountedSet(array: self.allObjects)
+    }
+
+    public func countForObject(object: AnyObject) -> Int {
+        if self.dynamicType === NSCountedSet.self {
+            guard let count = _table[object as! NSObject] else {
+                return 0
+            }
+            return count
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+
+    public override func addObject(object: AnyObject) {
+        if self.dynamicType === NSCountedSet.self {
+            if let count = _table[object as! NSObject] {
+                _table[object as! NSObject] = count + 1
+            } else {
+                _table[object as! NSObject] = 1
+                _storage.insert(object as! NSObject)
+            }
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+
+    public override func removeObject(object: AnyObject) {
+        if self.dynamicType === NSCountedSet.self {
+            guard let count = _table[object as! NSObject] else {
+                return
+            }
+            if count > 1 {
+                _table[object as! NSObject] = count - 1
+            } else {
+                _table[object as! NSObject] = nil
+                _storage.remove(object as! NSObject)
+            }
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
+
+    public override func removeAllObjects() {
+        if self.dynamicType === NSCountedSet.self {
+            _storage.removeAll()
+            _table.removeAll()
+        } else {
+            forEach(removeObject)
+        }
+    }
 }
 
 extension Set : Bridgeable {
