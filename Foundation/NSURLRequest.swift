@@ -281,7 +281,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @result the value associated with the given header field, or nil if
     there is no value associated with the given header field.
     */
-    public func valueForHTTPHeaderField(field: String) -> String? { return _httpHeaderFields?[field.lowercaseString] }
+    public func valueForHTTPHeaderField(field: String) -> String? { return _httpHeaderFields?[field.lowercased()] }
     
 }
 
@@ -386,10 +386,10 @@ public class NSMutableURLRequest : NSURLRequest {
             _httpHeaderFields = [:]
         }
         if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
-            return existingField.lowercaseString == field.lowercaseString
+            return existingField.lowercased() == field.lowercased()
         }).first {
             let (existingField, _) = existingHeader
-            _httpHeaderFields?.removeValueForKey(existingField)
+            _httpHeaderFields?.removeValue(forKey: existingField)
         }
         _httpHeaderFields?[field] = value
     }
@@ -413,7 +413,7 @@ public class NSMutableURLRequest : NSURLRequest {
             _httpHeaderFields = [:]
         }
         if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
-            return existingField.lowercaseString == field.lowercaseString
+            return existingField.lowercased() == field.lowercased()
         }).first {
             let (existingField, existingValue) = existingHeader
             _httpHeaderFields?[existingField] = "\(existingValue),\(value)"

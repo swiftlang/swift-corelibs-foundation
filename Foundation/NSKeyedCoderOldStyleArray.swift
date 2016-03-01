@@ -39,8 +39,8 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
 
     deinit {
         if self._decoded {
-            self._addr.destroy(self._count * self._size)
-            self._addr.dealloc(self._count * self._size)
+            self._addr.deinitialize(count: self._count * self._size)
+            self._addr.deallocateCapacity(self._count * self._size)
         }
     }
     
@@ -60,7 +60,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
             return nil
         }
         
-        self._addr = UnsafeMutablePointer<UInt8>.alloc(self._count * self._size)
+        self._addr = UnsafeMutablePointer<UInt8>(allocatingCapacity: self._count * self._size)
         
         super.init()
         
@@ -68,7 +68,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
             var type = Int8(self._type)
             
             withUnsafePointer(&type) { typep in
-                let addr = self._addr.advancedBy(idx * self._size)
+                let addr = self._addr.advanced(by: idx * self._size)
                 aDecoder.decodeValueOfObjCType(typep, at: addr)
             }
         }

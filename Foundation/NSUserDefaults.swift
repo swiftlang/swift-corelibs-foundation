@@ -119,7 +119,7 @@ public class NSUserDefaults : NSObject {
         }
         //This got out of hand fast...
         let cVal = bVal._swiftObject
-        enum convErr: ErrorType {
+        enum convErr: ErrorProtocol {
             case ConvErr
         }
         do {

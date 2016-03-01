@@ -66,7 +66,7 @@ internal class __NSCFType : NSObject {
     }
     
     override var description: String {
-        return CFCopyDescription(unsafeBitCast(self, CFTypeRef.self))._swiftObject
+        return CFCopyDescription(unsafeBitCast(self, to: CFTypeRef.self))._swiftObject
     }
 
     deinit {
@@ -90,9 +90,9 @@ internal func _CFSwiftIsEqual(cf1: AnyObject, cf2: AnyObject) -> Bool {
 }
 
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
-internal func _CFZeroUnsafeIvars<T>(inout arg: T) {
+internal func _CFZeroUnsafeIvars<T>(arg: inout T) {
     withUnsafeMutablePointer(&arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
-        bzero(unsafeBitCast(ptr, UnsafeMutablePointer<Void>.self), sizeof(T))
+        bzero(unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self), sizeof(T))
     }
 }
 
@@ -102,24 +102,24 @@ internal func __CFSwiftGetBaseClass() -> AnyObject.Type {
 
 internal func __CFInitializeSwift() {
     
-    _CFRuntimeBridgeTypeToClass(CFStringGetTypeID(), unsafeBitCast(_NSCFString.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFArrayGetTypeID(), unsafeBitCast(_NSCFArray.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFDictionaryGetTypeID(), unsafeBitCast(_NSCFDictionary.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFSetGetTypeID(), unsafeBitCast(_NSCFSet.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(NSNumber.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(NSCalendar.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(NSLocale.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(NSTimeZone.self, UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(NSMutableCharacterSet.self, UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFStringGetTypeID(), unsafeBitCast(_NSCFString.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFArrayGetTypeID(), unsafeBitCast(_NSCFArray.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFDictionaryGetTypeID(), unsafeBitCast(_NSCFDictionary.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFSetGetTypeID(), unsafeBitCast(_NSCFSet.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(NSNumber.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(NSCalendar.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(NSLocale.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(NSTimeZone.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(NSMutableCharacterSet.self, to: UnsafePointer<Void>.self))
     
 //    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFReadStreamGetTypeID(), unsafeBitCast(NSInputStream.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFWriteStreamGetTypeID(), unsafeBitCast(NSOutputStream.self, UnsafePointer<Void>.self))
-   _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(NSTimer.self, UnsafePointer<Void>.self))
+   _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(NSTimer.self, to: UnsafePointer<Void>.self))
     
     __CFSwiftBridge.NSObject.isEqual = _CFSwiftIsEqual
     __CFSwiftBridge.NSObject.hash = _CFSwiftGetHash
@@ -221,7 +221,7 @@ public protocol _ObjectTypeBridgeable {
     ///   will always contain a value.
     static func _forceBridgeFromObject(
         source: _ObjectType,
-        inout result: Self?
+        result: inout Self?
     )
     
     /// Try to bridge from an object of the bridged class type to a value of 
@@ -240,7 +240,7 @@ public protocol _ObjectTypeBridgeable {
     ///   to determine success.
     static func _conditionallyBridgeFromObject(
         source: _ObjectType,
-        inout result: Self?
+        result: inout Self?
     ) -> Bool
 }
 
@@ -325,34 +325,34 @@ extension Bool : _NSObjectRepresentable {
 }
 
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
-    return unsafeBitCast(lhs, UnsafePointer<Void>.self) == unsafeBitCast(rhs, UnsafePointer<Void>.self)
+    return unsafeBitCast(lhs, to: UnsafePointer<Void>.self) == unsafeBitCast(rhs, to: UnsafePointer<Void>.self)
 }
 
 /// Swift extensions for common operations in Foundation that use unsafe things...
 
 extension UnsafeMutablePointer {
     internal init<T: AnyObject>(retained value: T) {
-        self.init(Unmanaged<T>.passRetained(value).toOpaque())
+        self.init(OpaquePointer(bitPattern: Unmanaged<T>.passRetained(value)))
     }
     
     internal init<T: AnyObject>(unretained value: T) {
-        self.init(Unmanaged<T>.passUnretained(value).toOpaque())
+        self.init(OpaquePointer(bitPattern: Unmanaged<T>.passUnretained(value)))
     }
     
-    internal func array(count: Int) -> [Memory] {
-        let buffer = UnsafeBufferPointer<Memory>(start: self, count: count)
-        return Array<Memory>(buffer)
+    internal func array(count: Int) -> [Pointee] {
+        let buffer = UnsafeBufferPointer<Pointee>(start: self, count: count)
+        return Array<Pointee>(buffer)
     }
 }
 
 extension Unmanaged {
     internal static func fromOpaque(value: UnsafeMutablePointer<Void>) -> Unmanaged<Instance> {
-        return self.fromOpaque(COpaquePointer(value))
+        return self.fromOpaque(OpaquePointer(value))
     }
     
     internal static func fromOptionalOpaque(value: UnsafePointer<Void>) -> Unmanaged<Instance>? {
         if value != nil {
-            return self.fromOpaque(COpaquePointer(value))
+            return self.fromOpaque(OpaquePointer(value))
         } else {
             return nil
         }
@@ -364,13 +364,13 @@ extension Array {
         if fastpath != nil {
             return body(fastpath)
         } else if self.count > count {
-            let buffer = UnsafeMutablePointer<Element>.alloc(count)
+            let buffer = UnsafeMutablePointer<Element>(allocatingCapacity: count)
             let res = body(buffer)
-            buffer.destroy(count)
-            buffer.dealloc(count)
+            buffer.deinitialize(count: count)
+            buffer.deallocateCapacity(count)
             return res
         } else {
-            return withUnsafeMutableBufferPointer() { (inout bufferPtr: UnsafeMutableBufferPointer<Element>) -> R in
+            return withUnsafeMutableBufferPointer() { (bufferPtr: inout UnsafeMutableBufferPointer<Element>) -> R in
                 return body(bufferPtr.baseAddress)
             }
         }

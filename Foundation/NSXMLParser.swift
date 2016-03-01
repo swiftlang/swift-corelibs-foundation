@@ -30,13 +30,13 @@ public enum NSXMLParserExternalEntityResolvingPolicy : UInt {
 
 extension _CFXMLInterface {
     var parser: NSXMLParser {
-        return unsafeBitCast(self, NSXMLParser.self)
+        return unsafeBitCast(self, to: NSXMLParser.self)
     }
 }
 
 extension NSXMLParser {
     internal var interface: _CFXMLInterface {
-        return unsafeBitCast(self, _CFXMLInterface.self)
+        return unsafeBitCast(self, to: _CFXMLInterface.self)
     }
 }
 
@@ -247,7 +247,7 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
     var nsDict = [String:String]()
     var attrDict = [String:String]()
     if nb_attributes + nb_namespaces > 0 {
-        for idx in 0.stride(to: Int(nb_namespaces) * 2, by: 2) {
+        for idx in stride(from: 0, to: Int(nb_namespaces) * 2, by: 2) {
             var namespaceNameString: String?
             var asAttrNamespaceNameString: String?
             if namespaces[idx] != nil {
@@ -277,7 +277,7 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
         parser._pushNamespaces(nsDict)
     }
     
-    for idx in 0.stride(to: Int(nb_attributes) * 5, by: 5) {
+    for idx in stride(from: 0, to: Int(nb_attributes) * 5, by: 5) {
         if attributes[idx] == nil {
             continue
         }
@@ -298,8 +298,8 @@ internal func _NSXMLParserStartElementNs(ctx: _CFXMLInterface, localname: Unsafe
             let numBytesWithoutTerminator = attributes[idx + 4] - attributes[idx + 3]
             let numBytesWithTerminator = numBytesWithoutTerminator + 1
             if numBytesWithoutTerminator != 0 {
-                var chars = [Int8](count: numBytesWithTerminator, repeatedValue: 0)
-                attributeValue = chars.withUnsafeMutableBufferPointer({ (inout buffer: UnsafeMutableBufferPointer<Int8>) -> String in
+                var chars = [Int8](repeating: 0, count: numBytesWithTerminator)
+                attributeValue = chars.withUnsafeMutableBufferPointer({ (buffer: inout UnsafeMutableBufferPointer<Int8>) -> String in
                     strncpy(buffer.baseAddress, UnsafePointer<Int8>(attributes[idx + 3]), numBytesWithoutTerminator) //not strlcpy because attributes[i+3] is not Nul terminated
                     return UTF8STRING(UnsafePointer<UInt8>(buffer.baseAddress))!
                 })
@@ -462,7 +462,7 @@ public class NSXMLParser : NSObject {
         if let p = parser {
             NSThread.currentThread().threadDictionary["__CurrentNSXMLParser"] = p
         } else {
-            NSThread.currentThread().threadDictionary.removeValueForKey("__CurrentNSXMLParser")
+            NSThread.currentThread().threadDictionary.removeValue(forKey: "__CurrentNSXMLParser")
         }
     }
     
@@ -530,7 +530,7 @@ public class NSXMLParser : NSObject {
                 _bomChunk = nil
                 
                 if (totalLength > 4) {
-                    let remainingData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(allExistingData.bytes.advancedBy(4)), length: totalLength - 4, freeWhenDone: false)
+                    let remainingData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(allExistingData.bytes.advanced(by: 4)), length: totalLength - 4, freeWhenDone: false)
                     parseData(remainingData)
                 }
             }
