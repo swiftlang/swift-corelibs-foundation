@@ -64,12 +64,13 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 		'-I/usr/include/libxml2'
 	]
 
-if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
-        foundation.CFLAGS += " "+" ".join([
-                '-DDEPLOYMENT_ENABLE_LIBDISPATCH',
-                '-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
-                '-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/tests'  # for include of dispatch/private.h in CF
-        ])
+# Disable until changes are merged into dispatch.
+#if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
+#        foundation.CFLAGS += " "+" ".join([
+#                '-DDEPLOYMENT_ENABLE_LIBDISPATCH',
+#                '-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
+#                '-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/tests'  # for include of dispatch/private.h in CF
+#        ])
 
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
