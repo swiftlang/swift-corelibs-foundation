@@ -11,9 +11,9 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-internal let kCFCompareLessThan = CFComparisonResult.CompareLessThan
-internal let kCFCompareEqualTo = CFComparisonResult.CompareEqualTo
-internal let kCFCompareGreaterThan = CFComparisonResult.CompareGreaterThan
+internal let kCFCompareLessThan = CFComparisonResult.compareLessThan
+internal let kCFCompareEqualTo = CFComparisonResult.compareEqualTo
+internal let kCFCompareGreaterThan = CFComparisonResult.compareGreaterThan
 #endif
 
 internal enum _NSSimpleObjCType : UnicodeScalar {
@@ -103,8 +103,8 @@ private let _NSObjCSizesAndAlignments : Dictionary<_NSSimpleObjCType, (Int, Int)
 ]
 
 internal func _NSGetSizeAndAlignment(type: _NSSimpleObjCType,
-                                     inout _ size : Int,
-                                     inout _ align : Int) -> Bool {
+                                     _ size : inout Int,
+                                     _ align : inout Int) -> Bool {
     guard let sizeAndAlignment = _NSObjCSizesAndAlignments[type] else {
         return false
     }
@@ -118,7 +118,7 @@ internal func _NSGetSizeAndAlignment(type: _NSSimpleObjCType,
 public func NSGetSizeAndAlignment(typePtr: UnsafePointer<Int8>,
                                   _ sizep: UnsafeMutablePointer<Int>,
                                   _ alignp: UnsafeMutablePointer<Int>) -> UnsafePointer<Int8> {
-    let type = _NSSimpleObjCType(UInt8(typePtr.memory))!
+    let type = _NSSimpleObjCType(UInt8(typePtr.pointee))!
 
     var size : Int = 0
     var align : Int = 0
@@ -128,14 +128,14 @@ public func NSGetSizeAndAlignment(typePtr: UnsafePointer<Int8>,
     }
     
     if sizep != nil {
-        sizep.memory = size
+        sizep.pointee = size
     }
     
     if alignp != nil {
-        alignp.memory = align
+        alignp.pointee = align
     }
 
-    return typePtr.advancedBy(1)
+    return typePtr.advanced(by: 1)
 }
 
 public enum NSComparisonResult : Int {
@@ -174,7 +174,7 @@ public enum NSQualityOfService : Int {
     case Default
 }
 
-public struct NSSortOptions : OptionSetType {
+public struct NSSortOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -182,7 +182,7 @@ public struct NSSortOptions : OptionSetType {
     public static let Stable = NSSortOptions(rawValue: UInt(1 << 4))
 }
 
-public struct NSEnumerationOptions : OptionSetType {
+public struct NSEnumerationOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     

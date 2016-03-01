@@ -150,7 +150,7 @@ class TestNSKeyedArchiver : XCTestCase {
         },
         decode: {unarchiver -> Bool in
             var expected: Array<Int32> = [0, 0, 0, 0]
-            expected.withUnsafeMutableBufferPointer {(inout p: UnsafeMutableBufferPointer<Int32>) in
+            expected.withUnsafeMutableBufferPointer {(p: inout UnsafeMutableBufferPointer<Int32>) in
                 unarchiver.decodeValueOfObjCType("[4i]", at: UnsafeMutablePointer<Void>(p.baseAddress))
             }
             XCTAssertEqual(expected, array)
@@ -229,15 +229,15 @@ class TestNSKeyedArchiver : XCTestCase {
                 guard let value = unarchiver.decodeObjectOfClass(NSValue.self, forKey: "root") else {
                     return false
                 }
-                var expectedCharPtr = UnsafeMutablePointer<CChar>()
+                var expectedCharPtr: UnsafeMutablePointer<CChar> = nil
                 value.getValue(&expectedCharPtr)
                 
-                let s1 = String.fromCString(charPtr)
-                let s2 = String.fromCString(expectedCharPtr)
+                let s1 = String(cString: charPtr)
+                let s2 = String(cString: expectedCharPtr)
                 
                 // On Darwin decoded strings would belong to the autorelease pool, but as we don't have
                 // one in SwiftFoundation let's explicitly deallocate it here.
-                expectedCharPtr.dealloc(charArray.count)
+                expectedCharPtr.deallocateCapacity(charArray.count)
                 
                 return s1 == s2
         })

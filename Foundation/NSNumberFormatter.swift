@@ -10,16 +10,16 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-internal let kCFNumberFormatterNoStyle = CFNumberFormatterStyle.NoStyle
-internal let kCFNumberFormatterDecimalStyle = CFNumberFormatterStyle.DecimalStyle
-internal let kCFNumberFormatterCurrencyStyle = CFNumberFormatterStyle.CurrencyStyle
-internal let kCFNumberFormatterPercentStyle = CFNumberFormatterStyle.PercentStyle
-internal let kCFNumberFormatterScientificStyle = CFNumberFormatterStyle.ScientificStyle
-internal let kCFNumberFormatterSpellOutStyle = CFNumberFormatterStyle.SpellOutStyle
-internal let kCFNumberFormatterOrdinalStyle = CFNumberFormatterStyle.OrdinalStyle
-internal let kCFNumberFormatterCurrencyISOCodeStyle = CFNumberFormatterStyle.CurrencyISOCodeStyle
-internal let kCFNumberFormatterCurrencyPluralStyle = CFNumberFormatterStyle.CurrencyPluralStyle
-internal let kCFNumberFormatterCurrencyAccountingStyle = CFNumberFormatterStyle.CurrencyAccountingStyle
+internal let kCFNumberFormatterNoStyle = CFNumberFormatterStyle.noStyle
+internal let kCFNumberFormatterDecimalStyle = CFNumberFormatterStyle.decimalStyle
+internal let kCFNumberFormatterCurrencyStyle = CFNumberFormatterStyle.currencyStyle
+internal let kCFNumberFormatterPercentStyle = CFNumberFormatterStyle.percentStyle
+internal let kCFNumberFormatterScientificStyle = CFNumberFormatterStyle.scientificStyle
+internal let kCFNumberFormatterSpellOutStyle = CFNumberFormatterStyle.spellOutStyle
+internal let kCFNumberFormatterOrdinalStyle = CFNumberFormatterStyle.ordinalStyle
+internal let kCFNumberFormatterCurrencyISOCodeStyle = CFNumberFormatterStyle.currencyISOCodeStyle
+internal let kCFNumberFormatterCurrencyPluralStyle = CFNumberFormatterStyle.currencyPluralStyle
+internal let kCFNumberFormatterCurrencyAccountingStyle = CFNumberFormatterStyle.currencyAccountingStyle
 #endif
 
 public class NSNumberFormatter : NSFormatter {
@@ -50,7 +50,7 @@ public class NSNumberFormatter : NSFormatter {
     // Report the used range of the string and an NSError, in addition to the usual stuff from NSFormatter
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func objectValue(string: String, inout range: NSRange) throws -> AnyObject? { NSUnimplemented() }
+    public func objectValue(string: String, range: inout NSRange) throws -> AnyObject? { NSUnimplemented() }
     
     // Even though NSNumberFormatter responds to the usual NSFormatter methods,
     //   here are some convenience methods which are a little more obvious.
@@ -63,7 +63,7 @@ public class NSNumberFormatter : NSFormatter {
         let number = withUnsafeMutablePointer(&range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
             
             #if os(OSX) || os(iOS)
-                let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, CFNumberFormatterOptionFlags.ParseIntegersOnly.rawValue)
+                let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, CFNumberFormatterOptionFlags.parseIntegersOnly.rawValue)
             #else
                 let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, CFOptionFlags(kCFNumberFormatterParseIntegersOnly))
             #endif

@@ -16,7 +16,7 @@ public enum NSPostingStyle : UInt {
     case PostNow
 }
 
-public struct NSNotificationCoalescing : OptionSetType {
+public struct NSNotificationCoalescing : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -137,11 +137,11 @@ public class NSNotificationQueue : NSObject {
         CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
-    private func notify(currentMode: String?, inout notificationList: NSNotificationList) {
-        for (idx, (notification, modes)) in notificationList.enumerate().reverse() {
+    private func notify(currentMode: String?, notificationList: inout NSNotificationList) {
+        for (idx, (notification, modes)) in notificationList.enumerated().reversed() {
             if currentMode == nil || modes.contains(currentMode!) {
                 self.notificationCenter.postNotification(notification)
-                notificationList.removeAtIndex(idx)
+                notificationList.remove(at: idx)
             }
         }
     }

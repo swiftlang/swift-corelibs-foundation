@@ -15,7 +15,7 @@ import Darwin
 import Glibc
 #endif
 
-public struct NSDataReadingOptions : OptionSetType {
+public struct NSDataReadingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -24,7 +24,7 @@ public struct NSDataReadingOptions : OptionSetType {
     public static let DataReadingMappedAlways = NSDataReadingOptions(rawValue: UInt(1 << 2))
 }
 
-public struct NSDataWritingOptions : OptionSetType {
+public struct NSDataWritingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -32,7 +32,7 @@ public struct NSDataWritingOptions : OptionSetType {
     public static let DataWritingWithoutOverwriting = NSDataWritingOptions(rawValue: UInt(1 << 1))
 }
 
-public struct NSDataSearchOptions : OptionSetType {
+public struct NSDataSearchOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -40,7 +40,7 @@ public struct NSDataSearchOptions : OptionSetType {
     public static let Anchored = NSDataSearchOptions(rawValue: UInt(1 << 1))
 }
 
-public struct NSDataBase64EncodingOptions : OptionSetType {
+public struct NSDataBase64EncodingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -50,7 +50,7 @@ public struct NSDataBase64EncodingOptions : OptionSetType {
     public static let EncodingEndLineWithLineFeed = NSDataBase64EncodingOptions(rawValue: UInt(1 << 5))
 }
 
-public struct NSDataBase64DecodingOptions : OptionSetType {
+public struct NSDataBase64DecodingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -81,9 +81,9 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     internal var _cfObject: CFType {
         if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
-            return unsafeBitCast(self, CFType.self)
+            return unsafeBitCast(self, to: CFType.self)
         } else {
-            return CFDataCreate(kCFAllocatorSystemDefault, unsafeBitCast(self.bytes, UnsafePointer<UInt8>.self), self.length)
+            return CFDataCreate(kCFAllocatorSystemDefault, unsafeBitCast(self.bytes, to: UnsafePointer<UInt8>.self), self.length)
         }
     }
     
@@ -116,7 +116,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         super.init()
         let options : CFOptionFlags = (self.dynamicType == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
         if copy {
-            _CFDataInit(unsafeBitCast(self, CFMutableData.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, false)
+            _CFDataInit(unsafeBitCast(self, to: CFMutableData.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, false)
             if let handler = deallocator {
                 handler(bytes, length)
             }
@@ -125,7 +125,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 _deallocHandler!.handler = handler
             }
             // The data initialization should flag that CF should not deallocate which leaves the handler a chance to deallocate instead
-            _CFDataInit(unsafeBitCast(self, CFMutableData.self), options | __kCFDontDeallocate, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
+            _CFDataInit(unsafeBitCast(self, to: CFMutableData.self), options | __kCFDontDeallocate, length, UnsafeMutablePointer<UInt8>(bytes), length, true)
         }
     }
     
@@ -290,7 +290,7 @@ extension NSData {
         var remaining = Int(info.st_size)
         var total = 0
         while remaining > 0 {
-            let amt = read(fd, data.advancedBy(total), remaining)
+            let amt = read(fd, data.advanced(by: total), remaining)
             if amt < 0 {
                 break
             }
@@ -389,13 +389,13 @@ extension NSData {
         if range.location == 0 && range.length == self.length {
             return copyWithZone(nil) as! NSData
         }
-        return NSData(bytes: bytes.advancedBy(range.location), length: range.length)
+        return NSData(bytes: bytes.advanced(by: range.location), length: range.length)
     }
     
     internal func makeTemporaryFileInDirectory(dirPath: String) throws -> (Int32, String) {
         let template = dirPath._nsObject.stringByAppendingPathComponent("tmp.XXXXXX")
         let maxLength = Int(PATH_MAX) + 1
-        var buf = [Int8](count: maxLength, repeatedValue: 0)
+        var buf = [Int8](repeating: 0, count: maxLength)
         template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
         let fd = mkstemp(&buf)
         if fd == -1 {
@@ -410,7 +410,7 @@ extension NSData {
         while bytesRemaining > 0 {
             var bytesWritten : Int
             repeat {
-                bytesWritten = write(fd, buf.advancedBy(length - bytesRemaining), bytesRemaining)
+                bytesWritten = write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
             } while (bytesWritten < 0 && errno == EINTR)
             if bytesWritten <= 0 {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
@@ -528,15 +528,15 @@ extension NSData {
         let location : Int?
         let anchored = mask.contains(.Anchored)
         if mask.contains(.Backwards) {
-            location = NSData.searchSubSequence(search.reverse(), inSequence: baseData.reverse(),anchored : anchored).map {$0.base-search.count}
+            location = NSData.searchSubSequence(search.reversed(), inSequence: baseData.reversed(),anchored : anchored).map {$0.base-search.count}
         } else {
             location = NSData.searchSubSequence(search, inSequence: baseData,anchored : anchored)
         }
         return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
     }
-    private static func searchSubSequence<T : CollectionType,T2 : SequenceType where T.Generator.Element : Equatable, T.Generator.Element == T2.Generator.Element, T.SubSequence.Generator.Element == T.Generator.Element>(subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
+    private static func searchSubSequence<T : Collection,T2 : Sequence where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element>(subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
         for index in seq.indices {
-            if seq.suffixFrom(index).startsWith(subSequence) {
+            if seq.suffix(from: index).starts(with: subSequence) {
                 return index
             }
             if anchored {return nil}
@@ -545,7 +545,7 @@ extension NSData {
     }
     
     internal func enumerateByteRangesUsingBlockRethrows(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
-        var err : ErrorType? = nil
+        var err : ErrorProtocol? = nil
         self.enumerateByteRangesUsingBlock() { (buf, range, stop) -> Void in
             do {
                 try block(buf, range, stop)
@@ -570,11 +570,11 @@ extension NSData : _CFBridgable { }
 
 extension CFData : _NSBridgable {
     typealias NSType = NSData
-    internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
+    internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 
 extension NSMutableData {
-    internal var _cfMutableObject: CFMutableData { return unsafeBitCast(self, CFMutableData.self) }
+    internal var _cfMutableObject: CFMutableData { return unsafeBitCast(self, to: CFMutableData.self) }
 }
 
 public class NSMutableData : NSData {
@@ -620,7 +620,7 @@ extension NSData {
     /* Create a Base-64 encoded NSString from the receiver's contents using the given options.
     */
     public func base64EncodedStringWithOptions(options: NSDataBase64EncodingOptions) -> String {
-        var decodedBytes = [UInt8](count: self.length, repeatedValue: 0)
+        var decodedBytes = [UInt8](repeating: 0, count: self.length)
         getBytes(&decodedBytes, length: decodedBytes.count)
         let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
         let characters = encodedBytes.map { Character(UnicodeScalar($0)) }
@@ -630,7 +630,7 @@ extension NSData {
     /* Create an NSData from a Base-64, UTF-8 encoded NSData. By default, returns nil when the input is not recognized as valid Base-64.
     */
     public convenience init?(base64EncodedData base64Data: NSData, options: NSDataBase64DecodingOptions) {
-        var encodedBytes = [UInt8](count: base64Data.length, repeatedValue: 0)
+        var encodedBytes = [UInt8](repeating: 0, count: base64Data.length)
         base64Data.getBytes(&encodedBytes, length: encodedBytes.count)
         guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
             return nil
@@ -641,7 +641,7 @@ extension NSData {
     /* Create a Base-64, UTF-8 encoded NSData from the receiver's contents using the given options.
     */
     public func base64EncodedDataWithOptions(options: NSDataBase64EncodingOptions) -> NSData {
-        var decodedBytes = [UInt8](count: self.length, repeatedValue: 0)
+        var decodedBytes = [UInt8](repeating: 0, count: self.length)
         getBytes(&decodedBytes, length: decodedBytes.count)
         let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
         return NSData(bytes: encodedBytes, length: encodedBytes.count)
@@ -819,14 +819,14 @@ extension NSData {
             result.append($0)
             currentLineCount += 1
             if let options = lineOptions where currentLineCount == options.lineLength {
-                result.appendContentsOf(options.separator)
+                result.append(contentsOf: options.separator)
                 currentLineCount = 0
             }
         }
         
         var currentByte : UInt8 = 0
         
-        for (index,value) in bytes.enumerate() {
+        for (index,value) in bytes.enumerated() {
             switch index%3 {
             case 0:
                 currentByte = (value >> 2)
@@ -881,7 +881,7 @@ extension NSMutableData {
     }
     
     public func resetBytesInRange(range: NSRange) {
-        bzero(mutableBytes.advancedBy(range.location), range.length)
+        bzero(mutableBytes.advanced(by: range.location), range.length)
     }
     
     public func setData(data: NSData) {

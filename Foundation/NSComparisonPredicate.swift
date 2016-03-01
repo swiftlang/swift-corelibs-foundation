@@ -9,7 +9,7 @@
 
 
 // Flags(s) that can be passed to the factory to indicate that a operator operating on strings should do so in a case insensitive fashion.
-public struct NSComparisonPredicateOptions : OptionSetType {
+public struct NSComparisonPredicateOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     

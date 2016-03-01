@@ -17,14 +17,14 @@ import CoreFoundation
 #endif
 
 public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    internal var buffer = UnsafeMutablePointer<UInt8>.alloc(16)
+    internal var buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
     
     public override init() {
         _cf_uuid_generate_random(buffer)
     }
     
     public convenience init?(UUIDString string: String) {
-        let buffer = UnsafeMutablePointer<UInt8>.alloc(16)
+        let buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
         if _cf_uuid_parse(string, buffer) != 0 {
             return nil
         }
@@ -33,9 +33,9 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public init(UUIDBytes bytes: UnsafePointer<UInt8>) {
         if (bytes != nil) {
-            memcpy(unsafeBitCast(buffer, UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
+            memcpy(unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
         } else {
-            memset(unsafeBitCast(buffer, UnsafeMutablePointer<Void>.self), 0, 16)
+            memset(unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), 0, 16)
         }
     }
     
@@ -44,9 +44,9 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public var UUIDString: String {
-        let strPtr = UnsafeMutablePointer<Int8>.alloc(37)
+        let strPtr = UnsafeMutablePointer<Int8>(allocatingCapacity: 37)
         _cf_uuid_unparse_lower(buffer, strPtr)
-        return String.fromCString(strPtr)!
+        return String(cString: strPtr)
     }
     
     public override func copy() -> AnyObject {
