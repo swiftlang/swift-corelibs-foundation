@@ -21,7 +21,7 @@
 
 class TestNSBundle : XCTestCase {
     
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSBundle -> () throws -> Void)] {
         return [
             ("test_paths", test_paths),
             ("test_resources", test_resources),

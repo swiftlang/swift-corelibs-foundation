@@ -16,7 +16,7 @@
 #endif
 
 class TestNSUserDefaults : XCTestCase {
-	var allTests : [(String, () throws -> ())] {
+	static var allTests : [(String, TestNSUserDefaults -> () throws -> ())] {
 		return [
 			("test_createUserDefaults", test_createUserDefaults ),
 			("test_getRegisteredDefaultItem", test_getRegisteredDefaultItem ),

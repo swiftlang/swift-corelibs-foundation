@@ -18,7 +18,7 @@
 
 
 class TestNSKeyedUnarchiver : XCTestCase {
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSKeyedUnarchiver -> () throws -> Void)] {
         return [
             ("test_unarchive_array", test_unarchive_array),
             ("test_unarchive_complex", test_unarchive_complex),

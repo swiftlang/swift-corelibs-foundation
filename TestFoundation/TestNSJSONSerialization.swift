@@ -25,7 +25,7 @@ class TestNSJSONSerialization : XCTestCase {
         NSUTF32LittleEndianStringEncoding, NSUTF32BigEndianStringEncoding
     ]
 
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
         return JSONObjectWithDataTests
             + deserializationTests
             + isValidJSONObjectTests
@@ -36,7 +36,7 @@ class TestNSJSONSerialization : XCTestCase {
 //MARK: - JSONObjectWithData
 extension TestNSJSONSerialization {
 
-    var JSONObjectWithDataTests: [(String, () throws -> Void)] {
+    class var JSONObjectWithDataTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
         return [
             ("test_JSONObjectWithData_emptyObject", test_JSONObjectWithData_emptyObject),
             ("test_JSONObjectWithData_encodingDetection", test_JSONObjectWithData_encodingDetection),
@@ -84,7 +84,7 @@ extension TestNSJSONSerialization {
 //MARK: - JSONDeserialization
 extension TestNSJSONSerialization {
     
-    var deserializationTests: [(String, () throws -> Void)] {
+    class var deserializationTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
         return [
             ("test_deserialize_emptyObject", test_deserialize_emptyObject),
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
@@ -456,7 +456,7 @@ extension TestNSJSONSerialization {
 // MARK: - isValidJSONObjectTests
 extension TestNSJSONSerialization {
 
-    var isValidJSONObjectTests: [(String, () throws -> Void)] {
+    class var isValidJSONObjectTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
         return [
             ("test_isValidJSONObjectTrue", test_isValidJSONObjectTrue),
             ("test_isValidJSONObjectFalse", test_isValidJSONObjectFalse),

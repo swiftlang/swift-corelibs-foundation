@@ -21,7 +21,7 @@
 
 class TestNSOrderedSet : XCTestCase {
 
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSOrderedSet -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_Enumeration", test_Enumeration),

@@ -21,7 +21,7 @@
 
 class TestNSScanner : XCTestCase {
 
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSScanner -> () throws -> Void)] {
         return [
             ("test_scanInteger", test_scanInteger),
         ]

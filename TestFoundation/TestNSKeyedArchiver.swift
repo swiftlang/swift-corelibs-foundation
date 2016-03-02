@@ -51,7 +51,7 @@ public class UserClass : NSObject, NSSecureCoding {
 }
 
 class TestNSKeyedArchiver : XCTestCase {
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSKeyedArchiver -> () throws -> Void)] {
         return [
             ("test_archive_array", test_archive_array),
             ("test_archive_charptr", test_archive_charptr),

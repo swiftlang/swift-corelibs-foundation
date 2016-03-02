@@ -17,7 +17,7 @@
 
 
 class TestNSRunLoop : XCTestCase {
-    var allTests : [(String, () throws -> ())] {
+    static var allTests : [(String, TestNSRunLoop -> () throws -> Void)] {
         return [
             ("test_constants", test_constants),
             ("test_runLoopInit", test_runLoopInit),

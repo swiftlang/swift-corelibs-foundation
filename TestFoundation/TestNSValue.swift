@@ -18,7 +18,7 @@
 
 
 class TestNSValue : XCTestCase {
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSValue -> () throws -> Void)] {
         return [
             ( "test_valueWithLong", test_valueWithLong ),
             ( "test_valueWithCGPoint", test_valueWithCGPoint ),

@@ -21,7 +21,7 @@ import SwiftXCTest
 
 class TestNSSet : XCTestCase {
     
-    var allTests : [(String, () throws -> Void)] {
+    static var allTests: [(String, TestNSSet -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("testInitWithSet", testInitWithSet),
