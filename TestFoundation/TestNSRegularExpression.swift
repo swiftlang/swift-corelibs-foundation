@@ -157,6 +157,8 @@ class TestNSRegularExpression : XCTestCase {
         simpleRegularExpressionTestWithPattern(".*\\Ax", target:"xyz", looking:true, match:false)
         simpleRegularExpressionTestWithPattern(".*\\Ax", target:" xyz", looking:false, match:false)
         simpleRegularExpressionTestWithPattern("\\\\\\|\\(\\)\\[\\{\\~\\$\\*\\+\\?\\.", target:"\\|()[{~$*+?.", looking:true, match:true)
+        simpleRegularExpressionTestWithPattern(NSRegularExpression.escapedPatternForString("+\\{}[].^$?#<=!&*()"), target:"+\\{}[].^$?#<=!&*()", looking:true, match:true)
+        simpleRegularExpressionTestWithPattern(NSRegularExpression.escapedPatternForString("+\\{}[].^$?#<=!&*()"), target:"+\\{}[].^$?#<=!&*() abc", looking:true, match:false)
     }
     
     func replaceRegularExpressionTest(patternString: String, _ patternOptions: NSRegularExpressionOptions, _ searchString: String, _ searchOptions: NSMatchingOptions, _ searchRange: NSRange, _ templ: String, _ numberOfMatches: Int, _ result: String, file: StaticString = #file, line: UInt = #line) {
