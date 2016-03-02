@@ -29,6 +29,7 @@ XCTMain([
     testCase(TestNSCharacterSet.allTests),
     testCase(TestNSData.allTests),
     testCase(TestNSDate.allTests),
+    testCase(TestNSDateFormatter.allTests),
     testCase(TestNSDictionary.allTests),
     testCase(TestNSFileManger.allTests),
     testCase(TestNSGeometry.allTests),
