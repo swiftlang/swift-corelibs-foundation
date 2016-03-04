@@ -21,12 +21,9 @@ public class NSDateFormatter : NSFormatter {
                 let dateStyle = CFDateFormatterStyle(self.dateStyle.rawValue)
                 let timeStyle = CFDateFormatterStyle(self.timeStyle.rawValue)
             #endif
+            
             let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)
-            // TODO: Set up attributes here
-            if calendar != nil {
-                CFDateFormatterSetProperty(obj, kCFDateFormatterCalendar, calendar._cfObject)
-            }
-            CFDateFormatterSetProperty(obj, kCFDateFormatterTimeZone, timeZone._cfObject)
+            _setFormatterAttributes(obj)
             if let dateFormat = _dateFormat {
                 CFDateFormatterSetFormat(obj, dateFormat._cfObject)
             }
@@ -44,7 +41,7 @@ public class NSDateFormatter : NSFormatter {
         super.init(coder: coder)
     }
 
-    public var formattingContext: NSFormattingContext = .Unknown
+    public var formattingContext: NSFormattingContext = .Unknown // default is NSFormattingContextUnknown
 
     public func objectValue(string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
 
@@ -90,6 +87,42 @@ public class NSDateFormatter : NSFormatter {
         __cfObject = nil
     }
 
+    internal func _setFormatterAttributes(formatter: CFDateFormatter) {
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: lenient._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: timeZone?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: calendar?.calendarIdentifier._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTwoDigitStartDate, value: twoDigitStartDate?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterDefaultDate, value: defaultDate?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendar, value: calendar?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterEraSymbols, value: eraSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterMonthSymbols, value: monthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortMonthSymbols, value: shortMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterWeekdaySymbols, value: weekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortWeekdaySymbols, value: shortWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterAMSymbol, value: AMSymbol?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterPMSymbol, value: PMSymbol?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterLongEraSymbols, value: longEraSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortMonthSymbols, value: veryShortMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneMonthSymbols, value: standaloneMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneMonthSymbols, value: shortStandaloneMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortStandaloneMonthSymbols, value: veryShortStandaloneMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortWeekdaySymbols, value: veryShortWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneWeekdaySymbols, value: standaloneWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneWeekdaySymbols, value: shortStandaloneWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortStandaloneWeekdaySymbols, value: veryShortStandaloneWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterQuarterSymbols, value: quarterSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortQuarterSymbols, value: shortQuarterSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneQuarterSymbols, value: standaloneQuarterSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneQuarterSymbols, value: shortStandaloneQuarterSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterGregorianStartDate, value: gregorianStartDate?._cfObject)
+    }
+
+    internal func _setFormatterAttribute(formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
+        if let value = value {
+            CFDateFormatterSetProperty(formatter, attributeName, value)
+        }
+    }
+
     public var dateFormat: String! {
         get {
             guard let format = _dateFormat else {
@@ -107,16 +140,7 @@ public class NSDateFormatter : NSFormatter {
 
     public var timeStyle: NSDateFormatterStyle = .NoStyle { willSet { _reset() } }
 
-    internal var _locale: NSLocale = NSLocale.currentLocale()
-    /*@NSCopying*/ public var locale: NSLocale! {
-        get {
-            return _locale
-        }
-        set {
-            _reset()
-            _locale = newValue
-        }
-    }
+    /*@NSCopying*/ public var locale: NSLocale! = .currentLocale() { willSet { _reset() } }
 
     public var generatesCalendarDates = false { willSet { _reset() } }
 
