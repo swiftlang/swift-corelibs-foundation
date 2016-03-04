@@ -81,7 +81,9 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
     
     /* This class method will produce a string by adding backslash escapes as necessary to the given string, to escape any characters that would otherwise be treated as pattern metacharacters.
     */
-    public class func escapedPatternForString(string: String) -> String { NSUnimplemented() }
+    public class func escapedPatternForString(string: String) -> String { 
+        return _CFRegularExpressionCreateEscapedPattern(string._cfObject)._swiftObject
+    }
 }
 
 public struct NSMatchingOptions : OptionSetType {
