@@ -32,8 +32,65 @@ class TestNSDateFormatter: XCTestCase {
     }
     
     func test_BasicConstruction() {
+        
+        // TODO: move to plist
+        let symbolDictionaryOne = ["eraSymbols" : ["BC", "AD"],
+                             "monthSymbols" : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                             "shortMonthSymbols" : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                             "weekdaySymbols" : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                             "shortWeekdaySymbols" : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                             "longEraSymbols" : ["Before Christ", "Anno Domini"],
+                             "veryShortMonthSymbols" : ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
+                            "standaloneMonthSymbols" : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                            "shortStandaloneMonthSymbols" : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                            "veryShortStandaloneMonthSymbols" : ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]]
+        
+        let symbolDictionaryTwo = ["veryShortWeekdaySymbols" : ["S", "M", "T", "W", "T", "F", "S"],
+                            "standaloneWeekdaySymbols" : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                            "shortStandaloneWeekdaySymbols" : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                            "veryShortStandaloneWeekdaySymbols" : ["S", "M", "T", "W", "T", "F", "S"],
+                            "quarterSymbols" : ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"],
+                            "shortQuarterSymbols" : ["Q1", "Q2", "Q3", "Q4"],
+                            "standaloneQuarterSymbols" : ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"],
+                            "shortStandaloneQuarterSymbols" : ["Q1", "Q2", "Q3", "Q4"]]
+        
         let f = NSDateFormatter()
         XCTAssertNotNil(f)
+        XCTAssertNotNil(f.timeZone)
+        XCTAssertNotNil(f.locale)
+        
+        f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
+        f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
+
+        // Assert default values are set properly
+        XCTAssertFalse(f.generatesCalendarDates)
+        XCTAssertNotNil(f.calendar)
+        XCTAssertFalse(f.lenient)
+        XCTAssertEqual(f.twoDigitStartDate!, NSDate(timeIntervalSince1970: -631152000))
+        XCTAssertNil(f.defaultDate)
+        XCTAssertEqual(f.eraSymbols, symbolDictionaryOne["eraSymbols"]!)
+        XCTAssertEqual(f.monthSymbols, symbolDictionaryOne["monthSymbols"]!)
+        XCTAssertEqual(f.shortMonthSymbols, symbolDictionaryOne["shortMonthSymbols"]!)
+        XCTAssertEqual(f.weekdaySymbols, symbolDictionaryOne["weekdaySymbols"]!)
+        XCTAssertEqual(f.shortWeekdaySymbols, symbolDictionaryOne["shortWeekdaySymbols"]!)
+        XCTAssertEqual(f.AMSymbol, "AM")
+        XCTAssertEqual(f.PMSymbol, "PM")
+        XCTAssertEqual(f.longEraSymbols, symbolDictionaryOne["longEraSymbols"]!)
+        XCTAssertEqual(f.veryShortMonthSymbols, symbolDictionaryOne["veryShortMonthSymbols"]!)
+        XCTAssertEqual(f.standaloneMonthSymbols, symbolDictionaryOne["standaloneMonthSymbols"]!)
+        XCTAssertEqual(f.shortStandaloneMonthSymbols, symbolDictionaryOne["shortStandaloneMonthSymbols"]!)
+        XCTAssertEqual(f.veryShortStandaloneMonthSymbols, symbolDictionaryOne["veryShortStandaloneMonthSymbols"]!)
+        XCTAssertEqual(f.veryShortWeekdaySymbols, symbolDictionaryTwo["veryShortWeekdaySymbols"]!)
+        XCTAssertEqual(f.standaloneWeekdaySymbols, symbolDictionaryTwo["standaloneWeekdaySymbols"]!)
+        XCTAssertEqual(f.shortStandaloneWeekdaySymbols, symbolDictionaryTwo["shortStandaloneWeekdaySymbols"]!)
+        XCTAssertEqual(f.veryShortStandaloneWeekdaySymbols, symbolDictionaryTwo["veryShortStandaloneWeekdaySymbols"]!)
+        XCTAssertEqual(f.quarterSymbols, symbolDictionaryTwo["quarterSymbols"]!)
+        XCTAssertEqual(f.shortQuarterSymbols, symbolDictionaryTwo["shortQuarterSymbols"]!)
+        XCTAssertEqual(f.standaloneQuarterSymbols, symbolDictionaryTwo["standaloneQuarterSymbols"]!)
+        XCTAssertEqual(f.shortStandaloneQuarterSymbols, symbolDictionaryTwo["shortStandaloneQuarterSymbols"]!)
+        XCTAssertEqual(f.gregorianStartDate, NSDate(timeIntervalSince1970: -12219292800))
+        XCTAssertFalse(f.doesRelativeDateFormatting)
+        
     }
     
     func test_customDateFormat() {

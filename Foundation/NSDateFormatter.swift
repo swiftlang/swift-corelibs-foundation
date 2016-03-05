@@ -90,31 +90,31 @@ public class NSDateFormatter : NSFormatter {
     internal func _setFormatterAttributes(formatter: CFDateFormatter) {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: lenient._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: timeZone?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: calendar?.calendarIdentifier._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTwoDigitStartDate, value: twoDigitStartDate?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: _calendar?.calendarIdentifier._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTwoDigitStartDate, value: _twoDigitStartDate?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterDefaultDate, value: defaultDate?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendar, value: calendar?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterEraSymbols, value: eraSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterMonthSymbols, value: monthSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortMonthSymbols, value: shortMonthSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterWeekdaySymbols, value: weekdaySymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortWeekdaySymbols, value: shortWeekdaySymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterAMSymbol, value: AMSymbol?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterPMSymbol, value: PMSymbol?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterLongEraSymbols, value: longEraSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortMonthSymbols, value: veryShortMonthSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneMonthSymbols, value: standaloneMonthSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneMonthSymbols, value: shortStandaloneMonthSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortStandaloneMonthSymbols, value: veryShortStandaloneMonthSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortWeekdaySymbols, value: veryShortWeekdaySymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneWeekdaySymbols, value: standaloneWeekdaySymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneWeekdaySymbols, value: shortStandaloneWeekdaySymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortStandaloneWeekdaySymbols, value: veryShortStandaloneWeekdaySymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterQuarterSymbols, value: quarterSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortQuarterSymbols, value: shortQuarterSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneQuarterSymbols, value: standaloneQuarterSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneQuarterSymbols, value: shortStandaloneQuarterSymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterGregorianStartDate, value: gregorianStartDate?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendar, value: _calendar?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterEraSymbols, value: _eraSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterMonthSymbols, value: _monthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortMonthSymbols, value: _shortMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterWeekdaySymbols, value: _weekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortWeekdaySymbols, value: _shortWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterAMSymbol, value: _AMSymbol?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterPMSymbol, value: _PMSymbol?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterLongEraSymbols, value: _longEraSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortMonthSymbols, value: _veryShortMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneMonthSymbols, value: _standaloneMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneMonthSymbols, value: _shortStandaloneMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortStandaloneMonthSymbols, value: _veryShortStandaloneMonthSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortWeekdaySymbols, value: _veryShortWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneWeekdaySymbols, value: _standaloneWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneWeekdaySymbols, value: _shortStandaloneWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortStandaloneWeekdaySymbols, value: _veryShortStandaloneWeekdaySymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterQuarterSymbols, value: _quarterSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortQuarterSymbols, value: _shortQuarterSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneQuarterSymbols, value: _standaloneQuarterSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneQuarterSymbols, value: _shortStandaloneQuarterSymbols?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterGregorianStartDate, value: _gregorianStartDate?._cfObject)
     }
 
     internal func _setFormatterAttribute(formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
@@ -123,6 +123,7 @@ public class NSDateFormatter : NSFormatter {
         }
     }
 
+    private var _dateFormat: String? { willSet { _reset() } }
     public var dateFormat: String! {
         get {
             guard let format = _dateFormat else {
@@ -134,7 +135,6 @@ public class NSDateFormatter : NSFormatter {
             _dateFormat = newValue
         }
     }
-    private var _dateFormat: String? { willSet { _reset() } }
 
     public var dateStyle: NSDateFormatterStyle = .NoStyle { willSet { _reset() } }
 
@@ -146,55 +146,327 @@ public class NSDateFormatter : NSFormatter {
 
     /*@NSCopying*/ public var timeZone: NSTimeZone! = .systemTimeZone() { willSet { _reset() } }
 
-    /*@NSCopying*/ public var calendar: NSCalendar! { willSet { _reset() } }
+    /*@NSCopying*/ internal var _calendar: NSCalendar! { willSet { _reset() } }
+    public var calendar: NSCalendar! {
+        get {
+            guard let calendar = _calendar else {
+                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterCalendar) as! NSCalendar
+            }
+            return calendar
+        }
+        set {
+            _calendar = newValue
+        }
+    }
 
     public var lenient = false { willSet { _reset() } }
 
-    /*@NSCopying*/ public var twoDigitStartDate: NSDate? { willSet { _reset() } }
+    /*@NSCopying*/ internal var _twoDigitStartDate: NSDate? { willSet { _reset() } }
+    public var twoDigitStartDate: NSDate? {
+        get {
+            guard let startDate = _twoDigitStartDate else {
+                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTwoDigitStartDate) as? NSDate
+            }
+            return startDate
+        }
+        set {
+            _twoDigitStartDate = newValue
+        }
+    }
 
     /*@NSCopying*/ public var defaultDate: NSDate? { willSet { _reset() } }
+    
+    internal var _eraSymbols: [String]! { willSet { _reset() } }
+    public var eraSymbols: [String]! {
+        get {
+            guard let symbols = _eraSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterEraSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _eraSymbols = newValue
+        }
+    }
+    
+    internal var _monthSymbols: [String]! { willSet { _reset() } }
+    public var monthSymbols: [String]! {
+        get {
+            guard let symbols = _monthSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterMonthSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _monthSymbols = newValue
+        }
+    }
 
-    public var eraSymbols: [String]! { willSet { _reset() } }
+    internal var _shortMonthSymbols: [String]! { willSet { _reset() } }
+    public var shortMonthSymbols: [String]! {
+        get {
+            guard let symbols = _shortMonthSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterShortMonthSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _shortMonthSymbols = newValue
+        }
+    }
+    
 
-    public var monthSymbols: [String]! { willSet { _reset() } }
+    internal var _weekdaySymbols: [String]! { willSet { _reset() } }
+    public var weekdaySymbols: [String]! {
+        get {
+            guard let symbols = _weekdaySymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterWeekdaySymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _weekdaySymbols = newValue
+        }
+    }
 
-    public var shortMonthSymbols: [String]! { willSet { _reset() } }
+    internal var _shortWeekdaySymbols: [String]! { willSet { _reset() } }
+    public var shortWeekdaySymbols: [String]! {
+        get {
+            guard let symbols = _shortWeekdaySymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterShortWeekdaySymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _shortWeekdaySymbols = newValue
+        }
+    }
 
-    public var weekdaySymbols: [String]! { willSet { _reset() } }
+    internal var _AMSymbol: String! { willSet { _reset() } }
+    public var AMSymbol: String! {
+        get {
+            guard let symbol = _AMSymbol else {
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterAMSymbol) as! CFString)._swiftObject
+            }
+            return symbol
+        }
+        set {
+            _AMSymbol = newValue
+        }
+    }
 
-    public var shortWeekdaySymbols: [String]! { willSet { _reset() } }
+    internal var _PMSymbol: String! { willSet { _reset() } }
+    public var PMSymbol: String! {
+        get {
+            guard let symbol = _PMSymbol else {
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterPMSymbol) as! CFString)._swiftObject
+            }
+            return symbol
+        }
+        set {
+            _PMSymbol = newValue
+        }
+    }
 
-    public var AMSymbol: String! { willSet { _reset() } }
+    internal var _longEraSymbols: [String]! { willSet { _reset() } }
+    public var longEraSymbols: [String]! {
+        get {
+            guard let symbols = _longEraSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterLongEraSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _longEraSymbols = newValue
+        }
+    }
 
-    public var PMSymbol: String! { willSet { _reset() } }
+    internal var _veryShortMonthSymbols: [String]! { willSet { _reset() } }
+    public var veryShortMonthSymbols: [String]! {
+        get {
+            guard let symbols = _veryShortMonthSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterVeryShortMonthSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _veryShortMonthSymbols = newValue
+        }
+    }
 
-    public var longEraSymbols: [String]! { willSet { _reset() } }
+    internal var _standaloneMonthSymbols: [String]! { willSet { _reset() } }
+    public var standaloneMonthSymbols: [String]! {
+        get {
+            guard let symbols = _standaloneMonthSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterStandaloneMonthSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _standaloneMonthSymbols = newValue
+        }
+    }
 
-    public var veryShortMonthSymbols: [String]! { willSet { _reset() } }
+    internal var _shortStandaloneMonthSymbols: [String]! { willSet { _reset() } }
+    public var shortStandaloneMonthSymbols: [String]! {
+        get {
+            guard let symbols = _shortStandaloneMonthSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterShortStandaloneMonthSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _shortStandaloneMonthSymbols = newValue
+        }
+    }
 
-    public var standaloneMonthSymbols: [String]! { willSet { _reset() } }
+    internal var _veryShortStandaloneMonthSymbols: [String]! { willSet { _reset() } }
+    public var veryShortStandaloneMonthSymbols: [String]! {
+        get {
+            guard let symbols = _veryShortStandaloneMonthSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterVeryShortStandaloneMonthSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _veryShortStandaloneMonthSymbols = newValue
+        }
+    }
 
-    public var shortStandaloneMonthSymbols: [String]! { willSet { _reset() } }
+    internal var _veryShortWeekdaySymbols: [String]! { willSet { _reset() } }
+    public var veryShortWeekdaySymbols: [String]! {
+        get {
+            guard let symbols = _veryShortWeekdaySymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterVeryShortWeekdaySymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _veryShortWeekdaySymbols = newValue
+        }
+    }
 
-    public var veryShortStandaloneMonthSymbols: [String]! { willSet { _reset() } }
+    internal var _standaloneWeekdaySymbols: [String]! { willSet { _reset() } }
+    public var standaloneWeekdaySymbols: [String]! {
+        get {
+            guard let symbols = _standaloneWeekdaySymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterStandaloneWeekdaySymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _standaloneWeekdaySymbols = newValue
+        }
+    }
 
-    public var veryShortWeekdaySymbols: [String]! { willSet { _reset() } }
+    internal var _shortStandaloneWeekdaySymbols: [String]! { willSet { _reset() } }
+    public var shortStandaloneWeekdaySymbols: [String]! {
+        get {
+            guard let symbols = _shortStandaloneWeekdaySymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterShortStandaloneWeekdaySymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _shortStandaloneWeekdaySymbols = newValue
+        }
+    }
+    
+    internal var _veryShortStandaloneWeekdaySymbols: [String]! { willSet { _reset() } }
+    public var veryShortStandaloneWeekdaySymbols: [String]! {
+        get {
+            guard let symbols = _veryShortStandaloneWeekdaySymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterVeryShortStandaloneWeekdaySymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _veryShortStandaloneWeekdaySymbols = newValue
+        }
+    }
 
-    public var standaloneWeekdaySymbols: [String]! { willSet { _reset() } }
+    internal var _quarterSymbols: [String]! { willSet { _reset() } }
+    public var quarterSymbols: [String]! {
+        get {
+            guard let symbols = _quarterSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterQuarterSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _quarterSymbols = newValue
+        }
+    }
+    
+    internal var _shortQuarterSymbols: [String]! { willSet { _reset() } }
+    public var shortQuarterSymbols: [String]! {
+        get {
+            guard let symbols = _shortQuarterSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterShortQuarterSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _shortQuarterSymbols = newValue
+        }
+    }
 
-    public var shortStandaloneWeekdaySymbols: [String]! { willSet { _reset() } }
+    internal var _standaloneQuarterSymbols: [String]! { willSet { _reset() } }
+    public var standaloneQuarterSymbols: [String]! {
+        get {
+            guard let symbols = _standaloneQuarterSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterStandaloneQuarterSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _standaloneQuarterSymbols = newValue
+        }
+    }
 
-    public var veryShortStandaloneWeekdaySymbols: [String]! { willSet { _reset() } }
+    internal var _shortStandaloneQuarterSymbols: [String]! { willSet { _reset() } }
+    public var shortStandaloneQuarterSymbols: [String]! {
+        get {
+            guard let symbols = _shortStandaloneQuarterSymbols else {
+                let cfSymbols = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterShortStandaloneQuarterSymbols) as! NSArray
+                return cfSymbols.bridge().map { ($0 as! NSString).bridge() }
+            }
+            return symbols
+        }
+        set {
+            _shortStandaloneQuarterSymbols = newValue
+        }
+    }
 
-    public var quarterSymbols: [String]! { willSet { _reset() } }
-
-    public var shortQuarterSymbols: [String]! { willSet { _reset() } }
-
-    public var standaloneQuarterSymbols: [String]! { willSet { _reset() } }
-
-    public var shortStandaloneQuarterSymbols: [String]! { willSet { _reset() } }
-
-    public var gregorianStartDate: NSDate? { willSet { _reset() } }
+    internal var _gregorianStartDate: NSDate? { willSet { _reset() } }
+    public var gregorianStartDate: NSDate? {
+        get {
+            guard let startDate = _gregorianStartDate else {
+                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterGregorianStartDate) as? NSDate
+            }
+            return startDate
+        }
+        set {
+            _gregorianStartDate = newValue
+        }
+    }
 
     public var doesRelativeDateFormatting = false { willSet { _reset() } }
 }
