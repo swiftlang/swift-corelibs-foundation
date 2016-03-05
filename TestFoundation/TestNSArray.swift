@@ -156,6 +156,14 @@ class TestNSArray : XCTestCase {
         let rangeLength = 13
         let endOfArray = objectIndexInArray(array, value: 10, startingFrom: rangeStart, length: rangeLength, options: [.InsertionIndex, .LastEqual])
         XCTAssertTrue(endOfArray == (rangeStart + rangeLength), "...or the index at the end of the array if the object is larger than all other elements.")
+        
+        let arrayOfTwo = NSArray(array: [NSNumber(int: 0), NSNumber(int: 2)])
+        let indexInMiddle = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.InsertionIndex, .FirstEqual])
+        XCTAssertEqual(indexInMiddle, 1, "If no match found item should be inserted before least greater object")
+        let indexInMiddle2 = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.InsertionIndex, .LastEqual])
+        XCTAssertEqual(indexInMiddle2, 1, "If no match found item should be inserted before least greater object")
+        let indexInMiddle3 = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.InsertionIndex])
+        XCTAssertEqual(indexInMiddle3, 1, "If no match found item should be inserted before least greater object")
     }
 
 
