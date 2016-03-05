@@ -24,7 +24,7 @@ class TestNSNotificationQueue : XCTestCase {
             ("test_postNowToDefaultQueueWithCoalescing", test_postNowToDefaultQueueWithCoalescing),
             ("test_postNowToCustomQueue", test_postNowToCustomQueue),
             ("test_postNowForDefaultRunLoopMode", test_postNowForDefaultRunLoopMode),
-            ("test_notificationQueueLifecycle", test_notificationQueueLifecycle),
+            // ("test_notificationQueueLifecycle", test_notificationQueueLifecycle),
             ("test_postAsapToDefaultQueue", test_postAsapToDefaultQueue),
             ("test_postAsapToDefaultQueueWithCoalescingOnNameAndSender", test_postAsapToDefaultQueueWithCoalescingOnNameAndSender),
             ("test_postAsapToDefaultQueueWithCoalescingOnNameOrSender", test_postAsapToDefaultQueueWithCoalescingOnNameOrSender),
