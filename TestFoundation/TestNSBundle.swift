@@ -98,6 +98,9 @@ class TestNSBundle : XCTestCase {
     
     private let _bundleName = "MyBundle.bundle"
     private let _bundleResourceNames = ["hello.world", "goodbye.world", "swift.org"]
+    private let _subDirectory = "Sources"
+    private let _main = "main"
+    private let _type = "swift"
     
     private func _setupPlayground() -> String? {
         // Make sure the directory is uniquely named
@@ -114,6 +117,10 @@ class TestNSBundle : XCTestCase {
             for n in _bundleResourceNames {
                 NSFileManager.defaultManager().createFileAtPath(bundlePath + "/" + n, contents: nil, attributes: nil)
             }
+            // Add a resource into a subdirectory
+            let subDirPath = bundlePath + "/" + _subDirectory
+            try NSFileManager.defaultManager().createDirectoryAtPath(subDirPath, withIntermediateDirectories: false, attributes: nil)
+            NSFileManager.defaultManager().createFileAtPath(subDirPath + "/" + _main + "." + _type, contents: nil, attributes: nil)
         } catch _ {
             return nil
         }
@@ -139,6 +146,9 @@ class TestNSBundle : XCTestCase {
         let worldResources = bundle?.URLsForResourcesWithExtension("world", subdirectory: nil)
         XCTAssertNotNil(worldResources)
         XCTAssertEqual(worldResources?.count, 2)
+        
+        let path = bundle?.pathForResource(_main, ofType: _type, inDirectory: _subDirectory)
+        XCTAssertNotNil(path)
         
         _cleanupPlayground(playground)
     }

@@ -205,7 +205,7 @@ public class NSBundle : NSObject {
     }
     
     public func pathForResource(name: String?, ofType ext: String?, inDirectory subpath: String?) -> String? {
-        return self.URLForResource(name, withExtension: ext, subdirectory: nil)?.path
+        return self.URLForResource(name, withExtension: ext, subdirectory: subpath)?.path
     }
     
     public func pathForResource(name: String?, ofType ext: String?, inDirectory subpath: String?, forLocalization localizationName: String?) -> String? {
