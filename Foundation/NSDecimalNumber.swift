@@ -55,7 +55,7 @@ public class NSDecimalNumber : NSNumber {
         NSRequiresConcreteImplementation()
     }
     
-    public func descriptionWithLocale(locale: AnyObject?) -> String { NSUnimplemented() }
+    public override func descriptionWithLocale(locale: AnyObject?) -> String { NSUnimplemented() }
     
     // TODO: "declarations from extensions cannot be overridden yet"
     // Although it's not clear we actually need to redeclare this here when the extension adds it to the superclass of this class
