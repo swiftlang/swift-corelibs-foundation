@@ -15,17 +15,17 @@ public class NSEnumerator : NSObject {
 
 }
 
-extension NSEnumerator : SequenceType {
+extension NSEnumerator : Sequence {
 
-    public struct Generator : GeneratorType {
+    public struct Iterator : IteratorProtocol {
         let enumerator : NSEnumerator
         public func next() -> AnyObject? {
             return enumerator.nextObject()
         }
     }
 
-    public func generate() -> Generator {
-        return Generator(enumerator: self)
+    public func makeIterator() -> Iterator {
+        return Iterator(enumerator: self)
     }
 
 }
@@ -38,7 +38,7 @@ extension NSEnumerator {
 
 }
 
-internal class NSGeneratorEnumerator<Base : GeneratorType where Base.Element : AnyObject> : NSEnumerator {
+internal class NSGeneratorEnumerator<Base : IteratorProtocol where Base.Element : AnyObject> : NSEnumerator {
     var generator : Base
     init(_ generator: Base) {
         self.generator = generator

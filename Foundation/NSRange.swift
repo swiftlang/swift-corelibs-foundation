@@ -56,8 +56,8 @@ extension NSRange: NSSpecialValueCoding {
     init(bytes: UnsafePointer<Void>) {
         let buffer = UnsafePointer<Int>(bytes)
         
-        self.location = buffer.memory
-        self.length = buffer.advancedBy(1).memory
+        self.location = buffer.pointee
+        self.length = buffer.advanced(by: 1).pointee
     }
     
     init?(coder aDecoder: NSCoder) {
@@ -97,7 +97,7 @@ extension NSRange: NSSpecialValueCoding {
     }
     
     func getValue(value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<NSRange>(value).memory = self
+        UnsafeMutablePointer<NSRange>(value).pointee = self
     }
     
     func isEqual(aValue: Any) -> Bool {

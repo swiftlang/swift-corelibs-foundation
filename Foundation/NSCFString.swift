@@ -41,15 +41,15 @@ internal class _NSCFString : NSMutableString {
     }
     
     override var length: Int {
-        return CFStringGetLength(unsafeBitCast(self, CFString.self))
+        return CFStringGetLength(unsafeBitCast(self, to: CFString.self))
     }
     
     override func characterAtIndex(index: Int) -> unichar {
-        return CFStringGetCharacterAtIndex(unsafeBitCast(self, CFString.self), index)
+        return CFStringGetCharacterAtIndex(unsafeBitCast(self, to: CFString.self), index)
     }
     
     override func replaceCharactersInRange(range: NSRange, withString aString: String) {
-        CFStringReplace(unsafeBitCast(self, CFMutableString.self), CFRangeMake(range.location, range.length), aString._cfObject)
+        CFStringReplace(unsafeBitCast(self, to: CFMutableString.self), CFRangeMake(range.location, range.length), aString._cfObject)
     }
     
     override var classForCoder: AnyClass {
@@ -59,13 +59,13 @@ internal class _NSCFString : NSMutableString {
 
 internal final class _NSCFConstantString : _NSCFString {
     internal var _ptr : UnsafePointer<UInt8> {
-        let ptr = unsafeAddressOf(self) + sizeof(COpaquePointer) + sizeof(Int32) + sizeof(Int32) + sizeof(_CFInfo)
-        return UnsafePointer<UnsafePointer<UInt8>>(ptr).memory
+        let ptr = unsafeAddress(of: self) + sizeof(OpaquePointer) + sizeof(Int32) + sizeof(Int32) + sizeof(_CFInfo)
+        return UnsafePointer<UnsafePointer<UInt8>>(ptr).pointee
     }
     internal var _length : UInt32 {
-        let offset = sizeof(COpaquePointer) + sizeof(Int32) + sizeof(Int32) + sizeof(_CFInfo) + sizeof(UnsafePointer<UInt8>)
-        let ptr = unsafeAddressOf(self) + offset
-        return UnsafePointer<UInt32>(ptr).memory
+        let offset = sizeof(OpaquePointer) + sizeof(Int32) + sizeof(Int32) + sizeof(_CFInfo) + sizeof(UnsafePointer<UInt8>)
+        let ptr = unsafeAddress(of: self) + offset
+        return UnsafePointer<UInt32>(ptr).pointee
     }
     
     required init(characters: UnsafePointer<unichar>, length: Int) {
@@ -133,12 +133,12 @@ internal func _CFSwiftStringGetBytes(str: AnyObject, encoding: CFStringEncoding,
         let start = encodingView.startIndex
         if buffer != nil {
             for idx in 0..<range.length {
-                let character = encodingView[start.advancedBy(idx + range.location)]
-                buffer.advancedBy(idx).initialize(character)
+                let character = encodingView[start.advanced(by: idx + range.location)]
+                buffer.advanced(by: idx).initialize(with: character)
             }
         }
         if usedBufLen != nil {
-            usedBufLen.memory = range.length
+            usedBufLen.pointee = range.length
         }
         
     case CFStringEncoding(kCFStringEncodingUTF16):
@@ -147,16 +147,16 @@ internal func _CFSwiftStringGetBytes(str: AnyObject, encoding: CFStringEncoding,
         if buffer != nil {
             for idx in 0..<range.length {
                 // Since character is 2 bytes but the buffer is in term of 1 byte values, we have to split it up
-                let character = encodingView[start.advancedBy(idx + range.location)]
+                let character = encodingView[start.advanced(by: idx + range.location)]
                 let byte0 = UInt8(character & 0x00ff)
                 let byte1 = UInt8((character >> 8) & 0x00ff)
-                buffer.advancedBy(idx * 2).initialize(byte0)
-                buffer.advancedBy((idx * 2) + 1).initialize(byte1)
+                buffer.advanced(by: idx * 2).initialize(with: byte0)
+                buffer.advanced(by: (idx * 2) + 1).initialize(with: byte1)
             }
         }
         if usedBufLen != nil {
             // Every character was 2 bytes
-            usedBufLen.memory = range.length * 2
+            usedBufLen.pointee = range.length * 2
         }
 
 

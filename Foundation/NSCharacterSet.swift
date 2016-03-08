@@ -11,21 +11,21 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-let kCFCharacterSetControl = CFCharacterSetPredefinedSet.Control
-let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.Whitespace
-let kCFCharacterSetWhitespaceAndNewline = CFCharacterSetPredefinedSet.WhitespaceAndNewline
-let kCFCharacterSetDecimalDigit = CFCharacterSetPredefinedSet.DecimalDigit
-let kCFCharacterSetLetter = CFCharacterSetPredefinedSet.Letter
-let kCFCharacterSetLowercaseLetter = CFCharacterSetPredefinedSet.LowercaseLetter
-let kCFCharacterSetUppercaseLetter = CFCharacterSetPredefinedSet.UppercaseLetter
-let kCFCharacterSetNonBase = CFCharacterSetPredefinedSet.NonBase
-let kCFCharacterSetDecomposable = CFCharacterSetPredefinedSet.Decomposable
-let kCFCharacterSetAlphaNumeric = CFCharacterSetPredefinedSet.AlphaNumeric
-let kCFCharacterSetPunctuation = CFCharacterSetPredefinedSet.Punctuation
-let kCFCharacterSetCapitalizedLetter = CFCharacterSetPredefinedSet.CapitalizedLetter
-let kCFCharacterSetSymbol = CFCharacterSetPredefinedSet.Symbol
-let kCFCharacterSetNewline = CFCharacterSetPredefinedSet.Newline
-let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.Illegal
+let kCFCharacterSetControl = CFCharacterSetPredefinedSet.control
+let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.whitespace
+let kCFCharacterSetWhitespaceAndNewline = CFCharacterSetPredefinedSet.whitespaceAndNewline
+let kCFCharacterSetDecimalDigit = CFCharacterSetPredefinedSet.decimalDigit
+let kCFCharacterSetLetter = CFCharacterSetPredefinedSet.letter
+let kCFCharacterSetLowercaseLetter = CFCharacterSetPredefinedSet.lowercaseLetter
+let kCFCharacterSetUppercaseLetter = CFCharacterSetPredefinedSet.uppercaseLetter
+let kCFCharacterSetNonBase = CFCharacterSetPredefinedSet.nonBase
+let kCFCharacterSetDecomposable = CFCharacterSetPredefinedSet.decomposable
+let kCFCharacterSetAlphaNumeric = CFCharacterSetPredefinedSet.alphaNumeric
+let kCFCharacterSetPunctuation = CFCharacterSetPredefinedSet.punctuation
+let kCFCharacterSetCapitalizedLetter = CFCharacterSetPredefinedSet.capitalizedLetter
+let kCFCharacterSetSymbol = CFCharacterSetPredefinedSet.symbol
+let kCFCharacterSetNewline = CFCharacterSetPredefinedSet.newline
+let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.illegal
 #endif
 
 
@@ -38,11 +38,11 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     private var _annex: UnsafeMutablePointer<Void> = nil
     
     internal var _cfObject: CFType {
-        return unsafeBitCast(self, CFType.self)
+        return unsafeBitCast(self, to: CFType.self)
     }
     
     internal var _cfMutableObject: CFMutableCharacterSet {
-        return unsafeBitCast(self, CFMutableCharacterSet.self)
+        return unsafeBitCast(self, to: CFMutableCharacterSet.self)
     }
     
     public override var hash: Int {
@@ -295,6 +295,6 @@ public class NSMutableCharacterSet : NSCharacterSet {
 extension CFCharacterSet : _NSBridgable {
     typealias NSType = NSCharacterSet
     internal var _nsObject: NSType {
-        return unsafeBitCast(self, NSType.self)
+        return unsafeBitCast(self, to: NSType.self)
     }
 }

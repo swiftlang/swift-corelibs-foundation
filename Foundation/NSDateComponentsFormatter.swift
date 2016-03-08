@@ -17,7 +17,7 @@ public enum NSDateComponentsFormatterUnitsStyle : Int {
     case SpellOut // "One hour, ten minutes"
 }
 
-public struct NSDateComponentsFormatterZeroFormattingBehavior : OptionSetType {
+public struct NSDateComponentsFormatterZeroFormattingBehavior : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     

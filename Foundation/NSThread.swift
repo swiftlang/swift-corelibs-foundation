@@ -17,7 +17,7 @@ import Glibc
 import CoreFoundation
 
 private func disposeTLS(ctx: UnsafeMutablePointer<Void>) -> Void {
-    Unmanaged<AnyObject>.fromOpaque(COpaquePointer(ctx)).release()
+    Unmanaged<AnyObject>.fromOpaque(OpaquePointer(ctx)).release()
 }
 
 internal class NSThreadSpecific<T: AnyObject> {
@@ -40,10 +40,10 @@ internal class NSThreadSpecific<T: AnyObject> {
     internal func get(generator: (Void) -> T) -> T {
         let specific = pthread_getspecific(self.key)
         if specific != nil {
-            return Unmanaged<T>.fromOpaque(COpaquePointer(specific)).takeUnretainedValue()
+            return Unmanaged<T>.fromOpaque(OpaquePointer(specific)).takeUnretainedValue()
         } else {
             let value = generator()
-            pthread_setspecific(self.key, UnsafePointer<Void>(Unmanaged<AnyObject>.passRetained(value).toOpaque()))
+            pthread_setspecific(self.key, UnsafePointer<Void>(OpaquePointer(bitPattern: Unmanaged<AnyObject>.passRetained(value))))
             return value
         }
     }
@@ -52,14 +52,14 @@ internal class NSThreadSpecific<T: AnyObject> {
         let specific = pthread_getspecific(self.key)
         var previous: Unmanaged<T>?
         if specific != nil {
-            previous = Unmanaged<T>.fromOpaque(COpaquePointer(specific))
+            previous = Unmanaged<T>.fromOpaque(OpaquePointer(specific))
         }
         if let prev = previous {
             if prev.takeUnretainedValue() === value {
                 return
             }
         }
-        pthread_setspecific(self.key, UnsafePointer<Void>(Unmanaged<AnyObject>.passRetained(value).toOpaque()))
+        pthread_setspecific(self.key, UnsafePointer<Void>(OpaquePointer(bitPattern: Unmanaged<AnyObject>.passRetained(value))))
         if let prev = previous {
             prev.release()
         }
@@ -74,7 +74,7 @@ internal enum _NSThreadStatus {
 }
 
 private func NSThreadStart(context: UnsafeMutablePointer<Void>) -> UnsafeMutablePointer<Void> {
-    let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(COpaquePointer(context))
+    let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(OpaquePointer(context))
     let thread = unmanaged.takeUnretainedValue()
     NSThread._currentThread.set(thread)
     thread._status = _NSThreadStatus.Executing
@@ -185,7 +185,7 @@ public class NSThread : NSObject {
         }
         withUnsafeMutablePointers(&_thread, &_attr) { thread, attr in
             let ptr = Unmanaged.passRetained(self)
-            pthread_create(thread, attr, NSThreadStart, UnsafeMutablePointer(ptr.toOpaque()))
+            pthread_create(thread, attr, NSThreadStart, UnsafeMutablePointer(OpaquePointer(bitPattern: ptr)))
         }
     }
     
@@ -198,7 +198,7 @@ public class NSThread : NSObject {
             var size: Int = 0
             return withUnsafeMutablePointers(&_attr, &size) { attr, sz in
                 pthread_attr_getstacksize(attr, sz)
-                return sz.memory
+                return sz.pointee
             }
         }
         set {

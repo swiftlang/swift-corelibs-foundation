@@ -86,24 +86,24 @@ public class NSHost : NSObject {
             }
             var res: UnsafeMutablePointer<addrinfo> = res0
             while res != nil {
-                let family = res.memory.ai_family
+                let family = res.pointee.ai_family
                 if family != AF_INET && family != AF_INET6 {
-                    res = res.memory.ai_next
+                    res = res.pointee.ai_next
                     continue
                 }
                 let sa_len: socklen_t = socklen_t((family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in))
-                let lookupInfo = { (inout content: [String], flags: Int32) in
-                    let hname = UnsafeMutablePointer<Int8>.alloc(1024)
-                    if (getnameinfo(res.memory.ai_addr, sa_len, hname, 1024, nil, 0, flags) == 0) {
+                let lookupInfo = { (content: inout [String], flags: Int32) in
+                    let hname = UnsafeMutablePointer<Int8>(allocatingCapacity: 1024)
+                    if (getnameinfo(res.pointee.ai_addr, sa_len, hname, 1024, nil, 0, flags) == 0) {
                         content.append(String(hname))
                     }
-                    hname.destroy()
-                    hname.dealloc(1024)
+                    hname.deinitialize()
+                    hname.deallocateCapacity(1024)
                 }
                 lookupInfo(&_addresses, NI_NUMERICHOST)
                 lookupInfo(&_names, NI_NAMEREQD)
                 lookupInfo(&_names, NI_NOFQDN|NI_NAMEREQD)
-                res = res.memory.ai_next
+                res = res.pointee.ai_next
             }
             
             freeaddrinfo(res0)

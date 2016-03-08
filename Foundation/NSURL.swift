@@ -17,8 +17,8 @@ import Glibc
 #endif
 
 #if os(OSX) || os(iOS)
-internal let kCFURLPOSIXPathStyle = CFURLPathStyle.CFURLPOSIXPathStyle
-internal let kCFURLWindowsPathStyle = CFURLPathStyle.CFURLWindowsPathStyle
+internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
+internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
 #endif
 
 private func _standardizedPath(path: String) -> String {
@@ -35,8 +35,8 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     internal var _encoding : CFStringEncoding = 0
     internal var _string : UnsafeMutablePointer<CFString> = nil
     internal var _baseURL : UnsafeMutablePointer<CFURL> = nil
-    internal var _extra : COpaquePointer = nil
-    internal var _resourceInfo : COpaquePointer = nil
+    internal var _extra : OpaquePointer = nil
+    internal var _resourceInfo : OpaquePointer = nil
     internal var _range1 = NSRange(location: 0, length: 0)
     internal var _range2 = NSRange(location: 0, length: 0)
     internal var _range3 = NSRange(location: 0, length: 0)
@@ -50,7 +50,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     internal var _cfObject : CFType {
         if self.dynamicType === NSURL.self {
-            return unsafeBitCast(self, CFType.self)
+            return unsafeBitCast(self, to: CFType.self)
         } else {
             return CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)
         }
@@ -160,7 +160,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeToURL baseURL: NSURL?) {
-        let pathString = String.fromCString(path)!
+        let pathString = String(cString: path)
         self.init(fileURLWithPath: pathString, isDirectory: isDir, relativeToURL: baseURL)
     }
     
@@ -299,7 +299,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
 #if os(Linux)
         let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, kCFURLComponentPassword, nil)
 #else
-        let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, .Password, nil)
+        let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, .password, nil)
 #endif
         guard passwordRange.location != kCFNotFound else {
             return nil
@@ -307,7 +307,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         
         // For historical reasons, the password string should _not_ have its percent escapes removed.
         let bufSize = CFURLGetBytes(absoluteURL, nil, 0)
-        var buf = [UInt8](count: bufSize, repeatedValue: 0)
+        var buf = [UInt8](repeating: 0, count: bufSize)
         guard CFURLGetBytes(absoluteURL, &buf, bufSize) >= 0 else {
             return nil
         }
@@ -360,9 +360,9 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         
         let bufSize = Int(PATH_MAX + 1)
         
-        let _fsrBuffer = UnsafeMutablePointer<Int8>.alloc(bufSize)
+        let _fsrBuffer = UnsafeMutablePointer<Int8>(allocatingCapacity: bufSize)
         for i in 0..<bufSize {
-            _fsrBuffer.advancedBy(i).initialize(0)
+            _fsrBuffer.advanced(by: i).initialize(with: 0)
         }
         
         if getFileSystemRepresentation(_fsrBuffer, maxLength: bufSize) {
@@ -639,7 +639,7 @@ public class NSURLComponents : NSObject, NSCopying {
     // Returns a URL created from the NSURLComponents. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
     public var URL: NSURL? {
         guard let result = _CFURLComponentsCopyURL(_components) else { return nil }
-        return unsafeBitCast(result, NSURL.self)
+        return unsafeBitCast(result, to: NSURL.self)
     }
     
     // Returns a URL created from the NSURLComponents relative to a base URL. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
@@ -704,7 +704,7 @@ public class NSURLComponents : NSObject, NSCopying {
     public var port: NSNumber? {
         get {
             if let result = _CFURLComponentsCopyPort(_components) {
-                return unsafeBitCast(result, NSNumber.self)
+                return unsafeBitCast(result, to: NSNumber.self)
             } else {
                 return nil
             }
@@ -862,7 +862,7 @@ public class NSURLComponents : NSObject, NSCopying {
                 let count = CFArrayGetCount(queryArray)
                 
                 return (0..<count).map { idx in
-                    let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), NSDictionary.self)
+                    let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
                     let entryName = oneEntry.objectForKey("name"._cfObject) as! String
                     let entryValue = oneEntry.objectForKey("value"._cfObject) as? String
                     return NSURLQueryItem(name: entryName, value: entryValue)
@@ -896,6 +896,6 @@ extension NSURL : _CFBridgable { }
 
 extension CFURL : _NSBridgable {
     typealias NSType = NSURL
-    internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
+    internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 

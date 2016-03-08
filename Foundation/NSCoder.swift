@@ -21,8 +21,8 @@ public class NSCoder : NSObject {
     
     deinit {
         for buffer in _pendingBuffers {
-            buffer.0.destroy()
-            buffer.0.dealloc(buffer.1)
+            buffer.0.deinitialize()
+            buffer.0.deallocateCapacity(buffer.1)
         }
     }
     
@@ -106,7 +106,7 @@ public class NSCoder : NSObject {
     public func encodeObject(object: AnyObject?) {
         var object = object
         withUnsafePointer(&object) { (ptr: UnsafePointer<AnyObject?>) -> Void in
-            encodeValueOfObjCType("@", at: unsafeBitCast(ptr, UnsafePointer<Void>.self))
+            encodeValueOfObjCType("@", at: unsafeBitCast(ptr, to: UnsafePointer<Void>.self))
         }
     }
     
@@ -127,7 +127,7 @@ public class NSCoder : NSObject {
     }
     
     public func encodeArrayOfObjCType(type: UnsafePointer<Int8>, count: Int, at array: UnsafePointer<Void>) {
-        encodeValueOfObjCType("[\(count)\(String.fromCString(type)!)]", at: array)
+        encodeValueOfObjCType("[\(count)\(String(cString: type))]", at: array)
     }
     
     public func encodeBytes(byteaddr: UnsafePointer<Void>, length: Int) {
@@ -145,24 +145,24 @@ public class NSCoder : NSObject {
         
         var obj: AnyObject? = nil
         withUnsafeMutablePointer(&obj) { (ptr: UnsafeMutablePointer<AnyObject?>) -> Void in
-            decodeValueOfObjCType("@", at: unsafeBitCast(ptr, UnsafeMutablePointer<Void>.self))
+            decodeValueOfObjCType("@", at: unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self))
         }
         return obj
     }
     
     public func decodeArrayOfObjCType(itemType: UnsafePointer<Int8>, count: Int, at array: UnsafeMutablePointer<Void>) {
-        decodeValueOfObjCType("[\(count)\(String.fromCString(itemType)!)]", at: array)
+        decodeValueOfObjCType("[\(count)\(String(cString: itemType))]", at: array)
     }
     
     public func decodeBytesWithReturnedLength(lengthp: UnsafeMutablePointer<Int>) -> UnsafeMutablePointer<Void> {
         var length: UInt32 = 0
         withUnsafeMutablePointer(&length) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-            decodeValueOfObjCType("I", at: unsafeBitCast(ptr, UnsafeMutablePointer<Void>.self))
+            decodeValueOfObjCType("I", at: unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self))
         }
         // we cannot autorelease here so instead the pending buffers will manage the lifespan of the returned data... this is wasteful but good enough...
-        let result = UnsafeMutablePointer<Void>.alloc(Int(length))
+        let result = UnsafeMutablePointer<Void>(allocatingCapacity: Int(length))
         decodeValueOfObjCType("c", at: result)
-        lengthp.memory = Int(length)
+        lengthp.pointee = Int(length)
         _pendingBuffers.append((result, Int(length)))
         return result
     }

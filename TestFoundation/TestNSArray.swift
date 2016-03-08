@@ -304,7 +304,7 @@ class TestNSArray : XCTestCase {
     func test_sortedArrayUsingComparator() {
         // sort with localized caseInsensitive compare
         let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
-        let expectedResult: Array<String> = input.sort()
+        let expectedResult: Array<String> = input.sorted()
         let result = input.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
             let l = left as! NSString
             let r = right as! NSString
@@ -318,7 +318,7 @@ class TestNSArray : XCTestCase {
 
         // sort numbers
         let inputNumbers = [0, 10, 25, 100, 21, 22]
-        let expectedNumbers = inputNumbers.sort()
+        let expectedNumbers = inputNumbers.sorted()
         let resultNumbers = inputNumbers.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
             let l = (left as! NSNumber).integerValue
             let r = (right as! NSNumber).integerValue
@@ -348,7 +348,7 @@ class TestNSArray : XCTestCase {
     func test_sortUsingFunction() {
         let inputNumbers = [11, 120, 215, 11, 1, -22, 35, -89, 65]
         let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
-        let expectedNumbers = inputNumbers.sort()
+        let expectedNumbers = inputNumbers.sorted()
 
         func compare(left: AnyObject, right:AnyObject,  context: UnsafeMutablePointer<Void>) -> Int {
             let l = (left as! NSNumber).integerValue
@@ -364,7 +364,7 @@ class TestNSArray : XCTestCase {
         // check behaviour with Array's sort method
         let inputNumbers = [11, 120, 215, 11, 1, -22, 35, -89, 65]
         let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
-        let expectedNumbers = inputNumbers.sort()
+        let expectedNumbers = inputNumbers.sorted()
 
         mutableInput.sortUsingComparator { left, right -> NSComparisonResult in
             let l = (left as! NSNumber).integerValue

@@ -80,7 +80,7 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             return NSNotFound
         }
 
-        return _orderedStorage.indexOf(object) ?? NSNotFound
+        return _orderedStorage.index(of: object) ?? NSNotFound
     }
 
     public convenience override init() {
@@ -125,19 +125,19 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 }
 
-extension NSOrderedSet : SequenceType {
+extension NSOrderedSet : Sequence {
     /// Return a *generator* over the elements of this *sequence*.
     ///
     /// - Complexity: O(1).
-    public typealias Generator = NSEnumerator.Generator
-    public func generate() -> Generator {
-        return self.objectEnumerator().generate()
+    public typealias Iterator = NSEnumerator.Iterator
+    public func makeIterator() -> Iterator {
+        return self.objectEnumerator().makeIterator()
     }
 }
 
 extension NSOrderedSet {
 
-    public func getObjects(inout objects: [AnyObject], range: NSRange) {
+    public func getObjects(objects: inout [AnyObject], range: NSRange) {
         for idx in range.location..<(range.location + range.length) {
             objects.append(_orderedStorage[idx])
         }
@@ -218,7 +218,7 @@ extension NSOrderedSet {
     
     public func objectEnumerator() -> NSEnumerator {
         if self.dynamicType === NSOrderedSet.self || self.dynamicType === NSMutableOrderedSet.self {
-            return NSGeneratorEnumerator(_orderedStorage.generate())
+            return NSGeneratorEnumerator(_orderedStorage.makeIterator())
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -278,13 +278,13 @@ extension NSOrderedSet {
     }
 
     public convenience init(array: [AnyObject]) {
-        let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
-        for (idx, element) in array.enumerate() {
-            buffer.advancedBy(idx).initialize(element)
+        let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: array.count)
+        for (idx, element) in array.enumerated() {
+            buffer.advanced(by: idx).initialize(with: element)
         }
         self.init(objects: buffer, count: array.count)
-        buffer.destroy(array.count)
-        buffer.dealloc(array.count)
+        buffer.deinitialize(count: array.count)
+        buffer.deallocateCapacity(array.count)
     }
 
     public convenience init(array set: [AnyObject], copyItems flag: Bool) {
@@ -330,13 +330,13 @@ public class NSMutableOrderedSet : NSOrderedSet {
 
         if let object = object as? NSObject {
             _storage.insert(object)
-            _orderedStorage.insert(object, atIndex: idx)
+            _orderedStorage.insert(object, at: idx)
         }
     }
 
     public func removeObjectAtIndex(idx: Int) {
         _storage.remove(_orderedStorage[idx])
-        _orderedStorage.removeAtIndex(idx)
+        _orderedStorage.remove(at: idx)
     }
 
     public func replaceObjectAtIndex(idx: Int, withObject object: AnyObject) {
@@ -369,7 +369,7 @@ public class NSMutableOrderedSet : NSOrderedSet {
       }
 
       _storage.remove(object)
-      _orderedStorage.removeAtIndex(indexOfObject(object))
+      _orderedStorage.remove(at: indexOfObject(object))
     }
 }
 
@@ -402,7 +402,7 @@ extension NSMutableOrderedSet {
 
     public func moveObjectsAtIndexes(indexes: NSIndexSet, toIndex idx: Int) {
         var removedObjects = [NSObject]()
-        for index in indexes.lazy.reverse() {
+        for index in indexes.lazy.reversed() {
             if let object = objectAtIndex(index) as? NSObject {
                 removedObjects.append(object)
                 removeObjectAtIndex(index)
@@ -414,7 +414,7 @@ extension NSMutableOrderedSet {
     }
     
     public func insertObjects(objects: [AnyObject], atIndexes indexes: NSIndexSet) {
-        for (indexLocation, index) in indexes.enumerate() {
+        for (indexLocation, index) in indexes.enumerated() {
             if let object = objects[indexLocation] as? NSObject {
                 insertObject(object, atIndex: index)
             }
@@ -435,7 +435,7 @@ extension NSMutableOrderedSet {
     public func replaceObjectsInRange(range: NSRange, withObjects objects: UnsafePointer<AnyObject?>, count: Int) {
         if let range = range.toRange() {
             let buffer = UnsafeBufferPointer(start: objects, count: count)
-            for (indexLocation, index) in range.indices.lazy.reverse().enumerate() {
+            for (indexLocation, index) in range.indices.lazy.reversed().enumerated() {
                 if let object = buffer[indexLocation] as? NSObject {
                     replaceObjectAtIndex(index, withObject: object)
                 }
@@ -444,7 +444,7 @@ extension NSMutableOrderedSet {
     }
 
     public func replaceObjectsAtIndexes(indexes: NSIndexSet, withObjects objects: [AnyObject]) {
-        for (indexLocation, index) in indexes.enumerate() {
+        for (indexLocation, index) in indexes.enumerated() {
             if let object = objects[indexLocation] as? NSObject {
                 replaceObjectAtIndex(index, withObject: object)
             }
@@ -453,14 +453,14 @@ extension NSMutableOrderedSet {
     
     public func removeObjectsInRange(range: NSRange) {
         if let range = range.toRange() {
-            for index in range.indices.lazy.reverse() {
+            for index in range.indices.lazy.reversed() {
                 removeObjectAtIndex(index)
             }
         }
     }
 
     public func removeObjectsAtIndexes(indexes: NSIndexSet) {
-        for index in indexes.lazy.reverse() {
+        for index in indexes.lazy.reversed() {
             removeObjectAtIndex(index)
         }
     }
@@ -473,7 +473,7 @@ extension NSMutableOrderedSet {
     public func removeObject(object: AnyObject) {
         if let object = object as? NSObject {
             _storage.remove(object)
-            _orderedStorage.removeAtIndex(indexOfObject(object))
+            _orderedStorage.remove(at: indexOfObject(object))
         }
     }
 
@@ -528,7 +528,7 @@ extension NSMutableOrderedSet {
         }
 
         let swiftRange = range.toRange()!
-        _orderedStorage[swiftRange].sortInPlace { lhs, rhs in
+        _orderedStorage[swiftRange].sort { lhs, rhs in
             return cmptr(lhs, rhs) == .OrderedAscending
         }
     }

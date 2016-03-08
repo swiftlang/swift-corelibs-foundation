@@ -71,7 +71,7 @@ prefix public func -(x: CGFloat) -> CGFloat {
     return CGFloat(-x.native)
 }
 
-public func +=(inout lhs: CGFloat, rhs: CGFloat) {
+public func +=(lhs: inout CGFloat, rhs: CGFloat) {
     lhs.native = lhs.native + rhs.native
 }
 
@@ -103,8 +103,8 @@ extension CGPoint: NSSpecialValueCoding {
     init(bytes: UnsafePointer<Void>) {
         let buffer = UnsafePointer<CGFloat>(bytes)
 
-        self.x = buffer.memory
-        self.y = buffer.advancedBy(1).memory
+        self.x = buffer.pointee
+        self.y = buffer.advanced(by: 1).pointee
     }
     
     init?(coder aDecoder: NSCoder) {
@@ -128,7 +128,7 @@ extension CGPoint: NSSpecialValueCoding {
     }
 
     func getValue(value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<CGPoint>(value).memory = self
+        UnsafeMutablePointer<CGPoint>(value).pointee = self
     }
 
     func isEqual(aValue: Any) -> Bool {
@@ -170,8 +170,8 @@ extension CGSize: NSSpecialValueCoding {
     init(bytes: UnsafePointer<Void>) {
         let buffer = UnsafePointer<CGFloat>(bytes)
 
-        self.width = buffer.memory
-        self.height = buffer.advancedBy(1).memory
+        self.width = buffer.pointee
+        self.height = buffer.advanced(by: 1).pointee
     }
     
     init?(coder aDecoder: NSCoder) {
@@ -195,7 +195,7 @@ extension CGSize: NSSpecialValueCoding {
     }
     
     func getValue(value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<CGSize>(value).memory = self
+        UnsafeMutablePointer<CGSize>(value).pointee = self
     }
     
     func isEqual(aValue: Any) -> Bool {
@@ -252,8 +252,8 @@ extension CGRect: NSSpecialValueCoding {
     init(bytes: UnsafePointer<Void>) {
         let buffer = UnsafePointer<CGFloat>(bytes)
 
-        self.origin = CGPoint(x: buffer.memory, y: buffer.advancedBy(1).memory)
-        self.size = CGSize(width: buffer.advancedBy(2).memory, height: buffer.advancedBy(3).memory)
+        self.origin = CGPoint(x: buffer.pointee, y: buffer.advanced(by: 1).pointee)
+        self.size = CGSize(width: buffer.advanced(by: 2).pointee, height: buffer.advanced(by: 3).pointee)
     }
 
     init?(coder aDecoder: NSCoder) {
@@ -277,7 +277,7 @@ extension CGRect: NSSpecialValueCoding {
     }
     
     func getValue(value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<CGRect>(value).memory = self
+        UnsafeMutablePointer<CGRect>(value).pointee = self
     }
     
     func isEqual(aValue: Any) -> Bool {
@@ -347,10 +347,10 @@ extension NSEdgeInsets: NSSpecialValueCoding {
     init(bytes: UnsafePointer<Void>) {
         let buffer = UnsafePointer<CGFloat>(bytes)
 
-        self.top = buffer.memory
-        self.left = buffer.advancedBy(1).memory
-        self.bottom = buffer.advancedBy(2).memory
-        self.right = buffer.advancedBy(3).memory
+        self.top = buffer.pointee
+        self.left = buffer.advanced(by: 1).pointee
+        self.bottom = buffer.advanced(by: 2).pointee
+        self.right = buffer.advanced(by: 3).pointee
     }
 
     init?(coder aDecoder: NSCoder) {
@@ -380,7 +380,7 @@ extension NSEdgeInsets: NSSpecialValueCoding {
     }
     
     func getValue(value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<NSEdgeInsets>(value).memory = self
+        UnsafeMutablePointer<NSEdgeInsets>(value).pointee = self
     }
     
     func isEqual(aValue: Any) -> Bool {
@@ -401,7 +401,7 @@ extension NSEdgeInsets: NSSpecialValueCoding {
     }
 }
 
-public struct NSAlignmentOptions : OptionSetType {
+public struct NSAlignmentOptions : OptionSet {
     public var rawValue : UInt64
     public init(rawValue: UInt64) { self.rawValue = rawValue }
     
@@ -518,12 +518,12 @@ public func NSIntegralRectWithOptions(aRect: NSRect, _ opts: NSAlignmentOptions)
         NSUnimplemented()
     }
 
-    var width = Double.NaN
-    var height = Double.NaN
-    var minX = Double.NaN
-    var minY = Double.NaN
-    var maxX = Double.NaN
-    var maxY = Double.NaN
+    var width = Double.nan
+    var height = Double.nan
+    var minX = Double.nan
+    var minY = Double.nan
+    var maxX = Double.nan
+    var maxY = Double.nan
 
     if aRect.size.height.native < 0 {
         height = 0
@@ -612,10 +612,10 @@ public func NSIntegralRectWithOptions(aRect: NSRect, _ opts: NSAlignmentOptions)
         maxY = round(aRect.origin.y.native + aRect.size.height.native)
     }
     
-    var resultOriginX = Double.NaN
-    var resultOriginY = Double.NaN
-    var resultWidth = Double.NaN
-    var resultHeight = Double.NaN
+    var resultOriginX = Double.nan
+    var resultOriginY = Double.nan
+    var resultWidth = Double.nan
+    var resultHeight = Double.nan
     
     if !minX.isNaN {
         resultOriginX = minX
@@ -701,8 +701,8 @@ public func NSOffsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect 
 
 public func NSDivideRect(inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, _ rem: UnsafeMutablePointer<NSRect>, _ amount: CGFloat, _ edge: NSRectEdge) {
     if NSIsEmptyRect(inRect) {
-        slice.memory = NSZeroRect
-        rem.memory = NSZeroRect
+        slice.pointee = NSZeroRect
+        rem.pointee = NSZeroRect
         return
     }
 
@@ -711,36 +711,36 @@ public func NSDivideRect(inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, 
 
     switch (edge, amount) {
     case (.MinX, let amount) where amount > width:
-        slice.memory = inRect
-        rem.memory = NSMakeRect(NSMaxX(inRect), NSMinY(inRect), CGFloat(0.0), height)
+        slice.pointee = inRect
+        rem.pointee = NSMakeRect(NSMaxX(inRect), NSMinY(inRect), CGFloat(0.0), height)
 
     case (.MinX, _):
-        slice.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), amount, height)
-        rem.memory = NSMakeRect(NSMaxX(slice.memory), NSMinY(inRect), NSMaxX(inRect) - NSMaxX(slice.memory), height)
+        slice.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), amount, height)
+        rem.pointee = NSMakeRect(NSMaxX(slice.pointee), NSMinY(inRect), NSMaxX(inRect) - NSMaxX(slice.pointee), height)
 
     case (.MinY, let amount) where amount > height:
-        slice.memory = inRect
-        rem.memory = NSMakeRect(NSMinX(inRect), NSMaxY(inRect), width, CGFloat(0.0))
+        slice.pointee = inRect
+        rem.pointee = NSMakeRect(NSMinX(inRect), NSMaxY(inRect), width, CGFloat(0.0))
 
     case (.MinY, _):
-        slice.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, amount)
-        rem.memory = NSMakeRect(NSMinX(inRect), NSMaxY(slice.memory), width, NSMaxY(inRect) - NSMaxY(slice.memory))
+        slice.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, amount)
+        rem.pointee = NSMakeRect(NSMinX(inRect), NSMaxY(slice.pointee), width, NSMaxY(inRect) - NSMaxY(slice.pointee))
 
     case (.MaxX, let amount) where amount > width:
-        slice.memory = inRect
-        rem.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), CGFloat(0.0), height)
+        slice.pointee = inRect
+        rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), CGFloat(0.0), height)
 
     case (.MaxX, _):
-        slice.memory = NSMakeRect(NSMaxX(inRect) - amount, NSMinY(inRect), amount, height)
-        rem.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), NSMinX(slice.memory) - NSMinX(inRect), height)
+        slice.pointee = NSMakeRect(NSMaxX(inRect) - amount, NSMinY(inRect), amount, height)
+        rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), NSMinX(slice.pointee) - NSMinX(inRect), height)
 
     case (.MaxY, let amount) where amount > height:
-        slice.memory = inRect
-        rem.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, CGFloat(0.0))
+        slice.pointee = inRect
+        rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, CGFloat(0.0))
 
     case (.MaxY, _):
-        slice.memory = NSMakeRect(NSMinX(inRect), NSMaxY(inRect) - amount, width, amount)
-        rem.memory = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, NSMinY(slice.memory) - NSMinY(inRect))
+        slice.pointee = NSMakeRect(NSMinX(inRect), NSMaxY(inRect) - amount, width, amount)
+        rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, NSMinY(slice.pointee) - NSMinY(inRect))
     }
 }
 
@@ -784,7 +784,7 @@ private func _scanDoublesFromString(aString: String, number: Int) -> [Double] {
     let scanner = NSScanner(string: aString)
     let digitSet = NSMutableCharacterSet.decimalDigitCharacterSet()
     digitSet.addCharactersInString("-")
-    var result = [Double](count: number, repeatedValue: 0.0)
+    var result = [Double](repeating: 0.0, count: number)
     var index = 0
     
     scanner.scanUpToCharactersFromSet(digitSet)
