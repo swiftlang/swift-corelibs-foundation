@@ -52,6 +52,11 @@ public class NSNumberFormatter : NSFormatter {
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func objectValue(string: String, inout range: NSRange) throws -> AnyObject? { NSUnimplemented() }
     
+    public override func stringForObjectValue(obj: AnyObject) -> String? {
+        guard let number = obj as? NSNumber else { return nil }
+        return stringFromNumber(number)
+    }
+    
     // Even though NSNumberFormatter responds to the usual NSFormatter methods,
     //   here are some convenience methods which are a little more obvious.
     public func stringFromNumber(number: NSNumber) -> String? {
