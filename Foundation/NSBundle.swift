@@ -36,7 +36,7 @@ public class NSBundle : NSObject {
         }
         
         let url = NSURL(fileURLWithPath: resolvedPath)
-        _bundle = CFBundleCreate(kCFAllocatorSystemDefault, unsafeBitCast(url, to: CFURL.self))
+        _bundle = CFBundleCreate(kCFAllocatorSystemDefault, unsafeBitCast(url, CFURL.self))
     }
     
     public convenience init?(URL url: NSURL) {

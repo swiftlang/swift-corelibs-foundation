@@ -12,21 +12,21 @@ import CoreFoundation
 
 extension Set : _ObjectTypeBridgeable {
     public func _bridgeToObject() -> NSSet {
-        let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: count)
+        let buffer = UnsafeMutablePointer<AnyObject?>.alloc(count)
         
-        for (idx, obj) in enumerated() {
-            buffer.advanced(by: idx).initialize(with: _NSObjectRepresentableBridge(obj))
+        for (idx, obj) in enumerate() {
+            buffer.advancedBy(idx).initialize(_NSObjectRepresentableBridge(obj))
         }
         
         let set = NSSet(objects: buffer, count: count)
         
-        buffer.deinitialize(count: count)
-        buffer.deallocateCapacity(count)
+        buffer.destroy(count)
+        buffer.dealloc(count)
         
         return set
     }
     
-    public static func _forceBridgeFromObject(x: NSSet, result: inout Set?) {
+    public static func _forceBridgeFromObject(x: NSSet, inout result: Set?) {
         var set = Set<Element>()
         var failedConversion = false
         
@@ -36,19 +36,19 @@ extension Set : _ObjectTypeBridgeable {
                     set.insert(o)
                 } else {
                     failedConversion = true
-                    stop.pointee = true
+                    stop.memory = true
                 }
             }
         } else if x.dynamicType == _NSCFSet.self {
             let cf = x._cfObject
             let cnt = CFSetGetCount(cf)
             
-            let objs = UnsafeMutablePointer<UnsafePointer<Void>>(allocatingCapacity: cnt)
+            let objs = UnsafeMutablePointer<UnsafePointer<Void>>.alloc(cnt)
             
             CFSetGetValues(cf, objs)
             
             for idx in 0..<cnt {
-                let obj = unsafeBitCast(objs.advanced(by: idx), to: AnyObject.self)
+                let obj = unsafeBitCast(objs.advancedBy(idx), AnyObject.self)
                 if let o = obj as? Element {
                     set.insert(o)
                 } else {
@@ -56,15 +56,15 @@ extension Set : _ObjectTypeBridgeable {
                     break
                 }
             }
-            objs.deinitialize(count: cnt)
-            objs.deallocateCapacity(cnt)
+            objs.destroy(cnt)
+            objs.dealloc(cnt)
         }
         if !failedConversion {
             result = set
         }
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSSet, result: inout Set?) -> Bool {
+    public static func _conditionallyBridgeFromObject(x: NSSet, inout result: Set?) -> Bool {
         self._forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -95,7 +95,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     
     public func objectEnumerator() -> NSEnumerator {
         if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self || self.dynamicType === NSCountedSet.self {
-            return NSGeneratorEnumerator(_storage.makeIterator())
+            return NSGeneratorEnumerator(_storage.generate())
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -124,13 +124,13 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
                 aDecoder.decodeValueOfObjCType("i", at: UnsafeMutablePointer<Void>(ptr))
             }
-            let objects = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: Int(cnt))
+            let objects = UnsafeMutablePointer<AnyObject?>.alloc(Int(cnt))
             for idx in 0..<cnt {
-                objects.advanced(by: Int(idx)).initialize(with: aDecoder.decodeObject())
+                objects.advancedBy(Int(idx)).initialize(aDecoder.decodeObject())
             }
             self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
-            objects.deinitialize(count: Int(cnt))
-            objects.deallocateCapacity(Int(cnt))
+            objects.destroy(Int(cnt))
+            objects.dealloc(Int(cnt))
         } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.objects") {
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
             self.init(array: objects)
@@ -203,13 +203,13 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     public convenience init(array: [AnyObject]) {
-        let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: array.count)
-        for (idx, element) in array.enumerated() {
-            buffer.advanced(by: idx).initialize(with: element)
+        let buffer = UnsafeMutablePointer<AnyObject?>.alloc(array.count)
+        for (idx, element) in array.enumerate() {
+            buffer.advancedBy(idx).initialize(element)
         }
         self.init(objects: buffer, count: array.count)
-        buffer.deinitialize(count: array.count)
-        buffer.deallocateCapacity(array.count)
+        buffer.destroy(array.count)
+        buffer.dealloc(array.count)
     }
 
     public convenience init(set: Set<NSObject>) {
@@ -270,7 +270,7 @@ extension NSSet {
     }
     
     public func setByAddingObjectsFromSet(other: Set<NSObject>) -> Set<NSObject> {
-        var result = Set<NSObject>(minimumCapacity: Swift.max(count, other.count))
+        var result = Set<NSObject>(minimumCapacity: max(count, other.count))
         if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
             result.unionInPlace(_storage)
         } else {
@@ -328,7 +328,7 @@ extension NSSet {
 }
 
 extension NSSet : _CFBridgable, _SwiftBridgable {
-    internal var _cfObject: CFSet { return unsafeBitCast(self, to: CFSet.self) }
+    internal var _cfObject: CFSet { return unsafeBitCast(self, CFSet.self) }
     internal var _swiftObject: Set<NSObject> {
         var set: Set<NSObject>?
         Set._forceBridgeFromObject(self, result: &set)
@@ -337,7 +337,7 @@ extension NSSet : _CFBridgable, _SwiftBridgable {
 }
 
 extension CFSet : _NSBridgable, _SwiftBridgable {
-    internal var _nsObject: NSSet { return unsafeBitCast(self, to: NSSet.self) }
+    internal var _nsObject: NSSet { return unsafeBitCast(self, NSSet.self) }
     internal var _swiftObject: Set<NSObject> { return _nsObject._swiftObject }
 }
 
@@ -346,10 +346,10 @@ extension Set : _NSBridgable, _CFBridgable {
     internal var _cfObject: CFSet { return _nsObject._cfObject }
 }
 
-extension NSSet : Sequence {
-    public typealias Iterator = NSEnumerator.Iterator
-    public func makeIterator() -> Iterator {
-        return self.objectEnumerator().makeIterator()
+extension NSSet : SequenceType {
+    public typealias Generator = NSEnumerator.Generator
+    public func generate() -> Generator {
+        return self.objectEnumerator().generate()
     }
 }
 

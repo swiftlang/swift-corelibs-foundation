@@ -281,7 +281,7 @@ public class NSHTTPCookie : NSObject {
         let portList: [NSNumber]?
         if let portString = properties[NSHTTPCookiePort] as? String {
             portList = portString.characters
-                .split(separator: ",")
+                .split(",")
                 .flatMap { Int(String($0)) }
                 .map { NSNumber(integer: $0) }
         } else {
@@ -380,8 +380,8 @@ public class NSHTTPCookie : NSObject {
         }
         //Remove the final trailing semicolon and whitespace
         if ( cookieString.length > 0 ) {
-            cookieString.remove(at: cookieString.endIndex.predecessor())
-            cookieString.remove(at: cookieString.endIndex.predecessor())
+            cookieString.removeAtIndex(cookieString.endIndex.predecessor())
+            cookieString.removeAtIndex(cookieString.endIndex.predecessor())
         }
         return ["Cookie": cookieString]
     }

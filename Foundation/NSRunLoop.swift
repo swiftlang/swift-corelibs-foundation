@@ -24,7 +24,7 @@ public let NSRunLoopCommonModes: String = "kCFRunLoopCommonModes"
 
 internal func _NSRunLoopNew(cf: CFRunLoop) -> Unmanaged<AnyObject> {
     let rl = Unmanaged<NSRunLoop>.passRetained(NSRunLoop(cfObject: cf))
-    return unsafeBitCast(rl, to: Unmanaged<AnyObject>.self) // this retain is balanced on the other side of the CF fence
+    return unsafeBitCast(rl, Unmanaged<AnyObject>.self) // this retain is balanced on the other side of the CF fence
 }
 
 public class NSRunLoop : NSObject {

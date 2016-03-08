@@ -99,7 +99,7 @@ public class NSXMLNode : NSObject, NSCopying {
         super.init()
 
         let unmanaged = Unmanaged<NSXMLNode>.passUnretained(self)
-        let ptr = UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: unmanaged))
+        let ptr = UnsafeMutablePointer<Void>(unmanaged.toOpaque())
 
         _CFXMLNodeSetPrivateData(_xmlNode, ptr)
     }
@@ -266,7 +266,7 @@ public class NSXMLNode : NSObject, NSCopying {
     */
     public var name: String? {
         get {
-            return String(cString: _CFXMLNodeGetName(_xmlNode))
+            return String.fromCString(_CFXMLNodeGetName(_xmlNode))
         }
         set {
             if let newName = newValue {
@@ -344,7 +344,7 @@ public class NSXMLNode : NSObject, NSCopying {
             _CFXMLUnlinkNode(child)
             child = _CFXMLNodeGetNextSibling(child)
         }
-        _childNodes.removeAll(keepingCapacity: true)
+        _childNodes.removeAll(keepCapacity: true)
     }
 
     /*!
@@ -363,7 +363,7 @@ public class NSXMLNode : NSObject, NSCopying {
         var entityChars: [Character] = []
         var inEntity = false
         var startIndex = 0
-        for (index, char) in string.characters.enumerated() {
+        for (index, char) in string.characters.enumerate() {
             if char == "&" {
                 inEntity = true
                 startIndex = index
@@ -394,9 +394,9 @@ public class NSXMLNode : NSObject, NSCopying {
             }
             if entityPtr != nil {
                 let replacement = _CFXMLGetEntityContent(entityPtr)?._swiftObject ?? ""
-                result.replaceSubrange(range, with: replacement.characters)
+                result.replaceRange(range, with: replacement.characters)
             } else {
-                result.replaceSubrange(range, with: []) // This appears to be how Darwin Foundation does it
+                result.replaceRange(range, with: []) // This appears to be how Darwin Foundation does it
             }
         }
         stringValue = String(result)
@@ -408,7 +408,7 @@ public class NSXMLNode : NSObject, NSCopying {
     */
     public var index: Int {
         if let siblings = self.parent?.children,
-            let index = siblings.index(of: self) {
+            let index = siblings.indexOf(self) {
             return index
         }
 
@@ -580,7 +580,7 @@ public class NSXMLNode : NSObject, NSCopying {
             let siblingsWithSameName = parentObj.filter { $0.name == self.name }
 
             if siblingsWithSameName.count > 1 {
-                guard let index = siblingsWithSameName.index(of: self) else { return nil }
+                guard let index = siblingsWithSameName.indexOf(self) else { return nil }
 
                 pathComponents.append("\(self.name ?? "")[\(index + 1)]")
             } else {
@@ -619,7 +619,7 @@ public class NSXMLNode : NSObject, NSCopying {
             }
         }
 
-        return pathComponents.reversed().flatMap({ return $0 }).joined(separator: "/")
+        return pathComponents.reverse().flatMap({ return $0 }).joinWithSeparator("/")
     }
 
     /*!
@@ -785,7 +785,7 @@ public class NSXMLNode : NSObject, NSCopying {
         }
 
         let unmanaged = Unmanaged<NSXMLNode>.passUnretained(self)
-        _CFXMLNodeSetPrivateData(_xmlNode, UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: unmanaged)))
+        _CFXMLNodeSetPrivateData(_xmlNode, UnsafeMutablePointer<Void>(unmanaged.toOpaque()))
     }
 
     internal class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLNode {
@@ -840,7 +840,7 @@ public class NSXMLNode : NSObject, NSCopying {
 
     // see above
     internal func _insertChildren(children: [NSXMLNode], atIndex index: Int) {
-        for (childIndex, node) in children.enumerated() {
+        for (childIndex, node) in children.enumerate() {
             _insertChild(node, atIndex: index + childIndex)
         }
     }
@@ -896,10 +896,10 @@ public class NSXMLNode : NSObject, NSCopying {
     }
 }
 
-internal protocol _NSXMLNodeCollectionType: Collection { }
+internal protocol _NSXMLNodeCollectionType: CollectionType { }
 
 extension NSXMLNode: _NSXMLNodeCollectionType {
-    public struct Index: BidirectionalIndex {
+    public struct Index: BidirectionalIndexType {
         private let node: _CFXMLNodePtr
 
         public func predecessor() -> Index {

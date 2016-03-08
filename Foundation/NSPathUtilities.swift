@@ -17,7 +17,7 @@ import Glibc
 
 public func NSTemporaryDirectory() -> String {
     #if os(OSX) || os(iOS)
-    var buf = [Int8](repeating: 0, count: 100)
+    var buf = [Int8](count: 100, repeatedValue: 0)
     let r = confstr(_CS_DARWIN_USER_TEMP_DIR, &buf, buf.count)
     if r != 0 && r < buf.count {
         return String(CString: buf, encoding: NSUTF8StringEncoding)!
@@ -114,7 +114,7 @@ internal extension String {
                             afterLastSlashPos = afterLastSlashPos.successor()
                         }
                         if afterLastSlashPos != curPos.successor() {
-                            characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
+                            characterView.replaceRange(curPos ..< afterLastSlashPos, with: ["/"])
                             endPos = characterView.endIndex
                         }
                         curPos = afterLastSlashPos
@@ -125,7 +125,7 @@ internal extension String {
             }
         }
         if stripTrailing && result.length > 1 && result.hasSuffix("/") {
-            result.remove(at: result.characters.endIndex.predecessor())
+            result.removeAtIndex(result.characters.endIndex.predecessor())
         }
         return result
     }
@@ -136,7 +136,7 @@ internal extension String {
         }
 
         var temp = self
-        temp.removeSubrange(startIndex..<prefix.endIndex)
+        temp.removeRange(startIndex..<prefix.endIndex)
         return temp
     }
     
@@ -210,7 +210,7 @@ public extension NSString {
             return fixedSelf
         }
         
-        return String(fixedSelf.characters.suffix(from: fixedSelf._startOfLastPathComponent))
+        return String(fixedSelf.characters.suffixFrom(fixedSelf._startOfLastPathComponent))
     }
     
     public var stringByDeletingLastPathComponent : String {
@@ -231,7 +231,7 @@ public extension NSString {
         
         // all common cases
         case let startOfLast:
-            return String(fixedSelf.characters.prefix(upTo: startOfLast.predecessor()))
+            return String(fixedSelf.characters.prefixUpTo(startOfLast.predecessor()))
         }
     }
     
@@ -254,7 +254,7 @@ public extension NSString {
                             afterLastSlashPos = afterLastSlashPos.successor()
                         }
                         if afterLastSlashPos != curPos.successor() {
-                            characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
+                            characterView.replaceRange(curPos ..< afterLastSlashPos, with: ["/"])
                             endPos = characterView.endIndex
                         }
                         curPos = afterLastSlashPos
@@ -265,7 +265,7 @@ public extension NSString {
             }
         }
         if stripTrailing && result.hasSuffix("/") {
-            result.remove(at: result.characters.endIndex.predecessor())
+            result.removeAtIndex(result.characters.endIndex.predecessor())
         }
         return result
     }
@@ -294,7 +294,7 @@ public extension NSString {
         }
 
         if let extensionPos = fixedSelf._startOfPathExtension {
-            return String(fixedSelf.characters.suffix(from: extensionPos))
+            return String(fixedSelf.characters.suffixFrom(extensionPos))
         } else {
             return ""
         }
@@ -307,7 +307,7 @@ public extension NSString {
         }
         
         if let extensionPos = fixedSelf._startOfPathExtension {
-            return String(fixedSelf.characters.prefix(upTo: extensionPos))
+            return String(fixedSelf.characters.prefixUpTo(extensionPos))
         } else {
             return fixedSelf
         }
@@ -327,7 +327,7 @@ public extension NSString {
             return _swiftObject
         }
 
-        let endOfUserName = _swiftObject.characters.index(of: "/") ?? _swiftObject.endIndex
+        let endOfUserName = _swiftObject.characters.indexOf("/") ?? _swiftObject.endIndex
         let userName = String(_swiftObject.characters[_swiftObject.startIndex.successor()..<endOfUserName])
         let optUserName: String? = userName.isEmpty ? nil : userName
         
@@ -336,7 +336,7 @@ public extension NSString {
         }
         
         var result = _swiftObject
-        result.replaceSubrange(_swiftObject.startIndex..<endOfUserName, with: homeDir)
+        result.replaceRange(_swiftObject.startIndex..<endOfUserName, with: homeDir)
         result = result._stringByFixingSlashes(compress: false, stripTrailing: true)
         
         return result
@@ -397,7 +397,7 @@ public extension NSString {
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func completePathIntoString(outputName: inout NSString?, caseSensitive flag: Bool, matchesIntoArray outputArray: inout [NSString], filterTypes: [String]?) -> Int {
+    public func completePathIntoString(inout outputName: NSString?, caseSensitive flag: Bool, inout matchesIntoArray outputArray: [NSString], filterTypes: [String]?) -> Int {
         let path = _swiftObject
         guard !path.isEmpty else {
             return 0
@@ -485,8 +485,8 @@ public extension NSString {
             let set = Set(exts)
             return { $0 != nil && set.contains($0!) }
         } else {
-            let set = Set(exts.map { $0.lowercased() })
-            return { $0 != nil && set.contains($0!.lowercased()) }
+            let set = Set(exts.map { $0.lowercaseString })
+            return { $0 != nil && set.contains($0!.lowercaseString) }
         }
     }
     
@@ -511,11 +511,11 @@ public extension NSString {
             return strings.first
         }
         
-        var sequences = strings.map({ $0.characters.makeIterator() })
+        var sequences = strings.map({ $0.characters.generate() })
         var prefix: [Character] = []
         loop: while true {
             var char: Character? = nil
-            for (idx, s) in sequences.enumerated() {
+            for (idx, s) in sequences.enumerate() {
                 var seq = s
                 
                 guard let c = seq.next() else {
@@ -523,8 +523,8 @@ public extension NSString {
                 }
                 
                 if char != nil {
-                    let lhs = caseSensitive ? char : String(char!).lowercased().characters.first!
-                    let rhs = caseSensitive ? c : String(c).lowercased().characters.first!
+                    let lhs = caseSensitive ? char : String(char!).lowercaseString.characters.first!
+                    let rhs = caseSensitive ? c : String(c).lowercaseString.characters.first!
                     if lhs != rhs {
                         break loop
                     }
@@ -593,7 +593,7 @@ public enum NSSearchPathDirectory : UInt {
     case TrashDirectory // location of Trash directory
 }
 
-public struct NSSearchPathDomainMask : OptionSet {
+public struct NSSearchPathDomainMask : OptionSetType {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
 
@@ -630,7 +630,7 @@ public func NSUserName() -> String {
 internal func _NSCreateTemporaryFile(filePath: String) throws -> (Int32, String) {
     let template = "." + filePath + ".tmp.XXXXXX"
     let maxLength = Int(PATH_MAX) + 1
-    var buf = [Int8](repeating: 0, count: maxLength)
+    var buf = [Int8](count: maxLength, repeatedValue: 0)
     template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
     let fd = mkstemp(&buf)
     if fd == -1 {

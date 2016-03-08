@@ -11,22 +11,22 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-internal let kCFNumberSInt8Type = CFNumberType.sInt8Type
-internal let kCFNumberSInt16Type = CFNumberType.sInt16Type
-internal let kCFNumberSInt32Type = CFNumberType.sInt32Type
-internal let kCFNumberSInt64Type = CFNumberType.sInt64Type
-internal let kCFNumberFloat32Type = CFNumberType.float32Type
-internal let kCFNumberFloat64Type = CFNumberType.float64Type
-internal let kCFNumberCharType = CFNumberType.charType
-internal let kCFNumberShortType = CFNumberType.shortType
-internal let kCFNumberIntType = CFNumberType.intType
-internal let kCFNumberLongType = CFNumberType.longType
-internal let kCFNumberLongLongType = CFNumberType.longLongType
-internal let kCFNumberFloatType = CFNumberType.floatType
-internal let kCFNumberDoubleType = CFNumberType.doubleType
-internal let kCFNumberCFIndexType = CFNumberType.cfIndexType
-internal let kCFNumberNSIntegerType = CFNumberType.nsIntegerType
-internal let kCFNumberCGFloatType = CFNumberType.cgFloatType
+internal let kCFNumberSInt8Type = CFNumberType.SInt8Type
+internal let kCFNumberSInt16Type = CFNumberType.SInt16Type
+internal let kCFNumberSInt32Type = CFNumberType.SInt32Type
+internal let kCFNumberSInt64Type = CFNumberType.SInt64Type
+internal let kCFNumberFloat32Type = CFNumberType.Float32Type
+internal let kCFNumberFloat64Type = CFNumberType.Float64Type
+internal let kCFNumberCharType = CFNumberType.CharType
+internal let kCFNumberShortType = CFNumberType.ShortType
+internal let kCFNumberIntType = CFNumberType.IntType
+internal let kCFNumberLongType = CFNumberType.LongType
+internal let kCFNumberLongLongType = CFNumberType.LongLongType
+internal let kCFNumberFloatType = CFNumberType.FloatType
+internal let kCFNumberDoubleType = CFNumberType.DoubleType
+internal let kCFNumberCFIndexType = CFNumberType.CFIndexType
+internal let kCFNumberNSIntegerType = CFNumberType.NSIntegerType
+internal let kCFNumberCGFloatType = CFNumberType.CGFloatType
 #endif
 
 extension Int : _ObjectTypeBridgeable {
@@ -38,11 +38,11 @@ extension Int : _ObjectTypeBridgeable {
         return NSNumber(integer: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout Int?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Int?) {
         result = x.integerValue
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout Int?) -> Bool {
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Int?) -> Bool {
         self._forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -57,10 +57,10 @@ extension UInt : _ObjectTypeBridgeable {
         return NSNumber(unsignedInteger: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout UInt?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: UInt?) {
         result = x.unsignedIntegerValue
     }
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout UInt?) -> Bool {
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: UInt?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -75,11 +75,11 @@ extension Float : _ObjectTypeBridgeable {
         return NSNumber(float: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout Float?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Float?) {
         result = x.floatValue
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout Float?) -> Bool {
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Float?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -94,11 +94,11 @@ extension Double : _ObjectTypeBridgeable {
         return NSNumber(double: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout Double?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Double?) {
         result = x.doubleValue
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout Double?) -> Bool {
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Double?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -113,11 +113,11 @@ extension Bool : _ObjectTypeBridgeable {
         return NSNumber(bool: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout Bool?) {
+    public static func _forceBridgeFromObject(x: NSNumber, inout result: Bool?) {
         result = x.boolValue
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout Bool?) -> Bool {
+    public static func _conditionallyBridgeFromObject(x: NSNumber, inout result: Bool?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -141,7 +141,7 @@ public class NSNumber : NSValue {
     private var _pad: UInt64 = 0
     
     internal var _cfObject: CFType {
-        return unsafeBitCast(self, to: CFType.self)
+        return unsafeBitCast(self, CFType.self)
     }
     
     public override var hash: Int {
@@ -236,45 +236,45 @@ public class NSNumber : NSValue {
     }
 
     public required convenience init(bytes buffer: UnsafePointer<Void>, objCType: UnsafePointer<Int8>) {
-        guard let type = _NSSimpleObjCType(UInt8(objCType.pointee)) else {
-            fatalError("NSNumber.init: unsupported type encoding spec '\(String(cString: objCType))'")
+        guard let type = _NSSimpleObjCType(UInt8(objCType.memory)) else {
+            fatalError("NSNumber.init: unsupported type encoding spec '\(String.fromCString(objCType))'")
         }
         switch type {
         case .Bool:
-            self.init(bool:UnsafePointer<Bool>(buffer).pointee)
+            self.init(bool:UnsafePointer<Bool>(buffer).memory)
             break
         case .Char:
-            self.init(char:UnsafePointer<Int8>(buffer).pointee)
+            self.init(char:UnsafePointer<Int8>(buffer).memory)
             break
         case .UChar:
-            self.init(unsignedChar:UnsafePointer<UInt8>(buffer).pointee)
+            self.init(unsignedChar:UnsafePointer<UInt8>(buffer).memory)
             break
         case .Short:
-            self.init(short:UnsafePointer<Int16>(buffer).pointee)
+            self.init(short:UnsafePointer<Int16>(buffer).memory)
             break
         case .UShort:
-            self.init(unsignedShort:UnsafePointer<UInt16>(buffer).pointee)
+            self.init(unsignedShort:UnsafePointer<UInt16>(buffer).memory)
             break
         case .Int, .Long:
-            self.init(int:UnsafePointer<Int32>(buffer).pointee)
+            self.init(int:UnsafePointer<Int32>(buffer).memory)
             break
         case .UInt, .ULong:
-            self.init(unsignedInt:UnsafePointer<UInt32>(buffer).pointee)
+            self.init(unsignedInt:UnsafePointer<UInt32>(buffer).memory)
             break
         case .LongLong:
-            self.init(longLong:UnsafePointer<Int64>(buffer).pointee)
+            self.init(longLong:UnsafePointer<Int64>(buffer).memory)
             break
         case .ULongLong:
-            self.init(unsignedLongLong:UnsafePointer<UInt64>(buffer).pointee)
+            self.init(unsignedLongLong:UnsafePointer<UInt64>(buffer).memory)
             break
         case .Float:
-            self.init(float:UnsafePointer<Float>(buffer).pointee)
+            self.init(float:UnsafePointer<Float>(buffer).memory)
             break
         case .Double:
-            self.init(double:UnsafePointer<Double>(buffer).pointee)
+            self.init(double:UnsafePointer<Double>(buffer).memory)
             break
         default:
-            fatalError("NSNumber.init: unsupported type encoding spec '\(String(cString: objCType))'")
+            fatalError("NSNumber.init: unsupported type encoding spec '\(String.fromCString(objCType))'")
             break
         }
     }
@@ -467,11 +467,11 @@ public class NSNumber : NSValue {
 
 extension CFNumber : _NSBridgable {
     typealias NSType = NSNumber
-    internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
+    internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
 }
 
 extension NSNumber : CustomPlaygroundQuickLookable {
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
+    public func customPlaygroundQuickLook() -> PlaygroundQuickLook {
         let type = CFNumberGetType(_cfObject)
         switch type {
         case kCFNumberCharType:
@@ -495,23 +495,23 @@ extension NSNumber : CustomPlaygroundQuickLookable {
         case kCFNumberNSIntegerType:
             fallthrough
         case kCFNumberLongLongType:
-            return .int(self.longLongValue)
+            return .Int(self.longLongValue)
         case kCFNumberFloat32Type:
             fallthrough
         case kCFNumberFloatType:
-            return .float(self.floatValue)
+            return .Float(self.floatValue)
         case kCFNumberFloat64Type:
             fallthrough
         case kCFNumberDoubleType:
-            return .double(self.doubleValue)
+            return .Double(self.doubleValue)
         case kCFNumberCGFloatType:
             if sizeof(CGFloat) == sizeof(Float32) {
-                return .float(self.floatValue)
+                return .Float(self.floatValue)
             } else {
-                return .double(self.doubleValue)
+                return .Double(self.doubleValue)
             }
         default:
-            return .text("invalid NSNumber")
+            return .Text("invalid NSNumber")
         }
     }
 }

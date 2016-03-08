@@ -13,7 +13,7 @@
     import Glibc
 #endif
 
-public struct NSJSONReadingOptions : OptionSet {
+public struct NSJSONReadingOptions : OptionSetType {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -22,7 +22,7 @@ public struct NSJSONReadingOptions : OptionSet {
     public static let AllowFragments = NSJSONReadingOptions(rawValue: 1 << 2)
 }
 
-public struct NSJSONWritingOptions : OptionSet {
+public struct NSJSONWritingOptions : OptionSetType {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -111,7 +111,7 @@ public class NSJSONSerialization : NSObject {
         let buffer: UnsafeBufferPointer<UInt8>
         if let detected = parseBOM(bytes, length: data.length) {
             encoding = detected.encoding
-            buffer = UnsafeBufferPointer(start: bytes.advanced(by: detected.skipLength), count: data.length - detected.skipLength)
+            buffer = UnsafeBufferPointer(start: bytes.advancedBy(detected.skipLength), count: data.length - detected.skipLength)
         }
         else {
             encoding = detectEncoding(bytes, data.length)
@@ -277,8 +277,8 @@ private struct JSONReader {
         }
 
         func takeString(begin: Index, end: Index) throws -> String {
-            let byteLength = begin.distance(to: end)
-            guard let chunk = NSString(bytes: buffer.baseAddress.advanced(by: begin), length: byteLength, encoding: encoding)?.bridge() else {
+            let byteLength = begin.distanceTo(end)
+            guard let chunk = NSString(bytes: buffer.baseAddress.advancedBy(begin), length: byteLength, encoding: encoding)?.bridge() else {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                     "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
                     ])
@@ -291,7 +291,7 @@ private struct JSONReader {
         }
         
         func distanceFromStart(index: Index) -> Index.Distance {
-            return buffer.startIndex.distance(to: index) / step
+            return buffer.startIndex.distanceTo(index) / step
         }
     }
 
@@ -312,7 +312,7 @@ private struct JSONReader {
     func consumeASCII(ascii: UInt8) -> (Index) throws -> Index? {
         return { (input: Index) throws -> Index? in
             switch self.source.takeASCII(input) {
-            case .none:
+            case nil:
                 throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                     "NSDebugDescription" : "Unexpected end of file during JSON parse."
                     ])
@@ -450,11 +450,11 @@ private struct JSONReader {
     func parseNumber(input: Index) throws -> (Double, Index)? {
         func parseDouble(address: UnsafePointer<UInt8>) -> (Double, Index.Distance)? {
             let startPointer = UnsafePointer<Int8>(address)
-            let endPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>(allocatingCapacity: 1)
-            defer { endPointer.deallocateCapacity(1) }
+            let endPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>.alloc(1)
+            defer { endPointer.dealloc(1) }
             
             let result = strtod(startPointer, endPointer)
-            let distance = startPointer.distance(to: endPointer[0])
+            let distance = startPointer.distanceTo(endPointer[0])
             guard distance > 0 else {
                 return nil
             }
@@ -463,7 +463,7 @@ private struct JSONReader {
         }
         
         if source.encoding == NSUTF8StringEncoding {
-            return parseDouble(source.buffer.baseAddress.advanced(by: input)).map { return ($0.0, input + $0.1) }
+            return parseDouble(source.buffer.baseAddress.advancedBy(input)).map { return ($0.0, input + $0.1) }
         }
         else {
             var numberCharacters = [UInt8]()

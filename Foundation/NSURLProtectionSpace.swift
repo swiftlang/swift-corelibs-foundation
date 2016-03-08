@@ -134,7 +134,7 @@ public class NSURLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
         valid values include nil (default method), @"digest" and @"form".
         @result The initialized object.
     */
-    public init(host: String, port: Int, protocol: String?, realm: String?, authenticationMethod: String?) { NSUnimplemented() }
+    public init(host: String, port: Int, `protocol`: String?, realm: String?, authenticationMethod: String?) { NSUnimplemented() }
     
     /*!
         @method initWithProxyHost:port:type:realm:authenticationMethod:

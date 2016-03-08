@@ -74,7 +74,7 @@ internal class NSConcreteValue : NSValue {
     private var _storage : UnsafeMutablePointer<UInt8>
       
     required init(bytes value: UnsafePointer<Void>, objCType type: UnsafePointer<Int8>) {
-        let spec = String(cString: type)
+        let spec = String.fromCString(type)!
         var typeInfo : TypeInfo? = nil
 
         NSConcreteValue._cachedTypeInfoLock.synchronized {
@@ -91,19 +91,19 @@ internal class NSConcreteValue : NSValue {
 
         self._typeInfo = typeInfo!
 
-        self._storage = UnsafeMutablePointer<UInt8>(allocatingCapacity: self._typeInfo.size)
+        self._storage = UnsafeMutablePointer<UInt8>.alloc(self._typeInfo.size)
         if value != nil {
-            self._storage.initializeFrom(unsafeBitCast(value, to: UnsafeMutablePointer<UInt8>.self), count: self._typeInfo.size)
+            self._storage.initializeFrom(unsafeBitCast(value, UnsafeMutablePointer<UInt8>.self), count: self._typeInfo.size)
         }
     }
 
     deinit {
-        self._storage.deinitialize(count: self._size)
-        self._storage.deallocateCapacity(self._size)
+        self._storage.destroy(self._size)
+        self._storage.dealloc(self._size)
     }
     
     override func getValue(value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<UInt8>(value).moveInitializeFrom(unsafeBitCast(self._storage, to: UnsafeMutablePointer<UInt8>.self), count: self._size)
+        UnsafeMutablePointer<UInt8>(value).moveInitializeFrom(unsafeBitCast(self._storage, UnsafeMutablePointer<UInt8>.self), count: self._size)
     }
     
     override var objCType : UnsafePointer<Int8> {
@@ -137,7 +137,7 @@ internal class NSConcreteValue : NSValue {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {
-            aCoder.encodeObject(String(cString: self.objCType).bridge())
+            aCoder.encodeObject(String.fromCString(self.objCType)!.bridge())
             aCoder.encodeValueOfObjCType(self.objCType, at: self.value)
         }
     }
@@ -147,7 +147,7 @@ internal class NSConcreteValue : NSValue {
     }
     
     private var value : UnsafeMutablePointer<Void> {
-        return unsafeBitCast(self._storage, to: UnsafeMutablePointer<Void>.self)
+        return unsafeBitCast(self._storage, UnsafeMutablePointer<Void>.self)
     }
     
     private func _isEqualToValue(other: NSConcreteValue) -> Bool {
@@ -179,7 +179,7 @@ internal class NSConcreteValue : NSValue {
 
     override var hash: Int {
         return self._typeInfo.name.hashValue &+
-            Int(bitPattern: CFHashBytes(unsafeBitCast(self.value, to: UnsafeMutablePointer<UInt8>.self), self._size))
+            Int(bitPattern: CFHashBytes(unsafeBitCast(self.value, UnsafeMutablePointer<UInt8>.self), self._size))
     }
 }
 

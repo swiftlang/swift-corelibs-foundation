@@ -375,8 +375,8 @@ class TestNSString : XCTestCase {
     
     func test_CFStringCreateMutableCopy() {
         let nsstring: NSString = "абВГ"
-        let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, to: CFString.self))
-        let str = unsafeBitCast(mCopy, to: NSString.self).bridge()
+        let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, CFString.self))
+        let str = unsafeBitCast(mCopy, NSString.self).bridge()
         XCTAssertEqual(nsstring.bridge(), str)
     }
     
@@ -388,7 +388,7 @@ class TestNSString : XCTestCase {
 
         let testString = "hello world"
         let string = NSString(string: testString)
-        let cfString = unsafeBitCast(string, to: CFString.self)
+        let cfString = unsafeBitCast(string, CFString.self)
         
         // Get the bytes as UTF16
         let reservedLength = 50
@@ -401,7 +401,7 @@ class TestNSString : XCTestCase {
         
         // Make a new string out of it
         let newCFString = CFStringCreateWithBytes(nil, buf, usedLen, CFStringEncoding(kCFStringEncodingUTF16), false)
-        let newString = unsafeBitCast(newCFString, to: NSString.self)
+        let newString = unsafeBitCast(newCFString, NSString.self)
         
         XCTAssertTrue(newString.isEqualToString(testString))
     }
@@ -598,7 +598,7 @@ class TestNSString : XCTestCase {
     }
     
     func test_initializeWithFormat() {
-        let argument: [CVarArg] = [42, 42.0]
+        let argument: [CVarArgType] = [42, 42.0]
         withVaList(argument) {
             pointer in
             let string = NSString(format: "Value is %d (%.1f)", arguments: pointer)
@@ -703,7 +703,7 @@ class TestNSString : XCTestCase {
 
     func test_getCString_simple() {
         let str: NSString = "foo"
-        var chars = [Int8](repeating:0xF, count:4)
+        var chars = [Int8](count:4, repeatedValue:0xF)
         let count = chars.count
         let expected: [Int8] = [102, 111, 111, 0]
         var res: Bool = false
@@ -717,7 +717,7 @@ class TestNSString : XCTestCase {
     
     func test_getCString_nonASCII_withASCIIAccessor() {
         let str: NSString = "ƒoo"
-        var chars = [Int8](repeating:0xF, count:5)
+        var chars = [Int8](count:5, repeatedValue:0xF)
         let expected: [Int8] = [-58, -110, 111, 111, 0]
         let count = chars.count
         var res: Bool = false
@@ -841,7 +841,7 @@ class TestNSString : XCTestCase {
         let ISOLatin1Encoding = CFStringEncoding(kCFStringEncodingISOLatin1)
         
         do {
-            let string = unsafeBitCast(NSString(string: "this is an external string that should be representable by data"), to: CFString.self)
+            let string = unsafeBitCast(NSString(string: "this is an external string that should be representable by data"), CFString.self)
             let UTF8Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF8Encoding, 0)
             let UTF8Length = CFDataGetLength(UTF8Data)
             XCTAssertEqual(UTF8Length, 63, "NSString should successfully produce an external UTF8 representation with a length of 63 but got \(UTF8Length) bytes")
@@ -856,7 +856,7 @@ class TestNSString : XCTestCase {
         }
         
         do {
-            let string = unsafeBitCast(NSString(string: "🐢 encoding all the way down. 🐢🐢🐢"), to: CFString.self)
+            let string = unsafeBitCast(NSString(string: "🐢 encoding all the way down. 🐢🐢🐢"), CFString.self)
             let UTF8Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF8Encoding, 0)
             let UTF8Length = CFDataGetLength(UTF8Data)
             XCTAssertEqual(UTF8Length, 44, "NSString should successfully produce an external UTF8 representation with a length of 44 but got \(UTF8Length) bytes")
@@ -996,7 +996,7 @@ let comparisonTests = [
     ComparisonTest("\u{0341}", "\u{0954}"),
 ]
 
-enum Stack: ErrorProtocol {
+enum Stack: ErrorType {
     case Stack([UInt])
 }
 
@@ -1024,11 +1024,11 @@ func checkHasPrefixHasSuffix(lhs: String, _ rhs: String, _ stack: [UInt]) -> Int
         rhs.decomposedStringWithCanonicalMapping.characters.map {
             Array(String($0).unicodeScalars)
     }
-    let expectHasPrefix = lhsNFDGraphemeClusters.starts(
-        with: rhsNFDGraphemeClusters, isEquivalent: (==))
+    let expectHasPrefix = lhsNFDGraphemeClusters.startsWith(
+        rhsNFDGraphemeClusters, isEquivalent: (==))
     let expectHasSuffix =
-        lhsNFDGraphemeClusters.lazy.reversed().starts(
-            with: rhsNFDGraphemeClusters.lazy.reversed(), isEquivalent: (==))
+        lhsNFDGraphemeClusters.lazy.reverse().startsWith(
+            rhsNFDGraphemeClusters.lazy.reverse(), isEquivalent: (==))
 
     func testFailure(lhs: Bool, _ rhs: Bool, _ stack: [UInt]) -> Int {
         guard lhs == rhs else {
@@ -1077,7 +1077,7 @@ func test_reflection() {
     let ql = PlaygroundQuickLook(reflecting: testString)
 
     switch ql {
-    case .text(let str): XCTAssertEqual(testString.bridge(), str)
+    case .Text(let str): XCTAssertEqual(testString.bridge(), str)
     default: XCTAssertTrue(false, "mismatched quicklook")
     }
 }

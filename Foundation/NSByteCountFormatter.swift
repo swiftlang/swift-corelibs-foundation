@@ -8,7 +8,7 @@
 //
 
 
-public struct NSByteCountFormatterUnits : OptionSet {
+public struct NSByteCountFormatterUnits : OptionSetType {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     

@@ -64,7 +64,7 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
     }
     
     public override var description: String {
-        var str = "\(self.dynamicType) \(unsafeAddress(of: self)) {"
+        var str = "\(self.dynamicType) \(unsafeAddressOf(self)) {"
         
         str += "name = \(self.name)"
         if let object = self.object {
@@ -92,7 +92,7 @@ private class NSNotificationReceiver : NSObject {
     private var sender: AnyObject?
 }
 
-extension Sequence where Iterator.Element : NSNotificationReceiver {
+extension SequenceType where Generator.Element : NSNotificationReceiver {
 
     /// Returns collection of `NSNotificationReceiver`.
     ///
@@ -101,7 +101,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
     ///  - elements that property `name` is not equal to parameter `name` if specified.
     ///  - elements that property `sender` is not equal to parameter `object` if specified.
     ///
-    private func filterOutObserver(observerToFilter: AnyObject, name:String? = nil, object: AnyObject? = nil) -> [Iterator.Element] {
+    private func filterOutObserver(observerToFilter: AnyObject, name:String? = nil, object: AnyObject? = nil) -> [Generator.Element] {
         return self.filter { observer in
 
             let differentObserver = observer.object !== observerToFilter
@@ -120,7 +120,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
     ///  - elements that property `sender` is `nil` or equals specified parameter `sender`.
     ///  - elements that property `name` is `nil` or equals specified parameter `name`.
     ///
-    private func observersMatchingName(name:String? = nil, sender: AnyObject? = nil) -> [Iterator.Element] {
+    private func observersMatchingName(name:String? = nil, sender: AnyObject? = nil) -> [Generator.Element] {
         return self.filter { observer in
 
             let emptyName = observer.name == nil

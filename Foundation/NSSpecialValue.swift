@@ -64,7 +64,7 @@ internal class NSSpecialValue : NSValue {
     }
     
     internal static func _typeFromObjCType(type: UnsafePointer<Int8>) -> NSSpecialValueCoding.Type? {
-        let objCType = String(cString: type)
+        let objCType = String.fromCString(type)
         
         for (_, T) in _specialTypes {
             if T.objCType() == objCType {

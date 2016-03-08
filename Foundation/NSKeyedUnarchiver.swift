@@ -10,7 +10,7 @@
 import CoreFoundation
 
 public class NSKeyedUnarchiver : NSCoder {
-    struct UnarchiverFlags : OptionSet {
+    struct UnarchiverFlags : OptionSetType {
         let rawValue : UInt
         
         init(rawValue : UInt) {
@@ -108,7 +108,7 @@ public class NSKeyedUnarchiver : NSCoder {
         if let data = self._stream as? NSData {
             try plist = NSPropertyListSerialization.propertyListWithData(data, options: NSPropertyListMutabilityOptions.Immutable, format: &format)
         } else {
-            try plist = NSPropertyListSerialization.propertyListWithStream(unsafeBitCast(self._stream, to: CFReadStream.self),
+            try plist = NSPropertyListSerialization.propertyListWithStream(unsafeBitCast(self._stream, CFReadStream.self),
                                                                            length: 0,
                                                                            options: NSPropertyListMutabilityOptions.Immutable,
                                                                            format: &format)
@@ -250,7 +250,7 @@ public class NSKeyedUnarchiver : NSCoder {
      */ 
     private func _validateAndMapClassDictionary(classDict: Dictionary<String, Any>?,
                                                 allowedClasses: [AnyClass]?,
-                                                classToConstruct: inout AnyClass?) -> Bool {
+                                                inout classToConstruct: AnyClass?) -> Bool {
         classToConstruct = nil
         
         func _classForClassName(codedName: String) -> AnyClass? {
@@ -756,7 +756,7 @@ public class NSKeyedUnarchiver : NSCoder {
         let ns : NSData? = _decodeValue(forKey: key)
         
         if let value = ns {
-            lengthp.pointee = Int(value.length)
+            lengthp.memory = Int(value.length)
             return UnsafePointer<UInt8>(value.bytes)
         }
         
@@ -771,65 +771,65 @@ public class NSKeyedUnarchiver : NSCoder {
         switch type {
         case .ID:
             if let ns = decodeObject() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<AnyObject>.self).pointee = ns
+                unsafeBitCast(addr, UnsafeMutablePointer<AnyObject>.self).memory = ns
             }
             break
         case .Class:
             if let ns = decodeObject() as? NSString {
                 if let nsClass = NSClassFromString(ns.bridge()) {
-                    unsafeBitCast(addr, to: UnsafeMutablePointer<AnyClass>.self).pointee = nsClass
+                    unsafeBitCast(addr, UnsafeMutablePointer<AnyClass>.self).memory = nsClass
                 }
             }
             break
         case .Char:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<CChar>.self).pointee = ns.charValue
+                unsafeBitCast(addr, UnsafeMutablePointer<CChar>.self).memory = ns.charValue
             }
             break
         case .UChar:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt8>.self).pointee = ns.unsignedCharValue
+                unsafeBitCast(addr, UnsafeMutablePointer<UInt8>.self).memory = ns.unsignedCharValue
             }
             break
         case .Int, .Long:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Int32>.self).pointee = ns.intValue
+                unsafeBitCast(addr, UnsafeMutablePointer<Int32>.self).memory = ns.intValue
             }
             break
         case .UInt, .ULong:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt32>.self).pointee = ns.unsignedIntValue
+                unsafeBitCast(addr, UnsafeMutablePointer<UInt32>.self).memory = ns.unsignedIntValue
             }
             break
         case .LongLong:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Int64>.self).pointee = ns.longLongValue
+                unsafeBitCast(addr, UnsafeMutablePointer<Int64>.self).memory = ns.longLongValue
             }
             break
         case .ULongLong:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt64>.self).pointee = ns.unsignedLongLongValue
+                unsafeBitCast(addr, UnsafeMutablePointer<UInt64>.self).memory = ns.unsignedLongLongValue
             }
             break
         case .Float:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Float>.self).pointee = ns.floatValue
+                unsafeBitCast(addr, UnsafeMutablePointer<Float>.self).memory = ns.floatValue
             }
             break
         case .Double:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Double>.self).pointee = ns.doubleValue
+                unsafeBitCast(addr, UnsafeMutablePointer<Double>.self).memory = ns.doubleValue
             }
             break
         case .Bool:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Bool>.self).pointee = ns.boolValue
+                unsafeBitCast(addr, UnsafeMutablePointer<Bool>.self).memory = ns.boolValue
             }
             break
         case .CharPtr:
             if let ns = decodeObject() as? NSString {
                 let string = ns.UTF8String // XXX leaky
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UnsafePointer<Int8>>.self).pointee = string
+                unsafeBitCast(addr, UnsafeMutablePointer<UnsafePointer<Int8>>.self).memory = string
             }
             break
         default:
@@ -839,15 +839,15 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     public override func decodeValueOfObjCType(typep: UnsafePointer<Int8>, at addr: UnsafeMutablePointer<Void>) {
-        guard let type = _NSSimpleObjCType(UInt8(typep.pointee)) else {
-            let spec = String(typep.pointee)
+        guard let type = _NSSimpleObjCType(UInt8(typep.memory)) else {
+            let spec = String(typep.memory)
             fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: unsupported type encoding spec '\(spec)'")
         }
         
         if type == .StructBegin {
             fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: this archiver cannot decode structs")
         } else if type == .ArrayBegin {
-            let scanner = NSScanner(string: String(cString: typep))
+            let scanner = NSScanner(string: String.fromCString(typep)!)
             
             scanner.scanLocation = 1
             

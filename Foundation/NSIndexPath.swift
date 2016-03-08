@@ -67,8 +67,8 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         It is the developer’s responsibility to allocate the memory for the C array.
      */
     public func getIndexes(indexes: UnsafeMutablePointer<Int>, range positionRange: NSRange) {
-        for (pos, idx) in _indexes[positionRange.location ..< NSMaxRange(positionRange)].enumerated() {
-            indexes.advanced(by: pos).pointee = idx
+        for (pos, idx) in _indexes[positionRange.location ..< NSMaxRange(positionRange)].enumerate() {
+            indexes.advancedBy(pos).memory = idx
         }
     }
     

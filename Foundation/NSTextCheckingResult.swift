@@ -9,7 +9,7 @@
 
 
 /* NSTextCheckingType in this project is limited to regular expressions. */
-public struct NSTextCheckingType : OptionSet {
+public struct NSTextCheckingType : OptionSetType {
     public let rawValue: UInt64
     public init(rawValue: UInt64) { self.rawValue = rawValue }
     

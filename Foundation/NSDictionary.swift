@@ -12,30 +12,30 @@ import CoreFoundation
 
 extension Dictionary : _ObjectTypeBridgeable {
     public func _bridgeToObject() -> NSDictionary {
-        let keyBuffer = UnsafeMutablePointer<NSObject>(allocatingCapacity: count)
-        let valueBuffer = UnsafeMutablePointer<AnyObject>(allocatingCapacity: count)
+        let keyBuffer = UnsafeMutablePointer<NSObject>.alloc(count)
+        let valueBuffer = UnsafeMutablePointer<AnyObject>.alloc(count)
         
         var idx = 0
         
         self.forEach {
             let key = _NSObjectRepresentableBridge($0.0)
             let value = _NSObjectRepresentableBridge($0.1)
-            keyBuffer.advanced(by: idx).initialize(with: key)
-            valueBuffer.advanced(by: idx).initialize(with: value)
+            keyBuffer.advancedBy(idx).initialize(key)
+            valueBuffer.advancedBy(idx).initialize(value)
             idx += 1
         }
         
         let dict = NSDictionary(objects: valueBuffer, forKeys: keyBuffer, count: count)
         
-        keyBuffer.deinitialize(count: count)
-        valueBuffer.deinitialize(count: count)
-        keyBuffer.deallocateCapacity(count)
-        valueBuffer.deallocateCapacity(count)
+        keyBuffer.destroy(count)
+        valueBuffer.destroy(count)
+        keyBuffer.dealloc(count)
+        valueBuffer.dealloc(count)
 
         return dict
     }
     
-    public static func _forceBridgeFromObject(x: NSDictionary, result: inout Dictionary?) {
+    public static func _forceBridgeFromObject(x: NSDictionary, inout result: Dictionary?) {
         var dict = [Key: Value]()
         var failedConversion = false
         
@@ -46,25 +46,25 @@ extension Dictionary : _ObjectTypeBridgeable {
                         dict[k] = v
                     } else {
                         failedConversion = true
-                        stop.pointee = true
+                        stop.memory = true
                     }
                 } else {
                     failedConversion = true
-                    stop.pointee = true
+                    stop.memory = true
                 }
             }
         } else if x.dynamicType == _NSCFDictionary.self {
             let cf = x._cfObject
             let cnt = CFDictionaryGetCount(cf)
 
-            let keys = UnsafeMutablePointer<UnsafePointer<Void>>(allocatingCapacity: cnt)
-            let values = UnsafeMutablePointer<UnsafePointer<Void>>(allocatingCapacity: cnt)
+            let keys = UnsafeMutablePointer<UnsafePointer<Void>>.alloc(cnt)
+            let values = UnsafeMutablePointer<UnsafePointer<Void>>.alloc(cnt)
             
             CFDictionaryGetKeysAndValues(cf, keys, values)
             
             for idx in 0..<cnt {
-                let key = unsafeBitCast(keys.advanced(by: idx).pointee, to: AnyObject.self)
-                let value = unsafeBitCast(values.advanced(by: idx).pointee, to: AnyObject.self)
+                let key = unsafeBitCast(keys.advancedBy(idx).memory, AnyObject.self)
+                let value = unsafeBitCast(values.advancedBy(idx).memory, AnyObject.self)
                 if let k = key as? Key {
                     if let v = value as? Value {
                         dict[k] = v
@@ -77,17 +77,17 @@ extension Dictionary : _ObjectTypeBridgeable {
                     break
                 }
             }
-            keys.deinitialize(count: cnt)
-            values.deinitialize(count: cnt)
-            keys.deallocateCapacity(cnt)
-            values.deallocateCapacity(cnt)
+            keys.destroy(cnt)
+            values.destroy(cnt)
+            keys.dealloc(cnt)
+            values.dealloc(cnt)
         }
         if !failedConversion {
             result = dict
         }
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSDictionary, result: inout Dictionary?) -> Bool {
+    public static func _conditionallyBridgeFromObject(x: NSDictionary, inout result: Dictionary?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -115,7 +115,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     
     public func keyEnumerator() -> NSEnumerator {
         if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
-            return NSGeneratorEnumerator(_storage.keys.makeIterator())
+            return NSGeneratorEnumerator(_storage.keys.generate())
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -142,17 +142,17 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
                 aDecoder.decodeValueOfObjCType("i", at: UnsafeMutablePointer<Void>(ptr))
             }
-            let keys = UnsafeMutablePointer<NSObject>(allocatingCapacity: Int(cnt))
-            let objects = UnsafeMutablePointer<AnyObject>(allocatingCapacity: Int(cnt))
+            let keys = UnsafeMutablePointer<NSObject>.alloc(Int(cnt))
+            let objects = UnsafeMutablePointer<AnyObject>.alloc(Int(cnt))
             for idx in 0..<cnt {
-                keys.advanced(by: Int(idx)).initialize(with: aDecoder.decodeObject()! as! NSObject)
-                objects.advanced(by: Int(idx)).initialize(with: aDecoder.decodeObject()!)
+                keys.advancedBy(Int(idx)).initialize(aDecoder.decodeObject()! as! NSObject)
+                objects.advancedBy(Int(idx)).initialize(aDecoder.decodeObject()!)
             }
             self.init(objects: UnsafePointer<AnyObject>(objects), forKeys: UnsafePointer<NSObject>(keys), count: Int(cnt))
-            keys.deinitialize(count: Int(cnt))
-            keys.deallocateCapacity(Int(cnt))
-            objects.deinitialize(count: Int(cnt))
-            objects.deallocateCapacity(Int(cnt))
+            keys.destroy(Int(cnt))
+            keys.dealloc(Int(cnt))
+            objects.destroy(Int(cnt))
+            objects.dealloc(Int(cnt))
             
         } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.objects") {
             let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
@@ -240,18 +240,18 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
 //    }
     
     public convenience init(objects: [AnyObject], forKeys keys: [NSObject]) {
-        let keyBuffer = UnsafeMutablePointer<NSObject>(allocatingCapacity: keys.count)
+        let keyBuffer = UnsafeMutablePointer<NSObject>.alloc(keys.count)
         keyBuffer.initializeFrom(keys)
 
-        let valueBuffer = UnsafeMutablePointer<AnyObject>(allocatingCapacity: objects.count)
+        let valueBuffer = UnsafeMutablePointer<AnyObject>.alloc(objects.count)
         valueBuffer.initializeFrom(objects)
 
         self.init(objects: valueBuffer, forKeys:keyBuffer, count: keys.count)
         
-        keyBuffer.deinitialize(count: keys.count)
-        valueBuffer.deinitialize(count: objects.count)
-        keyBuffer.deallocateCapacity(keys.count)
-        valueBuffer.deallocateCapacity(objects.count)
+        keyBuffer.destroy(keys.count)
+        valueBuffer.destroy(objects.count)
+        keyBuffer.dealloc(keys.count)
+        valueBuffer.dealloc(objects.count)
     }
 
     public override func isEqual(object: AnyObject?) -> Bool {
@@ -295,7 +295,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     /// Alternative pseudo funnel method for fastpath fetches from dictionaries
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func getObjects(objects: inout [AnyObject], andKeys keys: inout [AnyObject], count: Int) {
+    public func getObjects(inout objects: [AnyObject], inout andKeys keys: [AnyObject], count: Int) {
         if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
             for (key, value) in _storage {
                 keys.append(key)
@@ -369,11 +369,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         if level > 100 { return "..." }
 
         var lines = [String]()
-        let indentation = String(repeating: Character(" "), count: level * 4)
+        let indentation = String(count: level * 4, repeatedValue: Character(" "))
         lines.append(indentation + "{")
 
         for key in self.allKeys {
-            var line = String(repeating: Character(" "), count: (level + 1) * 4)
+            var line = String(count: (level + 1) * 4, repeatedValue: Character(" "))
 
             if key is NSArray {
                 line += (key as! NSArray).descriptionWithLocale(locale, indent: level + 1)
@@ -417,7 +417,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
 
         lines.append(indentation + "}")
         
-        return lines.joined(separator: "\n")
+        return lines.joinWithSeparator("\n")
     }
 
     public func isEqualToDictionary(otherDictionary: [NSObject : AnyObject]) -> Bool {
@@ -439,9 +439,9 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return true
     }
     
-    public struct Iterator : IteratorProtocol {
+    public struct Generator : GeneratorType {
         let dictionary : NSDictionary
-        var keyGenerator : Array<AnyObject>.Iterator
+        var keyGenerator : Array<AnyObject>.Generator
         public mutating func next() -> (key: AnyObject, value: AnyObject)? {
             if let key = keyGenerator.next() {
                 return (key, dictionary.objectForKey(key)!)
@@ -451,13 +451,13 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
         init(_ dict : NSDictionary) {
             self.dictionary = dict
-            self.keyGenerator = dict.allKeys.makeIterator()
+            self.keyGenerator = dict.allKeys.generate()
         }
     }
     
-    internal struct ObjectGenerator: IteratorProtocol {
+    internal struct ObjectGenerator: GeneratorType {
         let dictionary : NSDictionary
-        var keyGenerator : Array<AnyObject>.Iterator
+        var keyGenerator : Array<AnyObject>.Generator
         mutating func next() -> AnyObject? {
             if let key = keyGenerator.next() {
                 return dictionary.objectForKey(key)!
@@ -467,7 +467,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
         init(_ dict : NSDictionary) {
             self.dictionary = dict
-            self.keyGenerator = dict.allKeys.makeIterator()
+            self.keyGenerator = dict.allKeys.generate()
         }
     }
 
@@ -516,7 +516,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public func keysSortedByValueWithOptions(opts: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
-        let sorted = allKeys.sorted { lhs, rhs in
+        let sorted = allKeys.sort { lhs, rhs in
             return cmptr(lhs, rhs) == .OrderedSame
         }
         return sorted
@@ -554,7 +554,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
 }
 
 extension NSDictionary : _CFBridgable, _SwiftBridgable {
-    internal var _cfObject: CFDictionary { return unsafeBitCast(self, to: CFDictionary.self) }
+    internal var _cfObject: CFDictionary { return unsafeBitCast(self, CFDictionary.self) }
     internal var _swiftObject: Dictionary<NSObject, AnyObject> {
         var dictionary: [NSObject: AnyObject]?
         Dictionary._forceBridgeFromObject(self, result: &dictionary)
@@ -563,11 +563,11 @@ extension NSDictionary : _CFBridgable, _SwiftBridgable {
 }
 
 extension NSMutableDictionary {
-    internal var _cfMutableObject: CFMutableDictionary { return unsafeBitCast(self, to: CFMutableDictionary.self) }
+    internal var _cfMutableObject: CFMutableDictionary { return unsafeBitCast(self, CFMutableDictionary.self) }
 }
 
 extension CFDictionary : _NSBridgable, _SwiftBridgable {
-    internal var _nsObject: NSDictionary { return unsafeBitCast(self, to: NSDictionary.self) }
+    internal var _nsObject: NSDictionary { return unsafeBitCast(self, NSDictionary.self) }
     internal var _swiftObject: [NSObject: AnyObject] { return _nsObject._swiftObject }
 }
 
@@ -581,7 +581,7 @@ public class NSMutableDictionary : NSDictionary {
     public func removeObjectForKey(aKey: AnyObject) {
         if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
             if let key = aKey as? NSObject {
-                _storage.removeValue(forKey: key)
+                _storage.removeValueForKey(key)
             }
             
 //            CFDictionaryRemoveValue(unsafeBitCast(self, CFMutableDictionaryRef.self), unsafeBitCast(aKey, UnsafePointer<Void>.self))
@@ -666,9 +666,9 @@ extension NSMutableDictionary {
     }
 }
 
-extension NSDictionary : Sequence {
-    public func makeIterator() -> Iterator {
-        return Iterator(self)
+extension NSDictionary : SequenceType {
+    public func generate() -> Generator {
+        return Generator(self)
     }
 }
 

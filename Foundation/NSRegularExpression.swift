@@ -12,7 +12,7 @@
 
 import CoreFoundation
 
-public struct NSRegularExpressionOptions : OptionSet {
+public struct NSRegularExpressionOptions : OptionSetType {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -86,7 +86,7 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
     }
 }
 
-public struct NSMatchingOptions : OptionSet {
+public struct NSMatchingOptions : OptionSetType {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -98,7 +98,7 @@ public struct NSMatchingOptions : OptionSet {
     internal static let OmitResult = NSMatchingOptions(rawValue: 1 << 13)
 }
 
-public struct NSMatchingFlags : OptionSet {
+public struct NSMatchingFlags : OptionSetType {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -119,7 +119,7 @@ internal class _NSRegularExpressionMatcher {
 }
 
 internal func _NSRegularExpressionMatch(context: UnsafeMutablePointer<Void>, ranges: UnsafeMutablePointer<CFRange>, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
-    let matcher = unsafeBitCast(context, to: _NSRegularExpressionMatcher.self)
+    let matcher = unsafeBitCast(context, _NSRegularExpressionMatcher.self)
     if ranges == nil {
 #if os(OSX) || os(iOS)
         let opts = options.rawValue
@@ -151,7 +151,7 @@ extension NSRegularExpression {
 #else
         let opts = _CFRegularExpressionMatchingOptions(options.rawValue)
 #endif
-            _CFRegularExpressionEnumerateMatchesInString(_internal, string._cfObject, opts, CFRange(range), unsafeBitCast(matcher, to: UnsafeMutablePointer<Void>.self), _NSRegularExpressionMatch)
+            _CFRegularExpressionEnumerateMatchesInString(_internal, string._cfObject, opts, CFRange(range), unsafeBitCast(matcher, UnsafeMutablePointer<Void>.self), _NSRegularExpressionMatch)
         }
     }
     
@@ -178,7 +178,7 @@ extension NSRegularExpression {
         var first: NSTextCheckingResult?
         enumerateMatchesInString(string, options: options.subtract(.ReportProgress).subtract(.ReportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             first = result
-            stop.pointee = true
+            stop.memory = true
         }
         return first
     }
@@ -191,7 +191,7 @@ extension NSRegularExpression {
             } else {
                 firstRange = NSMakeRange(0, 0)
             }
-            stop.pointee = true
+            stop.memory = true
         }
         return firstRange
     }
@@ -221,8 +221,8 @@ extension NSRegularExpression {
             let currentRange = result.range
             let replacement = replacementStringForResult(result, inString: string, offset: 0, template: templ)
             if currentRange.location > NSMaxRange(previousRange) {
-                let min = start.advanced(by: NSMaxRange(previousRange))
-                let max = start.advanced(by: currentRange.location)
+                let min = start.advancedBy(NSMaxRange(previousRange))
+                let max = start.advancedBy(currentRange.location)
                 str += String(string.utf16[min..<max])
             }
             str += replacement
@@ -230,8 +230,8 @@ extension NSRegularExpression {
         }
         
         if length > NSMaxRange(previousRange) {
-            let min = start.advanced(by: NSMaxRange(previousRange))
-            let max = start.advanced(by: length)
+            let min = start.advancedBy(NSMaxRange(previousRange))
+            let max = start.advancedBy(length)
             str += String(string.utf16[min..<max])
         }
         
@@ -307,8 +307,8 @@ extension NSRegularExpression {
                         }
                         if substringRange.location != NSNotFound && substringRange.length > 0 {
                             let start = string.utf16.startIndex
-                            let min = start.advanced(by: substringRange.location)
-                            let max = start.advanced(by: substringRange.location + substringRange.length)
+                            let min = start.advancedBy(substringRange.location)
+                            let max = start.advancedBy(substringRange.location + substringRange.length)
                             substring = String(string.utf16[min..<max])
                         }
                         str.replaceCharactersInRange(rangeToReplace, withString: substring)

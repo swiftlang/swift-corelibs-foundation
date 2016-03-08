@@ -80,7 +80,7 @@ internal struct _NSStringBuffer {
     var string: NSString
     var stringLen: Int
     var _stringLoc: Int
-    var buffer = Array<unichar>(repeating: 0, count: 32)
+    var buffer = Array<unichar>(count: 32, repeatedValue: 0)
     var curChar: unichar?
     
     static let EndCharacter = unichar(0xffff)
@@ -94,7 +94,7 @@ internal struct _NSStringBuffer {
             bufferLen = min(32, stringLen - _stringLoc);
             let range = NSMakeRange(_stringLoc, bufferLen)
             bufferLoc = 1
-            buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
+            buffer.withUnsafeMutableBufferPointer({ (inout ptr: UnsafeMutableBufferPointer<unichar>) -> Void in
                 self.string.getCharacters(ptr.baseAddress, range: range)
             })
             curChar = buffer[0]
@@ -114,7 +114,7 @@ internal struct _NSStringBuffer {
             bufferLen = min(32, stringLen - _stringLoc);
             let range = NSMakeRange(_stringLoc, bufferLen)
             bufferLoc = 1
-            buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
+            buffer.withUnsafeMutableBufferPointer({ (inout ptr: UnsafeMutableBufferPointer<unichar>) -> Void in
                 self.string.getCharacters(ptr.baseAddress, range: range)
             })
             curChar = buffer[0]
@@ -136,7 +136,7 @@ internal struct _NSStringBuffer {
     mutating func fill() {
         bufferLen = min(32, stringLen - _stringLoc);
         let range = NSMakeRange(_stringLoc, bufferLen)
-        buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
+        buffer.withUnsafeMutableBufferPointer({ (inout ptr: UnsafeMutableBufferPointer<unichar>) -> Void in
             string.getCharacters(ptr.baseAddress, range: range)
         })
         bufferLoc = 1
@@ -165,7 +165,7 @@ internal struct _NSStringBuffer {
             bufferLen = bufferLoc
             _stringLoc -= bufferLen
             let range = NSMakeRange(_stringLoc, bufferLen)
-            buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
+            buffer.withUnsafeMutableBufferPointer({ (inout ptr: UnsafeMutableBufferPointer<unichar>) -> Void in
                 string.getCharacters(ptr.baseAddress, range: range)
             })
         } else {
@@ -218,7 +218,7 @@ internal protocol _BitShiftable {
     func <<(lhs: Self, rhs: Self) -> Self
 }
 
-internal protocol _IntegerLike : Integer, _BitShiftable {
+internal protocol _IntegerLike : IntegerType, _BitShiftable {
     init(_ value: Int)
     static var max: Self { get }
     static var min: Self { get }
@@ -231,7 +231,7 @@ internal protocol _FloatArithmeticType {
     func /(lhs: Self, rhs: Self) -> Self
 }
 
-internal protocol _FloatLike : FloatingPoint, _FloatArithmeticType {
+internal protocol _FloatLike : FloatingPointType, _FloatArithmeticType {
     init(_ value: Int)
     init(_ value: Double)
     static var max: Self { get }
@@ -287,7 +287,7 @@ private func decimalSep(locale: NSLocale?) -> String {
 }
 
 extension String {
-    internal func scan<T: _IntegerLike>(skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: _IntegerLike>(skipSet: NSCharacterSet?, inout locationToScanFrom: Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var neg = false
@@ -324,7 +324,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _IntegerLike>(skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: _IntegerLike>(skipSet: NSCharacterSet?, inout locationToScanFrom: Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var localResult: T = 0
@@ -366,7 +366,7 @@ extension String {
         return true
     }
     
-    internal func scan<T: _FloatLike>(skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: _FloatLike>(skipSet: NSCharacterSet?, locale: NSLocale?, inout locationToScanFrom: Int, to: (T) -> Void) -> Bool {
         let ds_chars = decimalSep(locale).utf16
         let ds = ds_chars[ds_chars.startIndex]
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
@@ -425,7 +425,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _FloatLike>(skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: _FloatLike>(skipSet: NSCharacterSet?, locale: NSLocale?, inout locationToScanFrom: Int, to: (T) -> Void) -> Bool {
         NSUnimplemented()
     }
 }
@@ -435,61 +435,61 @@ extension NSScanner {
     // On overflow, the below methods will return success and clamp
     public func scanInt(result: UnsafeMutablePointer<Int32>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int32) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
     public func scanInteger(result: UnsafeMutablePointer<Int>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
     public func scanLongLong(result: UnsafeMutablePointer<Int64>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int64) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
     public func scanUnsignedLongLong(result: UnsafeMutablePointer<UInt64>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
     public func scanFloat(result: UnsafeMutablePointer<Float>) -> Bool {
         return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
     public func scanDouble(result: UnsafeMutablePointer<Double>) -> Bool {
         return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
     public func scanHexInt(result: UnsafeMutablePointer<UInt32>) -> Bool {
         return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt32) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
     public func scanHexLongLong(result: UnsafeMutablePointer<UInt64>) -> Bool {
         return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
     public func scanHexFloat(result: UnsafeMutablePointer<Float>) -> Bool {
         return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
     public func scanHexDouble(result: UnsafeMutablePointer<Double>) -> Bool {
         return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
-            result.pointee = value
+            result.memory = value
         }
     }
     
@@ -515,7 +515,7 @@ extension NSScanner {
         var value: Int32 = 0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Int32>) -> Int32? in
             if scanInt(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }
@@ -526,7 +526,7 @@ extension NSScanner {
         var value: Int = 0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Int>) -> Int? in
             if scanInteger(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }
@@ -537,7 +537,7 @@ extension NSScanner {
         var value: Int64 = 0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Int64>) -> Int64? in
             if scanLongLong(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }
@@ -548,7 +548,7 @@ extension NSScanner {
         var value: UInt64 = 0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<UInt64>) -> UInt64? in
             if scanUnsignedLongLong(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }
@@ -559,7 +559,7 @@ extension NSScanner {
         var value: Float = 0.0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Float>) -> Float? in
             if scanFloat(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }
@@ -570,7 +570,7 @@ extension NSScanner {
         var value: Double = 0.0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Double>) -> Double? in
             if scanDouble(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }
@@ -581,7 +581,7 @@ extension NSScanner {
         var value: UInt32 = 0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<UInt32>) -> UInt32? in
             if scanHexInt(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }
@@ -592,7 +592,7 @@ extension NSScanner {
         var value: UInt64 = 0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<UInt64>) -> UInt64? in
             if scanHexLongLong(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }
@@ -603,7 +603,7 @@ extension NSScanner {
         var value: Float = 0.0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Float>) -> Float? in
             if scanHexFloat(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }
@@ -614,7 +614,7 @@ extension NSScanner {
         var value: Double = 0.0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Double>) -> Double? in
             if scanHexDouble(ptr) {
-                return ptr.pointee
+                return ptr.memory
             } else {
                 return nil
             }

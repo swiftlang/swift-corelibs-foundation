@@ -24,7 +24,7 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     private var _nullLocale = false
     
     internal var _cfObject: CFType {
-        return unsafeBitCast(self, to: CFType.self)
+        return unsafeBitCast(self, CFType.self)
     }
     
     public func objectForKey(key: String) -> AnyObject? {
@@ -212,6 +212,6 @@ public let NSLocaleAlternateQuotationEndDelimiterKey: String = "kCFLocaleAlterna
 extension CFLocale : _NSBridgable {
     typealias NSType = NSLocale
     internal var _nsObject: NSLocale {
-        return unsafeBitCast(self, to: NSType.self)
+        return unsafeBitCast(self, NSType.self)
     }
 }

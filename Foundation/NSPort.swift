@@ -100,11 +100,11 @@ public class NSSocketPort : NSPort {
         NSUnimplemented()
     }
     
-    public init?(protocolFamily family: Int32, socketType type: Int32, protocol: Int32, address: NSData) {
+    public init?(protocolFamily family: Int32, socketType type: Int32, `protocol`: Int32, address: NSData) {
         NSUnimplemented()
     }
     
-    public init?(protocolFamily family: Int32, socketType type: Int32, protocol: Int32, socket sock: NSSocketNativeHandle) {
+    public init?(protocolFamily family: Int32, socketType type: Int32, `protocol`: Int32, socket sock: NSSocketNativeHandle) {
         NSUnimplemented()
     }
     
@@ -112,7 +112,7 @@ public class NSSocketPort : NSPort {
         NSUnimplemented()
     }
     
-    public init(remoteWithProtocolFamily family: Int32, socketType type: Int32, protocol: Int32, address: NSData) {
+    public init(remoteWithProtocolFamily family: Int32, socketType type: Int32, `protocol`: Int32, address: NSData) {
         NSUnimplemented()
     }
 

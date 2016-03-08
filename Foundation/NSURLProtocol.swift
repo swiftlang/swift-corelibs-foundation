@@ -58,7 +58,7 @@ public protocol NSURLProtocolClient {
      @param request the NSURLRequest to which the protocol implementation
      has redirected.
      */
-    func URLProtocol(protocol: NSURLProtocol, wasRedirectedToRequest request: NSURLRequest, redirectResponse: NSURLResponse)
+    func URLProtocol(`protocol`: NSURLProtocol, wasRedirectedToRequest request: NSURLRequest, redirectResponse: NSURLResponse)
     
     /*!
     @method URLProtocol:cachedResponseIsValid:
@@ -69,7 +69,7 @@ public protocol NSURLProtocolClient {
          @param cachedResponse the NSCachedURLResponse object that has
          examined and is valid.
          */
-    func URLProtocol(protocol: NSURLProtocol, cachedResponseIsValid cachedResponse: NSCachedURLResponse)
+    func URLProtocol(`protocol`: NSURLProtocol, cachedResponseIsValid cachedResponse: NSCachedURLResponse)
     
     /*!
     @method URLProtocol:didReceiveResponse:
@@ -82,7 +82,7 @@ public protocol NSURLProtocolClient {
          has determined should be used for the given response if the
          response is to be stored in a cache.
          */
-    func URLProtocol(protocol: NSURLProtocol, didReceiveResponse response: NSURLResponse, cacheStoragePolicy policy: NSURLCacheStoragePolicy)
+    func URLProtocol(`protocol`: NSURLProtocol, didReceiveResponse response: NSURLResponse, cacheStoragePolicy policy: NSURLCacheStoragePolicy)
     
     /*!
     @method URLProtocol:didLoadData:
@@ -94,7 +94,7 @@ public protocol NSURLProtocolClient {
          @param URLProtocol the NSURLProtocol object sending the message.
          @param data URL load data being made available.
          */
-    func URLProtocol(protocol: NSURLProtocol, didLoadData data: NSData)
+    func URLProtocol(`protocol`: NSURLProtocol, didLoadData data: NSData)
     
     /*!
     @method URLProtocolDidFinishLoading:
@@ -102,7 +102,7 @@ public protocol NSURLProtocolClient {
          implementation has finished loading successfully.
          @param URLProtocol the NSURLProtocol object sending the message.
          */
-    func URLProtocolDidFinishLoading(protocol: NSURLProtocol)
+    func URLProtocolDidFinishLoading(`protocol`: NSURLProtocol)
     
     /*!
                 @method URLProtocol:didFailWithError:
@@ -111,7 +111,7 @@ public protocol NSURLProtocolClient {
      @param URLProtocol the NSURLProtocol object sending the message.
      @param error The error that caused the load to fail.
      */
-    func URLProtocol(protocol: NSURLProtocol, didFailWithError error: NSError)
+    func URLProtocol(`protocol`: NSURLProtocol, didFailWithError error: NSError)
     
     /*!
     @method URLProtocol:didReceiveAuthenticationChallenge:
@@ -123,7 +123,7 @@ public protocol NSURLProtocolClient {
          default credential to the challenge it issues to the connection delegate,
          if the protocol did not provide one.
          */
-    func URLProtocol(protocol: NSURLProtocol, didReceiveAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
+    func URLProtocol(`protocol`: NSURLProtocol, didReceiveAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
     
     /*!
     @method URLProtocol:didCancelAuthenticationChallenge:
@@ -131,7 +131,7 @@ public protocol NSURLProtocolClient {
          @param protocol The protocol object cancelling authentication.
          @param challenge The authentication challenge.
          */
-    func URLProtocol(protocol: NSURLProtocol, didCancelAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
+    func URLProtocol(`protocol`: NSURLProtocol, didCancelAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
 }
 
 /*!

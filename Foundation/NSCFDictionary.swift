@@ -33,20 +33,20 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     }
     
     override var count: Int {
-        return CFDictionaryGetCount(unsafeBitCast(self, to: CFDictionary.self))
+        return CFDictionaryGetCount(unsafeBitCast(self, CFDictionary.self))
     }
     
     override func objectForKey(aKey: AnyObject) -> AnyObject? {
-        let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self))
+        let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(aKey, UnsafePointer<Void>.self))
         if value != nil {
-            return unsafeBitCast(value, to: AnyObject.self)
+            return unsafeBitCast(value, AnyObject.self)
         } else {
             return nil
         }
     }
     
     // This doesn't feel like a particularly efficient generator of CFDictionary keys, but it works for now. We should probably put a function into CF that allows us to simply iterate the keys directly from the underlying CF storage.
-    private struct _NSCFKeyGenerator : IteratorProtocol {
+    private struct _NSCFKeyGenerator : GeneratorType {
         var keyArray : [NSObject] = []
         var index : Int = 0
         let count : Int
@@ -64,15 +64,15 @@ internal final class _NSCFDictionary : NSMutableDictionary {
             let cf = dict._cfObject
             count = CFDictionaryGetCount(cf)
             
-            let keys = UnsafeMutablePointer<UnsafePointer<Void>>(allocatingCapacity: count)            
+            let keys = UnsafeMutablePointer<UnsafePointer<Void>>.alloc(count)            
             CFDictionaryGetKeysAndValues(cf, keys, nil)
             
             for idx in 0..<count {
-                let key = unsafeBitCast(keys.advanced(by: idx).pointee, to: NSObject.self)
+                let key = unsafeBitCast(keys.advancedBy(idx).memory, NSObject.self)
                 keyArray.append(key)
             }
-            keys.deinitialize()
-            keys.deallocateCapacity(count)
+            keys.destroy()
+            keys.dealloc(count)
         }
     }
 
@@ -81,11 +81,11 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     }
 
     override func removeObjectForKey(aKey: AnyObject) {
-        CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self))
+        CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(aKey, UnsafePointer<Void>.self))
     }
     
     override func setObject(anObject: AnyObject, forKey aKey: NSObject) {
-        CFDictionarySetValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self), unsafeBitCast(anObject, to: UnsafePointer<Void>.self))
+        CFDictionarySetValue(_cfMutableObject, unsafeBitCast(aKey, UnsafePointer<Void>.self), unsafeBitCast(anObject, UnsafePointer<Void>.self))
     }
     
     override var classForCoder: AnyClass {
@@ -120,10 +120,10 @@ internal func _CFSwiftDictionaryGetValue(dictionary: AnyObject, key: AnyObject) 
 
 internal func _CFSwiftDictionaryGetValueIfPresent(dictionary: AnyObject, key: AnyObject, value: UnsafeMutablePointer<Unmanaged<AnyObject>?>) -> Bool {
     if let val = _CFSwiftDictionaryGetValue(dictionary, key: key) {
-        value.pointee = val
+        value.memory = val
         return true
     } else {
-        value.pointee = nil
+        value.memory = nil
         return false
     }
 }

@@ -26,7 +26,7 @@ public enum NSPersonNameComponentsFormatterStyle : Int {
     case Abbreviated
 }
 
-public struct NSPersonNameComponentsFormatterOptions : OptionSet {
+public struct NSPersonNameComponentsFormatterOptions : OptionSetType {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     

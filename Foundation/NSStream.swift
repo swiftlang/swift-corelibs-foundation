@@ -20,7 +20,7 @@ public enum NSStreamStatus : UInt {
     case Error
 }
 
-public struct NSStreamEvent : OptionSet {
+public struct NSStreamEvent : OptionSetType {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
 

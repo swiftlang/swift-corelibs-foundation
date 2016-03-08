@@ -177,8 +177,8 @@ class TestNSURL : XCTestCase {
             }
         }
         if differences.count > 0 {
-            differences.sort()
-            differences.insert(" url:  '\(url)' ", at: 0)
+            differences.sortInPlace()
+            differences.insert(" url:  '\(url)' ", atIndex: 0)
             return (false, differences)
         } else {
             return (true, [])
@@ -228,9 +228,9 @@ class TestNSURL : XCTestCase {
     static let gBaseTemporaryDirectoryPath = NSTemporaryDirectory()
     static var gBaseCurrentWorkingDirectoryPath : String {
         let count = Int(1024) // MAXPATHLEN is platform specific; this is the lowest common denominator for darwin and most linuxes
-        var buf : [Int8] = Array(repeating: 0, count: count)
+        var buf : [Int8] = Array(count: count, repeatedValue: 0)
         getcwd(&buf, count)
-        return String(cString: buf)
+        return String.fromCString(buf)!
     }
     static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
     static let gFileExistsName = "TestCFURL_file_exists\(NSProcessInfo.processInfo().globallyUniqueString)"
@@ -305,7 +305,7 @@ class TestNSURL : XCTestCase {
         XCTAssertTrue(UInt(actualLength) == expectedLength, "fileSystemRepresentation was too short")
         XCTAssertTrue(strncmp(TestNSURL.gBaseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestNSURL.gBaseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
         let lengthOfRelativePath = Int(strlen(TestNSURL.gFileDoesNotExistName))
-        let relativePath = fileSystemRep.advanced(by: Int(TestNSURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
+        let relativePath = fileSystemRep.advancedBy(Int(TestNSURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
         XCTAssertTrue(strncmp(TestNSURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
     }
         
@@ -360,7 +360,7 @@ class TestNSURL : XCTestCase {
         XCTAssertTrue(actualLength == expectedLength, "fileSystemRepresentation was too short")
         XCTAssertTrue(strncmp(TestNSURL.gBaseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestNSURL.gBaseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
         let lengthOfRelativePath = Int(strlen(TestNSURL.gFileDoesNotExistName))
-        let relativePath = fileSystemRep.advanced(by: Int(TestNSURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
+        let relativePath = fileSystemRep.advancedBy(Int(TestNSURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
         XCTAssertTrue(strncmp(TestNSURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
     }
     

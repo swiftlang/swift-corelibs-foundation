@@ -161,7 +161,7 @@ public class NSXMLDTDNode : NSXMLNode {
             }
             
         case _kCFXMLTypeInvalid:
-            return unsafeBitCast(0, to: NSXMLDTDNodeKind.self) // this mirrors Darwin
+            return unsafeBitCast(0, NSXMLDTDNodeKind.self) // this mirrors Darwin
             
         default:
             fatalError("This is not actually a DTD node!")

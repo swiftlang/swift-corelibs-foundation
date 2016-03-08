@@ -23,7 +23,7 @@ internal func objectRefGetValue(objectRef : CFKeyedArchiverUID) -> UInt32 {
     assert(objectRef.dynamicType == __NSCFType.self)
     assert(CFGetTypeID(objectRef) == _CFKeyedArchiverUIDGetTypeID())
 
-    return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, to: CFKeyedArchiverUIDRef.self))
+    return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, CFKeyedArchiverUIDRef.self))
 }
 
 internal func escapeArchiverKey(key: String) -> String {
@@ -80,7 +80,7 @@ internal func ==(x : NSUniqueObject, y : NSUniqueObject) -> Bool {
 }
 
 public class NSKeyedArchiver : NSCoder {
-    struct ArchiverFlags : OptionSet {
+    struct ArchiverFlags : OptionSetType {
         let rawValue : UInt
         
         init(rawValue : UInt) {
@@ -294,7 +294,7 @@ public class NSKeyedArchiver : NSCoder {
             return self._cache[Int(uid) - 1]
         } else {
             let objectRef = NSKeyedArchiver._createObjectRef(uid)
-            self._cache.insert(objectRef, at: Int(uid) - 1)
+            self._cache.insert(objectRef, atIndex: Int(uid) - 1)
             return objectRef
         }
     }
@@ -321,7 +321,7 @@ public class NSKeyedArchiver : NSCoder {
             uid = UInt32(self._objects.count)
             
             self._objRefMap[oid] = uid
-            self._objects.insert(NSKeyedArchiveNullObjectReferenceName, at: Int(uid!))
+            self._objects.insert(NSKeyedArchiveNullObjectReferenceName, atIndex: Int(uid!))
         }
 
         return _createObjectRefCached(uid!)
@@ -656,52 +656,52 @@ public class NSKeyedArchiver : NSCoder {
     private func _encodeValueOfObjCType(type: _NSSimpleObjCType, at addr: UnsafePointer<Void>) {
         switch type {
         case .ID:
-            let objectp = unsafeBitCast(addr, to: UnsafePointer<AnyObject>.self)
-            encodeObject(objectp.pointee)
+            let objectp = unsafeBitCast(addr, UnsafePointer<AnyObject>.self)
+            encodeObject(objectp.memory)
             break
         case .Class:
-            let classp = unsafeBitCast(addr, to: UnsafePointer<AnyClass>.self)
-            encodeObject(NSStringFromClass(classp.pointee).bridge())
+            let classp = unsafeBitCast(addr, UnsafePointer<AnyClass>.self)
+            encodeObject(NSStringFromClass(classp.memory).bridge())
             break
         case .Char:
-            let charp = unsafeBitCast(addr, to: UnsafePointer<CChar>.self)
-            _encodeValue(NSNumber(char: charp.pointee))
+            let charp = unsafeBitCast(addr, UnsafePointer<CChar>.self)
+            _encodeValue(NSNumber(char: charp.memory))
             break
         case .UChar:
-            let ucharp = unsafeBitCast(addr, to: UnsafePointer<UInt8>.self)
-            _encodeValue(NSNumber(unsignedChar: ucharp.pointee))
+            let ucharp = unsafeBitCast(addr, UnsafePointer<UInt8>.self)
+            _encodeValue(NSNumber(unsignedChar: ucharp.memory))
             break
         case .Int, .Long:
-            let intp = unsafeBitCast(addr, to: UnsafePointer<Int32>.self)
-            _encodeValue(NSNumber(int: intp.pointee))
+            let intp = unsafeBitCast(addr, UnsafePointer<Int32>.self)
+            _encodeValue(NSNumber(int: intp.memory))
             break
         case .UInt, .ULong:
-            let uintp = unsafeBitCast(addr, to: UnsafePointer<UInt32>.self)
-            _encodeValue(NSNumber(unsignedInt: uintp.pointee))
+            let uintp = unsafeBitCast(addr, UnsafePointer<UInt32>.self)
+            _encodeValue(NSNumber(unsignedInt: uintp.memory))
             break
         case .LongLong:
-            let longlongp = unsafeBitCast(addr, to: UnsafePointer<Int64>.self)
-            _encodeValue(NSNumber(longLong: longlongp.pointee))
+            let longlongp = unsafeBitCast(addr, UnsafePointer<Int64>.self)
+            _encodeValue(NSNumber(longLong: longlongp.memory))
             break
         case .ULongLong:
-            let ulonglongp = unsafeBitCast(addr, to: UnsafePointer<UInt64>.self)
-            _encodeValue(NSNumber(unsignedLongLong: ulonglongp.pointee))
+            let ulonglongp = unsafeBitCast(addr, UnsafePointer<UInt64>.self)
+            _encodeValue(NSNumber(unsignedLongLong: ulonglongp.memory))
             break
         case .Float:
-            let floatp = unsafeBitCast(addr, to: UnsafePointer<Float>.self)
-            _encodeValue(NSNumber(float: floatp.pointee))
+            let floatp = unsafeBitCast(addr, UnsafePointer<Float>.self)
+            _encodeValue(NSNumber(float: floatp.memory))
             break
         case .Double:
-            let doublep = unsafeBitCast(addr, to: UnsafePointer<Double>.self)
-            _encodeValue(NSNumber(double: doublep.pointee))
+            let doublep = unsafeBitCast(addr, UnsafePointer<Double>.self)
+            _encodeValue(NSNumber(double: doublep.memory))
             break
         case .Bool:
-            let boolp = unsafeBitCast(addr, to: UnsafePointer<Bool>.self)
-            _encodeValue(NSNumber(bool: boolp.pointee))
+            let boolp = unsafeBitCast(addr, UnsafePointer<Bool>.self)
+            _encodeValue(NSNumber(bool: boolp.memory))
             break
         case .CharPtr:
-            let charpp = unsafeBitCast(addr, to: UnsafePointer<UnsafePointer<Int8>>.self)
-            encodeObject(NSString(UTF8String: charpp.pointee))
+            let charpp = unsafeBitCast(addr, UnsafePointer<UnsafePointer<Int8>>.self)
+            encodeObject(NSString(UTF8String: charpp.memory))
             break
         default:
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unknown type encoding ('\(type.rawValue)')")
@@ -710,15 +710,15 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     public override func encodeValueOfObjCType(typep: UnsafePointer<Int8>, at addr: UnsafePointer<Void>) {
-        guard let type = _NSSimpleObjCType(UInt8(typep.pointee)) else {
-            let spec = String(typep.pointee)
+        guard let type = _NSSimpleObjCType(UInt8(typep.memory)) else {
+            let spec = String(typep.memory)
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unsupported type encoding spec '\(spec)'")
         }
         
         if type == .StructBegin {
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: this archiver cannot encode structs")
         } else if type == .ArrayBegin {
-            let scanner = NSScanner(string: String(cString: typep))
+            let scanner = NSScanner(string: String.fromCString(typep)!)
             
             scanner.scanLocation = 1 // advance past ObJCType
             

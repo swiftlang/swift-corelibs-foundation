@@ -64,7 +64,7 @@ func _countFormatSpecifiers(a: String) -> Int {
 // Random access for String.UTF16View, only when Foundation is
 // imported.  Making this API dependent on Foundation decouples the
 // Swift core from a UTF16 representation.
-extension String.UTF16View.Index : RandomAccessIndex {
+extension String.UTF16View.Index : RandomAccessIndexType {
     /// Construct from an integer offset.
     public init(_ offset: Int) {
         _precondition(offset >= 0, "Negative UTF16 index offset not allowed")
@@ -102,7 +102,7 @@ extension String {
     @warn_unused_result
     func _optionalRange(r: NSRange) -> Range<Index>? {
         if r.location == NSNotFound {
-            return .none
+            return .None
         }
         return _range(r)
     }
@@ -148,8 +148,8 @@ extension String {
     public static func availableStringEncodings() -> [NSStringEncoding] {
         var result = [NSStringEncoding]()
         var p = NSString.availableStringEncodings()
-        while p.pointee != 0 {
-            result.append(p.pointee)
+        while p.memory != 0 {
+            result.append(p.memory)
             p += 1
         }
         return result
@@ -181,7 +181,7 @@ extension String {
     /// according to the user's default locale.
     @warn_unused_result
     public static func localizedStringWithFormat(
-        format: String, _ arguments: CVarArg...
+        format: String, _ arguments: CVarArgType...
         ) -> String {
         return String(format: format, locale: NSLocale.currentLocale(),
                               arguments: arguments)
@@ -479,14 +479,14 @@ extension String {
     //     enumerateLinesUsingBlock:(void (^)(NSString *line, BOOL *stop))block
     
     /// Enumerates all the lines in a string.
-    public func enumerateLines(body: (line: String, stop: inout Bool) -> ()) {
+    public func enumerateLines(body: (line: String, inout stop: Bool) -> ()) {
         _ns.enumerateLinesUsingBlock {
             (line: String, stop: UnsafeMutablePointer<ObjCBool>)
             in
             var stop_ = false
             body(line: line, stop: &stop_)
             if stop_ {
-                UnsafeMutablePointer<ObjCBool>(stop).pointee = true
+                UnsafeMutablePointer<ObjCBool>(stop).memory = true
             }
         }
     }
@@ -521,7 +521,7 @@ extension String {
                                                             &stop_)
             
             if stop_ {
-                UnsafeMutablePointer($3).pointee = true
+                UnsafeMutablePointer($3).memory = true
             }
         }
     }
@@ -583,7 +583,7 @@ extension String {
     ///
     /// - Note: will get a maximum of `min(buffer.count, maxLength)` bytes.
     public func getBytes(
-        buffer: inout [UInt8],
+        inout buffer: [UInt8],
               maxLength maxBufferCount: Int,
               usedLength usedBufferCount: UnsafeMutablePointer<Int>,
               encoding: NSStringEncoding,
@@ -612,7 +612,7 @@ extension String {
     /// stores them in a buffer.
     /// - Note: will store a maximum of `min(buffer.count, maxLength)` bytes.
     public func getCString(
-        buffer: inout [CChar], maxLength: Int, encoding: NSStringEncoding
+        inout buffer: [CChar], maxLength: Int, encoding: NSStringEncoding
         ) -> Bool {
         return _ns.getCString(&buffer, maxLength: min(buffer.count, maxLength),
                               encoding: encoding)
@@ -627,7 +627,7 @@ extension String {
     /// for use with file-system calls.
     /// - Note: will store a maximum of `min(buffer.count, maxLength)` bytes.
     public func getFileSystemRepresentation(
-        buffer: inout [CChar], maxLength: Int) -> Bool {
+        inout buffer: [CChar], maxLength: Int) -> Bool {
         return _ns.getFileSystemRepresentation(
             &buffer, maxLength: min(buffer.count, maxLength))
     }
@@ -703,7 +703,7 @@ extension String {
     /// Produces an initialized `NSString` object equivalent to the given
     /// `bytes` interpreted in the given `encoding`.
     public init? <
-        S: Sequence where S.Iterator.Element == UInt8
+        S: SequenceType where S.Generator.Element == UInt8
         >(
         bytes: S, encoding: NSStringEncoding
         ) {
@@ -875,7 +875,7 @@ extension String {
     /// Returns a `String` object initialized by using a given
     /// format string as a template into which the remaining argument
     /// values are substituted.
-    public init(format: String, _ arguments: CVarArg...) {
+    public init(format: String, _ arguments: CVarArgType...) {
         self = String(format: format, arguments: arguments)
     }
     
@@ -886,7 +886,7 @@ extension String {
     /// Returns a `String` object initialized by using a given
     /// format string as a template into which the remaining argument
     /// values are substituted according to the user’s default locale.
-    public init(format: String, arguments: [CVarArg]) {
+    public init(format: String, arguments: [CVarArgType]) {
         self = String(format: format, locale: nil, arguments: arguments)
     }
     
@@ -895,7 +895,7 @@ extension String {
     /// Returns a `String` object initialized by using a given
     /// format string as a template into which the remaining argument
     /// values are substituted according to given locale information.
-    public init(format: String, locale: NSLocale?, _ args: CVarArg...) {
+    public init(format: String, locale: NSLocale?, _ args: CVarArgType...) {
         self = String(format: format, locale: locale, arguments: args)
     }
     
@@ -907,7 +907,7 @@ extension String {
     /// Returns a `String` object initialized by using a given
     /// format string as a template into which the remaining argument
     /// values are substituted according to given locale information.
-    public init(format: String, locale: NSLocale?, arguments: [CVarArg]) {
+    public init(format: String, locale: NSLocale?, arguments: [CVarArgType]) {
         _precondition(
             _countFormatSpecifiers(format) <= arguments.count,
             "Too many format specifiers (%<letter>) provided for the argument list"
@@ -1268,7 +1268,7 @@ extension String {
     /// arguments.
     @warn_unused_result
     public func stringByAppendingFormat(
-        format: String, _ arguments: CVarArg...
+        format: String, _ arguments: CVarArgType...
         ) -> String {
         return _ns.stringByAppendingString(
             String(format: format, arguments: arguments))

@@ -49,7 +49,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
                     if dynamicBuffer == nil {
                         fatalError("unable to allocate backing buffer")
                     }
-                    let amtRead = read(_fd, dynamicBuffer.advanced(by: total), amountToRead)
+                    let amtRead = read(_fd, dynamicBuffer.advancedBy(total), amountToRead)
                     if 0 > amtRead {
                         free(dynamicBuffer)
                         fatalError("read failure")
@@ -81,7 +81,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
                 }
                 
                 while remaining > 0 {
-                    let count = read(_fd, dynamicBuffer.advanced(by: total), remaining)
+                    let count = read(_fd, dynamicBuffer.advancedBy(total), remaining)
                     if count < 0 {
                         free(dynamicBuffer)
                         fatalError("Unable to read from fd")
@@ -326,7 +326,7 @@ public class NSPipe : NSObject {
     
     public override init() {
         /// the `pipe` system call creates two `fd` in a malloc'ed area
-        var fds = UnsafeMutablePointer<Int32>(allocatingCapacity: 2)
+        var fds = UnsafeMutablePointer<Int32>.alloc(2)
         defer {
             free(fds)
         }
@@ -337,10 +337,10 @@ public class NSPipe : NSObject {
         /// don't need to add a `deinit` to this class
         
         /// Create the read handle from the first fd in `fds`
-        self.readHandle = NSFileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
+        self.readHandle = NSFileHandle(fileDescriptor: fds.memory, closeOnDealloc: true)
         
         /// Advance `fds` by one to create the write handle from the second fd
-        self.writeHandle = NSFileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
+        self.writeHandle = NSFileHandle(fileDescriptor: fds.successor().memory, closeOnDealloc: true)
         
         super.init()
     }

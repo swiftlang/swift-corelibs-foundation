@@ -37,7 +37,7 @@ private var managerThreadRunLoopIsRunning = false
 private var managerThreadRunLoopIsRunningCondition = NSCondition()
 
 #if os(OSX) || os(iOS)
-internal let kCFSocketDataCallBack = CFSocketCallBackType.dataCallBack.rawValue
+internal let kCFSocketDataCallBack = CFSocketCallBackType.DataCallBack.rawValue
 #endif
 
 private func emptyRunLoopCallback(context : UnsafeMutablePointer<Void>) -> Void {}
@@ -45,26 +45,26 @@ private func emptyRunLoopCallback(context : UnsafeMutablePointer<Void>) -> Void 
 
 // Retain method for run loop source
 private func runLoopSourceRetain(pointer : UnsafePointer<Void>) -> UnsafePointer<Void> {
-    let ref = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer)).takeUnretainedValue()
+    let ref = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(pointer)).takeUnretainedValue()
     let retained = Unmanaged<AnyObject>.passRetained(ref)
-    return unsafeBitCast(retained, to: UnsafePointer<Void>.self)
+    return unsafeBitCast(retained, UnsafePointer<Void>.self)
 }
 
 // Release method for run loop source
 private func runLoopSourceRelease(pointer : UnsafePointer<Void>) -> Void {
-    Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer)).release()
+    Unmanaged<AnyObject>.fromOpaque(COpaquePointer(pointer)).release()
 }
 
 // Equal method for run loop source
 
 private func runloopIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> _DarwinCompatibleBoolean {
     
-    let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
+    let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
     guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? NSRunLoop else {
         return false
     }
     
-    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
+    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
     guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? NSRunLoop else {
         return false
     }
@@ -79,7 +79,7 @@ private func runloopIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) ->
 @noreturn private func managerThread(x: UnsafeMutablePointer<Void>) -> UnsafeMutablePointer<Void> {
     
     managerThreadRunLoop = NSRunLoop.currentRunLoop()
-    var emptySourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(managerThreadRunLoop!))),
+    var emptySourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(Unmanaged.passUnretained(managerThreadRunLoop!).toOpaque()),
                                                               retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil,
                                                                       equal: runloopIsEqual, hash: nil, schedule: nil, cancel: nil,
                                                                              perform: emptyRunLoopCallback)
@@ -113,12 +113,12 @@ private func managerThreadSetup() -> Void {
 // Equal method for task in run loop source
 private func nstaskIsEqual(a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> _DarwinCompatibleBoolean {
     
-    let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
+    let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
     guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
         return false
     }
     
-    let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
+    let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(COpaquePointer(a))
     guard let taskB = unmanagedTaskB.takeUnretainedValue() as? NSTask else {
         return false
     }
@@ -181,12 +181,12 @@ public class NSTask : NSObject {
         
         var args = [launchPath.lastPathComponent]
         if let arguments = self.arguments {
-            args.append(contentsOf: arguments)
+            args.appendContentsOf(arguments)
         }
         
         let argv : UnsafeMutablePointer<UnsafeMutablePointer<Int8>> = args.withUnsafeBufferPointer {
             let array : UnsafeBufferPointer<String> = $0
-            let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>(allocatingCapacity: array.count + 1)
+            let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>.alloc(array.count + 1)
             buffer.initializeFrom(array.map { $0.withCString(strdup) })
             buffer[array.count] = nil
             return buffer
@@ -194,25 +194,25 @@ public class NSTask : NSObject {
         
         defer {
             for arg in argv ..< argv + args.count {
-                free(UnsafeMutablePointer<Void>(arg.pointee))
+                free(UnsafeMutablePointer<Void>(arg.memory))
             }
             
-            argv.deallocateCapacity(args.count + 1)
+            argv.dealloc(args.count + 1)
         }
         
         let envp: UnsafeMutablePointer<UnsafeMutablePointer<Int8>>
         
         if let env = environment {
             let nenv = env.count
-            envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>(allocatingCapacity: 1 + nenv)
+            envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>.alloc(1 + nenv)
             envp.initializeFrom(env.map { strdup("\($0)=\($1)") })
             envp[env.count] = nil
             
             defer {
                 for pair in envp ..< envp + env.count {
-                    free(UnsafeMutablePointer<Void>(pair.pointee))
+                    free(UnsafeMutablePointer<Void>(pair.memory))
                 }
-                envp.deallocateCapacity(env.count + 1)
+                envp.dealloc(env.count + 1)
             }
         } else {
             envp = _CFEnviron()
@@ -222,13 +222,13 @@ public class NSTask : NSObject {
         var taskSocketPair : [Int32] = [0, 0]
         socketpair(AF_UNIX, _CF_SOCK_STREAM(), 0, &taskSocketPair)
         
-        var context = CFSocketContext(version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(self))),
+        var context = CFSocketContext(version: 0, info: UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque()),
                                                retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil)
         
         let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
             (socket, type, address, data, info )  in
             
-            let task = Unmanaged<NSTask>.fromOpaque(OpaquePointer(info)).takeUnretainedValue()
+            let task = Unmanaged<NSTask>.fromOpaque(COpaquePointer(info)).takeUnretainedValue()
             
             task.processLaunchedCondition.lock()
             while task.running == false {
@@ -262,7 +262,7 @@ public class NSTask : NSObject {
                     task.terminationHandler!( task )
                     return context
                     
-                    }, UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passRetained(task))))
+                    }, UnsafeMutablePointer<Void>(Unmanaged.passRetained(task).toOpaque()))
             }
             
             // Set the running flag to false
@@ -298,7 +298,7 @@ public class NSTask : NSObject {
         
         self.runLoop = NSRunLoop.currentRunLoop()
         
-        self.runLoopSourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(self))),
+        self.runLoopSourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque()),
                                                                      retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil,
                                                                              equal: nstaskIsEqual, hash: nil, schedule: nil, cancel: nil,
                                                                                     perform: emptyRunLoopCallback)

@@ -23,7 +23,7 @@ public protocol NSLocking {
 }
 
 public class NSLock : NSObject, NSLocking {
-    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
+    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.alloc(1)
     
     public override init() {
         pthread_mutex_init(mutex, nil)
@@ -31,8 +31,8 @@ public class NSLock : NSObject, NSLocking {
     
     deinit {
         pthread_mutex_destroy(mutex)
-        mutex.deinitialize()
-        mutex.deallocateCapacity(1)
+        mutex.destroy()
+        mutex.dealloc(1)
     }
     
     public func lock() {
@@ -136,7 +136,7 @@ public class NSConditionLock : NSObject, NSLocking {
 }
 
 public class NSRecursiveLock : NSObject, NSLocking {
-    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
+    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.alloc(1)
     
     public override init() {
         super.init()
@@ -149,8 +149,8 @@ public class NSRecursiveLock : NSObject, NSLocking {
     
     deinit {
         pthread_mutex_destroy(mutex)
-        mutex.deinitialize()
-        mutex.deallocateCapacity(1)
+        mutex.destroy()
+        mutex.dealloc(1)
     }
     
     public func lock() {
@@ -169,8 +169,8 @@ public class NSRecursiveLock : NSObject, NSLocking {
 }
 
 public class NSCondition : NSObject, NSLocking {
-    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
-    internal var cond = UnsafeMutablePointer<pthread_cond_t>(allocatingCapacity: 1)
+    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.alloc(1)
+    internal var cond = UnsafeMutablePointer<pthread_cond_t>.alloc(1)
     
     public override init() {
         pthread_mutex_init(mutex, nil)
@@ -180,10 +180,10 @@ public class NSCondition : NSObject, NSLocking {
     deinit {
         pthread_mutex_destroy(mutex)
         pthread_cond_destroy(cond)
-        mutex.deinitialize()
-        cond.deinitialize()
-        mutex.deallocateCapacity(1)
-        cond.deallocateCapacity(1)
+        mutex.destroy()
+        cond.destroy()
+        mutex.dealloc(1)
+        cond.dealloc(1)
     }
     
     public func lock() {
@@ -210,8 +210,8 @@ public class NSCondition : NSObject, NSLocking {
         var tv = timeval()
         withUnsafeMutablePointer(&tv) { t in
             gettimeofday(t, nil)
-            ts.tv_sec += t.pointee.tv_sec
-            ts.tv_nsec += Int((t.pointee.tv_usec * 1000000) / 1000000000)
+            ts.tv_sec += t.memory.tv_sec
+            ts.tv_nsec += Int((t.memory.tv_usec * 1000000) / 1000000000)
         }
         let retVal: Int32 = withUnsafePointer(&ts) { t in
             return pthread_cond_timedwait(cond, mutex, t)

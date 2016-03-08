@@ -165,7 +165,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
 }
 
-extension NSError : ErrorProtocol { }
+extension NSError : ErrorType { }
 
 extension NSError : _CFBridgable { }
 extension CFError : _NSBridgable {
@@ -184,25 +184,25 @@ extension CFError : _NSBridgable {
 }
 
 
-public protocol _ObjectTypeBridgeableErrorType : ErrorProtocol {
+public protocol _ObjectTypeBridgeableErrorType : ErrorType {
     init?(_bridgedNSError: NSError)
 }
 
-public protocol __BridgedNSError : RawRepresentable, ErrorProtocol {
+public protocol __BridgedNSError : RawRepresentable, ErrorType {
     static var __NSErrorDomain: String { get }
 }
 
 @warn_unused_result
-public func ==<T: __BridgedNSError where T.RawValue: SignedInteger>(lhs: T, rhs: T) -> Bool {
+public func ==<T: __BridgedNSError where T.RawValue: SignedIntegerType>(lhs: T, rhs: T) -> Bool {
     return lhs.rawValue.toIntMax() == rhs.rawValue.toIntMax()
 }
 
-public extension __BridgedNSError where RawValue: SignedInteger {
+public extension __BridgedNSError where RawValue: SignedIntegerType {
     public final var _domain: String { return Self.__NSErrorDomain }
     public final var _code: Int { return Int(rawValue.toIntMax()) }
     
     public init?(rawValue: RawValue) {
-        self = unsafeBitCast(rawValue, to: Self.self)
+        self = unsafeBitCast(rawValue, Self.self)
     }
     
     public init?(_bridgedNSError: NSError) {
@@ -217,18 +217,18 @@ public extension __BridgedNSError where RawValue: SignedInteger {
 }
 
 @warn_unused_result
-public func ==<T: __BridgedNSError where T.RawValue: UnsignedInteger>(lhs: T, rhs: T) -> Bool {
+public func ==<T: __BridgedNSError where T.RawValue: UnsignedIntegerType>(lhs: T, rhs: T) -> Bool {
     return lhs.rawValue.toUIntMax() == rhs.rawValue.toUIntMax()
 }
 
-public extension __BridgedNSError where RawValue: UnsignedInteger {
+public extension __BridgedNSError where RawValue: UnsignedIntegerType {
     public final var _domain: String { return Self.__NSErrorDomain }
     public final var _code: Int {
         return Int(bitPattern: UInt(rawValue.toUIntMax()))
     }
     
     public init?(rawValue: RawValue) {
-        self = unsafeBitCast(rawValue, to: Self.self)
+        self = unsafeBitCast(rawValue, Self.self)
     }
     
     public init?(_bridgedNSError: NSError) {
