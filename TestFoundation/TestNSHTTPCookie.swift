@@ -58,7 +58,7 @@ class TestNSHTTPCookie: XCTestCase {
             NSHTTPCookieValue: "Test value @#$%^$&*",
             NSHTTPCookiePath: "/",
             NSHTTPCookieDomain: "apple.com",
-            NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
+            NSHTTPCookieOriginURL: NSURL(string: "https://google.com")!
         ])
         XCTAssert(versionZeroCookieWithDomainAndOriginURL?.domain == "apple.com")
 
@@ -90,8 +90,65 @@ class TestNSHTTPCookie: XCTestCase {
         XCTAssertNil(versionZeroCookieWithInvalidVersionOneProps?.portList)
         XCTAssert(versionZeroCookieWithInvalidVersionOneProps?.secure == true)
         XCTAssert(versionZeroCookieWithInvalidVersionOneProps?.version == 0)
+
+        let versionZeroCookieWithExplicitVersion = NSHTTPCookie(properties: [
+            NSHTTPCookieName: "TestCookie",
+            NSHTTPCookieValue: "Test value @#$%^$&*",
+            NSHTTPCookiePath: "/",
+            NSHTTPCookieDomain: "apple.com",
+            NSHTTPCookieVersion: "0"
+        ])
+        XCTAssert(versionZeroCookieWithExplicitVersion?.version == 0)
+
+        let versionOneCookie = NSHTTPCookie(properties: [
+            NSHTTPCookieName: "TestCookie",
+            NSHTTPCookieValue: "Test value 989as8dfhlkaj@#$%",
+            NSHTTPCookiePath: "/",
+            NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!,
+            NSHTTPCookieComment: "Has anyone ever used this field??",
+            NSHTTPCookieCommentURL: NSURL(string: "https://google.com")!,
+            NSHTTPCookieDiscard: "FALSE",
+            NSHTTPCookieExpires: NSDate(timeIntervalSince1970: 1000),
+            NSHTTPCookieMaximumAge: "2000",
+            NSHTTPCookiePort: "443,8443",
+            NSHTTPCookieSecure: "",
+            NSHTTPCookieVersion: "1"
+        ])
+        XCTAssert(versionOneCookie?.domain == "apple.com")
+        XCTAssert(versionOneCookie?.comment == "Has anyone ever used this field??")
+        XCTAssert(
+            versionOneCookie?.commentURL?.absoluteString ==
+            NSURL(string: "https://google.com")!.absoluteString
+        )
+        XCTAssert(versionOneCookie?.sessionOnly == false)
+
+        // TODO: test timeIntervalSinceNow without a mock
+        XCTAssertNotNil(versionOneCookie?.expiresDate)
+
+        guard let portList = versionOneCookie?.portList else {
+            return XCTFail("portList was nil")
+        }
+        XCTAssert(portList.map {$0.integerValue} == [443, 8443])
+
+        XCTAssert(versionOneCookie?.secure == false)
+        XCTAssert(versionOneCookie?.HTTPOnly == false)
+        XCTAssert(versionOneCookie?.version == 1)
+
+        let versionOneCookieWithStringCommentURL = NSHTTPCookie(properties: [
+            NSHTTPCookieName: "TestCookie",
+            NSHTTPCookieValue: "Test value 989as8dfhlkaj@#$%",
+            NSHTTPCookiePath: "/",
+            NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!,
+            NSHTTPCookieCommentURL: "https://google.com",
+            NSHTTPCookieMaximumAge: "2000",
+            NSHTTPCookieVersion: "1"
+        ])
+        XCTAssert(
+            versionOneCookieWithStringCommentURL?
+                .commentURL?.absoluteString == "https://google.com"
+        )
     }
-    
+
     func test_RequestHeaderFields() {
         let noCookies: [NSHTTPCookie] = []
         XCTAssertEqual(NSHTTPCookie.requestHeaderFieldsWithCookies(noCookies)["Cookie"], "")
@@ -102,13 +159,13 @@ class TestNSHTTPCookie: XCTestCase {
                 NSHTTPCookieValue: "testValue1",
                 NSHTTPCookiePath: "/",
                 NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
-                ])!,
+            ])!,
             NSHTTPCookie(properties: [
                 NSHTTPCookieName: "TestCookie2",
                 NSHTTPCookieValue: "testValue2",
                 NSHTTPCookiePath: "/",
                 NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
-                ])!,
+            ])!,
         ]
         
         let basicCookieString = NSHTTPCookie.requestHeaderFieldsWithCookies(basicCookies)["Cookie"]
