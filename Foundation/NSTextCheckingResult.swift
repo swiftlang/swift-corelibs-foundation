@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
 
 /* NSTextCheckingType in this project is limited to regular expressions. */
 public struct NSTextCheckingType : OptionSet {
@@ -57,9 +58,10 @@ internal class _NSRegularExpressionTextCheckingResultResult : NSTextCheckingResu
     init(ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) {
         _regularExpression = regularExpression
         super.init()
+        let notFound = NSRange(location: NSNotFound,length: 0)
         for i in 0..<count {
-            _ranges.append(ranges[i])
-        }
+            ranges[i].location == kCFNotFound ? _ranges.append(notFound) : _ranges.append(ranges[i])
+        }  
     }
 
     internal required init?(coder aDecoder: NSCoder) {
