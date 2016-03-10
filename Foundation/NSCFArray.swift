@@ -30,11 +30,11 @@ internal final class _NSCFArray : NSMutableArray {
     
     override func objectAtIndex(index: Int) -> AnyObject {
         let value = CFArrayGetValueAtIndex(_cfObject, index)
-        return unsafeBitCast(value, AnyObject.self)
+        return unsafeBitCast(value, to: AnyObject.self)
     }
     
     override func insertObject(anObject: AnyObject, atIndex index: Int) {
-        CFArrayInsertValueAtIndex(_cfMutableObject, index, unsafeBitCast(anObject, UnsafePointer<Void>.self))
+        CFArrayInsertValueAtIndex(_cfMutableObject, index, unsafeBitCast(anObject, to: UnsafePointer<Void>.self))
     }
     
     override func removeObjectAtIndex(index: Int) {

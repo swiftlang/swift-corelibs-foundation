@@ -213,8 +213,8 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         let minIndex : Int
         let maxIndex : Int
         if range != nil {
-            minIndex = range.memory.location
-            maxIndex = NSMaxRange(range.memory) - 1
+            minIndex = range.pointee.location
+            maxIndex = NSMaxRange(range.pointee) - 1
         } else {
             minIndex = firstIndex
             maxIndex = lastIndex
@@ -239,7 +239,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
                 }
                 
                 while idx <= maxIndex && counter < bufferSize && offset < currentRange.length {
-                    indexBuffer.advancedBy(counter).memory = idx
+                    indexBuffer.advanced(by: counter).pointee = idx
                     counter += 1
                     idx += 1
                     offset += 1
@@ -251,9 +251,9 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
             }
             
             if counter > 0 && range != nil {
-                let delta = indexBuffer.advancedBy(counter - 1).memory - minIndex + 1
-                range.memory.location += delta
-                range.memory.length -= delta
+                let delta = indexBuffer.advanced(by: counter - 1).pointee - minIndex + 1
+                range.pointee.location += delta
+                range.pointee.length -= delta
             }
             return counter
         } else {
@@ -280,7 +280,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
                 rangeIndex += 1
             }
             
-            for curRange in _ranges.suffixFrom(rangeIndex) {
+            for curRange in _ranges.suffix(from: rangeIndex) {
                 if NSMaxRange(curRange) - 1 > maxRangeIndex {
                     if curRange.location <= maxRangeIndex {
                         result += maxRangeIndex + 1 - curRange.location
@@ -317,7 +317,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         enumerateRangesUsingBlock { range, stop in
             if !self.containsIndexesInRange(range) {
                 result = false
-                stop.memory = true
+                stop.pointee = true
             }
         }
         return result
@@ -356,7 +356,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         let findIndex = returnType == Bool.self
         var stop = false
         let ranges = _ranges[startRangeIndex...endRangeIndex]
-        let rangeSequence = (reverse ? AnySequence(ranges.reverse()) : AnySequence(ranges))
+        let rangeSequence = (reverse ? AnySequence(ranges.reversed()) : AnySequence(ranges))
         outer: for curRange in rangeSequence {
             let intersection = NSIntersectionRange(curRange, range)
             if passRanges {
@@ -368,7 +368,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
                 }
             } else if intersection.length > 0 {
                 let maxIndex = NSMaxRange(intersection) - 1
-                let indexes = reverse ? maxIndex.stride(through: intersection.location, by: -1) : intersection.location.stride(through: maxIndex, by: 1)
+                let indexes = reverse ? stride(from: maxIndex, through: intersection.location, by: -1) : stride(from: intersection.location, through: maxIndex, by: 1)
                 for idx in indexes {
                     if findIndex {
                         let found : Bool = block(idx as! P, &stop) as! Bool
@@ -443,9 +443,9 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
 
 }
 
-extension NSIndexSet : SequenceType {
+extension NSIndexSet : Sequence {
 
-    public struct Generator : GeneratorType {
+    public struct Iterator : IteratorProtocol {
         internal let _set: NSIndexSet
         internal var _first: Bool = true
         internal var _current: Int?
@@ -469,8 +469,8 @@ extension NSIndexSet : SequenceType {
         }
     }
     
-    public func generate() -> Generator {
-        return Generator(self)
+    public func makeIterator() -> Iterator {
+        return Iterator(self)
     }
 
 }
@@ -503,7 +503,7 @@ public class NSMutableIndexSet : NSIndexSet {
     }
     
     internal func _insertRange(range: NSRange, atIndex index: Int) {
-        _ranges.insert(range, atIndex: index)
+        _ranges.insert(range, at: index)
         _count += range.length
     }
     
@@ -513,7 +513,7 @@ public class NSMutableIndexSet : NSIndexSet {
             _ranges[index] = range
             _count += range.length - oldRange.length
         } else {
-            _ranges.removeAtIndex(index)
+            _ranges.remove(at: index)
             _count -= oldRange.length
         }
     }

@@ -58,7 +58,7 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     public func enumerateAttribute(attrName: String, inRange enumerationRange: NSRange, options opts: NSAttributedStringEnumerationOptions, usingBlock block: (AnyObject?, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
 }
 
-public struct NSAttributedStringEnumerationOptions : OptionSetType {
+public struct NSAttributedStringEnumerationOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let Reverse = NSAttributedStringEnumerationOptions(rawValue: 1 << 1)

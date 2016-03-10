@@ -19,7 +19,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     private var _periodCnt = Int32(0)
     
     internal var _cfObject: CFType {
-        return unsafeBitCast(self, CFType.self)
+        return unsafeBitCast(self, to: CFType.self)
     }
     
     // Primary creation method is +timeZoneWithName:; the
@@ -188,7 +188,7 @@ extension NSTimeZone : _CFBridgable { }
 extension CFTimeZone : _NSBridgable {
     typealias NSType = NSTimeZone
     internal var _nsObject : NSType {
-        return unsafeBitCast(self, NSType.self)
+        return unsafeBitCast(self, to: NSType.self)
     }
 }
 

@@ -100,7 +100,7 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
     }
     
     public var description: String {
-        return "<\(self.dynamicType): \(unsafeAddressOf(self))>"
+        return "<\(self.dynamicType): \(unsafeAddress(of: self))>"
     }
     
     public var debugDescription: String {

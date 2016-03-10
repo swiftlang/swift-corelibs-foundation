@@ -41,7 +41,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     internal var _cfObject: CFType {
-        return unsafeBitCast(self, CFType.self)
+        return unsafeBitCast(self, to: CFType.self)
     }
     
     internal let _base = _CFInfo(typeID: CFDateGetTypeID())
@@ -226,7 +226,7 @@ extension NSDate : _CFBridgable { }
 
 extension CFDate : _NSBridgable {
     typealias NSType = NSDate
-    internal var _nsObject: NSType { return unsafeBitCast(self, NSType.self) }
+    internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 
 /// Alternative API for avoiding AutoreleasingUnsafeMutablePointer usage in NSCalendar and NSFormatter

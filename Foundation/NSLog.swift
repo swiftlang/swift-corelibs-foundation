@@ -10,14 +10,14 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-internal let kCFLogLevelEmergency = CFLogLevel.Emergency
-internal let kCFLogLevelAlert = CFLogLevel.Alert
-internal let kCFLogLevelCritical = CFLogLevel.Critical
-internal let kCFLogLevelError = CFLogLevel.Error
-internal let kCFLogLevelWarning = CFLogLevel.Warning
-internal let kCFLogLevelNotice = CFLogLevel.Notice
-internal let kCFLogLevelInfo = CFLogLevel.Info
-internal let kCFLogLevelDebug = CFLogLevel.Debug
+internal let kCFLogLevelEmergency = CFLogLevel.emergency
+internal let kCFLogLevelAlert = CFLogLevel.alert
+internal let kCFLogLevelCritical = CFLogLevel.critical
+internal let kCFLogLevelError = CFLogLevel.error
+internal let kCFLogLevelWarning = CFLogLevel.warning
+internal let kCFLogLevelNotice = CFLogLevel.notice
+internal let kCFLogLevelInfo = CFLogLevel.info
+internal let kCFLogLevelDebug = CFLogLevel.debug
 #endif
 
 internal func NSLog(message : String) {
