@@ -136,9 +136,9 @@ public class NSDateFormatter : NSFormatter {
         }
     }
 
-    public var dateStyle: NSDateFormatterStyle = .NoStyle { willSet { _reset() } }
+    public var dateStyle: NSDateFormatterStyle = .NoStyle { willSet { _dateFormat = nil; _reset() } }
 
-    public var timeStyle: NSDateFormatterStyle = .NoStyle { willSet { _reset() } }
+    public var timeStyle: NSDateFormatterStyle = .NoStyle { willSet { _dateFormat = nil; _reset() } }
 
     /*@NSCopying*/ public var locale: NSLocale! = .currentLocale() { willSet { _reset() } }
 
@@ -251,7 +251,7 @@ public class NSDateFormatter : NSFormatter {
     public var AMSymbol: String! {
         get {
             guard let symbol = _AMSymbol else {
-                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterAMSymbol) as! CFString)._swiftObject
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterAMSymbol) as! NSString)._swiftObject
             }
             return symbol
         }
@@ -264,7 +264,7 @@ public class NSDateFormatter : NSFormatter {
     public var PMSymbol: String! {
         get {
             guard let symbol = _PMSymbol else {
-                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterPMSymbol) as! CFString)._swiftObject
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterPMSymbol) as! NSString)._swiftObject
             }
             return symbol
         }

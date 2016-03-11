@@ -23,17 +23,16 @@ class TestNSDateFormatter: XCTestCase {
     static var allTests : [(String, TestNSDateFormatter -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
-//            ("test_customDateFormat", test_customDateFormat),
             ("test_dateStyleShort",    test_dateStyleShort),
             ("test_dateStyleMedium",   test_dateStyleMedium),
             ("test_dateStyleLong",     test_dateStyleLong),
-            ("test_dateStyleFull",     test_dateStyleFull)
+            ("test_dateStyleFull",     test_dateStyleFull),
+            ("test_customDateFormat", test_customDateFormat)
         ]
     }
     
     func test_BasicConstruction() {
         
-        // TODO: move to plist
         let symbolDictionaryOne = ["eraSymbols" : ["BC", "AD"],
                              "monthSymbols" : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
                              "shortMonthSymbols" : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -93,19 +92,10 @@ class TestNSDateFormatter: XCTestCase {
         
     }
     
-    func test_customDateFormat() {
-        let dateFormatter = NSDateFormatter()
-        dateFormatter.dateFormat = String("dd-MM-yyyy")
-        let dateStr = dateFormatter.stringFromDate(NSDate())
-        
-        print("With dateFormat '\(dateFormatter.dateFormat)':  '\(dateStr)'")
-        
-    }
-    
     // ShortStyle
     // locale  stringFromDate  example
     // ------  --------------  --------
-    // en_US   M/d/yy       12/25/15
+    // en_US   M/d/yy h:mm a   12/25/15 12:00 AM
     func test_dateStyleShort() {
         
         let timestamps = [
@@ -136,9 +126,9 @@ class TestNSDateFormatter: XCTestCase {
     }
     
     // MediumStyle
-    // locale  stringFromDate  example
-    // ------  --------------  ------------
-    // en_US   MMM d, y       Dec 25, 2015
+    // locale  stringFromDate        example
+    // ------  --------------        ------------
+    // en_US   MMM d, y, h:mm:ss a   Dec 25, 2015, 12:00:00 AM
     func test_dateStyleMedium() {
         
         let timestamps = [
@@ -168,9 +158,9 @@ class TestNSDateFormatter: XCTestCase {
     
     
     // LongStyle
-    // locale  stringFromDate  example
-    // ------  --------------  -----------------
-    // en_US   MMMM d, y       December 25, 2015
+    // locale  stringFromDate                 example
+    // ------  --------------                 -----------------
+    // en_US   MMMM d, y 'at' h:mm:ss a zzz   December 25, 2015 at 12:00:00 AM GMT
     func test_dateStyleLong() {
         
         let timestamps = [
@@ -199,9 +189,9 @@ class TestNSDateFormatter: XCTestCase {
     }
     
     // FullStyle
-    // locale  stringFromDate  example
-    // ------  --------------  -------------------------
-    // en_US   EEEE, MMMM d, y  Friday, December 25, 2015
+    // locale  stringFromDate                       example
+    // ------  --------------                       -------------------------
+    // en_US   EEEE, MMMM d, y 'at' h:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM GMT
     func test_dateStyleFull() {
         
         let timestamps = [
@@ -229,6 +219,62 @@ class TestNSDateFormatter: XCTestCase {
 
             XCTAssertEqual(sf, stringResult)
         }
+        
+    }
+    
+    // Custom Style
+    // locale  stringFromDate                        example
+    // ------  --------------                        -------------------------
+    // en_US   EEEE, MMMM d, y 'at' hh:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM GMT
+    func test_customDateFormat() {
+
+        let timestamps = [
+             -31536000 : "Wednesday, January 1, 1969 at 12:00:00 AM GMT" , 0.0 : "Thursday, January 1, 1970 at 12:00:00 AM GMT",
+             31536000 : "Friday, January 1, 1971 at 12:00:00 AM GMT", 2145916800 : "Friday, January 1, 2038 at 12:00:00 AM GMT",
+             1456272000 : "Wednesday, February 24, 2016 at 12:00:00 AM GMT", 1456358399 : "Wednesday, February 24, 2016 at 11:59:59 PM GMT",
+             1452574638 : "Tuesday, January 12, 2016 at 04:57:18 AM GMT", 1455685038 : "Wednesday, February 17, 2016 at 04:57:18 AM GMT",
+             1458622638 : "Tuesday, March 22, 2016 at 04:57:18 AM GMT", 1459745838 : "Monday, April 4, 2016 at 04:57:18 AM GMT",
+             1462597038 : "Saturday, May 7, 2016 at 04:57:18 AM GMT", 1465534638 : "Friday, June 10, 2016 at 04:57:18 AM GMT",
+             1469854638 : "Saturday, July 30, 2016 at 04:57:18 AM GMT", 1470718638 : "Tuesday, August 9, 2016 at 04:57:18 AM GMT",
+             1473915438 : "Thursday, September 15, 2016 at 04:57:18 AM GMT", 1477285038 : "Monday, October 24, 2016 at 04:57:18 AM GMT",
+             1478062638 : "Wednesday, November 2, 2016 at 04:57:18 AM GMT", 1482641838 : "Sunday, December 25, 2016 at 04:57:18 AM GMT"
+        ]
+        
+        let f = NSDateFormatter()
+        f.dateFormat = "EEEE, MMMM d, y 'at' hh:mm:ss a zzzz"
+        f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
+        f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
+        
+        for (timestamp, stringResult) in timestamps {
+            
+            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let sf = f.stringFromDate(testDate)
+            
+            XCTAssertEqual(sf, stringResult)
+        }
+        
+        let quarterTimestamps: [Double : String] = [
+            1451679712 : "1", 1459542112 : "2", 1467404512 : "3", 1475353312 : "4"
+        ]
+        
+        f.dateFormat = "Q"
+        
+        for (timestamp, stringResult) in quarterTimestamps {
+            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let sf = f.stringFromDate(testDate)
+            
+            XCTAssertEqual(sf, stringResult)
+        }
+        
+        // Check .dateFormat resets when style changes
+        let testDate = NSDate(timeIntervalSince1970: 1457738454)
+        f.dateStyle = .MediumStyle
+        f.timeStyle = .MediumStyle
+        XCTAssertEqual(f.stringFromDate(testDate), "Mar 11, 2016, 11:20:54 PM")
+        XCTAssertEqual(f.dateFormat, "MMM d, y, h:mm:ss a")
+        
+        f.dateFormat = "dd-MM-yyyy"
+        XCTAssertEqual(f.stringFromDate(testDate), "11-03-2016")
         
     }
     
