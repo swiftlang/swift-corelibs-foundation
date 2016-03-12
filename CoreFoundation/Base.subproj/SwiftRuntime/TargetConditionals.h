@@ -107,7 +107,7 @@
 #define TARGET_CPU_ARM64        0
 #define TARGET_CPU_MIPS         0
 #define TARGET_CPU_MIPS64       0
-#elif __arm64__
+#elif __arm64__ || __aarch64__
 #define TARGET_CPU_PPC          0
 #define TARGET_CPU_PPC64        0
 #define TARGET_CPU_X86          0
