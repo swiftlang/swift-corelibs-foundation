@@ -10,13 +10,13 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-    internal let kCFRunLoopEntry = CFRunLoopActivity.Entry.rawValue
-    internal let kCFRunLoopBeforeTimers = CFRunLoopActivity.BeforeTimers.rawValue
-    internal let kCFRunLoopBeforeSources = CFRunLoopActivity.BeforeSources.rawValue
-    internal let kCFRunLoopBeforeWaiting = CFRunLoopActivity.BeforeWaiting.rawValue
-    internal let kCFRunLoopAfterWaiting = CFRunLoopActivity.AfterWaiting.rawValue
-    internal let kCFRunLoopExit = CFRunLoopActivity.Exit.rawValue
-    internal let kCFRunLoopAllActivities = CFRunLoopActivity.AllActivities.rawValue
+    internal let kCFRunLoopEntry = CFRunLoopActivity.entry.rawValue
+    internal let kCFRunLoopBeforeTimers = CFRunLoopActivity.beforeTimers.rawValue
+    internal let kCFRunLoopBeforeSources = CFRunLoopActivity.beforeSources.rawValue
+    internal let kCFRunLoopBeforeWaiting = CFRunLoopActivity.beforeWaiting.rawValue
+    internal let kCFRunLoopAfterWaiting = CFRunLoopActivity.afterWaiting.rawValue
+    internal let kCFRunLoopExit = CFRunLoopActivity.exit.rawValue
+    internal let kCFRunLoopAllActivities = CFRunLoopActivity.allActivities.rawValue
 #endif
 
 public let NSDefaultRunLoopMode: String = "kCFRunLoopDefaultMode"
