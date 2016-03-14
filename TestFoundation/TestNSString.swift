@@ -70,6 +70,7 @@ class TestNSString : XCTestCase {
             ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
             ("test_initializeWithFormat", test_initializeWithFormat),
             ("test_initializeWithFormat2", test_initializeWithFormat2),
+            ("test_initializeWithFormat3", test_initializeWithFormat3),
             ("test_stringByDeletingLastPathComponent", test_stringByDeletingLastPathComponent),
             ("test_getCString_simple", test_getCString_simple),
             ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
@@ -610,6 +611,35 @@ class TestNSString : XCTestCase {
         let argument: UInt8 = 75
         let string = NSString(format: "%02X", argument)
         XCTAssertEqual(string, "4B")
+    }
+    
+    func test_initializeWithFormat3() {
+        let argument: [CVarArg] = [1000, 42.0]
+        
+        withVaList(argument) {
+            pointer in
+            let string = NSString(format: "Default value is %d (%.1f)", locale: nil, arguments: pointer)
+            XCTAssertEqual(string, "Default value is 1000 (42.0)")
+        }
+        
+        withVaList(argument) {
+            pointer in
+            let string = NSString(format: "en_GB value is %d (%.1f)", locale: NSLocale.init(localeIdentifier: "en_GB"), arguments: pointer)
+            XCTAssertEqual(string, "en_GB value is 1,000 (42.0)")
+        }
+
+        withVaList(argument) {
+            pointer in
+            let string = NSString(format: "de_DE value is %d (%.1f)", locale: NSLocale.init(localeIdentifier: "de_DE"), arguments: pointer)
+            XCTAssertEqual(string, "de_DE value is 1.000 (42,0)")
+        }
+        
+        withVaList(argument) {
+            pointer in
+            let loc: NSDictionary = ["NSDecimalSeparator" as NSString : "&" as NSString]
+            let string = NSString(format: "NSDictionary value is %d (%.1f)", locale: loc, arguments: pointer)
+            XCTAssertEqual(string, "NSDictionary value is 1000 (42&0)")
+        }
     }
     
     func test_stringByDeletingLastPathComponent() {
