@@ -19,14 +19,14 @@ import SwiftXCTest
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.MacRoman.rawValue
-internal let kCFStringEncodingWindowsLatin1 =  CFStringBuiltInEncodings.WindowsLatin1.rawValue
-internal let kCFStringEncodingISOLatin1 =  CFStringBuiltInEncodings.ISOLatin1.rawValue
-internal let kCFStringEncodingNextStepLatin =  CFStringBuiltInEncodings.NextStepLatin.rawValue
+internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.macRoman.rawValue
+internal let kCFStringEncodingWindowsLatin1 =  CFStringBuiltInEncodings.windowsLatin1.rawValue
+internal let kCFStringEncodingISOLatin1 =  CFStringBuiltInEncodings.isoLatin1.rawValue
+internal let kCFStringEncodingNextStepLatin =  CFStringBuiltInEncodings.nextStepLatin.rawValue
 internal let kCFStringEncodingASCII =  CFStringBuiltInEncodings.ASCII.rawValue
-internal let kCFStringEncodingUnicode =  CFStringBuiltInEncodings.Unicode.rawValue
+internal let kCFStringEncodingUnicode =  CFStringBuiltInEncodings.unicode.rawValue
 internal let kCFStringEncodingUTF8 =  CFStringBuiltInEncodings.UTF8.rawValue
-internal let kCFStringEncodingNonLossyASCII =  CFStringBuiltInEncodings.NonLossyASCII.rawValue
+internal let kCFStringEncodingNonLossyASCII =  CFStringBuiltInEncodings.nonLossyASCII.rawValue
 internal let kCFStringEncodingUTF16 = CFStringBuiltInEncodings.UTF16.rawValue
 internal let kCFStringEncodingUTF16BE =  CFStringBuiltInEncodings.UTF16BE.rawValue
 internal let kCFStringEncodingUTF16LE =  CFStringBuiltInEncodings.UTF16LE.rawValue
