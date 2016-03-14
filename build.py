@@ -17,7 +17,7 @@ if Configuration.current.target.sdk == OSType.Linux:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE '
 	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `icu-config --ldflags` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString -Wl,-Bsymbolic '
 elif Configuration.current.target.sdk == OSType.FreeBSD:
-	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 '
+	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl'
 	foundation.LDFLAGS = ''
 elif Configuration.current.target.sdk == OSType.MacOSX:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_MACOSX '
@@ -49,12 +49,14 @@ foundation.CFLAGS += " ".join([
 	'-Wno-int-conversion',
 	'-Wno-unused-function',
 	'-I/usr/include/libxml2',
+	'-I/usr/include/curl',
 	'-I./',
 ])
 
 swift_cflags = [
 	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
 	'-I/usr/include/libxml2'
+	'-I/usr/include/curl'
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
@@ -62,6 +64,7 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 		'-I${XCTEST_BUILD_DIR}',
 		'-L${XCTEST_BUILD_DIR}',
 		'-I/usr/include/libxml2'
+		'-I/usr/include/curl'
 	]
 
 # Disable until changes are merged into dispatch.
@@ -355,7 +358,18 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSURLProtocol.swift',
 	'Foundation/NSURLRequest.swift',
 	'Foundation/NSURLResponse.swift',
-	'Foundation/NSURLSession.swift',
+	'Foundation/NSURLSession/Configuration.swift',
+	'Foundation/NSURLSession/EasyHandle.swift',
+	'Foundation/NSURLSession/HTTPBodySource.swift',
+	'Foundation/NSURLSession/HTTPMessage.swift',
+	'Foundation/NSURLSession/MultiHandle.swift',
+	'Foundation/NSURLSession/NSURLSession.swift',
+	'Foundation/NSURLSession/NSURLSessionConfiguration.swift',
+	'Foundation/NSURLSession/NSURLSessionDelegate.swift',
+	'Foundation/NSURLSession/NSURLSessionTask.swift',
+	'Foundation/NSURLSession/TaskRegistry.swift',
+	'Foundation/NSURLSession/TransferState.swift',
+	'Foundation/NSURLSession/libcurlHelpers.swift',
 	'Foundation/NSUserDefaults.swift',
 	'Foundation/NSUUID.swift',
 	'Foundation/NSValue.swift',
@@ -395,6 +409,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
 # TODO: Probably this should be another 'product', but for now it's simply a phase
 foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/main.swift',
+	'TestFoundation/HTTPServer.swift',
 ] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
 
 foundation_tests.add_dependency(foundation_tests_resources)

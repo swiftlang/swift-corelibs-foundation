@@ -183,6 +183,13 @@ public class NSHTTPURLResponse : NSURLResponse {
     /// `[NSObject: AnyObject]` type that Darwin Foundation uses.
     public let allHeaderFields: [String: String]
     
+    /// The value of a specific header field
+    ///
+    /// Uses case-insensitive matching to find the header field with the name.
+    internal func value(forHeaderField field: String) -> String? {
+        return valueForCaseInsensitiveKey(field, fields: allHeaderFields)
+    }
+    
     /*!
         @method localizedStringForStatusCode:
         @abstract Convenience method which returns a localized string
