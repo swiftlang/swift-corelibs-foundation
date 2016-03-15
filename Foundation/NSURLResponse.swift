@@ -52,11 +52,13 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         @result The initialized NSURLResponse.
         @discussion This is the designated initializer for NSURLResponse.
     */
-    public init(URL: NSURL, MIMEType: String?, expectedContentLength length: Int, textEncodingName name: String?) {
-        self.URL = URL
-        self.MIMEType = MIMEType
+    public init(url: NSURL, mimeType: String?, expectedContentLength length: Int, textEncodingName name: String?) {
+        self.url = url
+        self.mimeType = mimeType
         self.expectedContentLength = Int64(length)
         self.textEncodingName = name
+        let c = url.lastPathComponent
+        self.suggestedFilename = (c?.isEmpty ?? true) ? "Unknown" : c
     }
     
     /*! 
@@ -64,7 +66,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         @abstract Returns the URL of the receiver. 
         @result The URL of the receiver. 
     */
-    /*@NSCopying*/ public private(set) var URL: NSURL?
+    /*@NSCopying*/ public private(set) var url: NSURL?
 
     
     /*! 
@@ -78,7 +80,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         be made if the origin source did not report any such information.
         @result The MIME type of the receiver.
     */
-    public private(set) var MIMEType: String?
+    public private(set) var mimeType: String?
     
     /*! 
         @method expectedContentLength
@@ -120,7 +122,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         This method always returns a valid filename.
         @result A suggested filename to use if saving the resource to disk.
     */
-    public var suggestedFilename: String? { NSUnimplemented() }
+    public private(set) var suggestedFilename: String?
 }
 
 /*!
@@ -143,7 +145,17 @@ public class NSHTTPURLResponse : NSURLResponse {
       @result 	the instance of the object, or NULL if an error occurred during initialization.
       @discussion This API was introduced in Mac OS X 10.7.2 and iOS 5.0 and is not available prior to those releases.
     */
-    public init?(URL url: NSURL, statusCode: Int, HTTPVersion: String?, headerFields: [String : String]?) { NSUnimplemented() }
+    public init?(url: NSURL, statusCode: Int, httpVersion: String?, headerFields: [String : String]?) {
+        self.statusCode = statusCode
+        self.allHeaderFields = headerFields ?? [:]
+        super.init(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
+        expectedContentLength = getExpectedContentLength(fromHeaderFields: headerFields) ?? -1
+        suggestedFilename = getSuggestedFilename(fromHeaderFields: headerFields) ?? "Unknown"
+        if let type = ContentTypeComponents(headerFields: headerFields) {
+            mimeType = type.mimeType.lowercased()
+            textEncodingName = type.textEncoding?.lowercased()
+        }
+    }
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
@@ -154,28 +166,192 @@ public class NSHTTPURLResponse : NSURLResponse {
         @abstract Returns the HTTP status code of the receiver. 
         @result The HTTP status code of the receiver. 
     */
-    public var statusCode: Int { NSUnimplemented() }
+    public let statusCode: Int
     
-    /*! 
-        @method allHeaderFields
-        @abstract Returns a dictionary containing all the HTTP header fields
-        of the receiver.
-        @discussion By examining this header dictionary, clients can see
-        the "raw" header information which was reported to the protocol
-        implementation by the HTTP server. This may be of use to
-        sophisticated or special-purpose HTTP clients.
-        @result A dictionary containing all the HTTP header fields of the
-        receiver.
-    */
-    public var allHeaderFields: [NSObject : AnyObject] { NSUnimplemented() }
+    /// Returns a dictionary containing all the HTTP header fields
+    /// of the receiver.
+    ///
+    /// By examining this header dictionary, clients can see
+    /// the "raw" header information which was reported to the protocol
+    /// implementation by the HTTP server. This may be of use to
+    /// sophisticated or special-purpose HTTP clients.
+    ///
+    /// - Returns: A dictionary containing all the HTTP header fields of the
+    /// receiver.
+    ///
+    /// - Important: This is an *experimental* change from the
+    /// `[NSObject: AnyObject]` type that Darwin Foundation uses.
+    public let allHeaderFields: [String: String]
     
-    /*! 
+    /*!
         @method localizedStringForStatusCode:
         @abstract Convenience method which returns a localized string
         corresponding to the status code for this response.
         @param the status code to use to produce a localized string.
         @result A localized string corresponding to the given status code.
     */
-    public class func localizedStringForStatusCode(_ statusCode: Int) -> String { NSUnimplemented() }
+    public class func localizedString(forStatusCode statusCode: Int) -> String { NSUnimplemented() }
+}
+/// Parses the expected content length from the headers.
+///
+/// Note that the message content length is different from the message
+/// transfer length.
+/// The transfer length can only be derived when the Transfer-Encoding is identity (default).
+/// For compressed content (Content-Encoding other than identity), there is not way to derive the
+/// content length from the transfer length.
+private func getExpectedContentLength(fromHeaderFields headerFields: [String : String]?) -> Int64? {
+    guard
+        let f = headerFields,
+        let contentLengthS = valueForCaseInsensitiveKey("content-length", fields: f),
+        let contentLength = Int64(contentLengthS)
+        else { return nil }
+    return contentLength
+}
+/// Parses the suggested filename from the `Content-Disposition` header.
+///
+/// - SeeAlso: [RFC 2183](https://tools.ietf.org/html/rfc2183)
+private func getSuggestedFilename(fromHeaderFields headerFields: [String : String]?) -> String? {
+    // Typical use looks like this:
+    //     Content-Disposition: attachment; filename="fname.ext"
+    guard
+        let f = headerFields,
+        let contentDisposition = valueForCaseInsensitiveKey("content-disposition", fields: f),
+        let field = contentDisposition.httpHeaderParts
+        else { return nil }
+    for part in field.parameters where part.attribute == "filename" {
+        return part.value?.pathComponents.map{ $0 == "/" ? "" : $0}.joined(separator: "_")
+    }
+    return nil
+}
+/// Parts corresponding to the `Content-Type` header field in a HTTP message.
+private struct ContentTypeComponents {
+    /// For `text/html; charset=ISO-8859-4` this would be `text/html`
+    let mimeType: String
+    /// For `text/html; charset=ISO-8859-4` this would be `ISO-8859-4`. Will be
+    /// `nil` when no `charset` is specified.
+    let textEncoding: String?
+}
+extension ContentTypeComponents {
+    /// Parses the `Content-Type` header field
+    ///
+    /// `Content-Type: text/html; charset=ISO-8859-4` would result in `("text/html", "ISO-8859-4")`, while
+    /// `Content-Type: text/html` would result in `("text/html", nil)`.
+    init?(headerFields: [String : String]?) {
+        guard
+            let f = headerFields,
+            let contentType = valueForCaseInsensitiveKey("content-type", fields: f),
+            let field = contentType.httpHeaderParts
+            else { return nil }
+        for parameter in field.parameters where parameter.attribute == "charset" {
+            self.mimeType = field.value
+            self.textEncoding = parameter.value
+            return
+        }
+        self.mimeType = field.value
+        self.textEncoding = nil
+    }
 }
 
+/// A type with paramteres
+///
+/// RFC 2616 specifies a few types that can have parameters, e.g. `Content-Type`.
+/// These are specified like so
+/// ```
+/// field          = value *( ";" parameter )
+/// value          = token
+/// ```
+/// where parameters are attribute/value as specified by
+/// ```
+/// parameter               = attribute "=" value
+/// attribute               = token
+/// value                   = token | quoted-string
+/// ```
+private struct ValueWithParameters {
+    let value: String
+    let parameters: [Parameter]
+    struct Parameter {
+        let attribute: String
+        let value: String?
+    }
+}
+
+private extension String {
+    /// Split the string at each ";", remove any quoting.
+    /// 
+    /// The trouble is if there's a
+    /// ";" inside something that's quoted. And we can escape the separator and
+    /// the quotes with a "\".
+    var httpHeaderParts: ValueWithParameters? {
+        var type: String?
+        var parameters: [ValueWithParameters.Parameter] = []
+        let ws = NSCharacterSet.whitespaceCharacterSet()
+        func append(_ string: String) {
+            if type == nil {
+                type = string
+            } else {
+                if let r = string.rangeOfString("=") {
+                    let name = string[string.startIndex..<r.startIndex].stringByTrimmingCharactersInSet(ws)
+                    let value = string[r.endIndex..<string.endIndex].stringByTrimmingCharactersInSet(ws)
+                    parameters.append(ValueWithParameters.Parameter(attribute: name, value: value))
+                } else {
+                    let name = string.stringByTrimmingCharactersInSet(ws)
+                    parameters.append(ValueWithParameters.Parameter(attribute: name, value: nil))
+                }
+            }
+        }
+        
+        let escape = UnicodeScalar(0x5c)    //  \
+        let quote = UnicodeScalar(0x22)     //  "
+        let separator = UnicodeScalar(0x3b) //  ;
+        enum State {
+            case nonQuoted(String)
+            case nonQuotedEscaped(String)
+            case quoted(String)
+            case quotedEscaped(String)
+        }
+        var state = State.nonQuoted("")
+        for next in unicodeScalars {
+            switch (state, next) {
+            case (.nonQuoted(let s), separator):
+                append(s)
+                state = .nonQuoted("")
+            case (.nonQuoted(let s), escape):
+                state = .nonQuotedEscaped(s + String(next))
+            case (.nonQuoted(let s), quote):
+                state = .quoted(s)
+            case (.nonQuoted(let s), _):
+                state = .nonQuoted(s + String(next))
+                
+            case (.nonQuotedEscaped(let s), _):
+                state = .nonQuoted(s + String(next))
+                
+            case (.quoted(let s), quote):
+                state = .nonQuoted(s)
+            case (.quoted(let s), escape):
+                state = .quotedEscaped(s + String(next))
+            case (.quoted(let s), _):
+                state = .quoted(s + String(next))
+            
+            case (.quotedEscaped(let s), _):
+                state = .quoted(s + String(next))
+            }
+        }
+        switch state {
+            case .nonQuoted(let s): append(s)
+            case .nonQuotedEscaped(let s): append(s)
+            case .quoted(let s): append(s)
+            case .quotedEscaped(let s): append(s)
+        }
+        guard let t = type else { return nil }
+        return ValueWithParameters(value: t, parameters: parameters)
+    }
+}
+private func valueForCaseInsensitiveKey(_ key: String, fields: [String: String]) -> String? {
+    let kk = key.lowercased()
+    for (k, v) in fields {
+        if k.lowercased() == kk {
+            return v
+        }
+    }
+    return nil
+}
