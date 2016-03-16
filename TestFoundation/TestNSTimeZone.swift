@@ -26,6 +26,7 @@ class TestNSTimeZone: XCTestCase {
             // Disabled see https://bugs.swift.org/browse/SR-300
             // ("test_abbreviation", test_abbreviation),
             ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
+            ("test_initializingTimeZoneWithAbbreviation", test_initializingTimeZoneWithAbbreviation),
             // Also disabled due to https://bugs.swift.org/browse/SR-300
             // ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
         ]
@@ -43,6 +44,16 @@ class TestNSTimeZone: XCTestCase {
         XCTAssertNotNil(tz)
         let seconds = tz?.secondsFromGMTForDate(NSDate())
         XCTAssertEqual(seconds, -14400, "GMT-0400 should be -14400 seconds but got \(seconds) instead")
+    }
+    
+    func test_initializingTimeZoneWithAbbreviation() {
+        // Test invalid timezone abbreviation
+        var tz = NSTimeZone(abbreviation: "XXX")
+        XCTAssertNil(tz)
+        // Test valid timezone abbreviation of "AST" for "America/Halifax"
+        tz = NSTimeZone(abbreviation: "AST")
+        let expectedName = "America/Halifax"
+        XCTAssertEqual(tz?.name, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(tz?.name)\"")
     }
     
     func test_systemTimeZoneUsesSystemTime() {
