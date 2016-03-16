@@ -34,8 +34,13 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertNotNil(request)
         XCTAssertEqual(request.URL, URL)
         XCTAssertEqual(request.HTTPMethod, "GET")
+        XCTAssertEqual(request.cachePolicy, NSURLRequestCachePolicy.UseProtocolCachePolicy)
+        XCTAssertEqual(request.timeoutInterval, 60)
+        XCTAssertEqual(request.networkServiceType, NSURLRequestNetworkServiceType.NetworkServiceTypeDefault)
         XCTAssertNil(request.allHTTPHeaderFields)
         XCTAssertNil(request.mainDocumentURL)
+        XCTAssertNil(request.HTTPBody)
+        XCTAssertNil(request.HTTPBodyStream)
     }
     
     func test_mutableConstruction() {
@@ -46,8 +51,13 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertNotNil(request)
         XCTAssertEqual(request.URL, URL)
         XCTAssertEqual(request.HTTPMethod, "GET")
+        XCTAssertEqual(request.cachePolicy, NSURLRequestCachePolicy.UseProtocolCachePolicy)
+        XCTAssertEqual(request.timeoutInterval, 60)
+        XCTAssertEqual(request.networkServiceType, NSURLRequestNetworkServiceType.NetworkServiceTypeDefault)
         XCTAssertNil(request.allHTTPHeaderFields)
         XCTAssertNil(request.mainDocumentURL)
+        XCTAssertNil(request.HTTPBody)
+        XCTAssertNil(request.HTTPBodyStream)
         
         request.mainDocumentURL = URL
         XCTAssertEqual(request.mainDocumentURL, URL)
@@ -55,10 +65,34 @@ class TestNSURLRequest : XCTestCase {
         request.HTTPMethod = "POST"
         XCTAssertEqual(request.HTTPMethod, "POST")
         
+        let newPolicy = NSURLRequestCachePolicy.ReloadIgnoringCacheData
+        request.cachePolicy = newPolicy
+        XCTAssertEqual(request.cachePolicy, newPolicy)
+        
+        let newTimeout: NSTimeInterval = 42
+        request.timeoutInterval = newTimeout
+        XCTAssertEqual(request.timeoutInterval, newTimeout)
+        
+        let newServiceType = NSURLRequestNetworkServiceType.NetworkServiceTypeVoice
+        request.networkServiceType = newServiceType
+        XCTAssertEqual(request.networkServiceType, newServiceType)
+        
+        let newData = NSMutableData()
+        newData.appendData("A".dataUsingEncoding(NSUTF8StringEncoding)!)
+        request.HTTPBody = newData
+        newData.appendData("B".dataUsingEncoding(NSUTF8StringEncoding)!)
+        if let d = request.HTTPBody {
+            XCTAssertEqual(String(data: d, encoding: NSUTF8StringEncoding), "A")
+        } else {
+            XCTFail()
+        }
+        
         let newURL = NSURL(string: "http://github.com")!
         request.URL = newURL
         XCTAssertEqual(request.URL, newURL)
     }
+    
+    //TODO: Test HTTPBodyStream when NSInputStream is implemented.
     
     func test_headerFields() {
         let request = NSMutableURLRequest(URL: URL)
