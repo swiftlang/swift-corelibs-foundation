@@ -19,10 +19,7 @@ public class NSXMLDTD : NSXMLNode {
     }
     
     public convenience init(contentsOfURL url: NSURL, options mask: Int) throws {
-        guard let urlString = url.absoluteString else {
-            //TODO: throw an error
-            fatalError("nil URL")
-        }
+        let urlString = url.absoluteString
 
         let node = _CFXMLParseDTD(urlString)
         if node == nil {

@@ -213,12 +213,12 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         }
     }
     
-    public var absoluteString: String? {
+    public var absoluteString: String {
         if let absURL = CFURLCopyAbsoluteURL(_cfObject) {
             return CFURLGetString(absURL)._swiftObject
-        } else {
-            return nil
         }
+
+        return CFURLGetString(_cfObject)._swiftObject
     }
     
     // The relative portion of a URL.  If baseURL is nil, or if the receiver is itself absolute, this is the same as absoluteString
@@ -518,11 +518,11 @@ extension NSURL {
     
     internal func _resolveSymlinksInPath(excludeSystemDirs excludeSystemDirs: Bool) -> NSURL? {
         guard fileURL else {
-            return NSURL(string: absoluteString!)
+            return NSURL(string: absoluteString)
         }
         
         guard let selfPath = path else {
-            return NSURL(string: absoluteString!)
+            return NSURL(string: absoluteString)
         }
         
         let absolutePath: String
@@ -535,7 +535,7 @@ extension NSURL {
         
         var components = absolutePath.pathComponents
         guard !components.isEmpty else {
-            return NSURL(string: absoluteString!)
+            return NSURL(string: absoluteString)
         }
         
         var resolvedPath = components.removeFirst()
