@@ -25,6 +25,8 @@ class TestNSTimeZone: XCTestCase {
         return [
             // Disabled see https://bugs.swift.org/browse/SR-300
             // ("test_abbreviation", test_abbreviation),
+            ("test_abbreviationDictionary", test_abbreviationDictionary),
+            ("test_setAbbreviationDictionary", test_setAbbreviationDictionary),
             ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
             // Also disabled due to https://bugs.swift.org/browse/SR-300
             // ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
@@ -43,6 +45,23 @@ class TestNSTimeZone: XCTestCase {
         XCTAssertNotNil(tz)
         let seconds = tz?.secondsFromGMTForDate(NSDate())
         XCTAssertEqual(seconds, -14400, "GMT-0400 should be -14400 seconds but got \(seconds) instead")
+    }
+    
+    func test_abbreviationDictionary() {
+        let dict = NSTimeZone.abbreviationDictionary()
+        let abbr = "AST"
+        let expectedEntry = "America/Halifax"
+        XCTAssertEqual(dict[abbr], expectedEntry,"\(abbr) should match to \(expectedEntry) but got \(dict[abbr]) instead")
+    }
+    
+    func test_setAbbreviationDictionary() {
+        let abbr = "NEW"
+        let expectedEntry = "Test TimeZone"
+        var defaultDict = NSTimeZone.abbreviationDictionary()
+        defaultDict[abbr] = expectedEntry
+        NSTimeZone.setAbbreviationDictionary(defaultDict)
+        let dict = NSTimeZone.abbreviationDictionary()
+        XCTAssertEqual(dict[abbr], expectedEntry,"\(abbr) should match to \(expectedEntry) but got \(dict[abbr]) instead")
     }
     
     func test_systemTimeZoneUsesSystemTime() {
