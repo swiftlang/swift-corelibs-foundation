@@ -197,8 +197,19 @@ extension NSTimeZone {
     
     public class func knownTimeZoneNames() -> [String] { NSUnimplemented() }
     
-    public class func abbreviationDictionary() -> [String : String] { NSUnimplemented() }
-    public class func setAbbreviationDictionary(dict: [String : String]) { NSUnimplemented() }
+    public class func abbreviationDictionary() -> [String : String] {
+        let dictionary = CFTimeZoneCopyAbbreviationDictionary()._nsObject
+        var abbreviations = [String : String]()
+        for (key, value) in dictionary {
+            abbreviations[(key as! CFString)._swiftObject] = (value as! CFString)._swiftObject
+        }
+        return abbreviations
+    }
+    
+    public class func setAbbreviationDictionary(dict: [String : String]) {
+        let dictionary: CFDictionary = dict._cfObject
+        CFTimeZoneSetAbbreviationDictionary(dictionary)
+    }
     
     public class func timeZoneDataVersion() -> String { NSUnimplemented() }
     
