@@ -434,6 +434,10 @@ public class NSNumber : NSValue {
         return val
     }
     
+    public var stringValue: String {
+        return descriptionWithLocale(nil)
+    }
+    
     /// Create an instance initialized to `value`.
     public required convenience init(integerLiteral value: Int) {
         self.init(integer: value)
@@ -451,6 +455,12 @@ public class NSNumber : NSValue {
 
     public func compare(otherNumber: NSNumber) -> NSComparisonResult {
         return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
+    }
+
+    public func descriptionWithLocale(locale: AnyObject?) -> String {
+        guard let aLocale = locale else { return description }
+        let formatter = CFNumberFormatterCreate(nil, (aLocale as! NSLocale)._cfObject, kCFNumberFormatterDecimalStyle)
+        return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
     }
     
     override public var _cfTypeID: CFTypeID {
