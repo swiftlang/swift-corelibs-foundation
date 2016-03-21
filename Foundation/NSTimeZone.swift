@@ -84,7 +84,13 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     // do NOT follow the POSIX convention (of minutes-west).
     public convenience init(forSecondsFromGMT seconds: Int) { NSUnimplemented() }
     
-    public convenience init?(abbreviation: String) { NSUnimplemented() }
+    public convenience init?(abbreviation: String) {
+        let abbr = abbreviation._cfObject
+        guard let name = unsafeBitCast(CFDictionaryGetValue(CFTimeZoneCopyAbbreviationDictionary(), unsafeBitCast(abbr, to: UnsafePointer<Void>.self)), to: NSString!.self) else {
+            return nil
+        }
+        self.init(name: name._swiftObject , data: nil)
+    }
 
     public func encodeWithCoder(aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
