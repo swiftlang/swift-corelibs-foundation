@@ -226,7 +226,8 @@ CF_INLINE URegularExpression *prepareRegularExpression(void *internal, int32_t *
     UErrorCode errorCode = U_ZERO_ERROR;
     CFRange enclosingRange;
     UniChar *stringBuffer = NULL;
-    
+    int32_t textLength = length;
+ 
     if (range.location + range.length > length || range.location >= INT_MAX) return NULL;
     if (range.location + range.length > INT_MAX) range.length = INT_MAX - range.location;
     
@@ -267,11 +268,12 @@ CF_INLINE URegularExpression *prepareRegularExpression(void *internal, int32_t *
                 *bufferToFree = stringBuffer;
             }
         }
+        textLength = enclosingRange.length;
     }
     
     if (stringBuffer) {
         regex = checkOutRegularExpression(internal, checkout, checkedOutRegex);
-        uregex_setText(regex, (const UChar *)stringBuffer, (int32_t)regionLimit, &errorCode);
+        uregex_setText(regex, (const UChar *)stringBuffer, textLength, &errorCode);
     }
     
     if (regex) {
