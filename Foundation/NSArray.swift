@@ -543,15 +543,15 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             }
         }
         
-        guard searchForInsertionIndex && lastEqual else {
+        if !searchForInsertionIndex {
             return result
         }
         
-        guard result == NSNotFound else {
-            return result + 1
+        if result == NSNotFound {
+            return indexOfLeastGreaterThanObj
         }
         
-        return indexOfLeastGreaterThanObj
+        return lastEqual ? result + 1 : result
     }
     
     
