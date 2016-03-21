@@ -52,9 +52,11 @@ class TestNSUUID : XCTestCase {
         XCTAssertEqual(uuid, NSUUID(UUIDBytes: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]), "The convenience initializer `init(UUIDBytes bytes:)` must return the Nil UUID when UUIDBytes is nil.")
     }
     
+    // `UUIDString` should return an uppercase string
+    // See: https://bugs.swift.org/browse/SR-865
     func test_UUIDString() {
         let uuid = NSUUID(UUIDBytes: [0xe6,0x21,0xe1,0xf8,0xc3,0x6c,0x49,0x5a,0x93,0xfc,0x0c,0x24,0x7a,0x3e,0x6e,0x5f])
-        XCTAssertEqual(uuid.UUIDString, "e621e1f8-c36c-495a-93fc-0c247a3e6e5f", "The UUIDString representation must be lowercase as defined by RFC 4122.")
+        XCTAssertEqual(uuid.UUIDString, "E621E1F8-C36C-495A-93FC-0C247A3E6E5F", "The UUIDString representation must be uppercase.")
     }
     
     func test_description() {
