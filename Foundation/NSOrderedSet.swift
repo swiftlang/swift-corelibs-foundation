@@ -224,9 +224,18 @@ extension NSOrderedSet {
         }
     }
 
-    public func reverseObjectEnumerator() -> NSEnumerator { NSUnimplemented() }
+    public func reverseObjectEnumerator() -> NSEnumerator { 
+        if self.dynamicType === NSOrderedSet.self || self.dynamicType === NSMutableOrderedSet.self {
+            return NSGeneratorEnumerator(_orderedStorage.reversed().makeIterator())
+        } else {
+            NSRequiresConcreteImplementation()
+        }
+    }
     
-    /*@NSCopying*/ public var reversedOrderedSet: NSOrderedSet { NSUnimplemented() }
+    /*@NSCopying*/ 
+    public var reversedOrderedSet: NSOrderedSet { 
+        return NSOrderedSet(array: _orderedStorage.reversed().bridge().bridge())     
+    }
     
     // These two methods return a facade object for the receiving ordered set,
     // which acts like an immutable array or set (respectively).  Note that
