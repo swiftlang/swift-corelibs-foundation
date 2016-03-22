@@ -305,9 +305,8 @@ public extension NSString {
         if fixedSelf.length <= 1 {
             return fixedSelf
         }
-        
-        if let extensionPos = fixedSelf._startOfPathExtension {
-            return String(fixedSelf.characters.prefix(upTo: extensionPos))
+        if let extensionPos = (fixedSelf._startOfPathExtension) {
+            return String(fixedSelf.characters.prefix(upTo: extensionPos.predecessor()))
         } else {
             return fixedSelf
         }
@@ -318,7 +317,7 @@ public extension NSString {
             print("Cannot append extension \(str) to path \(self)")
             return nil
         }
-        let result = _swiftObject + str._stringByFixingSlashes(compress: false, stripTrailing: true)
+        let result = _swiftObject._stringByFixingSlashes(compress: false, stripTrailing: true) + "." + str
         return result._stringByFixingSlashes()
     }
 
