@@ -81,6 +81,8 @@ class TestNSString : XCTestCase {
             ("test_stringByExpandingTildeInPath", test_stringByExpandingTildeInPath),
             ("test_stringByStandardizingPath", test_stringByStandardizingPath),
             ("test_stringByRemovingPercentEncoding", test_stringByRemovingPercentEncoding),
+            ("test_stringByAppendingPathExtension", test_stringByAppendingPathExtension),
+            ("test_stringByDeletingPathExtension", test_stringByDeletingPathExtension),
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_PrefixSuffix", test_PrefixSuffix),
@@ -834,6 +836,36 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(s1, "a b")
         let s2 = "a%1 b".stringByRemovingPercentEncoding
         XCTAssertNil(s2, "returns nil for a string with an invalid percent encoding")
+    }
+    
+    func test_stringByAppendingPathExtension() {
+        let values : Dictionary = [
+            NSString(string: "/tmp/scratch.old") : "/tmp/scratch.old.tiff",
+            NSString(string: "/tmp/scratch.") : "/tmp/scratch..tiff",
+            NSString(string: "/tmp/") : "/tmp.tiff",
+            NSString(string: "/scratch") : "/scratch.tiff",
+            NSString(string: "/~scratch") : "/~scratch.tiff",
+            NSString(string: "scratch") : "scratch.tiff",
+        ]
+        for (fileName, expectedResult) in values {
+            let result = fileName.stringByAppendingPathExtension("tiff")
+            XCTAssertEqual(result, expectedResult, "expected \(expectedResult) for \(fileName) but got \(result)")
+        }
+    }
+    
+    func test_stringByDeletingPathExtension() {
+        let values : Dictionary = [
+            NSString(string: "/tmp/scratch.tiff") : "/tmp/scratch",
+            NSString(string: "/tmp/") : "/tmp",
+            NSString(string: "scratch.bundle") : "scratch",
+            NSString(string: "scratch..tiff") : "scratch.",
+            NSString(string: ".tiff") : ".tiff",
+            NSString(string: "/") : "/",
+        ]
+        for (fileName, expectedResult) in values {
+            let result = fileName.stringByDeletingPathExtension
+            XCTAssertEqual(result, expectedResult, "expected \(expectedResult) for \(fileName) but got \(result)")
+        }
     }
     
     func test_ExternalRepresentation() {
