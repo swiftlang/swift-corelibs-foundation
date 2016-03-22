@@ -33,6 +33,8 @@ class TestNSNumber : XCTestCase {
             ("test_compareNumberWithFloat", test_compareNumberWithFloat ),
             ("test_compareNumberWithDouble", test_compareNumberWithDouble ),
             ("test_reflection", test_reflection ),
+            ("test_description", test_description ),
+            ("test_descriptionWithLocale", test_descriptionWithLocale ),
         ]
     }
     
@@ -417,5 +419,23 @@ class TestNSNumber : XCTestCase {
            case .double(let value): XCTAssertEqual(value, 1.25)
            default: XCTAssert(false, "NSNumber(double:) quicklook is not a Double")
        }
+    }
+    
+    func test_description() {
+        let nsnumber: NSNumber = 1000
+        let expectedDesc = "1000"
+        XCTAssertEqual(nsnumber.description, expectedDesc, "expected \(expectedDesc) but received \(nsnumber.description)")
+    }
+    
+    func test_descriptionWithLocale() {
+        let nsnumber: NSNumber = 1000
+        let values : Dictionary = [
+            NSLocale.init(localeIdentifier: "en_GB") : "1,000",
+            NSLocale.init(localeIdentifier: "de_DE") : "1.000",
+        ]
+        for (locale, expectedDesc) in values {
+            let receivedDesc = nsnumber.descriptionWithLocale(locale)
+            XCTAssertEqual(receivedDesc, expectedDesc, "expected \(expectedDesc) but received \(receivedDesc)")
+        }
     }
 }
