@@ -26,6 +26,7 @@ class TestNSAttributedString: XCTestCase {
             ("test_initWithSimpleString", test_initWithSimpleString),
             ("test_initWithComplexString", test_initWithComplexString),
             ("test_initWithSimpleStringAndAttributes", test_initWithSimpleStringAndAttributes),
+            ("test_initWithAttributedString", test_initWithAttributedString),
         ]
     }
     
