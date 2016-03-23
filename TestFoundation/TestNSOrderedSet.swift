@@ -96,7 +96,7 @@ class TestNSOrderedSet : XCTestCase {
         let days = ["monday", "tuesday", "wednesday", "thursday", "friday"]
         let work = NSOrderedSet(array: days.bridge().bridge())
         let krow = work.reversedOrderedSet
-        var index = work.count-1
+        var index = work.count - 1
         for item in krow {
            XCTAssertEqual(work.objectAtIndex(index) as? NSString, item as? NSString)
            index -= 1
