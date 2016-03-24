@@ -423,6 +423,7 @@ class TestNSURLComponents : XCTestCase {
     static var allTests: [(String, TestNSURLComponents -> () throws -> Void)] {
         return [
             ("test_string", test_string),
+            ("test_port", test_portSetter),
         ]
     }
     
@@ -434,6 +435,16 @@ class TestNSURLComponents : XCTestCase {
             guard let components = NSURLComponents(string: expectedString) else { continue }
             XCTAssertEqual(components.string!, expectedString, "should be the expected string (\(components.string!) != \(expectedString))")
         }
+    }
+    
+    func test_portSetter() {
+        let urlString = "http://myhost.mydomain.com"
+        let port: NSNumber = 8080
+        let expectedString = "http://myhost.mydomain.com:8080"
+        let url = NSURLComponents(string: urlString)
+        url!.port = port
+        let receivedString = url!.string
+        XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(receivedString)")
     }
 
 }

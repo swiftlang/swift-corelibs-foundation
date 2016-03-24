@@ -655,7 +655,7 @@ CF_EXPORT Boolean _CFURLComponentsSetPort(CFURLComponentsRef components, CFNumbe
     } else {
         components->_portComponent = NULL;
     }
-    components->_passwordComponentValid = true;
+    components->_portComponentValid = true;
     __CFUnlock(&components->_lock);
     return true;
 }
