@@ -363,8 +363,8 @@ void _CFRegularExpressionEnumerateMatchesInString(_CFRegularExpressionRef regexO
             if (!omitResult) {
                 CFRange stack_ranges[7];
                 CFRange *ranges = &stack_ranges[0];
-                if (numberOfCaptureGroups > sizeof(stack_ranges) / sizeof(stack_ranges[0])) {
-                    ranges = (CFRange *)malloc(sizeof(CFRange) * numberOfCaptureGroups);
+                if (numberOfCaptureGroups + 1 > sizeof(stack_ranges) / sizeof(stack_ranges[0])) {
+                    ranges = (CFRange *)malloc(sizeof(CFRange) * (numberOfCaptureGroups + 1));
                 }
                 CFIndex rangeCount = 0;
                 for (int i = 0; i <= numberOfCaptureGroups; i++) {

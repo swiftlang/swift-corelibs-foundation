@@ -199,6 +199,8 @@ class TestNSRegularExpression : XCTestCase {
         replaceRegularExpressionTest("\\b(th[a-z]+) \\1\\b", .CaseInsensitive, "This this is the the way.", [], NSMakeRange(0, 25), NSRegularExpression.escapedTemplateForString("*\\$1*"), 2, "*\\$1* is *\\$1* way.")
         replaceRegularExpressionTest("\\b(th[a-z]+) \\1\\b", .CaseInsensitive, "This this is the the way.", [], NSMakeRange(0, 25), "*\\$1*", 2, "*$1* is *$1* way.")
         replaceRegularExpressionTest("\\b(th[a-z]+) \\1\\b", .CaseInsensitive, "This this is the the way.", [], NSMakeRange(0, 25), "*\\\\\\$1*", 2, "*\\$1* is *\\$1* way.")
+        replaceRegularExpressionTest("([1-9]a)([1-9]b)([1-9]c)([1-9]d)([1-9]e)([1-9]f)", [], "9a3b4c8d3e1f,9a3b4c8d3e1f", [], NSMakeRange(0,25), "$2$4 is your key", 2, "3b8d is your key,3b8d is your key")
+        replaceRegularExpressionTest("([1-9]a)([1-9]b)([1-9]c)([1-9]d)([1-9]e)([1-9]f)([1-9]z)", [], "9a3b4c8d3e1f2z,9a3b4c8d3e1f2z", [], NSMakeRange(0,29), "$2$4$1 is your key", 2, "3b8d9a is your key,3b8d9a is your key")
     }
     
     func complexRegularExpressionTest(patternString: String, _ patternOptions: NSRegularExpressionOptions, _ searchString: String, _ searchOptions: NSMatchingOptions, _ searchRange: NSRange, _ numberOfMatches: Int, _ firstMatchOverallRange: NSRange, _ firstMatchFirstCaptureRange: NSRange, _ firstMatchLastCaptureRange: NSRange, file: StaticString = #file, line: UInt = #line) {
