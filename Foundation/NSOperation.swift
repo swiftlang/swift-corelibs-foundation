@@ -546,15 +546,15 @@ public class NSOperationQueue : NSObject {
     }
     
     public class func mainQueue() -> NSOperationQueue {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         let specific = dispatch_queue_get_specific(dispatch_get_main_queue(), NSOperationQueue.OperationQueueKey)
         if specific == nil {
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
             return NSOperationQueue(_queue: dispatch_get_main_queue(), maxConcurrentOperations: 1)
-#else
-            fatalError("NSOperationQueue requires libdispatch")
-#endif
         } else {
             return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: OpaquePointer.self)).takeUnretainedValue()
         }
+#else
+        fatalError("NSOperationQueue requires libdispatch")
+#endif
     }
 }
