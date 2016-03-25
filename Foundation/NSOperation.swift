@@ -374,10 +374,12 @@ public class NSOperationQueue : NSObject {
     }
     
     public func addOperations(ops: [NSOperation], waitUntilFinished wait: Bool) {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         var waitGroup: dispatch_group_t?
         if wait {
             waitGroup = dispatch_group_create()
         }
+#endif
         /*
          If OperationQueuePriority was not supported this could be much faster
          since it would not need to have the extra book-keeping for managing a priority
@@ -527,6 +529,7 @@ public class NSOperationQueue : NSObject {
     static let OperationQueueKey = UnsafePointer<Void>(UnsafeMutablePointer<Void>(allocatingCapacity: 1))
     
     public class func currentQueue() -> NSOperationQueue? {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         let specific = dispatch_get_specific(NSOperationQueue.OperationQueueKey)
         if specific == nil {
             if pthread_main_np() == 1 {
@@ -537,6 +540,9 @@ public class NSOperationQueue : NSObject {
         } else {
             return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: OpaquePointer.self)).takeUnretainedValue()
         }
+#else
+        return nil
+#endif
     }
     
     public class func mainQueue() -> NSOperationQueue {
