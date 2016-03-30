@@ -1214,7 +1214,17 @@ extension NSString {
     }
     
     public convenience init(format: String, locale: AnyObject?, arguments argList: CVaListPointer) {
-        NSUnimplemented()    
+        let str: CFString
+        if let loc = locale {
+            if loc.dynamicType === NSLocale.self || loc.dynamicType === NSDictionary.self {
+                str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(loc, to: CFDictionary.self), format._cfObject, argList)
+            } else {
+                fatalError("locale parameter must be a NSLocale or a NSDictionary")
+            }
+        } else {
+            str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, argList)
+        }
+        self.init(str._swiftObject)
     }
     
     public convenience init(format: NSString, _ args: CVarArg...) {
