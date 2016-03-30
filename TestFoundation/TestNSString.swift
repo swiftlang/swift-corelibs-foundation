@@ -630,13 +630,13 @@ class TestNSString : XCTestCase {
         withVaList(argument) {
             pointer in
             let string = NSString(format: "en_GB value is %d (%.1f)", locale: NSLocale.init(localeIdentifier: "en_GB"), arguments: pointer)
-            XCTAssertEqual(string, "en_GB value is 1,000 (42.0)")
+            XCTAssertEqual(string, "en_GB value is 1000 (42.0)")
         }
 
         withVaList(argument) {
             pointer in
             let string = NSString(format: "de_DE value is %d (%.1f)", locale: NSLocale.init(localeIdentifier: "de_DE"), arguments: pointer)
-            XCTAssertEqual(string, "de_DE value is 1.000 (42,0)")
+            XCTAssertEqual(string, "de_DE value is 1000 (42,0)")
         }
         
         withVaList(argument) {
