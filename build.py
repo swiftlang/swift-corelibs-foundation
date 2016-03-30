@@ -259,7 +259,7 @@ sources = CompileSources([
 	'CoreFoundation/URL.subproj/CFURLComponents.c',
 	'CoreFoundation/URL.subproj/CFURLComponents_URIParser.c',
 	'CoreFoundation/String.subproj/CFCharacterSetData.S',
-	'CoreFoundation/String.subproj/CFUnicodeDataL.S',
+	'CoreFoundation/String.subproj/CFUnicodeData.S',
 	'CoreFoundation/String.subproj/CFUniCharPropertyDatabase.S',
 	'CoreFoundation/String.subproj/CFRegularExpression.c',
 	'CoreFoundation/String.subproj/CFAttributedString.c',
