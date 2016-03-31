@@ -28,6 +28,7 @@ class TestNSJSONSerialization : XCTestCase {
     static var allTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
         return JSONObjectWithDataTests
             + deserializationTests
+            + serializationTests
             + isValidJSONObjectTests
     }
     
@@ -452,6 +453,183 @@ extension TestNSJSONSerialization {
     }
 
 }
+// MARK: - JSONSerialization
+extension TestNSJSONSerialization {
+
+    class var serializationTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
+        return [
+                   ("test_serialize_emptyObject", test_serialize_emptyObject),
+                   ("test_serialize_multiStringObject", test_serialize_multiStringObject),
+                   ("test_serialize_complicatedObject", test_serialize_complicatedObject),
+
+                   ("test_serialize_emptyArray", test_serialize_emptyArray),
+                   ("test_serialize_multiPODArray", test_serialize_multiPODArray),
+
+                   ("test_serialize_nested", test_serialize_nested),
+                   ("test_invalid_json", test_invalidJSON)
+        ]
+    }
+
+    func trySerializeHelper(subject: Any, options: NSJSONWritingOptions) throws -> String {
+        let data = try NSJSONSerialization.dataWithJSONObject(subject, options: options)
+        guard let string = NSString(data: data, encoding: NSUTF8StringEncoding)
+            else {
+                XCTFail("Unable to convert data to string")
+                return ""
+            }
+        return string.bridge()
+    }
+    func trySerialize(subject: Any) throws -> String {
+        return try trySerializeHelper(subject, options: [])
+    }
+    func trySerializePretty(subject: Any) throws -> String {
+        return try trySerializeHelper(subject, options: [.PrettyPrinted])
+    }
+
+    //MARK: - Object Serialization
+    func test_serialize_emptyObject() {
+        
+        XCTAssertEqual(try trySerialize([String: Any]()), "{}")
+        XCTAssertEqual(try trySerializePretty([String: Any]()), "{}")
+        
+        XCTAssertEqual(try trySerialize([String: NSNumber]()), "{}")
+        XCTAssertEqual(try trySerialize([String: String]()), "{}")
+        
+        var json = [String: Double]()
+        json["s"] = 1.0
+        json["s"] = nil
+        XCTAssertEqual(try trySerialize(json), "{}")
+        XCTAssertEqual(try trySerializePretty(json), "{}")
+    }
+    func test_serialize_multiStringObject() {
+        
+        var json = [String: String]()
+        json["hello"] = "world"
+        XCTAssertEqual(try trySerialize(json), "{\"hello\":\"world\"}")
+        XCTAssertEqual(try trySerializePretty(json), "{\n\t\"hello\" : \"world\"\n}")
+        
+        // testing escaped characters like " and \
+        json["swift"] = "is \\ \"awesome\""
+        XCTAssertEqual(try trySerialize(json), "{\"hello\":\"world\",\"swift\":\"is \\\\ \\\"awesome\\\"\"}")
+        XCTAssertEqual(try trySerializePretty(json), "{\n\t\"hello\" : \"world\",\n\t\"swift\" : \"is \\\\ \\\"awesome\\\"\"\n}")
+    }
+    func test_serialize_complicatedObject() {
+        let json : [String: Any] = ["a": 4.0, "b": NSNull(), "c": "string", "d": false]
+        
+        var normalString = "{"
+        var prettyString = "{"
+        for key in json.keys {
+            normalString += "\"\(key)\":"
+            prettyString += "\n\t\"\(key)\" : "
+            let valueString : String
+            if key == "a" {
+                valueString = "4.0"
+            } else if key == "b" {
+                valueString = "null"
+            } else if key == "c" {
+                valueString = "\"string\""
+            } else {
+                valueString = "false"
+            }
+            normalString += "\(valueString),"
+            prettyString += "\(valueString),"
+        }
+        normalString = normalString.substringToIndex(normalString.endIndex.predecessor()) + "}"
+        prettyString = prettyString.substringToIndex(prettyString.endIndex.predecessor()) + "\n}"
+        XCTAssertEqual(try trySerialize(json), normalString)
+        XCTAssertEqual(try trySerializePretty(json), prettyString)
+    }
+
+    //MARK: - Array Serialization
+    func test_serialize_emptyArray() {
+        
+        XCTAssertEqual(try trySerialize([String]()), "[]")
+        XCTAssertEqual(try trySerializePretty([String]()), "[]")
+        
+        XCTAssertEqual(try trySerialize([NSNumber]()), "[]")
+        XCTAssertEqual(try trySerializePretty([NSNumber]()), "[]")
+        
+        XCTAssertEqual(try trySerialize([Any]()), "[]")
+    }
+    func test_serialize_multiPODArray() {
+        XCTAssertEqual(try trySerialize(["hello", "swift⚡️"]), "[\"hello\",\"swift⚡️\"]")
+        XCTAssertEqual(try trySerializePretty(["hello", "swift⚡️"]), "[\n\t\"hello\",\n\t\"swift⚡️\"\n]")
+        
+        XCTAssertEqual(try trySerialize([1.0, 3.3, 2.3]), "[1.0,3.3,2.3]")
+        XCTAssertEqual(try trySerializePretty([1.0, 3.3, 2.3]), "[\n\t1.0,\n\t3.3,\n\t2.3\n]")
+        
+        
+        let array: [Any] = [NSNull(), "hello", 1.0]
+        XCTAssertEqual(try trySerialize(array), "[null,\"hello\",1.0]")
+        XCTAssertEqual(try trySerializePretty(array), "[\n\tnull,\n\t\"hello\",\n\t1.0\n]")
+    }
+
+    //MARK: - Nested Serialization
+    func test_serialize_nested() {
+        let first: [String: Any] = ["a": 4.0, "b": NSNull(), "c": "string", "d": false]
+        
+        var normalString = "{"
+        var prettyString = "\n\t{"
+        
+        for key in first.keys {
+            normalString += "\"\(key)\":"
+            prettyString += "\n\t\t\"\(key)\" : "
+            let valueString : String
+            if key == "a" {
+                valueString = "4.0"
+            } else if key == "b" {
+                valueString = "null"
+            } else if key == "c" {
+                valueString = "\"string\""
+            } else {
+                valueString = "false"
+            }
+            normalString += "\(valueString),"
+            prettyString += "\(valueString),"
+        }
+        normalString = normalString.substringToIndex(normalString.endIndex.predecessor()) + "}"
+        prettyString = prettyString.substringToIndex(prettyString.endIndex.predecessor()) + "\n\t}"
+        
+        let second: [Any] = [NSNull(), "hello", 1.0]
+        let json: [Any] = [first, second, NSNull(), "hello", 1.0]
+        
+        XCTAssertEqual(try trySerialize(json), "[\(normalString),[null,\"hello\",1.0],null,\"hello\",1.0]")
+        XCTAssertEqual(try trySerializePretty(json), "[\(prettyString),\n\t[\n\t\tnull,\n\t\t\"hello\",\n\t\t1.0\n\t],\n\tnull,\n\t\"hello\",\n\t1.0\n]")
+        
+    }
+
+    // MARK: - Error checkers
+    func test_invalidJSON() {
+        let str = "Invalid json"
+        do {
+            let _ = try NSJSONSerialization.dataWithJSONObject(str, options: [])
+            XCTFail("Parsed string to JSON object")
+        } catch {
+        }
+        let doub = 4.0
+        do {
+            let _ = try NSJSONSerialization.dataWithJSONObject(doub, options: [])
+            XCTFail("Parsed double to JSON object")
+        } catch {
+        }
+        struct Temp {
+            var x : Int
+        }
+        let t = Temp(x: 1)
+        do {
+            let _ = try NSJSONSerialization.dataWithJSONObject(t, options: [])
+            XCTFail("Parsed non serializable object to JSON")
+        } catch {
+        }
+        let invalidJSON = ["some": t]
+        do {
+            let _ = try NSJSONSerialization.dataWithJSONObject(invalidJSON, options: [])
+            XCTFail("Parsed non serializable object in dictionary to JSON")
+        } catch {
+        }
+    }
+}
+
 
 // MARK: - isValidJSONObjectTests
 extension TestNSJSONSerialization {
