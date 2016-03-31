@@ -96,8 +96,10 @@ public class NSJSONSerialization : NSObject {
     
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
-    public class func dataWithJSONObject(obj: AnyObject, options opt: NSJSONWritingOptions) throws -> NSData {
-        NSUnimplemented()
+    public class func dataWithJSONObject(obj: Any, options opt: NSJSONWritingOptions) throws -> NSData {
+        let (newIndent, newLine, spacing) = opt.contains(NSJSONWritingOptions.PrettyPrinted) ? ("\t", "\n", " ") : ("", "", "")
+        let str = NSString(try JSONSerialize(obj, newIndent: newIndent, newLine: newLine, space: spacing, topLevel: true))
+        return str.dataUsingEncoding(NSUTF8StringEncoding)!
     }
     
     /* Create a Foundation object from JSON data. Set the NSJSONReadingAllowFragments option if the parser should allow top-level objects that are not an NSArray or NSDictionary. Setting the NSJSONReadingMutableContainers option will make the parser generate mutable NSArrays and NSDictionaries. Setting the NSJSONReadingMutableLeaves option will make the parser generate mutable NSString objects. If an error occurs during the parse, then the error parameter will be set and the result will be nil.
@@ -144,6 +146,119 @@ public class NSJSONSerialization : NSObject {
      */
     public class func JSONObjectWithStream(stream: NSInputStream, options opt: NSJSONReadingOptions) throws -> AnyObject {
         NSUnimplemented()
+    }
+}
+
+// MARK: - Serialization
+private extension NSJSONSerialization {
+
+    private class func escapeStringForJSON(string: String) -> String {
+        return NSString(NSString(string).stringByReplacingOccurrencesOfString("\\", withString: "\\\\")).stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+    }
+    private class func serializeArray<T>(array: [T], newIndent: String, newLine: String, space: String, indentation: String) throws -> String {
+        guard array.count > 0
+            else {
+                return "\(indentation)[]"
+        }
+        var index = 0
+        return try array.reduce("\(indentation)[\(newLine)", combine: {
+            index += 1
+            let separator = (index == array.count) ? "\(newLine)\(indentation)]" : ",\(newLine)"
+            return $0 + (try JSONSerialize($1, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation + newIndent)) + separator
+        })
+    }
+
+    private class func serializePOD<T: Any>(object: T, indentation: String) throws -> String {
+        if let str = object as? String {
+            return indentation + "\"\(escapeStringForJSON(str))\""
+        } else if let _ = object as? NSNull {
+            return indentation + "null"
+        } else if let obj = object as? CustomStringConvertible {
+            // Using CustomStringConvertible is a hack to allow for all POD types
+            // Once bridging works we can revert back.
+            // TODO: Fix when bridging works
+            return indentation + escapeStringForJSON(obj.description)
+        }
+        else if let num = object as? NSNumber {
+            return num.description
+        } else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListWriteInvalidError.rawValue, userInfo: [
+                "NSDebugDescription" : "Cannot serialize \(object.dynamicType)"
+                ])
+        }
+    }
+
+    private class func serializeObject<T>(object: [String: T], newIndent: String, newLine: String, space: String, indentation: String) throws -> String {
+        guard object.count > 0
+            else {
+                return "\(indentation){}"
+        }
+        var index = 0
+        return try object.reduce("\(indentation){\(newLine)", combine: {
+            let valueString : String
+            do {
+                valueString = try serializePOD($1.1, indentation: "")
+            }
+            catch {
+                valueString = try JSONSerialize($1.1, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation + newIndent)
+            }
+            index += 1
+            let separator = (index == object.count) ? "\(newLine)\(indentation)}" : ",\(newLine)"
+            return $0 + "\(indentation + newIndent)\"" + escapeStringForJSON($1.0) + "\"\(space):\(space)" + valueString + separator
+        })
+    }
+
+    private class func JSONSerialize<T>(object: T, newIndent: String, newLine: String, space: String, topLevel: Bool = false, indentation: String = "") throws -> String {
+        // TODO: - revisit this once bridging story gets fully figured out
+        if let array = object as? [Any] {
+            return try serializeArray(array, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let array = object as? NSArray {
+            return try serializeArray(array.bridge(), newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let array = object as? [NSNumber] {
+            return try serializeArray(array, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let array = object as? [String] {
+            return try serializeArray(array, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let array = object as? [Double] {
+            return try serializeArray(array, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let array = object as? [Int] {
+            return try serializeArray(array, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let array = object as? [Bool] {
+            return try serializeArray(array, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let array = object as? [Float] {
+            return try serializeArray(array, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let array = object as? [UInt] {
+            return try serializeArray(array, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let dict = object as? [String : Any] {
+            return try serializeObject(dict, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let dict = object as? NSDictionary {
+            return try JSONSerialize(dict.bridge(), newIndent: newIndent, newLine: newLine, space: space, topLevel: topLevel, indentation: indentation)
+        } else if let dict = object as? [String: String] {
+            return try serializeObject(dict, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let dict = object as? [String: Double] {
+            return try serializeObject(dict, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let dict = object as? [String: Int] {
+            return try serializeObject(dict, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let dict = object as? [String: Bool] {
+            return try serializeObject(dict, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let dict = object as? [String: Float] {
+            return try serializeObject(dict, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let dict = object as? [String: UInt] {
+            return try serializeObject(dict, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        } else if let dict = object as? [String: NSNumber] {
+            return try serializeObject(dict, newIndent: newIndent, newLine: newLine, space: space, indentation: indentation)
+        }
+        // This else if situation will greatly improve once bridging works properly.
+        // For now we check for Floats, Doubles, Int, UInt, Bool and NSNumber
+        // but this may disallow other types like CGFloat, Int32, etc which is a problem
+        else {
+            guard !topLevel
+                else {
+                    throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListWriteInvalidError.rawValue, userInfo: [
+                        "NSDebugDescription" : "Unable to use \(object.dynamicType) as a top level JSON object."
+                        ])
+            }
+            return try serializePOD(object, indentation: indentation)
+        }
     }
 }
 
