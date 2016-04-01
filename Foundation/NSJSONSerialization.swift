@@ -97,7 +97,26 @@ public class NSJSONSerialization : NSObject {
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
     public class func dataWithJSONObject(obj: AnyObject, options opt: NSJSONWritingOptions) throws -> NSData {
-        NSUnimplemented()
+        guard obj is NSArray || obj is NSDictionary else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "Top-level object was not NSArray or NSDictionary"
+                ])
+        }
+        
+        let result = NSMutableData()
+        
+        var writer = JSONWriter(
+            pretty: opt.contains(.PrettyPrinted),
+            writer: { (str: String?) in
+                if let str = str {
+                    result.appendBytes(str.bridge().cStringUsingEncoding(NSUTF8StringEncoding), length: str.lengthOfBytesUsingEncoding(NSUTF8StringEncoding))
+                }
+            }
+        )
+
+        try writer.serializeJSON(obj)
+
+        return result
     }
     
     /* Create a Foundation object from JSON data. Set the NSJSONReadingAllowFragments option if the parser should allow top-level objects that are not an NSArray or NSDictionary. Setting the NSJSONReadingMutableContainers option will make the parser generate mutable NSArrays and NSDictionaries. Setting the NSJSONReadingMutableLeaves option will make the parser generate mutable NSString objects. If an error occurs during the parse, then the error parameter will be set and the result will be nil.
@@ -204,6 +223,164 @@ internal extension NSJSONSerialization {
             }
         }
         return nil
+    }
+}
+
+//MARK: - JSONSerializer
+private struct JSONWriter {
+    
+    var indent = 0
+    let pretty: Bool
+    let writer: (String?) -> Void
+    
+    init(pretty: Bool = false, writer: (String?) -> Void) {
+        self.pretty = pretty
+        self.writer = writer
+    }
+    
+    mutating func serializeJSON(obj: AnyObject) throws {
+        if let str = obj as? NSString {
+            try serializeString(str)
+        }
+        else if let num = obj as? NSNumber {
+            try serializeNumber(num)
+        }
+        else if let array = obj as? NSArray {
+            try serializeArray(array)
+        }
+        else if let dict = obj as? NSDictionary {
+            try serializeDictionary(dict)
+        }
+        else if let null = obj as? NSNull {
+            try serializeNull(null)
+        }
+        else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
+        }
+    }
+
+    func serializeString(str: NSString) throws {
+        let str = str.bridge()
+        
+        writer("\"")
+        for scalar in str.unicodeScalars {
+            switch scalar {
+                case "\"":
+                    writer("\\\"") // U+0022 quotation mark
+                case "\\":
+                    writer("\\\\") // U+005C reverse solidus
+                // U+002F solidus not escaped
+                case "\u{8}":
+                    writer("\\b") // U+0008 backspace
+                case "\u{c}":
+                    writer("\\f") // U+000C form feed
+                case "\n":
+                    writer("\\n") // U+000A line feed
+                case "\r":
+                    writer("\\r") // U+000D carriage return
+                case "\t":
+                    writer("\\t") // U+0009 tab
+                case "\u{0}"..."\u{f}":
+                    writer("\\u000\(String(scalar.value, radix: 16))") // U+0000 to U+000F
+                case "\u{10}"..."\u{1f}":
+                    writer("\\u00\(String(scalar.value, radix: 16))") // U+0010 to U+001F
+                default:
+                    writer(String(scalar))
+            }
+        }
+        writer("\"")
+    }
+
+    func serializeNumber(num: NSNumber) throws {
+        if num.doubleValue.isInfinite || num.doubleValue.isNaN {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
+        }
+        
+        // Cannot detect type information (e.g. bool) as there is no objCType property on NSNumber in Swift
+        // So, just print the number
+
+        writer("\(num)")
+    }
+
+    mutating func serializeArray(array: NSArray) throws {
+        writer("[")
+        if pretty {
+            writer("\n")
+            incAndWriteIndent()
+        }
+        
+        var first = true
+        for elem in array.bridge() {
+            if first {
+                first = false
+            } else if pretty {
+                writer(",\n")
+                writeIndent()
+            } else {
+                writer(",")
+            }
+            try serializeJSON(elem)
+        }
+        if pretty {
+            writer("\n")
+            decAndWriteIndent()
+        }
+        writer("]")
+    }
+
+    mutating func serializeDictionary(dict: NSDictionary) throws {
+        writer("{")
+        if pretty {
+            writer("\n")
+            incAndWriteIndent()
+        }
+        
+        var first = true
+        for (key, value) in dict.bridge() {
+            if first {
+                first = false
+            } else if pretty {
+                writer(",\n")
+                writeIndent()
+            } else {
+                writer(",")
+            }
+            
+            if key is NSString {
+                try serializeString(key as! NSString)
+            } else {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
+            }
+            pretty ? writer(": ") : writer(":")
+            try serializeJSON(value)
+        }
+        if pretty {
+            writer("\n")
+            decAndWriteIndent()
+        }
+        writer("}")
+    }
+
+    func serializeNull(null: NSNull) throws {
+        writer("null")
+    }
+    
+    let indentAmount = 2
+    
+    mutating func incAndWriteIndent() {
+        indent += indentAmount
+        writeIndent()
+    }
+    
+    mutating func decAndWriteIndent() {
+        indent -= indentAmount
+        writeIndent()
+    }
+    
+    func writeIndent() {
+        for _ in 0..<indent {
+            writer(" ")
+        }
     }
 }
 
