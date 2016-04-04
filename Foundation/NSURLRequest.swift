@@ -164,10 +164,6 @@ public enum NSURLRequestNetworkServiceType : UInt {
 */
 public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
-    private var _URL : NSURL?
-    private var _mainDocumentURL: NSURL?
-    private var _httpHeaderFields: [String: String]?
-    
     public override func copy() -> AnyObject {
         return copyWithZone(nil)
     }
@@ -235,7 +231,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     */
     public convenience init(URL: NSURL) {
         self.init()
-        _URL = URL
+        self.URL = URL
     }
     
     /*!
@@ -243,7 +239,30 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         @abstract Returns the URL of the receiver. 
         @result The URL of the receiver. 
     */
-    /*@NSCopying */public var URL: NSURL? { return _URL }
+    /*@NSCopying */public private(set) var URL: NSURL?
+    
+    /// The cache policy of the receiver.
+    public private(set) var cachePolicy: NSURLRequestCachePolicy = .UseProtocolCachePolicy
+    
+    /// The timeout interval.
+    ///
+    /// The timeout interval specifies the limit on the idle
+    /// interval allotted to a request in the process of loading. The *idle
+    /// interval* is defined as the period of time that has passed since the
+    /// last instance of load activity occurred for a request that is in the
+    /// process of loading. Hence, when an instance of load activity occurs
+    /// (e.g. bytes are received from the network for a request), the idle
+    /// interval for a request is reset to 0. If the idle interval ever
+    /// becomes greater than or equal to the timeout interval, the request
+    /// is considered to have timed out. This timeout interval is measured
+    /// in seconds.
+    public private(set) var timeoutInterval: NSTimeInterval = 60
+    
+    /// The `NSURLRequestNetworkServiceType` associated with this request.
+    ///
+    /// This method is used to provide the network layers with a hint as to the
+    /// purpose of the request.  Most clients should not need to use this method.
+    public private(set) var networkServiceType: NSURLRequestNetworkServiceType = .NetworkServiceTypeDefault
     
     /*!
         @method mainDocumentURL
@@ -253,14 +272,14 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         See setMainDocumentURL:
         @result The main document URL.
     */
-    /*@NSCopying*/ public var mainDocumentURL: NSURL? { return _mainDocumentURL }
+    /*@NSCopying*/ public private(set) var mainDocumentURL: NSURL?
     
     /*!
     @method HTTPMethod
     @abstract Returns the HTTP request method of the receiver.
     @result the HTTP request method of the receiver.
     */
-    public var HTTPMethod: String? { return "GET" }
+    public private(set) var HTTPMethod: String? = "GET"
     
     /*!
     @method allHTTPHeaderFields
@@ -269,7 +288,24 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @result a dictionary containing all the HTTP header fields of the
     receiver.
     */
-    public var allHTTPHeaderFields: [String : String]? { return _httpHeaderFields  }
+    public private(set) var allHTTPHeaderFields: [String: String]?
+    
+    /// HTTP body data.
+    ///
+    /// This is sent as the message body, as in an HTTP POST request.
+    public private(set) var HTTPBody: NSData? {
+        didSet { precondition(HTTPBody == nil || HTTPBodyStream == nil, "Must not set both HTTPBody and HTTPBodyStream.") }
+    }
+    
+    /// HTTP body stream.
+    ///
+    /// - Returns: `nil` if the body stream has not been set. The returned stream is for examination only -- it is not safe to manipulate the stream in any way.
+    ///
+    /// - Note: A request can have an HTTP body or an HTTP body stream, only one may be set for a request.
+    /// - Note: A HTTP body stream is preserved when copying an NSURLRequest object, but is lost when a request is archived using the NSCoding protocol.
+    public private(set) var HTTPBodyStream: NSInputStream? {
+        didSet { precondition(HTTPBody == nil || HTTPBodyStream == nil, "Must not set both HTTPBody and HTTPBodyStream.") }
+    }
     
     /*!
     @method valueForHTTPHeaderField:
@@ -281,8 +317,10 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @result the value associated with the given header field, or nil if
     there is no value associated with the given header field.
     */
-    public func valueForHTTPHeaderField(field: String) -> String? { return _httpHeaderFields?[field.lowercased()] }
-    
+    public func valueForHTTPHeaderField(field: String) -> String? {
+        guard let f = allHTTPHeaderFields else { return nil }
+        return existingHeaderField(field, inHeaderFields: f)?.1
+    }
 }
 
 /*!
@@ -315,9 +353,6 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     </ul>
 */
 public class NSMutableURLRequest : NSURLRequest {
-    
-    private var _HTTPMethod: String? = "GET"
-    
     public required init?(coder aDecoder: NSCoder) {
         super.init()
     }
@@ -330,14 +365,10 @@ public class NSMutableURLRequest : NSURLRequest {
         @param URL The new URL for the receiver. 
     */
     /*@NSCopying */ public override var URL: NSURL? {
-        get {
-            return _URL
-        }
-        set(newURL) {
-            _URL = newURL
-        }
+        get { return super.URL }
+        set { super.URL = newValue }
     }
-
+    
     /*!
         @method setMainDocumentURL:
         @abstract Sets the main document URL
@@ -350,11 +381,8 @@ public class NSMutableURLRequest : NSURLRequest {
         other things in the future.
     */
     /*@NSCopying*/ public override var mainDocumentURL: NSURL? {
-        get {
-            return _mainDocumentURL
-        } set(newMainDocumentURL) {
-            _mainDocumentURL = newMainDocumentURL
-        }
+        get { return super.mainDocumentURL }
+        set { super.mainDocumentURL = newValue }
     }
     
     
@@ -364,11 +392,59 @@ public class NSMutableURLRequest : NSURLRequest {
         @result the HTTP request method of the receiver.
     */
     public override var HTTPMethod: String? {
-        get {
-            return _HTTPMethod
-        } set(newHTTPMethod) {
-            _HTTPMethod = newHTTPMethod
-        }
+        get { return super.HTTPMethod }
+        set { super.HTTPMethod = newValue }
+    }
+    
+    /// The cache policy of the receiver.
+    public override var cachePolicy: NSURLRequestCachePolicy {
+        get { return super.cachePolicy }
+        set { super.cachePolicy = newValue }
+    }
+    
+    /// The timeout interval.
+    ///
+    /// The timeout interval specifies the limit on the idle
+    /// interval allotted to a request in the process of loading. The *idle
+    /// interval* is defined as the period of time that has passed since the
+    /// last instance of load activity occurred for a request that is in the
+    /// process of loading. Hence, when an instance of load activity occurs
+    /// (e.g. bytes are received from the network for a request), the idle
+    /// interval for a request is reset to 0. If the idle interval ever
+    /// becomes greater than or equal to the timeout interval, the request
+    /// is considered to have timed out. This timeout interval is measured
+    /// in seconds.
+    public override var timeoutInterval: NSTimeInterval {
+        get { return super.timeoutInterval }
+        set { super.timeoutInterval = newValue }
+    }
+    
+    /// The `NSURLRequestNetworkServiceType` associated with this request.
+    ///
+    /// This method is used to provide the network layers with a hint as to the
+    /// purpose of the request.  Most clients should not need to use this method.
+    public override var networkServiceType: NSURLRequestNetworkServiceType {
+        get { return super.networkServiceType }
+        set { super.networkServiceType = newValue }
+    }
+    
+    /// HTTP body data.
+    ///
+    /// This is sent as the message body, as in an HTTP POST request.
+    public override var HTTPBody: NSData? {
+        get { return super.HTTPBody }
+        set { super.HTTPBody = newValue.map({ $0.copy() as! NSData }) }
+    }
+    
+    /// HTTP body stream.
+    ///
+    /// - Returns: `nil` if the body stream has not been set. The returned stream is for examination only -- it is not safe to manipulate the stream in any way.
+    ///
+    /// - Note: A request can have an HTTP body or an HTTP body stream, only one may be set for a request.
+    /// - Note: A HTTP body stream is preserved when copying an NSURLRequest object, but is lost when a request is archived using the NSCoding protocol.
+    public override var HTTPBodyStream: NSInputStream? {
+        get { return super.HTTPBodyStream }
+        set { super.HTTPBodyStream = newValue }
     }
     
     /*!
@@ -382,16 +458,12 @@ public class NSMutableURLRequest : NSURLRequest {
         @param field the header field name (case-insensitive). 
     */
     public func setValue(value: String?, forHTTPHeaderField field: String) {
-        if _httpHeaderFields == nil {
-            _httpHeaderFields = [:]
+        var f: [String: String] = allHTTPHeaderFields ?? [:]
+        if let old = existingHeaderField(field, inHeaderFields: f) {
+            f.removeValue(forKey: old.0)
         }
-        if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
-            return existingField.lowercased() == field.lowercased()
-        }).first {
-            let (existingField, _) = existingHeader
-            _httpHeaderFields?.removeValue(forKey: existingField)
-        }
-        _httpHeaderFields?[field] = value
+        f[field] = value
+        allHTTPHeaderFields = f
     }
     
     /*! 
@@ -409,18 +481,22 @@ public class NSMutableURLRequest : NSURLRequest {
         @param field the header field name (case-insensitive). 
     */
     public func addValue(value: String, forHTTPHeaderField field: String) {
-        if _httpHeaderFields == nil {
-            _httpHeaderFields = [:]
-        }
-        if let existingHeader = _httpHeaderFields?.filter({ (existingField, _) -> Bool in
-            return existingField.lowercased() == field.lowercased()
-        }).first {
-            let (existingField, existingValue) = existingHeader
-            _httpHeaderFields?[existingField] = "\(existingValue),\(value)"
+        var f: [String: String] = allHTTPHeaderFields ?? [:]
+        if let old = existingHeaderField(field, inHeaderFields: f) {
+            f[old.0] = old.1 + "," + value
         } else {
-            _httpHeaderFields?[field] = value
+            f[field] = value
         }
+        allHTTPHeaderFields = f
     }
 }
 
-
+/// Returns an existing key-value pair inside the header fields if it exists.
+private func existingHeaderField(key: String, inHeaderFields fields: [String: String]) -> (String, String)? {
+    for (k, v) in fields {
+        if k.lowercased() == key.lowercased() {
+            return (k, v)
+        }
+    }
+    return nil
+}
