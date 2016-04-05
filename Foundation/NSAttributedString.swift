@@ -11,7 +11,7 @@ import CoreFoundation
 
 public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
-    private var _cfAttributedString: CFAttributedString!
+    private var _cfAttributedString: CFAttributedString
     
     internal init(cfObject: CFAttributedString) {
         _cfAttributedString = cfObject
@@ -64,18 +64,18 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     public func isEqualToAttributedString(_ other: NSAttributedString) -> Bool { NSUnimplemented() }
     
     public init(string str: String) {
-        super.init()
         _cfAttributedString = CFAttributedStringCreate(kCFAllocatorDefault, str._cfObject, nil)
+        super.init()
     }
     
     public init(string str: String, attributes attrs: [String : AnyObject]?) {
-        super.init()
         _cfAttributedString = CFAttributedStringCreate(kCFAllocatorDefault, str._cfObject, attrs?._cfObject)
+        super.init()
     }
     
     public init(attributedString attrStr: NSAttributedString) {
-        super.init()
         _cfAttributedString = CFAttributedStringCreateCopy(kCFAllocatorDefault, attrStr._cfAttributedString)
+        super.init()
     }
     
     public func enumerateAttributesInRange(_ enumerationRange: NSRange, options opts: NSAttributedStringEnumerationOptions, usingBlock block: ([String : AnyObject], NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
