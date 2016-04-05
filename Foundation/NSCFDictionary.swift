@@ -64,11 +64,11 @@ internal final class _NSCFDictionary : NSMutableDictionary {
             let cf = dict._cfObject
             count = CFDictionaryGetCount(cf)
             
-            let keys = UnsafeMutablePointer<UnsafePointer<Void>>(allocatingCapacity: count)            
+            let keys = UnsafeMutablePointer<UnsafePointer<Void>?>(allocatingCapacity: count)            
             CFDictionaryGetKeysAndValues(cf, keys, nil)
             
             for idx in 0..<count {
-                let key = unsafeBitCast(keys.advanced(by: idx).pointee, to: NSObject.self)
+                let key = unsafeBitCast(keys.advanced(by: idx).pointee!, to: NSObject.self)
                 keyArray.append(key)
             }
             keys.deinitialize()
@@ -118,12 +118,12 @@ internal func _CFSwiftDictionaryGetValue(_ dictionary: AnyObject, key: AnyObject
     }
 }
 
-internal func _CFSwiftDictionaryGetValueIfPresent(_ dictionary: AnyObject, key: AnyObject, value: UnsafeMutablePointer<Unmanaged<AnyObject>?>) -> Bool {
+internal func _CFSwiftDictionaryGetValueIfPresent(_ dictionary: AnyObject, key: AnyObject, value: UnsafeMutablePointer<Unmanaged<AnyObject>?>?) -> Bool {
     if let val = _CFSwiftDictionaryGetValue(dictionary, key: key) {
-        value.pointee = val
+        value?.pointee = val
         return true
     } else {
-        value.pointee = nil
+        value?.pointee = nil
         return false
     }
 }
@@ -140,18 +140,14 @@ internal func _CFSwiftDictionaryContainsValue(_ dictionary: AnyObject, value: An
     NSUnimplemented()
 }
 
-internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valuebuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>, keybuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>) {
+internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valuebuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>?, keybuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>?) {
     var idx = 0
     if valuebuf == nil && keybuf == nil {
         return
     }
     (dictionary as! NSDictionary).enumerateKeysAndObjectsUsingBlock { key, value, _ in
-	if valuebuf != nil {
-	    valuebuf[idx] = Unmanaged<AnyObject>.passUnretained(value)
-	}
-	if keybuf != nil {
-	    keybuf[idx] = Unmanaged<AnyObject>.passUnretained(key)
-	}
+        valuebuf?[idx] = Unmanaged<AnyObject>.passUnretained(value)
+        keybuf?[idx] = Unmanaged<AnyObject>.passUnretained(key)
         idx += 1
     }
 }
