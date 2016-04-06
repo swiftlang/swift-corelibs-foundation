@@ -31,7 +31,7 @@ public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
     static public func supportsSecureCoding() -> Bool { return true }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.namePrefix?.bridge(), forKey: "NS.namePrefix")
             aCoder.encodeObject(self.givenName?.bridge(), forKey: "NS.givenName")
@@ -50,7 +50,7 @@ public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func copyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
     
     /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
     

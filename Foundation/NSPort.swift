@@ -22,11 +22,11 @@ public class NSPort : NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -40,7 +40,7 @@ public class NSPort : NSObject, NSCopying, NSCoding {
     
     // TODO: this delegate situation is confusing on all platforms
     /*
-    public func setDelegate(anObject: NSPortDelegate?)
+    public func setDelegate(_ anObject: NSPortDelegate?)
     public func delegate() -> NSPortDelegate?
     */
     
@@ -48,11 +48,11 @@ public class NSPort : NSObject, NSCopying, NSCoding {
     // to setup monitoring of the port when added to a run loop,
     // and stop monitoring if needed when removed;
     // These methods should not be called directly!
-//    public func scheduleInRunLoop(runLoop: NSRunLoop, forMode mode: String) {
+//    public func scheduleInRunLoop(_ runLoop: NSRunLoop, forMode mode: String) {
 //        NSUnimplemented()
 //    }
 //
-//    public func removeFromRunLoop(runLoop: NSRunLoop, forMode mode: String) {
+//    public func removeFromRunLoop(_ runLoop: NSRunLoop, forMode mode: String) {
 //        NSUnimplemented()
 //    }
     
@@ -60,21 +60,21 @@ public class NSPort : NSObject, NSCopying, NSCoding {
         return 0
     }
     
-    public func sendBeforeDate(limitDate: NSDate, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
+    public func sendBeforeDate(_ limitDate: NSDate, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
         NSUnimplemented()
     }
 
-    public func sendBeforeDate(limitDate: NSDate, msgid msgID: Int, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
+    public func sendBeforeDate(_ limitDate: NSDate, msgid msgID: Int, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
         NSUnimplemented()
     }
 }
 
 extension NSPortDelegate {
-    func handlePortMessage(message: NSPortMessage) { }
+    func handlePortMessage(_ message: NSPortMessage) { }
 }
 
 public protocol NSPortDelegate : class {
-    func handlePortMessage(message: NSPortMessage)
+    func handlePortMessage(_ message: NSPortMessage)
 }
 
 // A subclass of NSPort which can be used for local

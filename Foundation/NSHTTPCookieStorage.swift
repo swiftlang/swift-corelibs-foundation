@@ -56,7 +56,7 @@ public class NSHTTPCookieStorage : NSObject {
         shared among all applications and extensions with access to the same application group. Subsequent calls to this
         method with the same identifier will return the same cookie storage instance.
      */
-    public class func sharedCookieStorageForGroupContainerIdentifier(identifier: String) -> NSHTTPCookieStorage { NSUnimplemented() }
+    public class func sharedCookieStorageForGroupContainerIdentifier(_ identifier: String) -> NSHTTPCookieStorage { NSUnimplemented() }
     
     /*!
         @method setCookie:
@@ -64,19 +64,19 @@ public class NSHTTPCookieStorage : NSObject {
         @discussion The cookie will override an existing cookie with the
         same name, domain and path, if any.
     */
-    public func setCookie(cookie: NSHTTPCookie) { NSUnimplemented() }
+    public func setCookie(_ cookie: NSHTTPCookie) { NSUnimplemented() }
     
     /*!
         @method deleteCookie:
         @abstract Delete the specified cookie
     */
-    public func deleteCookie(cookie: NSHTTPCookie) { NSUnimplemented() }
+    public func deleteCookie(_ cookie: NSHTTPCookie) { NSUnimplemented() }
     
     /*!
      @method removeCookiesSince:
      @abstract Delete all cookies from the cookie storage since the provided date.
      */
-    public func removeCookiesSinceDate(date: NSDate) { NSUnimplemented() }
+    public func removeCookiesSinceDate(_ date: NSDate) { NSUnimplemented() }
     
     /*!
         @method cookiesForURL:
@@ -88,7 +88,7 @@ public class NSHTTPCookieStorage : NSObject {
         <tt>+[NSCookie requestHeaderFieldsWithCookies:]</tt> to turn this array
         into a set of header fields to add to a request.
     */
-    public func cookiesForURL(URL: NSURL) -> [NSHTTPCookie]? { NSUnimplemented() }
+    public func cookiesForURL(_ URL: NSURL) -> [NSHTTPCookie]? { NSUnimplemented() }
     
     /*!
         @method setCookies:forURL:mainDocumentURL:
@@ -107,7 +107,7 @@ public class NSHTTPCookieStorage : NSObject {
         dictionary and then use this method to store the resulting cookies
         in accordance with policy settings.
     */
-    public func setCookies(cookies: [NSHTTPCookie], forURL URL: NSURL?, mainDocumentURL: NSURL?) { NSUnimplemented() }
+    public func setCookies(_ cookies: [NSHTTPCookie], forURL URL: NSURL?, mainDocumentURL: NSURL?) { NSUnimplemented() }
     
     /*!
         @method cookieAcceptPolicy
@@ -122,7 +122,7 @@ public class NSHTTPCookieStorage : NSObject {
       @param sortOrder an array of NSSortDescriptors which represent the preferred sort order of the resulting array.
       @discussion proper sorting of cookies may require extensive string conversion, which can be avoided by allowing the system to perform the sorting.  This API is to be preferred over the more generic -[NSHTTPCookieStorage cookies] API, if sorting is going to be performed.
     */
-    public func sortedCookiesUsingDescriptors(sortOrder: [NSSortDescriptor]) -> [NSHTTPCookie] { NSUnimplemented() }
+    public func sortedCookiesUsingDescriptors(_ sortOrder: [NSSortDescriptor]) -> [NSHTTPCookie] { NSUnimplemented() }
 }
 
 /*!

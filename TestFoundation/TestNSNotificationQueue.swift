@@ -223,7 +223,7 @@ class TestNSNotificationQueue : XCTestCase {
         }, withTimeout: 0.1)
     }
 
-    private func executeInBackgroundThread(operation: () -> ()) -> Bool {
+    private func executeInBackgroundThread(_ operation: () -> ()) -> Bool {
         var isFinished = false
         let lock = NSLock()
         let bgThread = NSThread() {
@@ -242,7 +242,7 @@ class TestNSNotificationQueue : XCTestCase {
         }, withTimeout: 0.2)
     }
 
-    private func waitForExpectation(expectation: () -> Bool, withTimeout timeout: NSTimeInterval) -> Bool {
+    private func waitForExpectation(_ expectation: () -> Bool, withTimeout timeout: NSTimeInterval) -> Bool {
         let timeoutDate = NSDate(timeIntervalSinceNow: timeout)
         while !expectation() && timeoutDate.timeIntervalSinceNow > 0.0 {
             NSRunLoop.currentRunLoop().runUntilDate(NSDate(timeIntervalSinceNow: 0.01))

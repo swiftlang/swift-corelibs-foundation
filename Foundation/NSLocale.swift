@@ -27,11 +27,11 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    public func objectForKey(key: String) -> AnyObject? {
+    public func objectForKey(_ key: String) -> AnyObject? {
         return CFLocaleGetValue(_cfObject, key._cfObject)
     }
     
-    public func displayNameForKey(key: String, value: String) -> String? {
+    public func displayNameForKey(_ key: String, value: String) -> String? {
         return CFLocaleCopyDisplayNameForPropertyValue(_cfObject, key._cfObject, value._cfObject)?._swiftObject
     }
     
@@ -55,9 +55,9 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func copyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             let identifier = CFLocaleGetIdentifier(self._cfObject)
             aCoder.encodeObject(identifier, forKey: "NS.identifier")
@@ -131,7 +131,7 @@ extension NSLocale {
         return identifiers
     }
     
-    public class func componentsFromLocaleIdentifier(string: String) -> [String : String] {
+    public class func componentsFromLocaleIdentifier(_ string: String) -> [String : String] {
         var comps = Dictionary<String, String>()
         CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._nsObject.enumerateKeysAndObjectsUsingBlock { (key: NSObject, object: AnyObject, stop: UnsafeMutablePointer<ObjCBool>) -> Void in
             comps[(key as! NSString)._swiftObject] = (object as! NSString)._swiftObject
@@ -139,27 +139,27 @@ extension NSLocale {
         return comps
     }
     
-    public class func localeIdentifierFromComponents(dict: [String : String]) -> String {
+    public class func localeIdentifierFromComponents(_ dict: [String : String]) -> String {
         return CFLocaleCreateLocaleIdentifierFromComponents(kCFAllocatorSystemDefault, dict._cfObject)._swiftObject
     }
     
-    public class func canonicalLocaleIdentifierFromString(string: String) -> String {
+    public class func canonicalLocaleIdentifierFromString(_ string: String) -> String {
         return CFLocaleCreateCanonicalLocaleIdentifierFromString(kCFAllocatorSystemDefault, string._cfObject)._swiftObject
     }
     
-    public class func canonicalLanguageIdentifierFromString(string: String) -> String {
+    public class func canonicalLanguageIdentifierFromString(_ string: String) -> String {
         return CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorSystemDefault, string._cfObject)._swiftObject
     }
     
-    public class func localeIdentifierFromWindowsLocaleCode(lcid: UInt32) -> String? {
+    public class func localeIdentifierFromWindowsLocaleCode(_ lcid: UInt32) -> String? {
         return CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode(kCFAllocatorSystemDefault, lcid)._swiftObject
     }
     
-    public class func windowsLocaleCodeFromLocaleIdentifier(localeIdentifier: String) -> UInt32 {
+    public class func windowsLocaleCodeFromLocaleIdentifier(_ localeIdentifier: String) -> UInt32 {
         return CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier(localeIdentifier._cfObject)
     }
     
-    public class func characterDirectionForLanguage(isoLangCode: String) -> NSLocaleLanguageDirection {
+    public class func characterDirectionForLanguage(_ isoLangCode: String) -> NSLocaleLanguageDirection {
         let dir = CFLocaleGetLanguageCharacterDirection(isoLangCode._cfObject)
 #if os(OSX) || os(iOS)
         return NSLocaleLanguageDirection(rawValue: UInt(dir.rawValue))!
@@ -168,7 +168,7 @@ extension NSLocale {
 #endif
     }
     
-    public class func lineDirectionForLanguage(isoLangCode: String) -> NSLocaleLanguageDirection {
+    public class func lineDirectionForLanguage(_ isoLangCode: String) -> NSLocaleLanguageDirection {
         let dir = CFLocaleGetLanguageLineDirection(isoLangCode._cfObject)
 #if os(OSX) || os(iOS)
         return NSLocaleLanguageDirection(rawValue: UInt(dir.rawValue))!

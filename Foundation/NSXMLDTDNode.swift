@@ -235,7 +235,7 @@ public class NSXMLDTDNode : NSXMLNode {
         }
     }//primitive
 
-    internal override class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLDTDNode {
+    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLDTDNode {
         let type = _CFXMLNodeGetType(node)
         precondition(type == _kCFXMLDTDNodeTypeAttribute ||
                      type == _kCFXMLDTDNodeTypeNotation  ||

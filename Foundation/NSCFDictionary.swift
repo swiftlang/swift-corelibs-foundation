@@ -36,7 +36,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
         return CFDictionaryGetCount(unsafeBitCast(self, to: CFDictionary.self))
     }
     
-    override func objectForKey(aKey: AnyObject) -> AnyObject? {
+    override func objectForKey(_ aKey: AnyObject) -> AnyObject? {
         let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self))
         if value != nil {
             return unsafeBitCast(value, to: AnyObject.self)
@@ -80,11 +80,11 @@ internal final class _NSCFDictionary : NSMutableDictionary {
         return NSGeneratorEnumerator(_NSCFKeyGenerator(self))
     }
 
-    override func removeObjectForKey(aKey: AnyObject) {
+    override func removeObjectForKey(_ aKey: AnyObject) {
         CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self))
     }
     
-    override func setObject(anObject: AnyObject, forKey aKey: NSObject) {
+    override func setObject(_ anObject: AnyObject, forKey aKey: NSObject) {
         CFDictionarySetValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self), unsafeBitCast(anObject, to: UnsafePointer<Void>.self))
     }
     
@@ -93,11 +93,11 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     }
 }
 
-internal func _CFSwiftDictionaryGetCount(dictionary: AnyObject) -> CFIndex {
+internal func _CFSwiftDictionaryGetCount(_ dictionary: AnyObject) -> CFIndex {
     return (dictionary as! NSDictionary).count
 }
 
-internal func _CFSwiftDictionaryGetCountOfKey(dictionary: AnyObject, key: AnyObject) -> CFIndex {
+internal func _CFSwiftDictionaryGetCountOfKey(_ dictionary: AnyObject, key: AnyObject) -> CFIndex {
     if _CFSwiftDictionaryContainsKey(dictionary, key: key) {
         return 1
     } else {
@@ -105,12 +105,12 @@ internal func _CFSwiftDictionaryGetCountOfKey(dictionary: AnyObject, key: AnyObj
     }
 }
 
-internal func _CFSwiftDictionaryContainsKey(dictionary: AnyObject, key: AnyObject) -> Bool {
+internal func _CFSwiftDictionaryContainsKey(_ dictionary: AnyObject, key: AnyObject) -> Bool {
     return (dictionary as! NSDictionary).objectForKey(key) != nil
 }
 
 //(AnyObject, AnyObject) -> Unmanaged<AnyObject>
-internal func _CFSwiftDictionaryGetValue(dictionary: AnyObject, key: AnyObject) -> Unmanaged<AnyObject>? {
+internal func _CFSwiftDictionaryGetValue(_ dictionary: AnyObject, key: AnyObject) -> Unmanaged<AnyObject>? {
     if let obj = (dictionary as! NSDictionary).objectForKey(key) {
         return Unmanaged<AnyObject>.passUnretained(obj)
     } else {
@@ -118,7 +118,7 @@ internal func _CFSwiftDictionaryGetValue(dictionary: AnyObject, key: AnyObject) 
     }
 }
 
-internal func _CFSwiftDictionaryGetValueIfPresent(dictionary: AnyObject, key: AnyObject, value: UnsafeMutablePointer<Unmanaged<AnyObject>?>) -> Bool {
+internal func _CFSwiftDictionaryGetValueIfPresent(_ dictionary: AnyObject, key: AnyObject, value: UnsafeMutablePointer<Unmanaged<AnyObject>?>) -> Bool {
     if let val = _CFSwiftDictionaryGetValue(dictionary, key: key) {
         value.pointee = val
         return true
@@ -128,7 +128,7 @@ internal func _CFSwiftDictionaryGetValueIfPresent(dictionary: AnyObject, key: An
     }
 }
 
-internal func _CFSwiftDictionaryGetCountOfValue(dictionary: AnyObject, value: AnyObject) -> CFIndex {
+internal func _CFSwiftDictionaryGetCountOfValue(_ dictionary: AnyObject, value: AnyObject) -> CFIndex {
     if _CFSwiftDictionaryContainsValue(dictionary, value: value) {
         return 1
     } else {
@@ -136,11 +136,11 @@ internal func _CFSwiftDictionaryGetCountOfValue(dictionary: AnyObject, value: An
     }
 }
 
-internal func _CFSwiftDictionaryContainsValue(dictionary: AnyObject, value: AnyObject) -> Bool {
+internal func _CFSwiftDictionaryContainsValue(_ dictionary: AnyObject, value: AnyObject) -> Bool {
     NSUnimplemented()
 }
 
-internal func _CFSwiftDictionaryGetValuesAndKeys(dictionary: AnyObject, valuebuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>, keybuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>) {
+internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valuebuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>, keybuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>) {
     var idx = 0
     if valuebuf == nil && keybuf == nil {
         return
@@ -156,28 +156,28 @@ internal func _CFSwiftDictionaryGetValuesAndKeys(dictionary: AnyObject, valuebuf
     }
 }
 
-internal func _CFSwiftDictionaryApplyFunction(dictionary: AnyObject, applier: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Void, context: UnsafeMutablePointer<Void>) {
+internal func _CFSwiftDictionaryApplyFunction(_ dictionary: AnyObject, applier: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Void, context: UnsafeMutablePointer<Void>) {
     (dictionary as! NSDictionary).enumerateKeysAndObjectsUsingBlock { key, value, _ in
         applier(key, value, context)
     }
 }
 
-internal func _CFSwiftDictionaryAddValue(dictionary: AnyObject, key: AnyObject, value: AnyObject) {
+internal func _CFSwiftDictionaryAddValue(_ dictionary: AnyObject, key: AnyObject, value: AnyObject) {
     (dictionary as! NSMutableDictionary).setObject(value, forKey: key as! NSObject)
 }
 
-internal func _CFSwiftDictionaryReplaceValue(dictionary:  AnyObject, key: AnyObject, value: AnyObject) {
+internal func _CFSwiftDictionaryReplaceValue(_ dictionary:  AnyObject, key: AnyObject, value: AnyObject) {
     (dictionary as! NSMutableDictionary).setObject(value, forKey: key as! NSObject)
 }
 
-internal func _CFSwiftDictionarySetValue(dictionary:  AnyObject, key: AnyObject, value: AnyObject) {
+internal func _CFSwiftDictionarySetValue(_ dictionary:  AnyObject, key: AnyObject, value: AnyObject) {
     (dictionary as! NSMutableDictionary).setObject(value, forKey: key as! NSObject)
 }
 
-internal func _CFSwiftDictionaryRemoveValue(dictionary:  AnyObject, key: AnyObject) {
+internal func _CFSwiftDictionaryRemoveValue(_ dictionary:  AnyObject, key: AnyObject) {
     (dictionary as! NSMutableDictionary).removeObjectForKey(key)
 }
 
-internal func _CFSwiftDictionaryRemoveAllValues(dictionary: AnyObject) {
+internal func _CFSwiftDictionaryRemoveAllValues(_ dictionary: AnyObject) {
     (dictionary as! NSMutableDictionary).removeAllObjects()
 }

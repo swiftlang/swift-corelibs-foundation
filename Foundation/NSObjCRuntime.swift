@@ -102,7 +102,7 @@ private let _NSObjCSizesAndAlignments : Dictionary<_NSSimpleObjCType, (Int, Int)
     .CharPtr    : ( sizeof(UnsafePointer<CChar>),   alignof(UnsafePointer<CChar>))
 ]
 
-internal func _NSGetSizeAndAlignment(type: _NSSimpleObjCType,
+internal func _NSGetSizeAndAlignment(_ type: _NSSimpleObjCType,
                                      _ size : inout Int,
                                      _ align : inout Int) -> Bool {
     guard let sizeAndAlignment = _NSObjCSizesAndAlignments[type] else {
@@ -115,7 +115,7 @@ internal func _NSGetSizeAndAlignment(type: _NSSimpleObjCType,
     return true
 }
 
-public func NSGetSizeAndAlignment(typePtr: UnsafePointer<Int8>,
+public func NSGetSizeAndAlignment(_ typePtr: UnsafePointer<Int8>,
                                   _ sizep: UnsafeMutablePointer<Int>,
                                   _ alignp: UnsafeMutablePointer<Int>) -> UnsafePointer<Int8> {
     let type = _NSSimpleObjCType(UInt8(typePtr.pointee))!
@@ -144,7 +144,7 @@ public enum NSComparisonResult : Int {
     case OrderedSame
     case OrderedDescending
     
-    internal static func _fromCF(val: CFComparisonResult) -> NSComparisonResult {
+    internal static func _fromCF(_ val: CFComparisonResult) -> NSComparisonResult {
         if val == kCFCompareLessThan {
             return .OrderedAscending
         } else if  val == kCFCompareGreaterThan {
@@ -194,15 +194,15 @@ public typealias NSComparator = (AnyObject, AnyObject) -> NSComparisonResult
 
 public let NSNotFound: Int = Int.max
 
-@noreturn internal func NSRequiresConcreteImplementation(fn: String = #function, file: StaticString = #file, line: UInt = #line) {
+@noreturn internal func NSRequiresConcreteImplementation(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) {
     fatalError("\(fn) must be overriden in subclass implementations", file: file, line: line)
 }
 
-@noreturn internal func NSUnimplemented(fn: String = #function, file: StaticString = #file, line: UInt = #line) {
+@noreturn internal func NSUnimplemented(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) {
     fatalError("\(fn) is not yet implemented", file: file, line: line)
 }
 
-@noreturn internal func NSInvalidArgument(message: String, method: String = #function, file: StaticString = #file, line: UInt = #line) {
+@noreturn internal func NSInvalidArgument(_ message: String, method: String = #function, file: StaticString = #file, line: UInt = #line) {
     fatalError("\(method): \(message)", file: file, line: line)
 }
 
@@ -250,7 +250,7 @@ private let _SwiftFoundationModuleName = "Foundation"
     canonical encoding for other types yet, except for the mangled name, which is
     neither stable nor human-readable.
  */
-public func NSStringFromClass(aClass: AnyClass) -> String {
+public func NSStringFromClass(_ aClass: AnyClass) -> String {
     let aClassName = String(reflecting: aClass).bridge()
     let components = aClassName.componentsSeparatedByString(".")
     
@@ -273,7 +273,7 @@ public func NSStringFromClass(aClass: AnyClass) -> String {
     canonical encoding for other types yet, except for the mangled name, which is
     neither stable nor human-readable.
  */
-public func NSClassFromString(aClassName: String) -> AnyClass? {
+public func NSClassFromString(_ aClassName: String) -> AnyClass? {
     let aClassNameWithPrefix : String
     let components = aClassName.bridge().componentsSeparatedByString(".")
     

@@ -46,7 +46,7 @@ public class NSCachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -58,7 +58,7 @@ public class NSCachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
 
@@ -152,7 +152,7 @@ public class NSURLCache : NSObject {
         unexpectedly unretrievable.
         @param cache the new shared NSURLCache instance.
     */
-    public class func setSharedURLCache(cache: NSURLCache) { NSUnimplemented() }
+    public class func setSharedURLCache(_ cache: NSURLCache) { NSUnimplemented() }
     
     /*! 
         @method initWithMemoryCapacity:diskCapacity:diskPath:
@@ -180,7 +180,7 @@ public class NSURLCache : NSObject {
         request, or nil if there is no NSCachedURLResponse stored with the
         given request.
     */
-    public func cachedResponseForRequest(request: NSURLRequest) -> NSCachedURLResponse? { NSUnimplemented() }
+    public func cachedResponseForRequest(_ request: NSURLRequest) -> NSCachedURLResponse? { NSUnimplemented() }
     
     /*! 
         @method storeCachedResponse:forRequest:
@@ -189,7 +189,7 @@ public class NSURLCache : NSObject {
         @param cachedResponse The cached response to store.
         @param request the NSURLRequest to use as a key for the storage.
     */
-    public func storeCachedResponse(cachedResponse: NSCachedURLResponse, forRequest request: NSURLRequest) { NSUnimplemented() }
+    public func storeCachedResponse(_ cachedResponse: NSCachedURLResponse, forRequest request: NSURLRequest) { NSUnimplemented() }
     
     /*! 
         @method removeCachedResponseForRequest:
@@ -199,7 +199,7 @@ public class NSURLCache : NSObject {
         stored with the given request.
         @param request the NSURLRequest to use as a key for the lookup.
     */
-    public func removeCachedResponseForRequest(request: NSURLRequest) { NSUnimplemented() }
+    public func removeCachedResponseForRequest(_ request: NSURLRequest) { NSUnimplemented() }
     
     /*! 
         @method removeAllCachedResponses
@@ -212,7 +212,7 @@ public class NSURLCache : NSObject {
      @method removeCachedResponsesSince:
      @abstract Clears the given cache of any cached responses since the provided date.
      */
-    public func removeCachedResponsesSinceDate(date: NSDate) { NSUnimplemented() }
+    public func removeCachedResponsesSinceDate(_ date: NSDate) { NSUnimplemented() }
     
     /*! 
         @method memoryCapacity
@@ -252,7 +252,7 @@ public class NSURLCache : NSObject {
 }
 
 extension NSURLCache {
-    public func storeCachedResponse(cachedResponse: NSCachedURLResponse, forDataTask dataTask: NSURLSessionDataTask) { NSUnimplemented() }
-    public func getCachedResponseForDataTask(dataTask: NSURLSessionDataTask, completionHandler: (NSCachedURLResponse?) -> Void) { NSUnimplemented() }
-    public func removeCachedResponseForDataTask(dataTask: NSURLSessionDataTask) { NSUnimplemented() }
+    public func storeCachedResponse(_ cachedResponse: NSCachedURLResponse, forDataTask dataTask: NSURLSessionDataTask) { NSUnimplemented() }
+    public func getCachedResponseForDataTask(_ dataTask: NSURLSessionDataTask, completionHandler: (NSCachedURLResponse?) -> Void) { NSUnimplemented() }
+    public func removeCachedResponseForDataTask(_ dataTask: NSURLSessionDataTask) { NSUnimplemented() }
 }

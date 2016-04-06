@@ -73,11 +73,11 @@ public class NSNotificationQueue : NSObject {
         removeRunloopObserver(self.asapRunloopObserver)
     }
 
-    public func enqueueNotification(notification: NSNotification, postingStyle: NSPostingStyle) {
+    public func enqueueNotification(_ notification: NSNotification, postingStyle: NSPostingStyle) {
         enqueueNotification(notification, postingStyle: postingStyle, coalesceMask: [.CoalescingOnName, .CoalescingOnSender], forModes: nil)
     }
 
-    public func enqueueNotification(notification: NSNotification, postingStyle: NSPostingStyle, coalesceMask: NSNotificationCoalescing, forModes modes: [String]?) {
+    public func enqueueNotification(_ notification: NSNotification, postingStyle: NSPostingStyle, coalesceMask: NSNotificationCoalescing, forModes modes: [String]?) {
         var runloopModes = [NSDefaultRunLoopMode]
         if let modes = modes  {
             runloopModes = modes
@@ -102,7 +102,7 @@ public class NSNotificationQueue : NSObject {
         }
     }
     
-    public func dequeueNotificationsMatching(notification: NSNotification, coalesceMask: NSNotificationCoalescing) {
+    public func dequeueNotificationsMatching(_ notification: NSNotification, coalesceMask: NSNotificationCoalescing) {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
         case [.CoalescingOnName, .CoalescingOnSender]:
@@ -127,17 +127,17 @@ public class NSNotificationQueue : NSObject {
 
     // MARK: Private
 
-    private func addRunloopObserver(observer: CFRunLoopObserver) {
+    private func addRunloopObserver(_ observer: CFRunLoopObserver) {
         CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
         CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
-    private func removeRunloopObserver(observer: CFRunLoopObserver) {
+    private func removeRunloopObserver(_ observer: CFRunLoopObserver) {
         CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
         CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
-    private func notify(currentMode: String?, notificationList: inout NSNotificationList) {
+    private func notify(_ currentMode: String?, notificationList: inout NSNotificationList) {
         for (idx, (notification, modes)) in notificationList.enumerated().reversed() {
             if currentMode == nil || modes.contains(currentMode!) {
                 self.notificationCenter.postNotification(notification)
@@ -149,7 +149,7 @@ public class NSNotificationQueue : NSObject {
     /**
      Gets queues from the notificationQueueList and posts all notification from the list related to the postingStyle parameter.
      */
-    private func notifyQueues(postingStyle: NSPostingStyle) {
+    private func notifyQueues(_ postingStyle: NSPostingStyle) {
         let currentMode = NSRunLoop.currentRunLoop().currentMode
         for queue in NSNotificationQueue.notificationQueueList {
             let notificationQueue = queue as! NSNotificationQueue
@@ -161,11 +161,11 @@ public class NSNotificationQueue : NSObject {
         }
     }
 
-    private static func registerQueue(notificationQueue: NSNotificationQueue) {
+    private static func registerQueue(_ notificationQueue: NSNotificationQueue) {
         self.notificationQueueList.addObject(notificationQueue)
     }
 
-    private static func unregisterQueue(notificationQueue: NSNotificationQueue) {
+    private static func unregisterQueue(_ notificationQueue: NSNotificationQueue) {
         guard self.notificationQueueList.indexOfObject(notificationQueue) != NSNotFound else {
             return
         }

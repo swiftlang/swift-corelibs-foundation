@@ -30,7 +30,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -38,7 +38,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -176,6 +176,6 @@ public class NSHTTPURLResponse : NSURLResponse {
         @param the status code to use to produce a localized string.
         @result A localized string corresponding to the given status code.
     */
-    public class func localizedStringForStatusCode(statusCode: Int) -> String { NSUnimplemented() }
+    public class func localizedStringForStatusCode(_ statusCode: Int) -> String { NSUnimplemented() }
 }
 

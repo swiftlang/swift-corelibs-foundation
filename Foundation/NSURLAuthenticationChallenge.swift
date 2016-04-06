@@ -24,7 +24,7 @@ public class NSURLAuthenticationChallenge : NSObject, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     

@@ -58,7 +58,7 @@ public protocol NSURLProtocolClient {
      @param request the NSURLRequest to which the protocol implementation
      has redirected.
      */
-    func URLProtocol(protocol: NSURLProtocol, wasRedirectedToRequest request: NSURLRequest, redirectResponse: NSURLResponse)
+    func URLProtocol(_ protocol: NSURLProtocol, wasRedirectedToRequest request: NSURLRequest, redirectResponse: NSURLResponse)
     
     /*!
     @method URLProtocol:cachedResponseIsValid:
@@ -69,7 +69,7 @@ public protocol NSURLProtocolClient {
          @param cachedResponse the NSCachedURLResponse object that has
          examined and is valid.
          */
-    func URLProtocol(protocol: NSURLProtocol, cachedResponseIsValid cachedResponse: NSCachedURLResponse)
+    func URLProtocol(_ protocol: NSURLProtocol, cachedResponseIsValid cachedResponse: NSCachedURLResponse)
     
     /*!
     @method URLProtocol:didReceiveResponse:
@@ -82,7 +82,7 @@ public protocol NSURLProtocolClient {
          has determined should be used for the given response if the
          response is to be stored in a cache.
          */
-    func URLProtocol(protocol: NSURLProtocol, didReceiveResponse response: NSURLResponse, cacheStoragePolicy policy: NSURLCacheStoragePolicy)
+    func URLProtocol(_ protocol: NSURLProtocol, didReceiveResponse response: NSURLResponse, cacheStoragePolicy policy: NSURLCacheStoragePolicy)
     
     /*!
     @method URLProtocol:didLoadData:
@@ -94,7 +94,7 @@ public protocol NSURLProtocolClient {
          @param URLProtocol the NSURLProtocol object sending the message.
          @param data URL load data being made available.
          */
-    func URLProtocol(protocol: NSURLProtocol, didLoadData data: NSData)
+    func URLProtocol(_ protocol: NSURLProtocol, didLoadData data: NSData)
     
     /*!
     @method URLProtocolDidFinishLoading:
@@ -102,7 +102,7 @@ public protocol NSURLProtocolClient {
          implementation has finished loading successfully.
          @param URLProtocol the NSURLProtocol object sending the message.
          */
-    func URLProtocolDidFinishLoading(protocol: NSURLProtocol)
+    func URLProtocolDidFinishLoading(_ protocol: NSURLProtocol)
     
     /*!
                 @method URLProtocol:didFailWithError:
@@ -111,7 +111,7 @@ public protocol NSURLProtocolClient {
      @param URLProtocol the NSURLProtocol object sending the message.
      @param error The error that caused the load to fail.
      */
-    func URLProtocol(protocol: NSURLProtocol, didFailWithError error: NSError)
+    func URLProtocol(_ protocol: NSURLProtocol, didFailWithError error: NSError)
     
     /*!
     @method URLProtocol:didReceiveAuthenticationChallenge:
@@ -123,7 +123,7 @@ public protocol NSURLProtocolClient {
          default credential to the challenge it issues to the connection delegate,
          if the protocol did not provide one.
          */
-    func URLProtocol(protocol: NSURLProtocol, didReceiveAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
+    func URLProtocol(_ protocol: NSURLProtocol, didReceiveAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
     
     /*!
     @method URLProtocol:didCancelAuthenticationChallenge:
@@ -131,7 +131,7 @@ public protocol NSURLProtocolClient {
          @param protocol The protocol object cancelling authentication.
          @param challenge The authentication challenge.
          */
-    func URLProtocol(protocol: NSURLProtocol, didCancelAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
+    func URLProtocol(_ protocol: NSURLProtocol, didCancelAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
 }
 
 /*!
@@ -199,7 +199,7 @@ public class NSURLProtocol : NSObject {
         @param request A request to inspect.
         @result YES if the protocol can handle the given request, NO if not.
     */
-    public class func canInitWithRequest(request: NSURLRequest) -> Bool { NSUnimplemented() }
+    public class func canInitWithRequest(_ request: NSURLRequest) -> Bool { NSUnimplemented() }
     
     /*! 
         @method canonicalRequestForRequest:
@@ -219,7 +219,7 @@ public class NSURLProtocol : NSObject {
         @param request A request to make canonical.
         @result The canonical form of the given request. 
     */
-    public class func canonicalRequestForRequest(request: NSURLRequest) -> NSURLRequest { NSUnimplemented() }
+    public class func canonicalRequestForRequest(_ request: NSURLRequest) -> NSURLRequest { NSUnimplemented() }
     
     /*!
         @method requestIsCacheEquivalent:toRequest:
@@ -230,7 +230,7 @@ public class NSURLProtocol : NSObject {
         implementation-specific checks.
         @result YES if the two requests are cache-equivalent, NO otherwise.
     */
-    public class func requestIsCacheEquivalent(a: NSURLRequest, toRequest b: NSURLRequest) -> Bool { NSUnimplemented() }
+    public class func requestIsCacheEquivalent(_ a: NSURLRequest, toRequest b: NSURLRequest) -> Bool { NSUnimplemented() }
     
     /*! 
         @method startLoading
@@ -266,7 +266,7 @@ public class NSURLProtocol : NSObject {
         @result The property stored with the given key, or nil if no property
         had previously been stored with the given key in the given request.
     */
-    public class func propertyForKey(key: String, inRequest request: NSURLRequest) -> AnyObject? { NSUnimplemented() }
+    public class func propertyForKey(_ key: String, inRequest request: NSURLRequest) -> AnyObject? { NSUnimplemented() }
     
     /*! 
         @method setProperty:forKey:inRequest:
@@ -279,7 +279,7 @@ public class NSURLProtocol : NSObject {
         @param key The string to use for the property storage. 
         @param request The request in which to store the property. 
     */
-    public class func setProperty(value: AnyObject, forKey key: String, inRequest request: NSMutableURLRequest) { NSUnimplemented() }
+    public class func setProperty(_ value: AnyObject, forKey key: String, inRequest request: NSMutableURLRequest) { NSUnimplemented() }
     
     /*!
         @method removePropertyForKey:inRequest:
@@ -290,7 +290,7 @@ public class NSURLProtocol : NSObject {
         @param key The key whose value should be removed
         @param request The request to be modified
     */
-    public class func removePropertyForKey(key: String, inRequest request: NSMutableURLRequest) { NSUnimplemented() }
+    public class func removePropertyForKey(_ key: String, inRequest request: NSMutableURLRequest) { NSUnimplemented() }
     
     /*! 
         @method registerClass:
@@ -315,7 +315,7 @@ public class NSURLProtocol : NSObject {
         The only way that failure can occur is if the given class is not a
         subclass of NSURLProtocol.
     */
-    public class func registerClass(protocolClass: AnyClass) -> Bool { NSUnimplemented() }
+    public class func registerClass(_ protocolClass: AnyClass) -> Bool { NSUnimplemented() }
     
     /*! 
         @method unregisterClass:
@@ -324,9 +324,9 @@ public class NSURLProtocol : NSObject {
         consulted in calls to NSURLProtocol class methods.
         @param protocolClass The class to unregister.
     */
-    public class func unregisterClass(protocolClass: AnyClass) { NSUnimplemented() }
+    public class func unregisterClass(_ protocolClass: AnyClass) { NSUnimplemented() }
 
-    public class func canInitWithTask(task: NSURLSessionTask) -> Bool { NSUnimplemented() }
+    public class func canInitWithTask(_ task: NSURLSessionTask) -> Bool { NSUnimplemented() }
     public convenience init(task: NSURLSessionTask, cachedResponse: NSCachedURLResponse?, client: NSURLProtocolClient?) { NSUnimplemented() }
     /*@NSCopying*/ public var task: NSURLSessionTask? { NSUnimplemented() }
 }

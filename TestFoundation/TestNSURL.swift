@@ -92,7 +92,7 @@ class TestNSURL : XCTestCase {
     }
     
     /// Returns a URL from the given url string and base
-    private func URLWithString(urlString : String, baseString : String?) -> NSURL? {
+    private func URLWithString(_ urlString : String, baseString : String?) -> NSURL? {
         if let baseString = baseString {
             let baseURL = NSURL(string: baseString)
             return NSURL(string: urlString, relativeToURL: baseURL)
@@ -101,7 +101,7 @@ class TestNSURL : XCTestCase {
         }
     }
     
-    internal func generateResults(url: NSURL, pathComponent: String?, pathExtension : String?) -> [String : String] {
+    internal func generateResults(_ url: NSURL, pathComponent: String?, pathExtension : String?) -> [String : String] {
         var result = [String : String]()
         if let pathComponent = pathComponent {
             if let newURL = url.URLByAppendingPathComponent(pathComponent, isDirectory: false) {
@@ -158,7 +158,7 @@ class TestNSURL : XCTestCase {
         return result
     }
 
-    internal func compareResults(url : NSURL, expected : [String : Any], got : [String : String]) -> (Bool, [String]) {
+    internal func compareResults(_ url : NSURL, expected : [String : Any], got : [String : String]) -> (Bool, [String]) {
         var differences = [String]()
         for (key, obj) in expected {
             // Skip non-string expected results

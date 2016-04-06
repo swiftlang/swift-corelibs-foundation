@@ -21,7 +21,7 @@ internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
 #endif
 
-private func _standardizedPath(path: String) -> String {
+private func _standardizedPath(_ path: String) -> String {
     if !path.absolutePath {
         return path._nsObject.stringByStandardizingPath
     }
@@ -60,7 +60,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: AnyObject?) -> Bool {
         if let url = object as? NSURL {
             return CFEqual(_cfObject, url._cfObject)
         } else {
@@ -80,7 +80,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -103,7 +103,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         }
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
 	if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.baseURL, forKey:"NS.base")
             aCoder.encodeObject(self.relativeString.bridge(), forKey:"NS.relative")
@@ -348,7 +348,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     /* Returns the URL's path in file system representation. File system representation is a null-terminated C string with canonical UTF-8 encoding.
     */
-    public func getFileSystemRepresentation(buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferLength: Int) -> Bool {
+    public func getFileSystemRepresentation(_ buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferLength: Int) -> Bool {
         return CFURLGetFileSystemRepresentation(_cfObject, true, UnsafeMutablePointer<UInt8>(buffer), maxBufferLength)
     }
     
@@ -439,7 +439,7 @@ extension NSCharacterSet {
 extension NSString {
     
     // Returns a new string made from the receiver by replacing all characters not in the allowedCharacters set with percent encoded characters. UTF-8 encoding is used to determine the correct percent encoded characters. Entire URL strings cannot be percent-encoded. This method is intended to percent-encode an URL component or subcomponent string, NOT the entire URL string. Any characters in allowedCharacters outside of the 7-bit ASCII range are ignored.
-    public func stringByAddingPercentEncodingWithAllowedCharacters(allowedCharacters: NSCharacterSet) -> String? {
+    public func stringByAddingPercentEncodingWithAllowedCharacters(_ allowedCharacters: NSCharacterSet) -> String? {
         return _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, self._cfObject, allowedCharacters._cfObject)._swiftObject
     }
     
@@ -453,7 +453,7 @@ extension NSURL {
     
     /* The following methods work on the path portion of a URL in the same manner that the NSPathUtilities methods on NSString do.
     */
-    public class func fileURLWithPathComponents(components: [String]) -> NSURL? {
+    public class func fileURLWithPathComponents(_ components: [String]) -> NSURL? {
         let path = NSString.pathWithComponents(components)
         if components.last == "/" {
             return NSURL(fileURLWithPath: path, isDirectory: true)
@@ -474,7 +474,7 @@ extension NSURL {
         return self.path?.pathExtension
     }
     
-    public func URLByAppendingPathComponent(pathComponent: String) -> NSURL? {
+    public func URLByAppendingPathComponent(_ pathComponent: String) -> NSURL? {
         var result : NSURL? = URLByAppendingPathComponent(pathComponent, isDirectory: false)
         if !pathComponent.hasSuffix("/") && fileURL {
             if let urlWithoutDirectory = result, path = urlWithoutDirectory.path {
@@ -488,7 +488,7 @@ extension NSURL {
         return result
     }
     
-    public func URLByAppendingPathComponent(pathComponent: String, isDirectory: Bool) -> NSURL? {
+    public func URLByAppendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> NSURL? {
         return CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, _cfObject, pathComponent._cfObject, isDirectory)?._nsObject
     }
     
@@ -496,7 +496,7 @@ extension NSURL {
         return CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, _cfObject)?._nsObject
     }
     
-    public func URLByAppendingPathExtension(pathExtension: String) -> NSURL? {
+    public func URLByAppendingPathExtension(_ pathExtension: String) -> NSURL? {
         return CFURLCreateCopyAppendingPathExtension(kCFAllocatorSystemDefault, _cfObject, pathExtension._cfObject)?._nsObject
     }
     
@@ -516,7 +516,7 @@ extension NSURL {
         return _resolveSymlinksInPath(excludeSystemDirs: true)
     }
     
-    internal func _resolveSymlinksInPath(excludeSystemDirs excludeSystemDirs: Bool) -> NSURL? {
+    internal func _resolveSymlinksInPath(excludeSystemDirs: Bool) -> NSURL? {
         guard fileURL else {
             return NSURL(string: absoluteString)
         }
@@ -583,7 +583,7 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -595,7 +595,7 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -610,7 +610,7 @@ public class NSURLComponents : NSObject, NSCopying {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -643,7 +643,7 @@ public class NSURLComponents : NSObject, NSCopying {
     }
     
     // Returns a URL created from the NSURLComponents relative to a base URL. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
-    public func URLRelativeToURL(baseURL: NSURL?) -> NSURL? {
+    public func URLRelativeToURL(_ baseURL: NSURL?) -> NSURL? {
         NSUnimplemented()
     }
     

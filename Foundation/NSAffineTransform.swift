@@ -33,10 +33,10 @@ public struct NSAffineTransformStruct {
 
 public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return NSAffineTransform(transform: self)
     }
     // Necessary because `NSObject.copy()` returns `self`.
@@ -65,30 +65,30 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     // Translating
-    public func translateXBy(deltaX: CGFloat, yBy deltaY: CGFloat) {
+    public func translateXBy(_ deltaX: CGFloat, yBy deltaY: CGFloat) {
         let translation = NSAffineTransformStruct.translation(tX: deltaX, tY: deltaY)
         
         transformStruct = translation.concat(transformStruct)
     }
     
     // Rotating
-    public func rotateByDegrees(angle: CGFloat) {
+    public func rotateByDegrees(_ angle: CGFloat) {
         let rotation = NSAffineTransformStruct.rotation(degrees: angle)
         
         transformStruct = rotation.concat(transformStruct)
     }
-    public func rotateByRadians(angle: CGFloat) {
+    public func rotateByRadians(_ angle: CGFloat) {
         let rotation = NSAffineTransformStruct.rotation(radians: angle)
         
         transformStruct = rotation.concat(transformStruct)
     }
     
     // Scaling
-    public func scaleBy(scale: CGFloat) {
+    public func scaleBy(_ scale: CGFloat) {
         scaleXBy(scale, yBy: scale)
     }
 
-    public func scaleXBy(scaleX: CGFloat, yBy scaleY: CGFloat) {
+    public func scaleXBy(_ scaleX: CGFloat, yBy scaleY: CGFloat) {
         let scale = NSAffineTransformStruct.scale(sX: scaleX, sY: scaleY)
         
         transformStruct = scale.concat(transformStruct)
@@ -105,19 +105,19 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     // Transforming with transform
-    public func appendTransform(transform: NSAffineTransform) {
+    public func appendTransform(_ transform: NSAffineTransform) {
         transformStruct = transformStruct.concat(transform.transformStruct)
     }
-    public func prependTransform(transform: NSAffineTransform) {
+    public func prependTransform(_ transform: NSAffineTransform) {
         transformStruct = transform.transformStruct.concat(transformStruct)
     }
     
     // Transforming points and sizes
-    public func transformPoint(aPoint: NSPoint) -> NSPoint {
+    public func transformPoint(_ aPoint: NSPoint) -> NSPoint {
         return transformStruct.applied(toPoint: aPoint)
     }
 
-    public func transformSize(aSize: NSSize) -> NSSize {
+    public func transformSize(_ aSize: NSSize) -> NSSize {
         return transformStruct.applied(toSize: aSize)
     }
 
@@ -141,7 +141,7 @@ private extension NSAffineTransformStruct {
          [  0   1  0 ]
          [ tX  tY  1 ]
      */
-    static func translation(tX tX: CGFloat, tY: CGFloat) -> NSAffineTransformStruct {
+    static func translation(tX: CGFloat, tY: CGFloat) -> NSAffineTransformStruct {
         return NSAffineTransformStruct(
             m11: CGFloat(1.0), m12: CGFloat(),
             m21: CGFloat(),    m22: CGFloat(1.0),
@@ -157,7 +157,7 @@ private extension NSAffineTransformStruct {
          [ 0   sY  0 ]
          [ 0    0  1 ]
      */
-    static func scale(sX sX: CGFloat, sY: CGFloat) -> NSAffineTransformStruct {
+    static func scale(sX: CGFloat, sY: CGFloat) -> NSAffineTransformStruct {
         return NSAffineTransformStruct(
             m11: sX, m12: CGFloat(),
             m21: CGFloat(), m22: sY,
@@ -214,7 +214,7 @@ private extension NSAffineTransformStruct {
                = [    (m21_T*m11_M + m22_T*m21_M)       (m21_T*m12_M + m22_T*m22_M)    0 ]
                  [ (tX_T*m11_M + tY_T*m21_M + tX_M)  (tX_T*m12_M + tY_T*m22_M + tY_M)  1 ]
      */
-    func concat(transformStruct: NSAffineTransformStruct) -> NSAffineTransformStruct {
+    func concat(_ transformStruct: NSAffineTransformStruct) -> NSAffineTransformStruct {
         let (t, m) = (self, transformStruct)
 
         return NSAffineTransformStruct(

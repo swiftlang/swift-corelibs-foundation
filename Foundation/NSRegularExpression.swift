@@ -32,11 +32,11 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -81,7 +81,7 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
     
     /* This class method will produce a string by adding backslash escapes as necessary to the given string, to escape any characters that would otherwise be treated as pattern metacharacters.
     */
-    public class func escapedPatternForString(string: String) -> String { 
+    public class func escapedPatternForString(_ string: String) -> String { 
         return _CFRegularExpressionCreateEscapedPattern(string._cfObject)._swiftObject
     }
 }
@@ -118,7 +118,7 @@ internal class _NSRegularExpressionMatcher {
     }
 }
 
-internal func _NSRegularExpressionMatch(context: UnsafeMutablePointer<Void>, ranges: UnsafeMutablePointer<CFRange>, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
+internal func _NSRegularExpressionMatch(_ context: UnsafeMutablePointer<Void>, ranges: UnsafeMutablePointer<CFRange>, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
     let matcher = unsafeBitCast(context, to: _NSRegularExpressionMatcher.self)
     if ranges == nil {
 #if os(OSX) || os(iOS)
@@ -143,7 +143,7 @@ extension NSRegularExpression {
     /* The fundamental matching method on NSRegularExpression is a block iterator.  There are several additional convenience methods, for returning all matches at once, the number of matches, the first match, or the range of the first match.  Each match is specified by an instance of NSTextCheckingResult (of type NSTextCheckingTypeRegularExpression) in which the overall match range is given by the range property (equivalent to rangeAtIndex:0) and any capture group ranges are given by rangeAtIndex: for indexes from 1 to numberOfCaptureGroups.  {NSNotFound, 0} is used if a particular capture group does not participate in the match.
     */
     
-    public func enumerateMatchesInString(string: String, options: NSMatchingOptions, range: NSRange, usingBlock block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateMatchesInString(_ string: String, options: NSMatchingOptions, range: NSRange, usingBlock block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
         let matcher = _NSRegularExpressionMatcher(regex: self, block: block)
         withExtendedLifetime(matcher) { (m: _NSRegularExpressionMatcher) -> Void in
 #if os(OSX) || os(iOS)
@@ -155,7 +155,7 @@ extension NSRegularExpression {
         }
     }
     
-    public func matchesInString(string: String, options: NSMatchingOptions, range: NSRange) -> [NSTextCheckingResult] {
+    public func matchesInString(_ string: String, options: NSMatchingOptions, range: NSRange) -> [NSTextCheckingResult] {
         var matches = [NSTextCheckingResult]()
         enumerateMatchesInString(string, options: options.subtract(.ReportProgress).subtract(.ReportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
@@ -166,7 +166,7 @@ extension NSRegularExpression {
         
     }
     
-    public func numberOfMatchesInString(string: String, options: NSMatchingOptions, range: NSRange) -> Int {
+    public func numberOfMatchesInString(_ string: String, options: NSMatchingOptions, range: NSRange) -> Int {
         var count = 0
         enumerateMatchesInString(string, options: options.subtract(.ReportProgress).subtract(.ReportCompletion).union(.OmitResult), range: range) {_,_,_ in 
             count += 1
@@ -174,7 +174,7 @@ extension NSRegularExpression {
         return count
     }
     
-    public func firstMatchInString(string: String, options: NSMatchingOptions, range: NSRange) -> NSTextCheckingResult? {
+    public func firstMatchInString(_ string: String, options: NSMatchingOptions, range: NSRange) -> NSTextCheckingResult? {
         var first: NSTextCheckingResult?
         enumerateMatchesInString(string, options: options.subtract(.ReportProgress).subtract(.ReportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             first = result
@@ -183,7 +183,7 @@ extension NSRegularExpression {
         return first
     }
     
-    public func rangeOfFirstMatchInString(string: String, options: NSMatchingOptions, range: NSRange) -> NSRange {
+    public func rangeOfFirstMatchInString(_ string: String, options: NSMatchingOptions, range: NSRange) -> NSRange {
         var firstRange = NSMakeRange(NSNotFound, 0)
         enumerateMatchesInString(string, options: options.subtract(.ReportProgress).subtract(.ReportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
@@ -210,7 +210,7 @@ extension NSRegularExpression {
     
     /* NSRegularExpression also provides find-and-replace methods for both immutable and mutable strings.  The replacement is treated as a template, with $0 being replaced by the contents of the matched range, $1 by the contents of the first capture group, and so on.  Additional digits beyond the maximum required to represent the number of capture groups will be treated as ordinary characters, as will a $ not followed by digits.  Backslash will escape both $ and itself.
     */
-    public func stringByReplacingMatchesInString(string: String, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> String {
+    public func stringByReplacingMatchesInString(_ string: String, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> String {
         var str: String = ""
         let length = string.length
         var previousRange = NSMakeRange(0, 0)
@@ -238,7 +238,7 @@ extension NSRegularExpression {
         return str
     }
     
-    public func replaceMatchesInString(string: NSMutableString, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> Int {
+    public func replaceMatchesInString(_ string: NSMutableString, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> Int {
         let results = matchesInString(string._swiftObject, options: options.subtract(.ReportProgress).subtract(.ReportCompletion), range: range)
         var count = 0
         var offset = 0
@@ -256,7 +256,7 @@ extension NSRegularExpression {
     
     /* For clients implementing their own replace functionality, this is a method to perform the template substitution for a single result, given the string from which the result was matched, an offset to be added to the location of the result in the string (for example, in case modifications to the string moved the result since it was matched), and a replacement template.
     */
-    public func replacementStringForResult(result: NSTextCheckingResult, inString string: String, offset: Int, template templ: String) -> String {
+    public func replacementStringForResult(_ result: NSTextCheckingResult, inString string: String, offset: Int, template templ: String) -> String {
         // ??? need to consider what happens if offset takes range out of bounds due to replacement
         struct once {
             static let characterSet = NSCharacterSet(charactersInString: "\\$")
@@ -329,7 +329,7 @@ extension NSRegularExpression {
     
     /* This class method will produce a string by adding backslash escapes as necessary to the given string, to escape any characters that would otherwise be treated as template metacharacters. 
     */
-    public class func escapedTemplateForString(string: String) -> String {
+    public class func escapedTemplateForString(_ string: String) -> String {
         return _CFRegularExpressionCreateEscapedPattern(string._cfObject)._swiftObject
     }
 }

@@ -15,7 +15,7 @@
     import SwiftXCTest
 #endif
 
-func ensureFiles(fileNames: [String]) -> Bool {
+func ensureFiles(_ fileNames: [String]) -> Bool {
     var result = true
     let fm = NSFileManager.defaultManager()
     for name in fileNames {

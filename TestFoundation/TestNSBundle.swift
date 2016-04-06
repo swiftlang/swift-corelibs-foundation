@@ -129,7 +129,7 @@ class TestNSBundle : XCTestCase {
         return tempDir
     }
     
-    private func _cleanupPlayground(location: String) {
+    private func _cleanupPlayground(_ location: String) {
         do {
             try NSFileManager.defaultManager().removeItemAtPath(location)
         } catch _ {

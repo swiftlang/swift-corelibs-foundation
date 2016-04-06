@@ -43,18 +43,18 @@ public class NSDateFormatter : NSFormatter {
 
     public var formattingContext: NSFormattingContext = .Unknown // default is NSFormattingContextUnknown
 
-    public func objectValue(string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
+    public func objectValue(_ string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
 
-    public override func stringForObjectValue(obj: AnyObject) -> String? {
+    public override func stringForObjectValue(_ obj: AnyObject) -> String? {
         guard let date = obj as? NSDate else { return nil }
         return stringFromDate(date)
     }
 
-    public func stringFromDate(date: NSDate) -> String {
+    public func stringFromDate(_ date: NSDate) -> String {
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, _cfObject, date._cfObject)._swiftObject
     }
 
-    public func dateFromString(string: String) -> NSDate? {
+    public func dateFromString(_ string: String) -> NSDate? {
         var range = CFRange(location: 0, length: string.length)
         let date = withUnsafeMutablePointer(&range) { (rangep: UnsafeMutablePointer<CFRange>) -> NSDate? in
             guard let res = CFDateFormatterCreateDateFromString(kCFAllocatorSystemDefault, _cfObject, string._cfObject, rangep) else {
@@ -65,21 +65,21 @@ public class NSDateFormatter : NSFormatter {
         return date
     }
 
-    public class func localizedStringFromDate(date: NSDate, dateStyle dstyle: NSDateFormatterStyle, timeStyle tstyle: NSDateFormatterStyle) -> String {
+    public class func localizedStringFromDate(_ date: NSDate, dateStyle dstyle: NSDateFormatterStyle, timeStyle tstyle: NSDateFormatterStyle) -> String {
         let df = NSDateFormatter()
         df.dateStyle = dstyle
         df.timeStyle = tstyle
         return df.stringForObjectValue(date)!
     }
 
-    public class func dateFormatFromTemplate(tmplate: String, options opts: Int, locale: NSLocale?) -> String? {
+    public class func dateFormatFromTemplate(_ tmplate: String, options opts: Int, locale: NSLocale?) -> String? {
         guard let res = CFDateFormatterCreateDateFormatFromTemplate(kCFAllocatorSystemDefault, tmplate._cfObject, CFOptionFlags(opts), locale?._cfObject) else {
             return nil
         }
         return res._swiftObject
     }
 
-    public func setLocalizedDateFormatFromTemplate(dateFormatTemplate: String) {
+    public func setLocalizedDateFormatFromTemplate(_ dateFormatTemplate: String) {
         NSUnimplemented()
     }
 
@@ -87,7 +87,7 @@ public class NSDateFormatter : NSFormatter {
         __cfObject = nil
     }
 
-    internal func _setFormatterAttributes(formatter: CFDateFormatter) {
+    internal func _setFormatterAttributes(_ formatter: CFDateFormatter) {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: lenient._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: timeZone?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: _calendar?.calendarIdentifier._cfObject)
@@ -117,7 +117,7 @@ public class NSDateFormatter : NSFormatter {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterGregorianStartDate, value: _gregorianStartDate?._cfObject)
     }
 
-    internal func _setFormatterAttribute(formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
+    internal func _setFormatterAttribute(_ formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
         if let value = value {
             CFDateFormatterSetProperty(formatter, attributeName, value)
         }

@@ -65,7 +65,7 @@ enum OptionParseError : ErrorType {
     case InvalidFormat(String)
 }
 
-func parseArguments(args: [String]) throws -> Options {
+func parseArguments(_ args: [String]) throws -> Options {
     var opts = Options()
     var iterator = args.generate()
     while let arg = iterator.next() {
@@ -132,7 +132,7 @@ func parseArguments(args: [String]) throws -> Options {
 }
 
 
-func lint(options: Options) -> Int32 {
+func lint(_ options: Options) -> Int32 {
     if options.output != nil {
         print("-o is not used with -lint")
         help()
@@ -188,7 +188,7 @@ func lint(options: Options) -> Int32 {
     }
 }
 
-func convert(options: Options) -> Int32 {
+func convert(_ options: Options) -> Int32 {
     print("Unimplemented")
     return EXIT_FAILURE
 }
@@ -200,7 +200,7 @@ enum DisplayType {
 }
 
 extension Dictionary {
-    func display(indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
         let indentation = String(count: indent * 2, repeatedValue: Character(" "))
         if type == .Primary || type == .Key {
             print("\(indentation)[\n", terminator: "")
@@ -223,7 +223,7 @@ extension Dictionary {
 }
 
 extension Array {
-    func display(indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
         let indentation = String(count: indent * 2, repeatedValue: Character(" "))
         if type == .Primary || type == .Key {
             print("\(indentation)[\n", terminator: "")
@@ -241,7 +241,7 @@ extension Array {
 }
 
 extension String {
-    func display(indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
         let indentation = String(count: indent * 2, repeatedValue: Character(" "))
         if type == .Primary {
             print("\(indentation)\"\(self)\"\n", terminator: "")
@@ -255,7 +255,7 @@ extension String {
 }
 
 extension Bool {
-    func display(indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
         let indentation = String(count: indent * 2, repeatedValue: Character(" "))
         if type == .Primary {
             print("\(indentation)\"\(self ? "1" : "0")\"\n", terminator: "")
@@ -269,7 +269,7 @@ extension Bool {
 }
 
 extension NSNumber {
-    func display(indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
         let indentation = String(count: indent * 2, repeatedValue: Character(" "))
         if type == .Primary {
             print("\(indentation)\"\(self)\"\n", terminator: "")
@@ -283,7 +283,7 @@ extension NSNumber {
 }
 
 extension NSData {
-    func display(indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
         let indentation = String(count: indent * 2, repeatedValue: Character(" "))
         if type == .Primary {
             print("\(indentation)\"\(self)\"\n", terminator: "")
@@ -296,7 +296,7 @@ extension NSData {
     }
 }
 
-func displayPlist(plist: Any, indent: Int = 0, type: DisplayType = .Primary) {
+func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .Primary) {
     if let val = plist as? Dictionary<String, Any> {
         val.display(indent, type: type)
     } else if let val = plist as? Array<Any> {
@@ -314,7 +314,7 @@ func displayPlist(plist: Any, indent: Int = 0, type: DisplayType = .Primary) {
     }
 }
 
-func display(options: Options) -> Int32 {
+func display(_ options: Options) -> Int32 {
     if options.inputs.count < 1 {
         print("No files specified.")
         help()

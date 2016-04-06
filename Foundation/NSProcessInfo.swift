@@ -122,7 +122,7 @@ public class NSProcessInfo : NSObject {
         return _physicalMemory
     }
     
-    public func isOperatingSystemAtLeastVersion(version: NSOperatingSystemVersion) -> Bool {
+    public func isOperatingSystemAtLeastVersion(_ version: NSOperatingSystemVersion) -> Bool {
         let ourVersion = operatingSystemVersion
         if ourVersion.majorVersion < version.majorVersion {
             return false

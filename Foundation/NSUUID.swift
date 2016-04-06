@@ -39,7 +39,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func getUUIDBytes(uuid: UnsafeMutablePointer<UInt8>) {
+    public func getUUIDBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
         _cf_uuid_copy(uuid, buffer)
     }
     
@@ -53,7 +53,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
     
@@ -79,11 +79,11 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         aCoder.encodeBytes(buffer, length: 16, forKey: "NS.uuidbytes")
     }
     
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: AnyObject?) -> Bool {
         if object === self {
             return true
         } else if let other = object as? NSUUID {

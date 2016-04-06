@@ -16,7 +16,7 @@ import Glibc
 
 import CoreFoundation
 
-private func disposeTLS(ctx: UnsafeMutablePointer<Void>) -> Void {
+private func disposeTLS(_ ctx: UnsafeMutablePointer<Void>) -> Void {
     Unmanaged<AnyObject>.fromOpaque(OpaquePointer(ctx)).release()
 }
 
@@ -37,7 +37,7 @@ internal class NSThreadSpecific<T: AnyObject> {
         return NSThreadSpecificKey
     }
     
-    internal func get(generator: (Void) -> T) -> T {
+    internal func get(_ generator: (Void) -> T) -> T {
         let specific = pthread_getspecific(self.key)
         if specific != nil {
             return Unmanaged<T>.fromOpaque(OpaquePointer(specific)).takeUnretainedValue()
@@ -48,7 +48,7 @@ internal class NSThreadSpecific<T: AnyObject> {
         }
     }
     
-    internal func set(value: T) {
+    internal func set(_ value: T) {
         let specific = pthread_getspecific(self.key)
         var previous: Unmanaged<T>?
         if specific != nil {
@@ -73,7 +73,7 @@ internal enum _NSThreadStatus {
     case Finished
 }
 
-private func NSThreadStart(context: UnsafeMutablePointer<Void>) -> UnsafeMutablePointer<Void> {
+private func NSThreadStart(_ context: UnsafeMutablePointer<Void>) -> UnsafeMutablePointer<Void> {
     let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(OpaquePointer(context))
     let thread = unmanaged.takeUnretainedValue()
     NSThread._currentThread.set(thread)
@@ -96,7 +96,7 @@ public class NSThread : NSObject {
     /// Alternative API for detached thread creation
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public class func detachNewThread(main: (Void) -> Void) {
+    public class func detachNewThread(_ main: (Void) -> Void) {
         let t = NSThread(main)
         t.start()
     }
@@ -105,7 +105,7 @@ public class NSThread : NSObject {
         return true
     }
     
-    public class func sleepUntilDate(date: NSDate) {
+    public class func sleepUntilDate(_ date: NSDate) {
         let start_ut = CFGetSystemUptime()
         let start_at = CFAbsoluteTimeGetCurrent()
         let end_at = date.timeIntervalSinceReferenceDate
@@ -128,7 +128,7 @@ public class NSThread : NSObject {
         }
     }
     
-    public class func sleepForTimeInterval(interval: NSTimeInterval) {
+    public class func sleepForTimeInterval(_ interval: NSTimeInterval) {
         var ti = interval
         let start_ut = CFGetSystemUptime()
         let end_ut = start_ut + ti

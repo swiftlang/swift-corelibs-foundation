@@ -52,7 +52,7 @@ public class NSFormatter : NSObject, NSCopying, NSCoding {
         
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         
     }
     
@@ -60,21 +60,21 @@ public class NSFormatter : NSObject, NSCopying, NSCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
     
-    public func stringForObjectValue(obj: AnyObject) -> String? {
+    public func stringForObjectValue(_ obj: AnyObject) -> String? {
         NSRequiresConcreteImplementation()
     }
     
-    public func editingStringForObjectValue(obj: AnyObject) -> String? {
+    public func editingStringForObjectValue(_ obj: AnyObject) -> String? {
         return stringForObjectValue(obj)
     }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func objectValue(string: String) throws -> AnyObject? {
+    public func objectValue(_ string: String) throws -> AnyObject? {
         NSRequiresConcreteImplementation()
     }
 }

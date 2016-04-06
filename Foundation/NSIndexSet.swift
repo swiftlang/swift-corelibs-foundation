@@ -51,16 +51,16 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject  { NSUnimplemented() }
+    public func copyWithZone(_ zone: NSZone) -> AnyObject  { NSUnimplemented() }
     
     public override func mutableCopy() -> AnyObject {
         return mutableCopyWithZone(nil)
     }
     
-    public func mutableCopyWithZone(zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
     public static func supportsSecureCoding() -> Bool { return true }
     public required init?(coder aDecoder: NSCoder)  { NSUnimplemented() }
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -68,7 +68,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         self.init(indexesInRange: NSMakeRange(value, 1))
     }
     
-    public func isEqualToIndexSet(indexSet: NSIndexSet) -> Bool {
+    public func isEqualToIndexSet(_ indexSet: NSIndexSet) -> Bool {
         guard indexSet !== self else {
             return true
         }
@@ -101,7 +101,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         return NSMaxRange(_ranges.last!) - 1
     }
     
-    internal func _indexAndRangeAdjacentToOrContainingIndex(idx : Int) -> (Int, NSRange)? {
+    internal func _indexAndRangeAdjacentToOrContainingIndex(_ idx : Int) -> (Int, NSRange)? {
         let count = _ranges.count
         guard count > 0 else {
             return nil
@@ -123,7 +123,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         return (min, _ranges[min])
     }
     
-    internal func _indexOfRangeContainingIndex (idx : Int) -> Int? {
+    internal func _indexOfRangeContainingIndex (_ idx : Int) -> Int? {
         if let (rIdx, range) = _indexAndRangeAdjacentToOrContainingIndex(idx) {
             return NSLocationInRange(idx, range) ? rIdx : nil
         } else {
@@ -131,7 +131,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         }
     }
     
-    internal func _indexOfRangeBeforeOrContainingIndex(idx : Int) -> Int? {
+    internal func _indexOfRangeBeforeOrContainingIndex(_ idx : Int) -> Int? {
         if let (rIdx, range) = _indexAndRangeAdjacentToOrContainingIndex(idx) {
             if range.location <= idx {
                 return rIdx
@@ -145,7 +145,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         }
     }
     
-    internal func _indexOfRangeAfterOrContainingIndex(idx : Int) -> Int? {
+    internal func _indexOfRangeAfterOrContainingIndex(_ idx : Int) -> Int? {
         if let (rIdx, range) = _indexAndRangeAdjacentToOrContainingIndex(idx) {
             if NSMaxRange(range) - 1 >= idx {
                 return rIdx
@@ -159,7 +159,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         }
     }
     
-    internal func _indexClosestToIndex(idx: Int, equalAllowed : Bool, following: Bool) -> Int? {
+    internal func _indexClosestToIndex(_ idx: Int, equalAllowed : Bool, following: Bool) -> Int? {
         guard _count > 0 else {
             return nil
         }
@@ -194,22 +194,22 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         return nil
     }
     
-    public func indexGreaterThanIndex(value: Int) -> Int {
+    public func indexGreaterThanIndex(_ value: Int) -> Int {
         return _indexClosestToIndex(value, equalAllowed: false, following: true) ?? NSNotFound
     }
-    public func indexLessThanIndex(value: Int) -> Int {
+    public func indexLessThanIndex(_ value: Int) -> Int {
         return _indexClosestToIndex(value, equalAllowed: false, following: false) ?? NSNotFound
     }
-    public func indexGreaterThanOrEqualToIndex(value: Int) -> Int {
+    public func indexGreaterThanOrEqualToIndex(_ value: Int) -> Int {
         return _indexClosestToIndex(value, equalAllowed: true, following: true) ?? NSNotFound
     }
-    public func indexLessThanOrEqualToIndex(value: Int) -> Int {
+    public func indexLessThanOrEqualToIndex(_ value: Int) -> Int {
         return _indexClosestToIndex(value, equalAllowed: true, following: false) ?? NSNotFound
     }
     
     /* Fills up to bufferSize indexes in the specified range into the buffer and returns the number of indexes actually placed in the buffer; also modifies the optional range passed in by pointer to be "positioned" after the last index filled into the buffer.Example: if the index set contains the indexes 0, 2, 4, ..., 98, 100, for a buffer of size 10 and the range (20, 80) the buffer would contain 20, 22, ..., 38 and the range would be modified to (40, 60).
     */
-    public func getIndexes(indexBuffer: UnsafeMutablePointer<Int>, maxCount bufferSize: Int, inIndexRange range: NSRangePointer) -> Int {
+    public func getIndexes(_ indexBuffer: UnsafeMutablePointer<Int>, maxCount bufferSize: Int, inIndexRange range: NSRangePointer) -> Int {
         let minIndex : Int
         let maxIndex : Int
         if range != nil {
@@ -261,7 +261,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         }
     }
     
-    public func countOfIndexesInRange(range: NSRange) -> Int {
+    public func countOfIndexesInRange(_ range: NSRange) -> Int {
         guard _count > 0 && range.length > 0 else {
             return 0
         }
@@ -295,10 +295,10 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         }
     }
     
-    public func containsIndex(value: Int) -> Bool {
+    public func containsIndex(_ value: Int) -> Bool {
         return _indexOfRangeContainingIndex(value) != nil
     }
-    public func containsIndexesInRange(range: NSRange) -> Bool {
+    public func containsIndexesInRange(_ range: NSRange) -> Bool {
         guard range.length > 0 else {
             return false
         }
@@ -308,7 +308,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
             return false
         }
     }
-    public func containsIndexes(indexSet: NSIndexSet) -> Bool {
+    public func containsIndexes(_ indexSet: NSIndexSet) -> Bool {
         guard self !== indexSet else {
             return true
         }
@@ -323,7 +323,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         return result
     }
     
-    public func intersectsIndexesInRange(range: NSRange) -> Bool {
+    public func intersectsIndexesInRange(_ range: NSRange) -> Bool {
         guard range.length > 0 else {
             return false
         }
@@ -341,7 +341,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         return false
     }
     
-    internal func _enumerateWithOptions<P, R>(opts : NSEnumerationOptions, range: NSRange, paramType: P.Type, returnType: R.Type, block: (P, UnsafeMutablePointer<ObjCBool>) -> R) -> Int? {
+    internal func _enumerateWithOptions<P, R>(_ opts : NSEnumerationOptions, range: NSRange, paramType: P.Type, returnType: R.Type, block: (P, UnsafeMutablePointer<ObjCBool>) -> R) -> Int? {
         guard !opts.contains(.Concurrent) else {
             NSUnimplemented()
         }
@@ -389,33 +389,33 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         return result
     }
     
-    public func enumerateIndexesUsingBlock(block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateIndexesUsingBlock(_ block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateIndexesWithOptions([], usingBlock: block)
     }
-    public func enumerateIndexesWithOptions(opts: NSEnumerationOptions, usingBlock block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateIndexesWithOptions(_ opts: NSEnumerationOptions, usingBlock block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: Int.self, returnType: Void.self, block: block)
     }
-    public func enumerateIndexesInRange(range: NSRange, options opts: NSEnumerationOptions, usingBlock block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateIndexesInRange(_ range: NSRange, options opts: NSEnumerationOptions, usingBlock block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Void.self, block: block)
     }
     
-    public func indexPassingTest(predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexPassingTest(_ predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return indexWithOptions([], passingTest: predicate)
     }
-    public func indexWithOptions(opts: NSEnumerationOptions, passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: Int.self, returnType: Bool.self, block: predicate) ?? NSNotFound
     }
-    public func indexInRange(range: NSRange, options opts: NSEnumerationOptions, passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexInRange(_ range: NSRange, options opts: NSEnumerationOptions, passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Bool.self, block: predicate) ?? NSNotFound
     }
     
-    public func indexesPassingTest(predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
+    public func indexesPassingTest(_ predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
         return indexesInRange(NSMakeRange(0, Int.max), options: [], passingTest: predicate)
     }
-    public func indexesWithOptions(opts: NSEnumerationOptions, passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
+    public func indexesWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
         return indexesInRange(NSMakeRange(0, Int.max), options: opts, passingTest: predicate)
     }
-    public func indexesInRange(range: NSRange, options opts: NSEnumerationOptions, passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
+    public func indexesInRange(_ range: NSRange, options opts: NSEnumerationOptions, passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
         let result = NSMutableIndexSet()
         _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Void.self) { idx, stop in
             if predicate(idx, stop) {
@@ -430,13 +430,13 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
      
      If the specified range for enumeration intersects a range of contiguous indexes in the receiver, then the block will be invoked with the intersection of those two ranges.
     */
-    public func enumerateRangesUsingBlock(block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateRangesUsingBlock(_ block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateRangesWithOptions([], usingBlock: block)
     }
-    public func enumerateRangesWithOptions(opts: NSEnumerationOptions, usingBlock block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateRangesWithOptions(_ opts: NSEnumerationOptions, usingBlock block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: NSRange.self, returnType: Void.self, block: block)
     }
-    public func enumerateRangesInRange(range: NSRange, options opts: NSEnumerationOptions, usingBlock block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateRangesInRange(_ range: NSRange, options opts: NSEnumerationOptions, usingBlock block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         _enumerateWithOptions(opts, range: range, paramType: NSRange.self, returnType: Void.self, block: block)
     }
 
@@ -477,13 +477,13 @@ extension NSIndexSet : Sequence {
 
 public class NSMutableIndexSet : NSIndexSet {
     
-    public func addIndexes(indexSet: NSIndexSet) {
+    public func addIndexes(_ indexSet: NSIndexSet) {
         indexSet.enumerateRangesUsingBlock { range, _ in
             self.addIndexesInRange(range)
         }
     }
     
-    public func removeIndexes(indexSet: NSIndexSet) {
+    public func removeIndexes(_ indexSet: NSIndexSet) {
         indexSet.enumerateRangesUsingBlock { range, _ in
             self.removeIndexesInRange(range)
         }
@@ -494,20 +494,20 @@ public class NSMutableIndexSet : NSIndexSet {
         _count = 0
     }
     
-    public func addIndex(value: Int) {
+    public func addIndex(_ value: Int) {
         self.addIndexesInRange(NSMakeRange(value, 1))
     }
     
-    public func removeIndex(value: Int) {
+    public func removeIndex(_ value: Int) {
         self.removeIndexesInRange(NSMakeRange(value, 1))
     }
     
-    internal func _insertRange(range: NSRange, atIndex index: Int) {
+    internal func _insertRange(_ range: NSRange, atIndex index: Int) {
         _ranges.insert(range, at: index)
         _count += range.length
     }
     
-    internal func _replaceRangeAtIndex(index: Int, withRange range: NSRange?) {
+    internal func _replaceRangeAtIndex(_ index: Int, withRange range: NSRange?) {
         let oldRange = _ranges[index]
         if let range = range {
             _ranges[index] = range
@@ -518,7 +518,7 @@ public class NSMutableIndexSet : NSIndexSet {
         }
     }
     
-    internal func _mergeOverlappingRangesStartingAtIndex(index: Int) {
+    internal func _mergeOverlappingRangesStartingAtIndex(_ index: Int) {
         var rangeIndex = index
         while _ranges.count > 0 && rangeIndex < _ranges.count - 1 {
             let curRange = _ranges[rangeIndex]
@@ -538,7 +538,7 @@ public class NSMutableIndexSet : NSIndexSet {
         }
     }
     
-    public func addIndexesInRange(range: NSRange) {
+    public func addIndexesInRange(_ range: NSRange) {
         guard range.length > 0 else {
             return
         }
@@ -580,7 +580,7 @@ public class NSMutableIndexSet : NSIndexSet {
         }
     }
     
-    public func removeIndexesInRange(range: NSRange) {
+    public func removeIndexesInRange(_ range: NSRange) {
         guard range.length > 0 else {
             return
         }
@@ -620,6 +620,6 @@ public class NSMutableIndexSet : NSIndexSet {
     
     /* For a positive delta, shifts the indexes in [index, INT_MAX] to the right, thereby inserting an "empty space" [index, delta], for a negative delta, shifts the indexes in [index, INT_MAX] to the left, thereby deleting the indexes in the range [index - delta, delta].
     */
-    public func shiftIndexesStartingAtIndex(index: Int, by delta: Int) { NSUnimplemented() }
+    public func shiftIndexesStartingAtIndex(_ index: Int, by delta: Int) { NSUnimplemented() }
 }
 

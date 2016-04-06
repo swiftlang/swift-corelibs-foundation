@@ -77,7 +77,7 @@ extension NSRange: NSSpecialValueCoding {
         }
     }
     
-    func encodeWithCoder(aCoder: NSCoder) {
+    func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(NSNumber(integer: self.location), forKey: "NS.rangeval.location")
             aCoder.encodeObject(NSNumber(integer: self.length), forKey: "NS.rangeval.length")
@@ -96,11 +96,11 @@ extension NSRange: NSSpecialValueCoding {
 #endif
     }
     
-    func getValue(value: UnsafeMutablePointer<Void>) {
+    func getValue(_ value: UnsafeMutablePointer<Void>) {
         UnsafeMutablePointer<NSRange>(value).pointee = self
     }
     
-    func isEqual(aValue: Any) -> Bool {
+    func isEqual(_ aValue: Any) -> Bool {
         if let other = aValue as? NSRange {
             return other.location == self.location && other.length == self.length
         } else {
@@ -119,23 +119,23 @@ extension NSRange: NSSpecialValueCoding {
 
 public typealias NSRangePointer = UnsafeMutablePointer<NSRange>
 
-public func NSMakeRange(loc: Int, _ len: Int) -> NSRange {
+public func NSMakeRange(_ loc: Int, _ len: Int) -> NSRange {
     return NSRange(location: loc, length: len)
 }
 
-public func NSMaxRange(range: NSRange) -> Int {
+public func NSMaxRange(_ range: NSRange) -> Int {
     return range.location + range.length
 }
 
-public func NSLocationInRange(loc: Int, _ range: NSRange) -> Bool {
+public func NSLocationInRange(_ loc: Int, _ range: NSRange) -> Bool {
     return !(loc < range.location) && (loc - range.location) < range.length
 }
 
-public func NSEqualRanges(range1: NSRange, _ range2: NSRange) -> Bool {
+public func NSEqualRanges(_ range1: NSRange, _ range2: NSRange) -> Bool {
     return range1.location == range2.location && range1.length == range2.length
 }
 
-public func NSUnionRange(range1: NSRange, _ range2: NSRange) -> NSRange {
+public func NSUnionRange(_ range1: NSRange, _ range2: NSRange) -> NSRange {
     let max1 = range1.location + range1.length
     let max2 = range2.location + range2.length
     let maxend: Int
@@ -153,7 +153,7 @@ public func NSUnionRange(range1: NSRange, _ range2: NSRange) -> NSRange {
     return NSMakeRange(minloc, maxend - minloc)
 }
 
-public func NSIntersectionRange(range1: NSRange, _ range2: NSRange) -> NSRange {
+public func NSIntersectionRange(_ range1: NSRange, _ range2: NSRange) -> NSRange {
     let max1 = range1.location + range1.length
     let max2 = range2.location + range2.length
     let minend: Int
@@ -170,11 +170,11 @@ public func NSIntersectionRange(range1: NSRange, _ range2: NSRange) -> NSRange {
     return NSMakeRange(0, 0)
 }
 
-public func NSStringFromRange(range: NSRange) -> String {
+public func NSStringFromRange(_ range: NSRange) -> String {
     return "{\(range.location), \(range.length)}"
 }
 
-public func NSRangeFromString(aString: String) -> NSRange {
+public func NSRangeFromString(_ aString: String) -> NSRange {
     let emptyRange = NSMakeRange(0, 0)
     if aString.isEmpty {
         // fail early if the string is empty

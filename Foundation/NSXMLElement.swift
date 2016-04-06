@@ -59,7 +59,7 @@ public class NSXMLElement : NSXMLNode {
         @method elementsForName:
         @abstract Returns all of the child elements that match this name.
     */
-    public func elementsForName(name: String) -> [NSXMLElement] {
+    public func elementsForName(_ name: String) -> [NSXMLElement] {
         return self.filter({ _CFXMLNodeGetType($0._xmlNode) == _kCFXMLTypeElement }).filter({ $0.name == name }).flatMap({ $0 as? NSXMLElement })
     }
 
@@ -67,13 +67,13 @@ public class NSXMLElement : NSXMLNode {
         @method elementsForLocalName:URI
         @abstract Returns all of the child elements that match this localname URI pair.
     */
-    public func elementsForLocalName(localName: String, URI: String?) -> [NSXMLElement] { NSUnimplemented() }
+    public func elementsForLocalName(_ localName: String, URI: String?) -> [NSXMLElement] { NSUnimplemented() }
 
     /*!
         @method addAttribute:
         @abstract Adds an attribute. Attributes with duplicate names are not added.
     */
-    public func addAttribute(attribute: NSXMLNode) {
+    public func addAttribute(_ attribute: NSXMLNode) {
         guard _CFXMLNodeHasProp(_xmlNode, UnsafePointer<UInt8>(_CFXMLNodeGetName(attribute._xmlNode))) == nil else { return }
         addChild(attribute)
     } //primitive
@@ -82,7 +82,7 @@ public class NSXMLElement : NSXMLNode {
         @method removeAttributeForName:
         @abstract Removes an attribute based on its name.
     */
-    public func removeAttributeForName(name: String) {
+    public func removeAttributeForName(_ name: String) {
         let prop = _CFXMLNodeHasProp(_xmlNode, name)
         if prop != nil {
             let propNode = NSXMLNode._objectNodeForNode(_CFXMLNodePtr(prop))
@@ -146,7 +146,7 @@ public class NSXMLElement : NSXMLNode {
      @method setAttributesWithDictionary:
      @abstract Set the attributes based on a name-value dictionary.
      */
-    public func setAttributesWithDictionary(attributes: [String : String]) {
+    public func setAttributesWithDictionary(_ attributes: [String : String]) {
         removeAttributes()
         for (name, value) in attributes {
             addAttribute(NSXMLNode.attributeWithName(name, stringValue: value) as! NSXMLNode)
@@ -157,7 +157,7 @@ public class NSXMLElement : NSXMLNode {
         @method attributeForName:
         @abstract Returns an attribute matching this name.
     */
-    public func attributeForName(name: String) -> NSXMLNode? {
+    public func attributeForName(_ name: String) -> NSXMLNode? {
         let attribute = _CFXMLNodeHasProp(_xmlNode, name)
         if attribute == nil { return nil }
         return NSXMLNode._objectNodeForNode(attribute)
@@ -167,19 +167,19 @@ public class NSXMLElement : NSXMLNode {
         @method attributeForLocalName:URI:
         @abstract Returns an attribute matching this localname URI pair.
     */
-    public func attributeForLocalName(localName: String, URI: String?) -> NSXMLNode? { NSUnimplemented() } //primitive
+    public func attributeForLocalName(_ localName: String, URI: String?) -> NSXMLNode? { NSUnimplemented() } //primitive
 
     /*!
         @method addNamespace:URI:
         @abstract Adds a namespace. Namespaces with duplicate names are not added.
     */
-    public func addNamespace(aNamespace: NSXMLNode) { NSUnimplemented() } //primitive
+    public func addNamespace(_ aNamespace: NSXMLNode) { NSUnimplemented() } //primitive
 
     /*!
         @method addNamespace:URI:
         @abstract Removes a namespace with a particular name.
     */
-    public func removeNamespaceForPrefix(name: String) { NSUnimplemented() } //primitive
+    public func removeNamespaceForPrefix(_ name: String) { NSUnimplemented() } //primitive
 
     /*!
         @method namespaces
@@ -191,25 +191,25 @@ public class NSXMLElement : NSXMLNode {
         @method namespaceForPrefix:
         @abstract Returns the namespace matching this prefix.
     */
-    public func namespaceForPrefix(name: String) -> NSXMLNode? { NSUnimplemented() }
+    public func namespaceForPrefix(_ name: String) -> NSXMLNode? { NSUnimplemented() }
 
     /*!
         @method resolveNamespaceForName:
         @abstract Returns the namespace who matches the prefix of the name given. Looks in the entire namespace chain.
     */
-    public func resolveNamespaceForName(name: String) -> NSXMLNode? { NSUnimplemented() }
+    public func resolveNamespaceForName(_ name: String) -> NSXMLNode? { NSUnimplemented() }
 
     /*!
         @method resolvePrefixForNamespaceURI:
         @abstract Returns the URI of this prefix. Looks in the entire namespace chain.
     */
-    public func resolvePrefixForNamespaceURI(namespaceURI: String) -> String? { NSUnimplemented() }
+    public func resolvePrefixForNamespaceURI(_ namespaceURI: String) -> String? { NSUnimplemented() }
 
     /*!
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(child: NSXMLNode, atIndex index: Int) {
+    public func insertChild(_ child: NSXMLNode, atIndex index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
 
@@ -217,7 +217,7 @@ public class NSXMLElement : NSXMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(children: [NSXMLNode], atIndex index: Int) {
+    public func insertChildren(_ children: [NSXMLNode], atIndex index: Int) {
         _insertChildren(children, atIndex: index)
     }
 
@@ -225,7 +225,7 @@ public class NSXMLElement : NSXMLNode {
         @method removeChildAtIndex:atIndex:
         @abstract Removes a child at a particular index.
     */
-    public func removeChildAtIndex(index: Int) {
+    public func removeChildAtIndex(_ index: Int) {
         _removeChildAtIndex(index)
     } //primitive
 
@@ -233,7 +233,7 @@ public class NSXMLElement : NSXMLNode {
         @method setChildren:
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
-    public func setChildren(children: [NSXMLNode]?) {
+    public func setChildren(_ children: [NSXMLNode]?) {
         _setChildren(children)
     } //primitive
 
@@ -241,7 +241,7 @@ public class NSXMLElement : NSXMLNode {
         @method addChild:
         @abstract Adds a child to the end of the existing children.
     */
-    public func addChild(child: NSXMLNode) {
+    public func addChild(_ child: NSXMLNode) {
         _addChild(child)
     }
 
@@ -249,7 +249,7 @@ public class NSXMLElement : NSXMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChildAtIndex(index: Int, withNode node: NSXMLNode) {
+    public func replaceChildAtIndex(_ index: Int, withNode node: NSXMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
 
@@ -257,9 +257,9 @@ public class NSXMLElement : NSXMLNode {
         @method normalizeAdjacentTextNodesPreservingCDATA:
         @abstract Adjacent text nodes are coalesced. If the node's value is the empty string, it is removed. This should be called with a value of NO before using XQuery or XPath.
     */
-    public func normalizeAdjacentTextNodesPreservingCDATA(preserve: Bool) { NSUnimplemented() }
+    public func normalizeAdjacentTextNodesPreservingCDATA(_ preserve: Bool) { NSUnimplemented() }
 
-    internal override class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLElement {
+    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLElement {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeElement)
 
         if _CFXMLNodeGetPrivateData(node) != nil {
@@ -281,5 +281,5 @@ extension NSXMLElement {
         @abstract Set the attributes base on a name-value dictionary.
         @discussion This method is deprecated and does not function correctly. Use -setAttributesWithDictionary: instead.
      */
-    public func setAttributesAsDictionary(attributes: [NSObject : AnyObject]) { NSUnimplemented() }
+    public func setAttributesAsDictionary(_ attributes: [NSObject : AnyObject]) { NSUnimplemented() }
 }

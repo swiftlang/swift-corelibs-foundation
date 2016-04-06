@@ -17,7 +17,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
     private var _type : _NSSimpleObjCType
     private var _decoded : Bool = false
     
-    static func sizeForObjCType(type: _NSSimpleObjCType) -> Int? {
+    static func sizeForObjCType(_ type: _NSSimpleObjCType) -> Int? {
         var size : Int = 0
         var align : Int = 0
         
@@ -74,7 +74,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         }
     }
     
-    func encodeWithCoder(aCoder: NSCoder) {
+    func encodeWithCoder(_ aCoder: NSCoder) {
         aCoder.encodeInteger(self._count, forKey: "NS.count")
         aCoder.encodeInteger(self._size, forKey: "NS.size")
         aCoder.encodeInteger(Int(self._type), forKey: "NS.type")
@@ -92,7 +92,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         return true
     }
     
-    func fillObjCType(type: _NSSimpleObjCType, count: Int, at addr: UnsafeMutablePointer<Void>) {
+    func fillObjCType(_ type: _NSSimpleObjCType, count: Int, at addr: UnsafeMutablePointer<Void>) {
         if type == self._type && count <= self._count {
             UnsafeMutablePointer<UInt8>(addr).moveInitializeFrom(self._addr, count: count * self._size)
         }
@@ -102,7 +102,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         return copyWithZone(nil)
     }
     
-    func copyWithZone(zone: NSZone) -> AnyObject {
+    func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
 }

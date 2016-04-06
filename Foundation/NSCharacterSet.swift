@@ -49,7 +49,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: AnyObject?) -> Bool {
         if let cs = object as? NSCharacterSet {
             return CFEqual(_cfObject, cs._cfObject)
         } else {
@@ -152,7 +152,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         self.init(charactersInString: "")
     }
     
-    public func characterIsMember(aCharacter: unichar) -> Bool {
+    public func characterIsMember(_ aCharacter: unichar) -> Bool {
         return CFCharacterSetIsCharacterMember(_cfObject, UniChar(aCharacter))
     }
     
@@ -164,15 +164,15 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, _cfObject)._nsObject
     }
     
-    public func longCharacterIsMember(theLongChar: UTF32Char) -> Bool {
+    public func longCharacterIsMember(_ theLongChar: UTF32Char) -> Bool {
         return CFCharacterSetIsLongCharacterMember(_cfObject, theLongChar)
     }
     
-    public func isSupersetOfSet(theOtherSet: NSCharacterSet) -> Bool {
+    public func isSupersetOfSet(_ theOtherSet: NSCharacterSet) -> Bool {
         return CFCharacterSetIsSupersetOfSet(_cfObject, theOtherSet._cfObject)
     }
     
-    public func hasMemberInPlane(thePlane: UInt8) -> Bool {
+    public func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
         return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(thePlane))
     }
     
@@ -180,7 +180,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
     }
     
@@ -188,11 +188,11 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return mutableCopyWithZone(nil)
     }
     
-    public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
+    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
         return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         
     }
 }
@@ -203,27 +203,27 @@ public class NSMutableCharacterSet : NSCharacterSet {
         NSUnimplemented()
     }
     
-    public func addCharactersInRange(aRange: NSRange) {
+    public func addCharactersInRange(_ aRange: NSRange) {
         CFCharacterSetAddCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
     }
     
-    public func removeCharactersInRange(aRange: NSRange) {
+    public func removeCharactersInRange(_ aRange: NSRange) {
         CFCharacterSetRemoveCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
     }
     
-    public func addCharactersInString(aString: String) {
+    public func addCharactersInString(_ aString: String) {
         CFCharacterSetAddCharactersInString(_cfMutableObject, aString._cfObject)
     }
     
-    public func removeCharactersInString(aString: String) {
+    public func removeCharactersInString(_ aString: String) {
         CFCharacterSetRemoveCharactersInString(_cfMutableObject, aString._cfObject)
     }
     
-    public func formUnionWithCharacterSet(otherSet: NSCharacterSet) {
+    public func formUnionWithCharacterSet(_ otherSet: NSCharacterSet) {
         CFCharacterSetUnion(_cfMutableObject, otherSet._cfObject)
     }
     
-    public func formIntersectionWithCharacterSet(otherSet: NSCharacterSet) {
+    public func formIntersectionWithCharacterSet(_ otherSet: NSCharacterSet) {
         CFCharacterSetIntersect(_cfMutableObject, otherSet._cfObject)
     }
     

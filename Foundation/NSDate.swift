@@ -28,7 +28,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: AnyObject?) -> Bool {
         if let date = object as? NSDate {
             return isEqualToDate(date)
         } else {
@@ -82,7 +82,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return copyWithZone(nil)
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
     
@@ -90,7 +90,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return true
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
 	if aCoder.allowsKeyedCoding {
 	    aCoder.encodeDouble(_timeIntervalSinceReferenceDate, forKey: "NS.time")
 	} else {
@@ -134,7 +134,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
        offset in hours and minutes from UTC (for example,
        "2001-03-24 10:45:32 +0600")
      */
-    public func descriptionWithLocale(locale: AnyObject?) -> String {
+    public func descriptionWithLocale(_ locale: AnyObject?) -> String {
         guard let aLocale = locale else { return description }
         let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, (aLocale as! NSLocale)._cfObject, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
         CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey, CFTimeZoneCopySystem())
@@ -149,7 +149,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 extension NSDate {
     
-    public func timeIntervalSinceDate(anotherDate: NSDate) -> NSTimeInterval {
+    public func timeIntervalSinceDate(_ anotherDate: NSDate) -> NSTimeInterval {
         return self.timeIntervalSinceReferenceDate - anotherDate.timeIntervalSinceReferenceDate
     }
     
@@ -161,11 +161,11 @@ extension NSDate {
         return timeIntervalSinceReferenceDate + NSTimeIntervalSince1970
     }
     
-    public func dateByAddingTimeInterval(ti: NSTimeInterval) -> NSDate {
+    public func dateByAddingTimeInterval(_ ti: NSTimeInterval) -> NSDate {
         return NSDate(timeIntervalSinceReferenceDate:_timeIntervalSinceReferenceDate + ti)
     }
     
-    public func earlierDate(anotherDate: NSDate) -> NSDate {
+    public func earlierDate(_ anotherDate: NSDate) -> NSDate {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
             return self
         } else {
@@ -173,7 +173,7 @@ extension NSDate {
         }
     }
     
-    public func laterDate(anotherDate: NSDate) -> NSDate {
+    public func laterDate(_ anotherDate: NSDate) -> NSDate {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
             return anotherDate
         } else {
@@ -181,7 +181,7 @@ extension NSDate {
         }
     }
     
-    public func compare(other: NSDate) -> NSComparisonResult {
+    public func compare(_ other: NSDate) -> NSComparisonResult {
         let t1 = self.timeIntervalSinceReferenceDate
         let t2 = other.timeIntervalSinceReferenceDate
         if t1 < t2 {
@@ -193,7 +193,7 @@ extension NSDate {
         }
     }
     
-    public func isEqualToDate(otherDate: NSDate) -> Bool {
+    public func isEqualToDate(_ otherDate: NSDate) -> Bool {
         return timeIntervalSinceReferenceDate == otherDate.timeIntervalSinceReferenceDate
     }
 }

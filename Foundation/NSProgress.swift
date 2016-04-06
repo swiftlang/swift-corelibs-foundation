@@ -38,7 +38,7 @@ public class NSProgress : NSObject {
     
     /* Return an instance of NSProgress that has been initialized with -initWithParent:userInfo:. The initializer is passed nil for the parent, resulting in a progress object that is not part of an existing progress tree. The value of the totalUnitCount property is also set.
      */
-    public class func discreteProgressWithTotalUnitCount(unitCount: Int64) -> NSProgress { NSUnimplemented() }
+    public class func discreteProgressWithTotalUnitCount(_ unitCount: Int64) -> NSProgress { NSUnimplemented() }
     
     /* Return an instance of NSProgress that has been attached to a parent progress with the given pending unit count.
      */
@@ -52,7 +52,7 @@ public class NSProgress : NSObject {
      
        With this mechanism, code that doesn't know anything about its callers can report progress accurately by using +progressWithTotalUnitCount: and -setCompletedUnitCount:. The calling code will account for the fact that the work done is only a portion of the work to be done as part of a larger operation. The unit of work in a call to -becomeCurrentWithPendingUnitCount: has to be the same unit of work as that used for the value of the totalUnitCount property, but the unit of work used by the child can be a completely different one, and often will be. You must always balance invocations of this method with invocations of -resignCurrent.
     */
-    public func becomeCurrentWithPendingUnitCount(unitCount: Int64) { NSUnimplemented() }
+    public func becomeCurrentWithPendingUnitCount(_ unitCount: Int64) { NSUnimplemented() }
     
     /* Balance the most recent previous invocation of -becomeCurrentWithPendingUnitCount: on the same thread by restoring the current progress object to what it was before -becomeCurrentWithPendingUnitCount: was invoked.
     */
@@ -60,7 +60,7 @@ public class NSProgress : NSObject {
     
     /* Directly add a child progress to the receiver, assigning it a portion of the receiver's total unit count.
      */
-    public func addChild(child: NSProgress, withPendingUnitCount inUnitCount: Int64) { NSUnimplemented() }
+    public func addChild(_ child: NSProgress, withPendingUnitCount inUnitCount: Int64) { NSUnimplemented() }
     
     /* The size of the job whose progress is being reported, and how much of it has been completed so far, respectively. For an NSProgress with a kind of NSProgressKindFile, the unit of these properties is bytes while the NSProgressFileTotalCountKey and NSProgressFileCompletedCountKey keys in the userInfo dictionary are used for the overall count of files. For any other kind of NSProgress, the unit of measurement you use does not matter as long as you are consistent. The values may be reported to the user in the localizedDescription and localizedAdditionalDescription.
      
@@ -114,7 +114,7 @@ public class NSProgress : NSObject {
     
     /* Set a value in the dictionary returned by invocations of -userInfo, with appropriate KVO notification for properties whose values can depend on values in the user info dictionary, like localizedDescription. If a nil value is passed then the dictionary entry is removed.
     */
-    public func setUserInfoObject(objectOrNil: AnyObject?, forKey key: String) { NSUnimplemented() }
+    public func setUserInfoObject(_ objectOrNil: AnyObject?, forKey key: String) { NSUnimplemented() }
     
     /* Whether the progress being made is indeterminate. -isIndeterminate returns YES when the value of the totalUnitCount or completedUnitCount property is less than zero. Zero values for both of those properties indicates that there turned out to not be any work to do after all; -isIndeterminate returns NO and -fractionCompleted returns 1.0 in that case. NSProgress is by default KVO-compliant for these properties, with the notifications always being sent on the thread which updates the property.
     */

@@ -106,7 +106,7 @@ public class NSXMLDocument : NSXMLNode {
         }
     }
 
-    public class func replacementClassForClass(cls: AnyClass) -> AnyClass { NSUnimplemented() }
+    public class func replacementClassForClass(_ cls: AnyClass) -> AnyClass { NSUnimplemented() }
 
     /*!
         @method characterEncoding
@@ -227,7 +227,7 @@ public class NSXMLDocument : NSXMLNode {
         @method setRootElement:
         @abstract Set the root element. Removes all other children including comments and processing-instructions.
     */
-    public func setRootElement(root: NSXMLElement) {
+    public func setRootElement(_ root: NSXMLElement) {
         precondition(root.parent == nil)
 
         for child in _childNodes {
@@ -255,7 +255,7 @@ public class NSXMLDocument : NSXMLNode {
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(child: NSXMLNode, atIndex index: Int) {
+    public func insertChild(_ child: NSXMLNode, atIndex index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
 
@@ -263,7 +263,7 @@ public class NSXMLDocument : NSXMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(children: [NSXMLNode], atIndex index: Int) {
+    public func insertChildren(_ children: [NSXMLNode], atIndex index: Int) {
         _insertChildren(children, atIndex: index)
     }
 
@@ -271,7 +271,7 @@ public class NSXMLDocument : NSXMLNode {
         @method removeChildAtIndex:atIndex:
         @abstract Removes a child at a particular index.
     */
-    public func removeChildAtIndex(index: Int) {
+    public func removeChildAtIndex(_ index: Int) {
         _removeChildAtIndex(index)
     } //primitive
 
@@ -279,7 +279,7 @@ public class NSXMLDocument : NSXMLNode {
         @method setChildren:
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
-    public func setChildren(children: [NSXMLNode]?) {
+    public func setChildren(_ children: [NSXMLNode]?) {
         _setChildren(children)
     } //primitive
 
@@ -287,7 +287,7 @@ public class NSXMLDocument : NSXMLNode {
         @method addChild:
         @abstract Adds a child to the end of the existing children.
     */
-    public func addChild(child: NSXMLNode) {
+    public func addChild(_ child: NSXMLNode) {
         _addChild(child)
     }
 
@@ -295,7 +295,7 @@ public class NSXMLDocument : NSXMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChildAtIndex(index: Int, withNode node: NSXMLNode) {
+    public func replaceChildAtIndex(_ index: Int, withNode node: NSXMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
 
@@ -309,7 +309,7 @@ public class NSXMLDocument : NSXMLNode {
         @method XMLDataWithOptions:
         @abstract The representation of this node as it would appear in an XML document, encoded based on characterEncoding.
     */
-    public func XMLDataWithOptions(options: Int) -> NSData {
+    public func XMLDataWithOptions(_ options: Int) -> NSData {
         let string = XMLStringWithOptions(options)
         // TODO: support encodings other than UTF-8
 
@@ -320,19 +320,19 @@ public class NSXMLDocument : NSXMLNode {
         @method objectByApplyingXSLT:arguments:error:
         @abstract Applies XSLT with arguments (NSString key/value pairs) to this document, returning a new document.
     */
-    public func objectByApplyingXSLT(xslt: NSData, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    public func objectByApplyingXSLT(_ xslt: NSData, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
 
     /*!
         @method objectByApplyingXSLTString:arguments:error:
         @abstract Applies XSLT as expressed by a string with arguments (NSString key/value pairs) to this document, returning a new document.
     */
-    public func objectByApplyingXSLTString(xslt: String, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    public func objectByApplyingXSLTString(_ xslt: String, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
 
     /*!
         @method objectByApplyingXSLTAtURL:arguments:error:
         @abstract Applies the XSLT at a URL with arguments (NSString key/value pairs) to this document, returning a new document. Error may contain a connection error from the URL.
     */
-    public func objectByApplyingXSLTAtURL(xsltURL: NSURL, arguments argument: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    public func objectByApplyingXSLTAtURL(_ xsltURL: NSURL, arguments argument: [String : String]?) throws -> AnyObject { NSUnimplemented() }
 
     public func validate() throws {
         var unmanagedError: Unmanaged<CFError>? = nil
@@ -344,7 +344,7 @@ public class NSXMLDocument : NSXMLNode {
         }
     }
 
-    internal override class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLDocument {
+    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLDocument {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDocument)
 
         if _CFXMLNodeGetPrivateData(node) != nil {

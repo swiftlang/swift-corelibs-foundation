@@ -14,7 +14,7 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
     
@@ -26,7 +26,7 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
         // Nothing to do here
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         // Nothing to do here
     }
     
@@ -34,7 +34,7 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
         return true
     }
     
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: AnyObject?) -> Bool {
         return object is NSNull
     }
 }

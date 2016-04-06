@@ -50,21 +50,21 @@ public class NSStream : NSObject {
     public weak var delegate: NSStreamDelegate?
     // By default, a stream is its own delegate, and subclassers of NSInputStream and NSOutputStream must maintain this contract. [someStream setDelegate:nil] must restore this behavior. As usual, delegates are not retained.
     
-    public func propertyForKey(key: String) -> AnyObject? {
+    public func propertyForKey(_ key: String) -> AnyObject? {
         NSUnimplemented()
     }
     
-    public func setProperty(property: AnyObject?, forKey key: String) -> Bool {
+    public func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
         NSUnimplemented()
     }
 
 // Re-enable once run loop is compiled on all platforms
 #if false
-    public func scheduleInRunLoop(aRunLoop: NSRunLoop, forMode mode: String) {
+    public func scheduleInRunLoop(_ aRunLoop: NSRunLoop, forMode mode: String) {
         NSUnimplemented()
     }
     
-    public func removeFromRunLoop(aRunLoop: NSRunLoop, forMode mode: String) {
+    public func removeFromRunLoop(_ aRunLoop: NSRunLoop, forMode mode: String) {
         NSUnimplemented()
     }
 #endif
@@ -82,12 +82,12 @@ public class NSStream : NSObject {
 // Subclassers are required to implement these methods.
 public class NSInputStream : NSStream {
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
-    public func read(buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+    public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         NSUnimplemented()
     }
     
     // returns in O(1) a pointer to the buffer in 'buffer' and by reference in 'len' how many bytes are available. This buffer is only valid until the next stream operation. Subclassers may return NO for this if it is not appropriate for the stream type. This may return NO if the buffer is not available.
-    public func getBuffer(buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>>, length len: UnsafeMutablePointer<Int>) -> Bool {
+    public func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>>, length len: UnsafeMutablePointer<Int>) -> Bool {
         NSUnimplemented()
     }
     
@@ -113,7 +113,7 @@ public class NSInputStream : NSStream {
 // Subclassers are required to implement these methods.
 public class NSOutputStream : NSStream {
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
-    public func write(buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
+    public func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         NSUnimplemented()
     }
     
@@ -146,24 +146,24 @@ public class NSOutputStream : NSStream {
 // Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
 #if false
 extension NSStream {
-    public class func getStreamsToHostWithName(hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<NSInputStream?>, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>) {
+    public class func getStreamsToHostWithName(_ hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<NSInputStream?>, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>) {
         NSUnimplemented()
     }
 }
 
 extension NSStream {
-    public class func getBoundStreamsWithBufferSize(bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<NSInputStream?>, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>) {
+    public class func getBoundStreamsWithBufferSize(_ bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<NSInputStream?>, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>) {
         NSUnimplemented()
     }
 }
 #endif
 
 extension NSStreamDelegate {
-    func stream(aStream: NSStream, handleEvent eventCode: NSStreamEvent) { }
+    func stream(_ aStream: NSStream, handleEvent eventCode: NSStreamEvent) { }
 }
 
 public protocol NSStreamDelegate : class {
-    func stream(aStream: NSStream, handleEvent eventCode: NSStreamEvent)
+    func stream(_ aStream: NSStream, handleEvent eventCode: NSStreamEvent)
 }
 
 // NSString constants for the propertyForKey/setProperty:forKey: API

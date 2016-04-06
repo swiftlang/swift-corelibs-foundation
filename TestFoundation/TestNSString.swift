@@ -583,7 +583,7 @@ class TestNSString : XCTestCase {
         #endif
     }
     
-    private func startWith(prefix: String, strings: [NSString]) -> Bool {
+    private func startWith(_ prefix: String, strings: [NSString]) -> Bool {
         for item in strings {
             guard item.hasPrefix(prefix) else {
                 return false
@@ -593,7 +593,7 @@ class TestNSString : XCTestCase {
         return true
     }
     
-    private func stringsAreCaseInsensitivelyEqual(lhs: NSString, _ rhs: NSString) -> Bool {
+    private func stringsAreCaseInsensitivelyEqual(_ lhs: NSString, _ rhs: NSString) -> Bool {
     	return lhs.compare(rhs.bridge(), options: .CaseInsensitiveSearch) == .OrderedSame
     }
 
@@ -1065,7 +1065,7 @@ enum Stack: ErrorProtocol {
     case Stack([UInt])
 }
 
-func checkHasPrefixHasSuffix(lhs: String, _ rhs: String, _ stack: [UInt]) -> Int {
+func checkHasPrefixHasSuffix(_ lhs: String, _ rhs: String, _ stack: [UInt]) -> Int {
     if lhs == "" {
         var failures = 0
         failures += lhs.hasPrefix(rhs) ? 1 : 0
@@ -1095,7 +1095,7 @@ func checkHasPrefixHasSuffix(lhs: String, _ rhs: String, _ stack: [UInt]) -> Int
         lhsNFDGraphemeClusters.lazy.reversed().starts(
             with: rhsNFDGraphemeClusters.lazy.reversed(), isEquivalent: (==))
 
-    func testFailure(lhs: Bool, _ rhs: Bool, _ stack: [UInt]) -> Int {
+    func testFailure(_ lhs: Bool, _ rhs: Bool, _ stack: [UInt]) -> Int {
         guard lhs == rhs else {
             // print(stack)
             return 1
