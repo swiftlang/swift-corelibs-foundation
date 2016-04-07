@@ -54,22 +54,22 @@ public class NSPersonNameComponentsFormatter : NSFormatter {
     /* Shortcut for converting an NSPersonNameComponents object into a string without explicitly creating an instance.
         Create an instance for greater customizability.
      */
-    public class func localizedStringFromPersonNameComponents(components: NSPersonNameComponents, style nameFormatStyle: NSPersonNameComponentsFormatterStyle, options nameOptions: NSPersonNameComponentsFormatterOptions) -> String { NSUnimplemented() }
+    public class func localizedStringFromPersonNameComponents(_ components: NSPersonNameComponents, style nameFormatStyle: NSPersonNameComponentsFormatterStyle, options nameOptions: NSPersonNameComponentsFormatterOptions) -> String { NSUnimplemented() }
     
     /* Convenience method on stringForObjectValue:. Returns a string containing the formatted value of the provided components object.
      */
-    public func stringFromPersonNameComponents(components: NSPersonNameComponents) -> String { NSUnimplemented() }
+    public func stringFromPersonNameComponents(_ components: NSPersonNameComponents) -> String { NSUnimplemented() }
     
     /* Returns attributed string with annotations for each component. For each range, attributes can be obtained by querying
         dictionary key NSPersonNameComponentKey , using NSPersonNameComponent constant values.
      */
-    public func annotatedStringFromPersonNameComponents(components: NSPersonNameComponents) -> NSAttributedString { NSUnimplemented() }
+    public func annotatedStringFromPersonNameComponents(_ components: NSPersonNameComponents) -> NSAttributedString { NSUnimplemented() }
     
     /* NSPersonNameComponentsFormatter currently only implements formatting, not parsing. Until it implements parsing, this will always return NO.
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public override func objectValue(string: String) throws -> AnyObject? { return nil }
+    public override func objectValue(_ string: String) throws -> AnyObject? { return nil }
 }
 
 // Attributed String identifier key string

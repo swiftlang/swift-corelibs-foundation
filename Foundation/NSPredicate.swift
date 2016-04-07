@@ -20,7 +20,7 @@ public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -28,7 +28,7 @@ public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -43,39 +43,39 @@ public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     
     public var predicateFormat: String  { NSUnimplemented() } // returns the format string of the predicate
     
-    public func predicateWithSubstitutionVariables(variables: [String : AnyObject]) -> Self { NSUnimplemented() } // substitute constant values for variables
+    public func predicateWithSubstitutionVariables(_ variables: [String : AnyObject]) -> Self { NSUnimplemented() } // substitute constant values for variables
     
-    public func evaluateWithObject(object: AnyObject?) -> Bool { NSUnimplemented() } // evaluate a predicate against a single object
+    public func evaluateWithObject(_ object: AnyObject?) -> Bool { NSUnimplemented() } // evaluate a predicate against a single object
     
-    public func evaluateWithObject(object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool { NSUnimplemented() } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered
+    public func evaluateWithObject(_ object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool { NSUnimplemented() } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered
     
     public func allowEvaluation() { NSUnimplemented() } // Force a predicate which was securely decoded to allow evaluation
 }
 
 extension NSArray {
-    public func filteredArrayUsingPredicate(predicate: NSPredicate) -> [AnyObject] { NSUnimplemented() } // evaluate a predicate against an array of objects and return a filtered array
+    public func filteredArrayUsingPredicate(_ predicate: NSPredicate) -> [AnyObject] { NSUnimplemented() } // evaluate a predicate against an array of objects and return a filtered array
 }
 
 extension NSMutableArray {
-    public func filterUsingPredicate(predicate: NSPredicate) { NSUnimplemented() } // evaluate a predicate against an array of objects and filter the mutable array directly
+    public func filterUsingPredicate(_ predicate: NSPredicate) { NSUnimplemented() } // evaluate a predicate against an array of objects and filter the mutable array directly
 }
 
 extension NSSet {
-    public func filteredSetUsingPredicate(predicate: NSPredicate) -> Set<NSObject> { NSUnimplemented() } // evaluate a predicate against a set of objects and return a filtered set
+    public func filteredSetUsingPredicate(_ predicate: NSPredicate) -> Set<NSObject> { NSUnimplemented() } // evaluate a predicate against a set of objects and return a filtered set
 }
 
 extension NSMutableSet {
-    public func filterUsingPredicate(predicate: NSPredicate) { NSUnimplemented() } // evaluate a predicate against a set of objects and filter the mutable set directly
+    public func filterUsingPredicate(_ predicate: NSPredicate) { NSUnimplemented() } // evaluate a predicate against a set of objects and filter the mutable set directly
 }
 
 extension NSOrderedSet {
     
-    public func filteredOrderedSetUsingPredicate(p: NSPredicate) -> NSOrderedSet { NSUnimplemented() } // evaluate a predicate against an ordered set of objects and return a filtered ordered set
+    public func filteredOrderedSetUsingPredicate(_ p: NSPredicate) -> NSOrderedSet { NSUnimplemented() } // evaluate a predicate against an ordered set of objects and return a filtered ordered set
 }
 
 extension NSMutableOrderedSet {
     
-    public func filterUsingPredicate(p: NSPredicate) { NSUnimplemented() } // evaluate a predicate against an ordered set of objects and filter the mutable ordered set directly
+    public func filterUsingPredicate(_ p: NSPredicate) { NSUnimplemented() } // evaluate a predicate against an ordered set of objects and filter the mutable ordered set directly
 }
 
 

@@ -374,7 +374,7 @@ public class NSHTTPCookie : NSObject {
         @result An NSDictionary where the keys are header field names, and the values
         are the corresponding header field values.
     */
-    public class func requestHeaderFieldsWithCookies(cookies: [NSHTTPCookie]) -> [String : String] {
+    public class func requestHeaderFieldsWithCookies(_ cookies: [NSHTTPCookie]) -> [String : String] {
         var cookieString = cookies.reduce("") { (sum, next) -> String in
             return sum + "\(next.cookieRepresentation.name)=\(next.cookieRepresentation.value); "
         }
@@ -395,7 +395,7 @@ public class NSHTTPCookie : NSObject {
         @discussion This method will ignore irrelevant header fields so
         you can pass a dictionary containing data other than cookie data.
     */
-    public class func cookiesWithResponseHeaderFields(headerFields: [String : String], forURL URL: NSURL) -> [NSHTTPCookie] { NSUnimplemented() }
+    public class func cookiesWithResponseHeaderFields(_ headerFields: [String : String], forURL URL: NSURL) -> [NSHTTPCookie] { NSUnimplemented() }
     
     /*!
         @method properties

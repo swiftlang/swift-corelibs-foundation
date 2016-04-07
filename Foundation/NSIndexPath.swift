@@ -26,12 +26,12 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func copyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
     public convenience init(index: Int) {
         self.init(indexes: [index])
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -41,7 +41,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     
     public static func supportsSecureCoding() -> Bool { return true }
     
-    public func indexPathByAddingIndex(index: Int) -> NSIndexPath {
+    public func indexPathByAddingIndex(_ index: Int) -> NSIndexPath {
         return NSIndexPath(indexes: _indexes + [index])
     }
     public func indexPathByRemovingLastIndex() -> NSIndexPath {
@@ -52,7 +52,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func indexAtPosition(position: Int) -> Int {
+    public func indexAtPosition(_ position: Int) -> Int {
         return _indexes[position]
     }
     public var length: Int  {
@@ -66,7 +66,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
      @discussion
         It is the developer’s responsibility to allocate the memory for the C array.
      */
-    public func getIndexes(indexes: UnsafeMutablePointer<Int>, range positionRange: NSRange) {
+    public func getIndexes(_ indexes: UnsafeMutablePointer<Int>, range positionRange: NSRange) {
         for (pos, idx) in _indexes[positionRange.location ..< NSMaxRange(positionRange)].enumerated() {
             indexes.advanced(by: pos).pointee = idx
         }
@@ -74,7 +74,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     
     // comparison support
     // sorting an array of indexPaths using this comparison results in an array representing nodes in depth-first traversal order
-    public func compare(otherObject: NSIndexPath) -> NSComparisonResult {
+    public func compare(_ otherObject: NSIndexPath) -> NSComparisonResult {
         let thisLength = length
         let otherLength = otherObject.length
         let minLength = thisLength >= otherLength ? otherLength : thisLength

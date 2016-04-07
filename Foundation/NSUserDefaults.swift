@@ -37,7 +37,7 @@ public class NSUserDefaults : NSObject {
         suite = suitename
     }
     
-    public func objectForKey(defaultName: String) -> AnyObject? {
+    public func objectForKey(_ defaultName: String) -> AnyObject? {
         func getFromRegistered() -> AnyObject? {
             return registeredDefaults[defaultName]
         }
@@ -70,7 +70,7 @@ public class NSUserDefaults : NSObject {
             return getFromRegistered()
         }
     }
-    public func setObject(value: AnyObject?, forKey defaultName: String) {
+    public func setObject(_ value: AnyObject?, forKey defaultName: String) {
         guard let value = value else {
             CFPreferencesSetAppValue(defaultName._cfObject, nil, suite?._cfObject ?? kCFPreferencesCurrentApplication)
             return
@@ -97,23 +97,23 @@ public class NSUserDefaults : NSObject {
         
         CFPreferencesSetAppValue(defaultName._cfObject, cfType, suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
-    public func removeObjectForKey(defaultName: String) {
+    public func removeObjectForKey(_ defaultName: String) {
         CFPreferencesSetAppValue(defaultName._cfObject, nil, suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
     
-    public func stringForKey(defaultName: String) -> String? {
+    public func stringForKey(_ defaultName: String) -> String? {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSString else {
             return nil
         }
         return bVal._swiftObject
     }
-    public func arrayForKey(defaultName: String) -> [AnyObject]? {
+    public func arrayForKey(_ defaultName: String) -> [AnyObject]? {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSArray else {
             return nil
         }
         return bVal._swiftObject
     }
-    public func dictionaryForKey(defaultName: String) -> [String : AnyObject]? {
+    public func dictionaryForKey(_ defaultName: String) -> [String : AnyObject]? {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSDictionary else {
             return nil
         }
@@ -140,43 +140,43 @@ public class NSUserDefaults : NSObject {
         } catch _ { }
         return nil
     }
-    public func dataForKey(defaultName: String) -> NSData? {
+    public func dataForKey(_ defaultName: String) -> NSData? {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSData else {
             return nil
         }
         return bVal
     }
-    public func stringArrayForKey(defaultName: String) -> [String]? {
+    public func stringArrayForKey(_ defaultName: String) -> [String]? {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSArray else {
             return nil
         }
         return _expensivePropertyListConversion(bVal) as? [String]
     }
-    public func integerForKey(defaultName: String) -> Int {
+    public func integerForKey(_ defaultName: String) -> Int {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
             return 0
         }
         return bVal.integerValue
     }
-    public func floatForKey(defaultName: String) -> Float {
+    public func floatForKey(_ defaultName: String) -> Float {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
             return 0
         }
         return bVal.floatValue
     }
-    public func doubleForKey(defaultName: String) -> Double {
+    public func doubleForKey(_ defaultName: String) -> Double {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
             return 0
         }
         return bVal.doubleValue
     }
-    public func boolForKey(defaultName: String) -> Bool {
+    public func boolForKey(_ defaultName: String) -> Bool {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
             return false
         }
         return bVal.boolValue
     }
-    public func URLForKey(defaultName: String) -> NSURL? {
+    public func URLForKey(_ defaultName: String) -> NSURL? {
         guard let aVal = objectForKey(defaultName) else {
             return nil
         }
@@ -192,19 +192,19 @@ public class NSUserDefaults : NSObject {
         return nil
     }
     
-    public func setInteger(value: Int, forKey defaultName: String) {
+    public func setInteger(_ value: Int, forKey defaultName: String) {
         setObject(NSNumber(integer: value), forKey: defaultName)
     }
-    public func setFloat(value: Float, forKey defaultName: String) {
+    public func setFloat(_ value: Float, forKey defaultName: String) {
         setObject(NSNumber(float: value), forKey: defaultName)
     }
-    public func setDouble(value: Double, forKey defaultName: String) {
+    public func setDouble(_ value: Double, forKey defaultName: String) {
         setObject(NSNumber(double: value), forKey: defaultName)
     }
-    public func setBool(value: Bool, forKey defaultName: String) {
+    public func setBool(_ value: Bool, forKey defaultName: String) {
         setObject(NSNumber(bool: value), forKey: defaultName)
     }
-    public func setURL(url: NSURL?, forKey defaultName: String) {
+    public func setURL(_ url: NSURL?, forKey defaultName: String) {
 		if let url = url {
             //FIXME: CFURLIsFileReferenceURL is limited to OS X/iOS
             #if os(OSX) || os(iOS)
@@ -232,16 +232,16 @@ public class NSUserDefaults : NSObject {
         }
     }
     
-    public func registerDefaults(registrationDictionary: [String : AnyObject]) {
+    public func registerDefaults(_ registrationDictionary: [String : AnyObject]) {
         for (key, value) in registrationDictionary {
             registeredDefaults[key] = value
         }
     }
     
-    public func addSuiteNamed(suiteName: String) {
+    public func addSuiteNamed(_ suiteName: String) {
         CFPreferencesAddSuitePreferencesToApp(kCFPreferencesCurrentApplication, suiteName._cfObject)
     }
-    public func removeSuiteNamed(suiteName: String) {
+    public func removeSuiteNamed(_ suiteName: String) {
         CFPreferencesRemoveSuitePreferencesFromApp(kCFPreferencesCurrentApplication, suiteName._cfObject)
     }
     
@@ -264,20 +264,20 @@ public class NSUserDefaults : NSObject {
     }
     
     public var volatileDomainNames: [String] { NSUnimplemented() }
-    public func volatileDomainForName(domainName: String) -> [String : AnyObject] { NSUnimplemented() }
-    public func setVolatileDomain(domain: [String : AnyObject], forName domainName: String) { NSUnimplemented() }
-    public func removeVolatileDomainForName(domainName: String) { NSUnimplemented() }
+    public func volatileDomainForName(_ domainName: String) -> [String : AnyObject] { NSUnimplemented() }
+    public func setVolatileDomain(_ domain: [String : AnyObject], forName domainName: String) { NSUnimplemented() }
+    public func removeVolatileDomainForName(_ domainName: String) { NSUnimplemented() }
     
-    public func persistentDomainForName(domainName: String) -> [String : AnyObject]? { NSUnimplemented() }
-    public func setPersistentDomain(domain: [String : AnyObject], forName domainName: String) { NSUnimplemented() }
-    public func removePersistentDomainForName(domainName: String) { NSUnimplemented() }
+    public func persistentDomainForName(_ domainName: String) -> [String : AnyObject]? { NSUnimplemented() }
+    public func setPersistentDomain(_ domain: [String : AnyObject], forName domainName: String) { NSUnimplemented() }
+    public func removePersistentDomainForName(_ domainName: String) { NSUnimplemented() }
     
     public func synchronize() -> Bool {
         return CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
     }
     
-    public func objectIsForcedForKey(key: String) -> Bool { NSUnimplemented() }
-    public func objectIsForcedForKey(key: String, inDomain domain: String) -> Bool { NSUnimplemented() }
+    public func objectIsForcedForKey(_ key: String) -> Bool { NSUnimplemented() }
+    public func objectIsForcedForKey(_ key: String, inDomain domain: String) -> Bool { NSUnimplemented() }
 }
 
 public let NSUserDefaultsDidChangeNotification: String = "NSUserDefaultsDidChangeNotification"

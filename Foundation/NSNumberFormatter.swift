@@ -50,20 +50,20 @@ public class NSNumberFormatter : NSFormatter {
     // Report the used range of the string and an NSError, in addition to the usual stuff from NSFormatter
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func objectValue(string: String, range: inout NSRange) throws -> AnyObject? { NSUnimplemented() }
+    public func objectValue(_ string: String, range: inout NSRange) throws -> AnyObject? { NSUnimplemented() }
     
-    public override func stringForObjectValue(obj: AnyObject) -> String? {
+    public override func stringForObjectValue(_ obj: AnyObject) -> String? {
         guard let number = obj as? NSNumber else { return nil }
         return stringFromNumber(number)
     }
     
     // Even though NSNumberFormatter responds to the usual NSFormatter methods,
     //   here are some convenience methods which are a little more obvious.
-    public func stringFromNumber(number: NSNumber) -> String? {
+    public func stringFromNumber(_ number: NSNumber) -> String? {
         return CFNumberFormatterCreateStringWithNumber(kCFAllocatorSystemDefault, _cfFormatter, number._cfObject)._swiftObject
     }
     
-    public func numberFromString(string: String) -> NSNumber? {
+    public func numberFromString(_ string: String) -> NSNumber? {
         var range = CFRange(location: 0, length: string.length)
         let number = withUnsafeMutablePointer(&range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
             
@@ -78,7 +78,7 @@ public class NSNumberFormatter : NSFormatter {
         return number
     }
     
-    public class func localizedStringFromNumber(num: NSNumber, numberStyle nstyle: NSNumberFormatterStyle) -> String {
+    public class func localizedStringFromNumber(_ num: NSNumber, numberStyle nstyle: NSNumberFormatterStyle) -> String {
         let numberFormatter = NSNumberFormatter()
         numberFormatter.numberStyle = nstyle
         return numberFormatter.stringForObjectValue(num)!
@@ -88,7 +88,7 @@ public class NSNumberFormatter : NSFormatter {
         _currentCfFormatter = nil
     }
     
-    internal func _setFormatterAttributes(formatter: CFNumberFormatter) {
+    internal func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyCode, value: _currencyCode?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterDecimalSeparator, value: _decimalSeparator?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyDecimalSeparator, value: _currencyDecimalSeparator?._cfObject)
@@ -132,7 +132,7 @@ public class NSNumberFormatter : NSFormatter {
         }
     }
     
-    internal func _setFormatterAttribute(formatter: CFNumberFormatter, attributeName: CFString, value: AnyObject?) {
+    internal func _setFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString, value: AnyObject?) {
         if let value = value {
             CFNumberFormatterSetProperty(formatter, attributeName, value)
         }

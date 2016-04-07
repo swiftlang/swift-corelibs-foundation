@@ -36,7 +36,7 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -48,7 +48,7 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     

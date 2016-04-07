@@ -63,7 +63,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: AnyObject?) -> Bool {
         if let tz = object as? NSTimeZone {
             return isEqualToTimeZone(tz)
         } else {
@@ -92,7 +92,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         self.init(name: name._swiftObject , data: nil)
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
             // darwin versions of this method can and will encode mutable data, however it is not required for compatability
@@ -109,7 +109,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
     
@@ -129,7 +129,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func secondsFromGMTForDate(aDate: NSDate) -> Int {
+    public func secondsFromGMTForDate(_ aDate: NSDate) -> Int {
         if self.dynamicType === NSTimeZone.self {
             return Int(CFTimeZoneGetSecondsFromGMT(_cfObject, aDate.timeIntervalSinceReferenceDate))
         } else {
@@ -137,7 +137,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func abbreviationForDate(aDate: NSDate) -> String? {
+    public func abbreviationForDate(_ aDate: NSDate) -> String? {
         if self.dynamicType === NSTimeZone.self {
             return CFTimeZoneCopyAbbreviation(_cfObject, aDate.timeIntervalSinceReferenceDate)._swiftObject
         } else {
@@ -145,7 +145,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func isDaylightSavingTimeForDate(aDate: NSDate) -> Bool {
+    public func isDaylightSavingTimeForDate(_ aDate: NSDate) -> Bool {
         if self.dynamicType === NSTimeZone.self {
             return CFTimeZoneIsDaylightSavingTime(_cfObject, aDate.timeIntervalSinceReferenceDate)
         } else {
@@ -153,7 +153,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func daylightSavingTimeOffsetForDate(aDate: NSDate) -> NSTimeInterval {
+    public func daylightSavingTimeOffsetForDate(_ aDate: NSDate) -> NSTimeInterval {
         if self.dynamicType === NSTimeZone.self {
             return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
         } else {
@@ -161,7 +161,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func nextDaylightSavingTimeTransitionAfterDate(aDate: NSDate) -> NSDate? {
+    public func nextDaylightSavingTimeTransitionAfterDate(_ aDate: NSDate) -> NSDate? {
         if self.dynamicType === NSTimeZone.self {
             return NSDate(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
         } else {
@@ -184,7 +184,7 @@ extension NSTimeZone {
         return CFTimeZoneCopyDefault()._nsObject
     }
 
-    public class func setDefaultTimeZone(aTimeZone: NSTimeZone) {
+    public class func setDefaultTimeZone(_ aTimeZone: NSTimeZone) {
         CFTimeZoneSetDefault(aTimeZone._cfObject)
     }
 }
@@ -204,7 +204,7 @@ extension NSTimeZone {
     public class func knownTimeZoneNames() -> [String] { NSUnimplemented() }
     
     public class func abbreviationDictionary() -> [String : String] { NSUnimplemented() }
-    public class func setAbbreviationDictionary(dict: [String : String]) { NSUnimplemented() }
+    public class func setAbbreviationDictionary(_ dict: [String : String]) { NSUnimplemented() }
     
     public class func timeZoneDataVersion() -> String { NSUnimplemented() }
     
@@ -222,11 +222,11 @@ extension NSTimeZone {
     public var daylightSavingTimeOffset: NSTimeInterval { NSUnimplemented() }
     /*@NSCopying*/ public var nextDaylightSavingTimeTransition: NSDate?  { NSUnimplemented() }
     
-    public func isEqualToTimeZone(aTimeZone: NSTimeZone) -> Bool {
+    public func isEqualToTimeZone(_ aTimeZone: NSTimeZone) -> Bool {
         return CFEqual(self._cfObject, aTimeZone._cfObject)
     }
     
-    public func localizedName(style: NSTimeZoneNameStyle, locale: NSLocale?) -> String? { NSUnimplemented() }
+    public func localizedName(_ style: NSTimeZoneNameStyle, locale: NSLocale?) -> String? { NSUnimplemented() }
 }
 public enum NSTimeZoneNameStyle : Int {
     case Standard    // Central Standard Time

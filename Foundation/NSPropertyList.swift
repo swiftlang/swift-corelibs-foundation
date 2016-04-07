@@ -36,7 +36,7 @@ public typealias NSPropertyListWriteOptions = Int
 
 public class NSPropertyListSerialization : NSObject {
 
-    public class func propertyList(plist: AnyObject, isValidForFormat format: NSPropertyListFormat) -> Bool {
+    public class func propertyList(_ plist: AnyObject, isValidForFormat format: NSPropertyListFormat) -> Bool {
 #if os(OSX) || os(iOS)
         let fmt = CFPropertyListFormat(rawValue: CFIndex(format.rawValue))!
 #else
@@ -45,7 +45,7 @@ public class NSPropertyListSerialization : NSObject {
         return CFPropertyListIsValid(unsafeBitCast(plist, to: CFPropertyList.self), fmt)
     }
     
-    public class func dataWithPropertyList(plist: AnyObject, format: NSPropertyListFormat, options opt: NSPropertyListWriteOptions) throws -> NSData {
+    public class func dataWithPropertyList(_ plist: AnyObject, format: NSPropertyListFormat, options opt: NSPropertyListWriteOptions) throws -> NSData {
         var error: Unmanaged<CFError>? = nil
         let result = withUnsafeMutablePointer(&error) { (outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> CFData? in
 #if os(OSX) || os(iOS)
@@ -64,7 +64,7 @@ public class NSPropertyListSerialization : NSObject {
     }
     
     /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
-    public class func propertyListWithData(data: NSData, options opt: NSPropertyListReadOptions, format: UnsafeMutablePointer<NSPropertyListFormat>) throws -> Any {
+    public class func propertyListWithData(_ data: NSData, options opt: NSPropertyListReadOptions, format: UnsafeMutablePointer<NSPropertyListFormat>) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0
         var error: Unmanaged<CFError>? = nil
         let decoded = withUnsafeMutablePointers(&fmt, &error) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>, outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> NSObject? in
@@ -85,7 +85,7 @@ public class NSPropertyListSerialization : NSObject {
         }
     }
     
-    internal class func propertyListWithStream(stream: CFReadStream, length streamLength: Int, options opt: NSPropertyListReadOptions, format: UnsafeMutablePointer <NSPropertyListFormat>) throws -> Any {
+    internal class func propertyListWithStream(_ stream: CFReadStream, length streamLength: Int, options opt: NSPropertyListReadOptions, format: UnsafeMutablePointer <NSPropertyListFormat>) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0
         var error: Unmanaged<CFError>? = nil
         let decoded = withUnsafeMutablePointers(&fmt, &error) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>, outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> NSObject? in
@@ -107,7 +107,7 @@ public class NSPropertyListSerialization : NSObject {
 }
 
 // Until we have proper bridging support, we will have to recursively convert NS/CFTypes to Swift types when we return them to callers. Otherwise, they may expect to treat them as Swift types and it will fail. Obviously this will cause a problem if they treat them as NS types, but we'll live with that for now.
-internal func _expensivePropertyListConversion(input : AnyObject) -> Any {
+internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
     if let dict = input as? NSDictionary {
         var result : [String : Any] = [:]
         dict.enumerateKeysAndObjectsUsingBlock { key, value, _ in

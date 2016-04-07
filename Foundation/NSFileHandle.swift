@@ -28,7 +28,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         return readDataOfLength(Int.max)
     }
     
-    public func readDataOfLength(length: Int) -> NSData {
+    public func readDataOfLength(_ length: Int) -> NSData {
         var statbuf = stat()
         var dynamicBuffer: UnsafeMutablePointer<UInt8> = nil
         var total = 0
@@ -110,7 +110,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         return NSData()
     }
     
-    public func writeData(data: NSData) {
+    public func writeData(_ data: NSData) {
         data.enumerateByteRangesUsingBlock() { (bytes, range, stop) in
             do {
                 try NSData.writeToFileDescriptor(self._fd, path: nil, buf: bytes, length: range.length)
@@ -130,11 +130,11 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         return UInt64(lseek(_fd, 0, L_XTND))
     }
     
-    public func seekToFileOffset(offset: UInt64) {
+    public func seekToFileOffset(_ offset: UInt64) {
         lseek(_fd, off_t(offset), L_SET)
     }
     
-    public func truncateFileAtOffset(offset: UInt64) {
+    public func truncateFileAtOffset(_ offset: UInt64) {
         if lseek(_fd, off_t(offset), L_SET) == 0 {
             ftruncate(_fd, off_t(offset))
         }
@@ -175,7 +175,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -223,7 +223,7 @@ extension NSFileHandle {
         self.init(path: path, flags: O_RDWR, createMode: 0)
     }
     
-    internal static func _openFileDescriptorForURL(url : NSURL, flags: Int32, reading: Bool) throws -> Int32 {
+    internal static func _openFileDescriptorForURL(_ url : NSURL, flags: Int32, reading: Bool) throws -> Int32 {
         if let path = url.path {
             let fd = _CFOpenFile(path, flags)
             if fd < 0 {
@@ -263,7 +263,7 @@ public let NSFileHandleNotificationFileHandleItem: String = "" // NSUnimplemente
 
 extension NSFileHandle {
     
-    public func readInBackgroundAndNotifyForModes(modes: [String]?) {
+    public func readInBackgroundAndNotifyForModes(_ modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -272,7 +272,7 @@ extension NSFileHandle {
     }
 
     
-    public func readToEndOfFileInBackgroundAndNotifyForModes(modes: [String]?) {
+    public func readToEndOfFileInBackgroundAndNotifyForModes(_ modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -281,7 +281,7 @@ extension NSFileHandle {
     }
 
     
-    public func acceptConnectionInBackgroundAndNotifyForModes(modes: [String]?) {
+    public func acceptConnectionInBackgroundAndNotifyForModes(_ modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -290,7 +290,7 @@ extension NSFileHandle {
     }
 
     
-    public func waitForDataInBackgroundAndNotifyForModes(modes: [String]?) {
+    public func waitForDataInBackgroundAndNotifyForModes(_ modes: [String]?) {
         NSUnimplemented()
     }
 

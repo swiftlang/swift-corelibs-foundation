@@ -58,7 +58,7 @@ public class NSXMLNode : NSObject, NSCopying {
 
     internal let _xmlNode: _CFXMLNodePtr
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         let newNode = _CFXMLCopyNode(_xmlNode, true)
         return NSXMLNode._objectNodeForNode(newNode)
     }
@@ -117,7 +117,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns a document
         @param element The document's root node.
     */
-    public class func documentWithRootElement(element: NSXMLElement) -> AnyObject {
+    public class func documentWithRootElement(_ element: NSXMLElement) -> AnyObject {
         return NSXMLDocument(rootElement: element)
     }
 
@@ -125,7 +125,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method elementWithName:
         @abstract Returns an element <tt>&lt;name>&lt;/name></tt>.
     */
-    public class func elementWithName(name: String) -> AnyObject {
+    public class func elementWithName(_ name: String) -> AnyObject {
         return NSXMLElement(name: name)
     }
 
@@ -133,7 +133,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method elementWithName:URI:
         @abstract Returns an element whose full QName is specified.
     */
-    public class func elementWithName(name: String, URI: String) -> AnyObject {
+    public class func elementWithName(_ name: String, URI: String) -> AnyObject {
         return NSXMLElement(name: name, URI: URI)
     }
 
@@ -141,7 +141,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method elementWithName:stringValue:
         @abstract Returns an element with a single text node child <tt>&lt;name>string&lt;/name></tt>.
     */
-    public class func elementWithName(name: String, stringValue string: String) -> AnyObject {
+    public class func elementWithName(_ name: String, stringValue string: String) -> AnyObject {
         return NSXMLElement(name: name, stringValue: string)
     }
 
@@ -149,7 +149,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method elementWithName:children:attributes:
         @abstract Returns an element children and attributes <tt>&lt;name attr1="foo" attr2="bar">&lt;-- child1 -->child2&lt;/name></tt>.
     */
-    public class func elementWithName(name: String, children: [NSXMLNode]?, attributes: [NSXMLNode]?) -> AnyObject {
+    public class func elementWithName(_ name: String, children: [NSXMLNode]?, attributes: [NSXMLNode]?) -> AnyObject {
         let element = NSXMLElement(name: name)
         element.setChildren(children)
         element.attributes = attributes
@@ -161,7 +161,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method attributeWithName:stringValue:
         @abstract Returns an attribute <tt>name="stringValue"</tt>.
     */
-    public class func attributeWithName(name: String, stringValue: String) -> AnyObject {
+    public class func attributeWithName(_ name: String, stringValue: String) -> AnyObject {
         let attribute = _CFXMLNewProperty(nil, name, stringValue)
 
         return NSXMLNode(ptr: attribute)
@@ -171,7 +171,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method attributeWithLocalName:URI:stringValue:
         @abstract Returns an attribute whose full QName is specified.
     */
-    public class func attributeWithName(name: String, URI: String, stringValue: String) -> AnyObject {
+    public class func attributeWithName(_ name: String, URI: String, stringValue: String) -> AnyObject {
         let attribute = NSXMLNode.attributeWithName(name, stringValue: stringValue) as! NSXMLNode
 //        attribute.URI = URI
 
@@ -182,13 +182,13 @@ public class NSXMLNode : NSObject, NSCopying {
         @method namespaceWithName:stringValue:
         @abstract Returns a namespace <tt>xmlns:name="stringValue"</tt>.
     */
-    public class func namespaceWithName(name: String, stringValue: String) -> AnyObject { NSUnimplemented() }
+    public class func namespaceWithName(_ name: String, stringValue: String) -> AnyObject { NSUnimplemented() }
 
     /*!
         @method processingInstructionWithName:stringValue:
         @abstract Returns a processing instruction <tt>&lt;?name stringValue></tt>.
     */
-    public class func processingInstructionWithName(name: String, stringValue: String) -> AnyObject {
+    public class func processingInstructionWithName(_ name: String, stringValue: String) -> AnyObject {
         let node = _CFXMLNewProcessingInstruction(name, stringValue)
         return NSXMLNode(ptr: node)
     }
@@ -197,7 +197,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method commentWithStringValue:
         @abstract Returns a comment <tt>&lt;--stringValue--></tt>.
     */
-    public class func commentWithStringValue(stringValue: String) -> AnyObject {
+    public class func commentWithStringValue(_ stringValue: String) -> AnyObject {
         let node = _CFXMLNewComment(stringValue)
         return NSXMLNode(ptr: node)
     }
@@ -206,7 +206,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method textWithStringValue:
         @abstract Returns a text node.
     */
-    public class func textWithStringValue(stringValue: String) -> AnyObject {
+    public class func textWithStringValue(_ stringValue: String) -> AnyObject {
         let node = _CFXMLNewTextNode(stringValue)
         return NSXMLNode(ptr: node)
     }
@@ -215,7 +215,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method DTDNodeWithXMLString:
         @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
     */
-    public class func DTDNodeWithXMLString(string: String) -> AnyObject? {
+    public class func DTDNodeWithXMLString(_ string: String) -> AnyObject? {
         let node = _CFXMLParseDTDNode(string)
         if node == nil {
             return nil
@@ -351,7 +351,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method setStringValue:resolvingEntities:
         @abstract Sets the content as with @link setStringValue: @/link, but when "resolve" is true, character references, predefined entities and user entities available in the document's dtd are resolved. Entities not available in the dtd remain in their entity form.
     */
-    public func setStringValue(string: String, resolvingEntities resolve: Bool) {
+    public func setStringValue(_ string: String, resolvingEntities resolve: Bool) {
         guard resolve else {
             stringValue = string
             return
@@ -482,7 +482,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method childAtIndex:
         @abstract Returns the child node at a particular index.
     */
-    public func childAtIndex(index: Int) -> NSXMLNode? {
+    public func childAtIndex(_ index: Int) -> NSXMLNode? {
         precondition(index >= 0)
         precondition(index < childCount)
 
@@ -659,7 +659,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method localNameForName:
         @abstract Returns the local name bar in foo:bar.
      */
-    public class func localNameForName(name: String) -> String {
+    public class func localNameForName(_ name: String) -> String {
 //        return name.withCString {
 //            var length: Int32 = 0
 //            let result = xmlSplitQName3(UnsafePointer<xmlChar>($0), &length)
@@ -672,7 +672,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method localNameForName:
         @abstract Returns the prefix foo in the name foo:bar.
     */
-    public class func prefixForName(name: String) -> String? {
+    public class func prefixForName(_ name: String) -> String? {
 //        return name.withCString {
 //            var result: UnsafeMutablePointer<xmlChar> = nil
 //            let unused = xmlSplitQName2(UnsafePointer<xmlChar>($0), &result)
@@ -689,7 +689,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method predefinedNamespaceForPrefix:
         @abstract Returns the namespace belonging to one of the predefined namespaces xml, xs, or xsi
     */
-    public class func predefinedNamespaceForPrefix(name: String) -> NSXMLNode? { NSUnimplemented() }
+    public class func predefinedNamespaceForPrefix(_ name: String) -> NSXMLNode? { NSUnimplemented() }
 
     /*!
         @method description
@@ -711,7 +711,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @method XMLStringWithOptions:
         @abstract The representation of this node as it would appear in an XML document, with various output options available.
     */
-    public func XMLStringWithOptions(options: Int) -> String {
+    public func XMLStringWithOptions(_ options: Int) -> String {
         return _CFXMLStringWithOptions(_xmlNode, UInt32(options))._swiftObject
     }
 
@@ -719,14 +719,14 @@ public class NSXMLNode : NSObject, NSCopying {
         @method canonicalXMLStringPreservingComments:
         @abstract W3 canonical form (http://www.w3.org/TR/xml-c14n). The input option NSXMLNodePreserveWhitespace should be set for true canonical form.
     */
-    public func canonicalXMLStringPreservingComments(comments: Bool) -> String { NSUnimplemented() }
+    public func canonicalXMLStringPreservingComments(_ comments: Bool) -> String { NSUnimplemented() }
 
     /*!
         @method nodesForXPath:error:
         @abstract Returns the nodes resulting from applying an XPath to this node using the node as the context item ("."). normalizeAdjacentTextNodesPreservingCDATA:NO should be called if there are adjacent text nodes since they are not allowed under the XPath/XQuery Data Model.
     	@returns An array whose elements are a kind of NSXMLNode.
     */
-    public func nodesForXPath(xpath: String) throws -> [NSXMLNode] {
+    public func nodesForXPath(_ xpath: String) throws -> [NSXMLNode] {
         guard let nodes = _CFXMLNodesForXPath(_xmlNode, xpath) else {
             NSUnimplemented();
         }
@@ -745,9 +745,9 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns the objects resulting from applying an XQuery to this node using the node as the context item ("."). Constants are a name-value dictionary for constants declared "external" in the query. normalizeAdjacentTextNodesPreservingCDATA:NO should be called if there are adjacent text nodes since they are not allowed under the XPath/XQuery Data Model.
     	@returns An array whose elements are kinds of NSArray, NSData, NSDate, NSNumber, NSString, NSURL, or NSXMLNode.
     */
-    public func objectsForXQuery(xquery: String, constants: [String : AnyObject]?) throws -> [AnyObject] { NSUnimplemented() }
+    public func objectsForXQuery(_ xquery: String, constants: [String : AnyObject]?) throws -> [AnyObject] { NSUnimplemented() }
 
-    public func objectsForXQuery(xquery: String) throws -> [AnyObject] { NSUnimplemented() }
+    public func objectsForXQuery(_ xquery: String) throws -> [AnyObject] { NSUnimplemented() }
 
     internal var _childNodes: Set<NSXMLNode> = []
 
@@ -788,7 +788,7 @@ public class NSXMLNode : NSObject, NSCopying {
         _CFXMLNodeSetPrivateData(_xmlNode, UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: unmanaged)))
     }
 
-    internal class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLNode {
+    internal class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLNode {
         switch _CFXMLNodeGetType(node) {
         case _kCFXMLTypeElement:
             return NSXMLElement._objectNodeForNode(node)
@@ -822,7 +822,7 @@ public class NSXMLNode : NSObject, NSCopying {
     // libxml2 believes any node can have children, though NSXMLNode disagrees.
     // Nevertheless, this belongs here so that NSXMLElement and NSXMLDocument can share
     // the same implementation.
-    internal func _insertChild(child: NSXMLNode, atIndex index: Int) {
+    internal func _insertChild(_ child: NSXMLNode, atIndex index: Int) {
         precondition(index >= 0)
         precondition(index <= childCount)
         precondition(child.parent == nil)
@@ -839,7 +839,7 @@ public class NSXMLNode : NSObject, NSCopying {
     } //primitive
 
     // see above
-    internal func _insertChildren(children: [NSXMLNode], atIndex index: Int) {
+    internal func _insertChildren(_ children: [NSXMLNode], atIndex index: Int) {
         for (childIndex, node) in children.enumerated() {
             _insertChild(node, atIndex: index + childIndex)
         }
@@ -850,7 +850,7 @@ public class NSXMLNode : NSObject, NSCopying {
      @abstract Removes a child at a particular index.
      */
     // See above!
-    internal func _removeChildAtIndex(index: Int) {
+    internal func _removeChildAtIndex(_ index: Int) {
         guard let child = childAtIndex(index) else {
             fatalError("index out of bounds")
         }
@@ -860,7 +860,7 @@ public class NSXMLNode : NSObject, NSCopying {
     } //primitive
 
     // see above
-    internal func _setChildren(children: [NSXMLNode]?) {
+    internal func _setChildren(_ children: [NSXMLNode]?) {
         _removeAllChildren()
         guard let children = children else {
             return
@@ -876,7 +876,7 @@ public class NSXMLNode : NSObject, NSCopying {
      @abstract Adds a child to the end of the existing children.
      */
     // see above
-    internal func _addChild(child: NSXMLNode) {
+    internal func _addChild(_ child: NSXMLNode) {
         precondition(child.parent == nil)
 
         _CFXMLNodeAddChild(_xmlNode, child._xmlNode)
@@ -888,7 +888,7 @@ public class NSXMLNode : NSObject, NSCopying {
      @abstract Replaces a child at a particular index with another child.
      */
     // see above
-    internal func _replaceChildAtIndex(index: Int, withNode node: NSXMLNode) {
+    internal func _replaceChildAtIndex(_ index: Int, withNode node: NSXMLNode) {
         let child = childAtIndex(index)!
         _childNodes.remove(child)
         _CFXMLNodeReplaceNode(child._xmlNode, node._xmlNode)

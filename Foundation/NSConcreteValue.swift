@@ -102,7 +102,7 @@ internal class NSConcreteValue : NSValue {
         self._storage.deallocateCapacity(self._size)
     }
     
-    override func getValue(value: UnsafeMutablePointer<Void>) {
+    override func getValue(_ value: UnsafeMutablePointer<Void>) {
         UnsafeMutablePointer<UInt8>(value).moveInitializeFrom(unsafeBitCast(self._storage, to: UnsafeMutablePointer<UInt8>.self), count: self._size)
     }
     
@@ -133,7 +133,7 @@ internal class NSConcreteValue : NSValue {
         }
     }
     
-    override func encodeWithCoder(aCoder: NSCoder) {
+    override func encodeWithCoder(_ aCoder: NSCoder) {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {
@@ -150,7 +150,7 @@ internal class NSConcreteValue : NSValue {
         return unsafeBitCast(self._storage, to: UnsafeMutablePointer<Void>.self)
     }
     
-    private func _isEqualToValue(other: NSConcreteValue) -> Bool {
+    private func _isEqualToValue(_ other: NSConcreteValue) -> Bool {
         if self === other {
             return true
         }
@@ -168,7 +168,7 @@ internal class NSConcreteValue : NSValue {
         return memcmp(bytes1, bytes2, self._size) == 0
     }
     
-    override func isEqual(object: AnyObject?) -> Bool {
+    override func isEqual(_ object: AnyObject?) -> Bool {
         if let other = object as? NSConcreteValue {
             return self._typeInfo == other._typeInfo &&
                    self._isEqualToValue(other)

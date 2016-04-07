@@ -55,5 +55,5 @@ public class NSDateIntervalFormatter : NSFormatter {
             for en_US, "Mar 4-8"
             for en_GB, "4-8 Mar"
     */
-    public func stringFromDate(fromDate: NSDate, toDate: NSDate) -> String { NSUnimplemented() }
+    public func stringFromDate(_ fromDate: NSDate, toDate: NSDate) -> String { NSUnimplemented() }
 }

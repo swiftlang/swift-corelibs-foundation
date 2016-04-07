@@ -578,7 +578,7 @@ extension TestNSJSONSerialization {
         ]
     }
 
-    func trySerialize(obj: AnyObject) throws -> String {
+    func trySerialize(_ obj: AnyObject) throws -> String {
         let data = try NSJSONSerialization.dataWithJSONObject(obj, options: [])
         guard let string = NSString(data: data, encoding: NSUTF8StringEncoding) else {
             XCTFail("Unable to create string")

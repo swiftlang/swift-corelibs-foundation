@@ -31,7 +31,7 @@ class TestNSFileManger : XCTestCase {
         ]
     }
     
-    func ignoreError(@noescape block: () throws -> Void) {
+    func ignoreError(@noescape _ block: () throws -> Void) {
         do { try block() } catch { }
     }
     

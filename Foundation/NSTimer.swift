@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-internal func __NSFireTimer(timer: CFRunLoopTimer!, info: UnsafeMutablePointer<Void>) -> Void {
+internal func __NSFireTimer(_ timer: CFRunLoopTimer!, info: UnsafeMutablePointer<Void>) -> Void {
     let t = Unmanaged<NSTimer>.fromOpaque(info).takeUnretainedValue()
     t._fire(t)
 }
@@ -53,7 +53,7 @@ public class NSTimer : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
-    public class func scheduledTimer(ti: NSTimeInterval, repeats: Bool, fire: NSTimer -> Void) -> NSTimer {
+    public class func scheduledTimer(_ ti: NSTimeInterval, repeats: Bool, fire: NSTimer -> Void) -> NSTimer {
         let timer = NSTimer(fireDate: NSDate(timeIntervalSinceNow: ti), interval: ti, repeats: repeats, fire: fire)
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._timer!, kCFRunLoopDefaultMode)
         return timer

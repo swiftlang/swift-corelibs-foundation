@@ -37,7 +37,7 @@ public class NSExpression : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -45,7 +45,7 @@ public class NSExpression : NSObject, NSSecureCoding, NSCopying {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
 
@@ -129,7 +129,7 @@ public class NSExpression : NSObject, NSSecureCoding, NSCopying {
     public var expressionBlock: (AnyObject?, [AnyObject], NSMutableDictionary?) -> AnyObject { NSUnimplemented() }
     
     // evaluate the expression using the object and bindings- note that context is mutable here and can be used by expressions to store temporary state for one predicate evaluation
-    public func expressionValueWithObject(object: AnyObject?, context: NSMutableDictionary?) -> AnyObject { NSUnimplemented() }
+    public func expressionValueWithObject(_ object: AnyObject?, context: NSMutableDictionary?) -> AnyObject { NSUnimplemented() }
     
     public func allowEvaluation() { NSUnimplemented() } // Force an expression which was securely decoded to allow evaluation
 }

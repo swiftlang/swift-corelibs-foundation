@@ -38,7 +38,7 @@ public class NSCache : NSObject {
     
     public weak var delegate: NSCacheDelegate?
     
-    public func objectForKey(key: AnyObject) -> AnyObject? {
+    public func objectForKey(_ key: AnyObject) -> AnyObject? {
         var object: AnyObject?
         
         let keyRef = unsafeBitCast(key, to: UnsafePointer<Void>.self)
@@ -52,11 +52,11 @@ public class NSCache : NSObject {
         return object
     }
     
-    public func setObject(obj: AnyObject, forKey key: AnyObject) {
+    public func setObject(_ obj: AnyObject, forKey key: AnyObject) {
         setObject(obj, forKey: key, cost: 0)
     }
     
-    private func remove(entry: NSCacheEntry) {
+    private func remove(_ entry: NSCacheEntry) {
         let oldPrev = entry.prevByCost
         let oldNext = entry.nextByCost
         oldPrev?.nextByCost = oldNext
@@ -66,7 +66,7 @@ public class NSCache : NSObject {
         }
     }
    
-    private func insert(entry: NSCacheEntry) {
+    private func insert(_ entry: NSCacheEntry) {
         if _byCost == nil {
             _byCost = entry
         } else {
@@ -83,7 +83,7 @@ public class NSCache : NSObject {
         }
     }
     
-    public func setObject(obj: AnyObject, forKey key: AnyObject, cost g: Int) {
+    public func setObject(_ obj: AnyObject, forKey key: AnyObject, cost g: Int) {
         let keyRef = unsafeBitCast(key, to: UnsafePointer<Void>.self)
         
         _lock.lock()
@@ -157,7 +157,7 @@ public class NSCache : NSObject {
         _lock.unlock()
     }
     
-    public func removeObjectForKey(key: AnyObject) {
+    public func removeObjectForKey(_ key: AnyObject) {
         let keyRef = unsafeBitCast(key, to: UnsafePointer<Void>.self)
         
         _lock.lock()
@@ -178,11 +178,11 @@ public class NSCache : NSObject {
 }
 
 public protocol NSCacheDelegate : class {
-    func cache(cache: NSCache, willEvictObject obj: AnyObject)
+    func cache(_ cache: NSCache, willEvictObject obj: AnyObject)
 }
 
 extension NSCacheDelegate {
-    func cache(cache: NSCache, willEvictObject obj: AnyObject) {
+    func cache(_ cache: NSCache, willEvictObject obj: AnyObject) {
         // Default implementation does nothing
     }
 }

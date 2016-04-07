@@ -254,11 +254,11 @@ class TestNSArray : XCTestCase {
         XCTAssertTrue(greatestInsert == (rangeStart + rangeLength), "If object is greater than greatest object in the range it should be inserted at range' end.")
     }
     
-    func objectIndexInArray(array: NSArray, value: Int, startingFrom: Int, length: Int, options: NSBinarySearchingOptions = []) -> Int {
+    func objectIndexInArray(_ array: NSArray, value: Int, startingFrom: Int, length: Int, options: NSBinarySearchingOptions = []) -> Int {
         return array.indexOfObject(NSNumber(integer: value), inSortedRange: NSRange(location: startingFrom, length: length), options: options, usingComparator: compareIntNSNumber)
     }
     
-    func compareIntNSNumber(lhs: AnyObject, rhs: AnyObject) -> NSComparisonResult {
+    func compareIntNSNumber(_ lhs: AnyObject, rhs: AnyObject) -> NSComparisonResult {
         let lhsInt = (lhs as! NSNumber).integerValue
         let rhsInt = (rhs as! NSNumber).integerValue
         if lhsInt == rhsInt {
@@ -358,7 +358,7 @@ class TestNSArray : XCTestCase {
         let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
         let expectedNumbers = inputNumbers.sorted()
 
-        func compare(left: AnyObject, right:AnyObject,  context: UnsafeMutablePointer<Void>) -> Int {
+        func compare(_ left: AnyObject, right:AnyObject,  context: UnsafeMutablePointer<Void>) -> Int {
             let l = (left as! NSNumber).integerValue
             let r = (right as! NSNumber).integerValue
             return l < r ? -1 : (l > r ? 0 : 1)

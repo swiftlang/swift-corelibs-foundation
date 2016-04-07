@@ -172,7 +172,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -180,7 +180,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         return mutableCopyWithZone(nil)
     }
     
-    public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
+    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -188,7 +188,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -281,7 +281,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     @result the value associated with the given header field, or nil if
     there is no value associated with the given header field.
     */
-    public func valueForHTTPHeaderField(field: String) -> String? { return _httpHeaderFields?[field.lowercased()] }
+    public func valueForHTTPHeaderField(_ field: String) -> String? { return _httpHeaderFields?[field.lowercased()] }
     
 }
 
@@ -381,7 +381,7 @@ public class NSMutableURLRequest : NSURLRequest {
         @param value the header field value. 
         @param field the header field name (case-insensitive). 
     */
-    public func setValue(value: String?, forHTTPHeaderField field: String) {
+    public func setValue(_ value: String?, forHTTPHeaderField field: String) {
         if _httpHeaderFields == nil {
             _httpHeaderFields = [:]
         }
@@ -408,7 +408,7 @@ public class NSMutableURLRequest : NSURLRequest {
         @param value the header field value. 
         @param field the header field name (case-insensitive). 
     */
-    public func addValue(value: String, forHTTPHeaderField field: String) {
+    public func addValue(_ value: String, forHTTPHeaderField field: String) {
         if _httpHeaderFields == nil {
             _httpHeaderFields = [:]
         }

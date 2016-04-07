@@ -88,7 +88,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return true
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(_domain.bridge(), forKey: "NSDomain")
             aCoder.encodeInt(Int32(_code), forKey: "NSCode")
@@ -105,7 +105,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
     
@@ -156,11 +156,11 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     internal typealias NSErrorProvider = (error: NSError, key: String) -> AnyObject?
     internal static var userInfoProviders = [String: NSErrorProvider]()
     
-    public class func setUserInfoValueProviderForDomain(errorDomain: String, provider: ((NSError, String) -> AnyObject?)?) {
+    public class func setUserInfoValueProviderForDomain(_ errorDomain: String, provider: ((NSError, String) -> AnyObject?)?) {
         NSError.userInfoProviders[errorDomain] = provider
     }
 
-    public class func userInfoValueProviderForDomain(errorDomain: String) -> ((NSError, String) -> AnyObject?)? {
+    public class func userInfoValueProviderForDomain(_ errorDomain: String) -> ((NSError, String) -> AnyObject?)? {
         return NSError.userInfoProviders[errorDomain]
     }
 }

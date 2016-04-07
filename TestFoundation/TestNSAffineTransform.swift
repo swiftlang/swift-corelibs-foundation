@@ -41,7 +41,7 @@ class TestNSAffineTransform : XCTestCase {
         ]
     }
     
-    func checkPointTransformation(transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
+    func checkPointTransformation(_ transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newPoint = transform.transformPoint(point)
         XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, file: file, line: line,
                                    "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)")
@@ -49,7 +49,7 @@ class TestNSAffineTransform : XCTestCase {
                                    "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)")
     }
     
-    func checkSizeTransformation(transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
+    func checkSizeTransformation(_ transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newSize = transform.transformSize(size)
         XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, file: file, line: line,
                                    "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)")
@@ -57,7 +57,7 @@ class TestNSAffineTransform : XCTestCase {
                                    "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)")
     }
     
-    func checkRectTransformation(transform: NSAffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
+    func checkRectTransformation(_ transform: NSAffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newRect = transform.transformRect(rect)
         
         checkPointTransformation(transform, point: newRect.origin, expectedPoint: expectedRect.origin, file: file, line: line,
@@ -84,7 +84,7 @@ class TestNSAffineTransform : XCTestCase {
     func test_IdentityTransformation() {
         let identityTransform = NSAffineTransform()
 
-        func checkIdentityPointTransformation(point: NSPoint) {
+        func checkIdentityPointTransformation(_ point: NSPoint) {
             checkPointTransformation(identityTransform, point: point, expectedPoint: point)
         }
         
@@ -92,7 +92,7 @@ class TestNSAffineTransform : XCTestCase {
         checkIdentityPointTransformation(NSMakePoint(CGFloat(24.5), CGFloat(10.0)))
         checkIdentityPointTransformation(NSMakePoint(CGFloat(-7.5), CGFloat(2.0)))
 
-        func checkIdentitySizeTransformation(size: NSSize) {
+        func checkIdentitySizeTransformation(_ size: NSSize) {
             checkSizeTransformation(identityTransform, size: size, expectedSize: size)
         }
 
@@ -324,7 +324,7 @@ class TestNSAffineTransform : XCTestCase {
 }
 
 extension NSAffineTransform {
-    func transformRect(aRect: NSRect) -> NSRect {
+    func transformRect(_ aRect: NSRect) -> NSRect {
         return NSRect(origin: transformPoint(aRect.origin), size: transformSize(aRect.size))
     }
 }

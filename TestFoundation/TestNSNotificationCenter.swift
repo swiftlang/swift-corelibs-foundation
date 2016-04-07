@@ -36,7 +36,7 @@ class TestNSNotificationCenter : XCTestCase {
         XCTAssertEqual(defaultCenter1, defaultCenter2)
     }
     
-    func removeObserver(observer: NSObjectProtocol, notificationCenter: NSNotificationCenter) {
+    func removeObserver(_ observer: NSObjectProtocol, notificationCenter: NSNotificationCenter) {
         guard let observer = observer as? NSObject else {
             return
         }

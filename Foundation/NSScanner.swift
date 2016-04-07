@@ -21,7 +21,7 @@ public class NSScanner : NSObject, NSCopying {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return NSScanner(string: string)
     }
     
@@ -174,7 +174,7 @@ internal struct _NSStringBuffer {
         }
     }
     
-    mutating func skip(skipSet: NSCharacterSet?) {
+    mutating func skip(_ skipSet: NSCharacterSet?) {
         if let set = skipSet {
             while set.characterIsMember(currentCharacter) && !isAtEnd {
                 advance()
@@ -204,7 +204,7 @@ internal struct _NSStringBuffer {
     }
 }
 
-private func isADigit(ch: unichar) -> Bool {
+private func isADigit(_ ch: unichar) -> Bool {
     struct Local {
         static let set = NSCharacterSet.decimalDigitCharacterSet()
     }
@@ -255,7 +255,7 @@ extension Double : _FloatLike {
     static var min: Double { return DBL_MIN }
 }
 
-private func numericValue(ch: unichar) -> Int {
+private func numericValue(_ ch: unichar) -> Int {
     if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
         return Int(ch) - Int(unichar(unicodeScalarLiteral: "0"))
     } else {
@@ -263,7 +263,7 @@ private func numericValue(ch: unichar) -> Int {
     }
 }
 
-private func numericOrHexValue(ch: unichar) -> Int {
+private func numericOrHexValue(_ ch: unichar) -> Int {
     if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
         return Int(ch) - Int(unichar(unicodeScalarLiteral: "0"))
     } else if (ch >= unichar(unicodeScalarLiteral: "A") && ch <= unichar(unicodeScalarLiteral: "F")) {
@@ -275,7 +275,7 @@ private func numericOrHexValue(ch: unichar) -> Int {
     }
 }
 
-private func decimalSep(locale: NSLocale?) -> String {
+private func decimalSep(_ locale: NSLocale?) -> String {
     if let loc = locale {
         if let sep = loc.objectForKey(NSLocaleDecimalSeparator) as? NSString {
             return sep._swiftObject
@@ -287,7 +287,7 @@ private func decimalSep(locale: NSLocale?) -> String {
 }
 
 extension String {
-    internal func scan<T: _IntegerLike>(skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: _IntegerLike>(_ skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var neg = false
@@ -324,7 +324,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _IntegerLike>(skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: _IntegerLike>(_ skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var localResult: T = 0
@@ -366,7 +366,7 @@ extension String {
         return true
     }
     
-    internal func scan<T: _FloatLike>(skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: _FloatLike>(_ skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         let ds_chars = decimalSep(locale).utf16
         let ds = ds_chars[ds_chars.startIndex]
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
@@ -425,7 +425,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _FloatLike>(skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: _FloatLike>(_ skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         NSUnimplemented()
     }
 }
@@ -433,61 +433,61 @@ extension String {
 extension NSScanner {
     
     // On overflow, the below methods will return success and clamp
-    public func scanInt(result: UnsafeMutablePointer<Int32>) -> Bool {
+    public func scanInt(_ result: UnsafeMutablePointer<Int32>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int32) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanInteger(result: UnsafeMutablePointer<Int>) -> Bool {
+    public func scanInteger(_ result: UnsafeMutablePointer<Int>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanLongLong(result: UnsafeMutablePointer<Int64>) -> Bool {
+    public func scanLongLong(_ result: UnsafeMutablePointer<Int64>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int64) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanUnsignedLongLong(result: UnsafeMutablePointer<UInt64>) -> Bool {
+    public func scanUnsignedLongLong(_ result: UnsafeMutablePointer<UInt64>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanFloat(result: UnsafeMutablePointer<Float>) -> Bool {
+    public func scanFloat(_ result: UnsafeMutablePointer<Float>) -> Bool {
         return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanDouble(result: UnsafeMutablePointer<Double>) -> Bool {
+    public func scanDouble(_ result: UnsafeMutablePointer<Double>) -> Bool {
         return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanHexInt(result: UnsafeMutablePointer<UInt32>) -> Bool {
+    public func scanHexInt(_ result: UnsafeMutablePointer<UInt32>) -> Bool {
         return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt32) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanHexLongLong(result: UnsafeMutablePointer<UInt64>) -> Bool {
+    public func scanHexLongLong(_ result: UnsafeMutablePointer<UInt64>) -> Bool {
         return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanHexFloat(result: UnsafeMutablePointer<Float>) -> Bool {
+    public func scanHexFloat(_ result: UnsafeMutablePointer<Float>) -> Bool {
         return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanHexDouble(result: UnsafeMutablePointer<Double>) -> Bool {
+    public func scanHexDouble(_ result: UnsafeMutablePointer<Double>) -> Bool {
         return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
             result.pointee = value
         }
@@ -503,7 +503,7 @@ extension NSScanner {
         return stringLoc == stringLen
     }
     
-    public class func localizedScannerWithString(string: String) -> AnyObject { NSUnimplemented() }
+    public class func localizedScannerWithString(_ string: String) -> AnyObject { NSUnimplemented() }
 }
 
 
@@ -644,7 +644,7 @@ extension NSScanner {
         return nil
     }
     
-    public func scanCharactersFromSet(set: NSCharacterSet) -> String? {
+    public func scanCharactersFromSet(_ set: NSCharacterSet) -> String? {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
@@ -665,7 +665,7 @@ extension NSScanner {
         return nil
     }
     
-    public func scanUpToString(string: String) -> String? {
+    public func scanUpToString(_ string: String) -> String? {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
@@ -686,7 +686,7 @@ extension NSScanner {
         return nil
     }
     
-    public func scanUpToCharactersFromSet(set: NSCharacterSet) -> String? {
+    public func scanUpToCharactersFromSet(_ set: NSCharacterSet) -> String? {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length

@@ -11,9 +11,9 @@ internal protocol NSSpecialValueCoding {
     static func objCType() -> String
     
     init(bytes value: UnsafePointer<Void>)
-    func encodeWithCoder(aCoder: NSCoder)
+    func encodeWithCoder(_ aCoder: NSCoder)
     init?(coder aDecoder: NSCoder)
-    func getValue(value: UnsafeMutablePointer<Void>)
+    func getValue(_ value: UnsafeMutablePointer<Void>)
     
     // Ideally we would make NSSpecialValue a generic class and specialise it for
     // NSPoint, etc, but then we couldn't implement NSValue.init?(coder:) because 
@@ -23,7 +23,7 @@ internal protocol NSSpecialValueCoding {
     // type requirements.
     //
     // So in order to implement equality and hash we have the hack below.
-    func isEqual(value: Any) -> Bool
+    func isEqual(_ value: Any) -> Bool
     var hash: Int { get }
     var description: String? { get }
 }
@@ -41,11 +41,11 @@ internal class NSSpecialValue : NSValue {
         12  : NSEdgeInsets.self
     ]
     
-    private static func _typeFromFlags(flags: Int) -> NSSpecialValueCoding.Type? {
+    private static func _typeFromFlags(_ flags: Int) -> NSSpecialValueCoding.Type? {
         return _specialTypes[flags]
     }
     
-    private static func _flagsFromType(type: NSSpecialValueCoding.Type) -> Int {
+    private static func _flagsFromType(_ type: NSSpecialValueCoding.Type) -> Int {
         for (F, T) in _specialTypes {
             if T == type {
                 return F
@@ -54,7 +54,7 @@ internal class NSSpecialValue : NSValue {
         return 0
     }
     
-    private static func _objCTypeFromType(type: NSSpecialValueCoding.Type) -> String? {
+    private static func _objCTypeFromType(_ type: NSSpecialValueCoding.Type) -> String? {
         for (_, T) in _specialTypes {
             if T == type {
                 return T.objCType()
@@ -63,7 +63,7 @@ internal class NSSpecialValue : NSValue {
         return nil
     }
     
-    internal static func _typeFromObjCType(type: UnsafePointer<Int8>) -> NSSpecialValueCoding.Type? {
+    internal static func _typeFromObjCType(_ type: UnsafePointer<Int8>) -> NSSpecialValueCoding.Type? {
         let objCType = String(cString: type)
         
         for (_, T) in _specialTypes {
@@ -89,7 +89,7 @@ internal class NSSpecialValue : NSValue {
         self._value = specialType.init(bytes: value)
     }
 
-    override func getValue(value: UnsafeMutablePointer<Void>) {
+    override func getValue(_ value: UnsafeMutablePointer<Void>) {
         self._value.getValue(value)
     }
 
@@ -110,7 +110,7 @@ internal class NSSpecialValue : NSValue {
         }
     }
     
-    override func encodeWithCoder(aCoder: NSCoder) {
+    override func encodeWithCoder(_ aCoder: NSCoder) {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {
@@ -137,7 +137,7 @@ internal class NSSpecialValue : NSValue {
         }
     }
     
-    override func isEqual(object: AnyObject?) -> Bool {
+    override func isEqual(_ object: AnyObject?) -> Bool {
         if self === object {
             return true
         } else if let special = object as? NSSpecialValue {

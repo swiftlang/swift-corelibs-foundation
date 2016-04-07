@@ -115,7 +115,7 @@ extension CGPoint: NSSpecialValueCoding {
         }
     }
     
-    func encodeWithCoder(aCoder: NSCoder) {
+    func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodePoint(self, forKey: "NS.pointval")
         } else {
@@ -127,11 +127,11 @@ extension CGPoint: NSSpecialValueCoding {
         return "{CGPoint=dd}"
     }
 
-    func getValue(value: UnsafeMutablePointer<Void>) {
+    func getValue(_ value: UnsafeMutablePointer<Void>) {
         UnsafeMutablePointer<CGPoint>(value).pointee = self
     }
 
-    func isEqual(aValue: Any) -> Bool {
+    func isEqual(_ aValue: Any) -> Bool {
         if let other = aValue as? CGPoint {
             return other == self
         } else {
@@ -182,7 +182,7 @@ extension CGSize: NSSpecialValueCoding {
         }
     }
     
-    func encodeWithCoder(aCoder: NSCoder) {
+    func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeSize(self, forKey: "NS.sizeval")
         } else {
@@ -194,11 +194,11 @@ extension CGSize: NSSpecialValueCoding {
         return "{CGSize=dd}"
     }
     
-    func getValue(value: UnsafeMutablePointer<Void>) {
+    func getValue(_ value: UnsafeMutablePointer<Void>) {
         UnsafeMutablePointer<CGSize>(value).pointee = self
     }
     
-    func isEqual(aValue: Any) -> Bool {
+    func isEqual(_ aValue: Any) -> Bool {
         if let other = aValue as? CGSize {
             return other == self
         } else {
@@ -264,7 +264,7 @@ extension CGRect: NSSpecialValueCoding {
         }
     }
     
-    func encodeWithCoder(aCoder: NSCoder) {
+    func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeRect(self, forKey: "NS.rectval")
         } else {
@@ -276,11 +276,11 @@ extension CGRect: NSSpecialValueCoding {
         return "{CGRect={CGPoint=dd}{CGSize=dd}}"
     }
     
-    func getValue(value: UnsafeMutablePointer<Void>) {
+    func getValue(_ value: UnsafeMutablePointer<Void>) {
         UnsafeMutablePointer<CGRect>(value).pointee = self
     }
     
-    func isEqual(aValue: Any) -> Bool {
+    func isEqual(_ aValue: Any) -> Bool {
         if let other = aValue as? CGRect {
             return other == self
         } else {
@@ -364,7 +364,7 @@ extension NSEdgeInsets: NSSpecialValueCoding {
         }
     }
     
-    func encodeWithCoder(aCoder: NSCoder) {
+    func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder._encodeCGFloat(self.top, forKey: "NS.edgeval.top")
             aCoder._encodeCGFloat(self.left, forKey: "NS.edgeval.left")
@@ -379,11 +379,11 @@ extension NSEdgeInsets: NSSpecialValueCoding {
         return "{NSEdgeInsets=dddd}"
     }
     
-    func getValue(value: UnsafeMutablePointer<Void>) {
+    func getValue(_ value: UnsafeMutablePointer<Void>) {
         UnsafeMutablePointer<NSEdgeInsets>(value).pointee = self
     }
     
-    func isEqual(aValue: Any) -> Bool {
+    func isEqual(_ aValue: Any) -> Bool {
         if let other = aValue as? NSEdgeInsets {
             return other.top == self.top && other.left == self.left &&
                 other.bottom == self.bottom && other.right == self.right
@@ -440,63 +440,63 @@ public let NSZeroSize: NSSize = NSSize()
 public let NSZeroRect: NSRect = NSRect()
 public let NSEdgeInsetsZero: NSEdgeInsets = NSEdgeInsets()
 
-public func NSMakePoint(x: CGFloat, _ y: CGFloat) -> NSPoint {
+public func NSMakePoint(_ x: CGFloat, _ y: CGFloat) -> NSPoint {
     return NSPoint(x: x, y: y)
 }
 
-public func NSMakeSize(w: CGFloat, _ h: CGFloat) -> NSSize {
+public func NSMakeSize(_ w: CGFloat, _ h: CGFloat) -> NSSize {
     return NSSize(width: w, height: h)
 }
 
-public func NSMakeRect(x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> NSRect {
+public func NSMakeRect(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> NSRect {
     return NSRect(origin: NSPoint(x: x, y: y), size: NSSize(width: w, height: h))
 }
 
-public func NSMaxX(aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.x.native + aRect.size.width.native) }
+public func NSMaxX(_ aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.x.native + aRect.size.width.native) }
 
-public func NSMaxY(aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.y.native + aRect.size.height.native) }
+public func NSMaxY(_ aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.y.native + aRect.size.height.native) }
 
-public func NSMidX(aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.x.native + (aRect.size.width.native / 2)) }
+public func NSMidX(_ aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.x.native + (aRect.size.width.native / 2)) }
 
-public func NSMidY(aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.y.native + (aRect.size.height.native / 2)) }
+public func NSMidY(_ aRect: NSRect) -> CGFloat { return CGFloat(aRect.origin.y.native + (aRect.size.height.native / 2)) }
 
-public func NSMinX(aRect: NSRect) -> CGFloat { return aRect.origin.x }
+public func NSMinX(_ aRect: NSRect) -> CGFloat { return aRect.origin.x }
 
-public func NSMinY(aRect: NSRect) -> CGFloat { return aRect.origin.y }
+public func NSMinY(_ aRect: NSRect) -> CGFloat { return aRect.origin.y }
 
-public func NSWidth(aRect: NSRect) -> CGFloat { return aRect.size.width }
+public func NSWidth(_ aRect: NSRect) -> CGFloat { return aRect.size.width }
 
-public func NSHeight(aRect: NSRect) -> CGFloat { return aRect.size.height }
+public func NSHeight(_ aRect: NSRect) -> CGFloat { return aRect.size.height }
 
-public func NSRectFromCGRect(cgrect: CGRect) -> NSRect { return cgrect }
+public func NSRectFromCGRect(_ cgrect: CGRect) -> NSRect { return cgrect }
 
-public func NSRectToCGRect(nsrect: NSRect) -> CGRect { return nsrect }
+public func NSRectToCGRect(_ nsrect: NSRect) -> CGRect { return nsrect }
 
-public func NSPointFromCGPoint(cgpoint: CGPoint) -> NSPoint { return cgpoint }
+public func NSPointFromCGPoint(_ cgpoint: CGPoint) -> NSPoint { return cgpoint }
 
-public func NSPointToCGPoint(nspoint: NSPoint) -> CGPoint { return nspoint }
+public func NSPointToCGPoint(_ nspoint: NSPoint) -> CGPoint { return nspoint }
 
-public func NSSizeFromCGSize(cgsize: CGSize) -> NSSize { return cgsize }
+public func NSSizeFromCGSize(_ cgsize: CGSize) -> NSSize { return cgsize }
 
-public func NSSizeToCGSize(nssize: NSSize) -> CGSize { return nssize }
+public func NSSizeToCGSize(_ nssize: NSSize) -> CGSize { return nssize }
 
-public func NSEdgeInsetsMake(top: CGFloat, _ left: CGFloat, _ bottom: CGFloat, _ right: CGFloat) -> NSEdgeInsets {
+public func NSEdgeInsetsMake(_ top: CGFloat, _ left: CGFloat, _ bottom: CGFloat, _ right: CGFloat) -> NSEdgeInsets {
     return NSEdgeInsets(top: top, left: left, bottom: bottom, right: right)
 }
 
-public func NSEqualPoints(aPoint: NSPoint, _ bPoint: NSPoint) -> Bool { return aPoint == bPoint }
+public func NSEqualPoints(_ aPoint: NSPoint, _ bPoint: NSPoint) -> Bool { return aPoint == bPoint }
 
-public func NSEqualSizes(aSize: NSSize, _ bSize: NSSize) -> Bool { return aSize == bSize }
+public func NSEqualSizes(_ aSize: NSSize, _ bSize: NSSize) -> Bool { return aSize == bSize }
 
-public func NSEqualRects(aRect: NSRect, _ bRect: NSRect) -> Bool { return aRect == bRect }
+public func NSEqualRects(_ aRect: NSRect, _ bRect: NSRect) -> Bool { return aRect == bRect }
 
-public func NSIsEmptyRect(aRect: NSRect) -> Bool { return (aRect.size.width.native <= 0) || (aRect.size.height.native <= 0) }
+public func NSIsEmptyRect(_ aRect: NSRect) -> Bool { return (aRect.size.width.native <= 0) || (aRect.size.height.native <= 0) }
 
-public func NSEdgeInsetsEqual(aInsets: NSEdgeInsets, _ bInsets: NSEdgeInsets) -> Bool {
+public func NSEdgeInsetsEqual(_ aInsets: NSEdgeInsets, _ bInsets: NSEdgeInsets) -> Bool {
     return (aInsets.top == bInsets.top) && (aInsets.left == bInsets.left) && (aInsets.bottom == bInsets.bottom) && (aInsets.right == bInsets.right)
 }
 
-public func NSInsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
+public func NSInsetRect(_ aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
     let x = CGFloat(aRect.origin.x.native + dX.native)
     let y = CGFloat(aRect.origin.y.native + dY.native)
     let w = CGFloat(aRect.size.width.native - (dX.native * 2))
@@ -504,14 +504,14 @@ public func NSInsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
     return NSMakeRect(x, y, w, h)
 }
 
-public func NSIntegralRect(aRect: NSRect) -> NSRect {
+public func NSIntegralRect(_ aRect: NSRect) -> NSRect {
     if aRect.size.height.native <= 0 || aRect.size.width.native <= 0 {
         return NSZeroRect
     }
     
     return NSIntegralRectWithOptions(aRect, [.AlignMinXOutward, .AlignMaxXOutward, .AlignMinYOutward, .AlignMaxYOutward])
 }
-public func NSIntegralRectWithOptions(aRect: NSRect, _ opts: NSAlignmentOptions) -> NSRect {
+public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: NSAlignmentOptions) -> NSRect {
     let listOfOptionsIsInconsistentErrorMessage = "List of options is inconsistent"
     
     if opts.contains(.AlignRectFlipped) {
@@ -664,7 +664,7 @@ public func NSIntegralRectWithOptions(aRect: NSRect, _ opts: NSAlignmentOptions)
     return result
 }
 
-public func NSUnionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect {
+public func NSUnionRect(_ aRect: NSRect, _ bRect: NSRect) -> NSRect {
     let isEmptyFirstRect = NSIsEmptyRect(aRect)
     let isEmptySecondRect = NSIsEmptyRect(bRect)
     if isEmptyFirstRect && isEmptySecondRect {
@@ -681,7 +681,7 @@ public func NSUnionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect {
     return NSMakeRect(x, y, width, height)
 }
 
-public func NSIntersectionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect {
+public func NSIntersectionRect(_ aRect: NSRect, _ bRect: NSRect) -> NSRect {
     if NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect) {
         return NSZeroRect
     }
@@ -692,14 +692,14 @@ public func NSIntersectionRect(aRect: NSRect, _ bRect: NSRect) -> NSRect {
     return NSMakeRect(x, y, width, height)
 }
 
-public func NSOffsetRect(aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
+public func NSOffsetRect(_ aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
     var result = aRect
     result.origin.x += dX
     result.origin.y += dY
     return result
 }
 
-public func NSDivideRect(inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, _ rem: UnsafeMutablePointer<NSRect>, _ amount: CGFloat, _ edge: NSRectEdge) {
+public func NSDivideRect(_ inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, _ rem: UnsafeMutablePointer<NSRect>, _ amount: CGFloat, _ edge: NSRectEdge) {
     if NSIsEmptyRect(inRect) {
         slice.pointee = NSZeroRect
         rem.pointee = NSZeroRect
@@ -744,43 +744,43 @@ public func NSDivideRect(inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, 
     }
 }
 
-public func NSPointInRect(aPoint: NSPoint, _ aRect: NSRect) -> Bool {
+public func NSPointInRect(_ aPoint: NSPoint, _ aRect: NSRect) -> Bool {
     return NSMouseInRect(aPoint, aRect, true)
 }
 
-public func NSMouseInRect(aPoint: NSPoint, _ aRect: NSRect, _ flipped: Bool) -> Bool {
+public func NSMouseInRect(_ aPoint: NSPoint, _ aRect: NSRect, _ flipped: Bool) -> Bool {
     if flipped {
         return aPoint.x >= NSMinX(aRect) && aPoint.y >= NSMinX(aRect) && aPoint.x < NSMaxX(aRect) && aPoint.y < NSMaxY(aRect)
     }
     return aPoint.x >= NSMinX(aRect) && aPoint.y > NSMinY(aRect) && aPoint.x < NSMaxX(aRect) && aPoint.y <= NSMaxY(aRect)
 }
 
-public func NSContainsRect(aRect: NSRect, _ bRect: NSRect) -> Bool {
+public func NSContainsRect(_ aRect: NSRect, _ bRect: NSRect) -> Bool {
     return !NSIsEmptyRect(bRect) && NSMaxX(bRect) <= NSMaxX(aRect) && NSMinX(bRect) >= NSMinX(aRect) &&
         NSMaxY(bRect) <= NSMaxY(aRect) && NSMinY(bRect) >= NSMinY(aRect)
 }
 
-public func NSIntersectsRect(aRect: NSRect, _ bRect: NSRect) -> Bool {
+public func NSIntersectsRect(_ aRect: NSRect, _ bRect: NSRect) -> Bool {
     return !(NSIsEmptyRect(aRect) || NSIsEmptyRect(bRect) ||
         NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect))
 }
 
-public func NSStringFromPoint(aPoint: NSPoint) -> String {
+public func NSStringFromPoint(_ aPoint: NSPoint) -> String {
     return "{\(aPoint.x.native), \(aPoint.y.native)}"
 }
 
-public func NSStringFromSize(aSize: NSSize) -> String {
+public func NSStringFromSize(_ aSize: NSSize) -> String {
     return "{\(aSize.width.native), \(aSize.height.native)}"
 }
 
-public func NSStringFromRect(aRect: NSRect) -> String {
+public func NSStringFromRect(_ aRect: NSRect) -> String {
     let originString = NSStringFromPoint(aRect.origin)
     let sizeString = NSStringFromSize(aRect.size)
     
     return "{\(originString), \(sizeString)}"
 }
 
-private func _scanDoublesFromString(aString: String, number: Int) -> [Double] {
+private func _scanDoublesFromString(_ aString: String, number: Int) -> [Double] {
     let scanner = NSScanner(string: aString)
     let digitSet = NSMutableCharacterSet.decimalDigitCharacterSet()
     digitSet.addCharactersInString("-")
@@ -799,7 +799,7 @@ private func _scanDoublesFromString(aString: String, number: Int) -> [Double] {
     return result
 }
 
-public func NSPointFromString(aString: String) -> NSPoint {
+public func NSPointFromString(_ aString: String) -> NSPoint {
     if aString.isEmpty {
         return NSZeroPoint
     }
@@ -813,7 +813,7 @@ public func NSPointFromString(aString: String) -> NSPoint {
     return result
 }
 
-public func NSSizeFromString(aString: String) -> NSSize {
+public func NSSizeFromString(_ aString: String) -> NSSize {
     if aString.isEmpty {
         return NSZeroSize
     }
@@ -826,7 +826,7 @@ public func NSSizeFromString(aString: String) -> NSSize {
     return result
 }
 
-public func NSRectFromString(aString: String) -> NSRect {
+public func NSRectFromString(_ aString: String) -> NSRect {
     if aString.isEmpty {
         return NSZeroRect
     }
@@ -887,7 +887,7 @@ extension NSValue {
 
 extension NSCoder {
     
-    public func encodePoint(point: NSPoint) {
+    public func encodePoint(_ point: NSPoint) {
         self._encodeCGFloat(point.x)
         self._encodeCGFloat(point.y)
     }
@@ -896,7 +896,7 @@ extension NSCoder {
         return NSPoint(x: _decodeCGFloat(), y: _decodeCGFloat())
     }
     
-    public func encodeSize(size: NSSize) {
+    public func encodeSize(_ size: NSSize) {
         self._encodeCGFloat(size.width)
         self._encodeCGFloat(size.height)
     }
@@ -905,7 +905,7 @@ extension NSCoder {
         return NSSize(width: _decodeCGFloat(), height: _decodeCGFloat())
     }
     
-    public func encodeRect(rect: NSRect) {
+    public func encodeRect(_ rect: NSRect) {
         self.encodePoint(rect.origin)
         self.encodeSize(rect.size)
     }
@@ -917,19 +917,19 @@ extension NSCoder {
 
 extension NSCoder {
     
-    public func encodePoint(point: NSPoint, forKey key: String) {
+    public func encodePoint(_ point: NSPoint, forKey key: String) {
         self.encodeObject(NSStringFromPoint(point).bridge(), forKey: key)
     }
     
-    public func encodeSize(size: NSSize, forKey key: String) {
+    public func encodeSize(_ size: NSSize, forKey key: String) {
         self.encodeObject(NSStringFromSize(size).bridge(), forKey: key)
     }
     
-    public func encodeRect(rect: NSRect, forKey key: String) {
+    public func encodeRect(_ rect: NSRect, forKey key: String) {
         self.encodeObject(NSStringFromRect(rect).bridge(), forKey: key)
     }
     
-    public func decodePointForKey(key: String) -> NSPoint {
+    public func decodePointForKey(_ key: String) -> NSPoint {
         if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
             return NSPointFromString(string.bridge())
         } else {
@@ -937,7 +937,7 @@ extension NSCoder {
         }
     }
     
-    public func decodeSizeForKey(key: String) -> NSSize {
+    public func decodeSizeForKey(_ key: String) -> NSSize {
         if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
             return NSSizeFromString(string.bridge())
         } else {
@@ -945,7 +945,7 @@ extension NSCoder {
         }
     }
     
-    public func decodeRectForKey(key: String) -> NSRect {
+    public func decodeRectForKey(_ key: String) -> NSRect {
         if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
             return NSRectFromString(string.bridge())
         } else {
@@ -955,7 +955,7 @@ extension NSCoder {
 }
 
 private extension NSCoder {
-    func _encodeCGFloat(value: CGFloat) {
+    func _encodeCGFloat(_ value: CGFloat) {
         if let keyedArchiver = self as? NSKeyedArchiver {
             keyedArchiver._encodeValue(NSNumber(double: value.native))
         } else {
@@ -974,7 +974,7 @@ private extension NSCoder {
         }
     }
     
-    func _encodeCGFloat(value: CGFloat, forKey key: String) {
+    func _encodeCGFloat(_ value: CGFloat, forKey key: String) {
         self.encodeDouble(value.native, forKey: key)
     }
     

@@ -57,7 +57,7 @@ internal class __NSCFType : NSObject {
         return Int(bitPattern: CFHash(self))
     }
     
-    override func isEqual(object: AnyObject?) -> Bool {
+    override func isEqual(_ object: AnyObject?) -> Bool {
         if let obj = object {
             return CFEqual(self, obj)
         } else {
@@ -75,22 +75,22 @@ internal class __NSCFType : NSObject {
 }
 
 
-internal func _CFSwiftGetTypeID(cf: AnyObject) -> CFTypeID {
+internal func _CFSwiftGetTypeID(_ cf: AnyObject) -> CFTypeID {
     return (cf as! NSObject)._cfTypeID
 }
 
 
-internal func _CFSwiftGetHash(cf: AnyObject) -> CFHashCode {
+internal func _CFSwiftGetHash(_ cf: AnyObject) -> CFHashCode {
     return CFHashCode(bitPattern: (cf as! NSObject).hash)
 }
 
 
-internal func _CFSwiftIsEqual(cf1: AnyObject, cf2: AnyObject) -> Bool {
+internal func _CFSwiftIsEqual(_ cf1: AnyObject, cf2: AnyObject) -> Bool {
     return (cf1 as! NSObject).isEqual(cf2)
 }
 
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
-internal func _CFZeroUnsafeIvars<T>(arg: inout T) {
+internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
     withUnsafeMutablePointer(&arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
         bzero(unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self), sizeof(T))
     }
@@ -220,7 +220,7 @@ public protocol _ObjectTypeBridgeable {
     /// - parameter result: The location where the result is written. The optional
     ///   will always contain a value.
     static func _forceBridgeFromObject(
-        source: _ObjectType,
+        _ source: _ObjectType,
         result: inout Self?
     )
     
@@ -239,7 +239,7 @@ public protocol _ObjectTypeBridgeable {
     ///   implementation, so that it need not look into the optional representation
     ///   to determine success.
     static func _conditionallyBridgeFromObject(
-        source: _ObjectType,
+        _ source: _ObjectType,
         result: inout Self?
     ) -> Bool
 }
@@ -248,7 +248,7 @@ protocol _NSObjectRepresentable {
     func _nsObjectRepresentation() -> NSObject
 }
 
-internal func _NSObjectRepresentableBridge(value: Any) -> NSObject {
+internal func _NSObjectRepresentableBridge(_ value: Any) -> NSObject {
     if let obj = value as? _NSObjectRepresentable {
         return obj._nsObjectRepresentation()
     } else if let str = value as? String {
@@ -339,18 +339,18 @@ extension UnsafeMutablePointer {
         self.init(OpaquePointer(bitPattern: Unmanaged<T>.passUnretained(value)))
     }
     
-    internal func array(count: Int) -> [Pointee] {
+    internal func array(_ count: Int) -> [Pointee] {
         let buffer = UnsafeBufferPointer<Pointee>(start: self, count: count)
         return Array<Pointee>(buffer)
     }
 }
 
 extension Unmanaged {
-    internal static func fromOpaque(value: UnsafeMutablePointer<Void>) -> Unmanaged<Instance> {
+    internal static func fromOpaque(_ value: UnsafeMutablePointer<Void>) -> Unmanaged<Instance> {
         return self.fromOpaque(OpaquePointer(value))
     }
     
-    internal static func fromOptionalOpaque(value: UnsafePointer<Void>) -> Unmanaged<Instance>? {
+    internal static func fromOptionalOpaque(_ value: UnsafePointer<Void>) -> Unmanaged<Instance>? {
         if value != nil {
             return self.fromOpaque(OpaquePointer(value))
         } else {
@@ -360,7 +360,7 @@ extension Unmanaged {
 }
 
 extension Array {
-    internal mutating func withUnsafeMutablePointerOrAllocation<R>(count: Int, fastpath: UnsafeMutablePointer<Element> = nil, @noescape body: (UnsafeMutablePointer<Element>) -> R) -> R {
+    internal mutating func withUnsafeMutablePointerOrAllocation<R>(_ count: Int, fastpath: UnsafeMutablePointer<Element> = nil, @noescape body: (UnsafeMutablePointer<Element>) -> R) -> R {
         if fastpath != nil {
             return body(fastpath)
         } else if self.count > count {

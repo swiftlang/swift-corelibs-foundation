@@ -81,7 +81,7 @@ public class NSXMLDTD : NSXMLNode {
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(child: NSXMLNode, atIndex index: Int) {
+    public func insertChild(_ child: NSXMLNode, atIndex index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
     
@@ -89,7 +89,7 @@ public class NSXMLDTD : NSXMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(children: [NSXMLNode], atIndex index: Int) {
+    public func insertChildren(_ children: [NSXMLNode], atIndex index: Int) {
         _insertChildren(children, atIndex: index)
     }
     
@@ -97,7 +97,7 @@ public class NSXMLDTD : NSXMLNode {
         @method removeChildAtIndex:
         @abstract Removes a child at a particular index.
     */
-    public func removeChildAtIndex(index: Int) {
+    public func removeChildAtIndex(_ index: Int) {
         _removeChildAtIndex(index)
     } //primitive
     
@@ -105,7 +105,7 @@ public class NSXMLDTD : NSXMLNode {
         @method setChildren:
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
-    public func setChildren(children: [NSXMLNode]?) {
+    public func setChildren(_ children: [NSXMLNode]?) {
         _setChildren(children)
     } //primitive
     
@@ -113,7 +113,7 @@ public class NSXMLDTD : NSXMLNode {
         @method addChild:
         @abstract Adds a child to the end of the existing children.
     */
-    public func addChild(child: NSXMLNode) {
+    public func addChild(_ child: NSXMLNode) {
         _addChild(child)
     }
     
@@ -121,7 +121,7 @@ public class NSXMLDTD : NSXMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChildAtIndex(index: Int, withNode node: NSXMLNode) {
+    public func replaceChildAtIndex(_ index: Int, withNode node: NSXMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
     
@@ -129,7 +129,7 @@ public class NSXMLDTD : NSXMLNode {
         @method entityDeclarationForName:
         @abstract Returns the entity declaration matching this name.
     */
-    public func entityDeclarationForName(name: String) -> NSXMLDTDNode? {
+    public func entityDeclarationForName(_ name: String) -> NSXMLDTDNode? {
         let node = _CFXMLDTDGetEntityDesc(_xmlDTD, name)
         if node == nil {
             return nil
@@ -141,7 +141,7 @@ public class NSXMLDTD : NSXMLNode {
         @method notationDeclarationForName:
         @abstract Returns the notation declaration matching this name.
     */
-    public func notationDeclarationForName(name: String) -> NSXMLDTDNode? {
+    public func notationDeclarationForName(_ name: String) -> NSXMLDTDNode? {
         let node = _CFXMLDTDGetNotationDesc(_xmlDTD, name)
 
         if node == nil {
@@ -154,7 +154,7 @@ public class NSXMLDTD : NSXMLNode {
         @method elementDeclarationForName:
         @abstract Returns the element declaration matching this name.
     */
-    public func elementDeclarationForName(name: String) -> NSXMLDTDNode? {
+    public func elementDeclarationForName(_ name: String) -> NSXMLDTDNode? {
         let node = _CFXMLDTDGetElementDesc(_xmlDTD, name)
 
         if node == nil {
@@ -167,7 +167,7 @@ public class NSXMLDTD : NSXMLNode {
         @method attributeDeclarationForName:
         @abstract Returns the attribute declaration matching this name.
     */
-    public func attributeDeclarationForName(name: String, elementName: String) -> NSXMLDTDNode? {
+    public func attributeDeclarationForName(_ name: String, elementName: String) -> NSXMLDTDNode? {
         let node = _CFXMLDTDGetAttributeDesc(_xmlDTD, elementName, name)
 
         if node == nil {
@@ -182,7 +182,7 @@ public class NSXMLDTD : NSXMLNode {
     	@discussion The five predefined entities are
     	<ul><li>&amp;lt; - &lt;</li><li>&amp;gt; - &gt;</li><li>&amp;amp; - &amp;</li><li>&amp;quot; - &quot;</li><li>&amp;apos; - &amp;</li></ul>
     */
-    public class func predefinedEntityDeclarationForName(name: String) -> NSXMLDTDNode? {
+    public class func predefinedEntityDeclarationForName(_ name: String) -> NSXMLDTDNode? {
         let node = _CFXMLDTDGetPredefinedEntity(name)
 
         if node == nil {
@@ -192,7 +192,7 @@ public class NSXMLDTD : NSXMLNode {
         return NSXMLDTDNode._objectNodeForNode(node)
     }
     
-    internal override class func _objectNodeForNode(node: _CFXMLNodePtr) -> NSXMLDTD {
+    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLDTD {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDTD)
 
         if _CFXMLNodeGetPrivateData(node) != nil {

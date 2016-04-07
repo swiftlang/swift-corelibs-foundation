@@ -51,7 +51,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: AnyObject?) -> Bool {
         if self === object {
             return true
         } else if self.dynamicType == NSValue.self && object?.dynamicType == NSValue.self {
@@ -76,7 +76,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func getValue(value: UnsafeMutablePointer<Void>) {
+    public func getValue(_ value: UnsafeMutablePointer<Void>) {
         if self.dynamicType == NSValue.self {
             return _concreteValue.getValue(value)
         } else {
@@ -92,7 +92,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    private static func _isSpecialObjCType(type: UnsafePointer<Int8>) -> Bool {
+    private static func _isSpecialObjCType(_ type: UnsafePointer<Int8>) -> Bool {
         return NSSpecialValue._typeFromObjCType(type) != nil
     }
     
@@ -132,7 +132,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
         
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if self.dynamicType == NSValue.self {
             _concreteValue.encodeWithCoder(aCoder)
         } else {
@@ -148,7 +148,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
 }

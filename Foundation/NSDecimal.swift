@@ -50,40 +50,40 @@ public struct NSDecimal {
     public init(_exponent: Int32, _length: UInt32, _isNegative: UInt32, _isCompact: UInt32, _reserved: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)){ NSUnimplemented() }
 }
 
-public func NSDecimalIsNotANumber(dcm: UnsafePointer<NSDecimal>) -> Bool { NSUnimplemented() }
+public func NSDecimalIsNotANumber(_ dcm: UnsafePointer<NSDecimal>) -> Bool { NSUnimplemented() }
 
 
 /***************	Operations		***********/
-public func NSDecimalCopy(destination: UnsafeMutablePointer<NSDecimal>, _ source: UnsafePointer<NSDecimal>) { NSUnimplemented() }
+public func NSDecimalCopy(_ destination: UnsafeMutablePointer<NSDecimal>, _ source: UnsafePointer<NSDecimal>) { NSUnimplemented() }
 
-public func NSDecimalCompact(number: UnsafeMutablePointer<NSDecimal>) { NSUnimplemented() }
+public func NSDecimalCompact(_ number: UnsafeMutablePointer<NSDecimal>) { NSUnimplemented() }
 
-public func NSDecimalCompare(leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>) -> NSComparisonResult { NSUnimplemented() }
+public func NSDecimalCompare(_ leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>) -> NSComparisonResult { NSUnimplemented() }
 // NSDecimalCompare:Compares leftOperand and rightOperand.
 
-public func NSDecimalRound(result: UnsafeMutablePointer<NSDecimal>, _ number: UnsafePointer<NSDecimal>, _ scale: Int, _ roundingMode: NSRoundingMode) { NSUnimplemented() }
+public func NSDecimalRound(_ result: UnsafeMutablePointer<NSDecimal>, _ number: UnsafePointer<NSDecimal>, _ scale: Int, _ roundingMode: NSRoundingMode) { NSUnimplemented() }
 // Rounds num to the given scale using the given mode.
 // result may be a pointer to same space as num.
 // scale indicates number of significant digits after the decimal point
 
-public func NSDecimalNormalize(number1: UnsafeMutablePointer<NSDecimal>, _ number2: UnsafeMutablePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
+public func NSDecimalNormalize(_ number1: UnsafeMutablePointer<NSDecimal>, _ number2: UnsafeMutablePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
 
-public func NSDecimalAdd(result: UnsafeMutablePointer<NSDecimal>, _ leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
+public func NSDecimalAdd(_ result: UnsafeMutablePointer<NSDecimal>, _ leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
 // Exact operations. result may be a pointer to same space as leftOperand or rightOperand
 
-public func NSDecimalSubtract(result: UnsafeMutablePointer<NSDecimal>, _ leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
+public func NSDecimalSubtract(_ result: UnsafeMutablePointer<NSDecimal>, _ leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
 // Exact operations. result may be a pointer to same space as leftOperand or rightOperand
 
-public func NSDecimalMultiply(result: UnsafeMutablePointer<NSDecimal>, _ leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
+public func NSDecimalMultiply(_ result: UnsafeMutablePointer<NSDecimal>, _ leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
 // Exact operations. result may be a pointer to same space as leftOperand or rightOperand
 
-public func NSDecimalDivide(result: UnsafeMutablePointer<NSDecimal>, _ leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
+public func NSDecimalDivide(_ result: UnsafeMutablePointer<NSDecimal>, _ leftOperand: UnsafePointer<NSDecimal>, _ rightOperand: UnsafePointer<NSDecimal>, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
 // Division could be silently inexact;
 // Exact operations. result may be a pointer to same space as leftOperand or rightOperand
 
-public func NSDecimalPower(result: UnsafeMutablePointer<NSDecimal>, _ number: UnsafePointer<NSDecimal>, _ power: Int, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
+public func NSDecimalPower(_ result: UnsafeMutablePointer<NSDecimal>, _ number: UnsafePointer<NSDecimal>, _ power: Int, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
 
-public func NSDecimalMultiplyByPowerOf10(result: UnsafeMutablePointer<NSDecimal>, _ number: UnsafePointer<NSDecimal>, _ power: Int16, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
+public func NSDecimalMultiplyByPowerOf10(_ result: UnsafeMutablePointer<NSDecimal>, _ number: UnsafePointer<NSDecimal>, _ power: Int16, _ roundingMode: NSRoundingMode) -> NSCalculationError { NSUnimplemented() }
 
-public func NSDecimalString(dcm: UnsafePointer<NSDecimal>, _ locale: AnyObject?) -> String { NSUnimplemented() }
+public func NSDecimalString(_ dcm: UnsafePointer<NSDecimal>, _ locale: AnyObject?) -> String { NSUnimplemented() }
 

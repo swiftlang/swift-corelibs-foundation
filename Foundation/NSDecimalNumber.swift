@@ -55,7 +55,7 @@ public class NSDecimalNumber : NSNumber {
         NSRequiresConcreteImplementation()
     }
     
-    public override func descriptionWithLocale(locale: AnyObject?) -> String { NSUnimplemented() }
+    public override func descriptionWithLocale(_ locale: AnyObject?) -> String { NSUnimplemented() }
     
     // TODO: "declarations from extensions cannot be overridden yet"
     // Although it's not clear we actually need to redeclare this here when the extension adds it to the superclass of this class
@@ -67,31 +67,31 @@ public class NSDecimalNumber : NSNumber {
     public class func maximumDecimalNumber() -> NSDecimalNumber { NSUnimplemented() }
     public class func notANumber() -> NSDecimalNumber { NSUnimplemented() }
     
-    public func decimalNumberByAdding(decimalNumber: NSDecimalNumber) -> NSDecimalNumber { NSUnimplemented() }
-    public func decimalNumberByAdding(decimalNumber: NSDecimalNumber, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByAdding(_ decimalNumber: NSDecimalNumber) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByAdding(_ decimalNumber: NSDecimalNumber, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     
-    public func decimalNumberBySubtracting(decimalNumber: NSDecimalNumber) -> NSDecimalNumber { NSUnimplemented() }
-    public func decimalNumberBySubtracting(decimalNumber: NSDecimalNumber, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberBySubtracting(_ decimalNumber: NSDecimalNumber) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberBySubtracting(_ decimalNumber: NSDecimalNumber, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     
-    public func decimalNumberByMultiplyingBy(decimalNumber: NSDecimalNumber) -> NSDecimalNumber { NSUnimplemented() }
-    public func decimalNumberByMultiplyingBy(decimalNumber: NSDecimalNumber, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByMultiplyingBy(_ decimalNumber: NSDecimalNumber) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByMultiplyingBy(_ decimalNumber: NSDecimalNumber, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     
-    public func decimalNumberByDividingBy(decimalNumber: NSDecimalNumber) -> NSDecimalNumber { NSUnimplemented() }
-    public func decimalNumberByDividingBy(decimalNumber: NSDecimalNumber, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByDividingBy(_ decimalNumber: NSDecimalNumber) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByDividingBy(_ decimalNumber: NSDecimalNumber, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     
-    public func decimalNumberByRaisingToPower(power: Int) -> NSDecimalNumber { NSUnimplemented() }
-    public func decimalNumberByRaisingToPower(power: Int, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByRaisingToPower(_ power: Int) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByRaisingToPower(_ power: Int, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     
-    public func decimalNumberByMultiplyingByPowerOf10(power: Int16) -> NSDecimalNumber { NSUnimplemented() }
-    public func decimalNumberByMultiplyingByPowerOf10(power: Int16, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByMultiplyingByPowerOf10(_ power: Int16) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByMultiplyingByPowerOf10(_ power: Int16, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     
-    public func decimalNumberByRoundingAccordingToBehavior(behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
+    public func decimalNumberByRoundingAccordingToBehavior(_ behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     // Round to the scale of the behavior.
     
-    public override func compare(decimalNumber: NSNumber) -> NSComparisonResult { NSUnimplemented() }
+    public override func compare(_ decimalNumber: NSNumber) -> NSComparisonResult { NSUnimplemented() }
     // compare two NSDecimalNumbers
     
-    public class func setDefaultBehavior(behavior: NSDecimalNumberBehaviors) { NSUnimplemented() }
+    public class func setDefaultBehavior(_ behavior: NSDecimalNumberBehaviors) { NSUnimplemented() }
     
     public class func defaultBehavior() -> NSDecimalNumberBehaviors { NSUnimplemented() }
     // One behavior per thread - The default behavior is
@@ -116,7 +116,7 @@ public class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCodi
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -144,6 +144,6 @@ extension NSNumber {
 
 extension NSScanner {
     
-    public func scanDecimal(dcm: UnsafeMutablePointer<NSDecimal>) -> Bool { NSUnimplemented() }
+    public func scanDecimal(_ dcm: UnsafeMutablePointer<NSDecimal>) -> Bool { NSUnimplemented() }
 }
 

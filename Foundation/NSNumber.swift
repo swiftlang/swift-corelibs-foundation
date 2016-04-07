@@ -38,11 +38,11 @@ extension Int : _ObjectTypeBridgeable {
         return NSNumber(integer: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout Int?) {
+    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Int?) {
         result = x.integerValue
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout Int?) -> Bool {
+    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Int?) -> Bool {
         self._forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -57,10 +57,10 @@ extension UInt : _ObjectTypeBridgeable {
         return NSNumber(unsignedInteger: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout UInt?) {
+    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout UInt?) {
         result = x.unsignedIntegerValue
     }
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout UInt?) -> Bool {
+    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout UInt?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -75,11 +75,11 @@ extension Float : _ObjectTypeBridgeable {
         return NSNumber(float: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout Float?) {
+    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Float?) {
         result = x.floatValue
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout Float?) -> Bool {
+    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Float?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -94,11 +94,11 @@ extension Double : _ObjectTypeBridgeable {
         return NSNumber(double: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout Double?) {
+    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Double?) {
         result = x.doubleValue
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout Double?) -> Bool {
+    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Double?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -113,11 +113,11 @@ extension Bool : _ObjectTypeBridgeable {
         return NSNumber(bool: self)
     }
     
-    public static func _forceBridgeFromObject(x: NSNumber, result: inout Bool?) {
+    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Bool?) {
         result = x.boolValue
     }
     
-    public static func _conditionallyBridgeFromObject(x: NSNumber, result: inout Bool?) -> Bool {
+    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Bool?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
     }
@@ -148,7 +148,7 @@ public class NSNumber : NSValue {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: AnyObject?) -> Bool {
         if let number = object as? NSNumber {
             return CFEqual(_cfObject, number._cfObject)
         } else {
@@ -453,11 +453,11 @@ public class NSNumber : NSValue {
         self.init(bool: value)
     }
 
-    public func compare(otherNumber: NSNumber) -> NSComparisonResult {
+    public func compare(_ otherNumber: NSNumber) -> NSComparisonResult {
         return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
     }
 
-    public func descriptionWithLocale(locale: AnyObject?) -> String {
+    public func descriptionWithLocale(_ locale: AnyObject?) -> String {
         guard let aLocale = locale else { return description }
         let formatter = CFNumberFormatterCreate(nil, (aLocale as! NSLocale)._cfObject, kCFNumberFormatterDecimalStyle)
         return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject

@@ -12,7 +12,7 @@ import CoreFoundation
 
 public protocol NSObjectProtocol {
     
-    func isEqual(object: AnyObject?) -> Bool
+    func isEqual(_ object: AnyObject?) -> Bool
     var hash: Int { get }
     
     func `self`() -> Self
@@ -42,7 +42,7 @@ public struct NSZone : NilLiteralConvertible {
 
 public protocol NSCopying {
     
-    func copyWithZone(zone: NSZone) -> AnyObject
+    func copyWithZone(_ zone: NSZone) -> AnyObject
 }
 
 extension NSCopying {
@@ -53,7 +53,7 @@ extension NSCopying {
 
 public protocol NSMutableCopying {
     
-    func mutableCopyWithZone(zone: NSZone) -> AnyObject
+    func mutableCopyWithZone(_ zone: NSZone) -> AnyObject
 }
 
 extension NSMutableCopying {
@@ -83,7 +83,7 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
         return self
     }
     
-    public func isEqual(object: AnyObject?) -> Bool {
+    public func isEqual(_ object: AnyObject?) -> Bool {
         return object === self
     }
     
@@ -116,7 +116,7 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
         return self.dynamicType
     }
  
-    public func replacementObjectForCoder(aCoder: NSCoder) -> AnyObject? {
+    public func replacementObjectForCoder(_ aCoder: NSCoder) -> AnyObject? {
         return self
     }
 
@@ -133,7 +133,7 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
     // [self classForArchiver] by default, NOT -classForCoder as might be
     // expected.  This is a concession to source compatibility.
     
-    public func replacementObjectForKeyedArchiver(archiver: NSKeyedArchiver) -> AnyObject? {
+    public func replacementObjectForKeyedArchiver(_ archiver: NSKeyedArchiver) -> AnyObject? {
         return self.replacementObjectForCoder(archiver)
     }
     

@@ -95,7 +95,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: AnyObject?) -> Bool {
         if let data = object as? NSData {
             return self.isEqualToData(data)
         } else {
@@ -141,7 +141,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
     
@@ -149,11 +149,11 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return mutableCopyWithZone(nil)
     }
     
-    public func mutableCopyWithZone(zone: NSZone) -> AnyObject {
+    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
         return NSMutableData(bytes: UnsafeMutablePointer<Void>(bytes), length: length, copy: true, deallocator: nil)
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
             aKeyedCoder._encodePropertyList(self, forKey: "NS.data")
         } else {
@@ -184,7 +184,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return true
     }
     
-    private func byteDescription(limit limit: Int? = nil) -> String {
+    private func byteDescription(limit: Int? = nil) -> String {
         var s = ""
         let buffer = UnsafePointer<UInt8>(bytes)
         var i = 0
@@ -251,7 +251,7 @@ extension NSData {
         var deallocator: ((buffer: UnsafeMutablePointer<Void>, length: Int) -> Void)?
     }
     
-    internal static func readBytesFromFileWithExtendedAttributes(path: String, options: NSDataReadingOptions) throws -> NSDataReadResult {
+    internal static func readBytesFromFileWithExtendedAttributes(_ path: String, options: NSDataReadingOptions) throws -> NSDataReadResult {
         let fd = _CFOpenFile(path, O_RDONLY)
         if fd < 0 {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
@@ -357,15 +357,15 @@ extension NSData {
 }
 
 extension NSData {
-    public func getBytes(buffer: UnsafeMutablePointer<Void>, length: Int) {
+    public func getBytes(_ buffer: UnsafeMutablePointer<Void>, length: Int) {
         CFDataGetBytes(_cfObject, CFRangeMake(0, length), UnsafeMutablePointer<UInt8>(buffer))
     }
     
-    public func getBytes(buffer: UnsafeMutablePointer<Void>, range: NSRange) {
+    public func getBytes(_ buffer: UnsafeMutablePointer<Void>, range: NSRange) {
         CFDataGetBytes(_cfObject, CFRangeMake(range.location, range.length), UnsafeMutablePointer<UInt8>(buffer))
     }
     
-    public func isEqualToData(other: NSData) -> Bool {
+    public func isEqualToData(_ other: NSData) -> Bool {
         if self === other {
             return true
         }
@@ -382,7 +382,7 @@ extension NSData {
         
         return memcmp(bytes1, bytes2, length) == 0
     }
-    public func subdataWithRange(range: NSRange) -> NSData {
+    public func subdataWithRange(_ range: NSRange) -> NSData {
         if range.length == 0 {
             return NSData()
         }
@@ -392,7 +392,7 @@ extension NSData {
         return NSData(bytes: bytes.advanced(by: range.location), length: range.length)
     }
     
-    internal func makeTemporaryFileInDirectory(dirPath: String) throws -> (Int32, String) {
+    internal func makeTemporaryFileInDirectory(_ dirPath: String) throws -> (Int32, String) {
         let template = dirPath._nsObject.stringByAppendingPathComponent("tmp.XXXXXX")
         let maxLength = Int(PATH_MAX) + 1
         var buf = [Int8](repeating: 0, count: maxLength)
@@ -405,7 +405,7 @@ extension NSData {
         return (fd, pathResult)
     }
     
-    internal class func writeToFileDescriptor(fd: Int32, path: String? = nil, buf: UnsafePointer<Void>, length: Int) throws {
+    internal class func writeToFileDescriptor(_ fd: Int32, path: String? = nil, buf: UnsafePointer<Void>, length: Int) throws {
         var bytesRemaining = length
         while bytesRemaining > 0 {
             var bytesWritten : Int
@@ -420,7 +420,7 @@ extension NSData {
         }
     }
     
-    public func writeToFile(path: String, options writeOptionsMask: NSDataWritingOptions) throws {
+    public func writeToFile(_ path: String, options writeOptionsMask: NSDataWritingOptions) throws {
         var fd : Int32
         var mode : mode_t? = nil
         let useAuxiliaryFile = writeOptionsMask.contains(.DataWritingAtomic)
@@ -481,7 +481,7 @@ extension NSData {
         }
     }
     
-    public func writeToFile(path: String, atomically useAuxiliaryFile: Bool) -> Bool {
+    public func writeToFile(_ path: String, atomically useAuxiliaryFile: Bool) -> Bool {
         do {
             try writeToFile(path, options: useAuxiliaryFile ? .DataWritingAtomic : [])
         } catch {
@@ -490,7 +490,7 @@ extension NSData {
         return true
     }
     
-    public func writeToURL(url: NSURL, atomically: Bool) -> Bool {
+    public func writeToURL(_ url: NSURL, atomically: Bool) -> Bool {
         if url.fileURL {
             if let path = url.path {
                 return writeToFile(path, atomically: atomically)
@@ -507,7 +507,7 @@ extension NSData {
     ///    - throws: This method returns Void and is marked with the `throws` keyword to indicate that it throws an error in the event of failure.
     ///
     ///      This method is invoked in a `try` expression and the caller is responsible for handling any errors in the `catch` clauses of a `do` statement, as described in [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/ErrorHandling.html#//apple_ref/doc/uid/TP40014097-CH42) in [The Swift Programming Language](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/index.html#//apple_ref/doc/uid/TP40014097) and [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/AdoptingCocoaDesignPatterns.html#//apple_ref/doc/uid/TP40014216-CH7-ID10) in [Using Swift with Cocoa and Objective-C](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/index.html#//apple_ref/doc/uid/TP40014216).
-    public func writeToURL(url: NSURL, options writeOptionsMask: NSDataWritingOptions) throws {
+    public func writeToURL(_ url: NSURL, options writeOptionsMask: NSDataWritingOptions) throws {
         guard let path = url.path where url.fileURL == true else {
             let userInfo = [NSLocalizedDescriptionKey : "The folder at “\(url)” does not exist or is not a file URL.", // NSLocalizedString() not yet available
                             NSURLErrorKey             : url.absoluteString ?? ""] as Dictionary<String, Any>
@@ -516,7 +516,7 @@ extension NSData {
         try writeToFile(path, options: writeOptionsMask)
     }
     
-    public func rangeOfData(dataToFind: NSData, options mask: NSDataSearchOptions, range searchRange: NSRange) -> NSRange {
+    public func rangeOfData(_ dataToFind: NSData, options mask: NSDataSearchOptions, range searchRange: NSRange) -> NSRange {
         guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
         guard let searchRange = searchRange.toRange() else {fatalError("invalid range")}
         
@@ -534,7 +534,7 @@ extension NSData {
         }
         return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
     }
-    private static func searchSubSequence<T : Collection,T2 : Sequence where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element>(subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
+    private static func searchSubSequence<T : Collection,T2 : Sequence where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
         for index in seq.indices {
             if seq.suffix(from: index).starts(with: subSequence) {
                 return index
@@ -544,7 +544,7 @@ extension NSData {
         return nil
     }
     
-    internal func enumerateByteRangesUsingBlockRethrows(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
+    internal func enumerateByteRangesUsingBlockRethrows(_ block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
         var err : ErrorProtocol? = nil
         self.enumerateByteRangesUsingBlock() { (buf, range, stop) -> Void in
             do {
@@ -558,7 +558,7 @@ extension NSData {
         }
     }
 
-    public func enumerateByteRangesUsingBlock(block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
+    public func enumerateByteRangesUsingBlock(_ block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
         var stop = false
         withUnsafeMutablePointer(&stop) { stopPointer in
             block(bytes, NSMakeRange(0, length), stopPointer)
@@ -600,7 +600,7 @@ public class NSMutableData : NSData {
         }
     }
     
-    public override func copyWithZone(zone: NSZone) -> AnyObject {
+    public override func copyWithZone(_ zone: NSZone) -> AnyObject {
         return NSData(data: self)
     }
 }
@@ -619,7 +619,7 @@ extension NSData {
     
     /* Create a Base-64 encoded NSString from the receiver's contents using the given options.
     */
-    public func base64EncodedStringWithOptions(options: NSDataBase64EncodingOptions) -> String {
+    public func base64EncodedStringWithOptions(_ options: NSDataBase64EncodingOptions) -> String {
         var decodedBytes = [UInt8](repeating: 0, count: self.length)
         getBytes(&decodedBytes, length: decodedBytes.count)
         let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
@@ -640,7 +640,7 @@ extension NSData {
     
     /* Create a Base-64, UTF-8 encoded NSData from the receiver's contents using the given options.
     */
-    public func base64EncodedDataWithOptions(options: NSDataBase64EncodingOptions) -> NSData {
+    public func base64EncodedDataWithOptions(_ options: NSDataBase64EncodingOptions) -> NSData {
         var decodedBytes = [UInt8](repeating: 0, count: self.length)
         getBytes(&decodedBytes, length: decodedBytes.count)
         let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
@@ -674,7 +674,7 @@ extension NSData {
         case Invalid
         case Padding
     }
-    private static func base64DecodeByte(byte: UInt8) -> Base64DecodedByte {
+    private static func base64DecodeByte(_ byte: UInt8) -> Base64DecodedByte {
         guard byte != base64Padding else {return .Padding}
         var decodedStart: UInt8 = 0
         for range in base64ByteMappings {
@@ -697,7 +697,7 @@ extension NSData {
         - parameter byte:       The byte to encode
         - returns:              The ASCII value for the encoded character.
         */
-    private static func base64EncodeByte(byte: UInt8) -> UInt8 {
+    private static func base64EncodeByte(_ byte: UInt8) -> UInt8 {
         assert(byte < 64)
         var decodedStart: UInt8 = 0
         for range in base64ByteMappings {
@@ -721,7 +721,7 @@ extension NSData {
         - parameter options:    Options for handling invalid input
         - returns:              The decoded bytes.
         */
-    private static func base64DecodeBytes(bytes: [UInt8], options: NSDataBase64DecodingOptions = []) -> [UInt8]? {
+    private static func base64DecodeBytes(_ bytes: [UInt8], options: NSDataBase64DecodingOptions = []) -> [UInt8]? {
         var decodedBytes = [UInt8]()
         decodedBytes.reserveCapacity((bytes.count/3)*2)
 
@@ -791,7 +791,7 @@ extension NSData {
         - parameter options:    Options for formatting the result
         - returns:              The Base64-encoding for those bytes.
         */
-    private static func base64EncodeBytes(bytes: [UInt8], options: NSDataBase64EncodingOptions = []) -> [UInt8] {
+    private static func base64EncodeBytes(_ bytes: [UInt8], options: NSDataBase64EncodingOptions = []) -> [UInt8] {
         var result = [UInt8]()
         result.reserveCapacity((bytes.count/3)*4)
         
@@ -864,32 +864,32 @@ extension NSData {
 
 extension NSMutableData {
 
-    public func appendBytes(bytes: UnsafePointer<Void>, length: Int) {
+    public func appendBytes(_ bytes: UnsafePointer<Void>, length: Int) {
         CFDataAppendBytes(_cfMutableObject, UnsafePointer<UInt8>(bytes), length)
     }
     
-    public func appendData(other: NSData) {
+    public func appendData(_ other: NSData) {
         appendBytes(other.bytes, length: other.length)
     }
     
-    public func increaseLengthBy(extraLength: Int) {
+    public func increaseLengthBy(_ extraLength: Int) {
         CFDataSetLength(_cfMutableObject, CFDataGetLength(_cfObject) + extraLength)
     }
     
-    public func replaceBytesInRange(range: NSRange, withBytes bytes: UnsafePointer<Void>) {
+    public func replaceBytesInRange(_ range: NSRange, withBytes bytes: UnsafePointer<Void>) {
         CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), UnsafePointer<UInt8>(bytes), length)
     }
     
-    public func resetBytesInRange(range: NSRange) {
+    public func resetBytesInRange(_ range: NSRange) {
         bzero(mutableBytes.advanced(by: range.location), range.length)
     }
     
-    public func setData(data: NSData) {
+    public func setData(_ data: NSData) {
         length = data.length
         replaceBytesInRange(NSMakeRange(0, data.length), withBytes: data.bytes)
     }
     
-    public func replaceBytesInRange(range: NSRange, withBytes replacementBytes: UnsafePointer<Void>, length replacementLength: Int) {
+    public func replaceBytesInRange(_ range: NSRange, withBytes replacementBytes: UnsafePointer<Void>, length replacementLength: Int) {
         CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), UnsafePointer<UInt8>(bytes), replacementLength)
     }
 }

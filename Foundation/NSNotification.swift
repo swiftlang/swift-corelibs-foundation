@@ -43,7 +43,7 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
         }
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
             aCoder.encodeObject(self.object, forKey:"NS.object")
@@ -59,7 +59,7 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         return self
     }
     
@@ -101,7 +101,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
     ///  - elements that property `name` is not equal to parameter `name` if specified.
     ///  - elements that property `sender` is not equal to parameter `object` if specified.
     ///
-    private func filterOutObserver(observerToFilter: AnyObject, name:String? = nil, object: AnyObject? = nil) -> [Iterator.Element] {
+    private func filterOutObserver(_ observerToFilter: AnyObject, name:String? = nil, object: AnyObject? = nil) -> [Iterator.Element] {
         return self.filter { observer in
 
             let differentObserver = observer.object !== observerToFilter
@@ -120,7 +120,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
     ///  - elements that property `sender` is `nil` or equals specified parameter `sender`.
     ///  - elements that property `name` is `nil` or equals specified parameter `name`.
     ///
-    private func observersMatchingName(name:String? = nil, sender: AnyObject? = nil) -> [Iterator.Element] {
+    private func observersMatchingName(_ name:String? = nil, sender: AnyObject? = nil) -> [Iterator.Element] {
         return self.filter { observer in
 
             let emptyName = observer.name == nil
@@ -148,7 +148,7 @@ public class NSNotificationCenter : NSObject {
         return _defaultCenter
     }
     
-    public func postNotification(notification: NSNotification) {
+    public func postNotification(_ notification: NSNotification) {
 
         let sendTo = _observersLock.synchronized({
             return _observers.observersMatchingName(notification.name, sender: notification.object)
@@ -163,21 +163,21 @@ public class NSNotificationCenter : NSObject {
         }
     }
 
-    public func postNotificationName(aName: String, object anObject: AnyObject?) {
+    public func postNotificationName(_ aName: String, object anObject: AnyObject?) {
         let notification = NSNotification(name: aName, object: anObject)
         postNotification(notification)
     }
 
-    public func postNotificationName(aName: String, object anObject: AnyObject?, userInfo aUserInfo: [NSObject : AnyObject]?) {
+    public func postNotificationName(_ aName: String, object anObject: AnyObject?, userInfo aUserInfo: [NSObject : AnyObject]?) {
         let notification = NSNotification(name: aName, object: anObject, userInfo: aUserInfo)
         postNotification(notification)
     }
 
-    public func removeObserver(observer: AnyObject) {
+    public func removeObserver(_ observer: AnyObject) {
         removeObserver(observer, name: nil, object: nil)
     }
 
-    public func removeObserver(observer: AnyObject, name: String?, object: AnyObject?) {
+    public func removeObserver(_ observer: AnyObject, name: String?, object: AnyObject?) {
         guard let observer = observer as? NSObject else {
             return
         }
@@ -187,7 +187,7 @@ public class NSNotificationCenter : NSObject {
         })
     }
     
-    public func addObserverForName(name: String?, object obj: AnyObject?, queue: NSOperationQueue?, usingBlock block: (NSNotification) -> Void) -> NSObjectProtocol {
+    public func addObserverForName(_ name: String?, object obj: AnyObject?, queue: NSOperationQueue?, usingBlock block: (NSNotification) -> Void) -> NSObjectProtocol {
         if queue != nil {
             NSUnimplemented()
         }

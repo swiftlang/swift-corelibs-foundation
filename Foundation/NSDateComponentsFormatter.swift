@@ -47,9 +47,9 @@ public class NSDateComponentsFormatter : NSFormatter {
     
     /* 'obj' must be an instance of NSDateComponents.
      */
-    public override func stringForObjectValue(obj: AnyObject) -> String? { NSUnimplemented() }
+    public override func stringForObjectValue(_ obj: AnyObject) -> String? { NSUnimplemented() }
     
-    public func stringFromDateComponents(components: NSDateComponents) -> String? { NSUnimplemented() }
+    public func stringFromDateComponents(_ components: NSDateComponents) -> String? { NSUnimplemented() }
     
     /* Normally, NSDateComponentsFormatter will calculate as though counting from the current date and time (e.g. in February, 1 month formatted as a number of days will be 28). -stringFromDate:toDate: calculates from the passed-in startDate instead.
      
@@ -57,13 +57,13 @@ public class NSDateComponentsFormatter : NSFormatter {
      
        Note that this is still formatting the quantity of time between the dates, not the pair of dates itself. For strings like "Feb 22nd - Feb 28th", use NSDateIntervalFormatter.
      */
-    public func stringFromDate(startDate: NSDate, toDate endDate: NSDate) -> String? { NSUnimplemented() }
+    public func stringFromDate(_ startDate: NSDate, toDate endDate: NSDate) -> String? { NSUnimplemented() }
     
     /* Convenience method for formatting a number of seconds. See 'allowedUnits' for how the default set of allowed units differs from -stringFromDateComponents:.
      */
-    public func stringFromTimeInterval(ti: NSTimeInterval) -> String? { NSUnimplemented() }
+    public func stringFromTimeInterval(_ ti: NSTimeInterval) -> String? { NSUnimplemented() }
     
-    public class func localizedStringFromDateComponents(components: NSDateComponents, unitsStyle: NSDateComponentsFormatterUnitsStyle) -> String? { NSUnimplemented() }
+    public class func localizedStringFromDateComponents(_ components: NSDateComponents, unitsStyle: NSDateComponentsFormatterUnitsStyle) -> String? { NSUnimplemented() }
     
     /* Choose how to indicate units. For example, 1h 10m vs 1:10. Default is NSDateComponentsFormatterUnitsStylePositional.
      */
@@ -131,6 +131,6 @@ public class NSDateComponentsFormatter : NSFormatter {
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public override func objectValue(string: String) throws -> AnyObject? { return nil }
+    public override func objectValue(_ string: String) throws -> AnyObject? { return nil }
 }
 

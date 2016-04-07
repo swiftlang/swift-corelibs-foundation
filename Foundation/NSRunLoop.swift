@@ -22,7 +22,7 @@ import CoreFoundation
 public let NSDefaultRunLoopMode: String = "kCFRunLoopDefaultMode"
 public let NSRunLoopCommonModes: String = "kCFRunLoopCommonModes"
 
-internal func _NSRunLoopNew(cf: CFRunLoop) -> Unmanaged<AnyObject> {
+internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
     let rl = Unmanaged<NSRunLoop>.passRetained(NSRunLoop(cfObject: cf))
     return unsafeBitCast(rl, to: Unmanaged<AnyObject>.self) // this retain is balanced on the other side of the CF fence
 }
@@ -49,19 +49,19 @@ public class NSRunLoop : NSObject {
         return CFRunLoopCopyCurrentMode(_cfRunLoop)?._swiftObject
     }
 
-    public func addTimer(timer: NSTimer, forMode mode: String) {
+    public func addTimer(_ timer: NSTimer, forMode mode: String) {
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode._cfObject)
     }
 
-    public func addPort(aPort: NSPort, forMode mode: String) {
+    public func addPort(_ aPort: NSPort, forMode mode: String) {
         NSUnimplemented()
     }
 
-    public func removePort(aPort: NSPort, forMode mode: String) {
+    public func removePort(_ aPort: NSPort, forMode mode: String) {
         NSUnimplemented()
     }
 
-    public func limitDateForMode(mode: String) -> NSDate? {
+    public func limitDateForMode(_ mode: String) -> NSDate? {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return nil
         }
@@ -81,7 +81,7 @@ public class NSRunLoop : NSObject {
         return NSDate(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
     }
 
-    public func acceptInputForMode(mode: String, beforeDate limitDate: NSDate) {
+    public func acceptInputForMode(_ mode: String, beforeDate limitDate: NSDate) {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return
         }
@@ -96,11 +96,11 @@ extension NSRunLoop {
         while runMode(NSDefaultRunLoopMode, beforeDate: NSDate.distantFuture()) { }
     }
 
-    public func runUntilDate(limitDate: NSDate) {
+    public func runUntilDate(_ limitDate: NSDate) {
         while runMode(NSDefaultRunLoopMode, beforeDate: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
     }
 
-    public func runMode(mode: String, beforeDate limitDate: NSDate) -> Bool {
+    public func runMode(_ mode: String, beforeDate limitDate: NSDate) -> Bool {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return false
         }

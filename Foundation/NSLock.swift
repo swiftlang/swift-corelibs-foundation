@@ -51,7 +51,7 @@ public class NSLock : NSObject, NSLocking {
 }
 
 extension NSLock {
-    internal func synchronized<T>(@noescape closure: () -> T) -> T {
+    internal func synchronized<T>(@noescape _ closure: () -> T) -> T {
         self.lock()
         defer { self.unlock() }
         return closure()
@@ -86,7 +86,7 @@ public class NSConditionLock : NSObject, NSLocking {
         return _value
     }
     
-    public func lockWhenCondition(condition: Int) {
+    public func lockWhenCondition(_ condition: Int) {
         lockWhenCondition(condition, beforeDate: NSDate.distantFuture())
     }
     
@@ -94,11 +94,11 @@ public class NSConditionLock : NSObject, NSLocking {
         return lockBeforeDate(NSDate.distantPast())
     }
     
-    public func tryLockWhenCondition(condition: Int) -> Bool {
+    public func tryLockWhenCondition(_ condition: Int) -> Bool {
         return lockWhenCondition(condition, beforeDate: NSDate.distantPast())
     }
 
-    public func unlockWithCondition(condition: Int) {
+    public func unlockWithCondition(_ condition: Int) {
         _cond.lock()
         _thread = nil
         _value = condition
@@ -106,7 +106,7 @@ public class NSConditionLock : NSObject, NSLocking {
         _cond.unlock()
     }
 
-    public func lockBeforeDate(limit: NSDate) -> Bool {
+    public func lockBeforeDate(_ limit: NSDate) -> Bool {
         _cond.lock()
         while _thread == nil {
             if !_cond.waitUntilDate(limit) {
@@ -119,7 +119,7 @@ public class NSConditionLock : NSObject, NSLocking {
         return true
     }
     
-    public func lockWhenCondition(condition: Int, beforeDate limit: NSDate) -> Bool {
+    public func lockWhenCondition(_ condition: Int, beforeDate limit: NSDate) -> Bool {
         _cond.lock()
         while _thread != nil || _value != condition {
             if !_cond.waitUntilDate(limit) {
@@ -198,7 +198,7 @@ public class NSCondition : NSObject, NSLocking {
         pthread_cond_wait(cond, mutex)
     }
     
-    public func waitUntilDate(limit: NSDate) -> Bool {
+    public func waitUntilDate(_ limit: NSDate) -> Bool {
         let lim = limit.timeIntervalSinceReferenceDate
         let ti = lim - CFAbsoluteTimeGetCurrent()
         if ti < 0.0 {

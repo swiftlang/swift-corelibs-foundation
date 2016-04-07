@@ -20,7 +20,7 @@ internal let kCFLogLevelInfo = CFLogLevel.info
 internal let kCFLogLevelDebug = CFLogLevel.debug
 #endif
 
-internal func NSLog(message : String) {
+internal func NSLog(_ message : String) {
 #if os(OSX) || os(iOS)
     CFLog1(kCFLogLevelWarning, message._cfObject)
 #else

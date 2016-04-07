@@ -96,7 +96,7 @@ public class NSOperation : NSObject {
         return _ready
     }
     
-    public func addDependency(op: NSOperation) {
+    public func addDependency(_ op: NSOperation) {
         lock.lock()
         _dependencies.insert(op)
         op.lock.lock()
@@ -108,7 +108,7 @@ public class NSOperation : NSObject {
         lock.unlock()
     }
     
-    public func removeDependency(op: NSOperation) {
+    public func removeDependency(_ op: NSOperation) {
         lock.lock()
         _dependencies.remove(op)
         op.lock.lock()
@@ -179,7 +179,7 @@ public class NSBlockOperation : NSOperation {
         executionBlocks.forEach { $0() }
     }
     
-    public func addExecutionBlock(block: () -> Void) {
+    public func addExecutionBlock(_ block: () -> Void) {
         lock.lock()
         _executionBlocks.append(block)
         lock.unlock()
@@ -203,7 +203,7 @@ internal struct _OperationList {
     var veryHigh = [NSOperation]()
     var all = [NSOperation]()
     
-    mutating func insert(operation: NSOperation) {
+    mutating func insert(_ operation: NSOperation) {
         switch operation.queuePriority {
         case .VeryLow:
             veryLow.append(operation)
@@ -223,7 +223,7 @@ internal struct _OperationList {
         }
     }
     
-    mutating func remove(operation: NSOperation) {
+    mutating func remove(_ operation: NSOperation) {
         if let idx = all.index(of: operation) {
             all.remove(at: idx)
         }
@@ -279,7 +279,7 @@ internal struct _OperationList {
         return all.count
     }
     
-    func map<T>(@noescape transform: (NSOperation) throws -> T) rethrows -> [T] {
+    func map<T>(@noescape _ transform: (NSOperation) throws -> T) rethrows -> [T] {
         return try all.map(transform)
     }
 }
@@ -358,7 +358,7 @@ public class NSOperationQueue : NSObject {
         return op
     }
     
-    public func addOperation(op: NSOperation) {
+    public func addOperation(_ op: NSOperation) {
         addOperations([op], waitUntilFinished: false)
     }
     
@@ -373,7 +373,7 @@ public class NSOperationQueue : NSObject {
         }
     }
     
-    public func addOperations(ops: [NSOperation], waitUntilFinished wait: Bool) {
+    public func addOperations(_ ops: [NSOperation], waitUntilFinished wait: Bool) {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         var waitGroup: dispatch_group_t?
         if wait {
@@ -422,14 +422,14 @@ public class NSOperationQueue : NSObject {
 #endif
     }
     
-    internal func _operationFinished(operation: NSOperation) {
+    internal func _operationFinished(_ operation: NSOperation) {
         lock.lock()
         _operations.remove(operation)
         operation._queue = nil
         lock.unlock()
     }
     
-    public func addOperationWithBlock(block: () -> Void) {
+    public func addOperationWithBlock(_ block: () -> Void) {
         let op = NSBlockOperation(block: block)
         op.qualityOfService = qualityOfService
         addOperation(op)

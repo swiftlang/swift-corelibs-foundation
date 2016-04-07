@@ -23,7 +23,7 @@ public class NSTextCheckingResult : NSObject, NSCopying, NSCoding {
         super.init()
     }
     
-    public class func regularExpressionCheckingResultWithRanges(ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) -> NSTextCheckingResult {
+    public class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) -> NSTextCheckingResult {
         return _NSRegularExpressionTextCheckingResultResult(ranges: ranges, count: count, regularExpression: regularExpression)
     }
 
@@ -31,7 +31,7 @@ public class NSTextCheckingResult : NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -39,7 +39,7 @@ public class NSTextCheckingResult : NSObject, NSCopying, NSCoding {
         return copyWithZone(nil)
     }
     
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(_ zone: NSZone) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -47,7 +47,7 @@ public class NSTextCheckingResult : NSObject, NSCopying, NSCoding {
     public var resultType: NSTextCheckingType { NSUnimplemented() }
     public var range: NSRange { return rangeAtIndex(0) }
     /* A result must have at least one range, but may optionally have more (for example, to represent regular expression capture groups).  The range at index 0 always matches the range property.  Additional ranges, if any, will have indexes from 1 to numberOfRanges-1. */
-    public func rangeAtIndex(idx: Int) -> NSRange { NSUnimplemented() }
+    public func rangeAtIndex(_ idx: Int) -> NSRange { NSUnimplemented() }
     public var regularExpression: NSRegularExpression? { return nil }
     public var numberOfRanges: Int { return 1 }
 }
@@ -69,7 +69,7 @@ internal class _NSRegularExpressionTextCheckingResultResult : NSTextCheckingResu
     }
     
     override var resultType: NSTextCheckingType { return .RegularExpression }
-    override func rangeAtIndex(idx: Int) -> NSRange { return _ranges[idx] }
+    override func rangeAtIndex(_ idx: Int) -> NSRange { return _ranges[idx] }
     override var numberOfRanges: Int { return _ranges.count }
     override var regularExpression: NSRegularExpression? { return _regularExpression }
 }
@@ -78,5 +78,5 @@ extension NSTextCheckingResult {
     
     
     
-    public func resultByAdjustingRangesWithOffset(offset: Int) -> NSTextCheckingResult { NSUnimplemented() }
+    public func resultByAdjustingRangesWithOffset(_ offset: Int) -> NSTextCheckingResult { NSUnimplemented() }
 }
