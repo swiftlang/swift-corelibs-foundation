@@ -176,7 +176,7 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
         Dereferences, but does not decode, an object reference
      */
-    private func _dereferenceObjectReference(unwrappedObjectRef: CFKeyedArchiverUID) -> Any? {
+    private func _dereferenceObjectReference(_ unwrappedObjectRef: CFKeyedArchiverUID) -> Any? {
         let uid = Int(objectRefGetValue(unwrappedObjectRef))
         
         guard uid < self._objects.count else {
@@ -204,7 +204,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return true
     }
     
-    private static func _supportsSecureCoding(clsv : AnyClass) -> Bool {
+    private static func _supportsSecureCoding(_ clsv : AnyClass) -> Bool {
         if let secureCodable = clsv as? NSSecureCoding.Type {
             return secureCodable.supportsSecureCoding()
         }
@@ -213,7 +213,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     // FIXME is there a better way to do this with Swift stdlib?
-    private static func _classIsKindOfClass(assertedClass : AnyClass, _ allowedClass : AnyClass) -> Bool {
+    private static func _classIsKindOfClass(_ assertedClass : AnyClass, _ allowedClass : AnyClass) -> Bool {
         var superClass : AnyClass? = assertedClass
         
         repeat {
@@ -227,7 +227,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return false
     }
     
-    private func _isClassAllowed(assertedClass: AnyClass?, allowedClasses: [AnyClass]?) -> Bool {
+    private func _isClassAllowed(_ assertedClass: AnyClass?, allowedClasses: [AnyClass]?) -> Bool {
         if assertedClass == nil {
             return false
         }
@@ -248,12 +248,12 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
         Validate a dictionary with class type information, mapping to a class if allowed
      */ 
-    private func _validateAndMapClassDictionary(classDict: Dictionary<String, Any>?,
+    private func _validateAndMapClassDictionary(_ classDict: Dictionary<String, Any>?,
                                                 allowedClasses: [AnyClass]?,
                                                 classToConstruct: inout AnyClass?) -> Bool {
         classToConstruct = nil
         
-        func _classForClassName(codedName: String) -> AnyClass? {
+        func _classForClassName(_ codedName: String) -> AnyClass? {
             var aClass : AnyClass?
             
             aClass = classForClassName(codedName)
@@ -312,7 +312,7 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
         Validate a class reference against a class list, and return the class object if allowed
      */
-    private func _validateAndMapClassReference(classReference: CFKeyedArchiverUID,
+    private func _validateAndMapClassReference(_ classReference: CFKeyedArchiverUID,
                                                allowedClasses: [AnyClass]?) throws -> AnyClass? {
         let classUid = objectRefGetValue(classReference)
         var classToConstruct : AnyClass? = _classes[classUid]
@@ -337,7 +337,7 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
         Returns true if objectOrReference represents a reference to another object in the archive
      */
-    internal static func _isReference(objectOrReference : Any?) -> Bool {
+    internal static func _isReference(_ objectOrReference : Any?) -> Bool {
         if let cf = objectOrReference as? __NSCFType {
             return CFGetTypeID(cf) == _CFKeyedArchiverUIDGetTypeID()
         } else {
@@ -345,18 +345,18 @@ public class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    private func _cachedObjectForReference(objectRef: CFKeyedArchiverUID) -> AnyObject? {
+    private func _cachedObjectForReference(_ objectRef: CFKeyedArchiverUID) -> AnyObject? {
         return self._objRefMap[objectRefGetValue(objectRef)]
     }
     
-    private func _cacheObject(object: AnyObject, forReference objectRef: CFKeyedArchiverUID) {
+    private func _cacheObject(_ object: AnyObject, forReference objectRef: CFKeyedArchiverUID) {
         self._objRefMap[objectRefGetValue(objectRef)] = object
     }
     
     /**
         Returns true if the object is a dictionary representing a object rather than a value type
      */
-    private func _isContainer(object: Any) -> Bool {
+    private func _isContainer(_ object: Any) -> Bool {
         guard let dict = object as? Dictionary<String, Any> else {
             return false
         }
@@ -370,7 +370,7 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
         Replace object with another one
      */
-    private func replaceObject(object: AnyObject, withObject replacement: AnyObject) {
+    private func replaceObject(_ object: AnyObject, withObject replacement: AnyObject) {
         let oid = NSUniqueObject(object)
         
         if let unwrappedDelegate = self.delegate {
@@ -380,12 +380,12 @@ public class NSKeyedUnarchiver : NSCoder {
         self._replacementMap[oid] = replacement
     }
     
-    private func _decodingError(code: NSCocoaError, withDescription description: String) -> NSError {
+    private func _decodingError(_ code: NSCocoaError, withDescription description: String) -> NSError {
         return NSError(domain: NSCocoaErrorDomain,
                                code: code.rawValue, userInfo: [ "NSDebugDescription" : description ])
     }
     
-    private func _replacementObject(decodedObject: AnyObject?) -> AnyObject? {
+    private func _replacementObject(_ decodedObject: AnyObject?) -> AnyObject? {
         var object : AnyObject? = nil // object to encode after substitution
         
         // nil cannot be mapped
@@ -411,7 +411,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return decodedObject
     }
     
-    private func _validateClassSupportsSecureCoding(classToConstruct : AnyClass?) -> Bool {
+    private func _validateClassSupportsSecureCoding(_ classToConstruct : AnyClass?) -> Bool {
         var supportsSecureCoding : Bool = false
         
         if let secureDecodableClass = classToConstruct as? NSSecureCoding.Type {
@@ -429,7 +429,7 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
         Decode an object for the given reference
      */
-    private func _decodeObject(objectRef: AnyObject) throws -> AnyObject? {
+    private func _decodeObject(_ objectRef: AnyObject) throws -> AnyObject? {
         var object : AnyObject? = nil
         
         _validateStillDecoding()
@@ -526,7 +526,7 @@ public class NSKeyedUnarchiver : NSCoder {
     /**
         Helper for NSArray/NSDictionary to dereference and decode an array of objects
      */
-    internal func _decodeArrayOfObjectsForKey(key: String,
+    internal func _decodeArrayOfObjectsForKey(_ key: String,
                                               @noescape withBlock block: (Any) -> Void) throws {
         let objectRefs : Array<Any>? = _decodeValue(forKey: key)
         
@@ -545,7 +545,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    internal override func _decodeArrayOfObjectsForKey(key: String) -> [AnyObject] {
+    internal override func _decodeArrayOfObjectsForKey(_ key: String) -> [AnyObject] {
         var array : Array<AnyObject> = []
         
         do {
@@ -584,20 +584,20 @@ public class NSKeyedUnarchiver : NSCoder {
         self._flags.insert(UnarchiverFlags.FinishedDecoding)
     }
     
-    public class func setClass(cls: AnyClass?, forClassName codedName: String) {
+    public class func setClass(_ cls: AnyClass?, forClassName codedName: String) {
         _classNameMapLock.synchronized {
             _classNameMap[codedName] = cls
         }
     }
     
-    public func setClass(cls: AnyClass?, forClassName codedName: String) {
+    public func setClass(_ cls: AnyClass?, forClassName codedName: String) {
         _classNameMap[codedName] = cls
     }
     
     // During decoding, the coder first checks with the coder's
     // own table, then if there was no mapping there, the class's.
     
-    public class func classForClassName(codedName: String) -> AnyClass? {
+    public class func classForClassName(_ codedName: String) -> AnyClass? {
         var mappedClass : AnyClass?
         
         _classNameMapLock.synchronized {
@@ -607,16 +607,16 @@ public class NSKeyedUnarchiver : NSCoder {
         return mappedClass
     }
     
-    public func classForClassName(codedName: String) -> AnyClass? {
+    public func classForClassName(_ codedName: String) -> AnyClass? {
         return _classNameMap[codedName]
     }
     
-    public override func containsValueForKey(key: String) -> Bool {
+    public override func containsValueForKey(_ key: String) -> Bool {
         let any : Any? = _decodeValue(forKey: key)
         return any != nil
     }
     
-    public override func decodeObjectForKey(key: String) -> AnyObject? {
+    public override func decodeObjectForKey(_ key: String) -> AnyObject? {
         do {
             return try _decodeObject(forKey: key)
         } catch let error as NSError {
@@ -628,7 +628,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     // private variant of decodeObjectOfClasses() that supports generic (unkeyed) objects
-    private func _decodeObjectOfClasses(classes: [AnyClass], forKey key: String? = nil) -> AnyObject? {
+    private func _decodeObjectOfClasses(_ classes: [AnyClass], forKey key: String? = nil) -> AnyObject? {
         do {
             self._allowedClasses.append(classes)
             defer { self._allowedClasses.removeLast() }

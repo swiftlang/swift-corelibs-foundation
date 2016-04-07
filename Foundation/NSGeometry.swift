@@ -978,7 +978,7 @@ private extension NSCoder {
         self.encodeDouble(value.native, forKey: key)
     }
     
-    func _decodeCGFloatForKey(key: String) -> CGFloat {
+    func _decodeCGFloatForKey(_ key: String) -> CGFloat {
         return CGFloat(self.decodeDoubleForKey(key))
     }
 }

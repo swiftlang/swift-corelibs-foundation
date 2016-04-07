@@ -741,11 +741,11 @@ extension NSXMLParserDelegate {
     
     func parser(_ parser: NSXMLParser, foundCDATA CDATABlock: NSData) { }
     
-    func parser(parser: NSXMLParser, resolveExternalEntityName name: String, systemID: String?) -> NSData? { return nil }
+    func parser(_ parser: NSXMLParser, resolveExternalEntityName name: String, systemID: String?) -> NSData? { return nil }
     
-    func parser(parser: NSXMLParser, parseErrorOccurred parseError: NSError) { }
+    func parser(_ parser: NSXMLParser, parseErrorOccurred parseError: NSError) { }
     
-    func parser(parser: NSXMLParser, validationErrorOccurred validationError: NSError) { }
+    func parser(_ parser: NSXMLParser, validationErrorOccurred validationError: NSError) { }
 }
 
 

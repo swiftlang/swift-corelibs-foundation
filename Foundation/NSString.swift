@@ -1080,7 +1080,7 @@ extension NSString {
         }
     }
     
-    public func stringByPaddingToLength(newLength: Int, withString padString: String, startingAtIndex padIndex: Int) -> String {
+    public func stringByPaddingToLength(_ newLength: Int, withString padString: String, startingAtIndex padIndex: Int) -> String {
         let len = length
         if newLength <= len {	// The simple cases (truncation)
             return newLength == len ? _swiftObject : substringWithRange(NSMakeRange(0, newLength))
@@ -1098,14 +1098,14 @@ extension NSString {
         return mStr._swiftObject
     }
     
-    public func stringByFoldingWithOptions(options: NSStringCompareOptions, locale: NSLocale?) -> String {
+    public func stringByFoldingWithOptions(_ options: NSStringCompareOptions, locale: NSLocale?) -> String {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
         CFStringReplaceAll(string, self._cfObject)
         CFStringFold(string, options._cfValue(), locale?._cfObject)
         return string._swiftObject
     }
     
-    internal func _stringByReplacingOccurrencesOfRegularExpressionPattern(pattern: String, withTemplate replacement: String, options: NSStringCompareOptions, range: NSRange) -> String {
+    internal func _stringByReplacingOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: NSStringCompareOptions, range: NSRange) -> String {
         let regexOptions: NSRegularExpressionOptions = options.contains(.CaseInsensitiveSearch) ? .CaseInsensitive : []
         let matchingOptions: NSMatchingOptions = options.contains(.AnchoredSearch) ? .Anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
@@ -1114,7 +1114,7 @@ extension NSString {
         return ""
     }
     
-    public func stringByReplacingOccurrencesOfString(target: String, withString replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> String {
+    public func stringByReplacingOccurrencesOfString(_ target: String, withString replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> String {
         if options.contains(.RegularExpressionSearch) {
             return _stringByReplacingOccurrencesOfRegularExpressionPattern(target, withTemplate: replacement, options: options, range: searchRange)
         }
@@ -1126,17 +1126,17 @@ extension NSString {
         }
     }
     
-    public func stringByReplacingOccurrencesOfString(target: String, withString replacement: String) -> String {
+    public func stringByReplacingOccurrencesOfString(_ target: String, withString replacement: String) -> String {
         return stringByReplacingOccurrencesOfString(target, withString: replacement, options: [], range: NSMakeRange(0, length))
     }
     
-    public func stringByReplacingCharactersInRange(range: NSRange, withString replacement: String) -> String {
+    public func stringByReplacingCharactersInRange(_ range: NSRange, withString replacement: String) -> String {
         let str = mutableCopyWithZone(nil) as! NSMutableString
         str.replaceCharactersInRange(range, withString: replacement)
         return str._swiftObject
     }
     
-    public func stringByApplyingTransform(transform: String, reverse: Bool) -> String? {
+    public func stringByApplyingTransform(_ transform: String, reverse: Bool) -> String? {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
         CFStringReplaceAll(string, _cfObject)
         if (CFStringTransform(string, nil, transform._cfObject, reverse)) {
@@ -1146,7 +1146,7 @@ extension NSString {
         }
     }
     
-    internal func _getExternalRepresentation(data: inout NSData, _ dest: NSURL, _ enc: UInt) throws {
+    internal func _getExternalRepresentation(_ data: inout NSData, _ dest: NSURL, _ enc: UInt) throws {
         let length = self.length
         var numBytes = 0
         let theRange = NSMakeRange(0, length)
@@ -1166,7 +1166,7 @@ extension NSString {
         data = mData
     }
     
-    internal func _writeTo(url: NSURL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
+    internal func _writeTo(_ url: NSURL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
         var data = NSData()
         try _getExternalRepresentation(&data, url, enc)
         
@@ -1183,11 +1183,11 @@ extension NSString {
         }
     }
     
-    public func writeToURL(url: NSURL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
+    public func writeToURL(_ url: NSURL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
         try _writeTo(url, useAuxiliaryFile, enc)
     }
     
-    public func writeToFile(path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
+    public func writeToFile(_ path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
         try _writeTo(NSURL(fileURLWithPath: path), useAuxiliaryFile, enc)
     }
     
@@ -1303,7 +1303,7 @@ extension NSString {
 extension NSString : StringLiteralConvertible { }
 
 public class NSMutableString : NSString {
-    public func replaceCharactersInRange(range: NSRange, withString aString: String) {
+    public func replaceCharactersInRange(_ range: NSRange, withString aString: String) {
         if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
             // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
             let start = _storage.startIndex
@@ -1352,7 +1352,7 @@ public class NSMutableString : NSString {
         super.init(aString)
     }
     
-    internal func appendCharacters(characters: UnsafePointer<unichar>, length: Int) {
+    internal func appendCharacters(_ characters: UnsafePointer<unichar>, length: Int) {
         if self.dynamicType == NSMutableString.self {
             _storage.append(String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
         } else {
@@ -1360,7 +1360,7 @@ public class NSMutableString : NSString {
         }
     }
     
-    internal func _cfAppendCString(characters: UnsafePointer<Int8>, length: Int) {
+    internal func _cfAppendCString(_ characters: UnsafePointer<Int8>, length: Int) {
         if self.dynamicType == NSMutableString.self {
             _storage.append(String(cString: characters))
         }
@@ -1368,23 +1368,23 @@ public class NSMutableString : NSString {
 }
 
 extension NSMutableString {
-    public func insertString(aString: String, atIndex loc: Int) {
+    public func insertString(_ aString: String, atIndex loc: Int) {
         replaceCharactersInRange(NSMakeRange(loc, 0), withString: aString)
     }
     
-    public func deleteCharactersInRange(range: NSRange) {
+    public func deleteCharactersInRange(_ range: NSRange) {
         replaceCharactersInRange(range, withString: "")
     }
     
-    public func appendString(aString: String) {
+    public func appendString(_ aString: String) {
         replaceCharactersInRange(NSMakeRange(length, 0), withString: aString)
     }
     
-    public func setString(aString: String) {
+    public func setString(_ aString: String) {
         replaceCharactersInRange(NSMakeRange(0, length), withString: aString)
     }
     
-    internal func _replaceOccurrencesOfRegularExpressionPattern(pattern: String, withTemplate replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> Int {
+    internal func _replaceOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> Int {
         let regexOptions: NSRegularExpressionOptions = options.contains(.CaseInsensitiveSearch) ? .CaseInsensitive : []
         let matchingOptions: NSMatchingOptions = options.contains(.AnchoredSearch) ? .Anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
@@ -1393,7 +1393,7 @@ extension NSMutableString {
         return 0
     }
     
-    public func replaceOccurrencesOfString(target: String, withString replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> Int {
+    public func replaceOccurrencesOfString(_ target: String, withString replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> Int {
         let backwards = options.contains(.BackwardsSearch)
         let len = length
         
@@ -1417,7 +1417,7 @@ extension NSMutableString {
 
     }
     
-    public func applyTransform(transform: String, reverse: Bool, range: NSRange, updatedRange resultingRange: NSRangePointer) -> Bool {
+    public func applyTransform(_ transform: String, reverse: Bool, range: NSRange, updatedRange resultingRange: NSRangePointer) -> Bool {
         var cfRange = CFRangeMake(range.location, range.length)
         return withUnsafeMutablePointer(&cfRange) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
             if CFStringTransform(_cfMutableObject, rangep, transform._cfObject, reverse) {
