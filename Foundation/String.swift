@@ -1595,7 +1595,7 @@ extension String {
             range, opts, nil)
     }
 
-    public func hasSuffix(suffix: String) -> Bool {
+    public func hasSuffix(_ suffix: String) -> Bool {
         let cfstring = self._cfObject
         let range = CFRangeMake(0, CFStringGetLength(cfstring))
         let opts = CFStringCompareFlags(
