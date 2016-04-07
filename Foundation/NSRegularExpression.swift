@@ -247,7 +247,7 @@ extension NSRegularExpression {
             let replacement = replacementStringForResult(result, inString: string._swiftObject, offset: offset, template: templ)
             currentRnage.location += offset
             
-            string.replaceCharactersInRange(currentRnage, withString: replacement)
+            string.replaceCharactersInRange(range: currentRnage, withString: replacement)
             offset += replacement.length - currentRnage.length
             count += 1
         }
@@ -276,7 +276,7 @@ extension NSRegularExpression {
             while range.length > 0 {
                 var c = str.characterAtIndex(range.location)
                 if c == unichar(unicodeScalarLiteral: "\\") {
-                    str.deleteCharactersInRange(range)
+                    str.deleteCharactersInRange(range: range)
                     length -= range.length
                     range.length = 1
                 } else if c == unichar(unicodeScalarLiteral: "$") {
@@ -311,7 +311,7 @@ extension NSRegularExpression {
                             let max = start.advanced(by: substringRange.location + substringRange.length)
                             substring = String(string.utf16[min..<max])
                         }
-                        str.replaceCharactersInRange(rangeToReplace, withString: substring)
+                        str.replaceCharactersInRange(range: rangeToReplace, withString: substring)
                         
                         length += substringRange.length - rangeToReplace.length
                         range.length = substringRange.length

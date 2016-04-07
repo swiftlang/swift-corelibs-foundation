@@ -355,10 +355,10 @@ extension NSEdgeInsets: NSSpecialValueCoding {
 
     init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
-            self.top = aDecoder._decodeCGFloatForKey("NS.edgeval.top")
-            self.left = aDecoder._decodeCGFloatForKey("NS.edgeval.left")
-            self.bottom = aDecoder._decodeCGFloatForKey("NS.edgeval.bottom")
-            self.right = aDecoder._decodeCGFloatForKey("NS.edgeval.right")
+            self.top = aDecoder._decodeCGFloatForKey(key: "NS.edgeval.top")
+            self.left = aDecoder._decodeCGFloatForKey(key: "NS.edgeval.left")
+            self.bottom = aDecoder._decodeCGFloatForKey(key: "NS.edgeval.bottom")
+            self.right = aDecoder._decodeCGFloatForKey(key: "NS.edgeval.right")
         } else {
             NSUnimplemented()
         }

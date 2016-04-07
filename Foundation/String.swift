@@ -1339,7 +1339,7 @@ extension String {
     public func stringByFoldingWithOptions(
         _ options: NSStringCompareOptions, locale: NSLocale?
         ) -> String {
-        return _ns.stringByFoldingWithOptions(options, locale: locale)
+        return _ns.stringByFoldingWithOptions(options: options, locale: locale)
     }
     
     // - (NSString *)stringByPaddingToLength:(NSUInteger)newLength
@@ -1354,7 +1354,7 @@ extension String {
         _ newLength: Int, withString padString: String, startingAtIndex padIndex: Int
         ) -> String {
         return _ns.stringByPaddingToLength(
-            newLength, withString: padString, startingAtIndex: padIndex)
+            newLength: newLength, withString: padString, startingAtIndex: padIndex)
     }
     
     // @property NSString* stringByRemovingPercentEncoding;
@@ -1377,7 +1377,7 @@ extension String {
         _ range: Range<Index>, withString replacement: String
         ) -> String {
         return _ns.stringByReplacingCharactersInRange(
-            _toNSRange(range), withString: replacement)
+            range: _toNSRange(range), withString: replacement)
     }
     
     // - (NSString *)
@@ -1402,11 +1402,11 @@ extension String {
         ) -> String {
         return (searchRange != nil) || (!options.isEmpty)
             ? _ns.stringByReplacingOccurrencesOfString(
-                target,
+                target: target,
                 withString: replacement, options: options,
                             range: _toNSRange(searchRange ?? self.characters.indices)
                 )
-            : _ns.stringByReplacingOccurrencesOfString(target, withString: replacement)
+            : _ns.stringByReplacingOccurrencesOfString(target: target, withString: replacement)
     }
     
     // - (NSString *)
@@ -1516,7 +1516,7 @@ extension String {
         encoding enc: NSStringEncoding
         ) throws {
         try self._ns.writeToFile(
-            path, atomically: useAuxiliaryFile, encoding: enc)
+            path: path, atomically: useAuxiliaryFile, encoding: enc)
     }
     
     // - (BOOL)
@@ -1532,7 +1532,7 @@ extension String {
         encoding enc: NSStringEncoding
         ) throws {
         try self._ns.writeToURL(
-            url, atomically: useAuxiliaryFile, encoding: enc)
+            url: url, atomically: useAuxiliaryFile, encoding: enc)
     }
     
     // - (nullable NSString *)stringByApplyingTransform:(NSString *)transform reverse:(BOOL)reverse NS_AVAILABLE(10_11, 9_0);
@@ -1542,7 +1542,7 @@ extension String {
     public func stringByApplyingTransform(
         _ transform: String, reverse: Bool
         ) -> String? {
-        return _ns.stringByApplyingTransform(transform, reverse: reverse)
+        return _ns.stringByApplyingTransform(transform: transform, reverse: reverse)
     }
     
     //===--- From the 10.10 release notes; not in public documentation ------===//

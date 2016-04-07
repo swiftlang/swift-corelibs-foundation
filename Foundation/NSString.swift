@@ -1116,10 +1116,10 @@ extension NSString {
     
     public func stringByReplacingOccurrencesOfString(target: String, withString replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> String {
         if options.contains(.RegularExpressionSearch) {
-            return _stringByReplacingOccurrencesOfRegularExpressionPattern(target, withTemplate: replacement, options: options, range: searchRange)
+            return _stringByReplacingOccurrencesOfRegularExpressionPattern(pattern: target, withTemplate: replacement, options: options, range: searchRange)
         }
         let str = mutableCopyWithZone(nil) as! NSMutableString
-        if str.replaceOccurrencesOfString(target, withString: replacement, options: options, range: searchRange) == 0 {
+        if str.replaceOccurrencesOfString(target: target, withString: replacement, options: options, range: searchRange) == 0 {
             return _swiftObject
         } else {
             return str._swiftObject
@@ -1127,12 +1127,12 @@ extension NSString {
     }
     
     public func stringByReplacingOccurrencesOfString(target: String, withString replacement: String) -> String {
-        return stringByReplacingOccurrencesOfString(target, withString: replacement, options: [], range: NSMakeRange(0, length))
+        return stringByReplacingOccurrencesOfString(target: target, withString: replacement, options: [], range: NSMakeRange(0, length))
     }
     
     public func stringByReplacingCharactersInRange(range: NSRange, withString replacement: String) -> String {
         let str = mutableCopyWithZone(nil) as! NSMutableString
-        str.replaceCharactersInRange(range, withString: replacement)
+        str.replaceCharactersInRange(range: range, withString: replacement)
         return str._swiftObject
     }
     
@@ -1168,7 +1168,7 @@ extension NSString {
     
     internal func _writeTo(url: NSURL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
         var data = NSData()
-        try _getExternalRepresentation(&data, url, enc)
+        try _getExternalRepresentation(data: &data, url, enc)
         
         if url.fileURL {
             try data.writeToURL(url, options: useAuxiliaryFile ? .DataWritingAtomic : [])
@@ -1184,11 +1184,11 @@ extension NSString {
     }
     
     public func writeToURL(url: NSURL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
-        try _writeTo(url, useAuxiliaryFile, enc)
+        try _writeTo(url: url, useAuxiliaryFile, enc)
     }
     
     public func writeToFile(path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
-        try _writeTo(NSURL(fileURLWithPath: path), useAuxiliaryFile, enc)
+        try _writeTo(url: NSURL(fileURLWithPath: path), useAuxiliaryFile, enc)
     }
     
     public convenience init(charactersNoCopy characters: UnsafeMutablePointer<unichar>, length: Int, freeWhenDone freeBuffer: Bool) /* "NoCopy" is a hint */ {
@@ -1356,7 +1356,7 @@ public class NSMutableString : NSString {
         if self.dynamicType == NSMutableString.self {
             _storage.append(String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
         } else {
-            replaceCharactersInRange(NSMakeRange(self.length, 0), withString: String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
+            replaceCharactersInRange(range: NSMakeRange(self.length, 0), withString: String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
         }
     }
     
@@ -1369,19 +1369,19 @@ public class NSMutableString : NSString {
 
 extension NSMutableString {
     public func insertString(aString: String, atIndex loc: Int) {
-        replaceCharactersInRange(NSMakeRange(loc, 0), withString: aString)
+        replaceCharactersInRange(range: NSMakeRange(loc, 0), withString: aString)
     }
     
     public func deleteCharactersInRange(range: NSRange) {
-        replaceCharactersInRange(range, withString: "")
+        replaceCharactersInRange(range: range, withString: "")
     }
     
     public func appendString(aString: String) {
-        replaceCharactersInRange(NSMakeRange(length, 0), withString: aString)
+        replaceCharactersInRange(range: NSMakeRange(length, 0), withString: aString)
     }
     
     public func setString(aString: String) {
-        replaceCharactersInRange(NSMakeRange(0, length), withString: aString)
+        replaceCharactersInRange(range: NSMakeRange(0, length), withString: aString)
     }
     
     internal func _replaceOccurrencesOfRegularExpressionPattern(pattern: String, withTemplate replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> Int {
@@ -1400,7 +1400,7 @@ extension NSMutableString {
         precondition(searchRange.length <= len && searchRange.location <= len - searchRange.length, "Search range is out of bounds")
         
         if options.contains(.RegularExpressionSearch) {
-            return _replaceOccurrencesOfRegularExpressionPattern(target, withTemplate:replacement, options:options, range: searchRange)
+            return _replaceOccurrencesOfRegularExpressionPattern(pattern: target, withTemplate:replacement, options:options, range: searchRange)
         }
         
 
@@ -1408,7 +1408,7 @@ extension NSMutableString {
             let numOccurrences = CFArrayGetCount(findResults)
             for cnt in 0..<numOccurrences {
                 let range = UnsafePointer<CFRange>(CFArrayGetValueAtIndex(findResults, backwards ? cnt : numOccurrences - cnt - 1))
-                replaceCharactersInRange(NSRange(range.pointee), withString: replacement)
+                replaceCharactersInRange(range: NSRange(range.pointee), withString: replacement)
             }
             return numOccurrences
         } else {

@@ -24,7 +24,7 @@ public func NSTemporaryDirectory() -> String {
     }
     #endif
     if let tmpdir = NSProcessInfo.processInfo().environment["TMPDIR"] {
-        if !tmpdir.hasSuffix("/") {
+        if !tmpdir.hasSuffix(suffix: "/") {
             return tmpdir + "/"
         } else {
             return tmpdir
@@ -36,7 +36,7 @@ public func NSTemporaryDirectory() -> String {
 internal extension String {
     
     internal var _startOfLastPathComponent : String.CharacterView.Index {
-        precondition(!hasSuffix("/") && length > 1)
+        precondition(!hasSuffix(suffix: "/") && length > 1)
         
         let characterView = characters
         let startPos = characterView.startIndex
@@ -56,7 +56,7 @@ internal extension String {
     }
 
     internal var _startOfPathExtension : String.CharacterView.Index? {
-        precondition(!hasSuffix("/"))
+        precondition(!hasSuffix(suffix: "/"))
         
         let characterView = self.characters
         let endPos = characterView.endIndex
@@ -124,7 +124,7 @@ internal extension String {
                 }
             }
         }
-        if stripTrailing && result.length > 1 && result.hasSuffix("/") {
+        if stripTrailing && result.length > 1 && result.hasSuffix(suffix: "/") {
             result.remove(at: result.characters.endIndex.predecessor())
         }
         return result
@@ -264,7 +264,7 @@ public extension NSString {
                 }
             }
         }
-        if stripTrailing && result.hasSuffix("/") {
+        if stripTrailing && result.hasSuffix(suffix: "/") {
             result.remove(at: result.characters.endIndex.predecessor())
         }
         return result
@@ -441,7 +441,7 @@ public extension NSString {
     }
 
     internal func _stringIsPathToDirectory(_ path: String) -> Bool {
-        if !path.hasSuffix("/") {
+        if !path.hasSuffix(suffix: "/") {
             return false
         }
         
@@ -540,7 +540,7 @@ public extension NSString {
     }
     
     internal func _ensureLastPathSeparator(_ path: String) -> String {
-        if path.hasSuffix("/") || path.isEmpty {
+        if path.hasSuffix(suffix: "/") || path.isEmpty {
             return path
         }
         

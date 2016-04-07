@@ -127,7 +127,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         let thePath = _standardizedPath(path)
         
         var isDir : Bool = false
-        if thePath.hasSuffix("/") {
+        if thePath.hasSuffix(suffix: "/") {
             isDir = true
         } else {
             let absolutePath: String
@@ -150,7 +150,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         let thePath = _standardizedPath(path)
         
         var isDir : Bool = false
-        if thePath.hasSuffix("/") {
+        if thePath.hasSuffix(suffix: "/") {
             isDir = true
         } else {
             NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDir)
@@ -476,7 +476,7 @@ extension NSURL {
     
     public func URLByAppendingPathComponent(_ pathComponent: String) -> NSURL? {
         var result : NSURL? = URLByAppendingPathComponent(pathComponent, isDirectory: false)
-        if !pathComponent.hasSuffix("/") && fileURL {
+        if !pathComponent.hasSuffix(suffix: "/") && fileURL {
             if let urlWithoutDirectory = result, path = urlWithoutDirectory.path {
                 var isDir : Bool = false
                 if NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDir) && isDir {
@@ -564,7 +564,7 @@ extension NSURL {
             resolvedPath = resolvedPath._tryToRemovePathPrefix("/private") ?? resolvedPath
         }
         
-        if isExistingDirectory && !resolvedPath.hasSuffix("/") {
+        if isExistingDirectory && !resolvedPath.hasSuffix(suffix: "/") {
             resolvedPath += "/"
         }
         
