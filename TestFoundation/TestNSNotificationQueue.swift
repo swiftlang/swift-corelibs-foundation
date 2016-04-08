@@ -213,41 +213,22 @@ class TestNSNotificationQueue : XCTestCase {
     // MARK: Private
 
     private func scheduleTimer(withInterval interval: NSTimeInterval) {
-        var isInvoked = false
+        let e = expectation(withDescription: "Timer")
         let dummyTimer = NSTimer.scheduledTimer(interval, repeats: false) { _ in
-            isInvoked = true
+            e.fulfill()
         }
         NSRunLoop.currentRunLoop().addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        self.waitForExpectation({
-            return isInvoked
-        }, withTimeout: 0.1)
+        waitForExpectations(withTimeout: 0.1)
     }
 
-    private func executeInBackgroundThread(_ operation: () -> ()) -> Bool {
-        var isFinished = false
-        let lock = NSLock()
+    private func executeInBackgroundThread(_ operation: () -> Void) {
+        let e = expectation(withDescription: "Background Execution")
         let bgThread = NSThread() {
             operation()
-            lock.lock()
-            isFinished = true
-            lock.unlock()
+            e.fulfill()
         }
         bgThread.start()
 
-        return self.waitForExpectation({
-            lock.lock()
-            let finished = isFinished
-            lock.unlock()
-            return finished
-        }, withTimeout: 0.2)
+        waitForExpectations(withTimeout: 0.2)
     }
-
-    private func waitForExpectation(_ expectation: () -> Bool, withTimeout timeout: NSTimeInterval) -> Bool {
-        let timeoutDate = NSDate(timeIntervalSinceNow: timeout)
-        while !expectation() && timeoutDate.timeIntervalSinceNow > 0.0 {
-            NSRunLoop.currentRunLoop().runUntilDate(NSDate(timeIntervalSinceNow: 0.01))
-        }
-        return expectation()
-    }
-
 }
