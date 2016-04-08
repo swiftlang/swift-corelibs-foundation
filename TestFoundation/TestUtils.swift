@@ -33,7 +33,7 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
         } else {
         
             var isDir: ObjCBool = false
-            let dir = name.bridge().stringByDeletingLastPathComponent
+            let dir = (name as NSString).stringByDeletingLastPathComponent
             if !fm.fileExists(atPath: dir, isDirectory: &isDir) {
                 do {
                     try fm.createDirectory(atPath: dir, withIntermediateDirectories: true, attributes: nil)

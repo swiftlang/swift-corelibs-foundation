@@ -106,14 +106,14 @@ class TestNSString : XCTestCase {
         let literalConversion: NSString = "literal"
         XCTAssertEqual(literalConversion.length, 7)
         
-        let nonLiteralConversion: NSString = "test\(self)".bridge()
+        let nonLiteralConversion: NSString = "test\(self)" as NSString
         XCTAssertTrue(nonLiteralConversion.length > 4)
         
-        let nonLiteral2: NSString = String(4).bridge()
+        let nonLiteral2: NSString = String(4) as NSString
         let t = nonLiteral2.characterAtIndex(0)
         XCTAssertTrue(t == 52)
         
-        let externalString: NSString = String.localizedNameOfStringEncoding(String.defaultCStringEncoding()).bridge()
+        let externalString: NSString = String.localizedNameOfStringEncoding(String.defaultCStringEncoding()) as NSString
         XCTAssertTrue(externalString.length >= 4)
         
         let cluster: NSString = "✌🏾"
@@ -382,8 +382,8 @@ class TestNSString : XCTestCase {
     func test_CFStringCreateMutableCopy() {
         let nsstring: NSString = "абВГ"
         let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, to: CFString.self))
-        let str = unsafeBitCast(mCopy, to: NSString.self).bridge()
-        XCTAssertEqual(nsstring.bridge(), str)
+        let str = unsafeBitCast(mCopy, to: NSString.self) as String
+        XCTAssertEqual(nsstring as String, str)
     }
     
     // This test verifies that CFStringGetBytes with a UTF16 encoding works on an NSString backed by a Swift string
@@ -427,7 +427,7 @@ class TestNSString : XCTestCase {
         }
 
         let tmpPath = { (path: String) -> NSString in
-        	return "/tmp/\(path)".bridge()
+        	return "/tmp/\(path)" as NSString
         }
 
         do {
@@ -435,7 +435,7 @@ class TestNSString : XCTestCase {
             var outName: NSString?
             var matches: [NSString] = []
             _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            _ = try NSFileManager.defaultManager().contentsOfDirectory(at: NSURL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
+            _ = try NSFileManager.defaultManager().contentsOfDirectory(at: NSURL(string: path as String)!, includingPropertiesForKeys: nil, options: [])
             XCTAssert(outName == "/", "If NSString is valid path to directory which has '/' suffix then outName is '/'.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389
 //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")
@@ -561,7 +561,7 @@ class TestNSString : XCTestCase {
             let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
             // Build directory at least contains executable itself and *.swiftmodule directory
             XCTAssert(matches.count == count && count >= 2, "Supports relative paths.")
-            XCTAssert(startWith(path.bridge(), strings: matches), "For relative paths matches are relative too.")
+            XCTAssert(startWith(path as String, strings: matches), "For relative paths matches are relative too.")
         }
         
         // Next check has no sense on Linux due to case sensitive file system.
@@ -594,7 +594,7 @@ class TestNSString : XCTestCase {
     }
     
     private func stringsAreCaseInsensitivelyEqual(_ lhs: NSString, _ rhs: NSString) -> Bool {
-    	return lhs.compare(rhs.bridge(), options: .CaseInsensitiveSearch) == .OrderedSame
+    	return lhs.compare(rhs as String, options: .CaseInsensitiveSearch) == .OrderedSame
     }
 
     func test_stringByTrimmingCharactersInSet() {
@@ -836,7 +836,7 @@ class TestNSString : XCTestCase {
         do {
             let path: NSString = "foo/bar"
             let result = path.stringByStandardizingPath
-            XCTAssertEqual(result, path.bridge(), "stringByStandardizingPath doesn't resolve relative paths")
+            XCTAssertEqual(result, path as String, "stringByStandardizingPath doesn't resolve relative paths")
         }
         
         // tmp is symlinked on OS X only
@@ -857,7 +857,7 @@ class TestNSString : XCTestCase {
         do {
             let path: NSString = "tmp/ABC/.."
             let result = path.stringByStandardizingPath
-            XCTAssertEqual(result, path.bridge(), "parent links could not be resolved for relative paths")
+            XCTAssertEqual(result, path as String, "parent links could not be resolved for relative paths")
         }
     }
 
@@ -1142,7 +1142,7 @@ func test_reflection() {
     let ql = PlaygroundQuickLook(reflecting: testString)
 
     switch ql {
-    case .text(let str): XCTAssertEqual(testString.bridge(), str)
+    case .text(let str): XCTAssertEqual(testString as String, str)
     default: XCTAssertTrue(false, "mismatched quicklook")
     }
 }

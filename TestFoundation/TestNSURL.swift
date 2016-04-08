@@ -267,7 +267,7 @@ class TestNSURL : XCTestCase {
     func test_fileURLWithPath() {
         if !TestNSURL.setup_test_paths() {
             let error = strerror(errno)
-            XCTFail("Failed to set up test paths: \(NSString(bytes: error, length: Int(strlen(error)), encoding: NSASCIIStringEncoding)!.bridge())")
+            XCTFail("Failed to set up test paths: \(NSString(bytes: error, length: Int(strlen(error)), encoding: NSASCIIStringEncoding) as! String)")
         }
         
         // test with file that exists
@@ -312,7 +312,7 @@ class TestNSURL : XCTestCase {
     func test_fileURLWithPath_isDirectory() {
         if !TestNSURL.setup_test_paths() {
             let error = strerror(errno)
-            XCTFail("Failed to set up test paths: \(NSString(bytes: error, length: Int(strlen(error)), encoding: NSASCIIStringEncoding)!.bridge())")
+            XCTFail("Failed to set up test paths: \(NSString(bytes: error, length: Int(strlen(error)), encoding: NSASCIIStringEncoding) as! String)")
         }
             
         // test with file that exists

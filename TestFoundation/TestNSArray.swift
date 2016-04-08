@@ -48,24 +48,24 @@ class TestNSArray : XCTestCase {
     
     func test_BasicConstruction() {
         let array = NSArray()
-        let array2 : NSArray = ["foo", "bar"].bridge()
+        let array2 : NSArray = ["foo", "bar"] as NSArray
         XCTAssertEqual(array.count, 0)
         XCTAssertEqual(array2.count, 2)
     }
     
     func test_enumeration() {
-        let array : NSArray = ["foo", "bar", "baz"].bridge()
+        let array : NSArray = ["foo", "bar", "baz"] as NSArray
         let e = array.objectEnumerator()
-        XCTAssertEqual((e.nextObject() as! NSString).bridge(), "foo")
-        XCTAssertEqual((e.nextObject() as! NSString).bridge(), "bar")
-        XCTAssertEqual((e.nextObject() as! NSString).bridge(), "baz")
+        XCTAssertEqual((e.nextObject() as! NSString) as String, "foo")
+        XCTAssertEqual((e.nextObject() as! NSString) as String, "bar")
+        XCTAssertEqual((e.nextObject() as! NSString) as String, "baz")
         XCTAssertNil(e.nextObject())
         XCTAssertNil(e.nextObject())
         
         let r = array.reverseObjectEnumerator()
-        XCTAssertEqual((r.nextObject() as! NSString).bridge(), "baz")
-        XCTAssertEqual((r.nextObject() as! NSString).bridge(), "bar")
-        XCTAssertEqual((r.nextObject() as! NSString).bridge(), "foo")
+        XCTAssertEqual((r.nextObject() as! NSString) as String, "baz")
+        XCTAssertEqual((r.nextObject() as! NSString) as String, "bar")
+        XCTAssertEqual((r.nextObject() as! NSString) as String, "foo")
         XCTAssertNil(r.nextObject())
         XCTAssertNil(r.nextObject())
         
@@ -79,34 +79,34 @@ class TestNSArray : XCTestCase {
     }
     
     func test_sequenceType() {
-        let array : NSArray = ["foo", "bar", "baz"].bridge()
+        let array : NSArray = ["foo", "bar", "baz"] as NSArray
         var res = [String]()
         for obj in array {
-            res.append((obj as! NSString).bridge())
+            res.append((obj as! NSString) as String)
         }
         XCTAssertEqual(res, ["foo", "bar", "baz"])
     }
 
     func test_getObjects() {
-        let array : NSArray = ["foo", "bar", "baz", "foo1", "bar2", "baz3",].bridge()
+        let array : NSArray = ["foo", "bar", "baz", "foo1", "bar2", "baz3",] as NSArray
         var objects = [AnyObject]()
         array.getObjects(&objects, range: NSMakeRange(1, 3))
         XCTAssertEqual(objects.count, 3)
         let fetched = [
-            (objects[0] as! NSString).bridge(),
-            (objects[1] as! NSString).bridge(),
-            (objects[2] as! NSString).bridge(),
+            (objects[0] as! NSString) as String,
+            (objects[1] as! NSString) as String,
+            (objects[2] as! NSString) as String,
         ]
         XCTAssertEqual(fetched, ["bar", "baz", "foo1"])
     }
     
     func test_objectAtIndex() {
-        let array : NSArray = ["foo", "bar"].bridge()
+        let array : NSArray = ["foo", "bar"] as NSArray
         let foo = array.objectAtIndex(0) as! NSString
-        XCTAssertEqual(foo, "foo".bridge())
+        XCTAssertEqual(foo, "foo" as NSString)
         
         let bar = array.objectAtIndex(1) as! NSString
-        XCTAssertEqual(bar, "bar".bridge())
+        XCTAssertEqual(bar, "bar" as NSString)
     }
 
     func test_binarySearch() {
@@ -273,52 +273,52 @@ class TestNSArray : XCTestCase {
     
     func test_replaceObjectsInRange_withObjectsFromArray() {
         let array1 = NSMutableArray(array:[
-            "foo1".bridge(),
-            "bar1".bridge(),
-            "baz1".bridge()])
+            "foo1" as NSString,
+            "bar1" as NSString,
+            "baz1" as NSString])
         
         let array2: [AnyObject] = [
-            "foo2".bridge(),
-            "bar2".bridge(),
-            "baz2".bridge()]
+            "foo2" as NSString,
+            "bar2" as NSString,
+            "baz2" as NSString]
         
         array1.replaceObjectsInRange(NSMakeRange(0, 2), withObjectsFromArray: array2)
         
-        XCTAssertEqual(array1[0] as? NSString, "foo2".bridge(), "Expected foo2 but was \(array1[0])")
-        XCTAssertEqual(array1[1] as? NSString, "bar2".bridge(), "Expected bar2 but was \(array1[1])")
-        XCTAssertEqual(array1[2] as? NSString, "baz2".bridge(), "Expected baz2 but was \(array1[2])")
-        XCTAssertEqual(array1[3] as? NSString, "baz1".bridge(), "Expected baz1 but was \(array1[3])")
+        XCTAssertEqual(array1[0] as? NSString, "foo2" as NSString, "Expected foo2 but was \(array1[0])")
+        XCTAssertEqual(array1[1] as? NSString, "bar2" as NSString, "Expected bar2 but was \(array1[1])")
+        XCTAssertEqual(array1[2] as? NSString, "baz2" as NSString, "Expected baz2 but was \(array1[2])")
+        XCTAssertEqual(array1[3] as? NSString, "baz1" as NSString, "Expected baz1 but was \(array1[3])")
     }
     
     func test_replaceObjectsInRange_withObjectsFromArray_range() {
         let array1 = NSMutableArray(array:[
-            "foo1".bridge(),
-            "bar1".bridge(),
-            "baz1".bridge()])
+            "foo1" as NSString,
+            "bar1" as NSString,
+            "baz1" as NSString])
         
         let array2: [AnyObject] = [
-            "foo2".bridge(),
-            "bar2".bridge(),
-            "baz2".bridge()]
+            "foo2" as NSString,
+            "bar2" as NSString,
+            "baz2" as NSString]
         
         array1.replaceObjectsInRange(NSMakeRange(1, 1), withObjectsFromArray: array2, range: NSMakeRange(1, 2))
         
-        XCTAssertEqual(array1[0] as? NSString, "foo1".bridge(), "Expected foo1 but was \(array1[0])")
-        XCTAssertEqual(array1[1] as? NSString, "bar2".bridge(), "Expected bar2 but was \(array1[1])")
-        XCTAssertEqual(array1[2] as? NSString, "baz2".bridge(), "Expected baz2 but was \(array1[2])")
-        XCTAssertEqual(array1[3] as? NSString, "baz1".bridge(), "Expected baz1 but was \(array1[3])")
+        XCTAssertEqual(array1[0] as? NSString, "foo1" as NSString, "Expected foo1 but was \(array1[0])")
+        XCTAssertEqual(array1[1] as? NSString, "bar2" as NSString, "Expected bar2 but was \(array1[1])")
+        XCTAssertEqual(array1[2] as? NSString, "baz2" as NSString, "Expected baz2 but was \(array1[2])")
+        XCTAssertEqual(array1[3] as? NSString, "baz1" as NSString, "Expected baz1 but was \(array1[3])")
     }
 
     func test_sortedArrayUsingComparator() {
         // sort with localized caseInsensitive compare
         let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
         let expectedResult: Array<String> = input.sorted()
-        let result = input.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+        let result = (input as NSArray).sortedArrayUsingComparator { left, right -> NSComparisonResult in
             let l = left as! NSString
             let r = right as! NSString
-            return l.localizedCaseInsensitiveCompare(r.bridge())
+            return l.localizedCaseInsensitiveCompare(r as String)
         }
-        XCTAssertEqual(result.map { ($0 as! NSString).bridge()} , expectedResult)
+        XCTAssertEqual(result.map { ($0 as! NSString) as String} , expectedResult)
 
         // sort empty array
         let emptyArray = NSArray().sortedArrayUsingComparator { _,_ in .OrderedSame }
@@ -327,7 +327,7 @@ class TestNSArray : XCTestCase {
         // sort numbers
         let inputNumbers = [0, 10, 25, 100, 21, 22]
         let expectedNumbers = inputNumbers.sorted()
-        let resultNumbers = inputNumbers.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+        let resultNumbers = (inputNumbers as NSArray).sortedArrayUsingComparator { left, right -> NSComparisonResult in
             let l = (left as! NSNumber).integerValue
             let r = (right as! NSNumber).integerValue
             return l < r ? .OrderedAscending : (l > r ? .OrderedSame : .OrderedDescending)
@@ -337,16 +337,16 @@ class TestNSArray : XCTestCase {
 
     func test_sortedArrayWithOptionsUsingComparator() {
         // check that sortedArrayWithOptions:comparator: works in the way sortedArrayUsingComparator does
-        let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"].bridge()
+        let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"] as NSArray
         let comparator: (AnyObject, AnyObject) -> NSComparisonResult = { left, right -> NSComparisonResult in
             let l = left as! NSString
             let r = right as! NSString
-            return l.localizedCaseInsensitiveCompare(r.bridge())
+            return l.localizedCaseInsensitiveCompare(r as String)
         }
         let result1 = input.sortedArrayUsingComparator(comparator)
         let result2 = input.sortedArrayWithOptions([], usingComparator: comparator)
 
-        XCTAssertTrue(result1.bridge().isEqualToArray(result2))
+        XCTAssertTrue((result1 as NSArray).isEqualToArray(result2))
 
         // sort empty array
         let emptyArray = NSArray().sortedArrayWithOptions([]) { _,_ in .OrderedSame }
@@ -355,7 +355,7 @@ class TestNSArray : XCTestCase {
 
     func test_sortUsingFunction() {
         let inputNumbers = [11, 120, 215, 11, 1, -22, 35, -89, 65]
-        let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
+        let mutableInput = (inputNumbers as NSArray).mutableCopy() as! NSMutableArray
         let expectedNumbers = inputNumbers.sorted()
 
         func compare(_ left: AnyObject, right:AnyObject,  context: UnsafeMutablePointer<Void>?) -> Int {
@@ -371,7 +371,7 @@ class TestNSArray : XCTestCase {
     func test_sortUsingComparator() {
         // check behaviour with Array's sort method
         let inputNumbers = [11, 120, 215, 11, 1, -22, 35, -89, 65]
-        let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
+        let mutableInput = (inputNumbers as NSArray).mutableCopy() as! NSMutableArray
         let expectedNumbers = inputNumbers.sorted()
 
         mutableInput.sortUsingComparator { left, right -> NSComparisonResult in
@@ -384,40 +384,40 @@ class TestNSArray : XCTestCase {
 
         // check that it works in the way self.sortWithOptions([], usingComparator: cmptr) does
         let inputStrings = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
-        let mutableStringsInput1 = inputStrings.bridge().mutableCopy() as! NSMutableArray
-        let mutableStringsInput2 = inputStrings.bridge().mutableCopy() as! NSMutableArray
+        let mutableStringsInput1 = (inputStrings as NSArray).mutableCopy() as! NSMutableArray
+        let mutableStringsInput2 = (inputStrings as NSArray).mutableCopy() as! NSMutableArray
         let comparator: (AnyObject, AnyObject) -> NSComparisonResult = { left, right -> NSComparisonResult in
             let l = left as! NSString
             let r = right as! NSString
-            return l.localizedCaseInsensitiveCompare(r.bridge())
+            return l.localizedCaseInsensitiveCompare(r as String)
         }
         mutableStringsInput1.sortUsingComparator(comparator)
         mutableStringsInput2.sortWithOptions([], usingComparator: comparator)
-        XCTAssertTrue(mutableStringsInput1.isEqualToArray(mutableStringsInput2.bridge()))
+        XCTAssertTrue(mutableStringsInput1.isEqualToArray(mutableStringsInput2 as Array))
     }
 
     func test_equality() {
-        let array1 = ["this", "is", "a", "test", "of", "equal", "with", "strings"].bridge()
-        let array2 = ["this", "is", "a", "test", "of", "equal", "with", "strings"].bridge()
-        let array3 = ["this", "is", "a", "test", "of", "equal", "with", "objects"].bridge()
+        let array1 = ["this", "is", "a", "test", "of", "equal", "with", "strings"] as NSArray
+        let array2 = ["this", "is", "a", "test", "of", "equal", "with", "strings"] as NSArray
+        let array3 = ["this", "is", "a", "test", "of", "equal", "with", "objects"] as NSArray
 
         XCTAssertTrue(array1 == array2)
         XCTAssertTrue(array1.isEqual(array2))
-        XCTAssertTrue(array1.isEqualToArray(array2.bridge()))
+        XCTAssertTrue(array1.isEqualToArray(array2 as Array))
         // if 2 arrays are equal, hashes should be equal as well. But not vise versa
         XCTAssertEqual(array1.hash, array2.hash)
         XCTAssertEqual(array1.hashValue, array2.hashValue)
 
         XCTAssertFalse(array1 == array3)
         XCTAssertFalse(array1.isEqual(array3))
-        XCTAssertFalse(array1.isEqualToArray(array3.bridge()))
+        XCTAssertFalse(array1.isEqualToArray(array3 as Array))
 
         XCTAssertFalse(array1.isEqual(nil))
         XCTAssertFalse(array1.isEqual(NSObject()))
     }
 
     func test_copying() {
-        let array = ["this", "is", "a", "test", "of", "copy", "with", "strings"].bridge()
+        let array = ["this", "is", "a", "test", "of", "copy", "with", "strings"] as NSArray
 
         let arrayCopy1 = array.copy() as! NSArray
         XCTAssertTrue(array === arrayCopy1)
@@ -433,7 +433,7 @@ class TestNSArray : XCTestCase {
     }
 
     func test_mutableCopying() {
-        let array = ["this", "is", "a", "test", "of", "mutableCopy", "with", "strings"].bridge()
+        let array = ["this", "is", "a", "test", "of", "mutableCopy", "with", "strings"] as NSArray
 
         let arrayMutableCopy1 = array.mutableCopy() as! NSMutableArray
         XCTAssertTrue(arrayMutableCopy1.dynamicType === NSMutableArray.self)

@@ -122,7 +122,7 @@ class TestNSKeyedArchiver : XCTestCase {
     
     func test_archive_array() {
         let array = ["one", "two", "three"]
-        test_archive(array.bridge())
+        test_archive(array as NSArray)
     }
     
     func test_archive_concrete_value() {
@@ -136,7 +136,7 @@ class TestNSKeyedArchiver : XCTestCase {
     
     func test_archive_dictionary() {
         let dictionary = ["one" : 1, "two" : 2, "three" : 3]
-        test_archive(dictionary.bridge())
+        test_archive(dictionary as NSDictionary)
     }
     
     func test_archive_generic_objc() {
@@ -165,17 +165,17 @@ class TestNSKeyedArchiver : XCTestCase {
     
     func test_archive_string() {
         let string = "hello"
-        test_archive(string.bridge())
+        test_archive(string as NSString)
     }
     
     func test_archive_mutable_array() {
         let array = ["one", "two", "three"]
-        test_archive(array.bridge().mutableCopy() as! NSObject)
+        test_archive((array as NSArray).mutableCopy() as! NSObject)
     }
 
     func test_archive_mutable_dictionary() {
         let mdictionary = NSMutableDictionary(objects: [NSNumber(integer: 1), NSNumber(integer: 2), NSNumber(integer: 3)],
-                                              forKeys: ["one".bridge(), "two".bridge(), "three".bridge()])
+                                              forKeys: ["one" as NSString, "two"as NSString, "three" as NSString])
         test_archive(mdictionary)
     }
     

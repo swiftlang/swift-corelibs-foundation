@@ -35,7 +35,7 @@ class TestNSDictionary : XCTestCase {
         
     func test_BasicConstruction() {
         let dict = NSDictionary()
-         let dict2: NSDictionary = ["foo": "bar"].bridge()
+         let dict2: NSDictionary = ["foo": "bar"] as NSDictionary
         XCTAssertEqual(dict.count, 0)
         XCTAssertEqual(dict2.count, 1)
     }
@@ -45,9 +45,9 @@ class TestNSDictionary : XCTestCase {
         // Disabled due to [SR-251]
         // Assertion disabled since it fails on linux targets due to heterogenious collection conversion failure
         /*
-        let d1: NSDictionary = [ "foo": "bar", "baz": "qux"].bridge()
+        let d1: NSDictionary = [ "foo": "bar", "baz": "qux"] as NSDictionary
         XCTAssertEqual(d1.description, "{\n    baz = qux;\n    foo = bar;\n}")
-        let d2: NSDictionary = ["1" : ["1" : ["1" : "1"]]].bridge()
+        let d2: NSDictionary = ["1" : ["1" : ["1" : "1"]]] as NSDictionary
         XCTAssertEqual(d2.description, "{\n    1 =     {\n        1 =         {\n            1 = 1;\n        };\n    };\n}")
         */
     }
@@ -76,59 +76,59 @@ class TestNSDictionary : XCTestCase {
     }
     
     func test_enumeration() {
-        let dict : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"].bridge()
+        let dict : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"] as NSDictionary
         let e = dict.keyEnumerator()
         var keys = Set<String>()
-        keys.insert((e.nextObject()! as! NSString).bridge())
-        keys.insert((e.nextObject()! as! NSString).bridge())
-        keys.insert((e.nextObject()! as! NSString).bridge())
+        keys.insert((e.nextObject()! as! NSString) as String)
+        keys.insert((e.nextObject()! as! NSString) as String)
+        keys.insert((e.nextObject()! as! NSString) as String)
         XCTAssertNil(e.nextObject())
         XCTAssertNil(e.nextObject())
         XCTAssertEqual(keys, ["foo", "whiz", "toil"])
         
         let o = dict.objectEnumerator()
         var objs = Set<String>()
-        objs.insert((o.nextObject()! as! NSString).bridge())
-        objs.insert((o.nextObject()! as! NSString).bridge())
-        objs.insert((o.nextObject()! as! NSString).bridge())
+        objs.insert((o.nextObject()! as! NSString) as String)
+        objs.insert((o.nextObject()! as! NSString) as String)
+        objs.insert((o.nextObject()! as! NSString) as String)
         XCTAssertNil(o.nextObject())
         XCTAssertNil(o.nextObject())
         XCTAssertEqual(objs, ["bar", "bang", "trouble"])
     }
     
     func test_sequenceType() {
-        let dict : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"].bridge()
+        let dict : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"] as NSDictionary
         var result = [String:String]()
         for (key, value) in dict {
-            result[key as! String] = (value as! NSString).bridge()
+            result[key as! String] = (value as! NSString) as String
         }
         XCTAssertEqual(result, ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"])
     }
 
     func test_equality() {
-        let keys = ["foo", "whiz", "toil"].bridge().bridge()
-        let objects1 = ["bar", "bang", "trouble"].bridge().bridge()
-        let objects2 = ["bar", "bang", "troubl"].bridge().bridge()
+        let keys = ["foo", "whiz", "toil"] as NSArray as Array
+        let objects1 = ["bar", "bang", "trouble"] as NSArray as Array
+        let objects2 = ["bar", "bang", "troubl"] as NSArray as Array
         let dict1 = NSDictionary(objects: objects1, forKeys: keys.map({ $0 as! NSObject}))
         let dict2  = NSDictionary(objects: objects1, forKeys: keys.map({ $0 as! NSObject}))
         let dict3  = NSDictionary(objects: objects2, forKeys: keys.map({ $0 as! NSObject}))
 
         XCTAssertTrue(dict1 == dict2)
         XCTAssertTrue(dict1.isEqual(dict2))
-        XCTAssertTrue(dict1.isEqualToDictionary(dict2.bridge()))
+        XCTAssertTrue(dict1.isEqualToDictionary(dict2 as! Dictionary))
         XCTAssertEqual(dict1.hash, dict2.hash)
         XCTAssertEqual(dict1.hashValue, dict2.hashValue)
 
         XCTAssertFalse(dict1 == dict3)
         XCTAssertFalse(dict1.isEqual(dict3))
-        XCTAssertFalse(dict1.isEqualToDictionary(dict3.bridge()))
+        XCTAssertFalse(dict1.isEqualToDictionary(dict3 as! Dictionary))
 
         XCTAssertFalse(dict1.isEqual(nil))
         XCTAssertFalse(dict1.isEqual(NSObject()))
     }
 
     func test_copying() {
-        let inputDictionary : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"].bridge()
+        let inputDictionary : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"] as NSDictionary
 
         let copy: NSDictionary = inputDictionary.copy() as! NSDictionary
         XCTAssertTrue(inputDictionary === copy)
@@ -141,7 +141,7 @@ class TestNSDictionary : XCTestCase {
     }
 
     func test_mutableCopying() {
-        let inputDictionary : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"].bridge()
+        let inputDictionary : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"] as NSDictionary
 
         let dictMutableCopy1 = inputDictionary.mutableCopy() as! NSMutableDictionary
         XCTAssertTrue(dictMutableCopy1.dynamicType === NSMutableDictionary.self)
