@@ -95,7 +95,7 @@ internal struct _NSStringBuffer {
             let range = NSMakeRange(_stringLoc, bufferLen)
             bufferLoc = 1
             buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
-                self.string.getCharacters(ptr.baseAddress!, range: range)
+                self.string.getCharacters(ptr.baseAddress, range: range)
             })
             curChar = buffer[0]
         } else {
@@ -115,7 +115,7 @@ internal struct _NSStringBuffer {
             let range = NSMakeRange(_stringLoc, bufferLen)
             bufferLoc = 1
             buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
-                self.string.getCharacters(ptr.baseAddress!, range: range)
+                self.string.getCharacters(ptr.baseAddress, range: range)
             })
             curChar = buffer[0]
         } else {
@@ -137,7 +137,7 @@ internal struct _NSStringBuffer {
         bufferLen = min(32, stringLen - _stringLoc);
         let range = NSMakeRange(_stringLoc, bufferLen)
         buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
-            string.getCharacters(ptr.baseAddress!, range: range)
+            string.getCharacters(ptr.baseAddress, range: range)
         })
         bufferLoc = 1
         curChar = buffer[0]
@@ -166,7 +166,7 @@ internal struct _NSStringBuffer {
             _stringLoc -= bufferLen
             let range = NSMakeRange(_stringLoc, bufferLen)
             buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
-                string.getCharacters(ptr.baseAddress!, range: range)
+                string.getCharacters(ptr.baseAddress, range: range)
             })
         } else {
             bufferLoc = 0

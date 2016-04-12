@@ -43,7 +43,7 @@ extension Set : _ObjectTypeBridgeable {
             let cf = x._cfObject
             let cnt = CFSetGetCount(cf)
             
-            let objs = UnsafeMutablePointer<UnsafePointer<Void>?>(allocatingCapacity: cnt)
+            let objs = UnsafeMutablePointer<UnsafePointer<Void>>(allocatingCapacity: cnt)
             
             CFSetGetValues(cf, objs)
             
@@ -102,7 +102,8 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     public convenience override init() {
-        self.init(objects: [], count: 0)
+        let objects: UnsafePointer<AnyObject?> = nil
+        self.init(objects: objects, count: 0)
     }
     
     public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
@@ -381,7 +382,7 @@ public class NSMutableSet : NSSet {
     }
     
     public required init(capacity numItems: Int) {
-        super.init(objects: [], count: 0)
+        super.init(objects: nil, count: 0)
     }
     
     public required convenience init?(coder: NSCoder) {

@@ -46,7 +46,7 @@ private func UTF8STRING(_ bytes: UnsafePointer<UInt8>) -> String? {
     return str
 }
 
-internal func _NSXMLParserCurrentParser() -> _CFXMLInterface? {
+internal func _NSXMLParserCurrentParser() -> _CFXMLInterface {
     if let parser = NSXMLParser.currentParser() {
         return parser.interface
     } else {
@@ -54,7 +54,7 @@ internal func _NSXMLParserCurrentParser() -> _CFXMLInterface? {
     }
 }
 
-internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, urlStr: UnsafePointer<Int8>, identifier: UnsafePointer<Int8>, context: _CFXMLInterfaceParserContext, originalLoaderFunction: _CFXMLInterfaceExternalEntityLoader) -> _CFXMLInterfaceParserInput? {
+internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, urlStr: UnsafePointer<Int8>, identifier: UnsafePointer<Int8>, context: _CFXMLInterfaceParserContext, originalLoaderFunction: _CFXMLInterfaceExternalEntityLoader) -> _CFXMLInterfaceParserInput {
     let parser = interface.parser
     let policy = parser.externalEntityResolvingPolicy
     var a: NSURL?
@@ -126,7 +126,7 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
 }
 
 internal func _NSXMLParserGetContext(_ ctx: _CFXMLInterface) -> _CFXMLInterfaceParserContext {
-    return ctx.parser._parserContext!
+    return ctx.parser._parserContext
 }
 
 internal func _NSXMLParserInternalSubset(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, ExternalID: UnsafePointer<UInt8>, SystemID: UnsafePointer<UInt8>) -> Void {
@@ -145,7 +145,7 @@ internal func _NSXMLParserHasExternalSubset(_ ctx: _CFXMLInterface) -> Int32 {
     return _CFXMLInterfaceHasExternalSubset(ctx.parser._parserContext)
 }
 
-internal func _NSXMLParserGetEntity(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>) -> _CFXMLInterfaceEntity? {
+internal func _NSXMLParserGetEntity(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>) -> _CFXMLInterfaceEntity {
     let parser = ctx.parser
     let context = _NSXMLParserGetContext(ctx)
     var entity = _CFXMLInterfaceGetPredefinedEntity(name)
@@ -235,13 +235,13 @@ internal func _colonSeparatedStringFromPrefixAndSuffix(_ prefix: UnsafePointer<U
     return "\(prefixString!):\(suffixString!)"
 }
 
-internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>?, URI: UnsafePointer<UInt8>, nb_namespaces: Int32, namespaces: UnsafeMutablePointer<UnsafePointer<UInt8>?>, nb_attributes: Int32, nb_defaulted: Int32, attributes: UnsafeMutablePointer<UnsafePointer<UInt8>?>) -> Void {
+internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>, URI: UnsafePointer<UInt8>, nb_namespaces: Int32, namespaces: UnsafeMutablePointer<UnsafePointer<UInt8>>, nb_attributes: Int32, nb_defaulted: Int32, attributes: UnsafeMutablePointer<UnsafePointer<UInt8>>) -> Void {
     let parser = ctx.parser
     let reportQNameURI = parser.shouldProcessNamespaces
     let reportNamespaces = parser.shouldReportNamespacePrefixes
-    let prefixLen = prefix != nil ? UInt(strlen(UnsafePointer<Int8>(prefix!))) : 0
+    let prefixLen = prefix == nil ? UInt(strlen(UnsafePointer<Int8>(prefix))) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
-    let qualifiedNameString = prefixLen != 0 ? _colonSeparatedStringFromPrefixAndSuffix(prefix!, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : localnameString
+    let qualifiedNameString = prefixLen != 0 ? _colonSeparatedStringFromPrefixAndSuffix(prefix, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : localnameString
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nil
     
     var nsDict = [String:String]()
@@ -250,16 +250,16 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         for idx in stride(from: 0, to: Int(nb_namespaces) * 2, by: 2) {
             var namespaceNameString: String?
             var asAttrNamespaceNameString: String?
-            if let ns = namespaces[idx] {
+            if namespaces[idx] != nil {
                 if reportNamespaces {
-                    namespaceNameString = UTF8STRING(ns)
+                    namespaceNameString = UTF8STRING(namespaces[idx])
                 }
-                asAttrNamespaceNameString = _colonSeparatedStringFromPrefixAndSuffix("xmlns", 5, ns, UInt(strlen(UnsafePointer<Int8>(ns))))
+                asAttrNamespaceNameString = _colonSeparatedStringFromPrefixAndSuffix("xmlns", 5, namespaces[idx], UInt(strlen(UnsafePointer<Int8>(namespaces[idx]))))
             } else {
                 namespaceNameString = ""
                 asAttrNamespaceNameString = "xmlns"
             }
-            let namespaceValueString = namespaces[idx + 1] != nil ? UTF8STRING(namespaces[idx + 1]!) : ""
+            let namespaceValueString = namespaces[idx + 1] == nil ? UTF8STRING(namespaces[idx + 1]) : ""
             if reportNamespaces {
                 if let k = namespaceNameString, v = namespaceValueString {
                     nsDict[k] = v
@@ -282,11 +282,11 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
             continue
         }
         var attributeQName: String
-        let attrLocalName = attributes[idx]!
+        let attrLocalName = attributes[idx]
         let attrPrefix = attributes[idx + 1]
-        let attrPrefixLen = attrPrefix != nil ? strlen(UnsafePointer<Int8>(attrPrefix!)) : 0
+        let attrPrefixLen = attrPrefix == nil ? strlen(UnsafePointer<Int8>(attrPrefix)) : 0
         if attrPrefixLen != 0 {
-            attributeQName = _colonSeparatedStringFromPrefixAndSuffix(attrPrefix!, UInt(attrPrefixLen), attrLocalName, UInt(strlen((UnsafePointer<Int8>(attrLocalName)))))
+            attributeQName = _colonSeparatedStringFromPrefixAndSuffix(attrPrefix, UInt(attrPrefixLen), attrLocalName, UInt(strlen((UnsafePointer<Int8>(attrLocalName)))))
         } else {
             attributeQName = UTF8STRING(attrLocalName)!
         }
@@ -295,13 +295,13 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         // By using XML_PARSE_NOENT the attribute value string will already have entities resolved
         var attributeValue = ""
         if attributes[idx + 3] != nil && attributes[idx + 4] != nil {
-            let numBytesWithoutTerminator = attributes[idx + 4]! - attributes[idx + 3]!
+            let numBytesWithoutTerminator = attributes[idx + 4] - attributes[idx + 3]
             let numBytesWithTerminator = numBytesWithoutTerminator + 1
             if numBytesWithoutTerminator != 0 {
                 var chars = [Int8](repeating: 0, count: numBytesWithTerminator)
                 attributeValue = chars.withUnsafeMutableBufferPointer({ (buffer: inout UnsafeMutableBufferPointer<Int8>) -> String in
-                    strncpy(buffer.baseAddress!, UnsafePointer<Int8>(attributes[idx + 3]!), numBytesWithoutTerminator) //not strlcpy because attributes[i+3] is not Nul terminated
-                    return UTF8STRING(UnsafePointer<UInt8>(buffer.baseAddress!))!
+                    strncpy(buffer.baseAddress, UnsafePointer<Int8>(attributes[idx + 3]), numBytesWithoutTerminator) //not strlcpy because attributes[i+3] is not Nul terminated
+                    return UTF8STRING(UnsafePointer<UInt8>(buffer.baseAddress))!
                 })
             }
             attrDict[attributeQName] = attributeValue
@@ -318,13 +318,13 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
     }
 }
 
-internal func _NSXMLParserEndElementNs(_ ctx: _CFXMLInterface , localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>?, URI: UnsafePointer<UInt8>) -> Void {
+internal func _NSXMLParserEndElementNs(_ ctx: _CFXMLInterface , localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>, URI: UnsafePointer<UInt8>) -> Void {
     let parser = ctx.parser
     let reportQNameURI = parser.shouldProcessNamespaces
-    let prefixLen = prefix != nil ? strlen(UnsafePointer<Int8>(prefix!)) : 0
+    let prefixLen = prefix == nil ? strlen(UnsafePointer<Int8>(prefix)) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
     let nilStr: String? = nil
-    let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix!, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : nilStr
+    let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : nilStr
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nilStr
     
     
@@ -343,7 +343,7 @@ internal func _NSXMLParserEndElementNs(_ ctx: _CFXMLInterface , localname: Unsaf
 
 internal func _NSXMLParserCharacters(_ ctx: _CFXMLInterface, ch: UnsafePointer<UInt8>, len: Int32) -> Void {
     let parser = ctx.parser
-    let context = parser._parserContext!
+    let context = parser._parserContext
     if _CFXMLInterfaceInRecursiveState(context) != 0 {
         _CFXMLInterfaceResetRecursiveState(context)
     } else {
@@ -398,7 +398,7 @@ public class NSXMLParser : NSObject {
     internal var _chunkSize = Int(4096 * 32) // a suitably large number for a decent chunk size
     internal var _haveDetectedEncoding = false
     internal var _bomChunk: NSData?
-    private var _parserContext: _CFXMLInterfaceParserContext?
+    private var _parserContext: _CFXMLInterfaceParserContext
     internal var _delegateAborted = false
     internal var _url: NSURL?
     internal var _namespaces = [[String:String]]()
@@ -509,7 +509,7 @@ public class NSXMLParser : NSObject {
                     allExistingData = data
                 }
                 
-                var handler: _CFXMLInterfaceSAXHandler? = nil
+                var handler: _CFXMLInterfaceSAXHandler = nil
                 if delegate != nil {
                     handler = _handler
                 }
@@ -587,8 +587,8 @@ public class NSXMLParser : NSObject {
     
     // called by the delegate to stop the parse. The delegate will get an error message sent to it.
     public func abortParsing() {
-        if let context = _parserContext {
-            _CFXMLInterfaceStopParser(context)
+        if _parserContext != nil {
+            _CFXMLInterfaceStopParser(_parserContext)
             _delegateAborted = true
         }
     }

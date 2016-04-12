@@ -350,9 +350,9 @@ extension Unmanaged {
         return self.fromOpaque(OpaquePointer(value))
     }
     
-    internal static func fromOptionalOpaque(_ value: UnsafePointer<Void>?) -> Unmanaged<Instance>? {
-        if let opaqueValue = value {
-            return self.fromOpaque(OpaquePointer(opaqueValue))
+    internal static func fromOptionalOpaque(_ value: UnsafePointer<Void>) -> Unmanaged<Instance>? {
+        if value != nil {
+            return self.fromOpaque(OpaquePointer(value))
         } else {
             return nil
         }
@@ -360,8 +360,8 @@ extension Unmanaged {
 }
 
 extension Array {
-    internal mutating func withUnsafeMutablePointerOrAllocation<R>(_ count: Int, fastpath: UnsafeMutablePointer<Element>? = nil, @noescape body: (UnsafeMutablePointer<Element>) -> R) -> R {
-        if let fastpath = fastpath {
+    internal mutating func withUnsafeMutablePointerOrAllocation<R>(_ count: Int, fastpath: UnsafeMutablePointer<Element> = nil, @noescape body: (UnsafeMutablePointer<Element>) -> R) -> R {
+        if fastpath != nil {
             return body(fastpath)
         } else if self.count > count {
             let buffer = UnsafeMutablePointer<Element>(allocatingCapacity: count)
@@ -371,7 +371,7 @@ extension Array {
             return res
         } else {
             return withUnsafeMutableBufferPointer() { (bufferPtr: inout UnsafeMutableBufferPointer<Element>) -> R in
-                return body(bufferPtr.baseAddress!)
+                return body(bufferPtr.baseAddress)
             }
         }
     }

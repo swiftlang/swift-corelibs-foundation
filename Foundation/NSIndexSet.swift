@@ -209,12 +209,12 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
     
     /* Fills up to bufferSize indexes in the specified range into the buffer and returns the number of indexes actually placed in the buffer; also modifies the optional range passed in by pointer to be "positioned" after the last index filled into the buffer.Example: if the index set contains the indexes 0, 2, 4, ..., 98, 100, for a buffer of size 10 and the range (20, 80) the buffer would contain 20, 22, ..., 38 and the range would be modified to (40, 60).
     */
-    public func getIndexes(_ indexBuffer: UnsafeMutablePointer<Int>, maxCount bufferSize: Int, inIndexRange range: NSRangePointer?) -> Int {
+    public func getIndexes(_ indexBuffer: UnsafeMutablePointer<Int>, maxCount bufferSize: Int, inIndexRange range: NSRangePointer) -> Int {
         let minIndex : Int
         let maxIndex : Int
-        if let initialRange = range {
-            minIndex = initialRange.pointee.location
-            maxIndex = NSMaxRange(initialRange.pointee) - 1
+        if range != nil {
+            minIndex = range.pointee.location
+            maxIndex = NSMaxRange(range.pointee) - 1
         } else {
             minIndex = firstIndex
             maxIndex = lastIndex
@@ -250,10 +250,10 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
                 }
             }
             
-            if counter > 0, let resultRange = range {
+            if counter > 0 && range != nil {
                 let delta = indexBuffer.advanced(by: counter - 1).pointee - minIndex + 1
-                resultRange.pointee.location += delta
-                resultRange.pointee.length -= delta
+                range.pointee.location += delta
+                range.pointee.length -= delta
             }
             return counter
         } else {

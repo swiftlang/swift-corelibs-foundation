@@ -27,7 +27,7 @@ private func WEXITSTATUS(_ status: CInt) -> CInt {
 private var managerThreadSetupOnceToken = pthread_once_t()
 // these are different sadly...
 #if os(OSX) || os(iOS)
-private var threadID: pthread_t? = nil
+private var threadID: pthread_t = nil
 #elseif os(Linux)
 private var threadID = pthread_t()
 #endif
@@ -40,24 +40,24 @@ private var managerThreadRunLoopIsRunningCondition = NSCondition()
 internal let kCFSocketDataCallBack = CFSocketCallBackType.dataCallBack.rawValue
 #endif
 
-private func emptyRunLoopCallback(_ context : UnsafeMutablePointer<Void>!) -> Void {}
+private func emptyRunLoopCallback(_ context : UnsafeMutablePointer<Void>) -> Void {}
 
 
 // Retain method for run loop source
-private func runLoopSourceRetain(_ pointer : UnsafePointer<Void>!) -> UnsafePointer<Void>! {
+private func runLoopSourceRetain(_ pointer : UnsafePointer<Void>) -> UnsafePointer<Void> {
     let ref = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer)).takeUnretainedValue()
     let retained = Unmanaged<AnyObject>.passRetained(ref)
     return unsafeBitCast(retained, to: UnsafePointer<Void>.self)
 }
 
 // Release method for run loop source
-private func runLoopSourceRelease(_ pointer : UnsafePointer<Void>!) -> Void {
+private func runLoopSourceRelease(_ pointer : UnsafePointer<Void>) -> Void {
     Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer)).release()
 }
 
 // Equal method for run loop source
 
-private func runloopIsEqual(_ a : UnsafePointer<Void>!, b : UnsafePointer<Void>!) -> _DarwinCompatibleBoolean {
+private func runloopIsEqual(_ a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> _DarwinCompatibleBoolean {
     
     let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
     guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? NSRunLoop else {
@@ -76,7 +76,7 @@ private func runloopIsEqual(_ a : UnsafePointer<Void>!, b : UnsafePointer<Void>!
     return true
 }
 
-@noreturn private func managerThread(_ x: UnsafeMutablePointer<Void>!) -> UnsafeMutablePointer<Void>! {
+@noreturn private func managerThread(_ x: UnsafeMutablePointer<Void>) -> UnsafeMutablePointer<Void> {
     
     managerThreadRunLoop = NSRunLoop.currentRunLoop()
     var emptySourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(managerThreadRunLoop!))),
@@ -111,7 +111,7 @@ private func managerThreadSetup() -> Void {
 
 
 // Equal method for task in run loop source
-private func nstaskIsEqual(_ a : UnsafePointer<Void>!, b : UnsafePointer<Void>!) -> _DarwinCompatibleBoolean {
+private func nstaskIsEqual(_ a : UnsafePointer<Void>, b : UnsafePointer<Void>) -> _DarwinCompatibleBoolean {
     
     let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
     guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
@@ -184,9 +184,9 @@ public class NSTask : NSObject {
             args.append(contentsOf: arguments)
         }
         
-        let argv : UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> = args.withUnsafeBufferPointer {
+        let argv : UnsafeMutablePointer<UnsafeMutablePointer<Int8>> = args.withUnsafeBufferPointer {
             let array : UnsafeBufferPointer<String> = $0
-            let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: array.count + 1)
+            let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>(allocatingCapacity: array.count + 1)
             buffer.initializeFrom(array.map { $0.withCString(strdup) })
             buffer[array.count] = nil
             return buffer
@@ -200,11 +200,11 @@ public class NSTask : NSObject {
             argv.deallocateCapacity(args.count + 1)
         }
         
-        let envp: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>
+        let envp: UnsafeMutablePointer<UnsafeMutablePointer<Int8>>
         
         if let env = environment {
             let nenv = env.count
-            envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1 + nenv)
+            envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>(allocatingCapacity: 1 + nenv)
             envp.initializeFrom(env.map { strdup("\($0)=\($1)") })
             envp[env.count] = nil
             
@@ -250,11 +250,11 @@ public class NSTask : NSObject {
             
             if task.terminationHandler != nil {
                 #if os(OSX) || os(iOS)
-                var threadID: pthread_t? = nil
+                var threadID: pthread_t = nil
                 #elseif os(Linux)
                 var threadID = pthread_t()
                 #endif
-                pthread_create(&threadID, nil, { (context) -> UnsafeMutablePointer<Void>! in
+                pthread_create(&threadID, nil, { (context) -> UnsafeMutablePointer<Void> in
                     
                     let unmanagedTask : Unmanaged<NSTask> = Unmanaged.fromOpaque(context)
                     let task = unmanagedTask.takeRetainedValue()

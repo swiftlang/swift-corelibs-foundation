@@ -30,7 +30,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
     
     public func readDataOfLength(_ length: Int) -> NSData {
         var statbuf = stat()
-        var dynamicBuffer: UnsafeMutablePointer<UInt8>? = nil
+        var dynamicBuffer: UnsafeMutablePointer<UInt8> = nil
         var total = 0
         if _closed || fstat(_fd, &statbuf) < 0 {
             fatalError("Unable to read file")
@@ -45,11 +45,11 @@ public class NSFileHandle : NSObject, NSSecureCoding {
                 // Make sure there is always at least amountToRead bytes available in the buffer.
                 if (currentAllocationSize - total) < amountToRead {
                     currentAllocationSize *= 2
-                    dynamicBuffer = UnsafeMutablePointer<UInt8>(_CFReallocf(UnsafeMutablePointer<Void>(dynamicBuffer!), currentAllocationSize))
+                    dynamicBuffer = UnsafeMutablePointer<UInt8>(_CFReallocf(UnsafeMutablePointer<Void>(dynamicBuffer), currentAllocationSize))
                     if dynamicBuffer == nil {
                         fatalError("unable to allocate backing buffer")
                     }
-                    let amtRead = read(_fd, dynamicBuffer!.advanced(by: total), amountToRead)
+                    let amtRead = read(_fd, dynamicBuffer.advanced(by: total), amountToRead)
                     if 0 > amtRead {
                         free(dynamicBuffer)
                         fatalError("read failure")
@@ -81,7 +81,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
                 }
                 
                 while remaining > 0 {
-                    let count = read(_fd, dynamicBuffer!.advanced(by: total), remaining)
+                    let count = read(_fd, dynamicBuffer.advanced(by: total), remaining)
                     if count < 0 {
                         free(dynamicBuffer)
                         fatalError("Unable to read from fd")
@@ -96,7 +96,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         }
 
         if length == Int.max && total > 0 {
-            dynamicBuffer = UnsafeMutablePointer<UInt8>(_CFReallocf(UnsafeMutablePointer<Void>(dynamicBuffer!), total))
+            dynamicBuffer = UnsafeMutablePointer<UInt8>(_CFReallocf(UnsafeMutablePointer<Void>(dynamicBuffer), total))
         }
         
         if (0 == total) {
@@ -104,7 +104,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         }
         
         if total > 0 {
-            return NSData(bytesNoCopy: UnsafeMutablePointer<Void>(dynamicBuffer!), length: total)
+            return NSData(bytesNoCopy: UnsafeMutablePointer<Void>(dynamicBuffer), length: total)
         }
         
         return NSData()

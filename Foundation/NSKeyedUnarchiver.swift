@@ -752,11 +752,11 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     // returned bytes immutable, and they go away with the unarchiver, not the containing autorelease pool
-    public override func decodeBytesForKey(_ key: String, returnedLength lengthp: UnsafeMutablePointer<Int>?) -> UnsafePointer<UInt8>? {
+    public override func decodeBytesForKey(_ key: String, returnedLength lengthp: UnsafeMutablePointer<Int>) -> UnsafePointer<UInt8> {
         let ns : NSData? = _decodeValue(forKey: key)
         
         if let value = ns {
-            lengthp?.pointee = Int(value.length)
+            lengthp.pointee = Int(value.length)
             return UnsafePointer<UInt8>(value.bytes)
         }
         
@@ -828,7 +828,7 @@ public class NSKeyedUnarchiver : NSCoder {
             break
         case .CharPtr:
             if let ns = decodeObject() as? NSString {
-                let string = ns.UTF8String! // XXX leaky
+                let string = ns.UTF8String // XXX leaky
                 unsafeBitCast(addr, to: UnsafeMutablePointer<UnsafePointer<Int8>>.self).pointee = string
             }
             break

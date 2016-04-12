@@ -125,24 +125,26 @@ internal func _CFSwiftStringGetCharacters(_ str: AnyObject, range: CFRange, buff
     (str as! NSString).getCharacters(buffer, range: NSMakeRange(range.location, range.length))
 }
 
-internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncoding, range: CFRange, buffer: UnsafeMutablePointer<UInt8>?, maxBufLen: CFIndex, usedBufLen: UnsafeMutablePointer<CFIndex>?) -> CFIndex {
+internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncoding, range: CFRange, buffer: UnsafeMutablePointer<UInt8>, maxBufLen: CFIndex, usedBufLen: UnsafeMutablePointer<CFIndex>) -> CFIndex {
     switch encoding {
         // TODO: Don't treat many encodings like they are UTF8
     case CFStringEncoding(kCFStringEncodingUTF8), CFStringEncoding(kCFStringEncodingISOLatin1), CFStringEncoding(kCFStringEncodingMacRoman), CFStringEncoding(kCFStringEncodingASCII), CFStringEncoding(kCFStringEncodingNonLossyASCII):
         let encodingView = (str as! NSString)._swiftObject.utf8
         let start = encodingView.startIndex
-        if let buffer = buffer {
+        if buffer != nil {
             for idx in 0..<range.length {
                 let character = encodingView[start.advanced(by: idx + range.location)]
                 buffer.advanced(by: idx).initialize(with: character)
             }
         }
-        usedBufLen?.pointee = range.length
+        if usedBufLen != nil {
+            usedBufLen.pointee = range.length
+        }
         
     case CFStringEncoding(kCFStringEncodingUTF16):
         let encodingView = (str as! NSString)._swiftObject.utf16
         let start = encodingView.startIndex
-        if let buffer = buffer {
+        if buffer != nil {
             for idx in 0..<range.length {
                 // Since character is 2 bytes but the buffer is in term of 1 byte values, we have to split it up
                 let character = encodingView[start.advanced(by: idx + range.location)]
@@ -152,8 +154,10 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
                 buffer.advanced(by: (idx * 2) + 1).initialize(with: byte1)
             }
         }
-        // Every character was 2 bytes
-        usedBufLen?.pointee = range.length * 2
+        if usedBufLen != nil {
+            // Every character was 2 bytes
+            usedBufLen.pointee = range.length * 2
+        }
 
 
     default:
@@ -176,11 +180,11 @@ internal func _CFSwiftStringCreateMutableCopy(_ str: AnyObject) -> Unmanaged<Any
     return Unmanaged<AnyObject>.passRetained((str as! NSString).mutableCopyWithZone(nil))
 }
 
-internal func _CFSwiftStringFastCStringContents(_ str: AnyObject) -> UnsafePointer<Int8>? {
+internal func _CFSwiftStringFastCStringContents(_ str: AnyObject) -> UnsafePointer<Int8> {
     return (str as! NSString)._fastCStringContents
 }
 
-internal func _CFSwiftStringFastContents(_ str: AnyObject) -> UnsafePointer<UniChar>? {
+internal func _CFSwiftStringFastContents(_ str: AnyObject) -> UnsafePointer<UniChar> {
     return (str as! NSString)._fastContents
 }
 

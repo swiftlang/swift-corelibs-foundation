@@ -121,7 +121,7 @@ internal class NSSpecialValue : NSValue {
     
     override var objCType : UnsafePointer<Int8> {
         let typeName = NSSpecialValue._objCTypeFromType(_value.dynamicType)
-        return typeName!.bridge().UTF8String! // leaky
+        return typeName!.bridge().UTF8String // leaky
     }
     
     override var classForCoder: AnyClass {

@@ -104,7 +104,7 @@ extension String : _ObjectTypeBridgeable {
             let len = x.length
             var characters = [unichar](repeating: 0, count: len)
             result = characters.withUnsafeMutableBufferPointer() { (buffer: inout UnsafeMutableBufferPointer<unichar>) -> String? in
-                x.getCharacters(buffer.baseAddress!, range: NSMakeRange(0, len))
+                x.getCharacters(buffer.baseAddress, range: NSMakeRange(0, len))
                 return String._fromCodeUnitSequence(UTF16.self, input: buffer)
             }
         }
@@ -163,7 +163,7 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
     return nil
 }
 
-internal func _bytesInEncoding(_ str: NSString, _ encoding: NSStringEncoding, _ fatalOnError: Bool, _ externalRep: Bool, _ lossy: Bool) -> UnsafePointer<Int8>? {
+internal func _bytesInEncoding(_ str: NSString, _ encoding: NSStringEncoding, _ fatalOnError: Bool, _ externalRep: Bool, _ lossy: Bool) -> UnsafePointer<Int8> {
     let theRange = NSMakeRange(0, str.length)
     var cLength = 0
     var used = 0
@@ -253,7 +253,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
             self.init(string: str)
         } else {
             var length = 0
-            let buffer = UnsafeMutablePointer<Void>(aDecoder.decodeBytesForKey("NS.bytes", returnedLength: &length)!)
+            let buffer = UnsafeMutablePointer<Void>(aDecoder.decodeBytesForKey("NS.bytes", returnedLength: &length))
             self.init(bytes: buffer, length: length, encoding: NSUTF8StringEncoding)
         }
     }
@@ -276,7 +276,8 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     
     public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
         if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
-            if let contents = _fastContents {
+            let contents = _fastContents
+            if contents != nil {
                 return NSMutableString(characters: contents, length: length)
             }
         }
@@ -316,7 +317,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         _storage = String(value)
     }
     
-    internal var _fastCStringContents: UnsafePointer<Int8>? {
+    internal var _fastCStringContents: UnsafePointer<Int8> {
         if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
             if _storage._core.isASCII {
                 return unsafeBitCast(_storage._core.startASCII, to: UnsafePointer<Int8>.self)
@@ -325,7 +326,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         return nil
     }
     
-    internal var _fastContents: UnsafePointer<UniChar>? {
+    internal var _fastContents: UnsafePointer<UniChar> {
         if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
             if !_storage._core.isASCII {
                 return unsafeBitCast(_storage._core.startUTF16, to: UnsafePointer<UniChar>.self)
@@ -708,15 +709,19 @@ extension NSString {
         return mutableCopy._swiftObject
     }
     
-    internal func _getBlockStart(_ startPtr: UnsafeMutablePointer<Int>?, end endPtr: UnsafeMutablePointer<Int>?, contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>?, forRange range: NSRange, stopAtLineSeparators line: Bool) {
+    internal func _getBlockStart(_ startPtr: UnsafeMutablePointer<Int>, end endPtr: UnsafeMutablePointer<Int>, contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>, forRange range: NSRange, stopAtLineSeparators line: Bool) {
         let len = length
         var ch: unichar
         
         precondition(range.length <= len && range.location < len - range.length, "Range {\(range.location), \(range.length)} is out of bounds of length \(len)")
         
         if range.location == 0 && range.length == len && contentsEndPtr == nil { // This occurs often
-            startPtr?.pointee = 0
-            endPtr?.pointee = range.length
+            if startPtr != nil {
+                startPtr.pointee = 0
+            }
+            if endPtr != nil {
+                endPtr.pointee = range.length
+            }
             return
         }
         /* Find the starting point first */
@@ -744,7 +749,7 @@ extension NSString {
                         buf.rewind()
                     }
                 }
-                startPtr!.pointee = start
+                startPtr.pointee = start
             }
         }
 
@@ -781,12 +786,16 @@ extension NSString {
                 }
             }
             
-            contentsEndPtr?.pointee = endOfContents
-            endPtr?.pointee = endOfContents + lineSeparatorLength
+            if contentsEndPtr != nil {
+                contentsEndPtr.pointee = endOfContents
+            }
+            if endPtr != nil {
+                endPtr.pointee = endOfContents + lineSeparatorLength
+            }
         }
     }
     
-    public func getLineStart(_ startPtr: UnsafeMutablePointer<Int>?, end lineEndPtr: UnsafeMutablePointer<Int>?, contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>?, forRange range: NSRange) {
+    public func getLineStart(_ startPtr: UnsafeMutablePointer<Int>, end lineEndPtr: UnsafeMutablePointer<Int>, contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>, forRange range: NSRange) {
         _getBlockStart(startPtr, end: lineEndPtr, contentsEnd: contentsEndPtr, forRange: range, stopAtLineSeparators: true)
     }
     
@@ -797,7 +806,7 @@ extension NSString {
         return NSMakeRange(start, lineEnd - start)
     }
     
-    public func getParagraphStart(_ startPtr: UnsafeMutablePointer<Int>?, end parEndPtr: UnsafeMutablePointer<Int>?, contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>?, forRange range: NSRange) {
+    public func getParagraphStart(_ startPtr: UnsafeMutablePointer<Int>, end parEndPtr: UnsafeMutablePointer<Int>, contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>, forRange range: NSRange) {
         _getBlockStart(startPtr, end: parEndPtr, contentsEnd: contentsEndPtr, forRange: range, stopAtLineSeparators: false)
     }
     
@@ -818,7 +827,7 @@ extension NSString {
         }
     }
     
-    public var UTF8String: UnsafePointer<Int8>? {
+    public var UTF8String: UnsafePointer<Int8> {
         return _bytesInEncoding(self, NSUTF8StringEncoding, false, false, false)
     }
     
@@ -871,7 +880,7 @@ extension NSString {
         return __CFStringEncodeByteStream(_cfObject, 0, length, false, CFStringConvertNSStringEncodingToEncoding(encoding), 0, nil, 0, nil) == length
     }
     
-    public func cStringUsingEncoding(_ encoding: UInt) -> UnsafePointer<Int8>? {
+    public func cStringUsingEncoding(_ encoding: UInt) -> UnsafePointer<Int8> {
         return _bytesInEncoding(self, encoding, false, false, false)
     }
     
@@ -893,7 +902,7 @@ extension NSString {
         return false
     }
     
-    public func getBytes(_ buffer: UnsafeMutablePointer<Void>?, maxLength maxBufferCount: Int, usedLength usedBufferCount: UnsafeMutablePointer<Int>?, encoding: UInt, options: NSStringEncodingConversionOptions, range: NSRange, remainingRange leftover: NSRangePointer?) -> Bool {
+    public func getBytes(_ buffer: UnsafeMutablePointer<Void>, maxLength maxBufferCount: Int, usedLength usedBufferCount: UnsafeMutablePointer<Int>, encoding: UInt, options: NSStringEncodingConversionOptions, range: NSRange, remainingRange leftover: NSRangePointer) -> Bool {
         var totalBytesWritten = 0
         var numCharsProcessed = 0
         let cfStringEncoding = CFStringConvertNSStringEncodingToEncoding(encoding)
@@ -911,8 +920,12 @@ extension NSString {
                 result = false /* ??? Need other encodings */
             }
         }
-        usedBufferCount?.pointee = totalBytesWritten
-        leftover?.pointee = NSMakeRange(range.location + numCharsProcessed, range.length - numCharsProcessed)
+        if usedBufferCount != nil {
+            usedBufferCount.pointee = totalBytesWritten
+        }
+        if leftover != nil {
+            leftover.pointee = NSMakeRange(range.location + numCharsProcessed, range.length - numCharsProcessed)
+        }
         return result
     }
     
@@ -1278,11 +1291,11 @@ extension NSString {
         try self.init(contentsOfURL: NSURL(fileURLWithPath: path), encoding: enc)
     }
     
-    public convenience init(contentsOfURL url: NSURL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
+    public convenience init(contentsOfURL url: NSURL, usedEncoding enc: UnsafeMutablePointer<UInt>) throws {
         NSUnimplemented()    
     }
     
-    public convenience init(contentsOfFile path: String, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
+    public convenience init(contentsOfFile path: String, usedEncoding enc: UnsafeMutablePointer<UInt>) throws {
         NSUnimplemented()    
     }
 }
@@ -1307,7 +1320,7 @@ public class NSMutableString : NSString {
     }
     
     public required init(capacity: Int) {
-        super.init(characters: [], length: 0)
+        super.init(characters: nil, length: 0)
     }
 
     public convenience required init?(coder aDecoder: NSCoder) {
@@ -1394,7 +1407,7 @@ extension NSMutableString {
         if let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorSystemDefault, _cfObject, target._cfObject, CFRange(searchRange), options._cfValue(true)) {
             let numOccurrences = CFArrayGetCount(findResults)
             for cnt in 0..<numOccurrences {
-                let range = UnsafePointer<CFRange>(CFArrayGetValueAtIndex(findResults, backwards ? cnt : numOccurrences - cnt - 1)!)
+                let range = UnsafePointer<CFRange>(CFArrayGetValueAtIndex(findResults, backwards ? cnt : numOccurrences - cnt - 1))
                 replaceCharactersInRange(NSRange(range.pointee), withString: replacement)
             }
             return numOccurrences
@@ -1404,12 +1417,14 @@ extension NSMutableString {
 
     }
     
-    public func applyTransform(_ transform: String, reverse: Bool, range: NSRange, updatedRange resultingRange: NSRangePointer?) -> Bool {
+    public func applyTransform(_ transform: String, reverse: Bool, range: NSRange, updatedRange resultingRange: NSRangePointer) -> Bool {
         var cfRange = CFRangeMake(range.location, range.length)
         return withUnsafeMutablePointer(&cfRange) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
             if CFStringTransform(_cfMutableObject, rangep, transform._cfObject, reverse) {
-                resultingRange?.pointee.location = rangep.pointee.location
-                resultingRange?.pointee.length = rangep.pointee.length
+                if resultingRange != nil {
+                    resultingRange.pointee.location = rangep.pointee.location
+                    resultingRange.pointee.length = rangep.pointee.length
+                }
                 return true
             }
             return false

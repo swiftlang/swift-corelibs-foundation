@@ -118,7 +118,7 @@ internal class _NSRegularExpressionMatcher {
     }
 }
 
-internal func _NSRegularExpressionMatch(_ context: UnsafeMutablePointer<Void>?, ranges: UnsafeMutablePointer<CFRange>?, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
+internal func _NSRegularExpressionMatch(_ context: UnsafeMutablePointer<Void>, ranges: UnsafeMutablePointer<CFRange>, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
     let matcher = unsafeBitCast(context, to: _NSRegularExpressionMatcher.self)
     if ranges == nil {
 #if os(OSX) || os(iOS)
@@ -128,7 +128,7 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutablePointer<Void>?, 
 #endif
         matcher.block(nil, NSMatchingFlags(rawValue: opts), UnsafeMutablePointer<ObjCBool>(stop))
     } else {
-        let result = NSTextCheckingResult.regularExpressionCheckingResultWithRanges(NSRangePointer(ranges!), count: count, regularExpression: matcher.regex)
+        let result = NSTextCheckingResult.regularExpressionCheckingResultWithRanges(NSRangePointer(ranges), count: count, regularExpression: matcher.regex)
 #if os(OSX) || os(iOS)
         let flags = NSMatchingFlags(rawValue: options.rawValue)
 #else

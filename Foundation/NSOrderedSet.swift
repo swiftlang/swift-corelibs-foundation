@@ -84,7 +84,7 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public convenience override init() {
-        self.init(objects: [], count: 0)
+        self.init(objects: nil, count: 0)
     }
 
     public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
@@ -361,7 +361,7 @@ public class NSMutableOrderedSet : NSOrderedSet {
     }
 
     public init(capacity numItems: Int) {
-        super.init(objects: [], count: 0)
+        super.init(objects: nil, count: 0)
     }
 
     required public convenience init(arrayLiteral elements: AnyObject...) {

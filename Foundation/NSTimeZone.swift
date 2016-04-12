@@ -13,9 +13,9 @@ import CoreFoundation
 public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFTimeZone
     private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())
-    private var _name: UnsafeMutablePointer<Void>? = nil
-    private var _data: UnsafeMutablePointer<Void>? = nil
-    private var _periods: UnsafeMutablePointer<Void>? = nil
+    private var _name: UnsafeMutablePointer<Void> = nil
+    private var _data: UnsafeMutablePointer<Void> = nil
+    private var _periods: UnsafeMutablePointer<Void> = nil
     private var _periodCnt = Int32(0)
     
     internal var _cfObject: CFType {

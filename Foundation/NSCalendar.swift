@@ -96,11 +96,11 @@ public struct NSCalendarOptions : OptionSet {
 public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
-    private var _identifier: UnsafeMutablePointer<Void>? = nil
-    private var _locale: UnsafeMutablePointer<Void>? = nil
-    private var _localeID: UnsafeMutablePointer<Void>? = nil
-    private var _tz: UnsafeMutablePointer<Void>? = nil
-    private var _cal: UnsafeMutablePointer<Void>? = nil
+    private var _identifier: UnsafeMutablePointer<Void> = nil
+    private var _locale: UnsafeMutablePointer<Void> = nil
+    private var _localeID: UnsafeMutablePointer<Void> = nil
+    private var _tz: UnsafeMutablePointer<Void> = nil
+    private var _cal: UnsafeMutablePointer<Void> = nil
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFCalendar.self)
@@ -435,7 +435,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         var at: CFAbsoluteTime = 0.0
         let res: Bool = withUnsafeMutablePointer(&at) { t in
             return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
-                return _CFCalendarComposeAbsoluteTimeV(_cfObject, t, compDesc, vectorBuffer.baseAddress!, Int32(vectorBuffer.count))
+                return _CFCalendarComposeAbsoluteTimeV(_cfObject, t, compDesc, vectorBuffer.baseAddress, Int32(vector.count))
             }
         }
         
@@ -519,11 +519,11 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         var ints = [Int32](repeating: 0, count: 20)
         let res = ints.withUnsafeMutableBufferPointer { (intArrayBuffer: inout UnsafeMutableBufferPointer<Int32>) -> Bool in
             var vector: [UnsafeMutablePointer<Int32>] = (0..<20).map { idx in
-                intArrayBuffer.baseAddress!.advanced(by: idx)
+                intArrayBuffer.baseAddress.advanced(by: idx)
             }
 
             return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
-                return _CFCalendarDecomposeAbsoluteTimeV(_cfObject, date.timeIntervalSinceReferenceDate, compDesc, vecBuffer.baseAddress!, Int32(compDesc.count - 1))
+                return _CFCalendarDecomposeAbsoluteTimeV(_cfObject, date.timeIntervalSinceReferenceDate, compDesc, vecBuffer.baseAddress, Int32(compDesc.count - 1))
             }
         }
         if res {
@@ -539,7 +539,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         
         let res: Bool = withUnsafeMutablePointer(&at) { t in
             return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
-                return _CFCalendarAddComponentsV(_cfObject, t, CFOptionFlags(opts.rawValue), compDesc, vectorBuffer.baseAddress!, Int32(vector.count))
+                return _CFCalendarAddComponentsV(_cfObject, t, CFOptionFlags(opts.rawValue), compDesc, vectorBuffer.baseAddress, Int32(vector.count))
             }
         }
         
@@ -555,11 +555,11 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         var ints = [Int32](repeating: 0, count: 20)
         let res = ints.withUnsafeMutableBufferPointer { (intArrayBuffer: inout UnsafeMutableBufferPointer<Int32>) -> Bool in
             var vector: [UnsafeMutablePointer<Int32>] = (0..<20).map { idx in
-                return intArrayBuffer.baseAddress!.advanced(by: idx)
+                return intArrayBuffer.baseAddress.advanced(by: idx)
             }
 
             return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
-                _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, Int32(vector.count))
+                _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress, Int32(vector.count))
                 return false
             }
         }
@@ -573,12 +573,20 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     This API is a convenience for getting era, year, month, and day of a given date.
     Pass NULL for a NSInteger pointer parameter if you don't care about that value.
     */
-    public func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, year yearValuePointer: UnsafeMutablePointer<Int>?, month monthValuePointer: UnsafeMutablePointer<Int>?, day dayValuePointer: UnsafeMutablePointer<Int>?, fromDate date: NSDate) {
+    public func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>, year yearValuePointer: UnsafeMutablePointer<Int>, month monthValuePointer: UnsafeMutablePointer<Int>, day dayValuePointer: UnsafeMutablePointer<Int>, fromDate date: NSDate) {
         if let comps = components([.Era, .Year, .Month, .Day], fromDate: date) {
-            eraValuePointer?.pointee = comps.era
-            yearValuePointer?.pointee = comps.year
-            monthValuePointer?.pointee = comps.month
-            dayValuePointer?.pointee = comps.day
+            if eraValuePointer != nil {
+                eraValuePointer.pointee = comps.era
+            }
+            if yearValuePointer != nil {
+                yearValuePointer.pointee = comps.year
+            }
+            if monthValuePointer != nil {
+                monthValuePointer.pointee = comps.month
+            }
+            if dayValuePointer != nil {
+                dayValuePointer.pointee = comps.day
+            }
         }
     }
     
@@ -586,12 +594,20 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     This API is a convenience for getting era, year for week-of-year calculations, week of year, and weekday of a given date.
     Pass NULL for a NSInteger pointer parameter if you don't care about that value.
     */
-    public func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, yearForWeekOfYear yearValuePointer: UnsafeMutablePointer<Int>?, weekOfYear weekValuePointer: UnsafeMutablePointer<Int>?, weekday weekdayValuePointer: UnsafeMutablePointer<Int>?, fromDate date: NSDate) {
+    public func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>, yearForWeekOfYear yearValuePointer: UnsafeMutablePointer<Int>, weekOfYear weekValuePointer: UnsafeMutablePointer<Int>, weekday weekdayValuePointer: UnsafeMutablePointer<Int>, fromDate date: NSDate) {
         if let comps = components([.Era, .YearForWeekOfYear, .WeekOfYear, .Weekday], fromDate: date) {
-            eraValuePointer?.pointee = comps.era
-            yearValuePointer?.pointee = comps.yearForWeekOfYear
-            weekValuePointer?.pointee = comps.weekOfYear
-            weekdayValuePointer?.pointee = comps.weekday
+            if eraValuePointer != nil {
+                eraValuePointer.pointee = comps.era
+            }
+            if yearValuePointer != nil {
+                yearValuePointer.pointee = comps.yearForWeekOfYear
+            }
+            if weekValuePointer != nil {
+                weekValuePointer.pointee = comps.weekOfYear
+            }
+            if weekdayValuePointer != nil {
+                weekdayValuePointer.pointee = comps.weekday
+            }
         }
     }
     
@@ -599,12 +615,20 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     This API is a convenience for getting hour, minute, second, and nanoseconds of a given date.
     Pass NULL for a NSInteger pointer parameter if you don't care about that value.
     */
-    public func getHour(_ hourValuePointer: UnsafeMutablePointer<Int>?, minute minuteValuePointer: UnsafeMutablePointer<Int>?, second secondValuePointer: UnsafeMutablePointer<Int>?, nanosecond nanosecondValuePointer: UnsafeMutablePointer<Int>?, fromDate date: NSDate) {
+    public func getHour(_ hourValuePointer: UnsafeMutablePointer<Int>, minute minuteValuePointer: UnsafeMutablePointer<Int>, second secondValuePointer: UnsafeMutablePointer<Int>, nanosecond nanosecondValuePointer: UnsafeMutablePointer<Int>, fromDate date: NSDate) {
         if let comps = components([.Hour, .Minute, .Second, .Nanosecond], fromDate: date) {
-            hourValuePointer?.pointee = comps.hour
-            minuteValuePointer?.pointee = comps.minute
-            secondValuePointer?.pointee = comps.second
-            nanosecondValuePointer?.pointee = comps.nanosecond
+            if hourValuePointer != nil {
+                hourValuePointer.pointee = comps.hour
+            }
+            if minuteValuePointer != nil {
+                minuteValuePointer.pointee = comps.minute
+            }
+            if secondValuePointer != nil {
+                secondValuePointer.pointee = comps.second
+            }
+            if nanosecondValuePointer != nil {
+                nanosecondValuePointer.pointee = comps.nanosecond
+            }
         }
     }
     

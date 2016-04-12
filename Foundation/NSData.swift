@@ -75,21 +75,20 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     private var _base = _CFInfo(typeID: CFDataGetTypeID())
     private var _length: CFIndex = 0
     private var _capacity: CFIndex = 0
-    private var _deallocator: UnsafeMutablePointer<Void>? = nil // for CF only
+    private var _deallocator: UnsafeMutablePointer<Void> = nil // for CF only
     private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
-    private var _bytes: UnsafeMutablePointer<UInt8>? = nil
+    private var _bytes: UnsafeMutablePointer<UInt8> = nil
     
     internal var _cfObject: CFType {
         if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
             return unsafeBitCast(self, to: CFType.self)
         } else {
-            return CFDataCreate(kCFAllocatorSystemDefault, UnsafePointer<UInt8>(self.bytes), self.length)
+            return CFDataCreate(kCFAllocatorSystemDefault, unsafeBitCast(self.bytes, to: UnsafePointer<UInt8>.self), self.length)
         }
     }
     
     public override required convenience init() {
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
-        self.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+        self.init(bytes: nil, length: 0, copy: false, deallocator: nil)
     }
     
     public override var hash: Int {
@@ -105,21 +104,21 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     deinit {
-        if let allocatedBytes = _bytes {
-            _deallocHandler?.handler(allocatedBytes, _length)
+        if _bytes != nil {
+            _deallocHandler?.handler(_bytes, _length)
         }
         if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
             _CFDeinit(self._cfObject)
         }
     }
     
-    internal init(bytes: UnsafeMutablePointer<Void>?, length: Int, copy: Bool, deallocator: ((UnsafeMutablePointer<Void>, Int) -> Void)?) {
+    internal init(bytes: UnsafeMutablePointer<Void>, length: Int, copy: Bool, deallocator: ((UnsafeMutablePointer<Void>, Int) -> Void)?) {
         super.init()
         let options : CFOptionFlags = (self.dynamicType == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
         if copy {
             _CFDataInit(unsafeBitCast(self, to: CFMutableData.self), options, length, UnsafeMutablePointer<UInt8>(bytes), length, false)
             if let handler = deallocator {
-                handler(bytes!, length)
+                handler(bytes, length)
             }
         } else {
             if let handler = deallocator {
@@ -225,7 +224,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
 extension NSData {
     
-    public convenience init(bytes: UnsafePointer<Void>?, length: Int) {
+    public convenience init(bytes: UnsafePointer<Void>, length: Int) {
         self.init(bytes: UnsafeMutablePointer<Void>(bytes), length: length, copy: true, deallocator: nil)
     }
 
@@ -584,7 +583,7 @@ public class NSMutableData : NSData {
         self.init(bytes: nil, length: 0)
     }
     
-    internal override init(bytes: UnsafeMutablePointer<Void>?, length: Int, copy: Bool, deallocator: ((UnsafeMutablePointer<Void>, Int) -> Void)?) {
+    internal override init(bytes: UnsafeMutablePointer<Void>, length: Int, copy: Bool, deallocator: ((UnsafeMutablePointer<Void>, Int) -> Void)?) {
         super.init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)
     }
     
