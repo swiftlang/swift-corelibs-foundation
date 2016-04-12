@@ -55,7 +55,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public convenience override init() {
-        self.init(objects: [], count:0)
+        self.init(objects: nil, count:0)
     }
     
     public required init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
@@ -359,13 +359,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return NSData(bytesNoCopy: unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), length: count * sizeof(Int), freeWhenDone: true)
     }
     
-    public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?) -> [AnyObject] {
+    public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>) -> [AnyObject] {
         return sortedArrayWithOptions([]) { lhs, rhs in
             return NSComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
     }
     
-    public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?, hint: NSData?) -> [AnyObject] {
+    public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>, hint: NSData?) -> [AnyObject] {
         return sortedArrayWithOptions([]) { lhs, rhs in
             return NSComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
@@ -653,7 +653,7 @@ public class NSMutableArray : NSArray {
     }
     
     public init(capacity numItems: Int) {
-        super.init(objects: [], count: 0)
+        super.init(objects: nil, count: 0)
 
         if self.dynamicType === NSMutableArray.self {
             _storage.reserveCapacity(numItems)
@@ -807,7 +807,7 @@ public class NSMutableArray : NSArray {
         }
     }
 
-    public func sortUsingFunction(_ compare: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?) {
+    public func sortUsingFunction(_ compare: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Int, context: UnsafeMutablePointer<Void>) {
         self.setArray(self.sortedArrayUsingFunction(compare, context: context))
     }
 

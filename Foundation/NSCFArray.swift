@@ -89,7 +89,7 @@ internal func _CFSwiftArrayRemoveAllValues(_ array: AnyObject) {
     (array as! NSMutableArray).removeAllObjects()
 }
 
-internal func _CFSwiftArrayReplaceValues(_ array: AnyObject, _ range: CFRange, _ newValues: UnsafeMutablePointer<Unmanaged<AnyObject>>, _ newCount: CFIndex) {
+internal func _CFSwiftArrayReplaceValues(_ array: AnyObject, _ range: CFRange, _ newValues: UnsafeMutablePointer<Unmanaged<AnyObject>?>, _ newCount: CFIndex) {
     NSUnimplemented()
 //    (array as! NSMutableArray).replaceObjectsInRange(NSMakeRange(range.location, range.length), withObjectsFromArray: newValues.array(newCount))
 }

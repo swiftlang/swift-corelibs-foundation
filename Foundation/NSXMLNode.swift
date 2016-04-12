@@ -93,7 +93,7 @@ public class NSXMLNode : NSObject, NSCopying {
             _xmlNode = _CFXMLNewDTD(nil, "", "", "")
             
         default:
-            fatalError("invalid node kind for this initializer")
+            _xmlNode = nil
         }
 
         super.init()
@@ -216,7 +216,10 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
     */
     public class func DTDNodeWithXMLString(_ string: String) -> AnyObject? {
-        guard let node = _CFXMLParseDTDNode(string) else { return nil }
+        let node = _CFXMLParseDTDNode(string)
+        if node == nil {
+            return nil
+        }
 
         return NSXMLDTDNode(ptr: node)
     }
@@ -226,6 +229,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
     */
     public var kind: NSXMLNodeKind  {
+        guard _xmlNode != nil else { return .InvalidKind }
         switch _CFXMLNodeGetType(_xmlNode) {
         case _kCFXMLTypeElement:
             return .ElementKind
@@ -335,10 +339,10 @@ public class NSXMLNode : NSObject, NSCopying {
     }
 
     internal func _removeAllChildren() {
-        var nextChild = _CFXMLNodeGetFirstChild(_xmlNode)
-        while let child = nextChild {
+        var child = _CFXMLNodeGetFirstChild(_xmlNode)
+        while child != nil {
             _CFXMLUnlinkNode(child)
-            nextChild = _CFXMLNodeGetNextSibling(child)
+            child = _CFXMLNodeGetNextSibling(child)
         }
         _childNodes.removeAll(keepingCapacity: true)
     }
@@ -379,7 +383,7 @@ public class NSXMLNode : NSObject, NSCopying {
         }
 
         var result: [Character] = Array(string.characters)
-        let doc = _CFXMLNodeGetDocument(_xmlNode)!
+        let doc = _CFXMLNodeGetDocument(_xmlNode)
         for (range, entity) in entities {
             var entityPtr = _CFXMLGetDocEntity(doc, entity)
             if entityPtr == nil {
@@ -388,8 +392,8 @@ public class NSXMLNode : NSObject, NSCopying {
             if entityPtr == nil {
                 entityPtr = _CFXMLGetParameterEntity(doc, entity)
             }
-            if let validEntity = entityPtr {
-                let replacement = _CFXMLGetEntityContent(validEntity)?._swiftObject ?? ""
+            if entityPtr != nil {
+                let replacement = _CFXMLGetEntityContent(entityPtr)?._swiftObject ?? ""
                 result.replaceSubrange(range, with: replacement.characters)
             } else {
                 result.replaceSubrange(range, with: []) // This appears to be how Darwin Foundation does it
@@ -417,10 +421,10 @@ public class NSXMLNode : NSObject, NSCopying {
     */
     public var level: Int {
         var result = 0
-        var nextParent = _CFXMLNodeGetParent(_xmlNode)
-        while let parent = nextParent {
+        var parent = _CFXMLNodeGetParent(_xmlNode)
+        while parent != nil {
             result += 1
-            nextParent = _CFXMLNodeGetParent(parent)
+            parent = _CFXMLNodeGetParent(parent)
         }
 
         return result
@@ -431,7 +435,8 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract The encompassing document or nil.
     */
     public var rootDocument: NSXMLDocument? {
-        guard let doc = _CFXMLNodeGetDocument(_xmlNode) else { return nil }
+        let doc = _CFXMLNodeGetDocument(_xmlNode)
+        guard doc != nil else { return nil }
 
         return NSXMLNode._objectNodeForNode(_CFXMLNodePtr(doc)) as? NSXMLDocument
     }
@@ -441,7 +446,8 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract The parent of this node. Documents and standalone Nodes have a nil parent; there is not a 1-to-1 relationship between parent and children, eg a namespace cannot be a child but has a parent element.
     */
     /*@NSCopying*/ public var parent: NSXMLNode? {
-        guard let parentPtr = _CFXMLNodeGetParent(_xmlNode) else { return nil }
+        let parentPtr = _CFXMLNodeGetParent(_xmlNode)
+        guard parentPtr != nil else { return nil }
 
         return NSXMLNode._objectNodeForNode(parentPtr)
     } //primitive
@@ -493,7 +499,8 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns the previous sibling, or nil if there isn't one.
     */
     /*@NSCopying*/ public var previousSibling: NSXMLNode? {
-        guard let prev = _CFXMLNodeGetPrevSibling(_xmlNode) else { return nil }
+        let prev = _CFXMLNodeGetPrevSibling(_xmlNode)
+        guard prev != nil else { return nil }
 
         return NSXMLNode._objectNodeForNode(prev)
     }
@@ -503,7 +510,8 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns the next sibling, or nil if there isn't one.
     */
     /*@NSCopying*/ public var nextSibling: NSXMLNode? {
-        guard let next = _CFXMLNodeGetNextSibling(_xmlNode) else { return nil }
+        let next = _CFXMLNodeGetNextSibling(_xmlNode)
+        guard next != nil else { return nil }
 
         return NSXMLNode._objectNodeForNode(next)
     }
@@ -514,8 +522,8 @@ public class NSXMLNode : NSObject, NSCopying {
     */
     /*@NSCopying*/ public var previousNode: NSXMLNode? {
         if let previousSibling = self.previousSibling {
-            if let lastChild = _CFXMLNodeGetLastChild(previousSibling._xmlNode) {
-                return NSXMLNode._objectNodeForNode(lastChild)
+            if _CFXMLNodeGetLastChild(previousSibling._xmlNode) != nil {
+                return NSXMLNode._objectNodeForNode(_CFXMLNodeGetLastChild(previousSibling._xmlNode))
             } else {
                 return previousSibling
             }
@@ -531,7 +539,8 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns the next node in document order. This can be used to walk the tree forwards.
     */
     /*@NSCopying*/ public var nextNode: NSXMLNode? {
-        if let children = _CFXMLNodeGetFirstChild(_xmlNode) {
+        let children = _CFXMLNodeGetFirstChild(_xmlNode)
+        if children != nil {
             return NSXMLNode._objectNodeForNode(children)
         } else if let next = nextSibling {
             return next
@@ -547,10 +556,12 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Detaches this node from its parent.
     */
     public func detach() {
-        guard let parentPtr = _CFXMLNodeGetParent(_xmlNode) else { return }
+        let parentPtr = _CFXMLNodeGetParent(_xmlNode)
+        guard parentPtr != nil else { return }
         _CFXMLUnlinkNode(_xmlNode)
 
-        guard let parentNodePtr = _CFXMLNodeGetPrivateData(parentPtr) else { return }
+        let parentNodePtr = _CFXMLNodeGetPrivateData(parentPtr)
+        guard parentNodePtr != nil else { return }
         let parent = Unmanaged<NSXMLNode>.fromOpaque(parentNodePtr).takeUnretainedValue()
         parent._childNodes.remove(self)
     } //primitive
@@ -565,7 +576,7 @@ public class NSXMLNode : NSObject, NSCopying {
         var pathComponents: [String?] = []
         var parent  = _CFXMLNodeGetParent(_xmlNode)
         if parent != nil {
-            let parentObj = NSXMLNode._objectNodeForNode(parent!)
+            let parentObj = NSXMLNode._objectNodeForNode(parent)
             let siblingsWithSameName = parentObj.filter { $0.name == self.name }
 
             if siblingsWithSameName.count > 1 {
@@ -579,15 +590,15 @@ public class NSXMLNode : NSObject, NSCopying {
             return self.name
         }
         while true {
-            if let parentNode = _CFXMLNodeGetParent(parent!) {
-                let grandparent = NSXMLNode._objectNodeForNode(parentNode)
+            if _CFXMLNodeGetParent(parent) != nil {
+                let grandparent = NSXMLNode._objectNodeForNode(_CFXMLNodeGetParent(parent))
                 let possibleParentNodes = grandparent.filter { $0.name == self.parent?.name }
                 let count = possibleParentNodes.reduce(0) {
                     return $0.0 + 1
                 }
 
                 if count <= 1 {
-                    pathComponents.append(NSXMLNode._objectNodeForNode(parent!).name)
+                    pathComponents.append(NSXMLNode._objectNodeForNode(parent).name)
                 } else {
                     var parentNumber = 1
                     for possibleParent in possibleParentNodes {
@@ -600,10 +611,10 @@ public class NSXMLNode : NSObject, NSCopying {
                     pathComponents.append("\(self.parent?.name ?? "")[\(parentNumber)]")
                 }
 
-                parent = _CFXMLNodeGetParent(parent!)
+                parent = _CFXMLNodeGetParent(parent)
 
             } else {
-                pathComponents.append(NSXMLNode._objectNodeForNode(parent!).name)
+                pathComponents.append(NSXMLNode._objectNodeForNode(parent).name)
                 break
             }
         }
@@ -761,12 +772,14 @@ public class NSXMLNode : NSObject, NSCopying {
     }
 
     internal init(ptr: _CFXMLNodePtr) {
+        precondition(ptr != nil)
         precondition(_CFXMLNodeGetPrivateData(ptr) == nil, "Only one NSXMLNode per xmlNodePtr allowed")
 
         _xmlNode = ptr
         super.init()
 
-        if let parent = _CFXMLNodeGetParent(_xmlNode) {
+        let parent = _CFXMLNodeGetParent(_xmlNode)
+        if parent != nil {
             let parentNode = NSXMLNode._objectNodeForNode(parent)
             parentNode._childNodes.insert(self)
         }
@@ -796,7 +809,8 @@ public class NSXMLNode : NSObject, NSCopying {
             return NSXMLDTDNode._objectNodeForNode(node)
 
         default:
-            if let _private = _CFXMLNodeGetPrivateData(node) {
+            let _private = _CFXMLNodeGetPrivateData(node)
+            if _private != nil {
                 let unmanaged = Unmanaged<NSXMLNode>.fromOpaque(_private)
                 return unmanaged.takeUnretainedValue()
             }
@@ -816,7 +830,7 @@ public class NSXMLNode : NSObject, NSCopying {
         _childNodes.insert(child)
 
         if index == 0 {
-            let first = _CFXMLNodeGetFirstChild(_xmlNode)!
+            let first = _CFXMLNodeGetFirstChild(_xmlNode)
             _CFXMLNodeAddPrevSibling(first, child._xmlNode)
         } else {
             let currChild = childAtIndex(index - 1)!._xmlNode
@@ -886,21 +900,21 @@ internal protocol _NSXMLNodeCollectionType: Collection { }
 
 extension NSXMLNode: _NSXMLNodeCollectionType {
     public struct Index: BidirectionalIndex {
-        private let node: _CFXMLNodePtr?
+        private let node: _CFXMLNodePtr
 
         public func predecessor() -> Index {
             guard node != nil else { return self }
-            return Index(node: _CFXMLNodeGetPrevSibling(node!))
+            return Index(node: _CFXMLNodeGetPrevSibling(node))
         }
 
         public func successor() -> Index {
             guard node != nil else { return self }
-            return Index(node: _CFXMLNodeGetNextSibling(node!))
+            return Index(node: _CFXMLNodeGetNextSibling(node))
         }
     }
 
     public subscript(index: Index) -> NSXMLNode {
-        return NSXMLNode._objectNodeForNode(index.node!)
+        return NSXMLNode._objectNodeForNode(index.node)
     }
 
     public var startIndex: Index {

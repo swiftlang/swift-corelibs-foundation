@@ -67,7 +67,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
         let array: Array<Int32> = [1, 2, 3]
         let objctype = "[3i]"
         array.withUnsafeBufferPointer { cArray in
-            let concrete = NSValue(bytes: cArray.baseAddress!, objCType: objctype)
+            let concrete = NSValue(bytes: cArray.baseAddress, objCType: objctype)
             test_unarchive_from_file("NSKeyedUnarchiver-ConcreteValueTest", concrete)
         }
     }

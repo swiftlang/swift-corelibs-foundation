@@ -103,7 +103,7 @@ class TestNSValue : XCTestCase {
         let array: Array<UInt64> = [12341234123, 23452345234, 23475982345, 9893563243, 13469816598]
         array.withUnsafeBufferPointer { cArray in
             var expected = [UInt64](repeating: 0, count: 5)
-            NSValue(bytes: cArray.baseAddress!, objCType: "[5Q]").getValue(&expected)
+            NSValue(bytes: cArray.baseAddress, objCType: "[5Q]").getValue(&expected)
             XCTAssertEqual(array, expected)
         }
     }
@@ -113,7 +113,7 @@ class TestNSValue : XCTestCase {
         let objctype = "[" + String(array.count) + "s]"
         array.withUnsafeBufferPointer { cArray in
             var expected = [Int16](repeating: 0, count: array.count)
-            NSValue(bytes: cArray.baseAddress!, objCType: objctype).getValue(&expected)
+            NSValue(bytes: cArray.baseAddress, objCType: objctype).getValue(&expected)
             XCTAssertEqual(array, expected)
         }
     }
@@ -121,7 +121,7 @@ class TestNSValue : XCTestCase {
     func test_valueWithCharPtr() {
         let charArray = [UInt8]("testing123".utf8)
         var charPtr = UnsafeMutablePointer<UInt8>(charArray)
-        var expectedPtr: UnsafeMutablePointer<UInt8>? = nil
+        var expectedPtr: UnsafeMutablePointer<UInt8> = nil
         
         NSValue(bytes: &charPtr, objCType: "*").getValue(&expectedPtr)
         XCTAssertEqual(charPtr, expectedPtr)

@@ -57,14 +57,14 @@ extension Dictionary : _ObjectTypeBridgeable {
             let cf = x._cfObject
             let cnt = CFDictionaryGetCount(cf)
 
-            let keys = UnsafeMutablePointer<UnsafePointer<Void>?>(allocatingCapacity: cnt)
-            let values = UnsafeMutablePointer<UnsafePointer<Void>?>(allocatingCapacity: cnt)
+            let keys = UnsafeMutablePointer<UnsafePointer<Void>>(allocatingCapacity: cnt)
+            let values = UnsafeMutablePointer<UnsafePointer<Void>>(allocatingCapacity: cnt)
             
             CFDictionaryGetKeysAndValues(cf, keys, values)
             
             for idx in 0..<cnt {
-                let key = unsafeBitCast(keys.advanced(by: idx).pointee!, to: AnyObject.self)
-                let value = unsafeBitCast(values.advanced(by: idx).pointee!, to: AnyObject.self)
+                let key = unsafeBitCast(keys.advanced(by: idx).pointee, to: AnyObject.self)
+                let value = unsafeBitCast(values.advanced(by: idx).pointee, to: AnyObject.self)
                 if let k = key as? Key {
                     if let v = value as? Value {
                         dict[k] = v
@@ -122,7 +122,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     public override convenience init() {
-        self.init(objects: [], forKeys: [], count: 0)
+        self.init(objects: nil, forKeys: nil, count: 0)
     }
     
     public required init(objects: UnsafePointer<AnyObject>, forKeys keys: UnsafePointer<NSObject>, count cnt: Int) {
@@ -603,8 +603,8 @@ public class NSMutableDictionary : NSDictionary {
         self.init(capacity: 0)
     }
     
-    public convenience init(capacity numItems: Int) {
-        self.init(objects: [], forKeys: [], count: 0)
+    public init(capacity numItems: Int) {
+        super.init(objects: nil, forKeys: nil, count: 0)
     }
     
     public required init(objects: UnsafePointer<AnyObject>, forKeys keys: UnsafePointer<NSObject>, count cnt: Int) {

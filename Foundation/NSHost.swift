@@ -77,23 +77,24 @@ public class NSHost : NSObject {
             hints.ai_socktype = _CF_SOCK_STREAM()
             hints.ai_flags = flags
             
-            var res0: UnsafeMutablePointer<addrinfo>? = nil
-            let r = getaddrinfo(info, nil, &hints, &res0)
+            var res0: UnsafeMutablePointer<addrinfo> = nil
+            let r = withUnsafeMutablePointers(&hints, &res0) { hintsPtr, res0Ptr in
+                return getaddrinfo(info, nil, hintsPtr, res0Ptr)
+            }
             if r != 0 {
                 return
             }
-            var res: UnsafeMutablePointer<addrinfo>? = res0
+            var res: UnsafeMutablePointer<addrinfo> = res0
             while res != nil {
-                let info = res!.pointee
-                let family = info.ai_family
+                let family = res.pointee.ai_family
                 if family != AF_INET && family != AF_INET6 {
-                    res = info.ai_next
+                    res = res.pointee.ai_next
                     continue
                 }
                 let sa_len: socklen_t = socklen_t((family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in))
                 let lookupInfo = { (content: inout [String], flags: Int32) in
                     let hname = UnsafeMutablePointer<Int8>(allocatingCapacity: 1024)
-                    if (getnameinfo(info.ai_addr, sa_len, hname, 1024, nil, 0, flags) == 0) {
+                    if (getnameinfo(res.pointee.ai_addr, sa_len, hname, 1024, nil, 0, flags) == 0) {
                         content.append(String(hname))
                     }
                     hname.deinitialize()
@@ -102,7 +103,7 @@ public class NSHost : NSObject {
                 lookupInfo(&_addresses, NI_NUMERICHOST)
                 lookupInfo(&_names, NI_NAMEREQD)
                 lookupInfo(&_names, NI_NOFQDN|NI_NAMEREQD)
-                res = info.ai_next
+                res = res.pointee.ai_next
             }
             
             freeaddrinfo(res0)

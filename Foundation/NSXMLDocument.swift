@@ -197,10 +197,11 @@ public class NSXMLDocument : NSXMLNode {
     */
     /*@NSCopying*/ public var DTD: NSXMLDTD? {
         get {
-            return NSXMLDTD._objectNodeForNode(_CFXMLDocDTD(_xmlDoc)!);
+            return NSXMLDTD._objectNodeForNode(_CFXMLDocDTD(_xmlDoc));
         }
         set {
-            if let currDTD = _CFXMLDocDTD(_xmlDoc) {
+            let currDTD = _CFXMLDocDTD(_xmlDoc)
+            if currDTD != nil {
                 if _CFXMLNodeGetPrivateData(currDTD) != nil {
                     let DTD = NSXMLDTD._objectNodeForNode(currDTD)
                     _CFXMLUnlinkNode(currDTD)
@@ -242,7 +243,8 @@ public class NSXMLDocument : NSXMLNode {
         @abstract The root element.
     */
     public func rootElement() -> NSXMLElement? {
-        guard let rootPtr = _CFXMLDocRootElement(_xmlDoc) else {
+        let rootPtr = _CFXMLDocRootElement(_xmlDoc)
+        if rootPtr == nil {
             return nil
         }
 
@@ -345,8 +347,8 @@ public class NSXMLDocument : NSXMLNode {
     internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLDocument {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDocument)
 
-        if let privateData = _CFXMLNodeGetPrivateData(node) {
-            let unmanaged = Unmanaged<NSXMLDocument>.fromOpaque(privateData)
+        if _CFXMLNodeGetPrivateData(node) != nil {
+            let unmanaged = Unmanaged<NSXMLDocument>.fromOpaque(_CFXMLNodeGetPrivateData(node))
             return unmanaged.takeUnretainedValue()
         }
 
