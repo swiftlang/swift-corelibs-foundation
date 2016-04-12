@@ -130,12 +130,15 @@ public class NSCoder : NSObject {
         encodeValueOfObjCType("[\(count)\(String(cString: type))]", at: array)
     }
     
-    public func encodeBytes(_ byteaddr: UnsafePointer<Void>, length: Int) {
+    public func encodeBytes(_ byteaddr: UnsafePointer<Void>?, length: Int) {
         var newLength = UInt32(length)
         withUnsafePointer(&newLength) { (ptr: UnsafePointer<UInt32>) -> Void in
             encodeValueOfObjCType("I", at: ptr)
         }
-        encodeArrayOfObjCType("c", count: length, at: byteaddr)
+        var empty: [Int8] = []
+        withUnsafePointer(&empty) {
+            encodeArrayOfObjCType("c", count: length, at: byteaddr ?? UnsafePointer($0))
+        }
     }
     
     public func decodeObject() -> AnyObject? {
@@ -251,7 +254,7 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeBytesForKey(_ key: String, returnedLength lengthp: UnsafeMutablePointer<Int>) -> UnsafePointer<UInt8> { // returned bytes immutable!
+    public func decodeBytesForKey(_ key: String, returnedLength lengthp: UnsafeMutablePointer<Int>?) -> UnsafePointer<UInt8>? { // returned bytes immutable!
         NSRequiresConcreteImplementation()
     }
     

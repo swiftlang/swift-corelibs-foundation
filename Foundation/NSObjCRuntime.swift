@@ -116,24 +116,21 @@ internal func _NSGetSizeAndAlignment(_ type: _NSSimpleObjCType,
 }
 
 public func NSGetSizeAndAlignment(_ typePtr: UnsafePointer<Int8>,
-                                  _ sizep: UnsafeMutablePointer<Int>,
-                                  _ alignp: UnsafeMutablePointer<Int>) -> UnsafePointer<Int8> {
+                                  _ sizep: UnsafeMutablePointer<Int>?,
+                                  _ alignp: UnsafeMutablePointer<Int>?) -> UnsafePointer<Int8> {
     let type = _NSSimpleObjCType(UInt8(typePtr.pointee))!
 
     var size : Int = 0
     var align : Int = 0
     
     if !_NSGetSizeAndAlignment(type, &size, &align) {
-        return nil
+        // FIXME: This used to return nil, but the corresponding Darwin
+        // implementation is defined as returning a non-optional value.
+        fatalError("invalid type encoding")
     }
     
-    if sizep != nil {
-        sizep.pointee = size
-    }
-    
-    if alignp != nil {
-        alignp.pointee = align
-    }
+    sizep?.pointee = size
+    alignp?.pointee = align
 
     return typePtr.advanced(by: 1)
 }

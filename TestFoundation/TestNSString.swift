@@ -743,7 +743,7 @@ class TestNSString : XCTestCase {
         let expected: [Int8] = [102, 111, 111, 0]
         var res: Bool = false
         chars.withUnsafeMutableBufferPointer() {
-            let ptr = $0.baseAddress
+            let ptr = $0.baseAddress!
             res = str.getCString(ptr, maxLength: count, encoding: NSASCIIStringEncoding)
         }
         XCTAssertTrue(res, "getCString should work on simple strings with ascii string encoding")
@@ -757,12 +757,12 @@ class TestNSString : XCTestCase {
         let count = chars.count
         var res: Bool = false
         chars.withUnsafeMutableBufferPointer() {
-            let ptr = $0.baseAddress
+            let ptr = $0.baseAddress!
             res = str.getCString(ptr, maxLength: count, encoding: NSASCIIStringEncoding)
         }
         XCTAssertFalse(res, "getCString should not work on non ascii strings accessing as ascii string encoding")
         chars.withUnsafeMutableBufferPointer() {
-            let ptr = $0.baseAddress
+            let ptr = $0.baseAddress!
             res = str.getCString(ptr, maxLength: count, encoding: NSUTF8StringEncoding)
         }
         XCTAssertTrue(res, "getCString should work on UTF8 encoding")

@@ -358,7 +358,7 @@ class TestNSArray : XCTestCase {
         let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
         let expectedNumbers = inputNumbers.sorted()
 
-        func compare(_ left: AnyObject, right:AnyObject,  context: UnsafeMutablePointer<Void>) -> Int {
+        func compare(_ left: AnyObject, right:AnyObject,  context: UnsafeMutablePointer<Void>?) -> Int {
             let l = (left as! NSNumber).integerValue
             let r = (right as! NSNumber).integerValue
             return l < r ? -1 : (l > r ? 0 : 1)

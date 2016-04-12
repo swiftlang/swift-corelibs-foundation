@@ -16,7 +16,7 @@ import Glibc
 
 import CoreFoundation
 
-private func disposeTLS(_ ctx: UnsafeMutablePointer<Void>) -> Void {
+private func disposeTLS(_ ctx: UnsafeMutablePointer<Void>!) -> Void {
     Unmanaged<AnyObject>.fromOpaque(OpaquePointer(ctx)).release()
 }
 
@@ -73,7 +73,7 @@ internal enum _NSThreadStatus {
     case Finished
 }
 
-private func NSThreadStart(_ context: UnsafeMutablePointer<Void>) -> UnsafeMutablePointer<Void> {
+private func NSThreadStart(_ context: UnsafeMutablePointer<Void>!) -> UnsafeMutablePointer<Void>! {
     let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(OpaquePointer(context))
     let thread = unmanaged.takeUnretainedValue()
     NSThread._currentThread.set(thread)
@@ -155,7 +155,7 @@ public class NSThread : NSObject {
     
     internal var _main: (Void) -> Void = {}
 #if os(OSX) || os(iOS)
-    private var _thread: pthread_t = nil
+    private var _thread: pthread_t? = nil
 #elseif os(Linux)
     private var _thread = pthread_t()
 #endif
@@ -166,6 +166,7 @@ public class NSThread : NSObject {
     public var threadDictionary = [String:AnyObject]()
     
     internal init(thread: pthread_t) {
+        // Note: even on Darwin this is a non-optional pthread_t; this is only used for valid threads, which are never null pointers.
         _thread = thread
     }
     

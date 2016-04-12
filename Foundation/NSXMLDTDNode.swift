@@ -54,20 +54,16 @@ public class NSXMLDTDNode : NSXMLNode {
         @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
     */
     public init?(XMLString string: String) {
-        let ptr = _CFXMLParseDTDNode(string)
-        if ptr == nil {
-            return nil
-        } else {
-            super.init(ptr: ptr)
-        }
+        guard let ptr = _CFXMLParseDTDNode(string) else { return nil }
+        super.init(ptr: ptr)
     } //primitive
     
     public override init(kind: NSXMLNodeKind, options: Int) {
-        var ptr: _CFXMLNodePtr = nil
+        let ptr: _CFXMLNodePtr
 
         switch kind {
         case .ElementDeclarationKind:
-            ptr = _CFXMLDTDNewElementDesc(nil, nil)
+            ptr = _CFXMLDTDNewElementDesc(nil, nil)!
 
         default:
             super.init(kind: kind, options: options)
@@ -242,8 +238,8 @@ public class NSXMLDTDNode : NSXMLNode {
                      type == _kCFXMLDTDNodeTypeEntity    ||
                      type == _kCFXMLDTDNodeTypeElement)
 
-        if _CFXMLNodeGetPrivateData(node) != nil {
-            let unmanaged = Unmanaged<NSXMLDTDNode>.fromOpaque(_CFXMLNodeGetPrivateData(node))
+        if let privateData = _CFXMLNodeGetPrivateData(node) {
+            let unmanaged = Unmanaged<NSXMLDTDNode>.fromOpaque(privateData)
             return unmanaged.takeUnretainedValue()
         }
 

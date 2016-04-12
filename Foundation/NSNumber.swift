@@ -281,18 +281,18 @@ public class NSNumber : NSValue {
     
     public required convenience init?(coder aDecoder: NSCoder) {
         if !aDecoder.allowsKeyedCoding {
-            var objCType: UnsafeMutablePointer<Int8> = nil
-            var size: Int = 0
-            NSGetSizeAndAlignment(objCType, &size, nil)
-            let buffer = malloc(size)
-            aDecoder.decodeValueOfObjCType(objCType, at: buffer)
-            withUnsafeMutablePointer(&objCType, { (ptr: UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Void in
+            var objCType: UnsafeMutablePointer<Int8>? = nil
+            withUnsafeMutablePointer(&objCType, { (ptr: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>) -> Void in
                 aDecoder.decodeValueOfObjCType(String(_NSSimpleObjCType.CharPtr), at: UnsafeMutablePointer<Void>(ptr))
             })
             if objCType == nil {
                 return nil
             }
-            self.init(bytes: buffer, objCType: objCType)
+            var size: Int = 0
+            NSGetSizeAndAlignment(objCType!, &size, nil)
+            let buffer = malloc(size)
+            aDecoder.decodeValueOfObjCType(objCType!, at: buffer)
+            self.init(bytes: buffer, objCType: objCType!)
             free(buffer)
         } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.number") {
             let number = aDecoder._decodePropertyListForKey("NS.number")

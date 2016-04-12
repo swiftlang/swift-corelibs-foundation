@@ -92,9 +92,7 @@ internal class NSConcreteValue : NSValue {
         self._typeInfo = typeInfo!
 
         self._storage = UnsafeMutablePointer<UInt8>(allocatingCapacity: self._typeInfo.size)
-        if value != nil {
-            self._storage.initializeFrom(unsafeBitCast(value, to: UnsafeMutablePointer<UInt8>.self), count: self._typeInfo.size)
-        }
+        self._storage.initializeFrom(unsafeBitCast(value, to: UnsafeMutablePointer<UInt8>.self), count: self._typeInfo.size)
     }
 
     deinit {
@@ -107,7 +105,7 @@ internal class NSConcreteValue : NSValue {
     }
     
     override var objCType : UnsafePointer<Int8> {
-        return NSString(self._typeInfo.name).UTF8String // XXX leaky
+        return NSString(self._typeInfo.name).UTF8String! // XXX leaky
     }
     
     override var classForCoder: AnyClass {
@@ -127,8 +125,9 @@ internal class NSConcreteValue : NSValue {
             }
             
             let typep = type._swiftObject
-            
-            self.init(bytes: nil, objCType: typep)
+
+            // FIXME: This will result in reading garbage memory.
+            self.init(bytes: [], objCType: typep)
             aDecoder.decodeValueOfObjCType(typep, at: self.value)
         }
     }

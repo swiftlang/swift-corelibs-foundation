@@ -111,14 +111,12 @@ extension String {
     /// non-`nil`, convert the buffer to an `Index` and write it into the
     /// memory referred to by `index`
     func _withOptionalOutParameter<Result>(
-        _ index: UnsafeMutablePointer<Index>,
-        @noescape body: (UnsafeMutablePointer<Int>) -> Result
+        _ index: UnsafeMutablePointer<Index>?,
+        @noescape body: (UnsafeMutablePointer<Int>?) -> Result
         ) -> Result {
         var utf16Index: Int = 0
-        let result = index._withBridgeValue(&utf16Index) {
-            body($0)
-        }
-        index._setIfNonNil { self._index(utf16Index) }
+        let result = (index != nil) ? body(&utf16Index) : body(nil)
+        index?.pointee = self._index(utf16Index)
         return result
     }
     
@@ -126,14 +124,12 @@ extension String {
     /// from non-`nil`, convert the buffer to a `Range<Index>` and write
     /// it into the memory referred to by `range`
     func _withOptionalOutParameter<Result>(
-        _ range: UnsafeMutablePointer<Range<Index>>,
-        @noescape body: (UnsafeMutablePointer<NSRange>) -> Result
+        _ range: UnsafeMutablePointer<Range<Index>>?,
+        @noescape body: (UnsafeMutablePointer<NSRange>?) -> Result
         ) -> Result {
         var nsRange = NSRange(location: 0, length: 0)
-        let result = range._withBridgeValue(&nsRange) {
-            body($0)
-        }
-        range._setIfNonNil { self._range(nsRange) }
+        let result = (range != nil) ? body(&nsRange) : body(nil)
+        range?.pointee = self._range(nsRange)
         return result
     }
     
@@ -802,7 +798,7 @@ extension String {
     /// interpret the file.
     public init(
         contentsOfFile path: String,
-        usedEncoding: UnsafeMutablePointer<NSStringEncoding> = nil
+        usedEncoding: UnsafeMutablePointer<NSStringEncoding>? = nil
         ) throws {
         let ns = try NSString(contentsOfFile: path, usedEncoding: usedEncoding)
         self = ns._swiftObject
@@ -834,7 +830,7 @@ extension String {
     /// data.  Errors are written into the inout `error` argument.
     public init(
         contentsOfURL url: NSURL,
-        usedEncoding enc: UnsafeMutablePointer<NSStringEncoding> = nil
+        usedEncoding enc: UnsafeMutablePointer<NSStringEncoding>? = nil
         ) throws {
         let ns = try NSString(contentsOfURL: url, usedEncoding: enc)
         self = ns._swiftObject
