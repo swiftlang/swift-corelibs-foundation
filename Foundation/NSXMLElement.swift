@@ -83,8 +83,7 @@ public class NSXMLElement : NSXMLNode {
         @abstract Removes an attribute based on its name.
     */
     public func removeAttributeForName(_ name: String) {
-        let prop = _CFXMLNodeHasProp(_xmlNode, name)
-        if prop != nil {
+        if let prop = _CFXMLNodeHasProp(_xmlNode, name) {
             let propNode = NSXMLNode._objectNodeForNode(_CFXMLNodePtr(prop))
             _childNodes.remove(propNode)
             // We can't use `xmlRemoveProp` because someone else may still have a reference to this attribute
@@ -99,10 +98,10 @@ public class NSXMLElement : NSXMLNode {
     public var attributes: [NSXMLNode]? {
         get {
             var result: [NSXMLNode] = []
-            var attribute = _CFXMLNodeProperties(_xmlNode)
-            while attribute != nil {
+            var nextAttribute = _CFXMLNodeProperties(_xmlNode)
+            while let attribute = nextAttribute {
                 result.append(NSXMLNode._objectNodeForNode(attribute))
-                attribute = _CFXMLNodeGetNextSibling(attribute)
+                nextAttribute = _CFXMLNodeGetNextSibling(attribute)
             }
             return result.count > 0 ? result : nil // This appears to be how Darwin does it
         }
@@ -121,11 +120,11 @@ public class NSXMLElement : NSXMLNode {
     }
 
     private func removeAttributes() {
-        var attribute = _CFXMLNodeProperties(_xmlNode)
-        while attribute != nil {
+        var nextAttribute = _CFXMLNodeProperties(_xmlNode)
+        while let attribute = nextAttribute {
             var shouldFreeNode = true
-            if _CFXMLNodeGetPrivateData(attribute) != nil {
-                let nodeUnmanagedRef = Unmanaged<NSXMLNode>.fromOpaque(_CFXMLNodeGetPrivateData(attribute))
+            if let privateData = _CFXMLNodeGetPrivateData(attribute) {
+                let nodeUnmanagedRef = Unmanaged<NSXMLNode>.fromOpaque(privateData)
                 let node = nodeUnmanagedRef.takeUnretainedValue()
                 _childNodes.remove(node)
 
@@ -138,7 +137,7 @@ public class NSXMLElement : NSXMLNode {
                 _CFXMLFreeNode(attribute)
             }
 
-            attribute = temp
+            nextAttribute = temp
         }
     }
 
@@ -158,8 +157,7 @@ public class NSXMLElement : NSXMLNode {
         @abstract Returns an attribute matching this name.
     */
     public func attributeForName(_ name: String) -> NSXMLNode? {
-        let attribute = _CFXMLNodeHasProp(_xmlNode, name)
-        if attribute == nil { return nil }
+        guard let attribute = _CFXMLNodeHasProp(_xmlNode, name) else { return nil }
         return NSXMLNode._objectNodeForNode(attribute)
     }
 
@@ -262,8 +260,8 @@ public class NSXMLElement : NSXMLNode {
     internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLElement {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeElement)
 
-        if _CFXMLNodeGetPrivateData(node) != nil {
-            let unmanaged = Unmanaged<NSXMLElement>.fromOpaque(_CFXMLNodeGetPrivateData(node))
+        if let privateData = _CFXMLNodeGetPrivateData(node) {
+            let unmanaged = Unmanaged<NSXMLElement>.fromOpaque(privateData)
             return unmanaged.takeUnretainedValue()
         }
 

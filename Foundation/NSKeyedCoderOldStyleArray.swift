@@ -11,7 +11,7 @@ import CoreFoundation
 
 internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
-    private var _addr : UnsafeMutablePointer<UInt8> = nil // free if decoding
+    private var _addr : UnsafeMutablePointer<UInt8> // free if decoding
     private var _count : Int
     private var _size : Int
     private var _type : _NSSimpleObjCType

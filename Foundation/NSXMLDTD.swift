@@ -21,8 +21,7 @@ public class NSXMLDTD : NSXMLNode {
     public convenience init(contentsOfURL url: NSURL, options mask: Int) throws {
         let urlString = url.absoluteString
 
-        let node = _CFXMLParseDTD(urlString)
-        if node == nil {
+        guard let node = _CFXMLParseDTD(urlString) else {
             //TODO: throw error
             fatalError("parsing dtd string failed")
         }
@@ -31,11 +30,13 @@ public class NSXMLDTD : NSXMLNode {
 
     public convenience init(data: NSData, options mask: Int) throws {
         var unmanagedError: Unmanaged<CFError>? = nil
-        let node = _CFXMLParseDTDFromData(data._cfObject, &unmanagedError)
-        if node == nil {
+        
+        guard let node = _CFXMLParseDTDFromData(data._cfObject, &unmanagedError) else {
             if let error = unmanagedError?.takeRetainedValue()._nsObject {
                 throw error
             }
+            //TODO: throw a generic error?
+            fatalError("parsing dtd from data failed")
         }
 
         self.init(ptr: node)
@@ -130,10 +131,7 @@ public class NSXMLDTD : NSXMLNode {
         @abstract Returns the entity declaration matching this name.
     */
     public func entityDeclarationForName(_ name: String) -> NSXMLDTDNode? {
-        let node = _CFXMLDTDGetEntityDesc(_xmlDTD, name)
-        if node == nil {
-            return nil
-        }
+        guard let node = _CFXMLDTDGetEntityDesc(_xmlDTD, name) else { return nil }
         return NSXMLDTDNode._objectNodeForNode(node)
     } //primitive
     
@@ -142,11 +140,7 @@ public class NSXMLDTD : NSXMLNode {
         @abstract Returns the notation declaration matching this name.
     */
     public func notationDeclarationForName(_ name: String) -> NSXMLDTDNode? {
-        let node = _CFXMLDTDGetNotationDesc(_xmlDTD, name)
-
-        if node == nil {
-            return nil
-        }
+        guard let node = _CFXMLDTDGetNotationDesc(_xmlDTD, name) else { return nil }
         return NSXMLDTDNode._objectNodeForNode(node)
     } //primitive
     
@@ -155,11 +149,7 @@ public class NSXMLDTD : NSXMLNode {
         @abstract Returns the element declaration matching this name.
     */
     public func elementDeclarationForName(_ name: String) -> NSXMLDTDNode? {
-        let node = _CFXMLDTDGetElementDesc(_xmlDTD, name)
-
-        if node == nil {
-            return nil
-        }
+        guard let node = _CFXMLDTDGetElementDesc(_xmlDTD, name) else { return nil }
         return NSXMLDTDNode._objectNodeForNode(node)
     } //primitive
     
@@ -168,11 +158,7 @@ public class NSXMLDTD : NSXMLNode {
         @abstract Returns the attribute declaration matching this name.
     */
     public func attributeDeclarationForName(_ name: String, elementName: String) -> NSXMLDTDNode? {
-        let node = _CFXMLDTDGetAttributeDesc(_xmlDTD, elementName, name)
-
-        if node == nil {
-            return nil
-        }
+        guard let node = _CFXMLDTDGetAttributeDesc(_xmlDTD, elementName, name) else { return nil }
         return NSXMLDTDNode._objectNodeForNode(node)
     } //primitive
     
@@ -183,20 +169,15 @@ public class NSXMLDTD : NSXMLNode {
     	<ul><li>&amp;lt; - &lt;</li><li>&amp;gt; - &gt;</li><li>&amp;amp; - &amp;</li><li>&amp;quot; - &quot;</li><li>&amp;apos; - &amp;</li></ul>
     */
     public class func predefinedEntityDeclarationForName(_ name: String) -> NSXMLDTDNode? {
-        let node = _CFXMLDTDGetPredefinedEntity(name)
-
-        if node == nil {
-            return nil
-        }
-
+        guard let node = _CFXMLDTDGetPredefinedEntity(name) else { return nil }
         return NSXMLDTDNode._objectNodeForNode(node)
     }
     
     internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLDTD {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDTD)
 
-        if _CFXMLNodeGetPrivateData(node) != nil {
-            let unmanaged = Unmanaged<NSXMLDTD>.fromOpaque(_CFXMLNodeGetPrivateData(node))
+        if let privateData = _CFXMLNodeGetPrivateData(node) {
+            let unmanaged = Unmanaged<NSXMLDTD>.fromOpaque(privateData)
             return unmanaged.takeUnretainedValue()
         }
         

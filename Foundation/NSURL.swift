@@ -33,10 +33,10 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
     internal var _base = _CFInfo(typeID: CFURLGetTypeID())
     internal var _flags : UInt32 = 0
     internal var _encoding : CFStringEncoding = 0
-    internal var _string : UnsafeMutablePointer<CFString> = nil
-    internal var _baseURL : UnsafeMutablePointer<CFURL> = nil
-    internal var _extra : OpaquePointer = nil
-    internal var _resourceInfo : OpaquePointer = nil
+    internal var _string : UnsafeMutablePointer<CFString>? = nil
+    internal var _baseURL : UnsafeMutablePointer<CFURL>? = nil
+    internal var _extra : OpaquePointer? = nil
+    internal var _resourceInfo : OpaquePointer? = nil
     internal var _range1 = NSRange(location: 0, length: 0)
     internal var _range2 = NSRange(location: 0, length: 0)
     internal var _range3 = NSRange(location: 0, length: 0)
@@ -314,7 +314,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         
         let passwordBuf = buf[passwordRange.location ..< passwordRange.location+passwordRange.length]
         return passwordBuf.withUnsafeBufferPointer { ptr in
-            NSString(bytes: ptr.baseAddress, length: passwordBuf.count, encoding: NSUTF8StringEncoding)?._swiftObject
+            NSString(bytes: ptr.baseAddress!, length: passwordBuf.count, encoding: NSUTF8StringEncoding)?._swiftObject
         }
     }
     
@@ -369,7 +369,10 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
             return UnsafePointer(_fsrBuffer)
         }
 
-        return nil
+        // FIXME: This used to return nil, but the corresponding Darwin
+        // implementation is marked as non-nullable.
+        fatalError("URL cannot be expressed in the filesystem representation;" +
+                   "use getFileSystemRepresentation to handle this case")
     }
     
     // Whether the scheme is file:; if [myURL isFileURL] is YES, then [myURL path] is suitable for input into NSFileManager or NSPathUtilities.

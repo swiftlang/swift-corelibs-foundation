@@ -109,7 +109,7 @@ public class NSJSONSerialization : NSObject {
             pretty: opt.contains(.PrettyPrinted),
             writer: { (str: String?) in
                 if let str = str {
-                    result.appendBytes(str.bridge().cStringUsingEncoding(NSUTF8StringEncoding), length: str.lengthOfBytesUsingEncoding(NSUTF8StringEncoding))
+                    result.appendBytes(str.bridge().cStringUsingEncoding(NSUTF8StringEncoding)!, length: str.lengthOfBytesUsingEncoding(NSUTF8StringEncoding))
                 }
             }
         )
@@ -455,7 +455,7 @@ private struct JSONReader {
 
         func takeString(_ begin: Index, end: Index) throws -> String {
             let byteLength = begin.distance(to: end)
-            guard let chunk = NSString(bytes: buffer.baseAddress.advanced(by: begin), length: byteLength, encoding: encoding)?.bridge() else {
+            guard let chunk = NSString(bytes: buffer.baseAddress!.advanced(by: begin), length: byteLength, encoding: encoding)?.bridge() else {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                     "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
                     ])
@@ -627,11 +627,12 @@ private struct JSONReader {
     func parseNumber(_ input: Index) throws -> (Double, Index)? {
         func parseDouble(_ address: UnsafePointer<UInt8>) -> (Double, Index.Distance)? {
             let startPointer = UnsafePointer<Int8>(address)
-            let endPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>(allocatingCapacity: 1)
+            let endPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
             defer { endPointer.deallocateCapacity(1) }
             
             let result = strtod(startPointer, endPointer)
-            let distance = startPointer.distance(to: endPointer[0])
+            let distance = startPointer.distance(to: endPointer[0]!)
+            
             guard distance > 0 else {
                 return nil
             }
@@ -640,7 +641,7 @@ private struct JSONReader {
         }
         
         if source.encoding == NSUTF8StringEncoding {
-            return parseDouble(source.buffer.baseAddress.advanced(by: input)).map { return ($0.0, input + $0.1) }
+            return parseDouble(source.buffer.baseAddress!.advanced(by: input)).map { return ($0.0, input + $0.1) }
         }
         else {
             var numberCharacters = [UInt8]()
@@ -652,7 +653,7 @@ private struct JSONReader {
             
             numberCharacters.append(0)
             
-            return numberCharacters.withUnsafeBufferPointer { parseDouble($0.baseAddress) }.map { return ($0.0, index) }
+            return numberCharacters.withUnsafeBufferPointer { parseDouble($0.baseAddress!) }.map { return ($0.0, index) }
         }
     }
 

@@ -54,7 +54,7 @@ struct _NSObjectBridge {
 struct _NSArrayBridge {
     CFIndex (*_Nonnull count)(CFTypeRef obj);
     _Nonnull CFTypeRef (*_Nonnull objectAtIndex)(CFTypeRef obj, CFIndex index);
-    void (*_Nonnull getObjects)(CFTypeRef array, CFRange range, CFTypeRef _Nonnull * _Nonnull values);
+    void (*_Nonnull getObjects)(CFTypeRef array, CFRange range, CFTypeRef _Nullable *_Nonnull values);
 };
 
 struct _NSMutableArrayBridge {
@@ -73,11 +73,11 @@ struct _NSDictionaryBridge {
     CFIndex (*countForKey)(CFTypeRef dictionary, CFTypeRef key);
     bool (*containsKey)(CFTypeRef dictionary, CFTypeRef key);
     _Nullable CFTypeRef (*_Nonnull objectForKey)(CFTypeRef dictionary, CFTypeRef key);
-    bool (*_getValueIfPresent)(CFTypeRef dictionary, CFTypeRef key, CFTypeRef _Nonnull * _Nullable value);
+    bool (*_getValueIfPresent)(CFTypeRef dictionary, CFTypeRef key, CFTypeRef _Nullable *_Nullable value);
     CFIndex (*__getValue)(CFTypeRef dictionary, CFTypeRef value, CFTypeRef key);
     bool (*containsObject)(CFTypeRef dictionary, CFTypeRef value);
     CFIndex (*countForObject)(CFTypeRef dictionary, CFTypeRef value);
-    void (*getObjects)(CFTypeRef dictionary, CFTypeRef _Nonnull * _Nonnull valuebuf, CFTypeRef _Nonnull * _Nonnull keybuf);
+    void (*getObjects)(CFTypeRef dictionary, CFTypeRef _Nullable *_Nullable valuebuf, CFTypeRef _Nullable *_Nullable keybuf);
     void (*__apply)(CFTypeRef dictionary, void (*applier)(CFTypeRef key, CFTypeRef value, void *context), void *context);
 };
 
@@ -104,7 +104,7 @@ struct _NSStringBridge {
     CFIndex (*length)(CFTypeRef str);
     UniChar (*characterAtIndex)(CFTypeRef str, CFIndex idx);
     void (*getCharacters)(CFTypeRef str, CFRange range, UniChar *buffer);
-    CFIndex (*__getBytes)(CFTypeRef str, CFStringEncoding encoding, CFRange range, uint8_t *buffer, CFIndex maxBufLen, CFIndex *usedBufLen);
+    CFIndex (*__getBytes)(CFTypeRef str, CFStringEncoding encoding, CFRange range, uint8_t *_Nullable buffer, CFIndex maxBufLen, CFIndex *_Nullable usedBufLen);
     const char *_Nullable (*_Nonnull _fastCStringContents)(CFTypeRef str);
     const UniChar *_Nullable (*_Nonnull _fastCharacterContents)(CFTypeRef str);
     bool (*_getCString)(CFTypeRef str, char *buffer, size_t len, UInt32 encoding);
@@ -123,7 +123,7 @@ struct _NSMutableStringBridge {
 
 struct _NSXMLParserBridge {
     _CFXMLInterface _Nullable (*_Nonnull currentParser)();
-    _CFXMLInterfaceParserInput _Nonnull (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface interface, const char *url, const char * identifier, _CFXMLInterfaceParserContext context, _CFXMLInterfaceExternalEntityLoader originalLoaderFunction);
+    _CFXMLInterfaceParserInput _Nullable (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface interface, const char *url, const char * identifier, _CFXMLInterfaceParserContext context, _CFXMLInterfaceExternalEntityLoader originalLoaderFunction);
     
     _CFXMLInterfaceParserContext _Nonnull (*_Nonnull getContext)(_CFXMLInterface ctx);
     
@@ -131,7 +131,7 @@ struct _NSXMLParserBridge {
     int (*isStandalone)(_CFXMLInterface ctx);
     int (*hasInternalSubset)(_CFXMLInterface ctx);
     int (*hasExternalSubset)(_CFXMLInterface ctx);
-    _CFXMLInterfaceEntity _Nonnull (*_Nonnull getEntity)(_CFXMLInterface ctx, const unsigned char *name);
+    _CFXMLInterfaceEntity _Nullable (*_Nonnull getEntity)(_CFXMLInterface ctx, const unsigned char *name);
     void (*notationDecl)(_CFXMLInterface ctx,
                          const unsigned char *name,
                          const unsigned char *publicId,
@@ -156,16 +156,16 @@ struct _NSXMLParserBridge {
     void (*endDocument)(_CFXMLInterface ctx);
     void (*startElementNs)(_CFXMLInterface ctx,
                            const unsigned char *localname,
-                           const unsigned char *prefix,
+                           const unsigned char *_Nullable prefix,
                            const unsigned char *URI,
                            int nb_namespaces,
-                           const unsigned char *_Nonnull *_Nonnull namespaces,
+                           const unsigned char *_Nullable *_Nonnull namespaces,
                            int nb_attributes,
                            int nb_defaulted,
-                           const unsigned char *_Nonnull *_Nonnull attributes);
+                           const unsigned char *_Nullable *_Nonnull attributes);
     void (*endElementNs)(_CFXMLInterface ctx,
                          const unsigned char *localname,
-                         const unsigned char *prefix,
+                         const unsigned char *_Nullable prefix,
                          const unsigned char *URI);
     void (*characters)(_CFXMLInterface ctx,
                        const unsigned char *ch,
@@ -239,7 +239,7 @@ extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef al
 extern _Nullable CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
 extern void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date);
 
-CF_PRIVATE CF_EXPORT char *_Nonnull*_Nonnull _CFEnviron(void);
+CF_PRIVATE CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 

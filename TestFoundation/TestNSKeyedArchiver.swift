@@ -129,7 +129,7 @@ class TestNSKeyedArchiver : XCTestCase {
         let array: Array<UInt64> = [12341234123, 23452345234, 23475982345, 9893563243, 13469816598]
         let objctype = "[5Q]"
         array.withUnsafeBufferPointer { cArray in
-            let concrete = NSValue(bytes: cArray.baseAddress, objCType: objctype)
+            let concrete = NSValue(bytes: cArray.baseAddress!, objCType: objctype)
             test_archive(concrete)
         }
     }
@@ -144,14 +144,14 @@ class TestNSKeyedArchiver : XCTestCase {
 
         test_archive({ archiver -> Bool in
             array.withUnsafeBufferPointer { cArray in
-                archiver.encodeValueOfObjCType("[4i]", at: cArray.baseAddress)
+                archiver.encodeValueOfObjCType("[4i]", at: cArray.baseAddress!)
             }
             return true
         },
         decode: {unarchiver -> Bool in
             var expected: Array<Int32> = [0, 0, 0, 0]
             expected.withUnsafeMutableBufferPointer {(p: inout UnsafeMutableBufferPointer<Int32>) in
-                unarchiver.decodeValueOfObjCType("[4i]", at: UnsafeMutablePointer<Void>(p.baseAddress))
+                unarchiver.decodeValueOfObjCType("[4i]", at: UnsafeMutablePointer<Void>(p.baseAddress!))
             }
             XCTAssertEqual(expected, array)
             return true
@@ -229,15 +229,15 @@ class TestNSKeyedArchiver : XCTestCase {
                 guard let value = unarchiver.decodeObjectOfClass(NSValue.self, forKey: "root") else {
                     return false
                 }
-                var expectedCharPtr: UnsafeMutablePointer<CChar> = nil
+                var expectedCharPtr: UnsafeMutablePointer<CChar>? = nil
                 value.getValue(&expectedCharPtr)
                 
                 let s1 = String(cString: charPtr)
-                let s2 = String(cString: expectedCharPtr)
+                let s2 = String(cString: expectedCharPtr!)
                 
                 // On Darwin decoded strings would belong to the autorelease pool, but as we don't have
                 // one in SwiftFoundation let's explicitly deallocate it here.
-                expectedCharPtr.deallocateCapacity(charArray.count)
+                expectedCharPtr!.deallocateCapacity(charArray.count)
                 
                 return s1 == s2
         })

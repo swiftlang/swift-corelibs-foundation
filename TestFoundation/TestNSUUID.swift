@@ -23,7 +23,6 @@ class TestNSUUID : XCTestCase {
         return [
             ("test_Equality", test_Equality),
             ("test_InvalidUUID", test_InvalidUUID),
-            ("test_InitializationWithNil", test_InitializationWithNil),
             ("test_UUIDString", test_UUIDString),
             ("test_description", test_description),
             // Disabled until NSKeyedArchiver and NSKeyedUnarchiver are implemented
@@ -45,11 +44,6 @@ class TestNSUUID : XCTestCase {
     func test_InvalidUUID() {
         let uuid = NSUUID(UUIDString: "Invalid UUID")
         XCTAssertNil(uuid, "The convenience initializer `init?(UUIDString string:)` must return nil for an invalid UUID string.")
-    }
-    
-    func test_InitializationWithNil() {
-        let uuid = NSUUID(UUIDBytes: nil)
-        XCTAssertEqual(uuid, NSUUID(UUIDBytes: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]), "The convenience initializer `init(UUIDBytes bytes:)` must return the Nil UUID when UUIDBytes is nil.")
     }
     
     // `UUIDString` should return an uppercase string

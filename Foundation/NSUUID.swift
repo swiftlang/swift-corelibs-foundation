@@ -32,11 +32,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public init(UUIDBytes bytes: UnsafePointer<UInt8>) {
-        if (bytes != nil) {
-            memcpy(unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
-        } else {
-            memset(unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), 0, 16)
-        }
+        memcpy(unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
     }
     
     public func getUUIDBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
@@ -66,7 +62,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
             var length : Int = 0
             let bytes = coder.decodeBytesForKey("NS.uuidbytes", returnedLength: &length)
             if (length == 16) {
-                self.init(UUIDBytes: bytes)
+                self.init(UUIDBytes: bytes!)
             } else {
                 self.init() // failure to decode the entire uuid_t results in a new uuid
             }

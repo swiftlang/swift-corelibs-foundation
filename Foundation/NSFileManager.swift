@@ -248,21 +248,16 @@ public class NSFileManager : NSObject {
         defer {
             closedir(dir)
         }
-        
-        var entry: UnsafeMutablePointer<dirent> = readdir(dir)
-        
-        while entry != nil {
+
+        while let entry = readdir(dir) {
             if let entryName = withUnsafePointer(&entry.pointee.d_name, { (ptr) -> String? in
-                let int8Ptr = unsafeBitCast(ptr, to: UnsafePointer<Int8>.self)
-                return String(cString: int8Ptr)
+                return String(cString: UnsafePointer<Int8>(ptr))
             }) {
                 // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
                 if entryName != "." && entryName != ".." {
                     contents.append(entryName)
                 }
             }
-            
-            entry = readdir(dir)
         }
         
         return contents
@@ -470,7 +465,7 @@ public class NSFileManager : NSObject {
         } else if errno == ENOTEMPTY {
 
             let fsRep = NSFileManager.defaultManager().fileSystemRepresentationWithPath(path)
-            let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>(allocatingCapacity: 2)
+            let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
             ps.initialize(with: UnsafeMutablePointer(fsRep))
             ps.advanced(by: 1).initialize(with: nil)
             let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
@@ -590,10 +585,10 @@ public class NSFileManager : NSObject {
         return self.fileExistsAtPath(path, isDirectory: nil)
     }
     
-    public func fileExistsAtPath(_ path: String, isDirectory: UnsafeMutablePointer<ObjCBool>) -> Bool {
+    public func fileExistsAtPath(_ path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
         var s = stat()
         if lstat(path, &s) >= 0 {
-            if isDirectory != nil {
+            if let isDirectory = isDirectory {
                 if (s.st_mode & S_IFMT) == S_IFLNK {
                     if stat(path, &s) >= 0 {
                         isDirectory.pointee = (s.st_mode & S_IFMT) == S_IFDIR
@@ -698,7 +693,7 @@ public class NSFileManager : NSObject {
         precondition(path != "", "Empty path argument")
         let len = CFStringGetMaximumSizeOfFileSystemRepresentation(path._cfObject)
         if len == kCFNotFound {
-            return nil
+            fatalError("string could not be converted")
         }
         let buf = UnsafeMutablePointer<Int8>(allocatingCapacity: len)
         for i in 0..<len {
@@ -707,7 +702,7 @@ public class NSFileManager : NSObject {
         if !path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
             buf.deinitialize(count: len)
             buf.deallocateCapacity(len)
-            return nil
+            fatalError("string could not be converted")
         }
         return UnsafePointer(buf)
     }
@@ -899,8 +894,8 @@ internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
     var _url : NSURL
     var _options : NSDirectoryEnumerationOptions
     var _errorHandler : ((NSURL, NSError) -> Bool)?
-    var _stream : UnsafeMutablePointer<FTS> = nil
-    var _current : UnsafeMutablePointer<FTSENT> = nil
+    var _stream : UnsafeMutablePointer<FTS>? = nil
+    var _current : UnsafeMutablePointer<FTSENT>? = nil
     var _rootError : NSError? = nil
     var _gotRoot : Bool = false
     
@@ -912,7 +907,7 @@ internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
         if let path = _url.path {
             if NSFileManager.defaultManager().fileExistsAtPath(path) {
                 let fsRep = NSFileManager.defaultManager().fileSystemRepresentationWithPath(path)
-                let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>>(allocatingCapacity: 2)
+                let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
                 ps.initialize(with: UnsafeMutablePointer(fsRep))
                 ps.advanced(by: 1).initialize(with: nil)
                 _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
@@ -928,50 +923,50 @@ internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
     }
     
     deinit {
-        if _stream != nil {
-            fts_close(_stream)
+        if let stream = _stream {
+            fts_close(stream)
         }
     }
     
     override func nextObject() -> AnyObject? {
-        if _stream != nil {
+        if let stream = _stream {
             
             if !_gotRoot  {
                 _gotRoot = true
                 
                 // Skip the root.
-                _current = fts_read(_stream)
+                _current = fts_read(stream)
                 
             }
 
-            _current = fts_read(_stream)
-            while _current != nil {
-                switch Int32(_current.pointee.fts_info) {
+            _current = fts_read(stream)
+            while let current = _current {
+                switch Int32(current.pointee.fts_info) {
                     case FTS_D:
                         if _options.contains(.SkipsSubdirectoryDescendants) {
                             fts_set(_stream, _current, FTS_SKIP)
                         }
                         fallthrough
                     case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                        let str = NSString(bytes: _current.pointee.fts_path, length: Int(strlen(_current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                        let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
                         return NSURL(fileURLWithPath: str)
                     case FTS_DNR, FTS_ERR, FTS_NS:
                         let keepGoing : Bool
                         if let handler = _errorHandler {
-                            let str = NSString(bytes: _current.pointee.fts_path, length: Int(strlen(_current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
-                            keepGoing = handler(NSURL(fileURLWithPath: str), _NSErrorWithErrno(_current.pointee.fts_errno, reading: true))
+                            let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                            keepGoing = handler(NSURL(fileURLWithPath: str), _NSErrorWithErrno(current.pointee.fts_errno, reading: true))
                         } else {
                             keepGoing = true
                         }
                         if !keepGoing {
-                            fts_close(_stream)
+                            fts_close(stream)
                             _stream = nil
                             return nil
                         }
                     default:
                         break
                 }
-                _current = fts_read(_stream)
+                _current = fts_read(stream)
             }
             // TODO: Error handling if fts_read fails.
             
@@ -993,16 +988,12 @@ internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
     }
     
     override var level: Int {
-        if _current != nil {
-            return Int(_current.pointee.fts_level)
-        } else {
-            return 0
-        }
+        return Int(_current?.pointee.fts_level ?? 0)
     }
     
     override func skipDescendants() {
-        if _stream != nil && _current != nil {
-            fts_set(_stream, _current, FTS_SKIP)
+        if let stream = _stream, current = _current {
+            fts_set(stream, current, FTS_SKIP)
         }
     }
 }
