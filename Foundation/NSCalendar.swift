@@ -624,9 +624,9 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     Create a date with given components.
     Current era is assumed.
     */
-    public func dateWithEra(_ eraValue: Int, year yearValue: Int, month monthValue: Int, day dayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> NSDate? {
+    public func date(_ era: Int, year yearValue: Int, month monthValue: Int, day dayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> NSDate? {
         let comps = NSDateComponents()
-        comps.era = eraValue
+        comps.era = era
         comps.year = yearValue
         comps.month = monthValue
         comps.day = dayValue
@@ -641,9 +641,9 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     Create a date with given components.
     Current era is assumed.
     */
-    public func dateWithEra(_ eraValue: Int, yearForWeekOfYear yearValue: Int, weekOfYear weekValue: Int, weekday weekdayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> NSDate? {
+    public func date(_ era: Int, yearForWeekOfYear yearValue: Int, weekOfYear weekValue: Int, weekday weekdayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> NSDate? {
         let comps = NSDateComponents()
-        comps.era = eraValue
+        comps.era = era
         comps.yearForWeekOfYear = yearValue
         comps.weekOfYear = weekValue
         comps.weekday = weekdayValue
@@ -965,7 +965,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     Result dates have an integer number of seconds (as if 0 was specified for the nanoseconds property of the NSDateComponents matching parameter), unless a value was set in the nanoseconds property, in which case the result date will have that number of nanoseconds (or as close as possible with floating point numbers).
     The enumeration is stopped by setting *stop = YES in the block and return.  It is not necessary to set *stop to NO to keep the enumeration going.
     */
-    public func enumerateDatesStartingAfterDate(_ start: NSDate, matchingComponents comps: NSDateComponents, options opts: NSCalendarOptions, usingBlock block: (NSDate?, Bool, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateDates(_ startingAfter: NSDate, matching comps: NSDateComponents, options opts: NSCalendarOptions, using block: (NSDate?, Bool, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     
     /*
     This method computes the next date which matches (or most closely matches) a given set of components.
@@ -974,7 +974,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     */
     public func nextDateAfterDate(_ date: NSDate, matchingComponents comps: NSDateComponents, options: NSCalendarOptions) -> NSDate? {
         var result: NSDate?
-        enumerateDatesStartingAfterDate(date, matchingComponents: comps, options: options) { date, exactMatch, stop in
+        enumerateDates(date, matching: comps, options: options) { date, exactMatch, stop in
             result = date
             stop.pointee = true
         }
@@ -1019,7 +1019,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         let targetComp = NSDateComponents()
         targetComp.setValue(v, forComponent: unit)
         var result: NSDate?
-        enumerateDatesStartingAfterDate(date, matchingComponents: targetComp, options: .MatchNextTime) { date, match, stop in
+        enumerateDates(date, matching: targetComp, options: .MatchNextTime) { date, match, stop in
             result = date
             stop.pointee = true
         }
