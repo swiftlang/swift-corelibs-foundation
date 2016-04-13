@@ -197,13 +197,12 @@ extension NSDate {
         return timeIntervalSinceReferenceDate == otherDate.timeIntervalSinceReferenceDate
     }
 
-    public func isEqualToDateIgnoringTime(_ otherDate: NSDate) -> Bool
-    {
-        let yearDatMonthComponents: NSCalendarUnit = [.Year, .Day, .Month]
+    public func isEqualToDateIgnoringTime(_ otherDate: NSDate) -> Bool {
+        let yearDayMonthComponents: NSCalendarUnit = [.Year, .Day, .Month]
         let currentCalendar = NSCalendar.currentCalendar() // change to autoupdatingCurrentCalendar when it's implemented
         
-        let componentsFromSelf = currentCalendar.components( yearDatMonthComponents, fromDate: self);
-        let componentsFromOtherDate = currentCalendar.components( yearDatMonthComponents, fromDate: otherDate);
+        let componentsFromSelf = currentCalendar.components( yearDayMonthComponents, fromDate: self);
+        let componentsFromOtherDate = currentCalendar.components( yearDayMonthComponents, fromDate: otherDate);
         
         guard let unwrappedComponentsFromSelf = componentsFromSelf,
               let unwrappedComponentsFromOtherDate = componentsFromOtherDate else {
