@@ -239,13 +239,13 @@ class TestNSRegularExpression : XCTestCase {
         complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", [], "This this is the the way.", [], NSMakeRange(0, 25), 1, NSMakeRange(13, 7), NSMakeRange(13, 3), NSMakeRange(13, 3));
         complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", .CaseInsensitive, "This this is the the way.", [], NSMakeRange(0, 25), 2, NSMakeRange(0, 9), NSMakeRange(0, 4), NSMakeRange(0, 4));
         
-        //complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", [], "This this is the theway.", [], NSMakeRange(0, 24), 0, NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
+        complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", [], "This this is the theway.", [], NSMakeRange(0, 24), 0, NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
         complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", [], "This this is the theway.", [], NSMakeRange(0, 20), 1, NSMakeRange(13, 7), NSMakeRange(13, 3), NSMakeRange(13, 3));
-        //complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", [], "This this is the theway.", .WithTransparentBounds, NSMakeRange(0, 20), 0, NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
+        complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", [], "This this is the theway.", .WithTransparentBounds, NSMakeRange(0, 20), 0, NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
         complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", .CaseInsensitive, "xThis this is the theway.", [], NSMakeRange(0, 25), 0, NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
-        //complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", [], "xThis this is the theway.", [], NSMakeRange(1, 20), 1, NSMakeRange(14, 7), NSMakeRange(14, 3), NSMakeRange(14, 3));
+        complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", [], "xThis this is the theway.", [], NSMakeRange(1, 20), 1, NSMakeRange(14, 7), NSMakeRange(14, 3), NSMakeRange(14, 3));
         complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", .CaseInsensitive, "xThis this is the theway.", [], NSMakeRange(1, 20), 2, NSMakeRange(1, 9), NSMakeRange(1, 4), NSMakeRange(1, 4));
-        //complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", .CaseInsensitive, "xThis this is the theway.", .WithTransparentBounds, NSMakeRange(1, 20), 0, NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
+        complexRegularExpressionTest("\\b(th[a-z]+) \\1\\b", .CaseInsensitive, "xThis this is the theway.", .WithTransparentBounds, NSMakeRange(1, 20), 0, NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
         
         complexRegularExpressionTest(NSRegularExpression.escapedPatternForString("\\b(th[a-z]+) \\1\\b"), [], "This this is the the way.", [], NSMakeRange(0, 25), 0, NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
         complexRegularExpressionTest(NSRegularExpression.escapedPatternForString("\\b(th[a-z]+) \\1\\b"), [], "x\\b(th[a-z]+) \\1\\by", [], NSMakeRange(0, 19), 1, NSMakeRange(1, 17), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
@@ -273,8 +273,8 @@ class TestNSRegularExpression : XCTestCase {
         complexRegularExpressionTest("\\b(th[a-z]+).\n#the first expression repeats\n\\1\\b", .AllowCommentsAndWhitespace, "This this is the the way.", [], NSMakeRange(0, 25), 1, NSMakeRange(13, 7), NSMakeRange(13, 3), NSMakeRange(13, 3));
         
         complexRegularExpressionTest("(a(b|c|d)(x|y|z)*|123)", [], "abx", [], NSMakeRange(0, 3), 1, NSMakeRange(0, 3), NSMakeRange(0, 3), NSMakeRange(2, 1));
-        //complexRegularExpressionTest("(a(b|c|d)(x|y|z)*|123)", [], "123", [], NSMakeRange(0, 3), 1, NSMakeRange(0, 3), NSMakeRange(0, 3), NSMakeRange(NSNotFound, 0));
-        //complexRegularExpressionTest("a(b|c|d)(x|y|z)*|123", [], "123", [], NSMakeRange(0, 3), 1, NSMakeRange(0, 3), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
+        complexRegularExpressionTest("(a(b|c|d)(x|y|z)*|123)", [], "123", [], NSMakeRange(0, 3), 1, NSMakeRange(0, 3), NSMakeRange(0, 3), NSMakeRange(NSNotFound, 0));
+        complexRegularExpressionTest("a(b|c|d)(x|y|z)*|123", [], "123", [], NSMakeRange(0, 3), 1, NSMakeRange(0, 3), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0));
         complexRegularExpressionTest("a(b|c|d)(x|y|z)*", [], "abx", [], NSMakeRange(0, 3), 1, NSMakeRange(0, 3), NSMakeRange(1, 1), NSMakeRange(2, 1));
         complexRegularExpressionTest("(a(b|c|d)(x|y|z)*|123)", [], "abxy", [], NSMakeRange(0, 4), 1, NSMakeRange(0, 4), NSMakeRange(0, 4), NSMakeRange(3, 1));
         complexRegularExpressionTest("a(b|c|d)(x|y|z)*", [], "abxy", [], NSMakeRange(0, 4), 1, NSMakeRange(0, 4), NSMakeRange(1, 1), NSMakeRange(3, 1));
