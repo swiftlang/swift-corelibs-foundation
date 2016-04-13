@@ -35,6 +35,8 @@ class TestNSDate : XCTestCase {
             ("test_LaterDate", test_LaterDate),
             ("test_Compare", test_Compare),
             ("test_IsEqualToDate", test_IsEqualToDate),
+            ("test_IsEqualToDateIgnoringTime", test_IsEqualToDateIgnoringTime),
+
         ]
     }
     
@@ -113,5 +115,13 @@ class TestNSDate : XCTestCase {
         let d2 = d1.dateByAddingTimeInterval(ti)
         let d3 = d1.dateByAddingTimeInterval(ti)
         XCTAssertTrue(d2.isEqualToDate(d3))
+    }
+    
+    func test_IsEqualToDateIgnoringTime() {
+        let ti: NSTimeInterval = 1
+        let d1 = NSDate()
+        let d2 = d1.dateByAddingTimeInterval(ti)
+        let d3 = d2.dateByAddingTimeInterval(ti)
+        XCTAssertTrue(d2.isEqualToDateIgnoringTime(d3))
     }
 }
