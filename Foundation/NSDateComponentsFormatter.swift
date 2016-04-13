@@ -61,7 +61,7 @@ public class NSDateComponentsFormatter : NSFormatter {
     
     /* Convenience method for formatting a number of seconds. See 'allowedUnits' for how the default set of allowed units differs from -stringFromDateComponents:.
      */
-    public func stringFromTimeInterval(_ ti: NSTimeInterval) -> String? { NSUnimplemented() }
+    public func string(_ from: NSTimeInterval) -> String? { NSUnimplemented() }
     
     public class func localizedStringFromDateComponents(_ components: NSDateComponents, unitsStyle: NSDateComponentsFormatterUnitsStyle) -> String? { NSUnimplemented() }
     

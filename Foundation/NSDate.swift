@@ -134,8 +134,8 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
        offset in hours and minutes from UTC (for example,
        "2001-03-24 10:45:32 +0600")
      */
-    public func descriptionWithLocale(_ locale: AnyObject?) -> String {
-        guard let aLocale = locale else { return description }
+    public func description(_ with: AnyObject?) -> String {
+        guard let aLocale = with else { return description }
         let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, (aLocale as! NSLocale)._cfObject, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
         CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey, CFTimeZoneCopySystem())
 
@@ -149,12 +149,12 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 extension NSDate {
     
-    public func timeIntervalSinceDate(_ anotherDate: NSDate) -> NSTimeInterval {
+    public func timeIntervalSince(_ anotherDate: NSDate) -> NSTimeInterval {
         return self.timeIntervalSinceReferenceDate - anotherDate.timeIntervalSinceReferenceDate
     }
     
     public var timeIntervalSinceNow: NSTimeInterval {
-        return timeIntervalSinceDate(NSDate())
+        return timeIntervalSince(NSDate())
     }
     
     public var timeIntervalSince1970: NSTimeInterval {
