@@ -117,7 +117,7 @@ public class NSXMLDTDNode : NSXMLNode {
                 return .NSXMLEntityParsedKind
                 
             default:
-                fatalError("Invalid entity declaration type");
+                fatalError("Invalid entity declaration type")
             }
             
         case _kCFXMLDTDNodeTypeAttribute:

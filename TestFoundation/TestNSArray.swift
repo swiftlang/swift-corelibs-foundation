@@ -380,7 +380,7 @@ class TestNSArray : XCTestCase {
             return l < r ? .OrderedAscending : (l > r ? .OrderedSame : .OrderedDescending)
         }
 
-        XCTAssertEqual(mutableInput.map { ($0 as! NSNumber).integerValue}, expectedNumbers);
+        XCTAssertEqual(mutableInput.map { ($0 as! NSNumber).integerValue}, expectedNumbers)
 
         // check that it works in the way self.sortWithOptions([], usingComparator: cmptr) does
         let inputStrings = ["this", "is", "a", "test", "of", "sort", "with", "strings"]

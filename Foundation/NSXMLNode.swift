@@ -717,7 +717,7 @@ public class NSXMLNode : NSObject, NSCopying {
     */
     public func nodesForXPath(_ xpath: String) throws -> [NSXMLNode] {
         guard let nodes = _CFXMLNodesForXPath(_xmlNode, xpath) else {
-            NSUnimplemented();
+            NSUnimplemented()
         }
 
         var result: [NSXMLNode] = []
