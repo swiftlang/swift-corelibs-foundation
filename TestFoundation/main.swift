@@ -65,6 +65,7 @@ XCTMain([
     testCase(TestNSURLComponents.allTests),
     testCase(TestNSURLRequest.allTests),
     testCase(TestNSURLResponse.allTests),
+    testCase(TestNSHTTPURLResponse.allTests),
     testCase(TestNSNull.allTests),
     testCase(TestNSUUID.allTests),
     testCase(TestNSValue.allTests),
