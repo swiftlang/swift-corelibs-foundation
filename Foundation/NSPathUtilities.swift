@@ -146,7 +146,7 @@ internal extension String {
         }
         
         let temp = _stringByRemovingPrefix(prefix)
-        if NSFileManager.defaultManager().fileExistsAtPath(temp) {
+        if NSFileManager.defaultManager().fileExists(atPath: temp) {
             return temp
         }
         
@@ -446,7 +446,7 @@ public extension NSString {
         }
         
         var isDirectory = false
-        let exists = NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDirectory)
+        let exists = NSFileManager.defaultManager().fileExists(atPath: path, isDirectory: &isDirectory)
         return exists && isDirectory
     }
     
@@ -455,7 +455,7 @@ public extension NSString {
     internal func _getNamesAtURL(_ filePathURL: NSURL, prependWith: String, namePredicate: _FileNamePredicate, typePredicate: _FileNamePredicate) -> [String] {
         var result: [String] = []
         
-        if let enumerator = NSFileManager.defaultManager().enumeratorAtURL(filePathURL, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
+        if let enumerator = NSFileManager.defaultManager().enumerator(at: filePathURL, includingPropertiesForKeys: nil, options: .skipsSubdirectoryDescendants, errorHandler: nil) {
             for item in enumerator.lazy.map({ $0 as! NSURL }) {
                 let itemName = item.lastPathComponent
                 
@@ -635,14 +635,14 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     if fd == -1 {
         throw _NSErrorWithErrno(errno, reading: false, path: filePath)
     }
-    let pathResult = NSFileManager.defaultManager().stringWithFileSystemRepresentation(buf, length: Int(strlen(buf)))
+    let pathResult = NSFileManager.defaultManager().string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
     return (fd, pathResult)
 }
 
 internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String) throws  {
     if rename(auxFilePath, filePath) != 0 {
         do {
-            try NSFileManager.defaultManager().removeItemAtPath(auxFilePath)
+            try NSFileManager.defaultManager().removeItem(atPath: auxFilePath)
         } catch _ {
         }
         throw _NSErrorWithErrno(errno, reading: false, path: filePath)
