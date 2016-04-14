@@ -162,7 +162,7 @@ public class NSXMLDocument : NSXMLNode {
     */
     public var documentContentKind: NSXMLDocumentContentKind  {
         get {
-            let properties = _CFXMLDocProperties(_xmlDoc);
+            let properties = _CFXMLDocProperties(_xmlDoc)
 
             if properties & Int32(_kCFXMLDocTypeHTML) != 0 {
                 return .HTMLKind
@@ -197,7 +197,7 @@ public class NSXMLDocument : NSXMLNode {
     */
     /*@NSCopying*/ public var DTD: NSXMLDTD? {
         get {
-            return NSXMLDTD._objectNodeForNode(_CFXMLDocDTD(_xmlDoc)!);
+            return NSXMLDTD._objectNodeForNode(_CFXMLDocDTD(_xmlDoc)!)
         }
         set {
             if let currDTD = _CFXMLDocDTD(_xmlDoc) {
