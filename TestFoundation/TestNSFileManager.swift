@@ -239,7 +239,7 @@ class TestNSFileManger : XCTestCase {
             XCTFail()
         }
         
-        if let e = NSFileManager.defaultManager().enumerator(at: NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [.SkipsSubdirectoryDescendants], errorHandler: nil) {
+        if let e = NSFileManager.defaultManager().enumerator(at: NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants], errorHandler: nil) {
             var foundItems = [String:Int]()
             while let item = e.nextObject() as? NSURL {
                 if let p = item.path {

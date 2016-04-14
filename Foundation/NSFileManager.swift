@@ -21,11 +21,11 @@ public struct NSVolumeEnumerationOptions : OptionSet {
     
     /* The mounted volume enumeration will skip hidden volumes.
      */
-    public static let SkipHiddenVolumes = NSVolumeEnumerationOptions(rawValue: 1 << 1)
+    public static let skipHiddenVolumes = NSVolumeEnumerationOptions(rawValue: 1 << 1)
     
     /* The mounted volume enumeration will produce file reference URLs rather than path-based URLs.
      */
-    public static let ProduceFileReferenceURLs = NSVolumeEnumerationOptions(rawValue: 1 << 2)
+    public static let produceFileReferenceURLs = NSVolumeEnumerationOptions(rawValue: 1 << 2)
 }
 
 public struct NSDirectoryEnumerationOptions : OptionSet {
@@ -34,15 +34,15 @@ public struct NSDirectoryEnumerationOptions : OptionSet {
     
     /* NSDirectoryEnumerationSkipsSubdirectoryDescendants causes the NSDirectoryEnumerator to perform a shallow enumeration and not descend into directories it encounters.
      */
-    public static let SkipsSubdirectoryDescendants = NSDirectoryEnumerationOptions(rawValue: 1 << 0)
+    public static let skipsSubdirectoryDescendants = NSDirectoryEnumerationOptions(rawValue: 1 << 0)
     
     /* NSDirectoryEnumerationSkipsPackageDescendants will cause the NSDirectoryEnumerator to not descend into packages.
      */
-    public static let SkipsPackageDescendants = NSDirectoryEnumerationOptions(rawValue: 1 << 1)
+    public static let skipsPackageDescendants = NSDirectoryEnumerationOptions(rawValue: 1 << 1)
     
     /* NSDirectoryEnumerationSkipsHiddenFiles causes the NSDirectoryEnumerator to not enumerate hidden files.
      */
-    public static let SkipsHiddenFiles = NSDirectoryEnumerationOptions(rawValue: 1 << 2)
+    public static let skipsHiddenFiles = NSDirectoryEnumerationOptions(rawValue: 1 << 2)
 }
 
 public struct NSFileManagerItemReplacementOptions : OptionSet {
@@ -51,17 +51,17 @@ public struct NSFileManagerItemReplacementOptions : OptionSet {
     
     /* NSFileManagerItemReplacementUsingNewMetadataOnly causes -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: to use metadata from the new item only and not to attempt to preserve metadata from the original item.
      */
-    public static let UsingNewMetadataOnly = NSFileManagerItemReplacementOptions(rawValue: 1 << 0)
+    public static let usingNewMetadataOnly = NSFileManagerItemReplacementOptions(rawValue: 1 << 0)
     
     /* NSFileManagerItemReplacementWithoutDeletingBackupItem causes -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: to leave the backup item in place after a successful replacement. The default behavior is to remove the item.
      */
-    public static let WithoutDeletingBackupItem = NSFileManagerItemReplacementOptions(rawValue: 1 << 1)
+    public static let withoutDeletingBackupItem = NSFileManagerItemReplacementOptions(rawValue: 1 << 1)
 }
 
 public enum NSURLRelationship : Int {
-    case Contains
-    case Same
-    case Other
+    case contains
+    case same
+    case other
 }
 
 public class NSFileManager : NSObject {
@@ -89,7 +89,7 @@ public class NSFileManager : NSObject {
      */
     public func contentsOfDirectory(at url: NSURL, includingPropertiesForKeys keys: [String]?, options mask: NSDirectoryEnumerationOptions = []) throws -> [NSURL] {
         var error : NSError? = nil
-        let e = self.enumerator(at: url, includingPropertiesForKeys: keys, options: mask.union(.SkipsSubdirectoryDescendants)) { (url, err) -> Bool in
+        let e = self.enumerator(at: url, includingPropertiesForKeys: keys, options: mask.union(.skipsSubdirectoryDescendants)) { (url, err) -> Bool in
             error = err
             return false
         }
@@ -660,7 +660,7 @@ public class NSFileManager : NSObject {
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
     public func enumerator(at url: NSURL, includingPropertiesForKeys keys: [String]?, options mask: NSDirectoryEnumerationOptions = [], errorHandler handler: ((NSURL, NSError) -> Bool)? = nil) -> NSDirectoryEnumerator? {
-        if mask.contains(.SkipsPackageDescendants) || mask.contains(.SkipsHiddenFiles) {
+        if mask.contains(.skipsPackageDescendants) || mask.contains(.skipsHiddenFiles) {
             NSUnimplemented("Enumeration options not yet implemented")
         }
         return NSURLDirectoryEnumerator(url: url, options: mask, errorHandler: handler)
@@ -943,7 +943,7 @@ internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
             while let current = _current {
                 switch Int32(current.pointee.fts_info) {
                     case FTS_D:
-                        if _options.contains(.SkipsSubdirectoryDescendants) {
+                        if _options.contains(.skipsSubdirectoryDescendants) {
                             fts_set(_stream, _current, FTS_SKIP)
                         }
                         fallthrough

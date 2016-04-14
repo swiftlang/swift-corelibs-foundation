@@ -455,7 +455,7 @@ public extension NSString {
     internal func _getNamesAtURL(_ filePathURL: NSURL, prependWith: String, namePredicate: _FileNamePredicate, typePredicate: _FileNamePredicate) -> [String] {
         var result: [String] = []
         
-        if let enumerator = NSFileManager.defaultManager().enumerator(at: filePathURL, includingPropertiesForKeys: nil, options: .SkipsSubdirectoryDescendants, errorHandler: nil) {
+        if let enumerator = NSFileManager.defaultManager().enumerator(at: filePathURL, includingPropertiesForKeys: nil, options: .skipsSubdirectoryDescendants, errorHandler: nil) {
             for item in enumerator.lazy.map({ $0 as! NSURL }) {
                 let itemName = item.lastPathComponent
                 
