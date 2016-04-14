@@ -7,15 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
 
 public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
-    
-    private var _cfAttributedString: CFAttributedString
-    
-    internal init(cfObject: CFAttributedString) {
-        _cfAttributedString = cfObject
-    }
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
@@ -45,16 +38,10 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
         NSUnimplemented()
     }
     
-    public var string: String {
-        return CFAttributedStringGetString(_cfAttributedString)._swiftObject
-    }
-    
+    public var string: String { NSUnimplemented() }
     public func attributesAtIndex(_ location: Int, effectiveRange range: NSRangePointer) -> [String : AnyObject] { NSUnimplemented() }
 
-    public var length: Int {
-        return CFAttributedStringGetLength(_cfAttributedString)
-    }
-    
+    public var length: Int { NSUnimplemented() }
     public func attribute(_ attrName: String, atIndex location: Int, effectiveRange range: NSRangePointer) -> AnyObject? { NSUnimplemented() }
     public func attributedSubstringFromRange(_ range: NSRange) -> NSAttributedString { NSUnimplemented() }
     
@@ -63,20 +50,9 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     
     public func isEqualToAttributedString(_ other: NSAttributedString) -> Bool { NSUnimplemented() }
     
-    public init(string str: String) {
-        _cfAttributedString = CFAttributedStringCreate(kCFAllocatorDefault, str._cfObject, nil)
-        super.init()
-    }
-    
-    public init(string str: String, attributes attrs: [String : AnyObject]?) {
-        _cfAttributedString = CFAttributedStringCreate(kCFAllocatorDefault, str._cfObject, attrs?._cfObject)
-        super.init()
-    }
-    
-    public init(attributedString attrStr: NSAttributedString) {
-        _cfAttributedString = CFAttributedStringCreateCopy(kCFAllocatorDefault, attrStr._cfAttributedString)
-        super.init()
-    }
+    public init(string str: String) { NSUnimplemented() }
+    public init(string str: String, attributes attrs: [String : AnyObject]?) { NSUnimplemented() }
+    public init(attributedString attrStr: NSAttributedString) { NSUnimplemented() }
     
     public func enumerateAttributesInRange(_ enumerationRange: NSRange, options opts: NSAttributedStringEnumerationOptions, usingBlock block: ([String : AnyObject], NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     public func enumerateAttribute(_ attrName: String, inRange enumerationRange: NSRange, options opts: NSAttributedStringEnumerationOptions, usingBlock block: (AnyObject?, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }

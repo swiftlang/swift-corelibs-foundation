@@ -23,7 +23,6 @@ internal func testBundle() -> NSBundle {
 XCTMain([
     testCase(TestNSAffineTransform.allTests),
     testCase(TestNSArray.allTests),
-    testCase(TestNSAttributedString.allTests),
     testCase(TestNSBundle.allTests),
     testCase(TestNSByteCountFormatter.allTests),
     testCase(TestNSCalendar.allTests),
