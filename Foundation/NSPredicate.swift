@@ -11,7 +11,16 @@
 // Predicates wrap some combination of expressions and operators and when evaluated return a BOOL.
 
 public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
-    
+
+    private enum PredicateKind {
+        case Boolean(Bool)
+        case Block((AnyObject?, [String : AnyObject]?) -> Bool)
+        // TODO: case for init(format:argumentArray:)
+        // TODO: case for init(fromMetadataQueryString:)
+    }
+
+    private let kind: PredicateKind
+
     public static func supportsSecureCoding() -> Bool {
         return true
     }
@@ -37,23 +46,46 @@ public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     
     public init?(fromMetadataQueryString queryString: String) { NSUnimplemented() }
     
-    public init(value: Bool) { NSUnimplemented() } // return predicates that always evaluate to true/false
-    
-    public init(block: (AnyObject, [String : AnyObject]?) -> Bool) { NSUnimplemented() }
+    public init(value: Bool) {
+        kind = .Boolean(value)
+        super.init()
+    } // return predicates that always evaluate to true/false
+
+    public init(block: (AnyObject?, [String : AnyObject]?) -> Bool) {
+        kind = .Block(block)
+        super.init()
+    }
     
     public var predicateFormat: String  { NSUnimplemented() } // returns the format string of the predicate
     
     public func predicateWithSubstitutionVariables(_ variables: [String : AnyObject]) -> Self { NSUnimplemented() } // substitute constant values for variables
     
-    public func evaluateWithObject(_ object: AnyObject?) -> Bool { NSUnimplemented() } // evaluate a predicate against a single object
+    public func evaluateWithObject(_ object: AnyObject?) -> Bool {
+        return evaluateWithObject(object, substitutionVariables: nil)
+    } // evaluate a predicate against a single object
     
-    public func evaluateWithObject(_ object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool { NSUnimplemented() } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered
+    public func evaluateWithObject(_ object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
+        if bindings != nil {
+            NSUnimplemented()
+        }
+
+        switch kind {
+        case let .Boolean(value):
+            return value
+        case let .Block(block):
+            return block(object, bindings)
+        }
+    } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered
     
     public func allowEvaluation() { NSUnimplemented() } // Force a predicate which was securely decoded to allow evaluation
 }
 
 extension NSArray {
-    public func filteredArrayUsingPredicate(_ predicate: NSPredicate) -> [AnyObject] { NSUnimplemented() } // evaluate a predicate against an array of objects and return a filtered array
+    public func filteredArrayUsingPredicate(_ predicate: NSPredicate) -> [AnyObject] {
+        return bridge().filter({ object in
+            return predicate.evaluateWithObject(object)
+        })
+    } // evaluate a predicate against an array of objects and return a filtered array
 }
 
 extension NSMutableArray {
