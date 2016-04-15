@@ -188,7 +188,7 @@ public class NSKeyedArchiver : NSCoder {
             
             xml = _CFPropertyListCreateXMLDataWithExtras(kCFAllocatorSystemDefault, plist)
             if let unwrappedXml = xml {
-                data.appendData(unwrappedXml._nsObject)
+                data.append(unwrappedXml._nsObject)
                 success = true
             }
         } else {

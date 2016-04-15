@@ -492,8 +492,8 @@ public class NSXMLParser : NSObject {
             if (totalLength < 4) {
                 if let chunk = _bomChunk {
                     let newData = NSMutableData()
-                    newData.appendData(chunk)
-                    newData.appendData(data)
+                    newData.append(chunk)
+                    newData.append(data)
                     _bomChunk = newData
                 } else {
                     _bomChunk = data
@@ -502,8 +502,8 @@ public class NSXMLParser : NSObject {
                 var allExistingData: NSData
                 if let chunk = _bomChunk {
                     let newData = NSMutableData()
-                    newData.appendData(chunk)
-                    newData.appendData(data)
+                    newData.append(chunk)
+                    newData.append(data)
                     allExistingData = newData
                 } else {
                     allExistingData = data

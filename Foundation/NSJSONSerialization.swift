@@ -109,7 +109,7 @@ public class NSJSONSerialization : NSObject {
             pretty: opt.contains(.PrettyPrinted),
             writer: { (str: String?) in
                 if let str = str {
-                    result.appendBytes(str.bridge().cStringUsingEncoding(NSUTF8StringEncoding)!, length: str.lengthOfBytesUsingEncoding(NSUTF8StringEncoding))
+                    result.append(str.bridge().cStringUsingEncoding(NSUTF8StringEncoding)!, length: str.lengthOfBytesUsingEncoding(NSUTF8StringEncoding))
                 }
             }
         )
