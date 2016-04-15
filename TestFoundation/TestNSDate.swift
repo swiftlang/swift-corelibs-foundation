@@ -66,7 +66,7 @@ class TestNSDate : XCTestCase {
         let ti: NSTimeInterval = 1
         let d1 = NSDate()
         let d2 = NSDate(timeInterval: ti, sinceDate: d1)
-        XCTAssertEqual(d2.timeIntervalSinceDate(d1), ti)
+        XCTAssertEqual(d2.timeIntervalSince(d1), ti)
     }
     
     func test_DistantFuture() {
@@ -82,36 +82,36 @@ class TestNSDate : XCTestCase {
     func test_DateByAddingTimeInterval() {
         let ti: NSTimeInterval = 1
         let d1 = NSDate()
-        let d2 = d1.dateByAddingTimeInterval(ti)
+        let d2 = d1.addingTimeInterval(ti)
         XCTAssertNotNil(d2)
     }
     
     func test_EarlierDate() {
         let ti: NSTimeInterval = 1
         let d1 = NSDate()
-        let d2 = d1.dateByAddingTimeInterval(ti)
+        let d2 = d1.addingTimeInterval(ti)
         XCTAssertEqual(d1.earlierDate(d2), d1)
     }
     
     func test_LaterDate() {
         let ti: NSTimeInterval = 1
         let d1 = NSDate()
-        let d2 = d1.dateByAddingTimeInterval(ti)
+        let d2 = d1.addingTimeInterval(ti)
         XCTAssertEqual(d1.laterDate(d2), d2)
     }
     
     func test_Compare() {
         let ti: NSTimeInterval = 1
         let d1 = NSDate()
-        let d2 = d1.dateByAddingTimeInterval(ti)
+        let d2 = d1.addingTimeInterval(ti)
         XCTAssertEqual(d1.compare(d2), NSComparisonResult.OrderedAscending)
     }
     
     func test_IsEqualToDate() {
         let ti: NSTimeInterval = 1
         let d1 = NSDate()
-        let d2 = d1.dateByAddingTimeInterval(ti)
-        let d3 = d1.dateByAddingTimeInterval(ti)
-        XCTAssertTrue(d2.isEqualToDate(d3))
+        let d2 = d1.addingTimeInterval(ti)
+        let d3 = d1.addingTimeInterval(ti)
+        XCTAssertTrue(d2.isEqual(to: d3))
     }
 }
