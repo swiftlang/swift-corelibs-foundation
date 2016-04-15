@@ -74,7 +74,7 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(char: Int8(0)).unsignedIntValue, UInt32(0))
         XCTAssertEqual(NSNumber(char: Int8(0)).longLongValue, Int64(0))
         XCTAssertEqual(NSNumber(char: Int8(0)).unsignedLongLongValue, UInt64(0))
-        XCTAssertEqual(NSNumber(char: Int8(-37)).boolValue, true);
+        XCTAssertEqual(NSNumber(char: Int8(-37)).boolValue, true)
         XCTAssertEqual(NSNumber(char: Int8(-37)).charValue, Int8(-37))
 #if !(os(Linux) && arch(arm))
         // Linux/arm chars are unsigned, so Int8 in Swift, until this issue is resolved, these tests will always fail.
@@ -184,7 +184,7 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(short: Int16(0)).unsignedIntValue, UInt32(0))
         XCTAssertEqual(NSNumber(short: Int16(0)).longLongValue, Int64(0))
         XCTAssertEqual(NSNumber(short: Int16(0)).unsignedLongLongValue, UInt64(0))
-        XCTAssertEqual(NSNumber(short: Int16(-37)).boolValue, true);
+        XCTAssertEqual(NSNumber(short: Int16(-37)).boolValue, true)
         XCTAssertEqual(NSNumber(short: Int16(-37)).charValue, Int8(-37))
         XCTAssertEqual(NSNumber(short: Int16(-37)).shortValue, Int16(-37))
         XCTAssertEqual(NSNumber(short: Int16(-37)).intValue, Int32(-37))
@@ -218,7 +218,7 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(float: Float(0)).unsignedIntValue, UInt32(0))
         XCTAssertEqual(NSNumber(float: Float(0)).longLongValue, Int64(0))
         XCTAssertEqual(NSNumber(float: Float(0)).unsignedLongLongValue, UInt64(0))
-        XCTAssertEqual(NSNumber(float: Float(-37)).boolValue, true);
+        XCTAssertEqual(NSNumber(float: Float(-37)).boolValue, true)
         XCTAssertEqual(NSNumber(float: Float(-37)).charValue, Int8(-37))
         XCTAssertEqual(NSNumber(float: Float(-37)).shortValue, Int16(-37))
         XCTAssertEqual(NSNumber(float: Float(-37)).intValue, Int32(-37))
@@ -250,7 +250,7 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(double: Double(0)).unsignedIntValue, UInt32(0))
         XCTAssertEqual(NSNumber(double: Double(0)).longLongValue, Int64(0))
         XCTAssertEqual(NSNumber(double: Double(0)).unsignedLongLongValue, UInt64(0))
-        XCTAssertEqual(NSNumber(double: Double(-37)).boolValue, true);
+        XCTAssertEqual(NSNumber(double: Double(-37)).boolValue, true)
         XCTAssertEqual(NSNumber(double: Double(-37)).charValue, Int8(-37))
         XCTAssertEqual(NSNumber(double: Double(-37)).shortValue, Int16(-37))
         XCTAssertEqual(NSNumber(double: Double(-37)).intValue, Int32(-37))

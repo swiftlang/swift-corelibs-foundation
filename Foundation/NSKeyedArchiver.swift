@@ -148,7 +148,7 @@ public class NSKeyedArchiver : NSCoder {
                 if finishedEncoding {
                     try _NSCleanupTemporaryFile(auxFilePath, path)
                 } else {
-                    try NSFileManager.defaultManager().removeItemAtPath(auxFilePath)
+                    try NSFileManager.defaultManager().removeItem(atPath: auxFilePath)
                 }
             } catch _ {
             }
@@ -196,7 +196,7 @@ public class NSKeyedArchiver : NSCoder {
                                           kCFPropertyListOpenStepFormat, 0, nil) > 0
         }
         
-        return success;
+        return success
     }
     
     private func _writeBinaryData(_ plist : NSDictionary) -> Bool {
@@ -205,7 +205,7 @@ public class NSKeyedArchiver : NSCoder {
     
     public func finishEncoding() {
         if _flags.contains(ArchiverFlags.FinishedEncoding) {
-            return;
+            return
         }
 
         var plist = Dictionary<String, Any>()

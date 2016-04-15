@@ -148,7 +148,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             aCoder.encodeObject(self.locale, forKey: "NS.locale")
             aCoder.encodeInteger(self.firstWeekday, forKey: "NS.firstwkdy")
             aCoder.encodeInteger(self.minimumDaysInFirstWeek, forKey: "NS.mindays")
-            aCoder.encodeObject(self._startDate, forKey: "NS.gstartdate");
+            aCoder.encodeObject(self._startDate, forKey: "NS.gstartdate")
         } else {
             NSUnimplemented()
         }
@@ -368,7 +368,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         if r.location == kCFNotFound {
             return NSMakeRange(NSNotFound, NSNotFound)
         }
-        return NSMakeRange(r.location, r.length);
+        return NSMakeRange(r.location, r.length)
     }
     
     public func ordinalityOfUnit(_ smaller: NSCalendarUnit, inUnit larger: NSCalendarUnit, forDate date: NSDate) -> Int {

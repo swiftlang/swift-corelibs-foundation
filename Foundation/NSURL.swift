@@ -136,7 +136,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
             } else {
                 absolutePath = path
             }
-            NSFileManager.defaultManager().fileExistsAtPath(absolutePath, isDirectory: &isDir)
+            NSFileManager.defaultManager().fileExists(atPath: absolutePath, isDirectory: &isDir)
         }
 
         self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeToURL: baseURL)
@@ -153,7 +153,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         if thePath.hasSuffix("/") {
             isDir = true
         } else {
-            NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDir)
+            NSFileManager.defaultManager().fileExists(atPath: path, isDirectory: &isDir)
         }
 
         self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeToURL: nil)
@@ -482,7 +482,7 @@ extension NSURL {
         if !pathComponent.hasSuffix("/") && fileURL {
             if let urlWithoutDirectory = result, path = urlWithoutDirectory.path {
                 var isDir : Bool = false
-                if NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDir) && isDir {
+                if NSFileManager.defaultManager().fileExists(atPath: path, isDirectory: &isDir) && isDir {
                     result = self.URLByAppendingPathComponent(pathComponent, isDirectory: true)
                 }
             }
@@ -561,7 +561,7 @@ extension NSURL {
         
         // It might be a responsibility of NSURL(fileURLWithPath:). Check it.
         var isExistingDirectory = false
-        NSFileManager.defaultManager().fileExistsAtPath(resolvedPath, isDirectory: &isExistingDirectory)
+        NSFileManager.defaultManager().fileExists(atPath: resolvedPath, isDirectory: &isExistingDirectory)
         
         if excludeSystemDirs {
             resolvedPath = resolvedPath._tryToRemovePathPrefix("/private") ?? resolvedPath

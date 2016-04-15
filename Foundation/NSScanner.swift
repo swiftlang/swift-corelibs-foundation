@@ -91,7 +91,7 @@ internal struct _NSStringBuffer {
         stringLen = end
     
         if _stringLoc < stringLen {
-            bufferLen = min(32, stringLen - _stringLoc);
+            bufferLen = min(32, stringLen - _stringLoc)
             let range = NSMakeRange(_stringLoc, bufferLen)
             bufferLoc = 1
             buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
@@ -111,7 +111,7 @@ internal struct _NSStringBuffer {
         stringLen = end
         
         if _stringLoc < stringLen {
-            bufferLen = min(32, stringLen - _stringLoc);
+            bufferLen = min(32, stringLen - _stringLoc)
             let range = NSMakeRange(_stringLoc, bufferLen)
             bufferLoc = 1
             buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
@@ -134,7 +134,7 @@ internal struct _NSStringBuffer {
     }
     
     mutating func fill() {
-        bufferLen = min(32, stringLen - _stringLoc);
+        bufferLen = min(32, stringLen - _stringLoc)
         let range = NSMakeRange(_stringLoc, bufferLen)
         buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
             string.getCharacters(ptr.baseAddress!, range: range)
@@ -271,7 +271,7 @@ private func numericOrHexValue(_ ch: unichar) -> Int {
     } else if (ch >= unichar(unicodeScalarLiteral: "a") && ch <= unichar(unicodeScalarLiteral: "f")) {
         return Int(ch) + 10 - Int(unichar(unicodeScalarLiteral: "a"))
     } else {
-        return -1;
+        return -1
     }
 }
 

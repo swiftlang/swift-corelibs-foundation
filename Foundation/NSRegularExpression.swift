@@ -271,7 +271,7 @@ extension NSRegularExpression {
             var length = str.length
             while (orderOfMagnitude < numberOfRanges && numberOfDigits < 20) {
                 numberOfDigits += 1
-                orderOfMagnitude *= 10;
+                orderOfMagnitude *= 10
             }
             while range.length > 0 {
                 var c = str.characterAtIndex(range.location)

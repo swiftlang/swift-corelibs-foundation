@@ -568,7 +568,7 @@ public class NSKeyedUnarchiver : NSCoder {
      */
     public func finishDecoding() {
         if _flags.contains(UnarchiverFlags.FinishedDecoding) {
-            return;
+            return
         }
         
         if let unwrappedDelegate = self.delegate {

@@ -19,13 +19,13 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
     var result = true
     let fm = NSFileManager.defaultManager()
     for name in fileNames {
-        guard !fm.fileExistsAtPath(name) else {
+        guard !fm.fileExists(atPath: name) else {
             continue
         }
         
         if name.hasSuffix("/") {
             do {
-                try fm.createDirectoryAtPath(name, withIntermediateDirectories: true, attributes: nil)
+                try fm.createDirectory(atPath: name, withIntermediateDirectories: true, attributes: nil)
             } catch let err {
                 print(err)
                 return false
@@ -34,9 +34,9 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
         
             var isDir: ObjCBool = false
             let dir = name.bridge().stringByDeletingLastPathComponent
-            if !fm.fileExistsAtPath(dir, isDirectory: &isDir) {
+            if !fm.fileExists(atPath: dir, isDirectory: &isDir) {
                 do {
-                    try fm.createDirectoryAtPath(dir, withIntermediateDirectories: true, attributes: nil)
+                    try fm.createDirectory(atPath: dir, withIntermediateDirectories: true, attributes: nil)
                 } catch let err {
                     print(err)
                     return false
@@ -45,7 +45,7 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
                 return false
             }
             
-            result = result && fm.createFileAtPath(name, contents: nil, attributes: nil)
+            result = result && fm.createFile(atPath: name, contents: nil, attributes: nil)
         }
     }
     return result

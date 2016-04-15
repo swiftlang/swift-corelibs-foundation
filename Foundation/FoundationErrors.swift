@@ -207,39 +207,39 @@ public extension NSCocoaError {
     }
     
     public var isCoderError: Bool {
-        return rawValue >= 4864 && rawValue <= 4991;
+        return rawValue >= 4864 && rawValue <= 4991
     }
     
     public var isExecutableError: Bool {
-        return rawValue >= 3584 && rawValue <= 3839;
+        return rawValue >= 3584 && rawValue <= 3839
     }
     
     public var isFileError: Bool {
-        return rawValue >= 0 && rawValue <= 1023;
+        return rawValue >= 0 && rawValue <= 1023
     }
     
     public var isFormattingError: Bool {
-        return rawValue >= 2048 && rawValue <= 2559;
+        return rawValue >= 2048 && rawValue <= 2559
     }
     
     public var isPropertyListError: Bool {
-        return rawValue >= 3840 && rawValue <= 4095;
+        return rawValue >= 3840 && rawValue <= 4095
     }
     
     public var isUbiquitousFileError: Bool {
-        return rawValue >= 4352 && rawValue <= 4607;
+        return rawValue >= 4352 && rawValue <= 4607
     }
     
     public var isUserActivityError: Bool {
-        return rawValue >= 4608 && rawValue <= 4863;
+        return rawValue >= 4608 && rawValue <= 4863
     }
     
     public var isValidationError: Bool {
-        return rawValue >= 1024 && rawValue <= 2047;
+        return rawValue >= 1024 && rawValue <= 2047
     }
     
     public var isXPCConnectionError: Bool {
-        return rawValue >= 4096 && rawValue <= 4224;
+        return rawValue >= 4096 && rawValue <= 4224
     }
 }
 

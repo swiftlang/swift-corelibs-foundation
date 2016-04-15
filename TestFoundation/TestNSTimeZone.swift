@@ -57,7 +57,7 @@ class TestNSTimeZone: XCTestCase {
     }
     
     func test_systemTimeZoneUsesSystemTime() {
-        tzset();
+        tzset()
         var t = time(nil)
         var lt = tm()
         localtime_r(&t, &lt)
