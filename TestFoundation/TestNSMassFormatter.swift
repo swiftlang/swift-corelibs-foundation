@@ -26,6 +26,13 @@ class TestNSMassFormatter: XCTestCase {
             ("test_stringFromKilogramsOzLong", test_stringFromKilogramsOzLong),
             ("test_stringFromKilogramsLbShort", test_stringFromKilogramsLbShort),
             ("test_stringFromKilogramsOzShort", test_stringFromKilogramsOzShort),
+            ("test_stringUnitLb", test_stringUnitLb),
+            ("test_stringUnitOz", test_stringUnitOz),
+            ("test_stringUnitLbLong", test_stringUnitLbLong),
+            ("test_stringUnitOzLong", test_stringUnitOzLong),
+            ("test_stringUnitLbShort", test_stringUnitLbShort),
+            ("test_stringUnitOzShort", test_stringUnitOzShort),
+            ("test_stringUnitOzShortInOunces", test_stringUnitOzShortInOunces),
         ]
     }
 
@@ -63,8 +70,8 @@ class TestNSMassFormatter: XCTestCase {
         let numForm = NSNumberFormatter()
         numForm.locale = NSLocale(localeIdentifier: "en_US")
         numForm.numberStyle = .DecimalStyle
-        let formattedString = massFormatter.stringFromKilograms(0.5)
-        XCTAssertEqual(formattedString, "1.10231 pounds")
+        let formattedString = massFormatter.stringFromKilograms(0.005)
+        XCTAssertEqual(formattedString, "0.17637 ounces")
     }
     
     func test_stringFromKilogramsLbShort() {
@@ -83,9 +90,86 @@ class TestNSMassFormatter: XCTestCase {
         let numForm = NSNumberFormatter()
         numForm.locale = NSLocale(localeIdentifier: "en_US")
         numForm.numberStyle = .DecimalStyle
-        let formattedString = massFormatter.stringFromKilograms(0.69)
-        XCTAssertEqual(formattedString, "1.52119#")
+        let formattedString = massFormatter.stringFromKilograms(0.0069)
+        XCTAssertEqual(formattedString, "0.24339oz")
     }
+    
+    
+    func test_stringUnitLb() {
+        let massFormatter = NSMassFormatter()
+        let numForm = NSNumberFormatter()
+        numForm.locale = NSLocale(localeIdentifier: "en_US")
+        numForm.numberStyle = .DecimalStyle
+        var unitUsed = NSMassFormatterUnit.Kilogram
+        let formattedString = massFormatter.unitStringFromKilograms(75.0,usedUnit:&unitUsed)
+        XCTAssertEqual(formattedString, "lb")
+    }
+
+    func test_stringUnitOz() {
+        let massFormatter = NSMassFormatter()
+        let numForm = NSNumberFormatter()
+        numForm.locale = NSLocale(localeIdentifier: "en_US")
+        numForm.numberStyle = .DecimalStyle
+        var unitUsed = NSMassFormatterUnit.Kilogram
+        let formattedString = massFormatter.unitStringFromKilograms(0.01,usedUnit:&unitUsed)
+        XCTAssertEqual(formattedString, "oz")
+    }
+    
+    func test_stringUnitLbLong() {
+        let massFormatter = NSMassFormatter()
+        massFormatter.unitStyle = .Long
+        let numForm = NSNumberFormatter()
+        numForm.locale = NSLocale(localeIdentifier: "en_US")
+        numForm.numberStyle = .DecimalStyle
+        var unitUsed = NSMassFormatterUnit.Kilogram
+        let formattedString = massFormatter.unitStringFromKilograms(80.0,usedUnit:&unitUsed)
+        XCTAssertEqual(formattedString, "pounds")
+    }
+    
+    func test_stringUnitOzLong() {
+        let massFormatter = NSMassFormatter()
+        massFormatter.unitStyle = .Long
+        let numForm = NSNumberFormatter()
+        numForm.locale = NSLocale(localeIdentifier: "en_US")
+        numForm.numberStyle = .DecimalStyle
+        var unitUsed = NSMassFormatterUnit.Kilogram
+        let formattedString = massFormatter.unitStringFromKilograms(0.005,usedUnit:&unitUsed)
+        XCTAssertEqual(formattedString, "ounces")
+    }
+    
+    func test_stringUnitLbShort() {
+        let massFormatter = NSMassFormatter()
+        massFormatter.unitStyle = .Short
+        let numForm = NSNumberFormatter()
+        numForm.locale = NSLocale(localeIdentifier: "en_US")
+        numForm.numberStyle = .DecimalStyle
+        var unitUsed = NSMassFormatterUnit.Kilogram
+        let formattedString = massFormatter.unitStringFromKilograms(83.0,usedUnit:&unitUsed)
+        XCTAssertEqual(formattedString, "#")
+    }
+    
+    func test_stringUnitOzShort() {
+        let massFormatter = NSMassFormatter()
+        massFormatter.unitStyle = .Short
+        let numForm = NSNumberFormatter()
+        numForm.locale = NSLocale(localeIdentifier: "en_US")
+        numForm.numberStyle = .DecimalStyle
+        var unitUsed = NSMassFormatterUnit.Kilogram
+        let formattedString = massFormatter.unitStringFromKilograms(0.0069,usedUnit:&unitUsed)
+        XCTAssertEqual(formattedString, "oz")
+    }
+    
+    func test_stringUnitOzShortInOunces() {
+        let massFormatter = NSMassFormatter()
+        massFormatter.unitStyle = .Short
+        let numForm = NSNumberFormatter()
+        numForm.locale = NSLocale(localeIdentifier: "en_US")
+        numForm.numberStyle = .DecimalStyle
+        var unitUsed = NSMassFormatterUnit.Ounce
+        let formattedString = massFormatter.unitStringFromKilograms(5.0,usedUnit:&unitUsed)
+        XCTAssertEqual(formattedString, "oz")
+    }
+
     
 }
 
