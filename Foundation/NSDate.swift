@@ -30,7 +30,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public override func isEqual(_ object: AnyObject?) -> Bool {
         if let date = object as? NSDate {
-            return isEqual(date)
+            return isEqual(to: date)
         } else {
             return false
         }
