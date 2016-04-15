@@ -814,7 +814,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     */
     public func isDateInYesterday(_ date: NSDate) -> Bool {
         if let interval = rangeOfUnit(.Day, forDate: NSDate()) {
-            let inYesterday = interval.start.dateByAddingTimeInterval(-60.0)
+            let inYesterday = interval.start.addingTimeInterval(-60.0)
             return compareDate(date, toDate: inYesterday, toUnitGranularity: .Day) == .OrderedSame
         } else {
             return false
@@ -826,7 +826,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     */
     public func isDateInTomorrow(_ date: NSDate) -> Bool {
         if let interval = rangeOfUnit(.Day, forDate: NSDate()) {
-            let inTomorrow = interval.end.dateByAddingTimeInterval(60.0)
+            let inTomorrow = interval.end.addingTimeInterval(60.0)
             return compareDate(date, toDate: inTomorrow, toUnitGranularity: .Day) == .OrderedSame
         } else {
             return false
@@ -878,7 +878,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             let comp = NSDateComponents()
             comp.weekday = range.start
             if let nextStart = nextDateAfterDate(date, matchingComponents: comp, options: options.union(.MatchNextTime)) {
-                let start = nextStart.dateByAddingTimeInterval(range.onsetTime)
+                let start = nextStart.addingTimeInterval(range.onsetTime)
                 comp.weekday = range.end
                 if let nextEnd = nextDateAfterDate(date, matchingComponents: comp, options: options.union(.MatchNextTime)) {
                     var end = nextEnd
@@ -890,7 +890,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                         }
                     }
                     if range.ceaseTime > 0 {
-                        end = end.dateByAddingTimeInterval(range.ceaseTime)
+                        end = end.addingTimeInterval(range.ceaseTime)
                     } else {
                         if let dayEnd = rangeOfUnit(.Day, forDate: end) {
                             end = startOfDayForDate(dayEnd.end)
@@ -1042,7 +1042,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             if opts.contains(.MatchStrictly) {
                 options.unionInPlace(.MatchStrictly)
             }
-            if let result = nextDateAfterDate(range.start.dateByAddingTimeInterval(-0.5), matchingComponents: comps, options: options) {
+            if let result = nextDateAfterDate(range.start.addingTimeInterval(-0.5), matchingComponents: comps, options: options) {
                 if result.compare(range.start) == .OrderedAscending {
                     return nextDateAfterDate(range.start, matchingComponents: comps, options: options)
                 }
