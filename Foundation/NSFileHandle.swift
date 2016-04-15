@@ -111,7 +111,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
     }
     
     public func writeData(_ data: NSData) {
-        data.enumerateByteRangesUsingBlock() { (bytes, range, stop) in
+        data.enumerateBytes() { (bytes, range, stop) in
             do {
                 try NSData.writeToFileDescriptor(self._fd, path: nil, buf: bytes, length: range.length)
             } catch {

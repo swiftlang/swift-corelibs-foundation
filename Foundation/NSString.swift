@@ -1158,10 +1158,10 @@ extension NSString {
         try _getExternalRepresentation(&data, url, enc)
         
         if url.fileURL {
-            try data.writeToURL(url, options: useAuxiliaryFile ? .DataWritingAtomic : [])
+            try data.write(to: url, options: useAuxiliaryFile ? .dataWritingAtomic : [])
         } else {
             if let path = url.path {
-                try data.writeToFile(path, options: useAuxiliaryFile ? .DataWritingAtomic : [])
+                try data.write(toFile: path, options: useAuxiliaryFile ? .dataWritingAtomic : [])
             } else {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [
                     NSURLErrorKey: url,

@@ -680,7 +680,7 @@ public class NSFileManager : NSObject {
     
     public func createFile(atPath path: String, contents data: NSData?, attributes attr: [String : AnyObject]? = [:]) -> Bool {
         do {
-            try (data ?? NSData()).writeToFile(path, options: .DataWritingAtomic)
+            try (data ?? NSData()).write(toFile: path, options: .dataWritingAtomic)
             return true
         } catch _ {
             return false

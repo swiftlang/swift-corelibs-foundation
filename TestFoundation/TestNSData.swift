@@ -47,7 +47,7 @@ class TestNSData: XCTestCase {
         let saveData = NSData(contentsOfURL: NSBundle.mainBundle().URLForResource("Test", withExtension: "plist")!)
         let savePath = "/var/tmp/Test.plist"
         do {
-            try saveData!.writeToFile(savePath, options: NSDataWritingOptions.DataWritingAtomic)
+            try saveData!.write(toFile: savePath, options: NSDataWritingOptions.dataWritingAtomic)
             let fileManager = NSFileManager.defaultManager()
             XCTAssertTrue(fileManager.fileExists(atPath: savePath))
             try! fileManager.removeItem(atPath: savePath)
@@ -129,7 +129,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not get UTF-8 data")
             return
         }
-        guard let decodedData = NSData(base64EncodedData: encodedData, options: []) else {
+        guard let decodedData = NSData(base64Encoded: encodedData, options: []) else {
             XCTFail("Could not Base-64 decode data")
             return
         }
@@ -139,7 +139,7 @@ class TestNSData: XCTestCase {
         }
 
         XCTAssertEqual(decodedText, plainText)
-        XCTAssertTrue(decodedData.isEqualToData(plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding)!))    }
+        XCTAssertTrue(decodedData.isEqual(to: plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding)!))    }
     
     func test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil() {
         let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHBya$W11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
@@ -147,7 +147,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not get UTF-8 data")
             return
         }
-        let decodedData = NSData(base64EncodedData: encodedData, options: [])
+        let decodedData = NSData(base64Encoded: encodedData, options: [])
         XCTAssertNil(decodedData)
     }
     
@@ -158,7 +158,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not get UTF-8 data")
             return
         }
-        guard let decodedData = NSData(base64EncodedData: encodedData, options: [.IgnoreUnknownCharacters]) else {
+        guard let decodedData = NSData(base64Encoded: encodedData, options: [.ignoreUnknownCharacters]) else {
             XCTFail("Could not Base-64 decode data")
             return
         }
@@ -168,13 +168,13 @@ class TestNSData: XCTestCase {
         }
         
         XCTAssertEqual(decodedText, plainText)
-        XCTAssertTrue(decodedData.isEqualToData(plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding)!))
+        XCTAssertTrue(decodedData.isEqual(to: plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding)!))
     }
     
     func test_initializeWithBase64EncodedStringGetsDecodedData() {
         let plainText = "ARMA virumque cano, Troiae qui primus ab oris\nItaliam, fato profugus, Laviniaque venit"
         let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHByaW11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
-        guard let decodedData = NSData(base64EncodedString: encodedText, options: []) else {
+        guard let decodedData = NSData(base64Encoded: encodedText, options: []) else {
             XCTFail("Could not Base-64 decode data")
             return
         }
@@ -193,7 +193,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not encode UTF-8 string")
             return
         }
-        let encodedData = data.base64EncodedDataWithOptions([])
+        let encodedData = data.base64EncodedData([])
         guard let encodedTextResult = NSString(data: encodedData, encoding: NSASCIIStringEncoding)?.bridge() else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
@@ -208,7 +208,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not encode UTF-8 string")
             return
         }
-        let encodedData = data.base64EncodedDataWithOptions([.Encoding64CharacterLineLength, .EncodingEndLineWithLineFeed])
+        let encodedData = data.base64EncodedData([.encoding64CharacterLineLength, .encodingEndLineWithLineFeed])
         guard let encodedTextResult = NSString(data: encodedData, encoding: NSASCIIStringEncoding)?.bridge() else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
@@ -223,7 +223,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not encode UTF-8 string")
             return
         }
-        let encodedData = data.base64EncodedDataWithOptions([.Encoding76CharacterLineLength, .EncodingEndLineWithCarriageReturn])
+        let encodedData = data.base64EncodedData([.encoding76CharacterLineLength, .encodingEndLineWithCarriageReturn])
         guard let encodedTextResult = NSString(data: encodedData, encoding: NSASCIIStringEncoding)?.bridge() else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
@@ -238,7 +238,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not encode UTF-8 string")
             return
         }
-        let encodedData = data.base64EncodedDataWithOptions([.Encoding76CharacterLineLength, .EncodingEndLineWithCarriageReturn, .EncodingEndLineWithLineFeed])
+        let encodedData = data.base64EncodedData([.encoding76CharacterLineLength, .encodingEndLineWithCarriageReturn, .encodingEndLineWithLineFeed])
         guard let encodedTextResult = NSString(data: encodedData, encoding: NSASCIIStringEncoding)?.bridge() else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
@@ -253,7 +253,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not encode UTF-8 string")
             return
         }
-        let encodedTextResult = data.base64EncodedStringWithOptions([])
+        let encodedTextResult = data.base64EncodedString([])
         XCTAssertEqual(encodedTextResult, encodedText)
 
     }
@@ -263,11 +263,11 @@ class TestNSData: XCTestCase {
         let dataPadding1 = NSData(bytes: dataPadding1Bytes, length: dataPadding1Bytes.count)
         
         
-        guard let decodedPadding1 = NSData(base64EncodedString:encodedPadding1, options: []) else {
+        guard let decodedPadding1 = NSData(base64Encoded:encodedPadding1, options: []) else {
             XCTFail("Could not Base-64 decode data")
             return
         }
-        XCTAssert(dataPadding1.isEqualToData(decodedPadding1))
+        XCTAssert(dataPadding1.isEqual(to: decodedPadding1))
     }
     func test_base64DecodeWithPadding2() {
         let encodedPadding2 = "Ao=="
@@ -275,11 +275,11 @@ class TestNSData: XCTestCase {
         let dataPadding2 = NSData(bytes: dataPadding2Bytes, length: dataPadding2Bytes.count)
         
         
-        guard let decodedPadding2 = NSData(base64EncodedString:encodedPadding2, options: []) else {
+        guard let decodedPadding2 = NSData(base64Encoded:encodedPadding2, options: []) else {
             XCTFail("Could not Base-64 decode data")
             return
         }
-        XCTAssert(dataPadding2.isEqualToData(decodedPadding2))
+        XCTAssert(dataPadding2.isEqual(to: decodedPadding2))
     }
     func test_rangeOfData() {
         let baseData : [UInt8] = [0x00,0x01,0x02,0x03,0x04]
@@ -294,46 +294,46 @@ class TestNSData: XCTestCase {
         let prefix = NSData(bytes: prefixData, length: prefixData.count)
         let prefixRange = NSMakeRange(0, prefixData.count)
         
-        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [], range: baseFullRange),prefixRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Anchored], range: baseFullRange),prefixRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Backwards], range: baseFullRange),prefixRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Backwards,.Anchored], range: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: prefix, options: [], in: baseFullRange),prefixRange))
+        XCTAssert(NSEqualRanges(base.range(of: prefix, options: [.anchored], in: baseFullRange),prefixRange))
+        XCTAssert(NSEqualRanges(base.range(of: prefix, options: [.backwards], in: baseFullRange),prefixRange))
+        XCTAssert(NSEqualRanges(base.range(of: prefix, options: [.backwards,.anchored], in: baseFullRange),notFoundRange))
         
-        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [], range: noPrefixRange),notFoundRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Backwards], range: noPrefixRange),notFoundRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [], range: noSuffixRange),prefixRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(prefix, options: [.Backwards], range: noSuffixRange),prefixRange))
+        XCTAssert(NSEqualRanges(base.range(of: prefix, options: [], in: noPrefixRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: prefix, options: [.backwards], in: noPrefixRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: prefix, options: [], in: noSuffixRange),prefixRange))
+        XCTAssert(NSEqualRanges(base.range(of: prefix, options: [.backwards], in: noSuffixRange),prefixRange))
         
         
         let suffixData : [UInt8] = [0x03,0x04]
         let suffix = NSData(bytes: suffixData, length: suffixData.count)
         let suffixRange = NSMakeRange(3, suffixData.count)
         
-        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [], range: baseFullRange),suffixRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Anchored], range: baseFullRange),notFoundRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Backwards], range: baseFullRange),suffixRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Backwards,.Anchored], range: baseFullRange),suffixRange))
+        XCTAssert(NSEqualRanges(base.range(of: suffix, options: [], in: baseFullRange),suffixRange))
+        XCTAssert(NSEqualRanges(base.range(of: suffix, options: [.anchored], in: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: suffix, options: [.backwards], in: baseFullRange),suffixRange))
+        XCTAssert(NSEqualRanges(base.range(of: suffix, options: [.backwards,.anchored], in: baseFullRange),suffixRange))
         
-        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [], range: noPrefixRange),suffixRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Backwards], range: noPrefixRange),suffixRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [], range: noSuffixRange),notFoundRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(suffix, options: [.Backwards], range: noSuffixRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: suffix, options: [], in: noPrefixRange),suffixRange))
+        XCTAssert(NSEqualRanges(base.range(of: suffix, options: [.backwards], in: noPrefixRange),suffixRange))
+        XCTAssert(NSEqualRanges(base.range(of: suffix, options: [], in: noSuffixRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: suffix, options: [.backwards], in: noSuffixRange),notFoundRange))
         
         
         let sliceData : [UInt8] = [0x02,0x03]
         let slice = NSData(bytes: sliceData, length: sliceData.count)
         let sliceRange = NSMakeRange(2, sliceData.count)
         
-        XCTAssert(NSEqualRanges(base.rangeOfData(slice, options: [], range: baseFullRange),sliceRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(slice, options: [.Anchored], range: baseFullRange),notFoundRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(slice, options: [.Backwards], range: baseFullRange),sliceRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(slice, options: [.Backwards,.Anchored], range: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: slice, options: [], in: baseFullRange),sliceRange))
+        XCTAssert(NSEqualRanges(base.range(of: slice, options: [.anchored], in: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: slice, options: [.backwards], in: baseFullRange),sliceRange))
+        XCTAssert(NSEqualRanges(base.range(of: slice, options: [.backwards,.anchored], in: baseFullRange),notFoundRange))
         
         let empty = NSData()
-        XCTAssert(NSEqualRanges(base.rangeOfData(empty, options: [], range: baseFullRange),notFoundRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(empty, options: [.Anchored], range: baseFullRange),notFoundRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(empty, options: [.Backwards], range: baseFullRange),notFoundRange))
-        XCTAssert(NSEqualRanges(base.rangeOfData(empty, options: [.Backwards,.Anchored], range: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: empty, options: [], in: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: empty, options: [.anchored], in: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: empty, options: [.backwards], in: baseFullRange),notFoundRange))
+        XCTAssert(NSEqualRanges(base.range(of: empty, options: [.backwards,.anchored], in: baseFullRange),notFoundRange))
         
     }
 

@@ -19,43 +19,43 @@ public struct NSDataReadingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let DataReadingMappedIfSafe = NSDataReadingOptions(rawValue: UInt(1 << 0))
-    public static let DataReadingUncached = NSDataReadingOptions(rawValue: UInt(1 << 1))
-    public static let DataReadingMappedAlways = NSDataReadingOptions(rawValue: UInt(1 << 2))
+    public static let dataReadingMappedIfSafe = NSDataReadingOptions(rawValue: UInt(1 << 0))
+    public static let dataReadingUncached = NSDataReadingOptions(rawValue: UInt(1 << 1))
+    public static let dataReadingMappedAlways = NSDataReadingOptions(rawValue: UInt(1 << 2))
 }
 
 public struct NSDataWritingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let DataWritingAtomic = NSDataWritingOptions(rawValue: UInt(1 << 0))
-    public static let DataWritingWithoutOverwriting = NSDataWritingOptions(rawValue: UInt(1 << 1))
+    public static let dataWritingAtomic = NSDataWritingOptions(rawValue: UInt(1 << 0))
+    public static let dataWritingWithoutOverwriting = NSDataWritingOptions(rawValue: UInt(1 << 1))
 }
 
 public struct NSDataSearchOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let Backwards = NSDataSearchOptions(rawValue: UInt(1 << 0))
-    public static let Anchored = NSDataSearchOptions(rawValue: UInt(1 << 1))
+    public static let backwards = NSDataSearchOptions(rawValue: UInt(1 << 0))
+    public static let anchored = NSDataSearchOptions(rawValue: UInt(1 << 1))
 }
 
 public struct NSDataBase64EncodingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let Encoding64CharacterLineLength = NSDataBase64EncodingOptions(rawValue: UInt(1 << 0))
-    public static let Encoding76CharacterLineLength = NSDataBase64EncodingOptions(rawValue: UInt(1 << 1))
-    public static let EncodingEndLineWithCarriageReturn = NSDataBase64EncodingOptions(rawValue: UInt(1 << 4))
-    public static let EncodingEndLineWithLineFeed = NSDataBase64EncodingOptions(rawValue: UInt(1 << 5))
+    public static let encoding64CharacterLineLength = NSDataBase64EncodingOptions(rawValue: UInt(1 << 0))
+    public static let encoding76CharacterLineLength = NSDataBase64EncodingOptions(rawValue: UInt(1 << 1))
+    public static let encodingEndLineWithCarriageReturn = NSDataBase64EncodingOptions(rawValue: UInt(1 << 4))
+    public static let encodingEndLineWithLineFeed = NSDataBase64EncodingOptions(rawValue: UInt(1 << 5))
 }
 
 public struct NSDataBase64DecodingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let IgnoreUnknownCharacters = NSDataBase64DecodingOptions(rawValue: UInt(1 << 0))
-    public static let Anchored = NSDataSearchOptions(rawValue: UInt(1 << 1))
+    public static let ignoreUnknownCharacters = NSDataBase64DecodingOptions(rawValue: UInt(1 << 0))
+    public static let anchored = NSDataSearchOptions(rawValue: UInt(1 << 1))
 }
 
 private final class _NSDataDeallocator {
@@ -98,7 +98,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     public override func isEqual(_ object: AnyObject?) -> Bool {
         if let data = object as? NSData {
-            return self.isEqualToData(data)
+            return self.isEqual(to: data)
         } else {
             return false
         }
@@ -275,7 +275,7 @@ extension NSData {
         
         let length = Int(info.st_size)
         
-        if options.contains(.DataReadingMappedAlways) {
+        if options.contains(.dataReadingMappedAlways) {
             let data = mmap(nil, length, PROT_READ, MAP_PRIVATE, fd, 0)
             
             // Swift does not currently expose MAP_FAILURE
@@ -366,7 +366,7 @@ extension NSData {
         CFDataGetBytes(_cfObject, CFRangeMake(range.location, range.length), UnsafeMutablePointer<UInt8>(buffer))
     }
     
-    public func isEqualToData(_ other: NSData) -> Bool {
+    public func isEqual(to other: NSData) -> Bool {
         if self === other {
             return true
         }
@@ -383,7 +383,7 @@ extension NSData {
         
         return memcmp(bytes1, bytes2, length) == 0
     }
-    public func subdataWithRange(_ range: NSRange) -> NSData {
+    public func subdata(with range: NSRange) -> NSData {
         if range.length == 0 {
             return NSData()
         }
@@ -411,7 +411,7 @@ extension NSData {
         while bytesRemaining > 0 {
             var bytesWritten : Int
             repeat {
-                bytesWritten = write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
+                bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
             } while (bytesWritten < 0 && errno == EINTR)
             if bytesWritten <= 0 {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
@@ -421,10 +421,10 @@ extension NSData {
         }
     }
     
-    public func writeToFile(_ path: String, options writeOptionsMask: NSDataWritingOptions) throws {
+    public func write(toFile path: String, options writeOptionsMask: NSDataWritingOptions = []) throws {
         var fd : Int32
         var mode : mode_t? = nil
-        let useAuxiliaryFile = writeOptionsMask.contains(.DataWritingAtomic)
+        let useAuxiliaryFile = writeOptionsMask.contains(.dataWritingAtomic)
         var auxFilePath : String? = nil
         if useAuxiliaryFile {
             // Preserve permissions.
@@ -440,7 +440,7 @@ extension NSData {
             fchmod(fd, 0o666)
         } else {
             var flags = O_WRONLY | O_CREAT | O_TRUNC
-            if writeOptionsMask.contains(.DataWritingWithoutOverwriting) {
+            if writeOptionsMask.contains(.dataWritingWithoutOverwriting) {
                 flags |= O_EXCL
             }
             fd = _CFOpenFileWithMode(path, flags, 0o666)
@@ -482,19 +482,19 @@ extension NSData {
         }
     }
     
-    public func writeToFile(_ path: String, atomically useAuxiliaryFile: Bool) -> Bool {
+    public func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
         do {
-            try writeToFile(path, options: useAuxiliaryFile ? .DataWritingAtomic : [])
+            try write(toFile: path, options: useAuxiliaryFile ? .dataWritingAtomic : [])
         } catch {
             return false
         }
         return true
     }
     
-    public func writeToURL(_ url: NSURL, atomically: Bool) -> Bool {
+    public func write(to url: NSURL, atomically: Bool) -> Bool {
         if url.fileURL {
             if let path = url.path {
-                return writeToFile(path, atomically: atomically)
+                return write(toFile: path, atomically: atomically)
             }
         }
         return false
@@ -508,16 +508,16 @@ extension NSData {
     ///    - throws: This method returns Void and is marked with the `throws` keyword to indicate that it throws an error in the event of failure.
     ///
     ///      This method is invoked in a `try` expression and the caller is responsible for handling any errors in the `catch` clauses of a `do` statement, as described in [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/ErrorHandling.html#//apple_ref/doc/uid/TP40014097-CH42) in [The Swift Programming Language](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/index.html#//apple_ref/doc/uid/TP40014097) and [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/AdoptingCocoaDesignPatterns.html#//apple_ref/doc/uid/TP40014216-CH7-ID10) in [Using Swift with Cocoa and Objective-C](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/index.html#//apple_ref/doc/uid/TP40014216).
-    public func writeToURL(_ url: NSURL, options writeOptionsMask: NSDataWritingOptions) throws {
+    public func write(to url: NSURL, options writeOptionsMask: NSDataWritingOptions = []) throws {
         guard let path = url.path where url.fileURL == true else {
             let userInfo = [NSLocalizedDescriptionKey : "The folder at “\(url)” does not exist or is not a file URL.", // NSLocalizedString() not yet available
                             NSURLErrorKey             : url.absoluteString ?? ""] as Dictionary<String, Any>
             throw NSError(domain: NSCocoaErrorDomain, code: 4, userInfo: userInfo)
         }
-        try writeToFile(path, options: writeOptionsMask)
+        try write(toFile: path, options: writeOptionsMask)
     }
     
-    public func rangeOfData(_ dataToFind: NSData, options mask: NSDataSearchOptions, range searchRange: NSRange) -> NSRange {
+    public func range(of dataToFind: NSData, options mask: NSDataSearchOptions = [], in searchRange: NSRange) -> NSRange {
         guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
         guard let searchRange = searchRange.toRange() else {fatalError("invalid range")}
         
@@ -527,8 +527,8 @@ extension NSData {
         let search = UnsafeBufferPointer<UInt8>(start: UnsafePointer<UInt8>(dataToFind.bytes), count: dataToFind.length)
         
         let location : Int?
-        let anchored = mask.contains(.Anchored)
-        if mask.contains(.Backwards) {
+        let anchored = mask.contains(.anchored)
+        if mask.contains(.backwards) {
             location = NSData.searchSubSequence(search.reversed(), inSequence: baseData.reversed(),anchored : anchored).map {$0.base-search.count}
         } else {
             location = NSData.searchSubSequence(search, inSequence: baseData,anchored : anchored)
@@ -547,7 +547,7 @@ extension NSData {
     
     internal func enumerateByteRangesUsingBlockRethrows(_ block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
         var err : ErrorProtocol? = nil
-        self.enumerateByteRangesUsingBlock() { (buf, range, stop) -> Void in
+        self.enumerateBytes() { (buf, range, stop) -> Void in
             do {
                 try block(buf, range, stop)
             } catch let e {
@@ -559,7 +559,7 @@ extension NSData {
         }
     }
 
-    public func enumerateByteRangesUsingBlock(_ block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
+    public func enumerateBytes(_ block: (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
         var stop = false
         withUnsafeMutablePointer(&stop) { stopPointer in
             block(bytes, NSMakeRange(0, length), stopPointer)
@@ -610,7 +610,7 @@ extension NSData {
     
     /* Create an NSData from a Base-64 encoded NSString using the given options. By default, returns nil when the input is not recognized as valid Base-64.
     */
-    public convenience init?(base64EncodedString base64String: String, options: NSDataBase64DecodingOptions) {
+    public convenience init?(base64Encoded base64String: String, options: NSDataBase64DecodingOptions) {
         let encodedBytes = Array(base64String.utf8)
         guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
             return nil
@@ -620,7 +620,7 @@ extension NSData {
     
     /* Create a Base-64 encoded NSString from the receiver's contents using the given options.
     */
-    public func base64EncodedStringWithOptions(_ options: NSDataBase64EncodingOptions) -> String {
+    public func base64EncodedString(_ options: NSDataBase64EncodingOptions = []) -> String {
         var decodedBytes = [UInt8](repeating: 0, count: self.length)
         getBytes(&decodedBytes, length: decodedBytes.count)
         let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
@@ -630,7 +630,7 @@ extension NSData {
     
     /* Create an NSData from a Base-64, UTF-8 encoded NSData. By default, returns nil when the input is not recognized as valid Base-64.
     */
-    public convenience init?(base64EncodedData base64Data: NSData, options: NSDataBase64DecodingOptions) {
+    public convenience init?(base64Encoded base64Data: NSData, options: NSDataBase64DecodingOptions) {
         var encodedBytes = [UInt8](repeating: 0, count: base64Data.length)
         base64Data.getBytes(&encodedBytes, length: encodedBytes.count)
         guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
@@ -641,7 +641,7 @@ extension NSData {
     
     /* Create a Base-64, UTF-8 encoded NSData from the receiver's contents using the given options.
     */
-    public func base64EncodedDataWithOptions(_ options: NSDataBase64EncodingOptions) -> NSData {
+    public func base64EncodedData(_ options: NSDataBase64EncodingOptions = []) -> NSData {
         var decodedBytes = [UInt8](repeating: 0, count: self.length)
         getBytes(&decodedBytes, length: decodedBytes.count)
         let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
@@ -741,7 +741,7 @@ extension NSData {
                 value = v
                 validCharacterCount += 1
             case .Invalid:
-                if options.contains(.IgnoreUnknownCharacters) {
+                if options.contains(.ignoreUnknownCharacters) {
                     continue
                 } else {
                     return nil
@@ -799,15 +799,15 @@ extension NSData {
         let lineOptions : (lineLength : Int, separator : [UInt8])? = {
             let lineLength: Int
             
-            if options.contains(.Encoding64CharacterLineLength) { lineLength = 64 }
-            else if options.contains(.Encoding76CharacterLineLength) { lineLength = 76 }
+            if options.contains(.encoding64CharacterLineLength) { lineLength = 64 }
+            else if options.contains(.encoding76CharacterLineLength) { lineLength = 76 }
             else {
                 return nil
             }
             
             var separator = [UInt8]()
-            if options.contains(.EncodingEndLineWithCarriageReturn) { separator.append(13) }
-            if options.contains(.EncodingEndLineWithLineFeed) { separator.append(10) }
+            if options.contains(.encodingEndLineWithCarriageReturn) { separator.append(13) }
+            if options.contains(.encodingEndLineWithLineFeed) { separator.append(10) }
             
             //if the kind of line ending to insert is not specified, the default line ending is Carriage Return + Line Feed.
             if separator.count == 0 {separator = [13,10]}
@@ -865,32 +865,32 @@ extension NSData {
 
 extension NSMutableData {
 
-    public func appendBytes(_ bytes: UnsafePointer<Void>, length: Int) {
+    public func append(_ bytes: UnsafePointer<Void>, length: Int) {
         CFDataAppendBytes(_cfMutableObject, UnsafePointer<UInt8>(bytes), length)
     }
     
-    public func appendData(_ other: NSData) {
-        appendBytes(other.bytes, length: other.length)
+    public func append(_ other: NSData) {
+        append(other.bytes, length: other.length)
     }
     
-    public func increaseLengthBy(_ extraLength: Int) {
+    public func increaseLength(by extraLength: Int) {
         CFDataSetLength(_cfMutableObject, CFDataGetLength(_cfObject) + extraLength)
     }
     
-    public func replaceBytesInRange(_ range: NSRange, withBytes bytes: UnsafePointer<Void>) {
+    public func replaceBytes(in range: NSRange, withBytes bytes: UnsafePointer<Void>) {
         CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), UnsafePointer<UInt8>(bytes), length)
     }
     
-    public func resetBytesInRange(_ range: NSRange) {
+    public func resetBytes(in range: NSRange) {
         bzero(mutableBytes.advanced(by: range.location), range.length)
     }
     
     public func setData(_ data: NSData) {
         length = data.length
-        replaceBytesInRange(NSMakeRange(0, data.length), withBytes: data.bytes)
+        replaceBytes(in: NSMakeRange(0, data.length), withBytes: data.bytes)
     }
     
-    public func replaceBytesInRange(_ range: NSRange, withBytes replacementBytes: UnsafePointer<Void>, length replacementLength: Int) {
+    public func replaceBytes(in range: NSRange, withBytes replacementBytes: UnsafePointer<Void>, length replacementLength: Int) {
         CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), UnsafePointer<UInt8>(bytes), replacementLength)
     }
 }
