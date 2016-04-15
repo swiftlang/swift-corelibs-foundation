@@ -38,7 +38,7 @@ public class NSCache : NSObject {
     
     public weak var delegate: NSCacheDelegate?
     
-    public func objectForKey(_ key: AnyObject) -> AnyObject? {
+    public func object(forKey key: AnyObject) -> AnyObject? {
         var object: AnyObject?
         
         let keyRef = unsafeBitCast(key, to: UnsafePointer<Void>.self)
@@ -157,7 +157,7 @@ public class NSCache : NSObject {
         _lock.unlock()
     }
     
-    public func removeObjectForKey(_ key: AnyObject) {
+    public func removeObject(forKey key: AnyObject) {
         let keyRef = unsafeBitCast(key, to: UnsafePointer<Void>.self)
         
         _lock.lock()
