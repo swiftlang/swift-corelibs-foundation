@@ -80,36 +80,24 @@ public enum NSURLRequestCachePolicy : UInt {
     case reloadRevalidatingCacheData // Unimplemented
 }
 
-/*!
- @enum NSURLRequestNetworkServiceType
- 
- @discussion The NSURLRequestNetworkServiceType enum defines constants that
- can be used to specify the service type to associate with this request.  The
- service type is used to provide the networking layers a hint of the purpose 
- of the request.
- 
- @constant NSURLNetworkServiceTypeDefault Is the default value for an NSURLRequest
- when created.  This value should be left unchanged for the vast majority of requests.
- 
- @constant NSURLNetworkServiceTypeVoIP Specifies that the request is for voice over IP
- control traffic.
- 
- @constant NSURLNetworkServiceTypeVideo Specifies that the request is for video
- traffic.
-
- @constant NSURLNetworkServiceTypeBackground Specifies that the request is for background
- traffic (such as a file download).
-
- @constant NSURLNetworkServiceTypeVoice Specifies that the request is for voice data.
-
-*/
+/// Network service type for an NSURLRequest
+///
+/// The `NSURLRequestNetworkServiceType` enum defines constants that
+/// can be used to specify the service type to associate with this request. The
+/// service type is used to provide the networking layers a hint of the purpose
+/// of the request.
 public enum NSURLRequestNetworkServiceType : UInt {
-    
-    case networkServiceTypeDefault // Standard internet traffic
-    case networkServiceTypeVoIP // Voice over IP control traffic
-    case networkServiceTypeVideo // Video traffic
-    case networkServiceTypeBackground // Background traffic
-    case networkServiceTypeVoice // Voice data
+    /// Is the default value for an `NSURLRequest` when created.
+    /// This value should be left unchanged for the vast majority of requests.
+    case networkServiceTypeDefault
+    /// Specifies that the request is for voice over IP control traffic.
+    case networkServiceTypeVoIP
+    /// Specifies that the request is for video traffic.
+    case networkServiceTypeVideo
+    /// Specifies that the request is for background traffic (such as a file download).
+    case networkServiceTypeBackground
+    /// Specifies that the request is for voice data.
+    case networkServiceTypeVoice
 }
 
 /// An `NSURLRequest` object represents a URL load request in a
