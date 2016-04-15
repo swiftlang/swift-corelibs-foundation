@@ -149,7 +149,7 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
         }()
     }
     let key = "\(options):\(pattern)"
-    if let regex = local.__NSRegularExpressionCache.objectForKey(key._nsObject) {
+    if let regex = local.__NSRegularExpressionCache.object(forKey: key._nsObject) {
         return (regex as! NSRegularExpression)
     }
     do {
