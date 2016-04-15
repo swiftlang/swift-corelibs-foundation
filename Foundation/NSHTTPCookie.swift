@@ -367,14 +367,14 @@ public class NSHTTPCookie : NSObject {
     */
     
     /*!
-        @method requestHeaderFieldsWithCookies:
+        @method requestHeaderFields:with:
         @abstract Return a dictionary of header fields that can be used to add the
         specified cookies to the request.
         @param cookies The cookies to turn into request headers.
         @result An NSDictionary where the keys are header field names, and the values
         are the corresponding header field values.
     */
-    public class func requestHeaderFieldsWithCookies(_ cookies: [NSHTTPCookie]) -> [String : String] {
+    public class func requestHeaderFields(with cookies: [NSHTTPCookie]) -> [String : String] {
         var cookieString = cookies.reduce("") { (sum, next) -> String in
             return sum + "\(next.cookieRepresentation.name)=\(next.cookieRepresentation.value); "
         }
@@ -387,7 +387,7 @@ public class NSHTTPCookie : NSObject {
     }
     
     /*!
-        @method cookiesWithResponseHeaderFields:forURL:
+        @method cookies:withResponseHeaderFields:forURL:
         @abstract Return an array of cookies parsed from the specified response header fields and URL.
         @param headerFields The response header fields to check for cookies.
         @param URL The URL that the cookies came from - relevant to how the cookies are interpeted.
@@ -395,7 +395,7 @@ public class NSHTTPCookie : NSObject {
         @discussion This method will ignore irrelevant header fields so
         you can pass a dictionary containing data other than cookie data.
     */
-    public class func cookiesWithResponseHeaderFields(_ headerFields: [String : String], forURL URL: NSURL) -> [NSHTTPCookie] { NSUnimplemented() }
+    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL URL: NSURL) -> [NSHTTPCookie] { NSUnimplemented() }
     
     /*!
         @method properties
@@ -464,7 +464,7 @@ public class NSHTTPCookie : NSObject {
         session (regardless of expiration date), NO if receiver need not
         be discarded at the end of the session.
     */
-    public var sessionOnly: Bool {
+    public var isSessionOnly: Bool {
         return self.cookieRepresentation.sessionOnly
     }
     
@@ -504,7 +504,7 @@ public class NSHTTPCookie : NSObject {
         @result YES if this cookie should be sent only over secure channels,
         NO otherwise.
     */
-    public var secure: Bool {
+    public var isSecure: Bool {
         return self.cookieRepresentation.secure
     }
     
@@ -520,7 +520,7 @@ public class NSHTTPCookie : NSObject {
         @result YES if this cookie should only be sent via HTTP headers,
         NO otherwise.
     */
-    public var HTTPOnly: Bool {
+    public var isHTTPOnly: Bool {
         return self.cookieRepresentation.HTTPOnly
     }
     
