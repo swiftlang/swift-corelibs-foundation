@@ -16,13 +16,13 @@ public struct NSRegularExpressionOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static var caseInsensitive = NSRegularExpressionOptions(rawValue: 1 << 0) /* Match letters in the pattern independent of case. */
-    public static var allowCommentsAndWhitespace = NSRegularExpressionOptions(rawValue: 1 << 1) /* Ignore whitespace and #-prefixed comments in the pattern. */
-    public static var ignoreMetacharacters = NSRegularExpressionOptions(rawValue: 1 << 2) /* Treat the entire pattern as a literal string. */
-    public static var dotMatchesLineSeparators = NSRegularExpressionOptions(rawValue: 1 << 3) /* Allow . to match any character, including line separators. */
-    public static var anchorsMatchLines = NSRegularExpressionOptions(rawValue: 1 << 4) /* Allow ^ and $ to match the start and end of lines. */
-    public static var useUnixLineSeparators = NSRegularExpressionOptions(rawValue: 1 << 5) /* Treat only \n as a line separator (otherwise, all standard line separators are used). */
-    public static var useUnicodeWordBoundaries = NSRegularExpressionOptions(rawValue: 1 << 6) /* Use Unicode TR#29 to specify word boundaries (otherwise, traditional regular expression word boundaries are used). */
+    public static let caseInsensitive = NSRegularExpressionOptions(rawValue: 1 << 0) /* Match letters in the pattern independent of case. */
+    public static let allowCommentsAndWhitespace = NSRegularExpressionOptions(rawValue: 1 << 1) /* Ignore whitespace and #-prefixed comments in the pattern. */
+    public static let ignoreMetacharacters = NSRegularExpressionOptions(rawValue: 1 << 2) /* Treat the entire pattern as a literal string. */
+    public static let dotMatchesLineSeparators = NSRegularExpressionOptions(rawValue: 1 << 3) /* Allow . to match any character, including line separators. */
+    public static let anchorsMatchLines = NSRegularExpressionOptions(rawValue: 1 << 4) /* Allow ^ and $ to match the start and end of lines. */
+    public static let useUnixLineSeparators = NSRegularExpressionOptions(rawValue: 1 << 5) /* Treat only \n as a line separator (otherwise, all standard line separators are used). */
+    public static let useUnicodeWordBoundaries = NSRegularExpressionOptions(rawValue: 1 << 6) /* Use Unicode TR#29 to specify word boundaries (otherwise, traditional regular expression word boundaries are used). */
 }
 
 public class NSRegularExpression : NSObject, NSCopying, NSCoding {
@@ -90,11 +90,11 @@ public struct NSMatchingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static var reportProgress = NSMatchingOptions(rawValue: 1 << 0) /* Call the block periodically during long-running match operations. */
-    public static var reportCompletion = NSMatchingOptions(rawValue: 1 << 1) /* Call the block once after the completion of any matching. */
-    public static var anchored = NSMatchingOptions(rawValue: 1 << 2) /* Limit matches to those at the start of the search range. */
-    public static var withTransparentBounds = NSMatchingOptions(rawValue: 1 << 3) /* Allow matching to look beyond the bounds of the search range. */
-    public static var withoutAnchoringBounds = NSMatchingOptions(rawValue: 1 << 4) /* Prevent ^ and $ from automatically matching the beginning and end of the search range. */
+    public static let reportProgress = NSMatchingOptions(rawValue: 1 << 0) /* Call the block periodically during long-running match operations. */
+    public static let reportCompletion = NSMatchingOptions(rawValue: 1 << 1) /* Call the block once after the completion of any matching. */
+    public static let anchored = NSMatchingOptions(rawValue: 1 << 2) /* Limit matches to those at the start of the search range. */
+    public static let withTransparentBounds = NSMatchingOptions(rawValue: 1 << 3) /* Allow matching to look beyond the bounds of the search range. */
+    public static let withoutAnchoringBounds = NSMatchingOptions(rawValue: 1 << 4) /* Prevent ^ and $ from automatically matching the beginning and end of the search range. */
     internal static let OmitResult = NSMatchingOptions(rawValue: 1 << 13)
 }
 
@@ -102,11 +102,11 @@ public struct NSMatchingFlags : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static var progress = NSMatchingFlags(rawValue: 1 << 0) /* Set when the block is called to report progress during a long-running match operation. */
-    public static var completed = NSMatchingFlags(rawValue: 1 << 1) /* Set when the block is called after completion of any matching. */
-    public static var hitEnd = NSMatchingFlags(rawValue: 1 << 2) /* Set when the current match operation reached the end of the search range. */
-    public static var requiredEnd = NSMatchingFlags(rawValue: 1 << 3) /* Set when the current match depended on the location of the end of the search range. */
-    public static var internalError = NSMatchingFlags(rawValue: 1 << 4) /* Set when matching failed due to an internal error. */
+    public static let progress = NSMatchingFlags(rawValue: 1 << 0) /* Set when the block is called to report progress during a long-running match operation. */
+    public static let completed = NSMatchingFlags(rawValue: 1 << 1) /* Set when the block is called after completion of any matching. */
+    public static let hitEnd = NSMatchingFlags(rawValue: 1 << 2) /* Set when the current match operation reached the end of the search range. */
+    public static let requiredEnd = NSMatchingFlags(rawValue: 1 << 3) /* Set when the current match depended on the location of the end of the search range. */
+    public static let internalError = NSMatchingFlags(rawValue: 1 << 4) /* Set when matching failed due to an internal error. */
 }
 
 internal class _NSRegularExpressionMatcher {
