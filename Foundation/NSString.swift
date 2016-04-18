@@ -808,7 +808,7 @@ extension NSString {
         return NSMakeRange(start, parEnd - start)
     }
     
-    public func enumerateSubstrings(in range: NSRange, options opts: NSStringEnumerationOptions = [], using block: (String?, NSRange, NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    public func enumerateSubstrings(in range: NSRange, options opts: NSStringEnumerationOptions = [], using block: (String?, NSRange, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         NSUnimplemented()
     }
     
