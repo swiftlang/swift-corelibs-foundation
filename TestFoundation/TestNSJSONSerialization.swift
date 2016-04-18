@@ -47,7 +47,7 @@ extension TestNSJSONSerialization {
     func test_JSONObjectWithData_emptyObject() {
         let subject = NSData(bytes: UnsafePointer<Void>([UInt8]([0x7B, 0x7D])), length: 2)
         
-        let object = try! NSJSONSerialization.JSONObjectWithData(subject, options: []) as? [String:Any]
+        let object = try! NSJSONSerialization.jsonObject(with: subject, options: []) as? [String:Any]
         XCTAssertEqual(object?.count, 0)
     }
     
@@ -75,7 +75,7 @@ extension TestNSJSONSerialization {
         ]
         
         for (description, encoded) in subjects {
-            let result = try? NSJSONSerialization.JSONObjectWithData(NSData(bytes:UnsafePointer<Void>(encoded), length: encoded.count), options: [])
+            let result = try? NSJSONSerialization.jsonObject(with: NSData(bytes:UnsafePointer<Void>(encoded), length: encoded.count), options: [])
             XCTAssertNotNil(result, description)
         }
     }
@@ -124,7 +124,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let t = try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            let t = try NSJSONSerialization.jsonObject(with: data, options: [])
             let result = t as? [String: Any]
             XCTAssertEqual(result?.count, 0)
         } catch {
@@ -140,7 +140,7 @@ extension TestNSJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [String: Any]
+                let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
                 XCTAssertEqual(result?["hello"] as? String, "world")
                 XCTAssertEqual(result?["swift"] as? String, "rocks")
             }
@@ -158,7 +158,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+            let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [Any]
             XCTAssertEqual(result?.count, 0)
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -174,7 +174,7 @@ extension TestNSJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [Any]
                 XCTAssertEqual(result?[0] as? String, "hello")
                 XCTAssertEqual(result?[1] as? String, "swift⚡️")
             }
@@ -193,7 +193,7 @@ extension TestNSJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [Any]
                 XCTAssertEqual(result?[0] as? String, "unicode")
                 XCTAssertEqual(result?[1] as? String, "Ģ")
                 XCTAssertEqual(result?[2] as? String, "😢")
@@ -213,7 +213,7 @@ extension TestNSJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [Any]
                 XCTAssertEqual(result?[0] as? Bool, true)
                 XCTAssertEqual(result?[1] as? Bool, false)
                 XCTAssertEqual(result?[2] as? String, "hello")
@@ -236,7 +236,7 @@ extension TestNSJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+                let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [Any]
                 XCTAssertEqual(result?[0] as? Double,     1)
                 XCTAssertEqual(result?[1] as? Double,    -1)
                 XCTAssertEqual(result?[2] as? Double,   1.3)
@@ -257,7 +257,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let res = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+            let res = try NSJSONSerialization.jsonObject(with: data, options: []) as? [Any]
             let result = res?.flatMap { $0 as? String }
             XCTAssertEqual(result?[0], "\"")
             XCTAssertEqual(result?[1], "\\")
@@ -279,7 +279,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+            let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [Any]
             XCTAssertEqual(result?[0] as? String, "✨")
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -293,7 +293,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let result = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [Any]
+            let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [Any]
             XCTAssertEqual(result?[0] as? String, "\u{1D11E}")
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -309,7 +309,7 @@ extension TestNSJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as? Double
+                let result = try NSJSONSerialization.jsonObject(with: data, options: .AllowFragments) as? Double
                 XCTAssertEqual(result, 3)
             }
         } catch {
@@ -326,7 +326,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: UnterminatedString")
         } catch {
             // Passing case; the object as unterminated
@@ -341,7 +341,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Missing key for value")
         } catch {
             // Passing case; the key was missing for a value
@@ -356,7 +356,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Unexpected end of file")
         } catch {
             // Success
@@ -371,7 +371,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Invalid value")
         } catch {
             // Passing case; the value is invalid
@@ -386,7 +386,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Invalid value")
         } catch {
             // passing case the value is invalid
@@ -401,7 +401,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Invalid value")
         } catch {
             // Passing case; the element in the array is missing
@@ -416,7 +416,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Badly formed array")
         } catch {
             // Passing case; the array is malformed
@@ -431,7 +431,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.JSONObjectWithData(data, options: [])
+            try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Invalid escape sequence")
         } catch {
             // Passing case; the escape sequence is invalid
@@ -445,7 +445,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [String]
+            try NSJSONSerialization.jsonObject(with: data, options: []) as? [String]
             XCTFail("Expected error: Missing Trailing Surrogate")
         } catch {
             // Passing case; the unicode character is malformed
@@ -579,7 +579,7 @@ extension TestNSJSONSerialization {
     }
 
     func trySerialize(_ obj: AnyObject) throws -> String {
-        let data = try NSJSONSerialization.dataWithJSONObject(obj, options: [])
+        let data = try NSJSONSerialization.data(withJSONObject: obj, options: [])
         guard let string = NSString(data: data, encoding: NSUTF8StringEncoding) else {
             XCTFail("Unable to create string")
             return ""
