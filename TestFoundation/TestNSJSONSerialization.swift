@@ -120,7 +120,7 @@ extension TestNSJSONSerialization {
     func test_deserialize_emptyObject() {
         let subject = "{}"
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -136,7 +136,7 @@ extension TestNSJSONSerialization {
         let subject = "{ \"hello\": \"world\", \"swift\": \"rocks\" }"
         do {
             for encoding in [NSUTF8StringEncoding, NSUTF16BigEndianStringEncoding] {
-                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                guard let data = subject.bridge().data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
@@ -154,7 +154,7 @@ extension TestNSJSONSerialization {
         let subject = "[]"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -170,7 +170,7 @@ extension TestNSJSONSerialization {
         
         do {
             for encoding in [NSUTF8StringEncoding, NSUTF16BigEndianStringEncoding] {
-                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                guard let data = subject.bridge().data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
@@ -189,7 +189,7 @@ extension TestNSJSONSerialization {
         
         do {
             for encoding in [NSUTF16LittleEndianStringEncoding, NSUTF16BigEndianStringEncoding, NSUTF32LittleEndianStringEncoding, NSUTF32BigEndianStringEncoding] {
-                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                guard let data = subject.bridge().data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
@@ -209,7 +209,7 @@ extension TestNSJSONSerialization {
         
         do {
             for encoding in supportedEncodings {
-                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                guard let data = subject.bridge().data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
@@ -232,7 +232,7 @@ extension TestNSJSONSerialization {
         
         do {
             for encoding in supportedEncodings {
-                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                guard let data = subject.bridge().data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
@@ -253,7 +253,7 @@ extension TestNSJSONSerialization {
     func test_deserialize_simpleEscapeSequences() {
         let subject = "[\"\\\"\", \"\\\\\", \"\\/\", \"\\b\", \"\\f\", \"\\n\", \"\\r\", \"\\t\"]"
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -275,7 +275,7 @@ extension TestNSJSONSerialization {
     func test_deserialize_unicodeEscapeSequence() {
         let subject = "[\"\\u2728\"]"
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -289,7 +289,7 @@ extension TestNSJSONSerialization {
     func test_deserialize_unicodeSurrogatePairEscapeSequence() {
         let subject = "[\"\\uD834\\udd1E\"]"
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -305,7 +305,7 @@ extension TestNSJSONSerialization {
         
         do {
             for encoding in supportedEncodings {
-                guard let data = subject.bridge().dataUsingEncoding(encoding) else {
+                guard let data = subject.bridge().data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
@@ -322,7 +322,7 @@ extension TestNSJSONSerialization {
         let subject = "{\"}"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -337,7 +337,7 @@ extension TestNSJSONSerialization {
         let subject = "{3}"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -352,7 +352,7 @@ extension TestNSJSONSerialization {
         let subject = "{"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -367,7 +367,7 @@ extension TestNSJSONSerialization {
         let subject = "{\"error\":}"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -382,7 +382,7 @@ extension TestNSJSONSerialization {
         let subject = "{\"missing\";}"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -397,7 +397,7 @@ extension TestNSJSONSerialization {
         let subject = "[,"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -412,7 +412,7 @@ extension TestNSJSONSerialization {
         let subject = "[2b4]"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -427,7 +427,7 @@ extension TestNSJSONSerialization {
         let subject = "[\"\\e\"]"
         
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
@@ -441,7 +441,7 @@ extension TestNSJSONSerialization {
     func test_deserialize_unicodeMissingTrailingSurrogate() {
         let subject = "[\"\\uD834\"]"
         do {
-            guard let data = subject.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else {
                 XCTFail("Unable to convert string to data")
                 return
             }

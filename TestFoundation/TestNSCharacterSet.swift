@@ -107,13 +107,13 @@ class TestNSCharacterSet : XCTestCase {
         mcset1.addCharactersInRange(attachmentCharacterRange)
 
         XCTAssertTrue(mcset1.characterIsMember(attachmentCharacterUnichar), "attachmentCharacter should be member of mcset1 after being added")
-        XCTAssertNotNil(string.rangeOfCharacterFromSet(mcset1), "Range of character from mcset1 set should not be nil")
+        XCTAssertNotNil(string.rangeOfCharacter(from: mcset1), "Range of character from mcset1 set should not be nil")
 
         let mcset2 = NSMutableCharacterSet(range: initialSetRange)
         mcset2.addCharactersInString(string)
 
         XCTAssertTrue(mcset2.characterIsMember(attachmentCharacterUnichar), "attachmentCharacter should be member of mcset2 after being added")
-        XCTAssertNotNil(string.rangeOfCharacterFromSet(mcset2), "Range of character from mcset2 should not be nil")
+        XCTAssertNotNil(string.rangeOfCharacter(from: mcset2), "Range of character from mcset2 should not be nil")
     }
     
     func test_AnnexPlanes() {

@@ -44,11 +44,11 @@ internal class _NSCFString : NSMutableString {
         return CFStringGetLength(unsafeBitCast(self, to: CFString.self))
     }
     
-    override func characterAtIndex(_ index: Int) -> unichar {
+    override func character(at index: Int) -> unichar {
         return CFStringGetCharacterAtIndex(unsafeBitCast(self, to: CFString.self), index)
     }
     
-    override func replaceCharactersInRange(_ range: NSRange, withString aString: String) {
+    override func replaceCharacters(in range: NSRange, with aString: String) {
         CFStringReplace(unsafeBitCast(self, to: CFMutableString.self), CFRangeMake(range.location, range.length), aString._cfObject)
     }
     
@@ -100,11 +100,11 @@ internal final class _NSCFConstantString : _NSCFString {
         return Int(_length)
     }
     
-    override func characterAtIndex(_ index: Int) -> unichar {
+    override func character(at index: Int) -> unichar {
         return unichar(_ptr[index])
     }
     
-    override func replaceCharactersInRange(_ range: NSRange, withString aString: String) {
+    override func replaceCharacters(in range: NSRange, with aString: String) {
         fatalError()
     }
     
@@ -118,7 +118,7 @@ internal func _CFSwiftStringGetLength(_ string: AnyObject) -> CFIndex {
 }
 
 internal func _CFSwiftStringGetCharacterAtIndex(_ str: AnyObject, index: CFIndex) -> UniChar {
-    return (str as! NSString).characterAtIndex(index)
+    return (str as! NSString).character(at: index)
 }
 
 internal func _CFSwiftStringGetCharacters(_ str: AnyObject, range: CFRange, buffer: UnsafeMutablePointer<UniChar>) {
@@ -164,7 +164,7 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
 }
 
 internal func _CFSwiftStringCreateWithSubstring(_ str: AnyObject, range: CFRange) -> Unmanaged<AnyObject> {
-    return Unmanaged<AnyObject>.passRetained((str as! NSString).substringWithRange(NSMakeRange(range.location, range.length))._nsObject)
+    return Unmanaged<AnyObject>.passRetained((str as! NSString).substring(with: NSMakeRange(range.location, range.length))._nsObject)
 }
 
 
@@ -193,15 +193,15 @@ internal func _CFSwiftStringIsUnicode(_ str: AnyObject) -> Bool {
 }
 
 internal func _CFSwiftStringInsert(_ str: AnyObject, index: CFIndex, inserted: AnyObject) {
-    (str as! NSMutableString).insertString((inserted as! NSString)._swiftObject, atIndex: index)
+    (str as! NSMutableString).insert((inserted as! NSString)._swiftObject, at: index)
 }
 
 internal func _CFSwiftStringDelete(_ str: AnyObject, range: CFRange) {
-    (str as! NSMutableString).deleteCharactersInRange(NSMakeRange(range.location, range.length))
+    (str as! NSMutableString).deleteCharacters(in: NSMakeRange(range.location, range.length))
 }
 
 internal func _CFSwiftStringReplace(_ str: AnyObject, range: CFRange, replacement: AnyObject) {
-    (str as! NSMutableString).replaceCharactersInRange(NSMakeRange(range.location, range.length), withString: (replacement as! NSString)._swiftObject)
+    (str as! NSMutableString).replaceCharacters(in: NSMakeRange(range.location, range.length), with: (replacement as! NSString)._swiftObject)
 }
 
 internal func _CFSwiftStringReplaceAll(_ str: AnyObject, replacement: AnyObject) {
@@ -209,7 +209,7 @@ internal func _CFSwiftStringReplaceAll(_ str: AnyObject, replacement: AnyObject)
 }
 
 internal func _CFSwiftStringAppend(_ str: AnyObject, appended: AnyObject) {
-    (str as! NSMutableString).appendString((appended as! NSString)._swiftObject)
+    (str as! NSMutableString).append((appended as! NSString)._swiftObject)
 }
 
 internal func _CFSwiftStringAppendCharacters(_ str: AnyObject, chars: UnsafePointer<UniChar>, length: CFIndex) {

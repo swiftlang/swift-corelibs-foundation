@@ -247,7 +247,7 @@ extension NSRegularExpression {
             let replacement = replacementString(for: result, in: string._swiftObject, offset: offset, template: templ)
             currentRnage.location += offset
             
-            string.replaceCharactersInRange(currentRnage, withString: replacement)
+            string.replaceCharacters(in: currentRnage, with: replacement)
             offset += replacement.length - currentRnage.length
             count += 1
         }
@@ -262,7 +262,7 @@ extension NSRegularExpression {
             static let characterSet = NSCharacterSet(charactersInString: "\\$")
         }
         let template = templ._nsObject
-        var range = template.rangeOfCharacterFromSet(once.characterSet)
+        var range = template.rangeOfCharacter(from: once.characterSet)
         if range.length > 0 {
             var numberOfDigits = 1
             var orderOfMagnitude = 10
@@ -274,16 +274,16 @@ extension NSRegularExpression {
                 orderOfMagnitude *= 10
             }
             while range.length > 0 {
-                var c = str.characterAtIndex(range.location)
+                var c = str.character(at: range.location)
                 if c == unichar(unicodeScalarLiteral: "\\") {
-                    str.deleteCharactersInRange(range)
+                    str.deleteCharacters(in: range)
                     length -= range.length
                     range.length = 1
                 } else if c == unichar(unicodeScalarLiteral: "$") {
                     var groupNumber: Int = NSNotFound
                     var idx = NSMaxRange(range)
                     while idx < length && idx < NSMaxRange(range) + numberOfDigits {
-                        c = str.characterAtIndex(idx)
+                        c = str.character(at: idx)
                         if c < unichar(unicodeScalarLiteral: "0") || c > unichar(unicodeScalarLiteral: "9") {
                             break
                         }
@@ -311,7 +311,7 @@ extension NSRegularExpression {
                             let max = start.advanced(by: substringRange.location + substringRange.length)
                             substring = String(string.utf16[min..<max])
                         }
-                        str.replaceCharactersInRange(rangeToReplace, withString: substring)
+                        str.replaceCharacters(in: rangeToReplace, with: substring)
                         
                         length += substringRange.length - rangeToReplace.length
                         range.length = substringRange.length
@@ -320,7 +320,7 @@ extension NSRegularExpression {
                 if NSMaxRange(range) > length {
                     break
                 }
-                range = str.rangeOfCharacterFromSet(once.characterSet, options: [], range: NSMakeRange(NSMaxRange(range), length - NSMaxRange(range)))
+                range = str.rangeOfCharacter(from: once.characterSet, options: [], range: NSMakeRange(NSMaxRange(range), length - NSMaxRange(range)))
             }
             return str._swiftObject
         }

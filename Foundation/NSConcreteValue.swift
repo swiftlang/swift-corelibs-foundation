@@ -105,7 +105,7 @@ internal class NSConcreteValue : NSValue {
     }
     
     override var objCType : UnsafePointer<Int8> {
-        return NSString(self._typeInfo.name).UTF8String! // XXX leaky
+        return NSString(self._typeInfo.name).utf8String! // XXX leaky
     }
     
     override var classForCoder: AnyClass {

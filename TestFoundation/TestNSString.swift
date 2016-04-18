@@ -110,7 +110,7 @@ class TestNSString : XCTestCase {
         XCTAssertTrue(nonLiteralConversion.length > 4)
         
         let nonLiteral2: NSString = String(4).bridge()
-        let t = nonLiteral2.characterAtIndex(0)
+        let t = nonLiteral2.character(at: 0)
         XCTAssertTrue(t == 52)
         
         let externalString: NSString = String.localizedNameOfStringEncoding(String.defaultCStringEncoding()).bridge()
@@ -187,7 +187,7 @@ class TestNSString : XCTestCase {
     func test_isEqualToStringWithSwiftString() {
         let string: NSString = "literal"
         let swiftString = "literal"
-        XCTAssertTrue(string.isEqualToString(swiftString))
+        XCTAssertTrue(string.isEqual(to: swiftString))
     }
   
     func test_isEqualToObjectWithNSString() {
@@ -212,14 +212,14 @@ class TestNSString : XCTestCase {
         let bytes = mockASCIIStringBytes
         let string = NSString(bytes: bytes, length: bytes.count, encoding: NSASCIIStringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string?.isEqualToString(mockASCIIString) ?? false)
+        XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
     }
 
     func test_FromUTF8Data() {
         let bytes = mockUTF8StringBytes
         let string = NSString(bytes: bytes, length: bytes.count, encoding: NSUTF8StringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string?.isEqualToString(mockUTF8String) ?? false)
+        XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
     }
 
     func test_FromMalformedUTF8Data() {
@@ -233,7 +233,7 @@ class TestNSString : XCTestCase {
         let data = NSData(bytes: bytes, length: bytes.count)
         let string = NSString(data: data, encoding: NSASCIIStringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string?.isEqualToString(mockASCIIString) ?? false)
+        XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
     }
 
     func test_FromUTF8NSData() {
@@ -241,7 +241,7 @@ class TestNSString : XCTestCase {
         let data = NSData(bytes: bytes, length: bytes.count)
         let string = NSString(data: data, encoding: NSUTF8StringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string?.isEqualToString(mockUTF8String) ?? false)
+        XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
     }
 
     func test_FromMalformedUTF8NSData() {
@@ -255,14 +255,14 @@ class TestNSString : XCTestCase {
         let bytes = mockASCIIStringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSASCIIStringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string?.isEqualToString(mockASCIIString) ?? false)
+        XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
     }
 
     func test_FromNullTerminatedCStringInUTF8() {
         let bytes = mockUTF8StringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
         XCTAssertNotNil(string)
-        XCTAssertTrue(string?.isEqualToString(mockUTF8String) ?? false)
+        XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
     }
 
     func test_FromMalformedNullTerminatedCStringInUTF8() {
@@ -304,37 +304,37 @@ class TestNSString : XCTestCase {
     }
 
     func test_uppercaseString() {
-        XCTAssertEqual(NSString(stringLiteral: "abcd").uppercaseString, "ABCD")
-        XCTAssertEqual(NSString(stringLiteral: "ａｂｃｄ").uppercaseString, "ＡＢＣＤ") // full-width
-        XCTAssertEqual(NSString(stringLiteral: "абВГ").uppercaseString, "АБВГ")
-        XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercaseString, "たちつてと")
+        XCTAssertEqual(NSString(stringLiteral: "abcd").uppercased, "ABCD")
+        XCTAssertEqual(NSString(stringLiteral: "ａｂｃｄ").uppercased, "ＡＢＣＤ") // full-width
+        XCTAssertEqual(NSString(stringLiteral: "абВГ").uppercased, "АБВГ")
+        XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercased, "たちつてと")
 
         // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
-        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0049}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: NSLocale(localeIdentifier: "en")), "\u{0049}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
-        // XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0130}")
-        XCTAssertEqual(NSString(stringLiteral: "\u{00df}").uppercaseString, "\u{0053}\u{0053}")
-        XCTAssertEqual(NSString(stringLiteral: "\u{fb01}").uppercaseString, "\u{0046}\u{0049}")
+        // XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: NSLocale(localeIdentifier: "tr")), "\u{0130}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{00df}").uppercased, "\u{0053}\u{0053}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{fb01}").uppercased, "\u{0046}\u{0049}")
     }
 
     func test_lowercaseString() {
-        XCTAssertEqual(NSString(stringLiteral: "abCD").lowercaseString, "abcd")
-        XCTAssertEqual(NSString(stringLiteral: "ＡＢＣＤ").lowercaseString, "ａｂｃｄ") // full-width
-        XCTAssertEqual(NSString(stringLiteral: "aБВГ").lowercaseString, "aбвг")
-        XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercaseString, "たちつてと")
+        XCTAssertEqual(NSString(stringLiteral: "abCD").lowercased, "abcd")
+        XCTAssertEqual(NSString(stringLiteral: "ＡＢＣＤ").lowercased, "ａｂｃｄ") // full-width
+        XCTAssertEqual(NSString(stringLiteral: "aБВГ").lowercased, "aбвг")
+        XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercased, "たちつてと")
 
         // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
-        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
-        // XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
-        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        // XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: NSLocale(localeIdentifier: "tr")), "\u{0069}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercased(with: NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
     }
 
     func test_capitalizedString() {
-        XCTAssertEqual(NSString(stringLiteral: "foo Foo fOO FOO").capitalizedString, "Foo Foo Foo Foo")
-        XCTAssertEqual(NSString(stringLiteral: "жжж").capitalizedString, "Жжж")
+        XCTAssertEqual(NSString(stringLiteral: "foo Foo fOO FOO").capitalized, "Foo Foo Foo Foo")
+        XCTAssertEqual(NSString(stringLiteral: "жжж").capitalized, "Жжж")
     }
 
     func test_longLongValue() {
@@ -373,10 +373,10 @@ class TestNSString : XCTestCase {
         let string: NSString = "0Az"
         let letters = NSCharacterSet.letterCharacterSet()
         let decimalDigits = NSCharacterSet.decimalDigitCharacterSet()
-        XCTAssertEqual(string.rangeOfCharacterFromSet(letters).location, 1)
-        XCTAssertEqual(string.rangeOfCharacterFromSet(decimalDigits).location, 0)
-        XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [.BackwardsSearch]).location, 2)
-        XCTAssertEqual(string.rangeOfCharacterFromSet(letters, options: [], range: NSMakeRange(2, 1)).location, 2)
+        XCTAssertEqual(string.rangeOfCharacter(from: letters).location, 1)
+        XCTAssertEqual(string.rangeOfCharacter(from: decimalDigits).location, 0)
+        XCTAssertEqual(string.rangeOfCharacter(from: letters, options: [.backwardsSearch]).location, 2)
+        XCTAssertEqual(string.rangeOfCharacter(from: letters, options: [], range: NSMakeRange(2, 1)).location, 2)
     }
     
     func test_CFStringCreateMutableCopy() {
@@ -409,7 +409,7 @@ class TestNSString : XCTestCase {
         let newCFString = CFStringCreateWithBytes(nil, buf, usedLen, CFStringEncoding(kCFStringEncodingUTF16), false)
         let newString = unsafeBitCast(newCFString, to: NSString.self)
         
-        XCTAssertTrue(newString.isEqualToString(testString))
+        XCTAssertTrue(newString.isEqual(to: testString))
     }
     
     func test_completePathIntoString() {
@@ -594,13 +594,13 @@ class TestNSString : XCTestCase {
     }
     
     private func stringsAreCaseInsensitivelyEqual(_ lhs: NSString, _ rhs: NSString) -> Bool {
-    	return lhs.compare(rhs.bridge(), options: .CaseInsensitiveSearch) == .OrderedSame
+    	return lhs.compare(rhs.bridge(), options: .caseInsensitiveSearch) == .OrderedSame
     }
 
     func test_stringByTrimmingCharactersInSet() {
         let characterSet = NSCharacterSet.whitespaceCharacterSet()
         let string: NSString = " abc   "
-        XCTAssertEqual(string.stringByTrimmingCharactersInSet(characterSet), "abc")
+        XCTAssertEqual(string.trimmingCharacters(in: characterSet), "abc")
     }
     
     func test_initializeWithFormat() {

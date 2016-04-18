@@ -57,7 +57,7 @@ class TestNSProcessInfo : XCTestCase {
     
     func test_globallyUniqueString() {
         let uuid = NSProcessInfo.processInfo().globallyUniqueString
-        let parts = uuid.bridge().componentsSeparatedByString("-")
+        let parts = uuid.bridge().components(separatedBy: "-")
         XCTAssertEqual(parts.count, 5)
         XCTAssertEqual(parts[0].bridge().length, 8)
         XCTAssertEqual(parts[1].bridge().length, 4)

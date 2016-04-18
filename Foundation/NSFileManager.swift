@@ -884,7 +884,7 @@ internal class NSPathDirectoryEnumerator: NSDirectoryEnumerator {
         guard let url = o as? NSURL else {
             return nil
         }
-        let path = url.path!.stringByReplacingOccurrencesOfString(baseURL.path!+"/", withString: "")
+        let path = url.path!.replacingOccurrences(of: baseURL.path!+"/", with: "")
         return NSString(string: path)
     }
 
