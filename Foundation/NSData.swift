@@ -411,7 +411,11 @@ extension NSData {
         while bytesRemaining > 0 {
             var bytesWritten : Int
             repeat {
-                bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
+                #if os(OSX) || os(iOS)
+                    bytesWritten = Darwin.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
+                #elseif os(Linux)
+                    bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
+                #endif
             } while (bytesWritten < 0 && errno == EINTR)
             if bytesWritten <= 0 {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
