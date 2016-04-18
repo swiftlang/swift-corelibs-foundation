@@ -623,7 +623,7 @@ extension NSString {
     public var doubleValue: Double {
         var start: Int = 0
         var result = 0.0
-        _swiftObject.scan(NSCharacterSet.whitespaceCharacterSet(), locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
+        _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
             result = value
         }
         return result
@@ -632,7 +632,7 @@ extension NSString {
     public var floatValue: Float {
         var start: Int = 0
         var result: Float = 0.0
-        _swiftObject.scan(NSCharacterSet.whitespaceCharacterSet(), locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
+        _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
             result = value
         }
         return result
@@ -656,14 +656,14 @@ extension NSString {
     public var boolValue: Bool {
         let scanner = NSScanner(string: _swiftObject)
         // skip initial whitespace if present
-        scanner.scanCharactersFromSet(NSCharacterSet.whitespaceCharacterSet())
+        scanner.scanCharactersFromSet(NSCharacterSet.whitespaces())
         // scan a single optional '+' or '-' character, followed by zeroes
         if scanner.scanString(string: "+") == nil {
             scanner.scanString(string: "-")
         }
         // scan any following zeroes
-        scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "0"))
-        return scanner.scanCharactersFromSet(NSCharacterSet(charactersInString: "tTyY123456789")) != nil
+        scanner.scanCharactersFromSet(NSCharacterSet(charactersIn: "0"))
+        return scanner.scanCharactersFromSet(NSCharacterSet(charactersIn: "tTyY123456789")) != nil
     }
     
     public var uppercaseString: String {

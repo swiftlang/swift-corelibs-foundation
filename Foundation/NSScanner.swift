@@ -65,7 +65,7 @@ public class NSScanner : NSObject, NSCopying {
     public var caseSensitive: Bool = false
     public var locale: NSLocale?
     
-    internal static let defaultSkipSet = NSCharacterSet.whitespaceAndNewlineCharacterSet()
+    internal static let defaultSkipSet = NSCharacterSet.whitespacesAndNewlines()
     
     public init(string: String) {
         _scanString = string
@@ -206,7 +206,7 @@ internal struct _NSStringBuffer {
 
 private func isADigit(_ ch: unichar) -> Bool {
     struct Local {
-        static let set = NSCharacterSet.decimalDigitCharacterSet()
+        static let set = NSCharacterSet.decimalDigits()
     }
     return Local.set.characterIsMember(ch)
 }

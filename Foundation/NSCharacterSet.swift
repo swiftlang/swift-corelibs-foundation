@@ -65,63 +65,63 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         _CFDeinit(self)
     }
     
-    public class func controlCharacterSet() -> NSCharacterSet {
+    public class func controlCharacters() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetControl)._nsObject
     }
     
-    public class func whitespaceCharacterSet() -> NSCharacterSet {
+    public class func whitespaces() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetWhitespace)._nsObject
     }
 
-    public class func whitespaceAndNewlineCharacterSet() -> NSCharacterSet {
+    public class func whitespacesAndNewlines() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetWhitespaceAndNewline)._nsObject
     }
     
-    public class func decimalDigitCharacterSet() -> NSCharacterSet {
+    public class func decimalDigits() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetDecimalDigit)._nsObject
     }
     
-    public class func letterCharacterSet() -> NSCharacterSet {
+    public class func letters() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetLetter)._nsObject
     }
     
-    public class func lowercaseLetterCharacterSet() -> NSCharacterSet {
+    public class func lowercaseLetters() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetLowercaseLetter)._nsObject
     }
     
-    public class func uppercaseLetterCharacterSet() -> NSCharacterSet {
+    public class func uppercaseLetters() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetUppercaseLetter)._nsObject
     }
     
-    public class func nonBaseCharacterSet() -> NSCharacterSet {
+    public class func nonBaseCharacters() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetNonBase)._nsObject
     }
     
-    public class func alphanumericCharacterSet() -> NSCharacterSet {
+    public class func alphanumerics() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetAlphaNumeric)._nsObject
     }
     
-    public class func decomposableCharacterSet() -> NSCharacterSet {
+    public class func decomposables() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetDecomposable)._nsObject
     }
     
-    public class func illegalCharacterSet() -> NSCharacterSet {
+    public class func illegalCharacters() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetIllegal)._nsObject
     }
     
-    public class func punctuationCharacterSet() -> NSCharacterSet {
+    public class func punctuation() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetPunctuation)._nsObject
     }
     
-    public class func capitalizedLetterCharacterSet() -> NSCharacterSet {
+    public class func capitalizedLetters() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetCapitalizedLetter)._nsObject
     }
     
-    public class func symbolCharacterSet() -> NSCharacterSet {
+    public class func symbols() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetSymbol)._nsObject
     }
     
-    public class func newlineCharacterSet() -> NSCharacterSet {
+    public class func newlines() -> NSCharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetNewline)._nsObject
     }
 
@@ -130,7 +130,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         _CFCharacterSetInitWithCharactersInRange(_cfMutableObject, CFRangeMake(aRange.location, aRange.length))
     }
     
-    public init(charactersInString aString: String) {
+    public init(charactersIn aString: String) {
         super.init()
         _CFCharacterSetInitWithCharactersInString(_cfMutableObject, aString._cfObject)
     }
@@ -149,7 +149,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public convenience required init(coder aDecoder: NSCoder) {
-        self.init(charactersInString: "")
+        self.init(charactersIn: "")
     }
     
     public func characterIsMember(_ aCharacter: unichar) -> Bool {
@@ -203,27 +203,27 @@ public class NSMutableCharacterSet : NSCharacterSet {
         NSUnimplemented()
     }
     
-    public func addCharactersInRange(_ aRange: NSRange) {
+    public func addCharacters(in aRange: NSRange) {
         CFCharacterSetAddCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
     }
     
-    public func removeCharactersInRange(_ aRange: NSRange) {
+    public func removeCharacters(in aRange: NSRange) {
         CFCharacterSetRemoveCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
     }
     
-    public func addCharactersInString(_ aString: String) {
+    public func addCharacters(in aString: String) {
         CFCharacterSetAddCharactersInString(_cfMutableObject, aString._cfObject)
     }
     
-    public func removeCharactersInString(_ aString: String) {
+    public func removeCharacters(in aString: String) {
         CFCharacterSetRemoveCharactersInString(_cfMutableObject, aString._cfObject)
     }
     
-    public func formUnionWithCharacterSet(_ otherSet: NSCharacterSet) {
+    public func formUnion(with otherSet: NSCharacterSet) {
         CFCharacterSetUnion(_cfMutableObject, otherSet._cfObject)
     }
     
-    public func formIntersectionWithCharacterSet(_ otherSet: NSCharacterSet) {
+    public func formIntersection(with otherSet: NSCharacterSet) {
         CFCharacterSetIntersect(_cfMutableObject, otherSet._cfObject)
     }
     
@@ -231,64 +231,64 @@ public class NSMutableCharacterSet : NSCharacterSet {
         CFCharacterSetInvert(_cfMutableObject)
     }
 
-    public override class func controlCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.controlCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func controlCharacters() -> NSMutableCharacterSet {
+        return NSCharacterSet.controlCharacters().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func whitespaceCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.whitespaceCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func whitespaces() -> NSMutableCharacterSet {
+        return NSCharacterSet.whitespaces().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func whitespaceAndNewlineCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.whitespaceAndNewlineCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func whitespacesAndNewlines() -> NSMutableCharacterSet {
+        return NSCharacterSet.whitespacesAndNewlines().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func decimalDigitCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.decimalDigitCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func decimalDigits() -> NSMutableCharacterSet {
+        return NSCharacterSet.decimalDigits().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func letterCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.letterCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func letters() -> NSMutableCharacterSet {
+        return NSCharacterSet.letters().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func lowercaseLetterCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.lowercaseLetterCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func lowercaseLetters() -> NSMutableCharacterSet {
+        return NSCharacterSet.lowercaseLetters().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func uppercaseLetterCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.uppercaseLetterCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func uppercaseLetters() -> NSMutableCharacterSet {
+        return NSCharacterSet.uppercaseLetters().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func nonBaseCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.nonBaseCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func nonBaseCharacters() -> NSMutableCharacterSet {
+        return NSCharacterSet.nonBaseCharacters().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func alphanumericCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.alphanumericCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func alphanumerics() -> NSMutableCharacterSet {
+        return NSCharacterSet.alphanumerics().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func decomposableCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.decomposableCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func decomposables() -> NSMutableCharacterSet {
+        return NSCharacterSet.decomposables().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func illegalCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.illegalCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func illegalCharacters() -> NSMutableCharacterSet {
+        return NSCharacterSet.illegalCharacters().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func punctuationCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.punctuationCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func punctuation() -> NSMutableCharacterSet {
+        return NSCharacterSet.punctuation().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func capitalizedLetterCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.capitalizedLetterCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func capitalizedLetters() -> NSMutableCharacterSet {
+        return NSCharacterSet.capitalizedLetters().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func symbolCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.symbolCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func symbols() -> NSMutableCharacterSet {
+        return NSCharacterSet.symbols().mutableCopy() as! NSMutableCharacterSet
     }
     
-    public override class func newlineCharacterSet() -> NSMutableCharacterSet {
-        return NSCharacterSet.newlineCharacterSet().mutableCopy() as! NSMutableCharacterSet
+    public override class func newlines() -> NSMutableCharacterSet {
+        return NSCharacterSet.newlines().mutableCopy() as! NSMutableCharacterSet
     }
 }
 

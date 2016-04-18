@@ -35,29 +35,29 @@ class TestNSCharacterSet : XCTestCase {
     }
     
     func test_Predefines() {
-        let cset = NSCharacterSet.controlCharacterSet()
+        let cset = NSCharacterSet.controlCharacters()
         
-        XCTAssertTrue(cset === NSCharacterSet.controlCharacterSet(), "predefined charactersets should be singletons")
+        XCTAssertTrue(cset === NSCharacterSet.controlCharacters(), "predefined charactersets should be singletons")
         
         XCTAssertTrue(cset.characterIsMember(unichar(0xFEFF)), "Control set should contain UFEFF")
-        XCTAssertTrue(NSCharacterSet.letterCharacterSet().characterIsMember("a"), "Letter set should contain 'a'")
-        XCTAssertTrue(NSCharacterSet.lowercaseLetterCharacterSet().characterIsMember("a"), "Lowercase Letter set should contain 'a'")
-        XCTAssertTrue(NSCharacterSet.uppercaseLetterCharacterSet().characterIsMember("A"), "Uppercase Letter set should contain 'A'")
-        XCTAssertTrue(NSCharacterSet.uppercaseLetterCharacterSet().characterIsMember(unichar(0x01C5)), "Uppercase Letter set should contain U01C5")
-        XCTAssertTrue(NSCharacterSet.capitalizedLetterCharacterSet().characterIsMember(unichar(0x01C5)), "Uppercase Letter set should contain U01C5")
-        XCTAssertTrue(NSCharacterSet.symbolCharacterSet().characterIsMember(unichar(0x002B)), "Symbol set should contain U002B")
-        XCTAssertTrue(NSCharacterSet.symbolCharacterSet().characterIsMember(unichar(0x20B1)), "Symbol set should contain U20B1")
-        XCTAssertTrue(NSCharacterSet.newlineCharacterSet().characterIsMember(unichar(0x000A)), "Newline set should contain 0x000A")
-        XCTAssertTrue(NSCharacterSet.newlineCharacterSet().characterIsMember(unichar(0x2029)), "Newline set should contain 0x2029")
+        XCTAssertTrue(NSCharacterSet.letters().characterIsMember("a"), "Letter set should contain 'a'")
+        XCTAssertTrue(NSCharacterSet.lowercaseLetters().characterIsMember("a"), "Lowercase Letter set should contain 'a'")
+        XCTAssertTrue(NSCharacterSet.uppercaseLetters().characterIsMember("A"), "Uppercase Letter set should contain 'A'")
+        XCTAssertTrue(NSCharacterSet.uppercaseLetters().characterIsMember(unichar(0x01C5)), "Uppercase Letter set should contain U01C5")
+        XCTAssertTrue(NSCharacterSet.capitalizedLetters().characterIsMember(unichar(0x01C5)), "Uppercase Letter set should contain U01C5")
+        XCTAssertTrue(NSCharacterSet.symbols().characterIsMember(unichar(0x002B)), "Symbol set should contain U002B")
+        XCTAssertTrue(NSCharacterSet.symbols().characterIsMember(unichar(0x20B1)), "Symbol set should contain U20B1")
+        XCTAssertTrue(NSCharacterSet.newlines().characterIsMember(unichar(0x000A)), "Newline set should contain 0x000A")
+        XCTAssertTrue(NSCharacterSet.newlines().characterIsMember(unichar(0x2029)), "Newline set should contain 0x2029")
         
-        let mcset = NSMutableCharacterSet.whitespaceAndNewlineCharacterSet()
-        let cset2 = NSCharacterSet.whitespaceAndNewlineCharacterSet()
+        let mcset = NSMutableCharacterSet.whitespacesAndNewlines()
+        let cset2 = NSCharacterSet.whitespacesAndNewlines()
 
         XCTAssert(mcset.isSupersetOfSet(cset2))
         XCTAssert(cset2.isSupersetOfSet(mcset))
         
-        XCTAssertTrue(NSCharacterSet.whitespaceAndNewlineCharacterSet().isSupersetOfSet(NSCharacterSet.newlineCharacterSet()), "whitespace and newline should be a superset of newline")
-        let data = NSCharacterSet.uppercaseLetterCharacterSet().bitmapRepresentation
+        XCTAssertTrue(NSCharacterSet.whitespacesAndNewlines().isSupersetOfSet(NSCharacterSet.newlines()), "whitespace and newline should be a superset of newline")
+        let data = NSCharacterSet.uppercaseLetters().bitmapRepresentation
         XCTAssertNotNil(data)
     }
     
@@ -84,7 +84,7 @@ class TestNSCharacterSet : XCTestCase {
     }
     
     func test_String() {
-        let cset = NSCharacterSet(charactersInString: "abcABC")
+        let cset = NSCharacterSet(charactersIn: "abcABC")
         for idx: unichar in 0..<0xFFFF {
             XCTAssertEqual(cset.characterIsMember(idx), (idx >= unichar(unicodeScalarLiteral: "a") && idx <= unichar(unicodeScalarLiteral: "c")) || (idx >= unichar(unicodeScalarLiteral: "A") && idx <= unichar(unicodeScalarLiteral: "C")) ? true : false)
         }
@@ -104,13 +104,13 @@ class TestNSCharacterSet : XCTestCase {
         let string = String(attachmentCharacter)
 
         let mcset1 = NSMutableCharacterSet(range: initialSetRange)
-        mcset1.addCharactersInRange(attachmentCharacterRange)
+        mcset1.addCharacters(in: attachmentCharacterRange)
 
         XCTAssertTrue(mcset1.characterIsMember(attachmentCharacterUnichar), "attachmentCharacter should be member of mcset1 after being added")
         XCTAssertNotNil(string.rangeOfCharacterFromSet(mcset1), "Range of character from mcset1 set should not be nil")
 
         let mcset2 = NSMutableCharacterSet(range: initialSetRange)
-        mcset2.addCharactersInString(string)
+        mcset2.addCharacters(in: string)
 
         XCTAssertTrue(mcset2.characterIsMember(attachmentCharacterUnichar), "attachmentCharacter should be member of mcset2 after being added")
         XCTAssertNotNil(string.rangeOfCharacterFromSet(mcset2), "Range of character from mcset2 should not be nil")
