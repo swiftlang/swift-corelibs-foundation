@@ -74,7 +74,7 @@ public class NSXMLDocument : NSXMLNode {
         @abstract Returns a document created from the contents of an XML or HTML URL. Connection problems such as 404, parse errors are returned in <tt>error</tt>.
     */
     public convenience init(contentsOfURL url: NSURL, options mask: Int) throws {
-        let data = try NSData(contentsOfURL: url, options: .DataReadingMappedIfSafe)
+        let data = try NSData(contentsOfURL: url, options: .dataReadingMappedIfSafe)
 
         try self.init(data: data, options: mask)
     }

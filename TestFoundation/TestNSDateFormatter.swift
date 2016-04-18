@@ -118,7 +118,7 @@ class TestNSDateFormatter: XCTestCase {
         for (timestamp, stringResult) in timestamps {
             
             let testDate = NSDate(timeIntervalSince1970: timestamp)
-            let sf = f.stringFromDate(testDate)
+            let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
         }
@@ -149,7 +149,7 @@ class TestNSDateFormatter: XCTestCase {
         for (timestamp, stringResult) in timestamps {
             
             let testDate = NSDate(timeIntervalSince1970: timestamp)
-            let sf = f.stringFromDate(testDate)
+            let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
         }
@@ -181,7 +181,7 @@ class TestNSDateFormatter: XCTestCase {
         for (timestamp, stringResult) in timestamps {
             
             let testDate = NSDate(timeIntervalSince1970: timestamp)
-            let sf = f.stringFromDate(testDate)
+            let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
         }
@@ -215,7 +215,7 @@ class TestNSDateFormatter: XCTestCase {
         for (timestamp, stringResult) in timestamps {
             
             let testDate = NSDate(timeIntervalSince1970: timestamp)
-            let sf = f.stringFromDate(testDate)
+            let sf = f.string(from: testDate)
 
             XCTAssertEqual(sf, stringResult)
         }
@@ -248,7 +248,7 @@ class TestNSDateFormatter: XCTestCase {
         for (timestamp, stringResult) in timestamps {
             
             let testDate = NSDate(timeIntervalSince1970: timestamp)
-            let sf = f.stringFromDate(testDate)
+            let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
         }
@@ -261,7 +261,7 @@ class TestNSDateFormatter: XCTestCase {
         
         for (timestamp, stringResult) in quarterTimestamps {
             let testDate = NSDate(timeIntervalSince1970: timestamp)
-            let sf = f.stringFromDate(testDate)
+            let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
         }
@@ -270,11 +270,11 @@ class TestNSDateFormatter: XCTestCase {
         let testDate = NSDate(timeIntervalSince1970: 1457738454)
         f.dateStyle = .MediumStyle
         f.timeStyle = .MediumStyle
-        XCTAssertEqual(f.stringFromDate(testDate), "Mar 11, 2016, 11:20:54 PM")
+        XCTAssertEqual(f.string(from: testDate), "Mar 11, 2016, 11:20:54 PM")
         XCTAssertEqual(f.dateFormat, "MMM d, y, h:mm:ss a")
         
         f.dateFormat = "dd-MM-yyyy"
-        XCTAssertEqual(f.stringFromDate(testDate), "11-03-2016")
+        XCTAssertEqual(f.string(from: testDate), "11-03-2016")
         
     }
     

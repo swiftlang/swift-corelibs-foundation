@@ -47,10 +47,10 @@ public class NSDateFormatter : NSFormatter {
 
     public override func stringForObjectValue(_ obj: AnyObject) -> String? {
         guard let date = obj as? NSDate else { return nil }
-        return stringFromDate(date)
+        return string(from: date)
     }
 
-    public func stringFromDate(_ date: NSDate) -> String {
+    public func string(from date: NSDate) -> String {
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, _cfObject, date._cfObject)._swiftObject
     }
 
@@ -65,14 +65,14 @@ public class NSDateFormatter : NSFormatter {
         return date
     }
 
-    public class func localizedStringFromDate(_ date: NSDate, dateStyle dstyle: NSDateFormatterStyle, timeStyle tstyle: NSDateFormatterStyle) -> String {
+    public class func localizedString(from date: NSDate, dateStyle dstyle: NSDateFormatterStyle, timeStyle tstyle: NSDateFormatterStyle) -> String {
         let df = NSDateFormatter()
         df.dateStyle = dstyle
         df.timeStyle = tstyle
         return df.stringForObjectValue(date)!
     }
 
-    public class func dateFormatFromTemplate(_ tmplate: String, options opts: Int, locale: NSLocale?) -> String? {
+    public class func dateFormat(fromTemplate tmplate: String, options opts: Int, locale: NSLocale?) -> String? {
         guard let res = CFDateFormatterCreateDateFormatFromTemplate(kCFAllocatorSystemDefault, tmplate._cfObject, CFOptionFlags(opts), locale?._cfObject) else {
             return nil
         }

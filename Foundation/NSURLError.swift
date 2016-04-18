@@ -8,57 +8,42 @@
 //
 
 
-/*
-    @discussion Constants used by NSError to differentiate between "domains" of error codes, serving as a discriminator for error codes that originate from different subsystems or sources.
-    @constant NSURLErrorDomain Indicates an NSURL error.
-*/
+/// `NSURLErrorDomain` indicates an `NSURL` error.
+///
+/// Constants used by `NSError` to differentiate between "domains" of error codes,
+/// serving as a discriminator for error codes that originate from different subsystems or sources.
 public let NSURLErrorDomain: String = "NSURLErrorDomain"
 
-/*!
-    @const NSURLErrorFailingURLErrorKey
-    @abstract The NSError userInfo dictionary key used to store and retrieve the URL which caused a load to fail.
-*/
+/// The `NSError` userInfo dictionary key used to store and retrieve the URL which
+/// caused a load to fail.
 public let NSURLErrorFailingURLErrorKey: String = "NSErrorFailingURLKey"
 
-/*!
-    @const NSURLErrorFailingURLStringErrorKey
-    @abstract The NSError userInfo dictionary key used to store and retrieve the NSString object for the URL which caused a load to fail.
-    @discussion This constant supersedes NSErrorFailingURLStringKey, which was deprecated in Mac OS X 10.6.  Both constants refer to the same value for backward-compatibility, but this symbol name has a better prefix.
-*/
+/// The `NSError` userInfo dictionary key used to store and retrieve the NSString
+/// object for the URL which caused a load to fail.
 public let NSURLErrorFailingURLStringErrorKey: String = "NSErrorFailingURLStringKey"
 
-/*!
-    @const NSErrorFailingURLStringKey
-    @abstract The NSError userInfo dictionary key used to store and retrieve the NSString object for the URL which caused a load to fail.
-    @discussion This constant is deprecated in Mac OS X 10.6, and is superseded by NSURLErrorFailingURLStringErrorKey.  Both constants refer to the same value for backward-compatibility, but the new symbol name has a better prefix.
-*/
-
-/*!
-    @const NSURLErrorFailingURLPeerTrustErrorKey
-    @abstract The NSError userInfo dictionary key used to store and retrieve the SecTrustRef object representing the state of a failed SSL handshake.
- */
+/// The `NSError` userInfo dictionary key used to store and retrieve the
+/// SecTrustRef object representing the state of a failed SSL handshake.
 public let NSURLErrorFailingURLPeerTrustErrorKey: String = "NSURLErrorFailingURLPeerTrustErrorKey"
 
-/*!
-    @const NSURLErrorBackgroundTaskCancelledReasonKey
-    @abstract The NSError userInfo dictionary key used to store and retrieve the NSNumber corresponding to the reason why a background
-	NSURLSessionTask was cancelled
- */
+/// The `NSError` userInfo dictionary key used to store and retrieve the
+/// `NSNumber` corresponding to the reason why a background `NSURLSessionTask`
+/// was cancelled
+/// 
+/// One of
+/// * `NSURLErrorCancelledReasonUserForceQuitApplication`
+/// * `NSURLErrorCancelledReasonBackgroundUpdatesDisabled`
+/// * `NSURLErrorCancelledReasonInsufficientSystemResources`
 public let NSURLErrorBackgroundTaskCancelledReasonKey: String = "NSURLErrorBackgroundTaskCancelledReasonKey"
 
-/*!
-    @enum Codes associated with NSURLErrorBackgroundTaskCancelledReasonKey
-    @abstract Constants used by NSError to indicate why a background NSURLSessionTask was cancelled.
- */
-
+/// Code associated with `NSURLErrorBackgroundTaskCancelledReasonKey`
 public var NSURLErrorCancelledReasonUserForceQuitApplication: Int { return 0 }
+/// Code associated with `NSURLErrorBackgroundTaskCancelledReasonKey`
 public var NSURLErrorCancelledReasonBackgroundUpdatesDisabled: Int { return 1 }
+/// Code associated with `NSURLErrorBackgroundTaskCancelledReasonKey`
 public var NSURLErrorCancelledReasonInsufficientSystemResources: Int { return 2 }
 
-/*!
-    @enum NSURL-related Error Codes
-    @abstract Constants used by NSError to indicate errors in the NSURL domain
-*/
+//MARK: NSURL-related Error Codes
 
 public var NSURLErrorUnknown: Int { return -1 }
 public var NSURLErrorCancelled: Int { return -999 }

@@ -149,7 +149,7 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
         }()
     }
     let key = "\(options):\(pattern)"
-    if let regex = local.__NSRegularExpressionCache.objectForKey(key._nsObject) {
+    if let regex = local.__NSRegularExpressionCache.object(forKey: key._nsObject) {
         return (regex as! NSRegularExpression)
     }
     do {
@@ -529,10 +529,10 @@ extension NSString {
     
     internal func _rangeOfRegularExpressionPattern(regex pattern: String, options mask: NSStringCompareOptions, range searchRange: NSRange, locale: NSLocale?) -> NSRange {
         var matchedRange = NSMakeRange(NSNotFound, 0)
-        let regexOptions: NSRegularExpressionOptions = mask.contains(.CaseInsensitiveSearch) ? .CaseInsensitive : []
-        let matchingOptions: NSMatchingOptions = mask.contains(.AnchoredSearch) ? .Anchored : []
+        let regexOptions: NSRegularExpressionOptions = mask.contains(.CaseInsensitiveSearch) ? .caseInsensitive : []
+        let matchingOptions: NSMatchingOptions = mask.contains(.AnchoredSearch) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
-            matchedRange = regex.rangeOfFirstMatchInString(_swiftObject, options: matchingOptions, range: searchRange)
+            matchedRange = regex.rangeOfFirstMatch(in: _swiftObject, options: matchingOptions, range: searchRange)
         }
         return matchedRange
     }
@@ -1093,10 +1093,10 @@ extension NSString {
     }
     
     internal func _stringByReplacingOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: NSStringCompareOptions, range: NSRange) -> String {
-        let regexOptions: NSRegularExpressionOptions = options.contains(.CaseInsensitiveSearch) ? .CaseInsensitive : []
-        let matchingOptions: NSMatchingOptions = options.contains(.AnchoredSearch) ? .Anchored : []
+        let regexOptions: NSRegularExpressionOptions = options.contains(.CaseInsensitiveSearch) ? .caseInsensitive : []
+        let matchingOptions: NSMatchingOptions = options.contains(.AnchoredSearch) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
-            return regex.stringByReplacingMatchesInString(_swiftObject, options: matchingOptions, range: range, withTemplate: replacement)
+            return regex.stringByReplacingMatches(in: _swiftObject, options: matchingOptions, range: range, withTemplate: replacement)
         }
         return ""
     }
@@ -1158,10 +1158,10 @@ extension NSString {
         try _getExternalRepresentation(&data, url, enc)
         
         if url.fileURL {
-            try data.writeToURL(url, options: useAuxiliaryFile ? .DataWritingAtomic : [])
+            try data.write(to: url, options: useAuxiliaryFile ? .dataWritingAtomic : [])
         } else {
             if let path = url.path {
-                try data.writeToFile(path, options: useAuxiliaryFile ? .DataWritingAtomic : [])
+                try data.write(toFile: path, options: useAuxiliaryFile ? .dataWritingAtomic : [])
             } else {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [
                     NSURLErrorKey: url,
@@ -1372,10 +1372,10 @@ extension NSMutableString {
     }
     
     internal func _replaceOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> Int {
-        let regexOptions: NSRegularExpressionOptions = options.contains(.CaseInsensitiveSearch) ? .CaseInsensitive : []
-        let matchingOptions: NSMatchingOptions = options.contains(.AnchoredSearch) ? .Anchored : []
+        let regexOptions: NSRegularExpressionOptions = options.contains(.CaseInsensitiveSearch) ? .caseInsensitive : []
+        let matchingOptions: NSMatchingOptions = options.contains(.AnchoredSearch) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
-            return regex.replaceMatchesInString(self, options: matchingOptions, range: searchRange, withTemplate: replacement)
+            return regex.replaceMatches(in: self, options: matchingOptions, range: searchRange, withTemplate: replacement)
         }
         return 0
     }

@@ -30,7 +30,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public override func isEqual(_ object: AnyObject?) -> Bool {
         if let date = object as? NSDate {
-            return isEqualToDate(date)
+            return isEqual(to: date)
         } else {
             return false
         }
@@ -149,19 +149,19 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 extension NSDate {
     
-    public func timeIntervalSinceDate(_ anotherDate: NSDate) -> NSTimeInterval {
+    public func timeIntervalSince(_ anotherDate: NSDate) -> NSTimeInterval {
         return self.timeIntervalSinceReferenceDate - anotherDate.timeIntervalSinceReferenceDate
     }
     
     public var timeIntervalSinceNow: NSTimeInterval {
-        return timeIntervalSinceDate(NSDate())
+        return timeIntervalSince(NSDate())
     }
     
     public var timeIntervalSince1970: NSTimeInterval {
         return timeIntervalSinceReferenceDate + NSTimeIntervalSince1970
     }
     
-    public func dateByAddingTimeInterval(_ ti: NSTimeInterval) -> NSDate {
+    public func addingTimeInterval(_ ti: NSTimeInterval) -> NSDate {
         return NSDate(timeIntervalSinceReferenceDate:_timeIntervalSinceReferenceDate + ti)
     }
     
@@ -193,7 +193,7 @@ extension NSDate {
         }
     }
     
-    public func isEqualToDate(_ otherDate: NSDate) -> Bool {
+    public func isEqual(to otherDate: NSDate) -> Bool {
         return timeIntervalSinceReferenceDate == otherDate.timeIntervalSinceReferenceDate
     }
 }
