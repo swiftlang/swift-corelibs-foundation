@@ -50,7 +50,7 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     public func attributesAtIndex(_ location: Int, effectiveRange range: NSRangePointer) -> [String : AnyObject] {
         var cfRange = CFRange()
         return withUnsafeMutablePointer(&cfRange) { (rangePointer: UnsafeMutablePointer<CFRange>) -> [String : AnyObject] in
-            // Get attributes value from `_attributeArray`
+            // Get attributes value using CoreFoundation function
             let value = CFAttributedStringGetAttributes(_cfObject, location, rangePointer)
             
             // Convert the value to [String : AnyObject]
