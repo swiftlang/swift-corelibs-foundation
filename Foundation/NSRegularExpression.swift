@@ -140,7 +140,7 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutablePointer<Void>?, 
 
 extension NSRegularExpression {
     
-    /* The fundamental matching method on NSRegularExpression is a block iterator.  There are several additional convenience methods, for returning all matches at once, the number of matches, the first match, or the range of the first match.  Each match is specified by an instance of NSTextCheckingResult (of type NSTextCheckingTypeRegularExpression) in which the overall match range is given by the range property (equivalent to rangeAtIndex:0) and any capture group ranges are given by rangeAtIndex: for indexes from 1 to numberOfCaptureGroups.  {NSNotFound, 0} is used if a particular capture group does not participate in the match.
+    /* The fundamental matching method on NSRegularExpression is a block iterator.  There are several additional convenience methods, for returning all matches at once, the number of matches, the first match, or the range of the first match.  Each match is specified by an instance of NSTextCheckingResult (of type NSTextCheckingTypeRegularExpression) in which the overall match range is given by the range property (equivalent to range at:0) and any capture group ranges are given by range at: for indexes from 1 to numberOfCaptureGroups.  {NSNotFound, 0} is used if a particular capture group does not participate in the match.
     */
     
     public func enumerateMatches(in string: String, options: NSMatchingOptions, range: NSRange, using block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
@@ -300,7 +300,7 @@ extension NSRegularExpression {
                         var substringRange = NSMakeRange(NSNotFound, 0)
                         var substring = ""
                         if groupNumber < numberOfRanges {
-                            substringRange = result.rangeAtIndex(groupNumber)
+                            substringRange = result.range(at: groupNumber)
                         }
                         if substringRange.location != NSNotFound {
                             substringRange.location += offset

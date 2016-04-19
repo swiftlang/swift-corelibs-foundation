@@ -221,12 +221,12 @@ class TestNSRegularExpression : XCTestCase {
             if let first = firstResult where matches.count > 0 {
                 XCTAssertTrue(NSEqualRanges(first.range, firstMatchOverallRange), "Complex regex \(patternString) in \(searchString) match range \(NSStringFromRange(first.range)) should be \(NSStringFromRange(firstMatchOverallRange))", file: file, line: line)
                 if captureCount > 0 {
-                    XCTAssertTrue(NSEqualRanges(first.rangeAtIndex(1), firstMatchFirstCaptureRange), "Complex regex \(patternString) in \(searchString) match range \(first.rangeAtIndex(1)) should be \(NSStringFromRange(firstMatchFirstCaptureRange))", file: file, line: line)
+                    XCTAssertTrue(NSEqualRanges(first.range(at: 1), firstMatchFirstCaptureRange), "Complex regex \(patternString) in \(searchString) match range \(first.range(at: 1)) should be \(NSStringFromRange(firstMatchFirstCaptureRange))", file: file, line: line)
                 } else {
                     XCTAssertTrue(NSEqualRanges(firstMatchFirstCaptureRange, NSMakeRange(NSNotFound, 0)), "Complex regex \(patternString) in \(searchString) no captures should be \(NSStringFromRange(firstMatchFirstCaptureRange))", file: file, line: line)
                 }
                 if captureCount > 1 {
-                    XCTAssertTrue(NSEqualRanges(first.rangeAtIndex(captureCount), firstMatchLastCaptureRange), "Complex regex \(patternString) in \(searchString)  last capture range \(NSStringFromRange(first.rangeAtIndex(captureCount))) should be \(NSStringFromRange(firstMatchLastCaptureRange))", file: file, line: line)
+                    XCTAssertTrue(NSEqualRanges(first.range(at: captureCount), firstMatchLastCaptureRange), "Complex regex \(patternString) in \(searchString)  last capture range \(NSStringFromRange(first.range(at: captureCount))) should be \(NSStringFromRange(firstMatchLastCaptureRange))", file: file, line: line)
                 }
             }
         } catch {
