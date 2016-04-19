@@ -64,8 +64,9 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
             }
             
             // Update effective range
-            range.pointee.location = rangePointer.pointee.location
-            range.pointee.length = rangePointer.pointee.length
+            let hasAttrs = results.count > 0
+            range.pointee.location = hasAttrs ? rangePointer.pointee.location : NSNotFound
+            range.pointee.length = hasAttrs ? rangePointer.pointee.length : 0
             
             return results
         }
