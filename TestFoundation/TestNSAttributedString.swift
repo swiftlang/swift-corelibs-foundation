@@ -33,6 +33,12 @@ class TestNSAttributedString : XCTestCase {
         let attrString = NSAttributedString(string: string)
         XCTAssertEqual(attrString.string, string)
         XCTAssertEqual(attrString.length, string.utf16Count)
+        
+        var range = NSRange()
+        let attrs = attrString.attributesAtIndex(0, effectiveRange: &range)
+        XCTAssertEqual(range.location, NSNotFound)
+        XCTAssertEqual(range.length, 0)
+        XCTAssertEqual(attrs.count, 0)
     }
     
     func test_initWithStringAndAttributes() {
@@ -42,6 +48,18 @@ class TestNSAttributedString : XCTestCase {
         let attrString = NSAttributedString(string: string, attributes: attributes)
         XCTAssertEqual(attrString.string, string)
         XCTAssertEqual(attrString.length, string.utf16Count)
+        
+        var range = NSRange()
+        let attrs = attrString.attributesAtIndex(0, effectiveRange: &range)
+        
+        guard let value = attrs["attribute.placeholder.key"] as? NSString else {
+            XCTAssert(false, "attribute value not found")
+            return
+        }
+        
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, attrString.length)
+        XCTAssertEqual(value, "attribute.placeholder.value")
     }
     
 }

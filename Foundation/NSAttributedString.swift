@@ -47,7 +47,29 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
         return _string
     }
     
-    public func attributesAtIndex(_ location: Int, effectiveRange range: NSRangePointer) -> [String : AnyObject] { NSUnimplemented() }
+    public func attributesAtIndex(_ location: Int, effectiveRange range: NSRangePointer) -> [String : AnyObject] {
+        var cfRange = CFRange(location: NSNotFound, length: 0)
+        return withUnsafeMutablePointer(&cfRange) { (rangePointer: UnsafeMutablePointer<CFRange>) -> [String : AnyObject] in
+            // Get attributes value from `_attributeArray`
+            let value = CFRunArrayGetValueAtIndex(_attributeArray, location, rangePointer, nil).takeUnretainedValue()
+            
+            // Convert the value to [String : AnyObject]
+            let dictionary = unsafeBitCast(value, to: NSDictionary.self)
+            var results = [String : AnyObject]()
+            for (key, value) in dictionary {
+                guard let stringKey = (key as? NSString)?._swiftObject else {
+                    continue
+                }
+                results[stringKey] = value
+            }
+            
+            // Update effective range
+            range.pointee.location = rangePointer.pointee.location
+            range.pointee.length = rangePointer.pointee.length
+            
+            return results
+        }
+    }
 
     public var length: Int {
         return _string.length
@@ -64,22 +86,41 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     public init(string str: String) {
         _string = str
         _attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
+        
+        super.init()
+        addAttributesToAttributeArray(attrs: nil)
     }
     
     public init(string str: String, attributes attrs: [String : AnyObject]?) {
         _string = str
         _attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
         
-        let length = _string.length
-        if (length > 0) {
-            CFRunArrayInsert(_attributeArray, CFRange(location: 0, length: length), attrs?._cfObject)
-        }
+        super.init()
+        addAttributesToAttributeArray(attrs: attrs)
     }
     
     public init(attributedString attrStr: NSAttributedString) { NSUnimplemented() }
     
+    private func addAttributesToAttributeArray(attrs: [String : AnyObject]?) {
+        guard _string.length > 0 else {
+            return
+        }
+        
+        let range = CFRange(location: 0, length: _string.length)
+        if let attrs = attrs {
+            CFRunArrayInsert(_attributeArray, range, attrs._cfObject)
+        } else {
+            let emptyAttrs = [String : AnyObject]()
+            CFRunArrayInsert(_attributeArray, range, emptyAttrs._cfObject)
+        }
+    }
+
     public func enumerateAttributesInRange(_ enumerationRange: NSRange, options opts: NSAttributedStringEnumerationOptions, usingBlock block: ([String : AnyObject], NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     public func enumerateAttribute(_ attrName: String, inRange enumerationRange: NSRange, options opts: NSAttributedStringEnumerationOptions, usingBlock block: (AnyObject?, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+}
+
+extension NSAttributedString: _CFBridgable {
+    internal var _cfObject: CFAttributedString { return unsafeBitCast(self, to: CFAttributedString.self) }
 }
 
 public struct NSAttributedStringEnumerationOptions : OptionSet {
