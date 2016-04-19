@@ -12,7 +12,7 @@ import CoreFoundation
 public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     private let _cfinfo = _CFInfo(typeID: CFAttributedStringGetTypeID())
-    private let _string: String
+    private let _string: NSString
     private let _attributeArray: CFRunArrayRef
     
     public required init?(coder aDecoder: NSCoder) {
@@ -44,14 +44,14 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     }
     
     public var string: String {
-        return _string
+        return _string._swiftObject
     }
     
     public func attributesAtIndex(_ location: Int, effectiveRange range: NSRangePointer) -> [String : AnyObject] {
-        var cfRange = CFRange(location: NSNotFound, length: 0)
+        var cfRange = CFRange()
         return withUnsafeMutablePointer(&cfRange) { (rangePointer: UnsafeMutablePointer<CFRange>) -> [String : AnyObject] in
             // Get attributes value from `_attributeArray`
-            let value = CFRunArrayGetValueAtIndex(_attributeArray, location, rangePointer, nil).takeUnretainedValue()
+            let value = CFAttributedStringGetAttributes(_cfObject, location, rangePointer)
             
             // Convert the value to [String : AnyObject]
             let dictionary = unsafeBitCast(value, to: NSDictionary.self)
@@ -73,7 +73,7 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     }
 
     public var length: Int {
-        return _string.length
+        return CFAttributedStringGetLength(_cfObject)
     }
     
     public func attribute(_ attrName: String, atIndex location: Int, effectiveRange range: NSRangePointer) -> AnyObject? { NSUnimplemented() }
@@ -85,7 +85,7 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     public func isEqualToAttributedString(_ other: NSAttributedString) -> Bool { NSUnimplemented() }
     
     public init(string str: String) {
-        _string = str
+        _string = str._nsObject
         _attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
         
         super.init()
@@ -93,7 +93,7 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     }
     
     public init(string str: String, attributes attrs: [String : AnyObject]?) {
-        _string = str
+        _string = str._nsObject
         _attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
         
         super.init()
