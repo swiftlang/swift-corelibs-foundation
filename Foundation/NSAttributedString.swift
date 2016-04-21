@@ -76,7 +76,25 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
         return CFAttributedStringGetLength(_cfObject)
     }
     
-    public func attribute(_ attrName: String, atIndex location: Int, effectiveRange range: NSRangePointer) -> AnyObject? { NSUnimplemented() }
+    public func attribute(_ attrName: String, atIndex location: Int, effectiveRange range: NSRangePointer) -> AnyObject? {
+        var cfRange = CFRange()
+        return withUnsafeMutablePointer(&cfRange) { (rangePointer: UnsafeMutablePointer<CFRange>) -> AnyObject? in
+            // Get attribute value using CoreFoundation function
+            let attribute = CFAttributedStringGetAttribute(_cfObject, location, attrName._cfObject, rangePointer)
+            
+            // Update effective range and return the result
+            if let attribute = attribute {
+                range.pointee.location = rangePointer.pointee.location
+                range.pointee.length = rangePointer.pointee.length
+                return attribute
+            } else {
+                range.pointee.location = NSNotFound
+                range.pointee.length = 0
+                return nil
+            }
+        }
+    }
+    
     public func attributedSubstringFromRange(_ range: NSRange) -> NSAttributedString { NSUnimplemented() }
     
     public func attributesAtIndex(_ location: Int, longestEffectiveRange range: NSRangePointer, inRange rangeLimit: NSRange) -> [String : AnyObject] { NSUnimplemented() }
