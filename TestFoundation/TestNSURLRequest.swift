@@ -43,7 +43,6 @@ class TestNSURLRequest : XCTestCase {
     }
     
     func test_mutableConstruction() {
-        let URL = NSURL(string: "http://swift.org")!
         let request = NSMutableURLRequest(url: url)
         
         //Confirm initial state matches NSURLRequest responses
