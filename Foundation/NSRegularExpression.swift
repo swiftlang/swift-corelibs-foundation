@@ -157,7 +157,7 @@ extension NSRegularExpression {
     
     public func matches(in string: String, options: NSMatchingOptions, range: NSRange) -> [NSTextCheckingResult] {
         var matches = [NSTextCheckingResult]()
-        enumerateMatches(in: string, options: options.subtract(.reportProgress).subtract(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
                 matches.append(match)
             }
@@ -168,7 +168,7 @@ extension NSRegularExpression {
     
     public func numberOfMatches(in string: String, options: NSMatchingOptions, range: NSRange) -> Int {
         var count = 0
-        enumerateMatches(in: string, options: options.subtract(.reportProgress).subtract(.reportCompletion).union(.OmitResult), range: range) {_,_,_ in 
+        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion).union(.OmitResult), range: range) {_,_,_ in 
             count += 1
         }
         return count
@@ -176,7 +176,7 @@ extension NSRegularExpression {
     
     public func firstMatch(in string: String, options: NSMatchingOptions, range: NSRange) -> NSTextCheckingResult? {
         var first: NSTextCheckingResult?
-        enumerateMatches(in: string, options: options.subtract(.reportProgress).subtract(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             first = result
             stop.pointee = true
         }
@@ -185,7 +185,7 @@ extension NSRegularExpression {
     
     public func rangeOfFirstMatch(in string: String, options: NSMatchingOptions, range: NSRange) -> NSRange {
         var firstRange = NSMakeRange(NSNotFound, 0)
-        enumerateMatches(in: string, options: options.subtract(.reportProgress).subtract(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
                 firstRange = match.range
             } else {
@@ -214,7 +214,7 @@ extension NSRegularExpression {
         var str: String = ""
         let length = string.length
         var previousRange = NSMakeRange(0, 0)
-        let results = matches(in: string, options: options.subtract(.reportProgress).subtract(.reportCompletion), range: range)
+        let results = matches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range)
         let start = string.utf16.startIndex
         
         for result in results {
@@ -239,7 +239,7 @@ extension NSRegularExpression {
     }
     
     public func replaceMatches(in string: NSMutableString, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> Int {
-        let results = matches(in: string._swiftObject, options: options.subtract(.reportProgress).subtract(.reportCompletion), range: range)
+        let results = matches(in: string._swiftObject, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range)
         var count = 0
         var offset = 0
         for result in results {

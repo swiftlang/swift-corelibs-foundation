@@ -539,7 +539,7 @@ extension NSData {
         }
         return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
     }
-    private static func searchSubSequence<T : Collection,T2 : Sequence where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
+    private static func searchSubSequence<T : Collection, T2 : Sequence where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element, T.Indices.Iterator.Element == T.Index>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
         for index in seq.indices {
             if seq.suffix(from: index).starts(with: subSequence) {
                 return index
@@ -684,10 +684,10 @@ extension NSData {
         var decodedStart: UInt8 = 0
         for range in base64ByteMappings {
             if range.contains(byte) {
-                let result = decodedStart + (byte - range.startIndex)
+                let result = decodedStart + (byte - range.lowerBound)
                 return .Valid(result)
             }
-            decodedStart += range.endIndex - range.startIndex
+            decodedStart += range.upperBound - range.lowerBound
         }
         return .Invalid
     }
@@ -706,11 +706,11 @@ extension NSData {
         assert(byte < 64)
         var decodedStart: UInt8 = 0
         for range in base64ByteMappings {
-            let decodedRange = decodedStart ..< decodedStart + (range.endIndex - range.startIndex)
+            let decodedRange = decodedStart ..< decodedStart + (range.upperBound - range.lowerBound)
             if decodedRange.contains(byte) {
-                return range.startIndex + (byte - decodedStart)
+                return range.lowerBound + (byte - decodedStart)
             }
-            decodedStart += range.endIndex - range.startIndex
+            decodedStart += range.upperBound - range.lowerBound
         }
         return 0
     }

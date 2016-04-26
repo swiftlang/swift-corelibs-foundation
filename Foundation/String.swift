@@ -29,8 +29,8 @@
 @warn_unused_result
 func _toNSRange(_ r: Range<String.Index>) -> NSRange {
     return NSRange(
-        location: r.startIndex._utf16Index,
-                  length: r.endIndex._utf16Index - r.startIndex._utf16Index)
+        location: r.lowerBound._utf16Index,
+                  length: r.upperBound._utf16Index - r.lowerBound._utf16Index)
 }
 
 @warn_unused_result
@@ -64,14 +64,26 @@ func _countFormatSpecifiers(_ a: String) -> Int {
 // Random access for String.UTF16View, only when Foundation is
 // imported.  Making this API dependent on Foundation decouples the
 // Swift core from a UTF16 representation.
-extension String.UTF16View.Index : RandomAccessIndex {
+extension String.UTF16View.Index : Strideable {
     /// Construct from an integer offset.
     public init(_ offset: Int) {
         _precondition(offset >= 0, "Negative UTF16 index offset not allowed")
         self.init(_offset: offset)
-        // self._offset = offset
+    }
+
+    @warn_unused_result
+    public func distance(to other: String.UTF16View.Index) -> Int {
+        return other._offset.distance(to: _offset)
+    }
+
+    @warn_unused_result
+    public func advanced(by n: Int) -> String.UTF16View.Index {
+        return String.UTF16View.Index(_offset.advanced(by: n))
     }
 }
+
+extension String.UTF16View : RandomAccessCollection {}
+extension String.UTF16View.Indices : RandomAccessCollection {}
 
 extension String {
     
@@ -112,7 +124,7 @@ extension String {
     /// memory referred to by `index`
     func _withOptionalOutParameter<Result>(
         _ index: UnsafeMutablePointer<Index>?,
-        @noescape body: (UnsafeMutablePointer<Int>?) -> Result
+        body: @noescape (UnsafeMutablePointer<Int>?) -> Result
         ) -> Result {
         var utf16Index: Int = 0
         let result = (index != nil) ? body(&utf16Index) : body(nil)
@@ -125,7 +137,7 @@ extension String {
     /// it into the memory referred to by `range`
     func _withOptionalOutParameter<Result>(
         _ range: UnsafeMutablePointer<Range<Index>>?,
-        @noescape body: (UnsafeMutablePointer<NSRange>?) -> Result
+        body: @noescape (UnsafeMutablePointer<NSRange>?) -> Result
         ) -> Result {
         var nsRange = NSRange(location: 0, length: 0)
         let result = (range != nil) ? body(&nsRange) : body(nil)
@@ -340,13 +352,13 @@ extension String {
         // So let's do that; the switch should compile away anyhow.
         return locale != nil ? _ns.compare(
             aString, options: mask,
-            range: _toNSRange(range ?? self.characters.indices),
+            range: _toNSRange(range ?? self.characters.startIndex..<self.characters.endIndex),
                    locale: locale)
             
             : range != nil ? _ns.compare(
                 aString,
                 options: mask,
-                         range: _toNSRange(range ?? self.characters.indices))
+                         range: _toNSRange(range ?? self.characters.startIndex..<self.characters.endIndex))
                 
             : !mask.isEmpty ? _ns.compare(aString, options: mask)
                 
@@ -1103,7 +1115,7 @@ extension String {
         return _optionalRange(
             _ns.rangeOfCharacterFromSet(
                 aSet, options: mask,
-                range: _toNSRange(aRange ?? self.characters.indices)))
+                range: _toNSRange(aRange ?? self.characters.startIndex..<self.characters.endIndex)))
     }
     
     // - (NSRange)rangeOfComposedCharacterSequenceAtIndex:(NSUInteger)anIndex
@@ -1161,7 +1173,7 @@ extension String {
         return _optionalRange(
             locale != nil ? _ns.rangeOfString(
                 aString, options: mask,
-                range: _toNSRange(searchRange ?? self.characters.indices),
+                range: _toNSRange(searchRange ?? self.characters.startIndex..<self.characters.endIndex),
                 locale: locale
                 )
                 : searchRange != nil ? _ns.rangeOfString(
@@ -1400,7 +1412,7 @@ extension String {
             ? _ns.stringByReplacingOccurrencesOfString(
                 target,
                 withString: replacement, options: options,
-                            range: _toNSRange(searchRange ?? self.characters.indices)
+                            range: _toNSRange(searchRange ?? self.characters.startIndex..<self.characters.endIndex)
                 )
             : _ns.stringByReplacingOccurrencesOfString(target, withString: replacement)
     }

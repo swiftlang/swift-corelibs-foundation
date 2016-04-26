@@ -45,7 +45,7 @@ internal extension String {
         
         // Find the beginning of the component
         while curPos > startPos {
-            let prevPos = curPos.predecessor()
+            let prevPos = characterView.index(before: curPos)
             if characterView[prevPos] == "/" {
                 break
             }
@@ -66,7 +66,7 @@ internal extension String {
         
         // Find the beginning of the extension
         while curPos > lastCompStartPos {
-            let prevPos = curPos.predecessor()
+            let prevPos = characterView.index(before: curPos)
             let char = characterView[prevPos]
             if char == "/" {
                 return nil
@@ -111,21 +111,21 @@ internal extension String {
                     if characterView[curPos] == "/" {
                         var afterLastSlashPos = curPos
                         while afterLastSlashPos < endPos && characterView[afterLastSlashPos] == "/" {
-                            afterLastSlashPos = afterLastSlashPos.successor()
+                            afterLastSlashPos = characterView.index(after: afterLastSlashPos)
                         }
-                        if afterLastSlashPos != curPos.successor() {
+                        if afterLastSlashPos != characterView.index(after: curPos) {
                             characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
                             endPos = characterView.endIndex
                         }
                         curPos = afterLastSlashPos
                     } else {
-                        curPos = curPos.successor()
+                        curPos = characterView.index(after: curPos)
                     }
                 }
             }
         }
         if stripTrailing && result.length > 1 && result.hasSuffix("/") {
-            result.remove(at: result.characters.endIndex.predecessor())
+            result.remove(at: result.characters.index(before: result.characters.endIndex))
         }
         return result
     }
@@ -185,14 +185,14 @@ public extension NSString {
             
             while curPos < endPos {
                 while curPos < endPos && characterView[curPos] == "/" {
-                    curPos = curPos.successor()
+                    curPos = characterView.index(after: curPos)
                 }
                 if curPos == endPos {
                     break
                 }
                 var curEnd = curPos
                 while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd = curEnd.successor()
+                    curEnd = characterView.index(after: curEnd)
                 }
                 result.append(String(characterView[curPos ..< curEnd]))
                 curPos = curEnd
@@ -226,12 +226,12 @@ public extension NSString {
             return ""
         
         // absolute path, single component
-        case fixedSelf.startIndex.successor():
+        case fixedSelf.index(after: fixedSelf.startIndex):
             return "/"
         
         // all common cases
         case let startOfLast:
-            return String(fixedSelf.characters.prefix(upTo: startOfLast.predecessor()))
+            return String(fixedSelf.characters.prefix(upTo: fixedSelf.index(before: startOfLast)))
         }
     }
     
@@ -251,21 +251,21 @@ public extension NSString {
                     if characterView[curPos] == "/" {
                         var afterLastSlashPos = curPos
                         while afterLastSlashPos < endPos && characterView[afterLastSlashPos] == "/" {
-                            afterLastSlashPos = afterLastSlashPos.successor()
+                            afterLastSlashPos = characterView.index(after: afterLastSlashPos)
                         }
-                        if afterLastSlashPos != curPos.successor() {
+                        if afterLastSlashPos != characterView.index(after: curPos) {
                             characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
                             endPos = characterView.endIndex
                         }
                         curPos = afterLastSlashPos
                     } else {
-                        curPos = curPos.successor()
+                        curPos = characterView.index(after: curPos)
                     }
                 }
             }
         }
         if stripTrailing && result.hasSuffix("/") {
-            result.remove(at: result.characters.endIndex.predecessor())
+            result.remove(at: result.characters.index(before: result.characters.endIndex))
         }
         return result
     }
@@ -306,7 +306,7 @@ public extension NSString {
             return fixedSelf
         }
         if let extensionPos = (fixedSelf._startOfPathExtension) {
-            return String(fixedSelf.characters.prefix(upTo: extensionPos.predecessor()))
+            return String(fixedSelf.characters.prefix(upTo: fixedSelf.characters.index(before: extensionPos)))
         } else {
             return fixedSelf
         }
@@ -327,7 +327,8 @@ public extension NSString {
         }
 
         let endOfUserName = _swiftObject.characters.index(of: "/") ?? _swiftObject.endIndex
-        let userName = String(_swiftObject.characters[_swiftObject.startIndex.successor()..<endOfUserName])
+        let startOfUserName = _swiftObject.characters.index(after: _swiftObject.characters.startIndex)
+        let userName = String(_swiftObject.characters[startOfUserName..<endOfUserName])
         let optUserName: String? = userName.isEmpty ? nil : userName
         
         guard let homeDir = NSHomeDirectoryForUser(optUserName) else {

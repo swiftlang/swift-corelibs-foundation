@@ -480,12 +480,7 @@ public class NSXMLNode : NSObject, NSCopying {
         precondition(index >= 0)
         precondition(index < childCount)
 
-        var nodeIndex = startIndex
-        for _ in 0..<index {
-            nodeIndex = nodeIndex.successor()
-        }
-
-        return self[nodeIndex]
+        return self[self.index(startIndex, offsetBy: index)]
     } //primitive
 
     /*!
@@ -885,18 +880,10 @@ public class NSXMLNode : NSObject, NSCopying {
 internal protocol _NSXMLNodeCollectionType: Collection { }
 
 extension NSXMLNode: _NSXMLNodeCollectionType {
-    public struct Index: BidirectionalIndex {
+
+    public struct Index: Comparable {
         private let node: _CFXMLNodePtr?
-
-        public func predecessor() -> Index {
-            guard node != nil else { return self }
-            return Index(node: _CFXMLNodeGetPrevSibling(node!))
-        }
-
-        public func successor() -> Index {
-            guard node != nil else { return self }
-            return Index(node: _CFXMLNodeGetNextSibling(node!))
-        }
+        private let offset: Int?
     }
 
     public subscript(index: Index) -> NSXMLNode {
@@ -904,14 +891,34 @@ extension NSXMLNode: _NSXMLNodeCollectionType {
     }
 
     public var startIndex: Index {
-        return Index(node: _CFXMLNodeGetFirstChild(_xmlNode))
+        let node = _CFXMLNodeGetFirstChild(_xmlNode)
+        return Index(node: node, offset: node.map { _ in 0 })
     }
 
     public var endIndex: Index {
-        return Index(node: nil)
+        return Index(node: nil, offset: nil)
+    }
+
+    public func index(after i: Index) -> Index {
+        precondition(i.node != nil, "can't increment endIndex")
+        let nextNode = _CFXMLNodeGetNextSibling(i.node!)
+        return Index(node: nextNode, offset: nextNode.map { _ in i.offset! + 1 } )
     }
 }
 
 public func ==(lhs: NSXMLNode.Index, rhs: NSXMLNode.Index) -> Bool {
-    return lhs.node == rhs.node
+    return lhs.offset == rhs.offset
+}
+
+public func <(lhs: NSXMLNode.Index, rhs: NSXMLNode.Index) -> Bool {
+    switch (lhs.offset, rhs.offset) {
+    case (nil, nil):
+      return false
+    case (nil, _):
+      return false
+    case (_, nil):
+      return true
+    case (let lhsOffset, let rhsOffset):
+      return lhsOffset < rhsOffset
+    }
 }

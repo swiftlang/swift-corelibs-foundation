@@ -406,6 +406,7 @@ private struct JSONReader {
     }
 
     typealias Index = Int
+    typealias IndexDistance = Int
 
     struct UnicodeSource {
         let buffer: UnsafeBufferPointer<UInt8>
@@ -467,7 +468,7 @@ private struct JSONReader {
             return input + step <= buffer.endIndex
         }
         
-        func distanceFromStart(_ index: Index) -> Index.Distance {
+        func distanceFromStart(_ index: Index) -> IndexDistance {
             return buffer.startIndex.distance(to: index) / step
         }
     }
@@ -625,7 +626,7 @@ private struct JSONReader {
         0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
     ]
     func parseNumber(_ input: Index) throws -> (Double, Index)? {
-        func parseDouble(_ address: UnsafePointer<UInt8>) -> (Double, Index.Distance)? {
+        func parseDouble(_ address: UnsafePointer<UInt8>) -> (Double, IndexDistance)? {
             let startPointer = UnsafePointer<Int8>(address)
             let endPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
             defer { endPointer.deallocateCapacity(1) }

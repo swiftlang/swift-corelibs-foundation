@@ -98,7 +98,7 @@ class TestNSCharacterSet : XCTestCase {
         let attachmentCharacterUnichar = unichar(0xFFFC)
         let attachmentCharacter = Character(UnicodeScalar(attachmentCharacterUnichar))
 
-        let attachmentCharacterRange = NSRange(Int(attachmentCharacterUnichar)..<Int(attachmentCharacterUnichar.successor()))
+        let attachmentCharacterRange = NSRange(Int(attachmentCharacterUnichar)..<Int(attachmentCharacterUnichar + 1))
 
         let initialSetRange = NSRange(location: 0, length: 0)
         let string = String(attachmentCharacter)
@@ -128,4 +128,4 @@ class TestNSCharacterSet : XCTestCase {
         
     }
 }
-    
+

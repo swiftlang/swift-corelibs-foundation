@@ -323,8 +323,8 @@ public class NSHTTPCookie : NSObject {
         }
         //Remove the final trailing semicolon and whitespace
         if ( cookieString.length > 0 ) {
-            cookieString.remove(at: cookieString.endIndex.predecessor())
-            cookieString.remove(at: cookieString.endIndex.predecessor())
+            cookieString.characters.removeLast()
+            cookieString.characters.removeLast()
         }
         return ["Cookie": cookieString]
     }

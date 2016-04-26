@@ -51,7 +51,7 @@ public class NSLock : NSObject, NSLocking {
 }
 
 extension NSLock {
-    internal func synchronized<T>(@noescape _ closure: () -> T) -> T {
+    internal func synchronized<T>(_ closure: @noescape () -> T) -> T {
         self.lock()
         defer { self.unlock() }
         return closure()
