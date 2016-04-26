@@ -59,23 +59,23 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_BasicConstruction() {
         let set = NSOrderedSet()
-        let set2 = NSOrderedSet(array: ["foo", "bar"].bridge().bridge())
+        let set2 = NSOrderedSet(array: ["foo", "bar"] as NSArray as Array)
         XCTAssertEqual(set.count, 0)
         XCTAssertEqual(set2.count, 2)
     }
 
     func test_Enumeration() {
         let arr = ["foo", "bar", "bar"]
-        let set = NSOrderedSet(array: arr.bridge().bridge())
+        let set = NSOrderedSet(array: arr as NSArray as Array)
         var index = 0
         for item in set {
-            XCTAssertEqual(arr[index].bridge(), item as? NSString)
+            XCTAssertEqual(arr[index] as NSString, item as? NSString)
             index += 1
         }
     }
 
     func test_Uniqueness() {
-        let set = NSOrderedSet(array: ["foo", "bar", "bar"].bridge().bridge())
+        let set = NSOrderedSet(array: ["foo", "bar", "bar"] as NSArray as Array)
         XCTAssertEqual(set.count, 2)
         XCTAssertEqual(set.objectAtIndex(0) as? NSString, "foo")
         XCTAssertEqual(set.objectAtIndex(1) as? NSString, "bar")
@@ -112,14 +112,14 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_ObjectAtIndex() {
-        let set = NSOrderedSet(array: ["foo", "bar", "baz"].bridge().bridge())
+        let set = NSOrderedSet(array: ["foo", "bar", "baz"] as NSArray as Array)
         XCTAssertEqual(set.objectAtIndex(0) as? NSString, "foo")
         XCTAssertEqual(set.objectAtIndex(1) as? NSString, "bar")
         XCTAssertEqual(set.objectAtIndex(2) as? NSString, "baz")
     }
 
     func test_ObjectsAtIndexes() {
-        let set = NSOrderedSet(array: ["foo", "bar", "baz", "1", "2", "3"].bridge().bridge())
+        let set = NSOrderedSet(array: ["foo", "bar", "baz", "1", "2", "3"] as NSArray as Array)
         let indexSet = NSMutableIndexSet()
         indexSet.addIndex(1)
         indexSet.addIndex(3)
@@ -131,7 +131,7 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_GetObjects() {
-        let set = NSOrderedSet(array: ["foo", "bar", "baz"].bridge().bridge())
+        let set = NSOrderedSet(array: ["foo", "bar", "baz"] as NSArray as Array)
         var objects = [AnyObject]()
         set.getObjects(&objects, range: NSMakeRange(1, 2))
         XCTAssertEqual(objects[0] as? NSString, "bar")
@@ -139,22 +139,22 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_FirstAndLastObjects() {
-        let set = NSOrderedSet(array: ["foo", "bar", "baz"].bridge().bridge())
+        let set = NSOrderedSet(array: ["foo", "bar", "baz"] as NSArray as Array)
         XCTAssertEqual(set.firstObject as? NSString, "foo")
         XCTAssertEqual(set.lastObject as? NSString, "baz")
     }
 
     func test_AddObject() {
         let set = NSMutableOrderedSet()
-        set.addObject("1".bridge())
-        set.addObject("2".bridge())
+        set.addObject("1" as NSString)
+        set.addObject("2" as NSString)
         XCTAssertEqual(set[0] as? NSString, "1")
         XCTAssertEqual(set[1] as? NSString, "2")
     }
 
     func test_AddObjects() {
         let set = NSMutableOrderedSet()
-        set.addObjectsFromArray(["foo", "bar", "baz"].bridge().bridge())
+        set.addObjectsFromArray(["foo", "bar", "baz"] as NSArray as Array)
         XCTAssertEqual(set.objectAtIndex(0) as? NSString, "foo")
         XCTAssertEqual(set.objectAtIndex(1) as? NSString, "bar")
         XCTAssertEqual(set.objectAtIndex(2) as? NSString, "baz")
@@ -162,7 +162,7 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_RemoveAllObjects() {
         let set = NSMutableOrderedSet()
-        set.addObjectsFromArray(["foo", "bar", "baz"].bridge().bridge())
+        set.addObjectsFromArray(["foo", "bar", "baz"] as NSArray as Array)
         XCTAssertEqual(set.indexOfObject("foo" as NSString), 0)
         set.removeAllObjects()
         XCTAssertEqual(set.count, 0)
@@ -171,7 +171,7 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_RemoveObject() {
         let set = NSMutableOrderedSet()
-        set.addObjectsFromArray(["foo", "bar", "baz"].bridge().bridge())
+        set.addObjectsFromArray(["foo", "bar", "baz"] as NSArray as Array)
         set.removeObject("bar" as NSString)
         XCTAssertEqual(set.count, 2)
         XCTAssertEqual(set.indexOfObject("baz" as NSString), 1)
@@ -179,25 +179,25 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_RemoveObjectAtIndex() {
         let set = NSMutableOrderedSet()
-        set.addObjectsFromArray(["foo", "bar", "baz"].bridge().bridge())
+        set.addObjectsFromArray(["foo", "bar", "baz"] as NSArray as Array)
         set.removeObjectAtIndex(1)
         XCTAssertEqual(set.count, 2)
         XCTAssertEqual(set.indexOfObject("baz" as NSString), 1)
     }
 
     func test_IsEqualToOrderedSet() {
-        let set = NSOrderedSet(array: ["foo", "bar", "baz"].bridge().bridge())
-        let otherSet = NSOrderedSet(array: ["foo", "bar", "baz"].bridge().bridge())
-        let otherOtherSet = NSOrderedSet(array: ["foo", "bar", "123"].bridge().bridge())
+        let set = NSOrderedSet(array: ["foo", "bar", "baz"] as NSArray as Array)
+        let otherSet = NSOrderedSet(array: ["foo", "bar", "baz"] as NSArray as Array)
+        let otherOtherSet = NSOrderedSet(array: ["foo", "bar", "123"] as NSArray as Array)
         XCTAssert(set.isEqualToOrderedSet(otherSet))
         XCTAssertFalse(set.isEqualToOrderedSet(otherOtherSet))
     }
 
     func test_Subsets() {
-        let set = NSOrderedSet(array: ["foo", "bar", "baz"].bridge().bridge())
-        let otherOrderedSet = NSOrderedSet(array: ["foo", "bar"].bridge().bridge())
+        let set = NSOrderedSet(array: ["foo", "bar", "baz"] as NSArray as Array)
+        let otherOrderedSet = NSOrderedSet(array: ["foo", "bar"] as NSArray as Array)
         let otherSet = Set<NSObject>(["foo" as NSString, "baz" as NSString])
-        let otherOtherSet = Set<NSObject>(["foo".bridge(), "bar".bridge(), "baz".bridge(), "123".bridge()])
+        let otherOtherSet = Set<NSObject>(["foo" as NSString, "bar" as NSString, "baz" as NSString, "123" as NSString])
         XCTAssert(otherOrderedSet.isSubsetOfOrderedSet(set))
         XCTAssertFalse(set.isSubsetOfOrderedSet(otherOrderedSet))
         XCTAssertFalse(set.isSubsetOfSet(otherSet))
@@ -205,8 +205,8 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_ReplaceObject() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
-        set.replaceObjectAtIndex(1, withObject: "123".bridge())
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString)
+        set.replaceObjectAtIndex(1, withObject: "123" as NSString)
         XCTAssertEqual(set.count, 3)
         XCTAssertEqual(set[0] as? NSString, "foo")
         XCTAssertEqual(set[1] as? NSString, "123")
@@ -214,7 +214,7 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_ExchangeObjects() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString)
         set.exchangeObjectAtIndex(0, withObjectAtIndex: 2)
         XCTAssertEqual(set.count, 3)
         XCTAssertEqual(set[0] as? NSString, "baz")
@@ -223,7 +223,7 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_MoveObjects() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge(), "123".bridge(), "456".bridge())
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString, "123" as NSString, "456" as NSString)
         let indexes = NSMutableIndexSet()
         indexes.addIndex(1)
         indexes.addIndex(2)
@@ -238,11 +238,11 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_InsertObjects() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString)
         let indexes = NSMutableIndexSet()
         indexes.addIndex(1)
         indexes.addIndex(3)
-        set.insertObjects(["123".bridge(), "456".bridge()], atIndexes: indexes)
+        set.insertObjects(["123" as NSString, "456" as NSString], atIndexes: indexes)
         XCTAssertEqual(set.count, 5)
         XCTAssertEqual(set[0] as? NSString, "foo")
         XCTAssertEqual(set[1] as? NSString, "123")
@@ -252,17 +252,17 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_SetObjectAtIndex() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
-        set.setObject("123".bridge(), atIndex: 1)
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString)
+        set.setObject("123" as NSString, atIndex: 1)
         XCTAssertEqual(set[0] as? NSString, "foo")
         XCTAssertEqual(set[1] as? NSString, "123")
         XCTAssertEqual(set[2] as? NSString, "baz")
-        set.setObject("456".bridge(), atIndex: 3)
+        set.setObject("456" as NSString, atIndex: 3)
         XCTAssertEqual(set[3] as? NSString, "456")
     }
 
     func test_RemoveObjectsInRange() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge(), "123".bridge(), "456".bridge())
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString, "123" as NSString, "456" as NSString)
         set.removeObjectsInRange(NSMakeRange(1, 2))
         XCTAssertEqual(set.count, 3)
         XCTAssertEqual(set[0] as? NSString, "foo")
@@ -271,11 +271,11 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_ReplaceObjectsAtIndexes() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString)
         let indexes = NSMutableIndexSet()
         indexes.addIndex(0)
         indexes.addIndex(2)
-        set.replaceObjectsAtIndexes(indexes, withObjects: ["a".bridge(), "b".bridge()])
+        set.replaceObjectsAtIndexes(indexes, withObjects: ["a" as NSString, "b" as NSString])
         XCTAssertEqual(set.count, 3)
         XCTAssertEqual(set[0] as? NSString, "a")
         XCTAssertEqual(set[1] as? NSString, "bar")
@@ -283,10 +283,10 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_Intersection() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
-        let otherSet = NSOrderedSet(array: ["foo", "baz"].bridge().bridge())
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString)
+        let otherSet = NSOrderedSet(array: ["foo", "baz"] as NSArray as Array)
         XCTAssert(set.intersectsOrderedSet(otherSet))
-        let otherOtherSet = Set<NSObject>(["foo".bridge(), "123".bridge()])
+        let otherOtherSet = Set<NSObject>(["foo" as NSString, "123" as NSString])
         XCTAssert(set.intersectsSet(otherOtherSet))
         set.intersectOrderedSet(otherSet)
         XCTAssertEqual(set.count, 2)
@@ -296,14 +296,14 @@ class TestNSOrderedSet : XCTestCase {
         XCTAssertEqual(set.count, 1)
         XCTAssertEqual(set[0] as? NSString, "foo")
 
-        let nonIntersectingSet = Set<NSObject>(["asdf".bridge()])
+        let nonIntersectingSet = Set<NSObject>(["asdf" as NSString])
         XCTAssertFalse(set.intersectsSet(nonIntersectingSet))
     }
 
     func test_Subtraction() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
-        let otherSet = NSOrderedSet(array: ["baz"].bridge().bridge())
-        let otherOtherSet = Set<NSObject>(["foo".bridge()])
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString)
+        let otherSet = NSOrderedSet(array: ["baz"] as NSArray as Array)
+        let otherOtherSet = Set<NSObject>(["foo" as NSString])
         set.minusOrderedSet(otherSet)
         XCTAssertEqual(set.count, 2)
         XCTAssertEqual(set[0] as? NSString, "foo")
@@ -314,9 +314,9 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_Union() {
-        let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
-        let otherSet = NSOrderedSet(array: ["123", "baz"].bridge().bridge())
-        let otherOtherSet = Set<NSObject>(["foo".bridge(), "456".bridge()])
+        let set = NSMutableOrderedSet(arrayLiteral: "foo" as NSString, "bar" as NSString, "baz" as NSString)
+        let otherSet = NSOrderedSet(array: ["123", "baz"] as NSArray as Array)
+        let otherOtherSet = Set<NSObject>(["foo" as NSString, "456" as NSString])
         set.unionOrderedSet(otherSet)
         XCTAssertEqual(set.count, 4)
         XCTAssertEqual(set[0] as? NSString, "foo")
@@ -330,22 +330,22 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_Initializers() {
         let copyableObject = NSObject()
-        let set = NSMutableOrderedSet(arrayLiteral: copyableObject, "bar".bridge(), "baz".bridge())
+        let set = NSMutableOrderedSet(arrayLiteral: copyableObject, "bar" as NSString, "baz" as NSString)
         let newSet = NSOrderedSet(orderedSet: set)
         XCTAssert(newSet.isEqualToOrderedSet(set))
         XCTAssert(set[0] === newSet[0])
 
-        let unorderedSet = Set<NSObject>(["foo".bridge(), "bar".bridge(), "baz".bridge()])
+        let unorderedSet = Set<NSObject>(["foo" as NSString, "bar" as NSString, "baz" as NSString])
         let newSetFromUnorderedSet = NSOrderedSet(set: unorderedSet)
         XCTAssertEqual(newSetFromUnorderedSet.count, 3)
-        XCTAssert(newSetFromUnorderedSet.containsObject("foo".bridge()))
+        XCTAssert(newSetFromUnorderedSet.containsObject("foo" as NSString))
     }
 
     func test_Sorting() {
-        let set = NSMutableOrderedSet(arrayLiteral: "a".bridge(), "d".bridge(), "c".bridge(), "b".bridge())
+        let set = NSMutableOrderedSet(arrayLiteral: "a" as NSString, "d" as NSString, "c" as NSString, "b" as NSString)
         set.sortUsingComparator { lhs, rhs in
             if let lhs = lhs as? NSString, rhs = rhs as? NSString {
-                return lhs.compare(rhs.bridge())
+                return lhs.compare(rhs as String)
             }
             return NSComparisonResult.OrderedSame
         }
@@ -356,7 +356,7 @@ class TestNSOrderedSet : XCTestCase {
 
         set.sortRange(NSMakeRange(1, 2), options: []) { lhs, rhs in
             if let lhs = lhs as? NSString, rhs = rhs as? NSString {
-                return rhs.compare(lhs.bridge())
+                return rhs.compare(lhs as String)
             }
             return NSComparisonResult.OrderedSame
         }

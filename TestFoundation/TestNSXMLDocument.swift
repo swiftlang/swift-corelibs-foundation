@@ -199,8 +199,8 @@ class TestNSXMLDocument : XCTestCase {
 
     func test_objectValue() {
         let element = NSXMLElement(name: "root")
-        let dict: [String: AnyObject] = ["hello": "world"._bridgeToObject()]
-        element.objectValue = dict._bridgeToObject()
+        let dict: [String: AnyObject] = ["hello": "world" as NSString]
+        element.objectValue = dict as NSDictionary
 
         XCTAssertEqual(element.XMLString, "<root>{\n    hello = world;\n}</root>", element.XMLString)
     }

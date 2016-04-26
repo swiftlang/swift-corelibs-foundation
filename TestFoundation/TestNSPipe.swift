@@ -31,7 +31,7 @@ class TestNSPipe : XCTestCase {
         let text = "test-pipe"
         
         // First write some data into the pipe
-        let stringAsData = text.bridge().dataUsingEncoding(NSUTF8StringEncoding)
+        let stringAsData = (text as NSString).dataUsingEncoding(NSUTF8StringEncoding)
         XCTAssertNotNil(stringAsData)
         aPipe.fileHandleForWriting.writeData(stringAsData!)
         

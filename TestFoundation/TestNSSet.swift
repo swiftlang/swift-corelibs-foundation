@@ -41,13 +41,13 @@ class TestNSSet : XCTestCase {
     
     func test_BasicConstruction() {
         let set = NSSet()
-        let set2 = NSSet(array: ["foo", "bar"].bridge().bridge())
+        let set2 = NSSet(array: ["foo", "bar"] as NSArray as Array<AnyObject>)
         XCTAssertEqual(set.count, 0)
         XCTAssertEqual(set2.count, 2)
     }
 
     func testInitWithSet() {
-        let genres: Set<NSObject> = ["Rock".bridge(), "Classical".bridge(), "Hip hop".bridge()]
+        let genres: Set<NSObject> = ["Rock" as NSString, "Classical" as NSString, "Hip hop" as NSString]
         let set1 = NSSet(set: genres)
         let set2 = NSSet(set: genres, copyItems: false)
         XCTAssertEqual(set1.count, 3)
@@ -60,12 +60,12 @@ class TestNSSet : XCTestCase {
     }
     
     func test_enumeration() {
-        let set = NSSet(array: ["foo", "bar", "baz"].bridge().bridge())
+        let set = NSSet(array: ["foo", "bar", "baz"] as NSArray as Array)
         let e = set.objectEnumerator()
         var result = Set<String>()
-        result.insert((e.nextObject()! as! NSString).bridge())
-        result.insert((e.nextObject()! as! NSString).bridge())
-        result.insert((e.nextObject()! as! NSString).bridge())
+        result.insert((e.nextObject()! as! NSString) as String)
+        result.insert((e.nextObject()! as! NSString) as String)
+        result.insert((e.nextObject()! as! NSString) as String)
         XCTAssertEqual(result, Set(["foo", "bar", "baz"]))
         
         let empty = NSSet().objectEnumerator()
@@ -74,45 +74,45 @@ class TestNSSet : XCTestCase {
     }
     
     func test_sequenceType() {
-        let set = NSSet(array: ["foo", "bar", "baz"].bridge().bridge())
+        let set = NSSet(array: ["foo", "bar", "baz"] as NSArray as Array)
         var res = Set<String>()
         for obj in set {
-            res.insert((obj as! NSString).bridge())
+            res.insert((obj as! NSString) as String)
         }
         XCTAssertEqual(res, Set(["foo", "bar", "baz"]))
     }
     
     func test_setOperations() {
-        let set = NSMutableSet(array: ["foo", "bar"].bridge().bridge())
-        set.unionSet(["bar".bridge(), "baz".bridge()])
-        XCTAssertTrue(set.isEqualToSet(["foo".bridge(), "bar".bridge(), "baz".bridge()]))
+        let set = NSMutableSet(array: ["foo", "bar"] as NSArray as Array)
+        set.unionSet(["bar" as NSString, "baz" as NSString])
+        XCTAssertTrue(set.isEqualToSet(["foo" as NSString, "bar" as NSString, "baz" as NSString]))
     }
 
     func test_equality() {
-        let inputArray1 = ["this", "is", "a", "test", "of", "equality", "with", "strings"].bridge()
-        let inputArray2 = ["this", "is", "a", "test", "of", "equality", "with", "objects"].bridge()
-        let set1 = NSSet(array: inputArray1.bridge())
-        let set2 = NSSet(array: inputArray1.bridge())
-        let set3 = NSSet(array: inputArray2.bridge())
+        let inputArray1 = ["this", "is", "a", "test", "of", "equality", "with", "strings"] as NSArray
+        let inputArray2 = ["this", "is", "a", "test", "of", "equality", "with", "objects"] as NSArray
+        let set1 = NSSet(array: inputArray1 as Array)
+        let set2 = NSSet(array: inputArray1 as Array)
+        let set3 = NSSet(array: inputArray2 as Array)
 
         XCTAssertTrue(set1 == set2)
         XCTAssertTrue(set1.isEqual(set2))
-        XCTAssertTrue(set1.isEqualToSet(set2.bridge()))
+        XCTAssertTrue(set1.isEqualToSet(set2 as! Set))
         XCTAssertEqual(set1.hash, set2.hash)
         XCTAssertEqual(set1.hashValue, set2.hashValue)
 
         XCTAssertFalse(set1 == set3)
         XCTAssertFalse(set1.isEqual(set3))
-        XCTAssertFalse(set1.isEqualToSet(set3.bridge()))
+        XCTAssertFalse(set1.isEqualToSet(set3 as! Set))
 
         XCTAssertFalse(set1.isEqual(nil))
         XCTAssertFalse(set1.isEqual(NSObject()))
     }
 
     func test_copying() {
-        let inputArray = ["this", "is", "a", "test", "of", "copy", "with", "strings"].bridge()
+        let inputArray = ["this", "is", "a", "test", "of", "copy", "with", "strings"] as NSArray
         
-        let set = NSSet(array: inputArray.bridge())
+        let set = NSSet(array: inputArray as Array)
         let setCopy1 = set.copy() as! NSSet
         XCTAssertTrue(set === setCopy1)
 
@@ -121,33 +121,33 @@ class TestNSSet : XCTestCase {
         XCTAssertTrue(setCopy2.dynamicType === NSSet.self)
         XCTAssertFalse(setMutableCopy === setCopy2)
         for entry in setCopy2 {
-            XCTAssertTrue(setMutableCopy.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+            XCTAssertTrue((setMutableCopy.allObjects as NSArray).indexOfObjectIdenticalTo(entry) != NSNotFound)
         }
     }
 
     func test_mutableCopying() {
-        let inputArray = ["this", "is", "a", "test", "of", "mutableCopy", "with", "strings"].bridge()
-        let set = NSSet(array: inputArray.bridge())
+        let inputArray = ["this", "is", "a", "test", "of", "mutableCopy", "with", "strings"] as NSArray
+        let set = NSSet(array: inputArray as Array)
 
         let setMutableCopy1 = set.mutableCopy() as! NSMutableSet
         XCTAssertTrue(setMutableCopy1.dynamicType === NSMutableSet.self)
         XCTAssertFalse(set === setMutableCopy1)
         for entry in setMutableCopy1 {
-            XCTAssertTrue(set.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+            XCTAssertTrue((set.allObjects as NSArray).indexOfObjectIdenticalTo(entry) != NSNotFound)
         }
 
         let setMutableCopy2 = setMutableCopy1.mutableCopy() as! NSMutableSet
         XCTAssertTrue(setMutableCopy2.dynamicType === NSMutableSet.self)
         XCTAssertFalse(setMutableCopy2 === setMutableCopy1)
         for entry in setMutableCopy2 {
-            XCTAssertTrue(setMutableCopy1.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+            XCTAssertTrue((setMutableCopy1.allObjects as NSArray).indexOfObjectIdenticalTo(entry) != NSNotFound)
         }
     }
 
     func test_CountedSetBasicConstruction() {
-        let v1 = "v1".bridge()
-        let v2 = "v2".bridge()
-        let v3asv1 = "v1".bridge()
+        let v1 = "v1" as NSString
+        let v2 = "v2" as NSString
+        let v3asv1 = "v1" as NSString
         let set = NSCountedSet()
         let set2 = NSCountedSet(array: [v1, v1, v2,v3asv1])
         let set3 = NSCountedSet(set: [v1, v1, v2,v3asv1])
@@ -161,9 +161,9 @@ class TestNSSet : XCTestCase {
     }
 
     func test_CountedSetObjectCount() {
-        let v1 = "v1".bridge()
-        let v2 = "v2".bridge()
-        let v3asv1 = "v1".bridge()
+        let v1 = "v1" as NSString
+        let v2 = "v2" as NSString
+        let v3asv1 = "v1" as NSString
         let set = NSCountedSet()
         let set2 = NSCountedSet(array: [v1, v1, v2,v3asv1])
         let set3 = NSCountedSet(set: [v1, v1, v2,v3asv1])
@@ -178,9 +178,9 @@ class TestNSSet : XCTestCase {
     }
 
     func test_CountedSetAddObject() {
-        let v1 = "v1".bridge()
-        let v2 = "v2".bridge()
-        let v3asv1 = "v1".bridge()
+        let v1 = "v1" as NSString
+        let v2 = "v2" as NSString
+        let v3asv1 = "v1" as NSString
         let set = NSCountedSet(array: [v1, v1, v2])
 
         XCTAssertEqual(set.countForObject(v1), 2)
@@ -194,8 +194,8 @@ class TestNSSet : XCTestCase {
 
 
     func test_CountedSetRemoveObject() {
-        let v1 = "v1".bridge()
-        let v2 = "v2".bridge()
+        let v1 = "v1" as NSString
+        let v2 = "v2" as NSString
         let set = NSCountedSet(array: [v1, v1, v2])
 
         XCTAssertEqual(set.countForObject(v1), 2)
@@ -212,9 +212,9 @@ class TestNSSet : XCTestCase {
     }
 
     func test_CountedSetCopying() {
-        let inputArray = ["this", "is", "a", "test", "of", "copy", "with", "strings"].bridge()
+        let inputArray = ["this", "is", "a", "test", "of", "copy", "with", "strings"] as NSArray
 
-        let set = NSCountedSet(array: inputArray.bridge())
+        let set = NSCountedSet(array: inputArray as Array)
         let setCopy = set.copy() as! NSCountedSet
         XCTAssertFalse(set === setCopy)
 
@@ -223,7 +223,7 @@ class TestNSSet : XCTestCase {
         XCTAssertTrue(setCopy.dynamicType === NSCountedSet.self)
         XCTAssertTrue(setMutableCopy.dynamicType === NSCountedSet.self)
         for entry in setCopy {
-            XCTAssertTrue(setMutableCopy.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+            XCTAssertTrue((setMutableCopy.allObjects as NSArray).indexOfObjectIdenticalTo(entry) != NSNotFound)
         }
     }
 

@@ -47,20 +47,20 @@ class TestNSKeyedUnarchiver : XCTestCase {
 
     func test_unarchive_array() {
         let array = ["baa", "baa", "black", "sheep"]
-        test_unarchive_from_file("NSKeyedUnarchiver-ArrayTest", array.bridge())
+        test_unarchive_from_file("NSKeyedUnarchiver-ArrayTest", array as NSArray)
     }
     
     func test_unarchive_complex() {
         let uuid = NSUUID(UUIDString: "71DC068E-3420-45FF-919E-3A267D55EC22")!
         let url = NSURL(string: "index.xml", relativeToURL:NSURL(string: "https://www.swift.org"))!
-        let array = NSArray(array: [ NSNull(), NSString(string: "hello"), NSNumber(int: 34545), ["key" : "val"].bridge() ])
+        let array = NSArray(array: [ NSNull(), NSString(string: "hello"), NSNumber(int: 34545), ["key" : "val"] as NSDictionary ])
         let dict : Dictionary<String, NSObject> = [
             "uuid" : uuid,
             "url" : url,
-            "string" : "hello".bridge(),
+            "string" : "hello" as NSString,
             "array" : array
         ]
-        test_unarchive_from_file("NSKeyedUnarchiver-ComplexTest", dict.bridge())
+        test_unarchive_from_file("NSKeyedUnarchiver-ComplexTest", dict as NSDictionary)
     }
     
     func test_unarchive_concrete_value() {
@@ -73,8 +73,8 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
 
     func test_unarchive_notification() {
-        let notification = NSNotification(name: "notification-name", object: "notification-object".bridge(),
-                                          userInfo: ["notification-key".bridge(): "notification-val".bridge()])
+        let notification = NSNotification(name: "notification-name", object: "notification-object" as NSString,
+                                          userInfo: ["notification-key" as NSString: "notification-val" as NSString])
         test_unarchive_from_file("NSKeyedUnarchiver-NotificationTest", notification)
     }
     
@@ -96,7 +96,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
     
     func test_unarchive_ordered_set() {
-        let set = NSOrderedSet(array: ["valgeir".bridge(), "nico".bridge(), "puzzle".bridge()])
+        let set = NSOrderedSet(array: ["valgeir" as NSString, "nico" as NSString, "puzzle" as NSString])
         test_unarchive_from_file("NSKeyedUnarchiver-OrderedSetTest", set)
     }
     
