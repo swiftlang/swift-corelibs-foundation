@@ -259,7 +259,7 @@ extension NSRegularExpression {
     public func replacementString(for result: NSTextCheckingResult, in string: String, offset: Int, template templ: String) -> String {
         // ??? need to consider what happens if offset takes range out of bounds due to replacement
         struct once {
-            static let characterSet = NSCharacterSet(charactersInString: "\\$")
+            static let characterSet = NSCharacterSet(charactersIn: "\\$")
         }
         let template = templ._nsObject
         var range = template.rangeOfCharacter(from: once.characterSet)
