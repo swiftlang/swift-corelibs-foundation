@@ -43,8 +43,8 @@ class TestNSRegularExpression : XCTestCase {
                 XCTAssertTrue((matchResult && match) || (!matchResult && !match), "Case 0 simple regex \(patternString) in \(searchString) match \(matchResult) should be \(match)", file: file, line: line)
             }
             do {
-                let lookingRange = str.rangeOfString(patternString, options: [.RegularExpressionSearch, .AnchoredSearch], range: range, locale: nil)
-                let matchRange = str.rangeOfString(patternString, options: .RegularExpressionSearch, range: range, locale: nil)
+                let lookingRange = str.range(of: patternString, options: [.regularExpressionSearch, .anchoredSearch], range: range, locale: nil)
+                let matchRange = str.range(of: patternString, options: .regularExpressionSearch, range: range, locale: nil)
                 let lookingResult = lookingRange.location == range.location
                 let matchResult = NSEqualRanges(matchRange, range)
                 
@@ -56,8 +56,8 @@ class TestNSRegularExpression : XCTestCase {
                 let suffixString = " becomes necessary"
                 let searchString2 = "\(prefixString)\(searchString)\(suffixString)".bridge()
                 range.location = prefixString.utf16.count
-                let lookingRange = searchString2.rangeOfString(patternString, options: [.RegularExpressionSearch, .AnchoredSearch], range: range, locale: nil)
-                let matchRange = searchString2.rangeOfString(patternString, options: [.RegularExpressionSearch], range: range, locale: nil)
+                let lookingRange = searchString2.range(of: patternString, options: [.regularExpressionSearch, .anchoredSearch], range: range, locale: nil)
+                let matchRange = searchString2.range(of: patternString, options: [.regularExpressionSearch], range: range, locale: nil)
                 
                 let lookingResult = lookingRange.location == range.location
                 let matchResult = NSEqualRanges(matchRange, range)
@@ -70,8 +70,8 @@ class TestNSRegularExpression : XCTestCase {
                 let suffixString = " becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary becomes necessary"
                 let searchString2 = "\(prefixString)\(searchString)\(suffixString)".bridge()
                 range.location = prefixString.utf16.count
-                let lookingRange = searchString2.rangeOfString(patternString, options:  [.RegularExpressionSearch, .AnchoredSearch], range: NSMakeRange(range.location, range.length + suffixString.utf16.count), locale: nil)
-                let matchRange = searchString2.rangeOfString(patternString, options: .RegularExpressionSearch, range: NSMakeRange(range.location, range.length + suffixString.utf16.count), locale: nil)
+                let lookingRange = searchString2.range(of: patternString, options:  [.regularExpressionSearch, .anchoredSearch], range: NSMakeRange(range.location, range.length + suffixString.utf16.count), locale: nil)
+                let matchRange = searchString2.range(of: patternString, options: .regularExpressionSearch, range: NSMakeRange(range.location, range.length + suffixString.utf16.count), locale: nil)
                 let lookingResult = lookingRange.location == range.location
                 let matchResult = lookingResult && (matchRange.length >= range.length)
                 
@@ -84,8 +84,8 @@ class TestNSRegularExpression : XCTestCase {
                 let suffixString = " becomes necessary’"
                 let searchString2 = "\(prefixString)\(searchString)\(suffixString)".bridge()
                 range.location = prefixString.utf16.count
-                let lookingRange = searchString2.rangeOfString(patternString, options: [.RegularExpressionSearch, .AnchoredSearch], range: range, locale: nil)
-                let matchRange = searchString2.rangeOfString(patternString, options: [.RegularExpressionSearch], range: range, locale: nil)
+                let lookingRange = searchString2.range(of: patternString, options: [.regularExpressionSearch, .anchoredSearch], range: range, locale: nil)
+                let matchRange = searchString2.range(of: patternString, options: [.regularExpressionSearch], range: range, locale: nil)
                 
                 let lookingResult = lookingRange.location == range.location
                 let matchResult = NSEqualRanges(matchRange, range)

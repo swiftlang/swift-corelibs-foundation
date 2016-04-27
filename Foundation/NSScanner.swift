@@ -497,7 +497,7 @@ extension NSScanner {
         var stringLoc = scanLocation
         let stringLen = string.length
         if let invSet = invertedSkipSet {
-            let range = string._nsObject.rangeOfCharacterFromSet(invSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
+            let range = string._nsObject.rangeOfCharacter(from: invSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
         }
         return stringLoc == stringLen
@@ -627,17 +627,17 @@ extension NSScanner {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
-        let options: NSStringCompareOptions = [caseSensitive ? [] : NSStringCompareOptions.CaseInsensitiveSearch, NSStringCompareOptions.AnchoredSearch]
+        let options: NSStringCompareOptions = [caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch, NSStringCompareOptions.anchoredSearch]
         
         if let invSkipSet = charactersToBeSkipped?.invertedSet {
-            let range = str.rangeOfCharacterFromSet(invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
+            let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
         }
         
-        let range = str.rangeOfString(searchString, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
+        let range = str.range(of: searchString, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
         if range.length > 0 {
             /* ??? Is the range below simply range? 99.9% of the time, and perhaps even 100% of the time... Hmm... */
-            let res = str.substringWithRange(NSMakeRange(stringLoc, range.location + range.length - stringLoc))
+            let res = str.substring(with: NSMakeRange(stringLoc, range.location + range.length - stringLoc))
             scanLocation = range.location + range.length
             return res
         }
@@ -648,17 +648,17 @@ extension NSScanner {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
-        let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.CaseInsensitiveSearch
+        let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch
         if let invSkipSet = charactersToBeSkipped?.invertedSet {
-            let range = str.rangeOfCharacterFromSet(invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
+            let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
         }
-        var range = str.rangeOfCharacterFromSet(set.invertedSet, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
+        var range = str.rangeOfCharacter(from: set.invertedSet, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
         if range.length == 0 {
             range.location = stringLen
         }
         if stringLoc != range.location {
-            let res = str.substringWithRange(NSMakeRange(stringLoc, range.location - stringLoc))
+            let res = str.substring(with: NSMakeRange(stringLoc, range.location - stringLoc))
             scanLocation = range.location
             return res
         }
@@ -669,17 +669,17 @@ extension NSScanner {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
-        let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.CaseInsensitiveSearch
+        let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch
         if let invSkipSet = charactersToBeSkipped?.invertedSet {
-            let range = str.rangeOfCharacterFromSet(invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
+            let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
         }
-        var range = str.rangeOfString(string, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
+        var range = str.range(of: string, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
         if range.length == 0 {
             range.location = stringLen
         }
         if stringLoc != range.location {
-            let res = str.substringWithRange(NSMakeRange(stringLoc, range.location - stringLoc))
+            let res = str.substring(with: NSMakeRange(stringLoc, range.location - stringLoc))
             scanLocation = range.location
             return res
         }
@@ -690,17 +690,17 @@ extension NSScanner {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
-        let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.CaseInsensitiveSearch
+        let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch
         if let invSkipSet = charactersToBeSkipped?.invertedSet {
-            let range = str.rangeOfCharacterFromSet(invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
+            let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
         }
-        var range = str.rangeOfCharacterFromSet(set, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
+        var range = str.rangeOfCharacter(from: set, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
         if range.length == 0 {
             range.location = stringLen
         }
         if stringLoc != range.location {
-            let res = str.substringWithRange(NSMakeRange(stringLoc, range.location - stringLoc))
+            let res = str.substring(with: NSMakeRange(stringLoc, range.location - stringLoc))
             scanLocation = range.location
             return res
         }

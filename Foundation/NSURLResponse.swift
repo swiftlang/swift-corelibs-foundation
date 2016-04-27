@@ -327,12 +327,12 @@ private extension String {
             if type == nil {
                 type = string
             } else {
-                if let r = string.rangeOfString("=") {
-                    let name = string[string.startIndex..<r.lowerBound].stringByTrimmingCharactersInSet(ws)
-                    let value = string[r.upperBound..<string.endIndex].stringByTrimmingCharactersInSet(ws)
+                if let r = string.range(of: "=") {
+                    let name = string[string.startIndex..<r.lowerBound].trimmingCharacters(in: ws)
+                    let value = string[r.upperBound..<string.endIndex].trimmingCharacters(in: ws)
                     parameters.append(ValueWithParameters.Parameter(attribute: name, value: value))
                 } else {
-                    let name = string.stringByTrimmingCharactersInSet(ws)
+                    let name = string.trimmingCharacters(in: ws)
                     parameters.append(ValueWithParameters.Parameter(attribute: name, value: nil))
                 }
             }

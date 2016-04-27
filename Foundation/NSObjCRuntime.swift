@@ -249,7 +249,7 @@ private let _SwiftFoundationModuleName = "Foundation"
  */
 public func NSStringFromClass(_ aClass: AnyClass) -> String {
     let aClassName = String(reflecting: aClass).bridge()
-    let components = aClassName.componentsSeparatedByString(".")
+    let components = aClassName.components(separatedBy: ".")
     
     guard components.count == 2 else {
         fatalError("NSStringFromClass: \(String(reflecting: aClass)) is not a top-level class")
@@ -272,7 +272,7 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
  */
 public func NSClassFromString(_ aClassName: String) -> AnyClass? {
     let aClassNameWithPrefix : String
-    let components = aClassName.bridge().componentsSeparatedByString(".")
+    let components = aClassName.bridge().components(separatedBy: ".")
     
     switch components.count {
     case 1:

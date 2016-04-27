@@ -828,7 +828,7 @@ public class NSKeyedUnarchiver : NSCoder {
             break
         case .CharPtr:
             if let ns = decodeObject() as? NSString {
-                let string = ns.UTF8String! // XXX leaky
+                let string = ns.utf8String! // XXX leaky
                 unsafeBitCast(addr, to: UnsafeMutablePointer<UnsafePointer<Int8>>.self).pointee = string
             }
             break

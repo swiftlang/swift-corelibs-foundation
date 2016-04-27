@@ -125,7 +125,7 @@ class TestNSData: XCTestCase {
     func test_initializeWithBase64EncodedDataGetsDecodedData() {
         let plainText = "ARMA virumque cano, Troiae qui primus ab oris\nItaliam, fato profugus, Laviniaque venit"
         let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHByaW11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
-        guard let encodedData = encodedText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+        guard let encodedData = encodedText.bridge().data(using: NSUTF8StringEncoding) else {
             XCTFail("Could not get UTF-8 data")
             return
         }
@@ -139,11 +139,11 @@ class TestNSData: XCTestCase {
         }
 
         XCTAssertEqual(decodedText, plainText)
-        XCTAssertTrue(decodedData.isEqual(to: plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding)!))    }
+        XCTAssertTrue(decodedData.isEqual(to: plainText.bridge().data(using: NSUTF8StringEncoding)!))    }
     
     func test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil() {
         let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHBya$W11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
-        guard let encodedData = encodedText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+        guard let encodedData = encodedText.bridge().data(using: NSUTF8StringEncoding) else {
             XCTFail("Could not get UTF-8 data")
             return
         }
@@ -154,7 +154,7 @@ class TestNSData: XCTestCase {
     func test_initializeWithBase64EncodedDataWithNonBase64CharacterWithOptionToAllowItSkipsCharacter() {
         let plainText = "ARMA virumque cano, Troiae qui primus ab oris\nItaliam, fato profugus, Laviniaque venit"
         let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHBya$W11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
-        guard let encodedData = encodedText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+        guard let encodedData = encodedText.bridge().data(using: NSUTF8StringEncoding) else {
             XCTFail("Could not get UTF-8 data")
             return
         }
@@ -168,7 +168,7 @@ class TestNSData: XCTestCase {
         }
         
         XCTAssertEqual(decodedText, plainText)
-        XCTAssertTrue(decodedData.isEqual(to: plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding)!))
+        XCTAssertTrue(decodedData.isEqual(to: plainText.bridge().data(using: NSUTF8StringEncoding)!))
     }
     
     func test_initializeWithBase64EncodedStringGetsDecodedData() {
@@ -189,7 +189,7 @@ class TestNSData: XCTestCase {
     func test_base64EncodedDataGetsEncodedText() {
         let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
         let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1aXQgYEFjaGF0ZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVuYSBsYWJvcmlzP2A="
-        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+        guard let data = plainText.bridge().data(using: NSUTF8StringEncoding) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
@@ -204,7 +204,7 @@ class TestNSData: XCTestCase {
     func test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed() {
         let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
         let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1\naXQgYEFjaGF0ZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVu\nYSBsYWJvcmlzP2A="
-        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+        guard let data = plainText.bridge().data(using: NSUTF8StringEncoding) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
@@ -219,7 +219,7 @@ class TestNSData: XCTestCase {
     func test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn() {
         let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
         let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1aXQgYEFjaGF0\rZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVuYSBsYWJvcmlzP2A="
-        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+        guard let data = plainText.bridge().data(using: NSUTF8StringEncoding) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
@@ -234,7 +234,7 @@ class TestNSData: XCTestCase {
     func test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth() {
         let plainText = "Revocate animos, maestumque timorem mittite: forsan et haec olim meminisse iuvabit."
         let encodedText = "UmV2b2NhdGUgYW5pbW9zLCBtYWVzdHVtcXVlIHRpbW9yZW0gbWl0dGl0ZTogZm9yc2FuIGV0IGhh\r\nZWMgb2xpbSBtZW1pbmlzc2UgaXV2YWJpdC4="
-        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+        guard let data = plainText.bridge().data(using: NSUTF8StringEncoding) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
@@ -249,7 +249,7 @@ class TestNSData: XCTestCase {
     func test_base64EncodedStringGetsEncodedText() {
         let plainText = "Revocate animos, maestumque timorem mittite: forsan et haec olim meminisse iuvabit."
         let encodedText = "UmV2b2NhdGUgYW5pbW9zLCBtYWVzdHVtcXVlIHRpbW9yZW0gbWl0dGl0ZTogZm9yc2FuIGV0IGhhZWMgb2xpbSBtZW1pbmlzc2UgaXV2YWJpdC4="
-        guard let data = plainText.bridge().dataUsingEncoding(NSUTF8StringEncoding) else {
+        guard let data = plainText.bridge().data(using: NSUTF8StringEncoding) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }

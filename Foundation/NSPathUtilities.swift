@@ -498,7 +498,7 @@ public extension NSString {
         if caseSensetive {
             return { $0 != nil && $0!.hasPrefix(thePrefix) }
         } else {
-            return { $0 != nil && $0!.bridge().rangeOfString(thePrefix, options: .CaseInsensitiveSearch).location == 0 }
+            return { $0 != nil && $0!.bridge().range(of: thePrefix, options: .caseInsensitiveSearch).location == 0 }
         }
     }
     
