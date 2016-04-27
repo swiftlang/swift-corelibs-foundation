@@ -237,8 +237,8 @@ extension TestNSJSONSerialization {
                     return
                 }
                 let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [Any]
-                XCTAssertEqual(result?[0] as? Double,     1)
-                XCTAssertEqual(result?[1] as? Double,    -1)
+                XCTAssertEqual(result?[0] as? Int,        1)
+                XCTAssertEqual(result?[1] as? Int,       -1)
                 XCTAssertEqual(result?[2] as? Double,   1.3)
                 XCTAssertEqual(result?[3] as? Double,  -1.3)
                 XCTAssertEqual(result?[4] as? Double,  1000)
@@ -309,7 +309,7 @@ extension TestNSJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try NSJSONSerialization.jsonObject(with: data, options: .AllowFragments) as? Double
+                let result = try NSJSONSerialization.jsonObject(with: data, options: .AllowFragments) as? Int
                 XCTAssertEqual(result, 3)
             }
         } catch {

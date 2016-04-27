@@ -625,24 +625,34 @@ private struct JSONReader {
         0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, // 0...9
         0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
     ]
-    func parseNumber(_ input: Index) throws -> (Double, Index)? {
-        func parseDouble(_ address: UnsafePointer<UInt8>) -> (Double, IndexDistance)? {
+    func parseNumber(_ input: Index) throws -> (Any, Index)? {
+        func parseTypedNumber(_ address: UnsafePointer<UInt8>) -> (Any, IndexDistance)? {
             let startPointer = UnsafePointer<Int8>(address)
-            let endPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
-            defer { endPointer.deallocateCapacity(1) }
+            let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
+            defer { intEndPointer.deallocateCapacity(1) }
+            let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
+            defer { doubleEndPointer.deallocateCapacity(1) }
             
-            let result = strtod(startPointer, endPointer)
-            let distance = startPointer.distance(to: endPointer[0]!)
+            let intResult = strtol(startPointer, intEndPointer, 10)
+            let intDistance = startPointer.distance(to: intEndPointer[0]!)
+            let doubleResult = strtod(startPointer, doubleEndPointer)
+            let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
             
-            guard distance > 0 else {
+            guard intDistance > 0 || doubleDistance > 0 else {
                 return nil
             }
             
-            return (result, distance)
+            if intDistance == doubleDistance {
+                return (intResult, intDistance)
+            }
+            guard doubleDistance > 0 else {
+                return nil
+            }
+            return (doubleResult, doubleDistance)
         }
         
         if source.encoding == NSUTF8StringEncoding {
-            return parseDouble(source.buffer.baseAddress!.advanced(by: input)).map { return ($0.0, input + $0.1) }
+            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input)).map { return ($0.0, input + $0.1) }
         }
         else {
             var numberCharacters = [UInt8]()
@@ -654,7 +664,7 @@ private struct JSONReader {
             
             numberCharacters.append(0)
             
-            return numberCharacters.withUnsafeBufferPointer { parseDouble($0.baseAddress!) }.map { return ($0.0, index) }
+            return numberCharacters.withUnsafeBufferPointer { parseTypedNumber($0.baseAddress!) }.map { return ($0.0, index) }
         }
     }
 
