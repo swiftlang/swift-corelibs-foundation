@@ -360,7 +360,7 @@ extension Unmanaged {
 }
 
 extension Array {
-    internal mutating func withUnsafeMutablePointerOrAllocation<R>(_ count: Int, fastpath: UnsafeMutablePointer<Element>? = nil, @noescape body: (UnsafeMutablePointer<Element>) -> R) -> R {
+    internal mutating func withUnsafeMutablePointerOrAllocation<R>(_ count: Int, fastpath: UnsafeMutablePointer<Element>? = nil, body: @noescape (UnsafeMutablePointer<Element>) -> R) -> R {
         if let fastpath = fastpath {
             return body(fastpath)
         } else if self.count > count {

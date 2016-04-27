@@ -527,7 +527,7 @@ public class NSKeyedUnarchiver : NSCoder {
         Helper for NSArray/NSDictionary to dereference and decode an array of objects
      */
     internal func _decodeArrayOfObjectsForKey(_ key: String,
-                                              @noescape withBlock block: (Any) -> Void) throws {
+                                              withBlock block: @noescape (Any) -> Void) throws {
         let objectRefs : Array<Any>? = _decodeValue(forKey: key)
         
         guard let unwrappedObjectRefs = objectRefs else {

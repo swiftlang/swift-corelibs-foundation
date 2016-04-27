@@ -169,10 +169,10 @@ internal func _bytesInEncoding(_ str: NSString, _ encoding: NSStringEncoding, _ 
     var used = 0
     var options: NSStringEncodingConversionOptions = []
     if externalRep {
-        options.unionInPlace(.ExternalRepresentation)
+        options.formUnion(.ExternalRepresentation)
     }
     if lossy {
-        options.unionInPlace(.AllowLossy)
+        options.formUnion(.AllowLossy)
     }
     if !str.getBytes(nil, maxLength: Int.max - 1, usedLength: &cLength, encoding: encoding, options: options, range: theRange, remainingRange: nil) {
         if fatalOnError {
@@ -1294,8 +1294,8 @@ public class NSMutableString : NSString {
         if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
             // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
             let start = _storage.startIndex
-            let min = start.advanced(by: range.location)
-            let max = start.advanced(by: range.location + range.length)
+            let min = _storage.index(start, offsetBy: range.location)
+            let max = _storage.index(start, offsetBy: range.location + range.length)
             _storage.replaceSubrange(min..<max, with: aString)
         } else {
             NSRequiresConcreteImplementation()

@@ -279,7 +279,7 @@ internal struct _OperationList {
         return all.count
     }
     
-    func map<T>(@noescape _ transform: (NSOperation) throws -> T) rethrows -> [T] {
+    func map<T>(_ transform: @noescape (NSOperation) throws -> T) rethrows -> [T] {
         return try all.map(transform)
     }
 }

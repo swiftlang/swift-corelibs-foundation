@@ -1038,9 +1038,9 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             comps.minute = m
             comps.second = s
             var options: NSCalendarOptions = .MatchNextTime
-            options.unionInPlace(opts.contains(.MatchLast) ? .MatchLast : .MatchFirst)
+            options.formUnion(opts.contains(.MatchLast) ? .MatchLast : .MatchFirst)
             if opts.contains(.MatchStrictly) {
-                options.unionInPlace(.MatchStrictly)
+                options.formUnion(.MatchStrictly)
             }
             if let result = nextDateAfterDate(range.start.addingTimeInterval(-0.5), matchingComponents: comps, options: options) {
                 if result.compare(range.start) == .OrderedAscending {
@@ -1062,7 +1062,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         var unitFlags: NSCalendarUnit = []
         for unit in units {
             if components.valueForComponent(unit) != NSDateComponentUndefined {
-                unitFlags.unionInPlace(unit)
+                unitFlags.formUnion(unit)
             }
         }
         if unitFlags == [] {

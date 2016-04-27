@@ -133,7 +133,8 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
         let start = encodingView.startIndex
         if let buffer = buffer {
             for idx in 0..<range.length {
-                let character = encodingView[start.advanced(by: idx + range.location)]
+                let characterIndex = encodingView.index(start, offsetBy: idx + range.location)
+                let character = encodingView[characterIndex]
                 buffer.advanced(by: idx).initialize(with: character)
             }
         }
