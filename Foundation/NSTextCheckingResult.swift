@@ -45,9 +45,9 @@ public class NSTextCheckingResult : NSObject, NSCopying, NSCoding {
     
     /* Mandatory properties, used with all types of results. */
     public var resultType: NSTextCheckingType { NSUnimplemented() }
-    public var range: NSRange { return rangeAtIndex(0) }
+    public var range: NSRange { return range(at: 0) }
     /* A result must have at least one range, but may optionally have more (for example, to represent regular expression capture groups).  The range at index 0 always matches the range property.  Additional ranges, if any, will have indexes from 1 to numberOfRanges-1. */
-    public func rangeAtIndex(_ idx: Int) -> NSRange { NSUnimplemented() }
+    public func range(at idx: Int) -> NSRange { NSUnimplemented() }
     public var regularExpression: NSRegularExpression? { return nil }
     public var numberOfRanges: Int { return 1 }
 }
@@ -69,7 +69,7 @@ internal class _NSRegularExpressionTextCheckingResultResult : NSTextCheckingResu
     }
     
     override var resultType: NSTextCheckingType { return .RegularExpression }
-    override func rangeAtIndex(_ idx: Int) -> NSRange { return _ranges[idx] }
+    override func range(at idx: Int) -> NSRange { return _ranges[idx] }
     override var numberOfRanges: Int { return _ranges.count }
     override var regularExpression: NSRegularExpression? { return _regularExpression }
 }
