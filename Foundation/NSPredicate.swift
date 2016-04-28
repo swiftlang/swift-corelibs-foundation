@@ -89,25 +89,51 @@ extension NSArray {
 }
 
 extension NSMutableArray {
-    public func filterUsingPredicate(_ predicate: NSPredicate) { NSUnimplemented() } // evaluate a predicate against an array of objects and filter the mutable array directly
+    public func filterUsingPredicate(_ predicate: NSPredicate) {
+        let indexesToRemove = NSMutableIndexSet()
+        for (index, object) in self.enumerated() {
+            if !predicate.evaluateWithObject(object) {
+                indexesToRemove.addIndex(index)
+            }
+        }
+        self.removeObjectsAtIndexes(indexesToRemove)
+    } // evaluate a predicate against an array of objects and filter the mutable array directly
 }
 
 extension NSSet {
-    public func filteredSetUsingPredicate(_ predicate: NSPredicate) -> Set<NSObject> { NSUnimplemented() } // evaluate a predicate against a set of objects and return a filtered set
+    public func filteredSetUsingPredicate(_ predicate: NSPredicate) -> Set<NSObject> {
+        return Set(bridge().filter({ object in
+            return predicate.evaluateWithObject(object)
+        }))
+    } // evaluate a predicate against a set of objects and return a filtered set
 }
 
 extension NSMutableSet {
-    public func filterUsingPredicate(_ predicate: NSPredicate) { NSUnimplemented() } // evaluate a predicate against a set of objects and filter the mutable set directly
+    public func filterUsingPredicate(_ predicate: NSPredicate) {
+        for object in self {
+            if !predicate.evaluateWithObject(object) {
+                self.removeObject(object)
+            }
+        }
+    } // evaluate a predicate against a set of objects and filter the mutable set directly
 }
 
 extension NSOrderedSet {
-    
-    public func filteredOrderedSetUsingPredicate(_ p: NSPredicate) -> NSOrderedSet { NSUnimplemented() } // evaluate a predicate against an ordered set of objects and return a filtered ordered set
+    public func filteredOrderedSetUsingPredicate(_ predicate: NSPredicate) -> NSOrderedSet {
+        return NSOrderedSet(array: self._orderedStorage.bridge().filter({ object in
+            return predicate.evaluateWithObject(object)
+        }))
+    } // evaluate a predicate against an ordered set of objects and return a filtered ordered set
 }
 
 extension NSMutableOrderedSet {
-    
-    public func filterUsingPredicate(_ p: NSPredicate) { NSUnimplemented() } // evaluate a predicate against an ordered set of objects and filter the mutable ordered set directly
+    public func filterUsingPredicate(_ predicate: NSPredicate) {
+        let indexesToRemove = NSMutableIndexSet()
+        for (index, object) in self.enumerated() {
+            if !predicate.evaluateWithObject(object) {
+                indexesToRemove.addIndex(index)
+            }
+        }
+        self.removeObjectsAtIndexes(indexesToRemove)
+    } // evaluate a predicate against an ordered set of objects and filter the mutable ordered set directly
 }
-
-
