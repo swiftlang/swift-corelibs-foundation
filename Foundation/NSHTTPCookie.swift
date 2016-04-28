@@ -317,7 +317,7 @@ public class NSHTTPCookie : NSObject {
     /// - Parameter cookies: The cookies to turn into request headers.
     /// - Returns: A dictionary where the keys are header field names, and the values
     /// are the corresponding header field values.
-    public class func requestHeaderFieldsWithCookies(_ cookies: [NSHTTPCookie]) -> [String : String] {
+    public class func requestHeaderFields(with cookies: [NSHTTPCookie]) -> [String : String] {
         var cookieString = cookies.reduce("") { (sum, next) -> String in
             return sum + "\(next.cookieRepresentation.name)=\(next.cookieRepresentation.value); "
         }
@@ -336,7 +336,7 @@ public class NSHTTPCookie : NSObject {
     /// - Parameter headerFields: The response header fields to check for cookies.
     /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpeted.
     /// - Returns: An array of NSHTTPCookie objects
-    public class func cookiesWithResponseHeaderFields(_ headerFields: [String : String], forURL URL: NSURL) -> [NSHTTPCookie] { NSUnimplemented() }
+    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL URL: NSURL) -> [NSHTTPCookie] { NSUnimplemented() }
     
     /// Returns a dictionary representation of the receiver.
     ///
@@ -380,13 +380,13 @@ public class NSHTTPCookie : NSObject {
     /*@NSCopying*/ public var expiresDate: NSDate? {
         return self.cookieRepresentation.expiresDate
     }
-    
+   
     /// Whether the receiver is session-only.
     ///
     /// `true` if this receiver should be discarded at the end of the
     /// session (regardless of expiration date), `false` if receiver need not
     /// be discarded at the end of the session.
-    public var sessionOnly: Bool {
+    public var isSessionOnly: Bool {
         return self.cookieRepresentation.sessionOnly
     }
     
@@ -408,14 +408,14 @@ public class NSHTTPCookie : NSObject {
     public var path: String {
         return self.cookieRepresentation.path
     }
-    
+   
     /// Whether the receiver should be sent only over secure channels
     ///
     /// Cookies may be marked secure by a server (or by a javascript).
     /// Cookies marked as such must only be sent via an encrypted connection to
     /// trusted servers (i.e. via SSL or TLS), and should not be delievered to any
-    /// javascript applications to prevent cross-site scripting vulnerabilities.
-    public var secure: Bool {
+    /// javascript applications to prevent cross-site scripting vulnerabilities. 
+    public var isSecure: Bool {
         return self.cookieRepresentation.secure
     }
     
@@ -426,7 +426,7 @@ public class NSHTTPCookie : NSObject {
     /// for URL's that match both the path and domain of the respective Cookies.
     /// Specifically these cookies should not be delivered to any javascript
     /// applications to prevent cross-site scripting vulnerabilities.
-    public var HTTPOnly: Bool {
+    public var isHTTPOnly: Bool {
         return self.cookieRepresentation.HTTPOnly
     }
     
