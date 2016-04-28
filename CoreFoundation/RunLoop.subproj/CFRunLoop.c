@@ -78,8 +78,8 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void);
 #include <sys/eventfd.h>
 #include <sys/timerfd.h>
 
-#define _dispatch_get_main_queue_port_4CF dispatch_get_main_queue_eventfd_np
-#define _dispatch_main_queue_callback_4CF(x) dispatch_main_queue_drain_np()
+#define _dispatch_get_main_queue_port_4CF dispatch_get_main_queue_eventfd_4CF
+#define _dispatch_main_queue_callback_4CF(x) dispatch_main_queue_drain_4CF()
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR || DEPLOYMENT_TARGET_LINUX

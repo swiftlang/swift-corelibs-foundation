@@ -805,7 +805,12 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name);
 #define pthread_setname_np _NS_pthread_setname_np
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_LINUX
+CF_EXPORT Boolean _CFIsMainThread(void);
+#define pthread_main_np _CFIsMainThread
+#endif
+
+#if DEPLOYMENT_TARGET_WINDOWS
 // replacement for DISPATCH_QUEUE_OVERCOMMIT until we get a bug fix in dispatch on Windows
 // <rdar://problem/7923891> dispatch on Windows: Need queue_private.h
 #define DISPATCH_QUEUE_OVERCOMMIT 2
