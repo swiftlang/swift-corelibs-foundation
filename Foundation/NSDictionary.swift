@@ -41,17 +41,12 @@ extension Dictionary : _ObjectTypeBridgeable {
         
         if x.dynamicType == NSDictionary.self || x.dynamicType == NSMutableDictionary.self {
             x.enumerateKeysAndObjectsUsingBlock { key, value, stop in
-                if let k = key as? Key {
-                    if let v = value as? Value {
-                        dict[k] = v
-                    } else {
-                        failedConversion = true
-                        stop.pointee = true
-                    }
-                } else {
+                guard let key = key as? Key, let value = value as? Value else {
                     failedConversion = true
                     stop.pointee = true
+                    return
                 }
+                dict[key] = value
             }
         } else if x.dynamicType == _NSCFDictionary.self {
             let cf = x._cfObject
@@ -65,17 +60,11 @@ extension Dictionary : _ObjectTypeBridgeable {
             for idx in 0..<cnt {
                 let key = unsafeBitCast(keys.advanced(by: idx).pointee!, to: AnyObject.self)
                 let value = unsafeBitCast(values.advanced(by: idx).pointee!, to: AnyObject.self)
-                if let k = key as? Key {
-                    if let v = value as? Value {
-                        dict[k] = v
-                    } else {
-                        failedConversion = true
-                        break
-                    }
-                } else {
+                guard let k = key as? Key, let v = value as? Value else {
                     failedConversion = true
                     break
                 }
+                dict[k] = v
             }
             keys.deinitialize(count: cnt)
             values.deinitialize(count: cnt)
@@ -255,10 +244,9 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let otherObject = object where otherObject is NSDictionary else {
+        guard let otherDictionary = object as? NSDictionary else {
             return false
         }
-        let otherDictionary = otherObject as! NSDictionary
         return self.isEqualToDictionary(otherDictionary.bridge())
     }
 
