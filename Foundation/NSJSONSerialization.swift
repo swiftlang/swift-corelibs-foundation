@@ -484,12 +484,7 @@ private struct JSONReader {
     }
 
     func consumeStructure(_ ascii: UInt8, input: Index) throws -> Index? {
-        switch ascii {
-        case Structure.QuotationMark:
-            return try consumeWhitespace(input).flatMap(consumeASCII(ascii)) // for strings we don't consume(ignore) the whitespaces after the starting Quotation Mark because they are part of string  e.g in "{\"title\" : \" hello world!!\" }" the value should be " hello world!!" instead of "hello world"
-        default:
-            return try consumeWhitespace(input).flatMap(consumeASCII(ascii)).flatMap(consumeWhitespace)
-        }
+        return try consumeWhitespace(input).flatMap(consumeASCII(ascii)).flatMap(consumeWhitespace)
     }
 
     func consumeASCII(_ ascii: UInt8) -> (Index) throws -> Index? {
@@ -530,7 +525,7 @@ private struct JSONReader {
     //MARK: - String Parsing
 
     func parseString(_ input: Index) throws -> (String, Index)? {
-        guard let beginIndex = try consumeStructure(Structure.QuotationMark, input: input) else {
+        guard let beginIndex = try consumeWhitespace(input).flatMap(consumeASCII(Structure.QuotationMark)) else {
             return nil
         }
         var chunkIndex: Int = beginIndex
