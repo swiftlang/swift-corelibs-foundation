@@ -31,6 +31,36 @@ public enum NSURLCredentialPersistence : UInt {
     @discussion This class is an immutable object representing an authentication credential.  The actual type of the credential is determined by the constructor called in the categories declared below.
 */
 public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
+    internal var _user : String
+    internal var _password : String
+    internal var _persistence : NSURLCredentialPersistence
+    
+    /*!
+        @method initWithUser:password:persistence:
+        @abstract Initialize a NSURLCredential with a user and password
+        @param user the username
+        @param password the password
+        @param persistence enum that says to store per session, permanently or not at all
+        @result The initialized NSURLCredential
+     */
+    public init(user: String, password: String, persistence: NSURLCredentialPersistence) {
+        guard persistence != .Permanent && persistence != .Synchronizable else {
+            NSUnimplemented()
+        }
+        _user = user
+        _password = password
+        _persistence = persistence
+        super.init()
+    }
+    
+    /*!
+        @method credentialWithUser:password:persistence:
+        @abstract Create a new NSURLCredential with a user and password
+        @param user the username
+        @param password the password
+        @param persistence enum that says to store per session, permanently or not at all
+        @result The new autoreleased NSURLCredential
+     */
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
@@ -57,36 +87,14 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
         @abstract Determine whether this credential is or should be stored persistently
         @result A value indicating whether this credential is stored permanently, per session or not at all.
      */
-    public var persistence: NSURLCredentialPersistence { NSUnimplemented() }
-}
-
-extension NSURLCredential {
-    
-    /*!
-        @method initWithUser:password:persistence:
-        @abstract Initialize a NSURLCredential with a user and password
-        @param user the username
-        @param password the password
-        @param persistence enum that says to store per session, permanently or not at all
-        @result The initialized NSURLCredential
-    */
-    public convenience init(user: String, password: String, persistence: NSURLCredentialPersistence) { NSUnimplemented() }
-    
-    /*!
-        @method credentialWithUser:password:persistence:
-        @abstract Create a new NSURLCredential with a user and password
-        @param user the username
-        @param password the password
-        @param persistence enum that says to store per session, permanently or not at all
-        @result The new autoreleased NSURLCredential
-    */
+    public var persistence: NSURLCredentialPersistence { return _persistence }
     
     /*!
         @method user
         @abstract Get the username
         @result The user string
-    */
-    public var user: String? { NSUnimplemented() }
+     */
+    public var user: String? { return _user }
     
     /*!
         @method password
@@ -95,9 +103,9 @@ extension NSURLCredential {
         @discussion This method might actually attempt to retrieve the
         password from an external store, possible resulting in prompting,
         so do not call it unless needed.
-    */
-    public var password: String? { NSUnimplemented() }
-    
+     */
+    public var password: String? { return _password }
+
     /*!
         @method hasPassword
         @abstract Find out if this credential has a password, without trying to get it
@@ -106,8 +114,11 @@ extension NSURLCredential {
         external store, the password method may return nil even if this
         method returns YES, since getting the password may fail, or the
         user may refuse access.
-    */
-    public var hasPassword: Bool { NSUnimplemented() }
+     */
+    public var hasPassword: Bool {
+        // Currently no support for SecTrust/SecIdentity, always return true
+        return true
+    }
 }
 
 // TODO: We have no implementation for Security.framework primitive types SecIdentity and SecTrust yet

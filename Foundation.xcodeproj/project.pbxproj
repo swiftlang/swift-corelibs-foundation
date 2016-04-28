@@ -339,6 +339,7 @@
 		EADE0BCB1BD15E0000C49C64 /* NSXMLNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */; };
 		EADE0BCC1BD15E0000C49C64 /* NSXMLNodeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */; };
 		EADE0BCD1BD15E0000C49C64 /* NSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */; };
+		F9E0BB371CA70B8000F7FF3C /* TestNSURLCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E0BB361CA70B8000F7FF3C /* TestNSURLCredential.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -736,6 +737,7 @@
 		EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNode.swift; sourceTree = "<group>"; };
 		EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNodeOptions.swift; sourceTree = "<group>"; };
 		EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLParser.swift; sourceTree = "<group>"; };
+		F9E0BB361CA70B8000F7FF3C /* TestNSURLCredential.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLCredential.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1201,6 +1203,7 @@
 				61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */,
 				84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */,
 				EA66F6431BF1619600136161 /* TestNSURL.swift */,
+				F9E0BB361CA70B8000F7FF3C /* TestNSURLCredential.swift */,
 				83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */,
 				7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */,
 				555683BC1C1250E70041D4C6 /* TestNSUserDefaults.swift */,
@@ -1976,6 +1979,7 @@
 				5B13B32F1C582D4C00651CE2 /* TestNSGeometry.swift in Sources */,
 				5B13B3351C582D4C00651CE2 /* TestNSKeyedUnarchiver.swift in Sources */,
 				5B13B33D1C582D4C00651CE2 /* TestNSPipe.swift in Sources */,
+				F9E0BB371CA70B8000F7FF3C /* TestNSURLCredential.swift in Sources */,
 				5B13B3341C582D4C00651CE2 /* TestNSKeyedArchiver.swift in Sources */,
 				5B13B3441C582D4C00651CE2 /* TestNSSet.swift in Sources */,
 				5B13B3321C582D4C00651CE2 /* TestNSIndexSet.swift in Sources */,
