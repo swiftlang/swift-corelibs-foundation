@@ -87,6 +87,7 @@
 
 #include <CoreFoundation/CFURLPriv.h>
 #include <CoreFoundation/CFURLComponents.h>
+#include <CoreFoundation/CFRunArray.h>
 
 #include <CoreFoundation/ForSwiftFoundationOnly.h>
 
