@@ -31,9 +31,9 @@ public enum NSURLCredentialPersistence : UInt {
     @discussion This class is an immutable object representing an authentication credential.  The actual type of the credential is determined by the constructor called in the categories declared below.
 */
 public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
-    internal var _user : String
-    internal var _password : String
-    internal var _persistence : NSURLCredentialPersistence
+    private var _user : String
+    private var _password : String
+    private var _persistence : NSURLCredentialPersistence
     
     /*!
         @method initWithUser:password:persistence:
