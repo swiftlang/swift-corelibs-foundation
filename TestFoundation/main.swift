@@ -32,7 +32,7 @@ XCTMain([
     testCase(TestNSDate.allTests),
     testCase(TestNSDateFormatter.allTests),
     testCase(TestNSDictionary.allTests),
-    testCase(TestNSFileManger.allTests),
+    testCase(TestNSFileManager.allTests),
     testCase(TestNSGeometry.allTests),
     testCase(TestNSHTTPCookie.allTests),
     testCase(TestNSIndexPath.allTests),

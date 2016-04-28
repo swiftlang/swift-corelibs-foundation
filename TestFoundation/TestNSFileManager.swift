@@ -15,9 +15,9 @@
     import SwiftXCTest
 #endif
 
-class TestNSFileManger : XCTestCase {
+class TestNSFileManager : XCTestCase {
     
-    static var allTests: [(String, TestNSFileManger -> () throws -> Void)] {
+    static var allTests: [(String, TestNSFileManager -> () throws -> Void)] {
         return [
             ("test_createDirectory", test_createDirectory ),
             ("test_createFile", test_createFile ),
