@@ -93,6 +93,7 @@ extension TestNSJSONSerialization {
             ("test_deserialize_emptyArray", test_deserialize_emptyArray),
             ("test_deserialize_multiStringArray", test_deserialize_multiStringArray),
             ("test_deserialize_unicodeString", test_deserialize_unicodeString),
+            ("test_deserialize_stringWithSpacesAtStart", test_deserialize_stringWithSpacesAtStart),
             
             
             ("test_deserialize_values", test_deserialize_values),
@@ -147,6 +148,23 @@ extension TestNSJSONSerialization {
         } catch {
             XCTFail("Error thrown: \(error)")
         }
+    }
+    
+    func test_deserialize_stringWithSpacesAtStart(){
+        
+        let subject = "{\"title\" : \" hello world!!\" }"
+        do {
+            guard let data = subject.bridge().data(using: NSUTF8StringEncoding) else  {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let result = try NSJSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
+            XCTAssertEqual(result?["title"] as? String, " hello world!!")
+        } catch{
+            XCTFail("Error thrown: \(error)")
+        }
+        
+        
     }
     
     //MARK: - Array Deserialization
