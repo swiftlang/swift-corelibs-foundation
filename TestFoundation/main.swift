@@ -46,6 +46,7 @@ XCTMain([
     testCase(TestNSNull.allTests),
     testCase(TestNSNumber.allTests),
     testCase(TestNSNumberFormatter.allTests),
+    testCase(TestNSOperationQueue.allTests),
     testCase(TestNSOrderedSet.allTests),
     testCase(TestNSPipe.allTests),
     testCase(TestNSPredicate.allTests),
