@@ -368,7 +368,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             } else if key is NSDate {
                 line += (key as! NSDate).descriptionWithLocale(locale)
             } else if key is NSDecimalNumber {
-                line += (key as! NSDecimalNumber).descriptionWithLocale(locale)
+                line += (key as! NSDecimalNumber).description(withLocale: locale)
             } else if key is NSDictionary {
                 line += (key as! NSDictionary).descriptionWithLocale(locale, indent: level + 1)
             } else if key is NSOrderedSet {
@@ -387,7 +387,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             } else if object is NSDate {
                 line += (object as! NSDate).descriptionWithLocale(locale)
             } else if object is NSDecimalNumber {
-                line += (object as! NSDecimalNumber).descriptionWithLocale(locale)
+                line += (object as! NSDecimalNumber).description(withLocale: locale)
             } else if object is NSDictionary {
                 line += (object as! NSDictionary).descriptionWithLocale(locale, indent: level + 1)
             } else if object is NSOrderedSet {

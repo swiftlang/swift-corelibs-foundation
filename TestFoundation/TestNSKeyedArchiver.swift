@@ -174,7 +174,7 @@ class TestNSKeyedArchiver : XCTestCase {
     }
 
     func test_archive_mutable_dictionary() {
-        let mdictionary = NSMutableDictionary(objects: [NSNumber(integer: 1), NSNumber(integer: 2), NSNumber(integer: 3)],
+        let mdictionary = NSMutableDictionary(objects: [NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Int(3))],
                                               forKeys: ["one".bridge(), "two".bridge(), "three".bridge()])
         test_archive(mdictionary)
     }
@@ -203,8 +203,8 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_set() {
-        let set = NSSet(array: [NSNumber(integer: 1234234),
-                                NSNumber(integer: 2374853),
+        let set = NSSet(array: [NSNumber(value: Int(1234234)),
+                                NSNumber(value: Int(2374853)),
                                 NSString(string: "foobarbarbar"),
                                 NSValue(point: NSPoint(x: CGFloat(5.0), y: CGFloat(Double(1.5))))])
         test_archive(set, classes: [NSValue.self, NSSet.self])

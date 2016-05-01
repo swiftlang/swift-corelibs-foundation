@@ -31,15 +31,15 @@ internal let kCFNumberCGFloatType = CFNumberType.cgFloatType
 
 extension Int : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
-        self = number.integerValue
+        self = number.intValue
     }
     
     public func _bridgeToObject() -> NSNumber {
-        return NSNumber(integer: self)
+        return NSNumber(value: self)
     }
     
     public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Int?) {
-        result = x.integerValue
+        result = x.intValue
     }
     
     public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Int?) -> Bool {
@@ -50,15 +50,15 @@ extension Int : _ObjectTypeBridgeable {
 
 extension UInt : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
-        self = number.unsignedIntegerValue
+        self = number.uintValue
     }
 
     public func _bridgeToObject() -> NSNumber {
-        return NSNumber(unsignedInteger: self)
+        return NSNumber(value: self)
     }
     
     public static func _forceBridgeFromObject(_ x: NSNumber, result: inout UInt?) {
-        result = x.unsignedIntegerValue
+        result = x.uintValue
     }
     public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout UInt?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
@@ -72,7 +72,7 @@ extension Float : _ObjectTypeBridgeable {
     }
     
     public func _bridgeToObject() -> NSNumber {
-        return NSNumber(float: self)
+        return NSNumber(value: self)
     }
     
     public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Float?) {
@@ -91,7 +91,7 @@ extension Double : _ObjectTypeBridgeable {
     }
     
     public func _bridgeToObject() -> NSNumber {
-        return NSNumber(double: self)
+        return NSNumber(value: self)
     }
     
     public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Double?) {
@@ -110,7 +110,7 @@ extension Bool : _ObjectTypeBridgeable {
     }
     
     public func _bridgeToObject() -> NSNumber {
-        return NSNumber(bool: self)
+        return NSNumber(value: self)
     }
     
     public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Bool?) {
@@ -160,118 +160,108 @@ public class NSNumber : NSValue {
         _CFDeinit(self)
     }
     
-    public init(char value: Int8) {
+    public init(value: Int8) {
         super.init()
         _CFNumberInitInt8(_cfObject, value)
     }
     
-    public init(unsignedChar value: UInt8) {
+    public init(value: UInt8) {
         super.init()
         _CFNumberInitUInt8(_cfObject, value)
     }
     
-    public init(short value: Int16) {
+    public init(value: Int16) {
         super.init()
         _CFNumberInitInt16(_cfObject, value)
     }
     
-    public init(unsignedShort value: UInt16) {
+    public init(value: UInt16) {
         super.init()
         _CFNumberInitUInt16(_cfObject, value)
     }
     
-    public init(int value: Int32) {
+    public init(value: Int32) {
         super.init()
         _CFNumberInitInt32(_cfObject, value)
     }
     
-    public init(unsignedInt value: UInt32) {
+    public init(value: UInt32) {
         super.init()
         _CFNumberInitUInt32(_cfObject, value)
     }
     
-    public init(long value: Int) {
+    public init(value: Int) {
         super.init()
         _CFNumberInitInt(_cfObject, value)
     }
     
-    public init(unsignedLong value: UInt) {
+    public init(value: UInt) {
         super.init()
         _CFNumberInitUInt(_cfObject, value)
     }
     
-    public init(longLong value: Int64) {
+    public init(value: Int64) {
         super.init()
         _CFNumberInitInt64(_cfObject, value)
     }
     
-    public init(unsignedLongLong value: UInt64) {
+    public init(value: UInt64) {
         super.init()
         _CFNumberInitUInt64(_cfObject, value)
     }
     
-    public init(float value: Float) {
+    public init(value: Float) {
         super.init()
         _CFNumberInitFloat(_cfObject, value)
     }
     
-    public init(double value: Double) {
+    public init(value: Double) {
         super.init()
         _CFNumberInitDouble(_cfObject, value)
     }
     
-    public init(bool value: Bool) {
+    public init(value: Bool) {
         super.init()
         _CFNumberInitBool(_cfObject, value)
     }
     
-    public init(integer value: Int) {
-        super.init()
-        _CFNumberInitInt(_cfObject, value)
-    }
-    
-    public init(unsignedInteger value: UInt) {
-        super.init()
-        _CFNumberInitUInt(_cfObject, value)
-    }
-
     public required convenience init(bytes buffer: UnsafePointer<Void>, objCType: UnsafePointer<Int8>) {
         guard let type = _NSSimpleObjCType(UInt8(objCType.pointee)) else {
             fatalError("NSNumber.init: unsupported type encoding spec '\(String(cString: objCType))'")
         }
         switch type {
         case .Bool:
-            self.init(bool:UnsafePointer<Bool>(buffer).pointee)
+            self.init(value:UnsafePointer<Bool>(buffer).pointee)
             break
         case .Char:
-            self.init(char:UnsafePointer<Int8>(buffer).pointee)
+            self.init(value:UnsafePointer<Int8>(buffer).pointee)
             break
         case .UChar:
-            self.init(unsignedChar:UnsafePointer<UInt8>(buffer).pointee)
+            self.init(value:UnsafePointer<UInt8>(buffer).pointee)
             break
         case .Short:
-            self.init(short:UnsafePointer<Int16>(buffer).pointee)
+            self.init(value:UnsafePointer<Int16>(buffer).pointee)
             break
         case .UShort:
-            self.init(unsignedShort:UnsafePointer<UInt16>(buffer).pointee)
+            self.init(value:UnsafePointer<UInt16>(buffer).pointee)
             break
         case .Int, .Long:
-            self.init(int:UnsafePointer<Int32>(buffer).pointee)
+            self.init(value:UnsafePointer<Int32>(buffer).pointee)
             break
         case .UInt, .ULong:
-            self.init(unsignedInt:UnsafePointer<UInt32>(buffer).pointee)
+            self.init(value:UnsafePointer<UInt32>(buffer).pointee)
             break
         case .LongLong:
-            self.init(longLong:UnsafePointer<Int64>(buffer).pointee)
+            self.init(value:UnsafePointer<Int64>(buffer).pointee)
             break
         case .ULongLong:
-            self.init(unsignedLongLong:UnsafePointer<UInt64>(buffer).pointee)
+            self.init(value:UnsafePointer<UInt64>(buffer).pointee)
             break
         case .Float:
-            self.init(float:UnsafePointer<Float>(buffer).pointee)
+            self.init(value:UnsafePointer<Float>(buffer).pointee)
             break
         case .Double:
-            self.init(double:UnsafePointer<Double>(buffer).pointee)
+            self.init(value:UnsafePointer<Double>(buffer).pointee)
             break
         default:
             fatalError("NSNumber.init: unsupported type encoding spec '\(String(cString: objCType))'")
@@ -297,28 +287,28 @@ public class NSNumber : NSValue {
         } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.number") {
             let number = aDecoder._decodePropertyListForKey("NS.number")
             if let val = number as? Double {
-                self.init(double:val)
+                self.init(value:val)
             } else if let val = number as? Int {
-                self.init(long:val)
+                self.init(value:val)
             } else if let val = number as? Bool {
-                self.init(bool:val)
+                self.init(value:val)
             } else {
                 return nil
             }
         } else {
             if aDecoder.containsValueForKey("NS.boolval") {
-                self.init(bool: aDecoder.decodeBoolForKey("NS.boolval"))
+                self.init(value: aDecoder.decodeBoolForKey("NS.boolval"))
             } else if aDecoder.containsValueForKey("NS.intval") {
-                self.init(longLong: aDecoder.decodeInt64ForKey("NS.intval"))
+                self.init(value: aDecoder.decodeInt64ForKey("NS.intval"))
             } else if aDecoder.containsValueForKey("NS.dblval") {
-                self.init(double: aDecoder.decodeDoubleForKey("NS.dblval"))
+                self.init(value: aDecoder.decodeDoubleForKey("NS.dblval"))
             } else {
                 return nil
             }
         }
     }
 
-    public var charValue: Int8 {
+    public var int8Value: Int8 {
         var val: Int8 = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int8>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberCharType, value)
@@ -326,7 +316,7 @@ public class NSNumber : NSValue {
         return val
     }
 
-    public var unsignedCharValue: UInt8 {
+    public var uint8Value: UInt8 {
         var val: UInt8 = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt8>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberCharType, value)
@@ -334,7 +324,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var shortValue: Int16 {
+    public var int16Value: Int16 {
         var val: Int16 = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int16>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberShortType, value)
@@ -342,7 +332,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var unsignedShortValue: UInt16 {
+    public var uint16Value: UInt16 {
         var val: UInt16 = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt16>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberShortType, value)
@@ -350,7 +340,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var intValue: Int32 {
+    public var int32Value: Int32 {
         var val: Int32 = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int32>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberIntType, value)
@@ -358,7 +348,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var unsignedIntValue: UInt32 {
+    public var uint32Value: UInt32 {
         var val: UInt32 = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt32>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberIntType, value)
@@ -366,23 +356,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var longValue: Int {
-        var val: Int = 0
-        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int>) -> Void in
-            CFNumberGetValue(_cfObject, kCFNumberLongType, value)
-        }
-        return val
-    }
-    
-    public var unsignedLongValue: UInt {
-        var val: UInt = 0
-        withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt>) -> Void in
-            CFNumberGetValue(_cfObject, kCFNumberLongType, value)
-        }
-        return val
-    }
-    
-    public var longLongValue: Int64 {
+    public var int64Value: Int64 {
         var val: Int64 = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int64>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberLongLongType, value)
@@ -390,7 +364,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var unsignedLongLongValue: UInt64 {
+    public var uint64Value: UInt64 {
         var val: UInt64 = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt64>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberLongLongType, value)
@@ -415,10 +389,10 @@ public class NSNumber : NSValue {
     }
     
     public var boolValue: Bool {
-        return longLongValue != 0
+        return int64Value != 0
     }
     
-    public var integerValue: Int {
+    public var intValue: Int {
         var val: Int = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<Int>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberLongType, value)
@@ -426,7 +400,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var unsignedIntegerValue: UInt {
+    public var uintValue: UInt {
         var val: UInt = 0
         withUnsafeMutablePointer(&val) { (value: UnsafeMutablePointer<UInt>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberLongType, value)
@@ -435,29 +409,29 @@ public class NSNumber : NSValue {
     }
     
     public var stringValue: String {
-        return descriptionWithLocale(nil)
+        return description(withLocale: nil)
     }
     
     /// Create an instance initialized to `value`.
     public required convenience init(integerLiteral value: Int) {
-        self.init(integer: value)
+        self.init(value: value)
     }
     
     /// Create an instance initialized to `value`.
     public required convenience init(floatLiteral value: Double) {
-        self.init(double: value)
+        self.init(value: value)
     }
     
     /// Create an instance initialized to `value`.
     public required convenience init(booleanLiteral value: Bool) {
-        self.init(bool: value)
+        self.init(value: value)
     }
 
     public func compare(_ otherNumber: NSNumber) -> NSComparisonResult {
         return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
     }
 
-    public func descriptionWithLocale(_ locale: AnyObject?) -> String {
+    public func description(withLocale locale: AnyObject?) -> String {
         let aLocale = locale
         let formatter: CFNumberFormatter
         if (aLocale == nil) {
@@ -475,7 +449,7 @@ public class NSNumber : NSValue {
     }
     
     public override var description: String {
-        return descriptionWithLocale(nil)
+        return description(withLocale: nil)
     }
 }
 
@@ -509,7 +483,7 @@ extension NSNumber : CustomPlaygroundQuickLookable {
         case kCFNumberNSIntegerType:
             fallthrough
         case kCFNumberLongLongType:
-            return .int(self.longLongValue)
+            return .int(self.int64Value)
         case kCFNumberFloat32Type:
             fallthrough
         case kCFNumberFloatType:

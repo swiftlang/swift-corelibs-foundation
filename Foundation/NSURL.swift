@@ -286,7 +286,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         if port == -1 {
             return nil
         } else {
-            return NSNumber(int: port)
+            return NSNumber(value: port)
         }
     }
     

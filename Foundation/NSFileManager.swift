@@ -179,9 +179,9 @@ public class NSFileManager : NSObject {
                     fatalError("Can't set file permissions to \(attributes[attribute])")
                 }
                 #if os(OSX) || os(iOS)
-                    let modeT = number.unsignedShortValue
+                    let modeT = number.uint16Value
                 #elseif os(Linux)
-                    let modeT = number.unsignedIntValue
+                    let modeT = number.uint32Value
                 #endif
                 if chmod(path, modeT) != 0 {
                     fatalError("errno \(errno)")
@@ -337,7 +337,7 @@ public class NSFileManager : NSObject {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
         var result = [String : Any]()
-        result[NSFileSize] = NSNumber(unsignedLongLong: UInt64(s.st_size))
+        result[NSFileSize] = NSNumber(value: UInt64(s.st_size))
 
 #if os(OSX) || os(iOS)
         let ti = (NSTimeInterval(s.st_mtimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * NSTimeInterval(s.st_mtimespec.tv_nsec))
@@ -346,10 +346,10 @@ public class NSFileManager : NSObject {
 #endif
         result[NSFileModificationDate] = NSDate(timeIntervalSinceReferenceDate: ti)
         
-        result[NSFilePosixPermissions] = NSNumber(unsignedLongLong: UInt64(s.st_mode & 0o7777))
-        result[NSFileReferenceCount] = NSNumber(unsignedLongLong: UInt64(s.st_nlink))
-        result[NSFileSystemNumber] = NSNumber(unsignedLongLong: UInt64(s.st_dev))
-        result[NSFileSystemFileNumber] = NSNumber(unsignedLongLong: UInt64(s.st_ino))
+        result[NSFilePosixPermissions] = NSNumber(value: UInt64(s.st_mode & 0o7777))
+        result[NSFileReferenceCount] = NSNumber(value: UInt64(s.st_nlink))
+        result[NSFileSystemNumber] = NSNumber(value: UInt64(s.st_dev))
+        result[NSFileSystemFileNumber] = NSNumber(value: UInt64(s.st_ino))
         
         let pwd = getpwuid(s.st_uid)
         if pwd != nil && pwd.pointee.pw_name != nil {
@@ -376,19 +376,19 @@ public class NSFileManager : NSObject {
         result[NSFileType] = type
         
         if type == NSFileTypeBlockSpecial || type == NSFileTypeCharacterSpecial {
-            result[NSFileDeviceIdentifier] = NSNumber(unsignedLongLong: UInt64(s.st_rdev))
+            result[NSFileDeviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
         }
 
 #if os(OSX) || os(iOS)
         if (s.st_flags & UInt32(UF_IMMUTABLE | SF_IMMUTABLE)) != 0 {
-            result[NSFileImmutable] = NSNumber(bool: true)
+            result[NSFileImmutable] = NSNumber(value: true)
         }
         if (s.st_flags & UInt32(UF_APPEND | SF_APPEND)) != 0 {
-            result[NSFileAppendOnly] = NSNumber(bool: true)
+            result[NSFileAppendOnly] = NSNumber(value: true)
         }
 #endif
-        result[NSFileOwnerAccountID] = NSNumber(unsignedLongLong: UInt64(s.st_uid))
-        result[NSFileGroupOwnerAccountID] = NSNumber(unsignedLongLong: UInt64(s.st_gid))
+        result[NSFileOwnerAccountID] = NSNumber(value: UInt64(s.st_uid))
+        result[NSFileGroupOwnerAccountID] = NSNumber(value: UInt64(s.st_gid))
         
         return result
     }
