@@ -547,7 +547,7 @@ public class NSXMLParser : NSObject {
         NSXMLParser.setCurrentParser(self)
         if let stream = _stream {
             stream.open()
-            let buffer = malloc(_chunkSize)
+            let buffer = malloc(_chunkSize)!
             var len = stream.read(UnsafeMutablePointer<UInt8>(buffer), maxLength: _chunkSize)
             if len != -1 {
                 while len > 0 {
@@ -561,7 +561,7 @@ public class NSXMLParser : NSObject {
             free(buffer)
             stream.close()
         } else if let data = _data {
-            let buffer = malloc(_chunkSize)
+            let buffer = malloc(_chunkSize)!
             var range = NSMakeRange(0, min(_chunkSize, data.length))
             while result {
                 data.getBytes(buffer, range: range)

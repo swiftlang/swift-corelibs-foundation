@@ -85,7 +85,7 @@ extension String : _ObjectTypeBridgeable {
             let cf = unsafeBitCast(x, to: CFString.self)
             let str = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8))
             if str != nil {
-                result = String(cString: str)
+                result = String(cString: str!)
             } else {
                 let length = CFStringGetLength(cf)
                 let buffer = UnsafeMutablePointer<UniChar>(allocatingCapacity: length)
@@ -181,7 +181,7 @@ internal func _bytesInEncoding(_ str: NSString, _ encoding: NSStringEncoding, _ 
         return nil
     }
     
-    let buffer = malloc(cLength + 1)
+    let buffer = malloc(cLength + 1)!
     if !str.getBytes(buffer, maxLength: cLength, usedLength: &used, encoding: encoding, options: options, range: theRange, remaining: nil) {
         fatalError("Internal inconsistency; previously claimed getBytes returned success but failed with similar invocation")
     }
@@ -691,19 +691,19 @@ extension NSString {
     }
     
     public func uppercased(with locale: NSLocale?) -> String {
-        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)
+        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
         CFStringUppercase(mutableCopy, locale?._cfObject ?? nil)
         return mutableCopy._swiftObject
     }
 
     public func lowercased(with locale: NSLocale?) -> String {
-        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)
+        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
         CFStringLowercase(mutableCopy, locale?._cfObject ?? nil)
         return mutableCopy._swiftObject
     }
     
     public func capitalized(with locale: NSLocale?) -> String {
-        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)
+        let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
         CFStringCapitalize(mutableCopy, locale?._cfObject ?? nil)
         return mutableCopy._swiftObject
     }
@@ -933,7 +933,7 @@ extension NSString {
     public class func availableStringEncodings() -> UnsafePointer<UInt> {
         struct once {
             static let encodings: UnsafePointer<UInt> = {
-                let cfEncodings = CFStringGetListOfAvailableEncodings()
+                let cfEncodings = CFStringGetListOfAvailableEncodings()!
                 var idx = 0
                 var numEncodings = 0
                 
@@ -971,28 +971,28 @@ extension NSString {
     }
     
     public var decomposedStringWithCanonicalMapping: String {
-        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringNormalize(string, kCFStringNormalizationFormD)
         return string._swiftObject
     }
     
     public var precomposedStringWithCanonicalMapping: String {
-        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringNormalize(string, kCFStringNormalizationFormC)
         return string._swiftObject
     }
     
     public var decomposedStringWithCompatibilityMapping: String {
-        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringNormalize(string, kCFStringNormalizationFormKD)
         return string._swiftObject
     }
     
     public var precomposedStringWithCompatibilityMapping: String {
-        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringNormalize(string, kCFStringNormalizationFormKC)
         return string._swiftObject
@@ -1080,13 +1080,13 @@ extension NSString {
             fatalError("out of range padIndex")
         }
         
-        let mStr = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, _cfObject)
+        let mStr = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, _cfObject)!
         CFStringPad(mStr, padString._cfObject, newLength, padIndex)
         return mStr._swiftObject
     }
     
     public func folding(_ options: NSStringCompareOptions = [], locale: NSLocale?) -> String {
-        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringFold(string, options._cfValue(), locale?._cfObject)
         return string._swiftObject
@@ -1124,7 +1124,7 @@ extension NSString {
     }
     
     public func applyingTransform(_ transform: String, reverse: Bool) -> String? {
-        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)
+        let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, _cfObject)
         if (CFStringTransform(string, nil, transform._cfObject, reverse)) {
             return string._swiftObject
@@ -1196,7 +1196,7 @@ extension NSString {
     }
     
     public convenience init(format: String, arguments argList: CVaListPointer) {
-        let str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, argList)
+        let str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, argList)!
         self.init(str._swiftObject)
     }
     
@@ -1217,7 +1217,7 @@ extension NSString {
     public convenience init(format: NSString, _ args: CVarArg...) {
         let str = withVaList(args) { (vaPtr) -> CFString! in
             CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, vaPtr)
-        }
+        }!
         self.init(str._swiftObject)
     }
     

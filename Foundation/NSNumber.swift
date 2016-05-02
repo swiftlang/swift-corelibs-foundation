@@ -290,7 +290,7 @@ public class NSNumber : NSValue {
             }
             var size: Int = 0
             NSGetSizeAndAlignment(objCType!, &size, nil)
-            let buffer = malloc(size)
+            let buffer = malloc(size)!
             aDecoder.decodeValueOfObjCType(objCType!, at: buffer)
             self.init(bytes: buffer, objCType: objCType!)
             free(buffer)

@@ -16,8 +16,8 @@ import Glibc
 
 import CoreFoundation
 
-private func disposeTLS(_ ctx: UnsafeMutablePointer<Void>!) -> Void {
-    Unmanaged<AnyObject>.fromOpaque(OpaquePointer(ctx)).release()
+private func disposeTLS(_ ctx: UnsafeMutablePointer<Void>?) -> Void {
+    Unmanaged<AnyObject>.fromOpaque(OpaquePointer(ctx!)).release()
 }
 
 internal class NSThreadSpecific<T: AnyObject> {
@@ -40,7 +40,7 @@ internal class NSThreadSpecific<T: AnyObject> {
     internal func get(_ generator: (Void) -> T) -> T {
         let specific = pthread_getspecific(self.key)
         if specific != nil {
-            return Unmanaged<T>.fromOpaque(OpaquePointer(specific)).takeUnretainedValue()
+            return Unmanaged<T>.fromOpaque(OpaquePointer(specific!)).takeUnretainedValue()
         } else {
             let value = generator()
             pthread_setspecific(self.key, UnsafePointer<Void>(OpaquePointer(bitPattern: Unmanaged<AnyObject>.passRetained(value))))
@@ -52,7 +52,7 @@ internal class NSThreadSpecific<T: AnyObject> {
         let specific = pthread_getspecific(self.key)
         var previous: Unmanaged<T>?
         if specific != nil {
-            previous = Unmanaged<T>.fromOpaque(OpaquePointer(specific))
+            previous = Unmanaged<T>.fromOpaque(OpaquePointer(specific!))
         }
         if let prev = previous {
             if prev.takeUnretainedValue() === value {
@@ -73,8 +73,8 @@ internal enum _NSThreadStatus {
     case Finished
 }
 
-private func NSThreadStart(_ context: UnsafeMutablePointer<Void>!) -> UnsafeMutablePointer<Void>! {
-    let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(OpaquePointer(context))
+private func NSThreadStart(_ context: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
+    let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(OpaquePointer(context!))
     let thread = unmanaged.takeUnretainedValue()
     NSThread._currentThread.set(thread)
     thread._status = _NSThreadStatus.Executing

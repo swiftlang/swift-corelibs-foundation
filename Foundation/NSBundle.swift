@@ -226,7 +226,7 @@ public class NSBundle : NSObject {
     // MARK: - Localized Strings
     
     public func localizedStringForKey(_ key: String, value: String?, table tableName: String?) -> String {
-        let localizedString = CFBundleCopyLocalizedString(_bundle, key._cfObject, value?._cfObject, tableName?._cfObject)
+        let localizedString = CFBundleCopyLocalizedString(_bundle, key._cfObject, value?._cfObject, tableName?._cfObject)!
         return localizedString._swiftObject
     }
     
@@ -273,7 +273,7 @@ public class NSBundle : NSObject {
     }
 
     public var developmentLocalization: String? {
-        let region = CFBundleGetDevelopmentRegion(_bundle)
+        let region = CFBundleGetDevelopmentRegion(_bundle)!
         return region._swiftObject
     }
 
@@ -284,12 +284,12 @@ public class NSBundle : NSObject {
     }
     
 	public class func preferredLocalizationsFromArray(_ localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] {
-        let localizations = CFBundleCopyLocalizationsForPreferences(localizationsArray._cfObject, preferencesArray?._cfObject)
+        let localizations = CFBundleCopyLocalizationsForPreferences(localizationsArray._cfObject, preferencesArray?._cfObject)!
         return localizations._swiftObject.map { return ($0 as! NSString)._swiftObject }
     }
 	
 	public var executableArchitectures: [NSNumber]? {
-        let architectures = CFBundleCopyExecutableArchitectures(_bundle)
+        let architectures = CFBundleCopyExecutableArchitectures(_bundle)!
         return architectures._swiftObject.map() { $0 as! NSNumber }
     }
 }

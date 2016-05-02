@@ -717,7 +717,7 @@ public class NSXMLNode : NSObject, NSCopying {
 
         var result: [NSXMLNode] = []
         for i in 0..<CFArrayGetCount(nodes) {
-            let nodePtr = CFArrayGetValueAtIndex(nodes, i)
+            let nodePtr = CFArrayGetValueAtIndex(nodes, i)!
             result.append(NSXMLNode._objectNodeForNode(_CFXMLNodePtr(nodePtr)))
         }
 
