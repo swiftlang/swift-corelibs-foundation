@@ -246,10 +246,10 @@ public class NSFileManager : NSObject {
         }
         
         defer {
-            closedir(dir)
+            closedir(dir!)
         }
 
-        while let entry = readdir(dir) {
+        while let entry = readdir(dir!) {
             if let entryName = withUnsafePointer(&entry.pointee.d_name, { (ptr) -> String? in
                 return String(cString: UnsafePointer<Int8>(ptr))
             }) {
@@ -286,10 +286,10 @@ public class NSFileManager : NSObject {
         }
         
         defer {
-            closedir(dir)
+            closedir(dir!)
         }
         
-        var entry = readdir(dir)
+        var entry = readdir(dir!)
         
         while entry != nil {
             if let entryName = withUnsafePointer(&entry!.pointee.d_name, { (ptr) -> String? in
