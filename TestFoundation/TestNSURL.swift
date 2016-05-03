@@ -424,6 +424,7 @@ class TestNSURLComponents : XCTestCase {
         return [
             ("test_string", test_string),
             ("test_port", test_portSetter),
+            ("test_URLRelativeToURL", test_URLRelativeToURL),
         ]
     }
     
@@ -447,4 +448,46 @@ class TestNSURLComponents : XCTestCase {
         XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(receivedString)")
     }
 
+    func test_URLRelativeToURL() {
+
+        let baseURL = NSURL(string: "https://www.example.com")
+
+        /* test NSURLComponents without authority */
+        let compWithAuthority = NSURLComponents(string: "https://www.swift.org")
+        compWithAuthority!.path = "/path/to/file with space.html"
+        compWithAuthority!.query = "id=23&search=Foo Bar"
+        var expectedString = "https://www.swift.org/path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
+        XCTAssertEqual(compWithAuthority!.string, expectedString, "expected \(expectedString) but received \(compWithAuthority!.string)")
+
+        var url = compWithAuthority!.URLRelativeToURL(baseURL)
+        XCTAssertNotNil(url)
+        XCTAssertNil(url!.baseURL)
+        XCTAssertEqual(url!.absoluteString, expectedString, "expected \(expectedString) but received \(url!.absoluteString)")
+
+        compWithAuthority!.path = "path/to/file with space.html" //must start with /
+        XCTAssertNil(compWithAuthority!.string) // must be nil
+
+        url = compWithAuthority!.URLRelativeToURL(baseURL)
+        XCTAssertNil(url) //must be nil
+
+
+
+        /* test NSURLComponents without authority */
+        let compWithoutAuthority = NSURLComponents()
+        compWithoutAuthority.path = "path/to/file with space.html"
+        compWithoutAuthority.query = "id=23&search=Foo Bar"
+        expectedString = "path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
+        XCTAssertEqual(compWithoutAuthority.string, expectedString, "expected \(expectedString) but received \(compWithoutAuthority.string)")
+
+        url = compWithoutAuthority.URLRelativeToURL(baseURL)
+        XCTAssertNotNil(url)
+        expectedString = "https://www.example.com/path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
+        XCTAssertEqual(url!.absoluteString, expectedString, "expected \(expectedString) but received \(url!.absoluteString)")
+
+        compWithoutAuthority.path = "//path/to/file with space.html" //shouldn't start with //
+        XCTAssertNil(compWithoutAuthority.string) // must be nil
+
+        url = compWithoutAuthority.URLRelativeToURL(baseURL)
+        XCTAssertNil(url) //must be nil
+    }
 }
