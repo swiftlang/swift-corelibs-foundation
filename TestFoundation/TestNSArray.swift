@@ -110,16 +110,17 @@ class TestNSArray : XCTestCase {
     }
 
     func test_binarySearch() {
-        let array = NSArray(array: [
-            NSNumber(value: Int(0)), NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Int(2)), NSNumber(value: Int(3)),
-            NSNumber(value: Int(4)), NSNumber(value: Int(4)), NSNumber(value: Int(6)), NSNumber(value: Int(7)), NSNumber(value: Int(7)),
-            NSNumber(value: Int(7)), NSNumber(value: Int(8)), NSNumber(value: Int(9)), NSNumber(value: Int(9))] as [AnyObject])
+        let numbers: [AnyObject] = [
+            NSNumber(value: 0 as Int), NSNumber(value: 1 as Int), NSNumber(value: 2 as Int), NSNumber(value: 2 as Int), NSNumber(value: 3 as Int),
+            NSNumber(value: 4 as Int), NSNumber(value: 4 as Int), NSNumber(value: 6 as Int), NSNumber(value: 7 as Int), NSNumber(value: 7 as Int),
+            NSNumber(value: 7 as Int), NSNumber(value: 8 as Int), NSNumber(value: 9 as Int), NSNumber(value: 9 as Int)]
+        let array = NSArray(array: numbers)
         
         // Not sure how to test fatal errors.
         
 //        NSArray throws NSInvalidArgument if range exceeds bounds of the array.
 //        let rangeOutOfArray = NSRange(location: 5, length: 15)
-//        let _ = array.indexOfObject(NSNumber(value: Int(9)), inSortedRange: rangeOutOfArray, options: [.InsertionIndex, .FirstEqual], usingComparator: compareIntNSNumber)
+//        let _ = array.indexOfObject(NSNumber(value: 9 as Int), inSortedRange: rangeOutOfArray, options: [.InsertionIndex, .FirstEqual], usingComparator: compareIntNSNumber)
         
 //        NSArray throws NSInvalidArgument if both .FirstEqual and .LastEqaul are specified
 //        let searchForBoth: NSBinarySearchingOptions = [.FirstEqual, .LastEqual]
@@ -157,7 +158,7 @@ class TestNSArray : XCTestCase {
         let endOfArray = objectIndexInArray(array, value: 10, startingFrom: rangeStart, length: rangeLength, options: [.InsertionIndex, .LastEqual])
         XCTAssertTrue(endOfArray == (rangeStart + rangeLength), "...or the index at the end of the array if the object is larger than all other elements.")
         
-        let arrayOfTwo = NSArray(array: [NSNumber(value: Int(0)), NSNumber(value: Int(2))])
+        let arrayOfTwo = NSArray(array: [NSNumber(value: 0 as Int), NSNumber(value: 2 as Int)])
         let indexInMiddle = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.InsertionIndex, .FirstEqual])
         XCTAssertEqual(indexInMiddle, 1, "If no match found item should be inserted before least greater object")
         let indexInMiddle2 = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.InsertionIndex, .LastEqual])
@@ -168,52 +169,56 @@ class TestNSArray : XCTestCase {
 
 
     func test_arrayReplacement() {
-        let array = NSMutableArray(array: [
-                               NSNumber(value: Int(0)), NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Int(3)),
-                               NSNumber(value: Int(4)), NSNumber(value: Int(5)), NSNumber(value: Int(7))] as [AnyObject])
-        array.replaceObjectsInRange(NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(value: Int(8)), NSNumber(value: Int(9))])
+        let numbers: [AnyObject] = [
+            NSNumber(value: 0 as Int), NSNumber(value: 1 as Int), NSNumber(value: 2 as Int), NSNumber(value: 3 as Int),
+            NSNumber(value: 4 as Int), NSNumber(value: 5 as Int), NSNumber(value: 7 as Int)]
+        let array = NSMutableArray(array: numbers)
+        array.replaceObjectsInRange(NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(value: 8 as Int), NSNumber(value: 9 as Int)])
         XCTAssertTrue((array[0] as! NSNumber).intValue == 8)
         XCTAssertTrue((array[1] as! NSNumber).intValue == 9)
         XCTAssertTrue((array[2] as! NSNumber).intValue == 2)
     }
 
     func test_arrayReplaceObjectsInRangeFromRange() {
-        let array = NSMutableArray(array: [
-                                      NSNumber(value: Int(0)), NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Int(3)),
-                                      NSNumber(value: Int(4)), NSNumber(value: Int(5)), NSNumber(value: Int(7))] as [AnyObject])
-        array.replaceObjectsInRange(NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(value: Int(8)), NSNumber(value: Int(9)), NSNumber(value: Int(10))], range: NSRange(location: 1, length: 2))
+        let numbers: [AnyObject] = [
+            NSNumber(value: 0 as Int), NSNumber(value: 1 as Int), NSNumber(value: 2 as Int), NSNumber(value: 3 as Int),
+            NSNumber(value: 4 as Int), NSNumber(value: 5 as Int), NSNumber(value: 7 as Int)]
+        let array = NSMutableArray(array: numbers)
+        array.replaceObjectsInRange(NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(value: 8 as Int), NSNumber(value: 9 as Int), NSNumber(value: 10 as Int)], range: NSRange(location: 1, length: 2))
         XCTAssertTrue((array[0] as! NSNumber).intValue == 9)
         XCTAssertTrue((array[1] as! NSNumber).intValue == 10)
         XCTAssertTrue((array[2] as! NSNumber).intValue == 2)
     }
 
     func test_replaceObjectAtIndex() {
-        let array = NSMutableArray(array: [
-            NSNumber(value: Int(0)), NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Int(3)),
-            NSNumber(value: Int(4)), NSNumber(value: Int(5)), NSNumber(value: Int(7))] as [AnyObject])
+        let numbers: [AnyObject] = [
+            NSNumber(value: 0 as Int), NSNumber(value: 1 as Int), NSNumber(value: 2 as Int), NSNumber(value: 3 as Int),
+            NSNumber(value: 4 as Int), NSNumber(value: 5 as Int), NSNumber(value: 7 as Int)]
+        let array = NSMutableArray(array: numbers)
 
         // 1. Check replacement in the middle of the array
-        array.replaceObjectAtIndex(3, withObject: NSNumber(value: Int(8)))
+        array.replaceObjectAtIndex(3, withObject: NSNumber(value: 8 as Int))
         XCTAssertEqual(array.count, 7)
         XCTAssertEqual((array[3] as! NSNumber).intValue, 8)
 
         // 2. Check replacement of the first element
-        array.replaceObjectAtIndex(0, withObject: NSNumber(value: Int(7)))
+        array.replaceObjectAtIndex(0, withObject: NSNumber(value: 7 as Int))
         XCTAssertEqual(array.count, 7)
         XCTAssertEqual((array[0] as! NSNumber).intValue, 7)
 
         // 3. Check replacement of the last element
-        array.replaceObjectAtIndex(6, withObject: NSNumber(value: Int(6)))
+        array.replaceObjectAtIndex(6, withObject: NSNumber(value: 6 as Int))
         XCTAssertEqual(array.count, 7)
         XCTAssertEqual((array[6] as! NSNumber).intValue, 6)
     }
 
     func test_removeObjectsInArray() {
-        let array = NSMutableArray(array: [
-            NSNumber(value: Int(0)), NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Int(3)),
-            NSNumber(value: Int(4)), NSNumber(value: Int(5)), NSNumber(value: Int(7))] as [AnyObject])
+        let numbers: [AnyObject] = [
+            NSNumber(value: 0 as Int), NSNumber(value: 1 as Int), NSNumber(value: 2 as Int), NSNumber(value: 3 as Int),
+            NSNumber(value: 4 as Int), NSNumber(value: 5 as Int), NSNumber(value: 7 as Int)]
+        let array = NSMutableArray(array: numbers)
         let objectsToRemove: Array<AnyObject> = [
-            NSNumber(value: Int(1)), NSNumber(value: Int(22)), NSNumber(value: Int(7)), NSNumber(value: Int(5))]
+            NSNumber(value: 1 as Int), NSNumber(value: 22 as Int), NSNumber(value: 7 as Int), NSNumber(value: 5 as Int)]
         array.removeObjectsInArray(objectsToRemove)
         XCTAssertEqual(array.count, 4)
         XCTAssertEqual((array[0] as! NSNumber).intValue, 0)
@@ -223,10 +228,11 @@ class TestNSArray : XCTestCase {
     }
 
     func test_binarySearchFringeCases() {
-        let array = NSArray(array: [
-            NSNumber(value: Int(0)), NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Int(2)), NSNumber(value: Int(3)),
-            NSNumber(value: Int(4)), NSNumber(value: Int(4)), NSNumber(value: Int(6)), NSNumber(value: Int(7)), NSNumber(value: Int(7)),
-            NSNumber(value: Int(7)), NSNumber(value: Int(8)), NSNumber(value: Int(9)), NSNumber(value: Int(9))] as [AnyObject])
+        let numbers: [AnyObject] = [
+            NSNumber(value: 0 as Int), NSNumber(value: 1 as Int), NSNumber(value: 2 as Int), NSNumber(value: 2 as Int), NSNumber(value: 3 as Int),
+            NSNumber(value: 4 as Int), NSNumber(value: 4 as Int), NSNumber(value: 6 as Int), NSNumber(value: 7 as Int), NSNumber(value: 7 as Int),
+            NSNumber(value: 7 as Int), NSNumber(value: 8 as Int), NSNumber(value: 9 as Int), NSNumber(value: 9 as Int)]
+        let array = NSArray(array: numbers)
         
         let emptyArray = NSArray()
 //        Same as for non empty NSArray but error message ends with 'bounds for empty array'.
