@@ -124,7 +124,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NSNumberFormatter()
         numberFormatter.notANumberSymbol = "👽"
         let number: Double = -42
-        let numberObject = NSNumber(double: sqrt(number))
+        let numberObject = NSNumber(value: sqrt(number))
         let formattedString = numberFormatter.stringFromNumber(numberObject)
         XCTAssertEqual(formattedString, "👽")
     }
@@ -133,7 +133,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NSNumberFormatter()
         numberFormatter.positiveInfinitySymbol = "🚀"
 
-        let numberObject = NSNumber(double: 42.0 / 0)
+        let numberObject = NSNumber(value: Double(42.0) / Double(0))
         let formattedString = numberFormatter.stringFromNumber(numberObject)
         XCTAssertEqual(formattedString, "🚀")
     }

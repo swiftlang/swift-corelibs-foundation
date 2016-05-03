@@ -489,7 +489,7 @@ extension TestNSJSONSerialization {
 
             // [1, ["string", [[]]]]
             Array<Any>(arrayLiteral:
-                NSNumber(int: 1),
+                NSNumber(value: Int(1)),
                 Array<Any>(arrayLiteral:
                     "string",
                     Array<Any>(arrayLiteral:
@@ -506,7 +506,7 @@ extension TestNSJSONSerialization {
                         "1",
                         Array<Any>(arrayLiteral:
                             "string",
-                            NSNumber(int: 1)
+                            NSNumber(value: Int(1))
                         )
                     ),
                     (
@@ -520,7 +520,7 @@ extension TestNSJSONSerialization {
             Dictionary<String, Any>(dictionaryLiteral:
                 (
                     "0",
-                    NSNumber(int: 0)
+                    NSNumber(value: Int(0))
                 )
             )
         ]
@@ -532,7 +532,7 @@ extension TestNSJSONSerialization {
     func test_isValidJSONObjectFalse() {
         let falseJSON: [Any] = [
             // 0
-            NSNumber(int: 0),
+            NSNumber(value: Int(0)),
 
             // NSNull()
             NSNull(),
@@ -542,22 +542,22 @@ extension TestNSJSONSerialization {
 
             // [1, 2, 3, [4 : 5]]
             Array<Any>(arrayLiteral:
-                NSNumber(int: 1),
-                NSNumber(int: 2),
-                NSNumber(int: 3),
+                NSNumber(value: Int(1)),
+                NSNumber(value: Int(2)),
+                NSNumber(value: Int(3)),
                 Dictionary<NSNumber, Any>(dictionaryLiteral:
                     (
-                        NSNumber(int: 4),
-                        NSNumber(int: 5)
+                        NSNumber(value: Int(4)),
+                        NSNumber(value: Int(5))
                     )
                 )
             ),
 
             // [1, 2, Infinity]
-            [NSNumber(int: 1), NSNumber(int: 2), NSNumber(double: 1 / 0)],
+            [NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Double(1) / Double(0))],
 
             // [NSNull() : 1]
-            [NSNull() : NSNumber(int: 1)],
+            [NSNull() : NSNumber(value: Int(1))],
 
             // [[[[1 : 2]]]]
             Array<Any>(arrayLiteral:
@@ -565,8 +565,8 @@ extension TestNSJSONSerialization {
                     Array<Any>(arrayLiteral:
                         Dictionary<NSNumber, Any>(dictionaryLiteral:
                             (
-                                NSNumber(int: 1),
-                                NSNumber(int: 2)
+                                NSNumber(value: Int(1)),
+                                NSNumber(value: Int(2))
                             )
                         )
                     )
@@ -689,7 +689,7 @@ extension TestNSJSONSerialization {
         XCTAssertEqual(try trySerialize(json), "[1,1.1,0,-2]")
         
         // Cannot generate "true"/"false" currently
-        json = [NSNumber(bool:false),NSNumber(bool:true)].bridge()
+        json = [NSNumber(value:false),NSNumber(value:true)].bridge()
         XCTAssertEqual(try trySerialize(json), "[0,1]")
     }
     
@@ -734,7 +734,7 @@ extension TestNSJSONSerialization {
             // should get here
         }
         
-        let double = NSNumber(double: 1.2)
+        let double = NSNumber(value: Double(1.2))
         do {
             let _ = try trySerialize(double)
             XCTFail("Top-level JSON object cannot be double")
@@ -742,7 +742,7 @@ extension TestNSJSONSerialization {
             // should get here
         }
         
-        let dict = [NSNumber(double: 1.2):"a"].bridge()
+        let dict = [NSNumber(value: Double(1.2)):"a"].bridge()
         do {
             let _ = try trySerialize(dict)
             XCTFail("Dictionary keys must be strings")

@@ -59,7 +59,7 @@ class TestNSDictionary : XCTestCase {
 //        ]
 //        XCTAssertEqual(dict2.count, 2)
 //        XCTAssertEqual(dict2["foo"] as? NSString, NSString(UTF8String:"bar"))
-//        XCTAssertEqual(dict2[1] as? NSNumber, NSNumber(int: 2))
+//        XCTAssertEqual(dict2[1] as? NSNumber, NSNumber(value: 2))
     }
     
     func test_ArrayConstruction() {

@@ -957,7 +957,7 @@ extension NSCoder {
 private extension NSCoder {
     func _encodeCGFloat(_ value: CGFloat) {
         if let keyedArchiver = self as? NSKeyedArchiver {
-            keyedArchiver._encodeValue(NSNumber(double: value.native))
+            keyedArchiver._encodeValue(NSNumber(value: value.native))
         } else {
             NSUnimplemented()
         }

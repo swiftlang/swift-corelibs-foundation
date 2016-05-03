@@ -245,7 +245,7 @@ public class NSHTTPCookie : NSObject {
             _portList = portString.characters
                 .split(separator: ",")
                 .flatMap { Int(String($0)) }
-                .map { NSNumber(integer: $0) }
+                .map { NSNumber(value: $0) }
         } else {
             _portList = nil
         }

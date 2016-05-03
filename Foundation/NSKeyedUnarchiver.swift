@@ -126,7 +126,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
         
         let version = unwrappedPlist["$version"] as? NSNumber
-        if version?.intValue != Int32(NSKeyedArchivePlistVersion) {
+        if version?.int32Value != Int32(NSKeyedArchivePlistVersion) {
             throw _decodingError(NSCocoaError.PropertyListReadCorruptError,
                                  withDescription: "Unknown archive version. The data may be corrupt.")
         }
@@ -713,21 +713,21 @@ public class NSKeyedUnarchiver : NSCoder {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return 0
         }
-        return result.intValue
+        return result.int32Value
     }
     
     public override func decodeInt32ForKey(_ key: String) -> Int32 {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return 0
         }
-        return result.intValue
+        return result.int32Value
     }
     
     public override func decodeInt64ForKey(_ key: String) -> Int64 {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return 0
         }
-        return result.longLongValue
+        return result.int64Value
     }
     
     public override func decodeFloatForKey(_ key: String) -> Float {
@@ -748,7 +748,7 @@ public class NSKeyedUnarchiver : NSCoder {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return 0
         }
-        return result.longValue
+        return result.intValue
     }
     
     // returned bytes immutable, and they go away with the unarchiver, not the containing autorelease pool
@@ -783,32 +783,32 @@ public class NSKeyedUnarchiver : NSCoder {
             break
         case .Char:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<CChar>.self).pointee = ns.charValue
+                unsafeBitCast(addr, to: UnsafeMutablePointer<CChar>.self).pointee = ns.int8Value
             }
             break
         case .UChar:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt8>.self).pointee = ns.unsignedCharValue
+                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt8>.self).pointee = ns.uint8Value
             }
             break
         case .Int, .Long:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Int32>.self).pointee = ns.intValue
+                unsafeBitCast(addr, to: UnsafeMutablePointer<Int32>.self).pointee = ns.int32Value
             }
             break
         case .UInt, .ULong:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt32>.self).pointee = ns.unsignedIntValue
+                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt32>.self).pointee = ns.uint32Value
             }
             break
         case .LongLong:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Int64>.self).pointee = ns.longLongValue
+                unsafeBitCast(addr, to: UnsafeMutablePointer<Int64>.self).pointee = ns.int64Value
             }
             break
         case .ULongLong:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt64>.self).pointee = ns.unsignedLongLongValue
+                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt64>.self).pointee = ns.uint64Value
             }
             break
         case .Float:

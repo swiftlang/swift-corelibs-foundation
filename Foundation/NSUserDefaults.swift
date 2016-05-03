@@ -156,7 +156,7 @@ public class NSUserDefaults : NSObject {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
             return 0
         }
-        return bVal.integerValue
+        return bVal.intValue
     }
     public func floatForKey(_ defaultName: String) -> Float {
         guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
@@ -193,16 +193,16 @@ public class NSUserDefaults : NSObject {
     }
     
     public func setInteger(_ value: Int, forKey defaultName: String) {
-        setObject(NSNumber(integer: value), forKey: defaultName)
+        setObject(NSNumber(value: value), forKey: defaultName)
     }
     public func setFloat(_ value: Float, forKey defaultName: String) {
-        setObject(NSNumber(float: value), forKey: defaultName)
+        setObject(NSNumber(value: value), forKey: defaultName)
     }
     public func setDouble(_ value: Double, forKey defaultName: String) {
-        setObject(NSNumber(double: value), forKey: defaultName)
+        setObject(NSNumber(value: value), forKey: defaultName)
     }
     public func setBool(_ value: Bool, forKey defaultName: String) {
-        setObject(NSNumber(bool: value), forKey: defaultName)
+        setObject(NSNumber(value: value), forKey: defaultName)
     }
     public func setURL(_ url: NSURL?, forKey defaultName: String) {
 		if let url = url {

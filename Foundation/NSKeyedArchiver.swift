@@ -665,39 +665,39 @@ public class NSKeyedArchiver : NSCoder {
             break
         case .Char:
             let charp = unsafeBitCast(addr, to: UnsafePointer<CChar>.self)
-            _encodeValue(NSNumber(char: charp.pointee))
+            _encodeValue(NSNumber(value: charp.pointee))
             break
         case .UChar:
             let ucharp = unsafeBitCast(addr, to: UnsafePointer<UInt8>.self)
-            _encodeValue(NSNumber(unsignedChar: ucharp.pointee))
+            _encodeValue(NSNumber(value: ucharp.pointee))
             break
         case .Int, .Long:
             let intp = unsafeBitCast(addr, to: UnsafePointer<Int32>.self)
-            _encodeValue(NSNumber(int: intp.pointee))
+            _encodeValue(NSNumber(value: intp.pointee))
             break
         case .UInt, .ULong:
             let uintp = unsafeBitCast(addr, to: UnsafePointer<UInt32>.self)
-            _encodeValue(NSNumber(unsignedInt: uintp.pointee))
+            _encodeValue(NSNumber(value: uintp.pointee))
             break
         case .LongLong:
             let longlongp = unsafeBitCast(addr, to: UnsafePointer<Int64>.self)
-            _encodeValue(NSNumber(longLong: longlongp.pointee))
+            _encodeValue(NSNumber(value: longlongp.pointee))
             break
         case .ULongLong:
             let ulonglongp = unsafeBitCast(addr, to: UnsafePointer<UInt64>.self)
-            _encodeValue(NSNumber(unsignedLongLong: ulonglongp.pointee))
+            _encodeValue(NSNumber(value: ulonglongp.pointee))
             break
         case .Float:
             let floatp = unsafeBitCast(addr, to: UnsafePointer<Float>.self)
-            _encodeValue(NSNumber(float: floatp.pointee))
+            _encodeValue(NSNumber(value: floatp.pointee))
             break
         case .Double:
             let doublep = unsafeBitCast(addr, to: UnsafePointer<Double>.self)
-            _encodeValue(NSNumber(double: doublep.pointee))
+            _encodeValue(NSNumber(value: doublep.pointee))
             break
         case .Bool:
             let boolp = unsafeBitCast(addr, to: UnsafePointer<Bool>.self)
-            _encodeValue(NSNumber(bool: boolp.pointee))
+            _encodeValue(NSNumber(value: boolp.pointee))
             break
         case .CharPtr:
             let charpp = unsafeBitCast(addr, to: UnsafePointer<UnsafePointer<Int8>>.self)
@@ -738,31 +738,31 @@ public class NSKeyedArchiver : NSCoder {
     }
 
     public override func encodeBool(_ boolv: Bool, forKey key: String) {
-        _encodeValue(NSNumber(bool: boolv), forKey: key)
+        _encodeValue(NSNumber(value: boolv), forKey: key)
     }
     
     public override func encodeInt(_ intv: Int32, forKey key: String) {
-        _encodeValue(NSNumber(int: intv), forKey: key)
+        _encodeValue(NSNumber(value: intv), forKey: key)
     }
     
     public override func encodeInt32(_ intv: Int32, forKey key: String) {
-        _encodeValue(NSNumber(int: intv), forKey: key)
+        _encodeValue(NSNumber(value: intv), forKey: key)
     }
     
     public override func encodeInt64(_ intv: Int64, forKey key: String) {
-        _encodeValue(NSNumber(longLong: intv), forKey: key)
+        _encodeValue(NSNumber(value: intv), forKey: key)
     }
     
     public override func encodeFloat(_ realv: Float, forKey key: String) {
-        _encodeValue(NSNumber(float: realv), forKey: key)
+        _encodeValue(NSNumber(value: realv), forKey: key)
     }
     
     public override func encodeDouble(_ realv: Double, forKey key: String) {
-        _encodeValue(NSNumber(double: realv), forKey: key)
+        _encodeValue(NSNumber(value: realv), forKey: key)
     }
     
     public override func encodeInteger(_ intv: Int, forKey key: String) {
-        _encodeValue(NSNumber(long: intv), forKey: key)
+        _encodeValue(NSNumber(value: intv), forKey: key)
     }
 
     public override func encodeDataObject(_ data: NSData) {
