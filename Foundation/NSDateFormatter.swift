@@ -22,7 +22,7 @@ public class NSDateFormatter : NSFormatter {
                 let timeStyle = CFDateFormatterStyle(self.timeStyle.rawValue)
             #endif
             
-            let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)
+            let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)!
             _setFormatterAttributes(obj)
             if let dateFormat = _dateFormat {
                 CFDateFormatterSetFormat(obj, dateFormat._cfObject)

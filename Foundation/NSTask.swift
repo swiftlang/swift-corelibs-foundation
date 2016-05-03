@@ -40,31 +40,31 @@ private var managerThreadRunLoopIsRunningCondition = NSCondition()
 internal let kCFSocketDataCallBack = CFSocketCallBackType.dataCallBack.rawValue
 #endif
 
-private func emptyRunLoopCallback(_ context : UnsafeMutablePointer<Void>!) -> Void {}
+private func emptyRunLoopCallback(_ context : UnsafeMutablePointer<Void>?) -> Void {}
 
 
 // Retain method for run loop source
-private func runLoopSourceRetain(_ pointer : UnsafePointer<Void>!) -> UnsafePointer<Void>! {
-    let ref = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer)).takeUnretainedValue()
+private func runLoopSourceRetain(_ pointer : UnsafePointer<Void>?) -> UnsafePointer<Void>? {
+    let ref = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer!)).takeUnretainedValue()
     let retained = Unmanaged<AnyObject>.passRetained(ref)
     return unsafeBitCast(retained, to: UnsafePointer<Void>.self)
 }
 
 // Release method for run loop source
-private func runLoopSourceRelease(_ pointer : UnsafePointer<Void>!) -> Void {
-    Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer)).release()
+private func runLoopSourceRelease(_ pointer : UnsafePointer<Void>?) -> Void {
+    Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer!)).release()
 }
 
 // Equal method for run loop source
 
-private func runloopIsEqual(_ a : UnsafePointer<Void>!, b : UnsafePointer<Void>!) -> _DarwinCompatibleBoolean {
+private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
-    let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
+    let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
     guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? NSRunLoop else {
         return false
     }
     
-    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
+    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
     guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? NSRunLoop else {
         return false
     }
@@ -76,7 +76,7 @@ private func runloopIsEqual(_ a : UnsafePointer<Void>!, b : UnsafePointer<Void>!
     return true
 }
 
-@noreturn private func managerThread(_ x: UnsafeMutablePointer<Void>!) -> UnsafeMutablePointer<Void>! {
+@noreturn private func managerThread(_ x: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
     
     managerThreadRunLoop = NSRunLoop.currentRunLoop()
     var emptySourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(managerThreadRunLoop!))),
@@ -111,14 +111,14 @@ private func managerThreadSetup() -> Void {
 
 
 // Equal method for task in run loop source
-private func nstaskIsEqual(_ a : UnsafePointer<Void>!, b : UnsafePointer<Void>!) -> _DarwinCompatibleBoolean {
+private func nstaskIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
-    let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
+    let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
     guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
         return false
     }
     
-    let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a))
+    let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
     guard let taskB = unmanagedTaskB.takeUnretainedValue() as? NSTask else {
         return false
     }
@@ -228,7 +228,7 @@ public class NSTask : NSObject {
         let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
             (socket, type, address, data, info )  in
             
-            let task = Unmanaged<NSTask>.fromOpaque(OpaquePointer(info)).takeUnretainedValue()
+            let task = Unmanaged<NSTask>.fromOpaque(OpaquePointer(info!)).takeUnretainedValue()
             
             task.processLaunchedCondition.lock()
             while task.running == false {
@@ -256,7 +256,7 @@ public class NSTask : NSObject {
                 #endif
                 pthread_create(&threadID, nil, { (context) -> UnsafeMutablePointer<Void>! in
                     
-                    let unmanagedTask : Unmanaged<NSTask> = Unmanaged.fromOpaque(context)
+                    let unmanagedTask : Unmanaged<NSTask> = Unmanaged.fromOpaque(context!)
                     let task = unmanagedTask.takeRetainedValue()
                     
                     task.terminationHandler!( task )

@@ -292,7 +292,7 @@ public class NSFileManager : NSObject {
         var entry = readdir(dir)
         
         while entry != nil {
-            if let entryName = withUnsafePointer(&entry.pointee.d_name, { (ptr) -> String? in
+            if let entryName = withUnsafePointer(&entry!.pointee.d_name, { (ptr) -> String? in
                 let int8Ptr = unsafeBitCast(ptr, to: UnsafePointer<Int8>.self)
                 return String(cString: int8Ptr)
             }) {
@@ -300,7 +300,7 @@ public class NSFileManager : NSObject {
                 if entryName != "." && entryName != ".." {
                     contents.append(entryName)
                     
-                    if let entryType = withUnsafePointer(&entry.pointee.d_type, { (ptr) -> Int32? in
+                    if let entryType = withUnsafePointer(&entry!.pointee.d_type, { (ptr) -> Int32? in
                         let int32Ptr = unsafeBitCast(ptr, to: UnsafePointer<UInt8>.self)
                         return Int32(int32Ptr.pointee)
                     }) {
@@ -352,14 +352,14 @@ public class NSFileManager : NSObject {
         result[NSFileSystemFileNumber] = NSNumber(value: UInt64(s.st_ino))
         
         let pwd = getpwuid(s.st_uid)
-        if pwd != nil && pwd.pointee.pw_name != nil {
-            let name = String(cString: pwd.pointee.pw_name)
+        if pwd != nil && pwd!.pointee.pw_name != nil {
+            let name = String(cString: pwd!.pointee.pw_name)
             result[NSFileOwnerAccountName] = name
         }
         
         let grd = getgrgid(s.st_gid)
-        if grd != nil && grd.pointee.gr_name != nil {
-            let name = String(cString: grd.pointee.gr_name)
+        if grd != nil && grd!.pointee.gr_name != nil {
+            let name = String(cString: grd!.pointee.gr_name)
             result[NSFileGroupOwnerAccountID] = name
         }
 
@@ -479,15 +479,15 @@ public class NSFileManager : NSObject {
                 
                 var current = fts_read(stream)
                 while current != nil {
-                    switch Int32(current.pointee.fts_info) {
+                    switch Int32(current!.pointee.fts_info) {
                         case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                            if unlink(current.pointee.fts_path) == -1 {
-                                let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                            if unlink(current!.pointee.fts_path) == -1 {
+                                let str = NSString(bytes: current!.pointee.fts_path, length: Int(strlen(current!.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
                                 throw _NSErrorWithErrno(errno, reading: false, path: str)
                             }
                         case FTS_DP:
-                            if rmdir(current.pointee.fts_path) == -1 {
-                                let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                            if rmdir(current!.pointee.fts_path) == -1 {
+                                let str = NSString(bytes: current!.pointee.fts_path, length: Int(strlen(current!.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
                                 throw _NSErrorWithErrno(errno, reading: false, path: str)
                             }
                         default:

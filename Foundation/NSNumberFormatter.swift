@@ -36,7 +36,7 @@ public class NSNumberFormatter : NSFormatter {
                 let numberStyle = CFNumberFormatterStyle(self.numberStyle.rawValue)
             #endif
             
-            let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)
+            let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)!
             _setFormatterAttributes(obj)
             _currentCfFormatter = obj
             return obj

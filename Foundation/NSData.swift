@@ -280,14 +280,14 @@ extension NSData {
             
             // Swift does not currently expose MAP_FAILURE
             if data != UnsafeMutablePointer<Void>(bitPattern: -1) {
-                return NSDataReadResult(bytes: data, length: length) { buffer, length in
+                return NSDataReadResult(bytes: data!, length: length) { buffer, length in
                     munmap(buffer, length)
                 }
             }
             
         }
         
-        let data = malloc(length)
+        let data = malloc(length)!
         var remaining = Int(info.st_size)
         var total = 0
         while remaining > 0 {

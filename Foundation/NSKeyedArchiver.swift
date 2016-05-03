@@ -154,7 +154,7 @@ public class NSKeyedArchiver : NSCoder {
             }
         }
 
-        let writeStream = _CFWriteStreamCreateFromFileDescriptor(kCFAllocatorSystemDefault, fd)
+        let writeStream = _CFWriteStreamCreateFromFileDescriptor(kCFAllocatorSystemDefault, fd)!
         
         if !CFWriteStreamOpen(writeStream) {
             return false

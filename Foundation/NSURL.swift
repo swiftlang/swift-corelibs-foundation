@@ -204,7 +204,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         let bytesNeeded = CFURLGetBytes(_cfObject, nil, 0)
         assert(bytesNeeded > 0)
         
-        let buffer = malloc(bytesNeeded)
+        let buffer = malloc(bytesNeeded)!
         let bytesFilled = CFURLGetBytes(_cfObject, UnsafeMutablePointer<UInt8>(buffer), bytesNeeded)
         if bytesFilled == bytesNeeded {
             return NSData(bytesNoCopy: buffer, length: bytesNeeded, freeWhenDone: true)
