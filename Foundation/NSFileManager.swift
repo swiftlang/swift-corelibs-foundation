@@ -320,7 +320,7 @@ public class NSFileManager : NSObject {
                 }
             }
             
-            entry = readdir(dir)
+            entry = readdir(dir!)
         }
         
         return contents
