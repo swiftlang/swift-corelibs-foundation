@@ -75,4 +75,5 @@ XCTMain([
     testCase(TestNSXMLParser.allTests),
     testCase(TestNSXMLDocument.allTests),
     testCase(TestNSAttributedString.allTests),
+    testCase(TestNSFileHandle.allTests),
 ])
