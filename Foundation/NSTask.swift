@@ -151,9 +151,27 @@ public class NSTask : NSObject {
     public var currentDirectoryPath: String = NSFileManager.defaultInstance.currentDirectoryPath
     
     // standard I/O channels; could be either an NSFileHandle or an NSPipe
-    public var standardInput: AnyObject?
-    public var standardOutput: AnyObject?
-    public var standardError: AnyObject?
+    public var standardInput: AnyObject? {
+        willSet {
+            guard newValue is NSPipe || newValue is NSFileHandle else {
+                abort()
+            }
+        }
+    }
+    public var standardOutput: AnyObject? {
+        willSet {
+            guard newValue is NSPipe || newValue is NSFileHandle else {
+                abort()
+            }
+        }
+    }
+    public var standardError: AnyObject? {
+        willSet {
+            guard newValue is NSPipe || newValue is NSFileHandle else {
+                abort()
+            }
+        }
+    }
     
     private var runLoopSourceContext : CFRunLoopSourceContext?
     private var runLoopSource : CFRunLoopSource?
@@ -284,16 +302,68 @@ public class NSTask : NSObject {
         
         let source = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
-        
+
+        // file_actions
+        #if os(OSX) || os(iOS)
+            var fileActions: posix_spawn_file_actions_t? = nil
+        #else
+            var fileActions: posix_spawn_file_actions_t = posix_spawn_file_actions_t()
+        #endif
+        posix_spawn_file_actions_init(&fileActions)
+
+        switch self.standardInput {
+        case let pipe as NSPipe:
+            posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO)
+            posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor)
+        case let handle as NSFileHandle:
+            posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDIN_FILENO)
+            posix_spawn_file_actions_addclose(&fileActions, handle.fileDescriptor)
+        default: break
+        }
+
+        switch self.standardOutput {
+        case let pipe as NSPipe:
+            posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO)
+            posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor)
+        case let handle as NSFileHandle:
+            posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDOUT_FILENO)
+            posix_spawn_file_actions_addclose(&fileActions, handle.fileDescriptor)
+        default: break
+        }
+
+        switch self.standardError {
+        case let pipe as NSPipe:
+            posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO)
+            posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor)
+        case let handle as NSFileHandle:
+            posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDERR_FILENO)
+            posix_spawn_file_actions_addclose(&fileActions, handle.fileDescriptor)
+        default: break
+        }
+
         // Launch
-        
+
         var pid = pid_t()
-        let status = posix_spawn(&pid, launchPath, nil, nil, argv, envp)
-        
+        let status = posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp)
+
+        // cleanup file_actions
+        posix_spawn_file_actions_destroy(&fileActions)
+
+        // Close the write end of the input and output pipes.
+        if let pipe = self.standardInput as? NSPipe {
+            pipe.fileHandleForReading.closeFile()
+        }
+        if let pipe = self.standardOutput as? NSPipe {
+            pipe.fileHandleForWriting.closeFile()
+        }
+        if let pipe = self.standardError as? NSPipe {
+            pipe.fileHandleForWriting.closeFile()
+        }
+
         guard status == 0 else {
             fatalError()
         }
-        
+
         close(taskSocketPair[1])
         
         self.runLoop = NSRunLoop.currentRunLoop()
