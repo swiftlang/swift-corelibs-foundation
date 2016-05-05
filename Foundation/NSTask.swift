@@ -153,23 +153,20 @@ public class NSTask : NSObject {
     // standard I/O channels; could be either an NSFileHandle or an NSPipe
     public var standardInput: AnyObject? {
         willSet {
-            guard newValue is NSPipe || newValue is NSFileHandle else {
-                abort()
-            }
+            precondition(newValue is NSPipe || newValue is NSFileHandle,
+                         "standardInput must be either NSPipe or NSFileHandle")
         }
     }
     public var standardOutput: AnyObject? {
         willSet {
-            guard newValue is NSPipe || newValue is NSFileHandle else {
-                abort()
-            }
+            precondition(newValue is NSPipe || newValue is NSFileHandle,
+                         "standardOutput must be either NSPipe or NSFileHandle")
         }
     }
     public var standardError: AnyObject? {
         willSet {
-            guard newValue is NSPipe || newValue is NSFileHandle else {
-                abort()
-            }
+            precondition(newValue is NSPipe || newValue is NSFileHandle,
+                         "standardError must be either NSPipe or NSFileHandle")
         }
     }
     
