@@ -274,6 +274,8 @@
 		D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */; };
 		D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */; };
 		D5C40F331CDA1D460005690C /* TestNSOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */; };
+		D51239DF1CD9DA0800D433EE /* CFSocket.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88E01BBC9B0300234F36 /* CFSocket.c */; };
+		D512D17C1CD883F00032E6A5 /* TestNSFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D512D17B1CD883F00032E6A5 /* TestNSFileHandle.swift */; };
 		E1A03F361C4828650023AF4D /* PropertyList-1.0.dtd in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F351C4828650023AF4D /* PropertyList-1.0.dtd */; };
 		E1A03F381C482C730023AF4D /* NSXMLDTDTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F371C482C730023AF4D /* NSXMLDTDTestData.xml */; };
 		E1A3726F1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */; };
@@ -648,6 +650,7 @@
 		D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-EdgeInsetsTest.plist"; sourceTree = "<group>"; };
 		D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-RectTest.plist"; sourceTree = "<group>"; };
 		D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOperationQueue.swift; sourceTree = "<group>"; };
+		D512D17B1CD883F00032E6A5 /* TestNSFileHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileHandle.swift; sourceTree = "<group>"; };
 		D834F9931C31C4060023812A /* TestNSOrderedSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOrderedSet.swift; sourceTree = "<group>"; };
 		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
 		E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLDocument.swift; sourceTree = "<group>"; };
@@ -1219,6 +1222,7 @@
 				5B6F17961C48631C00935030 /* TestUtils.swift */,
 				E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */,
 				294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */,
+				D512D17B1CD883F00032E6A5 /* TestNSFileHandle.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1907,6 +1911,7 @@
 				5B7C8A921BEA7FEC00C5B690 /* CFXMLInputStream.c in Sources */,
 				5B7C8AAA1BEA800D00C5B690 /* CFBurstTrie.c in Sources */,
 				5B7C8A9E1BEA7FF900C5B690 /* CFPlugIn_Instance.c in Sources */,
+				D51239DF1CD9DA0800D433EE /* CFSocket.c in Sources */,
 				5B7C8A801BEA7FCE00C5B690 /* CFDictionary.c in Sources */,
 				5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */,
 				5B7C8AAE1BEA800D00C5B690 /* CFStringScanner.c in Sources */,
@@ -1997,6 +2002,7 @@
 				5B13B3401C582D4C00651CE2 /* TestNSRange.swift in Sources */,
 				5B13B3371C582D4C00651CE2 /* TestNSNotificationCenter.swift in Sources */,
 				5B13B3251C582D4700651CE2 /* main.swift in Sources */,
+				D512D17C1CD883F00032E6A5 /* TestNSFileHandle.swift in Sources */,
 				5B13B33A1C582D4C00651CE2 /* TestNSNumber.swift in Sources */,
 				5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */,
 				5B13B3311C582D4C00651CE2 /* TestNSIndexPath.swift in Sources */,

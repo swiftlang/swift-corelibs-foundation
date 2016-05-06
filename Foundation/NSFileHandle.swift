@@ -20,15 +20,19 @@ public class NSFileHandle : NSObject, NSSecureCoding {
     internal var _closeOnDealloc: Bool
     internal var _closed: Bool = false
     
-    /*@NSCopying*/ public var availableData: NSData {
-        NSUnimplemented()
+    public var availableData: NSData {
+        return _readDataOfLength(Int.max, untilEOF: false)
     }
     
     public func readDataToEndOfFile() -> NSData {
         return readDataOfLength(Int.max)
     }
-    
+
     public func readDataOfLength(_ length: Int) -> NSData {
+        return _readDataOfLength(length, untilEOF: true)
+    }
+
+    internal func _readDataOfLength(_ length: Int, untilEOF: Bool) -> NSData {
         var statbuf = stat()
         var dynamicBuffer: UnsafeMutablePointer<UInt8>? = nil
         var total = 0
@@ -49,21 +53,21 @@ public class NSFileHandle : NSObject, NSSecureCoding {
                     if dynamicBuffer == nil {
                         fatalError("unable to allocate backing buffer")
                     }
-                    let amtRead = read(_fd, dynamicBuffer!.advanced(by: total), amountToRead)
-                    if 0 > amtRead {
-                        free(dynamicBuffer)
-                        fatalError("read failure")
-                    }
-                    if 0 == amtRead {
-                        break // EOF
-                    }
-                    
-                    total += amtRead
-                    remaining -= amtRead
-                    
-                    if total == length {
-                        break // We read everything the client asked for.
-                    }
+                }
+                let amtRead = read(_fd, dynamicBuffer!.advanced(by: total), amountToRead)
+                if 0 > amtRead {
+                    free(dynamicBuffer)
+                    fatalError("read failure")
+                }
+                if 0 == amtRead {
+                    break // EOF
+                }
+                
+                total += amtRead
+                remaining -= amtRead
+                
+                if total == length || !untilEOF {
+                    break // We read everything the client asked for.
                 }
             }
         } else {
