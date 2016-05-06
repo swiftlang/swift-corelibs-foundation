@@ -28,6 +28,9 @@ class TestNSTask : XCTestCase {
                    ("test_pipe_stdout", test_pipe_stdout),
                    ("test_pipe_stderr", test_pipe_stderr),
                    ("test_file_stdout", test_file_stdout),
+                   ("test_passthrough_environment", test_passthrough_environment),
+                   ("test_no_environment", test_no_environment),
+                   ("test_custom_environment", test_custom_environment),
         ]
     }
     
@@ -185,6 +188,20 @@ class TestNSTask : XCTestCase {
             XCTAssertEqual(string, "/usr/bin/which\n")
         }
     }
+
+    func test_passthrough_environment() {
+        XCTAssertGreaterThan(env(environment: nil).count, 0)
+    }
+
+    func test_no_environment() {
+        XCTAssertEqual(env(environment: [:]).count, 0)
+    }
+
+    func test_custom_environment() {
+        let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
+        let output = env(environment: input)
+        XCTAssertEqual(output, input)
+    }
 }
 
 private func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> Void) rethrows {
@@ -197,4 +214,33 @@ private func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> 
         defer { unlink(&buffer) }
         try body(NSFileHandle(fileDescriptor: fd, closeOnDealloc: true))
     }
+}
+
+private func env(environment: [String: String]?) -> [String: String] {
+    let task = NSTask()
+    task.launchPath = "/usr/bin/env"
+    task.environment = environment
+
+    let pipe = NSPipe()
+    task.standardOutput = pipe
+
+    task.launch()
+    task.waitUntilExit()
+    XCTAssertEqual(task.terminationStatus, 0)
+
+    let data = pipe.fileHandleForReading.availableData
+    guard let string = String(data: data, encoding: NSUTF8StringEncoding) else {
+        XCTFail("Could not read stdout")
+        return [:]
+    }
+
+    var result = [String: String]()
+    for variable in string.components(separatedBy: "\n") where variable != "" {
+        guard let range = variable.range(of: "=") else {
+            XCTFail("Could not parse environment variable: \"\(variable)\"")
+            continue
+        }
+        result[variable.substring(to: range.lowerBound)] = variable.substring(from: range.upperBound)
+    }
+    return result
 }
