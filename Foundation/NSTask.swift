@@ -222,18 +222,19 @@ public class NSTask : NSObject {
             envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1 + nenv)
             envp.initializeFrom(env.map { strdup("\($0)=\($1)") })
             envp[env.count] = nil
-            
-            defer {
+        } else {
+            envp = _CFEnviron()
+        }
+
+        defer {
+            if let env = environment {
                 for pair in envp ..< envp + env.count {
                     free(UnsafeMutablePointer<Void>(pair.pointee))
                 }
                 envp.deallocateCapacity(env.count + 1)
             }
-        } else {
-            envp = _CFEnviron()
         }
-        
-        
+
         var taskSocketPair : [Int32] = [0, 0]
         socketpair(AF_UNIX, _CF_SOCK_STREAM(), 0, &taskSocketPair)
         
