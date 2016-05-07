@@ -451,7 +451,7 @@ public extension NSString {
         return exists && isDirectory
     }
     
-    internal typealias _FileNamePredicate = String? -> Bool
+    internal typealias _FileNamePredicate = (String?) -> Bool
     
     internal func _getNamesAtURL(_ filePathURL: NSURL, prependWith: String, namePredicate: _FileNamePredicate, typePredicate: _FileNamePredicate) -> [String] {
         var result: [String] = []
