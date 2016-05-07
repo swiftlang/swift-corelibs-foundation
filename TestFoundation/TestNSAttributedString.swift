@@ -21,7 +21,7 @@
 
 class TestNSAttributedString : XCTestCase {
     
-    static var allTests: [(String, TestNSAttributedString -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSAttributedString) -> () throws -> Void)] {
         return [
             ("test_initWithString", test_initWithString),
             ("test_initWithStringAndAttributes", test_initWithStringAndAttributes)

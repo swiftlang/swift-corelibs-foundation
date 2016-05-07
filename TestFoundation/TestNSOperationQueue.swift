@@ -18,7 +18,7 @@ import SwiftXCTest
 #endif
 
 class TestNSOperationQueue : XCTestCase {
-    static var allTests: [(String, TestNSOperationQueue -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSOperationQueue) -> () throws -> Void)] {
         return [
             ("test_OperationCount", test_OperationCount)
         ]

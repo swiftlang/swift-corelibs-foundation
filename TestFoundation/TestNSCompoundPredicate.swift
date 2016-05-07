@@ -17,7 +17,7 @@
 
 class TestNSCompoundPredicate: XCTestCase {
     
-    static var allTests: [(String, TestNSCompoundPredicate -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSCompoundPredicate) -> () throws -> Void)] {
         return [
             ("test_NotPredicate", test_NotPredicate),
             ("test_AndPredicateWithNoSubpredicates", test_AndPredicateWithNoSubpredicates),

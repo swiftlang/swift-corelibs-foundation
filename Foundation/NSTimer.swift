@@ -28,13 +28,13 @@ public class NSTimer : NSObject {
     }
     
     internal var _timer: CFRunLoopTimer? // has to be optional because this is a chicken/egg problem with initialization in swift
-    internal var _fire: NSTimer -> Void = { (_: NSTimer) in }
+    internal var _fire: (NSTimer) -> Void = { (_: NSTimer) in }
     
     /// Alternative API for timer creation with a block.
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
-    public init(fireDate: NSDate, interval: NSTimeInterval, repeats: Bool, fire: NSTimer -> Void ) {
+    public init(fireDate: NSDate, interval: NSTimeInterval, repeats: Bool, fire: (NSTimer) -> Void ) {
         super.init()
         _fire = fire
         var context = CFRunLoopTimerContext()
@@ -53,7 +53,7 @@ public class NSTimer : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
-    public class func scheduledTimer(_ ti: NSTimeInterval, repeats: Bool, fire: NSTimer -> Void) -> NSTimer {
+    public class func scheduledTimer(_ ti: NSTimeInterval, repeats: Bool, fire: (NSTimer) -> Void) -> NSTimer {
         let timer = NSTimer(fireDate: NSDate(timeIntervalSinceNow: ti), interval: ti, repeats: repeats, fire: fire)
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._timer!, kCFRunLoopDefaultMode)
         return timer

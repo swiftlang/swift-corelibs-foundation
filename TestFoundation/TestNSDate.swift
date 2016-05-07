@@ -21,7 +21,7 @@
 
 class TestNSDate : XCTestCase {
     
-    static var allTests: [(String, TestNSDate -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSDate) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_InitTimeIntervalSince1970", test_InitTimeIntervalSince1970),

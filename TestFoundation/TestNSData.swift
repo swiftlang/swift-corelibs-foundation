@@ -17,7 +17,7 @@
 
 class TestNSData: XCTestCase {
     
-    static var allTests: [(String, TestNSData -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSData) -> () throws -> Void)] {
         return [
             ("test_description", test_description),
             ("test_emptyDescription", test_emptyDescription),

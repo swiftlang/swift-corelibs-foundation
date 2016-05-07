@@ -21,7 +21,7 @@
 
 class TestNSTimeZone: XCTestCase {
 
-    static var allTests: [(String, TestNSTimeZone -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSTimeZone) -> () throws -> Void)] {
         return [
             // Disabled see https://bugs.swift.org/browse/SR-300
             // ("test_abbreviation", test_abbreviation),

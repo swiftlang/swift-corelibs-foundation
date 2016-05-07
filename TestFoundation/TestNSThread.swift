@@ -18,7 +18,7 @@
 
 
 class TestNSThread : XCTestCase {
-    static var allTests: [(String, TestNSThread -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSThread) -> () throws -> Void)] {
         return [
             ("test_currentThread", test_currentThread ),
             ("test_threadStart", test_threadStart),
