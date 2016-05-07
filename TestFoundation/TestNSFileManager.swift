@@ -21,13 +21,14 @@ class TestNSFileManager : XCTestCase {
         return [
             ("test_createDirectory", test_createDirectory ),
             ("test_createFile", test_createFile ),
+            ("test_moveFile", test_moveFile),
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
             ("test_fileAttributes", test_fileAttributes),
             ("test_setFileAttributes", test_setFileAttributes),
             ("test_directoryEnumerator", test_directoryEnumerator),
             ("test_pathEnumerator",test_pathEnumerator),
             ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
-            ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath)
+            ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
         ]
     }
     
@@ -79,7 +80,29 @@ class TestNSFileManager : XCTestCase {
             XCTFail("Failed to clean up file")
         }
     }
-    
+
+    func test_moveFile() {
+        let fm = NSFileManager.defaultManager()
+        let path = "/tmp/testfile"
+        let path2 = "/tmp/testfile2"
+
+        func cleanup() {
+            ignoreError { try fm.removeItem(atPath: path) }
+            ignoreError { try fm.removeItem(atPath: path2) }
+        }
+
+        cleanup()
+
+        XCTAssertTrue(fm.createFile(atPath: path, contents: NSData(), attributes: nil))
+        defer { cleanup() }
+
+        do {
+            try fm.moveItem(atPath: path, toPath: path2)
+        } catch let error {
+            XCTFail("Failed to move file: \(error)")
+        }
+    }
+
     func test_fileSystemRepresentation() {
         let str = "☃"
         let result = NSFileManager.defaultManager().fileSystemRepresentation(withPath: str)

@@ -431,7 +431,7 @@ public class NSFileManager : NSObject {
     }
     
     public func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
-        guard self.fileExists(atPath: dstPath) else {
+        guard !self.fileExists(atPath: dstPath) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteFileExistsError.rawValue, userInfo: [NSFilePathErrorKey : NSString(dstPath)])
         }
         if rename(srcPath, dstPath) != 0 {
