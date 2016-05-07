@@ -21,7 +21,7 @@
 class TestNSAffineTransform : XCTestCase {
     private let accuracyThreshold = 0.001
 
-    static var allTests: [(String, TestNSAffineTransform -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSAffineTransform) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_IdentityTransformation", test_IdentityTransformation),

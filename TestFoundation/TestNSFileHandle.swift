@@ -16,7 +16,7 @@
 #endif
 
 class TestNSFileHandle : XCTestCase {
-    static var allTests : [(String, TestNSFileHandle -> () throws -> ())] {
+    static var allTests : [(String, (TestNSFileHandle) -> () throws -> ())] {
         return [
                    ("test_pipe", test_pipe),
         ]

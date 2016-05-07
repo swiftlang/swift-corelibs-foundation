@@ -19,7 +19,7 @@ import SwiftXCTest
 
 class TestNSXMLParser : XCTestCase {
     
-    static var allTests: [(String, TestNSXMLParser -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSXMLParser) -> () throws -> Void)] {
         return [
             ("test_data", test_data),
         ]

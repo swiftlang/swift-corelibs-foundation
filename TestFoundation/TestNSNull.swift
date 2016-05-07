@@ -21,7 +21,7 @@
 
 class TestNSNull : XCTestCase {
     
-    static var allTests: [(String, TestNSNull -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSNull) -> () throws -> Void)] {
         return [
             ("test_alwaysEqual", test_alwaysEqual)
         ]

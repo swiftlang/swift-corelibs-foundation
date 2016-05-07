@@ -18,7 +18,7 @@
 
 class TestNSURLRequest : XCTestCase {
     
-    static var allTests: [(String, TestNSURLRequest -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSURLRequest) -> () throws -> Void)] {
         return [
             ("test_construction", test_construction),
             ("test_mutableConstruction", test_mutableConstruction),

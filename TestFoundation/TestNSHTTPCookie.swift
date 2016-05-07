@@ -17,7 +17,7 @@
 
 class TestNSHTTPCookie: XCTestCase {
 
-    static var allTests: [(String, TestNSHTTPCookie -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSHTTPCookie) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_RequestHeaderFields", test_RequestHeaderFields)

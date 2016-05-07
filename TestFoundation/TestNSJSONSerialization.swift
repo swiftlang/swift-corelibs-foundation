@@ -25,7 +25,7 @@ class TestNSJSONSerialization : XCTestCase {
         NSUTF32LittleEndianStringEncoding, NSUTF32BigEndianStringEncoding
     ]
 
-    static var allTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
         return JSONObjectWithDataTests
             + deserializationTests
             + isValidJSONObjectTests
@@ -37,7 +37,7 @@ class TestNSJSONSerialization : XCTestCase {
 //MARK: - JSONObjectWithData
 extension TestNSJSONSerialization {
 
-    class var JSONObjectWithDataTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
+    class var JSONObjectWithDataTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
         return [
             ("test_JSONObjectWithData_emptyObject", test_JSONObjectWithData_emptyObject),
             ("test_JSONObjectWithData_encodingDetection", test_JSONObjectWithData_encodingDetection),
@@ -85,7 +85,7 @@ extension TestNSJSONSerialization {
 //MARK: - JSONDeserialization
 extension TestNSJSONSerialization {
     
-    class var deserializationTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
+    class var deserializationTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
         return [
             ("test_deserialize_emptyObject", test_deserialize_emptyObject),
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
@@ -475,7 +475,7 @@ extension TestNSJSONSerialization {
 // MARK: - isValidJSONObjectTests
 extension TestNSJSONSerialization {
 
-    class var isValidJSONObjectTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
+    class var isValidJSONObjectTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
         return [
             ("test_isValidJSONObjectTrue", test_isValidJSONObjectTrue),
             ("test_isValidJSONObjectFalse", test_isValidJSONObjectFalse),
@@ -583,7 +583,7 @@ extension TestNSJSONSerialization {
 // MARK: - serializationTests
 extension TestNSJSONSerialization {
 
-    class var serializationTests: [(String, TestNSJSONSerialization -> () throws -> Void)] {
+    class var serializationTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
         return [
             ("test_serialize_emptyObject", test_serialize_emptyObject),
             ("test_serialize_null", test_serialize_null),

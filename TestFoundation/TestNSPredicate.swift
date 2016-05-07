@@ -17,7 +17,7 @@
 
 class TestNSPredicate: XCTestCase {
 
-    static var allTests : [(String, TestNSPredicate -> () throws -> Void)] {
+    static var allTests : [(String, (TestNSPredicate) -> () throws -> Void)] {
         return [
             ("test_BooleanPredicate", test_BooleanPredicate),
             ("test_BlockPredicateWithoutVariableBindings", test_BlockPredicateWithoutVariableBindings),

@@ -18,7 +18,7 @@
 
 
 class TestNSURLResponse : XCTestCase {
-    static var allTests: [(String, TestNSURLResponse -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSURLResponse) -> () throws -> Void)] {
         return [
             ("test_URL", test_URL),
             ("test_MIMEType_1", test_MIMEType_1),
@@ -89,7 +89,7 @@ class TestNSURLResponse : XCTestCase {
 
 
 class TestNSHTTPURLResponse : XCTestCase {
-    static var allTests: [(String, TestNSHTTPURLResponse -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSHTTPURLResponse) -> () throws -> Void)] {
         return [
                    ("test_URL_and_status_1", test_URL_and_status_1),
                    ("test_URL_and_status_2", test_URL_and_status_2),

@@ -19,7 +19,7 @@
 
 class TestNSIndexPath: XCTestCase {
     
-    static var allTests: [(String, TestNSIndexPath -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSIndexPath) -> () throws -> Void)] {
         return [
            ("test_BasicConstruction", test_BasicConstruction)
         ]

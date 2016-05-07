@@ -18,7 +18,7 @@
 
 class TestNSURLCredential : XCTestCase {
     
-    static var allTests: [(String, TestNSURLCredential -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSURLCredential) -> () throws -> Void)] {
         return [
                    ("test_construction", test_construction)
         ]

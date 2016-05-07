@@ -20,7 +20,7 @@ class TestNSDateFormatter: XCTestCase {
     let DEFAULT_LOCALE = "en_US"
     let DEFAULT_TIMEZONE = "GMT"
     
-    static var allTests : [(String, TestNSDateFormatter -> () throws -> Void)] {
+    static var allTests : [(String, (TestNSDateFormatter) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_dateStyleShort",    test_dateStyleShort),

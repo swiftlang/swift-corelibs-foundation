@@ -18,7 +18,7 @@
 
 
 class TestNSTimer : XCTestCase {
-    static var allTests : [(String, TestNSTimer -> () throws -> Void)] {
+    static var allTests : [(String, (TestNSTimer) -> () throws -> Void)] {
         return [
             ("test_timerInit", test_timerInit),
             ("test_timerTickOnce", test_timerTickOnce),
