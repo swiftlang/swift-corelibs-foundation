@@ -12,7 +12,7 @@ import platform
 
 class ArchType:
     UnknownArch = 0
-    arm         = 1
+    armv7       = 1
     armeb       = 2
     aarch64     = 3
     aarch64_be  = 4
@@ -51,13 +51,16 @@ class ArchType:
     spir64      = 37
     kalimba     = 38
     shave       = 39
+    armv6       = 40
 # Do not assume that these are 1:1 mapping.  This should follow
 # canonical naming conventions for arm, etc. architectures.
 # See apple/swift PR #608    
     @staticmethod
     def to_string(value):
-        if value == ArchType.arm:
+        if value == ArchType.armv7:
             return "armv7"
+        if value == ArchType.armv6:
+            return "armv6"
         if value == ArchType.armeb:
             return "armeb"
         if value == ArchType.aarch64:
@@ -138,12 +141,18 @@ class ArchType:
 # Not 1:1, See to_string
     @staticmethod
     def from_string(string):
-        # Match big endian arm first
         if string == "armeb":
             return ArchType.armeb
-        # Catch-all for little endian arm
-        if "arm" in string:
-            return ArchType.arm
+        if string == "arm":
+            return ArchType.armv7
+        if string == "armv7":
+            return ArchType.armv7
+        if string == "armv7l":
+            return ArchType.armv7
+        if string == "armv6":
+            return ArchType.armv6
+        if string == "armv6l":
+            return ArchType.armv6  
         if string == "aarch64":
             return ArchType.aarch64
         if string == "aarch64_be":
@@ -343,7 +352,7 @@ class Target:
         arch = ArchType.from_string(platform.machine())
         triple = ArchType.to_string(arch)
         if platform.system() == "Linux":
-            if arch == ArchType.arm:
+            if (arch == ArchType.armv6) or (arch == ArchType.armv7):
                 triple += "-linux-gnueabihf"
             else: 
                 triple += "-linux-gnu"
@@ -365,7 +374,7 @@ class Target:
             return None
         elif self.sdk == OSType.Linux:
             # FIXME: It would be nice to detect the host ABI here
-            if self.arch == ArchType.arm:
+            if (self.arch == ArchType.armv6) or (self.arch == ArchType.armv7):
                 triple += "-unknown-linux-gnueabihf"
             else:
                 triple += "-unknown-linux"
