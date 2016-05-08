@@ -272,6 +272,7 @@ private func runTask(_ arguments: [String], environment: [String: String]? = nil
 
     let pipe = NSPipe()
     task.standardOutput = pipe
+    task.standardError = pipe
     task.launch()
     task.waitUntilExit()
 

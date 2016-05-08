@@ -307,59 +307,50 @@ public class NSTask : NSObject {
         #else
             var fileActions: posix_spawn_file_actions_t = posix_spawn_file_actions_t()
         #endif
-        posix_spawn_file_actions_init(&fileActions)
+        try! posix(posix_spawn_file_actions_init(&fileActions))
+        defer { posix_spawn_file_actions_destroy(&fileActions) }
 
-        switch self.standardInput {
+        switch standardInput {
         case let pipe as NSPipe:
-            posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO)
-            posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor)
+            try! posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO))
+            try! posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor))
         case let handle as NSFileHandle:
-            posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDIN_FILENO)
-            posix_spawn_file_actions_addclose(&fileActions, handle.fileDescriptor)
+            try! posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDIN_FILENO))
         default: break
         }
 
-        switch self.standardOutput {
+        switch standardOutput {
         case let pipe as NSPipe:
-            posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO)
-            posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor)
+            try! posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO))
+            try! posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
         case let handle as NSFileHandle:
-            posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDOUT_FILENO)
-            posix_spawn_file_actions_addclose(&fileActions, handle.fileDescriptor)
+            try! posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDOUT_FILENO))
         default: break
         }
 
-        switch self.standardError {
+        switch standardError {
         case let pipe as NSPipe:
-            posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO)
-            posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor)
+            try! posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO))
+            try! posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
         case let handle as NSFileHandle:
-            posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDERR_FILENO)
-            posix_spawn_file_actions_addclose(&fileActions, handle.fileDescriptor)
+            try! posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDERR_FILENO))
         default: break
         }
 
         // Launch
 
         var pid = pid_t()
-        let status = posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp)
-
-        // cleanup file_actions
-        posix_spawn_file_actions_destroy(&fileActions)
+        try! posix(posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp))
 
         // Close the write end of the input and output pipes.
-        if let pipe = self.standardInput as? NSPipe {
+        if let pipe = standardInput as? NSPipe {
             pipe.fileHandleForReading.closeFile()
         }
-        if let pipe = self.standardOutput as? NSPipe {
+        if let pipe = standardOutput as? NSPipe {
             pipe.fileHandleForWriting.closeFile()
         }
-        if let pipe = self.standardError as? NSPipe {
+        if let pipe = standardError as? NSPipe {
             pipe.fileHandleForWriting.closeFile()
-        }
-
-        guard status == 0 else {
-            fatalError()
         }
 
         close(taskSocketPair[1])
@@ -427,4 +418,9 @@ extension NSTask {
 
 public let NSTaskDidTerminateNotification: String = "NSTaskDidTerminateNotification"
 
-
+private func posix(_ code: Int32) throws {
+    switch code {
+    case 0: return
+    default: throw NSError(domain: NSPOSIXErrorDomain, code: Int(code), userInfo: nil)
+    }
+}
