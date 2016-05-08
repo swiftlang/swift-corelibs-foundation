@@ -27,6 +27,7 @@ class TestNSTask : XCTestCase {
                    ("test_pipe_stdin", test_pipe_stdin),
                    ("test_pipe_stdout", test_pipe_stdout),
                    ("test_pipe_stderr", test_pipe_stderr),
+                   ("test_pipe_stdout_and_stderr_same_pipe", test_pipe_stdout_and_stderr_same_pipe),
                    ("test_file_stdout", test_file_stdout),
                    ("test_passthrough_environment", test_passthrough_environment),
                    ("test_no_environment", test_no_environment),
@@ -166,6 +167,28 @@ class TestNSTask : XCTestCase {
         XCTAssertEqual(string, "cat: invalid_file_name: No such file or directory\n")
     }
 
+    func test_pipe_stdout_and_stderr_same_pipe() {
+        let task = NSTask()
+
+        task.launchPath = "/bin/cat"
+        task.arguments = ["invalid_file_name"]
+
+        let pipe = NSPipe()
+        task.standardOutput = pipe
+        task.standardError = pipe
+
+        task.launch()
+        task.waitUntilExit()
+        XCTAssertEqual(task.terminationStatus, 1)
+
+        let data = pipe.fileHandleForReading.availableData
+        guard let string = String(data: data, encoding: NSASCIIStringEncoding) else {
+            XCTFail("Could not read stdout")
+            return
+        }
+        XCTAssertEqual(string, "cat: invalid_file_name: No such file or directory\n")
+    }
+
     func test_file_stdout() {
         let task = NSTask()
 
@@ -188,7 +211,7 @@ class TestNSTask : XCTestCase {
             XCTAssertEqual(string, "/usr/bin/which\n")
         }
     }
-
+    
     func test_passthrough_environment() {
         do {
             let output = try runTask(["/usr/bin/env"], environment: nil)
