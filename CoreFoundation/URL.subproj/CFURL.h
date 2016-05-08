@@ -193,6 +193,9 @@ CFURLRef CFURLGetBaseURL(CFURLRef anURL);
  to request that none be.
  */
 
+
+CFURLRef _CFCopyStandardizedURL(CFURLRef url);
+
 /* Returns true if anURL conforms to RFC 1808 */
 CF_EXPORT
 Boolean CFURLCanBeDecomposed(CFURLRef anURL);
