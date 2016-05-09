@@ -318,7 +318,7 @@ public class NSOperationQueue : NSObject {
             } else {
                 effectiveName = "NSOperationQueue::\(unsafeAddress(of: self))"
             }
-            let attr: dispatch_queue_attr_t
+            let attr: dispatch_queue_attr_t?
             if maxConcurrentOperationCount == 1 {
                 attr = DISPATCH_QUEUE_SERIAL
             } else {
