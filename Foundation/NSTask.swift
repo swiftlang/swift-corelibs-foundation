@@ -194,7 +194,7 @@ public class NSTask : NSObject {
         
         // Convert the arguments array into a posix_spawn-friendly format
         
-        var args = [launchPath.lastPathComponent]
+        var args = [launchPath]
         if let arguments = self.arguments {
             args.append(contentsOf: arguments)
         }

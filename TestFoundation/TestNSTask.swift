@@ -164,7 +164,7 @@ class TestNSTask : XCTestCase {
             XCTFail("Could not read stdout")
             return
         }
-        XCTAssertEqual(string, "cat: invalid_file_name: No such file or directory\n")
+        XCTAssertEqual(string, "/bin/cat: invalid_file_name: No such file or directory\n")
     }
 
     func test_pipe_stdout_and_stderr_same_pipe() {
@@ -186,7 +186,7 @@ class TestNSTask : XCTestCase {
             XCTFail("Could not read stdout")
             return
         }
-        XCTAssertEqual(string, "cat: invalid_file_name: No such file or directory\n")
+        XCTAssertEqual(string, "/bin/cat: invalid_file_name: No such file or directory\n")
     }
 
     func test_file_stdout() {
