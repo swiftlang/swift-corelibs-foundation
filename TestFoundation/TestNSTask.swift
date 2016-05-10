@@ -27,6 +27,7 @@ class TestNSTask : XCTestCase {
                    ("test_pipe_stdin", test_pipe_stdin),
                    ("test_pipe_stdout", test_pipe_stdout),
                    ("test_pipe_stderr", test_pipe_stderr),
+                   ("test_pipe_stdout_and_stderr_same_pipe", test_pipe_stdout_and_stderr_same_pipe),
                    ("test_file_stdout", test_file_stdout),
                    ("test_passthrough_environment", test_passthrough_environment),
                    ("test_no_environment", test_no_environment),
@@ -163,7 +164,29 @@ class TestNSTask : XCTestCase {
             XCTFail("Could not read stdout")
             return
         }
-        XCTAssertEqual(string, "cat: invalid_file_name: No such file or directory\n")
+        XCTAssertEqual(string, "/bin/cat: invalid_file_name: No such file or directory\n")
+    }
+
+    func test_pipe_stdout_and_stderr_same_pipe() {
+        let task = NSTask()
+
+        task.launchPath = "/bin/cat"
+        task.arguments = ["invalid_file_name"]
+
+        let pipe = NSPipe()
+        task.standardOutput = pipe
+        task.standardError = pipe
+
+        task.launch()
+        task.waitUntilExit()
+        XCTAssertEqual(task.terminationStatus, 1)
+
+        let data = pipe.fileHandleForReading.availableData
+        guard let string = String(data: data, encoding: NSASCIIStringEncoding) else {
+            XCTFail("Could not read stdout")
+            return
+        }
+        XCTAssertEqual(string, "/bin/cat: invalid_file_name: No such file or directory\n")
     }
 
     func test_file_stdout() {
@@ -188,19 +211,36 @@ class TestNSTask : XCTestCase {
             XCTAssertEqual(string, "/usr/bin/which\n")
         }
     }
-
+    
     func test_passthrough_environment() {
-        XCTAssertGreaterThan(env(environment: nil).count, 0)
+        do {
+            let output = try runTask(["/usr/bin/env"], environment: nil)
+            let env = try parseEnv(output)
+            XCTAssertGreaterThan(env.count, 0)
+        } catch let error {
+            XCTFail("Test failed: \(error)")
+        }
     }
 
     func test_no_environment() {
-        XCTAssertEqual(env(environment: [:]).count, 0)
+        do {
+            let output = try runTask(["/usr/bin/env"], environment: [:])
+            let env = try parseEnv(output)
+            XCTAssertEqual(env.count, 0)
+        } catch let error {
+            XCTFail("Test failed: \(error)")
+        }
     }
 
     func test_custom_environment() {
-        let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
-        let output = env(environment: input)
-        XCTAssertEqual(output, input)
+        do {
+            let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
+            let output = try runTask(["/usr/bin/env"], environment: input)
+            let env = try parseEnv(output)
+            XCTAssertEqual(env, input)
+        } catch let error {
+            XCTFail("Test failed: \(error)")
+        }
     }
 }
 
@@ -216,31 +256,47 @@ private func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> 
     }
 }
 
-private func env(environment: [String: String]?) -> [String: String] {
+private enum Error: ErrorProtocol {
+    case TerminationStatus(Int32)
+    case UnicodeDecodingError(NSData)
+    case InvalidEnvironmentVariable(String)
+}
+
+private func runTask(_ arguments: [String], environment: [String: String]? = nil) throws -> String {
     let task = NSTask()
-    task.launchPath = "/usr/bin/env"
+
+    var arguments = arguments
+    task.launchPath = arguments.removeFirst()
+    task.arguments = arguments
     task.environment = environment
 
     let pipe = NSPipe()
     task.standardOutput = pipe
-
+    task.standardError = pipe
     task.launch()
     task.waitUntilExit()
-    XCTAssertEqual(task.terminationStatus, 0)
 
-    let data = pipe.fileHandleForReading.availableData
-    guard let string = String(data: data, encoding: NSUTF8StringEncoding) else {
-        XCTFail("Could not read stdout")
-        return [:]
+    guard task.terminationStatus == 0 else {
+        throw Error.TerminationStatus(task.terminationStatus)
     }
 
+    let data = pipe.fileHandleForReading.availableData
+    guard let output = String(data: data, encoding: NSUTF8StringEncoding) else {
+        throw Error.UnicodeDecodingError(data)
+    }
+
+    return output
+}
+
+private func parseEnv(_ env: String) throws -> [String: String] {
     var result = [String: String]()
-    for variable in string.components(separatedBy: "\n") where variable != "" {
-        guard let range = variable.range(of: "=") else {
-            XCTFail("Could not parse environment variable: \"\(variable)\"")
-            continue
+    for line in env.components(separatedBy: "\n") where line != "" {
+        guard let range = line.range(of: "=") else {
+            throw Error.InvalidEnvironmentVariable(line)
         }
-        result[variable.substring(to: range.lowerBound)] = variable.substring(from: range.upperBound)
+        result[line.substring(to: range.lowerBound)] = line.substring(from: range.upperBound)
     }
     return result
 }
+
+
