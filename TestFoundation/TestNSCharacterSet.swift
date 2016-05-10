@@ -53,10 +53,10 @@ class TestNSCharacterSet : XCTestCase {
         let mcset = NSMutableCharacterSet.whitespacesAndNewlines()
         let cset2 = NSCharacterSet.whitespacesAndNewlines()
 
-        XCTAssert(mcset.isSupersetOfSet(cset2))
-        XCTAssert(cset2.isSupersetOfSet(mcset))
+        XCTAssert(mcset.isSuperset(of: cset2))
+        XCTAssert(cset2.isSuperset(of: mcset))
         
-        XCTAssertTrue(NSCharacterSet.whitespacesAndNewlines().isSupersetOfSet(NSCharacterSet.newlines()), "whitespace and newline should be a superset of newline")
+        XCTAssertTrue(NSCharacterSet.whitespacesAndNewlines().isSuperset(of: NSCharacterSet.newlines()), "whitespace and newline should be a superset of newline")
         let data = NSCharacterSet.uppercaseLetters().bitmapRepresentation
         XCTAssertNotNil(data)
     }

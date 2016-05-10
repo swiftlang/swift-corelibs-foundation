@@ -55,7 +55,7 @@ public class NSScanner : NSObject, NSCopying {
             return inverted
         } else {
             if let set = charactersToBeSkipped {
-                _invertedSkipSet = set.invertedSet
+                _invertedSkipSet = set.inverted
                 return _invertedSkipSet
             }
             return nil
@@ -629,7 +629,7 @@ extension NSScanner {
         let stringLen = str.length
         let options: NSStringCompareOptions = [caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch, NSStringCompareOptions.anchoredSearch]
         
-        if let invSkipSet = charactersToBeSkipped?.invertedSet {
+        if let invSkipSet = charactersToBeSkipped?.inverted {
             let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
         }
@@ -649,11 +649,11 @@ extension NSScanner {
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch
-        if let invSkipSet = charactersToBeSkipped?.invertedSet {
+        if let invSkipSet = charactersToBeSkipped?.inverted {
             let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
         }
-        var range = str.rangeOfCharacter(from: set.invertedSet, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
+        var range = str.rangeOfCharacter(from: set.inverted, options: options, range: NSMakeRange(stringLoc, stringLen - stringLoc))
         if range.length == 0 {
             range.location = stringLen
         }
@@ -670,7 +670,7 @@ extension NSScanner {
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch
-        if let invSkipSet = charactersToBeSkipped?.invertedSet {
+        if let invSkipSet = charactersToBeSkipped?.inverted {
             let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
         }
@@ -691,7 +691,7 @@ extension NSScanner {
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch
-        if let invSkipSet = charactersToBeSkipped?.invertedSet {
+        if let invSkipSet = charactersToBeSkipped?.inverted {
             let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
         }

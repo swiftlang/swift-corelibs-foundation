@@ -160,7 +160,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _cfObject)._nsObject
     }
     
-    public var invertedSet: NSCharacterSet {
+    public var inverted: NSCharacterSet {
         return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, _cfObject)._nsObject
     }
     
@@ -168,7 +168,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetIsLongCharacterMember(_cfObject, theLongChar)
     }
     
-    public func isSupersetOfSet(_ theOtherSet: NSCharacterSet) -> Bool {
+    public func isSuperset(of theOtherSet: NSCharacterSet) -> Bool {
         return CFCharacterSetIsSupersetOfSet(_cfObject, theOtherSet._cfObject)
     }
     
