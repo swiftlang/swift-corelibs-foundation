@@ -82,16 +82,16 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
             let otherValue = otherObject.indexAtPosition(pos)
             let thisValue = indexAtPosition(pos)
             if thisValue < otherValue {
-                return .OrderedAscending
+                return .orderedAscending
             } else if thisValue > otherValue {
-                return .OrderedDescending
+                return .orderedDescending
             }
         }
         if thisLength > otherLength {
-            return .OrderedDescending
+            return .orderedDescending
         } else if thisLength < otherLength {
-            return .OrderedAscending
+            return .orderedAscending
         }
-        return .OrderedSame
+        return .orderedSame
     }
 }

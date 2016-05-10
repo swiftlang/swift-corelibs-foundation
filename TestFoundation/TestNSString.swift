@@ -594,7 +594,7 @@ class TestNSString : XCTestCase {
     }
     
     private func stringsAreCaseInsensitivelyEqual(_ lhs: NSString, _ rhs: NSString) -> Bool {
-    	return lhs.compare(rhs.bridge(), options: .caseInsensitiveSearch) == .OrderedSame
+    	return lhs.compare(rhs.bridge(), options: .caseInsensitiveSearch) == .orderedSame
     }
 
     func test_stringByTrimmingCharactersInSet() {
