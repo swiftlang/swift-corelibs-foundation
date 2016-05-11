@@ -38,7 +38,7 @@ public class URLAuthenticationChallenge : NSObject, SecureCoding {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public init(protectionSpace space: NSURLProtectionSpace, proposedCredential credential: URLCredential?, previousFailureCount: Int, failureResponse response: NSURLResponse?, error: NSError?) { NSUnimplemented() }
+    public init(protectionSpace space: URLProtectionSpace, proposedCredential credential: URLCredential?, previousFailureCount: Int, failureResponse response: NSURLResponse?, error: NSError?) { NSUnimplemented() }
     
     /*!
         @method initWithAuthenticationChallenge:
@@ -57,7 +57,7 @@ public class URLAuthenticationChallenge : NSObject, SecureCoding {
         @abstract Get a description of the protection space that requires authentication
         @result The protection space that needs authentication
     */
-    /*@NSCopying*/ public var protectionSpace: NSURLProtectionSpace { NSUnimplemented() }
+    /*@NSCopying*/ public var protectionSpace: URLProtectionSpace { NSUnimplemented() }
     
     /*!
         @method proposedCredential
