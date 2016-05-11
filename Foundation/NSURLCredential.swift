@@ -32,7 +32,7 @@ extension URLCredential {
     @class NSURLCredential
     @discussion This class is an immutable object representing an authentication credential.  The actual type of the credential is determined by the constructor called in the categories declared below.
 */
-public class URLCredential : NSObject, SecureCoding, NSCopying {
+public class URLCredential : NSObject, NSSecureCoding, NSCopying {
     private var _user : String
     private var _password : String
     private var _persistence : Persistence

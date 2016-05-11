@@ -21,7 +21,7 @@ public var NSTimeIntervalSince1970: Double {
     return 978307200.0
 }
 
-public class NSDate: NSObject, NSCopying, SecureCoding, Coding {
+public class NSDate : NSObject, NSCopying, SecureCoding, Coding {
     typealias CFType = CFDate
     
     public override var hash: Int {

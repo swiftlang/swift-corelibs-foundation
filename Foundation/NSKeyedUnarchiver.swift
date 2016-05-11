@@ -474,8 +474,8 @@ public class NSKeyedUnarchiver : NSCoder {
                 if let ns = classToConstruct as? NSObject.Type {
                     classToConstruct = ns.classForKeyedUnarchiver()
                 }
-
-                guard let decodableClass = classToConstruct as? NSCoding.Type else {
+                
+                guard let decodableClass = classToConstruct as? Coding.Type else {
                     throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                          withDescription: "Class \(classToConstruct!) is not decodable. The data may be corrupt.")
                 }

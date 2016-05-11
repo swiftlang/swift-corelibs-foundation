@@ -104,7 +104,7 @@ public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMe
     @class NSURLProtectionSpace
     @discussion This class represents a protection space requiring authentication.
 */
-public class URLProtectionSpace : NSObject, SecureCoding, NSCopying {
+public class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

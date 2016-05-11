@@ -123,18 +123,18 @@ public enum URLRequestNetworkServiceType : UInt {
 ///
 /// Objects of this class are used with the `NSURLSession` API to perform the
 /// load of a URL.
-public class URLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying {
+public class NSURLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying {
     
     public override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType === URLRequest.self {
+        if self.dynamicType === NSURLRequest.self {
             // Already immutable
             return self
         }
-        let c = URLRequest()
+        let c = NSURLRequest()
         c.setValues(from: self)
         return c
     }
@@ -151,7 +151,7 @@ public class URLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying {
     }
     
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
-        let c = MutableURLRequest()
+        let c = NSMutableURLRequest()
         c.setValues(from: self)
         return c
     }
@@ -233,7 +233,7 @@ public class URLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying {
 /// `NSMutableURLRequest` categories that are available. The
 /// `NSMutableHTTPURLRequest` category on `NSMutableURLRequest` is an
 /// example.
-public class MutableURLRequest : URLRequest {
+public class NSMutableURLRequest : NSURLRequest {
     public required init?(coder aDecoder: NSCoder) {
         super.init()
     }

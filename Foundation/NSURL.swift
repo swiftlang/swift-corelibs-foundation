@@ -674,7 +674,7 @@ extension NSURL {
 }
 
 // NSURLQueryItem encapsulates a single query name-value pair. The name and value strings of a query name-value pair are not percent encoded. For use with the NSURLComponents queryItems property.
-public class NSURLQueryItem: NSObject, SecureCoding, NSCopying {
+public class NSURLQueryItem : NSObject, SecureCoding, NSCopying {
     public init(name: String, value: String?) {
         self.name = name
         self.value = value

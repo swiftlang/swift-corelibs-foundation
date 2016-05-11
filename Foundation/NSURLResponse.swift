@@ -16,7 +16,7 @@
 /// the actual bytes representing the content of a URL. See
 /// `NSURLSession` for more information about receiving the content
 /// data for a URL load.
-public class URLResponse: NSObject, SecureCoding, NSCopying {
+public class URLResponse: NSObject, NSSecureCoding, NSCopying {
 
     public static let supportsSecureCoding = true
     
