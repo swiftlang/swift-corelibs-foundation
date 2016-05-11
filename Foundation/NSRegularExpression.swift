@@ -25,7 +25,7 @@ public struct NSRegularExpressionOptions : OptionSet {
     public static let useUnicodeWordBoundaries = NSRegularExpressionOptions(rawValue: 1 << 6) /* Use Unicode TR#29 to specify word boundaries (otherwise, traditional regular expression word boundaries are used). */
 }
 
-public class NSRegularExpression : NSObject, NSCopying, NSCoding {
+public class NSRegularExpression : NSObject, NSCopying, Coding {
     internal var _internal: _CFRegularExpression
     
     public override func copy() -> AnyObject {
@@ -36,7 +36,7 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
         return self
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

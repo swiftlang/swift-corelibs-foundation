@@ -115,7 +115,7 @@ extension CGPoint: NSSpecialValueCoding {
         }
     }
     
-    func encodeWithCoder(_ aCoder: NSCoder) {
+    func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodePoint(self, forKey: "NS.pointval")
         } else {
@@ -182,7 +182,7 @@ extension CGSize: NSSpecialValueCoding {
         }
     }
     
-    func encodeWithCoder(_ aCoder: NSCoder) {
+    func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeSize(self, forKey: "NS.sizeval")
         } else {
@@ -264,7 +264,7 @@ extension CGRect: NSSpecialValueCoding {
         }
     }
     
-    func encodeWithCoder(_ aCoder: NSCoder) {
+    func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeRect(self, forKey: "NS.rectval")
         } else {
@@ -364,7 +364,7 @@ extension NSEdgeInsets: NSSpecialValueCoding {
         }
     }
     
-    func encodeWithCoder(_ aCoder: NSCoder) {
+    func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder._encodeCGFloat(self.top, forKey: "NS.edgeval.top")
             aCoder._encodeCGFloat(self.left, forKey: "NS.edgeval.left")

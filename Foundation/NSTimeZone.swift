@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
+public class NSTimeZone : NSObject, NSCopying, SecureCoding, Coding {
     typealias CFType = CFTimeZone
     private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())
     private var _name: UnsafeMutablePointer<Void>? = nil
@@ -92,7 +92,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         self.init(name: name._swiftObject , data: nil)
     }
 
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
             // darwin versions of this method can and will encode mutable data, however it is not required for compatability
@@ -101,9 +101,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

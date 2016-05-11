@@ -31,9 +31,9 @@ public struct NSAffineTransformStruct {
     }
 }
 
-public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
+public class NSAffineTransform : NSObject, NSCopying, SecureCoding {
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     public func copy(with zone: NSZone? = nil) -> AnyObject {
@@ -46,9 +46,7 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
-    public static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     // Initialization
     public convenience init(transform: NSAffineTransform) {

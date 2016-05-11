@@ -70,7 +70,7 @@ private let __kCFUseAllocator: CFOptionFlags = 0x08
 private let __kCFDontDeallocate: CFOptionFlags = 0x10
 private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
 
-public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
+public class NSData : NSObject, NSCopying, NSMutableCopying, SecureCoding {
     typealias CFType = CFData
     private var _base = _CFInfo(typeID: CFDataGetTypeID())
     private var _length: CFIndex = 0
@@ -154,7 +154,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return NSMutableData(bytes: UnsafeMutablePointer<Void>(bytes), length: length, copy: true, deallocator: nil)
     }
 
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
             aKeyedCoder._encodePropertyList(self, forKey: "NS.data")
         } else {
@@ -181,9 +181,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
     
-    public static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     private func byteDescription(limit: Int? = nil) -> String {
         var s = ""

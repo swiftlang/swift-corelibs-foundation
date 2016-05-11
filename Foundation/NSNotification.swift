@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public class NSNotification : NSObject, NSCopying, NSCoding {
+public class NSNotification : NSObject, NSCopying, Coding {
     private(set) public var name: String
     
     private(set) public var object: AnyObject?
@@ -43,7 +43,7 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
             aCoder.encodeObject(self.object, forKey:"NS.object")

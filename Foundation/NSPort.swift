@@ -12,7 +12,7 @@ public typealias NSSocketNativeHandle = Int32
 
 public let NSPortDidBecomeInvalidNotification: String = "NSPortDidBecomeInvalidNotification"
 
-public class NSPort : NSObject, NSCopying, NSCoding {
+public class NSPort : NSObject, NSCopying, Coding {
     
     public override init() {
         
@@ -22,7 +22,7 @@ public class NSPort : NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

@@ -28,7 +28,7 @@ private func _standardizedPath(_ path: String) -> String {
     return path
 }
 
-public class NSURL : NSObject, NSSecureCoding, NSCopying {
+public class NSURL : NSObject, SecureCoding, NSCopying {
     typealias CFType = CFURL
     internal var _base = _CFInfo(typeID: CFURLGetTypeID())
     internal var _flags : UInt32 = 0
@@ -84,9 +84,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    static public func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
@@ -103,7 +101,7 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
 	if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.baseURL, forKey:"NS.base")
             aCoder.encodeObject(self.relativeString.bridge(), forKey:"NS.relative")
@@ -576,7 +574,7 @@ extension NSURL {
 }
 
 // NSURLQueryItem encapsulates a single query name-value pair. The name and value strings of a query name-value pair are not percent encoded. For use with the NSURLComponents queryItems property.
-public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
+public class NSURLQueryItem : NSObject, SecureCoding, NSCopying {
     public init(name: String, value: String?) {
         self.name = name
         self.value = value
@@ -590,15 +588,13 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     required public init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

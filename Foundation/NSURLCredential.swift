@@ -30,7 +30,7 @@ public enum NSURLCredentialPersistence : UInt {
     @class NSURLCredential
     @discussion This class is an immutable object representing an authentication credential.  The actual type of the credential is determined by the constructor called in the categories declared below.
 */
-public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
+public class NSURLCredential : NSObject, SecureCoding, NSCopying {
     private var _user : String
     private var _password : String
     private var _persistence : NSURLCredentialPersistence
@@ -66,13 +66,11 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    static public func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

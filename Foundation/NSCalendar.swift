@@ -93,7 +93,7 @@ public struct NSCalendarOptions : OptionSet {
     public static let matchLast = NSCalendarOptions(rawValue: 1 << 13)
 }
 
-public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
+public class NSCalendar : NSObject, NSCopying, SecureCoding {
     typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
     private var _identifier: UnsafeMutablePointer<Void>? = nil
@@ -141,7 +141,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.calendarIdentifier.bridge(), forKey: "NS.identifier")
             aCoder.encodeObject(self.timeZone, forKey: "NS.timezone")
@@ -154,9 +154,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    static public func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public override func copy() -> AnyObject {
         return copy(with: nil)
@@ -1126,7 +1124,7 @@ public let NSCalendarDayChangedNotification: String = "" // NSUnimplemented
 
 public var NSDateComponentUndefined: Int = LONG_MAX
 
-public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
+public class NSDateComponents : NSObject, NSCopying, SecureCoding {
     internal var _calendar: NSCalendar?
     internal var _timeZone: NSTimeZone?
     internal var _values = [Int](repeating: NSDateComponentUndefined, count: 19)
@@ -1257,7 +1255,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeInteger(self.era, forKey: "NS.era")
             aCoder.encodeInteger(self.year, forKey: "NS.year")
@@ -1281,9 +1279,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    static public func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

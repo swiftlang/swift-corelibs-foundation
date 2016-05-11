@@ -110,13 +110,13 @@ public class NSDecimalNumber : NSNumber {
 
 
 /***********	A class for defining common behaviors		*******/
-public class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCoding {
+public class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, Coding {
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

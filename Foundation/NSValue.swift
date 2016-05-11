@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
+public class NSValue : NSObject, NSCopying, SecureCoding, Coding {
 
     private static var SideTable = [ObjectIdentifier : NSValue]()
     private static var SideTableLock = NSLock()
@@ -132,17 +132,15 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
         
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if self.dynamicType == NSValue.self {
-            _concreteValue.encodeWithCoder(aCoder)
+            _concreteValue.encode(with: aCoder)
         } else {
             NSRequiresConcreteImplementation()
         }
     }
     
-    public class func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

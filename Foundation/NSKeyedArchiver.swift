@@ -268,8 +268,8 @@ public class NSKeyedArchiver : NSCoder {
     private class func _supportsSecureCoding(_ objv : AnyObject?) -> Bool {
         var supportsSecureCoding : Bool = false
         
-        if let secureCodable = objv as? NSSecureCoding {
-            supportsSecureCoding = secureCodable.dynamicType.supportsSecureCoding()
+        if let secureCodable = objv as? SecureCoding {
+            supportsSecureCoding = secureCodable.dynamicType.supportsSecureCoding
         }
         
         return supportsSecureCoding
@@ -572,15 +572,15 @@ public class NSKeyedArchiver : NSCoder {
             var encodedObject : Any
 
             if _isContainer(object) {
-                guard let codable = object as? NSCoding else {
-                    fatalError("Object \(object) does not conform to NSCoding")
+                guard let codable = object as? Coding else {
+                    fatalError("Object \(object) does not conform to Coding")
                 }
 
                 let innerEncodingContext = EncodingContext()
                 var cls : AnyClass?
                 
                 _pushEncodingContext(innerEncodingContext)
-                codable.encodeWithCoder(self)
+                codable.encode(with: self)
 
                 let ns = object as? NSObject
                 cls = ns?.classForKeyedArchiver
@@ -649,7 +649,7 @@ public class NSKeyedArchiver : NSCoder {
         _setObjectInCurrentEncodingContext(aPropertyList, forKey: key)
     }
     
-    internal func _encodeValue<T: NSObject where T: NSCoding>(_ objv: T, forKey key: String? = nil) {
+    internal func _encodeValue<T: NSObject where T: Coding>(_ objv: T, forKey key: String? = nil) {
         _encodePropertyList(objv, forKey: key)
     }
 
@@ -798,8 +798,8 @@ public class NSKeyedArchiver : NSCoder {
         Enables secure coding support on this keyed archiver. You do not need to enable
         secure coding on the archiver to enable secure coding on the unarchiver. Enabling
         secure coding on the archiver is a way for you to be sure that all classes that
-        are encoded conform with NSSecureCoding (it will throw an exception if a class
-        which does not NSSecureCoding is archived). Note that the getter is on the superclass,
+        are encoded conform with SecureCoding (it will throw an exception if a class
+        which does not SecureCoding is archived). Note that the getter is on the superclass,
         NSCoder. See NSCoder for more information about secure coding.
      */
     public override var requiresSecureCoding: Bool {

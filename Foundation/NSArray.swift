@@ -34,7 +34,7 @@ extension Array : _ObjectTypeBridgeable {
     }
 }
 
-public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
+public class NSArray : NSObject, NSCopying, NSMutableCopying, SecureCoding, Coding {
     private let _cfinfo = _CFInfo(typeID: CFArrayGetTypeID())
     internal var _storage = [AnyObject]()
     
@@ -95,21 +95,19 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if let keyedArchiver = aCoder as? NSKeyedArchiver {
             keyedArchiver._encodeArrayOfObjects(self, forKey:"NS.objects")
         } else {
             for object in self {
-                if let codable = object as? NSCoding {
-                    codable.encodeWithCoder(aCoder)
+                if let codable = object as? Coding {
+                    codable.encode(with: aCoder)
                 }
             }
         }
     }
     
-    public static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

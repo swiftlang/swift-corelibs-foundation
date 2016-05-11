@@ -8,7 +8,7 @@
 //
 
 
-public class NSNull : NSObject, NSCopying, NSSecureCoding {
+public class NSNull : NSObject, NSCopying, SecureCoding {
     
     public override func copy() -> AnyObject {
         return copy(with: nil)
@@ -26,13 +26,11 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
         // Nothing to do here
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         // Nothing to do here
     }
     
-    public static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public override func isEqual(_ object: AnyObject?) -> Bool {
         return object is NSNull

@@ -8,7 +8,7 @@
 //
 
 
-public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
+public class NSIndexPath : NSObject, NSCopying, SecureCoding {
     
     internal var _indexes : [Int]
     override public init() {
@@ -31,7 +31,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         self.init(indexes: [index])
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -39,7 +39,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public static func supportsSecureCoding() -> Bool { return true }
+    public static let supportsSecureCoding = true
     
     public func indexPathByAddingIndex(_ index: Int) -> NSIndexPath {
         return NSIndexPath(indexes: _indexes + [index])

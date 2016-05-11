@@ -7,13 +7,13 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public protocol NSCoding {
-    func encodeWithCoder(_ aCoder: NSCoder)
+public protocol Coding {
+    func encode(with aCoder: NSCoder)
     init?(coder aDecoder: NSCoder)
 }
 
-public protocol NSSecureCoding : NSCoding {
-    static func supportsSecureCoding() -> Bool
+public protocol SecureCoding : Coding {
+    static var supportsSecureCoding: Bool { get }
 }
 
 public class NSCoder : NSObject {
@@ -47,7 +47,7 @@ public class NSCoder : NSObject {
     }
 
     @warn_unused_result
-    public func decodeObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
+    public func decodeObjectOfClass<DecodedObjectType : Coding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
         NSUnimplemented()
     }
    
@@ -78,7 +78,7 @@ public class NSCoder : NSObject {
     }
     
     @warn_unused_result
-    public func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? {
+    public func decodeTopLevelObjectOfClass<DecodedObjectType : Coding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? {
         NSUnimplemented()
     }
     

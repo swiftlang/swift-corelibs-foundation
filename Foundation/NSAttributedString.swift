@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
+public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, SecureCoding {
     
     private let _cfinfo = _CFInfo(typeID: CFAttributedStringGetTypeID())
     private let _string: NSString
@@ -19,13 +19,11 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    static public func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

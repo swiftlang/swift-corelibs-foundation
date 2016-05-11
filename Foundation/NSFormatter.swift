@@ -42,7 +42,7 @@ public enum NSFormattingUnitStyle : Int {
     case Long
 }
 
-public class NSFormatter : NSObject, NSCopying, NSCoding {
+public class NSFormatter : NSObject, NSCopying, Coding {
     
     public override init() {
         
@@ -52,7 +52,7 @@ public class NSFormatter : NSObject, NSCopying, NSCoding {
         
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         
     }
     

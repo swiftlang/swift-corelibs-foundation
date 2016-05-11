@@ -16,14 +16,12 @@
     import SwiftXCTest
 #endif
 
-public class UserClass : NSObject, NSSecureCoding {
+public class UserClass : NSObject, SecureCoding {
     var ivar : Int
     
-    public class func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
-    public func encodeWithCoder(_ aCoder : NSCoder) {
+    public func encode(with aCoder : NSCoder) {
         aCoder.encodeInteger(ivar, forKey:"$ivar") // also test escaping
     }
     

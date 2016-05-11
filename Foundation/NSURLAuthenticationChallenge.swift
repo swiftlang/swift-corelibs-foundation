@@ -14,17 +14,15 @@
     provides all the information about the challenge, and has a method
     to indicate when it's done.
 */
-public class NSURLAuthenticationChallenge : NSObject, NSSecureCoding {
+public class NSURLAuthenticationChallenge : NSObject, SecureCoding {
     
-    static public func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

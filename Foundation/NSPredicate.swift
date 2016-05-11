@@ -10,7 +10,7 @@
 
 // Predicates wrap some combination of expressions and operators and when evaluated return a BOOL.
 
-public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
+public class NSPredicate : NSObject, SecureCoding, NSCopying {
 
     private enum PredicateKind {
         case Boolean(Bool)
@@ -21,15 +21,13 @@ public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
 
     private let kind: PredicateKind
 
-    public static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

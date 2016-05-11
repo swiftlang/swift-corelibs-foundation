@@ -21,7 +21,7 @@ public var NSTimeIntervalSince1970: Double {
     return 978307200.0
 }
 
-public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
+public class NSDate : NSObject, NSCopying, SecureCoding, Coding {
     typealias CFType = CFDate
     
     public override var hash: Int {
@@ -86,11 +86,9 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return self
     }
     
-    public static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
 	if aCoder.allowsKeyedCoding {
 	    aCoder.encodeDouble(_timeIntervalSinceReferenceDate, forKey: "NS.time")
 	} else {

@@ -15,7 +15,7 @@ import Darwin
 import Glibc
 #endif
 
-public class NSFileHandle : NSObject, NSSecureCoding {
+public class NSFileHandle : NSObject, SecureCoding {
     internal var _fd: Int32
     internal var _closeOnDealloc: Bool
     internal var _closed: Bool = false
@@ -179,13 +179,11 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    public static let supportsSecureCoding = true
 }
 
 extension NSFileHandle {

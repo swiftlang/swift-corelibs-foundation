@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureCoding, NSCoding {
+internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, SecureCoding, Coding {
 
     private var _addr : UnsafeMutablePointer<UInt8> // free if decoding
     private var _count : Int
@@ -74,7 +74,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         }
     }
     
-    func encodeWithCoder(_ aCoder: NSCoder) {
+    func encode(with aCoder: NSCoder) {
         aCoder.encodeInteger(self._count, forKey: "NS.count")
         aCoder.encodeInteger(self._size, forKey: "NS.size")
         aCoder.encodeInteger(Int(self._type), forKey: "NS.type")
@@ -88,9 +88,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         }
     }
     
-    static func supportsSecureCoding() -> Bool {
-        return true
-    }
+    static let supportsSecureCoding = true
     
     func fillObjCType(_ type: _NSSimpleObjCType, count: Int, at addr: UnsafeMutablePointer<Void>) {
         if type == self._type && count <= self._count {
