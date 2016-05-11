@@ -25,14 +25,14 @@ class TestNSHTTPCookie: XCTestCase {
     }
 
     func test_BasicConstruction() {
-        let invalidVersionZeroCookie = NSHTTPCookie(properties: [
+        let invalidVersionZeroCookie = HTTPCookie(properties: [
             NSHTTPCookieName: "TestCookie",
             NSHTTPCookieValue: "Test value @#$%^$&*",
             NSHTTPCookiePath: "/"
         ])
         XCTAssertNil(invalidVersionZeroCookie)
 
-        let minimalVersionZeroCookie = NSHTTPCookie(properties: [
+        let minimalVersionZeroCookie = HTTPCookie(properties: [
             NSHTTPCookieName: "TestCookie",
             NSHTTPCookieValue: "Test value @#$%^$&*",
             NSHTTPCookiePath: "/",
@@ -44,7 +44,7 @@ class TestNSHTTPCookie: XCTestCase {
         XCTAssert(minimalVersionZeroCookie?.path == "/")
         XCTAssert(minimalVersionZeroCookie?.domain == "apple.com")
 
-        let versionZeroCookieWithOriginURL = NSHTTPCookie(properties: [
+        let versionZeroCookieWithOriginURL = HTTPCookie(properties: [
             NSHTTPCookieName: "TestCookie",
             NSHTTPCookieValue: "Test value @#$%^$&*",
             NSHTTPCookiePath: "/",
@@ -53,7 +53,7 @@ class TestNSHTTPCookie: XCTestCase {
         XCTAssert(versionZeroCookieWithOriginURL?.domain == "apple.com")
 
         // Domain takes precedence over originURL inference
-        let versionZeroCookieWithDomainAndOriginURL = NSHTTPCookie(properties: [
+        let versionZeroCookieWithDomainAndOriginURL = HTTPCookie(properties: [
             NSHTTPCookieName: "TestCookie",
             NSHTTPCookieValue: "Test value @#$%^$&*",
             NSHTTPCookiePath: "/",
@@ -63,7 +63,7 @@ class TestNSHTTPCookie: XCTestCase {
         XCTAssert(versionZeroCookieWithDomainAndOriginURL?.domain == "apple.com")
 
         // This is implicitly a v0 cookie. Properties that aren't valid for v0 should fail.
-        let versionZeroCookieWithInvalidVersionOneProps = NSHTTPCookie(properties: [
+        let versionZeroCookieWithInvalidVersionOneProps = HTTPCookie(properties: [
             NSHTTPCookieName: "TestCookie",
             NSHTTPCookieValue: "Test value @#$%^$&*",
             NSHTTPCookiePath: "/",
@@ -93,17 +93,17 @@ class TestNSHTTPCookie: XCTestCase {
     }
     
     func test_RequestHeaderFields() {
-        let noCookies: [NSHTTPCookie] = []
-        XCTAssertEqual(NSHTTPCookie.requestHeaderFields(with: noCookies)["Cookie"], "")
+        let noCookies: [HTTPCookie] = []
+        XCTAssertEqual(HTTPCookie.requestHeaderFields(with: noCookies)["Cookie"], "")
         
-        let basicCookies: [NSHTTPCookie] = [
-            NSHTTPCookie(properties: [
+        let basicCookies: [HTTPCookie] = [
+            HTTPCookie(properties: [
                 NSHTTPCookieName: "TestCookie1",
                 NSHTTPCookieValue: "testValue1",
                 NSHTTPCookiePath: "/",
                 NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
                 ])!,
-            NSHTTPCookie(properties: [
+            HTTPCookie(properties: [
                 NSHTTPCookieName: "TestCookie2",
                 NSHTTPCookieValue: "testValue2",
                 NSHTTPCookiePath: "/",
@@ -111,7 +111,7 @@ class TestNSHTTPCookie: XCTestCase {
                 ])!,
         ]
         
-        let basicCookieString = NSHTTPCookie.requestHeaderFields(with: basicCookies)["Cookie"]
+        let basicCookieString = HTTPCookie.requestHeaderFields(with: basicCookies)["Cookie"]
         XCTAssertEqual(basicCookieString, "TestCookie1=testValue1; TestCookie2=testValue2")
     }
 }

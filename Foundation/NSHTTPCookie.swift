@@ -53,7 +53,7 @@ public let NSHTTPCookiePort: String = "Port"
 /// an immutable object initialized from a dictionary that contains
 /// the various cookie attributes. It has accessors to get the various
 /// attributes of a cookie.
-public class NSHTTPCookie : NSObject {
+public class HTTPCookie : NSObject {
 
     let _comment: String?
     let _commentURL: NSURL?
@@ -316,7 +316,7 @@ public class NSHTTPCookie : NSObject {
     /// - Parameter cookies: The cookies to turn into request headers.
     /// - Returns: A dictionary where the keys are header field names, and the values
     /// are the corresponding header field values.
-    public class func requestHeaderFields(with cookies: [NSHTTPCookie]) -> [String : String] {
+    public class func requestHeaderFields(with cookies: [HTTPCookie]) -> [String : String] {
         var cookieString = cookies.reduce("") { (sum, next) -> String in
             return sum + "\(next._name)=\(next._value); "
         }
@@ -335,7 +335,7 @@ public class NSHTTPCookie : NSObject {
     /// - Parameter headerFields: The response header fields to check for cookies.
     /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpeted.
     /// - Returns: An array of NSHTTPCookie objects
-    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL URL: NSURL) -> [NSHTTPCookie] { NSUnimplemented() }
+    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL URL: NSURL) -> [HTTPCookie] { NSUnimplemented() }
     
     /// Returns a dictionary representation of the receiver.
     ///
