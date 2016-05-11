@@ -1761,7 +1761,9 @@ static CFRunLoopRef _legacyStreamRunLoop()
             pthread_attr_t attr;
             pthread_attr_init(&attr);
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
             pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
+#endif
             pthread_t workThread;
             (void) pthread_create(&workThread, &attr, _legacyStreamRunLoop_workThread, &sem);
             pthread_attr_destroy(&attr);
