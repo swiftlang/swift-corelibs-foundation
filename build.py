@@ -74,6 +74,7 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 #	swift_cflags += ([
 #		'-DDEPLOYMENT_ENABLE_LIBDISPATCH',
 #		'-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
+#		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src'
 #	])
 #	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs '
 
