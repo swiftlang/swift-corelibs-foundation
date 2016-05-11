@@ -32,6 +32,8 @@ private var threadID: pthread_t? = nil
 private var threadID = pthread_t()
 #endif
 
+private var managerThreadCreated = false
+private var managerThreadCreationLock = NSLock()
 private var managerThreadRunLoop : NSRunLoop? = nil
 private var managerThreadRunLoopIsRunning = false
 private var managerThreadRunLoopIsRunningCondition = NSCondition()
@@ -57,7 +59,7 @@ private func runLoopSourceRelease(_ pointer : UnsafePointer<Void>?) -> Void {
 
 // Equal method for run loop source
 
-private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
+private func runloopIsEqual(_ a : UnsafePointer<Void>?, _ b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
     let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
     guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? NSRunLoop else {
@@ -76,42 +78,52 @@ private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?
     return true
 }
 
-@noreturn private func managerThread(_ x: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
-    
-    managerThreadRunLoop = NSRunLoop.currentRunLoop()
-    var emptySourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(managerThreadRunLoop!))),
-                                                              retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil,
-                                                                      equal: runloopIsEqual, hash: nil, schedule: nil, cancel: nil,
-                                                                             perform: emptyRunLoopCallback)
-    
-    CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &emptySourceContext), kCFRunLoopDefaultMode)
-    
-    managerThreadRunLoopIsRunningCondition.lock()
-    
-    CFRunLoopPerformBlock(managerThreadRunLoop?._cfRunLoop, kCFRunLoopDefaultMode) { 
-        managerThreadRunLoopIsRunning = true
-        managerThreadRunLoopIsRunningCondition.broadcast()
-        managerThreadRunLoopIsRunningCondition.unlock()
-    }
-    
-    managerThreadRunLoop?.run()
-    fatalError("NSTask manager run loop exited unexpectedly; it should run forever once initialized")
-}
-
 private func managerThreadSetup() -> Void {
-    pthread_create(&threadID, nil, managerThread, nil)
-    
-    managerThreadRunLoopIsRunningCondition.lock()
-    while managerThreadRunLoopIsRunning == false {
-        managerThreadRunLoopIsRunningCondition.wait()
+    managerThreadCreationLock.lock()
+    if !managerThreadCreated {
+        pthread_create(&threadID, nil, { (_) -> UnsafeMutablePointer<Void>! in
+            managerThreadRunLoop = NSRunLoop.currentRunLoop()
+            var emptySourceContext = CFRunLoopSourceContext(version: 0,
+                                                            info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(managerThreadRunLoop!))),
+                                                            retain: { return runLoopSourceRetain($0) },
+                                                            release: { runLoopSourceRelease($0) },
+                                                            copyDescription: nil,
+                                                            equal: { return runloopIsEqual($0, $1) },
+                                                            hash: nil,
+                                                            schedule: nil,
+                                                            cancel: nil,
+                                                            perform: { emptyRunLoopCallback($0) }
+            )
+            
+            CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &emptySourceContext), kCFRunLoopDefaultMode)
+            
+            managerThreadRunLoopIsRunningCondition.lock()
+            
+            CFRunLoopPerformBlock(managerThreadRunLoop?._cfRunLoop, kCFRunLoopDefaultMode) {
+                managerThreadRunLoopIsRunning = true
+                managerThreadRunLoopIsRunningCondition.broadcast()
+                managerThreadRunLoopIsRunningCondition.unlock()
+            }
+            
+            managerThreadRunLoop?.run()
+            fatalError("NSTask manager run loop exited unexpectedly; it should run forever once initialized")
+        }, nil)
+        
+        
+        managerThreadRunLoopIsRunningCondition.lock()
+        while managerThreadRunLoopIsRunning == false {
+            managerThreadRunLoopIsRunningCondition.wait()
+        }
+        
+        managerThreadRunLoopIsRunningCondition.unlock()
+        managerThreadCreated = true
     }
-    
-    managerThreadRunLoopIsRunningCondition.unlock()
+    managerThreadCreationLock.unlock()
 }
 
 
 // Equal method for task in run loop source
-private func nstaskIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
+private func nstaskIsEqual(_ a : UnsafePointer<Void>?, _ b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
     let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
     guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
@@ -184,7 +196,7 @@ public class NSTask : NSObject {
     
         // Dispatch the manager thread if it isn't already running
         
-        pthread_once(&managerThreadSetupOnceToken, managerThreadSetup)
+        managerThreadSetup()
         
         // Ensure that the launch path is set
         
@@ -237,9 +249,11 @@ public class NSTask : NSObject {
 
         var taskSocketPair : [Int32] = [0, 0]
         socketpair(AF_UNIX, _CF_SOCK_STREAM(), 0, &taskSocketPair)
-        
-        var context = CFSocketContext(version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(self))),
-                                               retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil)
+        var context = CFSocketContext(version: 0,
+                                      info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(self))),
+                                      retain: { return runLoopSourceRetain($0) },
+                                      release: { runLoopSourceRelease($0) },
+                                      copyDescription: nil)
         
         let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
             (socket, type, address, data, info )  in
@@ -272,7 +286,7 @@ public class NSTask : NSObject {
                 #endif
                 pthread_create(&threadID, nil, { (context) -> UnsafeMutablePointer<Void>! in
                     
-                    let unmanagedTask : Unmanaged<NSTask> = Unmanaged.fromOpaque(context!)
+                    let unmanagedTask : Unmanaged<NSTask> = Unmanaged.fromOpaque(context)
                     let task = unmanagedTask.takeRetainedValue()
                     
                     task.terminationHandler!( task )
@@ -356,11 +370,17 @@ public class NSTask : NSObject {
         close(taskSocketPair[1])
         
         self.runLoop = NSRunLoop.currentRunLoop()
-        
-        self.runLoopSourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(self))),
-                                                                     retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil,
-                                                                             equal: nstaskIsEqual, hash: nil, schedule: nil, cancel: nil,
-                                                                                    perform: emptyRunLoopCallback)
+        self.runLoopSourceContext = CFRunLoopSourceContext(version: 0,
+                                                           info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(self))),
+                                                           retain: { return runLoopSourceRetain($0) },
+                                                           release: { runLoopSourceRelease($0) },
+                                                           copyDescription: nil,
+                                                           equal: { return nstaskIsEqual($0, $1) },
+                                                           hash: nil,
+                                                           schedule: nil,
+                                                           cancel: nil,
+                                                           perform: { emptyRunLoopCallback($0) }
+        )
         
         self.runLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &runLoopSourceContext!)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopDefaultMode)

@@ -29,8 +29,10 @@ internal class NSThreadSpecific<T: AnyObject> {
     private var key: pthread_key_t {
         NSThreadSpecificKeyLock.lock()
         if !NSThreadSpecificKeySet {
-            withUnsafeMutablePointer(&NSThreadSpecificKey) { key in
-                NSThreadSpecificKeySet = pthread_key_create(key, disposeTLS) == 0
+            withUnsafeMutablePointer(&NSThreadSpecificKey) { (key: UnsafeMutablePointer<pthread_key_t>) in
+                NSThreadSpecificKeySet = pthread_key_create(key) { (ctx: UnsafeMutablePointer<Void>) -> Void in
+                    Unmanaged<AnyObject>.fromOpaque(OpaquePointer(ctx)).release()
+                } == 0
             }
         }
         NSThreadSpecificKeyLock.unlock()
@@ -38,7 +40,7 @@ internal class NSThreadSpecific<T: AnyObject> {
     }
     
     internal func get(_ generator: (Void) -> T) -> T {
-        let specific = pthread_getspecific(self.key)
+        let specific: UnsafeMutablePointer<Void>? = pthread_getspecific(self.key)
         if specific != nil {
             return Unmanaged<T>.fromOpaque(OpaquePointer(specific!)).takeUnretainedValue()
         } else {
@@ -49,7 +51,7 @@ internal class NSThreadSpecific<T: AnyObject> {
     }
     
     internal func set(_ value: T) {
-        let specific = pthread_getspecific(self.key)
+        let specific: UnsafeMutablePointer<Void>? = pthread_getspecific(self.key)
         var previous: Unmanaged<T>?
         if specific != nil {
             previous = Unmanaged<T>.fromOpaque(OpaquePointer(specific!))
@@ -186,7 +188,9 @@ public class NSThread : NSObject {
         }
         withUnsafeMutablePointers(&_thread, &_attr) { thread, attr in
             let ptr = Unmanaged.passRetained(self)
-            pthread_create(thread, attr, NSThreadStart, UnsafeMutablePointer(OpaquePointer(bitPattern: ptr)))
+            pthread_create(thread, attr, { (ctx) -> UnsafeMutablePointer<Void>! in
+                NSThreadStart(ctx)
+            }, UnsafeMutablePointer(OpaquePointer(bitPattern: ptr)))
         }
     }
     
