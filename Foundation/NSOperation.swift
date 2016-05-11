@@ -9,6 +9,12 @@
 
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
+#if os(Linux)
+import CoreFoundation
+private func pthread_main_np() -> Int32 {
+    return _CFIsMainThread() ? 1 : 0
+}
+#endif
 #endif
 
 public class NSOperation : NSObject {

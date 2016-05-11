@@ -806,7 +806,6 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name);
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX
-CF_EXPORT Boolean _CFIsMainThread(void);
 #define pthread_main_np _CFIsMainThread
 #endif
 
