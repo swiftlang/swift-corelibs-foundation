@@ -139,18 +139,18 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
     public override func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
     
-    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
+    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         return NSMutableData(bytes: UnsafeMutablePointer<Void>(bytes), length: length, copy: true, deallocator: nil)
     }
 
@@ -388,7 +388,7 @@ extension NSData {
             return NSData()
         }
         if range.location == 0 && range.length == self.length {
-            return copyWithZone(nil) as! NSData
+            return copy(with: nil) as! NSData
         }
         return NSData(bytes: bytes.advanced(by: range.location), length: range.length)
     }
@@ -605,7 +605,7 @@ public class NSMutableData : NSData {
         }
     }
     
-    public override func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public override func copy(with zone: NSZone? = nil) -> AnyObject {
         return NSData(data: self)
     }
 }

@@ -29,10 +29,10 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
     internal var _internal: _CFRegularExpression
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
@@ -267,7 +267,7 @@ extension NSRegularExpression {
             var numberOfDigits = 1
             var orderOfMagnitude = 10
             let numberOfRanges = result.numberOfRanges
-            let str = templ._nsObject.mutableCopyWithZone(nil) as! NSMutableString
+            let str = templ._nsObject.mutableCopy(with: nil) as! NSMutableString
             var length = str.length
             while (orderOfMagnitude < numberOfRanges && numberOfDigits < 20) {
                 numberOfDigits += 1

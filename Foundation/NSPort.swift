@@ -26,7 +26,7 @@ public class NSPort : NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     

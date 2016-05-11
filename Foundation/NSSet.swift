@@ -150,10 +150,10 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         if self.dynamicType === NSSet.self {
             // return self for immutable type
             return self
@@ -166,10 +166,10 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public override func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
 
-    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
+    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         if self.dynamicType === NSSet.self || self.dynamicType === NSMutableSet.self {
             // always create and return an NSMutableSet
             let mutableSet = NSMutableSet()
@@ -476,7 +476,7 @@ public class NSCountedSet : NSMutableSet {
 
     public required convenience init?(coder: NSCoder) { NSUnimplemented() }
 
-    public override func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public override func copy(with zone: NSZone? = nil) -> AnyObject {
         if self.dynamicType === NSCountedSet.self {
             let countedSet = NSCountedSet()
             countedSet._storage = self._storage
@@ -486,7 +486,7 @@ public class NSCountedSet : NSMutableSet {
         return NSCountedSet(array: self.allObjects)
     }
 
-    public override func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
+    public override func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         if self.dynamicType === NSCountedSet.self {
             let countedSet = NSCountedSet()
             countedSet._storage = self._storage

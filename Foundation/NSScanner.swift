@@ -18,10 +18,10 @@ public class NSScanner : NSObject, NSCopying {
     internal var _scanLocation: Int
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return NSScanner(string: string)
     }
     

@@ -28,18 +28,18 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
 
     public override func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
     
-    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
+    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     

@@ -124,10 +124,10 @@ public enum NSURLRequestNetworkServiceType : UInt {
 public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         if self.dynamicType === NSURLRequest.self {
             // Already immutable
             return self
@@ -145,10 +145,10 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     }
     
     public override func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
     
-    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
+    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         let c = NSMutableURLRequest()
         c.setValues(from: self)
         return c

@@ -263,18 +263,18 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
     public override func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
     
-    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
+    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
             if let contents = _fastContents {
                 return NSMutableString(characters: contents, length: length)
@@ -1105,7 +1105,7 @@ extension NSString {
         if options.contains(.regularExpressionSearch) {
             return _stringByReplacingOccurrencesOfRegularExpressionPattern(target, withTemplate: replacement, options: options, range: searchRange)
         }
-        let str = mutableCopyWithZone(nil) as! NSMutableString
+        let str = mutableCopy(with: nil) as! NSMutableString
         if str.replaceOccurrences(of: target, with: replacement, options: options, range: searchRange) == 0 {
             return _swiftObject
         } else {
@@ -1118,7 +1118,7 @@ extension NSString {
     }
     
     public func replacingCharacters(in range: NSRange, with replacement: String) -> String {
-        let str = mutableCopyWithZone(nil) as! NSMutableString
+        let str = mutableCopy(with: nil) as! NSMutableString
         str.replaceCharacters(in: range, with: replacement)
         return str._swiftObject
     }

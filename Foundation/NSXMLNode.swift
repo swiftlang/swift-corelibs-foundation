@@ -53,12 +53,12 @@ public enum NSXMLNodeKind : UInt {
 public class NSXMLNode : NSObject, NSCopying {
 
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
 
     internal let _xmlNode: _CFXMLNodePtr
 
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         let newNode = _CFXMLCopyNode(_xmlNode, true)
         return NSXMLNode._objectNodeForNode(newNode)
     }

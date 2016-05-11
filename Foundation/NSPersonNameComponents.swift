@@ -50,7 +50,7 @@ public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     
     /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
     

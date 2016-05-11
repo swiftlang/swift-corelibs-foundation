@@ -48,16 +48,16 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject  { NSUnimplemented() }
+    public func copy(with zone: NSZone? = nil) -> AnyObject  { NSUnimplemented() }
     
     public override func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
     
-    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     public static func supportsSecureCoding() -> Bool { return true }
     public required init?(coder aDecoder: NSCoder)  { NSUnimplemented() }
     public func encodeWithCoder(_ aCoder: NSCoder) {
