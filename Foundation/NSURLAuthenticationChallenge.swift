@@ -38,7 +38,7 @@ public class URLAuthenticationChallenge : NSObject, SecureCoding {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public init(protectionSpace space: NSURLProtectionSpace, proposedCredential credential: NSURLCredential?, previousFailureCount: Int, failureResponse response: NSURLResponse?, error: NSError?) { NSUnimplemented() }
+    public init(protectionSpace space: NSURLProtectionSpace, proposedCredential credential: URLCredential?, previousFailureCount: Int, failureResponse response: NSURLResponse?, error: NSError?) { NSUnimplemented() }
     
     /*!
         @method initWithAuthenticationChallenge:
@@ -71,7 +71,7 @@ public class URLAuthenticationChallenge : NSObject, SecureCoding {
         credential is not ready to use as-is, but provides a default
         username the client could use when prompting.
     */
-    /*@NSCopying*/ public var proposedCredential: NSURLCredential? { NSUnimplemented() }
+    /*@NSCopying*/ public var proposedCredential: URLCredential? { NSUnimplemented() }
     
     /*!
         @method previousFailureCount

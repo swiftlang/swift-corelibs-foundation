@@ -587,12 +587,12 @@ public protocol NSURLSessionDelegate : NSObjectProtocol {
      * behavior will be to use the default handling, which may involve user
      * interaction. 
      */
-    func URLSession(_ session: NSURLSession, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void)
+    func URLSession(_ session: NSURLSession, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, URLCredential?) -> Void)
 }
 
 extension NSURLSessionDelegate {
     func URLSession(_ session: NSURLSession, didBecomeInvalidWithError error: NSError?) { }
-    func URLSession(_ session: NSURLSession, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) { }
+    func URLSession(_ session: NSURLSession, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, URLCredential?) -> Void) { }
 }
 
 /* If an application has received an
@@ -625,7 +625,7 @@ public protocol NSURLSessionTaskDelegate : NSURLSessionDelegate {
      * will *NOT* be called and the behavior will be the same as using the default handling
      * disposition. 
      */
-    func URLSession(_ session: NSURLSession, task: NSURLSessionTask, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void)
+    func URLSession(_ session: NSURLSession, task: NSURLSessionTask, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, URLCredential?) -> Void)
     
     /* Sent if a task requires a new, unopened body stream.  This may be
      * necessary when authentication has failed for any request that
@@ -647,7 +647,7 @@ public protocol NSURLSessionTaskDelegate : NSURLSessionDelegate {
 extension NSURLSessionTaskDelegate {
     func URLSession(_ session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest?) -> Void) { }
 
-    func URLSession(_ session: NSURLSession, task: NSURLSessionTask, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) { }
+    func URLSession(_ session: NSURLSession, task: NSURLSessionTask, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, URLCredential?) -> Void) { }
 
     func URLSession(_ session: NSURLSession, task: NSURLSessionTask, needNewBodyStream completionHandler: (NSInputStream?) -> Void) { }
     
