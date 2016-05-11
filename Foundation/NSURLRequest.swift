@@ -46,38 +46,40 @@
 /// Specifically, these constants cover interactions that have to do
 /// with whether already-existing cache data is returned to satisfy a
 /// URL load request.
-public enum NSURLRequestCachePolicy : UInt {
-    /// Specifies that the caching logic defined in the protocol
-    /// implementation, if any, is used for a particular URL load request. This
-    /// is the default policy for URL load requests.
-    case useProtocolCachePolicy
-    /// Specifies that the data for the URL load should be loaded from the
-    /// origin source. No existing local cache data, regardless of its freshness
-    /// or validity, should be used to satisfy a URL load request.
-    case reloadIgnoringLocalCacheData
-    /// Specifies that not only should the local cache data be ignored, but that
-    /// proxies and other intermediates should be instructed to disregard their
-    /// caches so far as the protocol allows.  Unimplemented.
-    case reloadIgnoringLocalAndRemoteCacheData // Unimplemented
-    /// Older name for `NSURLRequestReloadIgnoringLocalCacheData`.
-    public static var reloadIgnoringCacheData: NSURLRequestCachePolicy { return .reloadIgnoringLocalCacheData }
-    /// Specifies that the existing cache data should be used to satisfy a URL
-    /// load request, regardless of its age or expiration date. However, if
-    /// there is no existing data in the cache corresponding to a URL load
-    /// request, the URL is loaded from the origin source.
-    case returnCacheDataElseLoad
-    /// Specifies that the existing cache data should be used to satisfy a URL
-    /// load request, regardless of its age or expiration date. However, if
-    /// there is no existing data in the cache corresponding to a URL load
-    /// request, no attempt is made to load the URL from the origin source, and
-    /// the load is considered to have failed. This constant specifies a
-    /// behavior that is similar to an "offline" mode.
-    case returnCacheDataDontLoad
-    /// Specifies that the existing cache data may be used provided the origin
-    /// source confirms its validity, otherwise the URL is loaded from the
-    /// origin source.
-    /// - Note: Unimplemented.
-    case reloadRevalidatingCacheData // Unimplemented
+extension URLRequest {
+    public enum CachePolicy : UInt {
+        /// Specifies that the caching logic defined in the protocol
+        /// implementation, if any, is used for a particular URL load request. This
+        /// is the default policy for URL load requests.
+        case useProtocolCachePolicy
+        /// Specifies that the data for the URL load should be loaded from the
+        /// origin source. No existing local cache data, regardless of its freshness
+        /// or validity, should be used to satisfy a URL load request.
+        case reloadIgnoringLocalCacheData
+        /// Specifies that not only should the local cache data be ignored, but that
+        /// proxies and other intermediates should be instructed to disregard their
+        /// caches so far as the protocol allows.  Unimplemented.
+        case reloadIgnoringLocalAndRemoteCacheData // Unimplemented
+        /// Older name for `NSURLRequestReloadIgnoringLocalCacheData`.
+        public static var reloadIgnoringCacheData: CachePolicy { return .reloadIgnoringLocalCacheData }
+        /// Specifies that the existing cache data should be used to satisfy a URL
+        /// load request, regardless of its age or expiration date. However, if
+        /// there is no existing data in the cache corresponding to a URL load
+        /// request, the URL is loaded from the origin source.
+        case returnCacheDataElseLoad
+        /// Specifies that the existing cache data should be used to satisfy a URL
+        /// load request, regardless of its age or expiration date. However, if
+        /// there is no existing data in the cache corresponding to a URL load
+        /// request, no attempt is made to load the URL from the origin source, and
+        /// the load is considered to have failed. This constant specifies a
+        /// behavior that is similar to an "offline" mode.
+        case returnCacheDataDontLoad
+        /// Specifies that the existing cache data may be used provided the origin
+        /// source confirms its validity, otherwise the URL is loaded from the
+        /// origin source.
+        /// - Note: Unimplemented.
+        case reloadRevalidatingCacheData // Unimplemented
+    }
 }
 
 /// Network service type for an NSURLRequest
@@ -86,7 +88,7 @@ public enum NSURLRequestCachePolicy : UInt {
 /// can be used to specify the service type to associate with this request. The
 /// service type is used to provide the networking layers a hint of the purpose
 /// of the request.
-public enum NSURLRequestNetworkServiceType : UInt {
+public enum URLRequestNetworkServiceType : UInt {
     /// Is the default value for an `NSURLRequest` when created.
     /// This value should be left unchanged for the vast majority of requests.
     case networkServiceTypeDefault
@@ -121,23 +123,23 @@ public enum NSURLRequestNetworkServiceType : UInt {
 ///
 /// Objects of this class are used with the `NSURLSession` API to perform the
 /// load of a URL.
-public class NSURLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying {
+public class URLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying {
     
     public override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType === NSURLRequest.self {
+        if self.dynamicType === URLRequest.self {
             // Already immutable
             return self
         }
-        let c = NSURLRequest()
+        let c = URLRequest()
         c.setValues(from: self)
         return c
     }
     
-    private func setValues(from source: NSURLRequest) {
+    private func setValues(from source: URLRequest) {
         self.allHTTPHeaderFields = source.allHTTPHeaderFields
         self.url = source.url
         self.mainDocumentURL = source.mainDocumentURL
@@ -149,7 +151,7 @@ public class NSURLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying 
     }
     
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
-        let c = NSMutableURLRequest()
+        let c = MutableURLRequest()
         c.setValues(from: self)
         return c
     }
@@ -231,7 +233,7 @@ public class NSURLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying 
 /// `NSMutableURLRequest` categories that are available. The
 /// `NSMutableHTTPURLRequest` category on `NSMutableURLRequest` is an
 /// example.
-public class NSMutableURLRequest : NSURLRequest {
+public class MutableURLRequest : URLRequest {
     public required init?(coder aDecoder: NSCoder) {
         super.init()
     }

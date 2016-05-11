@@ -140,22 +140,22 @@ public class NSURLSession : NSObject {
      */
     
     /* Creates a data task with the given request.  The request may have a body stream. */
-    public func dataTaskWithRequest(_ request: NSURLRequest) -> NSURLSessionDataTask { NSUnimplemented() }
+    public func dataTaskWithRequest(_ request: URLRequest) -> NSURLSessionDataTask { NSUnimplemented() }
     
     /* Creates a data task to retrieve the contents of the given URL. */
     public func dataTaskWithURL(_ url: NSURL) -> NSURLSessionDataTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The body of the request will be created from the file referenced by fileURL */
-    public func uploadTaskWithRequest(_ request: NSURLRequest, fromFile fileURL: NSURL) -> NSURLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: NSURL) -> NSURLSessionUploadTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
-    public func uploadTaskWithRequest(_ request: NSURLRequest, fromData bodyData: NSData) -> NSURLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: NSData) -> NSURLSessionUploadTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The previously set body stream of the request (if any) is ignored and the URLSession:task:needNewBodyStream: delegate will be called when the body payload is required. */
-    public func uploadTaskWithStreamedRequest(_ request: NSURLRequest) -> NSURLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithStreamedRequest(_ request: URLRequest) -> NSURLSessionUploadTask { NSUnimplemented() }
     
     /* Creates a download task with the given request. */
-    public func downloadTaskWithRequest(_ request: NSURLRequest) -> NSURLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithRequest(_ request: URLRequest) -> NSURLSessionDownloadTask { NSUnimplemented() }
     
     /* Creates a download task to download the contents of the given URL. */
     public func downloadTaskWithURL(_ url: NSURL) -> NSURLSessionDownloadTask { NSUnimplemented() }
@@ -186,14 +186,14 @@ extension NSURLSession {
      * see <Foundation/NSURLError.h>.  The delegate, if any, will still be
      * called for authentication challenges.
      */
-    public func dataTaskWithRequest(_ request: NSURLRequest, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask { NSUnimplemented() }
+    public func dataTaskWithRequest(_ request: URLRequest, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask { NSUnimplemented() }
     public func dataTaskWithURL(_ url: NSURL, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask { NSUnimplemented() }
     
     /*
      * upload convenience method.
      */
-    public func uploadTaskWithRequest(_ request: NSURLRequest, fromFile fileURL: NSURL, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionUploadTask { NSUnimplemented() }
-    public func uploadTaskWithRequest(_ request: NSURLRequest, fromData bodyData: NSData?, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: NSURL, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: NSData?, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionUploadTask { NSUnimplemented() }
     
     /*
      * download task convenience methods.  When a download successfully
@@ -201,7 +201,7 @@ extension NSURLSession {
      * copied during the invocation of the completion routine.  The file
      * will be removed automatically.
      */
-    public func downloadTaskWithRequest(_ request: NSURLRequest, completionHandler: (NSURL?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithRequest(_ request: URLRequest, completionHandler: (NSURL?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
     public func downloadTaskWithURL(_ url: NSURL, completionHandler: (NSURL?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
     public func downloadTaskWithResumeData(_ resumeData: NSData, completionHandler: (NSURL?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
 }
@@ -234,8 +234,8 @@ public class NSURLSessionTask : NSObject, NSCopying {
     }
     
     public var taskIdentifier: Int { NSUnimplemented() } /* an identifier for this task, assigned by and unique to the owning session */
-    /*@NSCopying*/ public var originalRequest: NSURLRequest? { NSUnimplemented() } /* may be nil if this is a stream task */
-    /*@NSCopying*/ public var currentRequest: NSURLRequest? { NSUnimplemented() } /* may differ from originalRequest due to http server redirection */
+    /*@NSCopying*/ public var originalRequest: URLRequest? { NSUnimplemented() } /* may be nil if this is a stream task */
+    /*@NSCopying*/ public var currentRequest: URLRequest? { NSUnimplemented() } /* may differ from originalRequest due to http server redirection */
     /*@NSCopying*/ public var response: NSURLResponse? { NSUnimplemented() } /* may be nil if no response has been received */
     
     /* Byte count properties may be zero if no body is expected, 
@@ -459,7 +459,7 @@ public class NSURLSessionConfiguration : NSObject, NSCopying {
     public var identifier: String? { NSUnimplemented() }
     
     /* default cache policy for requests */
-    public var requestCachePolicy: NSURLRequestCachePolicy
+    public var requestCachePolicy: URLRequest.CachePolicy
     
     /* default timeout for requests.  This will cause a timeout if no data is transmitted for the given timeout value, and is reset whenever data is transmitted. */
     public var timeoutIntervalForRequest: NSTimeInterval
@@ -468,7 +468,7 @@ public class NSURLSessionConfiguration : NSObject, NSCopying {
     public var timeoutIntervalForResource: NSTimeInterval
     
     /* type of service for requests. */
-    public var networkServiceType: NSURLRequestNetworkServiceType
+    public var networkServiceType: URLRequestNetworkServiceType
     
     /* allow request to route over cellular. */
     public var allowsCellularAccess: Bool
@@ -618,7 +618,7 @@ public protocol NSURLSessionTaskDelegate : NSURLSessionDelegate {
      *
      * For tasks in background sessions, redirections will always be followed and this method will not be called.
      */
-    func URLSession(_ session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest?) -> Void)
+    func URLSession(_ session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: URLRequest, completionHandler: (URLRequest?) -> Void)
     
     /* The task has received a request specific authentication challenge.
      * If this delegate is not implemented, the session specific authentication challenge
@@ -645,7 +645,7 @@ public protocol NSURLSessionTaskDelegate : NSURLSessionDelegate {
 }
 
 extension NSURLSessionTaskDelegate {
-    func URLSession(_ session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest?) -> Void) { }
+    func URLSession(_ session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: URLRequest, completionHandler: (URLRequest?) -> Void) { }
 
     func URLSession(_ session: NSURLSession, task: NSURLSessionTask, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, URLCredential?) -> Void) { }
 

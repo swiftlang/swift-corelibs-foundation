@@ -58,7 +58,7 @@ public protocol URLProtocolClient {
      @param request the NSURLRequest to which the protocol implementation
      has redirected.
      */
-    func urlProtocol(_ protocol: URLProtocol, wasRedirectedToRequest request: NSURLRequest, redirectResponse: NSURLResponse)
+    func urlProtocol(_ protocol: URLProtocol, wasRedirectedToRequest request: URLRequest, redirectResponse: NSURLResponse)
     
     /*!
     @method URLProtocol:cachedResponseIsValid:
@@ -157,7 +157,7 @@ public class URLProtocol : NSObject {
         interface the protocol implementation can use to report results back
         to the URL loading system.
     */
-    public init(request: NSURLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
+    public init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
     
     /*! 
         @method client
@@ -171,7 +171,7 @@ public class URLProtocol : NSObject {
         @abstract Returns the NSURLRequest of the receiver. 
         @result The NSURLRequest of the receiver. 
     */
-    /*@NSCopying*/ public var request: NSURLRequest { NSUnimplemented() }
+    /*@NSCopying*/ public var request: URLRequest { NSUnimplemented() }
     
     /*! 
         @method cachedResponse
@@ -199,7 +199,7 @@ public class URLProtocol : NSObject {
         @param request A request to inspect.
         @result YES if the protocol can handle the given request, NO if not.
     */
-    public class func canInitWithRequest(_ request: NSURLRequest) -> Bool { NSUnimplemented() }
+    public class func canInitWithRequest(_ request: URLRequest) -> Bool { NSUnimplemented() }
     
     /*! 
         @method canonicalRequestForRequest:
@@ -219,7 +219,7 @@ public class URLProtocol : NSObject {
         @param request A request to make canonical.
         @result The canonical form of the given request. 
     */
-    public class func canonicalRequestForRequest(_ request: NSURLRequest) -> NSURLRequest { NSUnimplemented() }
+    public class func canonicalRequestForRequest(_ request: URLRequest) -> URLRequest { NSUnimplemented() }
     
     /*!
         @method requestIsCacheEquivalent:toRequest:
@@ -230,7 +230,7 @@ public class URLProtocol : NSObject {
         implementation-specific checks.
         @result YES if the two requests are cache-equivalent, NO otherwise.
     */
-    public class func requestIsCacheEquivalent(_ a: NSURLRequest, toRequest b: NSURLRequest) -> Bool { NSUnimplemented() }
+    public class func requestIsCacheEquivalent(_ a: URLRequest, toRequest b: URLRequest) -> Bool { NSUnimplemented() }
     
     /*! 
         @method startLoading
@@ -266,7 +266,7 @@ public class URLProtocol : NSObject {
         @result The property stored with the given key, or nil if no property
         had previously been stored with the given key in the given request.
     */
-    public class func propertyForKey(_ key: String, inRequest request: NSURLRequest) -> AnyObject? { NSUnimplemented() }
+    public class func propertyForKey(_ key: String, inRequest request: URLRequest) -> AnyObject? { NSUnimplemented() }
     
     /*! 
         @method setProperty:forKey:inRequest:
@@ -279,7 +279,7 @@ public class URLProtocol : NSObject {
         @param key The string to use for the property storage. 
         @param request The request in which to store the property. 
     */
-    public class func setProperty(_ value: AnyObject, forKey key: String, inRequest request: NSMutableURLRequest) { NSUnimplemented() }
+    public class func setProperty(_ value: AnyObject, forKey key: String, inRequest request: MutableURLRequest) { NSUnimplemented() }
     
     /*!
         @method removePropertyForKey:inRequest:
@@ -290,7 +290,7 @@ public class URLProtocol : NSObject {
         @param key The key whose value should be removed
         @param request The request to be modified
     */
-    public class func removePropertyForKey(_ key: String, inRequest request: NSMutableURLRequest) { NSUnimplemented() }
+    public class func removePropertyForKey(_ key: String, inRequest request: MutableURLRequest) { NSUnimplemented() }
     
     /*! 
         @method registerClass:

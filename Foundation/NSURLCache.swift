@@ -180,7 +180,7 @@ public class URLCache : NSObject {
         request, or nil if there is no NSCachedURLResponse stored with the
         given request.
     */
-    public func cachedResponseForRequest(_ request: NSURLRequest) -> CachedURLResponse? { NSUnimplemented() }
+    public func cachedResponseForRequest(_ request: URLRequest) -> CachedURLResponse? { NSUnimplemented() }
     
     /*! 
         @method storeCachedResponse:forRequest:
@@ -189,7 +189,7 @@ public class URLCache : NSObject {
         @param cachedResponse The cached response to store.
         @param request the NSURLRequest to use as a key for the storage.
     */
-    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, forRequest request: NSURLRequest) { NSUnimplemented() }
+    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, forRequest request: URLRequest) { NSUnimplemented() }
     
     /*! 
         @method removeCachedResponseForRequest:
@@ -199,7 +199,7 @@ public class URLCache : NSObject {
         stored with the given request.
         @param request the NSURLRequest to use as a key for the lookup.
     */
-    public func removeCachedResponseForRequest(_ request: NSURLRequest) { NSUnimplemented() }
+    public func removeCachedResponseForRequest(_ request: URLRequest) { NSUnimplemented() }
     
     /*! 
         @method removeAllCachedResponses

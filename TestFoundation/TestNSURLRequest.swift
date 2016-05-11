@@ -33,7 +33,7 @@ class TestNSURLRequest : XCTestCase {
     let url = NSURL(string: "http://swift.org")!
     
     func test_construction() {
-        let request = NSURLRequest(url: url)
+        let request = URLRequest(url: url)
         // Match OS X Foundation responses
         XCTAssertNotNil(request)
         XCTAssertEqual(request.url, url)
@@ -44,7 +44,7 @@ class TestNSURLRequest : XCTestCase {
     
     func test_mutableConstruction() {
         let url = NSURL(string: "http://swift.org")!
-        let request = NSMutableURLRequest(url: url)
+        let request = MutableURLRequest(url: url)
         
         //Confirm initial state matches NSURLRequest responses
         XCTAssertNotNil(request)
@@ -65,7 +65,7 @@ class TestNSURLRequest : XCTestCase {
     }
     
     func test_headerFields() {
-        let request = NSMutableURLRequest(url: url)
+        let request = MutableURLRequest(url: url)
         
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         XCTAssertNotNil(request.allHTTPHeaderFields)
@@ -82,7 +82,7 @@ class TestNSURLRequest : XCTestCase {
     }
     
     func test_copy() {
-        let mutableRequest = NSMutableURLRequest(url: url)
+        let mutableRequest = MutableURLRequest(url: url)
         
         let urlA = NSURL(string: "http://swift.org")!
         let urlB = NSURL(string: "http://github.com")!
@@ -91,7 +91,7 @@ class TestNSURLRequest : XCTestCase {
         mutableRequest.httpMethod = "POST"
         mutableRequest.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        guard let requestCopy1 = mutableRequest.copy() as? NSURLRequest else {
+        guard let requestCopy1 = mutableRequest.copy() as? URLRequest else {
             XCTFail(); return
         }
         
@@ -120,7 +120,7 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertEqual(requestCopy1.allHTTPHeaderFields?["Accept"], "application/json")
 
         // Check that we can copy the copy:
-        guard let requestCopy2 = requestCopy1.copy() as? NSURLRequest else {
+        guard let requestCopy2 = requestCopy1.copy() as? URLRequest else {
             XCTFail(); return
         }
         XCTAssertEqual(requestCopy2.mainDocumentURL, urlA)
@@ -130,7 +130,7 @@ class TestNSURLRequest : XCTestCase {
     }
 
     func test_mutableCopy_1() {
-        let originalRequest = NSMutableURLRequest(url: url)
+        let originalRequest = MutableURLRequest(url: url)
         
         let urlA = NSURL(string: "http://swift.org")!
         let urlB = NSURL(string: "http://github.com")!
@@ -139,7 +139,7 @@ class TestNSURLRequest : XCTestCase {
         originalRequest.httpMethod = "POST"
         originalRequest.setValue("application/json", forHTTPHeaderField: "Accept")
         
-        guard let requestCopy = originalRequest.mutableCopy() as? NSMutableURLRequest else {
+        guard let requestCopy = originalRequest.mutableCopy() as? MutableURLRequest else {
             XCTFail(); return
         }
         
@@ -157,7 +157,7 @@ class TestNSURLRequest : XCTestCase {
     }
 
     func test_mutableCopy_2() {
-        let originalRequest = NSMutableURLRequest(url: url)
+        let originalRequest = MutableURLRequest(url: url)
         
         let urlA = NSURL(string: "http://swift.org")!
         let urlB = NSURL(string: "http://github.com")!
@@ -166,7 +166,7 @@ class TestNSURLRequest : XCTestCase {
         originalRequest.httpMethod = "POST"
         originalRequest.setValue("application/json", forHTTPHeaderField: "Accept")
         
-        guard let requestCopy = originalRequest.mutableCopy() as? NSMutableURLRequest else {
+        guard let requestCopy = originalRequest.mutableCopy() as? MutableURLRequest else {
             XCTFail(); return
         }
         
@@ -185,9 +185,9 @@ class TestNSURLRequest : XCTestCase {
 
     func test_mutableCopy_3() {
         let urlA = NSURL(string: "http://swift.org")!
-        let originalRequest = NSURLRequest(url: urlA)
+        let originalRequest = URLRequest(url: urlA)
         
-        guard let requestCopy = originalRequest.mutableCopy() as? NSMutableURLRequest else {
+        guard let requestCopy = originalRequest.mutableCopy() as? MutableURLRequest else {
             XCTFail(); return
         }
         
