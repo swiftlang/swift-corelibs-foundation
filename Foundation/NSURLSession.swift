@@ -523,7 +523,7 @@ public class NSURLSessionConfiguration : NSObject, NSCopying {
     public var URLCredentialStorage: NSURLCredentialStorage?
     
     /* The URL resource cache, or nil to indicate that no caching is to be performed */
-    public var URLCache: NSURLCache?
+    public var urlCache: URLCache?
     
     /* Enable extended background idle mode for any tcp sockets created.    Enabling this mode asks the system to keep the socket open
      *  and delay reclaiming it when the process moves to the background (see https://developer.apple.com/library/ios/technotes/tn2277/_index.html) 
@@ -708,7 +708,7 @@ public protocol NSURLSessionDataDelegate : NSURLSessionTaskDelegate {
      * attempted for a given resource, and you should not rely on this
      * message to receive the resource data.
      */
-    func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, willCacheResponse proposedResponse: NSCachedURLResponse, completionHandler: (NSCachedURLResponse?) -> Void)
+    func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: (CachedURLResponse?) -> Void)
 }
 
 extension NSURLSessionDataDelegate {
@@ -719,7 +719,7 @@ extension NSURLSessionDataDelegate {
     
     func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, didBecomeStreamTask streamTask: NSURLSessionStreamTask) { }
     
-    func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, willCacheResponse proposedResponse: NSCachedURLResponse, completionHandler: (NSCachedURLResponse?) -> Void) { }
+    func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: (CachedURLResponse?) -> Void) { }
 }
 
 /*

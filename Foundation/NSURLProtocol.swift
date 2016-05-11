@@ -69,7 +69,7 @@ public protocol NSURLProtocolClient {
          @param cachedResponse the NSCachedURLResponse object that has
          examined and is valid.
          */
-    func URLProtocol(_ protocol: NSURLProtocol, cachedResponseIsValid cachedResponse: NSCachedURLResponse)
+    func URLProtocol(_ protocol: NSURLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse)
     
     /*!
     @method URLProtocol:didReceiveResponse:
@@ -82,7 +82,7 @@ public protocol NSURLProtocolClient {
          has determined should be used for the given response if the
          response is to be stored in a cache.
          */
-    func URLProtocol(_ protocol: NSURLProtocol, didReceiveResponse response: NSURLResponse, cacheStoragePolicy policy: NSURLCacheStoragePolicy)
+    func URLProtocol(_ protocol: NSURLProtocol, didReceiveResponse response: NSURLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy)
     
     /*!
     @method URLProtocol:didLoadData:
@@ -157,7 +157,7 @@ public class NSURLProtocol : NSObject {
         interface the protocol implementation can use to report results back
         to the URL loading system.
     */
-    public init(request: NSURLRequest, cachedResponse: NSCachedURLResponse?, client: NSURLProtocolClient?) { NSUnimplemented() }
+    public init(request: NSURLRequest, cachedResponse: CachedURLResponse?, client: NSURLProtocolClient?) { NSUnimplemented() }
     
     /*! 
         @method client
@@ -178,7 +178,7 @@ public class NSURLProtocol : NSObject {
         @abstract Returns the NSCachedURLResponse of the receiver.  
         @result The NSCachedURLResponse of the receiver. 
     */
-    /*@NSCopying*/ public var cachedResponse: NSCachedURLResponse? { NSUnimplemented() }
+    /*@NSCopying*/ public var cachedResponse: CachedURLResponse? { NSUnimplemented() }
     
     /*======================================================================
       Begin responsibilities for protocol implementors
@@ -327,7 +327,7 @@ public class NSURLProtocol : NSObject {
     public class func unregisterClass(_ protocolClass: AnyClass) { NSUnimplemented() }
 
     public class func canInitWithTask(_ task: NSURLSessionTask) -> Bool { NSUnimplemented() }
-    public convenience init(task: NSURLSessionTask, cachedResponse: NSCachedURLResponse?, client: NSURLProtocolClient?) { NSUnimplemented() }
+    public convenience init(task: NSURLSessionTask, cachedResponse: CachedURLResponse?, client: NSURLProtocolClient?) { NSUnimplemented() }
     /*@NSCopying*/ public var task: NSURLSessionTask? { NSUnimplemented() }
 }
 

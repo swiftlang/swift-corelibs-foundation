@@ -26,11 +26,13 @@
     NSURLCache is not allowed in any fashion, either in memory or on
     disk.
 */
-public enum NSURLCacheStoragePolicy : UInt {
-    
-    case Allowed
-    case AllowedInMemoryOnly
-    case NotAllowed
+extension URLCache {
+    public enum StoragePolicy : UInt {
+        
+        case allowed
+        case allowedInMemoryOnly
+        case notAllowed
+    }
 }
 
 /*!
@@ -40,7 +42,7 @@ public enum NSURLCacheStoragePolicy : UInt {
     It is used to maintain characteristics and attributes of a cached 
     object. 
 */
-public class NSCachedURLResponse : NSObject, SecureCoding, NSCopying {
+public class CachedURLResponse : NSObject, SecureCoding, NSCopying {
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
@@ -86,7 +88,7 @@ public class NSCachedURLResponse : NSObject, SecureCoding, NSCopying {
         @param storagePolicy an NSURLCacheStoragePolicy constant.
         @result an initialized NSCachedURLResponse.
     */
-    public init(response: NSURLResponse, data: NSData, userInfo: [NSObject : AnyObject]?, storagePolicy: NSURLCacheStoragePolicy) { NSUnimplemented() }
+    public init(response: NSURLResponse, data: NSData, userInfo: [NSObject : AnyObject]?, storagePolicy: URLCache.StoragePolicy) { NSUnimplemented() }
     
     /*! 
         @method response
@@ -114,10 +116,10 @@ public class NSCachedURLResponse : NSObject, SecureCoding, NSCopying {
         @abstract Returns the NSURLCacheStoragePolicy constant of the receiver. 
         @result The NSURLCacheStoragePolicy constant of the receiver. 
     */
-    public var storagePolicy: NSURLCacheStoragePolicy { NSUnimplemented() }
+    public var storagePolicy: URLCache.StoragePolicy { NSUnimplemented() }
 }
 
-public class NSURLCache : NSObject {
+public class URLCache : NSObject {
     
     /*! 
         @method sharedURLCache
@@ -137,7 +139,7 @@ public class NSURLCache : NSObject {
         different NSURLCache instance to be returned from this method.
         @result the shared NSURLCache instance.
     */
-    public class func sharedURLCache() -> NSURLCache { NSUnimplemented() }
+    public class func sharedURLCache() -> URLCache { NSUnimplemented() }
     
     /*! 
         @method setSharedURLCache:
@@ -150,7 +152,7 @@ public class NSURLCache : NSObject {
         unexpectedly unretrievable.
         @param cache the new shared NSURLCache instance.
     */
-    public class func setSharedURLCache(_ cache: NSURLCache) { NSUnimplemented() }
+    public class func setSharedURLCache(_ cache: URLCache) { NSUnimplemented() }
     
     /*! 
         @method initWithMemoryCapacity:diskCapacity:diskPath:
@@ -178,7 +180,7 @@ public class NSURLCache : NSObject {
         request, or nil if there is no NSCachedURLResponse stored with the
         given request.
     */
-    public func cachedResponseForRequest(_ request: NSURLRequest) -> NSCachedURLResponse? { NSUnimplemented() }
+    public func cachedResponseForRequest(_ request: NSURLRequest) -> CachedURLResponse? { NSUnimplemented() }
     
     /*! 
         @method storeCachedResponse:forRequest:
@@ -187,7 +189,7 @@ public class NSURLCache : NSObject {
         @param cachedResponse The cached response to store.
         @param request the NSURLRequest to use as a key for the storage.
     */
-    public func storeCachedResponse(_ cachedResponse: NSCachedURLResponse, forRequest request: NSURLRequest) { NSUnimplemented() }
+    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, forRequest request: NSURLRequest) { NSUnimplemented() }
     
     /*! 
         @method removeCachedResponseForRequest:
@@ -249,8 +251,8 @@ public class NSURLCache : NSObject {
     public var currentDiskUsage: Int { NSUnimplemented() }
 }
 
-extension NSURLCache {
-    public func storeCachedResponse(_ cachedResponse: NSCachedURLResponse, forDataTask dataTask: NSURLSessionDataTask) { NSUnimplemented() }
-    public func getCachedResponseForDataTask(_ dataTask: NSURLSessionDataTask, completionHandler: (NSCachedURLResponse?) -> Void) { NSUnimplemented() }
+extension URLCache {
+    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, forDataTask dataTask: NSURLSessionDataTask) { NSUnimplemented() }
+    public func getCachedResponseForDataTask(_ dataTask: NSURLSessionDataTask, completionHandler: (CachedURLResponse?) -> Void) { NSUnimplemented() }
     public func removeCachedResponseForDataTask(_ dataTask: NSURLSessionDataTask) { NSUnimplemented() }
 }
