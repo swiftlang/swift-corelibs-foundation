@@ -48,7 +48,7 @@
 loading system that is intended for use by NSURLProtocol
 implementors.
 */
-public protocol NSURLProtocolClient {
+public protocol URLProtocolClient {
     
     /*!
     @method URLProtocol:wasRedirectedToRequest:
@@ -58,7 +58,7 @@ public protocol NSURLProtocolClient {
      @param request the NSURLRequest to which the protocol implementation
      has redirected.
      */
-    func URLProtocol(_ protocol: NSURLProtocol, wasRedirectedToRequest request: NSURLRequest, redirectResponse: NSURLResponse)
+    func urlProtocol(_ protocol: URLProtocol, wasRedirectedToRequest request: NSURLRequest, redirectResponse: NSURLResponse)
     
     /*!
     @method URLProtocol:cachedResponseIsValid:
@@ -69,7 +69,7 @@ public protocol NSURLProtocolClient {
          @param cachedResponse the NSCachedURLResponse object that has
          examined and is valid.
          */
-    func URLProtocol(_ protocol: NSURLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse)
+    func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse)
     
     /*!
     @method URLProtocol:didReceiveResponse:
@@ -82,7 +82,7 @@ public protocol NSURLProtocolClient {
          has determined should be used for the given response if the
          response is to be stored in a cache.
          */
-    func URLProtocol(_ protocol: NSURLProtocol, didReceiveResponse response: NSURLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy)
+    func urlProtocol(_ protocol: URLProtocol, didReceiveResponse response: NSURLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy)
     
     /*!
     @method URLProtocol:didLoadData:
@@ -94,7 +94,7 @@ public protocol NSURLProtocolClient {
          @param URLProtocol the NSURLProtocol object sending the message.
          @param data URL load data being made available.
          */
-    func URLProtocol(_ protocol: NSURLProtocol, didLoadData data: NSData)
+    func urlProtocol(_ protocol: URLProtocol, didLoadData data: NSData)
     
     /*!
     @method URLProtocolDidFinishLoading:
@@ -102,7 +102,7 @@ public protocol NSURLProtocolClient {
          implementation has finished loading successfully.
          @param URLProtocol the NSURLProtocol object sending the message.
          */
-    func URLProtocolDidFinishLoading(_ protocol: NSURLProtocol)
+    func urlProtocolDidFinishLoading(_ protocol: URLProtocol)
     
     /*!
                 @method URLProtocol:didFailWithError:
@@ -111,7 +111,7 @@ public protocol NSURLProtocolClient {
      @param URLProtocol the NSURLProtocol object sending the message.
      @param error The error that caused the load to fail.
      */
-    func URLProtocol(_ protocol: NSURLProtocol, didFailWithError error: NSError)
+    func urlProtocol(_ protocol: URLProtocol, didFailWithError error: NSError)
     
     /*!
     @method URLProtocol:didReceiveAuthenticationChallenge:
@@ -123,7 +123,7 @@ public protocol NSURLProtocolClient {
          default credential to the challenge it issues to the connection delegate,
          if the protocol did not provide one.
          */
-    func URLProtocol(_ protocol: NSURLProtocol, didReceiveAuthenticationChallenge challenge: URLAuthenticationChallenge)
+    func urlProtocol(_ protocol: URLProtocol, didReceiveAuthenticationChallenge challenge: URLAuthenticationChallenge)
     
     /*!
     @method URLProtocol:didCancelAuthenticationChallenge:
@@ -131,7 +131,7 @@ public protocol NSURLProtocolClient {
          @param protocol The protocol object cancelling authentication.
          @param challenge The authentication challenge.
          */
-    func URLProtocol(_ protocol: NSURLProtocol, didCancelAuthenticationChallenge challenge: URLAuthenticationChallenge)
+    func urlProtocol(_ protocol: URLProtocol, didCancelAuthenticationChallenge challenge: URLAuthenticationChallenge)
 }
 
 /*!
@@ -142,7 +142,7 @@ public protocol NSURLProtocolClient {
     data. Concrete subclasses handle the specifics associated with one
     or more protocols or URL schemes.
 */
-public class NSURLProtocol : NSObject {
+public class URLProtocol : NSObject {
     
     /*! 
         @method initWithRequest:cachedResponse:client:
@@ -157,14 +157,14 @@ public class NSURLProtocol : NSObject {
         interface the protocol implementation can use to report results back
         to the URL loading system.
     */
-    public init(request: NSURLRequest, cachedResponse: CachedURLResponse?, client: NSURLProtocolClient?) { NSUnimplemented() }
+    public init(request: NSURLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
     
     /*! 
         @method client
         @abstract Returns the NSURLProtocolClient of the receiver. 
         @result The NSURLProtocolClient of the receiver.  
     */
-    public var client: NSURLProtocolClient? { NSUnimplemented() }
+    public var client: URLProtocolClient? { NSUnimplemented() }
     
     /*! 
         @method request
@@ -327,7 +327,7 @@ public class NSURLProtocol : NSObject {
     public class func unregisterClass(_ protocolClass: AnyClass) { NSUnimplemented() }
 
     public class func canInitWithTask(_ task: NSURLSessionTask) -> Bool { NSUnimplemented() }
-    public convenience init(task: NSURLSessionTask, cachedResponse: CachedURLResponse?, client: NSURLProtocolClient?) { NSUnimplemented() }
+    public convenience init(task: NSURLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
     /*@NSCopying*/ public var task: NSURLSessionTask? { NSUnimplemented() }
 }
 
