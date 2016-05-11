@@ -14,7 +14,7 @@
     provides all the information about the challenge, and has a method
     to indicate when it's done.
 */
-public class NSURLAuthenticationChallenge : NSObject, SecureCoding {
+public class URLAuthenticationChallenge : NSObject, SecureCoding {
     
     public static let supportsSecureCoding = true
     
@@ -50,7 +50,7 @@ public class NSURLAuthenticationChallenge : NSObject, SecureCoding {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public init(authenticationChallenge challenge: NSURLAuthenticationChallenge) { NSUnimplemented() }
+    public init(authenticationChallenge challenge: URLAuthenticationChallenge) { NSUnimplemented() }
     
     /*!
         @method protectionSpace

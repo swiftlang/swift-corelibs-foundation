@@ -123,7 +123,7 @@ public protocol NSURLProtocolClient {
          default credential to the challenge it issues to the connection delegate,
          if the protocol did not provide one.
          */
-    func URLProtocol(_ protocol: NSURLProtocol, didReceiveAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
+    func URLProtocol(_ protocol: NSURLProtocol, didReceiveAuthenticationChallenge challenge: URLAuthenticationChallenge)
     
     /*!
     @method URLProtocol:didCancelAuthenticationChallenge:
@@ -131,7 +131,7 @@ public protocol NSURLProtocolClient {
          @param protocol The protocol object cancelling authentication.
          @param challenge The authentication challenge.
          */
-    func URLProtocol(_ protocol: NSURLProtocol, didCancelAuthenticationChallenge challenge: NSURLAuthenticationChallenge)
+    func URLProtocol(_ protocol: NSURLProtocol, didCancelAuthenticationChallenge challenge: URLAuthenticationChallenge)
 }
 
 /*!
