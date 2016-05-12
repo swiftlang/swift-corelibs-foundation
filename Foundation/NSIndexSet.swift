@@ -342,7 +342,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
     }
     
     internal func _enumerateWithOptions<P, R>(_ opts : NSEnumerationOptions, range: NSRange, paramType: P.Type, returnType: R.Type, block: (P, UnsafeMutablePointer<ObjCBool>) -> R) -> Int? {
-        guard !opts.contains(.Concurrent) else {
+        guard !opts.contains(.concurrent) else {
             NSUnimplemented()
         }
         
@@ -351,7 +351,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         }
 
         var result : Int? = nil
-        let reverse = opts.contains(.Reverse)
+        let reverse = opts.contains(.reverse)
         let passRanges = paramType == NSRange.self
         let findIndex = returnType == Bool.self
         var stop = false

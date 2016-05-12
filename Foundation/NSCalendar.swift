@@ -684,9 +684,9 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     public func compare(_ date1: NSDate, to date2: NSDate, toUnitGranularity unit: NSCalendarUnit) -> NSComparisonResult {
         switch (unit) {
             case NSCalendarUnit.calendar:
-                return .OrderedSame
+                return .orderedSame
             case NSCalendarUnit.timeZone:
-                return .OrderedSame
+                return .orderedSame
             case NSCalendarUnit.day:
                 fallthrough
             case NSCalendarUnit.hour:
@@ -694,12 +694,12 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 let ats = range!.start.timeIntervalSinceReferenceDate
                 let at2 = date2.timeIntervalSinceReferenceDate
                 if ats <= at2 && at2 < ats + range!.interval {
-                    return .OrderedSame
+                    return .orderedSame
                 }
                 if at2 < ats {
-                    return .OrderedDescending
+                    return .orderedDescending
                 }
-                return .OrderedAscending
+                return .orderedAscending
             case NSCalendarUnit.minute:
                 var int1 = 0.0
                 var int2 = 0.0
@@ -708,24 +708,24 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 int1 = floor(int1 / 60.0)
                 int2 = floor(int2 / 60.0)
                 if int1 == int2 {
-                    return .OrderedSame
+                    return .orderedSame
                 }
                 if int2 < int1 {
-                    return .OrderedDescending
+                    return .orderedDescending
                 }
-                return .OrderedAscending
+                return .orderedAscending
             case NSCalendarUnit.second:
                 var int1 = 0.0
                 var int2 = 0.0
                 modf(date1.timeIntervalSinceReferenceDate, &int1)
                 modf(date2.timeIntervalSinceReferenceDate, &int2)
                 if int1 == int2 {
-                    return .OrderedSame
+                    return .orderedSame
                 }
                 if int2 < int1 {
-                    return .OrderedDescending
+                    return .orderedDescending
                 }
-                return .OrderedAscending
+                return .orderedAscending
             case NSCalendarUnit.nanosecond:
                 var int1 = 0.0
                 var int2 = 0.0
@@ -734,12 +734,12 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 int1 = floor(frac1 * 1000000000.0)
                 int2 = floor(frac2 * 1000000000.0)
                 if int1 == int2 {
-                    return .OrderedSame
+                    return .orderedSame
                 }
                 if int2 < int1 {
-                    return .OrderedDescending
+                    return .orderedDescending
                 }
-                return .OrderedAscending
+                return .orderedAscending
             default:
                 break
         }
@@ -768,45 +768,45 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             let value1 = comp1.value(forComponent: unit)
             let value2 = comp2.value(forComponent: unit)
             if value1 > value2 {
-                return .OrderedDescending
+                return .orderedDescending
             } else if value1 < value2 {
-                return .OrderedAscending
+                return .orderedAscending
             }
             if unit == .month && calendarIdentifier == kCFCalendarIdentifierChinese._swiftObject {
                 let leap1 = comp1.leapMonth
                 let leap2 = comp2.leapMonth
                 if !leap1 && leap2 {
-                    return .OrderedAscending
+                    return .orderedAscending
                 } else if leap1 && !leap2 {
-                    return .OrderedDescending
+                    return .orderedDescending
                 }
             }
             if unit == reducedUnits {
-                return .OrderedSame
+                return .orderedSame
             }
         }
-        return .OrderedSame
+        return .orderedSame
     }
     
     /*
     This API compares the given dates down to the given unit, reporting them equal if they are the same in the given unit and all larger units.
     */
     public func isDate(_ date1: NSDate, equalToDate date2: NSDate, toUnitGranularity unit: NSCalendarUnit) -> Bool {
-        return compare(date1, to: date2, toUnitGranularity: unit) == .OrderedSame
+        return compare(date1, to: date2, toUnitGranularity: unit) == .orderedSame
     }
     
     /*
     This API compares the Days of the given dates, reporting them equal if they are in the same Day.
     */
     public func isDate(_ date1: NSDate, inSameDayAsDate date2: NSDate) -> Bool {
-        return compare(date1, to: date2, toUnitGranularity: .day) == .OrderedSame
+        return compare(date1, to: date2, toUnitGranularity: .day) == .orderedSame
     }
     
     /*
     This API reports if the date is within "today".
     */
     public func isDateInToday(_ date: NSDate) -> Bool {
-        return compare(date, to: NSDate(), toUnitGranularity: .day) == .OrderedSame
+        return compare(date, to: NSDate(), toUnitGranularity: .day) == .orderedSame
     }
     
     /*
@@ -815,7 +815,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     public func isDateInYesterday(_ date: NSDate) -> Bool {
         if let interval = range(of: .day, forDate: NSDate()) {
             let inYesterday = interval.start.addingTimeInterval(-60.0)
-            return compare(date, to: inYesterday, toUnitGranularity: .day) == .OrderedSame
+            return compare(date, to: inYesterday, toUnitGranularity: .day) == .orderedSame
         } else {
             return false
         }
@@ -827,7 +827,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     public func isDateInTomorrow(_ date: NSDate) -> Bool {
         if let interval = range(of: .day, forDate: NSDate()) {
             let inTomorrow = interval.end.addingTimeInterval(60.0)
-            return compare(date, to: inTomorrow, toUnitGranularity: .day) == .OrderedSame
+            return compare(date, to: inTomorrow, toUnitGranularity: .day) == .orderedSame
         } else {
             return false
         }
@@ -882,7 +882,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 comp.weekday = range.end
                 if let nextEnd = nextDate(after: date, matchingComponents: comp, options: options.union(.matchNextTime)) {
                     var end = nextEnd
-                    if end.compare(start) == .OrderedAscending {
+                    if end.compare(start) == .orderedAscending {
                         if let nextOrderedEnd = nextDate(after: end, matchingComponents: comp, options: options.union(.matchNextTime)) {
                             end = nextOrderedEnd
                         } else {
@@ -1043,7 +1043,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 options.formUnion(.matchStrictly)
             }
             if let result = nextDate(after: range.start.addingTimeInterval(-0.5), matchingComponents: comps, options: options) {
-                if result.compare(range.start) == .OrderedAscending {
+                if result.compare(range.start) == .orderedAscending {
                     return nextDate(after: range.start, matchingComponents: comps, options: options)
                 }
                 return result
