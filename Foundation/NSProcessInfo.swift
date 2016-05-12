@@ -63,7 +63,7 @@ public class NSProcessInfo : NSObject {
     }
     
     public var hostName: String {
-        if let name = NSHost.currentHost().name {
+        if let name = Host.currentHost().name {
             return name
         } else {
             return "localhost"

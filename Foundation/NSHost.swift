@@ -16,7 +16,7 @@ import Glibc
 
 import CoreFoundation
 
-public class NSHost : NSObject {
+public class Host: NSObject {
     enum ResolveType {
         case Name
         case Address
@@ -33,10 +33,10 @@ public class NSHost : NSObject {
         _type = type
     }
     
-    static internal let current = NSHost(nil, .Current)
+    static internal let current = Host(nil, .Current)
     
-    public class func currentHost() -> NSHost {
-        return NSHost.current
+    public class func currentHost() -> Host {
+        return Host.current
     }
     
     public convenience init(name: String?) {
@@ -47,7 +47,7 @@ public class NSHost : NSObject {
         self.init(address, .Address)
     }
     
-    public func isEqualToHost(_ aHost: NSHost) -> Bool {
+    public func isEqualToHost(_ aHost: Host) -> Bool {
         return false
     }
     
