@@ -74,7 +74,7 @@ public class CachedURLResponse : NSObject, SecureCoding, NSCopying {
         corresponding to the given response.
         @result an initialized NSCachedURLResponse.
     */
-    public init(response: NSURLResponse, data: NSData) { NSUnimplemented() }
+    public init(response: URLResponse, data: NSData) { NSUnimplemented() }
     
     /*! 
         @method initWithResponse:data:userInfo:storagePolicy:
@@ -88,14 +88,14 @@ public class CachedURLResponse : NSObject, SecureCoding, NSCopying {
         @param storagePolicy an NSURLCacheStoragePolicy constant.
         @result an initialized NSCachedURLResponse.
     */
-    public init(response: NSURLResponse, data: NSData, userInfo: [NSObject : AnyObject]?, storagePolicy: URLCache.StoragePolicy) { NSUnimplemented() }
+    public init(response: URLResponse, data: NSData, userInfo: [NSObject : AnyObject]?, storagePolicy: URLCache.StoragePolicy) { NSUnimplemented() }
     
     /*! 
         @method response
         @abstract Returns the response wrapped by this instance. 
         @result The response wrapped by this instance. 
     */
-    /*@NSCopying*/ public var response: NSURLResponse { NSUnimplemented() }
+    /*@NSCopying*/ public var response: URLResponse { NSUnimplemented() }
     
     /*! 
         @method data

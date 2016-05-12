@@ -58,7 +58,7 @@ public protocol URLProtocolClient {
      @param request the NSURLRequest to which the protocol implementation
      has redirected.
      */
-    func urlProtocol(_ protocol: URLProtocol, wasRedirectedToRequest request: URLRequest, redirectResponse: NSURLResponse)
+    func urlProtocol(_ protocol: URLProtocol, wasRedirectedToRequest request: URLRequest, redirectResponse: URLResponse)
     
     /*!
     @method URLProtocol:cachedResponseIsValid:
@@ -82,7 +82,7 @@ public protocol URLProtocolClient {
          has determined should be used for the given response if the
          response is to be stored in a cache.
          */
-    func urlProtocol(_ protocol: URLProtocol, didReceiveResponse response: NSURLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy)
+    func urlProtocol(_ protocol: URLProtocol, didReceiveResponse response: URLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy)
     
     /*!
     @method URLProtocol:didLoadData:

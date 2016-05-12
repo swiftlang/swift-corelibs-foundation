@@ -186,14 +186,14 @@ extension NSURLSession {
      * see <Foundation/NSURLError.h>.  The delegate, if any, will still be
      * called for authentication challenges.
      */
-    public func dataTaskWithRequest(_ request: URLRequest, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask { NSUnimplemented() }
-    public func dataTaskWithURL(_ url: NSURL, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask { NSUnimplemented() }
+    public func dataTaskWithRequest(_ request: URLRequest, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> NSURLSessionDataTask { NSUnimplemented() }
+    public func dataTaskWithURL(_ url: NSURL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> NSURLSessionDataTask { NSUnimplemented() }
     
     /*
      * upload convenience method.
      */
-    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: NSURL, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionUploadTask { NSUnimplemented() }
-    public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: NSData?, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: NSURL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> NSURLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: NSData?, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> NSURLSessionUploadTask { NSUnimplemented() }
     
     /*
      * download task convenience methods.  When a download successfully
@@ -201,9 +201,9 @@ extension NSURLSession {
      * copied during the invocation of the completion routine.  The file
      * will be removed automatically.
      */
-    public func downloadTaskWithRequest(_ request: URLRequest, completionHandler: (NSURL?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
-    public func downloadTaskWithURL(_ url: NSURL, completionHandler: (NSURL?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
-    public func downloadTaskWithResumeData(_ resumeData: NSData, completionHandler: (NSURL?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithRequest(_ request: URLRequest, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithURL(_ url: NSURL, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithResumeData(_ resumeData: NSData, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> NSURLSessionDownloadTask { NSUnimplemented() }
 }
 
 public enum NSURLSessionTaskState : Int {
@@ -236,7 +236,7 @@ public class NSURLSessionTask : NSObject, NSCopying {
     public var taskIdentifier: Int { NSUnimplemented() } /* an identifier for this task, assigned by and unique to the owning session */
     /*@NSCopying*/ public var originalRequest: URLRequest? { NSUnimplemented() } /* may be nil if this is a stream task */
     /*@NSCopying*/ public var currentRequest: URLRequest? { NSUnimplemented() } /* may differ from originalRequest due to http server redirection */
-    /*@NSCopying*/ public var response: NSURLResponse? { NSUnimplemented() } /* may be nil if no response has been received */
+    /*@NSCopying*/ public var response: URLResponse? { NSUnimplemented() } /* may be nil if no response has been received */
     
     /* Byte count properties may be zero if no body is expected, 
      * or NSURLSessionTransferSizeUnknown if it is not possible 
@@ -670,7 +670,7 @@ public protocol NSURLSessionDataDelegate : NSURLSessionTaskDelegate {
      *
      * This method will not be called for background upload tasks (which cannot be converted to download tasks).
      */
-    func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveResponse response: NSURLResponse, completionHandler: (NSURLSessionResponseDisposition) -> Void)
+    func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveResponse response: URLResponse, completionHandler: (NSURLSessionResponseDisposition) -> Void)
     
     /* Notification that a data task has become a download task.  No
      * future messages will be sent to the data task.
@@ -713,7 +713,7 @@ public protocol NSURLSessionDataDelegate : NSURLSessionTaskDelegate {
 
 extension NSURLSessionDataDelegate {
 
-    func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveResponse response: NSURLResponse, completionHandler: (NSURLSessionResponseDisposition) -> Void) { }
+    func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveResponse response: URLResponse, completionHandler: (NSURLSessionResponseDisposition) -> Void) { }
     
     func URLSession(_ session: NSURLSession, dataTask: NSURLSessionDataTask, didBecomeDownloadTask downloadTask: NSURLSessionDownloadTask) { }
     

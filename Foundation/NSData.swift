@@ -332,7 +332,7 @@ extension NSData {
             let cond = NSCondition()
             var resError: NSError?
             var resData: NSData?
-            let task = session.dataTaskWithURL(url, completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) -> Void in
+            let task = session.dataTaskWithURL(url, completionHandler: { (data: NSData?, response: URLResponse?, error: NSError?) -> Void in
                 resData = data
                 resError = error
                 cond.broadcast()

@@ -38,7 +38,7 @@ public class URLAuthenticationChallenge : NSObject, SecureCoding {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public init(protectionSpace space: URLProtectionSpace, proposedCredential credential: URLCredential?, previousFailureCount: Int, failureResponse response: NSURLResponse?, error: NSError?) { NSUnimplemented() }
+    public init(protectionSpace space: URLProtectionSpace, proposedCredential credential: URLCredential?, previousFailureCount: Int, failureResponse response: URLResponse?, error: NSError?) { NSUnimplemented() }
     
     /*!
         @method initWithAuthenticationChallenge:
@@ -89,7 +89,7 @@ public class URLAuthenticationChallenge : NSObject, SecureCoding {
         then this method will return the response. Otherwise it will
         return nil.
     */
-    /*@NSCopying*/ public var failureResponse: NSURLResponse? { NSUnimplemented() }
+    /*@NSCopying*/ public var failureResponse: URLResponse? { NSUnimplemented() }
     
     /*!
         @method error
