@@ -47,7 +47,7 @@ public class Host: NSObject {
         self.init(address, .Address)
     }
     
-    public func isEqualToHost(_ aHost: Host) -> Bool {
+    public func isEqual(to aHost: Host) -> Bool {
         return false
     }
     
