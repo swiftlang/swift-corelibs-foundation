@@ -520,7 +520,7 @@ public class NSURLSessionConfiguration : NSObject, NSCopying {
     public var HTTPCookieStorage: NSHTTPCookieStorage?
     
     /* The credential storage object, or nil to indicate that no credential storage is to be used */
-    public var URLCredentialStorage: NSURLCredentialStorage?
+    public var urlCredentialStorage: URLCredentialStorage?
     
     /* The URL resource cache, or nil to indicate that no caching is to be performed */
     public var urlCache: URLCache?

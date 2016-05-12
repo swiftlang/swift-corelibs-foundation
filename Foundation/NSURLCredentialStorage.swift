@@ -12,14 +12,14 @@
     @class NSURLCredentialStorage
     @discussion NSURLCredentialStorage implements a singleton object (shared instance) which manages the shared credentials cache. Note: Whereas in Mac OS X any application can access any credential with a persistence of NSURLCredentialPersistencePermanent provided the user gives permission, in iPhone OS an application can access only its own credentials.
 */
-public class NSURLCredentialStorage : NSObject {
+public class URLCredentialStorage: NSObject {
     
     /*!
         @method sharedCredentialStorage
         @abstract Get the shared singleton authentication storage
         @result the shared authentication storage
     */
-    public class func sharedCredentialStorage() -> NSURLCredentialStorage { NSUnimplemented() }
+    public class func sharedCredentialStorage() -> URLCredentialStorage { NSUnimplemented() }
     
     /*!
         @method credentialsForProtectionSpace:
@@ -90,7 +90,7 @@ public class NSURLCredentialStorage : NSObject {
     public func setDefaultCredential(_ credential: URLCredential, forProtectionSpace space: URLProtectionSpace) { NSUnimplemented() }
 }
 
-extension NSURLCredentialStorage {
+extension URLCredentialStorage {
     public func getCredentialsForProtectionSpace(_ protectionSpace: URLProtectionSpace, task: NSURLSessionTask, completionHandler: ([String : URLCredential]?) -> Void) { NSUnimplemented() }
     public func setCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, task: NSURLSessionTask) { NSUnimplemented() }
     public func removeCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, options: [String : AnyObject]?, task: NSURLSessionTask) { NSUnimplemented() }
