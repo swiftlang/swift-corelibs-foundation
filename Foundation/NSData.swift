@@ -328,7 +328,7 @@ extension NSData {
         if url.fileURL {
             try self.init(contentsOfFile: url.path!, options: readOptionsMask)
         } else {
-            let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
+            let session = URLSession(configuration: URLSessionConfiguration.defaultSessionConfiguration())
             let cond = NSCondition()
             var resError: NSError?
             var resData: NSData?

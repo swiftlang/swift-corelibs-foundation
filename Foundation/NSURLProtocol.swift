@@ -326,8 +326,8 @@ public class URLProtocol : NSObject {
     */
     public class func unregisterClass(_ protocolClass: AnyClass) { NSUnimplemented() }
 
-    public class func canInitWithTask(_ task: NSURLSessionTask) -> Bool { NSUnimplemented() }
-    public convenience init(task: NSURLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
-    /*@NSCopying*/ public var task: NSURLSessionTask? { NSUnimplemented() }
+    public class func canInitWithTask(_ task: URLSessionTask) -> Bool { NSUnimplemented() }
+    public convenience init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
+    /*@NSCopying*/ public var task: URLSessionTask? { NSUnimplemented() }
 }
 

@@ -33,19 +33,19 @@ class TestNSURLResponse : XCTestCase {
     
     func test_URL() {
         let url = NSURL(string: "a/test/path")!
-        let res = NSURLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.url, url, "should be the expected url")
     }
     
     func test_MIMEType_1() {
         let mimetype = "text/plain"
-        let res = NSURLResponse(url: NSURL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: NSURL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.mimeType, mimetype, "should be the passed in mimetype")
     }
     
     func test_MIMEType_2() {
         let mimetype = "APPlication/wordperFECT"
-        let res = NSURLResponse(url: NSURL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: NSURL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.mimeType, mimetype, "should be the other mimetype")
     }
 
@@ -53,36 +53,36 @@ class TestNSURLResponse : XCTestCase {
         let zeroContentLength = 0
         let positiveContentLength = 100
         let url = NSURL(string: "test")!
-        let res1 = NSURLResponse(url: url, mimeType: "text/plain", expectedContentLength: zeroContentLength, textEncodingName: nil)
+        let res1 = URLResponse(url: url, mimeType: "text/plain", expectedContentLength: zeroContentLength, textEncodingName: nil)
         XCTAssertEqual(res1.expectedContentLength, Int64(zeroContentLength), "should be Int65 of the zero length")
-        let res2 = NSURLResponse(url: url, mimeType: "text/plain", expectedContentLength: positiveContentLength, textEncodingName: nil)
+        let res2 = URLResponse(url: url, mimeType: "text/plain", expectedContentLength: positiveContentLength, textEncodingName: nil)
         XCTAssertEqual(res2.expectedContentLength, Int64(positiveContentLength), "should be Int64 of the positive content length")
     }
     
     func test_TextEncodingName() {
         let encoding = "utf8"
         let url = NSURL(string: "test")!
-        let res1 = NSURLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: encoding)
+        let res1 = URLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: encoding)
         XCTAssertEqual(res1.textEncodingName, encoding, "should be the utf8 encoding")
-        let res2 = NSURLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
+        let res2 = URLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
         XCTAssertNil(res2.textEncodingName)
     }
     
     func test_suggestedFilename() {
         let url = NSURL(string: "a/test/name.extension")!
-        let res = NSURLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.suggestedFilename, "name.extension")
     }
     
     func test_suggestedFilename_2() {
         let url = NSURL(string: "a/test/name.extension?foo=bar")!
-        let res = NSURLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.suggestedFilename, "name.extension")
     }
     
     func test_suggestedFilename_3() {
         let url = NSURL(string: "a://bar")!
-        let res = NSURLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.suggestedFilename, "Unknown")
     }
 }

@@ -252,7 +252,7 @@ public class URLCache : NSObject {
 }
 
 extension URLCache {
-    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, forDataTask dataTask: NSURLSessionDataTask) { NSUnimplemented() }
-    public func getCachedResponseForDataTask(_ dataTask: NSURLSessionDataTask, completionHandler: (CachedURLResponse?) -> Void) { NSUnimplemented() }
-    public func removeCachedResponseForDataTask(_ dataTask: NSURLSessionDataTask) { NSUnimplemented() }
+    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, forDataTask dataTask: URLSessionDataTask) { NSUnimplemented() }
+    public func getCachedResponseForDataTask(_ dataTask: URLSessionDataTask, completionHandler: (CachedURLResponse?) -> Void) { NSUnimplemented() }
+    public func removeCachedResponseForDataTask(_ dataTask: URLSessionDataTask) { NSUnimplemented() }
 }

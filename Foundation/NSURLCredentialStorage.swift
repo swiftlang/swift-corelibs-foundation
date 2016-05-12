@@ -91,11 +91,11 @@ public class URLCredentialStorage: NSObject {
 }
 
 extension URLCredentialStorage {
-    public func getCredentialsForProtectionSpace(_ protectionSpace: URLProtectionSpace, task: NSURLSessionTask, completionHandler: ([String : URLCredential]?) -> Void) { NSUnimplemented() }
-    public func setCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, task: NSURLSessionTask) { NSUnimplemented() }
-    public func removeCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, options: [String : AnyObject]?, task: NSURLSessionTask) { NSUnimplemented() }
-    public func getDefaultCredentialForProtectionSpace(_ space: URLProtectionSpace, task: NSURLSessionTask, completionHandler: (URLCredential?) -> Void) { NSUnimplemented() }
-    public func setDefaultCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, task: NSURLSessionTask) { NSUnimplemented() }
+    public func getCredentialsForProtectionSpace(_ protectionSpace: URLProtectionSpace, task: URLSessionTask, completionHandler: ([String : URLCredential]?) -> Void) { NSUnimplemented() }
+    public func setCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, task: URLSessionTask) { NSUnimplemented() }
+    public func removeCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, options: [String : AnyObject]?, task: URLSessionTask) { NSUnimplemented() }
+    public func getDefaultCredentialForProtectionSpace(_ space: URLProtectionSpace, task: URLSessionTask, completionHandler: (URLCredential?) -> Void) { NSUnimplemented() }
+    public func setDefaultCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, task: URLSessionTask) { NSUnimplemented() }
 }
 
 /*!
