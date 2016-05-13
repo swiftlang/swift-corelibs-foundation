@@ -216,6 +216,7 @@
 		5B94E8821C430DE70055C035 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B94E8811C430DE70055C035 /* String.swift */; };
 		5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
+		5BCCA8D91CE6697F0059B963 /* URLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCCA8D81CE6697F0059B963 /* URLComponents.swift */; };
 		5BDC3FCA1BCF176100ED97BB /* NSCFArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FC91BCF176100ED97BB /* NSCFArray.swift */; };
 		5BDC3FCC1BCF177E00ED97BB /* NSCFString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FCB1BCF177E00ED97BB /* NSCFString.swift */; };
 		5BDC3FCE1BCF17D300ED97BB /* NSCFDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FCD1BCF17D300ED97BB /* NSCFDictionary.swift */; };
@@ -578,6 +579,7 @@
 		5B94E8811C430DE70055C035 /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCharacterSet.swift; sourceTree = "<group>"; };
 		5BC2C00D1C07832E00CC214E /* CFStringTransform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringTransform.c; sourceTree = "<group>"; };
+		5BCCA8D81CE6697F0059B963 /* URLComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLComponents.swift; sourceTree = "<group>"; };
 		5BDC3F191BCC440100ED97BB /* CFICULogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFICULogging.h; sourceTree = "<group>"; };
 		5BDC3F1C1BCC447900ED97BB /* CFStringLocalizedFormattingInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFStringLocalizedFormattingInternal.h; sourceTree = "<group>"; };
 		5BDC3F2E1BCC5DCB00ED97BB /* NSArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSArray.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -1346,6 +1348,7 @@
 				EADE0B861BD15DFF00C49C64 /* NSURLSession.swift */,
 				5BDC3F4A1BCC5DCB00ED97BB /* NSURL.swift */,
 				5B23AB8C1CE63228000DB898 /* URL.swift */,
+				5BCCA8D81CE6697F0059B963 /* URLComponents.swift */,
 				EADE0B601BD15DFF00C49C64 /* NSHTTPCookie.swift */,
 				EADE0B611BD15DFF00C49C64 /* NSHTTPCookieStorage.swift */,
 				5BDC3F3A1BCC5DCB00ED97BB /* NSHost.swift */,
@@ -1879,6 +1882,7 @@
 				5BF7AEB11BCD51F9008F214A /* NSLock.swift in Sources */,
 				5BF7AEB91BCD51F9008F214A /* NSSet.swift in Sources */,
 				EADE0B9E1BD15DFF00C49C64 /* NSHTTPCookie.swift in Sources */,
+				5BCCA8D91CE6697F0059B963 /* URLComponents.swift in Sources */,
 				5BDC3FCC1BCF177E00ED97BB /* NSCFString.swift in Sources */,
 				EADE0BAC1BD15E0000C49C64 /* NSOrderedSet.swift in Sources */,
 				EADE0BC31BD15E0000C49C64 /* NSURLResponse.swift in Sources */,

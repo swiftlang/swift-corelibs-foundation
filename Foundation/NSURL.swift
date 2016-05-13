@@ -674,7 +674,7 @@ extension NSURL {
 }
 
 // NSURLQueryItem encapsulates a single query name-value pair. The name and value strings of a query name-value pair are not percent encoded. For use with the NSURLComponents queryItems property.
-public class NSURLQueryItem : NSObject, SecureCoding, NSCopying {
+public class NSURLQueryItem: NSObject, SecureCoding, NSCopying {
     public init(name: String, value: String?) {
         self.name = name
         self.value = value
@@ -702,7 +702,7 @@ public class NSURLQueryItem : NSObject, SecureCoding, NSCopying {
     public let value: String?
 }
 
-public class NSURLComponents : NSObject, NSCopying {
+public class NSURLComponents: NSObject, NSCopying {
     private let _components : CFURLComponentsRef!
     
     public override func copy() -> AnyObject {
@@ -742,10 +742,9 @@ public class NSURLComponents : NSObject, NSCopying {
     }
     
     // Returns a URL created from the NSURLComponents relative to a base URL. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
-    public func URLRelativeToURL(_ baseURL: URL?) -> URL? {
+    public func url(relativeTo baseURL: URL?) -> URL? {
         if let componentString = string {
-            fatalError()
-//            return URL(string: componentString, relativeTo: baseURL)
+            return URL(string: componentString, relativeTo: baseURL)
         }
         return nil
     }
@@ -958,7 +957,7 @@ public class NSURLComponents : NSObject, NSCopying {
     // The getter method that underlies the queryItems property parses the query string based on these delimiters and returns an NSArray containing any number of NSURLQueryItem objects, each of which represents a single key-value pair, in the order in which they appear in the original query string.  Note that a name may appear more than once in a single query string, so the name values are not guaranteed to be unique. If the NSURLComponents object has an empty query component, queryItems returns an empty NSArray. If the NSURLComponents object has no query component, queryItems returns nil.
     // The setter method that underlies the queryItems property combines an NSArray containing any number of NSURLQueryItem objects, each of which represents a single key-value pair, into a query string and sets the NSURLComponents' query property. Passing an empty NSArray to setQueryItems sets the query component of the NSURLComponents object to an empty string. Passing nil to setQueryItems removes the query component of the NSURLComponents object.
     // Note: If a name-value pair in a query is empty (i.e. the query string starts with '&', ends with '&', or has "&&" within it), you get a NSURLQueryItem with a zero-length name and and a nil value. If a query's name-value pair has nothing before the equals sign, you get a zero-length name. If a query's name-value pair has nothing after the equals sign, you get a zero-length value. If a query's name-value pair has no equals sign, the query name-value pair string is the name and you get a nil value.
-    public var queryItems: [NSURLQueryItem]? {
+    public var queryItems: [URLQueryItem]? {
         get {
             // This CFURL implementation returns a CFArray of CFDictionary; each CFDictionary has an entry for name and optionally an entry for value
             if let queryArray = _CFURLComponentsCopyQueryItems(_components) {
@@ -968,7 +967,7 @@ public class NSURLComponents : NSObject, NSCopying {
                     let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
                     let entryName = oneEntry.objectForKey("name"._cfObject) as! String
                     let entryValue = oneEntry.objectForKey("value"._cfObject) as? String
-                    return NSURLQueryItem(name: entryName, value: entryValue)
+                    return URLQueryItem(name: entryName, value: entryValue)
                 }
             } else {
                 return nil

@@ -116,12 +116,10 @@ public struct URLResourceValues {
     }
     
     /// True if resource is an application.
-    @available(OSX 10.11, iOS 9.0, *)
     public var isApplication: Bool? { return _get(.isApplicationKey) }
     
 #if os(OSX)
     /// True if the resource is scriptable. Only applies to applications.
-    @available(OSX 10.11, *)
     public var applicationIsScriptable: Bool? { return _get(.applicationIsScriptableKey) }
 #endif
     
@@ -316,7 +314,6 @@ public struct URL : ReferenceConvertible, CustomStringConvertible, Equatable {
     }
     
     /// Initializes a newly created URL using the contents of the given data, relative to a base URL. If the data representation is not a legal URL string as ASCII bytes, the URL object may not behave as expected.
-    @available(OSX 10.11, iOS 9.0, *)
     public init(dataRepresentation: NSData, relativeTo url: URL?, isAbsolute: Bool = false) {
         if isAbsolute {
             _url = NSURL(absoluteURLWithDataRepresentation: dataRepresentation, relativeTo: url)
@@ -347,7 +344,6 @@ public struct URL : ReferenceConvertible, CustomStringConvertible, Equatable {
     // MARK: -
     
     /// Returns the data representation of the URL's relativeString. If the URL was initialized with -initWithData:relativeToURL:, the data representation returned are the same bytes as those used at initialization; otherwise, the data representation returned are the bytes of the relativeString encoded with NSUTF8StringEncoding.
-    @available(OSX 10.11, iOS 9.0, *)
     public var dataRepresentation: NSData { return _url.dataRepresentation }
     
     public var absoluteString: String? { return _url.absoluteString }
@@ -411,14 +407,12 @@ public struct URL : ReferenceConvertible, CustomStringConvertible, Equatable {
     /// The litmus test for conformance is as recommended in RFC 1808 - whether the first two characters of resourceSpecifier is "//".  In all cases, they return the component's value after resolving the receiver against its base URL.
     public var relativePath: String? { return _url.relativePath }
     
-    @available(OSX 10.11, iOS 9.0, *)
     public var hasDirectoryPath: Bool { return _url.hasDirectoryPath }
     
     /// Passes the URL's path in file system representation to `block`.
     ///
     /// File system representation is a null-terminated C string with canonical UTF-8 encoding.
     /// - note: The pointer is not valid outside the context of the block.
-    @available(OSX 10.9, iOS 7.0, *)
     public func withUnsafeFileSystemRepresentation(_ block: @noescape (UnsafePointer<Int8>) throws -> Void) rethrows {
         try block(_url.fileSystemRepresentation)
     }
