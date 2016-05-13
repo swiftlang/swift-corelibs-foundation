@@ -128,11 +128,7 @@ public struct Date : Comparable, Equatable, CustomStringConvertible {
     public static let distantPast = Date(timeIntervalSinceReferenceDate: -63114076800.0)
     
     public var hashValue: Int {
-        if #available(OSX 10.12, iOS 10.0, *) {
-            return Int(bitPattern: __CFHashDouble(_time))
-        } else { // 10.11 and previous behavior fallback; this must allocate a date to reference the hash value and then throw away the reference
-            return NSDate(timeIntervalSinceReferenceDate: _time).hash
-        }
+        return Int(bitPattern: __CFHashDouble(_time))
     }
     
     public func compare(_ other: Date) -> NSComparisonResult {
