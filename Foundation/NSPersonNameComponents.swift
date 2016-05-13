@@ -75,6 +75,6 @@ public class NSPersonNameComponents : NSObject, NSCopying, SecureCoding {
     /* Each element of the phoneticRepresentation should correspond to an element of the original PersonNameComponents instance.
        The phoneticRepresentation of the phoneticRepresentation object itself will be ignored. nil by default, must be instantiated.
     */
-    /*@NSCopying*/ public var phoneticRepresentation: NSPersonNameComponents?
+    /*@NSCopying*/ public var phoneticRepresentation: PersonNameComponents?
 }
 
