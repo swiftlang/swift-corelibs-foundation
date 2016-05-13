@@ -35,14 +35,14 @@ class TestNSTimeZone: XCTestCase {
     func test_abbreviation() {
         let tz = NSTimeZone.systemTimeZone()
         let abbreviation1 = tz.abbreviation
-        let abbreviation2 = tz.abbreviation(for: NSDate())
+        let abbreviation2 = tz.abbreviation(for: Date())
         XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1) should be equal to \(abbreviation2)")
     }
     
     func test_initializingTimeZoneWithOffset() {
         let tz = NSTimeZone(name: "GMT-0400")
         XCTAssertNotNil(tz)
-        let seconds = tz?.secondsFromGMT(for: NSDate())
+        let seconds = tz?.secondsFromGMT(for: Date())
         XCTAssertEqual(seconds, -14400, "GMT-0400 should be -14400 seconds but got \(seconds) instead")
     }
     

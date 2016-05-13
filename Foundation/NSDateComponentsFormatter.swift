@@ -57,7 +57,7 @@ public class NSDateComponentsFormatter : NSFormatter {
      
        Note that this is still formatting the quantity of time between the dates, not the pair of dates itself. For strings like "Feb 22nd - Feb 28th", use NSDateIntervalFormatter.
      */
-    public func stringFromDate(_ startDate: NSDate, toDate endDate: NSDate) -> String? { NSUnimplemented() }
+    public func stringFromDate(_ startDate: Date, toDate endDate: Date) -> String? { NSUnimplemented() }
     
     /* Convenience method for formatting a number of seconds. See 'allowedUnits' for how the default set of allowed units differs from -stringFromDateComponents:.
      */

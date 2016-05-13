@@ -34,7 +34,7 @@ public class NSTimer : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
-    public init(fireDate: NSDate, interval: NSTimeInterval, repeats: Bool, fire: (NSTimer) -> Void ) {
+    public init(fireDate: Date, interval: NSTimeInterval, repeats: Bool, fire: (NSTimer) -> Void ) {
         super.init()
         _fire = fire
         var context = CFRunLoopTimerContext()
@@ -54,7 +54,7 @@ public class NSTimer : NSObject {
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
     public class func scheduledTimer(_ ti: NSTimeInterval, repeats: Bool, fire: (NSTimer) -> Void) -> NSTimer {
-        let timer = NSTimer(fireDate: NSDate(timeIntervalSinceNow: ti), interval: ti, repeats: repeats, fire: fire)
+        let timer = NSTimer(fireDate: Date(timeIntervalSinceNow: ti), interval: ti, repeats: repeats, fire: fire)
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._timer!, kCFRunLoopDefaultMode)
         return timer
     }
@@ -69,9 +69,9 @@ public class NSTimer : NSObject {
         }
     }
 
-    public var fireDate: NSDate {
+    public var fireDate: Date {
         get {
-            return NSDate(timeIntervalSinceReferenceDate: CFRunLoopTimerGetNextFireDate(_timer!))
+            return Date(timeIntervalSinceReferenceDate: CFRunLoopTimerGetNextFireDate(_timer!))
         }
         set {
             CFRunLoopTimerSetNextFireDate(_timer!, newValue.timeIntervalSinceReferenceDate)

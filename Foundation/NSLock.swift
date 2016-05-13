@@ -72,7 +72,7 @@ public class NSConditionLock : NSObject, NSLocking {
     }
     
     public func lock() {
-        lockBeforeDate(NSDate.distantFuture())
+        lockBeforeDate(Date.distantFuture)
     }
     
     public func unlock() {
@@ -87,15 +87,15 @@ public class NSConditionLock : NSObject, NSLocking {
     }
     
     public func lockWhenCondition(_ condition: Int) {
-        lockWhenCondition(condition, beforeDate: NSDate.distantFuture())
+        lockWhenCondition(condition, beforeDate: Date.distantFuture)
     }
     
     public func tryLock() -> Bool {
-        return lockBeforeDate(NSDate.distantPast())
+        return lockBeforeDate(Date.distantPast)
     }
     
     public func tryLockWhenCondition(_ condition: Int) -> Bool {
-        return lockWhenCondition(condition, beforeDate: NSDate.distantPast())
+        return lockWhenCondition(condition, beforeDate: Date.distantPast)
     }
 
     public func unlockWithCondition(_ condition: Int) {
@@ -106,7 +106,7 @@ public class NSConditionLock : NSObject, NSLocking {
         _cond.unlock()
     }
 
-    public func lockBeforeDate(_ limit: NSDate) -> Bool {
+    public func lockBeforeDate(_ limit: Date) -> Bool {
         _cond.lock()
         while _thread == nil {
             if !_cond.waitUntilDate(limit) {
@@ -119,7 +119,7 @@ public class NSConditionLock : NSObject, NSLocking {
         return true
     }
     
-    public func lockWhenCondition(_ condition: Int, beforeDate limit: NSDate) -> Bool {
+    public func lockWhenCondition(_ condition: Int, beforeDate limit: Date) -> Bool {
         _cond.lock()
         while _thread != nil || _value != condition {
             if !_cond.waitUntilDate(limit) {
@@ -198,7 +198,7 @@ public class NSCondition : NSObject, NSLocking {
         pthread_cond_wait(cond, mutex)
     }
     
-    public func waitUntilDate(_ limit: NSDate) -> Bool {
+    public func waitUntilDate(_ limit: Date) -> Bool {
         let lim = limit.timeIntervalSinceReferenceDate
         let ti = lim - CFAbsoluteTimeGetCurrent()
         if ti < 0.0 {

@@ -60,11 +60,11 @@ public class NSPort : NSObject, NSCopying, Coding {
         return 0
     }
     
-    public func sendBeforeDate(_ limitDate: NSDate, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
+    public func sendBeforeDate(_ limitDate: Date, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
         NSUnimplemented()
     }
 
-    public func sendBeforeDate(_ limitDate: NSDate, msgid msgID: Int, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
+    public func sendBeforeDate(_ limitDate: Date, msgid msgID: Int, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
         NSUnimplemented()
     }
 }

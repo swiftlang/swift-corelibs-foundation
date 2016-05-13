@@ -39,7 +39,7 @@ class TestNSDate : XCTestCase {
     }
     
     func test_BasicConstruction() {
-        let d = NSDate()
+        let d = Date()
         XCTAssertNotNil(d)
     }
 
@@ -51,67 +51,67 @@ class TestNSDate : XCTestCase {
     
     func test_InitTimeIntervalSince1970() {
         let ti: NSTimeInterval = 1
-        let d = NSDate(timeIntervalSince1970: ti)
+        let d = Date(timeIntervalSince1970: ti)
         XCTAssertNotNil(d)
     }
     
     func test_InitTimeIntervalSinceSinceDate() {
         let ti: NSTimeInterval = 1
-        let d1 = NSDate()
-        let d2 = NSDate(timeInterval: ti, sinceDate: d1)
+        let d1 = Date()
+        let d2 = Date(timeInterval: ti, since: d1)
         XCTAssertNotNil(d2)
     }
     
     func test_TimeIntervalSinceSinceDate() {
         let ti: NSTimeInterval = 1
-        let d1 = NSDate()
-        let d2 = NSDate(timeInterval: ti, sinceDate: d1)
+        let d1 = Date()
+        let d2 = Date(timeInterval: ti, since: d1)
         XCTAssertEqual(d2.timeIntervalSince(d1), ti)
     }
     
     func test_DistantFuture() {
-        let d = NSDate.distantFuture()
+        let d = Date.distantFuture
         XCTAssertNotNil(d)
     }
     
     func test_DistantPast() {
-        let d = NSDate.distantPast()
+        let d = Date.distantPast
         XCTAssertNotNil(d)
     }
     
     func test_DateByAddingTimeInterval() {
         let ti: NSTimeInterval = 1
-        let d1 = NSDate()
-        let d2 = d1.addingTimeInterval(ti)
+        let d1 = Date()
+        let d2 = d1 + ti
         XCTAssertNotNil(d2)
     }
     
     func test_EarlierDate() {
         let ti: NSTimeInterval = 1
-        let d1 = NSDate()
-        let d2 = d1.addingTimeInterval(ti)
-        XCTAssertEqual(d1.earlierDate(d2), d1)
+        let d1 = Date()
+        let d2 = d1 + ti
+        XCTAssertLessThan(d1, d2)
     }
     
     func test_LaterDate() {
         let ti: NSTimeInterval = 1
-        let d1 = NSDate()
-        let d2 = d1.addingTimeInterval(ti)
-        XCTAssertEqual(d1.laterDate(d2), d2)
+        let d1 = Date()
+        let d2 = d1 + ti
+        XCTAssertGreaterThan(d2, d1)
     }
     
     func test_Compare() {
         let ti: NSTimeInterval = 1
-        let d1 = NSDate()
-        let d2 = d1.addingTimeInterval(ti)
+        let d1 = Date()
+        let d2 = d1 + ti
         XCTAssertEqual(d1.compare(d2), NSComparisonResult.OrderedAscending)
     }
     
     func test_IsEqualToDate() {
         let ti: NSTimeInterval = 1
-        let d1 = NSDate()
-        let d2 = d1.addingTimeInterval(ti)
-        let d3 = d1.addingTimeInterval(ti)
-        XCTAssertTrue(d2.isEqual(to: d3))
+        let d1 = Date()
+        let d2 = d1 + ti
+        let d3 = d1 + ti
+        XCTAssertEqual(d2, d3)
     }
 }

@@ -65,7 +65,7 @@ class TestNSDateFormatter: XCTestCase {
         XCTAssertFalse(f.generatesCalendarDates)
         XCTAssertNotNil(f.calendar)
         XCTAssertFalse(f.lenient)
-        XCTAssertEqual(f.twoDigitStartDate!, NSDate(timeIntervalSince1970: -631152000))
+        XCTAssertEqual(f.twoDigitStartDate!, Date(timeIntervalSince1970: -631152000))
         XCTAssertNil(f.defaultDate)
         XCTAssertEqual(f.eraSymbols, symbolDictionaryOne["eraSymbols"]!)
         XCTAssertEqual(f.monthSymbols, symbolDictionaryOne["monthSymbols"]!)
@@ -87,7 +87,7 @@ class TestNSDateFormatter: XCTestCase {
         XCTAssertEqual(f.shortQuarterSymbols, symbolDictionaryTwo["shortQuarterSymbols"]!)
         XCTAssertEqual(f.standaloneQuarterSymbols, symbolDictionaryTwo["standaloneQuarterSymbols"]!)
         XCTAssertEqual(f.shortStandaloneQuarterSymbols, symbolDictionaryTwo["shortStandaloneQuarterSymbols"]!)
-        XCTAssertEqual(f.gregorianStartDate, NSDate(timeIntervalSince1970: -12219292800))
+        XCTAssertEqual(f.gregorianStartDate, Date(timeIntervalSince1970: -12219292800))
         XCTAssertFalse(f.doesRelativeDateFormatting)
         
     }
@@ -117,7 +117,7 @@ class TestNSDateFormatter: XCTestCase {
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
@@ -148,7 +148,7 @@ class TestNSDateFormatter: XCTestCase {
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
@@ -180,7 +180,7 @@ class TestNSDateFormatter: XCTestCase {
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
@@ -214,7 +214,7 @@ class TestNSDateFormatter: XCTestCase {
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
 
             XCTAssertEqual(sf, stringResult)
@@ -247,7 +247,7 @@ class TestNSDateFormatter: XCTestCase {
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
@@ -260,14 +260,14 @@ class TestNSDateFormatter: XCTestCase {
         f.dateFormat = "Q"
         
         for (timestamp, stringResult) in quarterTimestamps {
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
         }
         
         // Check .dateFormat resets when style changes
-        let testDate = NSDate(timeIntervalSince1970: 1457738454)
+        let testDate = Date(timeIntervalSince1970: 1457738454)
         f.dateStyle = .MediumStyle
         f.timeStyle = .MediumStyle
         XCTAssertEqual(f.string(from: testDate), "Mar 11, 2016, 11:20:54 PM")

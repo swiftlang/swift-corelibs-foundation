@@ -129,8 +129,8 @@ class TestNSFileManager : XCTestCase {
             let fileSize = attrs[NSFileSize] as? NSNumber
             XCTAssertEqual(fileSize!.int64Value, 0)
             
-            let fileModificationDate = attrs[NSFileModificationDate] as? NSDate
-            XCTAssertGreaterThan(NSDate().timeIntervalSince1970, fileModificationDate!.timeIntervalSince1970)
+            let fileModificationDate = attrs[NSFileModificationDate] as? Date
+            XCTAssertGreaterThan(Date().timeIntervalSince1970, fileModificationDate!.timeIntervalSince1970)
             
             let filePosixPermissions = attrs[NSFilePosixPermissions] as? NSNumber
             XCTAssertNotEqual(filePosixPermissions!.int64Value, 0)

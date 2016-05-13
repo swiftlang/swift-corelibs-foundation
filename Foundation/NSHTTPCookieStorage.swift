@@ -45,7 +45,7 @@ public class HTTPCookieStorage: NSObject {
         @discussion Starting in OS X 10.11, each app has its own sharedHTTPCookieStorage singleton, 
         which will not be shared with other applications.
     */
-    public class func sharedHTTPCookieStorage() -> HTTPCookieStorage { NSUnimplemented() }
+    class var shared: HTTPCookieStorage { get { NSUnimplemented() } }
     
     /*!
         @method sharedCookieStorageForGroupContainerIdentifier:
@@ -58,7 +58,7 @@ public class HTTPCookieStorage: NSObject {
         shared among all applications and extensions with access to the same application group. Subsequent calls to this
         method with the same identifier will return the same cookie storage instance.
      */
-    public class func sharedCookieStorageForGroupContainerIdentifier(_ identifier: String) -> HTTPCookieStorage { NSUnimplemented() }
+    class func sharedCookieStorage(forGroupContainerIdentifier identifier: String) -> HTTPCookieStorage { NSUnimplemented() }
     
     /*!
         @method setCookie:
@@ -78,7 +78,7 @@ public class HTTPCookieStorage: NSObject {
      @method removeCookiesSince:
      @abstract Delete all cookies from the cookie storage since the provided date.
      */
-    public func removeCookiesSinceDate(_ date: NSDate) { NSUnimplemented() }
+    public func removeCookiesSinceDate(_ date: Date) { NSUnimplemented() }
     
     /*!
         @method cookiesForURL:

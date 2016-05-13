@@ -363,7 +363,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, SecureCoding,
 
             if key is NSArray {
                 line += (key as! NSArray).descriptionWithLocale(locale, indent: level + 1)
-            } else if key is NSDate {
+            } else if key is Date {
                 line += (key as! NSDate).descriptionWithLocale(locale)
             } else if key is NSDecimalNumber {
                 line += (key as! NSDecimalNumber).description(withLocale: locale)
@@ -382,7 +382,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, SecureCoding,
             let object = objectForKey(key)!
             if object is NSArray {
                 line += (object as! NSArray).descriptionWithLocale(locale, indent: level + 1)
-            } else if object is NSDate {
+            } else if object is Date {
                 line += (object as! NSDate).descriptionWithLocale(locale)
             } else if object is NSDecimalNumber {
                 line += (object as! NSDecimalNumber).description(withLocale: locale)

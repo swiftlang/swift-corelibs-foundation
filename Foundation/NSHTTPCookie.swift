@@ -58,7 +58,7 @@ public class HTTPCookie : NSObject {
     let _comment: String?
     let _commentURL: NSURL?
     let _domain: String
-    let _expiresDate: NSDate?
+    let _expiresDate: Date?
     let _HTTPOnly: Bool
     let _secure: Bool
     let _sessionOnly: Bool
@@ -253,7 +253,7 @@ public class HTTPCookie : NSObject {
         // TODO: factor into a utility function
         if version == 0 {
             let expiresProperty = properties[NSHTTPCookieExpires]
-            if let date = expiresProperty as? NSDate {
+            if let date = expiresProperty as? Date {
                 _expiresDate = date
             } else if let dateString = expiresProperty as? String {
                 let formatter = NSDateFormatter()
@@ -268,7 +268,7 @@ public class HTTPCookie : NSObject {
             maximumAge = properties[NSHTTPCookieMaximumAge] as? String,
             secondsFromNow = Int(maximumAge)
             where _version == 1 {
-            _expiresDate = NSDate(timeIntervalSinceNow: Double(secondsFromNow))
+            _expiresDate = Date(timeIntervalSinceNow: Double(secondsFromNow))
         } else {
             _expiresDate = nil
         }
@@ -295,7 +295,7 @@ public class HTTPCookie : NSObject {
         _HTTPOnly = false
         _properties = [NSHTTPCookieComment : properties[NSHTTPCookieComment],
                        NSHTTPCookieCommentURL : properties[NSHTTPCookieCommentURL],
-                       "Created" : NSDate().timeIntervalSinceReferenceDate,         // Cocoa Compatibility
+                       "Created" : Date().timeIntervalSinceReferenceDate, // Cocoa Compatibility
                        NSHTTPCookieDiscard : _sessionOnly,
                        NSHTTPCookieDomain : _domain,
                        NSHTTPCookieExpires : _expiresDate,
@@ -376,7 +376,7 @@ public class HTTPCookie : NSObject {
     /// The expires date is the date when the cookie should be
     /// deleted. The result will be nil if there is no specific expires
     /// date. This will be the case only for *session-only* cookies.
-    /*@NSCopying*/ public var expiresDate: NSDate? {
+    /*@NSCopying*/ public var expiresDate: Date? {
         return _expiresDate
     }
    

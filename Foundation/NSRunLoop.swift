@@ -61,7 +61,7 @@ public class NSRunLoop : NSObject {
         NSUnimplemented()
     }
 
-    public func limitDateForMode(_ mode: String) -> NSDate? {
+    public func limitDateForMode(_ mode: String) -> Date? {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return nil
         }
@@ -75,13 +75,13 @@ public class NSRunLoop : NSObject {
         let nextTimerFireAbsoluteTime = CFRunLoopGetNextTimerFireDate(CFRunLoopGetCurrent(), mode._cfObject)
 
         if (nextTimerFireAbsoluteTime == 0) {
-            return NSDate.distantFuture()
+            return Date.distantFuture
         }
 
-        return NSDate(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
+        return Date(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
     }
 
-    public func acceptInputForMode(_ mode: String, beforeDate limitDate: NSDate) {
+    public func acceptInputForMode(_ mode: String, beforeDate limitDate: Date) {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return
         }
@@ -93,14 +93,14 @@ public class NSRunLoop : NSObject {
 extension NSRunLoop {
 
     public func run() {
-        while runMode(NSDefaultRunLoopMode, beforeDate: NSDate.distantFuture()) { }
+        while runMode(NSDefaultRunLoopMode, beforeDate: Date.distantFuture) { }
     }
 
-    public func runUntilDate(_ limitDate: NSDate) {
+    public func runUntilDate(_ limitDate: Date) {
         while runMode(NSDefaultRunLoopMode, beforeDate: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
     }
 
-    public func runMode(_ mode: String, beforeDate limitDate: NSDate) -> Bool {
+    public func runMode(_ mode: String, beforeDate limitDate: Date) -> Bool {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return false
         }

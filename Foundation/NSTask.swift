@@ -430,7 +430,7 @@ extension NSTask {
         
         repeat {
             
-        } while( self.running == true && NSRunLoop.currentRunLoop().runMode(NSDefaultRunLoopMode, beforeDate: NSDate(timeIntervalSinceNow: 0.05)) )
+        } while( self.running == true && NSRunLoop.currentRunLoop().runMode(NSDefaultRunLoopMode, beforeDate: Date(timeIntervalSinceNow: 0.05)) )
         
         self.runLoop = nil
     }

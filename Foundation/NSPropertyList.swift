@@ -123,7 +123,7 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
         return result
     } else if let str = input as? NSString {
         return str._swiftObject
-    } else if let date = input as? NSDate {
+    } else if let date = input as? Date {
         return date
     } else if let data = input as? NSData {
         return data

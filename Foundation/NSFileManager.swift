@@ -344,7 +344,7 @@ public class NSFileManager : NSObject {
 #else
         let ti = (NSTimeInterval(s.st_mtim.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * NSTimeInterval(s.st_mtim.tv_nsec))
 #endif
-        result[NSFileModificationDate] = NSDate(timeIntervalSinceReferenceDate: ti)
+        result[NSFileModificationDate] = Date(timeIntervalSinceReferenceDate: ti)
         
         result[NSFilePosixPermissions] = NSNumber(value: UInt64(s.st_mode & 0o7777))
         result[NSFileReferenceCount] = NSNumber(value: UInt64(s.st_nlink))

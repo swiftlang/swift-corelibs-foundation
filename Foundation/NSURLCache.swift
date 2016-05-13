@@ -212,7 +212,7 @@ public class URLCache : NSObject {
      @method removeCachedResponsesSince:
      @abstract Clears the given cache of any cached responses since the provided date.
      */
-    public func removeCachedResponsesSinceDate(_ date: NSDate) { NSUnimplemented() }
+    public func removeCachedResponsesSinceDate(_ date: Date) { NSUnimplemented() }
     
     /*! 
         @method memoryCapacity

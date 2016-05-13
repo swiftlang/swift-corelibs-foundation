@@ -100,7 +100,7 @@ class TestNSNotificationQueue : XCTestCase {
         let queue = NSNotificationQueue.defaultQueue()
 
         let runLoop = NSRunLoop.currentRunLoop()
-        let endDate = NSDate(timeInterval: NSTimeInterval(0.05), sinceDate: NSDate())
+        let endDate = Date(timeInterval: NSTimeInterval(0.05), since: Date())
 
         let dummyTimer = NSTimer.scheduledTimer(0.01, repeats: false) { _ in
             guard let runLoopMode = runLoop.currentMode else {

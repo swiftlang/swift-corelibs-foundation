@@ -21,7 +21,7 @@ public var NSTimeIntervalSince1970: Double {
     return 978307200.0
 }
 
-public class NSDate : NSObject, NSCopying, SecureCoding, Coding {
+public class NSDate: NSObject, NSCopying, SecureCoding, Coding {
     typealias CFType = CFDate
     
     public override var hash: Int {
@@ -29,7 +29,7 @@ public class NSDate : NSObject, NSCopying, SecureCoding, Coding {
     }
     
     public override func isEqual(_ object: AnyObject?) -> Bool {
-        if let date = object as? NSDate {
+        if let date = object as? Date {
             return isEqual(to: date)
         } else {
             return false
@@ -147,39 +147,39 @@ public class NSDate : NSObject, NSCopying, SecureCoding, Coding {
 
 extension NSDate {
     
-    public func timeIntervalSince(_ anotherDate: NSDate) -> NSTimeInterval {
+    public func timeIntervalSince(_ anotherDate: Date) -> NSTimeInterval {
         return self.timeIntervalSinceReferenceDate - anotherDate.timeIntervalSinceReferenceDate
     }
     
     public var timeIntervalSinceNow: NSTimeInterval {
-        return timeIntervalSince(NSDate())
+        return timeIntervalSince(Date())
     }
     
     public var timeIntervalSince1970: NSTimeInterval {
         return timeIntervalSinceReferenceDate + NSTimeIntervalSince1970
     }
     
-    public func addingTimeInterval(_ ti: NSTimeInterval) -> NSDate {
-        return NSDate(timeIntervalSinceReferenceDate:_timeIntervalSinceReferenceDate + ti)
+    public func addingTimeInterval(_ ti: NSTimeInterval) -> Date {
+        return Date(timeIntervalSinceReferenceDate:_timeIntervalSinceReferenceDate + ti)
     }
     
-    public func earlierDate(_ anotherDate: NSDate) -> NSDate {
+    public func earlierDate(_ anotherDate: Date) -> Date {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
-            return self
+            return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
         } else {
             return anotherDate
         }
     }
     
-    public func laterDate(_ anotherDate: NSDate) -> NSDate {
+    public func laterDate(_ anotherDate: Date) -> Date {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
             return anotherDate
         } else {
-            return self
+            return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
         }
     }
     
-    public func compare(_ other: NSDate) -> NSComparisonResult {
+    public func compare(_ other: Date) -> NSComparisonResult {
         let t1 = self.timeIntervalSinceReferenceDate
         let t2 = other.timeIntervalSinceReferenceDate
         if t1 < t2 {
@@ -191,60 +191,76 @@ extension NSDate {
         }
     }
     
-    public func isEqual(to otherDate: NSDate) -> Bool {
+    public func isEqual(to otherDate: Date) -> Bool {
         return timeIntervalSinceReferenceDate == otherDate.timeIntervalSinceReferenceDate
     }
 }
 
 extension NSDate {
-    internal static let _distantFuture = NSDate(timeIntervalSinceReferenceDate: 63113904000.0)
-    public class func distantFuture() -> NSDate {
+    internal static let _distantFuture = Date(timeIntervalSinceReferenceDate: 63113904000.0)
+    public static func distantFuture() -> Date {
         return _distantFuture
     }
     
-    internal static let _distantPast = NSDate(timeIntervalSinceReferenceDate: -63113904000.0)
-    public class func distantPast() -> NSDate {
+    internal static let _distantPast = Date(timeIntervalSinceReferenceDate: -63113904000.0)
+    public static func distantPast() -> Date {
         return _distantPast
     }
     
     public convenience init(timeIntervalSinceNow secs: NSTimeInterval) {
-        self.init(timeIntervalSinceReferenceDate: secs + NSDate().timeIntervalSinceReferenceDate)
+        self.init(timeIntervalSinceReferenceDate: secs + Date().timeIntervalSinceReferenceDate)
     }
     
     public convenience init(timeIntervalSince1970 secs: NSTimeInterval) {
         self.init(timeIntervalSinceReferenceDate: secs - NSTimeIntervalSince1970)
     }
     
-    public convenience init(timeInterval secsToBeAdded: NSTimeInterval, sinceDate date: NSDate) {
+    public convenience init(timeInterval secsToBeAdded: NSTimeInterval, sinceDate date: Date) {
         self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate + secsToBeAdded)
     }
 }
 
-extension NSDate : _CFBridgable { }
+extension NSDate: _CFBridgable, _SwiftBridgable {
+    typealias SwiftType = Date
+    var _swiftObject: Date {
+        return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
+    }
+}
 
-extension CFDate : _NSBridgable {
+extension CFDate : _NSBridgable, _SwiftBridgable {
     typealias NSType = NSDate
+    typealias SwiftType = Date
+    
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
+    internal var _swiftObject: Date { return _nsObject._swiftObject }
+}
+
+extension Date : _NSBridgable, _CFBridgable {
+    typealias NSType = NSDate
+    typealias CFType = CFDate
+    
+    internal var _nsObject: NSType { return NSDate(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate) }
+    internal var _cfObject: CFType { return _nsObject._cfObject }
 }
 
 /// Alternative API for avoiding AutoreleasingUnsafeMutablePointer usage in NSCalendar and NSFormatter
 /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to the AutoreleasingUnsafeMutablePointer usage case of returning a NSDate + NSTimeInterval or using a pair of dates representing a range
 /// - Note: Since this API is under consideration it may be either removed or revised in the near future
 public class NSDateInterval : NSObject {
-    public internal(set) var start: NSDate
-    public internal(set) var end: NSDate
+    public internal(set) var start: Date
+    public internal(set) var end: Date
     
     public var interval: NSTimeInterval {
         return end.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate
     }
     
-    public required init(start: NSDate, end: NSDate) {
+    public required init(start: Date, end: Date) {
         self.start = start
         self.end = end
     }
     
-    public convenience init(start: NSDate, interval: NSTimeInterval) {
-        self.init(start: start, end: NSDate(timeInterval: interval, sinceDate: start))
+    public convenience init(start: Date, interval: NSTimeInterval) {
+        self.init(start: start, end: Date(timeInterval: interval, since: start))
     }
 }
 

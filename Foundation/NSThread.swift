@@ -107,7 +107,7 @@ public class NSThread : NSObject {
         return true
     }
     
-    public class func sleepUntilDate(_ date: NSDate) {
+    public class func sleepUntilDate(_ date: Date) {
         let start_ut = CFGetSystemUptime()
         let start_at = CFAbsoluteTimeGetCurrent()
         let end_at = date.timeIntervalSinceReferenceDate

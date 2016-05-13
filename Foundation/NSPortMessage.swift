@@ -26,7 +26,7 @@ public class NSPortMessage : NSObject {
         NSUnimplemented()
     }
     
-    public func sendBeforeDate(_ date: NSDate) -> Bool {
+    public func sendBeforeDate(_ date: Date) -> Bool {
         NSUnimplemented()
     }
     

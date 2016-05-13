@@ -57,7 +57,7 @@ class TestNSRunLoop : XCTestCase {
     func test_runLoopRunMode() {
         let runLoop = NSRunLoop.currentRunLoop()
         let timeInterval = NSTimeInterval(0.05)
-        let endDate = NSDate(timeInterval: timeInterval, sinceDate: NSDate())
+        let endDate = Date(timeInterval: timeInterval, since: Date())
         var flag = false
 
         let dummyTimer = NSTimer.scheduledTimer(0.01, repeats: false) { _ in
@@ -79,7 +79,7 @@ class TestNSRunLoop : XCTestCase {
     func test_runLoopLimitDate() {
         let runLoop = NSRunLoop.currentRunLoop()
         let timeInterval = NSTimeInterval(1)
-        let expectedTimeInterval = NSDate(timeInterval: timeInterval, sinceDate: NSDate()).timeIntervalSince1970
+        let expectedTimeInterval = Date(timeInterval: timeInterval, since: Date()).timeIntervalSince1970
 
         let dummyTimer = NSTimer.scheduledTimer(timeInterval, repeats: false) { _ in }
         runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)

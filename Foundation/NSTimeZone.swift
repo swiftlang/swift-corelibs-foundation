@@ -127,7 +127,7 @@ public class NSTimeZone : NSObject, NSCopying, SecureCoding, Coding {
         }
     }
     
-    public func secondsFromGMT(for aDate: NSDate) -> Int {
+    public func secondsFromGMT(for aDate: Date) -> Int {
         if self.dynamicType === NSTimeZone.self {
             return Int(CFTimeZoneGetSecondsFromGMT(_cfObject, aDate.timeIntervalSinceReferenceDate))
         } else {
@@ -135,7 +135,7 @@ public class NSTimeZone : NSObject, NSCopying, SecureCoding, Coding {
         }
     }
     
-    public func abbreviation(for aDate: NSDate) -> String? {
+    public func abbreviation(for aDate: Date) -> String? {
         if self.dynamicType === NSTimeZone.self {
             return CFTimeZoneCopyAbbreviation(_cfObject, aDate.timeIntervalSinceReferenceDate)._swiftObject
         } else {
@@ -143,7 +143,7 @@ public class NSTimeZone : NSObject, NSCopying, SecureCoding, Coding {
         }
     }
     
-    public func isDaylightSavingTime(for aDate: NSDate) -> Bool {
+    public func isDaylightSavingTime(for aDate: Date) -> Bool {
         if self.dynamicType === NSTimeZone.self {
             return CFTimeZoneIsDaylightSavingTime(_cfObject, aDate.timeIntervalSinceReferenceDate)
         } else {
@@ -151,7 +151,7 @@ public class NSTimeZone : NSObject, NSCopying, SecureCoding, Coding {
         }
     }
     
-    public func daylightSavingTimeOffset(for aDate: NSDate) -> NSTimeInterval {
+    public func daylightSavingTimeOffset(for aDate: Date) -> NSTimeInterval {
         if self.dynamicType === NSTimeZone.self {
             return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
         } else {
@@ -159,9 +159,9 @@ public class NSTimeZone : NSObject, NSCopying, SecureCoding, Coding {
         }
     }
     
-    public func nextDaylightSavingTimeTransition(after aDate: NSDate) -> NSDate? {
+    public func nextDaylightSavingTimeTransition(after aDate: Date) -> Date? {
         if self.dynamicType === NSTimeZone.self {
-            return NSDate(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
+            return Date(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -212,13 +212,13 @@ extension NSTimeZone {
     ///
     /// This invokes `abbreviationForDate:` with the current date as the argument.
     public var abbreviation: String? {
-        let currentDate = NSDate()
+        let currentDate = Date()
         return abbreviation(for: currentDate)
     }
 
     public var daylightSavingTime: Bool { NSUnimplemented() }
     public var daylightSavingTimeOffset: NSTimeInterval { NSUnimplemented() }
-    /*@NSCopying*/ public var nextDaylightSavingTimeTransition: NSDate?  { NSUnimplemented() }
+    /*@NSCopying*/ public var nextDaylightSavingTimeTransition: Date?  { NSUnimplemented() }
     
     public func isEqual(to aTimeZone: NSTimeZone) -> Bool {
         return CFEqual(self._cfObject, aTimeZone._cfObject)

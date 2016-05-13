@@ -28,7 +28,7 @@ class TestNSTimer : XCTestCase {
     }
     
     func test_timerInit() {
-        let timer = NSTimer(fireDate: NSDate(), interval: 0.3, repeats: false) { _ in }
+        let timer = NSTimer(fireDate: Date(), interval: 0.3, repeats: false) { _ in }
         XCTAssertNotNil(timer)
     }
     
@@ -44,7 +44,7 @@ class TestNSTimer : XCTestCase {
 
         let runLoop = NSRunLoop.currentRunLoop()
         runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        runLoop.runUntilDate(NSDate(timeIntervalSinceNow: 0.05))
+        runLoop.runUntilDate(Date(timeIntervalSinceNow: 0.05))
         
         XCTAssertTrue(flag)
     }
@@ -53,12 +53,12 @@ class TestNSTimer : XCTestCase {
         var flag = 0
         let interval = NSTimeInterval(0.1)
         let numberOfRepeats = 3
-        var previousInterval = NSDate().timeIntervalSince1970
+        var previousInterval = Date().timeIntervalSince1970
         
         let dummyTimer = NSTimer.scheduledTimer(interval, repeats: true) { timer in
             XCTAssertEqual(timer.timeInterval, interval)
 
-            let currentInterval = NSDate().timeIntervalSince1970
+            let currentInterval = Date().timeIntervalSince1970
             XCTAssertEqualWithAccuracy(currentInterval, previousInterval + interval, accuracy: 0.01)
             previousInterval = currentInterval
             
@@ -70,7 +70,7 @@ class TestNSTimer : XCTestCase {
         
         let runLoop = NSRunLoop.currentRunLoop()
         runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        runLoop.runUntilDate(NSDate(timeIntervalSinceNow: interval * Double(numberOfRepeats + 1)))
+        runLoop.runUntilDate(Date(timeIntervalSinceNow: interval * Double(numberOfRepeats + 1)))
         
         XCTAssertEqual(flag, numberOfRepeats)
     }
@@ -90,7 +90,7 @@ class TestNSTimer : XCTestCase {
         
         let runLoop = NSRunLoop.currentRunLoop()
         runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        runLoop.runUntilDate(NSDate(timeIntervalSinceNow: 0.05))
+        runLoop.runUntilDate(Date(timeIntervalSinceNow: 0.05))
         
         XCTAssertTrue(flag)
     }

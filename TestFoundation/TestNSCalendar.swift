@@ -30,7 +30,7 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_gettingDatesOnGregorianCalendar() {
-        let date = NSDate(timeIntervalSince1970: 1449332351)
+        let date = Date(timeIntervalSince1970: 1449332351)
         
         let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)
         calendar?.timeZone = NSTimeZone(name: "UTC")!
@@ -45,7 +45,7 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_gettingDatesOnHebrewCalendar() {
-        let date = NSDate(timeIntervalSince1970: 1552580351)
+        let date = Date(timeIntervalSince1970: 1552580351)
         
         let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierHebrew)
         calendar?.timeZone = NSTimeZone(name: "UTC")!
@@ -60,7 +60,7 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_gettingDatesOnChineseCalendar() {
-        let date = NSDate(timeIntervalSince1970: 1591460351.0)
+        let date = Date(timeIntervalSince1970: 1591460351.0)
         
         let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierChinese)
         calendar?.timeZone = NSTimeZone(name: "UTC")!
