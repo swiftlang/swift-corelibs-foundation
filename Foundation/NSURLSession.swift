@@ -509,7 +509,7 @@ public class URLSessionConfiguration: NSObject, NSCopying {
     public var HTTPShouldSetCookies: Bool
     
     /* Policy for accepting cookies.  This overrides the policy otherwise specified by the cookie storage. */
-    public var HTTPCookieAcceptPolicy: NSHTTPCookieAcceptPolicy
+    public var httpCookieAcceptPolicy: HTTPCookie.AcceptPolicy
     
     /* Specifies additional headers which will be set on outgoing requests.
        Note that these headers are added to the request only if not already present. */
@@ -519,7 +519,7 @@ public class URLSessionConfiguration: NSObject, NSCopying {
     public var HTTPMaximumConnectionsPerHost: Int
     
     /* The cookie storage object to use, or nil to indicate that no cookies should be handled */
-    public var HTTPCookieStorage: NSHTTPCookieStorage?
+    public var httpCookieStorage: HTTPCookieStorage?
     
     /* The credential storage object, or nil to indicate that no credential storage is to be used */
     public var urlCredentialStorage: URLCredentialStorage?

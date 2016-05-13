@@ -16,11 +16,13 @@
     @constant NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain Accept cookies
     only from the main document domain
 */
-public enum NSHTTPCookieAcceptPolicy : UInt {
-    
-    case Always
-    case Never
-    case OnlyFromMainDocumentDomain
+extension HTTPCookie {
+    public enum AcceptPolicy : UInt {
+        
+        case always
+        case never
+        case onlyFromMainDocumentDomain
+    }
 }
 
 
@@ -32,7 +34,7 @@ public enum NSHTTPCookieAcceptPolicy : UInt {
     set of cookies.  It also has convenience methods to parse and
     generate cookie-related HTTP header fields.
 */
-public class NSHTTPCookieStorage : NSObject {
+public class HTTPCookieStorage: NSObject {
     
     public override init() { NSUnimplemented() }
     
@@ -43,7 +45,7 @@ public class NSHTTPCookieStorage : NSObject {
         @discussion Starting in OS X 10.11, each app has its own sharedHTTPCookieStorage singleton, 
         which will not be shared with other applications.
     */
-    public class func sharedHTTPCookieStorage() -> NSHTTPCookieStorage { NSUnimplemented() }
+    public class func sharedHTTPCookieStorage() -> HTTPCookieStorage { NSUnimplemented() }
     
     /*!
         @method sharedCookieStorageForGroupContainerIdentifier:
@@ -56,7 +58,7 @@ public class NSHTTPCookieStorage : NSObject {
         shared among all applications and extensions with access to the same application group. Subsequent calls to this
         method with the same identifier will return the same cookie storage instance.
      */
-    public class func sharedCookieStorageForGroupContainerIdentifier(_ identifier: String) -> NSHTTPCookieStorage { NSUnimplemented() }
+    public class func sharedCookieStorageForGroupContainerIdentifier(_ identifier: String) -> HTTPCookieStorage { NSUnimplemented() }
     
     /*!
         @method setCookie:
@@ -114,7 +116,7 @@ public class NSHTTPCookieStorage : NSObject {
         @abstract The cookie accept policy preference of the
         receiver.
     */
-    public var cookieAcceptPolicy: NSHTTPCookieAcceptPolicy
+    public var cookieAcceptPolicy: HTTPCookie.AcceptPolicy
     
     /*!
       @method sortedCookiesUsingDescriptors:
