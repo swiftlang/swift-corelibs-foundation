@@ -11,7 +11,7 @@ import CoreFoundation
 /**
  `Date` structs represent a single point in time.
  */
-public struct Date : Comparable, Equatable, CustomStringConvertible {
+public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringConvertible {
     public typealias ReferenceType = NSDate
     
     private var _time : NSTimeInterval
