@@ -100,7 +100,7 @@ public class NSInputStream : NSStream {
         NSUnimplemented()
     }
     
-    public init?(URL url: NSURL) {
+    public init?(URL url: URL) {
         NSUnimplemented()
     }
 
@@ -130,7 +130,7 @@ public class NSOutputStream : NSStream {
         NSUnimplemented()
     }
 
-    public init?(URL url: NSURL, append shouldAppend: Bool) {
+    public init?(URL url: URL, append shouldAppend: Bool) {
         NSUnimplemented()
     }
     

@@ -44,7 +44,7 @@ public class URLResponse: NSObject, SecureCoding, NSCopying {
     /// - Parameter expectedContentLength: the expected content length of the associated data
     /// - Parameter textEncodingName the name of the text encoding for the associated data, if applicable, else nil
     /// - Returns: The initialized NSURLResponse.
-    public init(url: NSURL, mimeType: String?, expectedContentLength length: Int, textEncodingName name: String?) {
+    public init(url: URL, mimeType: String?, expectedContentLength length: Int, textEncodingName name: String?) {
         self.url = url
         self.mimeType = mimeType
         self.expectedContentLength = Int64(length)
@@ -54,7 +54,7 @@ public class URLResponse: NSObject, SecureCoding, NSCopying {
     }
     
     /// The URL of the receiver.
-    /*@NSCopying*/ public private(set) var url: NSURL?
+    /*@NSCopying*/ public private(set) var url: URL?
 
     
     /// The MIME type of the receiver.
@@ -120,7 +120,7 @@ public class NSHTTPURLResponse : URLResponse {
     /// - Parameter httpVersion: The version of the HTTP response as represented by the server.  This is typically represented as "HTTP/1.1".
     /// - Parameter headerFields: A dictionary representing the header keys and values of the server response.
     /// - Returns: the instance of the object, or `nil` if an error occurred during initialization.
-    public init?(url: NSURL, statusCode: Int, httpVersion: String?, headerFields: [String : String]?) {
+    public init?(url: URL, statusCode: Int, httpVersion: String?, headerFields: [String : String]?) {
         self.statusCode = statusCode
         self.allHeaderFields = headerFields ?? [:]
         super.init(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)

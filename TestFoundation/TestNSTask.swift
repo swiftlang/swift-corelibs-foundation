@@ -245,15 +245,17 @@ class TestNSTask : XCTestCase {
 }
 
 private func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> Void) rethrows {
-    let url = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent("TestNSTask.XXXXXX")!
+    let url = try! URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestNSTask.XXXXXX")
     var buffer = [Int8](repeating: 0, count: Int(PATH_MAX))
-    url.getFileSystemRepresentation(&buffer, maxLength: buffer.count)
-    switch mkstemp(&buffer) {
-    case -1: XCTFail("Could not create temporary file")
-    case let fd:
-        defer { unlink(&buffer) }
-        try body(NSFileHandle(fileDescriptor: fd, closeOnDealloc: true))
+    try url.withUnsafeFileSystemRepresentation {
+        switch mkstemp(UnsafeMutablePointer<Int8>($0)) {
+        case -1: XCTFail("Could not create temporary file")
+        case let fd:
+            defer { unlink(&buffer) }
+            try body(NSFileHandle(fileDescriptor: fd, closeOnDealloc: true))
+        }
     }
+    
 }
 
 private enum Error: ErrorProtocol {

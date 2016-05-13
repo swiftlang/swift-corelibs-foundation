@@ -403,24 +403,33 @@ public extension NSString {
             return 0
         }
         
-        let url = NSURL(fileURLWithPath: path)
+        let url = URL(fileURLWithPath: path)
         
         let searchAllFilesInDirectory = _stringIsPathToDirectory(path)
         let namePrefix = searchAllFilesInDirectory ? nil : url.lastPathComponent
         let checkFileName = _getFileNamePredicate(namePrefix, caseSensetive: flag)
         let checkExtension = _getExtensionPredicate(filterTypes, caseSensetive: flag)
         
-        guard let
-            resolvedURL = url._resolveSymlinksInPath(excludeSystemDirs: false),
-            urlWhereToSearch = searchAllFilesInDirectory ? resolvedURL : resolvedURL.URLByDeletingLastPathComponent
-        else {
+        let resolvedURL: URL
+        let urlWhereToSearch: URL
+        if let url = url._resolveSymlinksInPath(excludeSystemDirs: false) {
+            resolvedURL = url
+        } else {
             return 0
         }
+        
+        
+        do {
+            urlWhereToSearch = searchAllFilesInDirectory ? resolvedURL : try resolvedURL.deletingLastPathComponent()
+        } catch {
+            return 0
+        }
+        
 
         var matches = _getNamesAtURL(urlWhereToSearch, prependWith: "", namePredicate: checkFileName, typePredicate: checkExtension)
         
         if matches.count == 1 {
-            let theOnlyFoundItem = NSURL(fileURLWithPath: matches[0], relativeToURL: urlWhereToSearch)
+            let theOnlyFoundItem = URL(fileURLWithPath: matches[0], relativeTo: urlWhereToSearch)
             if theOnlyFoundItem.hasDirectoryPath {
                 matches = _getNamesAtURL(theOnlyFoundItem, prependWith: matches[0], namePredicate: { _ in true }, typePredicate: checkExtension)
             }
@@ -453,11 +462,11 @@ public extension NSString {
     
     internal typealias _FileNamePredicate = (String?) -> Bool
     
-    internal func _getNamesAtURL(_ filePathURL: NSURL, prependWith: String, namePredicate: _FileNamePredicate, typePredicate: _FileNamePredicate) -> [String] {
+    internal func _getNamesAtURL(_ filePathURL: URL, prependWith: String, namePredicate: _FileNamePredicate, typePredicate: _FileNamePredicate) -> [String] {
         var result: [String] = []
         
         if let enumerator = NSFileManager.defaultManager().enumerator(at: filePathURL, includingPropertiesForKeys: nil, options: .skipsSubdirectoryDescendants, errorHandler: nil) {
-            for item in enumerator.lazy.map({ $0 as! NSURL }) {
+            for item in enumerator.lazy.map({ $0 as! URL }) {
                 let itemName = item.lastPathComponent
                 
                 let matchByName = namePredicate(itemName)
@@ -618,7 +627,7 @@ public func NSHomeDirectoryForUser(_ user: String?) -> String? {
         return nil
     }
     
-    let url: NSURL = homeDir._nsObject
+    let url: URL = homeDir._swiftObject
     return url.path
 }
 

@@ -225,7 +225,7 @@ extension NSFileHandle {
         self.init(path: path, flags: O_RDWR, createMode: 0)
     }
     
-    internal static func _openFileDescriptorForURL(_ url : NSURL, flags: Int32, reading: Bool) throws -> Int32 {
+    internal static func _openFileDescriptorForURL(_ url : URL, flags: Int32, reading: Bool) throws -> Int32 {
         if let path = url.path {
             let fd = _CFOpenFile(path, flags)
             if fd < 0 {
@@ -237,17 +237,17 @@ extension NSFileHandle {
         }
     }
     
-    public convenience init(forReadingFromURL url: NSURL) throws {
+    public convenience init(forReadingFromURL url: URL) throws {
         let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_RDONLY, reading: true)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
     
-    public convenience init(forWritingToURL url: NSURL) throws {
+    public convenience init(forWritingToURL url: URL) throws {
         let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_WRONLY, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
 
-    public convenience init(forUpdatingURL url: NSURL) throws {
+    public convenience init(forUpdatingURL url: URL) throws {
         let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_RDWR, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }

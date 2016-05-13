@@ -48,7 +48,7 @@ class TestNSHTTPCookie: XCTestCase {
             NSHTTPCookieName: "TestCookie",
             NSHTTPCookieValue: "Test value @#$%^$&*",
             NSHTTPCookiePath: "/",
-            NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
+            NSHTTPCookieOriginURL: URL(string: "https://apple.com")!
         ])
         XCTAssert(versionZeroCookieWithOriginURL?.domain == "apple.com")
 
@@ -58,7 +58,7 @@ class TestNSHTTPCookie: XCTestCase {
             NSHTTPCookieValue: "Test value @#$%^$&*",
             NSHTTPCookiePath: "/",
             NSHTTPCookieDomain: "apple.com",
-            NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
+            NSHTTPCookieOriginURL: URL(string: "https://apple.com")!
         ])
         XCTAssert(versionZeroCookieWithDomainAndOriginURL?.domain == "apple.com")
 
@@ -68,9 +68,9 @@ class TestNSHTTPCookie: XCTestCase {
             NSHTTPCookieValue: "Test value @#$%^$&*",
             NSHTTPCookiePath: "/",
             NSHTTPCookieDomain: "apple.com",
-            NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!,
+            NSHTTPCookieOriginURL: URL(string: "https://apple.com")!,
             NSHTTPCookieComment: "This comment should be nil since this is a v0 cookie.",
-            NSHTTPCookieCommentURL: NSURL(string: "https://apple.com")!,
+            NSHTTPCookieCommentURL: URL(string: "https://apple.com")!,
             NSHTTPCookieDiscard: "TRUE",
             NSHTTPCookieExpires: NSDate(timeIntervalSince1970: 1000),
             NSHTTPCookieMaximumAge: "2000",
@@ -101,13 +101,13 @@ class TestNSHTTPCookie: XCTestCase {
                 NSHTTPCookieName: "TestCookie1",
                 NSHTTPCookieValue: "testValue1",
                 NSHTTPCookiePath: "/",
-                NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
+                NSHTTPCookieOriginURL: URL(string: "https://apple.com")!
                 ])!,
             HTTPCookie(properties: [
                 NSHTTPCookieName: "TestCookie2",
                 NSHTTPCookieValue: "testValue2",
                 NSHTTPCookiePath: "/",
-                NSHTTPCookieOriginURL: NSURL(string: "https://apple.com")!
+                NSHTTPCookieOriginURL: URL(string: "https://apple.com")!
                 ])!,
         ]
         

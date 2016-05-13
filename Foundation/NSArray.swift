@@ -379,7 +379,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, SecureCoding, Codi
     }
     
     public func writeToFile(_ path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
-    public func writeToURL(_ url: NSURL, atomically: Bool) -> Bool { NSUnimplemented() }
+    public func writeToURL(_ url: URL, atomically: Bool) -> Bool { NSUnimplemented() }
     
     public func objectsAtIndexes(_ indexes: NSIndexSet) -> [AnyObject] {
         var objs = [AnyObject]()
@@ -555,7 +555,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, SecureCoding, Codi
     
     
     public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
-    public convenience init?(contentsOfURL url: NSURL) { NSUnimplemented() }
+    public convenience init?(contentsOfURL url: URL) { NSUnimplemented() }
     
     override public var _cfTypeID: CFTypeID {
         return CFArrayGetTypeID()
@@ -583,7 +583,7 @@ extension CFArray : _NSBridgable, _SwiftBridgable {
 extension CFArray {
     /// Bridge something returned from CF to an Array<T>. Useful when we already know that a CFArray contains objects that are toll-free bridged with Swift objects, e.g. CFArray<CFURLRef>.
     /// - Note: This bridging operation is unfortunately still O(n), but it only traverses the NSArray once, creating the Swift array and casting at the same time.
-    func _unsafeTypedBridge<T : AnyObject>() -> Array<T> {
+    func _unsafeTypedBridge<T : _CFBridgable>() -> Array<T> {
         var result = Array<T>()
         let count = CFArrayGetCount(self)
         result.reserveCapacity(count)
@@ -818,7 +818,7 @@ public class NSMutableArray : NSArray {
     }
     
     public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
-    public convenience init?(contentsOfURL url: NSURL) { NSUnimplemented() }
+    public convenience init?(contentsOfURL url: URL) { NSUnimplemented() }
 }
 
 extension NSArray : Sequence {

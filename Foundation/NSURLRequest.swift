@@ -172,19 +172,19 @@ public class URLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying {
     /// Initializes an NSURLRequest with the given URL.
     ///
     /// - Parameter URL: The URL for the request.
-    public convenience init(url: NSURL) {
+    public convenience init(url: URL) {
         self.init()
         self.url = url
     }
     
     /// The URL of the receiver.
-    /*@NSCopying */public private(set) var url: NSURL?
+    /*@NSCopying */public private(set) var url: URL?
     
     /// The main document URL associated with this load.
     ///
     /// This URL is used for the cookie "same domain as main
     /// document" policy. There may also be other future uses.
-    /*@NSCopying*/ public private(set) var mainDocumentURL: NSURL?
+    /*@NSCopying*/ public private(set) var mainDocumentURL: URL?
     
     /// Returns the HTTP request method of the receiver.
     public private(set) var httpMethod: String? = "GET"
@@ -240,7 +240,7 @@ public class MutableURLRequest : URLRequest {
     
     private override init() { super.init() }
     
-    /*@NSCopying */ public override var url: NSURL? {
+    /*@NSCopying */ public override var url: URL? {
         get { return super.url }
         //TODO: set { super.URL = newValue.map{ $0.copy() as! NSURL } }
         set { super.url = newValue }
@@ -254,7 +254,7 @@ public class MutableURLRequest : URLRequest {
     /// passed.  This main document will be used to implement the cookie
     /// *only from same domain as main document* policy, and possibly
     /// other things in the future.
-    /*@NSCopying*/ public override var mainDocumentURL: NSURL? {
+    /*@NSCopying*/ public override var mainDocumentURL: URL? {
         get { return super.mainDocumentURL }
         //TODO: set { super.mainDocumentURL = newValue.map{ $0.copy() as! NSURL } }
         set { super.mainDocumentURL = newValue }

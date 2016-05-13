@@ -32,27 +32,27 @@ class TestNSURLResponse : XCTestCase {
     }
     
     func test_URL() {
-        let url = NSURL(string: "a/test/path")!
+        let url = URL(string: "a/test/path")!
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.url, url, "should be the expected url")
     }
     
     func test_MIMEType_1() {
         let mimetype = "text/plain"
-        let res = URLResponse(url: NSURL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: URL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.mimeType, mimetype, "should be the passed in mimetype")
     }
     
     func test_MIMEType_2() {
         let mimetype = "APPlication/wordperFECT"
-        let res = URLResponse(url: NSURL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: URL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.mimeType, mimetype, "should be the other mimetype")
     }
 
     func test_ExpectedContentLength() {
         let zeroContentLength = 0
         let positiveContentLength = 100
-        let url = NSURL(string: "test")!
+        let url = URL(string: "test")!
         let res1 = URLResponse(url: url, mimeType: "text/plain", expectedContentLength: zeroContentLength, textEncodingName: nil)
         XCTAssertEqual(res1.expectedContentLength, Int64(zeroContentLength), "should be Int65 of the zero length")
         let res2 = URLResponse(url: url, mimeType: "text/plain", expectedContentLength: positiveContentLength, textEncodingName: nil)
@@ -61,7 +61,7 @@ class TestNSURLResponse : XCTestCase {
     
     func test_TextEncodingName() {
         let encoding = "utf8"
-        let url = NSURL(string: "test")!
+        let url = URL(string: "test")!
         let res1 = URLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: encoding)
         XCTAssertEqual(res1.textEncodingName, encoding, "should be the utf8 encoding")
         let res2 = URLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
@@ -69,19 +69,19 @@ class TestNSURLResponse : XCTestCase {
     }
     
     func test_suggestedFilename() {
-        let url = NSURL(string: "a/test/name.extension")!
+        let url = URL(string: "a/test/name.extension")!
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.suggestedFilename, "name.extension")
     }
     
     func test_suggestedFilename_2() {
-        let url = NSURL(string: "a/test/name.extension?foo=bar")!
+        let url = URL(string: "a/test/name.extension?foo=bar")!
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.suggestedFilename, "name.extension")
     }
     
     func test_suggestedFilename_3() {
-        let url = NSURL(string: "a://bar")!
+        let url = URL(string: "a://bar")!
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.suggestedFilename, "Unknown")
     }
@@ -123,7 +123,7 @@ class TestNSHTTPURLResponse : XCTestCase {
         ]
     }
     
-    let url = NSURL(string: "https://www.swift.org")!
+    let url = URL(string: "https://www.swift.org")!
     
     func test_URL_and_status_1() {
         let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: ["Content-Length": "5299"])
@@ -131,7 +131,7 @@ class TestNSHTTPURLResponse : XCTestCase {
         XCTAssertEqual(sut?.statusCode, 200)
     }
     func test_URL_and_status_2() {
-        let url = NSURL(string: "http://www.apple.com")!
+        let url = URL(string: "http://www.apple.com")!
         let sut = NSHTTPURLResponse(url: url, statusCode: 302, httpVersion: "HTTP/1.1", headerFields: ["Content-Length": "5299"])
         XCTAssertEqual(sut?.url, url)
         XCTAssertEqual(sut?.statusCode, 302)

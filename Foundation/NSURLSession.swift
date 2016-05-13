@@ -143,10 +143,10 @@ public class URLSession: NSObject {
     public func dataTaskWithRequest(_ request: URLRequest) -> URLSessionDataTask { NSUnimplemented() }
     
     /* Creates a data task to retrieve the contents of the given URL. */
-    public func dataTaskWithURL(_ url: NSURL) -> URLSessionDataTask { NSUnimplemented() }
+    public func dataTaskWithURL(_ url: URL) -> URLSessionDataTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The body of the request will be created from the file referenced by fileURL */
-    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: NSURL) -> URLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
     public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: NSData) -> URLSessionUploadTask { NSUnimplemented() }
@@ -158,7 +158,7 @@ public class URLSession: NSObject {
     public func downloadTaskWithRequest(_ request: URLRequest) -> URLSessionDownloadTask { NSUnimplemented() }
     
     /* Creates a download task to download the contents of the given URL. */
-    public func downloadTaskWithURL(_ url: NSURL) -> URLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithURL(_ url: URL) -> URLSessionDownloadTask { NSUnimplemented() }
     
     /* Creates a download task with the resume data.  If the download cannot be successfully resumed, URLSession:task:didCompleteWithError: will be called. */
     public func downloadTaskWithResumeData(_ resumeData: NSData) -> URLSessionDownloadTask { NSUnimplemented() }
@@ -187,12 +187,12 @@ extension URLSession {
      * called for authentication challenges.
      */
     public func dataTaskWithRequest(_ request: URLRequest, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
-    public func dataTaskWithURL(_ url: NSURL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
+    public func dataTaskWithURL(_ url: URL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
     
     /*
      * upload convenience method.
      */
-    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: NSURL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: URL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask { NSUnimplemented() }
     public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: NSData?, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask { NSUnimplemented() }
     
     /*
@@ -201,9 +201,9 @@ extension URLSession {
      * copied during the invocation of the completion routine.  The file
      * will be removed automatically.
      */
-    public func downloadTaskWithRequest(_ request: URLRequest, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
-    public func downloadTaskWithURL(_ url: NSURL, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
-    public func downloadTaskWithResumeData(_ resumeData: NSData, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithRequest(_ request: URLRequest, completionHandler: (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithURL(_ url: URL, completionHandler: (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithResumeData(_ resumeData: NSData, completionHandler: (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
 }
 
 extension URLSessionTask {
@@ -737,7 +737,7 @@ public protocol URLSessionDownloadDelegate : URLSessionTaskDelegate {
      * removed when the delegate message returns. URLSession:task:didCompleteWithError: will
      * still be called.
      */
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingToURL location: NSURL)
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingToURL location: URL)
     
     /* Sent periodically to notify the delegate of download progress. */
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)

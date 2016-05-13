@@ -18,10 +18,10 @@ public class NSXMLDTD : NSXMLNode {
         return _CFXMLDTDPtr(_xmlNode)
     }
     
-    public convenience init(contentsOfURL url: NSURL, options mask: Int) throws {
+    public convenience init(contentsOfURL url: URL, options mask: Int) throws {
         let urlString = url.absoluteString
 
-        guard let node = _CFXMLParseDTD(urlString) else {
+        guard let node = _CFXMLParseDTD(urlString!) else {
             //TODO: throw error
             fatalError("parsing dtd string failed")
         }

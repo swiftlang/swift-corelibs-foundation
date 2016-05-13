@@ -57,13 +57,13 @@ internal func _NSXMLParserCurrentParser() -> _CFXMLInterface? {
 internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, urlStr: UnsafePointer<Int8>, identifier: UnsafePointer<Int8>, context: _CFXMLInterfaceParserContext, originalLoaderFunction: _CFXMLInterfaceExternalEntityLoader) -> _CFXMLInterfaceParserInput? {
     let parser = interface.parser
     let policy = parser.externalEntityResolvingPolicy
-    var a: NSURL?
+    var a: URL?
     if let allowedEntityURLs = parser.allowedExternalEntityURLs {
-        if let url = NSURL(string: String(urlStr)) {
+        if let url = URL(string: String(urlStr)) {
             a = url
             if let scheme = url.scheme {
                 if scheme == "file" {
-                    a = NSURL(fileURLWithPath: url.path!)
+                    a = URL(fileURLWithPath: url.path!)
                 }
             }
         }
@@ -82,7 +82,7 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
         guard let url = parser._url else { break }
         
         if a == nil {
-            a = NSURL(string: String(urlStr))
+            a = URL(string: String(urlStr))
         }
         
         guard let aUrl = a else { break }
@@ -400,12 +400,12 @@ public class NSXMLParser : NSObject {
     internal var _bomChunk: NSData?
     private var _parserContext: _CFXMLInterfaceParserContext?
     internal var _delegateAborted = false
-    internal var _url: NSURL?
+    internal var _url: URL?
     internal var _namespaces = [[String:String]]()
     
     // initializes the parser with the specified URL.
-    public convenience init?(contentsOfURL url: NSURL) {
-        if url.fileURL {
+    public convenience init?(contentsOfURL url: URL) {
+        if url.isFileURL {
             if let stream = NSInputStream(URL: url) {
                 self.init(stream: stream)
                 _url = url
@@ -448,7 +448,7 @@ public class NSXMLParser : NSObject {
     //defaults to NSXMLNodeLoadExternalEntitiesNever
     public var externalEntityResolvingPolicy: NSXMLParserExternalEntityResolvingPolicy = .ResolveExternalEntitiesNever
     
-    public var allowedExternalEntityURLs: Set<NSURL>?
+    public var allowedExternalEntityURLs: Set<URL>?
     
     internal static func currentParser() -> NSXMLParser? {
         if let current = NSThread.currentThread().threadDictionary["__CurrentNSXMLParser"] {

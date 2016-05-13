@@ -474,7 +474,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, SecureCoding,
     }
     
     public func writeToFile(_ path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
-    public func writeToURL(_ url: NSURL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
+    public func writeToURL(_ url: URL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
     
     public func enumerateKeysAndObjectsUsingBlock(_ block: (NSObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateKeysAndObjectsWithOptions([], usingBlock: block)
@@ -598,7 +598,7 @@ public class NSMutableDictionary : NSDictionary {
     }
     
     public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
-    public convenience init?(contentsOfURL url: NSURL) { NSUnimplemented() }
+    public convenience init?(contentsOfURL url: URL) { NSUnimplemented() }
 
 }
 

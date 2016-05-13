@@ -61,7 +61,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     public class func unarchiveObjectWithFile(_ path: String) -> AnyObject? {
-        let url = NSURL(fileURLWithPath: path)
+        let url = URL(fileURLWithPath: path)
         let readStream = CFReadStreamCreateWithFile(kCFAllocatorSystemDefault, url._cfObject)!
         var root : AnyObject? = nil
         

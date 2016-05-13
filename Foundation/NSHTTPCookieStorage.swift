@@ -90,7 +90,7 @@ public class HTTPCookieStorage: NSObject {
         <tt>+[NSCookie requestHeaderFieldsWithCookies:]</tt> to turn this array
         into a set of header fields to add to a request.
     */
-    public func cookiesForURL(_ URL: NSURL) -> [HTTPCookie]? { NSUnimplemented() }
+    public func cookiesForURL(_ url: URL) -> [HTTPCookie]? { NSUnimplemented() }
     
     /*!
         @method setCookies:forURL:mainDocumentURL:
@@ -109,7 +109,7 @@ public class HTTPCookieStorage: NSObject {
         dictionary and then use this method to store the resulting cookies
         in accordance with policy settings.
     */
-    public func setCookies(_ cookies: [HTTPCookie], forURL URL: NSURL?, mainDocumentURL: NSURL?) { NSUnimplemented() }
+    public func setCookies(_ cookies: [HTTPCookie], forURL url: URL?, mainDocumentURL: URL?) { NSUnimplemented() }
     
     /*!
         @method cookieAcceptPolicy

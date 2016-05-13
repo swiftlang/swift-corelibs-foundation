@@ -88,7 +88,7 @@ public class NSUserDefaults : NSObject {
             cfType = bType._cfObject
         } else if let bType = value as? NSDictionary {
             cfType = bType._cfObject
-        } else if let bType = value as? NSURL {
+        } else if let bType = value as? URL {
 			setURL(bType, forKey: defaultName)
 			return
         } else if let bType = value as? NSData {
@@ -176,7 +176,7 @@ public class NSUserDefaults : NSObject {
         }
         return bVal.boolValue
     }
-    public func URLForKey(_ defaultName: String) -> NSURL? {
+    public func URLForKey(_ defaultName: String) -> URL? {
         guard let aVal = objectForKey(defaultName) else {
             return nil
         }
@@ -184,9 +184,9 @@ public class NSUserDefaults : NSObject {
         if let bVal = aVal as? NSString {
             let cVal = bVal.stringByExpandingTildeInPath
             
-            return NSURL(fileURLWithPath: cVal)
+            return URL(fileURLWithPath: cVal)
         } else if let bVal = aVal as? NSData {
-            return NSKeyedUnarchiver.unarchiveObjectWithData(bVal) as? NSURL
+            return NSKeyedUnarchiver.unarchiveObjectWithData(bVal) as? URL
         }
         
         return nil
@@ -204,7 +204,7 @@ public class NSUserDefaults : NSObject {
     public func setBool(_ value: Bool, forKey defaultName: String) {
         setObject(NSNumber(value: value), forKey: defaultName)
     }
-    public func setURL(_ url: NSURL?, forKey defaultName: String) {
+    public func setURL(_ url: URL?, forKey defaultName: String) {
 		if let url = url {
             //FIXME: CFURLIsFileReferenceURL is limited to OS X/iOS
             #if os(OSX) || os(iOS)
@@ -225,7 +225,7 @@ public class NSUserDefaults : NSObject {
                     return
                 }
             #endif
-            let data = NSKeyedArchiver.archivedDataWithRootObject(url)
+            let data = NSKeyedArchiver.archivedDataWithRootObject(url._nsObject)
             setObject(data, forKey: defaultName)
         } else {
             setObject(nil, forKey: defaultName)

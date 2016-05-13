@@ -73,7 +73,7 @@ public class NSXMLDocument : NSXMLNode {
         @method initWithContentsOfURL:options:error:
         @abstract Returns a document created from the contents of an XML or HTML URL. Connection problems such as 404, parse errors are returned in <tt>error</tt>.
     */
-    public convenience init(contentsOfURL url: NSURL, options mask: Int) throws {
+    public convenience init(contentsOfURL url: URL, options mask: Int) throws {
         let data = try NSData(contentsOfURL: url, options: .dataReadingMappedIfSafe)
 
         try self.init(data: data, options: mask)
@@ -330,7 +330,7 @@ public class NSXMLDocument : NSXMLNode {
         @method objectByApplyingXSLTAtURL:arguments:error:
         @abstract Applies the XSLT at a URL with arguments (NSString key/value pairs) to this document, returning a new document. Error may contain a connection error from the URL.
     */
-    public func objectByApplyingXSLTAtURL(_ xsltURL: NSURL, arguments argument: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    public func objectByApplyingXSLTAtURL(_ xsltURL: URL, arguments argument: [String : String]?) throws -> AnyObject { NSUnimplemented() }
 
     public func validate() throws {
         var unmanagedError: Unmanaged<CFError>? = nil

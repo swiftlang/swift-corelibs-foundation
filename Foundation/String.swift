@@ -825,7 +825,7 @@ extension String {
     /// interpreted using a given encoding.  Errors are written into the
     /// inout `error` argument.
     public init(
-        contentsOfURL url: NSURL,
+        contentsOfURL url: URL,
         encoding enc: NSStringEncoding
         ) throws {
         let ns = try NSString(contentsOfURL: url, encoding: enc)
@@ -841,7 +841,7 @@ extension String {
     /// and returns by reference the encoding used to interpret the
     /// data.  Errors are written into the inout `error` argument.
     public init(
-        contentsOfURL url: NSURL,
+        contentsOfURL url: URL,
         usedEncoding enc: UnsafeMutablePointer<NSStringEncoding>? = nil
         ) throws {
         let ns = try NSString(contentsOfURL: url, usedEncoding: enc)
@@ -1536,8 +1536,8 @@ extension String {
     /// Writes the contents of the `String` to the URL specified
     /// by url using the specified encoding.
     public func write(
-        to url: NSURL, atomically useAuxiliaryFile: Bool,
-        encoding enc: NSStringEncoding
+            to url: URL, atomically useAuxiliaryFile: Bool,
+            encoding enc: NSStringEncoding
         ) throws {
         try self._ns.write(
             to: url, atomically: useAuxiliaryFile, encoding: enc)

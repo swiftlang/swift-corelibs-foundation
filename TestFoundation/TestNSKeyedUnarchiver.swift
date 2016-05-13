@@ -52,11 +52,11 @@ class TestNSKeyedUnarchiver : XCTestCase {
     
     func test_unarchive_complex() {
         let uuid = NSUUID(UUIDString: "71DC068E-3420-45FF-919E-3A267D55EC22")!
-        let url = NSURL(string: "index.xml", relativeToURL:NSURL(string: "https://www.swift.org"))!
+        let url = URL(string: "index.xml", relativeTo: URL(string: "https://www.swift.org"))!
         let array = NSArray(array: [ NSNull(), NSString(string: "hello"), NSNumber(value: 34545), ["key" : "val"].bridge() ])
         let dict : Dictionary<String, NSObject> = [
             "uuid" : uuid,
-            "url" : url,
+            "url" : url.bridge(),
             "string" : "hello".bridge(),
             "array" : array
         ]
@@ -101,8 +101,8 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
     
     func test_unarchive_url() {
-        let url = NSURL(string: "foo.xml", relativeToURL:NSURL(string: "https://www.example.com"))
-        test_unarchive_from_file("NSKeyedUnarchiver-URLTest", url!)
+        let url = URL(string: "foo.xml", relativeTo: URL(string: "https://www.example.com"))
+        test_unarchive_from_file("NSKeyedUnarchiver-URLTest", url!.bridge())
     }
     
     func test_unarchive_uuid() {

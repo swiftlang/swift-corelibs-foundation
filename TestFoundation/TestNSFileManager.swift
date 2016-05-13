@@ -227,9 +227,9 @@ class TestNSFileManager : XCTestCase {
             XCTFail()
         }
         
-        if let e = NSFileManager.defaultManager().enumerator(at: NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
+        if let e = NSFileManager.defaultManager().enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? NSURL {
+            while let item = e.nextObject() as? URL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -248,9 +248,9 @@ class TestNSFileManager : XCTestCase {
             XCTFail()
         }
         
-        if let e = NSFileManager.defaultManager().enumerator(at: NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
+        if let e = NSFileManager.defaultManager().enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? NSURL {
+            while let item = e.nextObject() as? URL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -262,9 +262,9 @@ class TestNSFileManager : XCTestCase {
             XCTFail()
         }
         
-        if let e = NSFileManager.defaultManager().enumerator(at: NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants], errorHandler: nil) {
+        if let e = NSFileManager.defaultManager().enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? NSURL {
+            while let item = e.nextObject() as? URL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -275,9 +275,9 @@ class TestNSFileManager : XCTestCase {
             XCTFail()
         }
         
-        if let e = NSFileManager.defaultManager().enumerator(at: NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
+        if let e = NSFileManager.defaultManager().enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? NSURL {
+            while let item = e.nextObject() as? URL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -289,11 +289,11 @@ class TestNSFileManager : XCTestCase {
         }
         
         var didGetError = false
-        let handler : (NSURL, NSError) -> Bool = { (NSURL, NSError) in
+        let handler : (URL, NSError) -> Bool = { (NSURL, NSError) in
             didGetError = true
             return true
         }
-        if let e = NSFileManager.defaultManager().enumerator(at: NSURL(fileURLWithPath: "/nonexistant-path"), includingPropertiesForKeys: nil, options: [], errorHandler: handler) {
+        if let e = NSFileManager.defaultManager().enumerator(at: URL(fileURLWithPath: "/nonexistant-path"), includingPropertiesForKeys: nil, options: [], errorHandler: handler) {
             XCTAssertNil(e.nextObject())
         } else {
             XCTFail()
@@ -301,7 +301,7 @@ class TestNSFileManager : XCTestCase {
         XCTAssertTrue(didGetError)
         
         do {
-            let contents = try NSFileManager.defaultManager().contentsOfDirectory(at: NSURL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: []).map {
+            let contents = try NSFileManager.defaultManager().contentsOfDirectory(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: []).map {
                 return $0.path!
             }
             XCTAssertEqual(contents.count, 2)

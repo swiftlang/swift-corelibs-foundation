@@ -1131,7 +1131,7 @@ extension NSString {
         }
     }
     
-    internal func _getExternalRepresentation(_ data: inout NSData, _ dest: NSURL, _ enc: UInt) throws {
+    internal func _getExternalRepresentation(_ data: inout NSData, _ dest: URL, _ enc: UInt) throws {
         let length = self.length
         var numBytes = 0
         let theRange = NSMakeRange(0, length)
@@ -1151,11 +1151,11 @@ extension NSString {
         data = mData
     }
     
-    internal func _writeTo(_ url: NSURL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
+    internal func _writeTo(_ url: URL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
         var data = NSData()
         try _getExternalRepresentation(&data, url, enc)
         
-        if url.fileURL {
+        if url.isFileURL {
             try data.write(to: url, options: useAuxiliaryFile ? .dataWritingAtomic : [])
         } else {
             if let path = url.path {
@@ -1168,12 +1168,12 @@ extension NSString {
         }
     }
     
-    public func write(to url: NSURL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
+    public func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
         try _writeTo(url, useAuxiliaryFile, enc)
     }
     
     public func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
-        try _writeTo(NSURL(fileURLWithPath: path), useAuxiliaryFile, enc)
+        try _writeTo(URL(fileURLWithPath: path), useAuxiliaryFile, enc)
     }
     
     public convenience init(charactersNoCopy characters: UnsafeMutablePointer<unichar>, length: Int, freeWhenDone freeBuffer: Bool) /* "NoCopy" is a hint */ {
@@ -1255,7 +1255,7 @@ extension NSString {
         }
     }
 
-    public convenience init(contentsOfURL url: NSURL, encoding enc: UInt) throws {
+    public convenience init(contentsOfURL url: URL, encoding enc: UInt) throws {
         let readResult = try NSData.init(contentsOfURL: url, options: [])
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
@@ -1273,10 +1273,10 @@ extension NSString {
     }
 
     public convenience init(contentsOfFile path: String, encoding enc: UInt) throws {
-        try self.init(contentsOfURL: NSURL(fileURLWithPath: path), encoding: enc)
+        try self.init(contentsOfURL: URL(fileURLWithPath: path), encoding: enc)
     }
     
-    public convenience init(contentsOfURL url: NSURL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
+    public convenience init(contentsOfURL url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
         NSUnimplemented()    
     }
     

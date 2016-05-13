@@ -324,8 +324,8 @@ extension NSData {
         self.init(bytes:data.bytes, length: data.length)
     }
     
-    public convenience init(contentsOfURL url: NSURL, options readOptionsMask: NSDataReadingOptions) throws {
-        if url.fileURL {
+    public convenience init(contentsOfURL url: URL, options readOptionsMask: NSDataReadingOptions) throws {
+        if url.isFileURL {
             try self.init(contentsOfFile: url.path!, options: readOptionsMask)
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.defaultSessionConfiguration())
@@ -346,7 +346,7 @@ extension NSData {
         }
     }
     
-    public convenience init?(contentsOfURL url: NSURL) {
+    public convenience init?(contentsOfURL url: URL) {
         do {
             try self.init(contentsOfURL: url, options: [])
         } catch {
@@ -493,8 +493,8 @@ extension NSData {
         return true
     }
     
-    public func write(to url: NSURL, atomically: Bool) -> Bool {
-        if url.fileURL {
+    public func write(to url: URL, atomically: Bool) -> Bool {
+        if url.isFileURL {
             if let path = url.path {
                 return write(toFile: path, atomically: atomically)
             }
@@ -510,8 +510,8 @@ extension NSData {
     ///    - throws: This method returns Void and is marked with the `throws` keyword to indicate that it throws an error in the event of failure.
     ///
     ///      This method is invoked in a `try` expression and the caller is responsible for handling any errors in the `catch` clauses of a `do` statement, as described in [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/ErrorHandling.html#//apple_ref/doc/uid/TP40014097-CH42) in [The Swift Programming Language](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/index.html#//apple_ref/doc/uid/TP40014097) and [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/AdoptingCocoaDesignPatterns.html#//apple_ref/doc/uid/TP40014216-CH7-ID10) in [Using Swift with Cocoa and Objective-C](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/index.html#//apple_ref/doc/uid/TP40014216).
-    public func write(to url: NSURL, options writeOptionsMask: NSDataWritingOptions = []) throws {
-        guard let path = url.path where url.fileURL == true else {
+    public func write(to url: URL, options writeOptionsMask: NSDataWritingOptions = []) throws {
+        guard let path = url.path where url.isFileURL == true else {
             let userInfo = [NSLocalizedDescriptionKey : "The folder at “\(url)” does not exist or is not a file URL.", // NSLocalizedString() not yet available
                             NSURLErrorKey             : url.absoluteString ?? ""] as Dictionary<String, Any>
             throw NSError(domain: NSCocoaErrorDomain, code: 4, userInfo: userInfo)

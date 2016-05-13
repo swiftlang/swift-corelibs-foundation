@@ -56,7 +56,7 @@ public let NSHTTPCookiePort: String = "Port"
 public class HTTPCookie : NSObject {
 
     let _comment: String?
-    let _commentURL: NSURL?
+    let _commentURL: URL?
     let _domain: String
     let _expiresDate: Date?
     let _HTTPOnly: Bool
@@ -207,7 +207,7 @@ public class HTTPCookie : NSObject {
         if let domain = properties[NSHTTPCookieDomain] as? String {
             canonicalDomain = domain
         } else if let
-            originURL = properties[NSHTTPCookieOriginURL] as? NSURL,
+            originURL = properties[NSHTTPCookieOriginURL] as? URL,
             host = originURL.host
         {
             canonicalDomain = host
@@ -284,10 +284,10 @@ public class HTTPCookie : NSObject {
             _commentURL = nil
         } else {
             _comment = properties[NSHTTPCookieComment] as? String
-            if let commentURL = properties[NSHTTPCookieCommentURL] as? NSURL {
+            if let commentURL = properties[NSHTTPCookieCommentURL] as? URL {
                 _commentURL = commentURL
             } else if let commentURL = properties[NSHTTPCookieCommentURL] as? String {
-                _commentURL = NSURL(string: commentURL)
+                _commentURL = URL(string: commentURL)
             } else {
                 _commentURL = nil
             }
@@ -335,7 +335,7 @@ public class HTTPCookie : NSObject {
     /// - Parameter headerFields: The response header fields to check for cookies.
     /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpeted.
     /// - Returns: An array of NSHTTPCookie objects
-    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL URL: NSURL) -> [HTTPCookie] { NSUnimplemented() }
+    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL url: URL) -> [HTTPCookie] { NSUnimplemented() }
     
     /// Returns a dictionary representation of the receiver.
     ///
@@ -443,7 +443,7 @@ public class HTTPCookie : NSObject {
     /// This value specifies a URL which is suitable for
     /// presentation to the user as a link for further information about
     /// this cookie. It may be nil.
-    /*@NSCopying*/ public var commentURL: NSURL? {
+    /*@NSCopying*/ public var commentURL: URL? {
         return _commentURL
     }
     
