@@ -133,11 +133,11 @@ public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringCo
     
     public func compare(_ other: Date) -> NSComparisonResult {
         if _time < other.timeIntervalSinceReferenceDate {
-            return .OrderedAscending
+            return .orderedAscending
         } else if _time > other.timeIntervalSinceReferenceDate {
-            return .OrderedDescending
+            return .orderedDescending
         } else {
-            return .OrderedSame
+            return .orderedSame
         }
     }
     

@@ -275,130 +275,130 @@ class TestNSNumber : XCTestCase {
     }
 
     func test_compareNumberWithBool() {
-        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: true)), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: false)), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: true)), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: true)), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: false)), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: true)), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Int8(0))), NSComparisonResult.OrderedSame)
+        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Int8(0))), NSComparisonResult.orderedSame)
 #if !(os(Linux) && arch(arm))
         // Linux/arm chars are unsigned, so Int8 in Swift, until this issue is resolved, this test will always fail.
-        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Int8(-1))), NSComparisonResult.OrderedDescending)
+        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Int8(-1))), NSComparisonResult.orderedDescending)
 #endif
-        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Int8(1))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Int8(1))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Int8(1))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Int8(0))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Int8(2))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Int8(1))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Int8(0))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Int8(2))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Double(0))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Double(-0.1))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Double(0.1))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Double(0))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Double(-0.1))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: false).compare(NSNumber(value: Double(0.1))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Double(1))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Double(0.9))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Double(1.1))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Double(1))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Double(0.9))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: true).compare(NSNumber(value: Double(1.1))), NSComparisonResult.orderedAscending)
     }
 
     func test_compareNumberWithChar() {
-        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: Int8(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: Int8(0))), NSComparisonResult.OrderedDescending)
+        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: Int8(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: Int8(0))), NSComparisonResult.orderedDescending)
 #if !(os(Linux) && arch(arm))
         // Linux/arm chars are unsigned, so Int8 in Swift, until this issue is resolved, this test will always fail.
-        XCTAssertEqual(NSNumber(value: Int8(-37)).compare(NSNumber(value: Int8(16))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Int8(-37)).compare(NSNumber(value: Int8(16))), NSComparisonResult.orderedAscending)
 #endif
 
-        XCTAssertEqual(NSNumber(value: Int8(1)).compare(NSNumber(value: true)), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Int8(1)).compare(NSNumber(value: false)), NSComparisonResult.OrderedDescending)
+        XCTAssertEqual(NSNumber(value: Int8(1)).compare(NSNumber(value: true)), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Int8(1)).compare(NSNumber(value: false)), NSComparisonResult.orderedDescending)
 #if !(os(Linux) && arch(arm))
         // Linux/arm chars are unsigned, so Int8 in Swift, until this issue is resolved, this test will always fail.
-        XCTAssertEqual(NSNumber(value: Int8(-37)).compare(NSNumber(value: true)), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Int8(-37)).compare(NSNumber(value: true)), NSComparisonResult.orderedAscending)
 #endif
 
-        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: UInt8(16))), NSComparisonResult.OrderedDescending)
+        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: UInt8(16))), NSComparisonResult.orderedDescending)
 #if !(os(Linux) && arch(arm))
         // Linux/arm chars are unsigned, so Int8 in Swift, until this issue is resolved, this test will always fail.
-        XCTAssertEqual(NSNumber(value: Int8(-37)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Int8(-37)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.orderedAscending)
 #endif
 
-        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.OrderedSame)
+        XCTAssertEqual(NSNumber(value: Int8(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.orderedSame)
 #if !(os(Linux) && arch(arm))
         // Linux/arm chars are unsigned, so Int8 in Swift, until this issue is resolved, this test will always fail.
-        XCTAssertEqual(NSNumber(value: Int8(-16)).compare(NSNumber(value: Float(-37.5))), NSComparisonResult.OrderedDescending)
+        XCTAssertEqual(NSNumber(value: Int8(-16)).compare(NSNumber(value: Float(-37.5))), NSComparisonResult.orderedDescending)
 #endif
-        XCTAssertEqual(NSNumber(value: Int8(16)).compare(NSNumber(value: Float(16.1))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Int8(16)).compare(NSNumber(value: Float(16.1))), NSComparisonResult.orderedAscending)
     }
 
     func test_compareNumberWithUnsignedChar() {
-        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: UInt8(0))), NSComparisonResult.OrderedDescending)
-//        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: UInt8(0))), NSComparisonResult.orderedDescending)
+//        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: UInt8(1)).compare(NSNumber(value: true)), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: UInt8(1)).compare(NSNumber(value: false)), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: UInt8(0)).compare(NSNumber(value: true)), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: UInt8(1)).compare(NSNumber(value: true)), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: UInt8(1)).compare(NSNumber(value: false)), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).compare(NSNumber(value: true)), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: Int16(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: UInt8(0)).compare(NSNumber(value: Int16(-123))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: UInt8(255)).compare(NSNumber(value: Int16(12345))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: Int16(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).compare(NSNumber(value: Int16(-123))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: UInt8(255)).compare(NSNumber(value: Int16(12345))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: UInt8(0)).compare(NSNumber(value: Float(-37.5))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: UInt8(255)).compare(NSNumber(value: Float(1234.5))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: UInt8(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).compare(NSNumber(value: Float(-37.5))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: UInt8(255)).compare(NSNumber(value: Float(1234.5))), NSComparisonResult.orderedAscending)
     }
 
     func test_compareNumberWithShort() {
-        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: Int16(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: Int16(0))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Int16(-37)).compare(NSNumber(value: Int16(12345))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: Int16(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: Int16(0))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Int16(-37)).compare(NSNumber(value: Int16(12345))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: Int16(1)).compare(NSNumber(value: true)), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Int16(1)).compare(NSNumber(value: false)), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Int16(0)).compare(NSNumber(value: true)), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Int16(1)).compare(NSNumber(value: true)), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Int16(1)).compare(NSNumber(value: false)), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Int16(0)).compare(NSNumber(value: true)), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: UInt8(0))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Int16(-37)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: UInt8(0))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Int16(-37)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Int16(0)).compare(NSNumber(value: Float(-37.5))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Int16(255)).compare(NSNumber(value: Float(1234.5))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Int16(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Int16(0)).compare(NSNumber(value: Float(-37.5))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Int16(255)).compare(NSNumber(value: Float(1234.5))), NSComparisonResult.orderedAscending)
     }
 
     func test_compareNumberWithFloat() {
-        XCTAssertEqual(NSNumber(value: Float(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Float(42)).compare(NSNumber(value: Float(0))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Float(-37)).compare(NSNumber(value: Float(12345))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Float(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Float(42)).compare(NSNumber(value: Float(0))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Float(-37)).compare(NSNumber(value: Float(12345))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: Float(1)).compare(NSNumber(value: true)), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Float(0.1)).compare(NSNumber(value: false)), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Float(0.9)).compare(NSNumber(value: true)), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Float(1)).compare(NSNumber(value: true)), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Float(0.1)).compare(NSNumber(value: false)), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Float(0.9)).compare(NSNumber(value: true)), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: Float(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Float(0.1)).compare(NSNumber(value: UInt8(0))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Float(-254.9)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Float(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Float(0.1)).compare(NSNumber(value: UInt8(0))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Float(-254.9)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: Float(42)).compare(NSNumber(value: Double(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Float(0)).compare(NSNumber(value: Double(-37.5))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Float(-37.5)).compare(NSNumber(value: Double(1234.5))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Float(42)).compare(NSNumber(value: Double(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Float(0)).compare(NSNumber(value: Double(-37.5))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Float(-37.5)).compare(NSNumber(value: Double(1234.5))), NSComparisonResult.orderedAscending)
     }
 
     func test_compareNumberWithDouble() {
-        XCTAssertEqual(NSNumber(value: Double(42)).compare(NSNumber(value: Double(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Double(42)).compare(NSNumber(value: Double(0))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Double(-37)).compare(NSNumber(value: Double(12345))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Double(42)).compare(NSNumber(value: Double(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Double(42)).compare(NSNumber(value: Double(0))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Double(-37)).compare(NSNumber(value: Double(12345))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: Double(1)).compare(NSNumber(value: true)), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Double(0.1)).compare(NSNumber(value: false)), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Double(0.9)).compare(NSNumber(value: true)), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Double(1)).compare(NSNumber(value: true)), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Double(0.1)).compare(NSNumber(value: false)), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Double(0.9)).compare(NSNumber(value: true)), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: Double(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Double(0.1)).compare(NSNumber(value: UInt8(0))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Double(-254.9)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Double(42)).compare(NSNumber(value: UInt8(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Double(0.1)).compare(NSNumber(value: UInt8(0))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Double(-254.9)).compare(NSNumber(value: UInt8(255))), NSComparisonResult.orderedAscending)
 
-        XCTAssertEqual(NSNumber(value: Double(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.OrderedSame)
-        XCTAssertEqual(NSNumber(value: Double(0)).compare(NSNumber(value: Float(-37.5))), NSComparisonResult.OrderedDescending)
-        XCTAssertEqual(NSNumber(value: Double(-37.5)).compare(NSNumber(value: Float(1234.5))), NSComparisonResult.OrderedAscending)
+        XCTAssertEqual(NSNumber(value: Double(42)).compare(NSNumber(value: Float(42))), NSComparisonResult.orderedSame)
+        XCTAssertEqual(NSNumber(value: Double(0)).compare(NSNumber(value: Float(-37.5))), NSComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Double(-37.5)).compare(NSNumber(value: Float(1234.5))), NSComparisonResult.orderedAscending)
     }
 
     func test_reflection() {

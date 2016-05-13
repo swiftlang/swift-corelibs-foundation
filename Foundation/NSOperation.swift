@@ -141,7 +141,7 @@ public class NSOperation : NSObject {
     public var threadPriority: Double = 0.5
     
     /// - Note: Quality of service is not directly supported here since there are not qos class promotions available outside of darwin targets.
-    public var qualityOfService: NSQualityOfService = .Default
+    public var qualityOfService: NSQualityOfService = .default
     
     public var name: String?
     
@@ -318,7 +318,7 @@ public class NSOperationQueue : NSObject {
             } else {
                 effectiveName = "NSOperationQueue::\(unsafeAddress(of: self))"
             }
-            let attr: dispatch_queue_attr_t
+            let attr: dispatch_queue_attr_t?
             if maxConcurrentOperationCount == 1 {
                 attr = DISPATCH_QUEUE_SERIAL
             } else {
@@ -495,7 +495,7 @@ public class NSOperationQueue : NSObject {
         }
     }
     
-    public var qualityOfService: NSQualityOfService = .Default
+    public var qualityOfService: NSQualityOfService = .default
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
     // Note: this will return non nil whereas the objective-c version will only return non nil when it has been set.
     // it uses a target queue assignment instead of returning the actual underlying queue.

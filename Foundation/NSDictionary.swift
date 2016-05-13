@@ -503,7 +503,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, SecureCoding,
 
     public func keysSortedByValueWithOptions(_ opts: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
         let sorted = allKeys.sorted { lhs, rhs in
-            return cmptr(lhs, rhs) == .OrderedSame
+            return cmptr(lhs, rhs) == .orderedSame
         }
         return sorted
     }

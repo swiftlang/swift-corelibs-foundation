@@ -183,11 +183,11 @@ extension NSDate {
         let t1 = self.timeIntervalSinceReferenceDate
         let t2 = other.timeIntervalSinceReferenceDate
         if t1 < t2 {
-            return .OrderedAscending
+            return .orderedAscending
         } else if t1 > t2 {
-            return .OrderedDescending
+            return .orderedDescending
         } else {
-            return .OrderedSame
+            return .orderedSame
         }
     }
     

@@ -404,7 +404,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, SecureCoding, Codi
         self.enumerateObjectsAtIndexes(NSIndexSet(indexesInRange: NSMakeRange(0, count)), options: opts, usingBlock: block)
     }
     public func enumerateObjectsAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        guard !opts.contains(.Concurrent) else {
+        guard !opts.contains(.concurrent) else {
             NSUnimplemented()
         }
         
@@ -459,7 +459,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, SecureCoding, Codi
 
         let swiftRange = range.toRange()!
         return allObjects[swiftRange].sorted { lhs, rhs in
-            return cmptr(lhs, rhs) == .OrderedAscending
+            return cmptr(lhs, rhs) == .orderedAscending
         }
     }
     
@@ -492,12 +492,12 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, SecureCoding, Codi
         }
         
         let leastObj = objectAtIndex(r.location)
-        if cmp(obj, leastObj) == .OrderedAscending {
+        if cmp(obj, leastObj) == .orderedAscending {
             return searchForInsertionIndex ? r.location : NSNotFound
         }
         
         let greatestObj = objectAtIndex(lastIndex)
-        if cmp(obj, greatestObj) == .OrderedDescending {
+        if cmp(obj, greatestObj) == .orderedDescending {
             return searchForInsertionIndex ? lastIndex + 1 : NSNotFound
         }
         
@@ -517,22 +517,22 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, SecureCoding, Codi
             
             switch cmp(item, obj) {
                 
-            case .OrderedSame where anyEqual:
+            case .orderedSame where anyEqual:
                 result = middle
                 break loop
                 
-            case .OrderedSame where lastEqual:
+            case .orderedSame where lastEqual:
                 result = middle
                 fallthrough
                 
-            case .OrderedAscending:
+            case .orderedAscending:
                 start = middle + 1
                 
-            case .OrderedSame where firstEqual:
+            case .orderedSame where firstEqual:
                 result = middle
                 fallthrough
                 
-            case .OrderedDescending:
+            case .orderedDescending:
                 indexOfLeastGreaterThanObj = middle
                 end = middle - 1
                 
@@ -791,7 +791,7 @@ public class NSMutableArray : NSArray {
     }
     
     public func removeObjectsAtIndexes(_ indexes: NSIndexSet) {
-        indexes.enumerateRangesWithOptions(.Reverse) { (range, _) in
+        indexes.enumerateRangesWithOptions(.reverse) { (range, _) in
             self.removeObjectsInRange(range)
         }
     }

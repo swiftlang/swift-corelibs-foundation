@@ -439,7 +439,7 @@ extension NSString {
         if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
             return _storage == aString
         } else {
-            return length == aString.length && compare(aString, options: .literalSearch, range: NSMakeRange(0, length)) == .OrderedSame
+            return length == aString.length && compare(aString, options: .literalSearch, range: NSMakeRange(0, length)) == .orderedSame
         }
     }
     
