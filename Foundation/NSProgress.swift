@@ -28,17 +28,20 @@ public class NSProgress : NSObject {
     
     /* The instance of NSProgress associated with the current thread by a previous invocation of -becomeCurrentWithPendingUnitCount:, if any. The purpose of this per-thread value is to allow code that does work to usefully report progress even when it is widely separated from the code that actually presents progress to the user, without requiring layers of intervening code to pass the instance of NSProgress through. Using the result of invoking this directly will often not be the right thing to do, because the invoking code will often not even know what units of work the current progress object deals in. Invoking +progressWithTotalUnitCount: to create a child NSProgress object and then using that to report progress makes more sense in that situation.
     */
-    public class func currentProgress() -> NSProgress? { NSUnimplemented() }
+    public class func current() -> NSProgress? { NSUnimplemented() }
     
     /* Return an instance of NSProgress that has been initialized with -initWithParent:userInfo:. The initializer is passed the current progress object, if there is one, and the value of the totalUnitCount property is set. In many cases you can simply precede code that does a substantial amount of work with an invocation of this method, with repeated invocations of -setCompletedUnitCount: and -isCancelled in the loop that does the work.
     
     You can invoke this method on one thread and then message the returned NSProgress on another thread. For example, you can let the result of invoking this method get captured by a block passed to dispatch_async(). In that block you can invoke methods like -becomeCurrentWithPendingUnitCount: and -resignCurrent, or -setCompletedUnitCount: and -isCancelled.
     */
-    public init(totalUnitCount unitCount: Int64) { NSUnimplemented() }
+    public init(totalUnitCount unitCount: Int64) {
+        totalUnitCount = unitCount
+        completedUnitCount = 0
+    }
     
     /* Return an instance of NSProgress that has been initialized with -initWithParent:userInfo:. The initializer is passed nil for the parent, resulting in a progress object that is not part of an existing progress tree. The value of the totalUnitCount property is also set.
      */
-    public class func discreteProgressWithTotalUnitCount(_ unitCount: Int64) -> NSProgress { NSUnimplemented() }
+    public class func discreteProgress(totalUnitCount unitCount: Int64) -> NSProgress { NSUnimplemented() }
     
     /* Return an instance of NSProgress that has been attached to a parent progress with the given pending unit count.
      */
@@ -46,13 +49,13 @@ public class NSProgress : NSObject {
     
     /* The designated initializer. If a parent NSProgress object is passed then progress reporting and cancellation checking done by the receiver will notify or consult the parent. The only valid arguments to the first argument of this method are nil (indicating no parent) or [NSProgress currentProgress]. Any other value will throw an exception.
     */
-    public init(parent parentProgressOrNil: NSProgress?, userInfo userInfoOrNil: [NSObject : AnyObject]?) { NSUnimplemented() }
+    public init(parent parentProgressOrNil: NSProgress?, userInfo userInfoOrNil: [NSObject : AnyObject]? = [:]) { NSUnimplemented() }
     
     /* Make the receiver the current thread's current progress object, returned by +currentProgress. At the same time, record how large a portion of the work represented by the receiver will be represented by the next progress object initialized by invoking -initWithParent:userInfo: in the current thread with the receiver as the parent. This will be used when that child is sent -setCompletedUnitCount: and the receiver is notified of that.
      
        With this mechanism, code that doesn't know anything about its callers can report progress accurately by using +progressWithTotalUnitCount: and -setCompletedUnitCount:. The calling code will account for the fact that the work done is only a portion of the work to be done as part of a larger operation. The unit of work in a call to -becomeCurrentWithPendingUnitCount: has to be the same unit of work as that used for the value of the totalUnitCount property, but the unit of work used by the child can be a completely different one, and often will be. You must always balance invocations of this method with invocations of -resignCurrent.
     */
-    public func becomeCurrentWithPendingUnitCount(_ unitCount: Int64) { NSUnimplemented() }
+    public func becomeCurrent(withPendingUnitCount unitCount: Int64) { NSUnimplemented() }
     
     /* Balance the most recent previous invocation of -becomeCurrentWithPendingUnitCount: on the same thread by restoring the current progress object to what it was before -becomeCurrentWithPendingUnitCount: was invoked.
     */
@@ -92,13 +95,13 @@ public class NSProgress : NSObject {
     
     /* Whether the work being done can be cancelled or paused, respectively. By default NSProgresses are cancellable but not pausable. NSProgress is by default KVO-compliant for these properties, with the notifications always being sent on the thread which updates the property. These properties are for communicating whether controls for cancelling and pausing should appear in a progress reporting user interface. NSProgress itself does not do anything with these properties other than help pass their values from progress reporters to progress observers. It is valid for the values of these properties to change in virtually any way during the lifetime of an NSProgress. Of course, if an NSProgress is cancellable you should actually implement cancellability by setting a cancellation handler or by making your code poll the result of invoking -isCancelled. Likewise for pausability.
     */
-    public var cancellable: Bool
-    public var pausable: Bool
+    public var isCancellable: Bool = true
+    public var isPausable: Bool = false
     
     /* Whether the work being done has been cancelled or paused, respectively. NSProgress is by default KVO-compliant for these properties, with the notifications always being sent on the thread which updates the property. Instances of NSProgress that have parents are at least as cancelled or paused as their parents.
     */
-    public var cancelled: Bool { NSUnimplemented() }
-    public var paused: Bool { NSUnimplemented() }
+    public var isCancelled: Bool { NSUnimplemented() }
+    public var isPaused: Bool { NSUnimplemented() }
     
     /* A block to be invoked when cancel is invoked. The block will be invoked even when the method is invoked on an ancestor of the receiver, or an instance of NSProgress in another process that resulted from publishing the receiver or an ancestor of the receiver. Your block won't be invoked on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
     */
@@ -118,7 +121,7 @@ public class NSProgress : NSObject {
     
     /* Whether the progress being made is indeterminate. -isIndeterminate returns YES when the value of the totalUnitCount or completedUnitCount property is less than zero. Zero values for both of those properties indicates that there turned out to not be any work to do after all; -isIndeterminate returns NO and -fractionCompleted returns 1.0 in that case. NSProgress is by default KVO-compliant for these properties, with the notifications always being sent on the thread which updates the property.
     */
-    public var indeterminate: Bool { NSUnimplemented() }
+    public var isIndeterminate: Bool { NSUnimplemented() }
     
     /* The fraction of the overall work completed by this progress object, including work done by any children it may have.
     */
