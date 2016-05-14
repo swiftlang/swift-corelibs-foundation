@@ -310,31 +310,47 @@ public class NSTask : NSObject {
         posix(posix_spawn_file_actions_init(&fileActions))
         defer { posix_spawn_file_actions_destroy(&fileActions) }
 
+        // File descriptors to duplicate in the child process. This allows
+        // output redirection to NSPipe or NSFileHandle.
+        var adddup2 = [Int32: Int32]()
+
+        // File descriptors to close in the child process. A set so that
+        // shared pipes only get closed once. Would result in EBADF on OSX
+        // otherwise.
+        var addclose = Set<Int32>()
+
         switch standardInput {
         case let pipe as NSPipe:
-            posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO))
-            posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor))
+            adddup2[STDIN_FILENO] = pipe.fileHandleForReading.fileDescriptor
+            addclose.insert(pipe.fileHandleForWriting.fileDescriptor)
         case let handle as NSFileHandle:
-            posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDIN_FILENO))
+            adddup2[STDIN_FILENO] = handle.fileDescriptor
         default: break
         }
 
         switch standardOutput {
         case let pipe as NSPipe:
-            posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO))
-            posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
+            adddup2[STDOUT_FILENO] = pipe.fileHandleForWriting.fileDescriptor
+            addclose.insert(pipe.fileHandleForReading.fileDescriptor)
         case let handle as NSFileHandle:
-            posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDOUT_FILENO))
+            adddup2[STDOUT_FILENO] = handle.fileDescriptor
         default: break
         }
 
         switch standardError {
         case let pipe as NSPipe:
-            posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO))
-            posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
+            adddup2[STDERR_FILENO] = pipe.fileHandleForWriting.fileDescriptor
+            addclose.insert(pipe.fileHandleForReading.fileDescriptor)
         case let handle as NSFileHandle:
-            posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDERR_FILENO))
+            adddup2[STDERR_FILENO] = handle.fileDescriptor
         default: break
+        }
+
+        for (new, old) in adddup2 {
+            posix(posix_spawn_file_actions_adddup2(&fileActions, old, new))
+        }
+        for fd in addclose {
+            posix(posix_spawn_file_actions_addclose(&fileActions, fd))
         }
 
         // Launch
