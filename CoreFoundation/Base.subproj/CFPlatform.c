@@ -1287,6 +1287,11 @@ CF_PRIVATE char **_CFEnviron(void) {
     return environ;
 #endif
 }
+
+_Bool __CFThreadKeyCreate(__CFThreadKey *key, void (* _Nullable destructor)(void *_Nullable)) {
+    return pthread_key_create(key, destructor) == 0;
+}
+
 #endif
 
 void *_CFReallocf(void *ptr, size_t size) {

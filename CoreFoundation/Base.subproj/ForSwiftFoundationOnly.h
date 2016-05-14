@@ -25,6 +25,7 @@
 #include <CoreFoundation/CFLogUtilities.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
+#include <pthread.h>
 
 _CF_EXPORT_SCOPE_BEGIN
 
@@ -244,6 +245,10 @@ CF_PRIVATE CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
+
+typedef pthread_key_t __CFThreadKey;
+
+_Bool __CFThreadKeyCreate(__CFThreadKey *, void (* _Nullable)(void *_Nullable));
 
 _CF_EXPORT_SCOPE_END
 
