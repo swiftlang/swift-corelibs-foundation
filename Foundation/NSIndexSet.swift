@@ -388,17 +388,17 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
         
         return result
     }
-    
+
     public func enumerateIndexesUsingBlock(_ block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateIndexesWithOptions([], usingBlock: block)
     }
     public func enumerateIndexesWithOptions(_ opts: NSEnumerationOptions, usingBlock block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: Int.self, returnType: Void.self, block: block)
+        let _ = _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: Int.self, returnType: Void.self, block: block)
     }
     public func enumerateIndexesInRange(_ range: NSRange, options opts: NSEnumerationOptions, usingBlock block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Void.self, block: block)
+        let _ = _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Void.self, block: block)
     }
-    
+
     public func indexPassingTest(_ predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return indexWithOptions([], passingTest: predicate)
     }
@@ -417,30 +417,28 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
     }
     public func indexesInRange(_ range: NSRange, options opts: NSEnumerationOptions, passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
         let result = NSMutableIndexSet()
-        _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Void.self) { idx, stop in
+        let _ = _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Void.self) { idx, stop in
             if predicate(idx, stop) {
                 result.addIndex(idx)
             }
         }
         return result
     }
-    
+
     /*
      The following three convenience methods allow you to enumerate the indexes in the receiver by ranges of contiguous indexes. The performance of these methods is not guaranteed to be any better than if they were implemented with enumerateIndexesInRange:options:usingBlock:. However, depending on the receiver's implementation, they may perform better than that.
-     
+
      If the specified range for enumeration intersects a range of contiguous indexes in the receiver, then the block will be invoked with the intersection of those two ranges.
     */
     public func enumerateRangesUsingBlock(_ block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateRangesWithOptions([], usingBlock: block)
     }
     public func enumerateRangesWithOptions(_ opts: NSEnumerationOptions, usingBlock block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: NSRange.self, returnType: Void.self, block: block)
+        let _ = _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: NSRange.self, returnType: Void.self, block: block)
     }
     public func enumerateRangesInRange(_ range: NSRange, options opts: NSEnumerationOptions, usingBlock block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        _enumerateWithOptions(opts, range: range, paramType: NSRange.self, returnType: Void.self, block: block)
+        let _ = _enumerateWithOptions(opts, range: range, paramType: NSRange.self, returnType: Void.self, block: block)
     }
-
-
 }
 
 extension NSIndexSet : Sequence {
