@@ -450,37 +450,18 @@ CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;
 
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 
 typedef pthread_mutex_t CFLock_t;
 
 #define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER)
 #define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
 
-#define __CFLock(LP) ({ \
-    (void)pthread_mutex_lock(LP); })
+#define __CFLock(LP) ({ (void)pthread_mutex_lock(LP); })
 
-#define __CFUnlock(LP) ({ \
-    (void)pthread_mutex_unlock(LP); })
+#define __CFUnlock(LP) ({ (void)pthread_mutex_unlock(LP); })
 
-#define __CFLockTry(LP) ({ \
-    pthread_mutex_trylock(LP) == 0; })
-
-#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-
-typedef pthread_mutex_t CFLock_t;
-
-#define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER)
-#define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
-
-#define __CFLock(LP) ({ \
-    (void)pthread_mutex_lock(LP); })
-
-#define __CFUnlock(LP) ({ \
-    (void)pthread_mutex_unlock(LP); })
-
-#define __CFLockTry(LP) ({ \
-    pthread_mutex_trylock(LP) == 0; })
+#define __CFLockTry(LP) ({ pthread_mutex_trylock(LP) == 0; })
 
 #elif DEPLOYMENT_TARGET_WINDOWS
 
