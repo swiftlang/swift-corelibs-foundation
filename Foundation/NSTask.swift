@@ -307,40 +307,56 @@ public class NSTask : NSObject {
         #else
             var fileActions: posix_spawn_file_actions_t = posix_spawn_file_actions_t()
         #endif
-        try! posix(posix_spawn_file_actions_init(&fileActions))
+        posix(posix_spawn_file_actions_init(&fileActions))
         defer { posix_spawn_file_actions_destroy(&fileActions) }
+
+        // File descriptors to duplicate in the child process. This allows
+        // output redirection to NSPipe or NSFileHandle.
+        var adddup2 = [Int32: Int32]()
+
+        // File descriptors to close in the child process. A set so that
+        // shared pipes only get closed once. Would result in EBADF on OSX
+        // otherwise.
+        var addclose = Set<Int32>()
 
         switch standardInput {
         case let pipe as NSPipe:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO))
-            try! posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor))
+            adddup2[STDIN_FILENO] = pipe.fileHandleForReading.fileDescriptor
+            addclose.insert(pipe.fileHandleForWriting.fileDescriptor)
         case let handle as NSFileHandle:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDIN_FILENO))
+            adddup2[STDIN_FILENO] = handle.fileDescriptor
         default: break
         }
 
         switch standardOutput {
         case let pipe as NSPipe:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO))
-            try! posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
+            adddup2[STDOUT_FILENO] = pipe.fileHandleForWriting.fileDescriptor
+            addclose.insert(pipe.fileHandleForReading.fileDescriptor)
         case let handle as NSFileHandle:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDOUT_FILENO))
+            adddup2[STDOUT_FILENO] = handle.fileDescriptor
         default: break
         }
 
         switch standardError {
         case let pipe as NSPipe:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO))
-            try! posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
+            adddup2[STDERR_FILENO] = pipe.fileHandleForWriting.fileDescriptor
+            addclose.insert(pipe.fileHandleForReading.fileDescriptor)
         case let handle as NSFileHandle:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDERR_FILENO))
+            adddup2[STDERR_FILENO] = handle.fileDescriptor
         default: break
+        }
+
+        for (new, old) in adddup2 {
+            posix(posix_spawn_file_actions_adddup2(&fileActions, old, new))
+        }
+        for fd in addclose {
+            posix(posix_spawn_file_actions_addclose(&fileActions, fd))
         }
 
         // Launch
 
         var pid = pid_t()
-        try! posix(posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp))
+        posix(posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp))
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? NSPipe {
@@ -418,9 +434,10 @@ extension NSTask {
 
 public let NSTaskDidTerminateNotification: String = "NSTaskDidTerminateNotification"
 
-private func posix(_ code: Int32) throws {
+private func posix(_ code: Int32) {
     switch code {
     case 0: return
-    default: throw NSError(domain: NSPOSIXErrorDomain, code: Int(code), userInfo: nil)
+    case EBADF: fatalError("POSIX command failed with error: \(code) -- EBADF")
+    default: fatalError("POSIX command failed with error: \(code)")
     }
 }
