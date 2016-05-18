@@ -161,15 +161,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount();
 #define __builtin_unreachable() do { } while (0)
 #endif
 
-#if defined(__i386__) || defined(__x86_64__)
-    #if defined(__GNUC__)
-        #define HALT do {__builtin_trap(); kill(getpid(), 9); __builtin_unreachable(); } while (0)
-    #elif defined(_MSC_VER)
-        #define HALT do { DebugBreak(); abort(); __builtin_unreachable(); } while (0)
-    #else
-        #error Compiler not supported
-    #endif
-#elif defined(__ppc__) || (__arm__) || (__aarch64__)
+#if defined(__i386__) || defined(__x86_64__) || defined(__ppc__) || (__arm__) || (__aarch64__)
     #if defined(__GNUC__)
         #define HALT do {__builtin_trap(); kill(getpid(), 9); __builtin_unreachable(); } while (0)
     #elif defined(_MSC_VER)
