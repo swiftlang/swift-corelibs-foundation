@@ -158,7 +158,9 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount();
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
-#define __builtin_unreachable() do { } while (0)
+#if !defined(__GNUC__)
+#define __builtin_unreachable() __assume(0)
+#endif
 #endif
 
 #if defined(__i386__) || defined(__x86_64__) || defined(__ppc__) || (__arm__) || (__aarch64__)
