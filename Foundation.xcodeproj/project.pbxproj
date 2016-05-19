@@ -273,9 +273,9 @@
 		D3E8D6D11C367AB600295652 /* NSSpecialValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */; };
 		D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */; };
 		D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */; };
-		D5C40F331CDA1D460005690C /* TestNSOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */; };
 		D51239DF1CD9DA0800D433EE /* CFSocket.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88E01BBC9B0300234F36 /* CFSocket.c */; };
 		D512D17C1CD883F00032E6A5 /* TestNSFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D512D17B1CD883F00032E6A5 /* TestNSFileHandle.swift */; };
+		D5C40F331CDA1D460005690C /* TestNSOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */; };
 		E1A03F361C4828650023AF4D /* PropertyList-1.0.dtd in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F351C4828650023AF4D /* PropertyList-1.0.dtd */; };
 		E1A03F381C482C730023AF4D /* NSXMLDTDTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F371C482C730023AF4D /* NSXMLDTDTestData.xml */; };
 		E1A3726F1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */; };
@@ -649,8 +649,8 @@
 		D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSSpecialValue.swift; sourceTree = "<group>"; };
 		D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-EdgeInsetsTest.plist"; sourceTree = "<group>"; };
 		D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-RectTest.plist"; sourceTree = "<group>"; };
-		D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOperationQueue.swift; sourceTree = "<group>"; };
 		D512D17B1CD883F00032E6A5 /* TestNSFileHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileHandle.swift; sourceTree = "<group>"; };
+		D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOperationQueue.swift; sourceTree = "<group>"; };
 		D834F9931C31C4060023812A /* TestNSOrderedSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOrderedSet.swift; sourceTree = "<group>"; };
 		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
 		E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLDocument.swift; sourceTree = "<group>"; };
@@ -2161,7 +2161,7 @@
 				);
 				OTHER_LDFLAGS = (
 					"-twolevel_namespace",
-					"-Wl,-alias_list,CoreFoundation/Base.subproj/SymbolAliases",
+					"-Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases",
 					"-sectcreate",
 					__UNICODE,
 					__csbitmaps,
@@ -2230,7 +2230,7 @@
 				);
 				OTHER_LDFLAGS = (
 					"-twolevel_namespace",
-					"-Wl,-alias_list,CoreFoundation/Base.subproj/SymbolAliases",
+					"-Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases",
 					"-sectcreate",
 					__UNICODE,
 					__csbitmaps,

@@ -337,7 +337,8 @@ class Target:
             self.sdk = OSType.Win32
             self.dynamic_library_suffix = ".dll"
             self.executable_suffix = ".exe"
-        elif "darwin" in triple:
+        elif any(x in triple for x in ["darwin", "macosx",
+                                       "ios", "tvos", "watchos"]):
             self.sdk = OSType.MacOSX
         else:
             print("Unknown platform")
@@ -354,7 +355,7 @@ class Target:
         if platform.system() == "Linux":
             if (arch == ArchType.armv6) or (arch == ArchType.armv7):
                 triple += "-linux-gnueabihf"
-            else: 
+            else:
                 triple += "-linux-gnu"
         elif platform.system() == "Darwin":
             triple += "-apple-darwin"

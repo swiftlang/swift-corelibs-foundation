@@ -59,6 +59,8 @@ def reconfigure(config, path):
                 config.build_script_path = Path(info['build_script_path'])
             if 'source_root' in info and info['source_root'] is not None:
                 config.source_root = Path(info['source_root'])
+            if 'module_name' in info and info['module_name'] is not None:
+                config.module_name = info['module_name']
             if 'target' in info and info['target'] is not None:
                 config.target = Target(info['target'])
             if 'system_root' in info and info['system_root'] is not None:
@@ -124,7 +126,7 @@ def main():
     config.extra_c_flags          = os.getenv("CFLAGS", "")
     config.extra_swift_flags      = os.getenv("SWIFTCFLAGS", "")
     config.extra_ld_flags         = os.getenv("LDFLAGS", "")
-    config.swift_sdk              = os.getenv("SDKROOT", None)
+    config.swift_sdk              = os.getenv("SWIFT_SDKROOT", None)
     config.script_path            = config.source_root.path_by_appending("build.py")
     config.build_script_path      = config.source_root.path_by_appending("build.ninja")
     config.config_path            = config.source_root.path_by_appending(".configuration")
@@ -165,8 +167,9 @@ def main():
         if config.target.sdk == OSType.MacOSX and config.system_root is None and Target(Target.default()).sdk == OSType.MacOSX:
             import subprocess
             config.system_root = Path.path(subprocess.Popen(['xcrun', '--show-sdk-path'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE).communicate()[0])
-            swift_path = Path.path(subprocess.Popen(['xcrun', '--find', 'swift'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE).communicate()[0]).parent().parent()
-            config.swift_sdk = swift_path.absolute()
+            if config.swift_sdk is None:
+                swift_path = Path.path(subprocess.Popen(['xcrun', '--find', 'swift'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE).communicate()[0]).parent().parent()
+                config.swift_sdk = swift_path.absolute()
         elif config.swift_sdk is None:
             config.swift_sdk = "/usr"
         config.toolchain = Path.path(args.toolchain)
@@ -176,6 +179,14 @@ def main():
             config.ar = os.path.join(config.toolchain.relative(), "bin", "ar")
         elif config.ar is None:
             config.ar = "ar"
+
+    # Set the module name. On OSX this must not conflict with the system 'Foundation'
+    # or swift's libswiftFoundation.dylib
+
+    if config.target.sdk == OSType.MacOSX:
+        config.module_name = "SwiftFoundation"
+    else:
+        config.module_name = "Foundation"
 
     config.write(config.config_path.absolute())
     Configuration.current = config

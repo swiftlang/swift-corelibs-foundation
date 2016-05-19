@@ -89,6 +89,29 @@
 #define CF_DEPRECATED_IOS(_iosIntro, _iosDep, ...)
 #endif
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+// PortableFoundation is a standalone module and does not depend on system version
+#undef CF_AVAILABLE
+#undef CF_AVAILABLE_MAC
+#undef CF_AVAILABLE_IOS
+#undef CF_DEPRECATED
+#undef CF_DEPRECATED_MAC
+#undef CF_DEPRECATED_IOS
+
+#define CF_AVAILABLE(_mac, _ios)
+#define CF_AVAILABLE_MAC(_mac)
+#define CF_AVAILABLE_IOS(_ios)
+
+#if __has_attribute(deprecated) // Keep deprecation warnings
+#define CF_DEPRECATED(_macIntro, _macDep, _iosIntro, _iosDep, ...) __attribute__((deprecated(__VA_ARGS__)))
+#else
+#define CF_DEPRECATED(_macIntro, _macDep, _iosIntro, _iosDep, ...)
+#endif
+
+#define CF_DEPRECATED_MAC(_macIntro, _macDep, ...) CF_DEPRECATED(_macIntro, _macDep, 0, 0, __VA_ARGS__)
+#define CF_DEPRECATED_IOS(_iosIntro, _iosDep, ...) CF_DEPRECATED(0, 0, _iosIntro, _iosDep, __VA_ARGS__)
+#endif
+
 // Older versions of these macros; use iOS versions instead
 #define CF_AVAILABLE_IPHONE(_ios) CF_AVAILABLE_IOS(_ios)
 #define CF_DEPRECATED_IPHONE(_iosIntro, _iosDep) CF_DEPRECATED_IOS(_iosIntro, _iosDep)
