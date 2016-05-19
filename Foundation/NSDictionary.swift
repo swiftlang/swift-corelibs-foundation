@@ -87,27 +87,24 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     internal var _storage = [NSObject: AnyObject]()
     
     public var count: Int {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
-            return _storage.count
-        } else {
+        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
+        return _storage.count
     }
     
     public func objectForKey(_ aKey: AnyObject) -> AnyObject? {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
-            return _storage[aKey as! NSObject]
-        } else {
+        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
+        return _storage[aKey as! NSObject]
     }
     
     public func keyEnumerator() -> NSEnumerator {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
-            return NSGeneratorEnumerator(_storage.keys.makeIterator())
-        } else {
+        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
+        return NSGeneratorEnumerator(_storage.keys.makeIterator())
     }
     
     public override convenience init() {
@@ -567,24 +564,20 @@ extension Dictionary : _NSBridgable, _CFBridgable {
 public class NSMutableDictionary : NSDictionary {
     
     public func removeObjectForKey(_ aKey: AnyObject) {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
-            if let key = aKey as? NSObject {
-                _storage.removeValue(forKey: key)
-            }
-            
-//            CFDictionaryRemoveValue(unsafeBitCast(self, CFMutableDictionaryRef.self), unsafeBitCast(aKey, UnsafePointer<Void>.self))
-        } else {
+        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
+        }
+
+        if let key = aKey as? NSObject {
+            _storage.removeValue(forKey: key)
         }
     }
     
     public func setObject(_ anObject: AnyObject, forKey aKey: NSObject) {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
-            _storage[aKey] = anObject
-//            CFDictionarySetValue(unsafeBitCast(self, CFMutableDictionaryRef.self), unsafeBitCast(aKey, UnsafePointer<Void>.self), unsafeBitCast(anObject, UnsafePointer<Void>.self))
-        } else {
+        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
+        _storage[aKey] = anObject
     }
     
     public convenience required init() {
