@@ -268,13 +268,13 @@ class TestNSArray : XCTestCase {
         let lhsInt = (lhs as! NSNumber).intValue
         let rhsInt = (rhs as! NSNumber).intValue
         if lhsInt == rhsInt {
-            return .OrderedSame
+            return .orderedSame
         }
         if lhsInt < rhsInt {
-            return .OrderedAscending
+            return .orderedAscending
         }
         
-        return .OrderedDescending
+        return .orderedDescending
     }
     
     func test_replaceObjectsInRange_withObjectsFromArray() {
@@ -327,7 +327,7 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(result.map { ($0 as! NSString).bridge()} , expectedResult)
 
         // sort empty array
-        let emptyArray = NSArray().sortedArrayUsingComparator { _,_ in .OrderedSame }
+        let emptyArray = NSArray().sortedArrayUsingComparator { _,_ in .orderedSame }
         XCTAssertTrue(emptyArray.isEmpty)
 
         // sort numbers
@@ -336,7 +336,7 @@ class TestNSArray : XCTestCase {
         let resultNumbers = inputNumbers.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
-            return l < r ? .OrderedAscending : (l > r ? .OrderedSame : .OrderedDescending)
+            return l < r ? .orderedAscending : (l > r ? .orderedSame : .orderedDescending)
         }
         XCTAssertEqual(resultNumbers.map { ($0 as! NSNumber).intValue}, expectedNumbers)
     }
@@ -355,7 +355,7 @@ class TestNSArray : XCTestCase {
         XCTAssertTrue(result1.bridge().isEqualToArray(result2))
 
         // sort empty array
-        let emptyArray = NSArray().sortedArrayWithOptions([]) { _,_ in .OrderedSame }
+        let emptyArray = NSArray().sortedArrayWithOptions([]) { _,_ in .orderedSame }
         XCTAssertTrue(emptyArray.isEmpty)
     }
 
@@ -383,7 +383,7 @@ class TestNSArray : XCTestCase {
         mutableInput.sortUsingComparator { left, right -> NSComparisonResult in
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
-            return l < r ? .OrderedAscending : (l > r ? .OrderedSame : .OrderedDescending)
+            return l < r ? .orderedAscending : (l > r ? .orderedSame : .orderedDescending)
         }
 
         XCTAssertEqual(mutableInput.map { ($0 as! NSNumber).intValue}, expectedNumbers)

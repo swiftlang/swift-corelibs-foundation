@@ -307,40 +307,40 @@ public class NSTask : NSObject {
         #else
             var fileActions: posix_spawn_file_actions_t = posix_spawn_file_actions_t()
         #endif
-        try! posix(posix_spawn_file_actions_init(&fileActions))
+        posix(posix_spawn_file_actions_init(&fileActions))
         defer { posix_spawn_file_actions_destroy(&fileActions) }
 
         switch standardInput {
         case let pipe as NSPipe:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO))
-            try! posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor))
+            posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO))
+            posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor))
         case let handle as NSFileHandle:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDIN_FILENO))
+            posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDIN_FILENO))
         default: break
         }
 
         switch standardOutput {
         case let pipe as NSPipe:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO))
-            try! posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
+            posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO))
+            posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
         case let handle as NSFileHandle:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDOUT_FILENO))
+            posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDOUT_FILENO))
         default: break
         }
 
         switch standardError {
         case let pipe as NSPipe:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO))
-            try! posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
+            posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO))
+            posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
         case let handle as NSFileHandle:
-            try! posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDERR_FILENO))
+            posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDERR_FILENO))
         default: break
         }
 
         // Launch
 
         var pid = pid_t()
-        try! posix(posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp))
+        posix(posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp))
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? NSPipe {
@@ -390,7 +390,7 @@ public class NSTask : NSObject {
     A block to be invoked when the process underlying the NSTask terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The NSTask is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the NSTask has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an NSTask, the NSTaskDidTerminateNotification notification is not posted for that task.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of NSTask which hasn't been updated to include an implementation of the storage and use of it.  
     */
     public var terminationHandler: ((NSTask) -> Void)?
-    public var qualityOfService: NSQualityOfService = .Default  // read-only after the task is launched
+    public var qualityOfService: NSQualityOfService = .default  // read-only after the task is launched
 }
 
 extension NSTask {
@@ -418,9 +418,10 @@ extension NSTask {
 
 public let NSTaskDidTerminateNotification: String = "NSTaskDidTerminateNotification"
 
-private func posix(_ code: Int32) throws {
+private func posix(_ code: Int32) {
     switch code {
     case 0: return
-    default: throw NSError(domain: NSPOSIXErrorDomain, code: Int(code), userInfo: nil)
+    case EBADF: fatalError("POSIX command failed with error: \(code) -- EBADF")
+    default: fatalError("POSIX command failed with error: \(code)")
     }
 }
