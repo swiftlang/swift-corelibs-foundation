@@ -244,6 +244,8 @@ CF_PRIVATE CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
+CF_EXPORT Boolean _CFIsMainThread(void);
+
 CF_EXPORT CFHashCode __CFHashDouble(double d);
 
 typedef pthread_key_t __CFThreadKey;
