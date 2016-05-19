@@ -19,10 +19,10 @@
         access only its own credentials.
 */
 public enum NSURLCredentialPersistence : UInt {
-    case None
-    case ForSession
-    case Permanent
-    case Synchronizable
+    case none
+    case forSession
+    case permanent
+    case synchronizable
 }
 
 
@@ -44,7 +44,7 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
         @result The initialized NSURLCredential
      */
     public init(user: String, password: String, persistence: NSURLCredentialPersistence) {
-        guard persistence != .Permanent && persistence != .Synchronizable else {
+        guard persistence != .permanent && persistence != .synchronizable else {
             NSUnimplemented()
         }
         _user = user

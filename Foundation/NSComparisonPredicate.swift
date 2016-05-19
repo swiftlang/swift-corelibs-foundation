@@ -21,27 +21,27 @@ public struct NSComparisonPredicateOptions : OptionSet {
 // Describes how the operator is modified: can be direct, ALL, or ANY
 public enum NSComparisonPredicateModifier : UInt {
     
-    case DirectPredicateModifier // Do a direct comparison
-    case AllPredicateModifier // ALL toMany.x = y
-    case AnyPredicateModifier // ANY toMany.x = y
+    case directPredicateModifier // Do a direct comparison
+    case allPredicateModifier // ALL toMany.x = y
+    case anyPredicateModifier // ANY toMany.x = y
 }
 
 // Type basic set of operators defined. Most are obvious
 public enum NSPredicateOperatorType : UInt {
     
-    case LessThanPredicateOperatorType // compare: returns NSOrderedAscending
-    case LessThanOrEqualToPredicateOperatorType // compare: returns NSOrderedAscending || NSOrderedSame
-    case GreaterThanPredicateOperatorType // compare: returns NSOrderedDescending
-    case GreaterThanOrEqualToPredicateOperatorType // compare: returns NSOrderedDescending || NSOrderedSame
-    case EqualToPredicateOperatorType // isEqual: returns true
-    case NotEqualToPredicateOperatorType // isEqual: returns false
-    case MatchesPredicateOperatorType
-    case LikePredicateOperatorType
-    case BeginsWithPredicateOperatorType
-    case EndsWithPredicateOperatorType
-    case InPredicateOperatorType // rhs contains lhs returns true
-    case ContainsPredicateOperatorType // lhs contains rhs returns true
-    case BetweenPredicateOperatorType
+    case lessThanPredicateOperatorType // compare: returns NSOrderedAscending
+    case lessThanOrEqualToPredicateOperatorType // compare: returns NSOrderedAscending || NSOrderedSame
+    case greaterThanPredicateOperatorType // compare: returns NSOrderedDescending
+    case greaterThanOrEqualToPredicateOperatorType // compare: returns NSOrderedDescending || NSOrderedSame
+    case equalToPredicateOperatorType // isEqual: returns true
+    case notEqualToPredicateOperatorType // isEqual: returns false
+    case matchesPredicateOperatorType
+    case likePredicateOperatorType
+    case beginsWithPredicateOperatorType
+    case endsWithPredicateOperatorType
+    case inPredicateOperatorType // rhs contains lhs returns true
+    case containsPredicateOperatorType // lhs contains rhs returns true
+    case betweenPredicateOperatorType
 }
 
 // Comparison predicates are predicates which do some form of comparison between the results of two expressions and return a BOOL. They take an operator, a left expression, and a right expression, and return the result of invoking the operator with the results of evaluating the expressions.

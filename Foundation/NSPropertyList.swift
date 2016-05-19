@@ -20,9 +20,9 @@ public struct NSPropertyListMutabilityOptions : OptionSet {
 
 public enum NSPropertyListFormat : UInt {
     
-    case OpenStepFormat = 1
-    case XMLFormat_v1_0 = 100
-    case BinaryFormat_v1_0 = 200
+    case openStepFormat = 1
+    case xmlFormat_v1_0 = 100
+    case binaryFormat_v1_0 = 200
 }
 
 #if os(OSX) || os(iOS)

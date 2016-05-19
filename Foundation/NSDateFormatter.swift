@@ -41,7 +41,7 @@ public class NSDateFormatter : NSFormatter {
         super.init(coder: coder)
     }
 
-    public var formattingContext: NSFormattingContext = .Unknown // default is NSFormattingContextUnknown
+    public var formattingContext: NSFormattingContext = .unknown // default is NSFormattingContextUnknown
 
     public func objectValue(_ string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
 
@@ -136,9 +136,9 @@ public class NSDateFormatter : NSFormatter {
         }
     }
 
-    public var dateStyle: NSDateFormatterStyle = .NoStyle { willSet { _dateFormat = nil; _reset() } }
+    public var dateStyle: NSDateFormatterStyle = .noStyle { willSet { _dateFormat = nil; _reset() } }
 
-    public var timeStyle: NSDateFormatterStyle = .NoStyle { willSet { _dateFormat = nil; _reset() } }
+    public var timeStyle: NSDateFormatterStyle = .noStyle { willSet { _dateFormat = nil; _reset() } }
 
     /*@NSCopying*/ public var locale: NSLocale! = .currentLocale() { willSet { _reset() } }
 
@@ -472,9 +472,9 @@ public class NSDateFormatter : NSFormatter {
 }
 
 public enum NSDateFormatterStyle : UInt {
-    case NoStyle
-    case ShortStyle
-    case MediumStyle
-    case LongStyle
-    case FullStyle
+    case noStyle
+    case shortStyle
+    case mediumStyle
+    case longStyle
+    case fullStyle
 }

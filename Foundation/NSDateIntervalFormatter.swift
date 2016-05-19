@@ -10,11 +10,11 @@
 
 public enum NSDateIntervalFormatterStyle : UInt {
     
-    case NoStyle
-    case ShortStyle
-    case MediumStyle
-    case LongStyle
-    case FullStyle
+    case noStyle
+    case shortStyle
+    case mediumStyle
+    case longStyle
+    case fullStyle
 }
 
 // NSDateIntervalFormatter is used to format the range between two NSDates in a locale-sensitive way.

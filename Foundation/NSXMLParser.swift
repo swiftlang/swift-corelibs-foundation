@@ -22,10 +22,10 @@ import CoreFoundation
 
 public enum NSXMLParserExternalEntityResolvingPolicy : UInt {
     
-    case ResolveExternalEntitiesNever // default
-    case ResolveExternalEntitiesNoNetwork
-    case ResolveExternalEntitiesSameOriginOnly //only applies to NSXMLParser instances initialized with -initWithContentsOfURL:
-    case ResolveExternalEntitiesAlways
+    case resolveExternalEntitiesNever // default
+    case resolveExternalEntitiesNoNetwork
+    case resolveExternalEntitiesSameOriginOnly //only applies to NSXMLParser instances initialized with -initWithContentsOfURL:
+    case resolveExternalEntitiesAlways
 }
 
 extension _CFXMLInterface {
@@ -69,7 +69,7 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
         }
         if let url = a {
             let allowed = allowedEntityURLs.contains(url)
-            if allowed || policy != .ResolveExternalEntitiesSameOriginOnly {
+            if allowed || policy != .resolveExternalEntitiesSameOriginOnly {
                 if allowed {
                     return originalLoaderFunction(urlStr, identifier, context)
                 }
@@ -78,7 +78,7 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
     }
     
     switch policy {
-    case .ResolveExternalEntitiesSameOriginOnly:
+    case .resolveExternalEntitiesSameOriginOnly:
         guard let url = parser._url else { break }
         
         if a == nil {
@@ -114,11 +114,11 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
             return nil
         }
         break
-    case .ResolveExternalEntitiesAlways:
+    case .resolveExternalEntitiesAlways:
         break
-    case .ResolveExternalEntitiesNever:
+    case .resolveExternalEntitiesNever:
         return nil
-    case .ResolveExternalEntitiesNoNetwork:
+    case .resolveExternalEntitiesNoNetwork:
         return _CFXMLInterfaceNoNetExternalEntityLoader(urlStr, identifier, context)
     }
     
@@ -446,7 +446,7 @@ public class NSXMLParser : NSObject {
     public var shouldReportNamespacePrefixes: Bool = false
     
     //defaults to NSXMLNodeLoadExternalEntitiesNever
-    public var externalEntityResolvingPolicy: NSXMLParserExternalEntityResolvingPolicy = .ResolveExternalEntitiesNever
+    public var externalEntityResolvingPolicy: NSXMLParserExternalEntityResolvingPolicy = .resolveExternalEntitiesNever
     
     public var allowedExternalEntityURLs: Set<NSURL>?
     

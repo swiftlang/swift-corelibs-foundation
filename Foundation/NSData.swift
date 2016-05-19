@@ -675,21 +675,21 @@ extension NSData {
         - returns:              Base64DecodedByte value containing the result (Valid , Invalid, Padding)
         */
     private enum Base64DecodedByte {
-        case Valid(UInt8)
-        case Invalid
-        case Padding
+        case valid(UInt8)
+        case invalid
+        case padding
     }
     private static func base64DecodeByte(_ byte: UInt8) -> Base64DecodedByte {
-        guard byte != base64Padding else {return .Padding}
+        guard byte != base64Padding else {return .padding}
         var decodedStart: UInt8 = 0
         for range in base64ByteMappings {
             if range.contains(byte) {
                 let result = decodedStart + (byte - range.lowerBound)
-                return .Valid(result)
+                return .valid(result)
             }
             decodedStart += range.upperBound - range.lowerBound
         }
-        return .Invalid
+        return .invalid
     }
     
     /**
@@ -741,16 +741,16 @@ extension NSData {
             let value : UInt8
             
             switch base64DecodeByte(base64Char) {
-            case .Valid(let v):
+            case .valid(let v):
                 value = v
                 validCharacterCount += 1
-            case .Invalid:
+            case .invalid:
                 if options.contains(.ignoreUnknownCharacters) {
                     continue
                 } else {
                     return nil
                 }
-            case .Padding:
+            case .padding:
                 paddingCount += 1
                 continue
             }

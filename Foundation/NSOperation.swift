@@ -130,7 +130,7 @@ public class NSOperation : NSObject {
         return ops
     }
     
-    public var queuePriority: OperationQueuePriority = .Normal
+    public var queuePriority: OperationQueuePriority = .normal
     public var completionBlock: (() -> Void)?
     public func waitUntilFinished() {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
@@ -154,11 +154,11 @@ public class NSOperation : NSObject {
 }
 
 public enum OperationQueuePriority : Int {
-    case VeryLow
-    case Low
-    case Normal
-    case High
-    case VeryHigh
+    case veryLow
+    case low
+    case normal
+    case high
+    case veryHigh
 }
 
 public class NSBlockOperation : NSOperation {
@@ -206,19 +206,19 @@ internal struct _OperationList {
     mutating func insert(_ operation: NSOperation) {
         all.append(operation)
         switch operation.queuePriority {
-        case .VeryLow:
+        case .veryLow:
             veryLow.append(operation)
             break
-        case .Low:
+        case .low:
             low.append(operation)
             break
-        case .Normal:
+        case .normal:
             normal.append(operation)
             break
-        case .High:
+        case .high:
             high.append(operation)
             break
-        case .VeryHigh:
+        case .veryHigh:
             veryHigh.append(operation)
             break
         }
@@ -229,27 +229,27 @@ internal struct _OperationList {
             all.remove(at: idx)
         }
         switch operation.queuePriority {
-        case .VeryLow:
+        case .veryLow:
             if let idx = veryLow.index(of: operation) {
                 veryLow.remove(at: idx)
             }
             break
-        case .Low:
+        case .low:
             if let idx = low.index(of: operation) {
                 low.remove(at: idx)
             }
             break
-        case .Normal:
+        case .normal:
             if let idx = normal.index(of: operation) {
                 normal.remove(at: idx)
             }
             break
-        case .High:
+        case .high:
             if let idx = high.index(of: operation) {
                 high.remove(at: idx)
             }
             break
-        case .VeryHigh:
+        case .veryHigh:
             if let idx = veryHigh.index(of: operation) {
                 veryHigh.remove(at: idx)
             }

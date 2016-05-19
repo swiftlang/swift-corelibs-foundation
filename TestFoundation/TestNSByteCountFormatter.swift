@@ -30,13 +30,13 @@ class TestNSByteCountFormatter : XCTestCase {
     func test_DefaultValues() {
         let formatter = NSByteCountFormatter()
         XCTAssertEqual(formatter.allowedUnits, NSByteCountFormatterUnits.UseDefault)
-        XCTAssertEqual(formatter.countStyle, NSByteCountFormatterCountStyle.File)
+        XCTAssertEqual(formatter.countStyle, NSByteCountFormatterCountStyle.file)
         XCTAssertEqual(formatter.allowsNonnumericFormatting, true)
         XCTAssertEqual(formatter.includesUnit, true)
         XCTAssertEqual(formatter.includesCount, true)
         XCTAssertEqual(formatter.includesActualByteCount, false)
         XCTAssertEqual(formatter.adaptive, true)
         XCTAssertEqual(formatter.zeroPadsFractionDigits, false)
-        XCTAssertEqual(formatter.formattingContext, NSFormattingContext.Unknown)
+        XCTAssertEqual(formatter.formattingContext, NSFormattingContext.unknown)
     }
 }

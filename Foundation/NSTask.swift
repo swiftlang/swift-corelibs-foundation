@@ -16,8 +16,8 @@ import CoreFoundation
 #endif
 
 public enum NSTaskTerminationReason : Int {
-    case Exit
-    case UncaughtSignal
+    case exit
+    case uncaughtSignal
 }
 
 private func WEXITSTATUS(_ status: CInt) -> CInt {
