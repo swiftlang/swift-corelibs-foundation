@@ -120,14 +120,14 @@ public class NSUserDefaults : NSObject {
         //This got out of hand fast...
         let cVal = bVal._swiftObject
         enum convErr: ErrorProtocol {
-            case ConvErr
+            case convErr
         }
         do {
             let dVal = try cVal.map({ (key, val) -> (String, AnyObject) in
                 if let strKey = key as? NSString {
                     return (strKey._swiftObject, val)
                 } else {
-                    throw convErr.ConvErr
+                    throw convErr.convErr
                 }
             })
             var eVal = [String : AnyObject]()

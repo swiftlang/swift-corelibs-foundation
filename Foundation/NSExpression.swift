@@ -12,19 +12,19 @@
 
 public enum NSExpressionType : UInt {
     
-    case ConstantValueExpressionType // Expression that always returns the same value
-    case EvaluatedObjectExpressionType // Expression that always returns the parameter object itself
-    case VariableExpressionType // Expression that always returns whatever is stored at 'variable' in the bindings dictionary
-    case KeyPathExpressionType // Expression that returns something that can be used as a key path
-    case FunctionExpressionType // Expression that returns the result of evaluating a symbol
-    case UnionSetExpressionType // Expression that returns the result of doing a unionSet: on two expressions that evaluate to flat collections (arrays or sets)
-    case IntersectSetExpressionType // Expression that returns the result of doing an intersectSet: on two expressions that evaluate to flat collections (arrays or sets)
-    case MinusSetExpressionType // Expression that returns the result of doing a minusSet: on two expressions that evaluate to flat collections (arrays or sets)
-    case SubqueryExpressionType
-    case AggregateExpressionType
-    case AnyKeyExpressionType
-    case BlockExpressionType
-    case ConditionalExpressionType
+    case constantValueExpressionType // Expression that always returns the same value
+    case evaluatedObjectExpressionType // Expression that always returns the parameter object itself
+    case variableExpressionType // Expression that always returns whatever is stored at 'variable' in the bindings dictionary
+    case keyPathExpressionType // Expression that returns something that can be used as a key path
+    case functionExpressionType // Expression that returns the result of evaluating a symbol
+    case unionSetExpressionType // Expression that returns the result of doing a unionSet: on two expressions that evaluate to flat collections (arrays or sets)
+    case intersectSetExpressionType // Expression that returns the result of doing an intersectSet: on two expressions that evaluate to flat collections (arrays or sets)
+    case minusSetExpressionType // Expression that returns the result of doing a minusSet: on two expressions that evaluate to flat collections (arrays or sets)
+    case subqueryExpressionType
+    case aggregateExpressionType
+    case anyKeyExpressionType
+    case blockExpressionType
+    case conditionalExpressionType
 }
 
 public class NSExpression : NSObject, SecureCoding, NSCopying {

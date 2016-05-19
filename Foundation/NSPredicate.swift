@@ -13,8 +13,8 @@
 public class NSPredicate : NSObject, SecureCoding, NSCopying {
 
     private enum PredicateKind {
-        case Boolean(Bool)
-        case Block((AnyObject?, [String : AnyObject]?) -> Bool)
+        case boolean(Bool)
+        case block((AnyObject?, [String : AnyObject]?) -> Bool)
         // TODO: case for init(format:argumentArray:)
         // TODO: case for init(fromMetadataQueryString:)
     }
@@ -45,12 +45,12 @@ public class NSPredicate : NSObject, SecureCoding, NSCopying {
     public init?(fromMetadataQueryString queryString: String) { NSUnimplemented() }
     
     public init(value: Bool) {
-        kind = .Boolean(value)
+        kind = .boolean(value)
         super.init()
     } // return predicates that always evaluate to true/false
 
     public init(block: (AnyObject?, [String : AnyObject]?) -> Bool) {
-        kind = .Block(block)
+        kind = .block(block)
         super.init()
     }
     
@@ -68,9 +68,9 @@ public class NSPredicate : NSObject, SecureCoding, NSCopying {
         }
 
         switch kind {
-        case let .Boolean(value):
+        case let .boolean(value):
             return value
-        case let .Block(block):
+        case let .block(block):
             return block(object, bindings)
         }
     } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered

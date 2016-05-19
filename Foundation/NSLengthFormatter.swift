@@ -10,14 +10,14 @@
 
 public enum NSLengthFormatterUnit : Int {
     
-    case Millimeter
-    case Centimeter
-    case Meter
-    case Kilometer
-    case Inch
-    case Foot
-    case Yard
-    case Mile
+    case millimeter
+    case centimeter
+    case meter
+    case kilometer
+    case inch
+    case foot
+    case yard
+    case mile
 }
 
 public class NSLengthFormatter : NSFormatter {

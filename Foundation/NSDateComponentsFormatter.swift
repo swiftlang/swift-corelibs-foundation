@@ -10,11 +10,11 @@
 
 public enum NSDateComponentsFormatterUnitsStyle : Int {
     
-    case Positional // "1:10; may fall back to abbreviated units in some cases, e.g. 3d"
-    case Abbreviated // "1h 10m"
-    case Short // "1hr 10min"
-    case Full // "1 hour, 10 minutes"
-    case SpellOut // "One hour, ten minutes"
+    case positional // "1:10; may fall back to abbreviated units in some cases, e.g. 3d"
+    case abbreviated // "1h 10m"
+    case short // "1hr 10min"
+    case full // "1 hour, 10 minutes"
+    case spellOut // "One hour, ten minutes"
 }
 
 public struct NSDateComponentsFormatterZeroFormattingBehavior : OptionSet {

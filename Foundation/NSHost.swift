@@ -18,9 +18,9 @@ import CoreFoundation
 
 public class Host: NSObject {
     enum ResolveType {
-        case Name
-        case Address
-        case Current
+        case name
+        case address
+        case current
     }
     internal var _info: String?
     internal var _type: ResolveType
@@ -33,18 +33,18 @@ public class Host: NSObject {
         _type = type
     }
     
-    static internal let current = Host(nil, .Current)
+    static internal let current = Host(nil, .current)
     
     public class func currentHost() -> Host {
         return Host.current
     }
     
     public convenience init(name: String?) {
-        self.init(name, .Name)
+        self.init(name, .name)
     }
     
     public convenience init(address: String) {
-        self.init(address, .Address)
+        self.init(address, .address)
     }
     
     public func isEqual(to aHost: Host) -> Bool {
@@ -62,13 +62,13 @@ public class Host: NSObject {
         if let info = _info {
             var flags: Int32 = 0
             switch (_type) {
-            case .Name:
+            case .name:
                 flags = AI_PASSIVE | AI_CANONNAME
                 break
-            case .Address:
+            case .address:
                 flags = AI_PASSIVE | AI_CANONNAME | AI_NUMERICHOST
                 break
-            case .Current:
+            case .current:
                 _resolveCurrent()
                 return
             }

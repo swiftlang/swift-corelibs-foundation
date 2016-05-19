@@ -108,8 +108,8 @@ class TestNSDateFormatter: XCTestCase {
         ]
         
         let f = NSDateFormatter()
-        f.dateStyle = .ShortStyle
-        f.timeStyle = .ShortStyle
+        f.dateStyle = .shortStyle
+        f.timeStyle = .shortStyle
         
         // ensure tests give consistent results by setting specific timeZone and locale
         f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
@@ -141,8 +141,8 @@ class TestNSDateFormatter: XCTestCase {
         ]
         
         let f = NSDateFormatter()
-        f.dateStyle = .MediumStyle
-        f.timeStyle = .MediumStyle
+        f.dateStyle = .mediumStyle
+        f.timeStyle = .mediumStyle
         f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
         f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
         
@@ -173,8 +173,8 @@ class TestNSDateFormatter: XCTestCase {
         ]
         
         let f = NSDateFormatter()
-        f.dateStyle = .LongStyle
-        f.timeStyle = .LongStyle
+        f.dateStyle = .longStyle
+        f.timeStyle = .longStyle
         f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
         f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
         
@@ -207,8 +207,8 @@ class TestNSDateFormatter: XCTestCase {
         ]
         
         let f = NSDateFormatter()
-        f.dateStyle = .FullStyle
-        f.timeStyle = .FullStyle
+        f.dateStyle = .fullStyle
+        f.timeStyle = .fullStyle
         f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
         f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
         
@@ -268,8 +268,8 @@ class TestNSDateFormatter: XCTestCase {
         
         // Check .dateFormat resets when style changes
         let testDate = Date(timeIntervalSince1970: 1457738454)
-        f.dateStyle = .MediumStyle
-        f.timeStyle = .MediumStyle
+        f.dateStyle = .mediumStyle
+        f.timeStyle = .mediumStyle
         XCTAssertEqual(f.string(from: testDate), "Mar 11, 2016, 11:20:54 PM")
         XCTAssertEqual(f.dateFormat, "MMM d, y, h:mm:ss a")
         

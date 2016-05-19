@@ -67,19 +67,19 @@ internal class NSThreadSpecific<T: AnyObject> {
 }
 
 internal enum _NSThreadStatus {
-    case Initialized
-    case Starting
-    case Executing
-    case Finished
+    case initialized
+    case starting
+    case executing
+    case finished
 }
 
 private func NSThreadStart(_ context: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
     let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(OpaquePointer(context!))
     let thread = unmanaged.takeUnretainedValue()
     NSThread._currentThread.set(thread)
-    thread._status = _NSThreadStatus.Executing
+    thread._status = .executing
     thread.main()
-    thread._status = _NSThreadStatus.Finished
+    thread._status = .finished
     unmanaged.release()
     return nil
 }
@@ -160,7 +160,7 @@ public class NSThread : NSObject {
     private var _thread = pthread_t()
 #endif
     internal var _attr = pthread_attr_t()
-    internal var _status = _NSThreadStatus.Initialized
+    internal var _status = _NSThreadStatus.initialized
     internal var _cancelled = false
     /// - Note: this differs from the Darwin implementation in that the keys must be Strings
     public var threadDictionary = [String:AnyObject]()
@@ -178,10 +178,10 @@ public class NSThread : NSObject {
     }
 
     public func start() {
-        precondition(_status == .Initialized, "attempting to start a thread that has already been started")
-        _status = .Starting
+        precondition(_status == .initialized, "attempting to start a thread that has already been started")
+        _status = .starting
         if _cancelled {
-            _status = .Finished
+            _status = .finished
             return
         }
         withUnsafeMutablePointers(&_thread, &_attr) { thread, attr in
@@ -217,11 +217,11 @@ public class NSThread : NSObject {
     }
 
     public var executing: Bool {
-        return _status == .Executing
+        return _status == .executing
     }
 
     public var finished: Bool {
-        return _status == .Finished
+        return _status == .finished
     }
     
     public var cancelled: Bool {

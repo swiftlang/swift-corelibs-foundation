@@ -299,27 +299,27 @@ extension CGRect: NSSpecialValueCoding {
 
 public enum NSRectEdge : UInt {
     
-    case MinX
-    case MinY
-    case MaxX
-    case MaxY
+    case minX
+    case minY
+    case maxX
+    case maxY
 }
 
 public enum CGRectEdge : UInt32 {
     
-    case MinXEdge
-    case MinYEdge
-    case MaxXEdge
-    case MaxYEdge
+    case minXEdge
+    case minYEdge
+    case maxXEdge
+    case maxYEdge
 }
 
 extension NSRectEdge {
     public init(rectEdge: CGRectEdge) {
         switch rectEdge {
-        case .MinXEdge: self = .MinX
-        case .MinYEdge: self = .MinY
-        case .MaxXEdge: self = .MaxX
-        case .MaxYEdge: self = .MaxY
+        case .minXEdge: self = .minX
+        case .minYEdge: self = .minY
+        case .maxXEdge: self = .maxX
+        case .maxYEdge: self = .maxY
         }
     }
 }
@@ -710,35 +710,35 @@ public func NSDivideRect(_ inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>
     let height = NSHeight(inRect)
 
     switch (edge, amount) {
-    case (.MinX, let amount) where amount > width:
+    case (.minX, let amount) where amount > width:
         slice.pointee = inRect
         rem.pointee = NSMakeRect(NSMaxX(inRect), NSMinY(inRect), CGFloat(0.0), height)
 
-    case (.MinX, _):
+    case (.minX, _):
         slice.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), amount, height)
         rem.pointee = NSMakeRect(NSMaxX(slice.pointee), NSMinY(inRect), NSMaxX(inRect) - NSMaxX(slice.pointee), height)
 
-    case (.MinY, let amount) where amount > height:
+    case (.minY, let amount) where amount > height:
         slice.pointee = inRect
         rem.pointee = NSMakeRect(NSMinX(inRect), NSMaxY(inRect), width, CGFloat(0.0))
 
-    case (.MinY, _):
+    case (.minY, _):
         slice.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, amount)
         rem.pointee = NSMakeRect(NSMinX(inRect), NSMaxY(slice.pointee), width, NSMaxY(inRect) - NSMaxY(slice.pointee))
 
-    case (.MaxX, let amount) where amount > width:
+    case (.maxX, let amount) where amount > width:
         slice.pointee = inRect
         rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), CGFloat(0.0), height)
 
-    case (.MaxX, _):
+    case (.maxX, _):
         slice.pointee = NSMakeRect(NSMaxX(inRect) - amount, NSMinY(inRect), amount, height)
         rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), NSMinX(slice.pointee) - NSMinX(inRect), height)
 
-    case (.MaxY, let amount) where amount > height:
+    case (.maxY, let amount) where amount > height:
         slice.pointee = inRect
         rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, CGFloat(0.0))
 
-    case (.MaxY, _):
+    case (.maxY, _):
         slice.pointee = NSMakeRect(NSMinX(inRect), NSMaxY(inRect) - amount, width, amount)
         rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, NSMinY(slice.pointee) - NSMinY(inRect))
     }
