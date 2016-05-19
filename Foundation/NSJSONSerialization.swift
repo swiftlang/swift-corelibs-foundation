@@ -17,16 +17,16 @@ public struct NSJSONReadingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let MutableContainers = NSJSONReadingOptions(rawValue: 1 << 0)
-    public static let MutableLeaves = NSJSONReadingOptions(rawValue: 1 << 1)
-    public static let AllowFragments = NSJSONReadingOptions(rawValue: 1 << 2)
+    public static let mutableContainers = NSJSONReadingOptions(rawValue: 1 << 0)
+    public static let mutableLeaves = NSJSONReadingOptions(rawValue: 1 << 1)
+    public static let allowFragments = NSJSONReadingOptions(rawValue: 1 << 2)
 }
 
 public struct NSJSONWritingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let PrettyPrinted = NSJSONWritingOptions(rawValue: 1 << 0)
+    public static let prettyPrinted = NSJSONWritingOptions(rawValue: 1 << 0)
 }
 
 
@@ -106,7 +106,7 @@ public class NSJSONSerialization : NSObject {
         let result = NSMutableData()
         
         var writer = JSONWriter(
-            pretty: opt.contains(.PrettyPrinted),
+            pretty: opt.contains(.prettyPrinted),
             writer: { (str: String?) in
                 if let str = str {
                     result.append(str.bridge().cString(using: NSUTF8StringEncoding)!, length: str.lengthOfBytes(using: NSUTF8StringEncoding))
@@ -145,7 +145,7 @@ public class NSJSONSerialization : NSObject {
         else if let (array, _) = try reader.parseArray(0) {
             return array
         }
-        else if opt.contains(.AllowFragments), let (value, _) = try reader.parseValue(0) {
+        else if opt.contains(.allowFragments), let (value, _) = try reader.parseValue(0) {
             return value
         }
         throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
