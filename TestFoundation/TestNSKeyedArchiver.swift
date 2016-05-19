@@ -12,7 +12,7 @@
     import Foundation
     import XCTest
 #else
-    import SwiftFoundation
+    import PortableFoundation
     import SwiftXCTest
 #endif
 
@@ -236,7 +236,7 @@ class TestNSKeyedArchiver : XCTestCase {
                 let s2 = String(cString: expectedCharPtr!)
                 
                 // On Darwin decoded strings would belong to the autorelease pool, but as we don't have
-                // one in SwiftFoundation let's explicitly deallocate it here.
+                // one in PortableFoundation let's explicitly deallocate it here.
                 expectedCharPtr!.deallocateCapacity(charArray.count)
                 
                 return s1 == s2

@@ -184,7 +184,7 @@ def main():
     # or swift's libswiftFoundation.dylib
 
     if config.target.sdk == OSType.MacOSX:
-        config.module_name = "SwiftFoundation"
+        config.module_name = "PortableFoundation"
     else:
         config.module_name = "Foundation"
 

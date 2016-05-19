@@ -234,7 +234,7 @@ internal protocol _NSBridgable {
 }
 
 #if os(OSX) || os(iOS)
-private let _SwiftFoundationModuleName = "SwiftFoundation"
+private let _SwiftFoundationModuleName = "PortableFoundation"
 #else
 private let _SwiftFoundationModuleName = "Foundation"
 #endif
