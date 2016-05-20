@@ -45,26 +45,26 @@ private func emptyRunLoopCallback(_ context : UnsafeMutablePointer<Void>?) -> Vo
 
 // Retain method for run loop source
 private func runLoopSourceRetain(_ pointer : UnsafePointer<Void>?) -> UnsafePointer<Void>? {
-    let ref = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer!)).takeUnretainedValue()
+    let ref = Unmanaged<AnyObject>.fromOpaque(pointer!).takeUnretainedValue()
     let retained = Unmanaged<AnyObject>.passRetained(ref)
     return unsafeBitCast(retained, to: UnsafePointer<Void>.self)
 }
 
 // Release method for run loop source
 private func runLoopSourceRelease(_ pointer : UnsafePointer<Void>?) -> Void {
-    Unmanaged<AnyObject>.fromOpaque(OpaquePointer(pointer!)).release()
+    Unmanaged<AnyObject>.fromOpaque(pointer!).release()
 }
 
 // Equal method for run loop source
 
 private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
-    let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
+    let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(a!)
     guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? NSRunLoop else {
         return false
     }
     
-    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
+    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(a!)
     guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? NSRunLoop else {
         return false
     }
@@ -79,7 +79,7 @@ private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?
 @noreturn private func managerThread(_ x: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
     
     managerThreadRunLoop = NSRunLoop.currentRunLoop()
-    var emptySourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(managerThreadRunLoop!))),
+    var emptySourceContext = CFRunLoopSourceContext (version: 0, info: Unmanaged.passUnretained(managerThreadRunLoop!).toOpaque(),
                                                               retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil,
                                                                       equal: runloopIsEqual, hash: nil, schedule: nil, cancel: nil,
                                                                              perform: emptyRunLoopCallback)
@@ -113,12 +113,12 @@ private func managerThreadSetup() -> Void {
 // Equal method for task in run loop source
 private func nstaskIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
-    let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
+    let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(a!)
     guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
         return false
     }
     
-    let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
+    let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(a!)
     guard let taskB = unmanagedTaskB.takeUnretainedValue() as? NSTask else {
         return false
     }
@@ -238,13 +238,13 @@ public class NSTask : NSObject {
         var taskSocketPair : [Int32] = [0, 0]
         socketpair(AF_UNIX, _CF_SOCK_STREAM(), 0, &taskSocketPair)
         
-        var context = CFSocketContext(version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(self))),
+        var context = CFSocketContext(version: 0, info: Unmanaged.passUnretained(self).toOpaque(),
                                                retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil)
         
         let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
             (socket, type, address, data, info )  in
             
-            let task = Unmanaged<NSTask>.fromOpaque(OpaquePointer(info!)).takeUnretainedValue()
+            let task = Unmanaged<NSTask>.fromOpaque(info!).takeUnretainedValue()
             
             task.processLaunchedCondition.lock()
             while task.running == false {
@@ -278,7 +278,7 @@ public class NSTask : NSObject {
                     task.terminationHandler!( task )
                     return context
                     
-                    }, UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passRetained(task))))
+                    }, Unmanaged.passRetained(task).toOpaque())
             }
             
             // Set the running flag to false
@@ -357,7 +357,7 @@ public class NSTask : NSObject {
         
         self.runLoop = NSRunLoop.currentRunLoop()
         
-        self.runLoopSourceContext = CFRunLoopSourceContext (version: 0, info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(self))),
+        self.runLoopSourceContext = CFRunLoopSourceContext (version: 0, info: Unmanaged.passUnretained(self).toOpaque(),
                                                                      retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil,
                                                                              equal: nstaskIsEqual, hash: nil, schedule: nil, cancel: nil,
                                                                                     perform: emptyRunLoopCallback)
