@@ -34,9 +34,9 @@ public struct CGFloat {
     
     private var hash: Int {
 #if arch(i386) || arch(arm)
-        return Int(Float(self.native).bitPattern)
+        return Int(Float(self.native)._toBitPattern())
 #else
-        return Int(self.native.bitPattern)
+        return Int(self.native._toBitPattern())
 #endif
     }
 }
