@@ -332,30 +332,16 @@ public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
 
 extension UnsafeMutablePointer {
     internal init<T: AnyObject>(retained value: T) {
-        self.init(OpaquePointer(bitPattern: Unmanaged<T>.passRetained(value)))
+        self.init(Unmanaged<T>.passRetained(value).toOpaque())
     }
     
     internal init<T: AnyObject>(unretained value: T) {
-        self.init(OpaquePointer(bitPattern: Unmanaged<T>.passUnretained(value)))
+        self.init(Unmanaged<T>.passUnretained(value).toOpaque())
     }
     
     internal func array(_ count: Int) -> [Pointee] {
         let buffer = UnsafeBufferPointer<Pointee>(start: self, count: count)
         return Array<Pointee>(buffer)
-    }
-}
-
-extension Unmanaged {
-    internal static func fromOpaque(_ value: UnsafeMutablePointer<Void>) -> Unmanaged<Instance> {
-        return self.fromOpaque(OpaquePointer(value))
-    }
-    
-    internal static func fromOptionalOpaque(_ value: UnsafePointer<Void>?) -> Unmanaged<Instance>? {
-        if let opaqueValue = value {
-            return self.fromOpaque(OpaquePointer(opaqueValue))
-        } else {
-            return nil
-        }
     }
 }
 

@@ -99,7 +99,7 @@ public class NSXMLNode : NSObject, NSCopying {
         super.init()
 
         let unmanaged = Unmanaged<NSXMLNode>.passUnretained(self)
-        let ptr = UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: unmanaged))
+        let ptr = unmanaged.toOpaque()
 
         _CFXMLNodeSetPrivateData(_xmlNode, ptr)
     }
@@ -767,7 +767,7 @@ public class NSXMLNode : NSObject, NSCopying {
         }
 
         let unmanaged = Unmanaged<NSXMLNode>.passUnretained(self)
-        _CFXMLNodeSetPrivateData(_xmlNode, UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: unmanaged)))
+        _CFXMLNodeSetPrivateData(_xmlNode, unmanaged.toOpaque())
     }
 
     internal class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLNode {
