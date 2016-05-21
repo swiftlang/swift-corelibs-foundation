@@ -783,7 +783,7 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
     }
     
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        NSUnimplemented()
+        return self
     }
     
     public static func supportsSecureCoding() -> Bool {
