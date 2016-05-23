@@ -22,7 +22,7 @@ internal let kCFNumberFormatterCurrencyPluralStyle = CFNumberFormatterStyle.curr
 internal let kCFNumberFormatterCurrencyAccountingStyle = CFNumberFormatterStyle.currencyAccountingStyle
 #endif
 
-public class NSNumberFormatter : NSFormatter {
+public class NumberFormatter : NSFormatter {
     
     typealias CFType = CFNumberFormatter
     private var _currentCfFormatter: CFType?
@@ -78,8 +78,8 @@ public class NSNumberFormatter : NSFormatter {
         return number
     }
     
-    public class func localizedStringFromNumber(_ num: NSNumber, numberStyle nstyle: NSNumberFormatterStyle) -> String {
-        let numberFormatter = NSNumberFormatter()
+    public class func localizedStringFromNumber(_ num: NSNumber, numberStyle nstyle: Style) -> String {
+        let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = nstyle
         return numberFormatter.stringForObjectValue(num)!
     }
@@ -139,8 +139,8 @@ public class NSNumberFormatter : NSFormatter {
     }
     
     // Attributes of an NSNumberFormatter
-    internal var _numberStyle: NSNumberFormatterStyle = .noStyle
-    public var numberStyle: NSNumberFormatterStyle {
+    internal var _numberStyle: Style = .noStyle
+    public var numberStyle: Style {
         get {
             return _numberStyle
         }
@@ -601,8 +601,8 @@ public class NSNumberFormatter : NSFormatter {
     
     //
     
-    internal var _paddingPosition: NSNumberFormatterPadPosition = .beforePrefix
-    public var paddingPosition: NSNumberFormatterPadPosition {
+    internal var _paddingPosition: PadPosition = .beforePrefix
+    public var paddingPosition: PadPosition {
         get {
             return _paddingPosition
         }
@@ -612,8 +612,8 @@ public class NSNumberFormatter : NSFormatter {
         }
     }
     
-    internal var _roundingMode: NSNumberFormatterRoundingMode = .roundHalfEven
-    public var roundingMode: NSNumberFormatterRoundingMode {
+    internal var _roundingMode: RoundingMode = .roundHalfEven
+    public var roundingMode: RoundingMode {
         get {
             return _roundingMode
         }
@@ -868,32 +868,34 @@ public class NSNumberFormatter : NSFormatter {
 //    }
 }
 
-public enum NSNumberFormatterStyle : UInt {
-    case noStyle
-    case decimalStyle
-    case currencyStyle
-    case percentStyle
-    case scientificStyle
-    case spellOutStyle
-    case ordinalStyle
-    case currencyISOCodeStyle
-    case currencyPluralStyle
-    case currencyAccountingStyle
-}
+extension NumberFormatter {
+    public enum Style : UInt {
+        case noStyle
+        case decimalStyle
+        case currencyStyle
+        case percentStyle
+        case scientificStyle
+        case spellOutStyle
+        case ordinalStyle
+        case currencyISOCodeStyle
+        case currencyPluralStyle
+        case currencyAccountingStyle
+    }
 
-public enum NSNumberFormatterPadPosition : UInt {
-    case beforePrefix
-    case afterPrefix
-    case beforeSuffix
-    case afterSuffix
-}
+    public enum PadPosition : UInt {
+        case beforePrefix
+        case afterPrefix
+        case beforeSuffix
+        case afterSuffix
+    }
 
-public enum NSNumberFormatterRoundingMode : UInt {
-    case roundCeiling
-    case roundFloor
-    case roundDown
-    case roundUp
-    case roundHalfEven
-    case roundHalfDown
-    case roundHalfUp
+    public enum RoundingMode : UInt {
+        case roundCeiling
+        case roundFloor
+        case roundDown
+        case roundUp
+        case roundHalfEven
+        case roundHalfDown
+        case roundHalfUp
+    }
 }

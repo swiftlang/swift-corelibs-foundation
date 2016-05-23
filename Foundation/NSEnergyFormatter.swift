@@ -24,7 +24,7 @@ public class EnergyFormatter : NSFormatter {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ public var numberFormatter: NSNumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
+    /*@NSCopying*/ public var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
     public var unitStyle: NSFormattingUnitStyle // default is NSFormattingUnitStyleMedium
     public var forFoodEnergyUse: Bool // default is NO; if it is set to YES, NSEnergyFormatterUnitKilocalorie may be “C” instead of “kcal"
     
