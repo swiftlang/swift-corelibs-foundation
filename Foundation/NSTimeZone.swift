@@ -153,7 +153,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func daylightSavingTimeOffset(for aDate: Date) -> NSTimeInterval {
+    public func daylightSavingTimeOffset(for aDate: Date) -> TimeInterval {
         if self.dynamicType === NSTimeZone.self {
             return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
         } else {
@@ -219,7 +219,7 @@ extension NSTimeZone {
     }
 
     public var daylightSavingTime: Bool { NSUnimplemented() }
-    public var daylightSavingTimeOffset: NSTimeInterval { NSUnimplemented() }
+    public var daylightSavingTimeOffset: TimeInterval { NSUnimplemented() }
     /*@NSCopying*/ public var nextDaylightSavingTimeTransition: Date?  { NSUnimplemented() }
     
     public func isEqual(to aTimeZone: NSTimeZone) -> Bool {

@@ -15,7 +15,7 @@ import CoreFoundation
     import Glibc
 #endif
 
-public typealias NSTimeInterval = Double
+public typealias TimeInterval = Double
 
 public var NSTimeIntervalSince1970: Double {
     return 978307200.0
@@ -45,9 +45,9 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     internal let _base = _CFInfo(typeID: CFDateGetTypeID())
-    internal let _timeIntervalSinceReferenceDate: NSTimeInterval
+    internal let _timeIntervalSinceReferenceDate: TimeInterval
     
-    public var timeIntervalSinceReferenceDate: NSTimeInterval {
+    public var timeIntervalSinceReferenceDate: TimeInterval {
         return _timeIntervalSinceReferenceDate
     }
 
@@ -56,12 +56,12 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         let _ = withUnsafeMutablePointer(&tv) { t in
             gettimeofday(t, nil)
         }
-        var timestamp = NSTimeInterval(tv.tv_sec) - NSTimeIntervalSince1970
-        timestamp += NSTimeInterval(tv.tv_usec) / 1000000.0
+        var timestamp = TimeInterval(tv.tv_sec) - NSTimeIntervalSince1970
+        timestamp += TimeInterval(tv.tv_usec) / 1000000.0
         self.init(timeIntervalSinceReferenceDate: timestamp)
     }
 
-    public required init(timeIntervalSinceReferenceDate ti: NSTimeInterval) {
+    public required init(timeIntervalSinceReferenceDate ti: TimeInterval) {
         _timeIntervalSinceReferenceDate = ti
     }
     
@@ -70,7 +70,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
             let ti = aDecoder.decodeDoubleForKey("NS.time")
             self.init(timeIntervalSinceReferenceDate: ti)
         } else {
-            var ti: NSTimeInterval = 0.0
+            var ti: TimeInterval = 0.0
             withUnsafeMutablePointer(&ti) { (ptr: UnsafeMutablePointer<Double>) -> Void in
                 aDecoder.decodeValueOfObjCType("d", at: UnsafeMutablePointer<Void>(ptr))
             }
@@ -149,19 +149,19 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 extension NSDate {
     
-    public func timeIntervalSince(_ anotherDate: Date) -> NSTimeInterval {
+    public func timeIntervalSince(_ anotherDate: Date) -> TimeInterval {
         return self.timeIntervalSinceReferenceDate - anotherDate.timeIntervalSinceReferenceDate
     }
     
-    public var timeIntervalSinceNow: NSTimeInterval {
+    public var timeIntervalSinceNow: TimeInterval {
         return timeIntervalSince(Date())
     }
     
-    public var timeIntervalSince1970: NSTimeInterval {
+    public var timeIntervalSince1970: TimeInterval {
         return timeIntervalSinceReferenceDate + NSTimeIntervalSince1970
     }
     
-    public func addingTimeInterval(_ ti: NSTimeInterval) -> Date {
+    public func addingTimeInterval(_ ti: TimeInterval) -> Date {
         return Date(timeIntervalSinceReferenceDate:_timeIntervalSinceReferenceDate + ti)
     }
     
@@ -209,15 +209,15 @@ extension NSDate {
         return _distantPast
     }
     
-    public convenience init(timeIntervalSinceNow secs: NSTimeInterval) {
+    public convenience init(timeIntervalSinceNow secs: TimeInterval) {
         self.init(timeIntervalSinceReferenceDate: secs + Date().timeIntervalSinceReferenceDate)
     }
     
-    public convenience init(timeIntervalSince1970 secs: NSTimeInterval) {
+    public convenience init(timeIntervalSince1970 secs: TimeInterval) {
         self.init(timeIntervalSinceReferenceDate: secs - NSTimeIntervalSince1970)
     }
     
-    public convenience init(timeInterval secsToBeAdded: NSTimeInterval, sinceDate date: Date) {
+    public convenience init(timeInterval secsToBeAdded: TimeInterval, sinceDate date: Date) {
         self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate + secsToBeAdded)
     }
 }
@@ -252,7 +252,7 @@ public class NSDateInterval : NSObject {
     public internal(set) var start: Date
     public internal(set) var end: Date
     
-    public var interval: NSTimeInterval {
+    public var interval: TimeInterval {
         return end.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate
     }
     
@@ -261,7 +261,7 @@ public class NSDateInterval : NSObject {
         self.end = end
     }
     
-    public convenience init(start: Date, interval: NSTimeInterval) {
+    public convenience init(start: Date, interval: TimeInterval) {
         self.init(start: start, end: Date(timeInterval: interval, since: start))
     }
 }

@@ -145,7 +145,7 @@ public class NSProcessInfo : NSObject {
         return true
     }
     
-    public var systemUptime: NSTimeInterval {
+    public var systemUptime: TimeInterval {
         return CFGetSystemUptime()
     }
 }

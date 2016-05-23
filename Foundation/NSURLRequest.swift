@@ -135,7 +135,7 @@ public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying
         self.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60.0)
     }
     
-    public init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: NSTimeInterval) {
+    public init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: TimeInterval) {
         self.url = url
         _cachePolicy = cachePolicy
         _timeoutInterval = timeoutInterval
@@ -183,8 +183,8 @@ public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying
         return _cachePolicy
     }
     
-    internal var _timeoutInterval: NSTimeInterval = 60.0
-    public var timeoutInterval: NSTimeInterval {
+    internal var _timeoutInterval: TimeInterval = 60.0
+    public var timeoutInterval: TimeInterval {
         return _timeoutInterval
     }
 
@@ -299,7 +299,7 @@ public class NSMutableURLRequest : NSURLRequest {
         self.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60.0)
     }
     
-    public override init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: NSTimeInterval) {
+    public override init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: TimeInterval) {
         super.init(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
     }
     
@@ -339,7 +339,7 @@ public class NSMutableURLRequest : NSURLRequest {
         }
     }
     
-    public override var timeoutInterval: NSTimeInterval {
+    public override var timeoutInterval: TimeInterval {
         get {
             return _timeoutInterval
         }

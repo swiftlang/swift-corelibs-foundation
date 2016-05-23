@@ -379,14 +379,14 @@ public class URLSessionStreamTask: URLSessionTask {
      * If an error occurs, any outstanding reads will also fail, and new
      * read requests will error out immediately.
      */
-    public func readDataOfMinLength(_ minBytes: Int, maxLength maxBytes: Int, timeout: NSTimeInterval, completionHandler: (NSData?, Bool, NSError?) -> Void) { NSUnimplemented() }
+    public func readDataOfMinLength(_ minBytes: Int, maxLength maxBytes: Int, timeout: TimeInterval, completionHandler: (NSData?, Bool, NSError?) -> Void) { NSUnimplemented() }
     
     /* Write the data completely to the underlying socket.  If all the
      * bytes have not been written by the timeout, a timeout error will
      * occur.  Note that invocation of the completion handler does not
      * guarantee that the remote side has received all the bytes, only
      * that they have been written to the kernel. */
-    public func writeData(_ data: NSData, timeout: NSTimeInterval, completionHandler: (NSError?) -> Void) { NSUnimplemented() }
+    public func writeData(_ data: NSData, timeout: TimeInterval, completionHandler: (NSError?) -> Void) { NSUnimplemented() }
     
     /* -captureStreams completes any already enqueued reads
      * and writes, and then invokes the
@@ -464,10 +464,10 @@ public class URLSessionConfiguration: NSObject, NSCopying {
     public var requestCachePolicy: NSURLRequest.CachePolicy
     
     /* default timeout for requests.  This will cause a timeout if no data is transmitted for the given timeout value, and is reset whenever data is transmitted. */
-    public var timeoutIntervalForRequest: NSTimeInterval
+    public var timeoutIntervalForRequest: TimeInterval
     
     /* default timeout for requests.  This will cause a timeout if a resource is not able to be retrieved within a given timeout. */
-    public var timeoutIntervalForResource: NSTimeInterval
+    public var timeoutIntervalForResource: TimeInterval
     
     /* type of service for requests. */
     public var networkServiceType: URLRequest.NetworkServiceType

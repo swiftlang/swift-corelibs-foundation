@@ -1712,6 +1712,7 @@
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
 						CreatedOnToolsVersion = 7.1;
+						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
 					5B7C8A6D1BEA7F8F00C5B690 = {
@@ -1720,10 +1721,12 @@
 					};
 					5BDC405B1BD6D83B00ED97BB = {
 						CreatedOnToolsVersion = 7.1;
+						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
 					EA66F66E1BF56CCB00136161 = {
 						CreatedOnToolsVersion = 7.1;
+						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
 				};

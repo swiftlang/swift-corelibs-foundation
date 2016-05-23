@@ -100,7 +100,7 @@ public class NSThread : NSObject {
         }
     }
 
-    public class func sleepForTimeInterval(_ interval: NSTimeInterval) {
+    public class func sleepForTimeInterval(_ interval: TimeInterval) {
         var ti = interval
         let start_ut = CFGetSystemUptime()
         let end_ut = start_ut + ti

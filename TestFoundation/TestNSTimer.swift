@@ -51,7 +51,7 @@ class TestNSTimer : XCTestCase {
 
     func test_timerRepeats() {
         var flag = 0
-        let interval = NSTimeInterval(0.1)
+        let interval = TimeInterval(0.1)
         let numberOfRepeats = 3
         var previousInterval = Date().timeIntervalSince1970
         

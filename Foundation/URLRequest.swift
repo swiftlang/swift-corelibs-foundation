@@ -33,7 +33,7 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
     /// - parameter: url The URL for the request.
     /// - parameter: cachePolicy The cache policy for the request. Defaults to `.useProtocolCachePolicy`
     /// - parameter: timeoutInterval The timeout interval for the request. See the commentary for the `timeoutInterval` for more information on timeout intervals. Defaults to 60.0
-    public init(url: URL, cachePolicy: CachePolicy = .useProtocolCachePolicy, timeoutInterval: NSTimeInterval = 60.0) {
+    public init(url: URL, cachePolicy: CachePolicy = .useProtocolCachePolicy, timeoutInterval: TimeInterval = 60.0) {
         _handle = _MutableHandle(adoptingReference: NSMutableURLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval))
     }
     
@@ -72,7 +72,7 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
     /// becomes greater than or equal to the timeout interval, the request
     /// is considered to have timed out. This timeout interval is measured
     /// in seconds.
-    public var timeoutInterval: NSTimeInterval {
+    public var timeoutInterval: TimeInterval {
         get {
             return _handle.map { $0.timeoutInterval }
         }

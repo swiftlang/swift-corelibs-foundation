@@ -14,13 +14,13 @@ import CoreFoundation
 public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringConvertible {
     public typealias ReferenceType = NSDate
     
-    private var _time : NSTimeInterval
+    private var _time : TimeInterval
     
     /// The number of seconds from 1 January 1970 to the reference date, 1 January 2001.
     public static let timeIntervalBetween1970AndReferenceDate = 978307200.0
     
     /// The interval between 00:00:00 UTC on 1 January 2001 and the current date and time.
-    public static var timeIntervalSinceReferenceDate : NSTimeInterval {
+    public static var timeIntervalSinceReferenceDate : TimeInterval {
         return CFAbsoluteTimeGetCurrent()
     }
     
@@ -30,12 +30,12 @@ public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringCo
     }
     
     /// Returns a `Date` initialized relative to the current date and time by a given number of seconds.
-    public init(timeIntervalSinceNow: NSTimeInterval) {
+    public init(timeIntervalSinceNow: TimeInterval) {
         self.init(timeIntervalSinceReferenceDate: timeIntervalSinceNow + CFAbsoluteTimeGetCurrent())
     }
     
     /// Returns a `Date` initialized relative to 00:00:00 UTC on 1 January 1970 by a given number of seconds.
-    public init(timeIntervalSince1970: NSTimeInterval) {
+    public init(timeIntervalSince1970: TimeInterval) {
         self.init(timeIntervalSinceReferenceDate: timeIntervalSince1970 - Date.timeIntervalBetween1970AndReferenceDate)
     }
     
@@ -45,12 +45,12 @@ public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringCo
      - Parameter timeInterval: The number of seconds to add to `date`. A negative value means the receiver will be earlier than `date`.
      - Parameter date: The reference date.
      */
-    public init(timeInterval: NSTimeInterval, since date: Date) {
+    public init(timeInterval: TimeInterval, since date: Date) {
         self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate + timeInterval)
     }
     
     /// Returns an `Date` initialized relative to 00:00:00 UTC on 1 January 2001 by a given number of seconds.
-    public init(timeIntervalSinceReferenceDate ti: NSTimeInterval) {
+    public init(timeIntervalSinceReferenceDate ti: TimeInterval) {
         _time = ti
     }
     
@@ -68,7 +68,7 @@ public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringCo
      
      This property’s value is negative if the date object is earlier than the system’s absolute reference date (00:00:00 UTC on 1 January 2001).
      */
-    public var timeIntervalSinceReferenceDate: NSTimeInterval {
+    public var timeIntervalSinceReferenceDate: TimeInterval {
         return _time
     }
     
@@ -83,7 +83,7 @@ public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringCo
      - SeeAlso: `timeIntervalSinceNow`
      - SeeAlso: `timeIntervalSinceReferenceDate`
      */
-    public func timeIntervalSince(_ date: Date) -> NSTimeInterval {
+    public func timeIntervalSince(_ date: Date) -> TimeInterval {
         return self.timeIntervalSinceReferenceDate - date.timeIntervalSinceReferenceDate
     }
     
@@ -96,7 +96,7 @@ public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringCo
      - SeeAlso: `timeIntervalSince1970`
      - SeeAlso: `timeIntervalSinceReferenceDate`
      */
-    public var timeIntervalSinceNow: NSTimeInterval {
+    public var timeIntervalSinceNow: TimeInterval {
         return self.timeIntervalSinceReferenceDate - CFAbsoluteTimeGetCurrent()
     }
     
@@ -109,7 +109,7 @@ public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringCo
      - SeeAlso: `timeIntervalSinceNow`
      - SeeAlso: `timeIntervalSinceReferenceDate`
      */
-    public var timeIntervalSince1970: NSTimeInterval {
+    public var timeIntervalSince1970: TimeInterval {
         return self.timeIntervalSinceReferenceDate + Date.timeIntervalBetween1970AndReferenceDate
     }
     
@@ -180,19 +180,19 @@ public func <(lhs: Date, rhs: Date) -> Bool {
 }
 
 /// Returns a Date with a specified amount of time added to it.
-public func +(lhs: Date, rhs: NSTimeInterval) -> Date {
+public func +(lhs: Date, rhs: TimeInterval) -> Date {
     return Date(timeIntervalSinceReferenceDate: lhs.timeIntervalSinceReferenceDate + rhs)
 }
 
 /// Returns a Date with a specified amount of time subtracted from it.
-public func -(lhs: Date, rhs: NSTimeInterval) -> Date {
+public func -(lhs: Date, rhs: TimeInterval) -> Date {
     return Date(timeIntervalSinceReferenceDate: lhs.timeIntervalSinceReferenceDate - rhs)
 }
 
-public func +=(lhs: inout Date, rhs: NSTimeInterval) {
+public func +=(lhs: inout Date, rhs: TimeInterval) {
     lhs = lhs + rhs
 }
 
-public func -=(lhs: inout Date, rhs: NSTimeInterval) {
+public func -=(lhs: inout Date, rhs: TimeInterval) {
     lhs = lhs - rhs
 }
