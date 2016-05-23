@@ -19,7 +19,7 @@ public class URLCredentialStorage: NSObject {
         @abstract Get the shared singleton authentication storage
         @result the shared authentication storage
     */
-    public class func sharedCredentialStorage() -> URLCredentialStorage { NSUnimplemented() }
+    public class var shared: URLCredentialStorage { get { NSUnimplemented() } }
     
     /*!
         @method credentialsForProtectionSpace:
@@ -27,7 +27,7 @@ public class URLCredentialStorage: NSObject {
         @param protectionSpace An NSURLProtectionSpace indicating the protection space for which to get credentials
         @result A dictionary where the keys are usernames and the values are the corresponding NSURLCredentials.
     */
-    public func credentialsForProtectionSpace(_ space: URLProtectionSpace) -> [String : URLCredential]? { NSUnimplemented() }
+    public func credentials(for space: URLProtectionSpace) -> [String : URLCredential]? { NSUnimplemented() }
     
     /*!
         @method allCredentials
@@ -47,7 +47,7 @@ public class URLCredentialStorage: NSObject {
         a distinct user. If a credential with the same user is already set for the protection space,
         the new one will replace it.
     */
-    public func setCredential(_ credential: URLCredential, forProtectionSpace space: URLProtectionSpace) { NSUnimplemented() }
+    public func set(_ credential: URLCredential, for space: URLProtectionSpace) { NSUnimplemented() }
     
     /*!
         @method removeCredential:forProtectionSpace:
@@ -58,7 +58,7 @@ public class URLCredentialStorage: NSObject {
         has a persistence policy of NSURLCredentialPersistenceSynchronizable will fail.  
         See removeCredential:forProtectionSpace:options.
     */
-    public func removeCredential(_ credential: URLCredential, forProtectionSpace space: URLProtectionSpace) { NSUnimplemented() }
+    public func remove(_ credential: URLCredential, for space: URLProtectionSpace) { NSUnimplemented() }
     
     /*!
      @method removeCredential:forProtectionSpace:options
@@ -71,14 +71,14 @@ public class URLCredentialStorage: NSObject {
      are removed, the credential will be removed on all devices that contain this credential.
      @discussion The credential is removed from both persistent and temporary storage.
      */
-    public func removeCredential(_ credential: URLCredential, forProtectionSpace space: URLProtectionSpace, options: [String : AnyObject]?) { NSUnimplemented() }
+    public func remove(_ credential: URLCredential, for space: URLProtectionSpace, options: [String : AnyObject]? = [:]) { NSUnimplemented() }
     
     /*!
         @method defaultCredentialForProtectionSpace:
         @abstract Get the default credential for the specified protection space.
         @param space The protection space for which to get the default credential.
     */
-    public func defaultCredentialForProtectionSpace(_ space: URLProtectionSpace) -> URLCredential? { NSUnimplemented() }
+    public func defaultCredential(for space: URLProtectionSpace) -> URLCredential? { NSUnimplemented() }
     
     /*!
         @method setDefaultCredential:forProtectionSpace:
@@ -87,15 +87,15 @@ public class URLCredentialStorage: NSObject {
         @param space The protection space for which the credential should be set as default.
         @discussion If the credential is not yet in the set for the protection space, it will be added to it.
     */
-    public func setDefaultCredential(_ credential: URLCredential, forProtectionSpace space: URLProtectionSpace) { NSUnimplemented() }
+    public func setDefaultCredential(_ credential: URLCredential, for space: URLProtectionSpace) { NSUnimplemented() }
 }
 
 extension URLCredentialStorage {
-    public func getCredentialsForProtectionSpace(_ protectionSpace: URLProtectionSpace, task: URLSessionTask, completionHandler: ([String : URLCredential]?) -> Void) { NSUnimplemented() }
-    public func setCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, task: URLSessionTask) { NSUnimplemented() }
-    public func removeCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, options: [String : AnyObject]?, task: URLSessionTask) { NSUnimplemented() }
-    public func getDefaultCredentialForProtectionSpace(_ space: URLProtectionSpace, task: URLSessionTask, completionHandler: (URLCredential?) -> Void) { NSUnimplemented() }
-    public func setDefaultCredential(_ credential: URLCredential, forProtectionSpace protectionSpace: URLProtectionSpace, task: URLSessionTask) { NSUnimplemented() }
+    public func getCredentials(for protectionSpace: URLProtectionSpace, task: URLSessionTask, completionHandler: ([String : URLCredential]?) -> Void) { NSUnimplemented() }
+    public func set(_ credential: URLCredential, for protectionSpace: URLProtectionSpace, task: URLSessionTask) { NSUnimplemented() }
+    public func remove(_ credential: URLCredential, for protectionSpace: URLProtectionSpace, options: [String : AnyObject]? = [:], task: URLSessionTask) { NSUnimplemented() }
+    public func getDefaultCredential(for space: URLProtectionSpace, task: URLSessionTask, completionHandler: (URLCredential?) -> Void) { NSUnimplemented() }
+    public func setDefaultCredential(_ credential: URLCredential, for protectionSpace: URLProtectionSpace, task: URLSessionTask) { NSUnimplemented() }
 }
 
 /*!
