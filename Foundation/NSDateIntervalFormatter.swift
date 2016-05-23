@@ -8,19 +8,21 @@
 //
 
 
-public enum NSDateIntervalFormatterStyle : UInt {
-    
-    case noStyle
-    case shortStyle
-    case mediumStyle
-    case longStyle
-    case fullStyle
+extension DateIntervalFormatter {
+    public enum Style : UInt {
+        
+        case noStyle
+        case shortStyle
+        case mediumStyle
+        case longStyle
+        case fullStyle
+    }
 }
 
 // NSDateIntervalFormatter is used to format the range between two NSDates in a locale-sensitive way.
 // NSDateIntervalFormatter returns nil and NO for all methods in NSFormatter.
 
-public class NSDateIntervalFormatter : NSFormatter {
+public class DateIntervalFormatter : NSFormatter {
     
     public override init() {
         NSUnimplemented()
@@ -34,8 +36,8 @@ public class NSDateIntervalFormatter : NSFormatter {
     /*@NSCopying*/ public var calendar: NSCalendar! // default is the calendar of the locale
     /*@NSCopying*/ public var timeZone: NSTimeZone! // default is [NSTimeZone defaultTimeZone]
     public var dateTemplate: String! // default is an empty string
-    public var dateStyle: NSDateIntervalFormatterStyle // default is NSDateIntervalFormatterNoStyle
-    public var timeStyle: NSDateIntervalFormatterStyle // default is NSDateIntervalFormatterNoStyle
+    public var dateStyle: Style // default is NSDateIntervalFormatterNoStyle
+    public var timeStyle: Style // default is NSDateIntervalFormatterNoStyle
     
     /*
          If the range smaller than the resolution specified by the dateTemplate, a single date format will be produced. If the range is larger than the format specified by the dateTemplate, a locale-specific fallback will be used to format the items missing from the pattern.
