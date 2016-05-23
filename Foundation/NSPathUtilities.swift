@@ -631,7 +631,7 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     let template = "." + filePath + ".tmp.XXXXXX"
     let maxLength = Int(PATH_MAX) + 1
     var buf = [Int8](repeating: 0, count: maxLength)
-    template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
+    let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
     let fd = mkstemp(&buf)
     if fd == -1 {
         throw _NSErrorWithErrno(errno, reading: false, path: filePath)

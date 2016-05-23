@@ -34,9 +34,9 @@ public struct CGFloat {
     
     private var hash: Int {
 #if arch(i386) || arch(arm)
-        return Int(Float(self.native)._toBitPattern())
+        return Int(Float(self.native).bitPattern)
 #else
-        return Int(self.native._toBitPattern())
+        return Int(self.native.bitPattern)
 #endif
     }
 }
@@ -786,16 +786,16 @@ private func _scanDoublesFromString(_ aString: String, number: Int) -> [Double] 
     digitSet.addCharacters(in: "-")
     var result = [Double](repeating: 0.0, count: number)
     var index = 0
-    
-    scanner.scanUpToCharactersFromSet(digitSet)
+
+    let _ = scanner.scanUpToCharactersFromSet(digitSet)
     while !scanner.atEnd && index < number {
         if let num = scanner.scanDouble() {
             result[index] = num
         }
-        scanner.scanUpToCharactersFromSet(digitSet)
+        let _ = scanner.scanUpToCharactersFromSet(digitSet)
         index += 1
     }
-    
+
     return result
 }
 
