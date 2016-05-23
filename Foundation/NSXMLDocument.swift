@@ -31,20 +31,23 @@ import CoreFoundation
 //  NSXMLNodePrettyPrint
 //  NSXMLDocumentIncludeContentTypeDeclaration
 
-/*!
-    @typedef NSXMLDocumentContentKind
-	@abstract Define what type of document this is.
-	@constant NSXMLDocumentXMLKind The default document type
-	@constant NSXMLDocumentXHTMLKind Set if NSXMLDocumentTidyHTML is set and HTML is detected
-	@constant NSXMLDocumentHTMLKind Outputs empty tags without a close tag, eg <br>
-	@constant NSXMLDocumentTextKind Output the string value of the document
-*/
-public enum NSXMLDocumentContentKind : UInt {
+extension XMLDocument {
 
-    case XMLKind
-    case XHTMLKind
-    case HTMLKind
-    case TextKind
+    /*!
+        @typedef NSXMLDocumentContentKind
+        @abstract Define what type of document this is.
+        @constant NSXMLDocumentXMLKind The default document type
+        @constant NSXMLDocumentXHTMLKind Set if NSXMLDocumentTidyHTML is set and HTML is detected
+        @constant NSXMLDocumentHTMLKind Outputs empty tags without a close tag, eg <br>
+        @constant NSXMLDocumentTextKind Output the string value of the document
+    */
+    public enum ContentKind : UInt {
+
+        case xmlKind
+        case xhtmlKind
+        case htmlKind
+        case textKind
+    }
 }
 
 /*!
@@ -52,7 +55,7 @@ public enum NSXMLDocumentContentKind : UInt {
     @abstract An XML Document
 	@discussion Note: if the application of a method would result in more than one element in the children array, an exception is thrown. Trying to add a document, namespace, attribute, or node with a parent also throws an exception. To add a node with a parent first detach or create a copy of it.
 */
-public class NSXMLDocument : NSXMLNode {
+public class XMLDocument : NSXMLNode {
     private var _xmlDoc: _CFXMLDocPtr {
         return _CFXMLDocPtr(_xmlNode)
     }
@@ -160,21 +163,21 @@ public class NSXMLDocument : NSXMLNode {
         @method documentContentKind
         @abstract The kind of document.
     */
-    public var documentContentKind: NSXMLDocumentContentKind  {
+    public var documentContentKind: ContentKind  {
         get {
             let properties = _CFXMLDocProperties(_xmlDoc)
 
             if properties & Int32(_kCFXMLDocTypeHTML) != 0 {
-                return .HTMLKind
+                return .htmlKind
             }
 
-            return .XMLKind
+            return .xmlKind
         }
 
         set {
             var properties = _CFXMLDocProperties(_xmlDoc)
             switch newValue {
-            case .HTMLKind:
+            case .htmlKind:
                 properties |= Int32(_kCFXMLDocTypeHTML)
 
             default:
@@ -342,14 +345,14 @@ public class NSXMLDocument : NSXMLNode {
         }
     }
 
-    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLDocument {
+    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> XMLDocument {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDocument)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            return NSXMLDocument.unretainedReference(privateData)
+            return XMLDocument.unretainedReference(privateData)
         }
 
-        return NSXMLDocument(ptr: node)
+        return XMLDocument(ptr: node)
     }
 
     internal override init(ptr: _CFXMLNodePtr) {

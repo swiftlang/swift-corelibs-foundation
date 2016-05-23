@@ -108,7 +108,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns an empty document.
     */
     public class func document() -> AnyObject {
-        return NSXMLDocument(rootElement: nil)
+        return XMLDocument(rootElement: nil)
     }
 
     /*!
@@ -117,7 +117,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @param element The document's root node.
     */
     public class func documentWithRootElement(_ element: NSXMLElement) -> AnyObject {
-        return NSXMLDocument(rootElement: element)
+        return XMLDocument(rootElement: element)
     }
 
     /*!
@@ -429,10 +429,10 @@ public class NSXMLNode : NSObject, NSCopying {
         @method rootDocument
         @abstract The encompassing document or nil.
     */
-    public var rootDocument: NSXMLDocument? {
+    public var rootDocument: XMLDocument? {
         guard let doc = _CFXMLNodeGetDocument(_xmlNode) else { return nil }
 
-        return NSXMLNode._objectNodeForNode(_CFXMLNodePtr(doc)) as? NSXMLDocument
+        return NSXMLNode._objectNodeForNode(_CFXMLNodePtr(doc)) as? XMLDocument
     }
 
     /*!
@@ -777,7 +777,7 @@ public class NSXMLNode : NSObject, NSCopying {
             return NSXMLElement._objectNodeForNode(node)
 
         case _kCFXMLTypeDocument:
-            return NSXMLDocument._objectNodeForNode(node)
+            return XMLDocument._objectNodeForNode(node)
 
         case _kCFXMLTypeDTD:
             return NSXMLDTD._objectNodeForNode(node)
