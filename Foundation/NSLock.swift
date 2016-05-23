@@ -70,11 +70,11 @@ public class NSConditionLock : NSObject, NSLocking {
     public init(condition: Int) {
         _value = condition
     }
-    
+
     public func lock() {
-        lockBeforeDate(NSDate.distantFuture())
+        let _ = lockBeforeDate(NSDate.distantFuture())
     }
-    
+
     public func unlock() {
         _cond.lock()
         _thread = nil
@@ -85,11 +85,11 @@ public class NSConditionLock : NSObject, NSLocking {
     public var condition: Int {
         return _value
     }
-    
+
     public func lockWhenCondition(_ condition: Int) {
-        lockWhenCondition(condition, beforeDate: NSDate.distantFuture())
+        let _ = lockWhenCondition(condition, beforeDate: NSDate.distantFuture())
     }
-    
+
     public func tryLock() -> Bool {
         return lockBeforeDate(NSDate.distantPast())
     }

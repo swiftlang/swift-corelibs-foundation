@@ -268,7 +268,7 @@ public class NSNumber : NSValue {
             break
         }
     }
-    
+
     public required convenience init?(coder aDecoder: NSCoder) {
         if !aDecoder.allowsKeyedCoding {
             var objCType: UnsafeMutablePointer<Int8>? = nil
@@ -279,7 +279,7 @@ public class NSNumber : NSValue {
                 return nil
             }
             var size: Int = 0
-            NSGetSizeAndAlignment(objCType!, &size, nil)
+            let _ = NSGetSizeAndAlignment(objCType!, &size, nil)
             let buffer = malloc(size)!
             aDecoder.decodeValueOfObjCType(objCType!, at: buffer)
             self.init(bytes: buffer, objCType: objCType!)

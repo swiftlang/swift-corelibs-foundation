@@ -122,10 +122,10 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
             _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, path._cfObject, kCFURLPOSIXPathStyle, baseURL.hasDirectoryPath, nil)
         }
     }
-    
+
     public convenience init(fileURLWithPath path: String, relativeToURL baseURL: NSURL?) {
         let thePath = _standardizedPath(path)
-        
+
         var isDir : Bool = false
         if thePath.hasSuffix("/") {
             isDir = true
@@ -136,29 +136,29 @@ public class NSURL : NSObject, NSSecureCoding, NSCopying {
             } else {
                 absolutePath = path
             }
-            NSFileManager.defaultManager().fileExists(atPath: absolutePath, isDirectory: &isDir)
+            let _ = NSFileManager.defaultManager().fileExists(atPath: absolutePath, isDirectory: &isDir)
         }
 
         self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeToURL: baseURL)
     }
-    
+
     public convenience init(fileURLWithPath path: String, isDirectory isDir: Bool) {
         self.init(fileURLWithPath: path, isDirectory: isDir, relativeToURL: nil)
     }
-    
+
     public convenience init(fileURLWithPath path: String) {
         let thePath = _standardizedPath(path)
-        
+
         var isDir : Bool = false
         if thePath.hasSuffix("/") {
             isDir = true
         } else {
-            NSFileManager.defaultManager().fileExists(atPath: path, isDirectory: &isDir)
+            let _ = NSFileManager.defaultManager().fileExists(atPath: path, isDirectory: &isDir)
         }
 
         self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeToURL: nil)
     }
-    
+
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeToURL baseURL: NSURL?) {
         let pathString = String(cString: path)
         self.init(fileURLWithPath: pathString, isDirectory: isDir, relativeToURL: baseURL)
@@ -518,16 +518,16 @@ extension NSURL {
     public var URLByResolvingSymlinksInPath: NSURL? {
         return _resolveSymlinksInPath(excludeSystemDirs: true)
     }
-    
+
     internal func _resolveSymlinksInPath(excludeSystemDirs: Bool) -> NSURL? {
         guard fileURL else {
             return NSURL(string: absoluteString)
         }
-        
+
         guard let selfPath = path else {
             return NSURL(string: absoluteString)
         }
-        
+
         let absolutePath: String
         if selfPath.hasPrefix("/") {
             absolutePath = selfPath
@@ -535,22 +535,22 @@ extension NSURL {
             let workingDir = NSFileManager.defaultManager().currentDirectoryPath
             absolutePath = workingDir.bridge().stringByAppendingPathComponent(selfPath)
         }
-        
+
         var components = absolutePath.pathComponents
         guard !components.isEmpty else {
             return NSURL(string: absoluteString)
         }
-        
+
         var resolvedPath = components.removeFirst()
         for component in components {
             switch component {
-                
+
             case "", ".":
                 break
-                
+
             case "..":
                 resolvedPath = resolvedPath.bridge().stringByDeletingLastPathComponent
-                
+
             default:
                 resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
                 if let destination = NSFileManager.defaultManager()._tryToResolveTrailingSymlinkInPath(resolvedPath) {
@@ -558,19 +558,19 @@ extension NSURL {
                 }
             }
         }
-        
+
         // It might be a responsibility of NSURL(fileURLWithPath:). Check it.
         var isExistingDirectory = false
-        NSFileManager.defaultManager().fileExists(atPath: resolvedPath, isDirectory: &isExistingDirectory)
-        
+        let _ = NSFileManager.defaultManager().fileExists(atPath: resolvedPath, isDirectory: &isExistingDirectory)
+
         if excludeSystemDirs {
             resolvedPath = resolvedPath._tryToRemovePathPrefix("/private") ?? resolvedPath
         }
-        
+
         if isExistingDirectory && !resolvedPath.hasSuffix("/") {
             resolvedPath += "/"
         }
-        
+
         return NSURL(fileURLWithPath: resolvedPath)
     }
 }

@@ -104,7 +104,7 @@ public class NSThread : NSObject {
     public class func isMultiThreaded() -> Bool {
         return true
     }
-    
+
     public class func sleepUntilDate(_ date: NSDate) {
         let start_ut = CFGetSystemUptime()
         let start_at = CFAbsoluteTimeGetCurrent()
@@ -121,13 +121,13 @@ public class NSThread : NSObject {
                 __ts__.tv_sec = Int(integ)
                 __ts__.tv_nsec = Int(frac * 1000000000.0)
             }
-            withUnsafePointer(&__ts__) { ts in
+            let _ = withUnsafePointer(&__ts__) { ts in
                 nanosleep(ts, nil)
             }
             ti = end_ut - CFGetSystemUptime()
         }
     }
-    
+
     public class func sleepForTimeInterval(_ interval: NSTimeInterval) {
         var ti = interval
         let start_ut = CFGetSystemUptime()
@@ -142,13 +142,13 @@ public class NSThread : NSObject {
                 __ts__.tv_sec = Int(integ)
                 __ts__.tv_nsec = Int(frac * 1000000000.0)
             }
-            withUnsafePointer(&__ts__) { ts in
+            let _ = withUnsafePointer(&__ts__) { ts in
                 nanosleep(ts, nil)
             }
             ti = end_ut - CFGetSystemUptime()
         }
     }
-    
+
     public class func exit() {
         pthread_exit(nil)
     }
@@ -169,14 +169,14 @@ public class NSThread : NSObject {
         // Note: even on Darwin this is a non-optional pthread_t; this is only used for valid threads, which are never null pointers.
         _thread = thread
     }
-    
+
     public init(_ main: (Void) -> Void) {
         _main = main
-        withUnsafeMutablePointer(&_attr) { attr in
+        let _ = withUnsafeMutablePointer(&_attr) { attr in
             pthread_attr_init(attr)
         }
     }
-    
+
     public func start() {
         precondition(_status == .Initialized, "attempting to start a thread that has already been started")
         _status = .Starting
@@ -208,12 +208,12 @@ public class NSThread : NSObject {
             if (1 << 30) < s {
                 s = 1 << 30
             }
-            withUnsafeMutablePointer(&_attr) { attr in
+            let _ = withUnsafeMutablePointer(&_attr) { attr in
                 pthread_attr_setstacksize(attr, s)
             }
         }
     }
-    
+
     public var executing: Bool {
         return _status == .Executing
     }
