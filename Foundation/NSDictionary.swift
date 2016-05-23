@@ -82,7 +82,7 @@ extension Dictionary : _ObjectTypeBridgeable {
     }
 }
 
-public class NSDictionary : NSObject, NSCopying, NSMutableCopying, SecureCoding, Coding {
+public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
     internal var _storage = [NSObject: AnyObject]()
     
@@ -161,7 +161,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, SecureCoding,
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if let keyedArchiver = aCoder as? NSKeyedArchiver {
             keyedArchiver._encodeArrayOfObjects(self.allKeys._nsObject, forKey:"NS.keys")
             keyedArchiver._encodeArrayOfObjects(self.allValues._nsObject, forKey:"NS.objects")
@@ -170,7 +170,9 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, SecureCoding,
         }
     }
     
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool {
+        return true
+    }
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

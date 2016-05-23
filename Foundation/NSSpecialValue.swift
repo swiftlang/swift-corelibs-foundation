@@ -11,7 +11,7 @@ internal protocol NSSpecialValueCoding {
     static func objCType() -> String
     
     init(bytes value: UnsafePointer<Void>)
-    func encode(with aCoder: NSCoder)
+    func encodeWithCoder(_ aCoder: NSCoder)
     init?(coder aDecoder: NSCoder)
     func getValue(_ value: UnsafeMutablePointer<Void>)
     
@@ -110,12 +110,12 @@ internal class NSSpecialValue : NSValue {
         }
     }
     
-    override func encode(with aCoder: NSCoder) {
+    override func encodeWithCoder(_ aCoder: NSCoder) {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {
             aCoder.encodeInteger(NSSpecialValue._flagsFromType(_value.dynamicType), forKey: "NS.special")
-            _value.encode(with: aCoder)
+            _value.encodeWithCoder(aCoder)
         }
     }
     

@@ -16,7 +16,7 @@ import CoreFoundation
     import Glibc
 #endif
 
-public class NSUUID : NSObject, NSCopying, SecureCoding, Coding {
+public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     internal var buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
     
     public override init() {
@@ -53,7 +53,9 @@ public class NSUUID : NSObject, NSCopying, SecureCoding, Coding {
         return self
     }
     
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool {
+        return true
+    }
     
     public convenience required init?(coder: NSCoder) {
         if coder.allowsKeyedCoding {
@@ -73,7 +75,7 @@ public class NSUUID : NSObject, NSCopying, SecureCoding, Coding {
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         aCoder.encodeBytes(buffer, length: 16, forKey: "NS.uuidbytes")
     }
     

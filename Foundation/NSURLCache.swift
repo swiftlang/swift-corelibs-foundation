@@ -42,17 +42,19 @@ extension URLCache {
     It is used to maintain characteristics and attributes of a cached 
     object. 
 */
-public class CachedURLResponse : NSObject, SecureCoding, NSCopying {
+public class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public static let supportsSecureCoding = true
+    static public func supportsSecureCoding() -> Bool {
+        return true
+    }
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

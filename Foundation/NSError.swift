@@ -30,7 +30,7 @@ public let NSURLErrorKey: String = "NSURL"
 public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
 
 
-public class NSError : NSObject, NSCopying, SecureCoding, Coding {
+public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFError
     
     internal var _cfObject: CFType {
@@ -84,9 +84,11 @@ public class NSError : NSObject, NSCopying, SecureCoding, Coding {
         }
     }
     
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool {
+        return true
+    }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(_domain.bridge(), forKey: "NSDomain")
             aCoder.encodeInt(Int32(_code), forKey: "NSCode")

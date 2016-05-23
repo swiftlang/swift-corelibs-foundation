@@ -120,7 +120,7 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
         return self
     }
 
-    // TODO: Could perhaps be an extension of Coding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
+    // TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
     public var classForKeyedArchiver: AnyClass? {
         return self.classForCoder
     }

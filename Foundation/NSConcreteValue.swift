@@ -132,7 +132,7 @@ internal class NSConcreteValue : NSValue {
         }
     }
     
-    override func encode(with aCoder: NSCoder) {
+    override func encodeWithCoder(_ aCoder: NSCoder) {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {

@@ -29,7 +29,7 @@ The following code snippets can be used to enumerate over the indexes in an NSIn
 To enumerate without doing a call per index, you can use the method getIndexes:maxCount:inIndexRange:.
 */
 
-public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, SecureCoding {
+public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     // all instance variables are private
     
     internal var _ranges = [NSRange]()
@@ -58,9 +58,9 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, SecureCoding {
     }
     
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool { return true }
     public required init?(coder aDecoder: NSCoder)  { NSUnimplemented() }
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     

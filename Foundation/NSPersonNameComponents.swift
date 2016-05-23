@@ -8,7 +8,7 @@
 //
 
 
-public class NSPersonNameComponents : NSObject, NSCopying, SecureCoding {
+public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
     public convenience required init?(coder aDecoder: NSCoder) {
         self.init()
@@ -29,9 +29,9 @@ public class NSPersonNameComponents : NSObject, NSCopying, SecureCoding {
         }
     }
     
-    public static let supportsSecureCoding = true
+    static public func supportsSecureCoding() -> Bool { return true }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.namePrefix?.bridge(), forKey: "NS.namePrefix")
             aCoder.encodeObject(self.givenName?.bridge(), forKey: "NS.givenName")

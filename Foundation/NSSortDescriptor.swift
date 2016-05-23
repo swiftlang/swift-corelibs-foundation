@@ -8,17 +8,19 @@
 //
 
 
-public class NSSortDescriptor : NSObject, SecureCoding, NSCopying {
+public class NSSortDescriptor : NSObject, NSSecureCoding, NSCopying {
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public static let supportsSecureCoding = true
+    static public func supportsSecureCoding() -> Bool {
+        return true
+    }
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

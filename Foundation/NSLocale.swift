@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-public class NSLocale : NSObject, NSCopying, SecureCoding {
+public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFLocale
     private var _base = _CFInfo(typeID: CFLocaleGetTypeID())
     private var _identifier: UnsafeMutablePointer<Void>? = nil
@@ -57,7 +57,7 @@ public class NSLocale : NSObject, NSCopying, SecureCoding {
     
     public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             let identifier = CFLocaleGetIdentifier(self._cfObject)
             aCoder.encodeObject(identifier, forKey: "NS.identifier")
@@ -66,7 +66,9 @@ public class NSLocale : NSObject, NSCopying, SecureCoding {
         }
     }
     
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool {
+        return true
+    }
 }
 
 extension NSLocale {

@@ -68,11 +68,13 @@ public class URLCredential : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public static let supportsSecureCoding = true
+    static public func supportsSecureCoding() -> Bool {
+        return true
+    }
     
     public override func copy() -> AnyObject {
         return copy(with: nil)

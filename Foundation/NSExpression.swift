@@ -27,15 +27,17 @@ public enum NSExpressionType : UInt {
     case conditionalExpressionType
 }
 
-public class NSExpression : NSObject, SecureCoding, NSCopying {
+public class NSExpression : NSObject, NSSecureCoding, NSCopying {
     
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool {
+        return true
+    }
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     

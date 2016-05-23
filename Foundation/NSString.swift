@@ -205,7 +205,7 @@ internal func isAParagraphSeparatorTypeCharacter(_ ch: unichar) -> Bool {
     return ch == 0x0a || ch == 0x0d || ch == 0x2029
 }
 
-public class NSString : NSObject, NSCopying, NSMutableCopying, SecureCoding, Coding {
+public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFStringGetTypeID())
     internal var _storage: String
     
@@ -288,9 +288,11 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, SecureCoding, Cod
         return result
     }
     
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool {
+        return true
+    }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
             aKeyedCoder._encodePropertyList(self, forKey: "NS.string")
         } else {

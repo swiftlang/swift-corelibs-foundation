@@ -17,7 +17,7 @@ public struct NSTextCheckingType : OptionSet {
     public static let RegularExpression = NSTextCheckingType(rawValue: 1 << 10) // regular expression matches
 }
 
-public class NSTextCheckingResult : NSObject, NSCopying, Coding {
+public class NSTextCheckingResult : NSObject, NSCopying, NSCoding {
     
     public override init() {
         super.init()
@@ -31,7 +31,7 @@ public class NSTextCheckingResult : NSObject, NSCopying, Coding {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     

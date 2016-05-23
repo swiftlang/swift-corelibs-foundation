@@ -16,15 +16,17 @@
 /// the actual bytes representing the content of a URL. See
 /// `NSURLSession` for more information about receiving the content
 /// data for a URL load.
-public class URLResponse: NSObject, NSSecureCoding, NSCopying {
+public class URLResponse : NSObject, NSSecureCoding, NSCopying {
 
-    public static let supportsSecureCoding = true
+    static public func supportsSecureCoding() -> Bool {
+        return true
+    }
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     

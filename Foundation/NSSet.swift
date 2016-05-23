@@ -70,7 +70,7 @@ extension Set : _ObjectTypeBridgeable {
     }
 }
 
-public class NSSet : NSObject, NSCopying, NSMutableCopying, SecureCoding, Coding {
+public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
     internal var _storage: Set<NSObject>
     
@@ -144,9 +144,9 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, SecureCoding, Coding
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         // The encoding of a NSSet is identical to the encoding of an NSArray of its contents
-        self.allObjects._nsObject.encode(with: aCoder)
+        self.allObjects._nsObject.encodeWithCoder(aCoder)
     }
     
     public override func copy() -> AnyObject {
@@ -179,7 +179,9 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, SecureCoding, Coding
         return NSMutableSet(array: self.allObjects)
     }
 
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool {
+        return true
+    }
     
     public func descriptionWithLocale(_ locale: AnyObject?) -> String { NSUnimplemented() }
     

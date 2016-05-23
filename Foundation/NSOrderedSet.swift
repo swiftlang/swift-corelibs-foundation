@@ -8,7 +8,7 @@
 //
 
 /****************       Immutable Ordered Set   ****************/
-public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, SecureCoding, ArrayLiteralConvertible {
+public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ArrayLiteralConvertible {
     internal var _storage: Set<NSObject>
     internal var _orderedStorage: [NSObject]
     
@@ -28,7 +28,9 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, SecureCoding,
         NSUnimplemented()
     }
     
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool {
+        return true
+    }
     
     public override func isEqual(_ object: AnyObject?) -> Bool {
         if let orderedSet = object as? NSOrderedSet {
@@ -38,7 +40,7 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, SecureCoding,
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             for idx in 0..<self.count {
                 aCoder.encodeObject(self.objectAtIndex(idx), forKey:"NS.object.\(idx)")

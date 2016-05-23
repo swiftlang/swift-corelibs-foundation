@@ -123,7 +123,7 @@ public enum URLRequestNetworkServiceType : UInt {
 ///
 /// Objects of this class are used with the `NSURLSession` API to perform the
 /// load of a URL.
-public class NSURLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying {
+public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
     public override func copy() -> AnyObject {
         return copy(with: nil)
@@ -160,14 +160,14 @@ public class NSURLRequest : NSObject, SecureCoding, NSCopying, NSMutableCopying 
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         NSUnimplemented()
     }
     
     private override init() {}
     
-    /// Indicates that NSURLRequest implements the SecureCoding protocol.
-    public static let supportsSecureCoding = true
+    /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
+    public static func supportsSecureCoding() -> Bool { return true }
     
     /// Initializes an NSURLRequest with the given URL.
     ///

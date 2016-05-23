@@ -43,7 +43,7 @@ extension Formatter {
     }
 }
 
-public class Formatter : NSObject, NSCopying, Coding {
+public class Formatter : NSObject, NSCopying, NSCoding {
     
     public override init() {
         
@@ -53,7 +53,7 @@ public class Formatter : NSObject, NSCopying, Coding {
         
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         
     }
     

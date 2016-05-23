@@ -29,7 +29,7 @@ let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.illegal
 #endif
 
 
-public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, Coding {
+public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     typealias CFType = CFCharacterSet
     private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
     private var _hashValue = CFHashCode(0)
@@ -192,7 +192,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, Coding {
         return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
     }
     
-    public func encode(with aCoder: NSCoder) {
+    public func encodeWithCoder(_ aCoder: NSCoder) {
         
     }
 }
