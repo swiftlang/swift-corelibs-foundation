@@ -198,14 +198,14 @@ public class XMLDocument : NSXMLNode {
         @method DTD
         @abstract Set the associated DTD. This DTD will be output with the document.
     */
-    /*@NSCopying*/ public var DTD: NSXMLDTD? {
+    /*@NSCopying*/ public var DTD: XMLDTD? {
         get {
-            return NSXMLDTD._objectNodeForNode(_CFXMLDocDTD(_xmlDoc)!)
+            return XMLDTD._objectNodeForNode(_CFXMLDocDTD(_xmlDoc)!)
         }
         set {
             if let currDTD = _CFXMLDocDTD(_xmlDoc) {
                 if _CFXMLNodeGetPrivateData(currDTD) != nil {
-                    let DTD = NSXMLDTD._objectNodeForNode(currDTD)
+                    let DTD = XMLDTD._objectNodeForNode(currDTD)
                     _CFXMLUnlinkNode(currDTD)
                     _childNodes.remove(DTD)
                 } else {
@@ -214,7 +214,7 @@ public class XMLDocument : NSXMLNode {
             }
 
             if let value = newValue {
-                guard let dtd = value.copy() as? NSXMLDTD else {
+                guard let dtd = value.copy() as? XMLDTD else {
                     fatalError("Failed to copy DTD")
                 }
                 _CFXMLDocSetDTD(_xmlDoc, dtd._xmlDTD)

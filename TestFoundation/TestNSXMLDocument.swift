@@ -334,7 +334,7 @@ class TestNSXMLDocument : XCTestCase {
         let node = NSXMLNode.DTDNodeWithXMLString("<!ELEMENT foo (#PCDATA)>") as! NSXMLDTDNode
         XCTAssert(node.name == "foo")
 
-        let dtd = try NSXMLDTD(contentsOfURL: testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")!, options: 0)
+        let dtd = try XMLDTD(contentsOfURL: testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")!, options: 0)
         //        dtd.systemID = testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")?.absoluteString
         dtd.name = "plist"
         //        dtd.publicID = "-//Apple//DTD PLIST 1.0//EN"
@@ -354,7 +354,7 @@ class TestNSXMLDocument : XCTestCase {
             XCTFail("\(error.userInfo)")
         }
 
-        let amp = NSXMLDTD.predefinedEntityDeclarationForName("amp")
+        let amp = XMLDTD.predefinedEntityDeclarationForName("amp")
         XCTAssert(amp?.name == "amp", amp?.name ?? "")
         XCTAssert(amp?.stringValue == "&", amp?.stringValue ?? "")
         if let entityNode = NSXMLNode.DTDNodeWithXMLString("<!ENTITY author 'Robert Thompson'>") as? NSXMLDTDNode {

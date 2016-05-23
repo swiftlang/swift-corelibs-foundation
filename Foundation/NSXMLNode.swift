@@ -780,7 +780,7 @@ public class NSXMLNode : NSObject, NSCopying {
             return XMLDocument._objectNodeForNode(node)
 
         case _kCFXMLTypeDTD:
-            return NSXMLDTD._objectNodeForNode(node)
+            return XMLDTD._objectNodeForNode(node)
 
         case _kCFXMLDTDNodeTypeEntity:
             fallthrough

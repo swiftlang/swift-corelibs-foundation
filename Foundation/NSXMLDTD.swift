@@ -12,7 +12,7 @@ import CoreFoundation
     @class NSXMLDTD
     @abstract Defines the order, repetition, and allowable values for a document
 */
-public class NSXMLDTD : NSXMLNode {
+public class XMLDTD : NSXMLNode {
 
     internal var _xmlDTD: _CFXMLDTDPtr {
         return _CFXMLDTDPtr(_xmlNode)
@@ -173,14 +173,14 @@ public class NSXMLDTD : NSXMLNode {
         return NSXMLDTDNode._objectNodeForNode(node)
     }
     
-    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLDTD {
+    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> XMLDTD {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDTD)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            return NSXMLDTD.unretainedReference(privateData)
+            return XMLDTD.unretainedReference(privateData)
         }
         
-        return NSXMLDTD(ptr: node)
+        return XMLDTD(ptr: node)
     }
     
     internal override init(ptr: _CFXMLNodePtr) {
