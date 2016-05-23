@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-public class NSDateFormatter : NSFormatter {
+public class DateFormatter : NSFormatter {
     typealias CFType = CFDateFormatter
     private var __cfObject: CFType?
     private var _cfObject: CFType {
@@ -65,8 +65,8 @@ public class NSDateFormatter : NSFormatter {
         return date
     }
 
-    public class func localizedString(from date: Date, dateStyle dstyle: NSDateFormatterStyle, timeStyle tstyle: NSDateFormatterStyle) -> String {
-        let df = NSDateFormatter()
+    public class func localizedString(from date: Date, dateStyle dstyle: Style, timeStyle tstyle: Style) -> String {
+        let df = DateFormatter()
         df.dateStyle = dstyle
         df.timeStyle = tstyle
         return df.stringForObjectValue(date._nsObject)!
@@ -136,9 +136,9 @@ public class NSDateFormatter : NSFormatter {
         }
     }
 
-    public var dateStyle: NSDateFormatterStyle = .noStyle { willSet { _dateFormat = nil; _reset() } }
+    public var dateStyle: Style = .noStyle { willSet { _dateFormat = nil; _reset() } }
 
-    public var timeStyle: NSDateFormatterStyle = .noStyle { willSet { _dateFormat = nil; _reset() } }
+    public var timeStyle: Style = .noStyle { willSet { _dateFormat = nil; _reset() } }
 
     /*@NSCopying*/ public var locale: NSLocale! = .currentLocale() { willSet { _reset() } }
 
@@ -471,10 +471,12 @@ public class NSDateFormatter : NSFormatter {
     public var doesRelativeDateFormatting = false { willSet { _reset() } }
 }
 
-public enum NSDateFormatterStyle : UInt {
-    case noStyle
-    case shortStyle
-    case mediumStyle
-    case longStyle
-    case fullStyle
+extension DateFormatter {
+    public enum Style : UInt {
+        case noStyle
+        case shortStyle
+        case mediumStyle
+        case longStyle
+        case fullStyle
+    }
 }

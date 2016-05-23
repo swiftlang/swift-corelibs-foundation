@@ -53,7 +53,7 @@ class TestNSDateFormatter: XCTestCase {
                             "standaloneQuarterSymbols" : ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"],
                             "shortStandaloneQuarterSymbols" : ["Q1", "Q2", "Q3", "Q4"]]
         
-        let f = NSDateFormatter()
+        let f = DateFormatter()
         XCTAssertNotNil(f)
         XCTAssertNotNil(f.timeZone)
         XCTAssertNotNil(f.locale)
@@ -107,7 +107,7 @@ class TestNSDateFormatter: XCTestCase {
             1477285038 : "10/24/16, 4:57 AM", 1478062638 : "11/2/16, 4:57 AM", 1482641838 : "12/25/16, 4:57 AM"
         ]
         
-        let f = NSDateFormatter()
+        let f = DateFormatter()
         f.dateStyle = .shortStyle
         f.timeStyle = .shortStyle
         
@@ -140,7 +140,7 @@ class TestNSDateFormatter: XCTestCase {
             1477285038 : "Oct 24, 2016, 4:57:18 AM", 1478062638 : "Nov 2, 2016, 4:57:18 AM", 1482641838 : "Dec 25, 2016, 4:57:18 AM"
         ]
         
-        let f = NSDateFormatter()
+        let f = DateFormatter()
         f.dateStyle = .mediumStyle
         f.timeStyle = .mediumStyle
         f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
@@ -172,7 +172,7 @@ class TestNSDateFormatter: XCTestCase {
             1477285038 : "October 24, 2016 at 4:57:18 AM GMT", 1478062638 : "November 2, 2016 at 4:57:18 AM GMT", 1482641838 : "December 25, 2016 at 4:57:18 AM GMT"
         ]
         
-        let f = NSDateFormatter()
+        let f = DateFormatter()
         f.dateStyle = .longStyle
         f.timeStyle = .longStyle
         f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
@@ -206,7 +206,7 @@ class TestNSDateFormatter: XCTestCase {
             1478062638 : "Wednesday, November 2, 2016 at 4:57:18 AM GMT", 1482641838 : "Sunday, December 25, 2016 at 4:57:18 AM GMT"
         ]
         
-        let f = NSDateFormatter()
+        let f = DateFormatter()
         f.dateStyle = .fullStyle
         f.timeStyle = .fullStyle
         f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
@@ -240,7 +240,7 @@ class TestNSDateFormatter: XCTestCase {
              1478062638 : "Wednesday, November 2, 2016 at 04:57:18 AM GMT", 1482641838 : "Sunday, December 25, 2016 at 04:57:18 AM GMT"
         ]
         
-        let f = NSDateFormatter()
+        let f = DateFormatter()
         f.dateFormat = "EEEE, MMMM d, y 'at' hh:mm:ss a zzzz"
         f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
         f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
