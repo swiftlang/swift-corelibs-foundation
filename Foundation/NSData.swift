@@ -936,9 +936,7 @@ extension NSMutableData {
     }
     
     public convenience init?(length: Int) {
-        let memory = malloc(length)
-        self.init(bytes: memory, length: length, copy: false) { buffer, amount in
-            free(buffer)
-        }
+        self.init(bytes: nil, length: 0)
+        self.length = length
     }
 }

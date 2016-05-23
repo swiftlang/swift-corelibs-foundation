@@ -39,7 +39,8 @@ class TestNSData: XCTestCase {
             ("test_initializeWithBase64EncodedStringGetsDecodedData", test_initializeWithBase64EncodedStringGetsDecodedData),
             ("test_base64DecodeWithPadding1", test_base64DecodeWithPadding1),
             ("test_base64DecodeWithPadding2", test_base64DecodeWithPadding2),
-            ("test_rangeOfData",test_rangeOfData)
+            ("test_rangeOfData",test_rangeOfData),
+            ("test_initMutableDataWithLength", test_initMutableDataWithLength)
         ]
     }
     
@@ -336,6 +337,12 @@ class TestNSData: XCTestCase {
         XCTAssert(NSEqualRanges(base.range(of: empty, options: [.backwards], in: baseFullRange),notFoundRange))
         XCTAssert(NSEqualRanges(base.range(of: empty, options: [.backwards,.anchored], in: baseFullRange),notFoundRange))
         
+    }
+
+    func test_initMutableDataWithLength() {
+        let mData = NSMutableData(length: 30)
+        XCTAssertNotNil(mData)
+        XCTAssertEqual(mData!.length, 30)
     }
 
 }
