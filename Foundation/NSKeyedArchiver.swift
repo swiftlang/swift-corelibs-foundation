@@ -581,7 +581,7 @@ public class NSKeyedArchiver : NSCoder {
                 var cls : AnyClass?
 
                 _pushEncodingContext(innerEncodingContext)
-                codable.encodeWithCoder(self)
+                codable.encode(with: self)
 
                 let ns = object as? NSObject
                 cls = ns?.classForKeyedArchiver

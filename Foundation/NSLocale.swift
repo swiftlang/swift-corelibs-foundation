@@ -57,7 +57,7 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     
     public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             let identifier = CFLocaleGetIdentifier(self._cfObject)
             aCoder.encodeObject(identifier, forKey: "NS.identifier")

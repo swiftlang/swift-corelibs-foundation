@@ -197,12 +197,12 @@ public struct URLResourceValues {
     /// An identifier which can be used to compare two file system objects for equality using `isEqual`.
     ///
     /// Two object identifiers are equal if they have the same file system path or if the paths are linked to same inode on the same file system. This identifier is not persistent across system restarts.
-    public var fileResourceIdentifier: protocol<NSCopying, Coding, SecureCoding, NSObjectProtocol>? { return _get(.fileResourceIdentifierKey) }
+    public var fileResourceIdentifier: protocol<NSCopying, NSCoding, NSSecureCoding, NSObjectProtocol>? { return _get(.fileResourceIdentifierKey) }
     
     /// An identifier that can be used to identify the volume the file system object is on.
     ///
     /// Other objects on the same volume will have the same volume identifier and can be compared using for equality using `isEqual`. This identifier is not persistent across system restarts.
-    public var volumeIdentifier: protocol<NSCopying, Coding, SecureCoding, NSObjectProtocol>? { return _get(.volumeIdentifierKey) }
+    public var volumeIdentifier: protocol<NSCopying, NSCoding, NSSecureCoding, NSObjectProtocol>? { return _get(.volumeIdentifierKey) }
     
     /// The optimal block size when reading or writing this file's data, or nil if not available.
     public var preferredIOBlockSize: Int? { return _get(.preferredIOBlockSizeKey) }

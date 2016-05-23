@@ -112,7 +112,7 @@ public class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
     
     public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     public static func supportsSecureCoding() -> Bool { return true }
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     public required init?(coder aDecoder: NSCoder) {

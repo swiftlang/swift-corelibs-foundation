@@ -31,7 +31,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         self.init(indexes: [index])
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

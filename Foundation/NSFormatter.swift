@@ -53,7 +53,7 @@ public class Formatter : NSObject, NSCopying, NSCoding {
         
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         
     }
     

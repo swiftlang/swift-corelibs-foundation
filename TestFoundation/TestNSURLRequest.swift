@@ -33,7 +33,7 @@ class TestNSURLRequest : XCTestCase {
     let url = URL(string: "http://swift.org")!
     
     func test_construction() {
-        let request = URLRequest(url: url)
+        let request = NSURLRequest(url: url)
         // Match OS X Foundation responses
         XCTAssertNotNil(request)
         XCTAssertEqual(request.url, url)
@@ -44,7 +44,7 @@ class TestNSURLRequest : XCTestCase {
     
     func test_mutableConstruction() {
         let url = URL(string: "http://swift.org")!
-        var request = MutableURLRequest(url: url)
+        let request = NSMutableURLRequest(url: url)
         
         //Confirm initial state matches NSURLRequest responses
         XCTAssertNotNil(request)
@@ -185,7 +185,7 @@ class TestNSURLRequest : XCTestCase {
 
     func test_mutableCopy_3() {
         let urlA = URL(string: "http://swift.org")!
-        let originalRequest = URLRequest(url: urlA)
+        let originalRequest = NSURLRequest(url: urlA)
         
         guard let requestCopy = originalRequest.mutableCopy() as? NSMutableURLRequest else {
             XCTFail(); return

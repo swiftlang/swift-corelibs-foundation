@@ -146,7 +146,7 @@ public class URLSession: NSObject {
     public func dataTaskWithURL(_ url: URL) -> URLSessionDataTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The body of the request will be created from the file referenced by fileURL */
-    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: NSURLRequest, fromFile fileURL: URL) -> URLSessionUploadTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
     public func uploadTaskWithRequest(_ request: NSURLRequest, fromData bodyData: NSData) -> URLSessionUploadTask { NSUnimplemented() }
@@ -187,7 +187,7 @@ extension URLSession {
      * called for authentication challenges.
      */
     public func dataTaskWithRequest(_ request: NSURLRequest, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
-    public func dataTaskWithURL(_ url: NSURL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
+    public func dataTaskWithURL(_ url: URL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
     
     /*
      * upload convenience method.

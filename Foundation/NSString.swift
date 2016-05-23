@@ -292,7 +292,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         return true
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
             aKeyedCoder._encodePropertyList(self, forKey: "NS.string")
         } else {

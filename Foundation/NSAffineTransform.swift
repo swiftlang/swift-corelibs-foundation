@@ -33,7 +33,7 @@ public struct NSAffineTransformStruct {
 
 public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     public func copy(with zone: NSZone? = nil) -> AnyObject {

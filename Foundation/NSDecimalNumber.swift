@@ -116,7 +116,7 @@ public class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCodi
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

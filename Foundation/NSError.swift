@@ -88,7 +88,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return true
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(_domain.bridge(), forKey: "NSDomain")
             aCoder.encodeInt(Int32(_code), forKey: "NSCode")

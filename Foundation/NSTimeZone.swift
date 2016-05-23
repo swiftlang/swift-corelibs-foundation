@@ -92,7 +92,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         self.init(name: name._swiftObject , data: nil)
     }
 
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
             // darwin versions of this method can and will encode mutable data, however it is not required for compatability

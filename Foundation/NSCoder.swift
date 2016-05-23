@@ -8,7 +8,7 @@
 //
 
 public protocol NSCoding {
-    func encodeWithCoder(_ aCoder: NSCoder)
+    func encode(with aCoder: NSCoder)
     init?(coder aDecoder: NSCoder)
 }
 

@@ -141,7 +141,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.calendarIdentifier.bridge(), forKey: "NS.identifier")
             aCoder.encodeObject(self.timeZone, forKey: "NS.timezone")
@@ -1257,7 +1257,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeInteger(self.era, forKey: "NS.era")
             aCoder.encodeInteger(self.year, forKey: "NS.year")

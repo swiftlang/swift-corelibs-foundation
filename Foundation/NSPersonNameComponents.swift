@@ -31,7 +31,7 @@ public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
     static public func supportsSecureCoding() -> Bool { return true }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.namePrefix?.bridge(), forKey: "NS.namePrefix")
             aCoder.encodeObject(self.givenName?.bridge(), forKey: "NS.givenName")

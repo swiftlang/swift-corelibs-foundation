@@ -74,7 +74,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         }
     }
     
-    func encodeWithCoder(_ aCoder: NSCoder) {
+    func encode(with aCoder: NSCoder) {
         aCoder.encodeInteger(self._count, forKey: "NS.count")
         aCoder.encodeInteger(self._size, forKey: "NS.size")
         aCoder.encodeInteger(Int(self._type), forKey: "NS.type")

@@ -60,7 +60,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding 
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     public static func supportsSecureCoding() -> Bool { return true }
     public required init?(coder aDecoder: NSCoder)  { NSUnimplemented() }
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

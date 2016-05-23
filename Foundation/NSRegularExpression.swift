@@ -36,7 +36,7 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
         return self
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     

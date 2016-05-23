@@ -1838,10 +1838,6 @@ void _CFSwiftRelease(void *_Nullable t) {
     }
 }
 
-CFHashCode __CFHashDouble(double d) {
-    return _CFHashDouble(d);
-}
-
 #endif
 
 #undef __kCFAllocatorTypeID_CONST

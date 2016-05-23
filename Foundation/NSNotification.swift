@@ -43,7 +43,7 @@ public class NSNotification : NSObject, NSCopying, NSCoding {
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
             aCoder.encodeObject(self.object, forKey:"NS.object")

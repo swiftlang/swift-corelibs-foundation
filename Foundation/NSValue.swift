@@ -132,9 +132,9 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
         
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if self.dynamicType == NSValue.self {
-            _concreteValue.encodeWithCoder(aCoder)
+            _concreteValue.encode(with: aCoder)
         } else {
             NSRequiresConcreteImplementation()
         }

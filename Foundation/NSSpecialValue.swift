@@ -110,7 +110,7 @@ internal class NSSpecialValue : NSValue {
         }
     }
     
-    override func encodeWithCoder(_ aCoder: NSCoder) {
+    override func encode(with aCoder: NSCoder) {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {

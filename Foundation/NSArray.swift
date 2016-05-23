@@ -95,13 +95,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if let keyedArchiver = aCoder as? NSKeyedArchiver {
             keyedArchiver._encodeArrayOfObjects(self, forKey:"NS.objects")
         } else {
             for object in self {
                 if let codable = object as? NSCoding {
-                    codable.encodeWithCoder(aCoder)
+                    codable.encode(with: aCoder)
                 }
             }
         }

@@ -180,7 +180,7 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public static let supportsSecureCoding = true
+    public static func supportsSecureCoding() -> Bool { return true }
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
@@ -231,7 +231,7 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
                 } else {
                     absolutePath = path
                 }
-                NSFileManager.defaultManager().fileExists(atPath: absolutePath, isDirectory: &isDir)
+                let _ = NSFileManager.defaultManager().fileExists(atPath: absolutePath, isDirectory: &isDir)
             } catch {
                 // ignored
             }
@@ -696,7 +696,7 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
