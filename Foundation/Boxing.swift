@@ -1,3 +1,5 @@
+//===----------------------------------------------------------------------===//
+//
 // This source file is part of the Swift.org open source project
 //
 // Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
@@ -6,6 +8,7 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+//===----------------------------------------------------------------------===//
 
 /// A class type which acts as a handle (pointer-to-pointer) to a Foundation reference type which has only a mutable class (e.g., NSURLComponents).
 ///
@@ -80,7 +83,6 @@ internal protocol _SwiftNativeFoundationType : class {
     func releaseWrappedObject()
 }
 
-
 extension _SwiftNativeFoundationType {
     
     @inline(__always)
@@ -113,7 +115,7 @@ extension _SwiftNativeFoundationType {
     }
     
     func mutableCopy(with zone : NSZone) -> AnyObject {
-        return _mapUnmanaged { $0.mutableCopy() }
+        return _mapUnmanaged { ($0 as NSObject).mutableCopy() }
     }
     
     var hashValue: Int {

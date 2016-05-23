@@ -80,26 +80,18 @@ extension NSURLRequest {
         /// - Note: Unimplemented.
         case reloadRevalidatingCacheData // Unimplemented
     }
-}
-
-/// Network service type for an NSURLRequest
-///
-/// The `NSURLRequestNetworkServiceType` enum defines constants that
-/// can be used to specify the service type to associate with this request. The
-/// service type is used to provide the networking layers a hint of the purpose
-/// of the request.
-public enum NSURLRequestNetworkServiceType : UInt {
-    /// Is the default value for an `NSURLRequest` when created.
-    /// This value should be left unchanged for the vast majority of requests.
-    case networkServiceTypeDefault
-    /// Specifies that the request is for voice over IP control traffic.
-    case networkServiceTypeVoIP
-    /// Specifies that the request is for video traffic.
-    case networkServiceTypeVideo
-    /// Specifies that the request is for background traffic (such as a file download).
-    case networkServiceTypeBackground
-    /// Specifies that the request is for voice data.
-    case networkServiceTypeVoice
+    
+    public enum NetworkServiceType : UInt {
+        case networkServiceTypeDefault // Standard internet traffic
+        
+        case networkServiceTypeVoIP // Voice over IP control traffic
+        
+        case networkServiceTypeVideo // Video traffic
+        
+        case networkServiceTypeBackground // Background traffic
+        
+        case networkServiceTypeVoice // Voice data
+    }
 }
 
 /// An `NSURLRequest` object represents a URL load request in a
@@ -123,7 +115,7 @@ public enum NSURLRequestNetworkServiceType : UInt {
 ///
 /// Objects of this class are used with the `NSURLSession` API to perform the
 /// load of a URL.
-public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
+public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
     public override func copy() -> AnyObject {
         return copy(with: nil)
@@ -134,13 +126,23 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
             // Already immutable
             return self
         }
-        let c = NSURLRequest()
+        let c = NSURLRequest(url: url!)
         c.setValues(from: self)
         return c
     }
     
+    public convenience init(url: URL) {
+        self.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60.0)
+    }
+    
+    public init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: NSTimeInterval) {
+        self.url = url
+        _cachePolicy = cachePolicy
+        _timeoutInterval = timeoutInterval
+    }
+    
     private func setValues(from source: NSURLRequest) {
-        self.allHTTPHeaderFields = source.allHTTPHeaderFields
+        self._allHTTPHeaderFields = source.allHTTPHeaderFields
         self.url = source.url
         self.mainDocumentURL = source.mainDocumentURL
         self.httpMethod = source.httpMethod
@@ -151,7 +153,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     }
     
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
-        let c = NSMutableURLRequest()
+        let c = NSMutableURLRequest(url: url!)
         c.setValues(from: self)
         return c
     }
@@ -164,18 +166,8 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         NSUnimplemented()
     }
     
-    private override init() {}
-    
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
     public static func supportsSecureCoding() -> Bool { return true }
-    
-    /// Initializes an NSURLRequest with the given URL.
-    ///
-    /// - Parameter URL: The URL for the request.
-    public convenience init(url: URL) {
-        self.init()
-        self.url = url
-    }
     
     /// The URL of the receiver.
     /*@NSCopying */public private(set) var url: URL?
@@ -186,12 +178,27 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     /// document" policy. There may also be other future uses.
     /*@NSCopying*/ public private(set) var mainDocumentURL: URL?
     
+    internal var _cachePolicy: CachePolicy = .useProtocolCachePolicy
+    public var cachePolicy: CachePolicy {
+        return _cachePolicy
+    }
+    
+    internal var _timeoutInterval: NSTimeInterval = 60.0
+    public var timeoutInterval: NSTimeInterval {
+        return _timeoutInterval
+    }
+
     /// Returns the HTTP request method of the receiver.
     public private(set) var httpMethod: String? = "GET"
     
     /// A dictionary containing all the HTTP header fields
     /// of the receiver.
-    public private(set) var allHTTPHeaderFields: [String: String]?
+    internal var _allHTTPHeaderFields: [String: String]? = nil
+    public var allHTTPHeaderFields: [String: String]? {
+        get {
+            return _allHTTPHeaderFields
+        }
+    }
     
     /// Returns the value which corresponds to the given header field.
     ///
@@ -204,6 +211,56 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     public func value(forHTTPHeaderField field: String) -> String? {
         guard let f = allHTTPHeaderFields else { return nil }
         return existingHeaderField(field, inHeaderFields: f)?.1
+    }
+    
+    internal enum Body {
+        case data(NSData)
+        case stream(NSInputStream)
+    }
+    internal var _body: Body?
+    
+    public var httpBody: NSData? {
+        if let body = _body {
+            switch body {
+            case .data(let data):
+                return data
+            case .stream(_):
+                return nil
+            }
+        }
+        return nil
+    }
+    
+    public var httpBodyStream: NSInputStream? {
+        if let body = _body {
+            switch body {
+            case .data(_):
+                return nil
+            case .stream(let stream):
+                return stream
+            }
+        }
+        return nil
+    }
+    
+    internal var _networkServiceType: NetworkServiceType = .networkServiceTypeDefault
+    public var networkServiceType: NetworkServiceType {
+        return _networkServiceType
+    }
+    
+    internal var _allowsCellularAccess: Bool = true
+    public var allowsCellularAccess: Bool {
+        return _allowsCellularAccess
+    }
+    
+    internal var _httpShouldHandleCookies: Bool = true
+    public var httpShouldHandleCookies: Bool {
+        return _httpShouldHandleCookies
+    }
+    
+    internal var _httpShouldUsePipelining: Bool = true
+    public var httpShouldUsePipelining: Bool {
+        return _httpShouldUsePipelining
     }
 }
 
@@ -235,10 +292,16 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
 /// example.
 public class NSMutableURLRequest : NSURLRequest {
     public required init?(coder aDecoder: NSCoder) {
-        super.init()
+        NSUnimplemented()
     }
     
-    private override init() { super.init() }
+    public convenience init(url: URL) {
+        self.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60.0)
+    }
+    
+    public override init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: NSTimeInterval) {
+        super.init(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
+    }
     
     /*@NSCopying */ public override var url: URL? {
         get { return super.url }
@@ -267,6 +330,33 @@ public class NSMutableURLRequest : NSURLRequest {
         set { super.httpMethod = newValue }
     }
     
+    public override var cachePolicy: CachePolicy {
+        get {
+            return _cachePolicy
+        }
+        set {
+            _cachePolicy = newValue
+        }
+    }
+    
+    public override var timeoutInterval: NSTimeInterval {
+        get {
+            return _timeoutInterval
+        }
+        set {
+            _timeoutInterval = newValue
+        }
+    }
+    
+    public override var allHTTPHeaderFields: [String: String]? {
+        get {
+            return _allHTTPHeaderFields
+        }
+        set {
+            _allHTTPHeaderFields = newValue
+        }
+    }
+    
     /// Sets the value of the given HTTP header field.
     ///
     /// If a value was previously set for the given header
@@ -281,7 +371,7 @@ public class NSMutableURLRequest : NSURLRequest {
             f.removeValue(forKey: old.0)
         }
         f[field] = value
-        allHTTPHeaderFields = f
+        _allHTTPHeaderFields = f
     }
     
     /// Adds an HTTP header field in the current header dictionary.
@@ -302,7 +392,85 @@ public class NSMutableURLRequest : NSURLRequest {
         } else {
             f[field] = value
         }
-        allHTTPHeaderFields = f
+        _allHTTPHeaderFields = f
+    }
+    
+    public override var httpBody: NSData? {
+        get {
+            if let body = _body {
+                switch body {
+                case .data(let data):
+                    return data
+                case .stream(_):
+                    return nil
+                }
+            }
+            return nil
+        }
+        set {
+            if let value = newValue {
+                _body = Body.data(value)
+            } else {
+                _body = nil
+            }
+        }
+    }
+    
+    public override var httpBodyStream: NSInputStream? {
+        get {
+            if let body = _body {
+                switch body {
+                case .data(_):
+                    return nil
+                case .stream(let stream):
+                    return stream
+                }
+            }
+            return nil
+        }
+        set {
+            if let value = newValue {
+                _body = Body.stream(value)
+            } else {
+                _body = nil
+            }
+        }
+    }
+    
+    public override var networkServiceType: NetworkServiceType {
+        get {
+            return _networkServiceType
+        }
+        set {
+            _networkServiceType = newValue
+        }
+    }
+    
+    public override var allowsCellularAccess: Bool {
+        get {
+            return _allowsCellularAccess
+        }
+        set {
+            _allowsCellularAccess = newValue
+        }
+    }
+    
+    public override var httpShouldHandleCookies: Bool {
+        get {
+            return _httpShouldHandleCookies
+        }
+        set {
+            _httpShouldHandleCookies = newValue
+        }
+    }
+    
+    public override var httpShouldUsePipelining: Bool {
+        get {
+            return _httpShouldUsePipelining
+        }
+        set {
+            _httpShouldUsePipelining = newValue
+        }
     }
 }
 
