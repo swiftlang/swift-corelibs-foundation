@@ -301,7 +301,7 @@ class TestNSXMLDocument : XCTestCase {
         do {
             try plistDoc.validate()
             XCTAssert(plistDoc.rootElement()?.name == "plist")
-            let plist = try NSPropertyListSerialization.propertyListWithData(plistDoc.XMLData, options: [], format: nil) as! [String: Any]
+            let plist = try PropertyListSerialization.propertyListWithData(plistDoc.XMLData, options: [], format: nil) as! [String: Any]
             XCTAssert((plist["MyKey"] as? String) == "Hello!")
         } catch let nsError as NSError {
             XCTFail("\(nsError.userInfo)")

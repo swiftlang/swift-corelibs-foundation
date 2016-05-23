@@ -99,18 +99,18 @@ public class NSKeyedUnarchiver : NSCoder {
   
     private func _readPropertyList() throws {
         var plist : Any? = nil
-        var format = NSPropertyListFormat.binaryFormat_v1_0
+        var format = PropertyListSerialization.Format.binaryFormat_v1_0
         
         // FIXME this implementation reads the entire property list into memory
         // which will not scale for large archives. We should support incremental
         // unarchiving, but that will be a considerable amount of work.
         
         if let data = self._stream as? NSData {
-            try plist = NSPropertyListSerialization.propertyListWithData(data, options: NSPropertyListMutabilityOptions.Immutable, format: &format)
+            try plist = PropertyListSerialization.propertyListWithData(data, options: PropertyListSerialization.MutabilityOptions.immutable, format: &format)
         } else {
-            try plist = NSPropertyListSerialization.propertyListWithStream(unsafeBitCast(self._stream, to: CFReadStream.self),
+            try plist = PropertyListSerialization.propertyListWithStream(unsafeBitCast(self._stream, to: CFReadStream.self),
                                                                            length: 0,
-                                                                           options: NSPropertyListMutabilityOptions.Immutable,
+                                                                           options: PropertyListSerialization.MutabilityOptions.immutable,
                                                                            format: &format)
         }
         
