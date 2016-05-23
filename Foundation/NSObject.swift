@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-public protocol NSObjectProtocol {
+public protocol NSObjectProtocol: class {
     
     func isEqual(_ object: AnyObject?) -> Bool
     var hash: Int { get }
