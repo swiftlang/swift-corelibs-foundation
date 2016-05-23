@@ -617,53 +617,53 @@ extension NSString {
     public func appending(_ aString: String) -> String {
         return _swiftObject + aString
     }
-    
+
     public var doubleValue: Double {
         var start: Int = 0
         var result = 0.0
-        _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
+        let _ = _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
             result = value
         }
         return result
     }
-    
+
     public var floatValue: Float {
         var start: Int = 0
         var result: Float = 0.0
-        _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
+        let _ = _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
             result = value
         }
         return result
     }
-    
+
     public var intValue: Int32 {
         return NSScanner(string: _swiftObject).scanInt() ?? 0
     }
-    
+
     public var integerValue: Int {
         let scanner = NSScanner(string: _swiftObject)
         var value: Int = 0
-        scanner.scanInteger(&value)
+        let _ = scanner.scanInteger(&value)
         return value
     }
-    
+
     public var longLongValue: Int64 {
         return NSScanner(string: _swiftObject).scanLongLong() ?? 0
     }
-    
+
     public var boolValue: Bool {
         let scanner = NSScanner(string: _swiftObject)
         // skip initial whitespace if present
-        scanner.scanCharactersFromSet(NSCharacterSet.whitespaces())
+        let _ = scanner.scanCharactersFromSet(NSCharacterSet.whitespaces())
         // scan a single optional '+' or '-' character, followed by zeroes
         if scanner.scanString(string: "+") == nil {
-            scanner.scanString(string: "-")
+            let _ = scanner.scanString(string: "-")
         }
         // scan any following zeroes
-        scanner.scanCharactersFromSet(NSCharacterSet(charactersIn: "0"))
+        let _ = scanner.scanCharactersFromSet(NSCharacterSet(charactersIn: "0"))
         return scanner.scanCharactersFromSet(NSCharacterSet(charactersIn: "tTyY123456789")) != nil
     }
-    
+
     public var uppercased: String {
         return uppercased(with: nil)
     }
