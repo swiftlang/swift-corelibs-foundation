@@ -90,7 +90,7 @@ public class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         @param storagePolicy an NSURLCacheStoragePolicy constant.
         @result an initialized NSCachedURLResponse.
     */
-    public init(response: URLResponse, data: NSData, userInfo: [NSObject : AnyObject]?, storagePolicy: URLCache.StoragePolicy) { NSUnimplemented() }
+    public init(response: URLResponse, data: NSData, userInfo: [NSObject : AnyObject]? = [:], storagePolicy: URLCache.StoragePolicy) { NSUnimplemented() }
     
     /*! 
         @method response
@@ -141,21 +141,15 @@ public class URLCache : NSObject {
         different NSURLCache instance to be returned from this method.
         @result the shared NSURLCache instance.
     */
-    public class func sharedURLCache() -> URLCache { NSUnimplemented() }
-    
-    /*! 
-        @method setSharedURLCache:
-        @abstract Sets the NSURLCache instance shared by all clients of
-        the current process. This will be the new object returned when
-        calls to the <tt>sharedURLCache</tt> method are made.
-        @discussion Callers should take care to ensure that this method is called
-        at a time when no other caller has a reference to the previously-set shared
-        URL cache. This is to prevent storing cache data from becoming 
-        unexpectedly unretrievable.
-        @param cache the new shared NSURLCache instance.
-    */
-    public class func setSharedURLCache(_ cache: URLCache) { NSUnimplemented() }
-    
+    public class var shared: URLCache {
+        get {
+            NSUnimplemented()
+        }
+        set {
+            NSUnimplemented()
+        }
+    }
+
     /*! 
         @method initWithMemoryCapacity:diskCapacity:diskPath:
         @abstract Initializes an NSURLCache with the given capacity and
@@ -182,7 +176,7 @@ public class URLCache : NSObject {
         request, or nil if there is no NSCachedURLResponse stored with the
         given request.
     */
-    public func cachedResponseForRequest(_ request: URLRequest) -> CachedURLResponse? { NSUnimplemented() }
+    public func cachedResponse(for request: URLRequest) -> CachedURLResponse? { NSUnimplemented() }
     
     /*! 
         @method storeCachedResponse:forRequest:
@@ -191,7 +185,7 @@ public class URLCache : NSObject {
         @param cachedResponse The cached response to store.
         @param request the NSURLRequest to use as a key for the storage.
     */
-    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, forRequest request: URLRequest) { NSUnimplemented() }
+    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, for request: URLRequest) { NSUnimplemented() }
     
     /*! 
         @method removeCachedResponseForRequest:
@@ -201,7 +195,7 @@ public class URLCache : NSObject {
         stored with the given request.
         @param request the NSURLRequest to use as a key for the lookup.
     */
-    public func removeCachedResponseForRequest(_ request: URLRequest) { NSUnimplemented() }
+    public func removeCachedResponse(for request: URLRequest) { NSUnimplemented() }
     
     /*! 
         @method removeAllCachedResponses
@@ -214,7 +208,7 @@ public class URLCache : NSObject {
      @method removeCachedResponsesSince:
      @abstract Clears the given cache of any cached responses since the provided date.
      */
-    public func removeCachedResponsesSinceDate(_ date: Date) { NSUnimplemented() }
+    public func removeCachedResponses(since date: Date) { NSUnimplemented() }
     
     /*! 
         @method memoryCapacity
@@ -254,7 +248,7 @@ public class URLCache : NSObject {
 }
 
 extension URLCache {
-    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, forDataTask dataTask: URLSessionDataTask) { NSUnimplemented() }
-    public func getCachedResponseForDataTask(_ dataTask: URLSessionDataTask, completionHandler: (CachedURLResponse?) -> Void) { NSUnimplemented() }
-    public func removeCachedResponseForDataTask(_ dataTask: URLSessionDataTask) { NSUnimplemented() }
+    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, for dataTask: URLSessionDataTask) { NSUnimplemented() }
+    public func getCachedResponse(for dataTask: URLSessionDataTask, completionHandler: (CachedURLResponse?) -> Void) { NSUnimplemented() }
+    public func removeCachedResponse(for dataTask: URLSessionDataTask) { NSUnimplemented() }
 }
