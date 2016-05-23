@@ -28,9 +28,9 @@ class TestNSByteCountFormatter : XCTestCase {
     }
     
     func test_DefaultValues() {
-        let formatter = NSByteCountFormatter()
-        XCTAssertEqual(formatter.allowedUnits, NSByteCountFormatterUnits.UseDefault)
-        XCTAssertEqual(formatter.countStyle, NSByteCountFormatterCountStyle.file)
+        let formatter = ByteCountFormatter()
+        XCTAssertEqual(formatter.allowedUnits, ByteCountFormatter.Units.useDefault)
+        XCTAssertEqual(formatter.countStyle, ByteCountFormatter.CountStyle.file)
         XCTAssertEqual(formatter.allowsNonnumericFormatting, true)
         XCTAssertEqual(formatter.includesUnit, true)
         XCTAssertEqual(formatter.includesCount, true)

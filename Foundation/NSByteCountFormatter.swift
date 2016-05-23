@@ -8,38 +8,40 @@
 //
 
 
-public struct NSByteCountFormatterUnits : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    // This causes default units appropriate for the platform to be used. Specifying any units explicitly causes just those units to be used in showing the number.
-    public static let UseDefault = NSByteCountFormatterUnits(rawValue: 0)
-    //  Specifying any of the following causes the specified units to be used in showing the number.
-    public static let UseBytes = NSByteCountFormatterUnits(rawValue: 1 << 0)
-    public static let UseKB = NSByteCountFormatterUnits(rawValue: 1 << 1)
-    public static let UseMB = NSByteCountFormatterUnits(rawValue: 1 << 2)
-    public static let UseGB = NSByteCountFormatterUnits(rawValue: 1 << 3)
-    public static let UseTB = NSByteCountFormatterUnits(rawValue: 1 << 4)
-    public static let UsePB = NSByteCountFormatterUnits(rawValue: 1 << 5)
-    public static let UseEB = NSByteCountFormatterUnits(rawValue: 1 << 6)
-    public static let UseZB = NSByteCountFormatterUnits(rawValue: 1 << 7)
-    public static let UseYBOrHigher = NSByteCountFormatterUnits(rawValue: 0x0FF << 8)
-    // Can use any unit in showing the number.
-    public static let UseAll = NSByteCountFormatterUnits(rawValue: 0x0FFFF)
+extension ByteCountFormatter {
+    public struct Units : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        // This causes default units appropriate for the platform to be used. Specifying any units explicitly causes just those units to be used in showing the number.
+        public static let useDefault = Units(rawValue: 0)
+        //  Specifying any of the following causes the specified units to be used in showing the number.
+        public static let useBytes = Units(rawValue: 1 << 0)
+        public static let useKB = Units(rawValue: 1 << 1)
+        public static let useMB = Units(rawValue: 1 << 2)
+        public static let useGB = Units(rawValue: 1 << 3)
+        public static let useTB = Units(rawValue: 1 << 4)
+        public static let usePB = Units(rawValue: 1 << 5)
+        public static let useEB = Units(rawValue: 1 << 6)
+        public static let useZB = Units(rawValue: 1 << 7)
+        public static let useYBOrHigher = Units(rawValue: 0x0FF << 8)
+        // Can use any unit in showing the number.
+        public static let useAll = Units(rawValue: 0x0FFFF)
+    }
+
+    public enum CountStyle : Int {
+        
+        // Specifies display of file or storage byte counts. The actual behavior for this is platform-specific; on OS X 10.8, this uses the decimal style, but that may change over time.
+        case file
+        // Specifies display of memory byte counts. The actual behavior for this is platform-specific; on OS X 10.8, this uses the binary style, but that may change over time.
+        case memory
+        // The following two allow specifying the number of bytes for KB explicitly. It's better to use one of the above values in most cases.
+        case decimal // 1000 bytes are shown as 1 KB
+        case binary // 1024 bytes are shown as 1 KB
+    }
 }
 
-public enum NSByteCountFormatterCountStyle : Int {
-    
-    // Specifies display of file or storage byte counts. The actual behavior for this is platform-specific; on OS X 10.8, this uses the decimal style, but that may change over time.
-    case file
-    // Specifies display of memory byte counts. The actual behavior for this is platform-specific; on OS X 10.8, this uses the binary style, but that may change over time.
-    case memory
-    // The following two allow specifying the number of bytes for KB explicitly. It's better to use one of the above values in most cases.
-    case decimal // 1000 bytes are shown as 1 KB
-    case binary // 1024 bytes are shown as 1 KB
-}
-
-public class NSByteCountFormatter : NSFormatter {
+public class ByteCountFormatter : NSFormatter {
     public override init() {
         super.init()
     }
@@ -50,7 +52,7 @@ public class NSByteCountFormatter : NSFormatter {
     
     /* Shortcut for converting a byte count into a string without creating an NSByteCountFormatter and an NSNumber. If you need to specify options other than countStyle, create an instance of NSByteCountFormatter first.
     */
-    public class func stringFromByteCount(_ byteCount: Int64, countStyle: NSByteCountFormatterCountStyle) -> String { NSUnimplemented() }
+    public class func stringFromByteCount(_ byteCount: Int64, countStyle: CountStyle) -> String { NSUnimplemented() }
     
     /* Convenience method on stringForObjectValue:. Convert a byte count into a string without creating an NSNumber.
     */
@@ -58,11 +60,11 @@ public class NSByteCountFormatter : NSFormatter {
     
     /* Specify the units that can be used in the output. If NSByteCountFormatterUseDefault, uses platform-appropriate settings; otherwise will only use the specified units. This is the default value. Note that ZB and YB cannot be covered by the range of possible values, but you can still choose to use these units to get fractional display ("0.0035 ZB" for instance).
     */
-    public var allowedUnits: NSByteCountFormatterUnits = .UseDefault
+    public var allowedUnits: Units = .useDefault
     
     /* Specify how the count is displayed by indicating the number of bytes to be used for kilobyte. The default setting is NSByteCountFormatterFileCount, which is the system specific value for file and storage sizes.
     */
-    public var countStyle: NSByteCountFormatterCountStyle = .file
+    public var countStyle: CountStyle = .file
     
     /* Choose whether to allow more natural display of some values, such as zero, where it may be displayed as "Zero KB," ignoring all other flags or options (with the exception of NSByteCountFormatterUseBytes, which would generate "Zero bytes"). The result is appropriate for standalone output. Default value is YES. Special handling of certain values such as zero is especially important in some languages, so it's highly recommended that this property be left in its default state.
     */
