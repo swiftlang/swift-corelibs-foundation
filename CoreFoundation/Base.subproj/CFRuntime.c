@@ -1819,6 +1819,10 @@ void * objc_retainAutoreleasedReturnValue(void *obj) {
     else return NULL;
 }
 
+CFHashCode __CFHashDouble(double d) {
+    return _CFHashDouble(d);
+}
+
 void * _Nullable _CFSwiftRetain(void *_Nullable t) {
     if (t != NULL) {
         swift_retain((void *)t);

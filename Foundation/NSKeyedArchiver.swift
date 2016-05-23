@@ -35,12 +35,12 @@ internal func escapeArchiverKey(_ key: String) -> String {
 }
 
 internal let NSPropertyListClasses : [AnyClass] = [
-    NSArray.self,
-    NSDictionary.self,
-    NSString.self,
-    NSData.self,
-    NSDate.self,
-    NSNumber.self
+        NSArray.self,
+        NSDictionary.self,
+        NSString.self,
+        NSData.self,
+        NSDate.self,
+        NSNumber.self
 ]
 
 // NSUniqueObject is a wrapper that allows both hashable and non-hashable objects
