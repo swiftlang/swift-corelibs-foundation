@@ -59,7 +59,7 @@ public protocol URLProtocolClient : NSObjectProtocol {
      @param request the NSURLRequest to which the protocol implementation
      has redirected.
      */
-    func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: URLRequest, redirectResponse: URLResponse)
+    func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: NSURLRequest, redirectResponse: URLResponse)
     
     
     /*!
@@ -165,7 +165,7 @@ public class URLProtocol : NSObject {
         interface the protocol implementation can use to report results back
         to the URL loading system.
     */
-    public init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
+    public init(request: NSURLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
     
     /*! 
         @method client
@@ -179,7 +179,7 @@ public class URLProtocol : NSObject {
         @abstract Returns the NSURLRequest of the receiver. 
         @result The NSURLRequest of the receiver. 
     */
-    /*@NSCopying*/ public var request: URLRequest { NSUnimplemented() }
+    /*@NSCopying*/ public var request: NSURLRequest { NSUnimplemented() }
     
     /*! 
         @method cachedResponse
@@ -207,7 +207,7 @@ public class URLProtocol : NSObject {
         @param request A request to inspect.
         @result YES if the protocol can handle the given request, NO if not.
     */
-    public class func canInit(with request: URLRequest) -> Bool { NSUnimplemented() }
+    public class func canInit(with request: NSURLRequest) -> Bool { NSUnimplemented() }
     
     /*! 
         @method canonicalRequestForRequest:
@@ -227,7 +227,7 @@ public class URLProtocol : NSObject {
         @param request A request to make canonical.
         @result The canonical form of the given request. 
     */
-    public class func canonicalRequest(for request: URLRequest) -> URLRequest { NSUnimplemented() }
+    public class func canonicalRequest(for request: NSURLRequest) -> NSURLRequest { NSUnimplemented() }
     
     /*!
         @method requestIsCacheEquivalent:toRequest:
@@ -238,7 +238,7 @@ public class URLProtocol : NSObject {
         implementation-specific checks.
         @result YES if the two requests are cache-equivalent, NO otherwise.
     */
-    public class func requestIsCacheEquivalent(_ a: URLRequest, to b: URLRequest) -> Bool { NSUnimplemented() }
+    public class func requestIsCacheEquivalent(_ a: NSURLRequest, to b: NSURLRequest) -> Bool { NSUnimplemented() }
     
     /*! 
         @method startLoading
@@ -274,7 +274,7 @@ public class URLProtocol : NSObject {
         @result The property stored with the given key, or nil if no property
         had previously been stored with the given key in the given request.
     */
-    public class func property(forKey key: String, in request: URLRequest) -> AnyObject? { NSUnimplemented() }
+    public class func property(forKey key: String, in request: NSURLRequest) -> AnyObject? { NSUnimplemented() }
     
     /*! 
         @method setProperty:forKey:inRequest:
@@ -287,7 +287,7 @@ public class URLProtocol : NSObject {
         @param key The string to use for the property storage. 
         @param request The request in which to store the property. 
     */
-    public class func setProperty(_ value: AnyObject, forKey key: String, in request: MutableURLRequest) { NSUnimplemented() }
+    public class func setProperty(_ value: AnyObject, forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
     
     /*!
         @method removePropertyForKey:inRequest:
@@ -298,7 +298,7 @@ public class URLProtocol : NSObject {
         @param key The key whose value should be removed
         @param request The request to be modified
     */
-    public class func removeProperty(forKey key: String, in request: MutableURLRequest) { NSUnimplemented() }
+    public class func removeProperty(forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
     
     /*! 
         @method registerClass:

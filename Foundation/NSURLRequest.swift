@@ -46,7 +46,7 @@
 /// Specifically, these constants cover interactions that have to do
 /// with whether already-existing cache data is returned to satisfy a
 /// URL load request.
-extension URLRequest {
+extension NSURLRequest {
     public enum CachePolicy : UInt {
         /// Specifies that the caching logic defined in the protocol
         /// implementation, if any, is used for a particular URL load request. This
@@ -88,7 +88,7 @@ extension URLRequest {
 /// can be used to specify the service type to associate with this request. The
 /// service type is used to provide the networking layers a hint of the purpose
 /// of the request.
-public enum URLRequestNetworkServiceType : UInt {
+public enum NSURLRequestNetworkServiceType : UInt {
     /// Is the default value for an `NSURLRequest` when created.
     /// This value should be left unchanged for the vast majority of requests.
     case networkServiceTypeDefault
@@ -139,7 +139,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         return c
     }
     
-    private func setValues(from source: URLRequest) {
+    private func setValues(from source: NSURLRequest) {
         self.allHTTPHeaderFields = source.allHTTPHeaderFields
         self.url = source.url
         self.mainDocumentURL = source.mainDocumentURL
