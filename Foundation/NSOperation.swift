@@ -545,7 +545,7 @@ public class NSOperationQueue : NSObject {
                 return nil
             }
         } else {
-            return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: OpaquePointer.self)).takeUnretainedValue()
+            return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: UnsafePointer<Void>.self)).takeUnretainedValue()
         }
 #else
         return nil
@@ -558,7 +558,7 @@ public class NSOperationQueue : NSObject {
         if specific == nil {
             return NSOperationQueue(_queue: dispatch_get_main_queue(), maxConcurrentOperations: 1)
         } else {
-            return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: OpaquePointer.self)).takeUnretainedValue()
+            return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: UnsafePointer<Void>.self)).takeUnretainedValue()
         }
 #else
         fatalError("NSOperationQueue requires libdispatch")
