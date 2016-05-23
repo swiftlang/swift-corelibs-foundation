@@ -361,7 +361,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, SecureCoding {
             let intersection = NSIntersectionRange(curRange, range)
             if passRanges {
                 if intersection.length > 0 {
-                    block(intersection as! P, &stop)
+                    let _ = block(intersection as! P, &stop)
                 }
                 if stop {
                     break outer
@@ -377,7 +377,7 @@ public class NSIndexSet : NSObject, NSCopying, NSMutableCopying, SecureCoding {
                             stop = true
                         }
                     } else {
-                        block(idx as! P, &stop)
+                        let _ = block(idx as! P, &stop)
                     }
                     if stop {
                         break outer

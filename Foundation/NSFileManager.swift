@@ -973,7 +973,7 @@ internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
         } else if let error = _rootError {
             // Was there an error opening the stream?
             if let handler = _errorHandler {
-                handler(_url, error)
+                let _ = handler(_url, error)
             }
         }
         return nil
