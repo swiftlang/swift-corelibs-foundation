@@ -18,14 +18,14 @@ extension EnergyFormatter {
     }
 }
 
-public class EnergyFormatter : NSFormatter {
+public class EnergyFormatter : Formatter {
     
     public required init?(coder: NSCoder) {
         NSUnimplemented()
     }
     
     /*@NSCopying*/ public var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
-    public var unitStyle: NSFormattingUnitStyle // default is NSFormattingUnitStyleMedium
+    public var unitStyle: UnitStyle // default is NSFormattingUnitStyleMedium
     public var forFoodEnergyUse: Bool // default is NO; if it is set to YES, NSEnergyFormatterUnitKilocalorie may be “C” instead of “kcal"
     
     // Format a combination of a number and an unit to a localized string.

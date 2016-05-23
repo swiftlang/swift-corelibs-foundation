@@ -19,14 +19,14 @@ extension MassFormatter {
     }
 }
     
-public class MassFormatter : NSFormatter {
+public class MassFormatter : Formatter {
     
     public required init?(coder: NSCoder) {
         NSUnimplemented()
     }
     
     /*@NSCopying*/ public var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
-    public var unitStyle: NSFormattingUnitStyle // default is NSFormattingUnitStyleMedium
+    public var unitStyle: UnitStyle // default is NSFormattingUnitStyleMedium
     public var forPersonMassUse: Bool // default is NO; if it is set to YES, the number argument for -stringFromKilograms: and -unitStringFromKilograms: is considered as a person’s mass
     
     // Format a combination of a number and an unit to a localized string.

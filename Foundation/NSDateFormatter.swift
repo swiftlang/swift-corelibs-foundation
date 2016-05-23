@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-public class DateFormatter : NSFormatter {
+public class DateFormatter : Formatter {
     typealias CFType = CFDateFormatter
     private var __cfObject: CFType?
     private var _cfObject: CFType {
@@ -41,7 +41,7 @@ public class DateFormatter : NSFormatter {
         super.init(coder: coder)
     }
 
-    public var formattingContext: NSFormattingContext = .unknown // default is NSFormattingContextUnknown
+    public var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
 
     public func objectValue(_ string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
 

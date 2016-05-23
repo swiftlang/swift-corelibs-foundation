@@ -37,7 +37,7 @@ extension DateComponentsFormatter {
 /* NSDateComponentsFormatter provides locale-correct and flexible string formatting of quantities of time, such as "1 day" or "1h 10m", as specified by NSDateComponents. For formatting intervals of time (such as "2PM to 5PM"), see NSDateIntervalFormatter. NSDateComponentsFormatter is thread-safe, in that calling methods on it from multiple threads will not cause crashes or incorrect results, but it makes no attempt to prevent confusion when one thread sets something and another thread isn't expecting it to change.
  */
 
-public class DateComponentsFormatter : NSFormatter {
+public class DateComponentsFormatter : Formatter {
     
     public override init() {
         NSUnimplemented()
@@ -127,7 +127,7 @@ public class DateComponentsFormatter : NSFormatter {
     /* 
        Currently unimplemented, will be removed in a future seed.
      */
-    public var formattingContext: NSFormattingContext
+    public var formattingContext: Context
     
     /* NSDateComponentsFormatter currently only implements formatting, not parsing. Until it implements parsing, this will always return NO.
      */

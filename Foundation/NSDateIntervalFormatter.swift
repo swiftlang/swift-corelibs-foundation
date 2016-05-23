@@ -22,7 +22,7 @@ extension DateIntervalFormatter {
 // NSDateIntervalFormatter is used to format the range between two NSDates in a locale-sensitive way.
 // NSDateIntervalFormatter returns nil and NO for all methods in NSFormatter.
 
-public class DateIntervalFormatter : NSFormatter {
+public class DateIntervalFormatter : Formatter {
     
     public override init() {
         NSUnimplemented()

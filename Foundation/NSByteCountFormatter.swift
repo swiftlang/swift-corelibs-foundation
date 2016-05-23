@@ -41,7 +41,7 @@ extension ByteCountFormatter {
     }
 }
 
-public class ByteCountFormatter : NSFormatter {
+public class ByteCountFormatter : Formatter {
     public override init() {
         super.init()
     }
@@ -89,6 +89,6 @@ public class ByteCountFormatter : NSFormatter {
     
     /* Specify the formatting context for the formatted string. Default is NSFormattingContextUnknown.
     */
-    public var formattingContext: NSFormattingContext = .unknown
+    public var formattingContext: Context = .unknown
 }
 

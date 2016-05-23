@@ -39,7 +39,7 @@ extension PersonNameComponentsFormatter {
     }
 }
 
-public class PersonNameComponentsFormatter : NSFormatter {
+public class PersonNameComponentsFormatter : Formatter {
     
     public required init?(coder: NSCoder) {
         NSUnimplemented()

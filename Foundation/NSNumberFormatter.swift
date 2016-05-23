@@ -22,7 +22,7 @@ internal let kCFNumberFormatterCurrencyPluralStyle = CFNumberFormatterStyle.curr
 internal let kCFNumberFormatterCurrencyAccountingStyle = CFNumberFormatterStyle.currencyAccountingStyle
 #endif
 
-public class NumberFormatter : NSFormatter {
+public class NumberFormatter : Formatter {
     
     typealias CFType = CFNumberFormatter
     private var _currentCfFormatter: CFType?
@@ -45,7 +45,7 @@ public class NumberFormatter : NSFormatter {
     
     // this is for NSUnitFormatter
     
-    public var formattingContext: NSFormattingContext = .unknown // default is NSFormattingContextUnknown
+    public var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
     
     // Report the used range of the string and an NSError, in addition to the usual stuff from NSFormatter
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
