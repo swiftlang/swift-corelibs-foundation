@@ -177,8 +177,7 @@ public class NSXMLDTD : NSXMLNode {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDTD)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            let unmanaged = Unmanaged<NSXMLDTD>.fromOpaque(privateData)
-            return unmanaged.takeUnretainedValue()
+            return NSXMLDTD.unretainedReference(privateData)
         }
         
         return NSXMLDTD(ptr: node)

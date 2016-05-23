@@ -16,53 +16,26 @@ import Glibc
 
 import CoreFoundation
 
-private func disposeTLS(_ ctx: UnsafeMutablePointer<Void>?) -> Void {
-    Unmanaged<AnyObject>.fromOpaque(OpaquePointer(ctx!)).release()
+// for some reason having this take a generic causes a crash...
+private func _compiler_crash_fix(_ key: _CFThreadSpecificKey, _ value: AnyObject?) {
+    _CThreadSpecificSet(key, value)
 }
 
-internal class NSThreadSpecific<T: AnyObject> {
-
-    private var NSThreadSpecificKeySet = false
-    private var NSThreadSpecificKeyLock = NSLock()
-    private var NSThreadSpecificKey = pthread_key_t()
-
-    private var key: pthread_key_t {
-        NSThreadSpecificKeyLock.lock()
-        if !NSThreadSpecificKeySet {
-            withUnsafeMutablePointer(&NSThreadSpecificKey) { (key: UnsafeMutablePointer<pthread_key_t>) in
-                NSThreadSpecificKeySet = __CFThreadKeyCreate(key, disposeTLS)
-            }
-        }
-        NSThreadSpecificKeyLock.unlock()
-        return NSThreadSpecificKey
-    }
+internal class NSThreadSpecific<T: NSObject> {
+    private var key = _CFThreadSpecificKeyCreate()
     
     internal func get(_ generator: (Void) -> T) -> T {
-        let specific: UnsafeMutablePointer<Void>? = pthread_getspecific(self.key)
-        if specific != nil {
-            return Unmanaged<T>.fromOpaque(OpaquePointer(specific!)).takeUnretainedValue()
+        if let specific = _CFThreadSpecificGet(key) {
+            return specific as! T
         } else {
             let value = generator()
-            pthread_setspecific(self.key, UnsafePointer<Void>(OpaquePointer(bitPattern: Unmanaged<AnyObject>.passRetained(value))))
+            _compiler_crash_fix(key, value)
             return value
         }
     }
     
     internal func set(_ value: T) {
-        let specific: UnsafeMutablePointer<Void>? = pthread_getspecific(self.key)
-        var previous: Unmanaged<T>?
-        if specific != nil {
-            previous = Unmanaged<T>.fromOpaque(OpaquePointer(specific!))
-        }
-        if let prev = previous {
-            if prev.takeUnretainedValue() === value {
-                return
-            }
-        }
-        pthread_setspecific(self.key, UnsafePointer<Void>(OpaquePointer(bitPattern: Unmanaged<AnyObject>.passRetained(value))))
-        if let prev = previous {
-            prev.release()
-        }
+        _compiler_crash_fix(key, value)
     }
 }
 
@@ -74,13 +47,12 @@ internal enum _NSThreadStatus {
 }
 
 private func NSThreadStart(_ context: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
-    let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(OpaquePointer(context!))
-    let thread = unmanaged.takeUnretainedValue()
+    let thread: NSThread = NSObject.unretainedReference(context!)
     NSThread._currentThread.set(thread)
     thread._status = .executing
     thread.main()
     thread._status = .finished
-    unmanaged.release()
+    NSThread.releaseReference(context!)
     return nil
 }
 
@@ -184,11 +156,8 @@ public class NSThread : NSObject {
             _status = .finished
             return
         }
-        withUnsafeMutablePointers(&_thread, &_attr) { thread, attr in
-            let ptr = Unmanaged.passRetained(self)
-            pthread_create(thread, attr, { (ctx) -> UnsafeMutablePointer<Void>! in
-                NSThreadStart(ctx)
-            }, UnsafeMutablePointer(OpaquePointer(bitPattern: ptr)))
+        _thread = self.withRetainedReference {
+            return _CFThreadCreate(self._attr, NSThreadStart, $0)
         }
     }
     

@@ -98,10 +98,9 @@ public class NSXMLNode : NSObject, NSCopying {
 
         super.init()
 
-        let unmanaged = Unmanaged<NSXMLNode>.passUnretained(self)
-        let ptr = unmanaged.toOpaque()
-
-        _CFXMLNodeSetPrivateData(_xmlNode, ptr)
+        withUnretainedReference {
+            _CFXMLNodeSetPrivateData(_xmlNode, $0)
+        }
     }
 
     /*!
@@ -546,7 +545,8 @@ public class NSXMLNode : NSObject, NSCopying {
         _CFXMLUnlinkNode(_xmlNode)
 
         guard let parentNodePtr = _CFXMLNodeGetPrivateData(parentPtr) else { return }
-        let parent = Unmanaged<NSXMLNode>.fromOpaque(parentNodePtr).takeUnretainedValue()
+        
+        let parent: NSXMLNode = NSObject.unretainedReference(parentNodePtr)
         parent._childNodes.remove(self)
     } //primitive
 
@@ -765,9 +765,10 @@ public class NSXMLNode : NSObject, NSCopying {
             let parentNode = NSXMLNode._objectNodeForNode(parent)
             parentNode._childNodes.insert(self)
         }
-
-        let unmanaged = Unmanaged<NSXMLNode>.passUnretained(self)
-        _CFXMLNodeSetPrivateData(_xmlNode, unmanaged.toOpaque())
+        
+        withUnretainedReference {
+            _CFXMLNodeSetPrivateData(_xmlNode, $0)
+        }
     }
 
     internal class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLNode {
@@ -792,8 +793,7 @@ public class NSXMLNode : NSObject, NSCopying {
 
         default:
             if let _private = _CFXMLNodeGetPrivateData(node) {
-                let unmanaged = Unmanaged<NSXMLNode>.fromOpaque(_private)
-                return unmanaged.takeUnretainedValue()
+                return NSXMLNode.unretainedReference(_private)
             }
 
             return NSXMLNode(ptr: node)

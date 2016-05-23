@@ -204,6 +204,9 @@ struct _CFSwiftBridge {
 
 CF_PRIVATE CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
 
+CF_PRIVATE void *_Nullable _CFSwiftRetain(void *_Nullable t);
+CF_PRIVATE void _CFSwiftRelease(void *_Nullable t);
+
 CF_PRIVATE CF_EXPORT void _CFRuntimeBridgeTypeToClass(CFTypeID type, const void *isa);
 
 typedef	unsigned char __cf_uuid[16];
@@ -248,9 +251,15 @@ CF_EXPORT Boolean _CFIsMainThread(void);
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
 
-typedef pthread_key_t __CFThreadKey;
+typedef pthread_key_t _CFThreadSpecificKey;
+CF_EXPORT CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key);
+CF_EXPORT void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
+CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate();
 
-_Bool __CFThreadKeyCreate(__CFThreadKey *, void (* _Nullable)(void *_Nullable));
+typedef pthread_attr_t _CFThreadAttributes;
+typedef pthread_t _CFThreadRef;
+
+CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context);
 
 _CF_EXPORT_SCOPE_END
 

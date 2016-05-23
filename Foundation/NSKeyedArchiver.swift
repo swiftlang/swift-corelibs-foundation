@@ -285,7 +285,7 @@ public class NSKeyedArchiver : NSCoder {
     
     private static func _createObjectRef(_ uid : UInt32) -> CFKeyedArchiverUID {
         return Unmanaged<CFKeyedArchiverUID>.fromOpaque(
-            UnsafePointer<Void>(_CFKeyedArchiverUIDCreate(kCFAllocatorSystemDefault, uid))).takeUnretainedValue()
+            OpaquePointer(UnsafePointer<Void>(_CFKeyedArchiverUIDCreate(kCFAllocatorSystemDefault, uid)))).takeUnretainedValue()
     }
     
     private func _createObjectRefCached(_ uid : UInt32) -> CFKeyedArchiverUID {

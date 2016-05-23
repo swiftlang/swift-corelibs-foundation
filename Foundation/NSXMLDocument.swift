@@ -346,8 +346,7 @@ public class NSXMLDocument : NSXMLNode {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDocument)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            let unmanaged = Unmanaged<NSXMLDocument>.fromOpaque(privateData)
-            return unmanaged.takeUnretainedValue()
+            return NSXMLDocument.unretainedReference(privateData)
         }
 
         return NSXMLDocument(ptr: node)

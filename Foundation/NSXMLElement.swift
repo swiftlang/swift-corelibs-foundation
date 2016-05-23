@@ -124,9 +124,7 @@ public class NSXMLElement : NSXMLNode {
         while let attribute = nextAttribute {
             var shouldFreeNode = true
             if let privateData = _CFXMLNodeGetPrivateData(attribute) {
-                let nodeUnmanagedRef = Unmanaged<NSXMLNode>.fromOpaque(privateData)
-                let node = nodeUnmanagedRef.takeUnretainedValue()
-                _childNodes.remove(node)
+                _childNodes.remove(NSXMLNode.unretainedReference(privateData))
 
                 shouldFreeNode = false
             }
@@ -261,8 +259,7 @@ public class NSXMLElement : NSXMLNode {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeElement)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            let unmanaged = Unmanaged<NSXMLElement>.fromOpaque(privateData)
-            return unmanaged.takeUnretainedValue()
+            return NSXMLElement.unretainedReference(privateData)
         }
 
         return NSXMLElement(ptr: node)

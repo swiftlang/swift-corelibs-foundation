@@ -239,8 +239,7 @@ public class NSXMLDTDNode : NSXMLNode {
                      type == _kCFXMLDTDNodeTypeElement)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            let unmanaged = Unmanaged<NSXMLDTDNode>.fromOpaque(privateData)
-            return unmanaged.takeUnretainedValue()
+            return NSXMLDTDNode.unretainedReference(privateData)
         }
 
         return NSXMLDTDNode(ptr: node)
