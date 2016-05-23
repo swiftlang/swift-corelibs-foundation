@@ -401,7 +401,7 @@ class TestNSString : XCTestCase {
         var buf : [UInt8] = []
         buf.reserveCapacity(reservedLength)
         var usedLen : CFIndex = 0
-        buf.withUnsafeMutableBufferPointer { p in
+        let _ = buf.withUnsafeMutableBufferPointer { p in
             CFStringGetBytes(cfString, CFRangeMake(0, CFStringGetLength(cfString)), CFStringEncoding(kCFStringEncodingUTF16), 0, false, p.baseAddress, reservedLength, &usedLen)
         }
         

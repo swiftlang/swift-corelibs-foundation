@@ -51,12 +51,13 @@ class TestNSNotificationQueue : XCTestCase {
         let dummyObject = NSObject()
         let notification = NSNotification(name: notificationName, object: dummyObject)
         var numberOfCalls = 0
-        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+        let obs = NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
         let queue = NSNotificationQueue.defaultQueue()
         queue.enqueueNotification(notification, postingStyle: .postNow)
         XCTAssertEqual(numberOfCalls, 1)
+        NSNotificationCenter.defaultCenter().removeObserver(obs)
     }
 
     func test_postNowToDefaultQueueWithCoalescing() {
@@ -64,7 +65,7 @@ class TestNSNotificationQueue : XCTestCase {
         let dummyObject = NSObject()
         let notification = NSNotification(name: notificationName, object: dummyObject)
         var numberOfCalls = 0
-        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+        let obs = NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
         let queue = NSNotificationQueue.defaultQueue()
@@ -73,6 +74,7 @@ class TestNSNotificationQueue : XCTestCase {
         queue.enqueueNotification(notification, postingStyle: .postNow)
         // Coalescing doesn't work for the NSPostingStyle.PostNow. That is why we expect 3 calls here
         XCTAssertEqual(numberOfCalls, 3)
+        NSNotificationCenter.defaultCenter().removeObserver(obs)
     }
 
     func test_postNowToCustomQueue() {
@@ -81,12 +83,13 @@ class TestNSNotificationQueue : XCTestCase {
         let notification = NSNotification(name: notificationName, object: dummyObject)
         var numberOfCalls = 0
         let notificationCenter = NSNotificationCenter()
-        notificationCenter.addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+        let obs = notificationCenter.addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
         let notificationQueue = NSNotificationQueue(notificationCenter: notificationCenter)
         notificationQueue.enqueueNotification(notification, postingStyle: .postNow)
         XCTAssertEqual(numberOfCalls, 1)
+        NSNotificationCenter.defaultCenter().removeObserver(obs)
     }
 
     func test_postNowForDefaultRunLoopMode() {
@@ -94,7 +97,7 @@ class TestNSNotificationQueue : XCTestCase {
         let dummyObject = NSObject()
         let notification = NSNotification(name: notificationName, object: dummyObject)
         var numberOfCalls = 0
-        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+        let obs = NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
         let queue = NSNotificationQueue.defaultQueue()
@@ -115,8 +118,9 @@ class TestNSNotificationQueue : XCTestCase {
             queue.enqueueNotification(notification, postingStyle: .postNow, coalesceMask: [], forModes: [NSRunLoopCommonModes])
         }
         runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        runLoop.runMode(NSDefaultRunLoopMode, beforeDate: endDate)
+        let _ = runLoop.runMode(NSDefaultRunLoopMode, beforeDate: endDate)
         XCTAssertEqual(numberOfCalls, 2)
+        NSNotificationCenter.defaultCenter().removeObserver(obs)
     }
 
     func test_postAsapToDefaultQueue() {
@@ -124,7 +128,7 @@ class TestNSNotificationQueue : XCTestCase {
         let dummyObject = NSObject()
         let notification = NSNotification(name: notificationName, object: dummyObject)
         var numberOfCalls = 0
-        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+        let obs = NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
         let queue = NSNotificationQueue.defaultQueue()
@@ -132,6 +136,7 @@ class TestNSNotificationQueue : XCTestCase {
 
         scheduleTimer(withInterval: 0.001) // run timer trigger the notifications
         XCTAssertEqual(numberOfCalls, 1)
+        NSNotificationCenter.defaultCenter().removeObserver(obs)
     }
 
     func test_postAsapToDefaultQueueWithCoalescingOnNameAndSender() {
@@ -139,7 +144,7 @@ class TestNSNotificationQueue : XCTestCase {
         let notificationName = "test_postAsapToDefaultQueueWithCoalescingOnNameAndSender"
         let notification = NSNotification(name: notificationName, object: NSObject())
         var numberOfCalls = 0
-        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: notification.object, queue: nil) { notification in
+        let obs = NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: notification.object, queue: nil) { notification in
             numberOfCalls += 1
         }
         let queue = NSNotificationQueue.defaultQueue()
@@ -149,6 +154,7 @@ class TestNSNotificationQueue : XCTestCase {
 
         scheduleTimer(withInterval: 0.001)
         XCTAssertEqual(numberOfCalls, 1)
+        NSNotificationCenter.defaultCenter().removeObserver(obs)
     }
 
     func test_postAsapToDefaultQueueWithCoalescingOnNameOrSender() {
@@ -156,12 +162,12 @@ class TestNSNotificationQueue : XCTestCase {
         let notificationName = "test_postAsapToDefaultQueueWithCoalescingOnNameOrSender"
         let notification1 = NSNotification(name: notificationName, object: NSObject())
         var numberOfNameCoalescingCalls = 0
-        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: notification1.object, queue: nil) { notification in
+        let obs1 = NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: notification1.object, queue: nil) { notification in
             numberOfNameCoalescingCalls += 1
         }
         let notification2 = NSNotification(name: notificationName, object: NSObject())
         var numberOfObjectCoalescingCalls = 0
-        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: notification2.object, queue: nil) { notification in
+        let obs2 = NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: notification2.object, queue: nil) { notification in
             numberOfObjectCoalescingCalls += 1
         }
 
@@ -180,6 +186,8 @@ class TestNSNotificationQueue : XCTestCase {
         // check that we received notifications #4 and #5
         XCTAssertEqual(numberOfNameCoalescingCalls, 1)
         XCTAssertEqual(numberOfObjectCoalescingCalls, 1)
+        NSNotificationCenter.defaultCenter().removeObserver(obs1)
+        NSNotificationCenter.defaultCenter().removeObserver(obs2)
     }
 
 
@@ -189,13 +197,14 @@ class TestNSNotificationQueue : XCTestCase {
         let notification = NSNotification(name: notificationName, object: dummyObject)
         var numberOfCalls = 0
 
-        NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
+        let obs = NSNotificationCenter.defaultCenter().addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
         NSNotificationQueue.defaultQueue().enqueueNotification(notification, postingStyle: .postWhenIdle)
         // add a timer to wakeup the runloop, process the timer and call the observer awaiting for any input sources/timers
         scheduleTimer(withInterval: 0.001)
         XCTAssertEqual(numberOfCalls, 1)
+        NSNotificationCenter.defaultCenter().removeObserver(obs)
     }
 
     func test_notificationQueueLifecycle() {
