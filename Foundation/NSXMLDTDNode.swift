@@ -13,7 +13,7 @@ import CoreFoundation
 	@abstract The subkind of a DTD node kind.
 */
 extension XMLDTDNode {
-    public enum Kind : UInt {
+    public enum DTDKind : UInt {
         
         case NSXMLEntityGeneralKind
         case NSXMLEntityParsedKind
@@ -49,7 +49,7 @@ extension XMLDTDNode {
 		<li><b>Element declaration</b> - the validation string</li>
 		<li><b>Notation declaration</b> - no objectValue</li></ul>
 */
-public class XMLDTDNode: NSXMLNode {
+public class XMLDTDNode: XMLNode {
     
     /*!
         @method initWithXMLString:
@@ -60,7 +60,7 @@ public class XMLDTDNode: NSXMLNode {
         super.init(ptr: ptr)
     } //primitive
     
-    public override init(kind: NSXMLNodeKind, options: Int) {
+    public override init(kind: Kind, options: Int) {
         let ptr: _CFXMLNodePtr
 
         switch kind {
@@ -79,7 +79,7 @@ public class XMLDTDNode: NSXMLNode {
         @method DTDKind
         @abstract Sets the DTD sub kind.
     */
-    public var DTDKind: Kind {
+    public var dtdKind: DTDKind {
         switch _CFXMLNodeGetType(_xmlNode) {
         case _kCFXMLDTDNodeTypeElement:
             switch _CFXMLDTDElementNodeGetType(_xmlNode) {
@@ -159,7 +159,7 @@ public class XMLDTDNode: NSXMLNode {
             }
             
         case _kCFXMLTypeInvalid:
-            return unsafeBitCast(0, to: Kind.self) // this mirrors Darwin
+            return unsafeBitCast(0, to: DTDKind.self) // this mirrors Darwin
             
         default:
             fatalError("This is not actually a DTD node!")
@@ -214,14 +214,14 @@ public class XMLDTDNode: NSXMLNode {
     */
     public var notationName: String? {
         get {
-            guard DTDKind == .NSXMLEntityUnparsedKind else {
+            guard dtdKind == .NSXMLEntityUnparsedKind else {
                 return nil
             }
 
             return _CFXMLGetEntityContent(_xmlNode)?._swiftObject
         }
         set {
-            guard DTDKind == .NSXMLEntityUnparsedKind else {
+            guard dtdKind == .NSXMLEntityUnparsedKind else {
                 return
             }
 

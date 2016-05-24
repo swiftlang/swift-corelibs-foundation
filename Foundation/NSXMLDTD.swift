@@ -12,7 +12,7 @@ import CoreFoundation
     @class NSXMLDTD
     @abstract Defines the order, repetition, and allowable values for a document
 */
-public class XMLDTD : NSXMLNode {
+public class XMLDTD : XMLNode {
 
     internal var _xmlDTD: _CFXMLDTDPtr {
         return _CFXMLDTDPtr(_xmlNode)
@@ -82,7 +82,7 @@ public class XMLDTD : NSXMLNode {
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(_ child: NSXMLNode, atIndex index: Int) {
+    public func insertChild(_ child: XMLNode, atIndex index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
     
@@ -90,7 +90,7 @@ public class XMLDTD : NSXMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(_ children: [NSXMLNode], atIndex index: Int) {
+    public func insertChildren(_ children: [XMLNode], atIndex index: Int) {
         _insertChildren(children, atIndex: index)
     }
     
@@ -106,7 +106,7 @@ public class XMLDTD : NSXMLNode {
         @method setChildren:
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
-    public func setChildren(_ children: [NSXMLNode]?) {
+    public func setChildren(_ children: [XMLNode]?) {
         _setChildren(children)
     } //primitive
     
@@ -114,7 +114,7 @@ public class XMLDTD : NSXMLNode {
         @method addChild:
         @abstract Adds a child to the end of the existing children.
     */
-    public func addChild(_ child: NSXMLNode) {
+    public func addChild(_ child: XMLNode) {
         _addChild(child)
     }
     
@@ -122,7 +122,7 @@ public class XMLDTD : NSXMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChildAtIndex(_ index: Int, withNode node: NSXMLNode) {
+    public func replaceChildAtIndex(_ index: Int, withNode node: XMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
     

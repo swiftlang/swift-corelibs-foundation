@@ -13,7 +13,7 @@ import CoreFoundation
     @abstract An XML element
     @discussion Note: Trying to add a document, namespace, attribute, or node with a parent throws an exception. To add a node with a parent first detach or create a copy of it.
 */
-public class XMLElement: NSXMLNode {
+public class XMLElement: XMLNode {
 
     /*!
         @method initWithName:
@@ -51,7 +51,7 @@ public class XMLElement: NSXMLNode {
     */
     public init(XMLString string: String) throws { NSUnimplemented() }
 
-    public convenience override init(kind: NSXMLNodeKind, options: Int) {
+    public convenience override init(kind: Kind, options: Int) {
         self.init(name: "", URI: nil)
     }
 
@@ -73,7 +73,7 @@ public class XMLElement: NSXMLNode {
         @method addAttribute:
         @abstract Adds an attribute. Attributes with duplicate names are not added.
     */
-    public func addAttribute(_ attribute: NSXMLNode) {
+    public func addAttribute(_ attribute: XMLNode) {
         guard _CFXMLNodeHasProp(_xmlNode, UnsafePointer<UInt8>(_CFXMLNodeGetName(attribute._xmlNode)!)) == nil else { return }
         addChild(attribute)
     } //primitive
@@ -84,7 +84,7 @@ public class XMLElement: NSXMLNode {
     */
     public func removeAttributeForName(_ name: String) {
         if let prop = _CFXMLNodeHasProp(_xmlNode, name) {
-            let propNode = NSXMLNode._objectNodeForNode(_CFXMLNodePtr(prop))
+            let propNode = XMLNode._objectNodeForNode(_CFXMLNodePtr(prop))
             _childNodes.remove(propNode)
             // We can't use `xmlRemoveProp` because someone else may still have a reference to this attribute
             _CFXMLUnlinkNode(_CFXMLNodePtr(prop))
@@ -95,12 +95,12 @@ public class XMLElement: NSXMLNode {
         @method setAttributes
         @abstract Set the attributes. In the case of duplicate names, the first attribute with the name is used.
     */
-    public var attributes: [NSXMLNode]? {
+    public var attributes: [XMLNode]? {
         get {
-            var result: [NSXMLNode] = []
+            var result: [XMLNode] = []
             var nextAttribute = _CFXMLNodeProperties(_xmlNode)
             while let attribute = nextAttribute {
-                result.append(NSXMLNode._objectNodeForNode(attribute))
+                result.append(XMLNode._objectNodeForNode(attribute))
                 nextAttribute = _CFXMLNodeGetNextSibling(attribute)
             }
             return result.count > 0 ? result : nil // This appears to be how Darwin does it
@@ -124,7 +124,7 @@ public class XMLElement: NSXMLNode {
         while let attribute = nextAttribute {
             var shouldFreeNode = true
             if let privateData = _CFXMLNodeGetPrivateData(attribute) {
-                _childNodes.remove(NSXMLNode.unretainedReference(privateData))
+                _childNodes.remove(XMLNode.unretainedReference(privateData))
 
                 shouldFreeNode = false
             }
@@ -146,7 +146,7 @@ public class XMLElement: NSXMLNode {
     public func setAttributesWithDictionary(_ attributes: [String : String]) {
         removeAttributes()
         for (name, value) in attributes {
-            addAttribute(NSXMLNode.attributeWithName(name, stringValue: value) as! NSXMLNode)
+            addAttribute(XMLNode.attributeWithName(name, stringValue: value) as! XMLNode)
         }
     }
 
@@ -154,22 +154,22 @@ public class XMLElement: NSXMLNode {
         @method attributeForName:
         @abstract Returns an attribute matching this name.
     */
-    public func attributeForName(_ name: String) -> NSXMLNode? {
+    public func attributeForName(_ name: String) -> XMLNode? {
         guard let attribute = _CFXMLNodeHasProp(_xmlNode, name) else { return nil }
-        return NSXMLNode._objectNodeForNode(attribute)
+        return XMLNode._objectNodeForNode(attribute)
     }
 
     /*!
         @method attributeForLocalName:URI:
         @abstract Returns an attribute matching this localname URI pair.
     */
-    public func attributeForLocalName(_ localName: String, URI: String?) -> NSXMLNode? { NSUnimplemented() } //primitive
+    public func attributeForLocalName(_ localName: String, URI: String?) -> XMLNode? { NSUnimplemented() } //primitive
 
     /*!
         @method addNamespace:URI:
         @abstract Adds a namespace. Namespaces with duplicate names are not added.
     */
-    public func addNamespace(_ aNamespace: NSXMLNode) { NSUnimplemented() } //primitive
+    public func addNamespace(_ aNamespace: XMLNode) { NSUnimplemented() } //primitive
 
     /*!
         @method addNamespace:URI:
@@ -181,19 +181,19 @@ public class XMLElement: NSXMLNode {
         @method namespaces
         @abstract Set the namespaces. In the case of duplicate names, the first namespace with the name is used.
     */
-    public var namespaces: [NSXMLNode]? { NSUnimplemented() } //primitive
+    public var namespaces: [XMLNode]? { NSUnimplemented() } //primitive
 
     /*!
         @method namespaceForPrefix:
         @abstract Returns the namespace matching this prefix.
     */
-    public func namespaceForPrefix(_ name: String) -> NSXMLNode? { NSUnimplemented() }
+    public func namespaceForPrefix(_ name: String) -> XMLNode? { NSUnimplemented() }
 
     /*!
         @method resolveNamespaceForName:
         @abstract Returns the namespace who matches the prefix of the name given. Looks in the entire namespace chain.
     */
-    public func resolveNamespaceForName(_ name: String) -> NSXMLNode? { NSUnimplemented() }
+    public func resolveNamespaceForName(_ name: String) -> XMLNode? { NSUnimplemented() }
 
     /*!
         @method resolvePrefixForNamespaceURI:
@@ -205,7 +205,7 @@ public class XMLElement: NSXMLNode {
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(_ child: NSXMLNode, atIndex index: Int) {
+    public func insertChild(_ child: XMLNode, atIndex index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
 
@@ -213,7 +213,7 @@ public class XMLElement: NSXMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(_ children: [NSXMLNode], atIndex index: Int) {
+    public func insertChildren(_ children: [XMLNode], atIndex index: Int) {
         _insertChildren(children, atIndex: index)
     }
 
@@ -229,7 +229,7 @@ public class XMLElement: NSXMLNode {
         @method setChildren:
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
-    public func setChildren(_ children: [NSXMLNode]?) {
+    public func setChildren(_ children: [XMLNode]?) {
         _setChildren(children)
     } //primitive
 
@@ -237,7 +237,7 @@ public class XMLElement: NSXMLNode {
         @method addChild:
         @abstract Adds a child to the end of the existing children.
     */
-    public func addChild(_ child: NSXMLNode) {
+    public func addChild(_ child: XMLNode) {
         _addChild(child)
     }
 
@@ -245,7 +245,7 @@ public class XMLElement: NSXMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChildAtIndex(_ index: Int, withNode node: NSXMLNode) {
+    public func replaceChildAtIndex(_ index: Int, withNode node: XMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
 
