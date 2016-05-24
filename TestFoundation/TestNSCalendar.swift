@@ -33,7 +33,7 @@ class TestNSCalendar: XCTestCase {
         let date = Date(timeIntervalSince1970: 1449332351)
         
         let calendar = Calendar(calendarIdentifier: NSCalendarIdentifierGregorian)
-        calendar?.timeZone = NSTimeZone(name: "UTC")!
+        calendar?.timeZone = TimeZone(name: "UTC")!
         guard let components = calendar?.components([.year, .month, .day], from: date) else {
             XCTFail("Could not get date from the calendar")
             return
@@ -48,7 +48,7 @@ class TestNSCalendar: XCTestCase {
         let date = Date(timeIntervalSince1970: 1552580351)
         
         let calendar = Calendar(calendarIdentifier: NSCalendarIdentifierHebrew)
-        calendar?.timeZone = NSTimeZone(name: "UTC")!
+        calendar?.timeZone = TimeZone(name: "UTC")!
         guard let components = calendar?.components([.year, .month, .day], from: date) else {
             XCTFail("Could not get date from the Hebrew calendar")
             return
@@ -63,7 +63,7 @@ class TestNSCalendar: XCTestCase {
         let date = Date(timeIntervalSince1970: 1591460351.0)
         
         let calendar = Calendar(calendarIdentifier: NSCalendarIdentifierChinese)
-        calendar?.timeZone = NSTimeZone(name: "UTC")!
+        calendar?.timeZone = TimeZone(name: "UTC")!
         guard let components = calendar?.components([.year, .month, .day], from: date) else {
             XCTFail("Could not get date from the Chinese calendar")
             return

@@ -118,7 +118,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
             
             self.init(calendarIdentifier: calendarIdentifier.bridge())
             
-            if let timeZone = aDecoder.decodeObjectOfClass(NSTimeZone.self, forKey: "NS.timezone") {
+            if let timeZone = aDecoder.decodeObjectOfClass(TimeZone.self, forKey: "NS.timezone") {
                 self.timeZone = timeZone
             }
             if let locale = aDecoder.decodeObjectOfClass(NSLocale.self, forKey: "NS.locale") {
@@ -225,7 +225,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
             CFCalendarSetLocale(_cfObject, newValue?._cfObject)
         }
     }
-    /*@NSCopying*/ public var timeZone: NSTimeZone {
+    /*@NSCopying*/ public var timeZone: TimeZone {
         get {
             return CFCalendarCopyTimeZone(_cfObject)._nsObject
         }
@@ -674,7 +674,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// The Darwin version is not nullable but this one is since the conversion from the date and unit flags can potentially return nil
-    public func components(in timezone: NSTimeZone, fromDate date: Date) -> NSDateComponents? {
+    public func components(in timezone: TimeZone, fromDate date: Date) -> NSDateComponents? {
         let oldTz = self.timeZone
         self.timeZone = timezone
         let comps = components([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .calendar, .timeZone], from: date)
@@ -1132,7 +1132,7 @@ public var NSDateComponentUndefined: Int = LONG_MAX
 
 public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     internal var _calendar: Calendar?
-    internal var _timeZone: NSTimeZone?
+    internal var _timeZone: TimeZone?
     internal var _values = [Int](repeating: NSDateComponentUndefined, count: 19)
     public override init() {
         super.init()
@@ -1255,7 +1255,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             self.weekdayOrdinal = aDecoder.decodeIntegerForKey("NS.weekdayOrdinal")
             self.leapMonth = aDecoder.decodeBoolForKey("NS.leapMonth")
             self.calendar = aDecoder.decodeObjectOfClass(Calendar.self, forKey: "NS.calendar")
-            self.timeZone = aDecoder.decodeObjectOfClass(NSTimeZone.self, forKey: "NS.timezone")
+            self.timeZone = aDecoder.decodeObjectOfClass(TimeZone.self, forKey: "NS.timezone")
         } else {
             NSUnimplemented()
         }
@@ -1309,13 +1309,13 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             }
         }
     }
-    /*@NSCopying*/ public var timeZone: NSTimeZone? {
+    /*@NSCopying*/ public var timeZone: TimeZone? {
         get {
             return _timeZone
         }
         set {
             if let val = newValue {
-                _timeZone = (val.copy() as! NSTimeZone)
+                _timeZone = (val.copy() as! TimeZone)
             } else {
                 _timeZone = nil
             }
