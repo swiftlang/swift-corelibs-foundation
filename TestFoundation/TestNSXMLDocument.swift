@@ -331,7 +331,7 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_dtd() throws {
-        let node = NSXMLNode.DTDNodeWithXMLString("<!ELEMENT foo (#PCDATA)>") as! NSXMLDTDNode
+        let node = NSXMLNode.DTDNodeWithXMLString("<!ELEMENT foo (#PCDATA)>") as! XMLDTDNode
         XCTAssert(node.name == "foo")
 
         let dtd = try XMLDTD(contentsOfURL: testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")!, options: 0)
@@ -357,12 +357,12 @@ class TestNSXMLDocument : XCTestCase {
         let amp = XMLDTD.predefinedEntityDeclarationForName("amp")
         XCTAssert(amp?.name == "amp", amp?.name ?? "")
         XCTAssert(amp?.stringValue == "&", amp?.stringValue ?? "")
-        if let entityNode = NSXMLNode.DTDNodeWithXMLString("<!ENTITY author 'Robert Thompson'>") as? NSXMLDTDNode {
+        if let entityNode = NSXMLNode.DTDNodeWithXMLString("<!ENTITY author 'Robert Thompson'>") as? XMLDTDNode {
             XCTAssert(entityNode.name == "author")
             XCTAssert(entityNode.stringValue == "Robert Thompson")
         }
 
-        let elementDecl = NSXMLDTDNode(kind: .ElementDeclarationKind)
+        let elementDecl = XMLDTDNode(kind: .ElementDeclarationKind)
         elementDecl.name = "MyElement"
         elementDecl.stringValue = "(#PCDATA | array)*"
         XCTAssert(elementDecl.stringValue == "(#PCDATA | array)*", elementDecl.stringValue ?? "nil string value")

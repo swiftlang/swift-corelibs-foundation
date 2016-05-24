@@ -12,30 +12,32 @@ import CoreFoundation
     @typedef NSXMLDTDNodeKind
 	@abstract The subkind of a DTD node kind.
 */
-public enum NSXMLDTDNodeKind : UInt {
-    
-    case NSXMLEntityGeneralKind
-    case NSXMLEntityParsedKind
-    case NSXMLEntityUnparsedKind
-    case NSXMLEntityParameterKind
-    case NSXMLEntityPredefined
-    
-    case NSXMLAttributeCDATAKind
-    case NSXMLAttributeIDKind
-    case NSXMLAttributeIDRefKind
-    case NSXMLAttributeIDRefsKind
-    case NSXMLAttributeEntityKind
-    case NSXMLAttributeEntitiesKind
-    case NSXMLAttributeNMTokenKind
-    case NSXMLAttributeNMTokensKind
-    case NSXMLAttributeEnumerationKind
-    case NSXMLAttributeNotationKind
-    
-    case NSXMLElementDeclarationUndefinedKind
-    case NSXMLElementDeclarationEmptyKind
-    case NSXMLElementDeclarationAnyKind
-    case NSXMLElementDeclarationMixedKind
-    case NSXMLElementDeclarationElementKind
+extension XMLDTDNode {
+    public enum Kind : UInt {
+        
+        case NSXMLEntityGeneralKind
+        case NSXMLEntityParsedKind
+        case NSXMLEntityUnparsedKind
+        case NSXMLEntityParameterKind
+        case NSXMLEntityPredefined
+        
+        case NSXMLAttributeCDATAKind
+        case NSXMLAttributeIDKind
+        case NSXMLAttributeIDRefKind
+        case NSXMLAttributeIDRefsKind
+        case NSXMLAttributeEntityKind
+        case NSXMLAttributeEntitiesKind
+        case NSXMLAttributeNMTokenKind
+        case NSXMLAttributeNMTokensKind
+        case NSXMLAttributeEnumerationKind
+        case NSXMLAttributeNotationKind
+        
+        case NSXMLElementDeclarationUndefinedKind
+        case NSXMLElementDeclarationEmptyKind
+        case NSXMLElementDeclarationAnyKind
+        case NSXMLElementDeclarationMixedKind
+        case NSXMLElementDeclarationElementKind
+    }
 }
 
 /*!
@@ -47,7 +49,7 @@ public enum NSXMLDTDNodeKind : UInt {
 		<li><b>Element declaration</b> - the validation string</li>
 		<li><b>Notation declaration</b> - no objectValue</li></ul>
 */
-public class NSXMLDTDNode : NSXMLNode {
+public class XMLDTDNode: NSXMLNode {
     
     /*!
         @method initWithXMLString:
@@ -77,7 +79,7 @@ public class NSXMLDTDNode : NSXMLNode {
         @method DTDKind
         @abstract Sets the DTD sub kind.
     */
-    public var DTDKind: NSXMLDTDNodeKind {
+    public var DTDKind: Kind {
         switch _CFXMLNodeGetType(_xmlNode) {
         case _kCFXMLDTDNodeTypeElement:
             switch _CFXMLDTDElementNodeGetType(_xmlNode) {
@@ -157,7 +159,7 @@ public class NSXMLDTDNode : NSXMLNode {
             }
             
         case _kCFXMLTypeInvalid:
-            return unsafeBitCast(0, to: NSXMLDTDNodeKind.self) // this mirrors Darwin
+            return unsafeBitCast(0, to: Kind.self) // this mirrors Darwin
             
         default:
             fatalError("This is not actually a DTD node!")
@@ -231,7 +233,7 @@ public class NSXMLDTDNode : NSXMLNode {
         }
     }//primitive
 
-    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLDTDNode {
+    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> XMLDTDNode {
         let type = _CFXMLNodeGetType(node)
         precondition(type == _kCFXMLDTDNodeTypeAttribute ||
                      type == _kCFXMLDTDNodeTypeNotation  ||
@@ -239,10 +241,10 @@ public class NSXMLDTDNode : NSXMLNode {
                      type == _kCFXMLDTDNodeTypeElement)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            return NSXMLDTDNode.unretainedReference(privateData)
+            return XMLDTDNode.unretainedReference(privateData)
         }
 
-        return NSXMLDTDNode(ptr: node)
+        return XMLDTDNode(ptr: node)
     }
 
     internal override init(ptr: _CFXMLNodePtr) {

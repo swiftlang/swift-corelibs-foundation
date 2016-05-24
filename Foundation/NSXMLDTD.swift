@@ -130,36 +130,36 @@ public class XMLDTD : NSXMLNode {
         @method entityDeclarationForName:
         @abstract Returns the entity declaration matching this name.
     */
-    public func entityDeclarationForName(_ name: String) -> NSXMLDTDNode? {
+    public func entityDeclarationForName(_ name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetEntityDesc(_xmlDTD, name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     } //primitive
     
     /*!
         @method notationDeclarationForName:
         @abstract Returns the notation declaration matching this name.
     */
-    public func notationDeclarationForName(_ name: String) -> NSXMLDTDNode? {
+    public func notationDeclarationForName(_ name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetNotationDesc(_xmlDTD, name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     } //primitive
     
     /*!
         @method elementDeclarationForName:
         @abstract Returns the element declaration matching this name.
     */
-    public func elementDeclarationForName(_ name: String) -> NSXMLDTDNode? {
+    public func elementDeclarationForName(_ name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetElementDesc(_xmlDTD, name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     } //primitive
     
     /*!
         @method attributeDeclarationForName:
         @abstract Returns the attribute declaration matching this name.
     */
-    public func attributeDeclarationForName(_ name: String, elementName: String) -> NSXMLDTDNode? {
+    public func attributeDeclarationForName(_ name: String, elementName: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetAttributeDesc(_xmlDTD, elementName, name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     } //primitive
     
     /*!
@@ -168,9 +168,9 @@ public class XMLDTD : NSXMLNode {
     	@discussion The five predefined entities are
     	<ul><li>&amp;lt; - &lt;</li><li>&amp;gt; - &gt;</li><li>&amp;amp; - &amp;</li><li>&amp;quot; - &quot;</li><li>&amp;apos; - &amp;</li></ul>
     */
-    public class func predefinedEntityDeclarationForName(_ name: String) -> NSXMLDTDNode? {
+    public class func predefinedEntityDeclarationForName(_ name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetPredefinedEntity(name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     }
     
     internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> XMLDTD {

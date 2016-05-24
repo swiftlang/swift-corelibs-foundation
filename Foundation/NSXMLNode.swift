@@ -217,7 +217,7 @@ public class NSXMLNode : NSObject, NSCopying {
     public class func DTDNodeWithXMLString(_ string: String) -> AnyObject? {
         guard let node = _CFXMLParseDTDNode(string) else { return nil }
 
-        return NSXMLDTDNode(ptr: node)
+        return XMLDTDNode(ptr: node)
     }
 
     /*!
@@ -793,7 +793,7 @@ public class NSXMLNode : NSObject, NSCopying {
         case _kCFXMLDTDNodeTypeNotation:
             fallthrough
         case _kCFXMLDTDNodeTypeAttribute:
-            return NSXMLDTDNode._objectNodeForNode(node)
+            return XMLDTDNode._objectNodeForNode(node)
 
         default:
             if let _private = _CFXMLNodeGetPrivateData(node) {
