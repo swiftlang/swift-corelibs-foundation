@@ -116,7 +116,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns a document
         @param element The document's root node.
     */
-    public class func documentWithRootElement(_ element: NSXMLElement) -> AnyObject {
+    public class func documentWithRootElement(_ element: XMLElement) -> AnyObject {
         return XMLDocument(rootElement: element)
     }
 
@@ -125,7 +125,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns an element <tt>&lt;name>&lt;/name></tt>.
     */
     public class func elementWithName(_ name: String) -> AnyObject {
-        return NSXMLElement(name: name)
+        return XMLElement(name: name)
     }
 
     /*!
@@ -133,7 +133,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns an element whose full QName is specified.
     */
     public class func elementWithName(_ name: String, URI: String) -> AnyObject {
-        return NSXMLElement(name: name, URI: URI)
+        return XMLElement(name: name, URI: URI)
     }
 
     /*!
@@ -141,7 +141,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns an element with a single text node child <tt>&lt;name>string&lt;/name></tt>.
     */
     public class func elementWithName(_ name: String, stringValue string: String) -> AnyObject {
-        return NSXMLElement(name: name, stringValue: string)
+        return XMLElement(name: name, stringValue: string)
     }
 
     /*!
@@ -149,7 +149,7 @@ public class NSXMLNode : NSObject, NSCopying {
         @abstract Returns an element children and attributes <tt>&lt;name attr1="foo" attr2="bar">&lt;-- child1 -->child2&lt;/name></tt>.
     */
     public class func elementWithName(_ name: String, children: [NSXMLNode]?, attributes: [NSXMLNode]?) -> AnyObject {
-        let element = NSXMLElement(name: name)
+        let element = XMLElement(name: name)
         element.setChildren(children)
         element.attributes = attributes
 
@@ -778,7 +778,7 @@ public class NSXMLNode : NSObject, NSCopying {
     internal class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLNode {
         switch _CFXMLNodeGetType(node) {
         case _kCFXMLTypeElement:
-            return NSXMLElement._objectNodeForNode(node)
+            return XMLElement._objectNodeForNode(node)
 
         case _kCFXMLTypeDocument:
             return XMLDocument._objectNodeForNode(node)

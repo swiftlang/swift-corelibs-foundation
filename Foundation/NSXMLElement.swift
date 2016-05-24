@@ -13,7 +13,7 @@ import CoreFoundation
     @abstract An XML element
     @discussion Note: Trying to add a document, namespace, attribute, or node with a parent throws an exception. To add a node with a parent first detach or create a copy of it.
 */
-public class NSXMLElement : NSXMLNode {
+public class XMLElement: NSXMLNode {
 
     /*!
         @method initWithName:
@@ -59,15 +59,15 @@ public class NSXMLElement : NSXMLNode {
         @method elementsForName:
         @abstract Returns all of the child elements that match this name.
     */
-    public func elementsForName(_ name: String) -> [NSXMLElement] {
-        return self.filter({ _CFXMLNodeGetType($0._xmlNode) == _kCFXMLTypeElement }).filter({ $0.name == name }).flatMap({ $0 as? NSXMLElement })
+    public func elementsForName(_ name: String) -> [XMLElement] {
+        return self.filter({ _CFXMLNodeGetType($0._xmlNode) == _kCFXMLTypeElement }).filter({ $0.name == name }).flatMap({ $0 as? XMLElement })
     }
 
     /*!
         @method elementsForLocalName:URI
         @abstract Returns all of the child elements that match this localname URI pair.
     */
-    public func elementsForLocalName(_ localName: String, URI: String?) -> [NSXMLElement] { NSUnimplemented() }
+    public func elementsForLocalName(_ localName: String, URI: String?) -> [XMLElement] { NSUnimplemented() }
 
     /*!
         @method addAttribute:
@@ -255,14 +255,14 @@ public class NSXMLElement : NSXMLNode {
     */
     public func normalizeAdjacentTextNodesPreservingCDATA(_ preserve: Bool) { NSUnimplemented() }
 
-    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLElement {
+    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> XMLElement {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeElement)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            return NSXMLElement.unretainedReference(privateData)
+            return XMLElement.unretainedReference(privateData)
         }
 
-        return NSXMLElement(ptr: node)
+        return XMLElement(ptr: node)
     }
 
     internal override init(ptr: _CFXMLNodePtr) {
@@ -270,7 +270,7 @@ public class NSXMLElement : NSXMLNode {
     }
 }
 
-extension NSXMLElement {
+extension XMLElement {
     /*!
         @method setAttributesAsDictionary:
         @abstract Set the attributes base on a name-value dictionary.

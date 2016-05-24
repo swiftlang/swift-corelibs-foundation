@@ -70,7 +70,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssert(doc.version == "1.0", "expected 1.0, got \(doc.version)")
         doc.version = "1.1"
         XCTAssert(doc.version == "1.1", "expected 1.1, got \(doc.version)")
-        let node = NSXMLElement(name: "Hello", URI: "http://www.example.com")
+        let node = XMLElement(name: "Hello", URI: "http://www.example.com")
 
         doc.setRootElement(node)
 
@@ -80,11 +80,11 @@ class TestNSXMLDocument : XCTestCase {
 
     func test_nextPreviousNode() {
         let doc = XMLDocument(rootElement: nil)
-        let node = NSXMLElement(name: "Hello", URI: "http://www.example.com")
+        let node = XMLElement(name: "Hello", URI: "http://www.example.com")
 
-        let fooNode = NSXMLElement(name: "Foo")
-        let barNode = NSXMLElement(name: "Bar")
-        let bazNode = NSXMLElement(name: "Baz")
+        let fooNode = XMLElement(name: "Foo")
+        let barNode = XMLElement(name: "Bar")
+        let bazNode = XMLElement(name: "Baz")
 
         doc.setRootElement(node)
         node.addChild(fooNode)
@@ -104,11 +104,11 @@ class TestNSXMLDocument : XCTestCase {
 
     func test_xpath() {
         let doc = XMLDocument(rootElement: nil)
-        let foo = NSXMLElement(name: "foo")
-        let bar1 = NSXMLElement(name: "bar")
-        let bar2 = NSXMLElement(name: "bar")
-        let bar3 = NSXMLElement(name: "bar")
-        let baz = NSXMLElement(name: "baz")
+        let foo = XMLElement(name: "foo")
+        let bar1 = XMLElement(name: "bar")
+        let bar2 = XMLElement(name: "bar")
+        let bar3 = XMLElement(name: "bar")
+        let baz = XMLElement(name: "baz")
 
         doc.setRootElement(foo)
         foo.addChild(bar1)
@@ -118,7 +118,7 @@ class TestNSXMLDocument : XCTestCase {
 
         XCTAssertEqual(baz.XPath, "foo/bar[2]/baz")
 
-        let baz2 = NSXMLElement(name: "baz")
+        let baz2 = XMLElement(name: "baz")
         bar2.addChild(baz2)
 
         XCTAssertEqual(baz.XPath, "foo/bar[2]/baz[1]")
@@ -132,16 +132,16 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_elementCreation() {
-        let element = NSXMLElement(name: "test", stringValue: "This is my value")
+        let element = XMLElement(name: "test", stringValue: "This is my value")
         XCTAssertEqual(element.XMLString, "<test>This is my value</test>")
         XCTAssertEqual(element.children?.count, 1)
     }
 
     func test_elementChildren() {
-        let element = NSXMLElement(name: "root")
-        let foo = NSXMLElement(name: "foo")
-        let bar = NSXMLElement(name: "bar")
-        let bar2 = bar.copy() as! NSXMLElement
+        let element = XMLElement(name: "root")
+        let foo = XMLElement(name: "foo")
+        let bar = XMLElement(name: "bar")
+        let bar2 = bar.copy() as! XMLElement
 
         element.addChild(foo)
         element.addChild(bar)
@@ -151,7 +151,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertFalse(element.elementsForName("foo").contains(bar))
         XCTAssertFalse(element.elementsForName("foo").contains(bar2))
 
-        let baz = NSXMLElement(name: "baz")
+        let baz = XMLElement(name: "baz")
         element.insertChild(baz, atIndex: 2)
         XCTAssertEqual(element.children?[2], baz)
 
@@ -163,7 +163,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(element.children?[2], bar)
         XCTAssertEqual(element.children?[0], baz, "\(element.children?[0])")
 
-        let faz = NSXMLElement(name: "faz")
+        let faz = XMLElement(name: "faz")
         element.replaceChildAtIndex(2, withNode: faz)
         XCTAssertEqual(element.children?[2], faz)
 
@@ -177,8 +177,8 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_stringValue() {
-        let element = NSXMLElement(name: "root")
-        let foo = NSXMLElement(name: "foo")
+        let element = XMLElement(name: "root")
+        let foo = XMLElement(name: "foo")
         element.addChild(foo)
 
         element.stringValue = "Hello!<evil/>"
@@ -198,7 +198,7 @@ class TestNSXMLDocument : XCTestCase {
 
 
     func test_objectValue() {
-        let element = NSXMLElement(name: "root")
+        let element = XMLElement(name: "root")
         let dict: [String: AnyObject] = ["hello": "world"._bridgeToObject()]
         element.objectValue = dict._bridgeToObject()
 
@@ -206,7 +206,7 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_attributes() {
-        let element = NSXMLElement(name: "root")
+        let element = XMLElement(name: "root")
         let attribute = NSXMLNode.attributeWithName("color", stringValue: "#ff00ff") as! NSXMLNode
         element.addAttribute(attribute)
         XCTAssertEqual(element.XMLString, "<root color=\"#ff00ff\"></root>", element.XMLString)
@@ -242,14 +242,14 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_comments() {
-        let element = NSXMLElement(name: "root")
+        let element = XMLElement(name: "root")
         let comment = NSXMLNode.commentWithStringValue("Here is a comment") as! NSXMLNode
         element.addChild(comment)
         XCTAssertEqual(element.XMLString, "<root><!--Here is a comment--></root>")
     }
 
     func test_processingInstruction() {
-        let document = XMLDocument(rootElement: NSXMLElement(name: "root"))
+        let document = XMLDocument(rootElement: XMLElement(name: "root"))
         let pi = NSXMLNode.processingInstructionWithName("xml-stylesheet", stringValue: "type=\"text/css\" href=\"style.css\"") as! NSXMLNode
 
         document.addChild(pi)
@@ -276,13 +276,13 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(children[0].stringValue, "Hello world", children[0].stringValue!)
         XCTAssertEqual(children[1].children?[0].stringValue, "I'm here", (children[1].children?[0].stringValue)!)
 
-        doc.insertChild(NSXMLElement(name: "body"), atIndex: 1)
+        doc.insertChild(XMLElement(name: "body"), atIndex: 1)
         XCTAssertEqual(doc.children?[1].name, "body")
         XCTAssertEqual(doc.children?[2].name, "root", (doc.children?[2].name)!)
     }
 
     func test_prefixes() {
-        let element = NSXMLElement(name: "xml:root")
+        let element = XMLElement(name: "xml:root")
         XCTAssertEqual(element.prefix, "xml")
         XCTAssertEqual(element.localName, "root")
     }

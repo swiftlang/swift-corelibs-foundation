@@ -99,7 +99,7 @@ public class XMLDocument : NSXMLNode {
         @method initWithRootElement:
         @abstract Returns a document with a single child, the root element.
     */
-    public init(rootElement element: NSXMLElement?) {
+    public init(rootElement element: XMLElement?) {
         precondition(element?.parent == nil)
 
         super.init(kind: .DocumentKind, options: NSXMLNodeOptionsNone)
@@ -229,7 +229,7 @@ public class XMLDocument : NSXMLNode {
         @method setRootElement:
         @abstract Set the root element. Removes all other children including comments and processing-instructions.
     */
-    public func setRootElement(_ root: NSXMLElement) {
+    public func setRootElement(_ root: XMLElement) {
         precondition(root.parent == nil)
 
         for child in _childNodes {
@@ -244,12 +244,12 @@ public class XMLDocument : NSXMLNode {
         @method rootElement
         @abstract The root element.
     */
-    public func rootElement() -> NSXMLElement? {
+    public func rootElement() -> XMLElement? {
         guard let rootPtr = _CFXMLDocRootElement(_xmlDoc) else {
             return nil
         }
 
-        return NSXMLNode._objectNodeForNode(rootPtr) as? NSXMLElement
+        return NSXMLNode._objectNodeForNode(rootPtr) as? XMLElement
     } //primitive
 
     /*!
