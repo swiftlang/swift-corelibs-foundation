@@ -27,7 +27,7 @@ class TestNSPipe : XCTestCase {
     }
     
     func test_NSPipe() {
-        let aPipe = NSPipe()
+        let aPipe = Pipe()
         let text = "test-pipe"
         
         // First write some data into the pipe

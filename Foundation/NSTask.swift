@@ -154,19 +154,19 @@ public class NSTask : NSObject {
     // standard I/O channels; could be either an NSFileHandle or an NSPipe
     public var standardInput: AnyObject? {
         willSet {
-            precondition(newValue is NSPipe || newValue is NSFileHandle,
+            precondition(newValue is Pipe || newValue is FileHandle,
                          "standardInput must be either NSPipe or NSFileHandle")
         }
     }
     public var standardOutput: AnyObject? {
         willSet {
-            precondition(newValue is NSPipe || newValue is NSFileHandle,
+            precondition(newValue is Pipe || newValue is FileHandle,
                          "standardOutput must be either NSPipe or NSFileHandle")
         }
     }
     public var standardError: AnyObject? {
         willSet {
-            precondition(newValue is NSPipe || newValue is NSFileHandle,
+            precondition(newValue is Pipe || newValue is FileHandle,
                          "standardError must be either NSPipe or NSFileHandle")
         }
     }
@@ -304,28 +304,28 @@ public class NSTask : NSObject {
         defer { posix_spawn_file_actions_destroy(&fileActions) }
 
         switch standardInput {
-        case let pipe as NSPipe:
+        case let pipe as Pipe:
             posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO))
             posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor))
-        case let handle as NSFileHandle:
+        case let handle as FileHandle:
             posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDIN_FILENO))
         default: break
         }
 
         switch standardOutput {
-        case let pipe as NSPipe:
+        case let pipe as Pipe:
             posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO))
             posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
-        case let handle as NSFileHandle:
+        case let handle as FileHandle:
             posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDOUT_FILENO))
         default: break
         }
 
         switch standardError {
-        case let pipe as NSPipe:
+        case let pipe as Pipe:
             posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO))
             posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
-        case let handle as NSFileHandle:
+        case let handle as FileHandle:
             posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDERR_FILENO))
         default: break
         }
@@ -336,13 +336,13 @@ public class NSTask : NSObject {
         posix(posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp))
 
         // Close the write end of the input and output pipes.
-        if let pipe = standardInput as? NSPipe {
+        if let pipe = standardInput as? Pipe {
             pipe.fileHandleForReading.closeFile()
         }
-        if let pipe = standardOutput as? NSPipe {
+        if let pipe = standardOutput as? Pipe {
             pipe.fileHandleForWriting.closeFile()
         }
-        if let pipe = standardError as? NSPipe {
+        if let pipe = standardError as? Pipe {
             pipe.fileHandleForWriting.closeFile()
         }
 

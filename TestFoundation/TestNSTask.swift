@@ -103,10 +103,10 @@ class TestNSTask : XCTestCase {
 
         task.launchPath = "/bin/cat"
 
-        let outputPipe = NSPipe()
+        let outputPipe = Pipe()
         task.standardOutput = outputPipe
 
-        let inputPipe = NSPipe()
+        let inputPipe = Pipe()
         task.standardInput = inputPipe
 
         task.launch()
@@ -133,7 +133,7 @@ class TestNSTask : XCTestCase {
         task.launchPath = "/usr/bin/which"
         task.arguments = ["which"]
 
-        let pipe = NSPipe()
+        let pipe = Pipe()
         task.standardOutput = pipe
 
         task.launch()
@@ -154,7 +154,7 @@ class TestNSTask : XCTestCase {
         task.launchPath = "/bin/cat"
         task.arguments = ["invalid_file_name"]
 
-        let errorPipe = NSPipe()
+        let errorPipe = Pipe()
         task.standardError = errorPipe
 
         task.launch()
@@ -175,7 +175,7 @@ class TestNSTask : XCTestCase {
         task.launchPath = "/bin/cat"
         task.arguments = ["invalid_file_name"]
 
-        let pipe = NSPipe()
+        let pipe = Pipe()
         task.standardOutput = pipe
         task.standardError = pipe
 
@@ -246,7 +246,7 @@ class TestNSTask : XCTestCase {
     }
 }
 
-private func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> Void) rethrows {
+private func mkstemp(template: String, body: @noescape (FileHandle) throws -> Void) rethrows {
     let url = try! URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestNSTask.XXXXXX")
     var buffer = [Int8](repeating: 0, count: Int(PATH_MAX))
     try url.withUnsafeFileSystemRepresentation {
@@ -254,7 +254,7 @@ private func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> 
         case -1: XCTFail("Could not create temporary file")
         case let fd:
             defer { unlink(&buffer) }
-            try body(NSFileHandle(fileDescriptor: fd, closeOnDealloc: true))
+            try body(FileHandle(fileDescriptor: fd, closeOnDealloc: true))
         }
     }
     
@@ -274,7 +274,7 @@ private func runTask(_ arguments: [String], environment: [String: String]? = nil
     task.arguments = arguments
     task.environment = environment
 
-    let pipe = NSPipe()
+    let pipe = Pipe()
     task.standardOutput = pipe
     task.standardError = pipe
     task.launch()

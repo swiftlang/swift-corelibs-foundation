@@ -23,7 +23,7 @@ class TestNSFileHandle : XCTestCase {
     }
 
     func test_pipe() {
-        let pipe = NSPipe()
+        let pipe = Pipe()
         let inputs = ["Hello", "world", "🐶"]
 
         for input in inputs {

@@ -15,7 +15,7 @@ import Darwin
 import Glibc
 #endif
 
-public class NSFileHandle : NSObject, NSSecureCoding {
+public class FileHandle: NSObject, NSSecureCoding {
     internal var _fd: Int32
     internal var _closeOnDealloc: Bool
     internal var _closed: Bool = false
@@ -188,30 +188,30 @@ public class NSFileHandle : NSObject, NSSecureCoding {
     }
 }
 
-extension NSFileHandle {
+extension FileHandle {
     
-    internal static var _stdinFileHandle: NSFileHandle = {
-        return NSFileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
+    internal static var _stdinFileHandle: FileHandle = {
+        return FileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardInput() -> NSFileHandle {
+    public class func fileHandleWithStandardInput() -> FileHandle {
         return _stdinFileHandle
     }
     
-    internal static var _stdoutFileHandle: NSFileHandle = {
-        return NSFileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
+    internal static var _stdoutFileHandle: FileHandle = {
+        return FileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardOutput() -> NSFileHandle {
+    public class func fileHandleWithStandardOutput() -> FileHandle {
         return _stdoutFileHandle
     }
     
-    internal static var _stderrFileHandle: NSFileHandle = {
-        return NSFileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
+    internal static var _stderrFileHandle: FileHandle = {
+        return FileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardError() -> NSFileHandle {
+    public class func fileHandleWithStandardError() -> FileHandle {
         return _stderrFileHandle
     }
     
-    public class func fileHandleWithNullDevice() -> NSFileHandle {
+    public class func fileHandleWithNullDevice() -> FileHandle {
         NSUnimplemented()
     }
     
@@ -240,17 +240,17 @@ extension NSFileHandle {
     }
     
     public convenience init(forReadingFromURL url: URL) throws {
-        let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_RDONLY, reading: true)
+        let fd = try FileHandle._openFileDescriptorForURL(url, flags: O_RDONLY, reading: true)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
     
     public convenience init(forWritingToURL url: URL) throws {
-        let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_WRONLY, reading: false)
+        let fd = try FileHandle._openFileDescriptorForURL(url, flags: O_WRONLY, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
 
     public convenience init(forUpdatingURL url: URL) throws {
-        let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_RDWR, reading: false)
+        let fd = try FileHandle._openFileDescriptorForURL(url, flags: O_RDWR, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
 }
@@ -265,7 +265,7 @@ public let NSFileHandleDataAvailableNotification: String = "" // NSUnimplemented
 public let NSFileHandleNotificationDataItem: String = "" // NSUnimplemented
 public let NSFileHandleNotificationFileHandleItem: String = "" // NSUnimplemented
 
-extension NSFileHandle {
+extension FileHandle {
     
     public func readInBackgroundAndNotifyForModes(_ modes: [String]?) {
         NSUnimplemented()
@@ -302,17 +302,17 @@ extension NSFileHandle {
         NSUnimplemented()
     }
     
-    public var readabilityHandler: ((NSFileHandle) -> Void)? {
+    public var readabilityHandler: ((FileHandle) -> Void)? {
         NSUnimplemented()
     }
 
-    public var writeabilityHandler: ((NSFileHandle) -> Void)? {
+    public var writeabilityHandler: ((FileHandle) -> Void)? {
         NSUnimplemented()
     }
 
 }
 
-extension NSFileHandle {
+extension FileHandle {
     
     public convenience init(fileDescriptor fd: Int32) {
         self.init(fileDescriptor: fd, closeOnDealloc: false)
@@ -323,10 +323,10 @@ extension NSFileHandle {
     }
 }
 
-public class NSPipe : NSObject {
+public class Pipe: NSObject {
     
-    private let readHandle: NSFileHandle
-    private let writeHandle: NSFileHandle
+    private let readHandle: FileHandle
+    private let writeHandle: FileHandle
     
     public override init() {
         /// the `pipe` system call creates two `fd` in a malloc'ed area
@@ -341,19 +341,19 @@ public class NSPipe : NSObject {
         /// don't need to add a `deinit` to this class
         
         /// Create the read handle from the first fd in `fds`
-        self.readHandle = NSFileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
+        self.readHandle = FileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
         
         /// Advance `fds` by one to create the write handle from the second fd
-        self.writeHandle = NSFileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
+        self.writeHandle = FileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
         
         super.init()
     }
     
-    public var fileHandleForReading: NSFileHandle {
+    public var fileHandleForReading: FileHandle {
         return self.readHandle
     }
     
-    public var fileHandleForWriting: NSFileHandle {
+    public var fileHandleForWriting: FileHandle {
         return self.writeHandle
     }
 }
