@@ -102,7 +102,7 @@ class TestNSNotificationQueue : XCTestCase {
         }
         let queue = NSNotificationQueue.defaultQueue()
 
-        let runLoop = NSRunLoop.currentRunLoop()
+        let runLoop = RunLoop.currentRunLoop()
         let endDate = Date(timeInterval: TimeInterval(0.05), since: Date())
 
         let dummyTimer = NSTimer.scheduledTimer(0.01, repeats: false) { _ in
@@ -226,7 +226,7 @@ class TestNSNotificationQueue : XCTestCase {
         let dummyTimer = NSTimer.scheduledTimer(interval, repeats: false) { _ in
             e.fulfill()
         }
-        NSRunLoop.currentRunLoop().addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
+        RunLoop.currentRunLoop().addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
         waitForExpectations(withTimeout: 0.1)
     }
 

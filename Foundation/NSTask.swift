@@ -24,7 +24,7 @@ private func WEXITSTATUS(_ status: CInt) -> CInt {
     return (status >> 8) & 0xff
 }
 
-private var managerThreadRunLoop : NSRunLoop? = nil
+private var managerThreadRunLoop : RunLoop? = nil
 private var managerThreadRunLoopIsRunning = false
 private var managerThreadRunLoopIsRunningCondition = NSCondition()
 
@@ -52,12 +52,12 @@ private func runLoopSourceRelease(_ pointer : UnsafePointer<Void>?) -> Void {
 private func runloopIsEqual(_ a : UnsafePointer<Void>?, _ b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
     let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
-    guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? NSRunLoop else {
+    guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? RunLoop else {
         return false
     }
     
     let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(OpaquePointer(a!))
-    guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? NSRunLoop else {
+    guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? RunLoop else {
         return false
     }
     
@@ -98,7 +98,7 @@ public class NSTask : NSObject {
         Once.lock.synchronized {
             if !Once.done {
                 let thread = NSThread {
-                    managerThreadRunLoop = NSRunLoop.currentRunLoop()
+                    managerThreadRunLoop = RunLoop.currentRunLoop()
                     var emptySourceContext = CFRunLoopSourceContext()
                     emptySourceContext.version = 0
                     emptySourceContext.retain = runLoopSourceRetain
@@ -174,7 +174,7 @@ public class NSTask : NSObject {
     private var runLoopSourceContext : CFRunLoopSourceContext?
     private var runLoopSource : CFRunLoopSource?
     
-    private weak var runLoop : NSRunLoop? = nil
+    private weak var runLoop : RunLoop? = nil
     
     private var processLaunchedCondition = NSCondition()
     
@@ -348,7 +348,7 @@ public class NSTask : NSObject {
 
         close(taskSocketPair[1])
         
-        self.runLoop = NSRunLoop.currentRunLoop()
+        self.runLoop = RunLoop.currentRunLoop()
         self.runLoopSourceContext = CFRunLoopSourceContext(version: 0,
                                                            info: UnsafeMutablePointer<Void>(OpaquePointer(bitPattern: Unmanaged.passUnretained(self))),
                                                            retain: { return runLoopSourceRetain($0) },
@@ -420,7 +420,7 @@ extension NSTask {
         
         repeat {
             
-        } while( self.running == true && NSRunLoop.currentRunLoop().runMode(NSDefaultRunLoopMode, beforeDate: Date(timeIntervalSinceNow: 0.05)) )
+        } while( self.running == true && RunLoop.currentRunLoop().runMode(NSDefaultRunLoopMode, beforeDate: Date(timeIntervalSinceNow: 0.05)) )
         
         self.runLoop = nil
     }

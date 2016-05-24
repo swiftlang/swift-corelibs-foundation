@@ -89,7 +89,7 @@ public class NSNotificationQueue : NSObject {
 
         switch postingStyle {
         case .postNow:
-            let currentMode = NSRunLoop.currentRunLoop().currentMode
+            let currentMode = RunLoop.currentRunLoop().currentMode
             if currentMode == nil || runloopModes.contains(currentMode!) {
                 self.notificationCenter.postNotification(notification)
             }
@@ -128,13 +128,13 @@ public class NSNotificationQueue : NSObject {
     // MARK: Private
 
     private func addRunloopObserver(_ observer: CFRunLoopObserver) {
-        CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
-        CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
+        CFRunLoopAddObserver(RunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
+        CFRunLoopAddObserver(RunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
     private func removeRunloopObserver(_ observer: CFRunLoopObserver) {
-        CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
-        CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
+        CFRunLoopRemoveObserver(RunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
+        CFRunLoopRemoveObserver(RunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
     private func notify(_ currentMode: String?, notificationList: inout NSNotificationList) {
@@ -150,7 +150,7 @@ public class NSNotificationQueue : NSObject {
      Gets queues from the notificationQueueList and posts all notification from the list related to the postingStyle parameter.
      */
     private func notifyQueues(_ postingStyle: NSPostingStyle) {
-        let currentMode = NSRunLoop.currentRunLoop().currentMode
+        let currentMode = RunLoop.currentRunLoop().currentMode
         for queue in NSNotificationQueue.notificationQueueList {
             let notificationQueue = queue as! NSNotificationQueue
             if postingStyle == .postWhenIdle {

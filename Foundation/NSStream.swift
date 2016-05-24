@@ -60,11 +60,11 @@ public class NSStream : NSObject {
 
 // Re-enable once run loop is compiled on all platforms
 #if false
-    public func scheduleInRunLoop(_ aRunLoop: NSRunLoop, forMode mode: String) {
+    public func scheduleInRunLoop(_ aRunLoop: RunLoop, forMode mode: String) {
         NSUnimplemented()
     }
     
-    public func removeFromRunLoop(_ aRunLoop: NSRunLoop, forMode mode: String) {
+    public func removeFromRunLoop(_ aRunLoop: RunLoop, forMode mode: String) {
         NSUnimplemented()
     }
 #endif

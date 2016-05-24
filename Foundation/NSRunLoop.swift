@@ -23,26 +23,26 @@ public let NSDefaultRunLoopMode: String = "kCFRunLoopDefaultMode"
 public let NSRunLoopCommonModes: String = "kCFRunLoopCommonModes"
 
 internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
-    let rl = Unmanaged<NSRunLoop>.passRetained(NSRunLoop(cfObject: cf))
+    let rl = Unmanaged<RunLoop>.passRetained(RunLoop(cfObject: cf))
     return unsafeBitCast(rl, to: Unmanaged<AnyObject>.self) // this retain is balanced on the other side of the CF fence
 }
 
-public class NSRunLoop : NSObject {
+public class RunLoop: NSObject {
     internal var _cfRunLoop : CFRunLoop!
-    internal static var _mainRunLoop : NSRunLoop = {
-        return NSRunLoop(cfObject: CFRunLoopGetMain())
+    internal static var _mainRunLoop : RunLoop = {
+        return RunLoop(cfObject: CFRunLoopGetMain())
     }()
 
     internal init(cfObject : CFRunLoop) {
         _cfRunLoop = cfObject
     }
 
-    public class func currentRunLoop() -> NSRunLoop {
-        return _CFRunLoopGet2(CFRunLoopGetCurrent()) as! NSRunLoop
+    public class func currentRunLoop() -> RunLoop {
+        return _CFRunLoopGet2(CFRunLoopGetCurrent()) as! RunLoop
     }
 
-    public class func mainRunLoop() -> NSRunLoop {
-        return _CFRunLoopGet2(CFRunLoopGetMain()) as! NSRunLoop
+    public class func mainRunLoop() -> RunLoop {
+        return _CFRunLoopGet2(CFRunLoopGetMain()) as! RunLoop
     }
 
     public var currentMode: String? {
@@ -90,7 +90,7 @@ public class NSRunLoop : NSObject {
 
 }
 
-extension NSRunLoop {
+extension RunLoop {
 
     public func run() {
         while runMode(NSDefaultRunLoopMode, beforeDate: Date.distantFuture) { }
