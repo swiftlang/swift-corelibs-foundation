@@ -25,13 +25,13 @@ class TestNSUserDefaults : XCTestCase {
 	}
 
 	func test_createUserDefaults() {
-		let defaults = NSUserDefaults.standardUserDefaults()
+		let defaults = UserDefaults.standardUserDefaults()
 		
 		defaults.setInteger(4, forKey: "ourKey")
 	}
 	
 	func test_getRegisteredDefaultItem() {
-		let defaults = NSUserDefaults.standardUserDefaults()
+		let defaults = UserDefaults.standardUserDefaults()
 		
 		defaults.registerDefaults(["key1": NSNumber(value: Int(5))])
 		
