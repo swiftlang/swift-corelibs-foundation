@@ -322,7 +322,7 @@ private extension String {
     var httpHeaderParts: ValueWithParameters? {
         var type: String?
         var parameters: [ValueWithParameters.Parameter] = []
-        let ws = NSCharacterSet.whitespaces()
+        let ws = CharacterSet.whitespaces
         func append(_ string: String) {
             if type == nil {
                 type = string

@@ -566,15 +566,15 @@ extension NSString {
         }
     }
     
-    public func rangeOfCharacter(from searchSet: NSCharacterSet) -> NSRange {
+    public func rangeOfCharacter(from searchSet: CharacterSet) -> NSRange {
         return rangeOfCharacter(from: searchSet, options: [], range: NSMakeRange(0, length))
     }
     
-    public func rangeOfCharacter(from searchSet: NSCharacterSet, options mask: NSStringCompareOptions = []) -> NSRange {
+    public func rangeOfCharacter(from searchSet: CharacterSet, options mask: NSStringCompareOptions = []) -> NSRange {
         return rangeOfCharacter(from: searchSet, options: mask, range: NSMakeRange(0, length))
     }
     
-    public func rangeOfCharacter(from searchSet: NSCharacterSet, options mask: NSStringCompareOptions = [], range searchRange: NSRange) -> NSRange {
+    public func rangeOfCharacter(from searchSet: CharacterSet, options mask: NSStringCompareOptions = [], range searchRange: NSRange) -> NSRange {
         let len = length
         
         precondition(searchRange.length <= len && searchRange.location <= len - searchRange.length, "Bounds Range {\(searchRange.location), \(searchRange.length)} out of bounds; string length \(len)")
@@ -623,7 +623,7 @@ extension NSString {
     public var doubleValue: Double {
         var start: Int = 0
         var result = 0.0
-        let _ = _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
+        let _ = _swiftObject.scan(CharacterSet.whitespaces, locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
             result = value
         }
         return result
@@ -632,7 +632,7 @@ extension NSString {
     public var floatValue: Float {
         var start: Int = 0
         var result: Float = 0.0
-        let _ = _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
+        let _ = _swiftObject.scan(CharacterSet.whitespaces, locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
             result = value
         }
         return result
@@ -656,14 +656,14 @@ extension NSString {
     public var boolValue: Bool {
         let scanner = NSScanner(string: _swiftObject)
         // skip initial whitespace if present
-        let _ = scanner.scanCharactersFromSet(NSCharacterSet.whitespaces())
+        let _ = scanner.scanCharactersFromSet(.whitespaces)
         // scan a single optional '+' or '-' character, followed by zeroes
         if scanner.scanString(string: "+") == nil {
             let _ = scanner.scanString(string: "-")
         }
         // scan any following zeroes
-        let _ = scanner.scanCharactersFromSet(NSCharacterSet(charactersIn: "0"))
-        return scanner.scanCharactersFromSet(NSCharacterSet(charactersIn: "tTyY123456789")) != nil
+        let _ = scanner.scanCharactersFromSet(CharacterSet(charactersIn: "0"))
+        return scanner.scanCharactersFromSet(CharacterSet(charactersIn: "tTyY123456789")) != nil
     }
 
     public var uppercased: String {
@@ -1025,7 +1025,7 @@ extension NSString {
         }
     }
     
-    public func components(separatedBy separator: NSCharacterSet) -> [String] {
+    public func components(separatedBy separator: CharacterSet) -> [String] {
         let len = length
         var range = rangeOfCharacter(from: separator, options: [], range: NSMakeRange(0, len))
         if range.length == 0 {
@@ -1048,10 +1048,10 @@ extension NSString {
         }
     }
     
-    public func trimmingCharacters(in set: NSCharacterSet) -> String {
+    public func trimmingCharacters(in set: CharacterSet) -> String {
         let len = length
         var buf = _NSStringBuffer(string: self, start: 0, end: len)
-        while !buf.isAtEnd && set.characterIsMember(buf.currentCharacter) {
+        while !buf.isAtEnd && set.contains(buf.currentCharacter) {
             buf.advance()
         }
         
@@ -1061,7 +1061,7 @@ extension NSString {
             return ""
         } else if startOfNonTrimmedRange < len - 1 {
             buf.location = len - 1
-            while set.characterIsMember(buf.currentCharacter) && buf.location >= startOfNonTrimmedRange {
+            while set.contains(buf.currentCharacter) && buf.location >= startOfNonTrimmedRange {
                 buf.rewind()
             }
             let endOfNonTrimmedRange = buf.location

@@ -13,8 +13,8 @@ import CoreFoundation
 
 public class NSScanner : NSObject, NSCopying {
     internal var _scanString: String
-    internal var _skipSet: NSCharacterSet?
-    internal var _invertedSkipSet: NSCharacterSet?
+    internal var _skipSet: CharacterSet?
+    internal var _invertedSkipSet: CharacterSet?
     internal var _scanLocation: Int
     
     public override func copy() -> AnyObject {
@@ -40,17 +40,17 @@ public class NSScanner : NSObject, NSCopying {
             _scanLocation = newValue
         }
     }
-    /*@NSCopying*/ public var charactersToBeSkipped: NSCharacterSet? {
+    /*@NSCopying*/ public var charactersToBeSkipped: CharacterSet? {
         get {
             return _skipSet
         }
         set {
-            _skipSet = newValue?.copy() as? NSCharacterSet
+            _skipSet = newValue
             _invertedSkipSet = nil
         }
     }
     
-    internal var invertedSkipSet: NSCharacterSet? {
+    internal var invertedSkipSet: CharacterSet? {
         if let inverted = _invertedSkipSet {
             return inverted
         } else {
@@ -65,7 +65,7 @@ public class NSScanner : NSObject, NSCopying {
     public var caseSensitive: Bool = false
     public var locale: NSLocale?
     
-    internal static let defaultSkipSet = NSCharacterSet.whitespacesAndNewlines()
+    internal static let defaultSkipSet = CharacterSet.whitespacesAndNewlines
     
     public init(string: String) {
         _scanString = string
@@ -174,9 +174,9 @@ internal struct _NSStringBuffer {
         }
     }
     
-    mutating func skip(_ skipSet: NSCharacterSet?) {
+    mutating func skip(_ skipSet: CharacterSet?) {
         if let set = skipSet {
-            while set.characterIsMember(currentCharacter) && !isAtEnd {
+            while set.contains(currentCharacter) && !isAtEnd {
                 advance()
             }
         }
@@ -206,9 +206,9 @@ internal struct _NSStringBuffer {
 
 private func isADigit(_ ch: unichar) -> Bool {
     struct Local {
-        static let set = NSCharacterSet.decimalDigits()
+        static let set = CharacterSet.decimalDigits
     }
-    return Local.set.characterIsMember(ch)
+    return Local.set.contains(ch)
 }
 
 // This is just here to allow just enough generic math to handle what is needed for scanning an abstract integer from a string, perhaps these should be on IntegerType?
@@ -287,7 +287,7 @@ private func decimalSep(_ locale: NSLocale?) -> String {
 }
 
 extension String {
-    internal func scan<T: _IntegerLike>(_ skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: _IntegerLike>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var neg = false
@@ -324,7 +324,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _IntegerLike>(_ skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: _IntegerLike>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var localResult: T = 0
@@ -366,7 +366,7 @@ extension String {
         return true
     }
     
-    internal func scan<T: _FloatLike>(_ skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: _FloatLike>(_ skipSet: CharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         let ds_chars = decimalSep(locale).utf16
         let ds = ds_chars[ds_chars.startIndex]
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
@@ -425,7 +425,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _FloatLike>(_ skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: _FloatLike>(_ skipSet: CharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         NSUnimplemented()
     }
 }
@@ -644,7 +644,7 @@ extension NSScanner {
         return nil
     }
     
-    public func scanCharactersFromSet(_ set: NSCharacterSet) -> String? {
+    public func scanCharactersFromSet(_ set: CharacterSet) -> String? {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
@@ -686,7 +686,7 @@ extension NSScanner {
         return nil
     }
     
-    public func scanUpToCharactersFromSet(_ set: NSCharacterSet) -> String? {
+    public func scanUpToCharactersFromSet(_ set: CharacterSet) -> String? {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length

@@ -181,7 +181,7 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
         return emptyRange
     }
     let scanner = NSScanner(string: aString)
-    let digitSet = NSCharacterSet.decimalDigits()
+    let digitSet = CharacterSet.decimalDigits
     let _ = scanner.scanUpToCharactersFromSet(digitSet)
     if scanner.atEnd {
         // fail early if there are no decimal digits

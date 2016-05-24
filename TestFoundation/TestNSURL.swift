@@ -462,7 +462,7 @@ class TestNSURLComponents : XCTestCase {
         for obj in getTestData()! {
             let testDict = obj as! [String: Any]
             let unencodedString = testDict[kURLTestUrlKey] as! String
-            let expectedString = NSString(string: unencodedString).stringByAddingPercentEncodingWithAllowedCharacters(.URLPathAllowedCharacterSet())!
+            let expectedString = NSString(string: unencodedString).stringByAddingPercentEncodingWithAllowedCharacters(.urlPathAllowed)!
             guard let components = URLComponents(string: expectedString) else { continue }
             XCTAssertEqual(components.string!, expectedString, "should be the expected string (\(components.string!) != \(expectedString))")
         }

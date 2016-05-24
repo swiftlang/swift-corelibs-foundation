@@ -371,8 +371,8 @@ class TestNSString : XCTestCase {
     
     func test_rangeOfCharacterFromSet() {
         let string: NSString = "0Az"
-        let letters = NSCharacterSet.letters()
-        let decimalDigits = NSCharacterSet.decimalDigits()
+        let letters = CharacterSet.letters
+        let decimalDigits = CharacterSet.decimalDigits
         XCTAssertEqual(string.rangeOfCharacter(from: letters).location, 1)
         XCTAssertEqual(string.rangeOfCharacter(from: decimalDigits).location, 0)
         XCTAssertEqual(string.rangeOfCharacter(from: letters, options: [.backwardsSearch]).location, 2)
@@ -598,7 +598,7 @@ class TestNSString : XCTestCase {
     }
 
     func test_stringByTrimmingCharactersInSet() {
-        let characterSet = NSCharacterSet.whitespaces()
+        let characterSet = CharacterSet.whitespaces
         let string: NSString = " abc   "
         XCTAssertEqual(string.trimmingCharacters(in: characterSet), "abc")
     }

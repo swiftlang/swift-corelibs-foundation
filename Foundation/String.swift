@@ -415,7 +415,7 @@ extension String {
     /// that have been divided by characters in a given set.
     @warn_unused_result
     public func components(
-        separatedBy separator: NSCharacterSet
+        separatedBy separator: CharacterSet
         ) -> [String] {
         return _ns.components(separatedBy: separator)
     }
@@ -1108,7 +1108,7 @@ extension String {
     /// given options.
     @warn_unused_result
     public func rangeOfCharacter(
-        from aSet: NSCharacterSet,
+        from aSet: CharacterSet,
         options mask:NSStringCompareOptions = [],
         range aRange: Range<Index>? = nil
         ) -> Range<Index>? {
@@ -1240,7 +1240,7 @@ extension String {
     /// characters.
     @warn_unused_result
     public func stringByAddingPercentEncodingWithAllowedCharacters(
-        _ allowedCharacters: NSCharacterSet
+        _ allowedCharacters: CharacterSet
         ) -> String? {
         // FIXME: the documentation states that this method can return nil if the
         // transformation is not possible, without going into further details.  The
@@ -1451,7 +1451,7 @@ extension String {
     /// Returns a new string made by removing from both ends of
     /// the `String` characters contained in a given character set.
     @warn_unused_result
-    public func trimmingCharacters(in set: NSCharacterSet) -> String {
+    public func trimmingCharacters(in set: CharacterSet) -> String {
         return _ns.trimmingCharacters(in: set)
     }
     
