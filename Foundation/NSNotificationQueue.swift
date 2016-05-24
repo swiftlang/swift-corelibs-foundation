@@ -27,10 +27,10 @@ public struct NSNotificationCoalescing : OptionSet {
 public class NSNotificationQueue : NSObject {
 
     internal typealias NotificationQueueList = NSMutableArray
-    internal typealias NSNotificationListEntry = (NSNotification, [String]) // Notification ans list of modes the notification may be posted in.
+    internal typealias NSNotificationListEntry = (Notification, [String]) // Notification ans list of modes the notification may be posted in.
     internal typealias NSNotificationList = [NSNotificationListEntry] // The list of notifications to post
 
-    internal let notificationCenter: NSNotificationCenter
+    internal let notificationCenter: NotificationCenter
     internal var asapList = NSNotificationList()
     internal var idleList = NSNotificationList()
     internal lazy var idleRunloopObserver: CFRunLoopObserver = {
@@ -57,11 +57,11 @@ public class NSNotificationQueue : NSObject {
     private static var _defaultQueue = NSThreadSpecific<NSNotificationQueue>()
     public class func defaultQueue() -> NSNotificationQueue {
         return _defaultQueue.get() {
-            return NSNotificationQueue(notificationCenter: NSNotificationCenter.defaultCenter())
+            return NSNotificationQueue(notificationCenter: NotificationCenter.defaultCenter())
         }
     }
     
-    public init(notificationCenter: NSNotificationCenter) {
+    public init(notificationCenter: NotificationCenter) {
         self.notificationCenter = notificationCenter
         super.init()
         NSNotificationQueue.registerQueue(self)
@@ -73,11 +73,11 @@ public class NSNotificationQueue : NSObject {
         removeRunloopObserver(self.asapRunloopObserver)
     }
 
-    public func enqueueNotification(_ notification: NSNotification, postingStyle: NSPostingStyle) {
+    public func enqueueNotification(_ notification: Notification, postingStyle: NSPostingStyle) {
         enqueueNotification(notification, postingStyle: postingStyle, coalesceMask: [.CoalescingOnName, .CoalescingOnSender], forModes: nil)
     }
 
-    public func enqueueNotification(_ notification: NSNotification, postingStyle: NSPostingStyle, coalesceMask: NSNotificationCoalescing, forModes modes: [String]?) {
+    public func enqueueNotification(_ notification: Notification, postingStyle: NSPostingStyle, coalesceMask: NSNotificationCoalescing, forModes modes: [String]?) {
         var runloopModes = [NSDefaultRunLoopMode]
         if let modes = modes  {
             runloopModes = modes
@@ -102,7 +102,7 @@ public class NSNotificationQueue : NSObject {
         }
     }
     
-    public func dequeueNotificationsMatching(_ notification: NSNotification, coalesceMask: NSNotificationCoalescing) {
+    public func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: NSNotificationCoalescing) {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
         case [.CoalescingOnName, .CoalescingOnSender]:

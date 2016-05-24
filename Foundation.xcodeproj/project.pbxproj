@@ -217,6 +217,7 @@
 		5BA9BEA41CF380E8009DBD6C /* URLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA31CF380E8009DBD6C /* URLRequest.swift */; };
 		5BA9BEA61CF3D747009DBD6C /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA51CF3D747009DBD6C /* Data.swift */; };
 		5BA9BEA81CF3E7E7009DBD6C /* CharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */; };
+		5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */; };
 		5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
 		5BCCA8D91CE6697F0059B963 /* URLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCCA8D81CE6697F0059B963 /* URLComponents.swift */; };
@@ -583,6 +584,7 @@
 		5BA9BEA31CF380E8009DBD6C /* URLRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLRequest.swift; sourceTree = "<group>"; };
 		5BA9BEA51CF3D747009DBD6C /* Data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
 		5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CharacterSet.swift; sourceTree = "<group>"; };
+		5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCharacterSet.swift; sourceTree = "<group>"; };
 		5BC2C00D1C07832E00CC214E /* CFStringTransform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringTransform.c; sourceTree = "<group>"; };
 		5BCCA8D81CE6697F0059B963 /* URLComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLComponents.swift; sourceTree = "<group>"; };
@@ -1506,6 +1508,7 @@
 			isa = PBXGroup;
 			children = (
 				EADE0B691BD15DFF00C49C64 /* NSNotification.swift */,
+				5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */,
 				EADE0B6A1BD15DFF00C49C64 /* NSNotificationQueue.swift */,
 			);
 			name = Notifications;
@@ -1847,6 +1850,7 @@
 				5BF7AEAE1BCD51F9008F214A /* NSFormatter.swift in Sources */,
 				EADE0B9C1BD15DFF00C49C64 /* NSFileManager.swift in Sources */,
 				5BF7AEA61BCD51F9008F214A /* NSCharacterSet.swift in Sources */,
+				5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */,
 				EADE0BB71BD15E0000C49C64 /* NSStream.swift in Sources */,
 				5BF7AEBF1BCD51F9008F214A /* NSURL.swift in Sources */,
 				5BF7AEBC1BCD51F9008F214A /* NSThread.swift in Sources */,
