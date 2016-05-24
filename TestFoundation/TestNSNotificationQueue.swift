@@ -232,7 +232,7 @@ class TestNSNotificationQueue : XCTestCase {
 
     private func executeInBackgroundThread(_ operation: () -> Void) {
         let e = expectation(withDescription: "Background Execution")
-        let bgThread = NSThread() {
+        let bgThread = Thread() {
             operation()
             e.fulfill()
         }

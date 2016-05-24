@@ -97,7 +97,7 @@ public class NSTask : NSObject {
         }
         Once.lock.synchronized {
             if !Once.done {
-                let thread = NSThread {
+                let thread = Thread {
                     managerThreadRunLoop = RunLoop.currentRunLoop()
                     var emptySourceContext = CFRunLoopSourceContext()
                     emptySourceContext.version = 0
@@ -268,7 +268,7 @@ public class NSTask : NSObject {
             // If a termination handler has been set, invoke it on a background thread
             
             if task.terminationHandler != nil {
-                let thread = NSThread {
+                let thread = Thread {
                     task.terminationHandler!(task)
                 }
                 thread.start()

@@ -47,21 +47,21 @@ internal enum _NSThreadStatus {
 }
 
 private func NSThreadStart(_ context: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
-    let thread: NSThread = NSObject.unretainedReference(context!)
-    NSThread._currentThread.set(thread)
+    let thread: Thread = NSObject.unretainedReference(context!)
+    Thread._currentThread.set(thread)
     thread._status = .executing
     thread.main()
     thread._status = .finished
-    NSThread.releaseReference(context!)
+    Thread.releaseReference(context!)
     return nil
 }
 
-public class NSThread : NSObject {
+public class Thread: NSObject {
     
-    static internal var _currentThread = NSThreadSpecific<NSThread>()
-    public static func currentThread() -> NSThread {
-        return NSThread._currentThread.get() {
-            return NSThread(thread: pthread_self())
+    static internal var _currentThread = NSThreadSpecific<Thread>()
+    public static func currentThread() -> Thread {
+        return Thread._currentThread.get() {
+            return Thread(thread: pthread_self())
         }
     }
 
@@ -69,7 +69,7 @@ public class NSThread : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public class func detachNewThread(_ main: (Void) -> Void) {
-        let t = NSThread(main)
+        let t = Thread(main)
         t.start()
     }
     
