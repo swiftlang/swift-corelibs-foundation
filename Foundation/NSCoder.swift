@@ -30,7 +30,7 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    public func encodeDataObject(_ data: NSData) {
+    public func encodeDataObject(_ data: Data) {
         NSRequiresConcreteImplementation()
     }
     
@@ -38,7 +38,7 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeDataObject() -> NSData? {
+    public func decodeDataObject() -> Data? {
         NSRequiresConcreteImplementation()
     }
     

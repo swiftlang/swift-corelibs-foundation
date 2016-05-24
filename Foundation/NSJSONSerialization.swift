@@ -98,20 +98,20 @@ public class JSONSerialization : NSObject {
     
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
-    public class func data(withJSONObject obj: AnyObject, options opt: WritingOptions = []) throws -> NSData {
+    public class func data(withJSONObject obj: AnyObject, options opt: WritingOptions = []) throws -> Data {
         guard obj is NSArray || obj is NSDictionary else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                 "NSDebugDescription" : "Top-level object was not NSArray or NSDictionary"
                 ])
         }
         
-        let result = NSMutableData()
+        var result = Data()
         
         var writer = JSONWriter(
             pretty: opt.contains(.prettyPrinted),
             writer: { (str: String?) in
                 if let str = str {
-                    result.append(str.bridge().cString(using: NSUTF8StringEncoding)!, length: str.lengthOfBytes(using: NSUTF8StringEncoding))
+                    result.append(UnsafePointer<UInt8>(str.bridge().cString(using: NSUTF8StringEncoding)!), count: str.lengthOfBytes(using: NSUTF8StringEncoding))
                 }
             }
         )
@@ -125,34 +125,35 @@ public class JSONSerialization : NSObject {
        The data must be in one of the 5 supported encodings listed in the JSON specification: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE. The data may or may not have a BOM. The most efficient encoding to use for parsing is UTF-8, so if you have a choice in encoding the data passed to this method, use UTF-8.
      */
     /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
-    public class func jsonObject(with data: NSData, options opt: ReadingOptions = []) throws -> Any {
+    public class func jsonObject(with data: Data, options opt: ReadingOptions = []) throws -> Any {
+        return try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Any in
+            let encoding: NSStringEncoding
+            let buffer: UnsafeBufferPointer<UInt8>
+            if let detected = parseBOM(bytes, length: data.count) {
+                encoding = detected.encoding
+                buffer = UnsafeBufferPointer(start: bytes.advanced(by: detected.skipLength), count: data.count - detected.skipLength)
+            }
+            else {
+                encoding = detectEncoding(bytes, data.count)
+                buffer = UnsafeBufferPointer(start: bytes, count: data.count)
+            }
+            
+            let source = JSONReader.UnicodeSource(buffer: buffer, encoding: encoding)
+            let reader = JSONReader(source: source)
+            if let (object, _) = try reader.parseObject(0) {
+                return object
+            }
+            else if let (array, _) = try reader.parseArray(0) {
+                return array
+            }
+            else if opt.contains(.allowFragments), let (value, _) = try reader.parseValue(0) {
+                return value
+            }
+            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                "NSDebugDescription" : "JSON text did not start with array or object and option to allow fragments not set."
+            ])
+        }
         
-        let bytes = UnsafePointer<UInt8>(data.bytes)
-        let encoding: NSStringEncoding
-        let buffer: UnsafeBufferPointer<UInt8>
-        if let detected = parseBOM(bytes, length: data.length) {
-            encoding = detected.encoding
-            buffer = UnsafeBufferPointer(start: bytes.advanced(by: detected.skipLength), count: data.length - detected.skipLength)
-        }
-        else {
-            encoding = detectEncoding(bytes, data.length)
-            buffer = UnsafeBufferPointer(start: bytes, count: data.length)
-        }
-
-        let source = JSONReader.UnicodeSource(buffer: buffer, encoding: encoding)
-        let reader = JSONReader(source: source)
-        if let (object, _) = try reader.parseObject(0) {
-            return object
-        }
-        else if let (array, _) = try reader.parseArray(0) {
-            return array
-        }
-        else if opt.contains(.allowFragments), let (value, _) = try reader.parseValue(0) {
-            return value
-        }
-        throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-            "NSDebugDescription" : "JSON text did not start with array or object and option to allow fragments not set."
-        ])
     }
     
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.

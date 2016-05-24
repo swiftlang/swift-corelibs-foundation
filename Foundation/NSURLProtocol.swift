@@ -98,7 +98,7 @@ public protocol URLProtocolClient : NSObjectProtocol {
      @param URLProtocol the NSURLProtocol object sending the message.
      @param data URL load data being made available.
      */
-    func urlProtocol(_ protocol: URLProtocol, didLoad data: NSData)
+    func urlProtocol(_ protocol: URLProtocol, didLoad data: Data)
     
     
     /*!

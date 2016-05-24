@@ -96,7 +96,7 @@ public class NSInputStream : NSStream {
         NSUnimplemented()
     }
     
-    public init(data: NSData) {
+    public init(data: Data) {
         NSUnimplemented()
     }
     

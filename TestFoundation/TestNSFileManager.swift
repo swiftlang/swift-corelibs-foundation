@@ -67,7 +67,7 @@ class TestNSFileManager : XCTestCase {
         
         ignoreError { try fm.removeItem(atPath: path) }
         
-        XCTAssertTrue(fm.createFile(atPath: path, contents: NSData(), attributes: nil))
+        XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         
         var isDir = false
         let exists = fm.fileExists(atPath: path, isDirectory: &isDir)
@@ -93,7 +93,7 @@ class TestNSFileManager : XCTestCase {
 
         cleanup()
 
-        XCTAssertTrue(fm.createFile(atPath: path, contents: NSData(), attributes: nil))
+        XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         defer { cleanup() }
 
         do {
@@ -119,7 +119,7 @@ class TestNSFileManager : XCTestCase {
 
         ignoreError { try fm.removeItem(atPath: path) }
         
-        XCTAssertTrue(fm.createFile(atPath: path, contents: NSData(), attributes: nil))
+        XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         
         do {
             let attrs = try fm.attributesOfItem(atPath: path)
@@ -166,7 +166,7 @@ class TestNSFileManager : XCTestCase {
         let fm = NSFileManager.defaultManager()
         
         ignoreError { try fm.removeItem(atPath: path) }
-        XCTAssertTrue(fm.createFile(atPath: path, contents: NSData(), attributes: nil))
+        XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         
         do {
             try fm.setAttributes([NSFilePosixPermissions:NSNumber(value: Int16(0o0600))], ofItemAtPath: path)
@@ -194,8 +194,8 @@ class TestNSFileManager : XCTestCase {
             try fm.createDirectory(atPath: basePath, withIntermediateDirectories: false, attributes: nil)
             try fm.createDirectory(atPath: basePath2, withIntermediateDirectories: false, attributes: nil)
 
-            let _ = fm.createFile(atPath: itemPath, contents: NSData(), attributes: nil)
-            let _ = fm.createFile(atPath: itemPath2, contents: NSData(), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath, contents: Data(), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath2, contents: Data(), attributes: nil)
 
         } catch _ {
             XCTFail()
@@ -222,7 +222,7 @@ class TestNSFileManager : XCTestCase {
         
         do {
             try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
-            let _ = fm.createFile(atPath: itemPath, contents: NSData(), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath, contents: Data(), attributes: nil)
         } catch _ {
             XCTFail()
         }
@@ -243,7 +243,7 @@ class TestNSFileManager : XCTestCase {
         let subDirItemPath = "/tmp/testdir/testdir2/item"
         do {
             try fm.createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
-            let _ = fm.createFile(atPath: subDirItemPath, contents: NSData(), attributes: nil)
+            let _ = fm.createFile(atPath: subDirItemPath, contents: Data(), attributes: nil)
         } catch _ {
             XCTFail()
         }
@@ -328,8 +328,8 @@ class TestNSFileManager : XCTestCase {
         
         do {
             try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
-            let _ = fm.createFile(atPath: itemPath1, contents: NSData(), attributes: nil)
-            let _ = fm.createFile(atPath: itemPath2, contents: NSData(), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath1, contents: Data(), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath2, contents: Data(), attributes: nil)
         } catch _ {
             XCTFail()
         }
@@ -373,11 +373,11 @@ class TestNSFileManager : XCTestCase {
         
         do {
             try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
-            let _ = fm.createFile(atPath: itemPath1, contents: NSData(), attributes: nil)
-            let _ = fm.createFile(atPath: itemPath2, contents: NSData(), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath1, contents: Data(), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath2, contents: Data(), attributes: nil)
             
             try fm.createDirectory(atPath: path2, withIntermediateDirectories: false, attributes: nil)
-            let _ = fm.createFile(atPath: itemPath3, contents: NSData(), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath3, contents: Data(), attributes: nil)
         } catch _ {
             XCTFail()
         }

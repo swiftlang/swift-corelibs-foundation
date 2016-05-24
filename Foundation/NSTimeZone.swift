@@ -28,7 +28,7 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         self.init(name: tzName, data: nil)
     }
 
-    public init?(name tzName: String, data aData: NSData?) {
+    public init?(name tzName: String, data aData: Data?) {
         super.init()
         if !_CFTimeZoneInit(_cfObject, tzName._cfObject, aData?._cfObject) {
             return nil
@@ -44,14 +44,14 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
                 return nil
             }
             
-            self.init(name: name!.bridge(), data: data)
+            self.init(name: name!.bridge(), data: data?._swiftObject)
         } else {
             if let name = aDecoder.decodeObject() as? NSString {
                 if aDecoder.versionForClassName("NSTimeZone") == 0 {
                     self.init(name: name._swiftObject)
                 } else {
                     let data = aDecoder.decodeObject() as? NSData
-                    self.init(name: name._swiftObject, data: data)
+                    self.init(name: name._swiftObject, data: data?._swiftObject)
                 }
             } else {
                 return nil
@@ -121,9 +121,9 @@ public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public var data: NSData {
+    public var data: Data {
         if self.dynamicType === NSTimeZone.self {
-            return CFTimeZoneGetData(_cfObject)._nsObject
+            return CFTimeZoneGetData(_cfObject)._swiftObject
         } else {
             NSRequiresConcreteImplementation()
         }

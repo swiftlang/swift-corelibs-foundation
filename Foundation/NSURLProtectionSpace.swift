@@ -219,7 +219,7 @@ extension URLProtectionSpace {
         @abstract Returns an array of acceptable certificate issuing authorities for client certification authentication. Issuers are identified by their distinguished name and returned as a DER encoded data.
         @result An array of NSData objects.  (Nil if the authenticationMethod is not NSURLAuthenticationMethodClientCertificate)
      */
-    public var distinguishedNames: [NSData]? { NSUnimplemented() }
+    public var distinguishedNames: [Data]? { NSUnimplemented() }
 }
 
 // TODO: Currently no implementation of Security.framework

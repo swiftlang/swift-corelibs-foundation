@@ -122,14 +122,14 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
-    public class func archivedDataWithRootObject(_ rootObject: AnyObject) -> NSData {
+    public class func archivedDataWithRootObject(_ rootObject: AnyObject) -> Data {
         let data = NSMutableData()
         let keyedArchiver = NSKeyedArchiver(forWritingWithMutableData: data)
         
         keyedArchiver.encodeObject(rootObject, forKey: NSKeyedArchiveRootObjectKey)
         keyedArchiver.finishEncoding()
         
-        return data
+        return data._swiftObject
     }
     
     public class func archiveRootObject(_ rootObject: AnyObject, toFile path: String) -> Bool {
@@ -766,7 +766,7 @@ public class NSKeyedArchiver : NSCoder {
         _encodeValue(NSNumber(value: intv), forKey: key)
     }
 
-    public override func encodeDataObject(_ data: NSData) {
+    public override func encodeDataObject(_ data: Data) {
         // this encodes as a reference to an NSData object rather than encoding inline
         encodeObject(data)
     }

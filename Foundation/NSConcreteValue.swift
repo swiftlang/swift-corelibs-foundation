@@ -113,7 +113,7 @@ internal class NSConcreteValue : NSValue {
     }
     
     override var description : String {
-        return NSData.init(bytes: self.value, length: self._size).description
+        return Data(bytes: self.value, count: self._size).description
     }
     
     convenience required init?(coder aDecoder: NSCoder) {

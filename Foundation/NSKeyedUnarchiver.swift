@@ -52,7 +52,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return _error
     }
     
-    public class func unarchiveObjectWithData(_ data: NSData) -> AnyObject? {
+    public class func unarchiveObjectWithData(_ data: Data) -> AnyObject? {
         do {
             return try unarchiveTopLevelObjectWithData(data)
         } catch {
@@ -81,7 +81,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return root
     }
     
-    public convenience init(forReadingWithData data: NSData) {
+    public convenience init(forReadingWithData data: Data) {
         self.init(stream: data)
     }
     
@@ -105,7 +105,7 @@ public class NSKeyedUnarchiver : NSCoder {
         // which will not scale for large archives. We should support incremental
         // unarchiving, but that will be a considerable amount of work.
         
-        if let data = self._stream as? NSData {
+        if let data = self._stream as? Data {
             try plist = PropertyListSerialization.propertyListWithData(data, options: PropertyListSerialization.MutabilityOptions.immutable, format: &format)
         } else {
             try plist = PropertyListSerialization.propertyListWithStream(unsafeBitCast(self._stream, to: CFReadStream.self),
@@ -763,8 +763,8 @@ public class NSKeyedUnarchiver : NSCoder {
         return nil
     }
     
-    public override func decodeDataObject() -> NSData? {
-        return decodeObject() as? NSData
+    public override func decodeDataObject() -> Data? {
+        return decodeObject() as? Data
     }
     
     private func _decodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafeMutablePointer<Void>) {
@@ -895,7 +895,7 @@ public class NSKeyedUnarchiver : NSCoder {
 
 extension NSKeyedUnarchiver {
     @warn_unused_result
-    public class func unarchiveTopLevelObjectWithData(_ data: NSData) throws -> AnyObject? {
+    public class func unarchiveTopLevelObjectWithData(_ data: Data) throws -> AnyObject? {
         var root : AnyObject? = nil
         
         let keyedUnarchiver = NSKeyedUnarchiver(forReadingWithData: data)

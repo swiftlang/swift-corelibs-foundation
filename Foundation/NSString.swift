@@ -833,7 +833,7 @@ extension NSString {
         return NSUnicodeStringEncoding
     }
     
-    public func data(using encoding: UInt, allowLossyConversion lossy: Bool) -> NSData? {
+    public func data(using encoding: UInt, allowLossyConversion lossy: Bool) -> Data? {
         let len = length
         var reqSize = 0
         
@@ -847,20 +847,24 @@ extension NSString {
             return nil 	// Not able to do it all...
         }
         
-        if let data = NSMutableData(length: reqSize) {
+        var data = Data(count: reqSize)
+        if data != nil {
             if 0 < reqSize {
-                if __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == NSASCIIStringEncoding ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(data.mutableBytes), reqSize, &reqSize) == convertedLen {
-                    data.length = reqSize
-                } else {
-                    fatalError("didn't convert all characters")
+                data!.count = data!.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<UInt8>) -> Int in
+                    if __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == NSASCIIStringEncoding ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(mutableBytes), reqSize, &reqSize) == convertedLen {
+                        return reqSize
+                    } else {
+                        fatalError("didn't convert all characters")
+                    }
                 }
+                
                 return data
             }
         }
         return nil
     }
     
-    public func data(using encoding: UInt) -> NSData? {
+    public func data(using encoding: UInt) -> Data? {
         return data(using: encoding, allowLossyConversion: false)
     }
     
@@ -1133,7 +1137,7 @@ extension NSString {
         }
     }
     
-    internal func _getExternalRepresentation(_ data: inout NSData, _ dest: URL, _ enc: UInt) throws {
+    internal func _getExternalRepresentation(_ data: inout Data, _ dest: URL, _ enc: UInt) throws {
         let length = self.length
         var numBytes = 0
         let theRange = NSMakeRange(0, length)
@@ -1142,32 +1146,23 @@ extension NSString {
                 NSURLErrorKey: dest,
             ])
         }
-        let mData = NSMutableData(length: numBytes)!
+        var mData = Data(count: numBytes)!
         // The getBytes:... call should hopefully not fail, given it succeeded above, but check anyway (mutable string changing behind our back?)
         var used = 0
-        if !getBytes(mData.mutableBytes, maxLength: numBytes, usedLength: &used, encoding: enc, options: [], range: theRange, remaining: nil) {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnknownError.rawValue, userInfo: [
-                NSURLErrorKey: dest,
-            ])
+        try mData.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<Void>) -> Void in
+            if !getBytes(mutableBytes, maxLength: numBytes, usedLength: &used, encoding: enc, options: [], range: theRange, remaining: nil) {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnknownError.rawValue, userInfo: [
+                    NSURLErrorKey: dest,
+                ])
+            }
         }
         data = mData
     }
     
     internal func _writeTo(_ url: URL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
-        var data = NSData()
+        var data = Data()
         try _getExternalRepresentation(&data, url, enc)
-        
-        if url.isFileURL {
-            try data.write(to: url, options: useAuxiliaryFile ? .dataWritingAtomic : [])
-        } else {
-            if let path = url.path {
-                try data.write(toFile: path, options: useAuxiliaryFile ? .dataWritingAtomic : [])
-            } else {
-                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [
-                    NSURLErrorKey: url,
-                ])
-            }
-        }
+        try data.write(to: url, options: useAuxiliaryFile ? .dataWritingAtomic : [])
     }
     
     public func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
@@ -1221,8 +1216,12 @@ extension NSString {
         self.init(str._swiftObject)
     }
     
-    public convenience init?(data: NSData, encoding: UInt) {
-        self.init(bytes: data.bytes, length: data.length, encoding: encoding)
+    public convenience init?(data: Data, encoding: UInt) {
+        
+//        data.withUnsafeBytes { (bytes: UnsafePointer<Void>) -> Void in
+            self.init(bytes: data._nsObject.bytes, length: data.count, encoding: encoding)
+//        }
+        
     }
     
     public convenience init?(bytes: UnsafePointer<Void>, length len: Int, encoding: UInt) {
@@ -1258,7 +1257,8 @@ extension NSString {
     }
 
     public convenience init(contentsOfURL url: URL, encoding enc: UInt) throws {
-        let readResult = try NSData.init(contentsOfURL: url, options: [])
+        let readResult = try NSData(contentsOfURL: url, options: [])
+
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to create a string using the specified encoding."

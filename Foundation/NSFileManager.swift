@@ -340,9 +340,9 @@ public class NSFileManager : NSObject {
         result[NSFileSize] = NSNumber(value: UInt64(s.st_size))
 
 #if os(OSX) || os(iOS)
-        let ti = (NSTimeInterval(s.st_mtimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * NSTimeInterval(s.st_mtimespec.tv_nsec))
+        let ti = (TimeInterval(s.st_mtimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtimespec.tv_nsec))
 #else
-        let ti = (NSTimeInterval(s.st_mtim.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * NSTimeInterval(s.st_mtim.tv_nsec))
+        let ti = (TimeInterval(s.st_mtim.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtim.tv_nsec))
 #endif
         result[NSFileModificationDate] = Date(timeIntervalSinceReferenceDate: ti)
         
@@ -674,13 +674,17 @@ public class NSFileManager : NSObject {
     
     /* These methods are provided here for compatibility. The corresponding methods on NSData which return NSErrors should be regarded as the primary method of creating a file from an NSData or retrieving the contents of a file as an NSData.
      */
-    public func contents(atPath path: String) -> NSData? {
-        return NSData(contentsOfFile: path)
+    public func contents(atPath path: String) -> Data? {
+        do {
+            return try Data(contentsOf: URL(fileURLWithPath: path))
+        } catch {
+            return nil
+        }
     }
     
-    public func createFile(atPath path: String, contents data: NSData?, attributes attr: [String : AnyObject]? = [:]) -> Bool {
+    public func createFile(atPath path: String, contents data: Data?, attributes attr: [String : AnyObject]? = [:]) -> Bool {
         do {
-            try (data ?? NSData()).write(toFile: path, options: .dataWritingAtomic)
+            try (data ?? Data()).write(to: URL(fileURLWithPath: path), options: .dataWritingAtomic)
             return true
         } catch _ {
             return false

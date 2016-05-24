@@ -176,7 +176,7 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
     
     /// This data is sent as the message body of the request, as
     /// in done in an HTTP POST request.
-    public var httpBody: NSData? {
+    public var httpBody: Data? {
         get {
             return _handle.map { $0.httpBody }
         }

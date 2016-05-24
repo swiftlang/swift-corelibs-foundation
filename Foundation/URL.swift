@@ -314,7 +314,7 @@ public struct URL : ReferenceConvertible, CustomStringConvertible, Equatable {
     }
     
     /// Initializes a newly created URL using the contents of the given data, relative to a base URL. If the data representation is not a legal URL string as ASCII bytes, the URL object may not behave as expected.
-    public init(dataRepresentation: NSData, relativeTo url: URL?, isAbsolute: Bool = false) {
+    public init(dataRepresentation: Data, relativeTo url: URL?, isAbsolute: Bool = false) {
         if isAbsolute {
             _url = NSURL(absoluteURLWithDataRepresentation: dataRepresentation, relativeTo: url)
         } else {
@@ -344,7 +344,7 @@ public struct URL : ReferenceConvertible, CustomStringConvertible, Equatable {
     // MARK: -
     
     /// Returns the data representation of the URL's relativeString. If the URL was initialized with -initWithData:relativeToURL:, the data representation returned are the same bytes as those used at initialization; otherwise, the data representation returned are the bytes of the relativeString encoded with NSUTF8StringEncoding.
-    public var dataRepresentation: NSData { return _url.dataRepresentation }
+    public var dataRepresentation: Data { return _url.dataRepresentation }
     
     public var absoluteString: String? { return _url.absoluteString }
     

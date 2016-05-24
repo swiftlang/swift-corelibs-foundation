@@ -160,7 +160,10 @@ internal func _NSXMLParserGetEntity(_ ctx: _CFXMLInterface, name: UnsafePointer<
             if _CFXMLInterfaceHasDocument(context) != 0 {
                 if let data = result {
                     // unfortunately we can't add the entity to the doc to avoid further lookup since the delegate can change under us
-                    _NSXMLParserCharacters(ctx, ch: UnsafePointer<UInt8>(data.bytes), len: Int32(data.length))
+                    data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Void in
+                        _NSXMLParserCharacters(ctx, ch: bytes, len: Int32(data.count))
+                    }
+                    
                 }
             }
         }
@@ -366,7 +369,7 @@ internal func _NSXMLParserProcessingInstruction(_ ctx: _CFXMLInterface, target: 
 internal func _NSXMLParserCdataBlock(_ ctx: _CFXMLInterface, value: UnsafePointer<UInt8>, len: Int32) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
-        delegate.parser(parser, foundCDATA: NSData(bytes: UnsafePointer<Void>(value), length: Int(len)))
+        delegate.parser(parser, foundCDATA: Data(bytes: UnsafePointer<Void>(value), count: Int(len)))
     }
 }
 
@@ -394,10 +397,10 @@ internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLIn
 public class NSXMLParser : NSObject {
     private var _handler: _CFXMLInterfaceSAXHandler
     internal var _stream: NSInputStream?
-    internal var _data: NSData?
+    internal var _data: Data?
     internal var _chunkSize = Int(4096 * 32) // a suitably large number for a decent chunk size
     internal var _haveDetectedEncoding = false
-    internal var _bomChunk: NSData?
+    internal var _bomChunk: Data?
     private var _parserContext: _CFXMLInterfaceParserContext?
     internal var _delegateAborted = false
     internal var _url: URL?
@@ -409,20 +412,24 @@ public class NSXMLParser : NSObject {
             if let stream = NSInputStream(URL: url) {
                 self.init(stream: stream)
                 _url = url
+            } else {
+                return nil
             }
         } else {
-            if let data = NSData(contentsOfURL: url) {
+            do {
+                let data = try Data(contentsOf: url)
                 self.init(data: data)
                 self._url = url
+            } catch {
+                return nil
             }
         }
-        return nil
     }
     
     // create the parser from data
-    public init(data: NSData) {
+    public init(data: Data) {
         _CFSetupXMLInterface()
-        _data = data.copy() as? NSData
+        _data = data
         _handler = _CFXMLInterfaceCreateSAXHandler()
         _parserContext = nil
     }
@@ -479,19 +486,19 @@ public class NSXMLParser : NSObject {
         */
     }
 
-    internal func parseData(_ data: NSData) -> Bool {
+    internal func parseData(_ data: Data) -> Bool {
         _CFXMLInterfaceSetStructuredErrorFunc(interface, _structuredErrorFunc)
         var result = true
         /* The vast majority of this method just deals with ensuring we do a single parse
          on the first 4 received bytes before continuing on to the actual incremental section */
         if _haveDetectedEncoding {
-            var totalLength = data.length
+            var totalLength = data.count
             if let chunk = _bomChunk {
-                totalLength += chunk.length
+                totalLength += chunk.count
             }
             if (totalLength < 4) {
                 if let chunk = _bomChunk {
-                    let newData = NSMutableData()
+                    var newData = Data()
                     newData.append(chunk)
                     newData.append(data)
                     _bomChunk = newData
@@ -499,9 +506,9 @@ public class NSXMLParser : NSObject {
                     _bomChunk = data
                 }
             } else {
-                var allExistingData: NSData
+                var allExistingData: Data
                 if let chunk = _bomChunk {
-                    let newData = NSMutableData()
+                    var newData = Data()
                     newData.append(chunk)
                     newData.append(data)
                     allExistingData = newData
@@ -513,8 +520,10 @@ public class NSXMLParser : NSObject {
                 if delegate != nil {
                     handler = _handler
                 }
-
-                _parserContext = _CFXMLInterfaceCreatePushParserCtxt(handler, interface, UnsafePointer<Int8>(allExistingData.bytes), 4, nil)
+                
+                _parserContext = allExistingData.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> _CFXMLInterfaceParserContext in
+                    return _CFXMLInterfaceCreatePushParserCtxt(handler, interface, bytes, 4, nil)
+                }
 
                 var options = _kCFXMLInterfaceRecover | _kCFXMLInterfaceNoEnt // substitute entities, recover on errors
                 if shouldResolveExternalEntities {
@@ -530,12 +539,18 @@ public class NSXMLParser : NSObject {
                 _bomChunk = nil
 
                 if (totalLength > 4) {
-                    let remainingData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(allExistingData.bytes.advanced(by: 4)), length: totalLength - 4, freeWhenDone: false)
+                    let remainingData = allExistingData.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Data in
+                        return Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(bytes.advanced(by: 4)), count: totalLength - 4, deallocator: .none)
+                    }
+                    
                     let _ = parseData(remainingData)
                 }
             }
         } else {
-            let parseResult = _CFXMLInterfaceParseChunk(_parserContext, UnsafePointer<Int8>(data.bytes), Int32(data.length), 0)
+            let parseResult = data.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Int32 in
+                return _CFXMLInterfaceParseChunk(_parserContext, bytes, Int32(data.count), 0)
+            }
+            
             result = _handleParseResult(parseResult)
         }
         _CFXMLInterfaceSetStructuredErrorFunc(interface, nil)
@@ -551,7 +566,7 @@ public class NSXMLParser : NSObject {
             var len = stream.read(UnsafeMutablePointer<UInt8>(buffer), maxLength: _chunkSize)
             if len != -1 {
                 while len > 0 {
-                    let data = NSData(bytesNoCopy: buffer, length: len, freeWhenDone: false)
+                    let data = Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(buffer), count: len, deallocator: .none)
                     result = parseData(data)
                     len = stream.read(UnsafeMutablePointer<UInt8>(buffer), maxLength: _chunkSize)
                 }
@@ -562,15 +577,17 @@ public class NSXMLParser : NSObject {
             stream.close()
         } else if let data = _data {
             let buffer = malloc(_chunkSize)!
-            var range = NSMakeRange(0, min(_chunkSize, data.length))
+            var range = NSMakeRange(0, min(_chunkSize, data.count))
             while result {
-                data.getBytes(buffer, range: range)
-                let chunk = NSData(bytesNoCopy: buffer, length: range.length, freeWhenDone: false)
+                let chunk = data.withUnsafeBytes { (buffer: UnsafePointer<UInt8>) -> Data in
+                    let ptr = buffer.advanced(by: range.location)
+                    return Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(ptr), count: range.length, deallocator: .none)
+                }
                 result = parseData(chunk)
-                if range.location + range.length >= data.length {
+                if range.location + range.length >= data.count {
                     break
                 }
-                range = NSMakeRange(range.location + range.length, min(_chunkSize, data.length - (range.location + range.length)))
+                range = NSMakeRange(range.location + range.length, min(_chunkSize, data.count - (range.location + range.length)))
             }
             free(buffer)
         } else {
@@ -694,10 +711,10 @@ public protocol NSXMLParserDelegate : class {
     func parser(_ parser: NSXMLParser, foundComment comment: String)
     // A comment (Text in a <!-- --> block) is reported to the delegate as a single string
     
-    func parser(_ parser: NSXMLParser, foundCDATA CDATABlock: NSData)
+    func parser(_ parser: NSXMLParser, foundCDATA CDATABlock: Data)
     // this reports a CDATA block to the delegate as an NSData.
     
-    func parser(_ parser: NSXMLParser, resolveExternalEntityName name: String, systemID: String?) -> NSData?
+    func parser(_ parser: NSXMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data?
     // this gives the delegate an opportunity to resolve an external entity itself and reply with the resulting data.
     
     func parser(_ parser: NSXMLParser, parseErrorOccurred parseError: NSError)
@@ -739,9 +756,9 @@ extension NSXMLParserDelegate {
     
     func parser(_ parser: NSXMLParser, foundComment comment: String) { }
     
-    func parser(_ parser: NSXMLParser, foundCDATA CDATABlock: NSData) { }
+    func parser(_ parser: NSXMLParser, foundCDATA CDATABlock: Data) { }
     
-    func parser(_ parser: NSXMLParser, resolveExternalEntityName name: String, systemID: String?) -> NSData? { return nil }
+    func parser(_ parser: NSXMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data? { return nil }
     
     func parser(_ parser: NSXMLParser, parseErrorOccurred parseError: NSError) { }
     

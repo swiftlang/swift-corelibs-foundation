@@ -349,14 +349,19 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return NSGeneratorEnumerator(Iterator(self, reverse: true))
     }
     
-    /*@NSCopying*/ public var sortedArrayHint: NSData {
-        let buffer = UnsafeMutablePointer<Int32>(allocatingCapacity: count)
+    /*@NSCopying*/ public var sortedArrayHint: Data {
+        let size = count
+        let buffer = UnsafeMutablePointer<Int32>(allocatingCapacity: size)
         for idx in 0..<count {
             let item = objectAtIndex(idx) as! NSObject
             let hash = item.hash
             buffer.advanced(by: idx).pointee = Int32(hash).littleEndian
         }
-        return NSData(bytesNoCopy: unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), length: count * sizeof(Int), freeWhenDone: true)
+        fatalError("TODO: FIXME")
+//        return Data(bytesNoCopy: unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), count: count * sizeof(Int)) { _ in
+//            buffer.deallocateCapacity(size)
+//            buffer.deinitialize(count: size)
+//        }
     }
     
     public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?) -> [AnyObject] {
@@ -365,7 +370,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }
     }
     
-    public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?, hint: NSData?) -> [AnyObject] {
+    public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?, hint: Data?) -> [AnyObject] {
         return sortedArrayWithOptions([]) { lhs, rhs in
             return NSComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }

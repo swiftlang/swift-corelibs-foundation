@@ -214,12 +214,12 @@ public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying
     }
     
     internal enum Body {
-        case data(NSData)
+        case data(Data)
         case stream(NSInputStream)
     }
     internal var _body: Body?
     
-    public var httpBody: NSData? {
+    public var httpBody: Data? {
         if let body = _body {
             switch body {
             case .data(let data):
@@ -395,7 +395,7 @@ public class NSMutableURLRequest : NSURLRequest {
         _allHTTPHeaderFields = f
     }
     
-    public override var httpBody: NSData? {
+    public override var httpBody: Data? {
         get {
             if let body = _body {
                 switch body {

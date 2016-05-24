@@ -135,15 +135,16 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         _CFCharacterSetInitWithCharactersInString(_cfMutableObject, aString._cfObject)
     }
     
-    public init(bitmapRepresentation data: NSData) {
+    public init(bitmapRepresentation data: Data) {
         super.init()
         _CFCharacterSetInitWithBitmapRepresentation(_cfMutableObject, data._cfObject)
     }
     
     public convenience init?(contentsOfFile fName: String) {
-        if let data = NSData(contentsOfFile: fName) {
+        do {
+           let data = try Data(contentsOf: URL(fileURLWithPath: fName))
             self.init(bitmapRepresentation: data)
-        } else {
+        } catch {
             return nil
         }
     }
@@ -156,8 +157,8 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetIsCharacterMember(_cfObject, UniChar(aCharacter))
     }
     
-    public var bitmapRepresentation: NSData {
-        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _cfObject)._nsObject
+    public var bitmapRepresentation: Data {
+        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _cfObject)._swiftObject
     }
     
     public var inverted: NSCharacterSet {

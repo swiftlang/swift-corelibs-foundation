@@ -453,7 +453,7 @@ extension String {
     public func data(
         using encoding: NSStringEncoding,
         allowLossyConversion: Bool = false
-        ) -> NSData? {
+        ) -> Data? {
         return _ns.data(
             using: encoding, allowLossyConversion: allowLossyConversion)
     }
@@ -873,7 +873,7 @@ extension String {
     
     /// Returns a `String` initialized by converting given `data` into
     /// Unicode characters using a given `encoding`.
-    public init?(data: NSData, encoding: NSStringEncoding) {
+    public init?(data: Data, encoding: NSStringEncoding) {
         guard let s = NSString(data: data, encoding: encoding) else { return nil }
         self = s._swiftObject
     }

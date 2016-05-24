@@ -48,7 +48,7 @@ public class PropertyListSerialization : NSObject {
         return CFPropertyListIsValid(unsafeBitCast(plist, to: CFPropertyList.self), fmt)
     }
     
-    public class func dataWithPropertyList(_ plist: AnyObject, format: Format, options opt: WriteOptions) throws -> NSData {
+    public class func dataWithPropertyList(_ plist: AnyObject, format: Format, options opt: WriteOptions) throws -> Data {
         var error: Unmanaged<CFError>? = nil
         let result = withUnsafeMutablePointer(&error) { (outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> CFData? in
 #if os(OSX) || os(iOS)
@@ -60,14 +60,14 @@ public class PropertyListSerialization : NSObject {
             return CFPropertyListCreateData(kCFAllocatorSystemDefault, plist, fmt, options, outErr)
         }
         if let res = result {
-            return res._nsObject
+            return res._swiftObject
         } else {
             throw error!.takeRetainedValue()._nsObject
         }
     }
     
     /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
-    public class func propertyListWithData(_ data: NSData, options opt: ReadOptions, format: UnsafeMutablePointer<Format>?) throws -> Any {
+    public class func propertyListWithData(_ data: Data, options opt: ReadOptions, format: UnsafeMutablePointer<Format>?) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0
         var error: Unmanaged<CFError>? = nil
         let decoded = withUnsafeMutablePointers(&fmt, &error) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>, outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> NSObject? in
@@ -128,7 +128,7 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
         return str._swiftObject
     } else if let date = input as? Date {
         return date
-    } else if let data = input as? NSData {
+    } else if let data = input as? Data {
         return data
     } else if let number = input as? NSNumber {
         return number

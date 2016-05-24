@@ -273,39 +273,44 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
         }
     }
     
-    public init(dataRepresentation data: NSData, relativeTo baseURL: URL?) {
+    public init(dataRepresentation data: Data, relativeTo baseURL: URL?) {
         super.init()
         // _CFURLInitWithURLString does not fail if checkForLegalCharacters == false
-        if let str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, UnsafePointer(data.bytes), data.length, CFStringEncoding(kCFStringEncodingUTF8), false) {
-            _CFURLInitWithURLString(_cfObject, str, false, baseURL?._cfObject)
-        } else if let str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, UnsafePointer(data.bytes), data.length, CFStringEncoding(kCFStringEncodingISOLatin1), false) {
-            _CFURLInitWithURLString(_cfObject, str, false, baseURL?._cfObject)
-        } else {
+        data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> Void in
+            if let str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, ptr, data.count, CFStringEncoding(kCFStringEncodingUTF8), false) {
+                _CFURLInitWithURLString(_cfObject, str, false, baseURL?._cfObject)
+            } else if let str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, ptr, data.count, CFStringEncoding(kCFStringEncodingISOLatin1), false) {
+                _CFURLInitWithURLString(_cfObject, str, false, baseURL?._cfObject)
+            } else {
+                fatalError()
+            }
+        }
+        
+    }
+    
+    public init(absoluteURLWithDataRepresentation data: Data, relativeTo baseURL: URL?) {
+        super.init()
+        data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> Void in
+            if _CFURLInitAbsoluteURLWithBytes(_cfObject, ptr, data.count, CFStringEncoding(kCFStringEncodingUTF8), baseURL?._cfObject) {
+                return
+            }
+            if _CFURLInitAbsoluteURLWithBytes(_cfObject, ptr, data.count, CFStringEncoding(kCFStringEncodingISOLatin1), baseURL?._cfObject) {
+                return
+            }
             fatalError()
         }
     }
     
-    public init(absoluteURLWithDataRepresentation data: NSData, relativeTo baseURL: URL?) {
-        super.init()
-        if _CFURLInitAbsoluteURLWithBytes(_cfObject, UnsafePointer(data.bytes), data.length, CFStringEncoding(kCFStringEncodingUTF8), baseURL?._cfObject) {
-            return
-        }
-        if _CFURLInitAbsoluteURLWithBytes(_cfObject, UnsafePointer(data.bytes), data.length, CFStringEncoding(kCFStringEncodingISOLatin1), baseURL?._cfObject) {
-            return
-        }
-        fatalError()
-    }
-    
     /* Returns the data representation of the URL's relativeString. If the URL was initialized with -initWithData:relativeToURL:, the data representation returned are the same bytes as those used at initialization; otherwise, the data representation returned are the bytes of the relativeString encoded with NSUTF8StringEncoding.
     */
-    public var dataRepresentation: NSData {
+    public var dataRepresentation: Data {
         let bytesNeeded = CFURLGetBytes(_cfObject, nil, 0)
         assert(bytesNeeded > 0)
         
         let buffer = malloc(bytesNeeded)!
         let bytesFilled = CFURLGetBytes(_cfObject, UnsafeMutablePointer<UInt8>(buffer), bytesNeeded)
         if bytesFilled == bytesNeeded {
-            return NSData(bytesNoCopy: buffer, length: bytesNeeded, freeWhenDone: true)
+            return Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(buffer), count: bytesNeeded, deallocator: .none)
         } else {
             fatalError()
         }

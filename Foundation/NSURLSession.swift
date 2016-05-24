@@ -149,7 +149,7 @@ public class URLSession: NSObject {
     public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
-    public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: NSData) -> URLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: Data) -> URLSessionUploadTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The previously set body stream of the request (if any) is ignored and the URLSession:task:needNewBodyStream: delegate will be called when the body payload is required. */
     public func uploadTaskWithStreamedRequest(_ request: URLRequest) -> URLSessionUploadTask { NSUnimplemented() }
@@ -161,7 +161,7 @@ public class URLSession: NSObject {
     public func downloadTaskWithURL(_ url: URL) -> URLSessionDownloadTask { NSUnimplemented() }
     
     /* Creates a download task with the resume data.  If the download cannot be successfully resumed, URLSession:task:didCompleteWithError: will be called. */
-    public func downloadTaskWithResumeData(_ resumeData: NSData) -> URLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithResumeData(_ resumeData: Data) -> URLSessionDownloadTask { NSUnimplemented() }
     
     /* Creates a bidirectional stream task to a given host and port.
      */
@@ -186,14 +186,14 @@ extension URLSession {
      * see <Foundation/NSURLError.h>.  The delegate, if any, will still be
      * called for authentication challenges.
      */
-    public func dataTaskWithRequest(_ request: URLRequest, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
-    public func dataTaskWithURL(_ url: URL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
+    public func dataTaskWithRequest(_ request: URLRequest, completionHandler: (Data?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
+    public func dataTaskWithURL(_ url: URL, completionHandler: (Data?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask { NSUnimplemented() }
     
     /*
      * upload convenience method.
      */
-    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: NSURL, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask { NSUnimplemented() }
-    public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: NSData?, completionHandler: (NSData?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: NSURL, completionHandler: (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask { NSUnimplemented() }
+    public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: Data?, completionHandler: (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask { NSUnimplemented() }
     
     /*
      * download task convenience methods.  When a download successfully
@@ -203,7 +203,7 @@ extension URLSession {
      */
     public func downloadTaskWithRequest(_ request: URLRequest, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
     public func downloadTaskWithURL(_ url: NSURL, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
-    public func downloadTaskWithResumeData(_ resumeData: NSData, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
+    public func downloadTaskWithResumeData(_ resumeData: Data, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
 }
 
 extension URLSessionTask {
@@ -346,7 +346,7 @@ public class URLSessionDownloadTask: URLSessionTask {
      * If resume data cannot be created, the completion handler will be
      * called with nil resumeData.
      */
-    public func cancelByProducingResumeData(_ completionHandler: (NSData?) -> Void) { NSUnimplemented() }
+    public func cancelByProducingResumeData(_ completionHandler: (Data?) -> Void) { NSUnimplemented() }
 }
 
 /*
@@ -379,14 +379,14 @@ public class URLSessionStreamTask: URLSessionTask {
      * If an error occurs, any outstanding reads will also fail, and new
      * read requests will error out immediately.
      */
-    public func readDataOfMinLength(_ minBytes: Int, maxLength maxBytes: Int, timeout: TimeInterval, completionHandler: (NSData?, Bool, NSError?) -> Void) { NSUnimplemented() }
+    public func readDataOfMinLength(_ minBytes: Int, maxLength maxBytes: Int, timeout: TimeInterval, completionHandler: (Data?, Bool, NSError?) -> Void) { NSUnimplemented() }
     
     /* Write the data completely to the underlying socket.  If all the
      * bytes have not been written by the timeout, a timeout error will
      * occur.  Note that invocation of the completion handler does not
      * guarantee that the remote side has received all the bytes, only
      * that they have been written to the kernel. */
-    public func writeData(_ data: NSData, timeout: TimeInterval, completionHandler: (NSError?) -> Void) { NSUnimplemented() }
+    public func writeData(_ data: Data, timeout: TimeInterval, completionHandler: (NSError?) -> Void) { NSUnimplemented() }
     
     /* -captureStreams completes any already enqueued reads
      * and writes, and then invokes the
@@ -704,7 +704,7 @@ public protocol URLSessionDataDelegate : URLSessionTaskDelegate {
      * the data may be discontiguous, you should use 
      * [NSData enumerateByteRangesUsingBlock:] to access it.
      */
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceiveData data: NSData)
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceiveData data: Data)
     
     /* Invoke the completion routine with a valid NSCachedURLResponse to
      * allow the resulting data to be cached, or pass nil to prevent

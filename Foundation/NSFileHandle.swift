@@ -20,19 +20,19 @@ public class NSFileHandle : NSObject, NSSecureCoding {
     internal var _closeOnDealloc: Bool
     internal var _closed: Bool = false
     
-    public var availableData: NSData {
+    public var availableData: Data {
         return _readDataOfLength(Int.max, untilEOF: false)
     }
     
-    public func readDataToEndOfFile() -> NSData {
+    public func readDataToEndOfFile() -> Data {
         return readDataOfLength(Int.max)
     }
 
-    public func readDataOfLength(_ length: Int) -> NSData {
+    public func readDataOfLength(_ length: Int) -> Data {
         return _readDataOfLength(length, untilEOF: true)
     }
 
-    internal func _readDataOfLength(_ length: Int, untilEOF: Bool) -> NSData {
+    internal func _readDataOfLength(_ length: Int, untilEOF: Bool) -> Data {
         var statbuf = stat()
         var dynamicBuffer: UnsafeMutablePointer<UInt8>? = nil
         var total = 0
@@ -108,16 +108,16 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         }
         
         if total > 0 {
-            return NSData(bytesNoCopy: UnsafeMutablePointer<Void>(dynamicBuffer!), length: total)
+            return Data(bytesNoCopy: dynamicBuffer!, count: total, deallocator: .none)
         }
         
-        return NSData()
+        return Data()
     }
     
-    public func writeData(_ data: NSData) {
+    public func writeData(_ data: Data) {
         data.enumerateBytes() { (bytes, range, stop) in
             do {
-                try NSData.writeToFileDescriptor(self._fd, path: nil, buf: bytes, length: range.length)
+                try NSData.writeToFileDescriptor(self._fd, path: nil, buf: UnsafePointer<Void>(bytes.baseAddress!), length: bytes.count)
             } catch {
                 fatalError("Write failure")
             }

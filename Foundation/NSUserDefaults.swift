@@ -91,7 +91,7 @@ public class NSUserDefaults : NSObject {
         } else if let bType = value as? URL {
 			setURL(bType, forKey: defaultName)
 			return
-        } else if let bType = value as? NSData {
+        } else if let bType = value as? Data {
             cfType = bType._cfObject
         }
         
@@ -140,8 +140,8 @@ public class NSUserDefaults : NSObject {
         } catch _ { }
         return nil
     }
-    public func dataForKey(_ defaultName: String) -> NSData? {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSData else {
+    public func dataForKey(_ defaultName: String) -> Data? {
+        guard let aVal = objectForKey(defaultName), bVal = aVal as? Data else {
             return nil
         }
         return bVal
@@ -185,7 +185,7 @@ public class NSUserDefaults : NSObject {
             let cVal = bVal.stringByExpandingTildeInPath
             
             return URL(fileURLWithPath: cVal)
-        } else if let bVal = aVal as? NSData {
+        } else if let bVal = aVal as? Data {
             return NSKeyedUnarchiver.unarchiveObjectWithData(bVal) as? URL
         }
         

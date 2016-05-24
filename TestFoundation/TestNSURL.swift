@@ -39,9 +39,9 @@ let kNullString = "<null>"
 
 /// Reads the test data plist file and returns the list of objects
 private func getTestData() -> [Any]? {
-    let testFilePath = testBundle().pathForResource("NSURLTestData", ofType: "plist")
-    let data = NSData(contentsOfFile: testFilePath!)
-    guard let testRoot = try? PropertyListSerialization.propertyListWithData(data!, options: [], format: nil) as? [String : Any] else {
+    let testFilePath = testBundle().URLForResource("NSURLTestData", withExtension: "plist")
+    let data = try! Data(contentsOf: testFilePath!)
+    guard let testRoot = try? PropertyListSerialization.propertyListWithData(data, options: [], format: nil) as? [String : Any] else {
         XCTFail("Unable to deserialize property list data")
         return nil
     }
