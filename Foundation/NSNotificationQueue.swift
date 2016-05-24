@@ -9,22 +9,25 @@
 
 import CoreFoundation
 
-public enum NSPostingStyle : UInt {
-    
-    case postWhenIdle
-    case postASAP
-    case postNow
+extension NotificationQueue {
+
+    public enum PostingStyle : UInt {
+        
+        case postWhenIdle
+        case postASAP
+        case postNow
+    }
+
+    public struct Coalescing : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        public static let CoalescingOnName = Coalescing(rawValue: 1 << 0)
+        public static let CoalescingOnSender = Coalescing(rawValue: 1 << 1)
+    }
 }
 
-public struct NSNotificationCoalescing : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    public static let CoalescingOnName = NSNotificationCoalescing(rawValue: 1 << 0)
-    public static let CoalescingOnSender = NSNotificationCoalescing(rawValue: 1 << 1)
-}
-
-public class NSNotificationQueue : NSObject {
+public class NotificationQueue: NSObject {
 
     internal typealias NotificationQueueList = NSMutableArray
     internal typealias NSNotificationListEntry = (Notification, [String]) // Notification ans list of modes the notification may be posted in.
@@ -54,30 +57,30 @@ public class NSNotificationQueue : NSObject {
     }
 
     // The default notification queue for the current thread.
-    private static var _defaultQueue = NSThreadSpecific<NSNotificationQueue>()
-    public class func defaultQueue() -> NSNotificationQueue {
+    private static var _defaultQueue = NSThreadSpecific<NotificationQueue>()
+    public class func defaultQueue() -> NotificationQueue {
         return _defaultQueue.get() {
-            return NSNotificationQueue(notificationCenter: NotificationCenter.defaultCenter())
+            return NotificationQueue(notificationCenter: NotificationCenter.defaultCenter())
         }
     }
     
     public init(notificationCenter: NotificationCenter) {
         self.notificationCenter = notificationCenter
         super.init()
-        NSNotificationQueue.registerQueue(self)
+        NotificationQueue.registerQueue(self)
     }
 
     deinit {
-        NSNotificationQueue.unregisterQueue(self)
+        NotificationQueue.unregisterQueue(self)
         removeRunloopObserver(self.idleRunloopObserver)
         removeRunloopObserver(self.asapRunloopObserver)
     }
 
-    public func enqueueNotification(_ notification: Notification, postingStyle: NSPostingStyle) {
+    public func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle) {
         enqueueNotification(notification, postingStyle: postingStyle, coalesceMask: [.CoalescingOnName, .CoalescingOnSender], forModes: nil)
     }
 
-    public func enqueueNotification(_ notification: Notification, postingStyle: NSPostingStyle, coalesceMask: NSNotificationCoalescing, forModes modes: [String]?) {
+    public func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: Coalescing, forModes modes: [String]?) {
         var runloopModes = [NSDefaultRunLoopMode]
         if let modes = modes  {
             runloopModes = modes
@@ -102,7 +105,7 @@ public class NSNotificationQueue : NSObject {
         }
     }
     
-    public func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: NSNotificationCoalescing) {
+    public func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: Coalescing) {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
         case [.CoalescingOnName, .CoalescingOnSender]:
@@ -149,10 +152,10 @@ public class NSNotificationQueue : NSObject {
     /**
      Gets queues from the notificationQueueList and posts all notification from the list related to the postingStyle parameter.
      */
-    private func notifyQueues(_ postingStyle: NSPostingStyle) {
+    private func notifyQueues(_ postingStyle: PostingStyle) {
         let currentMode = RunLoop.currentRunLoop().currentMode
-        for queue in NSNotificationQueue.notificationQueueList {
-            let notificationQueue = queue as! NSNotificationQueue
+        for queue in NotificationQueue.notificationQueueList {
+            let notificationQueue = queue as! NotificationQueue
             if postingStyle == .postWhenIdle {
                 notificationQueue.notify(currentMode, notificationList: &notificationQueue.idleList)
             } else {
@@ -161,11 +164,11 @@ public class NSNotificationQueue : NSObject {
         }
     }
 
-    private static func registerQueue(_ notificationQueue: NSNotificationQueue) {
+    private static func registerQueue(_ notificationQueue: NotificationQueue) {
         self.notificationQueueList.addObject(notificationQueue)
     }
 
-    private static func unregisterQueue(_ notificationQueue: NSNotificationQueue) {
+    private static func unregisterQueue(_ notificationQueue: NotificationQueue) {
         guard self.notificationQueueList.indexOfObject(notificationQueue) != NSNotFound else {
             return
         }
