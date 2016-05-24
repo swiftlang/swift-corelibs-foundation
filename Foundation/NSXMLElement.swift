@@ -74,7 +74,7 @@ public class NSXMLElement : NSXMLNode {
         @abstract Adds an attribute. Attributes with duplicate names are not added.
     */
     public func addAttribute(_ attribute: NSXMLNode) {
-        guard _CFXMLNodeHasProp(_xmlNode, UnsafePointer<UInt8>(_CFXMLNodeGetName(attribute._xmlNode))) == nil else { return }
+        guard _CFXMLNodeHasProp(_xmlNode, UnsafePointer<UInt8>(_CFXMLNodeGetName(attribute._xmlNode)!)) == nil else { return }
         addChild(attribute)
     } //primitive
 
