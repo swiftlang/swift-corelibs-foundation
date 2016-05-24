@@ -94,9 +94,9 @@ public class URLSession: NSObject {
      * the delegate has been sent the URLSession:didBecomeInvalidWithError: message.
      */
     public /*not inherited*/ init(configuration: URLSessionConfiguration) { NSUnimplemented() }
-    public /*not inherited*/ init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue queue: NSOperationQueue?) { NSUnimplemented() }
+    public /*not inherited*/ init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue queue: OperationQueue?) { NSUnimplemented() }
     
-    public var delegateQueue: NSOperationQueue { NSUnimplemented() }
+    public var delegateQueue: OperationQueue { NSUnimplemented() }
     public var delegate: URLSessionDelegate? { NSUnimplemented() }
     /*@NSCopying*/ public var configuration: URLSessionConfiguration { NSUnimplemented() }
     

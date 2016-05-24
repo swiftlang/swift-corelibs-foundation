@@ -187,7 +187,7 @@ public class NSNotificationCenter : NSObject {
         })
     }
     
-    public func addObserverForName(_ name: String?, object obj: AnyObject?, queue: NSOperationQueue?, usingBlock block: (NSNotification) -> Void) -> NSObjectProtocol {
+    public func addObserverForName(_ name: String?, object obj: AnyObject?, queue: OperationQueue?, usingBlock block: (NSNotification) -> Void) -> NSObjectProtocol {
         if queue != nil {
             NSUnimplemented()
         }
