@@ -30,7 +30,7 @@ class TestNSXMLParser : XCTestCase {
         let data = xml.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<UInt8>) -> Data in
             return Data(bytes:UnsafePointer<Void>(buffer.baseAddress!), count: buffer.count)
         }
-        let parser = NSXMLParser(data: data)
+        let parser = XMLParser(data: data)
         let res = parser.parse()
         XCTAssertTrue(res)
     }

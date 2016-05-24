@@ -20,21 +20,23 @@
 #endif
 import CoreFoundation
 
-public enum NSXMLParserExternalEntityResolvingPolicy : UInt {
-    
-    case resolveExternalEntitiesNever // default
-    case resolveExternalEntitiesNoNetwork
-    case resolveExternalEntitiesSameOriginOnly //only applies to NSXMLParser instances initialized with -initWithContentsOfURL:
-    case resolveExternalEntitiesAlways
-}
-
-extension _CFXMLInterface {
-    var parser: NSXMLParser {
-        return unsafeBitCast(self, to: NSXMLParser.self)
+extension XMLParser {
+    public enum ExternalEntityResolvingPolicy : UInt {
+        
+        case resolveExternalEntitiesNever // default
+        case resolveExternalEntitiesNoNetwork
+        case resolveExternalEntitiesSameOriginOnly //only applies to NSXMLParser instances initialized with -initWithContentsOfURL:
+        case resolveExternalEntitiesAlways
     }
 }
 
-extension NSXMLParser {
+extension _CFXMLInterface {
+    var parser: XMLParser {
+        return unsafeBitCast(self, to: XMLParser.self)
+    }
+}
+
+extension XMLParser {
     internal var interface: _CFXMLInterface {
         return unsafeBitCast(self, to: _CFXMLInterface.self)
     }
@@ -47,7 +49,7 @@ private func UTF8STRING(_ bytes: UnsafePointer<UInt8>) -> String? {
 }
 
 internal func _NSXMLParserCurrentParser() -> _CFXMLInterface? {
-    if let parser = NSXMLParser.currentParser() {
+    if let parser = XMLParser.currentParser() {
         return parser.interface
     } else {
         return nil
@@ -394,7 +396,7 @@ internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLIn
     }
 }
 
-public class NSXMLParser : NSObject {
+public class XMLParser : NSObject {
     private var _handler: _CFXMLInterfaceSAXHandler
     internal var _stream: NSInputStream?
     internal var _data: Data?
@@ -447,25 +449,25 @@ public class NSXMLParser : NSObject {
         _parserContext = nil
     }
     
-    public weak var delegate: NSXMLParserDelegate?
+    public weak var delegate: XMLParserDelegate?
     
     public var shouldProcessNamespaces: Bool = false
     public var shouldReportNamespacePrefixes: Bool = false
     
     //defaults to NSXMLNodeLoadExternalEntitiesNever
-    public var externalEntityResolvingPolicy: NSXMLParserExternalEntityResolvingPolicy = .resolveExternalEntitiesNever
+    public var externalEntityResolvingPolicy: ExternalEntityResolvingPolicy = .resolveExternalEntitiesNever
     
     public var allowedExternalEntityURLs: Set<URL>?
     
-    internal static func currentParser() -> NSXMLParser? {
+    internal static func currentParser() -> XMLParser? {
         if let current = NSThread.currentThread().threadDictionary["__CurrentNSXMLParser"] {
-            return current as? NSXMLParser
+            return current as? XMLParser
         } else {
             return nil
         }
     }
     
-    internal static func setCurrentParser(_ parser: NSXMLParser?) {
+    internal static func setCurrentParser(_ parser: XMLParser?) {
         if let p = parser {
             NSThread.currentThread().threadDictionary["__CurrentNSXMLParser"] = p
         } else {
@@ -559,7 +561,7 @@ public class NSXMLParser : NSObject {
 
     internal func parseFromStream() -> Bool {
         var result = true
-        NSXMLParser.setCurrentParser(self)
+        XMLParser.setCurrentParser(self)
         if let stream = _stream {
             stream.open()
             let buffer = malloc(_chunkSize)!
@@ -593,7 +595,7 @@ public class NSXMLParser : NSObject {
         } else {
             result = false
         }
-        NSXMLParser.setCurrentParser(nil)
+        XMLParser.setCurrentParser(nil)
         return result
     }
     
@@ -659,28 +661,28 @@ public class NSXMLParser : NSObject {
  */
 
 // The parser's delegate is informed of events through the methods in the NSXMLParserDelegateEventAdditions category.
-public protocol NSXMLParserDelegate : class {
+public protocol XMLParserDelegate: class {
     
     // Document handling methods
-    func parserDidStartDocument(_ parser: NSXMLParser)
+    func parserDidStartDocument(_ parser: XMLParser)
     // sent when the parser begins parsing of the document.
-    func parserDidEndDocument(_ parser: NSXMLParser)
+    func parserDidEndDocument(_ parser: XMLParser)
     // sent when the parser has completed parsing. If this is encountered, the parse was successful.
     
     // DTD handling methods for various declarations.
-    func parser(_ parser: NSXMLParser, foundNotationDeclarationWithName name: String, publicID: String?, systemID: String?)
+    func parser(_ parser: XMLParser, foundNotationDeclarationWithName name: String, publicID: String?, systemID: String?)
     
-    func parser(_ parser: NSXMLParser, foundUnparsedEntityDeclarationWithName name: String, publicID: String?, systemID: String?, notationName: String?)
+    func parser(_ parser: XMLParser, foundUnparsedEntityDeclarationWithName name: String, publicID: String?, systemID: String?, notationName: String?)
     
-    func parser(_ parser: NSXMLParser, foundAttributeDeclarationWithName attributeName: String, forElement elementName: String, type: String?, defaultValue: String?)
+    func parser(_ parser: XMLParser, foundAttributeDeclarationWithName attributeName: String, forElement elementName: String, type: String?, defaultValue: String?)
     
-    func parser(_ parser: NSXMLParser, foundElementDeclarationWithName elementName: String, model: String)
+    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String)
     
-    func parser(_ parser: NSXMLParser, foundInternalEntityDeclarationWithName name: String, value: String?)
+    func parser(_ parser: XMLParser, foundInternalEntityDeclarationWithName name: String, value: String?)
     
-    func parser(_ parser: NSXMLParser, foundExternalEntityDeclarationWithName name: String, publicID: String?, systemID: String?)
+    func parser(_ parser: XMLParser, foundExternalEntityDeclarationWithName name: String, publicID: String?, systemID: String?)
     
-    func parser(_ parser: NSXMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String])
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String])
     // sent when the parser finds an element start tag.
     // In the case of the cvslog tag, the following is what the delegate receives:
     //   elementName == cvslog, namespaceURI == http://xml.apple.com/cvslog, qualifiedName == cvslog
@@ -688,182 +690,182 @@ public protocol NSXMLParserDelegate : class {
     //    elementName == radar, namespaceURI == http://xml.apple.com/radar, qualifiedName == radar:radar
     // If namespace processing >isn't< on, the xmlns:radar="http://xml.apple.com/radar" is returned as an attribute pair, the elementName is 'radar:radar' and there is no qualifiedName.
     
-    func parser(_ parser: NSXMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?)
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?)
     // sent when an end tag is encountered. The various parameters are supplied as above.
     
-    func parser(_ parser: NSXMLParser, didStartMappingPrefix prefix: String, toURI namespaceURI: String)
+    func parser(_ parser: XMLParser, didStartMappingPrefix prefix: String, toURI namespaceURI: String)
     // sent when the parser first sees a namespace attribute.
     // In the case of the cvslog tag, before the didStartElement:, you'd get one of these with prefix == @"" and namespaceURI == @"http://xml.apple.com/cvslog" (i.e. the default namespace)
     // In the case of the radar:radar tag, before the didStartElement: you'd get one of these with prefix == @"radar" and namespaceURI == @"http://xml.apple.com/radar"
     
-    func parser(_ parser: NSXMLParser, didEndMappingPrefix prefix: String)
+    func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String)
     // sent when the namespace prefix in question goes out of scope.
     
-    func parser(_ parser: NSXMLParser, foundCharacters string: String)
+    func parser(_ parser: XMLParser, foundCharacters string: String)
     // This returns the string of the characters encountered thus far. You may not necessarily get the longest character run. The parser reserves the right to hand these to the delegate as potentially many calls in a row to -parser:foundCharacters:
     
-    func parser(_ parser: NSXMLParser, foundIgnorableWhitespace whitespaceString: String)
+    func parser(_ parser: XMLParser, foundIgnorableWhitespace whitespaceString: String)
     // The parser reports ignorable whitespace in the same way as characters it's found.
     
-    func parser(_ parser: NSXMLParser, foundProcessingInstructionWithTarget target: String, data: String?)
+    func parser(_ parser: XMLParser, foundProcessingInstructionWithTarget target: String, data: String?)
     // The parser reports a processing instruction to you using this method. In the case above, target == @"xml-stylesheet" and data == @"type='text/css' href='cvslog.css'"
     
-    func parser(_ parser: NSXMLParser, foundComment comment: String)
+    func parser(_ parser: XMLParser, foundComment comment: String)
     // A comment (Text in a <!-- --> block) is reported to the delegate as a single string
     
-    func parser(_ parser: NSXMLParser, foundCDATA CDATABlock: Data)
+    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data)
     // this reports a CDATA block to the delegate as an NSData.
     
-    func parser(_ parser: NSXMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data?
+    func parser(_ parser: XMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data?
     // this gives the delegate an opportunity to resolve an external entity itself and reply with the resulting data.
     
-    func parser(_ parser: NSXMLParser, parseErrorOccurred parseError: NSError)
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: NSError)
     // ...and this reports a fatal error to the delegate. The parser will stop parsing.
     
-    func parser(_ parser: NSXMLParser, validationErrorOccurred validationError: NSError)
+    func parser(_ parser: XMLParser, validationErrorOccurred validationError: NSError)
 }
 
-extension NSXMLParserDelegate {
+extension XMLParserDelegate {
     
-    func parserDidStartDocument(_ parser: NSXMLParser) { }
-    func parserDidEndDocument(_ parser: NSXMLParser) { }
+    func parserDidStartDocument(_ parser: XMLParser) { }
+    func parserDidEndDocument(_ parser: XMLParser) { }
     
-    func parser(_ parser: NSXMLParser, foundNotationDeclarationWithName name: String, publicID: String?, systemID: String?) { }
+    func parser(_ parser: XMLParser, foundNotationDeclarationWithName name: String, publicID: String?, systemID: String?) { }
     
-    func parser(_ parser: NSXMLParser, foundUnparsedEntityDeclarationWithName name: String, publicID: String?, systemID: String?, notationName: String?) { }
+    func parser(_ parser: XMLParser, foundUnparsedEntityDeclarationWithName name: String, publicID: String?, systemID: String?, notationName: String?) { }
     
-    func parser(_ parser: NSXMLParser, foundAttributeDeclarationWithName attributeName: String, forElement elementName: String, type: String?, defaultValue: String?) { }
+    func parser(_ parser: XMLParser, foundAttributeDeclarationWithName attributeName: String, forElement elementName: String, type: String?, defaultValue: String?) { }
     
-    func parser(_ parser: NSXMLParser, foundElementDeclarationWithName elementName: String, model: String) { }
+    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String) { }
     
-    func parser(_ parser: NSXMLParser, foundInternalEntityDeclarationWithName name: String, value: String?) { }
+    func parser(_ parser: XMLParser, foundInternalEntityDeclarationWithName name: String, value: String?) { }
     
-    func parser(_ parser: NSXMLParser, foundExternalEntityDeclarationWithName name: String, publicID: String?, systemID: String?) { }
+    func parser(_ parser: XMLParser, foundExternalEntityDeclarationWithName name: String, publicID: String?, systemID: String?) { }
     
-    func parser(_ parser: NSXMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String]) { }
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String]) { }
     
-    func parser(_ parser: NSXMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) { }
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) { }
     
-    func parser(_ parser: NSXMLParser, didStartMappingPrefix prefix: String, toURI namespaceURI: String) { }
+    func parser(_ parser: XMLParser, didStartMappingPrefix prefix: String, toURI namespaceURI: String) { }
     
-    func parser(_ parser: NSXMLParser, didEndMappingPrefix prefix: String) { }
+    func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) { }
     
-    func parser(_ parser: NSXMLParser, foundCharacters string: String) { }
+    func parser(_ parser: XMLParser, foundCharacters string: String) { }
     
-    func parser(_ parser: NSXMLParser, foundIgnorableWhitespace whitespaceString: String) { }
+    func parser(_ parser: XMLParser, foundIgnorableWhitespace whitespaceString: String) { }
     
-    func parser(_ parser: NSXMLParser, foundProcessingInstructionWithTarget target: String, data: String?) { }
+    func parser(_ parser: XMLParser, foundProcessingInstructionWithTarget target: String, data: String?) { }
     
-    func parser(_ parser: NSXMLParser, foundComment comment: String) { }
+    func parser(_ parser: XMLParser, foundComment comment: String) { }
     
-    func parser(_ parser: NSXMLParser, foundCDATA CDATABlock: Data) { }
+    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) { }
     
-    func parser(_ parser: NSXMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data? { return nil }
+    func parser(_ parser: XMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data? { return nil }
     
-    func parser(_ parser: NSXMLParser, parseErrorOccurred parseError: NSError) { }
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: NSError) { }
     
-    func parser(_ parser: NSXMLParser, validationErrorOccurred validationError: NSError) { }
+    func parser(_ parser: XMLParser, validationErrorOccurred validationError: NSError) { }
 }
 
+extension XMLParser {
+    // If validation is on, this will report a fatal validation error to the delegate. The parser will stop parsing.
+    public static let ErrorDomain: String = "NSXMLParserErrorDomain" // for use with NSError.
 
-// If validation is on, this will report a fatal validation error to the delegate. The parser will stop parsing.
-public let NSXMLParserErrorDomain: String = "NSXMLParserErrorDomain" // for use with NSError.
-
-// Error reporting
-public enum NSXMLParserError : Int {
-    
-    case InternalError
-    case OutOfMemoryError
-    case DocumentStartError
-    case EmptyDocumentError
-    case PrematureDocumentEndError
-    case InvalidHexCharacterRefError
-    case InvalidDecimalCharacterRefError
-    case InvalidCharacterRefError
-    case InvalidCharacterError
-    case CharacterRefAtEOFError
-    case CharacterRefInPrologError
-    case CharacterRefInEpilogError
-    case CharacterRefInDTDError
-    case EntityRefAtEOFError
-    case EntityRefInPrologError
-    case EntityRefInEpilogError
-    case EntityRefInDTDError
-    case ParsedEntityRefAtEOFError
-    case ParsedEntityRefInPrologError
-    case ParsedEntityRefInEpilogError
-    case ParsedEntityRefInInternalSubsetError
-    case EntityReferenceWithoutNameError
-    case EntityReferenceMissingSemiError
-    case ParsedEntityRefNoNameError
-    case ParsedEntityRefMissingSemiError
-    case UndeclaredEntityError
-    case UnparsedEntityError
-    case EntityIsExternalError
-    case EntityIsParameterError
-    case UnknownEncodingError
-    case EncodingNotSupportedError
-    case StringNotStartedError
-    case StringNotClosedError
-    case NamespaceDeclarationError
-    case EntityNotStartedError
-    case EntityNotFinishedError
-    case LessThanSymbolInAttributeError
-    case AttributeNotStartedError
-    case AttributeNotFinishedError
-    case AttributeHasNoValueError
-    case AttributeRedefinedError
-    case LiteralNotStartedError
-    case LiteralNotFinishedError
-    case CommentNotFinishedError
-    case ProcessingInstructionNotStartedError
-    case ProcessingInstructionNotFinishedError
-    case NotationNotStartedError
-    case NotationNotFinishedError
-    case AttributeListNotStartedError
-    case AttributeListNotFinishedError
-    case MixedContentDeclNotStartedError
-    case MixedContentDeclNotFinishedError
-    case ElementContentDeclNotStartedError
-    case ElementContentDeclNotFinishedError
-    case XMLDeclNotStartedError
-    case XMLDeclNotFinishedError
-    case ConditionalSectionNotStartedError
-    case ConditionalSectionNotFinishedError
-    case ExternalSubsetNotFinishedError
-    case DOCTYPEDeclNotFinishedError
-    case MisplacedCDATAEndStringError
-    case CDATANotFinishedError
-    case MisplacedXMLDeclarationError
-    case SpaceRequiredError
-    case SeparatorRequiredError
-    case NMTOKENRequiredError
-    case NAMERequiredError
-    case PCDATARequiredError
-    case URIRequiredError
-    case PublicIdentifierRequiredError
-    case LTRequiredError
-    case GTRequiredError
-    case LTSlashRequiredError
-    case EqualExpectedError
-    case TagNameMismatchError
-    case UnfinishedTagError
-    case StandaloneValueError
-    case InvalidEncodingNameError
-    case CommentContainsDoubleHyphenError
-    case InvalidEncodingError
-    case ExternalStandaloneEntityError
-    case InvalidConditionalSectionError
-    case EntityValueRequiredError
-    case NotWellBalancedError
-    case ExtraContentError
-    case InvalidCharacterInEntityError
-    case ParsedEntityRefInInternalError
-    case EntityRefLoopError
-    case EntityBoundaryError
-    case InvalidURIError
-    case URIFragmentError
-    case NoDTDError
-    case DelegateAbortedParseError
+    // Error reporting
+    public enum ErrorCode : Int {
+        
+        case InternalError
+        case OutOfMemoryError
+        case DocumentStartError
+        case EmptyDocumentError
+        case PrematureDocumentEndError
+        case InvalidHexCharacterRefError
+        case InvalidDecimalCharacterRefError
+        case InvalidCharacterRefError
+        case InvalidCharacterError
+        case CharacterRefAtEOFError
+        case CharacterRefInPrologError
+        case CharacterRefInEpilogError
+        case CharacterRefInDTDError
+        case EntityRefAtEOFError
+        case EntityRefInPrologError
+        case EntityRefInEpilogError
+        case EntityRefInDTDError
+        case ParsedEntityRefAtEOFError
+        case ParsedEntityRefInPrologError
+        case ParsedEntityRefInEpilogError
+        case ParsedEntityRefInInternalSubsetError
+        case EntityReferenceWithoutNameError
+        case EntityReferenceMissingSemiError
+        case ParsedEntityRefNoNameError
+        case ParsedEntityRefMissingSemiError
+        case UndeclaredEntityError
+        case UnparsedEntityError
+        case EntityIsExternalError
+        case EntityIsParameterError
+        case UnknownEncodingError
+        case EncodingNotSupportedError
+        case StringNotStartedError
+        case StringNotClosedError
+        case NamespaceDeclarationError
+        case EntityNotStartedError
+        case EntityNotFinishedError
+        case LessThanSymbolInAttributeError
+        case AttributeNotStartedError
+        case AttributeNotFinishedError
+        case AttributeHasNoValueError
+        case AttributeRedefinedError
+        case LiteralNotStartedError
+        case LiteralNotFinishedError
+        case CommentNotFinishedError
+        case ProcessingInstructionNotStartedError
+        case ProcessingInstructionNotFinishedError
+        case NotationNotStartedError
+        case NotationNotFinishedError
+        case AttributeListNotStartedError
+        case AttributeListNotFinishedError
+        case MixedContentDeclNotStartedError
+        case MixedContentDeclNotFinishedError
+        case ElementContentDeclNotStartedError
+        case ElementContentDeclNotFinishedError
+        case XMLDeclNotStartedError
+        case XMLDeclNotFinishedError
+        case ConditionalSectionNotStartedError
+        case ConditionalSectionNotFinishedError
+        case ExternalSubsetNotFinishedError
+        case DOCTYPEDeclNotFinishedError
+        case MisplacedCDATAEndStringError
+        case CDATANotFinishedError
+        case MisplacedXMLDeclarationError
+        case SpaceRequiredError
+        case SeparatorRequiredError
+        case NMTOKENRequiredError
+        case NAMERequiredError
+        case PCDATARequiredError
+        case URIRequiredError
+        case PublicIdentifierRequiredError
+        case LTRequiredError
+        case GTRequiredError
+        case LTSlashRequiredError
+        case EqualExpectedError
+        case TagNameMismatchError
+        case UnfinishedTagError
+        case StandaloneValueError
+        case InvalidEncodingNameError
+        case CommentContainsDoubleHyphenError
+        case InvalidEncodingError
+        case ExternalStandaloneEntityError
+        case InvalidConditionalSectionError
+        case EntityValueRequiredError
+        case NotWellBalancedError
+        case ExtraContentError
+        case InvalidCharacterInEntityError
+        case ParsedEntityRefInInternalError
+        case EntityRefLoopError
+        case EntityBoundaryError
+        case InvalidURIError
+        case URIFragmentError
+        case NoDTDError
+        case DelegateAbortedParseError
+    }
 }
-
