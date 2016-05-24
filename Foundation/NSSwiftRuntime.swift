@@ -110,7 +110,7 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(NSCalendar.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(Calendar.self, to: UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(NSLocale.self, to: UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(NSTimeZone.self, to: UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(NSMutableCharacterSet.self, to: UnsafePointer<Void>.self))

@@ -85,7 +85,7 @@ public class DateComponentsFormatter : Formatter {
      
        Specifying any other NSCalendarUnits will result in an exception.
      */
-    public var allowedUnits: NSCalendarUnit
+    public var allowedUnits: Calendar.Unit
     
     /* Bitmask specifying how to handle zeros in units. This includes both padding and dropping zeros so that a consistent number digits are displayed, causing updating displays to remain more stable. Default is NSDateComponentsFormatterZeroFormattingBehaviorDefault.
      
@@ -95,7 +95,7 @@ public class DateComponentsFormatter : Formatter {
     
     /* Specifies the locale and calendar to use for formatting date components that do not themselves have calendars. Defaults to NSAutoupdatingCurrentCalendar. If set to nil, uses the gregorian calendar with the en_US_POSIX locale.
      */
-    /*@NSCopying*/ public var calendar: NSCalendar?
+    /*@NSCopying*/ public var calendar: Calendar?
     
     /* Choose whether non-integer units should be used to handle display of values that can't be exactly represented with the allowed units. For example, if minutes aren't allowed, then "1h 30m" could be formatted as "1.5h". Default is NO.
      */

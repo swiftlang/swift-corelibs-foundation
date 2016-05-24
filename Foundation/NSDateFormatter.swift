@@ -146,11 +146,11 @@ public class DateFormatter : Formatter {
 
     /*@NSCopying*/ public var timeZone: NSTimeZone! = .systemTimeZone() { willSet { _reset() } }
 
-    /*@NSCopying*/ internal var _calendar: NSCalendar! { willSet { _reset() } }
-    public var calendar: NSCalendar! {
+    /*@NSCopying*/ internal var _calendar: Calendar! { willSet { _reset() } }
+    public var calendar: Calendar! {
         get {
             guard let calendar = _calendar else {
-                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterCalendar) as! NSCalendar
+                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterCalendar) as! Calendar
             }
             return calendar
         }

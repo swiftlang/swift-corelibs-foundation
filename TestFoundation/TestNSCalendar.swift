@@ -32,7 +32,7 @@ class TestNSCalendar: XCTestCase {
     func test_gettingDatesOnGregorianCalendar() {
         let date = Date(timeIntervalSince1970: 1449332351)
         
-        let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)
+        let calendar = Calendar(calendarIdentifier: NSCalendarIdentifierGregorian)
         calendar?.timeZone = NSTimeZone(name: "UTC")!
         guard let components = calendar?.components([.year, .month, .day], from: date) else {
             XCTFail("Could not get date from the calendar")
@@ -47,7 +47,7 @@ class TestNSCalendar: XCTestCase {
     func test_gettingDatesOnHebrewCalendar() {
         let date = Date(timeIntervalSince1970: 1552580351)
         
-        let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierHebrew)
+        let calendar = Calendar(calendarIdentifier: NSCalendarIdentifierHebrew)
         calendar?.timeZone = NSTimeZone(name: "UTC")!
         guard let components = calendar?.components([.year, .month, .day], from: date) else {
             XCTFail("Could not get date from the Hebrew calendar")
@@ -62,7 +62,7 @@ class TestNSCalendar: XCTestCase {
     func test_gettingDatesOnChineseCalendar() {
         let date = Date(timeIntervalSince1970: 1591460351.0)
         
-        let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierChinese)
+        let calendar = Calendar(calendarIdentifier: NSCalendarIdentifierChinese)
         calendar?.timeZone = NSTimeZone(name: "UTC")!
         guard let components = calendar?.components([.year, .month, .day], from: date) else {
             XCTFail("Could not get date from the Chinese calendar")
@@ -75,14 +75,14 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_initializingWithInvalidIdentifier() {
-        let calendar = NSCalendar(calendarIdentifier: "nonexistant_calendar")
+        let calendar = Calendar(calendarIdentifier: "nonexistant_calendar")
         XCTAssertNil(calendar)
     }
     
     func test_currentCalendarRRstability() {
         var AMSymbols = [String]()
         for _ in 1...10 {
-            let cal = NSCalendar.currentCalendar()
+            let cal = Calendar.currentCalendar()
             AMSymbols.append(cal.AMSymbol)
         }
         

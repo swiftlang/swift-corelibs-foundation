@@ -33,7 +33,7 @@ public class DateIntervalFormatter : Formatter {
     }
     
     /*@NSCopying*/ public var locale: NSLocale! // default is [NSLocale currentLocale]
-    /*@NSCopying*/ public var calendar: NSCalendar! // default is the calendar of the locale
+    /*@NSCopying*/ public var calendar: Calendar! // default is the calendar of the locale
     /*@NSCopying*/ public var timeZone: NSTimeZone! // default is [NSTimeZone defaultTimeZone]
     public var dateTemplate: String! // default is an empty string
     public var dateStyle: Style // default is NSDateIntervalFormatterNoStyle
