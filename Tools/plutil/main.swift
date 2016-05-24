@@ -354,7 +354,7 @@ func display(_ options: Options) -> Int32 {
 }
 
 func main() -> Int32 {
-    var args = NSProcessInfo.processInfo().arguments
+    var args = ProcessInfo.processInfo().arguments
     
     if args.count < 2 {
         print("No files specified.")

@@ -33,10 +33,10 @@ public struct NSOperatingSystemVersion {
 
 
 
-public class NSProcessInfo : NSObject {
+public class ProcessInfo: NSObject {
     
-    internal static let _processInfo = NSProcessInfo()
-    public class func processInfo() -> NSProcessInfo {
+    internal static let _processInfo = ProcessInfo()
+    public class func processInfo() -> ProcessInfo {
         return _processInfo
     }
     
@@ -55,7 +55,7 @@ public class NSProcessInfo : NSObject {
     }()
     
     public var environment: [String : String] {
-        return NSProcessInfo._environment
+        return ProcessInfo._environment
     }
     
     public var arguments: [String] {

@@ -23,7 +23,7 @@ public func NSTemporaryDirectory() -> String {
         return String(CString: buf, encoding: NSUTF8StringEncoding)!
     }
     #endif
-    if let tmpdir = NSProcessInfo.processInfo().environment["TMPDIR"] {
+    if let tmpdir = ProcessInfo.processInfo().environment["TMPDIR"] {
         if !tmpdir.hasSuffix("/") {
             return tmpdir + "/"
         } else {
