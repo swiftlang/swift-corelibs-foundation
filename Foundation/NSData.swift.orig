@@ -334,7 +334,7 @@ extension NSData {
             try self.init(contentsOfFile: url.path!, options: readOptionsMask)
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.defaultSessionConfiguration())
-            let cond = Condition()
+            let cond = NSCondition()
             var resError: NSError?
             var resData: NSData?
             let task = session.dataTaskWithURL(url, completionHandler: { (data: Data?, response: URLResponse?, error: NSError?) -> Void in
@@ -578,10 +578,13 @@ extension NSData {
 extension NSData : _CFBridgable, _SwiftBridgable {
     typealias SwiftType = Data
     internal var _swiftObject: SwiftType { return Data(_bridged: self) }
+<<<<<<< 188a4e17036f9b7c8f1012a175a0f85f648cd31c
+=======
     
     public func bridge() -> Data {
         return _swiftObject
     }
+>>>>>>> Add a structural implementation of Data
 }
 
 extension Data : _NSBridgable, _CFBridgable {
@@ -589,10 +592,13 @@ extension Data : _NSBridgable, _CFBridgable {
     typealias NSType = NSData
     internal var _cfObject: CFType { return _nsObject._cfObject }
     internal var _nsObject: NSType { return _bridgeToObjectiveC() }
+<<<<<<< 188a4e17036f9b7c8f1012a175a0f85f648cd31c
+=======
     
     public func bridge() -> NSData {
         return _nsObject
     }
+>>>>>>> Add a structural implementation of Data
 }
 
 extension CFData : _NSBridgable, _SwiftBridgable {

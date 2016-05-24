@@ -23,7 +23,7 @@ public class NSCache : NSObject {
     }
     
     private var _entries = Dictionary<UnsafePointer<Void>, NSCacheEntry>()
-    private let _lock = NSLock()
+    private let _lock = Lock()
     private var _totalCost = 0
     private var _byCost: NSCacheEntry?
     

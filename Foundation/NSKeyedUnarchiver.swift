@@ -32,7 +32,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     private static var _classNameMap : Dictionary<String, AnyClass> = [:]
-    private static var _classNameMapLock = NSLock()
+    private static var _classNameMapLock = Lock()
     
     public weak var delegate: NSKeyedUnarchiverDelegate?
     

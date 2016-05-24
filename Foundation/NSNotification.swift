@@ -138,7 +138,7 @@ private let _defaultCenter: NSNotificationCenter = NSNotificationCenter()
 public class NSNotificationCenter : NSObject {
     
     private var _observers: [NSNotificationReceiver]
-    private let _observersLock = NSLock()
+    private let _observersLock = Lock()
     
     public required override init() {
         _observers = [NSNotificationReceiver]()

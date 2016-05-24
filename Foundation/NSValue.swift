@@ -10,7 +10,7 @@
 public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
     private static var SideTable = [ObjectIdentifier : NSValue]()
-    private static var SideTableLock = NSLock()
+    private static var SideTableLock = Lock()
 
     internal override init() {
         super.init()

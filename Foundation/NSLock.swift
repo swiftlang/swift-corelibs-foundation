@@ -16,13 +16,13 @@ import Glibc
 
 import CoreFoundation
 
-public protocol NSLocking {
+public protocol Locking {
     
     func lock()
     func unlock()
 }
 
-public class NSLock : NSObject, NSLocking {
+public class Lock: NSObject, Locking {
     internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
     
     public override init() {
@@ -50,7 +50,7 @@ public class NSLock : NSObject, NSLocking {
     public var name: String?
 }
 
-extension NSLock {
+extension Lock {
     internal func synchronized<T>(_ closure: @noescape () -> T) -> T {
         self.lock()
         defer { self.unlock() }
@@ -58,8 +58,8 @@ extension NSLock {
     }
 }
 
-public class NSConditionLock : NSObject, NSLocking {
-    internal var _cond = NSCondition()
+public class NSConditionLock : NSObject, Locking {
+    internal var _cond = Condition()
     internal var _value: Int
     internal var _thread: pthread_t?
     
@@ -135,7 +135,7 @@ public class NSConditionLock : NSObject, NSLocking {
     public var name: String?
 }
 
-public class NSRecursiveLock : NSObject, NSLocking {
+public class RecursiveLock: NSObject, Locking {
     internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
     
     public override init() {
@@ -168,7 +168,7 @@ public class NSRecursiveLock : NSObject, NSLocking {
     public var name: String?
 }
 
-public class NSCondition : NSObject, NSLocking {
+public class Condition: NSObject, Locking {
     internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
     internal var cond = UnsafeMutablePointer<pthread_cond_t>(allocatingCapacity: 1)
     
