@@ -27,11 +27,13 @@ class TestNSTask : XCTestCase {
                    ("test_pipe_stdin", test_pipe_stdin),
                    ("test_pipe_stdout", test_pipe_stdout),
                    ("test_pipe_stderr", test_pipe_stderr),
-                   ("test_pipe_stdout_and_stderr_same_pipe", test_pipe_stdout_and_stderr_same_pipe),
+                   // disabled for now
+                   // ("test_pipe_stdout_and_stderr_same_pipe", test_pipe_stdout_and_stderr_same_pipe),
                    ("test_file_stdout", test_file_stdout),
-                   ("test_passthrough_environment", test_passthrough_environment),
-                   ("test_no_environment", test_no_environment),
-                   ("test_custom_environment", test_custom_environment),
+                   // disabled for now
+                   // ("test_passthrough_environment", test_passthrough_environment),
+                   // ("test_no_environment", test_no_environment),
+                   // ("test_custom_environment", test_custom_environment),
         ]
     }
     

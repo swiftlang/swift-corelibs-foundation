@@ -261,7 +261,11 @@ public class NSXMLNode : NSObject, NSCopying {
     */
     public var name: String? {
         get {
-            return String(cString: _CFXMLNodeGetName(_xmlNode))
+            if let ptr = _CFXMLNodeGetName(_xmlNode) {
+                return String(cString: ptr)
+            } else {
+                return nil
+            }
         }
         set {
             if let newName = newValue {

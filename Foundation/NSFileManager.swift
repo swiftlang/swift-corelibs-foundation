@@ -96,7 +96,7 @@ public class NSFileManager : NSObject {
         var result = [URL]()
         if let e = e {
             for url in e {
-                result.append(url as! URL)
+                result.append((url as! NSURL)._swiftObject)
             }
             if let error = error {
                 throw error

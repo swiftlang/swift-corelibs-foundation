@@ -602,8 +602,11 @@ static void *__CFTSDGetSpecific() {
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
+extern void swift_retain(void *);
+extern void swift_release(void *);
+
 static void _CFThreadSpecificDestructor(void *ctx) {
-    CFRelease((CFTypeRef)ctx);
+    swift_release(ctx);
 }
 
 _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
@@ -618,7 +621,7 @@ CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
 
 void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
     if (value != NULL) {
-        CFRetain(value);
+        swift_retain((void *)value);
         pthread_setspecific(key, value);
     } else {
         pthread_setspecific(key, NULL);

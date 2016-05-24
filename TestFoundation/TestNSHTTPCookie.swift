@@ -72,7 +72,7 @@ class TestNSHTTPCookie: XCTestCase {
             NSHTTPCookieComment: "This comment should be nil since this is a v0 cookie.",
             NSHTTPCookieCommentURL: URL(string: "https://apple.com")!,
             NSHTTPCookieDiscard: "TRUE",
-            NSHTTPCookieExpires: NSDate(timeIntervalSince1970: 1000),
+            NSHTTPCookieExpires: Date(timeIntervalSince1970: 1000),
             NSHTTPCookieMaximumAge: "2000",
             NSHTTPCookiePort: "443,8443",
             NSHTTPCookieSecure: "YES"
@@ -84,7 +84,7 @@ class TestNSHTTPCookie: XCTestCase {
         // v0 should never use NSHTTPCookieMaximumAge
         XCTAssert(
             versionZeroCookieWithInvalidVersionOneProps?.expiresDate?.timeIntervalSince1970 ==
-            NSDate(timeIntervalSince1970: 1000).timeIntervalSince1970
+            Date(timeIntervalSince1970: 1000).timeIntervalSince1970
         )
 
         XCTAssertNil(versionZeroCookieWithInvalidVersionOneProps?.portList)

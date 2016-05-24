@@ -36,7 +36,12 @@ public class NSKeyedUnarchiver : NSCoder {
     
     public weak var delegate: NSKeyedUnarchiverDelegate?
     
-    private var _stream : AnyObject
+    private enum Stream {
+        case data(Data)
+        case stream(NSInputStream)
+    }
+    
+    private var _stream : Stream
     private var _flags = UnarchiverFlags(rawValue: 0)
     private var _containers : Array<DecodingContext>? = nil
     private var _objects : Array<Any> = []
@@ -69,7 +74,7 @@ public class NSKeyedUnarchiver : NSCoder {
             return nil
         }
         
-        let keyedUnarchiver = NSKeyedUnarchiver(stream: readStream)
+        let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(unsafeBitCast(readStream, to: NSInputStream.self)))
         do {
             try root = keyedUnarchiver.decodeTopLevelObjectForKey(NSKeyedArchiveRootObjectKey)
             keyedUnarchiver.finishDecoding()
@@ -82,10 +87,10 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     public convenience init(forReadingWithData data: Data) {
-        self.init(stream: data)
+        self.init(stream: Stream.data(data))
     }
     
-    private init(stream: AnyObject) {
+    private init(stream: Stream) {
         self._stream = stream
         super.init()
         
@@ -105,13 +110,16 @@ public class NSKeyedUnarchiver : NSCoder {
         // which will not scale for large archives. We should support incremental
         // unarchiving, but that will be a considerable amount of work.
         
-        if let data = self._stream as? Data {
+        switch self._stream {
+        case .data(let data):
             try plist = PropertyListSerialization.propertyListWithData(data, options: PropertyListSerialization.MutabilityOptions.immutable, format: &format)
-        } else {
-            try plist = PropertyListSerialization.propertyListWithStream(unsafeBitCast(self._stream, to: CFReadStream.self),
+            break
+        case .stream(let inputStream):
+            try plist = PropertyListSerialization.propertyListWithStream(unsafeBitCast(inputStream, to: CFReadStream.self),
                                                                            length: 0,
                                                                            options: PropertyListSerialization.MutabilityOptions.immutable,
                                                                            format: &format)
+            break
         }
         
         guard let unwrappedPlist = plist as? Dictionary<String, Any> else {

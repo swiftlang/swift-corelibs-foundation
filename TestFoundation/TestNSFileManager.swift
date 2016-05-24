@@ -229,7 +229,7 @@ class TestNSFileManager : XCTestCase {
         
         if let e = NSFileManager.defaultManager().enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? URL {
+            while let item = e.nextObject() as? NSURL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -250,7 +250,7 @@ class TestNSFileManager : XCTestCase {
         
         if let e = NSFileManager.defaultManager().enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? URL {
+            while let item = e.nextObject() as? NSURL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -264,7 +264,7 @@ class TestNSFileManager : XCTestCase {
         
         if let e = NSFileManager.defaultManager().enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? URL {
+            while let item = e.nextObject() as? NSURL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -277,7 +277,7 @@ class TestNSFileManager : XCTestCase {
         
         if let e = NSFileManager.defaultManager().enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? URL {
+            while let item = e.nextObject() as? NSURL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -289,7 +289,7 @@ class TestNSFileManager : XCTestCase {
         }
         
         var didGetError = false
-        let handler : (URL, NSError) -> Bool = { (NSURL, NSError) in
+        let handler : (URL, NSError) -> Bool = { (URL, NSError) in
             didGetError = true
             return true
         }

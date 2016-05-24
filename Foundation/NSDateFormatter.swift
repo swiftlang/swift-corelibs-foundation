@@ -165,7 +165,7 @@ public class DateFormatter : Formatter {
     public var twoDigitStartDate: Date? {
         get {
             guard let startDate = _twoDigitStartDate else {
-                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTwoDigitStartDate) as? Date
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTwoDigitStartDate) as? NSDate)?._swiftObject
             }
             return startDate
         }
@@ -459,7 +459,7 @@ public class DateFormatter : Formatter {
     public var gregorianStartDate: Date? {
         get {
             guard let startDate = _gregorianStartDate else {
-                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterGregorianStartDate) as? Date
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterGregorianStartDate) as? NSDate)?._swiftObject
             }
             return startDate
         }
