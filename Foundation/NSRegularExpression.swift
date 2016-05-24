@@ -12,20 +12,22 @@
 
 import CoreFoundation
 
-public struct NSRegularExpressionOptions : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    public static let caseInsensitive = NSRegularExpressionOptions(rawValue: 1 << 0) /* Match letters in the pattern independent of case. */
-    public static let allowCommentsAndWhitespace = NSRegularExpressionOptions(rawValue: 1 << 1) /* Ignore whitespace and #-prefixed comments in the pattern. */
-    public static let ignoreMetacharacters = NSRegularExpressionOptions(rawValue: 1 << 2) /* Treat the entire pattern as a literal string. */
-    public static let dotMatchesLineSeparators = NSRegularExpressionOptions(rawValue: 1 << 3) /* Allow . to match any character, including line separators. */
-    public static let anchorsMatchLines = NSRegularExpressionOptions(rawValue: 1 << 4) /* Allow ^ and $ to match the start and end of lines. */
-    public static let useUnixLineSeparators = NSRegularExpressionOptions(rawValue: 1 << 5) /* Treat only \n as a line separator (otherwise, all standard line separators are used). */
-    public static let useUnicodeWordBoundaries = NSRegularExpressionOptions(rawValue: 1 << 6) /* Use Unicode TR#29 to specify word boundaries (otherwise, traditional regular expression word boundaries are used). */
+extension RegularExpression {
+    public struct Options : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        public static let caseInsensitive = Options(rawValue: 1 << 0) /* Match letters in the pattern independent of case. */
+        public static let allowCommentsAndWhitespace = Options(rawValue: 1 << 1) /* Ignore whitespace and #-prefixed comments in the pattern. */
+        public static let ignoreMetacharacters = Options(rawValue: 1 << 2) /* Treat the entire pattern as a literal string. */
+        public static let dotMatchesLineSeparators = Options(rawValue: 1 << 3) /* Allow . to match any character, including line separators. */
+        public static let anchorsMatchLines = Options(rawValue: 1 << 4) /* Allow ^ and $ to match the start and end of lines. */
+        public static let useUnixLineSeparators = Options(rawValue: 1 << 5) /* Treat only \n as a line separator (otherwise, all standard line separators are used). */
+        public static let useUnicodeWordBoundaries = Options(rawValue: 1 << 6) /* Use Unicode TR#29 to specify word boundaries (otherwise, traditional regular expression word boundaries are used). */
+    }
 }
 
-public class NSRegularExpression : NSObject, NSCopying, NSCoding {
+public class RegularExpression: NSObject, NSCopying, NSCoding {
     internal var _internal: _CFRegularExpression
     
     public override func copy() -> AnyObject {
@@ -47,7 +49,7 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
     /* An instance of NSRegularExpression is created from a regular expression pattern and a set of options.  If the pattern is invalid, nil will be returned and an NSError will be returned by reference.  The pattern syntax currently supported is that specified by ICU.
     */
     
-    public init(pattern: String, options: NSRegularExpressionOptions) throws {
+    public init(pattern: String, options: Options) throws {
         var error: Unmanaged<CFError>?
 #if os(OSX) || os(iOS)
         let opt =  _CFRegularExpressionOptions(rawValue: options.rawValue)
@@ -65,14 +67,14 @@ public class NSRegularExpression : NSObject, NSCopying, NSCoding {
         return _CFRegularExpressionGetPattern(_internal)._swiftObject
     }
     
-    public var options: NSRegularExpressionOptions {
+    public var options: Options {
 #if os(OSX) || os(iOS)
         let opt = _CFRegularExpressionGetOptions(_internal).rawValue
 #else
         let opt = _CFRegularExpressionGetOptions(_internal)
 #endif
     
-        return NSRegularExpressionOptions(rawValue: opt)
+        return Options(rawValue: opt)
     }
     
     public var numberOfCaptureGroups: Int {
@@ -110,9 +112,9 @@ public struct NSMatchingFlags : OptionSet {
 }
 
 internal class _NSRegularExpressionMatcher {
-    var regex: NSRegularExpression
+    var regex: RegularExpression
     var block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void
-    init(regex: NSRegularExpression, block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    init(regex: RegularExpression, block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.regex = regex
         self.block = block
     }
@@ -138,7 +140,7 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutablePointer<Void>?, 
     }
 }
 
-extension NSRegularExpression {
+extension RegularExpression {
     
     /* The fundamental matching method on NSRegularExpression is a block iterator.  There are several additional convenience methods, for returning all matches at once, the number of matches, the first match, or the range of the first match.  Each match is specified by an instance of NSTextCheckingResult (of type NSTextCheckingTypeRegularExpression) in which the overall match range is given by the range property (equivalent to range at:0) and any capture group ranges are given by range at: for indexes from 1 to numberOfCaptureGroups.  {NSNotFound, 0} is used if a particular capture group does not participate in the match.
     */
@@ -206,7 +208,7 @@ NSMatchingAnchored, NSMatchingWithTransparentBounds, and NSMatchingWithoutAnchor
 NSRegularExpression is designed to be immutable and threadsafe, so that a single instance can be used in matching operations on multiple threads at once.  However, the string on which it is operating should not be mutated during the course of a matching operation (whether from another thread or from within the block used in the iteration).
 */
 
-extension NSRegularExpression {
+extension RegularExpression {
     
     /* NSRegularExpression also provides find-and-replace methods for both immutable and mutable strings.  The replacement is treated as a template, with $0 being replaced by the contents of the matched range, $1 by the contents of the first capture group, and so on.  Additional digits beyond the maximum required to represent the number of capture groups will be treated as ordinary characters, as will a $ not followed by digits.  Backslash will escape both $ and itself.
     */
