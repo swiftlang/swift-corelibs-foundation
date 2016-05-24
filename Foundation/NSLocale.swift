@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-public class NSLocale : NSObject, NSCopying, NSSecureCoding {
+public class Locale: NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFLocale
     private var _base = _CFInfo(typeID: CFLocaleGetTypeID())
     private var _identifier: UnsafeMutablePointer<Void>? = nil
@@ -71,17 +71,17 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-extension NSLocale {
-    public class func currentLocale() -> NSLocale {
+extension Locale {
+    public class func currentLocale() -> Locale {
         return CFLocaleCopyCurrent()._nsObject
     }
     
-    public class func systemLocale() -> NSLocale {
+    public class func systemLocale() -> Locale {
         return CFLocaleGetSystem()._nsObject
     }
 }
 
-extension NSLocale {
+extension Locale {
     
     public class func availableLocaleIdentifiers() -> [String] {
         var identifiers = Array<String>()
@@ -210,8 +210,8 @@ public let NSLocaleAlternateQuotationBeginDelimiterKey: String = "kCFLocaleAlter
 public let NSLocaleAlternateQuotationEndDelimiterKey: String = "kCFLocaleAlternateQuotationEndDelimiterKey"
 
 extension CFLocale : _NSBridgable {
-    typealias NSType = NSLocale
-    internal var _nsObject: NSLocale {
+    typealias NSType = Locale
+    internal var _nsObject: Locale {
         return unsafeBitCast(self, to: NSType.self)
     }
 }

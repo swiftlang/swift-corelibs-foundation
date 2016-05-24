@@ -414,7 +414,7 @@ extension NSString {
     public func compare(_ string: String, options mask: NSStringCompareOptions, range compareRange: NSRange, locale: AnyObject?) -> NSComparisonResult {
         var res: CFComparisonResult
         if let loc = locale {
-            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! NSLocale)._cfObject)
+            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! Locale)._cfObject)
         } else {
             res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), nil)
         }
@@ -426,15 +426,15 @@ extension NSString {
     }
     
     public func localizedCompare(_ string: String) -> NSComparisonResult {
-        return compare(string, options: [], range: NSMakeRange(0, length), locale: NSLocale.currentLocale())
+        return compare(string, options: [], range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
     public func localizedCaseInsensitiveCompare(_ string: String) -> NSComparisonResult {
-        return compare(string, options: .caseInsensitiveSearch, range: NSMakeRange(0, length), locale: NSLocale.currentLocale())
+        return compare(string, options: .caseInsensitiveSearch, range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
     public func localizedStandardCompare(_ string: String) -> NSComparisonResult {
-        return compare(string, options: [.caseInsensitiveSearch, .numericSearch, .widthInsensitiveSearch, .forcedOrderingSearch], range: NSMakeRange(0, length), locale: NSLocale.currentLocale())
+        return compare(string, options: [.caseInsensitiveSearch, .numericSearch, .widthInsensitiveSearch, .forcedOrderingSearch], range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
     public func isEqual(to aString: String) -> Bool {
@@ -504,15 +504,15 @@ extension NSString {
     }
     
     public func localizedCaseInsensitiveContains(_ str: String) -> Bool {
-        return range(of: str, options: .caseInsensitiveSearch, range: NSMakeRange(0, length), locale: NSLocale.currentLocale()).location != NSNotFound
+        return range(of: str, options: .caseInsensitiveSearch, range: NSMakeRange(0, length), locale: Locale.currentLocale()).location != NSNotFound
     }
     
     public func localizedStandardContains(_ str: String) -> Bool {
-        return range(of: str, options: [.caseInsensitiveSearch, .diacriticInsensitiveSearch], range: NSMakeRange(0, length), locale: NSLocale.currentLocale()).location != NSNotFound
+        return range(of: str, options: [.caseInsensitiveSearch, .diacriticInsensitiveSearch], range: NSMakeRange(0, length), locale: Locale.currentLocale()).location != NSNotFound
     }
     
     public func localizedStandardRange(of str: String) -> NSRange {
-        return range(of: str, options: [.caseInsensitiveSearch, .diacriticInsensitiveSearch], range: NSMakeRange(0, length), locale: NSLocale.currentLocale())
+        return range(of: str, options: [.caseInsensitiveSearch, .diacriticInsensitiveSearch], range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
     public func range(of searchString: String) -> NSRange {
@@ -527,7 +527,7 @@ extension NSString {
         return range(of: searchString, options: mask, range: searchRange, locale: nil)
     }
     
-    internal func _rangeOfRegularExpressionPattern(regex pattern: String, options mask: NSStringCompareOptions, range searchRange: NSRange, locale: NSLocale?) -> NSRange {
+    internal func _rangeOfRegularExpressionPattern(regex pattern: String, options mask: NSStringCompareOptions, range searchRange: NSRange, locale: Locale?) -> NSRange {
         var matchedRange = NSMakeRange(NSNotFound, 0)
         let regexOptions: RegularExpression.Options = mask.contains(.caseInsensitiveSearch) ? .caseInsensitive : []
         let matchingOptions: NSMatchingOptions = mask.contains(.anchoredSearch) ? .anchored : []
@@ -537,7 +537,7 @@ extension NSString {
         return matchedRange
     }
     
-    public func range(of searchString: String, options mask: NSStringCompareOptions = [], range searchRange: NSRange, locale: NSLocale?) -> NSRange {
+    public func range(of searchString: String, options mask: NSStringCompareOptions = [], range searchRange: NSRange, locale: Locale?) -> NSRange {
         let findStrLen = searchString.length
         let len = length
         
@@ -679,30 +679,30 @@ extension NSString {
     }
     
     public var localizedUppercase: String {
-        return uppercased(with: NSLocale.currentLocale())
+        return uppercased(with: Locale.currentLocale())
     }
     
     public var localizedLowercase: String {
-        return lowercased(with: NSLocale.currentLocale())
+        return lowercased(with: Locale.currentLocale())
     }
     
     public var localizedCapitalized: String {
-        return capitalized(with: NSLocale.currentLocale())
+        return capitalized(with: Locale.currentLocale())
     }
     
-    public func uppercased(with locale: NSLocale?) -> String {
+    public func uppercased(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
         CFStringUppercase(mutableCopy, locale?._cfObject ?? nil)
         return mutableCopy._swiftObject
     }
 
-    public func lowercased(with locale: NSLocale?) -> String {
+    public func lowercased(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
         CFStringLowercase(mutableCopy, locale?._cfObject ?? nil)
         return mutableCopy._swiftObject
     }
     
-    public func capitalized(with locale: NSLocale?) -> String {
+    public func capitalized(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
         CFStringCapitalize(mutableCopy, locale?._cfObject ?? nil)
         return mutableCopy._swiftObject
@@ -1089,7 +1089,7 @@ extension NSString {
         return mStr._swiftObject
     }
     
-    public func folding(_ options: NSStringCompareOptions = [], locale: NSLocale?) -> String {
+    public func folding(_ options: NSStringCompareOptions = [], locale: Locale?) -> String {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringFold(string, options._cfValue(), locale?._cfObject)
@@ -1198,7 +1198,7 @@ extension NSString {
     public convenience init(format: String, locale: AnyObject?, arguments argList: CVaListPointer) {
         let str: CFString
         if let loc = locale {
-            if loc.dynamicType === NSLocale.self || loc.dynamicType === NSDictionary.self {
+            if loc.dynamicType === Locale.self || loc.dynamicType === NSDictionary.self {
                 str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(loc, to: CFDictionary.self), format._cfObject, argList)
             } else {
                 fatalError("locale parameter must be a NSLocale or a NSDictionary")

@@ -72,7 +72,7 @@ public class DateFormatter : Formatter {
         return df.stringForObjectValue(date._nsObject)!
     }
 
-    public class func dateFormat(fromTemplate tmplate: String, options opts: Int, locale: NSLocale?) -> String? {
+    public class func dateFormat(fromTemplate tmplate: String, options opts: Int, locale: Locale?) -> String? {
         guard let res = CFDateFormatterCreateDateFormatFromTemplate(kCFAllocatorSystemDefault, tmplate._cfObject, CFOptionFlags(opts), locale?._cfObject) else {
             return nil
         }
@@ -140,7 +140,7 @@ public class DateFormatter : Formatter {
 
     public var timeStyle: Style = .noStyle { willSet { _dateFormat = nil; _reset() } }
 
-    /*@NSCopying*/ public var locale: NSLocale! = .currentLocale() { willSet { _reset() } }
+    /*@NSCopying*/ public var locale: Locale! = .currentLocale() { willSet { _reset() } }
 
     public var generatesCalendarDates = false { willSet { _reset() } }
 

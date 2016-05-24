@@ -439,7 +439,7 @@ public class NSNumber : NSValue {
             CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
 
         } else {
-            formatter = CFNumberFormatterCreate(nil, (aLocale as! NSLocale)._cfObject, kCFNumberFormatterDecimalStyle)
+            formatter = CFNumberFormatterCreate(nil, (aLocale as! Locale)._cfObject, kCFNumberFormatterDecimalStyle)
         }
         return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
     }

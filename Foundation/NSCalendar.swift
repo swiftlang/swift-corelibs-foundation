@@ -121,7 +121,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
             if let timeZone = aDecoder.decodeObjectOfClass(TimeZone.self, forKey: "NS.timezone") {
                 self.timeZone = timeZone
             }
-            if let locale = aDecoder.decodeObjectOfClass(NSLocale.self, forKey: "NS.locale") {
+            if let locale = aDecoder.decodeObjectOfClass(Locale.self, forKey: "NS.locale") {
                 self.locale = locale
             }
             self.firstWeekday = aDecoder.decodeIntegerForKey("NS.firstwkdy")
@@ -217,7 +217,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    /*@NSCopying*/ public var locale: NSLocale? {
+    /*@NSCopying*/ public var locale: Locale? {
         get {
             return CFCalendarCopyLocale(_cfObject)._nsObject
         }

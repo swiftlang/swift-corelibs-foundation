@@ -226,7 +226,7 @@ extension TimeZone {
         return CFEqual(self._cfObject, aTimeZone._cfObject)
     }
     
-    public func localizedName(_ style: NSTimeZoneNameStyle, locale: NSLocale?) -> String? { NSUnimplemented() }
+    public func localizedName(_ style: NSTimeZoneNameStyle, locale: Locale?) -> String? { NSUnimplemented() }
 }
 public enum NSTimeZoneNameStyle : Int {
     case standard    // Central Standard Time

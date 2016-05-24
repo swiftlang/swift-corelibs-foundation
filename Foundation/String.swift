@@ -191,7 +191,7 @@ extension String {
     public static func localizedStringWithFormat(
         _ format: String, _ arguments: CVarArg...
         ) -> String {
-        return String(format: format, locale: NSLocale.currentLocale(),
+        return String(format: format, locale: Locale.currentLocale(),
                               arguments: arguments)
     }
     
@@ -292,7 +292,7 @@ extension String {
     /// Returns a capitalized representation of the `String`
     /// using the specified locale.
     @warn_unused_result
-    public func capitalized(with locale: NSLocale?) -> String {
+    public func capitalized(with locale: Locale?) -> String {
         return _ns.capitalized(with: locale) as String
     }
     
@@ -345,7 +345,7 @@ extension String {
         _ aString: String,
         options mask: NSStringCompareOptions = [],
         range: Range<Index>? = nil,
-        locale: NSLocale? = nil
+        locale: Locale? = nil
         ) -> NSComparisonResult {
         // According to Ali Ozer, there may be some real advantage to
         // dispatching to the minimal selector for the supplied options.
@@ -903,7 +903,7 @@ extension String {
     /// Returns a `String` object initialized by using a given
     /// format string as a template into which the remaining argument
     /// values are substituted according to given locale information.
-    public init(format: String, locale: NSLocale?, _ args: CVarArg...) {
+    public init(format: String, locale: Locale?, _ args: CVarArg...) {
         self = String(format: format, locale: locale, arguments: args)
     }
     
@@ -915,7 +915,7 @@ extension String {
     /// Returns a `String` object initialized by using a given
     /// format string as a template into which the remaining argument
     /// values are substituted according to given locale information.
-    public init(format: String, locale: NSLocale?, arguments: [CVarArg]) {
+    public init(format: String, locale: Locale?, arguments: [CVarArg]) {
         _precondition(
             _countFormatSpecifiers(format) <= arguments.count,
             "Too many format specifiers (%<letter>) provided for the argument list"
@@ -1016,7 +1016,7 @@ extension String {
     /// converted to lowercase, taking into account the specified
     /// locale.
     @warn_unused_result
-    public func lowercased(with locale: NSLocale?) -> String {
+    public func lowercased(with locale: Locale?) -> String {
         return _ns.lowercased(with: locale)
     }
     
@@ -1168,7 +1168,7 @@ extension String {
         of aString: String,
         options mask: NSStringCompareOptions = [],
         range searchRange: Range<Index>? = nil,
-        locale: NSLocale? = nil
+        locale: Locale? = nil
         ) -> Range<Index>? {
         return _optionalRange(
             locale != nil ? _ns.range(
@@ -1345,7 +1345,7 @@ extension String {
     /// applied.
     @warn_unused_result
     public func folding(
-        _ options: NSStringCompareOptions, locale: NSLocale?
+        _ options: NSStringCompareOptions, locale: Locale?
         ) -> String {
         return _ns.folding(options, locale: locale)
     }
@@ -1504,7 +1504,7 @@ extension String {
     /// converted to uppercase, taking into account the specified
     /// locale.
     @warn_unused_result
-    public func uppercased(with locale: NSLocale?) -> String {
+    public func uppercased(with locale: Locale?) -> String {
         return _ns.uppercased(with: locale)
     }
     
@@ -1583,7 +1583,7 @@ extension String {
     @warn_unused_result
     public func localizedCaseInsensitiveContains(_ other: String) -> Bool {
         let r = self.range(
-            of: other, options: .caseInsensitiveSearch, locale: NSLocale.currentLocale()
+            of: other, options: .caseInsensitiveSearch, locale: Locale.currentLocale()
             ) != nil
         return r
     }

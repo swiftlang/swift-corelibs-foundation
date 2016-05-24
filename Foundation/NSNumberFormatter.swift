@@ -164,8 +164,8 @@ public class NumberFormatter : Formatter {
         }
     }
     
-    internal var _locale: NSLocale = NSLocale.currentLocale()
-    /*@NSCopying*/ public var locale: NSLocale! {
+    internal var _locale: Locale = Locale.currentLocale()
+    /*@NSCopying*/ public var locale: Locale! {
         get {
             return _locale
         }

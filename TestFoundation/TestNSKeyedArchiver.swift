@@ -159,7 +159,7 @@ class TestNSKeyedArchiver : XCTestCase {
     }
 
     func test_archive_locale() {
-        let locale = NSLocale.currentLocale()
+        let locale = Locale.currentLocale()
         test_archive(locale)
     }
     

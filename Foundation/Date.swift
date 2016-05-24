@@ -162,7 +162,7 @@ public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringCo
      
      - Returns: A string representation of the receiver, using the given locale, or if the locale argument is `nil`, in the international format `YYYY-MM-DD HH:MM:SS ±HHMM`, where `±HHMM` represents the time zone offset in hours and minutes from UTC (for example, “`2001-03-24 10:45:32 +0600`”)
      */
-    public func description(with locale : NSLocale?) -> String {
+    public func description(with locale : Locale?) -> String {
         return NSDate(timeIntervalSinceReferenceDate: _time).descriptionWithLocale(locale)
     }
     

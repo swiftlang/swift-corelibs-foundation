@@ -32,7 +32,7 @@ public class DateIntervalFormatter : Formatter {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ public var locale: NSLocale! // default is [NSLocale currentLocale]
+    /*@NSCopying*/ public var locale: Locale! // default is [NSLocale currentLocale]
     /*@NSCopying*/ public var calendar: Calendar! // default is the calendar of the locale
     /*@NSCopying*/ public var timeZone: TimeZone! // default is [NSTimeZone defaultTimeZone]
     public var dateTemplate: String! // default is an empty string

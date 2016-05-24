@@ -63,7 +63,7 @@ public class Scanner: NSObject, NSCopying {
     }
     
     public var caseSensitive: Bool = false
-    public var locale: NSLocale?
+    public var locale: Locale?
     
     internal static let defaultSkipSet = CharacterSet.whitespacesAndNewlines
     
@@ -275,14 +275,14 @@ private func numericOrHexValue(_ ch: unichar) -> Int {
     }
 }
 
-private func decimalSep(_ locale: NSLocale?) -> String {
+private func decimalSep(_ locale: Locale?) -> String {
     if let loc = locale {
         if let sep = loc.objectForKey(NSLocaleDecimalSeparator) as? NSString {
             return sep._swiftObject
         }
         return "."
     } else {
-        return decimalSep(NSLocale.currentLocale())
+        return decimalSep(Locale.currentLocale())
     }
 }
 
@@ -366,7 +366,7 @@ extension String {
         return true
     }
     
-    internal func scan<T: _FloatLike>(_ skipSet: CharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: _FloatLike>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         let ds_chars = decimalSep(locale).utf16
         let ds = ds_chars[ds_chars.startIndex]
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
@@ -425,7 +425,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _FloatLike>(_ skipSet: CharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: _FloatLike>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         NSUnimplemented()
     }
 }
