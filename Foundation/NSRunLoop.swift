@@ -49,7 +49,7 @@ public class RunLoop: NSObject {
         return CFRunLoopCopyCurrentMode(_cfRunLoop)?._swiftObject
     }
 
-    public func addTimer(_ timer: NSTimer, forMode mode: String) {
+    public func addTimer(_ timer: Timer, forMode mode: String) {
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode._cfObject)
     }
 

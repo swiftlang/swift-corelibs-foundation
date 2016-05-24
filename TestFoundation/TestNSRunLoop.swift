@@ -60,7 +60,7 @@ class TestNSRunLoop : XCTestCase {
         let endDate = Date(timeInterval: timeInterval, since: Date())
         var flag = false
 
-        let dummyTimer = NSTimer.scheduledTimer(0.01, repeats: false) { _ in
+        let dummyTimer = Timer.scheduledTimer(0.01, repeats: false) { _ in
             flag = true
             guard let runLoopMode = runLoop.currentMode else {
                 XCTFail("Run loop mode is not defined")
@@ -81,7 +81,7 @@ class TestNSRunLoop : XCTestCase {
         let timeInterval = TimeInterval(1)
         let expectedTimeInterval = Date(timeInterval: timeInterval, since: Date()).timeIntervalSince1970
 
-        let dummyTimer = NSTimer.scheduledTimer(timeInterval, repeats: false) { _ in }
+        let dummyTimer = Timer.scheduledTimer(timeInterval, repeats: false) { _ in }
         runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
         
         guard let timerTickInterval = runLoop.limitDateForMode(NSDefaultRunLoopMode)?.timeIntervalSince1970 else {

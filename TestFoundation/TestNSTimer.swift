@@ -28,14 +28,14 @@ class TestNSTimer : XCTestCase {
     }
     
     func test_timerInit() {
-        let timer = NSTimer(fireDate: Date(), interval: 0.3, repeats: false) { _ in }
+        let timer = Timer(fireDate: Date(), interval: 0.3, repeats: false) { _ in }
         XCTAssertNotNil(timer)
     }
     
     func test_timerTickOnce() {
         var flag = false
         
-        let dummyTimer = NSTimer.scheduledTimer(0.01, repeats: false) { timer in
+        let dummyTimer = Timer.scheduledTimer(0.01, repeats: false) { timer in
             XCTAssertFalse(flag)
 
             flag = true
@@ -55,7 +55,7 @@ class TestNSTimer : XCTestCase {
         let numberOfRepeats = 3
         var previousInterval = Date().timeIntervalSince1970
         
-        let dummyTimer = NSTimer.scheduledTimer(interval, repeats: true) { timer in
+        let dummyTimer = Timer.scheduledTimer(interval, repeats: true) { timer in
             XCTAssertEqual(timer.timeInterval, interval)
 
             let currentInterval = Date().timeIntervalSince1970
@@ -78,7 +78,7 @@ class TestNSTimer : XCTestCase {
     func test_timerInvalidate() {
         var flag = false
         
-        let dummyTimer = NSTimer.scheduledTimer(0.01, repeats: true) { timer in
+        let dummyTimer = Timer.scheduledTimer(0.01, repeats: true) { timer in
             XCTAssertTrue(timer.valid)
             XCTAssertFalse(flag) // timer should tick only once
             
