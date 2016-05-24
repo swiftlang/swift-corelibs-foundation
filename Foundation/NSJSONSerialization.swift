@@ -164,7 +164,7 @@ public class JSONSerialization : NSObject {
     
     /* Create a JSON object from JSON data stream. The stream should be opened and configured. All other behavior of this method is the same as the JSONObjectWithData:options:error: method.
      */
-    public class func jsonObject(with stream: NSInputStream, options opt: ReadingOptions = []) throws -> AnyObject {
+    public class func jsonObject(with stream: InputStream, options opt: ReadingOptions = []) throws -> AnyObject {
         NSUnimplemented()
     }
 }

@@ -398,7 +398,7 @@ internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLIn
 
 public class XMLParser : NSObject {
     private var _handler: _CFXMLInterfaceSAXHandler
-    internal var _stream: NSInputStream?
+    internal var _stream: InputStream?
     internal var _data: Data?
     internal var _chunkSize = Int(4096 * 32) // a suitably large number for a decent chunk size
     internal var _haveDetectedEncoding = false
@@ -411,7 +411,7 @@ public class XMLParser : NSObject {
     // initializes the parser with the specified URL.
     public convenience init?(contentsOfURL url: URL) {
         if url.isFileURL {
-            if let stream = NSInputStream(URL: url) {
+            if let stream = InputStream(URL: url) {
                 self.init(stream: stream)
                 _url = url
             } else {
@@ -442,7 +442,7 @@ public class XMLParser : NSObject {
     }
     
     //create a parser that incrementally pulls data from the specified stream and parses it.
-    public init(stream: NSInputStream) {
+    public init(stream: InputStream) {
         _CFSetupXMLInterface()
         _stream = stream
         _handler = _CFXMLInterfaceCreateSAXHandler()

@@ -191,7 +191,7 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
     /// one can be set on a given request.  Also note that the body stream is
     /// preserved across copies, but is LOST when the request is coded via the
     /// NSCoding protocol
-    public var httpBodyStream: NSInputStream? {
+    public var httpBodyStream: InputStream? {
         get {
             return _handle.map { $0.httpBodyStream }
         }

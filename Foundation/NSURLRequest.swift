@@ -215,7 +215,7 @@ public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying
     
     internal enum Body {
         case data(Data)
-        case stream(NSInputStream)
+        case stream(InputStream)
     }
     internal var _body: Body?
     
@@ -231,7 +231,7 @@ public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying
         return nil
     }
     
-    public var httpBodyStream: NSInputStream? {
+    public var httpBodyStream: InputStream? {
         if let body = _body {
             switch body {
             case .data(_):
@@ -416,7 +416,7 @@ public class NSMutableURLRequest : NSURLRequest {
         }
     }
     
-    public override var httpBodyStream: NSInputStream? {
+    public override var httpBodyStream: InputStream? {
         get {
             if let body = _body {
                 switch body {

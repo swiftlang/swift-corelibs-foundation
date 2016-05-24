@@ -635,7 +635,7 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
      * necessary when authentication has failed for any request that
      * involves a body stream. 
      */
-    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: (NSInputStream?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: (InputStream?) -> Void)
     
     /* Sent periodically to notify the delegate of upload progress.  This
      * information is also available as properties of the task.
@@ -653,7 +653,7 @@ extension URLSessionTaskDelegate {
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didReceiveChallenge challenge: URLAuthenticationChallenge, completionHandler: (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) { }
 
-    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: (NSInputStream?) -> Void) { }
+    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: (InputStream?) -> Void) { }
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) { }
     
@@ -788,7 +788,7 @@ public protocol URLSessionStreamDelegate : URLSessionTaskDelegate {
      * completed (including any necessary handshakes.)  The streamTask
      * will not receive any further delegate messages.
      */
-    func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecomeInputStream inputStream: NSInputStream, outputStream: NSOutputStream)
+    func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecomeInputStream inputStream: InputStream, outputStream: NSOutputStream)
 }
 
 extension URLSessionStreamDelegate {
@@ -798,7 +798,7 @@ extension URLSessionStreamDelegate {
     
     func urlSession(_ session: URLSession, betterRouteDiscoveredForStreamTask streamTask: URLSessionStreamTask) { }
     
-    func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecomeInputStream inputStream: NSInputStream, outputStream: NSOutputStream) { }
+    func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecomeInputStream inputStream: InputStream, outputStream: NSOutputStream) { }
 }
 
 /* Key in the userInfo dictionary of an NSError received during a failed download. */
