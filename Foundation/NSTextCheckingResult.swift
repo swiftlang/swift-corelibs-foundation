@@ -10,20 +10,22 @@
 import CoreFoundation
 
 /* NSTextCheckingType in this project is limited to regular expressions. */
-public struct NSTextCheckingType : OptionSet {
-    public let rawValue: UInt64
-    public init(rawValue: UInt64) { self.rawValue = rawValue }
-    
-    public static let RegularExpression = NSTextCheckingType(rawValue: 1 << 10) // regular expression matches
+extension TextCheckingResult {
+    public struct CheckingType : OptionSet {
+        public let rawValue: UInt64
+        public init(rawValue: UInt64) { self.rawValue = rawValue }
+        
+        public static let RegularExpression = CheckingType(rawValue: 1 << 10) // regular expression matches
+    }
 }
 
-public class NSTextCheckingResult : NSObject, NSCopying, NSCoding {
+public class TextCheckingResult: NSObject, NSCopying, NSCoding {
     
     public override init() {
         super.init()
     }
     
-    public class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: RegularExpression) -> NSTextCheckingResult {
+    public class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: RegularExpression) -> TextCheckingResult {
         return _NSRegularExpressionTextCheckingResultResult(ranges: ranges, count: count, regularExpression: regularExpression)
     }
 
@@ -44,7 +46,7 @@ public class NSTextCheckingResult : NSObject, NSCopying, NSCoding {
     }
     
     /* Mandatory properties, used with all types of results. */
-    public var resultType: NSTextCheckingType { NSUnimplemented() }
+    public var resultType: CheckingType { NSUnimplemented() }
     public var range: NSRange { return range(at: 0) }
     /* A result must have at least one range, but may optionally have more (for example, to represent regular expression capture groups).  The range at index 0 always matches the range property.  Additional ranges, if any, will have indexes from 1 to numberOfRanges-1. */
     public func range(at idx: Int) -> NSRange { NSUnimplemented() }
@@ -52,7 +54,7 @@ public class NSTextCheckingResult : NSObject, NSCopying, NSCoding {
     public var numberOfRanges: Int { return 1 }
 }
 
-internal class _NSRegularExpressionTextCheckingResultResult : NSTextCheckingResult {
+internal class _NSRegularExpressionTextCheckingResultResult : TextCheckingResult {
     var _ranges = [NSRange]()
     let _regularExpression: RegularExpression
     init(ranges: NSRangePointer, count: Int, regularExpression: RegularExpression) {
@@ -68,15 +70,15 @@ internal class _NSRegularExpressionTextCheckingResultResult : NSTextCheckingResu
         fatalError("init(coder:) has not been implemented")
     }
     
-    override var resultType: NSTextCheckingType { return .RegularExpression }
+    override var resultType: CheckingType { return .RegularExpression }
     override func range(at idx: Int) -> NSRange { return _ranges[idx] }
     override var numberOfRanges: Int { return _ranges.count }
     override var regularExpression: RegularExpression? { return _regularExpression }
 }
 
-extension NSTextCheckingResult {
+extension TextCheckingResult {
     
     
     
-    public func resultByAdjustingRangesWithOffset(_ offset: Int) -> NSTextCheckingResult { NSUnimplemented() }
+    public func resultByAdjustingRangesWithOffset(_ offset: Int) -> TextCheckingResult { NSUnimplemented() }
 }
