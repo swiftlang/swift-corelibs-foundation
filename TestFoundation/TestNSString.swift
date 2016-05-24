@@ -230,7 +230,7 @@ class TestNSString : XCTestCase {
 
     func test_FromASCIINSData() {
         let bytes = mockASCIIStringBytes
-        let data = NSData(bytes: bytes, length: bytes.count)
+        let data = Data(bytes: bytes, count: bytes.count)
         let string = NSString(data: data, encoding: NSASCIIStringEncoding)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
@@ -238,7 +238,7 @@ class TestNSString : XCTestCase {
 
     func test_FromUTF8NSData() {
         let bytes = mockUTF8StringBytes
-        let data = NSData(bytes: bytes, length: bytes.count)
+        let data = Data(bytes: bytes, count: bytes.count)
         let string = NSString(data: data, encoding: NSUTF8StringEncoding)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
@@ -246,7 +246,7 @@ class TestNSString : XCTestCase {
 
     func test_FromMalformedUTF8NSData() {
         let bytes = mockMalformedUTF8StringBytes
-        let data = NSData(bytes: bytes, length: bytes.count)
+        let data = Data(bytes: bytes, count: bytes.count)
         let string = NSString(data: data, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
     }

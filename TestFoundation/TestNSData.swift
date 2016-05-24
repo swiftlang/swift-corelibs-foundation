@@ -44,13 +44,13 @@ class TestNSData: XCTestCase {
     }
     
     func test_writeToURLOptions() {
-        let saveData = NSData(contentsOfURL: NSBundle.mainBundle().URLForResource("Test", withExtension: "plist")!)
-        let savePath = "/var/tmp/Test.plist"
+        let saveData = try! Data(contentsOf: NSBundle.mainBundle().URLForResource("Test", withExtension: "plist")!)
+        let savePath = URL(fileURLWithPath: "/var/tmp/Test.plist")
         do {
-            try saveData!.write(toFile: savePath, options: NSDataWritingOptions.dataWritingAtomic)
+            try saveData.write(to: savePath, options: .dataWritingAtomic)
             let fileManager = NSFileManager.defaultManager()
-            XCTAssertTrue(fileManager.fileExists(atPath: savePath))
-            try! fileManager.removeItem(atPath: savePath)
+            XCTAssertTrue(fileManager.fileExists(atPath: savePath.path!))
+            try! fileManager.removeItem(atPath: savePath.path!)
         } catch _ {
             XCTFail()
         }
@@ -129,7 +129,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not get UTF-8 data")
             return
         }
-        guard let decodedData = NSData(base64Encoded: encodedData, options: []) else {
+        guard let decodedData = Data(base64Encoded: encodedData, options: []) else {
             XCTFail("Could not Base-64 decode data")
             return
         }
@@ -139,7 +139,8 @@ class TestNSData: XCTestCase {
         }
 
         XCTAssertEqual(decodedText, plainText)
-        XCTAssertTrue(decodedData.isEqual(to: plainText.bridge().data(using: NSUTF8StringEncoding)!))    }
+        XCTAssertTrue(decodedData == plainText.bridge().data(using: NSUTF8StringEncoding)!)
+    }
     
     func test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil() {
         let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHBya$W11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
@@ -158,7 +159,7 @@ class TestNSData: XCTestCase {
             XCTFail("Could not get UTF-8 data")
             return
         }
-        guard let decodedData = NSData(base64Encoded: encodedData, options: [.ignoreUnknownCharacters]) else {
+        guard let decodedData = Data(base64Encoded: encodedData, options: [.ignoreUnknownCharacters]) else {
             XCTFail("Could not Base-64 decode data")
             return
         }
@@ -168,13 +169,13 @@ class TestNSData: XCTestCase {
         }
         
         XCTAssertEqual(decodedText, plainText)
-        XCTAssertTrue(decodedData.isEqual(to: plainText.bridge().data(using: NSUTF8StringEncoding)!))
+        XCTAssertTrue(decodedData == plainText.bridge().data(using: NSUTF8StringEncoding)!)
     }
     
     func test_initializeWithBase64EncodedStringGetsDecodedData() {
         let plainText = "ARMA virumque cano, Troiae qui primus ab oris\nItaliam, fato profugus, Laviniaque venit"
         let encodedText = "QVJNQSB2aXJ1bXF1ZSBjYW5vLCBUcm9pYWUgcXVpIHByaW11cyBhYiBvcmlzCkl0YWxpYW0sIGZhdG8gcHJvZnVndXMsIExhdmluaWFxdWUgdmVuaXQ="
-        guard let decodedData = NSData(base64Encoded: encodedText, options: []) else {
+        guard let decodedData = Data(base64Encoded: encodedText, options: []) else {
             XCTFail("Could not Base-64 decode data")
             return
         }

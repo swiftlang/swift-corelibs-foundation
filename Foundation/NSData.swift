@@ -578,6 +578,10 @@ extension NSData {
 extension NSData : _CFBridgable, _SwiftBridgable {
     typealias SwiftType = Data
     internal var _swiftObject: SwiftType { return Data(_bridged: self) }
+    
+    public func bridge() -> Data {
+        return _swiftObject
+    }
 }
 
 extension Data : _NSBridgable, _CFBridgable {
@@ -585,6 +589,10 @@ extension Data : _NSBridgable, _CFBridgable {
     typealias NSType = NSData
     internal var _cfObject: CFType { return _nsObject._cfObject }
     internal var _nsObject: NSType { return _bridgeToObjectiveC() }
+    
+    public func bridge() -> NSData {
+        return _nsObject
+    }
 }
 
 extension CFData : _NSBridgable, _SwiftBridgable {

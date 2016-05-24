@@ -45,7 +45,7 @@ extension TestNSJSONSerialization {
     }
     
     func test_JSONObjectWithData_emptyObject() {
-        let subject = NSData(bytes: UnsafePointer<Void>([UInt8]([0x7B, 0x7D])), length: 2)
+        let subject = Data(bytes: UnsafePointer<Void>([UInt8]([0x7B, 0x7D])), count: 2)
         
         let object = try! JSONSerialization.jsonObject(with: subject, options: []) as? [String:Any]
         XCTAssertEqual(object?.count, 0)
@@ -75,7 +75,7 @@ extension TestNSJSONSerialization {
         ]
         
         for (description, encoded) in subjects {
-            let result = try? JSONSerialization.jsonObject(with: NSData(bytes:UnsafePointer<Void>(encoded), length: encoded.count), options: [])
+            let result = try? JSONSerialization.jsonObject(with: Data(bytes:UnsafePointer<Void>(encoded), count: encoded.count), options: [])
             XCTAssertNotNil(result, description)
         }
     }

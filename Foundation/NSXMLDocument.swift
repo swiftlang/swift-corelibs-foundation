@@ -304,17 +304,17 @@ public class XMLDocument : NSXMLNode {
         @method XMLData
         @abstract Invokes XMLDataWithOptions with NSXMLNodeOptionsNone.
     */
-    /*@NSCopying*/ public var XMLData: NSData { return XMLDataWithOptions(NSXMLNodeOptionsNone) }
+    /*@NSCopying*/ public var XMLData: Data { return XMLDataWithOptions(NSXMLNodeOptionsNone) }
 
     /*!
         @method XMLDataWithOptions:
         @abstract The representation of this node as it would appear in an XML document, encoded based on characterEncoding.
     */
-    public func XMLDataWithOptions(_ options: Int) -> NSData {
+    public func XMLDataWithOptions(_ options: Int) -> Data {
         let string = XMLStringWithOptions(options)
         // TODO: support encodings other than UTF-8
 
-        return string._bridgeToObject().data(using: NSUTF8StringEncoding) ?? NSData()
+        return string._bridgeToObject().data(using: NSUTF8StringEncoding) ?? Data()
     }
 
     /*!
