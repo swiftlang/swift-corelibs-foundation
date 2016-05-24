@@ -180,7 +180,7 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
         // fail early if the string is empty
         return emptyRange
     }
-    let scanner = NSScanner(string: aString)
+    let scanner = Scanner(string: aString)
     let digitSet = CharacterSet.decimalDigits
     let _ = scanner.scanUpToCharactersFromSet(digitSet)
     if scanner.atEnd {

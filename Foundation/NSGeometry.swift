@@ -781,7 +781,7 @@ public func NSStringFromRect(_ aRect: NSRect) -> String {
 }
 
 private func _scanDoublesFromString(_ aString: String, number: Int) -> [Double] {
-    let scanner = NSScanner(string: aString)
+    let scanner = Scanner(string: aString)
     var digitSet = CharacterSet.decimalDigits
     digitSet.insert(charactersIn: "-")
     var result = [Double](repeating: 0.0, count: number)

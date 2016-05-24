@@ -639,22 +639,22 @@ extension NSString {
     }
 
     public var intValue: Int32 {
-        return NSScanner(string: _swiftObject).scanInt() ?? 0
+        return Scanner(string: _swiftObject).scanInt() ?? 0
     }
 
     public var integerValue: Int {
-        let scanner = NSScanner(string: _swiftObject)
+        let scanner = Scanner(string: _swiftObject)
         var value: Int = 0
         let _ = scanner.scanInteger(&value)
         return value
     }
 
     public var longLongValue: Int64 {
-        return NSScanner(string: _swiftObject).scanLongLong() ?? 0
+        return Scanner(string: _swiftObject).scanLongLong() ?? 0
     }
 
     public var boolValue: Bool {
-        let scanner = NSScanner(string: _swiftObject)
+        let scanner = Scanner(string: _swiftObject)
         // skip initial whitespace if present
         let _ = scanner.scanCharactersFromSet(.whitespaces)
         // scan a single optional '+' or '-' character, followed by zeroes

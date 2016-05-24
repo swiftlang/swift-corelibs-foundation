@@ -142,7 +142,7 @@ extension NSNumber {
 
 // Could be silently inexact for float and double.
 
-extension NSScanner {
+extension Scanner {
     
     public func scanDecimal(_ dcm: UnsafeMutablePointer<NSDecimal>) -> Bool { NSUnimplemented() }
 }

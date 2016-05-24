@@ -855,7 +855,7 @@ public class NSKeyedUnarchiver : NSCoder {
         if type == .StructBegin {
             fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: this archiver cannot decode structs")
         } else if type == .ArrayBegin {
-            let scanner = NSScanner(string: String(cString: typep))
+            let scanner = Scanner(string: String(cString: typep))
             
             scanner.scanLocation = 1
             

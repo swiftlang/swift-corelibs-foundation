@@ -11,7 +11,7 @@
 
 import CoreFoundation
 
-public class NSScanner : NSObject, NSCopying {
+public class Scanner: NSObject, NSCopying {
     internal var _scanString: String
     internal var _skipSet: CharacterSet?
     internal var _invertedSkipSet: CharacterSet?
@@ -22,7 +22,7 @@ public class NSScanner : NSObject, NSCopying {
     }
     
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        return NSScanner(string: string)
+        return Scanner(string: string)
     }
     
     public var string: String {
@@ -69,7 +69,7 @@ public class NSScanner : NSObject, NSCopying {
     
     public init(string: String) {
         _scanString = string
-        _skipSet = NSScanner.defaultSkipSet
+        _skipSet = Scanner.defaultSkipSet
         _scanLocation = 0
     }
 }
@@ -430,7 +430,7 @@ extension String {
     }
 }
 
-extension NSScanner {
+extension Scanner {
     
     // On overflow, the below methods will return success and clamp
     public func scanInt(_ result: UnsafeMutablePointer<Int32>) -> Bool {
@@ -510,7 +510,7 @@ extension NSScanner {
 /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer and better Optional usage.
 /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
 /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-extension NSScanner {
+extension Scanner {
     public func scanInt() -> Int32? {
         var value: Int32 = 0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Int32>) -> Int32? in

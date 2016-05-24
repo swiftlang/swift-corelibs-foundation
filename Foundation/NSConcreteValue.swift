@@ -35,7 +35,7 @@ internal class NSConcreteValue : NSValue {
             if type == .StructBegin {
                 fatalError("NSConcreteValue.TypeInfo: cannot encode structs")
             } else if type == .ArrayBegin {
-                let scanner = NSScanner(string: spec)
+                let scanner = Scanner(string: spec)
                 
                 scanner.scanLocation = 1
                 

@@ -719,7 +719,7 @@ public class NSKeyedArchiver : NSCoder {
         if type == .StructBegin {
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: this archiver cannot encode structs")
         } else if type == .ArrayBegin {
-            let scanner = NSScanner(string: String(cString: typep))
+            let scanner = Scanner(string: String(cString: typep))
             
             scanner.scanLocation = 1 // advance past ObJCType
             
