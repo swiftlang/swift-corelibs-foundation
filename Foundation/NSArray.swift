@@ -357,11 +357,10 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             let hash = item.hash
             buffer.advanced(by: idx).pointee = Int32(hash).littleEndian
         }
-        fatalError("TODO: FIXME")
-//        return Data(bytesNoCopy: unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), count: count * sizeof(Int)) { _ in
-//            buffer.deallocateCapacity(size)
-//            buffer.deinitialize(count: size)
-//        }
+        return Data(bytesNoCopy: unsafeBitCast(buffer, to: UnsafeMutablePointer<UInt8>.self), count: count * sizeof(Int), deallocator: .custom({ _ in
+            buffer.deallocateCapacity(size)
+            buffer.deinitialize(count: size)
+        }))
     }
     
     public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?) -> [AnyObject] {
