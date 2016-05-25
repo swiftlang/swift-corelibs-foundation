@@ -155,16 +155,16 @@ class TestNSCharacterSet : XCTestCase {
     func test_Predefines() {
         let cset = CharacterSet.controlCharacters
         
-        XCTAssertTrue(cset.contains(unichar(0xFEFF)), "Control set should contain UFEFF")
+        XCTAssertTrue(cset.contains(UnicodeScalar(0xFEFF)), "Control set should contain UFEFF")
         XCTAssertTrue(CharacterSet.letters.contains(UnicodeScalar(0x61)), "Letter set should contain 'a'")
         XCTAssertTrue(CharacterSet.lowercaseLetters.contains(UnicodeScalar(0x61)), "Lowercase Letter set should contain 'a'")
         XCTAssertTrue(CharacterSet.uppercaseLetters.contains(UnicodeScalar(0x41)), "Uppercase Letter set should contain 'A'")
-        XCTAssertTrue(CharacterSet.uppercaseLetters.contains(unichar(0x01C5)), "Uppercase Letter set should contain U01C5")
-        XCTAssertTrue(CharacterSet.capitalizedLetters.contains(unichar(0x01C5)), "Uppercase Letter set should contain U01C5")
-        XCTAssertTrue(CharacterSet.symbols.contains(unichar(0x002B)), "Symbol set should contain U002B")
-        XCTAssertTrue(CharacterSet.symbols.contains(unichar(0x20B1)), "Symbol set should contain U20B1")
-        XCTAssertTrue(CharacterSet.newlines.contains(unichar(0x000A)), "Newline set should contain 0x000A")
-        XCTAssertTrue(CharacterSet.newlines.contains(unichar(0x2029)), "Newline set should contain 0x2029")
+        XCTAssertTrue(CharacterSet.uppercaseLetters.contains(UnicodeScalar(0x01C5)), "Uppercase Letter set should contain U01C5")
+        XCTAssertTrue(CharacterSet.capitalizedLetters.contains(UnicodeScalar(0x01C5)), "Uppercase Letter set should contain U01C5")
+        XCTAssertTrue(CharacterSet.symbols.contains(UnicodeScalar(0x002B)), "Symbol set should contain U002B")
+        XCTAssertTrue(CharacterSet.symbols.contains(UnicodeScalar(0x20B1)), "Symbol set should contain U20B1")
+        XCTAssertTrue(CharacterSet.newlines.contains(UnicodeScalar(0x000A)), "Newline set should contain 0x000A")
+        XCTAssertTrue(CharacterSet.newlines.contains(UnicodeScalar(0x2029)), "Newline set should contain 0x2029")
         
         let mcset = CharacterSet.whitespacesAndNewlines
         let cset2 = CharacterSet.whitespacesAndNewlines
@@ -181,30 +181,30 @@ class TestNSCharacterSet : XCTestCase {
 //        let cset1 = CharacterSet(range: NSMakeRange(0x20, 40))
         let cset1 = CharacterSet(charactersIn: UnicodeScalar(0x20)..<UnicodeScalar(0x49))
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset1.contains(idx), (idx >= 0x20 && idx < 0x20 + 40 ? true : false))
+            XCTAssertEqual(cset1.contains(UnicodeScalar(idx)), (idx >= 0x20 && idx < 0x20 + 40 ? true : false))
         }
         
         let cset2 = CharacterSet(charactersIn: UnicodeScalar(0x0000)..<UnicodeScalar(0xFFFF))
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset2.contains(idx), true)
+            XCTAssertEqual(cset2.contains(UnicodeScalar(idx)), true)
         }
         
 
         let cset3 = CharacterSet(charactersIn: UnicodeScalar(0x0000)..<UnicodeScalar(10))
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset3.contains(idx), (idx < 10 ? true : false))
+            XCTAssertEqual(cset3.contains(UnicodeScalar(idx)), (idx < 10 ? true : false))
         }
         
         let cset4 = CharacterSet(charactersIn: UnicodeScalar(0x20)..<UnicodeScalar(0x21))
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset4.contains(idx), false)
+            XCTAssertEqual(cset4.contains(UnicodeScalar(idx)), false)
         }
     }
     
     func test_String() {
         let cset = CharacterSet(charactersIn: "abcABC")
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset.contains(idx), (idx >= unichar(unicodeScalarLiteral: "a") && idx <= unichar(unicodeScalarLiteral: "c")) || (idx >= unichar(unicodeScalarLiteral: "A") && idx <= unichar(unicodeScalarLiteral: "C")) ? true : false)
+            XCTAssertEqual(cset.contains(UnicodeScalar(idx)), (idx >= unichar(unicodeScalarLiteral: "a") && idx <= unichar(unicodeScalarLiteral: "c")) || (idx >= unichar(unicodeScalarLiteral: "A") && idx <= unichar(unicodeScalarLiteral: "C")) ? true : false)
         }
     }
     
