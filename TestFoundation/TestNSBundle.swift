@@ -32,7 +32,7 @@ class TestNSBundle : XCTestCase {
     }
     
     func test_paths() {
-        let bundle = NSBundle.mainBundle()
+        let bundle = NSBundle.main()
         
         // bundlePath
         XCTAssert(!bundle.bundlePath.isEmpty)
@@ -53,7 +53,7 @@ class TestNSBundle : XCTestCase {
     }
     
     func test_resources() {
-        let bundle = NSBundle.mainBundle()
+        let bundle = NSBundle.main()
         
         // bad resources
         XCTAssertNil(bundle.URLForResource(nil, withExtension: nil, subdirectory: nil))
@@ -73,7 +73,7 @@ class TestNSBundle : XCTestCase {
     }
     
     func test_infoPlist() {
-        let bundle = NSBundle.mainBundle()
+        let bundle = NSBundle.main()
         
         // bundleIdentifier
         XCTAssertEqual("org.swift.TestFoundation", bundle.bundleIdentifier)
@@ -89,11 +89,11 @@ class TestNSBundle : XCTestCase {
     }
     
     func test_localizations() {
-        let bundle = NSBundle.mainBundle()
+        let bundle = NSBundle.main()
         
         XCTAssertEqual(["en"], bundle.localizations)
         XCTAssertEqual(["en"], bundle.preferredLocalizations)
-        XCTAssertEqual(["en"], NSBundle.preferredLocalizationsFromArray(["en", "pl", "es"]))
+        XCTAssertEqual(["en"], NSBundle.preferredLocalizations(from: ["en", "pl", "es"]))
     }
     
     private let _bundleName = "MyBundle.bundle"
@@ -143,7 +143,7 @@ class TestNSBundle : XCTestCase {
         let bundle = NSBundle(path: playground + _bundleName)
         XCTAssertNotNil(bundle)
         
-        let worldResources = bundle?.URLsForResourcesWithExtension("world", subdirectory: nil)
+        let worldResources = bundle?.urlsForResources(withExtension: "world", subdirectory: nil)
         XCTAssertNotNil(worldResources)
         XCTAssertEqual(worldResources?.count, 2)
         
