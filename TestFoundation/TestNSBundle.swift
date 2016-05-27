@@ -115,12 +115,12 @@ class TestNSBundle : XCTestCase {
             
             // Put some resources in the bundle
             for n in _bundleResourceNames {
-                NSFileManager.defaultManager().createFile(atPath: bundlePath + "/" + n, contents: nil, attributes: nil)
+                _ = NSFileManager.defaultManager().createFile(atPath: bundlePath + "/" + n, contents: nil, attributes: nil)
             }
             // Add a resource into a subdirectory
             let subDirPath = bundlePath + "/" + _subDirectory
             try NSFileManager.defaultManager().createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
-            NSFileManager.defaultManager().createFile(atPath: subDirPath + "/" + _main + "." + _type, contents: nil, attributes: nil)
+            _ = NSFileManager.defaultManager().createFile(atPath: subDirPath + "/" + _main + "." + _type, contents: nil, attributes: nil)
         } catch _ {
             return nil
         }

@@ -247,7 +247,7 @@ class TestNSTask : XCTestCase {
 private func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> Void) rethrows {
     let url = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent("TestNSTask.XXXXXX")!
     var buffer = [Int8](repeating: 0, count: Int(PATH_MAX))
-    url.getFileSystemRepresentation(&buffer, maxLength: buffer.count)
+    _ = url.getFileSystemRepresentation(&buffer, maxLength: buffer.count)
     switch mkstemp(&buffer) {
     case -1: XCTFail("Could not create temporary file")
     case let fd:

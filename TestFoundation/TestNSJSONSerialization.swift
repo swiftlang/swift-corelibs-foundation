@@ -344,7 +344,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.jsonObject(with: data, options: [])
+            _ = try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: UnterminatedString")
         } catch {
             // Passing case; the object as unterminated
@@ -359,7 +359,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.jsonObject(with: data, options: [])
+            _ = try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Missing key for value")
         } catch {
             // Passing case; the key was missing for a value
@@ -374,7 +374,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.jsonObject(with: data, options: [])
+            _ = try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Unexpected end of file")
         } catch {
             // Success
@@ -389,7 +389,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.jsonObject(with: data, options: [])
+            _ = try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Invalid value")
         } catch {
             // Passing case; the value is invalid
@@ -404,7 +404,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.jsonObject(with: data, options: [])
+            _ = try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Invalid value")
         } catch {
             // passing case the value is invalid
@@ -419,7 +419,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.jsonObject(with: data, options: [])
+            _ = try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Invalid value")
         } catch {
             // Passing case; the element in the array is missing
@@ -434,7 +434,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.jsonObject(with: data, options: [])
+            _ = try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Badly formed array")
         } catch {
             // Passing case; the array is malformed
@@ -449,7 +449,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.jsonObject(with: data, options: [])
+            _ = try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Invalid escape sequence")
         } catch {
             // Passing case; the escape sequence is invalid
@@ -463,7 +463,7 @@ extension TestNSJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            try NSJSONSerialization.jsonObject(with: data, options: []) as? [String]
+            _ = try NSJSONSerialization.jsonObject(with: data, options: [])
             XCTFail("Expected error: Missing Trailing Surrogate")
         } catch {
             // Passing case; the unicode character is malformed
