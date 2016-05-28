@@ -278,16 +278,16 @@ class TestNSString : XCTestCase {
         }
 
         do {
-            let string = try NSString(contentsOfURL: testFileURL, encoding: NSUTF8StringEncoding)
+            let string = try NSString(contentsOf: testFileURL, encoding: NSUTF8StringEncoding)
             XCTAssertEqual(string, "swift-corelibs-foundation")
         } catch {
-            XCTFail("Unable to init NSString from contentsOfURL:encoding:")
+            XCTFail("Unable to init NSString from contentsOf:encoding:")
         }
         do {
-            let string = try NSString(contentsOfURL: testFileURL, encoding: NSUTF16StringEncoding)
-            XCTAssertNotEqual(string, "swift-corelibs-foundation", "Wrong result when reading UTF-8 file with UTF-16 encoding in contentsOfURL:encoding")
+            let string = try NSString(contentsOf: testFileURL, encoding: NSUTF16StringEncoding)
+            XCTAssertNotEqual(string, "swift-corelibs-foundation", "Wrong result when reading UTF-8 file with UTF-16 encoding in contentsOf:encoding")
         } catch {
-            XCTFail("Unable to init NSString from contentsOfURL:encoding:")
+            XCTFail("Unable to init NSString from contentsOf:encoding:")
         }
     }
 
