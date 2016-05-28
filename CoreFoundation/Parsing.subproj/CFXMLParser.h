@@ -140,24 +140,24 @@ typedef void		(*CFXMLParserAddChildCallBack)(CFXMLParserRef parser, void *parent
 typedef void		(*CFXMLParserEndXMLStructureCallBack)(CFXMLParserRef parser, void *xmlType, void *info);
 typedef CFDataRef	(*CFXMLParserResolveExternalEntityCallBack)(CFXMLParserRef parser, CFXMLExternalID *extID, void *info);
 typedef Boolean		(*CFXMLParserHandleErrorCallBack)(CFXMLParserRef parser, CFXMLParserStatusCode error, void *info);
-typedef struct {
-    CFIndex                                  version;
-    CFXMLParserCreateXMLStructureCallBack    createXMLStructure;
-    CFXMLParserAddChildCallBack              addChild;
-    CFXMLParserEndXMLStructureCallBack       endXMLStructure;
-    CFXMLParserResolveExternalEntityCallBack resolveExternalEntity;
-    CFXMLParserHandleErrorCallBack           handleError;
+typedef struct CFXMLParserCallBacks {
+  CFIndex version;
+  CFXMLParserCreateXMLStructureCallBack createXMLStructure;
+  CFXMLParserAddChildCallBack addChild;
+  CFXMLParserEndXMLStructureCallBack endXMLStructure;
+  CFXMLParserResolveExternalEntityCallBack resolveExternalEntity;
+  CFXMLParserHandleErrorCallBack handleError;
 } CFXMLParserCallBacks;
 
 typedef const void *	(*CFXMLParserRetainCallBack)(const void *info);
 typedef void		(*CFXMLParserReleaseCallBack)(const void *info);
 typedef CFStringRef	(*CFXMLParserCopyDescriptionCallBack)(const void *info);
-typedef struct {
-    CFIndex				version;
-    void *				info;
-    CFXMLParserRetainCallBack		retain;
-    CFXMLParserReleaseCallBack		release;
-    CFXMLParserCopyDescriptionCallBack	copyDescription;
+typedef struct CFXMLParserContext {
+  CFIndex version;
+  void *info;
+  CFXMLParserRetainCallBack retain;
+  CFXMLParserReleaseCallBack release;
+  CFXMLParserCopyDescriptionCallBack copyDescription;
 } CFXMLParserContext;
 
 CF_EXPORT

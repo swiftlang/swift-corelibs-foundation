@@ -107,11 +107,11 @@ typedef CF_ENUM(CFIndex, CFSocketError) {
     kCFSocketTimeout = -2L
 };
 
-typedef struct {
-    SInt32	protocolFamily;
-    SInt32	socketType;
-    SInt32	protocol;
-    CFDataRef	address;
+typedef struct CFSocketSignature {
+  SInt32 protocolFamily;
+  SInt32 socketType;
+  SInt32 protocol;
+  CFDataRef address;
 } CFSocketSignature;
 
 /* Values for CFSocketCallBackType */
@@ -137,12 +137,12 @@ CF_ENUM(CFOptionFlags) {
 typedef void (*CFSocketCallBack)(CFSocketRef s, CFSocketCallBackType type, CFDataRef address, const void *data, void *info);
 /* If the callback wishes to keep hold of address or data after the point that it returns, then it must copy them. */
 
-typedef struct {
-    CFIndex	version;
-    void *	info;
-    const void *(*retain)(const void *info);
-    void	(*release)(const void *info);
-    CFStringRef	(*copyDescription)(const void *info);
+typedef struct CFSocketContext {
+  CFIndex version;
+  void *info;
+  const void *(*retain)(const void *info);
+  void (*release)(const void *info);
+  CFStringRef (*copyDescription)(const void *info);
 } CFSocketContext;
 
 #if TARGET_OS_WIN32

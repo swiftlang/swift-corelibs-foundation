@@ -92,13 +92,13 @@ typedef CFHashCode	(*CFSetHashCallBack)(const void *value);
 	@field hash The callback used to compare values in the set for
 		uniqueness for some operations.
 */
-typedef struct {
-    CFIndex				version;
-    CFSetRetainCallBack			retain;
-    CFSetReleaseCallBack		release;
-    CFSetCopyDescriptionCallBack	copyDescription;
-    CFSetEqualCallBack			equal;
-    CFSetHashCallBack			hash;
+typedef struct CFSetCallBacks {
+  CFIndex version;
+  CFSetRetainCallBack retain;
+  CFSetReleaseCallBack release;
+  CFSetCopyDescriptionCallBack copyDescription;
+  CFSetEqualCallBack equal;
+  CFSetHashCallBack hash;
 } CFSetCallBacks;
 
 /*!

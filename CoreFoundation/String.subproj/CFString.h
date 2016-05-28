@@ -811,14 +811,17 @@ CFStringEncoding CFStringGetMostCompatibleMacStringEncoding(CFStringEncoding enc
    a location outside the original range is specified.
 */
 #define __kCFStringInlineBufferLength 64
-typedef struct {
-    UniChar buffer[__kCFStringInlineBufferLength];
-    CFStringRef theString;
-    const UniChar *directUniCharBuffer;
-    const char *directCStringBuffer;
-    CFRange rangeToBuffer;		/* Range in string to buffer */
-    CFIndex bufferedRangeStart;		/* Start of range currently buffered (relative to rangeToBuffer.location) */
-    CFIndex bufferedRangeEnd;		/* bufferedRangeStart + number of chars actually buffered */
+typedef struct CFStringInlineBuffer {
+  UniChar buffer[__kCFStringInlineBufferLength];
+  CFStringRef theString;
+  const UniChar *directUniCharBuffer;
+  const char *directCStringBuffer;
+  CFRange rangeToBuffer; /* Range in string to buffer */
+  CFIndex
+      bufferedRangeStart;   /* Start of range currently buffered (relative to
+                               rangeToBuffer.location) */
+  CFIndex bufferedRangeEnd; /* bufferedRangeStart + number of chars actually
+                               buffered */
 } CFStringInlineBuffer;
 
 #if defined(CF_INLINE)

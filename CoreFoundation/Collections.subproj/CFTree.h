@@ -71,12 +71,12 @@ typedef CFStringRef	(*CFTreeCopyDescriptionCallBack)(const void *info);
         @field copyDescription The callback used to provide a description of
                 the info field.
 */
-typedef struct {
-    CFIndex				version;
-    void *				info;
-    CFTreeRetainCallBack		retain;
-    CFTreeReleaseCallBack		release;	
-    CFTreeCopyDescriptionCallBack	copyDescription;
+typedef struct CFTreeContext {
+  CFIndex version;
+  void *info;
+  CFTreeRetainCallBack retain;
+  CFTreeReleaseCallBack release;
+  CFTreeCopyDescriptionCallBack copyDescription;
 } CFTreeContext;
 
 /*!

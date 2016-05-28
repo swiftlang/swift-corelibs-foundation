@@ -25,13 +25,14 @@ typedef void		(*CFBagReleaseCallBack)(CFAllocatorRef allocator, const void *valu
 typedef CFStringRef	(*CFBagCopyDescriptionCallBack)(const void *value);
 typedef Boolean		(*CFBagEqualCallBack)(const void *value1, const void *value2);
 typedef CFHashCode	(*CFBagHashCallBack)(const void *value);
-typedef struct {
-    CFIndex				version;
-    CFBagRetainCallBack			retain;
-    CFBagReleaseCallBack		release;
-    CFBagCopyDescriptionCallBack	copyDescription;
-    CFBagEqualCallBack			equal;
-    CFBagHashCallBack			hash;
+
+typedef struct CFBagCallBacks {
+  CFIndex version;
+  CFBagRetainCallBack retain;
+  CFBagReleaseCallBack release;
+  CFBagCopyDescriptionCallBack copyDescription;
+  CFBagEqualCallBack equal;
+  CFBagHashCallBack hash;
 } CFBagCallBacks;
 
 CF_EXPORT

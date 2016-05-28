@@ -72,50 +72,50 @@ typedef CF_ENUM(CFIndex, CFXMLNodeTypeCode) {
     kCFXMLNodeTypeAttributeListDeclaration = 15
 };
 
-typedef struct {
-    CFDictionaryRef attributes;
-    CFArrayRef attributeOrder;
-    Boolean isEmpty;
-    char _reserved[3];
+typedef struct CFXMLElementInfo {
+  CFDictionaryRef attributes;
+  CFArrayRef attributeOrder;
+  Boolean isEmpty;
+  char _reserved[3];
 } CFXMLElementInfo;
 
-typedef struct {
-    CFStringRef dataString;
+typedef struct CFXMLProcessingInstructionInfo {
+  CFStringRef dataString;
 } CFXMLProcessingInstructionInfo;
 
-typedef struct {
-    CFURLRef sourceURL;
-    CFStringEncoding encoding;
+typedef struct CFXMLDocumentInfo {
+  CFURLRef sourceURL;
+  CFStringEncoding encoding;
 } CFXMLDocumentInfo;
 
-typedef struct {
-    CFURLRef systemID;
-    CFStringRef publicID;
+typedef struct CFXMLExternalID {
+  CFURLRef systemID;
+  CFStringRef publicID;
 } CFXMLExternalID;
 
-typedef struct {
-    CFXMLExternalID externalID;
+typedef struct CFXMLDocumentTypeInfo {
+  CFXMLExternalID externalID;
 } CFXMLDocumentTypeInfo;
 
-typedef struct {
-    CFXMLExternalID externalID;
+typedef struct CFXMLNotationInfo {
+  CFXMLExternalID externalID;
 } CFXMLNotationInfo;
 
-typedef struct {
-    /* This is expected to change in future versions */
-    CFStringRef contentDescription;
+typedef struct CFXMLElementTypeDeclarationInfo {
+  /* This is expected to change in future versions */
+  CFStringRef contentDescription;
 } CFXMLElementTypeDeclarationInfo;
 
-typedef struct {
-    /* This is expected to change in future versions */
-    CFStringRef attributeName;
-    CFStringRef typeString;
-    CFStringRef defaultString;
+typedef struct CFXMLAttributeDeclarationInfo {
+  /* This is expected to change in future versions */
+  CFStringRef attributeName;
+  CFStringRef typeString;
+  CFStringRef defaultString;
 } CFXMLAttributeDeclarationInfo;
 
-typedef struct {
-    CFIndex numberOfAttributes;
-    CFXMLAttributeDeclarationInfo *attributes;
+typedef struct CFXMLAttributeListDeclarationInfo {
+  CFIndex numberOfAttributes;
+  CFXMLAttributeDeclarationInfo *attributes;
 } CFXMLAttributeListDeclarationInfo;
 
 typedef CF_ENUM(CFIndex, CFXMLEntityTypeCode) {
@@ -126,15 +126,15 @@ typedef CF_ENUM(CFIndex, CFXMLEntityTypeCode) {
     kCFXMLEntityTypeCharacter
 };
 
-typedef struct {
-    CFXMLEntityTypeCode entityType;
-    CFStringRef replacementText;     /* NULL if entityType is external or unparsed */
-    CFXMLExternalID entityID;          /* entityID.systemID will be NULL if entityType is internal */
-    CFStringRef notationName;        /* NULL if entityType is parsed */
+typedef struct CFXMLEntityInfo {
+  CFXMLEntityTypeCode entityType;
+  CFStringRef replacementText; /* NULL if entityType is external or unparsed */
+  CFXMLExternalID entityID;    /* entityID.systemID will be NULL if entityType is internal */
+  CFStringRef notationName;    /* NULL if entityType is parsed */
 } CFXMLEntityInfo;
 
-typedef struct {
-    CFXMLEntityTypeCode entityType;
+typedef struct CFXMLEntityReferenceInfo {
+  CFXMLEntityTypeCode entityType;
 } CFXMLEntityReferenceInfo;
 
 /*

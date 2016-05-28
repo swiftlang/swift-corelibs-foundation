@@ -34,48 +34,66 @@ CF_EXTERN_C_BEGIN
     In all cases, errors returned by reference will be initialized to NULL by the caller, and if they are set to non-NULL, will
     be released by the caller 
 */
-   
-typedef struct {
-    CFIndex version; /* == 2 */
 
-    void *(*create)(CFReadStreamRef stream, void *info);
-    void (*finalize)(CFReadStreamRef stream, void *info);
-    CFStringRef (*copyDescription)(CFReadStreamRef stream, void *info);
+typedef struct CFReadStreamCallBacks {
+  CFIndex version; /* == 2 */
 
-    Boolean (*open)(CFReadStreamRef stream, CFErrorRef *error, Boolean *openComplete, void *info);
-    Boolean (*openCompleted)(CFReadStreamRef stream, CFErrorRef *error, void *info);
-    CFIndex (*read)(CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength, CFErrorRef *error, Boolean *atEOF, void *info);
-    const UInt8 *(*getBuffer)(CFReadStreamRef stream, CFIndex maxBytesToRead, CFIndex *numBytesRead, CFErrorRef *error, Boolean *atEOF, void *info);
-    Boolean (*canRead)(CFReadStreamRef stream, CFErrorRef *error, void *info);
-    void (*close)(CFReadStreamRef stream, void *info);
+  void *(*create)(CFReadStreamRef stream, void *info);
+  void (*finalize)(CFReadStreamRef stream, void *info);
+  CFStringRef (*copyDescription)(CFReadStreamRef stream, void *info);
 
-    CFTypeRef (*copyProperty)(CFReadStreamRef stream, CFStringRef propertyName, void *info);
-    Boolean (*setProperty)(CFReadStreamRef stream, CFStringRef propertyName, CFTypeRef propertyValue, void *info);
+  Boolean (*open)(CFReadStreamRef stream, CFErrorRef *error,
+                  Boolean *openComplete, void *info);
+  Boolean (*openCompleted)(CFReadStreamRef stream, CFErrorRef *error,
+                           void *info);
+  CFIndex (*read)(CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength,
+                  CFErrorRef *error, Boolean *atEOF, void *info);
+  const UInt8 *(*getBuffer)(CFReadStreamRef stream, CFIndex maxBytesToRead,
+                            CFIndex *numBytesRead, CFErrorRef *error,
+                            Boolean *atEOF, void *info);
+  Boolean (*canRead)(CFReadStreamRef stream, CFErrorRef *error, void *info);
+  void (*close)(CFReadStreamRef stream, void *info);
 
-    void (*requestEvents)(CFReadStreamRef stream, CFOptionFlags streamEvents, void *info);
-    void (*schedule)(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
-    void (*unschedule)(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
+  CFTypeRef (*copyProperty)(CFReadStreamRef stream, CFStringRef propertyName,
+                            void *info);
+  Boolean (*setProperty)(CFReadStreamRef stream, CFStringRef propertyName,
+                         CFTypeRef propertyValue, void *info);
+
+  void (*requestEvents)(CFReadStreamRef stream, CFOptionFlags streamEvents,
+                        void *info);
+  void (*schedule)(CFReadStreamRef stream, CFRunLoopRef runLoop,
+                   CFStringRef runLoopMode, void *info);
+  void (*unschedule)(CFReadStreamRef stream, CFRunLoopRef runLoop,
+                     CFStringRef runLoopMode, void *info);
 } CFReadStreamCallBacks;
 
-typedef struct {
-    CFIndex version; /* == 2 */
+typedef struct CFWriteStreamCallBacks {
+  CFIndex version; /* == 2 */
 
-    void *(*create)(CFWriteStreamRef stream, void *info);
-    void (*finalize)(CFWriteStreamRef stream, void *info);
-    CFStringRef (*copyDescription)(CFWriteStreamRef stream, void *info);
+  void *(*create)(CFWriteStreamRef stream, void *info);
+  void (*finalize)(CFWriteStreamRef stream, void *info);
+  CFStringRef (*copyDescription)(CFWriteStreamRef stream, void *info);
 
-    Boolean (*open)(CFWriteStreamRef stream, CFErrorRef *error, Boolean *openComplete, void *info);
-    Boolean (*openCompleted)(CFWriteStreamRef stream, CFErrorRef *error, void *info);
-    CFIndex (*write)(CFWriteStreamRef stream, const UInt8 *buffer, CFIndex bufferLength, CFErrorRef *error, void *info);
-    Boolean (*canWrite)(CFWriteStreamRef stream, CFErrorRef *error, void *info); 
-    void (*close)(CFWriteStreamRef stream, void *info);
+  Boolean (*open)(CFWriteStreamRef stream, CFErrorRef *error,
+                  Boolean *openComplete, void *info);
+  Boolean (*openCompleted)(CFWriteStreamRef stream, CFErrorRef *error,
+                           void *info);
+  CFIndex (*write)(CFWriteStreamRef stream, const UInt8 *buffer,
+                   CFIndex bufferLength, CFErrorRef *error, void *info);
+  Boolean (*canWrite)(CFWriteStreamRef stream, CFErrorRef *error, void *info);
+  void (*close)(CFWriteStreamRef stream, void *info);
 
-    CFTypeRef (*copyProperty)(CFWriteStreamRef stream, CFStringRef propertyName, void *info);
-    Boolean (*setProperty)(CFWriteStreamRef stream, CFStringRef propertyName, CFTypeRef propertyValue, void *info);
+  CFTypeRef (*copyProperty)(CFWriteStreamRef stream, CFStringRef propertyName,
+                            void *info);
+  Boolean (*setProperty)(CFWriteStreamRef stream, CFStringRef propertyName,
+                         CFTypeRef propertyValue, void *info);
 
-    void (*requestEvents)(CFWriteStreamRef stream, CFOptionFlags streamEvents, void *info);
-    void (*schedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
-    void (*unschedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
+  void (*requestEvents)(CFWriteStreamRef stream, CFOptionFlags streamEvents,
+                        void *info);
+  void (*schedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop,
+                   CFStringRef runLoopMode, void *info);
+  void (*unschedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop,
+                     CFStringRef runLoopMode, void *info);
 } CFWriteStreamCallBacks;
 
 // Primitive creation mechanisms.
@@ -134,64 +152,96 @@ CF_EXPORT
 CFArrayRef _CFWriteStreamCopyRunLoopsAndModes(CFWriteStreamRef writeStream);
 
 /* Deprecated versions; here for backwards compatibility. */
-typedef struct {
-    CFIndex version; /* == 1 */
-    void *(*create)(CFReadStreamRef stream, void *info);
-    void (*finalize)(CFReadStreamRef stream, void *info);
-    CFStringRef (*copyDescription)(CFReadStreamRef stream, void *info);
-    Boolean (*open)(CFReadStreamRef stream, CFStreamError *error, Boolean *openComplete, void *info);
-    Boolean (*openCompleted)(CFReadStreamRef stream, CFStreamError *error, void *info);
-    CFIndex (*read)(CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength, CFStreamError *error, Boolean *atEOF, void *info);
-    const UInt8 *(*getBuffer)(CFReadStreamRef stream, CFIndex maxBytesToRead, CFIndex *numBytesRead, CFStreamError *error, Boolean *atEOF, void *info);
-    Boolean (*canRead)(CFReadStreamRef stream, void *info);
-    void (*close)(CFReadStreamRef stream, void *info);
-    CFTypeRef (*copyProperty)(CFReadStreamRef stream, CFStringRef propertyName, void *info);
-    Boolean (*setProperty)(CFReadStreamRef stream, CFStringRef propertyName, CFTypeRef propertyValue, void *info);
-    void (*requestEvents)(CFReadStreamRef stream, CFOptionFlags streamEvents, void *info);
-    void (*schedule)(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
-    void (*unschedule)(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
+typedef struct CFReadStreamCallBacksV1 {
+  CFIndex version; /* == 1 */
+  void *(*create)(CFReadStreamRef stream, void *info);
+  void (*finalize)(CFReadStreamRef stream, void *info);
+  CFStringRef (*copyDescription)(CFReadStreamRef stream, void *info);
+  Boolean (*open)(CFReadStreamRef stream, CFStreamError *error,
+                  Boolean *openComplete, void *info);
+  Boolean (*openCompleted)(CFReadStreamRef stream, CFStreamError *error,
+                           void *info);
+  CFIndex (*read)(CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength,
+                  CFStreamError *error, Boolean *atEOF, void *info);
+  const UInt8 *(*getBuffer)(CFReadStreamRef stream, CFIndex maxBytesToRead,
+                            CFIndex *numBytesRead, CFStreamError *error,
+                            Boolean *atEOF, void *info);
+  Boolean (*canRead)(CFReadStreamRef stream, void *info);
+  void (*close)(CFReadStreamRef stream, void *info);
+  CFTypeRef (*copyProperty)(CFReadStreamRef stream, CFStringRef propertyName,
+                            void *info);
+  Boolean (*setProperty)(CFReadStreamRef stream, CFStringRef propertyName,
+                         CFTypeRef propertyValue, void *info);
+  void (*requestEvents)(CFReadStreamRef stream, CFOptionFlags streamEvents,
+                        void *info);
+  void (*schedule)(CFReadStreamRef stream, CFRunLoopRef runLoop,
+                   CFStringRef runLoopMode, void *info);
+  void (*unschedule)(CFReadStreamRef stream, CFRunLoopRef runLoop,
+                     CFStringRef runLoopMode, void *info);
 } CFReadStreamCallBacksV1;
 
-typedef struct {
-    CFIndex version; /* == 1 */
-    void *(*create)(CFWriteStreamRef stream, void *info);
-    void (*finalize)(CFWriteStreamRef stream, void *info);
-    CFStringRef (*copyDescription)(CFWriteStreamRef stream, void *info);
-    Boolean (*open)(CFWriteStreamRef stream, CFStreamError *error, Boolean *openComplete, void *info);
-    Boolean (*openCompleted)(CFWriteStreamRef stream, CFStreamError *error, void *info);
-    CFIndex (*write)(CFWriteStreamRef stream, const UInt8 *buffer, CFIndex bufferLength, CFStreamError *error, void *info);
-    Boolean (*canWrite)(CFWriteStreamRef stream, void *info); 
-    void (*close)(CFWriteStreamRef stream, void *info);
-    CFTypeRef (*copyProperty)(CFWriteStreamRef stream, CFStringRef propertyName, void *info);
-    Boolean (*setProperty)(CFWriteStreamRef stream, CFStringRef propertyName, CFTypeRef propertyValue, void *info);
-    void (*requestEvents)(CFWriteStreamRef stream, CFOptionFlags streamEvents, void *info);
-    void (*schedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
-    void (*unschedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
+typedef struct CFWriteStreamCallBacksV1 {
+  CFIndex version; /* == 1 */
+  void *(*create)(CFWriteStreamRef stream, void *info);
+  void (*finalize)(CFWriteStreamRef stream, void *info);
+  CFStringRef (*copyDescription)(CFWriteStreamRef stream, void *info);
+  Boolean (*open)(CFWriteStreamRef stream, CFStreamError *error,
+                  Boolean *openComplete, void *info);
+  Boolean (*openCompleted)(CFWriteStreamRef stream, CFStreamError *error,
+                           void *info);
+  CFIndex (*write)(CFWriteStreamRef stream, const UInt8 *buffer,
+                   CFIndex bufferLength, CFStreamError *error, void *info);
+  Boolean (*canWrite)(CFWriteStreamRef stream, void *info);
+  void (*close)(CFWriteStreamRef stream, void *info);
+  CFTypeRef (*copyProperty)(CFWriteStreamRef stream, CFStringRef propertyName,
+                            void *info);
+  Boolean (*setProperty)(CFWriteStreamRef stream, CFStringRef propertyName,
+                         CFTypeRef propertyValue, void *info);
+  void (*requestEvents)(CFWriteStreamRef stream, CFOptionFlags streamEvents,
+                        void *info);
+  void (*schedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop,
+                   CFStringRef runLoopMode, void *info);
+  void (*unschedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop,
+                     CFStringRef runLoopMode, void *info);
 } CFWriteStreamCallBacksV1;
 
-typedef struct {
-    CFIndex version; /* == 0 */
-    Boolean (*open)(CFReadStreamRef stream, CFStreamError *error, Boolean *openComplete, void *info);
-    Boolean (*openCompleted)(CFReadStreamRef stream, CFStreamError *error, void *info);
-    CFIndex (*read)(CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength, CFStreamError *error, Boolean *atEOF, void *info);
-    const UInt8 *(*getBuffer)(CFReadStreamRef stream, CFIndex maxBytesToRead, CFIndex *numBytesRead, CFStreamError *error, Boolean *atEOF, void *info);
-    Boolean (*canRead)(CFReadStreamRef stream, void *info);
-    void (*close)(CFReadStreamRef stream, void *info);
-    CFTypeRef (*copyProperty)(CFReadStreamRef stream, CFStringRef propertyName, void *info);
-    void (*schedule)(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
-    void (*unschedule)(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
+typedef struct CFReadStreamCallBacksV0 {
+  CFIndex version; /* == 0 */
+  Boolean (*open)(CFReadStreamRef stream, CFStreamError *error,
+                  Boolean *openComplete, void *info);
+  Boolean (*openCompleted)(CFReadStreamRef stream, CFStreamError *error,
+                           void *info);
+  CFIndex (*read)(CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength,
+                  CFStreamError *error, Boolean *atEOF, void *info);
+  const UInt8 *(*getBuffer)(CFReadStreamRef stream, CFIndex maxBytesToRead,
+                            CFIndex *numBytesRead, CFStreamError *error,
+                            Boolean *atEOF, void *info);
+  Boolean (*canRead)(CFReadStreamRef stream, void *info);
+  void (*close)(CFReadStreamRef stream, void *info);
+  CFTypeRef (*copyProperty)(CFReadStreamRef stream, CFStringRef propertyName,
+                            void *info);
+  void (*schedule)(CFReadStreamRef stream, CFRunLoopRef runLoop,
+                   CFStringRef runLoopMode, void *info);
+  void (*unschedule)(CFReadStreamRef stream, CFRunLoopRef runLoop,
+                     CFStringRef runLoopMode, void *info);
 } CFReadStreamCallBacksV0;
 
-typedef struct {
-    CFIndex version; /* == 0 */
-    Boolean (*open)(CFWriteStreamRef stream, CFStreamError *error, Boolean *openComplete, void *info);
-    Boolean (*openCompleted)(CFWriteStreamRef stream, CFStreamError *error, void *info);
-    CFIndex (*write)(CFWriteStreamRef stream, const UInt8 *buffer, CFIndex bufferLength, CFStreamError *error, void *info);
-    Boolean (*canWrite)(CFWriteStreamRef stream, void *info); 
-    void (*close)(CFWriteStreamRef stream, void *info);
-    CFTypeRef (*copyProperty)(CFWriteStreamRef stream, CFStringRef propertyName, void *info);
-    void (*schedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
-    void (*unschedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode, void *info);
+typedef struct CFWriteStreamCallBacksV0 {
+  CFIndex version; /* == 0 */
+  Boolean (*open)(CFWriteStreamRef stream, CFStreamError *error,
+                  Boolean *openComplete, void *info);
+  Boolean (*openCompleted)(CFWriteStreamRef stream, CFStreamError *error,
+                           void *info);
+  CFIndex (*write)(CFWriteStreamRef stream, const UInt8 *buffer,
+                   CFIndex bufferLength, CFStreamError *error, void *info);
+  Boolean (*canWrite)(CFWriteStreamRef stream, void *info);
+  void (*close)(CFWriteStreamRef stream, void *info);
+  CFTypeRef (*copyProperty)(CFWriteStreamRef stream, CFStringRef propertyName,
+                            void *info);
+  void (*schedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop,
+                   CFStringRef runLoopMode, void *info);
+  void (*unschedule)(CFWriteStreamRef stream, CFRunLoopRef runLoop,
+                     CFStringRef runLoopMode, void *info);
 } CFWriteStreamCallBacksV0;
 
 CF_EXTERN_C_END

@@ -85,12 +85,13 @@ typedef const void *	(*CFArrayRetainCallBack)(CFAllocatorRef allocator, const vo
 typedef void		(*CFArrayReleaseCallBack)(CFAllocatorRef allocator, const void *value);
 typedef CFStringRef	(*CFArrayCopyDescriptionCallBack)(const void *value);
 typedef Boolean		(*CFArrayEqualCallBack)(const void *value1, const void *value2);
-typedef struct {
-    CFIndex				version;
-    CFArrayRetainCallBack		retain;
-    CFArrayReleaseCallBack		release;
-    CFArrayCopyDescriptionCallBack	copyDescription;
-    CFArrayEqualCallBack		equal;
+
+typedef struct CFArrayCallBacks {
+  CFIndex version;
+  CFArrayRetainCallBack retain;
+  CFArrayReleaseCallBack release;
+  CFArrayCopyDescriptionCallBack copyDescription;
+  CFArrayEqualCallBack equal;
 } CFArrayCallBacks;
 
 /*!

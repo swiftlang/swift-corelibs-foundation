@@ -274,7 +274,7 @@ enum {
      __kCFVarWidthLocalBufferSize = 1008
 };
 
-typedef struct {      /* A simple struct to maintain ASCII/Unicode versions of the same buffer. */
+typedef struct CFVarWidthCharBuffer {      /* A simple struct to maintain ASCII/Unicode versions of the same buffer. */
      union {
         UInt8 *ascii;
 	UniChar *unicode;
@@ -395,19 +395,19 @@ enum {
     kCFBinaryPlistMarkerDict = 0xD0
 };
 
-typedef struct {
-    uint8_t	_magic[6];
-    uint8_t	_version[2];
+typedef struct CFBinaryPlistHeader {
+  uint8_t _magic[6];
+  uint8_t _version[2];
 } CFBinaryPlistHeader;
 
-typedef struct {
-    uint8_t	_unused[5];
-    uint8_t     _sortVersion;
-    uint8_t	_offsetIntSize;
-    uint8_t	_objectRefSize;
-    uint64_t	_numObjects;
-    uint64_t	_topObject;
-    uint64_t	_offsetTableOffset;
+typedef struct CFBinaryPlistTrailer {
+  uint8_t _unused[5];
+  uint8_t _sortVersion;
+  uint8_t _offsetIntSize;
+  uint8_t _objectRefSize;
+  uint64_t _numObjects;
+  uint64_t _topObject;
+  uint64_t _offsetTableOffset;
 } CFBinaryPlistTrailer;
 
 
@@ -566,7 +566,7 @@ CF_EXPORT CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
 CF_EXPORT CFIndex _CFStreamInstanceSize(void);
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-    typedef struct {
+    typedef struct CFDiscorporateMemory {
         mach_vm_address_t address;
         mach_vm_size_t size;
         mach_vm_address_t map_address;

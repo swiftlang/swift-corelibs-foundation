@@ -96,36 +96,37 @@ typedef CF_ENUM(CFIndex, CFURLComponentDecomposition) {
 	kCFURLComponentDecompositionRFC2396
 };
 
-typedef struct {
-	CFStringRef scheme;
-	CFStringRef schemeSpecific;
+typedef struct CFURLComponentsNonHierarchical {
+  CFStringRef scheme;
+  CFStringRef schemeSpecific;
 } CFURLComponentsNonHierarchical;
 
-typedef struct {
-	CFStringRef scheme;
-	CFStringRef user;
-	CFStringRef password;
-	CFStringRef host;
-	CFIndex port; /* kCFNotFound means ignore/omit */
-	CFArrayRef pathComponents;
-	CFStringRef parameterString;
-	CFStringRef query;
-	CFStringRef fragment;
-	CFURLRef baseURL;
+typedef struct CFURLComponentsRFC1808 {
+  CFStringRef scheme;
+  CFStringRef user;
+  CFStringRef password;
+  CFStringRef host;
+  CFIndex port; /* kCFNotFound means ignore/omit */
+  CFArrayRef pathComponents;
+  CFStringRef parameterString;
+  CFStringRef query;
+  CFStringRef fragment;
+  CFURLRef baseURL;
 } CFURLComponentsRFC1808;
 
-typedef struct {
-	CFStringRef scheme;
+typedef struct CFURLComponentsRFC2396 {
+  CFStringRef scheme;
 
-	/* if the registered name form of the net location is used, userinfo is NULL, port is kCFNotFound, and host is the entire registered name. */
-	CFStringRef userinfo;
-	CFStringRef host;
-	CFIndex port;
+  /* if the registered name form of the net location is used, userinfo is NULL,
+   * port is kCFNotFound, and host is the entire registered name. */
+  CFStringRef userinfo;
+  CFStringRef host;
+  CFIndex port;
 
-	CFArrayRef pathComponents;
-	CFStringRef query;
-	CFStringRef fragment;
-	CFURLRef baseURL;
+  CFArrayRef pathComponents;
+  CFStringRef query;
+  CFStringRef fragment;
+  CFURLRef baseURL;
 } CFURLComponentsRFC2396;
 
 /* Fills components and returns TRUE if the URL can be decomposed according to decompositionType; FALSE (leaving components unchanged) otherwise.  components should be a pointer to the CFURLComponents struct defined above that matches decompositionStyle */
@@ -366,10 +367,10 @@ CF_INLINE void CFStringGetCharactersFromInlineBuffer(CFStringInlineBuffer *buf, 
 #ifndef __kCFStringAppendBufferLength
     #define __kCFStringAppendBufferLength 1024
 #endif
-typedef struct {
-    UniChar buffer[__kCFStringAppendBufferLength];
-    CFIndex bufferIndex;
-    CFMutableStringRef theString;
+typedef struct CFStringAppendBuffer {
+  UniChar buffer[__kCFStringAppendBufferLength];
+  CFIndex bufferIndex;
+  CFMutableStringRef theString;
 } CFStringAppendBuffer;
 
 
@@ -450,12 +451,12 @@ CF_INLINE CFMutableStringRef CFStringCreateMutableWithAppendBuffer(CFStringAppen
  @field bitmap The bitmap data representing the membership of the Basic Multilingual Plane characters.
  If NULL, all BMP characters inside the range are members of the character set.
  */
-typedef struct {
-    CFCharacterSetRef cset;
-    uint32_t flags;
-    uint32_t rangeStart;
-    uint32_t rangeLimit;
-    const uint8_t *bitmap;
+typedef struct CFCharacterSetInlineBuffer {
+  CFCharacterSetRef cset;
+  uint32_t flags;
+  uint32_t rangeStart;
+  uint32_t rangeLimit;
+  const uint8_t *bitmap;
 } CFCharacterSetInlineBuffer;
 
 // Bits for flags field
