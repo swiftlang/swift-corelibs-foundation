@@ -350,11 +350,34 @@ CF_PRIVATE Boolean __CFProcessIsRestricted();
 
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
+#if defined(__CONSTANT_CFSTRINGS__)
+#define _CF_CONST_STRING_TAG __CFConstStr
 CF_EXPORT void *__CFConstantStringClassReference[];
+#else
+struct CF_CONST_STRING {
+    CFRuntimeBase _base;
+    uint8_t *_ptr;
+    uint32_t _length;
+};
 
-#ifdef __CONSTANT_CFSTRINGS__
+#define _CF_CONST_STRING_TAG CF_CONST_STRING
+CF_EXPORT int __CFConstantStringClassReference[];
+#endif
+
+#if __CF_BIG_ENDIAN__
+#define _CF_STRING_INFO { 0x00, 0x00, 0x07, 0xc8 }
+#elif __CF_LITTLE_ENDIAN__
+#define _CF_STRING_INFO { 0xc8, 0x07, 0x00, 0x00 }
+#else
+#error unsupported endianness
+#endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
+// TODO: Pinned retain count for constants?
+#define _CF_STRING_RC _CF_CONSTANT_OBJECT_STRONG_RC, 0,
+#else
+#define _CF_STRING_RC
+#endif
 
 #if DEPLOYMENT_TARGET_LINUX
 #define CONST_STRING_SECTION __attribute__((section(".cfstr.data")))
@@ -362,60 +385,26 @@ CF_EXPORT void *__CFConstantStringClassReference[];
 #define CONST_STRING_SECTION
 #endif
 
-// TODO: Pinned retain count for constants?
-#define CONST_STRING_DECL(S, V) \
-const struct __CFConstStr __##S CONST_STRING_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-const CFStringRef S = (CFStringRef)&__##S;
+/* CFNetwork also has a copy of the CONST_STRING_DECL macro (for use on
+ * platforms without constant string support in cc); please warn
+ * cfnetwork-core@group.apple.com of any necessary changes to this macro. --
+ * REW, 1/28/2002 */
 
-#define PE_CONST_STRING_DECL(S, V) \
-const static struct __CFConstStr __##S CONST_STRING_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
+#define CONST_STRING_DECL(S, V)                                                \
+  const struct _CF_CONST_STRING_TAG __##S CONST_STRING_SECTION = {             \
+      {(uintptr_t)&__CFConstantStringClassReference,                           \
+       _CF_STRING_RC _CF_STRING_INFO},                                         \
+      (uint8_t *)(V),                                                          \
+      sizeof(V) - 1};                                                          \
+  const CFStringRef S = (CFStringRef)&__##S;
 
-#else
-
-#define CONST_STRING_DECL(S, V) \
-const struct __CFConstStr __##S = {{(uintptr_t)&__CFConstantStringClassReference, _CFSWIFT_RC_INIT {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-const CFStringRef S = (CFStringRef)&__##S;
-
-#define PE_CONST_STRING_DECL(S, V) \
-const static struct __CFConstStr __##S = {{(uintptr_t)&__CFConstantStringClassReference, _CFSWIFT_RC_INIT {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
-
-#endif
-
-#else
-
-struct CF_CONST_STRING {
-    CFRuntimeBase _base;
-    uint8_t *_ptr;
-    uint32_t _length;
-};
-
-CF_EXPORT int __CFConstantStringClassReference[];
-
-/* CFNetwork also has a copy of the CONST_STRING_DECL macro (for use on platforms without constant string support in cc); please warn cfnetwork-core@group.apple.com of any necessary changes to this macro. -- REW, 1/28/2002 */
-
-#if __CF_BIG_ENDIAN__
-
-#define CONST_STRING_DECL(S, V)			\
-static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0x00, 0x00, 0x07, 0xc8}}, (uint8_t *)V, sizeof(V) - 1}; \
-const CFStringRef S = (CFStringRef) & __ ## S ## __;
-#define PE_CONST_STRING_DECL(S, V)			\
-static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0x00, 0x00, 0x07, 0xc8}}, (uint8_t *)V, sizeof(V) - 1}; \
-CF_PRIVATE const CFStringRef S = (CFStringRef) & __ ## S ## __;
-
-#elif __CF_LITTLE_ENDIAN__
-
-#define CONST_STRING_DECL(S, V)			\
-static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-const CFStringRef S = (CFStringRef) & __ ## S ## __;
-#define PE_CONST_STRING_DECL(S, V)			\
-static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-CF_PRIVATE const CFStringRef S = (CFStringRef) & __ ## S ## __;
-
-#endif
-
-#endif // __CONSTANT_CFSTRINGS__
+#define PE_CONST_STRING_DECL(S, V)                                             \
+  const static struct _CF_CONST_STRING_TAG __##S CONST_STRING_SECTION = {      \
+      {(uintptr_t)&__CFConstantStringClassReference,                           \
+       _CF_STRING_RC _CF_STRING_INFO},                                         \
+      (uint8_t *)(V),                                                          \
+      sizeof(V) - 1};                                                          \
+  CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
 
 CF_EXPORT bool __CFOASafe;
 CF_EXPORT void __CFSetLastAllocationEventName(void *ptr, const char *classname);
