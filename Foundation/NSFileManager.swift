@@ -458,7 +458,7 @@ public class NSFileManager : NSObject {
             }
         }
     }
-    
+
     public func removeItem(atPath path: String) throws {
         if rmdir(path) == 0 {
             return
@@ -471,12 +471,12 @@ public class NSFileManager : NSObject {
             let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
             ps.deinitialize(count: 2)
             ps.deallocateCapacity(2)
-            
+
             if stream != nil {
                 defer {
                     fts_close(stream)
                 }
-                
+
                 var current = fts_read(stream)
                 while current != nil {
                     switch Int32(current!.pointee.fts_info) {
@@ -496,7 +496,7 @@ public class NSFileManager : NSObject {
                     current = fts_read(stream)
                 }
             } else {
-                _NSErrorWithErrno(ENOTEMPTY, reading: false, path: path)
+                let _ = _NSErrorWithErrno(ENOTEMPTY, reading: false, path: path)
             }
             // TODO: Error handling if fts_read fails.
 
@@ -506,7 +506,7 @@ public class NSFileManager : NSObject {
             throw _NSErrorWithErrno(errno, reading: false, path: path)
         }
     }
-    
+
     public func copyItem(at srcURL: NSURL, to dstURL: NSURL) throws {
         guard srcURL.fileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : srcURL])
@@ -607,7 +607,7 @@ public class NSFileManager : NSObject {
                     return true
                 }
                 // chase the link; too bad if it is a slink to /Net/foo
-                stat(path, &s) >= 0
+                stat(path, &s)
             }
         } else {
             return false

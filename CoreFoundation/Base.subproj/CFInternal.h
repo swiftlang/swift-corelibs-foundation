@@ -158,22 +158,17 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount();
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
-#define __builtin_unreachable() do { } while (0)
+#if !defined(__GNUC__)
+#define __builtin_trap() DebugBreak()
+#define __builtin_unreachable() __assume(0)
+#endif
 #endif
 
-#if defined(__i386__) || defined(__x86_64__)
+#if defined(__i386__) || defined(__x86_64__) || defined(__ppc__) || (__arm__) || (__aarch64__)
     #if defined(__GNUC__)
         #define HALT do {__builtin_trap(); kill(getpid(), 9); __builtin_unreachable(); } while (0)
     #elif defined(_MSC_VER)
-        #define HALT do { DebugBreak(); abort(); __builtin_unreachable(); } while (0)
-    #else
-        #error Compiler not supported
-    #endif
-#elif defined(__ppc__) || (__arm__) || (__aarch64__)
-    #if defined(__GNUC__)
-        #define HALT do {__builtin_trap(); kill(getpid(), 9); __builtin_unreachable(); } while (0)
-    #elif defined(_MSC_VER)
-        #define HALT do { DebugBreak(); abort(); __builtin_unreachable(); } while (0)
+        #define HALT do { __builtin_trap(); abort(); __builtin_unreachable(); } while (0)
     #else
         #error Compiler not supported
     #endif
@@ -450,37 +445,18 @@ CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;
 
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 
 typedef pthread_mutex_t CFLock_t;
 
 #define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER)
 #define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
 
-#define __CFLock(LP) ({ \
-    (void)pthread_mutex_lock(LP); })
+#define __CFLock(LP) ({ (void)pthread_mutex_lock(LP); })
 
-#define __CFUnlock(LP) ({ \
-    (void)pthread_mutex_unlock(LP); })
+#define __CFUnlock(LP) ({ (void)pthread_mutex_unlock(LP); })
 
-#define __CFLockTry(LP) ({ \
-    pthread_mutex_trylock(LP) == 0; })
-
-#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-
-typedef pthread_mutex_t CFLock_t;
-
-#define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER)
-#define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
-
-#define __CFLock(LP) ({ \
-    (void)pthread_mutex_lock(LP); })
-
-#define __CFUnlock(LP) ({ \
-    (void)pthread_mutex_unlock(LP); })
-
-#define __CFLockTry(LP) ({ \
-    pthread_mutex_trylock(LP) == 0; })
+#define __CFLockTry(LP) ({ pthread_mutex_trylock(LP) == 0; })
 
 #elif DEPLOYMENT_TARGET_WINDOWS
 
@@ -806,7 +782,6 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name);
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX
-CF_EXPORT Boolean _CFIsMainThread(void);
 #define pthread_main_np _CFIsMainThread
 #endif
 

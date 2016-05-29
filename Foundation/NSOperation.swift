@@ -9,6 +9,12 @@
 
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
+#if os(Linux)
+import CoreFoundation
+private func pthread_main_np() -> Int32 {
+    return _CFIsMainThread() ? 1 : 0
+}
+#endif
 #endif
 
 public class NSOperation : NSObject {
@@ -318,7 +324,7 @@ public class NSOperationQueue : NSObject {
             } else {
                 effectiveName = "NSOperationQueue::\(unsafeAddress(of: self))"
             }
-            let attr: dispatch_queue_attr_t
+            let attr: dispatch_queue_attr_t?
             if maxConcurrentOperationCount == 1 {
                 attr = DISPATCH_QUEUE_SERIAL
             } else {
@@ -539,7 +545,7 @@ public class NSOperationQueue : NSObject {
                 return nil
             }
         } else {
-            return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: OpaquePointer.self)).takeUnretainedValue()
+            return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: UnsafePointer<Void>.self)).takeUnretainedValue()
         }
 #else
         return nil
@@ -552,7 +558,7 @@ public class NSOperationQueue : NSObject {
         if specific == nil {
             return NSOperationQueue(_queue: dispatch_get_main_queue(), maxConcurrentOperations: 1)
         } else {
-            return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: OpaquePointer.self)).takeUnretainedValue()
+            return Unmanaged<NSOperationQueue>.fromOpaque(unsafeBitCast(specific, to: UnsafePointer<Void>.self)).takeUnretainedValue()
         }
 #else
         fatalError("NSOperationQueue requires libdispatch")

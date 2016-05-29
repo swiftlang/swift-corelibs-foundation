@@ -478,7 +478,7 @@ public class NSXMLParser : NSObject {
         return result
         */
     }
-    
+
     internal func parseData(_ data: NSData) -> Bool {
         _CFXMLInterfaceSetStructuredErrorFunc(interface, _structuredErrorFunc)
         var result = true
@@ -508,30 +508,30 @@ public class NSXMLParser : NSObject {
                 } else {
                     allExistingData = data
                 }
-                
+
                 var handler: _CFXMLInterfaceSAXHandler? = nil
                 if delegate != nil {
                     handler = _handler
                 }
-                
+
                 _parserContext = _CFXMLInterfaceCreatePushParserCtxt(handler, interface, UnsafePointer<Int8>(allExistingData.bytes), 4, nil)
-                
+
                 var options = _kCFXMLInterfaceRecover | _kCFXMLInterfaceNoEnt // substitute entities, recover on errors
                 if shouldResolveExternalEntities {
                     options |= _kCFXMLInterfaceDTDLoad
                 }
-                
+
                 if handler == nil {
                     options |= (_kCFXMLInterfaceNoError | _kCFXMLInterfaceNoWarning)
                 }
-                
+
                 _CFXMLInterfaceCtxtUseOptions(_parserContext, options)
                 _haveDetectedEncoding = true
                 _bomChunk = nil
-                
+
                 if (totalLength > 4) {
                     let remainingData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(allExistingData.bytes.advanced(by: 4)), length: totalLength - 4, freeWhenDone: false)
-                    parseData(remainingData)
+                    let _ = parseData(remainingData)
                 }
             }
         } else {
@@ -541,7 +541,7 @@ public class NSXMLParser : NSObject {
         _CFXMLInterfaceSetStructuredErrorFunc(interface, nil)
         return result
     }
-    
+
     internal func parseFromStream() -> Bool {
         var result = true
         NSXMLParser.setCurrentParser(self)

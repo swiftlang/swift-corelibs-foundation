@@ -828,7 +828,7 @@ extension String {
         contentsOfURL url: NSURL,
         encoding enc: NSStringEncoding
         ) throws {
-        let ns = try NSString(contentsOfURL: url, encoding: enc)
+        let ns = try NSString(contentsOf: url, encoding: enc)
         self = ns._swiftObject
     }
     
@@ -844,7 +844,7 @@ extension String {
         contentsOfURL url: NSURL,
         usedEncoding enc: UnsafeMutablePointer<NSStringEncoding>? = nil
         ) throws {
-        let ns = try NSString(contentsOfURL: url, usedEncoding: enc)
+        let ns = try NSString(contentsOf: url, usedEncoding: enc)
         self = ns._swiftObject
     }
     

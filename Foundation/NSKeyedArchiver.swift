@@ -202,7 +202,7 @@ public class NSKeyedArchiver : NSCoder {
     private func _writeBinaryData(_ plist : NSDictionary) -> Bool {
         return __CFBinaryPlistWriteToStream(plist, self._stream) > 0
     }
-    
+
     public func finishEncoding() {
         if _flags.contains(ArchiverFlags.FinishedEncoding) {
             return
@@ -210,18 +210,18 @@ public class NSKeyedArchiver : NSCoder {
 
         var plist = Dictionary<String, Any>()
         var success : Bool
-        
+
         plist["$archiver"] = NSStringFromClass(self.dynamicType)
         plist["$version"] = NSKeyedArchivePlistVersion
         plist["$objects"] = self._objects
         plist["$top"] = self._containers[0].dict
-        
+
         if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiverWillFinish(self)
         }
 
         let nsPlist = plist.bridge()
-        
+
         if self.outputFormat == NSPropertyListFormat.XMLFormat_v1_0 {
             success = _writeXMLData(nsPlist)
         } else {
@@ -233,10 +233,10 @@ public class NSKeyedArchiver : NSCoder {
         }
 
         if success {
-            self._flags.insert(ArchiverFlags.FinishedEncoding)
+            let _ = self._flags.insert(ArchiverFlags.FinishedEncoding)
         }
     }
-    
+
     public class func setClassName(_ codedName: String?, forClass cls: AnyClass) {
         let clsName = String(cls.dynamicType)
         _classNameMapLock.synchronized {
@@ -284,7 +284,8 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     private static func _createObjectRef(_ uid : UInt32) -> CFKeyedArchiverUID {
-        return Unmanaged<CFKeyedArchiverUID>.fromOpaque(_CFKeyedArchiverUIDCreate(kCFAllocatorSystemDefault, uid)).takeUnretainedValue()
+        return Unmanaged<CFKeyedArchiverUID>.fromOpaque(
+            UnsafePointer<Void>(_CFKeyedArchiverUIDCreate(kCFAllocatorSystemDefault, uid))).takeUnretainedValue()
     }
     
     private func _createObjectRefCached(_ uid : UInt32) -> CFKeyedArchiverUID {
@@ -555,8 +556,8 @@ public class NSKeyedArchiver : NSCoder {
         var objectRef : CFKeyedArchiverUID? // encoded object reference
         let haveVisited : Bool
 
-        _validateStillEncoding()
-        
+        let _ = _validateStillEncoding()
+
         haveVisited = _haveVisited(objv)
         object = _replacementObject(objv)
 
@@ -565,9 +566,9 @@ public class NSKeyedArchiver : NSCoder {
             // we can return nil if the object is being conditionally encoded
             return nil
         }
-        
+
         _validateObjectSupportsSecureCoding(object)
-    
+
         if !haveVisited {
             var encodedObject : Any
 
@@ -578,7 +579,7 @@ public class NSKeyedArchiver : NSCoder {
 
                 let innerEncodingContext = EncodingContext()
                 var cls : AnyClass?
-                
+
                 _pushEncodingContext(innerEncodingContext)
                 codable.encodeWithCoder(self)
 
@@ -587,17 +588,17 @@ public class NSKeyedArchiver : NSCoder {
                 if cls == nil {
                     cls = object!.dynamicType
                 }
-                
+
                 _setObjectInCurrentEncodingContext(_classReference(cls!), forKey: "$class", escape: false)
                 _popEncodingContext()
                 encodedObject = innerEncodingContext.dict
             } else {
                 encodedObject = object!
             }
-            
+
             _setObject(encodedObject, forReference: unwrappedObjectRef)
         }
-        
+
         if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiver(self, didEncodeObject: object)
         }
@@ -643,12 +644,12 @@ public class NSKeyedArchiver : NSCoder {
         }
         encodeObject(aPropertyList, forKey: key)
     }
-    
+
     public func _encodePropertyList(_ aPropertyList: AnyObject, forKey key: String? = nil) {
-        _validateStillEncoding()
+        let _ = _validateStillEncoding()
         _setObjectInCurrentEncodingContext(aPropertyList, forKey: key)
     }
-    
+
     internal func _encodeValue<T: NSObject where T: NSCoding>(_ objv: T, forKey key: String? = nil) {
         _encodePropertyList(objv, forKey: key)
     }
@@ -808,7 +809,7 @@ public class NSKeyedArchiver : NSCoder {
         }
         set {
             if newValue {
-                _flags.insert(ArchiverFlags.RequiresSecureCoding)
+                let _ = _flags.insert(ArchiverFlags.RequiresSecureCoding)
             } else {
                 _flags.remove(ArchiverFlags.RequiresSecureCoding)
             }

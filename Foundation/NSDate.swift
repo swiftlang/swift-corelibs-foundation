@@ -11,7 +11,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
     import Darwin
-    #elseif os(Linux)
+#elseif os(Linux)
     import Glibc
 #endif
 
@@ -50,17 +50,17 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public var timeIntervalSinceReferenceDate: NSTimeInterval {
         return _timeIntervalSinceReferenceDate
     }
-    
+
     public convenience override init() {
         var tv = timeval()
-        withUnsafeMutablePointer(&tv) { t in
+        let _ = withUnsafeMutablePointer(&tv) { t in
             gettimeofday(t, nil)
         }
         var timestamp = NSTimeInterval(tv.tv_sec) - NSTimeIntervalSince1970
         timestamp += NSTimeInterval(tv.tv_usec) / 1000000.0
         self.init(timeIntervalSinceReferenceDate: timestamp)
     }
-    
+
     public required init(timeIntervalSinceReferenceDate ti: NSTimeInterval) {
         _timeIntervalSinceReferenceDate = ti
     }
