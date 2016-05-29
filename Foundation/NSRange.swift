@@ -43,7 +43,6 @@ extension NSRange {
         length = x.count
     }
     
-    @warn_unused_result
     public func toRange() -> CountableRange<Int>? {
         if location == NSNotFound { return nil }
         let min = location
