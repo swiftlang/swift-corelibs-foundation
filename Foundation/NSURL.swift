@@ -218,6 +218,7 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
     }
     
     public convenience init(fileURLWithPath path: String, relativeTo baseURL: URL?) {
+
         let thePath = _standardizedPath(path)
         
         var isDir : Bool = false
@@ -258,6 +259,7 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
     }
     
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
+
         let pathString = String(cString: path)
         self.init(fileURLWithPath: pathString, isDirectory: isDir, relativeTo: baseURL)
     }
@@ -301,7 +303,7 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
         }
     }
     
-    /* Returns the data representation of the URL's relativeString. If the URL was initialized with -initWithData:relativeToURL:, the data representation returned are the same bytes as those used at initialization; otherwise, the data representation returned are the bytes of the relativeString encoded with NSUTF8StringEncoding.
+    /* Returns the data representation of the URL's relativeString. If the URL was initialized with -initWithData:relativeTo:, the data representation returned are the same bytes as those used at initialization; otherwise, the data representation returned are the bytes of the relativeString encoded with NSUTF8StringEncoding.
     */
     public var dataRepresentation: Data {
         let bytesNeeded = CFURLGetBytes(_cfObject, nil, 0)
@@ -859,7 +861,7 @@ public class NSURLComponents: NSObject, NSCopying {
     }
     
     
-    // Getting these properties retains any percent encoding these components may have. Setting these properties assumes the component string is already correctly percent encoded. Attempting to set an incorrectly percent encoded string will cause an exception. Although ';' is a legal path character, it is recommended that it be percent-encoded for best compatibility with NSURL (-stringByAddingPercentEncodingWithAllowedCharacters: will percent-encode any ';' characters if you pass the URLPathAllowedCharacterSet).
+    // Getting these properties retains any percent encoding these components may have. Setting these properties assumes the component string is already correctly percent encoded. Attempting to set an incorrectly percent encoded string will cause an exception. Although ';' is a legal path character, it is recommended that it be percent-encoded for best compatibility with NSURL (-stringByAddingPercentEncodingWithAllowedCharacters: will percent-encode any ';' characters if you pass the urlPathAllowed).
     public var percentEncodedUser: String? {
         get {
             return _CFURLComponentsCopyPercentEncodedUser(_components)?._swiftObject
