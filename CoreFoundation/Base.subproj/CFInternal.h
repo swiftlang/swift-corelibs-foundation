@@ -175,28 +175,21 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount();
 #endif
 
 #if defined(DEBUG)
-    #define __CFAssert(cond, prio, desc, a1, a2, a3, a4, a5)	\
-	do {			\
-	    if (!(cond)) {	\
-		CFLog(prio, CFSTR(desc), a1, a2, a3, a4, a5); \
-		HALT;		\
-	    }			\
-	} while (0)
+    #define __CFAssert(cond, prio, desc, ...)                                  \
+        do {                                                                   \
+          if (!(cond)) {                                                       \
+            CFLog(prio, CFSTR(desc), __VA_ARGS__);                             \
+            HALT;                                                              \
+          }                                                                    \
+        } while (0)
 #else
-    #define __CFAssert(cond, prio, desc, a1, a2, a3, a4, a5)	\
-	do {} while (0)
+    #define __CFAssert(cond, prio, desc, ...)                                  \
+      do {                                                                     \
+      } while (0)
 #endif
 
-#define CFAssert(condition, priority, description)			\
-    __CFAssert((condition), (priority), description, 0, 0, 0, 0, 0)
-#define CFAssert1(condition, priority, description, a1)			\
-    __CFAssert((condition), (priority), description, (a1), 0, 0, 0, 0)
-#define CFAssert2(condition, priority, description, a1, a2)		\
-    __CFAssert((condition), (priority), description, (a1), (a2), 0, 0, 0)
-#define CFAssert3(condition, priority, description, a1, a2, a3)		\
-    __CFAssert((condition), (priority), description, (a1), (a2), (a3), 0, 0)
-#define CFAssert4(condition, priority, description, a1, a2, a3, a4)	\
-    __CFAssert((condition), (priority), description, (a1), (a2), (a3), (a4), 0)
+#define CFAssert(condition, priority, description, ...)                        \
+  __CFAssert((condition), (priority), description, __VA_ARGS__)
 
 #define __kCFLogAssertion	3
 

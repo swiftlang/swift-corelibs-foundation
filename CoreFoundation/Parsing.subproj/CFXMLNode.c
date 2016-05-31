@@ -119,7 +119,7 @@ static CFHashCode __CFXMLNodeHash(CFTypeRef  cf) {
         CFURLRef url = ((CFXMLDocumentInfo *)node->additionalData)->sourceURL;
         return url ? CFHash(url) : (CFHashCode)cf;
     } else {
-        CFAssert2(false, __kCFLogAssertion, "%s(): Saw unexpected XML type code %d", __PRETTY_FUNCTION__, node->dataTypeID);
+        CFAssert(false, __kCFLogAssertion, "%s(): Saw unexpected XML type code %d", __PRETTY_FUNCTION__, node->dataTypeID);
         return CFHash(cf);
     }
 }
@@ -191,7 +191,7 @@ static void __CFXMLNodeDeallocate(CFTypeRef  cf) {
                 break;
             }
             default:
-                CFAssert1(false, __kCFLogAssertion, "%s(): Encountered unexpected typeID %d (additionalData should be empty)", node->dataTypeID);
+                CFAssert(false, __kCFLogAssertion, "%s(): Encountered unexpected typeID %d (additionalData should be empty)", node->dataTypeID);
         }
     }
 }
@@ -299,7 +299,7 @@ static void _copyAddlDataForType(CFAllocatorRef alloc, CFXMLNodeTypeCode xmlType
             break;
         }
         default:
-            CFAssert2(false, __kCFLogAssertion, "%s(): Encountered unexpected typeID %d (additionalData should be empty)", __PRETTY_FUNCTION__, xmlType);
+            CFAssert(false, __kCFLogAssertion, "%s(): Encountered unexpected typeID %d (additionalData should be empty)", __PRETTY_FUNCTION__, xmlType);
     }
 }
 

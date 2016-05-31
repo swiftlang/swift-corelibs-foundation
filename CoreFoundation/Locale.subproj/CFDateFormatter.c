@@ -687,7 +687,7 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
             CFStringRef newFormat = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)timeBuffer, timeLen);
             CFStringRef formatString = __CFDateFormatterCreateForcedString(df, newFormat);
             CFIndex cnt = CFStringGetLength(formatString);
-            CFAssert1(cnt <= BUFFER_SIZE, __kCFLogAssertion, "%s(): time format string too long", __PRETTY_FUNCTION__);
+            CFAssert(cnt <= BUFFER_SIZE, __kCFLogAssertion, "%s(): time format string too long", __PRETTY_FUNCTION__);
             if (cnt <= BUFFER_SIZE) {
                 CFStringGetCharacters(formatString, CFRangeMake(0, cnt), (UniChar *)timeBuffer);
                 timeLen = cnt;
@@ -714,7 +714,7 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
             CFStringRef newFormat = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)ubuffer, ret);
             CFStringRef formatString = __CFDateFormatterCreateForcedString(df, newFormat);
             CFIndex cnt = CFStringGetLength(formatString);
-            CFAssert1(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
+            CFAssert(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
             if (cnt <= 1024) {
                 STACK_BUFFER_DECL(UChar, ubuffer, cnt);
                 const UChar *ustr = (UChar *)CFStringGetCharactersPtr((CFStringRef)formatString);
@@ -852,7 +852,7 @@ CFDateFormatterRef CFDateFormatterCreate(CFAllocatorRef allocator, CFLocaleRef l
     case kCFDateFormatterLongStyle:
     case kCFDateFormatterFullStyle: break;
     default:
-        CFAssert2(0, __kCFLogAssertion, "%s(): unknown date style %d", __PRETTY_FUNCTION__, dateStyle);
+        CFAssert(0, __kCFLogAssertion, "%s(): unknown date style %d", __PRETTY_FUNCTION__, dateStyle);
         memory->_dateStyle = kCFDateFormatterMediumStyle;
         break;
     }
@@ -863,7 +863,7 @@ CFDateFormatterRef CFDateFormatterCreate(CFAllocatorRef allocator, CFLocaleRef l
     case kCFDateFormatterLongStyle:
     case kCFDateFormatterFullStyle: break;
     default:
-        CFAssert2(0, __kCFLogAssertion, "%s(): unknown time style %d", __PRETTY_FUNCTION__, timeStyle);
+        CFAssert(0, __kCFLogAssertion, "%s(): unknown time style %d", __PRETTY_FUNCTION__, timeStyle);
         memory->_timeStyle = kCFDateFormatterMediumStyle;
         break;
     }
@@ -1183,7 +1183,7 @@ void CFDateFormatterSetFormat(CFDateFormatterRef formatter, CFStringRef formatSt
     __CFGenericValidateType(formatString, CFStringGetTypeID());
     formatString = __CFDateFormatterCreateForcedString(formatter, formatString);
     CFIndex cnt = CFStringGetLength(formatString);
-    CFAssert1(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
+    CFAssert(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
     if (formatter->_format != formatString && cnt <= 1024) {
         // When going from a situation where there is no custom format already,
         // and the "relative date formatting" property is set, we need to reset
@@ -1861,7 +1861,7 @@ static void __CFDateFormatterSetProperty(CFDateFormatterRef formatter, CFStringR
             formatter->_property._FormattingContext = (CFNumberRef)CFRetain(value);
         }
     } else {
-        CFAssert3(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
+        CFAssert(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
     }
     if (oldProperty) CFRelease(oldProperty);
 }
@@ -1987,7 +1987,7 @@ CFTypeRef CFDateFormatterCopyProperty(CFDateFormatterRef formatter, CFStringRef 
         int value = __cficu_udat_getContext(formatter->_df, UDISPCTX_TYPE_CAPITALIZATION, &status);
         return CFNumberCreate(CFGetAllocator(formatter), kCFNumberIntType, (const void *)&value);
     } else {
-        CFAssert3(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
+        CFAssert(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
     }
     return NULL;
 }

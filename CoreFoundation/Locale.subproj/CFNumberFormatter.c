@@ -119,7 +119,7 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
     case kCFNumberFormatterCurrencyAccountingStyle: ustyle = UNUM_CURRENCY_ACCOUNTING; break;
 #endif
     default:
-	CFAssert2(0, __kCFLogAssertion, "%s(): unknown style %d", __PRETTY_FUNCTION__, style);
+	CFAssert(0, __kCFLogAssertion, "%s(): unknown style %d", __PRETTY_FUNCTION__, style);
 	ustyle = UNUM_DECIMAL;
 	memory->_style = kCFNumberFormatterDecimalStyle;
 	break;
@@ -136,7 +136,7 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
     }
     UErrorCode status = U_ZERO_ERROR;
     memory->_nf = __cficu_unum_open((UNumberFormatStyle)ustyle, NULL, 0, cstr, NULL, &status);
-    CFAssert2(memory->_nf, __kCFLogAssertion, "%s(): error (%d) creating number formatter", __PRETTY_FUNCTION__, status);
+    CFAssert(memory->_nf, __kCFLogAssertion, "%s(): error (%d) creating number formatter", __PRETTY_FUNCTION__, status);
     if (NULL == memory->_nf) {
 	CFRelease(memory);
 	return NULL;
@@ -401,7 +401,7 @@ void CFNumberFormatterSetFormat(CFNumberFormatterRef formatter, CFStringRef form
     if (kCFNumberFormatterDurationStyle == formatter->_style) return;
     if (kCFNumberFormatterCurrencyPluralStyle == formatter->_style) return;
     CFIndex cnt = CFStringGetLength(formatString);
-    CFAssert1(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
+    CFAssert(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
     if ((!formatter->_format || !CFEqual(formatter->_format, formatString)) && cnt <= 1024) {
 	UErrorCode status = __CFNumberFormatterApplyPattern(formatter, formatString);
 	if (U_SUCCESS(status)) {
@@ -505,7 +505,7 @@ CFStringRef CFNumberFormatterCreateStringWithValue(CFAllocatorRef allocator, CFN
     } else if (numberType == kCFNumberSInt8Type || numberType == kCFNumberCharType) {
 	FORMAT_INT(int8_t, _CFBigNumInitWithInt8)
     } else {
-	CFAssert2(0, __kCFLogAssertion, "%s(): unknown CFNumberType (%d)", __PRETTY_FUNCTION__, numberType);
+	CFAssert(0, __kCFLogAssertion, "%s(): unknown CFNumberType (%d)", __PRETTY_FUNCTION__, numberType);
 	return NULL;
     }
     CFStringRef string = NULL;
@@ -983,7 +983,7 @@ void CFNumberFormatterSetProperty(CFNumberFormatterRef formatter, CFStringRef ke
         __CFGenericValidateType(value, CFBooleanGetTypeID());
         formatter->_usesCharacterDirection = value == kCFBooleanTrue;
     } else {
-	CFAssert3(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
+	CFAssert(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
     }
     if (_CFExecutableLinkedOnOrAfter(CFSystemVersionSnowLeopard)) {
         // do a dummy call to CFNumberFormatterGetFormat() after changing an attribute because
@@ -1211,7 +1211,7 @@ CFTypeRef CFNumberFormatterCopyProperty(CFNumberFormatterRef formatter, CFString
 	    return CFNumberCreate(CFGetAllocator(formatter), kCFNumberSInt32Type, &n);
 	}
     } else {
-	CFAssert3(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
+	CFAssert(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
     }
     return NULL;
 }
@@ -1220,7 +1220,7 @@ CFTypeRef CFNumberFormatterCopyProperty(CFNumberFormatterRef formatter, CFString
 Boolean CFNumberFormatterGetDecimalInfoForCurrencyCode(CFStringRef currencyCode, int32_t *defaultFractionDigits, double *roundingIncrement) {
     UChar ubuffer[4];
     __CFGenericValidateType(currencyCode, CFStringGetTypeID());
-    CFAssert1(3 == CFStringGetLength(currencyCode), __kCFLogAssertion, "%s(): currencyCode is not 3 characters", __PRETTY_FUNCTION__);
+    CFAssert(3 == CFStringGetLength(currencyCode), __kCFLogAssertion, "%s(): currencyCode is not 3 characters", __PRETTY_FUNCTION__);
     CFStringGetCharacters(currencyCode, CFRangeMake(0, 3), (UniChar *)ubuffer);
     ubuffer[3] = 0;
     UErrorCode icuStatus = U_ZERO_ERROR;
