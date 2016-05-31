@@ -98,7 +98,7 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
         
         c_flags += Configuration.current.extra_c_flags
 
-        swift_flags = "\nTARGET_SWIFTCFLAGS    = -I${SDKROOT}/lib/swift/" + Configuration.current.target.swift_sdk_name + " -Xcc -fblocks "
+        swift_flags = "\nTARGET_SWIFTCFLAGS    = -I${SDKROOT}/lib/swift/" + Configuration.current.target.swift_sdk_name + " -Xcc -fblocks -resource-dir ${SDKROOT}/lib/swift "
         if swift_triple is not None:
             swift_flags += "-target ${SWIFT_TARGET} "
         if Configuration.current.system_root is not None:
@@ -136,9 +136,15 @@ TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L${SDKROOT}/lib/swi
         if Configuration.current.bootstrap_directory is not None:
             ld_flags += """ -L${TARGET_BOOTSTRAP_DIR}/usr/lib"""
 
+        if Configuration.current.linker is not None:
+            ld_flags += " -fuse-ld=" + Configuration.current.linker
+
         if Configuration.current.toolchain is not None:
-            c_flags += " -B" + Configuration.current.toolchain.path_by_appending("bin").relative()
-            ld_flags += " -B" + Configuration.current.toolchain.path_by_appending("bin").relative()
+            bin_dir = Configuration.current.toolchain
+            if not os.path.exists(bin_dir.path_by_appending("ld").relative()):
+                bin_dir = Configuration.current.toolchain.path_by_appending("bin")
+            c_flags += " -B" + bin_dir.relative()
+            ld_flags += " -B" + bin_dir.relative()
 
         c_flags += "\n"
         swift_flags += "\n"
