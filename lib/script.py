@@ -33,7 +33,7 @@ class Script:
         variables = ""
         for key, val in Configuration.current.variables.items():
             variables += key + "=" + val
-        variables += "\n"
+            variables += "\n"
         verbose_flags = """
 VERBOSE_FLAGS = """ 
         if Configuration.current.verbose:
