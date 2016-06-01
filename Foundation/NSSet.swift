@@ -382,7 +382,7 @@ public class NSMutableSet : NSSet {
         super.init(objects: [], count: 0)
     }
     
-    public required convenience init?(coder: NSCoder) {
+    public required convenience init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
