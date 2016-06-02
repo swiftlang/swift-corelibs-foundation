@@ -400,6 +400,6 @@ class TestNSXMLDocument : XCTestCase {
         let doc = try XMLDocument(contentsOf: testBundle().URLForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
         let dtd = doc.dtd!
         let attrDecl = dtd.attributeDeclaration(forName: "print", elementName: "foo")!
-        XCTAssert(attrDecl.dtdKind == .NSXMLAttributeEnumerationKind)
+        XCTAssert(attrDecl.dtdKind == .enumerationAttribute)
     }
 }

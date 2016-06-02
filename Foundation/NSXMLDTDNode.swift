@@ -15,28 +15,48 @@ import CoreFoundation
 extension XMLDTDNode {
     public enum DTDKind : UInt {
         
-        case NSXMLEntityGeneralKind
-        case NSXMLEntityParsedKind
-        case NSXMLEntityUnparsedKind
-        case NSXMLEntityParameterKind
-        case NSXMLEntityPredefined
         
-        case NSXMLAttributeCDATAKind
-        case NSXMLAttributeIDKind
-        case NSXMLAttributeIDRefKind
-        case NSXMLAttributeIDRefsKind
-        case NSXMLAttributeEntityKind
-        case NSXMLAttributeEntitiesKind
-        case NSXMLAttributeNMTokenKind
-        case NSXMLAttributeNMTokensKind
-        case NSXMLAttributeEnumerationKind
-        case NSXMLAttributeNotationKind
+        case general
         
-        case NSXMLElementDeclarationUndefinedKind
-        case NSXMLElementDeclarationEmptyKind
-        case NSXMLElementDeclarationAnyKind
-        case NSXMLElementDeclarationMixedKind
-        case NSXMLElementDeclarationElementKind
+        case parsed
+        
+        case unparsed
+        
+        case parameter
+        
+        case predefined
+        
+        
+        case cdataAttribute
+        
+        case idAttribute
+        
+        case idRefAttribute
+        
+        case idRefsAttribute
+        
+        case entityAttribute
+        
+        case entitiesAttribute
+        
+        case nmTokenAttribute
+        
+        case nmTokensAttribute
+        
+        case enumerationAttribute
+        
+        case notationAttribute
+        
+        
+        case undefinedDeclaration
+        
+        case emptyDeclaration
+        
+        case anyDeclaration
+        
+        case mixedDeclaration
+        
+        case elementDeclaration
     }
 }
 
@@ -60,7 +80,7 @@ public class XMLDTDNode: XMLNode {
         super.init(ptr: ptr)
     } //primitive
     
-    public override init(kind: Kind, options: Int) {
+    public override init(kind: XMLNode.Kind, options: Int) {
         let ptr: _CFXMLNodePtr
 
         switch kind {
@@ -84,39 +104,39 @@ public class XMLDTDNode: XMLNode {
         case _kCFXMLDTDNodeTypeElement:
             switch _CFXMLDTDElementNodeGetType(_xmlNode) {
             case _kCFXMLDTDNodeElementTypeAny:
-                return .NSXMLElementDeclarationAnyKind
+                return .anyDeclaration
                 
             case _kCFXMLDTDNodeElementTypeEmpty:
-                return .NSXMLElementDeclarationEmptyKind
+                return .emptyDeclaration
                 
             case _kCFXMLDTDNodeElementTypeMixed:
-                return .NSXMLElementDeclarationMixedKind
+                return .mixedDeclaration
                 
             case _kCFXMLDTDNodeElementTypeElement:
-                return .NSXMLElementDeclarationElementKind
+                return .elementDeclaration
                 
             default:
-                return .NSXMLElementDeclarationUndefinedKind
+                return .undefinedDeclaration
             }
             
         case _kCFXMLDTDNodeTypeEntity:
             switch _CFXMLDTDEntityNodeGetType(_xmlNode) {
             case _kCFXMLDTDNodeEntityTypeInternalGeneral:
-                return .NSXMLEntityGeneralKind
+                return .general
                 
             case _kCFXMLDTDNodeEntityTypeExternalGeneralUnparsed:
-                return .NSXMLEntityUnparsedKind
+                return .unparsed
                 
             case _kCFXMLDTDNodeEntityTypeExternalParameter:
                 fallthrough
             case _kCFXMLDTDNodeEntityTypeInternalParameter:
-                return .NSXMLEntityParameterKind
+                return .parameter
                 
             case _kCFXMLDTDNodeEntityTypeInternalPredefined:
-                return .NSXMLEntityPredefined
+                return .predefined
                 
             case _kCFXMLDTDNodeEntityTypeExternalGeneralParsed:
-                return .NSXMLEntityParsedKind
+                return .general
                 
             default:
                 fatalError("Invalid entity declaration type")
@@ -125,34 +145,34 @@ public class XMLDTDNode: XMLNode {
         case _kCFXMLDTDNodeTypeAttribute:
             switch _CFXMLDTDAttributeNodeGetType(_xmlNode) {
             case _kCFXMLDTDNodeAttributeTypeCData:
-                return .NSXMLAttributeCDATAKind
+                return .cdataAttribute
                 
             case _kCFXMLDTDNodeAttributeTypeID:
-                return .NSXMLAttributeIDKind
+                return .idAttribute
                 
             case _kCFXMLDTDNodeAttributeTypeIDRef:
-                return .NSXMLAttributeIDRefKind
+                return .idRefAttribute
                 
             case _kCFXMLDTDNodeAttributeTypeIDRefs:
-                return .NSXMLAttributeIDRefsKind
+                return .idRefsAttribute
                 
             case _kCFXMLDTDNodeAttributeTypeEntity:
-                return .NSXMLAttributeEntityKind
+                return .entityAttribute
                 
             case _kCFXMLDTDNodeAttributeTypeEntities:
-                return .NSXMLAttributeEntitiesKind
+                return .entitiesAttribute
                 
             case _kCFXMLDTDNodeAttributeTypeNMToken:
-                return .NSXMLAttributeNMTokenKind
+                return .nmTokenAttribute
                 
             case _kCFXMLDTDNodeAttributeTypeNMTokens:
-                return .NSXMLAttributeNMTokensKind
+                return .nmTokensAttribute
                 
             case _kCFXMLDTDNodeAttributeTypeEnumeration:
-                return .NSXMLAttributeEnumerationKind
+                return .enumerationAttribute
                 
             case _kCFXMLDTDNodeAttributeTypeNotation:
-                return .NSXMLAttributeNotationKind
+                return .notationAttribute
                 
             default:
                 fatalError("Invalid attribute declaration type")
@@ -214,14 +234,14 @@ public class XMLDTDNode: XMLNode {
     */
     public var notationName: String? {
         get {
-            guard dtdKind == .NSXMLEntityUnparsedKind else {
+            guard dtdKind == .unparsed else {
                 return nil
             }
 
             return _CFXMLGetEntityContent(_xmlNode)?._swiftObject
         }
         set {
-            guard dtdKind == .NSXMLEntityUnparsedKind else {
+            guard dtdKind == .unparsed else {
                 return
             }
 
