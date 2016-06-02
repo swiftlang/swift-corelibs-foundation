@@ -176,7 +176,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount();
     #define __CFAssert(cond, prio, desc, ...)                                  \
         do {                                                                   \
           if (!(cond)) {                                                       \
-            CFLog(prio, CFSTR(desc), __VA_ARGS__);                             \
+            CFLog(prio, CFSTR(desc), ##__VA_ARGS__);                             \
             HALT;                                                              \
           }                                                                    \
         } while (0)
@@ -187,7 +187,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount();
 #endif
 
 #define CFAssert(condition, priority, description, ...)                        \
-  __CFAssert((condition), (priority), description, __VA_ARGS__)
+  __CFAssert((condition), (priority), description, ##__VA_ARGS__)
 
 #define __kCFLogAssertion	3
 
