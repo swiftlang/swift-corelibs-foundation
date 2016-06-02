@@ -28,7 +28,7 @@ public class XMLElement: XMLNode {
         @abstract Returns an element whose full QName is specified.
     */
     public init(name: String, uri: String?) {
-        super.init(kind: .ElementKind, options: 0)
+        super.init(kind: .element, options: 0)
         self.URI = uri
         self.name = name
     } //primitive

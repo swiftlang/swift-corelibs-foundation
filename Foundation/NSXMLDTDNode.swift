@@ -84,7 +84,7 @@ public class XMLDTDNode: XMLNode {
         let ptr: _CFXMLNodePtr
 
         switch kind {
-        case .ElementDeclarationKind:
+        case .elementDeclaration:
             ptr = _CFXMLDTDNewElementDesc(nil, nil)!
 
         default:

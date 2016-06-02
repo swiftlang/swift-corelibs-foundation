@@ -102,7 +102,7 @@ public class XMLDocument : XMLNode {
     public init(rootElement element: XMLElement?) {
         precondition(element?.parent == nil)
 
-        super.init(kind: .DocumentKind, options: NSXMLNodeOptionsNone)
+        super.init(kind: .document, options: NSXMLNodeOptionsNone)
         if let element = element {
             _CFXMLDocSetRootElement(_xmlDoc, element._xmlNode)
             _childNodes.insert(element)
@@ -311,7 +311,7 @@ public class XMLDocument : XMLNode {
         @abstract The representation of this node as it would appear in an XML document, encoded based on characterEncoding.
     */
     public func xmlData(withOptions options: Int) -> Data {
-        let string = XMLStringWithOptions(options)
+        let string = xmlString(withOptions: options)
         // TODO: support encodings other than UTF-8
 
         return string._bridgeToObject().data(using: NSUTF8StringEncoding) ?? Data()

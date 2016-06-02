@@ -34,20 +34,19 @@ import CoreFoundation
 public class XMLNode: NSObject, NSCopying {
 
     public enum Kind : UInt {
-        
-        case InvalidKind
-        case DocumentKind
-        case ElementKind
-        case AttributeKind
-        case NamespaceKind
-        case ProcessingInstructionKind
-        case CommentKind
-        case TextKind
-        case DTDKind
-        case EntityDeclarationKind
-        case AttributeDeclarationKind
-        case ElementDeclarationKind
-        case NotationDeclarationKind
+        case invalid
+        case document
+        case element
+        case attribute
+        case namespace
+        case processingInstruction
+        case comment
+        case text
+        case dtd
+        case entityDeclaration
+        case attributeDeclaration
+        case elementDeclaration
+        case notationDeclaration
     }
 
     public override func copy() -> AnyObject {
@@ -76,18 +75,18 @@ public class XMLNode: NSObject, NSCopying {
     public init(kind: Kind, options: Int) {
 
         switch kind {
-        case .DocumentKind:
+        case .document:
             let docPtr = _CFXMLNewDoc("1.0")
             _CFXMLDocSetStandalone(docPtr, false) // same default as on Darwin
             _xmlNode = _CFXMLNodePtr(docPtr)
 
-        case .ElementKind:
+        case .element:
             _xmlNode = _CFXMLNewNode(nil, "")
 
-        case .AttributeKind:
+        case .attribute:
             _xmlNode = _CFXMLNodePtr(_CFXMLNewProperty(nil, "", ""))
 
-        case .DTDKind:
+        case .dtd:
             _xmlNode = _CFXMLNewDTD(nil, "", "", "")
             
         default:
@@ -114,7 +113,7 @@ public class XMLNode: NSObject, NSCopying {
         @abstract Returns a document
         @param element The document's root node.
     */
-    public class func documentWithRootElement(_ element: XMLElement) -> AnyObject {
+    public class func document(withRootElement element: XMLElement) -> AnyObject {
         return XMLDocument(rootElement: element)
     }
 
@@ -130,7 +129,7 @@ public class XMLNode: NSObject, NSCopying {
         @method elementWithName:URI:
         @abstract Returns an element whose full QName is specified.
     */
-    public class func elementWithName(_ name: String, uri: String) -> AnyObject {
+    public class func element(withName name: String, uri: String) -> AnyObject {
         return XMLElement(name: name, uri: uri)
     }
 
@@ -138,7 +137,7 @@ public class XMLNode: NSObject, NSCopying {
         @method elementWithName:stringValue:
         @abstract Returns an element with a single text node child <tt>&lt;name>string&lt;/name></tt>.
     */
-    public class func elementWithName(_ name: String, stringValue string: String) -> AnyObject {
+    public class func element(withName name: String, stringValue string: String) -> AnyObject {
         return XMLElement(name: name, stringValue: string)
     }
 
@@ -146,7 +145,7 @@ public class XMLNode: NSObject, NSCopying {
         @method elementWithName:children:attributes:
         @abstract Returns an element children and attributes <tt>&lt;name attr1="foo" attr2="bar">&lt;-- child1 -->child2&lt;/name></tt>.
     */
-    public class func elementWithName(_ name: String, children: [XMLNode]?, attributes: [XMLNode]?) -> AnyObject {
+    public class func element(withName name: String, children: [XMLNode]?, attributes: [XMLNode]?) -> AnyObject {
         let element = XMLElement(name: name)
         element.setChildren(children)
         element.attributes = attributes
@@ -168,7 +167,7 @@ public class XMLNode: NSObject, NSCopying {
         @method attributeWithLocalName:URI:stringValue:
         @abstract Returns an attribute whose full QName is specified.
     */
-    public class func attributeWithName(_ name: String, URI: String, stringValue: String) -> AnyObject {
+    public class func attribute(withName name: String, uri: String, stringValue: String) -> AnyObject {
         let attribute = XMLNode.attributeWithName(name, stringValue: stringValue) as! XMLNode
 //        attribute.URI = URI
 
@@ -179,13 +178,13 @@ public class XMLNode: NSObject, NSCopying {
         @method namespaceWithName:stringValue:
         @abstract Returns a namespace <tt>xmlns:name="stringValue"</tt>.
     */
-    public class func namespaceWithName(_ name: String, stringValue: String) -> AnyObject { NSUnimplemented() }
+    public class func namespace(withName name: String, stringValue: String) -> AnyObject { NSUnimplemented() }
 
     /*!
         @method processingInstructionWithName:stringValue:
         @abstract Returns a processing instruction <tt>&lt;?name stringValue></tt>.
     */
-    public class func processingInstructionWithName(_ name: String, stringValue: String) -> AnyObject {
+    public class func processingInstruction(withName name: String, stringValue: String) -> AnyObject {
         let node = _CFXMLNewProcessingInstruction(name, stringValue)
         return XMLNode(ptr: node)
     }
@@ -194,7 +193,7 @@ public class XMLNode: NSObject, NSCopying {
         @method commentWithStringValue:
         @abstract Returns a comment <tt>&lt;--stringValue--></tt>.
     */
-    public class func commentWithStringValue(_ stringValue: String) -> AnyObject {
+    public class func comment(withStringValue stringValue: String) -> AnyObject {
         let node = _CFXMLNewComment(stringValue)
         return XMLNode(ptr: node)
     }
@@ -203,7 +202,7 @@ public class XMLNode: NSObject, NSCopying {
         @method textWithStringValue:
         @abstract Returns a text node.
     */
-    public class func textWithStringValue(_ stringValue: String) -> AnyObject {
+    public class func text(withStringValue stringValue: String) -> AnyObject {
         let node = _CFXMLNewTextNode(stringValue)
         return XMLNode(ptr: node)
     }
@@ -212,7 +211,7 @@ public class XMLNode: NSObject, NSCopying {
         @method DTDNodeWithXMLString:
         @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
     */
-    public class func DTDNodeWithXMLString(_ string: String) -> AnyObject? {
+    public class func dtdNode(withXMLString string: String) -> AnyObject? {
         guard let node = _CFXMLParseDTDNode(string) else { return nil }
 
         return XMLDTDNode(ptr: node)
@@ -225,31 +224,31 @@ public class XMLNode: NSObject, NSCopying {
     public var kind: Kind  {
         switch _CFXMLNodeGetType(_xmlNode) {
         case _kCFXMLTypeElement:
-            return .ElementKind
+            return .element
 
         case _kCFXMLTypeAttribute:
-            return .AttributeKind
+            return .attribute
 
         case _kCFXMLTypeDocument:
-            return .DocumentKind
+            return .document
 
         case _kCFXMLTypeDTD:
-            return .DTDKind
+            return .dtd
 
         case _kCFXMLDTDNodeTypeElement:
-            return .ElementDeclarationKind
+            return .elementDeclaration
 
         case _kCFXMLDTDNodeTypeEntity:
-            return .EntityDeclarationKind
+            return .entityDeclaration
 
         case _kCFXMLDTDNodeTypeNotation:
-            return .NotationDeclarationKind
+            return .notationDeclaration
 
         case _kCFXMLDTDNodeTypeAttribute:
-            return .AttributeDeclarationKind
+            return .attributeDeclaration
 
         default:
-            return .InvalidKind
+            return .invalid
         }
     } //primitive
 
@@ -307,7 +306,7 @@ public class XMLNode: NSObject, NSCopying {
     public var stringValue: String? {
         get {
             switch kind {
-            case .EntityDeclarationKind:
+            case .entityDeclaration:
                 return _CFXMLGetEntityContent(_CFXMLEntityPtr(_xmlNode))?._swiftObject
 
             default:
@@ -328,7 +327,7 @@ public class XMLNode: NSObject, NSCopying {
 
     private func _removeAllChildNodesExceptAttributes() {
         for node in _childNodes {
-            if node.kind != Kind.AttributeKind {
+            if node.kind != .attribute {
                 _CFXMLUnlinkNode(node._xmlNode)
                 _childNodes.remove(node)
             }
@@ -461,11 +460,11 @@ public class XMLNode: NSObject, NSCopying {
     */
     public var children: [XMLNode]? {
         switch kind {
-        case .DocumentKind:
+        case .document:
             fallthrough
-        case .ElementKind:
+        case .element:
             fallthrough
-        case .DTDKind:
+        case .dtd:
             return Array<XMLNode>(self as XMLNode)
 
         default:
@@ -645,7 +644,7 @@ public class XMLNode: NSObject, NSCopying {
         @method localNameForName:
         @abstract Returns the local name bar in foo:bar.
      */
-    public class func localNameForName(_ name: String) -> String {
+    public class func localName(forName name: String) -> String {
 //        return name.withCString {
 //            var length: Int32 = 0
 //            let result = xmlSplitQName3(UnsafePointer<xmlChar>($0), &length)
@@ -658,7 +657,7 @@ public class XMLNode: NSObject, NSCopying {
         @method localNameForName:
         @abstract Returns the prefix foo in the name foo:bar.
     */
-    public class func prefixForName(_ name: String) -> String? {
+    public class func prefix(forName name: String) -> String? {
 //        return name.withCString {
 //            var result: UnsafeMutablePointer<xmlChar> = nil
 //            let unused = xmlSplitQName2(UnsafePointer<xmlChar>($0), &result)
@@ -675,29 +674,29 @@ public class XMLNode: NSObject, NSCopying {
         @method predefinedNamespaceForPrefix:
         @abstract Returns the namespace belonging to one of the predefined namespaces xml, xs, or xsi
     */
-    public class func predefinedNamespaceForPrefix(_ name: String) -> XMLNode? { NSUnimplemented() }
+    public class func predefinedNamespace(forPrefix name: String) -> XMLNode? { NSUnimplemented() }
 
     /*!
         @method description
         @abstract Used for debugging. May give more information than XMLString.
     */
     public override var description: String {
-        return XMLString
+        return xmlString
     }
 
     /*!
         @method XMLString
         @abstract The representation of this node as it would appear in an XML document.
     */
-    public var XMLString: String {
-        return XMLStringWithOptions(NSXMLNodeOptionsNone)
+    public var xmlString: String {
+        return xmlString(withOptions: NSXMLNodeOptionsNone)
     }
 
     /*!
         @method XMLStringWithOptions:
         @abstract The representation of this node as it would appear in an XML document, with various output options available.
     */
-    public func XMLStringWithOptions(_ options: Int) -> String {
+    public func xmlString(withOptions options: Int) -> String {
         return _CFXMLStringWithOptions(_xmlNode, UInt32(options))._swiftObject
     }
 
@@ -712,7 +711,7 @@ public class XMLNode: NSObject, NSCopying {
         @abstract Returns the nodes resulting from applying an XPath to this node using the node as the context item ("."). normalizeAdjacentTextNodesPreservingCDATA:NO should be called if there are adjacent text nodes since they are not allowed under the XPath/XQuery Data Model.
     	@returns An array whose elements are a kind of NSXMLNode.
     */
-    public func nodesForXPath(_ xpath: String) throws -> [XMLNode] {
+    public func nodes(forXPath xpath: String) throws -> [XMLNode] {
         guard let nodes = _CFXMLNodesForXPath(_xmlNode, xpath) else {
             NSUnimplemented()
         }
@@ -731,9 +730,9 @@ public class XMLNode: NSObject, NSCopying {
         @abstract Returns the objects resulting from applying an XQuery to this node using the node as the context item ("."). Constants are a name-value dictionary for constants declared "external" in the query. normalizeAdjacentTextNodesPreservingCDATA:NO should be called if there are adjacent text nodes since they are not allowed under the XPath/XQuery Data Model.
     	@returns An array whose elements are kinds of NSArray, NSData, NSDate, NSNumber, NSString, NSURL, or NSXMLNode.
     */
-    public func objectsForXQuery(_ xquery: String, constants: [String : AnyObject]?) throws -> [AnyObject] { NSUnimplemented() }
+    public func objects(forXQuery xquery: String, constants: [String : AnyObject]?) throws -> [AnyObject] { NSUnimplemented() }
 
-    public func objectsForXQuery(_ xquery: String) throws -> [AnyObject] { NSUnimplemented() }
+    public func objects(forXQuery xquery: String) throws -> [AnyObject] { NSUnimplemented() }
 
     internal var _childNodes: Set<XMLNode> = []
 
@@ -743,13 +742,13 @@ public class XMLNode: NSObject, NSCopying {
         }
 
         switch kind {
-        case .DocumentKind:
+        case .document:
             _CFXMLFreeDocument(_CFXMLDocPtr(_xmlNode))
 
-        case .DTDKind:
+        case .dtd:
             _CFXMLFreeDTD(_CFXMLDTDPtr(_xmlNode))
 
-        case .AttributeKind:
+        case .attribute:
             _CFXMLFreeProperty(_xmlNode)
             
         default:
