@@ -409,7 +409,7 @@ public class XMLParser : NSObject {
     internal var _namespaces = [[String:String]]()
     
     // initializes the parser with the specified URL.
-    public convenience init?(contentsOfURL url: URL) {
+    public convenience init?(contentsOf url: URL) {
         if url.isFileURL {
             if let stream = InputStream(URL: url) {
                 self.init(stream: stream)
@@ -774,98 +774,191 @@ extension XMLParser {
     // Error reporting
     public enum ErrorCode : Int {
         
-        case InternalError
-        case OutOfMemoryError
-        case DocumentStartError
-        case EmptyDocumentError
-        case PrematureDocumentEndError
-        case InvalidHexCharacterRefError
-        case InvalidDecimalCharacterRefError
-        case InvalidCharacterRefError
-        case InvalidCharacterError
-        case CharacterRefAtEOFError
-        case CharacterRefInPrologError
-        case CharacterRefInEpilogError
-        case CharacterRefInDTDError
-        case EntityRefAtEOFError
-        case EntityRefInPrologError
-        case EntityRefInEpilogError
-        case EntityRefInDTDError
-        case ParsedEntityRefAtEOFError
-        case ParsedEntityRefInPrologError
-        case ParsedEntityRefInEpilogError
-        case ParsedEntityRefInInternalSubsetError
-        case EntityReferenceWithoutNameError
-        case EntityReferenceMissingSemiError
-        case ParsedEntityRefNoNameError
-        case ParsedEntityRefMissingSemiError
-        case UndeclaredEntityError
-        case UnparsedEntityError
-        case EntityIsExternalError
-        case EntityIsParameterError
-        case UnknownEncodingError
-        case EncodingNotSupportedError
-        case StringNotStartedError
-        case StringNotClosedError
-        case NamespaceDeclarationError
-        case EntityNotStartedError
-        case EntityNotFinishedError
-        case LessThanSymbolInAttributeError
-        case AttributeNotStartedError
-        case AttributeNotFinishedError
-        case AttributeHasNoValueError
-        case AttributeRedefinedError
-        case LiteralNotStartedError
-        case LiteralNotFinishedError
-        case CommentNotFinishedError
-        case ProcessingInstructionNotStartedError
-        case ProcessingInstructionNotFinishedError
-        case NotationNotStartedError
-        case NotationNotFinishedError
-        case AttributeListNotStartedError
-        case AttributeListNotFinishedError
-        case MixedContentDeclNotStartedError
-        case MixedContentDeclNotFinishedError
-        case ElementContentDeclNotStartedError
-        case ElementContentDeclNotFinishedError
-        case XMLDeclNotStartedError
-        case XMLDeclNotFinishedError
-        case ConditionalSectionNotStartedError
-        case ConditionalSectionNotFinishedError
-        case ExternalSubsetNotFinishedError
-        case DOCTYPEDeclNotFinishedError
-        case MisplacedCDATAEndStringError
-        case CDATANotFinishedError
-        case MisplacedXMLDeclarationError
-        case SpaceRequiredError
-        case SeparatorRequiredError
-        case NMTOKENRequiredError
-        case NAMERequiredError
-        case PCDATARequiredError
-        case URIRequiredError
-        case PublicIdentifierRequiredError
-        case LTRequiredError
-        case GTRequiredError
-        case LTSlashRequiredError
-        case EqualExpectedError
-        case TagNameMismatchError
-        case UnfinishedTagError
-        case StandaloneValueError
-        case InvalidEncodingNameError
-        case CommentContainsDoubleHyphenError
-        case InvalidEncodingError
-        case ExternalStandaloneEntityError
-        case InvalidConditionalSectionError
-        case EntityValueRequiredError
-        case NotWellBalancedError
-        case ExtraContentError
-        case InvalidCharacterInEntityError
-        case ParsedEntityRefInInternalError
-        case EntityRefLoopError
-        case EntityBoundaryError
-        case InvalidURIError
-        case URIFragmentError
-        case NoDTDError
-        case DelegateAbortedParseError
+        
+        case internalError
+        
+        case outOfMemoryError
+        
+        case documentStartError
+        
+        case emptyDocumentError
+        
+        case prematureDocumentEndError
+        
+        case invalidHexCharacterRefError
+        
+        case invalidDecimalCharacterRefError
+        
+        case invalidCharacterRefError
+        
+        case invalidCharacterError
+        
+        case characterRefAtEOFError
+        
+        case characterRefInPrologError
+        
+        case characterRefInEpilogError
+        
+        case characterRefInDTDError
+        
+        case entityRefAtEOFError
+        
+        case entityRefInPrologError
+        
+        case entityRefInEpilogError
+        
+        case entityRefInDTDError
+        
+        case parsedEntityRefAtEOFError
+        
+        case parsedEntityRefInPrologError
+        
+        case parsedEntityRefInEpilogError
+        
+        case parsedEntityRefInInternalSubsetError
+        
+        case entityReferenceWithoutNameError
+        
+        case entityReferenceMissingSemiError
+        
+        case parsedEntityRefNoNameError
+        
+        case parsedEntityRefMissingSemiError
+        
+        case undeclaredEntityError
+        
+        case unparsedEntityError
+        
+        case entityIsExternalError
+        
+        case entityIsParameterError
+        
+        case unknownEncodingError
+        
+        case encodingNotSupportedError
+        
+        case stringNotStartedError
+        
+        case stringNotClosedError
+        
+        case namespaceDeclarationError
+        
+        case entityNotStartedError
+        
+        case entityNotFinishedError
+        
+        case lessThanSymbolInAttributeError
+        
+        case attributeNotStartedError
+        
+        case attributeNotFinishedError
+        
+        case attributeHasNoValueError
+        
+        case attributeRedefinedError
+        
+        case literalNotStartedError
+        
+        case literalNotFinishedError
+        
+        case commentNotFinishedError
+        
+        case processingInstructionNotStartedError
+        
+        case processingInstructionNotFinishedError
+        
+        case notationNotStartedError
+        
+        case notationNotFinishedError
+        
+        case attributeListNotStartedError
+        
+        case attributeListNotFinishedError
+        
+        case mixedContentDeclNotStartedError
+        
+        case mixedContentDeclNotFinishedError
+        
+        case elementContentDeclNotStartedError
+        
+        case elementContentDeclNotFinishedError
+        
+        case xmlDeclNotStartedError
+        
+        case xmlDeclNotFinishedError
+        
+        case conditionalSectionNotStartedError
+        
+        case conditionalSectionNotFinishedError
+        
+        case externalSubsetNotFinishedError
+        
+        case doctypeDeclNotFinishedError
+        
+        case misplacedCDATAEndStringError
+        
+        case cdataNotFinishedError
+        
+        case misplacedXMLDeclarationError
+        
+        case spaceRequiredError
+        
+        case separatorRequiredError
+        
+        case nmtokenRequiredError
+        
+        case nameRequiredError
+        
+        case pcdataRequiredError
+        
+        case uriRequiredError
+        
+        case publicIdentifierRequiredError
+        
+        case ltRequiredError
+        
+        case gtRequiredError
+        
+        case ltSlashRequiredError
+        
+        case equalExpectedError
+        
+        case tagNameMismatchError
+        
+        case unfinishedTagError
+        
+        case standaloneValueError
+        
+        case invalidEncodingNameError
+        
+        case commentContainsDoubleHyphenError
+        
+        case invalidEncodingError
+        
+        case externalStandaloneEntityError
+        
+        case invalidConditionalSectionError
+        
+        case entityValueRequiredError
+        
+        case notWellBalancedError
+        
+        case extraContentError
+        
+        case invalidCharacterInEntityError
+        
+        case parsedEntityRefInInternalError
+        
+        case entityRefLoopError
+        
+        case entityBoundaryError
+        
+        case invalidURIError
+        
+        case uriFragmentError
+        
+        case nodtdError
+        
+        case delegateAbortedParseError
     }
 }
