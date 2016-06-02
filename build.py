@@ -381,6 +381,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/URLRequest.swift',
 	'Foundation/PersonNameComponents.swift',
 	'Foundation/Notification.swift',
+	'Foundation/URLComponents.swift',
 ])
 
 swift_sources.add_dependency(headers)
