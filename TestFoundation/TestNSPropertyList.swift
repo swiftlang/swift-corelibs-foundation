@@ -29,14 +29,14 @@ class TestNSPropertyList : XCTestCase {
     func test_BasicConstruction() {
         let dict = NSMutableDictionary(capacity: 0)
 //        dict["foo"] = "bar"
-        var data: NSData? = nil
+        var data: Data? = nil
         do {
             data = try PropertyListSerialization.dataWithPropertyList(dict, format: PropertyListSerialization.Format.binaryFormat_v1_0, options: 0)
         } catch {
             
         }
         XCTAssertNotNil(data)
-        XCTAssertEqual(data!.length, 42, "empty dictionary should be 42 bytes")
+        XCTAssertEqual(data!.count, 42, "empty dictionary should be 42 bytes")
     }
     
     func test_decode() {

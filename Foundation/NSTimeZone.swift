@@ -96,7 +96,7 @@ public class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         if aCoder.allowsKeyedCoding {
             aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
             // darwin versions of this method can and will encode mutable data, however it is not required for compatability
-            aCoder.encodeObject(self.data, forKey:"NS.data")
+            aCoder.encodeObject(self.data._nsObject, forKey:"NS.data")
         } else {
         }
     }

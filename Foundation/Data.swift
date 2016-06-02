@@ -621,7 +621,7 @@ public func ==(d1 : Data, d2 : Data) -> Bool {
 }
 
 /// Provides bridging functionality for struct Data to class NSData and vice-versa.
-extension Data : _ObjectiveCBridgeable {
+extension Data {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

@@ -264,7 +264,7 @@ class TestNSData: XCTestCase {
         let dataPadding1 = NSData(bytes: dataPadding1Bytes, length: dataPadding1Bytes.count)
         
         
-        guard let decodedPadding1 = NSData(base64Encoded:encodedPadding1, options: []) else {
+        guard let decodedPadding1 = Data(base64Encoded:encodedPadding1, options: []) else {
             XCTFail("Could not Base-64 decode data")
             return
         }
@@ -276,7 +276,7 @@ class TestNSData: XCTestCase {
         let dataPadding2 = NSData(bytes: dataPadding2Bytes, length: dataPadding2Bytes.count)
         
         
-        guard let decodedPadding2 = NSData(base64Encoded:encodedPadding2, options: []) else {
+        guard let decodedPadding2 = Data(base64Encoded:encodedPadding2, options: []) else {
             XCTFail("Could not Base-64 decode data")
             return
         }
@@ -292,7 +292,7 @@ class TestNSData: XCTestCase {
         
         
         let prefixData : [UInt8] = [0x00,0x01]
-        let prefix = NSData(bytes: prefixData, length: prefixData.count)
+        let prefix = Data(bytes: prefixData, count: prefixData.count)
         let prefixRange = NSMakeRange(0, prefixData.count)
         
         XCTAssert(NSEqualRanges(base.range(of: prefix, options: [], in: baseFullRange),prefixRange))
@@ -307,7 +307,7 @@ class TestNSData: XCTestCase {
         
         
         let suffixData : [UInt8] = [0x03,0x04]
-        let suffix = NSData(bytes: suffixData, length: suffixData.count)
+        let suffix = Data(bytes: suffixData, count: suffixData.count)
         let suffixRange = NSMakeRange(3, suffixData.count)
         
         XCTAssert(NSEqualRanges(base.range(of: suffix, options: [], in: baseFullRange),suffixRange))
@@ -322,7 +322,7 @@ class TestNSData: XCTestCase {
         
         
         let sliceData : [UInt8] = [0x02,0x03]
-        let slice = NSData(bytes: sliceData, length: sliceData.count)
+        let slice = Data(bytes: sliceData, count: sliceData.count)
         let sliceRange = NSMakeRange(2, sliceData.count)
         
         XCTAssert(NSEqualRanges(base.range(of: slice, options: [], in: baseFullRange),sliceRange))
@@ -330,7 +330,7 @@ class TestNSData: XCTestCase {
         XCTAssert(NSEqualRanges(base.range(of: slice, options: [.backwards], in: baseFullRange),sliceRange))
         XCTAssert(NSEqualRanges(base.range(of: slice, options: [.backwards,.anchored], in: baseFullRange),notFoundRange))
         
-        let empty = NSData()
+        let empty = Data()
         XCTAssert(NSEqualRanges(base.range(of: empty, options: [], in: baseFullRange),notFoundRange))
         XCTAssert(NSEqualRanges(base.range(of: empty, options: [.anchored], in: baseFullRange),notFoundRange))
         XCTAssert(NSEqualRanges(base.range(of: empty, options: [.backwards], in: baseFullRange),notFoundRange))

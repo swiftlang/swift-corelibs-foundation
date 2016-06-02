@@ -188,7 +188,7 @@ public class NSKeyedArchiver : NSCoder {
             
             xml = _CFPropertyListCreateXMLDataWithExtras(kCFAllocatorSystemDefault, plist)
             if let unwrappedXml = xml {
-                data.append(unwrappedXml._nsObject)
+                data.append(unwrappedXml._swiftObject)
                 success = true
             }
         } else {
@@ -768,7 +768,7 @@ public class NSKeyedArchiver : NSCoder {
 
     public override func encodeDataObject(_ data: Data) {
         // this encodes as a reference to an NSData object rather than encoding inline
-        encodeObject(data)
+        encodeObject(data._nsObject)
     }
     
     public override func encodeBytes(_ bytesp: UnsafePointer<UInt8>, length lenv: Int, forKey key: String) {

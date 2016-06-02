@@ -239,7 +239,7 @@ public func ==(lhs: URLRequest, rhs: URLRequest) -> Bool {
     return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
 }
 
-extension URLRequest : _ObjectiveCBridgeable {
+extension URLRequest {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

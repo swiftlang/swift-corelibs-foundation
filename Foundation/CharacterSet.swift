@@ -167,77 +167,77 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns a character set containing the characters in Unicode General Category Cc and Cf.
     public static var controlCharacters : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.controlCharacters() as NSCharacterSet)
+        return NSCharacterSet.controlCharacters()
     }
     
     /// Returns a character set containing the characters in Unicode General Category Zs and `CHARACTER TABULATION (U+0009)`.
     public static var whitespaces : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.whitespaces() as NSCharacterSet)
+        return NSCharacterSet.whitespaces()
     }
     
     /// Returns a character set containing characters in Unicode General Category Z*, `U+000A ~ U+000D`, and `U+0085`.
     public static var whitespacesAndNewlines : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.whitespacesAndNewlines() as NSCharacterSet)
+        return NSCharacterSet.whitespacesAndNewlines()
     }
     
     /// Returns a character set containing the characters in the category of Decimal Numbers.
     public static var decimalDigits : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.decimalDigits() as NSCharacterSet)
+        return NSCharacterSet.decimalDigits()
     }
     
     /// Returns a character set containing the characters in Unicode General Category L* & M*.
     public static var letters : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.letters() as NSCharacterSet)
+        return NSCharacterSet.letters()
     }
     
     /// Returns a character set containing the characters in Unicode General Category Ll.
     public static var lowercaseLetters : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.lowercaseLetters() as NSCharacterSet)
+        return NSCharacterSet.lowercaseLetters()
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lu and Lt.
     public static var uppercaseLetters : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.uppercaseLetters() as NSCharacterSet)
+        return NSCharacterSet.uppercaseLetters()
     }
     
     /// Returns a character set containing the characters in Unicode General Category M*.
     public static var nonBaseCharacters : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.nonBaseCharacters() as NSCharacterSet)
+        return NSCharacterSet.nonBaseCharacters()
     }
     
     /// Returns a character set containing the characters in Unicode General Categories L*, M*, and N*.
     public static var alphanumerics : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.alphanumerics() as NSCharacterSet)
+        return NSCharacterSet.alphanumerics()
     }
     
     /// Returns a character set containing individual Unicode characters that can also be represented as composed character sequences (such as for letters with accents), by the definition of “standard decomposition” in version 3.2 of the Unicode character encoding standard.
     public static var decomposables : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.decomposables() as NSCharacterSet)
+        return NSCharacterSet.decomposables()
     }
     
     /// Returns a character set containing values in the category of Non-Characters or that have not yet been defined in version 3.2 of the Unicode standard.
     public static var illegalCharacters : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.illegalCharacters() as NSCharacterSet)
+        return NSCharacterSet.illegalCharacters()
     }
     
     /// Returns a character set containing the characters in Unicode General Category P*.
     public static var punctuation : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.punctuation() as NSCharacterSet)
+        return NSCharacterSet.punctuation()
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lt.
     public static var capitalizedLetters : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.capitalizedLetters() as NSCharacterSet)
+        return NSCharacterSet.capitalizedLetters()
     }
     
     /// Returns a character set containing the characters in Unicode General Category S*.
     public static var symbols : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.symbols() as NSCharacterSet)
+        return NSCharacterSet.symbols()
     }
     
     /// Returns a character set containing the newline characters (`U+000A ~ U+000D`, `U+0085`, `U+2028`, and `U+2029`).
     public static var newlines : CharacterSet {
-        return CharacterSet(reference: NSCharacterSet.newlines() as NSCharacterSet)
+        return NSCharacterSet.newlines()
     }
     
     // MARK: Static functions, from NSURL
@@ -451,12 +451,12 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
 
 /// Returns true if the two `CharacterSet`s are equal.
 public func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
-    return lhs._wrapped.isEqual(rhs as NSCharacterSet)
+    return lhs._wrapped.isEqual(rhs._bridgeToObjectiveC())
 }
 
 
 // MARK: Objective-C Bridging
-extension CharacterSet : _ObjectiveCBridgeable {
+extension CharacterSet {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

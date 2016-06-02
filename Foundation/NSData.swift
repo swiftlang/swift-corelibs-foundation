@@ -101,7 +101,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     public override func isEqual(_ object: AnyObject?) -> Bool {
         if let data = object as? NSData {
-            return self.isEqual(to: data)
+            return self.isEqual(to: data._swiftObject)
         } else {
             return false
         }
@@ -176,7 +176,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
-            self.init(data: data)
+            self.init(data: data._swiftObject)
         } else {
             var len = 0
             let bytes = aDecoder.decodeBytesForKey("NS.bytes", returnedLength: &len)
@@ -325,8 +325,8 @@ extension NSData {
         }
     }
 
-    public convenience init(data: NSData) {
-        self.init(bytes:data.bytes, length: data.length)
+    public convenience init(data: Data) {
+        self.init(bytes:data._nsObject.bytes, length: data.count)
     }
     
     public convenience init(contentsOfURL url: URL, options readOptionsMask: ReadingOptions) throws {
@@ -336,7 +336,7 @@ extension NSData {
             let session = URLSession(configuration: URLSessionConfiguration.defaultSessionConfiguration())
             let cond = Condition()
             var resError: NSError?
-            var resData: NSData?
+            var resData: Data?
             let task = session.dataTaskWithURL(url, completionHandler: { (data: Data?, response: URLResponse?, error: NSError?) -> Void in
                 resData = data
                 resError = error
@@ -369,22 +369,17 @@ extension NSData {
         CFDataGetBytes(_cfObject, CFRangeMake(range.location, range.length), UnsafeMutablePointer<UInt8>(buffer))
     }
     
-    public func isEqual(to other: NSData) -> Bool {
-        if self === other {
-            return true
-        }
-        
-        if length != other.length {
+    public func isEqual(to other: Data) -> Bool {
+
+        if length != other.count {
             return false
         }
         
-        let bytes1 = bytes
-        let bytes2 = other.bytes
-        if bytes1 == bytes2 {
-            return true
-        }
         
-        return memcmp(bytes1, bytes2, length) == 0
+        return other.withUnsafeBytes { (bytes2: UnsafePointer<Void>) -> Bool in
+            let bytes1 = bytes
+            return memcmp(bytes1, bytes2, length) == 0
+        }
     }
     
     public func subdata(with range: NSRange) -> Data {
@@ -525,7 +520,8 @@ extension NSData {
         try write(toFile: path, options: writeOptionsMask)
     }
     
-    public func range(of dataToFind: NSData, options mask: SearchOptions = [], in searchRange: NSRange) -> NSRange {
+    public func range(of searchData: Data, options mask: SearchOptions = [], in searchRange: NSRange) -> NSRange {
+        let dataToFind = searchData._nsObject
         guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
         guard let searchRange = searchRange.toRange() else {fatalError("invalid range")}
         
@@ -630,7 +626,7 @@ public class NSMutableData : NSData {
     }
     
     public override func copy(with zone: NSZone? = nil) -> AnyObject {
-        return NSData(data: self)
+        return NSData(data: self._swiftObject)
     }
 }
 
@@ -897,8 +893,12 @@ extension NSMutableData {
         CFDataAppendBytes(_cfMutableObject, UnsafePointer<UInt8>(bytes), length)
     }
     
-    public func append(_ other: NSData) {
-        append(other.bytes, length: other.length)
+    public func append(_ other: Data) {
+        let otherLength = other.count
+        other.withUnsafeBytes {
+            append($0, length: otherLength)
+        }
+        
     }
     
     public func increaseLength(by extraLength: Int) {
@@ -913,9 +913,12 @@ extension NSMutableData {
         bzero(mutableBytes.advanced(by: range.location), range.length)
     }
     
-    public func setData(_ data: NSData) {
-        length = data.length
-        replaceBytes(in: NSMakeRange(0, data.length), withBytes: data.bytes)
+    public func setData(_ data: Data) {
+        length = data.count
+        data.withUnsafeBytes {
+            replaceBytes(in: NSMakeRange(0, length), withBytes: $0)
+        }
+        
     }
     
     public func replaceBytes(in range: NSRange, withBytes replacementBytes: UnsafePointer<Void>, length replacementLength: Int) {
