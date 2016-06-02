@@ -14,7 +14,7 @@ private func _utfRangeToNSRange(_ inRange : Range<UnicodeScalar>) -> NSRange {
     return NSMakeRange(Int(inRange.lowerBound.value), Int(inRange.upperBound.value - inRange.lowerBound.value))
 }
 
-internal final class _SwiftNSCharacterSet : _SwiftNativeNSCharacterSet, _SwiftNativeFoundationType {
+internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundationType {
     internal typealias ImmutableType = NSCharacterSet
     internal typealias MutableType = NSMutableCharacterSet
     
@@ -23,11 +23,13 @@ internal final class _SwiftNSCharacterSet : _SwiftNativeNSCharacterSet, _SwiftNa
     init(immutableObject: AnyObject) {
         // Take ownership.
         __wrapped = .Immutable(Unmanaged.passRetained(_unsafeReferenceCast(immutableObject, to: ImmutableType.self)))
+        super.init()
     }
     
     init(mutableObject: AnyObject) {
         // Take ownership.
         __wrapped = .Mutable(Unmanaged.passRetained(_unsafeReferenceCast(mutableObject, to: MutableType.self)))
+        super.init()
     }
     
     internal required init(unmanagedImmutableObject: Unmanaged<ImmutableType>) {
@@ -42,6 +44,10 @@ internal final class _SwiftNSCharacterSet : _SwiftNativeNSCharacterSet, _SwiftNa
         __wrapped = .Mutable(unmanagedMutableObject)
         
         super.init()
+    }
+    
+    convenience required init(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     deinit {
