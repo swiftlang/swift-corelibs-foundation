@@ -18,7 +18,7 @@ public class XMLDTD : XMLNode {
         return _CFXMLDTDPtr(_xmlNode)
     }
     
-    public convenience init(contentsOfURL url: URL, options mask: Int) throws {
+    public convenience init(contentsOf url: URL, options mask: Int) throws {
         let urlString = url.absoluteString
 
         guard let node = _CFXMLParseDTD(urlString!) else {
@@ -28,7 +28,7 @@ public class XMLDTD : XMLNode {
         self.init(ptr: node)
     }
 
-    public convenience init(data: NSData, options mask: Int) throws {
+    public convenience init(data: Data, options mask: Int) throws {
         var unmanagedError: Unmanaged<CFError>? = nil
         
         guard let node = _CFXMLParseDTDFromData(data._cfObject, &unmanagedError) else {
@@ -82,7 +82,7 @@ public class XMLDTD : XMLNode {
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(_ child: XMLNode, atIndex index: Int) {
+    public func insertChild(_ child: XMLNode, at index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
     
@@ -90,7 +90,7 @@ public class XMLDTD : XMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(_ children: [XMLNode], atIndex index: Int) {
+    public func insertChildren(_ children: [XMLNode], at index: Int) {
         _insertChildren(children, atIndex: index)
     }
     
@@ -98,7 +98,7 @@ public class XMLDTD : XMLNode {
         @method removeChildAtIndex:
         @abstract Removes a child at a particular index.
     */
-    public func removeChildAtIndex(_ index: Int) {
+    public func removeChild(at index: Int) {
         _removeChildAtIndex(index)
     } //primitive
     
@@ -122,7 +122,7 @@ public class XMLDTD : XMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChildAtIndex(_ index: Int, withNode node: XMLNode) {
+    public func replaceChild(at index: Int, with node: XMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
     
@@ -130,7 +130,7 @@ public class XMLDTD : XMLNode {
         @method entityDeclarationForName:
         @abstract Returns the entity declaration matching this name.
     */
-    public func entityDeclarationForName(_ name: String) -> XMLDTDNode? {
+    public func entityDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetEntityDesc(_xmlDTD, name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     } //primitive
@@ -139,7 +139,7 @@ public class XMLDTD : XMLNode {
         @method notationDeclarationForName:
         @abstract Returns the notation declaration matching this name.
     */
-    public func notationDeclarationForName(_ name: String) -> XMLDTDNode? {
+    public func notationDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetNotationDesc(_xmlDTD, name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     } //primitive
@@ -148,7 +148,7 @@ public class XMLDTD : XMLNode {
         @method elementDeclarationForName:
         @abstract Returns the element declaration matching this name.
     */
-    public func elementDeclarationForName(_ name: String) -> XMLDTDNode? {
+    public func elementDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetElementDesc(_xmlDTD, name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     } //primitive
@@ -157,7 +157,7 @@ public class XMLDTD : XMLNode {
         @method attributeDeclarationForName:
         @abstract Returns the attribute declaration matching this name.
     */
-    public func attributeDeclarationForName(_ name: String, elementName: String) -> XMLDTDNode? {
+    public func attributeDeclaration(forName name: String, elementName: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetAttributeDesc(_xmlDTD, elementName, name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     } //primitive
@@ -168,7 +168,7 @@ public class XMLDTD : XMLNode {
     	@discussion The five predefined entities are
     	<ul><li>&amp;lt; - &lt;</li><li>&amp;gt; - &gt;</li><li>&amp;amp; - &amp;</li><li>&amp;quot; - &quot;</li><li>&amp;apos; - &amp;</li></ul>
     */
-    public class func predefinedEntityDeclarationForName(_ name: String) -> XMLDTDNode? {
+    public class func predefinedEntityDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetPredefinedEntity(name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     }

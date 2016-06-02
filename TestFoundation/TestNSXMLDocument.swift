@@ -334,16 +334,16 @@ class TestNSXMLDocument : XCTestCase {
         let node = XMLNode.DTDNodeWithXMLString("<!ELEMENT foo (#PCDATA)>") as! XMLDTDNode
         XCTAssert(node.name == "foo")
 
-        let dtd = try XMLDTD(contentsOfURL: testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")!, options: 0)
+        let dtd = try XMLDTD(contentsOf: testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")!, options: 0)
         //        dtd.systemID = testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")?.absoluteString
         dtd.name = "plist"
         //        dtd.publicID = "-//Apple//DTD PLIST 1.0//EN"
-        let plistNode = dtd.elementDeclarationForName("plist")
+        let plistNode = dtd.elementDeclaration(forName:"plist")
         XCTAssert(plistNode?.name == "plist")
-        let plistObjectNode = dtd.entityDeclarationForName("plistObject")
+        let plistObjectNode = dtd.entityDeclaration(forName:"plistObject")
         XCTAssert(plistObjectNode?.name == "plistObject")
         XCTAssert(plistObjectNode?.stringValue == "(array | data | date | dict | real | integer | string | true | false )")
-        let plistAttribute = dtd.attributeDeclarationForName("version", elementName: "plist")
+        let plistAttribute = dtd.attributeDeclaration(forName:"version", elementName: "plist")
         XCTAssert(plistAttribute?.name == "version")
 
         let doc = try XMLDocument(xmlString: "<?xml version='1.0' encoding='utf-8'?><plist version='1.0'><dict><key>hello</key><string>world</string></dict></plist>", options: 0)
@@ -354,7 +354,7 @@ class TestNSXMLDocument : XCTestCase {
             XCTFail("\(error.userInfo)")
         }
 
-        let amp = XMLDTD.predefinedEntityDeclarationForName("amp")
+        let amp = XMLDTD.predefinedEntityDeclaration(forName:"amp")
         XCTAssert(amp?.name == "amp", amp?.name ?? "")
         XCTAssert(amp?.stringValue == "&", amp?.stringValue ?? "")
         if let entityNode = XMLNode.DTDNodeWithXMLString("<!ENTITY author 'Robert Thompson'>") as? XMLDTDNode {
@@ -373,7 +373,7 @@ class TestNSXMLDocument : XCTestCase {
         let dtd = doc.dtd
         XCTAssert(dtd?.name == "root")
 
-        let notation = dtd?.notationDeclarationForName("myNotation")
+        let notation = dtd?.notationDeclaration(forName:"myNotation")
         notation?.detach()
         XCTAssert(notation?.name == "myNotation")
         XCTAssert(notation?.systemID == "http://www.example.com", notation?.systemID ?? "nil system id!")
@@ -384,7 +384,7 @@ class TestNSXMLDocument : XCTestCase {
             XCTFail("\(error)")
         }
 
-        let root = dtd?.elementDeclarationForName("root")
+        let root = dtd?.elementDeclaration(forName:"root")
         root?.stringValue = "(#PCDATA)"
         do {
             try doc.validate()
@@ -399,7 +399,7 @@ class TestNSXMLDocument : XCTestCase {
     func test_dtd_attributes() throws {
         let doc = try XMLDocument(contentsOf: testBundle().URLForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
         let dtd = doc.dtd!
-        let attrDecl = dtd.attributeDeclarationForName("print", elementName: "foo")!
+        let attrDecl = dtd.attributeDeclaration(forName: "print", elementName: "foo")!
         XCTAssert(attrDecl.dtdKind == .NSXMLAttributeEnumerationKind)
     }
 }
