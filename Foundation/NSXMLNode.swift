@@ -130,8 +130,8 @@ public class XMLNode: NSObject, NSCopying {
         @method elementWithName:URI:
         @abstract Returns an element whose full QName is specified.
     */
-    public class func elementWithName(_ name: String, URI: String) -> AnyObject {
-        return XMLElement(name: name, URI: URI)
+    public class func elementWithName(_ name: String, uri: String) -> AnyObject {
+        return XMLElement(name: name, uri: uri)
     }
 
     /*!

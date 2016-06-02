@@ -70,7 +70,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssert(doc.version == "1.0", "expected 1.0, got \(doc.version)")
         doc.version = "1.1"
         XCTAssert(doc.version == "1.1", "expected 1.1, got \(doc.version)")
-        let node = XMLElement(name: "Hello", URI: "http://www.example.com")
+        let node = XMLElement(name: "Hello", uri: "http://www.example.com")
 
         doc.setRootElement(node)
 
@@ -80,7 +80,7 @@ class TestNSXMLDocument : XCTestCase {
 
     func test_nextPreviousNode() {
         let doc = XMLDocument(rootElement: nil)
-        let node = XMLElement(name: "Hello", URI: "http://www.example.com")
+        let node = XMLElement(name: "Hello", uri: "http://www.example.com")
 
         let fooNode = XMLElement(name: "Foo")
         let barNode = XMLElement(name: "Bar")
@@ -147,24 +147,24 @@ class TestNSXMLDocument : XCTestCase {
         element.addChild(bar)
         element.addChild(bar2)
 
-        XCTAssertEqual(element.elementsForName("bar"), [bar, bar2])
-        XCTAssertFalse(element.elementsForName("foo").contains(bar))
-        XCTAssertFalse(element.elementsForName("foo").contains(bar2))
+        XCTAssertEqual(element.elements(forName:"bar"), [bar, bar2])
+        XCTAssertFalse(element.elements(forName:"foo").contains(bar))
+        XCTAssertFalse(element.elements(forName:"foo").contains(bar2))
 
         let baz = XMLElement(name: "baz")
-        element.insertChild(baz, atIndex: 2)
+        element.insertChild(baz, at: 2)
         XCTAssertEqual(element.children?[2], baz)
 
         foo.detach()
         bar.detach()
 
-        element.insertChildren([foo, bar], atIndex: 1)
+        element.insertChildren([foo, bar], at: 1)
         XCTAssertEqual(element.children?[1], foo)
         XCTAssertEqual(element.children?[2], bar)
         XCTAssertEqual(element.children?[0], baz, "\(element.children?[0])")
 
         let faz = XMLElement(name: "faz")
-        element.replaceChildAtIndex(2, withNode: faz)
+        element.replaceChild(at: 2, with: faz)
         XCTAssertEqual(element.children?[2], faz)
 
         for node in [foo, bar, baz, bar2, faz] {
@@ -210,7 +210,7 @@ class TestNSXMLDocument : XCTestCase {
         let attribute = XMLNode.attributeWithName("color", stringValue: "#ff00ff") as! XMLNode
         element.addAttribute(attribute)
         XCTAssertEqual(element.XMLString, "<root color=\"#ff00ff\"></root>", element.XMLString)
-        element.removeAttributeForName("color")
+        element.removeAttribute(forName:"color")
         XCTAssertEqual(element.XMLString, "<root></root>", element.XMLString)
 
         element.addAttribute(attribute)
@@ -236,9 +236,9 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(element.attributes?.first, barAttribute)
         XCTAssertEqual(element.attributes?.last, bazAttribute)
 
-        element.setAttributesWithDictionary(["hello": "world", "foobar": "buzbaz"])
-        XCTAssertEqual(element.attributeForName("hello")?.stringValue, "world", "\(element.attributeForName("hello")?.stringValue)")
-        XCTAssertEqual(element.attributeForName("foobar")?.stringValue, "buzbaz", "\(element.attributes ?? [])")
+        element.setAttributesWith(["hello": "world", "foobar": "buzbaz"])
+        XCTAssertEqual(element.attribute(forName:"hello")?.stringValue, "world", "\(element.attribute(forName:"hello")?.stringValue)")
+        XCTAssertEqual(element.attribute(forName:"foobar")?.stringValue, "buzbaz", "\(element.attributes ?? [])")
     }
 
     func test_comments() {

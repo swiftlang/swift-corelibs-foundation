@@ -20,16 +20,16 @@ public class XMLElement: XMLNode {
         @abstract Returns an element <tt>&lt;name>&lt;/name></tt>.
     */
     public convenience init(name: String) {
-        self.init(name: name, URI: nil)
+        self.init(name: name, uri: nil)
     }
 
     /*!
         @method initWithName:URI:
         @abstract Returns an element whose full QName is specified.
     */
-    public init(name: String, URI: String?) {
+    public init(name: String, uri: String?) {
         super.init(kind: .ElementKind, options: 0)
-        self.URI = URI
+        self.URI = uri
         self.name = name
     } //primitive
 
@@ -38,7 +38,7 @@ public class XMLElement: XMLNode {
         @abstract Returns an element with a single text node child <tt>&lt;name>string&lt;/name></tt>.
     */
     public convenience init(name: String, stringValue string: String?) {
-        self.init(name: name, URI: nil)
+        self.init(name: name, uri: nil)
         if let string = string {
             let child = _CFXMLNewTextNode(string)
             _CFXMLNodeAddChild(_xmlNode, child)
@@ -52,14 +52,14 @@ public class XMLElement: XMLNode {
     public init(XMLString string: String) throws { NSUnimplemented() }
 
     public convenience override init(kind: Kind, options: Int) {
-        self.init(name: "", URI: nil)
+        self.init(name: "", uri: nil)
     }
 
     /*!
         @method elementsForName:
         @abstract Returns all of the child elements that match this name.
     */
-    public func elementsForName(_ name: String) -> [XMLElement] {
+    public func elements(forName name: String) -> [XMLElement] {
         return self.filter({ _CFXMLNodeGetType($0._xmlNode) == _kCFXMLTypeElement }).filter({ $0.name == name }).flatMap({ $0 as? XMLElement })
     }
 
@@ -67,7 +67,7 @@ public class XMLElement: XMLNode {
         @method elementsForLocalName:URI
         @abstract Returns all of the child elements that match this localname URI pair.
     */
-    public func elementsForLocalName(_ localName: String, URI: String?) -> [XMLElement] { NSUnimplemented() }
+    public func elements(forLocalName localName: String, uri: String?) -> [XMLElement] { NSUnimplemented() }
 
     /*!
         @method addAttribute:
@@ -82,7 +82,7 @@ public class XMLElement: XMLNode {
         @method removeAttributeForName:
         @abstract Removes an attribute based on its name.
     */
-    public func removeAttributeForName(_ name: String) {
+    public func removeAttribute(forName name: String) {
         if let prop = _CFXMLNodeHasProp(_xmlNode, name) {
             let propNode = XMLNode._objectNodeForNode(_CFXMLNodePtr(prop))
             _childNodes.remove(propNode)
@@ -143,7 +143,7 @@ public class XMLElement: XMLNode {
      @method setAttributesWithDictionary:
      @abstract Set the attributes based on a name-value dictionary.
      */
-    public func setAttributesWithDictionary(_ attributes: [String : String]) {
+    public func setAttributesWith(_ attributes: [String : String]) {
         removeAttributes()
         for (name, value) in attributes {
             addAttribute(XMLNode.attributeWithName(name, stringValue: value) as! XMLNode)
@@ -154,7 +154,7 @@ public class XMLElement: XMLNode {
         @method attributeForName:
         @abstract Returns an attribute matching this name.
     */
-    public func attributeForName(_ name: String) -> XMLNode? {
+    public func attribute(forName name: String) -> XMLNode? {
         guard let attribute = _CFXMLNodeHasProp(_xmlNode, name) else { return nil }
         return XMLNode._objectNodeForNode(attribute)
     }
@@ -163,7 +163,7 @@ public class XMLElement: XMLNode {
         @method attributeForLocalName:URI:
         @abstract Returns an attribute matching this localname URI pair.
     */
-    public func attributeForLocalName(_ localName: String, URI: String?) -> XMLNode? { NSUnimplemented() } //primitive
+    public func attribute(forLocalName localName: String, uri: String?) -> XMLNode? { NSUnimplemented() } //primitive
 
     /*!
         @method addNamespace:URI:
@@ -187,25 +187,25 @@ public class XMLElement: XMLNode {
         @method namespaceForPrefix:
         @abstract Returns the namespace matching this prefix.
     */
-    public func namespaceForPrefix(_ name: String) -> XMLNode? { NSUnimplemented() }
+    public func namespace(forPrefix name: String) -> XMLNode? { NSUnimplemented() }
 
     /*!
         @method resolveNamespaceForName:
         @abstract Returns the namespace who matches the prefix of the name given. Looks in the entire namespace chain.
     */
-    public func resolveNamespaceForName(_ name: String) -> XMLNode? { NSUnimplemented() }
+    public func resolveNamespace(forName name: String) -> XMLNode? { NSUnimplemented() }
 
     /*!
         @method resolvePrefixForNamespaceURI:
         @abstract Returns the URI of this prefix. Looks in the entire namespace chain.
     */
-    public func resolvePrefixForNamespaceURI(_ namespaceURI: String) -> String? { NSUnimplemented() }
+    public func resolvePrefix(forNamespaceURI namespaceURI: String) -> String? { NSUnimplemented() }
 
     /*!
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(_ child: XMLNode, atIndex index: Int) {
+    public func insertChild(_ child: XMLNode, at index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
 
@@ -213,7 +213,7 @@ public class XMLElement: XMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(_ children: [XMLNode], atIndex index: Int) {
+    public func insertChildren(_ children: [XMLNode], at index: Int) {
         _insertChildren(children, atIndex: index)
     }
 
@@ -221,7 +221,7 @@ public class XMLElement: XMLNode {
         @method removeChildAtIndex:atIndex:
         @abstract Removes a child at a particular index.
     */
-    public func removeChildAtIndex(_ index: Int) {
+    public func removeChild(at index: Int) {
         _removeChildAtIndex(index)
     } //primitive
 
@@ -245,7 +245,7 @@ public class XMLElement: XMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChildAtIndex(_ index: Int, withNode node: XMLNode) {
+    public func replaceChild(at index: Int, with node: XMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
 
@@ -276,5 +276,5 @@ extension XMLElement {
         @abstract Set the attributes base on a name-value dictionary.
         @discussion This method is deprecated and does not function correctly. Use -setAttributesWithDictionary: instead.
      */
-    public func setAttributesAsDictionary(_ attributes: [NSObject : AnyObject]) { NSUnimplemented() }
+    public func setAttributesAs(_ attributes: [NSObject : AnyObject]) { NSUnimplemented() }
 }
