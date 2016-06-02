@@ -48,7 +48,7 @@ class TestNSData: XCTestCase {
         let savePath = "/var/tmp/Test.plist"
         do {
             try saveData!.write(toFile: savePath, options: NSDataWritingOptions.dataWritingAtomic)
-            let fileManager = NSFileManager.defaultManager()
+            let fileManager = NSFileManager.default()
             XCTAssertTrue(fileManager.fileExists(atPath: savePath))
             try! fileManager.removeItem(atPath: savePath)
         } catch _ {

@@ -256,7 +256,7 @@ class TestNSURL : XCTestCase {
             return false
         }
         
-        let cwd = NSFileManager.defaultManager().currentDirectoryPath
+        let cwd = NSFileManager.default().currentDirectoryPath
         let cwdURL = NSURL(fileURLWithPath: cwd, isDirectory: true)
         // 1 for path separator
         gRelativeOffsetFromBaseCurrentWorkingDirectory = UInt(strlen(cwdURL.fileSystemRepresentation) + 1)
@@ -385,14 +385,14 @@ class TestNSURL : XCTestCase {
         do {
             let url = NSURL(fileURLWithPath: "~")
             let result = url.URLByResolvingSymlinksInPath?.absoluteString
-            let expected = "file://" + NSFileManager.defaultManager().currentDirectoryPath + "/~"
+            let expected = "file://" + NSFileManager.default().currentDirectoryPath + "/~"
             XCTAssertEqual(result, expected, "URLByResolvingSymlinksInPath resolves relative paths using current working directory.")
         }
 
         do {
             let url = NSURL(fileURLWithPath: "anysite.com/search")
             let result = url.URLByResolvingSymlinksInPath?.absoluteString
-            let expected = "file://" + NSFileManager.defaultManager().currentDirectoryPath + "/anysite.com/search"
+            let expected = "file://" + NSFileManager.default().currentDirectoryPath + "/anysite.com/search"
             XCTAssertEqual(result, expected)
         }
 
