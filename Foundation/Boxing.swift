@@ -68,8 +68,7 @@ internal enum _MutableUnmanagedWrapper<ImmutableType : NSObject, MutableType : N
 internal protocol _SwiftNativeFoundationType : class {
     associatedtype ImmutableType : NSObject
     associatedtype MutableType : NSObject,  NSMutableCopying
-    typealias WrapperType = _MutableUnmanagedWrapper<ImmutableType, MutableType>
-    var __wrapped : WrapperType { get }
+    var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType> { get }
     
     init(unmanagedImmutableObject: Unmanaged<ImmutableType>)
     init(unmanagedMutableObject: Unmanaged<MutableType>)
@@ -137,14 +136,12 @@ extension _SwiftNativeFoundationType {
 
 internal protocol _MutablePairBoxing {
     associatedtype WrappedSwiftNSType : _SwiftNativeFoundationType
-    typealias ImmutableType = WrappedSwiftNSType.ImmutableType
-    typealias MutableType = WrappedSwiftNSType.MutableType
     var _wrapped :  WrappedSwiftNSType { get set }
 }
 
 extension _MutablePairBoxing {
     @inline(__always)
-    func _mapUnmanaged<ReturnType>(_ whatToDo : @noescape (ImmutableType) throws -> ReturnType) rethrows -> ReturnType {
+    func _mapUnmanaged<ReturnType>(_ whatToDo : @noescape (WrappedSwiftNSType.ImmutableType) throws -> ReturnType) rethrows -> ReturnType {
         // We are using Unmananged. Make sure that the owning container class
         // 'self' is guaranteed to be alive by extending the lifetime of 'self'
         // to the end of the scope of this function.
@@ -163,13 +160,13 @@ extension _MutablePairBoxing {
             }
         case .Mutable(let m):
             return try m._withUnsafeGuaranteedRef {
-                return try whatToDo(_unsafeReferenceCast($0, to: ImmutableType.self))
+                return try whatToDo(_unsafeReferenceCast($0, to: WrappedSwiftNSType.ImmutableType.self))
             }
         }
     }
     
     @inline(__always)
-    mutating func _applyUnmanagedMutation<ReturnType>(_ whatToDo : @noescape (MutableType) throws -> ReturnType) rethrows -> ReturnType {
+    mutating func _applyUnmanagedMutation<ReturnType>(_ whatToDo : @noescape (WrappedSwiftNSType.MutableType) throws -> ReturnType) rethrows -> ReturnType {
         // We are using Unmananged. Make sure that the owning container class
         // 'self' is guaranteed to be alive by extending the lifetime of 'self'
         // to the end of the scope of this function.
@@ -195,7 +192,7 @@ extension _MutablePairBoxing {
         case .Immutable(let i):
             // We need to become mutable; by creating a new instance we also become unique
             let copy = Unmanaged.passRetained(i._withUnsafeGuaranteedRef {
-                return _unsafeReferenceCast($0.mutableCopy(), to: MutableType.self) }
+                return _unsafeReferenceCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self) }
             )
             
             // Be sure to set the var before calling out; otherwise references to the struct in the closure may be looking at the old value
@@ -208,7 +205,7 @@ extension _MutablePairBoxing {
             // Only create a new box if we are not uniquely referenced
             if !unique {
                 let copy = Unmanaged.passRetained(m._withUnsafeGuaranteedRef {
-                    return _unsafeReferenceCast($0.mutableCopy(), to: MutableType.self)
+                    return _unsafeReferenceCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self)
                     })
                 _wrapped = WrappedSwiftNSType(unmanagedMutableObject: copy)
                 return try copy._withUnsafeGuaranteedRef {
