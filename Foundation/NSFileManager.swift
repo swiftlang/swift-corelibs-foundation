@@ -15,34 +15,36 @@
 
 import CoreFoundation
 
-public struct NSVolumeEnumerationOptions : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    /* The mounted volume enumeration will skip hidden volumes.
-     */
-    public static let skipHiddenVolumes = NSVolumeEnumerationOptions(rawValue: 1 << 1)
-    
-    /* The mounted volume enumeration will produce file reference URLs rather than path-based URLs.
-     */
-    public static let produceFileReferenceURLs = NSVolumeEnumerationOptions(rawValue: 1 << 2)
-}
+extension FileManager {
+    public struct VolumeEnumerationOptions: OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        /* The mounted volume enumeration will skip hidden volumes.
+         */
+        public static let skipHiddenVolumes = VolumeEnumerationOptions(rawValue: 1 << 1)
+        
+        /* The mounted volume enumeration will produce file reference URLs rather than path-based URLs.
+         */
+        public static let produceFileReferenceURLs = VolumeEnumerationOptions(rawValue: 1 << 2)
+    }
 
-public struct NSDirectoryEnumerationOptions : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    /* NSDirectoryEnumerationSkipsSubdirectoryDescendants causes the NSDirectoryEnumerator to perform a shallow enumeration and not descend into directories it encounters.
-     */
-    public static let skipsSubdirectoryDescendants = NSDirectoryEnumerationOptions(rawValue: 1 << 0)
-    
-    /* NSDirectoryEnumerationSkipsPackageDescendants will cause the NSDirectoryEnumerator to not descend into packages.
-     */
-    public static let skipsPackageDescendants = NSDirectoryEnumerationOptions(rawValue: 1 << 1)
-    
-    /* NSDirectoryEnumerationSkipsHiddenFiles causes the NSDirectoryEnumerator to not enumerate hidden files.
-     */
-    public static let skipsHiddenFiles = NSDirectoryEnumerationOptions(rawValue: 1 << 2)
+    public struct DirectoryEnumerationOptions: OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        /* NSDirectoryEnumerationSkipsSubdirectoryDescendants causes the NSDirectoryEnumerator to perform a shallow enumeration and not descend into directories it encounters.
+         */
+        public static let skipsSubdirectoryDescendants = DirectoryEnumerationOptions(rawValue: 1 << 0)
+        
+        /* NSDirectoryEnumerationSkipsPackageDescendants will cause the NSDirectoryEnumerator to not descend into packages.
+         */
+        public static let skipsPackageDescendants = DirectoryEnumerationOptions(rawValue: 1 << 1)
+        
+        /* NSDirectoryEnumerationSkipsHiddenFiles causes the NSDirectoryEnumerator to not enumerate hidden files.
+         */
+        public static let skipsHiddenFiles = DirectoryEnumerationOptions(rawValue: 1 << 2)
+    }
 }
 
 public struct NSFileManagerItemReplacementOptions : OptionSet {
@@ -75,7 +77,7 @@ public class FileManager: NSObject {
     
     /* Returns an NSArray of NSURLs locating the mounted volumes available on the computer. The property keys that can be requested are available in NSURL.
      */
-    public func mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [String]?, options: NSVolumeEnumerationOptions = []) -> [URL]? {
+    public func mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [String]?, options: VolumeEnumerationOptions = []) -> [URL]? {
         NSUnimplemented()
     }
     
@@ -87,7 +89,7 @@ public class FileManager: NSObject {
      
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
-    public func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [String]?, options mask: NSDirectoryEnumerationOptions = []) throws -> [URL] {
+    public func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [String]?, options mask: DirectoryEnumerationOptions = []) throws -> [URL] {
         var error : NSError? = nil
         let e = self.enumerator(at: url, includingPropertiesForKeys: keys, options: mask.union(.skipsSubdirectoryDescendants)) { (url, err) -> Bool in
             error = err
@@ -107,7 +109,7 @@ public class FileManager: NSObject {
     
     /* -URLsForDirectory:inDomains: is analogous to NSSearchPathForDirectoriesInDomains(), but returns an array of NSURL instances for use with URL-taking APIs. This API is suitable when you need to search for a file or files which may live in one of a variety of locations in the domains specified.
      */
-    public func URLsForDirectory(_ directory: NSSearchPathDirectory, inDomains domainMask: NSSearchPathDomainMask) -> [URL] {
+    public func URLsForDirectory(_ directory: SearchPathDirectory, inDomains domainMask: SearchPathDomainMask) -> [URL] {
         NSUnimplemented()
     }
     
@@ -115,7 +117,7 @@ public class FileManager: NSObject {
      
         You may pass only one of the values from the NSSearchPathDomainMask enumeration, and you may not pass NSAllDomainsMask.
      */
-    public func URLForDirectory(_ directory: NSSearchPathDirectory, inDomain domain: NSSearchPathDomainMask, appropriateForURL url: URL?, create shouldCreate: Bool) throws -> URL {
+    public func URLForDirectory(_ directory: SearchPathDirectory, inDomain domain: SearchPathDomainMask, appropriateForURL url: URL?, create shouldCreate: Bool) throws -> URL {
         NSUnimplemented()
     }
     
@@ -127,7 +129,7 @@ public class FileManager: NSObject {
     
     /* Similar to -[NSFileManager getRelationship:ofDirectoryAtURL:toItemAtURL:error:], except that the directory is instead defined by an NSSearchPathDirectory and NSSearchPathDomainMask. Pass 0 for domainMask to instruct the method to automatically choose the domain appropriate for 'url'. For example, to discover if a file is contained by a Trash directory, call [fileManager getRelationship:&result ofDirectory:NSTrashDirectory inDomain:0 toItemAtURL:url error:&error].
      */
-    public func getRelationship(_ outRelationship: UnsafeMutablePointer<NSURLRelationship>, ofDirectory directory: NSSearchPathDirectory, inDomain domainMask: NSSearchPathDomainMask, toItemAtURL url: URL) throws {
+    public func getRelationship(_ outRelationship: UnsafeMutablePointer<NSURLRelationship>, ofDirectory directory: SearchPathDirectory, inDomain domainMask: SearchPathDomainMask, toItemAtURL url: URL) throws {
         NSUnimplemented()
     }
     
@@ -659,7 +661,7 @@ public class FileManager: NSObject {
     
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
-    public func enumerator(at url: URL, includingPropertiesForKeys keys: [String]?, options mask: NSDirectoryEnumerationOptions = [], errorHandler handler: ((URL, NSError) -> Bool)? = nil) -> NSDirectoryEnumerator? {
+    public func enumerator(at url: URL, includingPropertiesForKeys keys: [String]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: ((URL, NSError) -> Bool)? = nil) -> NSDirectoryEnumerator? {
         if mask.contains(.skipsPackageDescendants) || mask.contains(.skipsHiddenFiles) {
             NSUnimplemented("Enumeration options not yet implemented")
         }
@@ -877,7 +879,7 @@ internal class NSPathDirectoryEnumerator: NSDirectoryEnumerator {
     init?(path: String) {
         let url = URL(fileURLWithPath: path)
         self.baseURL = url
-        guard let ie = FileManager.defaultManager().enumerator(at: url, includingPropertiesForKeys: nil, options: NSDirectoryEnumerationOptions(), errorHandler: nil) else {
+        guard let ie = FileManager.defaultManager().enumerator(at: url, includingPropertiesForKeys: nil, options: [], errorHandler: nil) else {
             return nil
         }
         self.innerEnumerator = ie
@@ -896,14 +898,14 @@ internal class NSPathDirectoryEnumerator: NSDirectoryEnumerator {
 
 internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
     var _url : URL
-    var _options : NSDirectoryEnumerationOptions
+    var _options : FileManager.DirectoryEnumerationOptions
     var _errorHandler : ((URL, NSError) -> Bool)?
     var _stream : UnsafeMutablePointer<FTS>? = nil
     var _current : UnsafeMutablePointer<FTSENT>? = nil
     var _rootError : NSError? = nil
     var _gotRoot : Bool = false
     
-    init(url: URL, options: NSDirectoryEnumerationOptions, errorHandler: ((URL, NSError) -> Bool)?) {
+    init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: ((URL, NSError) -> Bool)?) {
         _url = url
         _options = options
         _errorHandler = errorHandler
