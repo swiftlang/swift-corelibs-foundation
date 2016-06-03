@@ -16,7 +16,7 @@ import SwiftXCTest
 #endif
 
 internal func testBundle() -> NSBundle {
-    return NSBundle.mainBundle()
+    return NSBundle.main()
 }
 
 // For the Swift version of the Foundation tests, we must manually list all test cases here.
