@@ -39,7 +39,7 @@ class TestNSTask : XCTestCase {
     
     func test_exit0() {
         
-        let task = NSTask()
+        let task = Task()
         
         task.launchPath = "/bin/bash"
         task.arguments = ["-c", "exit 0"]
@@ -51,7 +51,7 @@ class TestNSTask : XCTestCase {
     
     func test_exit1() {
         
-        let task = NSTask()
+        let task = Task()
         
         task.launchPath = "/bin/bash"
         task.arguments = ["-c", "exit 1"]
@@ -63,7 +63,7 @@ class TestNSTask : XCTestCase {
     
     func test_exit100() {
         
-        let task = NSTask()
+        let task = Task()
         
         task.launchPath = "/bin/bash"
         task.arguments = ["-c", "exit 100"]
@@ -75,7 +75,7 @@ class TestNSTask : XCTestCase {
     
     func test_sleep2() {
         
-        let task = NSTask()
+        let task = Task()
         
         task.launchPath = "/bin/bash"
         task.arguments = ["-c", "sleep 2"]
@@ -87,7 +87,7 @@ class TestNSTask : XCTestCase {
     
     func test_sleep2_exit1() {
         
-        let task = NSTask()
+        let task = Task()
         
         task.launchPath = "/bin/bash"
         task.arguments = ["-c", "sleep 2; exit 1"]
@@ -99,7 +99,7 @@ class TestNSTask : XCTestCase {
 
 
     func test_pipe_stdin() {
-        let task = NSTask()
+        let task = Task()
 
         task.launchPath = "/bin/cat"
 
@@ -128,7 +128,7 @@ class TestNSTask : XCTestCase {
     }
 
     func test_pipe_stdout() {
-        let task = NSTask()
+        let task = Task()
 
         task.launchPath = "/usr/bin/which"
         task.arguments = ["which"]
@@ -149,7 +149,7 @@ class TestNSTask : XCTestCase {
     }
 
     func test_pipe_stderr() {
-        let task = NSTask()
+        let task = Task()
 
         task.launchPath = "/bin/cat"
         task.arguments = ["invalid_file_name"]
@@ -170,7 +170,7 @@ class TestNSTask : XCTestCase {
     }
 
     func test_pipe_stdout_and_stderr_same_pipe() {
-        let task = NSTask()
+        let task = Task()
 
         task.launchPath = "/bin/cat"
         task.arguments = ["invalid_file_name"]
@@ -192,7 +192,7 @@ class TestNSTask : XCTestCase {
     }
 
     func test_file_stdout() {
-        let task = NSTask()
+        let task = Task()
 
         task.launchPath = "/usr/bin/which"
         task.arguments = ["which"]
@@ -267,7 +267,7 @@ private enum Error: ErrorProtocol {
 }
 
 private func runTask(_ arguments: [String], environment: [String: String]? = nil) throws -> String {
-    let task = NSTask()
+    let task = Task()
 
     var arguments = arguments
     task.launchPath = arguments.removeFirst()

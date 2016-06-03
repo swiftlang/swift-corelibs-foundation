@@ -73,12 +73,12 @@ private func runloopIsEqual(_ a : UnsafePointer<Void>?, _ b : UnsafePointer<Void
 private func nstaskIsEqual(_ a : UnsafePointer<Void>?, _ b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
     let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(a!)
-    guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
+    guard let taskA = unmanagedTaskA.takeUnretainedValue() as? Task else {
         return false
     }
     
     let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(a!)
-    guard let taskB = unmanagedTaskB.takeUnretainedValue() as? NSTask else {
+    guard let taskB = unmanagedTaskB.takeUnretainedValue() as? Task else {
         return false
     }
     
@@ -89,7 +89,7 @@ private func nstaskIsEqual(_ a : UnsafePointer<Void>?, _ b : UnsafePointer<Void>
     return true
 }
 
-public class NSTask : NSObject {
+public class Task: NSObject {
     private static func setup() {
         struct Once {
             static var done = false
@@ -185,7 +185,7 @@ public class NSTask : NSObject {
     
         // Dispatch the manager thread if it isn't already running
         
-        NSTask.setup()
+        Task.setup()
         
         // Ensure that the launch path is set
         
@@ -247,7 +247,7 @@ public class NSTask : NSObject {
         let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
             (socket, type, address, data, info )  in
             
-            let task: NSTask = NSObject.unretainedReference(info!)
+            let task: Task = NSObject.unretainedReference(info!)
             
             task.processLaunchedCondition.lock()
             while task.running == false {
@@ -399,15 +399,15 @@ public class NSTask : NSObject {
     /*
     A block to be invoked when the process underlying the NSTask terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The NSTask is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the NSTask has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an NSTask, the NSTaskDidTerminateNotification notification is not posted for that task.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of NSTask which hasn't been updated to include an implementation of the storage and use of it.  
     */
-    public var terminationHandler: ((NSTask) -> Void)?
+    public var terminationHandler: ((Task) -> Void)?
     public var qualityOfService: NSQualityOfService = .default  // read-only after the task is launched
 }
 
-extension NSTask {
+extension Task {
     
     // convenience; create and launch
-    public class func launchedTaskWithLaunchPath(_ path: String, arguments: [String]) -> NSTask {
-        let task = NSTask()
+    public class func launchedTaskWithLaunchPath(_ path: String, arguments: [String]) -> Task {
+        let task = Task()
         task.launchPath = path
         task.arguments = arguments
         task.launch()
