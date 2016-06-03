@@ -252,7 +252,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     /// - parameter options: Options for the read operation. Default value is `[]`.
     /// - throws: An error in the Cocoa domain, if `url` cannot be read.
     public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
-        try _wrapped = _SwiftNSData(immutableObject: NSData(contentsOfURL: url, options: ReadingOptions(rawValue: options.rawValue)))
+        try _wrapped = _SwiftNSData(immutableObject: NSData(contentsOf: url, options: ReadingOptions(rawValue: options.rawValue)))
     }
     
     /// Initialize a `Data` from a Base-64 encoded String using the given options.

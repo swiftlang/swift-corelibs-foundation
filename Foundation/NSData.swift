@@ -329,7 +329,7 @@ extension NSData {
         self.init(bytes:data._nsObject.bytes, length: data.count)
     }
     
-    public convenience init(contentsOfURL url: URL, options readOptionsMask: ReadingOptions) throws {
+    public convenience init(contentsOf url: URL, options readOptionsMask: ReadingOptions) throws {
         if url.isFileURL {
             try self.init(contentsOfFile: url.path!, options: readOptionsMask)
         } else {
@@ -353,7 +353,7 @@ extension NSData {
     
     public convenience init?(contentsOfURL url: URL) {
         do {
-            try self.init(contentsOfURL: url, options: [])
+            try self.init(contentsOf: url, options: [])
         } catch {
             return nil
         }

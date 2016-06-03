@@ -238,8 +238,8 @@ static CFMutableDictionaryRef  domainCache = NULL; // mutable
 
 CFTypeRef  CFPreferencesCopyValue(CFStringRef  key, CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;
-    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
-    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
     
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if (domain) {
@@ -254,7 +254,7 @@ CFDictionaryRef CFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef ap
     CFMutableDictionaryRef result;
     CFIndex idx, count;
 
-    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
     __CFGenericValidateType(appName, CFStringGetTypeID());
     __CFGenericValidateType(user, CFStringGetTypeID());
     __CFGenericValidateType(host, CFStringGetTypeID());
@@ -284,8 +284,8 @@ CFDictionaryRef CFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef ap
 
 void CFPreferencesSetValue(CFStringRef  key, CFTypeRef  value, CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;
-    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
-    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
 
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if (domain) {
@@ -298,7 +298,7 @@ void CFPreferencesSetValue(CFStringRef  key, CFTypeRef  value, CFStringRef  appN
 void CFPreferencesSetMultiple(CFDictionaryRef keysToSet, CFArrayRef keysToRemove, CFStringRef appName, CFStringRef user, CFStringRef host) {
     CFPreferencesDomainRef domain;
     CFIndex idx, count;
-    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
     if (keysToSet) __CFGenericValidateType(keysToSet, CFDictionaryGetTypeID());
     if (keysToRemove) __CFGenericValidateType(keysToRemove, CFArrayGetTypeID());
     __CFGenericValidateType(appName, CFStringGetTypeID());
@@ -340,7 +340,7 @@ void CFPreferencesSetMultiple(CFDictionaryRef keysToSet, CFArrayRef keysToRemove
 
 Boolean CFPreferencesSynchronize(CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;
-    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
 
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if(domain) _CFApplicationPreferencesDomainHasChanged(domain);
@@ -350,14 +350,14 @@ Boolean CFPreferencesSynchronize(CFStringRef  appName, CFStringRef  user, CFStri
 
 CFArrayRef  CFPreferencesCopyApplicationList(CFStringRef  user, CFStringRef  host) {
     CFArrayRef  array;
-    CFAssert1(user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL user or host", __PRETTY_FUNCTION__);
+    CFAssert(user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL user or host", __PRETTY_FUNCTION__);
     array = _CFPreferencesCreateDomainList(user, host);
     return array;
 }
 
 CFArrayRef  CFPreferencesCopyKeyList(CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;
-    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
 
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if (!domain) {

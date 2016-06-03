@@ -1256,8 +1256,8 @@ extension NSString {
         }
     }
 
-    public convenience init(contentsOfURL url: URL, encoding enc: UInt) throws {
-        let readResult = try NSData(contentsOfURL: url, options: [])
+    public convenience init(contentsOf url: URL, encoding enc: UInt) throws {
+        let readResult = try NSData(contentsOf: url, options: [])
 
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
@@ -1275,10 +1275,10 @@ extension NSString {
     }
 
     public convenience init(contentsOfFile path: String, encoding enc: UInt) throws {
-        try self.init(contentsOfURL: URL(fileURLWithPath: path), encoding: enc)
+        try self.init(contentsOf: URL(fileURLWithPath: path), encoding: enc)
     }
     
-    public convenience init(contentsOfURL url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
+    public convenience init(contentsOf url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
         NSUnimplemented()    
     }
     
