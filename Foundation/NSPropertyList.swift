@@ -126,10 +126,10 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
         return result
     } else if let str = input as? NSString {
         return str._swiftObject
-    } else if let date = input as? Date {
-        return date
-    } else if let data = input as? Data {
-        return data
+    } else if let date = input as? NSDate {
+        return date._swiftObject
+    } else if let data = input as? NSData {
+        return data._swiftObject
     } else if let number = input as? NSNumber {
         return number
     } else if input === kCFBooleanTrue {
@@ -139,7 +139,7 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
     } else if input is __NSCFType && CFGetTypeID(input) == _CFKeyedArchiverUIDGetTypeID() {
         return input
     } else {
-        fatalError("Attempt to convert a non-plist type \(input)")
+        fatalError("Attempt to convert a non-plist type \(input.dynamicType)")
     }
 }
 
