@@ -420,7 +420,7 @@ extension Task {
         
         repeat {
             
-        } while( self.running == true && RunLoop.currentRunLoop().runMode(NSDefaultRunLoopMode, beforeDate: Date(timeIntervalSinceNow: 0.05)) )
+        } while( self.running == true && RunLoop.currentRunLoop().runMode(.defaultRunLoopMode, beforeDate: Date(timeIntervalSinceNow: 0.05)) )
         
         self.runLoop = nil
     }

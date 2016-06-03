@@ -115,10 +115,10 @@ class TestNSNotificationQueue : XCTestCase {
             queue.enqueueNotification(notification, postingStyle: .postNow)
             // here we post notification for the NSRunLoopCommonModes. It shouldn't have any affect, because the timer is scheduled in NSDefaultRunLoopMode.
             // The notification queue will only post the notification to its notification center if the run loop is in one of the modes provided in the array.
-            queue.enqueueNotification(notification, postingStyle: .postNow, coalesceMask: [], forModes: [NSRunLoopCommonModes])
+            queue.enqueueNotification(notification, postingStyle: .postNow, coalesceMask: [], forModes: [.defaultRunLoopMode])
         }
-        runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        let _ = runLoop.runMode(NSDefaultRunLoopMode, beforeDate: endDate)
+        runLoop.addTimer(dummyTimer, forMode: .defaultRunLoopMode)
+        let _ = runLoop.runMode(.defaultRunLoopMode, beforeDate: endDate)
         XCTAssertEqual(numberOfCalls, 2)
         NotificationCenter.defaultCenter().removeObserver(obs)
     }
@@ -226,7 +226,7 @@ class TestNSNotificationQueue : XCTestCase {
         let dummyTimer = Timer.scheduledTimer(interval, repeats: false) { _ in
             e.fulfill()
         }
-        RunLoop.currentRunLoop().addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
+        RunLoop.currentRunLoop().addTimer(dummyTimer, forMode: .defaultRunLoopMode)
         waitForExpectations(withTimeout: 0.1)
     }
 

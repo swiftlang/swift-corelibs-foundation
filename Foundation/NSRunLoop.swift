@@ -19,8 +19,35 @@ import CoreFoundation
     internal let kCFRunLoopAllActivities = CFRunLoopActivity.allActivities.rawValue
 #endif
 
-public let NSDefaultRunLoopMode: String = "kCFRunLoopDefaultMode"
-public let NSRunLoopCommonModes: String = "kCFRunLoopCommonModes"
+public struct RunLoopMode : RawRepresentable, Equatable, Hashable, Comparable {
+    public private(set) var rawValue: String
+    
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
+    public var hashValue: Int {
+        return rawValue.hashValue
+    }
+}
+
+public func ==(lhs: RunLoopMode, rhs: RunLoopMode) -> Bool {
+    return lhs.rawValue == rhs.rawValue
+}
+
+public func <(lhs: RunLoopMode, rhs: RunLoopMode) -> Bool {
+    return lhs.rawValue < rhs.rawValue
+}
+
+
+extension RunLoopMode {
+    public static let defaultRunLoopMode = RunLoopMode("kCFRunLoopDefaultMode")
+    public static let commonModes = RunLoopMode("kCFRunLoopCommonModes")
+}
 
 internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
     let rl = Unmanaged<RunLoop>.passRetained(RunLoop(cfObject: cf))
@@ -45,34 +72,38 @@ public class RunLoop: NSObject {
         return _CFRunLoopGet2(CFRunLoopGetMain()) as! RunLoop
     }
 
-    public var currentMode: String? {
-        return CFRunLoopCopyCurrentMode(_cfRunLoop)?._swiftObject
+    public var currentMode: RunLoopMode? {
+        if let mode = CFRunLoopCopyCurrentMode(_cfRunLoop) {
+            return RunLoopMode(mode._swiftObject)
+        } else {
+            return nil
+        }
     }
 
-    public func addTimer(_ timer: Timer, forMode mode: String) {
-        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode._cfObject)
+    public func addTimer(_ timer: Timer, forMode mode: RunLoopMode) {
+        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode.rawValue._cfObject)
     }
 
-    public func addPort(_ aPort: NSPort, forMode mode: String) {
+    public func addPort(_ aPort: NSPort, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func removePort(_ aPort: NSPort, forMode mode: String) {
+    public func removePort(_ aPort: NSPort, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func limitDateForMode(_ mode: String) -> Date? {
+    public func limitDateForMode(_ mode: RunLoopMode) -> Date? {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return nil
         }
-        let modeArg = mode._cfObject
+        let modeArg = mode.rawValue._cfObject
         
         CFRunLoopRunInMode(modeArg, -10.0, true) /* poll run loop to fire ready timers and performers, as used to be done here */
         if _CFRunLoopFinished(_cfRunLoop, modeArg) {
             return nil
         }
         
-        let nextTimerFireAbsoluteTime = CFRunLoopGetNextTimerFireDate(CFRunLoopGetCurrent(), mode._cfObject)
+        let nextTimerFireAbsoluteTime = CFRunLoopGetNextTimerFireDate(CFRunLoopGetCurrent(), modeArg)
 
         if (nextTimerFireAbsoluteTime == 0) {
             return Date.distantFuture
@@ -93,18 +124,18 @@ public class RunLoop: NSObject {
 extension RunLoop {
 
     public func run() {
-        while runMode(NSDefaultRunLoopMode, beforeDate: Date.distantFuture) { }
+        while runMode(.defaultRunLoopMode, beforeDate: Date.distantFuture) { }
     }
 
     public func runUntilDate(_ limitDate: Date) {
-        while runMode(NSDefaultRunLoopMode, beforeDate: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
+        while runMode(.defaultRunLoopMode, beforeDate: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
     }
 
-    public func runMode(_ mode: String, beforeDate limitDate: Date) -> Bool {
+    public func runMode(_ mode: RunLoopMode, beforeDate limitDate: Date) -> Bool {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return false
         }
-        let modeArg = mode._cfObject
+        let modeArg = mode.rawValue._cfObject
         if _CFRunLoopFinished(_cfRunLoop, modeArg) {
             return false
         }

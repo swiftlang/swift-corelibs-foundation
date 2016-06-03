@@ -28,11 +28,11 @@ class TestNSRunLoop : XCTestCase {
     }
     
     func test_constants() {
-        XCTAssertEqual(NSRunLoopCommonModes, "kCFRunLoopCommonModes",
-                       "\(NSRunLoopCommonModes) is not equal to kCFRunLoopCommonModes")
+        XCTAssertEqual(RunLoopMode.commonModes.rawValue, "kCFRunLoopCommonModes",
+                       "\(RunLoopMode.commonModes.rawValue) is not equal to kCFRunLoopCommonModes")
         
-        XCTAssertEqual(NSDefaultRunLoopMode, "kCFRunLoopDefaultMode",
-                       "\(NSDefaultRunLoopMode) is not equal to kCFRunLoopDefaultMode")
+        XCTAssertEqual(RunLoopMode.defaultRunLoopMode.rawValue, "kCFRunLoopDefaultMode",
+                       "\(RunLoopMode.defaultRunLoopMode.rawValue) is not equal to kCFRunLoopDefaultMode")
     }
     
     func test_runLoopInit() {
@@ -67,10 +67,10 @@ class TestNSRunLoop : XCTestCase {
                 return
             }
             
-            XCTAssertEqual(runLoopMode, NSDefaultRunLoopMode)
+            XCTAssertEqual(runLoopMode, RunLoopMode.defaultRunLoopMode)
         }
-        runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        let result = runLoop.runMode(NSDefaultRunLoopMode, beforeDate: endDate)
+        runLoop.addTimer(dummyTimer, forMode: .defaultRunLoopMode)
+        let result = runLoop.runMode(.defaultRunLoopMode, beforeDate: endDate)
         
         XCTAssertFalse(result) // should be .Finished
         XCTAssertTrue(flag)
@@ -82,9 +82,9 @@ class TestNSRunLoop : XCTestCase {
         let expectedTimeInterval = Date(timeInterval: timeInterval, since: Date()).timeIntervalSince1970
 
         let dummyTimer = Timer.scheduledTimer(timeInterval, repeats: false) { _ in }
-        runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
+        runLoop.addTimer(dummyTimer, forMode: .defaultRunLoopMode)
         
-        guard let timerTickInterval = runLoop.limitDateForMode(NSDefaultRunLoopMode)?.timeIntervalSince1970 else {
+        guard let timerTickInterval = runLoop.limitDateForMode(.defaultRunLoopMode)?.timeIntervalSince1970 else {
             return
         }
         
