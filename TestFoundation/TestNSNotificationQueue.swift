@@ -102,7 +102,7 @@ class TestNSNotificationQueue : XCTestCase {
         }
         let queue = NotificationQueue.defaultQueue()
 
-        let runLoop = RunLoop.currentRunLoop()
+        let runLoop = RunLoop.current()
         let endDate = Date(timeInterval: TimeInterval(0.05), since: Date())
 
         let dummyTimer = Timer.scheduledTimer(0.01, repeats: false) { _ in
@@ -117,8 +117,8 @@ class TestNSNotificationQueue : XCTestCase {
             // The notification queue will only post the notification to its notification center if the run loop is in one of the modes provided in the array.
             queue.enqueueNotification(notification, postingStyle: .postNow, coalesceMask: [], forModes: [.defaultRunLoopMode])
         }
-        runLoop.addTimer(dummyTimer, forMode: .defaultRunLoopMode)
-        let _ = runLoop.runMode(.defaultRunLoopMode, beforeDate: endDate)
+        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
+        let _ = runLoop.run(mode: .defaultRunLoopMode, before: endDate)
         XCTAssertEqual(numberOfCalls, 2)
         NotificationCenter.defaultCenter().removeObserver(obs)
     }
@@ -226,7 +226,7 @@ class TestNSNotificationQueue : XCTestCase {
         let dummyTimer = Timer.scheduledTimer(interval, repeats: false) { _ in
             e.fulfill()
         }
-        RunLoop.currentRunLoop().addTimer(dummyTimer, forMode: .defaultRunLoopMode)
+        RunLoop.current().add(dummyTimer, forMode: .defaultRunLoopMode)
         waitForExpectations(withTimeout: 0.1)
     }
 

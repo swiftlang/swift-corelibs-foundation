@@ -92,7 +92,7 @@ public class NotificationQueue: NSObject {
 
         switch postingStyle {
         case .postNow:
-            let currentMode = RunLoop.currentRunLoop().currentMode
+            let currentMode = RunLoop.current().currentMode
             if currentMode == nil || runloopModes.contains(currentMode!) {
                 self.notificationCenter.postNotification(notification)
             }
@@ -131,13 +131,13 @@ public class NotificationQueue: NSObject {
     // MARK: Private
 
     private func addRunloopObserver(_ observer: CFRunLoopObserver) {
-        CFRunLoopAddObserver(RunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
-        CFRunLoopAddObserver(RunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
+        CFRunLoopAddObserver(RunLoop.current()._cfRunLoop, observer, kCFRunLoopDefaultMode)
+        CFRunLoopAddObserver(RunLoop.current()._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
     private func removeRunloopObserver(_ observer: CFRunLoopObserver) {
-        CFRunLoopRemoveObserver(RunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
-        CFRunLoopRemoveObserver(RunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
+        CFRunLoopRemoveObserver(RunLoop.current()._cfRunLoop, observer, kCFRunLoopDefaultMode)
+        CFRunLoopRemoveObserver(RunLoop.current()._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
     private func notify(_ currentMode: RunLoopMode?, notificationList: inout NSNotificationList) {
@@ -153,7 +153,7 @@ public class NotificationQueue: NSObject {
      Gets queues from the notificationQueueList and posts all notification from the list related to the postingStyle parameter.
      */
     private func notifyQueues(_ postingStyle: PostingStyle) {
-        let currentMode = RunLoop.currentRunLoop().currentMode
+        let currentMode = RunLoop.current().currentMode
         for queue in NotificationQueue.notificationQueueList {
             let notificationQueue = queue as! NotificationQueue
             if postingStyle == .postWhenIdle {

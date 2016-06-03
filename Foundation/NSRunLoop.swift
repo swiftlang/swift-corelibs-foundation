@@ -64,11 +64,11 @@ public class RunLoop: NSObject {
         _cfRunLoop = cfObject
     }
 
-    public class func currentRunLoop() -> RunLoop {
+    public class func current() -> RunLoop {
         return _CFRunLoopGet2(CFRunLoopGetCurrent()) as! RunLoop
     }
 
-    public class func mainRunLoop() -> RunLoop {
+    public class func main() -> RunLoop {
         return _CFRunLoopGet2(CFRunLoopGetMain()) as! RunLoop
     }
 
@@ -79,20 +79,24 @@ public class RunLoop: NSObject {
             return nil
         }
     }
+    
+    public func getCFRunLoop() -> CFRunLoop {
+        return _cfRunLoop
+    }
 
-    public func addTimer(_ timer: Timer, forMode mode: RunLoopMode) {
+    public func add(_ timer: Timer, forMode mode: RunLoopMode) {
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode.rawValue._cfObject)
     }
 
-    public func addPort(_ aPort: NSPort, forMode mode: RunLoopMode) {
+    public func add(_ aPort: NSPort, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func removePort(_ aPort: NSPort, forMode mode: RunLoopMode) {
+    public func remove(_ aPort: NSPort, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func limitDateForMode(_ mode: RunLoopMode) -> Date? {
+    public func limitDate(forMode mode: RunLoopMode) -> Date? {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return nil
         }
@@ -112,7 +116,7 @@ public class RunLoop: NSObject {
         return Date(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
     }
 
-    public func acceptInputForMode(_ mode: String, beforeDate limitDate: Date) {
+    public func acceptInputForMode(_ mode: String, before limitDate: Date) {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return
         }
@@ -124,14 +128,14 @@ public class RunLoop: NSObject {
 extension RunLoop {
 
     public func run() {
-        while runMode(.defaultRunLoopMode, beforeDate: Date.distantFuture) { }
+        while run(mode: .defaultRunLoopMode, before: Date.distantFuture) { }
     }
 
-    public func runUntilDate(_ limitDate: Date) {
-        while runMode(.defaultRunLoopMode, beforeDate: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
+    public func run(until limitDate: Date) {
+        while run(mode: .defaultRunLoopMode, before: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
     }
 
-    public func runMode(_ mode: RunLoopMode, beforeDate limitDate: Date) -> Bool {
+    public func run(mode: RunLoopMode, before limitDate: Date) -> Bool {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return false
         }
@@ -146,4 +150,11 @@ extension RunLoop {
         return true
     }
 
+    public func perform(inModes modes: [RunLoopMode], block: () -> Void) {
+        CFRunLoopPerformBlock(getCFRunLoop(), (modes.map { $0.rawValue._nsObject })._cfObject, block)
+    }
+    
+    public func perform(_ block: () -> Void) {
+        perform(inModes: [.defaultRunLoopMode], block: block)
+    }
 }
