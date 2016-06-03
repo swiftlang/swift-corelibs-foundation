@@ -44,7 +44,7 @@ class TestNSData: XCTestCase {
     }
     
     func test_writeToURLOptions() {
-        let saveData = try! Data(contentsOf: NSBundle.main().URLForResource("Test", withExtension: "plist")!)
+        let saveData = try! Data(contentsOf: Bundle.main().URLForResource("Test", withExtension: "plist")!)
         let savePath = URL(fileURLWithPath: "/var/tmp/Test.plist")
         do {
             try saveData.write(to: savePath, options: .dataWritingAtomic)

@@ -9,14 +9,14 @@
 
 import CoreFoundation
 
-public class NSBundle : NSObject {
+public class Bundle: NSObject {
     private var _bundle : CFBundle!
 
-    private static var _mainBundle : NSBundle = {
-        return NSBundle(cfBundle: CFBundleGetMainBundle())
+    private static var _mainBundle : Bundle = {
+        return Bundle(cfBundle: CFBundleGetMainBundle())
     }()
     
-    public class func main() -> NSBundle {
+    public class func main() -> Bundle {
         return _mainBundle
     }
     
@@ -189,7 +189,7 @@ public class NSBundle : NSObject {
     // MARK: - Path Resource Lookup - Class
 
     public class func pathForResource(_ name: String?, ofType ext: String?, inDirectory bundlePath: String) -> String? {
-        return NSBundle.urlForResource(name, withExtension: ext, subdirectory: bundlePath, inBundleWith: URL(fileURLWithPath: bundlePath))?.path ?? nil
+        return Bundle.urlForResource(name, withExtension: ext, subdirectory: bundlePath, inBundleWith: URL(fileURLWithPath: bundlePath))?.path ?? nil
     }
     
     public class func pathsForResources(ofType ext: String?, inDirectory bundlePath: String) -> [String] {
@@ -264,7 +264,7 @@ public class NSBundle : NSObject {
     public func classNamed(_ className: String) -> AnyClass? { NSUnimplemented() }
     public var principalClass: AnyClass? { NSUnimplemented() }
     public var preferredLocalizations: [String] {
-        return NSBundle.preferredLocalizations(from: localizations)
+        return Bundle.preferredLocalizations(from: localizations)
     }
     public var localizations: [String] {
         let cfLocalizations: CFArray? = CFBundleCopyBundleLocalizations(_bundle)
