@@ -113,7 +113,7 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(Calendar.self, to: UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(Locale.self, to: UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(TimeZone.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(NSMutableCharacterSet.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(_NSCFCharacterSet.self, to: UnsafePointer<Void>.self))
     
 //    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, UnsafePointer<Void>.self))
@@ -198,6 +198,14 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSXMLParser.externalSubset = _NSXMLParserExternalSubset
     
     __CFSwiftBridge.NSRunLoop._new = _NSRunLoopNew
+    
+    __CFSwiftBridge.NSCharacterSet._expandedCFCharacterSet = _CFSwiftCharacterSetExpandedCFCharacterSet
+    __CFSwiftBridge.NSCharacterSet._retainedBitmapRepresentation = _CFSwiftCharacterSetRetainedBitmapRepresentation
+    __CFSwiftBridge.NSCharacterSet.characterIsMember = _CFSwiftCharacterSetCharacterIsMember
+    __CFSwiftBridge.NSCharacterSet.mutableCopy = _CFSwiftCharacterSetMutableCopy
+    __CFSwiftBridge.NSCharacterSet.longCharacterIsMember = _CFSwiftCharacterSetLongCharacterIsMember
+    __CFSwiftBridge.NSCharacterSet.hasMemberInPlane = _CFSwiftCharacterSetHasMemberInPlane
+    __CFSwiftBridge.NSCharacterSet.invertedSet = _CFSwiftCharacterSetInverted
     
     __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }

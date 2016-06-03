@@ -1,4 +1,4 @@
-//===----------------------------------------------------------------------===//
+ //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift.org open source project
 //
@@ -55,34 +55,34 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
     }
 
 // These for some reason cause a crash in the compiler
-//    // Stubs
-//    // -----
-//
-//    // Immutable
-//
-//    var bitmapRepresentation: Data {
-//        return _mapUnmanaged { $0.bitmapRepresentation }
-//    }
-//
-//    var inverted : CharacterSet {
-//        return _mapUnmanaged { $0.inverted }
-//    }
-//
-//    func hasMember(inPlane plane: UInt8) -> Bool {
-//        return _mapUnmanaged {$0.hasMemberInPlane(plane) }
-//    }
-//
-//    func characterIsMember(_ member: unichar) -> Bool {
-//        return _mapUnmanaged { $0.characterIsMember(member) }
-//    }
-//
-//    func longCharacterIsMember(_ member: UTF32Char) -> Bool {
-//        return _mapUnmanaged { $0.longCharacterIsMember(member) }
-//    }
-//
-//    func isSuperset(of other: CharacterSet) -> Bool {
-//        return _mapUnmanaged { $0.isSuperset(of: other) }
-//    }
+    // Stubs
+    // -----
+
+    // Immutable
+
+    override var bitmapRepresentation: Data {
+        return _mapUnmanaged { $0.bitmapRepresentation }
+    }
+
+    override var inverted : CharacterSet {
+        return _mapUnmanaged { $0.inverted }
+    }
+
+    override func hasMember(inPlane plane: UInt8) -> Bool {
+        return _mapUnmanaged {$0.hasMember(inPlane: plane) }
+    }
+
+    override func characterIsMember(_ member: unichar) -> Bool {
+        return _mapUnmanaged { $0.characterIsMember(member) }
+    }
+
+    override func longCharacterIsMember(_ member: UTF32Char) -> Bool {
+        return _mapUnmanaged { $0.longCharacterIsMember(member) }
+    }
+
+    override func isSuperset(of other: CharacterSet) -> Bool {
+        return _mapUnmanaged { $0.isSuperset(of: other) }
+    }
 }
 
 /**
@@ -294,7 +294,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     ///
     /// This method makes it easier to find the plane containing the members of the current character set. The Basic Multilingual Plane (BMP) is plane 0.
     public func hasMember(inPlane plane: UInt8) -> Bool {
-        return _mapUnmanaged { $0.hasMemberInPlane(plane) }
+        return _mapUnmanaged { $0.hasMember(inPlane: plane) }
     }
     
     // MARK: Mutable functions

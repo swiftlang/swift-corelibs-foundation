@@ -159,7 +159,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public func characterIsMember(_ aCharacter: unichar) -> Bool {
-        return CFCharacterSetIsCharacterMember(_cfObject, UniChar(aCharacter))
+        return longCharacterIsMember(UTF32Char(aCharacter))
     }
     
     public var bitmapRepresentation: Data {
@@ -167,19 +167,27 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public var inverted: CharacterSet {
-        return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, _cfObject)._swiftObject
+        let copy = mutableCopy() as! NSMutableCharacterSet
+        copy.invert()
+        return copy._swiftObject
     }
     
     public func longCharacterIsMember(_ theLongChar: UTF32Char) -> Bool {
-        return CFCharacterSetIsLongCharacterMember(_cfObject, theLongChar)
+        if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
+            return _CFCharacterSetIsLongCharacterMember(unsafeBitCast(self, to: CFType.self), theLongChar)
+        } else if self.dynamicType == _NSCFCharacterSet.self {
+            return CFCharacterSetIsLongCharacterMember(_cfObject, theLongChar)
+        } else {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     public func isSuperset(of theOtherSet: CharacterSet) -> Bool {
         return CFCharacterSetIsSupersetOfSet(_cfObject, theOtherSet._cfObject)
     }
     
-    public func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
-        return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(thePlane))
+    public func hasMember(inPlane plane: UInt8) -> Bool {
+        return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(plane))
     }
     
     public override func copy() -> AnyObject {
@@ -187,7 +195,13 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
+        if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
+            return _CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
+        } else if self.dynamicType == _NSCFCharacterSet.self {
+            return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
+        } else {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     public override func mutableCopy() -> AnyObject {
@@ -195,7 +209,13 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
-        return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
+        if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
+            return _CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
+        } else if self.dynamicType == _NSCFCharacterSet.self {
+            return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
+        } else {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     public func encode(with aCoder: NSCoder) {

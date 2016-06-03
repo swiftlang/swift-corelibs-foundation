@@ -1,4 +1,4 @@
-// This source file is part of the Swift.org open source project
+  // This source file is part of the Swift.org open source project
 //
 // Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
@@ -141,6 +141,7 @@ class TestNSCharacterSet : XCTestCase {
         var set = CharacterSet(charactersIn: ",-")
         result = string.components(separatedBy: set)
         XCTAssertEqual(5, result.count)
+        XCTAssertEqual(["The quick", " brown", " fox jumps over the lazy dog ", " because", " why not?"], result)
         
         set.remove(charactersIn: ",")
         set.insert(charactersIn: " ")
@@ -181,30 +182,44 @@ class TestNSCharacterSet : XCTestCase {
 //        let cset1 = CharacterSet(range: NSMakeRange(0x20, 40))
         let cset1 = CharacterSet(charactersIn: UnicodeScalar(0x20)..<UnicodeScalar(0x49))
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset1.contains(UnicodeScalar(idx)), (idx >= 0x20 && idx < 0x20 + 40 ? true : false))
+            if idx < 0xD800 || idx > 0xDFFF {
+                XCTAssertEqual(cset1.contains(UnicodeScalar(idx)), (idx >= 0x20 && idx < 0x20 + 40 ? true : false))
+            }
+            
         }
         
         let cset2 = CharacterSet(charactersIn: UnicodeScalar(0x0000)..<UnicodeScalar(0xFFFF))
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset2.contains(UnicodeScalar(idx)), true)
+            if idx < 0xD800 || idx > 0xDFFF {
+                XCTAssertEqual(cset2.contains(UnicodeScalar(idx)), true)
+            }
+            
         }
         
 
         let cset3 = CharacterSet(charactersIn: UnicodeScalar(0x0000)..<UnicodeScalar(10))
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset3.contains(UnicodeScalar(idx)), (idx < 10 ? true : false))
+            if idx < 0xD800 || idx > 0xDFFF {
+                XCTAssertEqual(cset3.contains(UnicodeScalar(idx)), (idx < 10 ? true : false))
+            }
+            
         }
         
         let cset4 = CharacterSet(charactersIn: UnicodeScalar(0x20)..<UnicodeScalar(0x21))
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset4.contains(UnicodeScalar(idx)), false)
+            if idx < 0xD800 || idx > 0xDFFF {
+                XCTAssertEqual(cset4.contains(UnicodeScalar(idx)), false)
+            }
+            
         }
     }
     
     func test_String() {
         let cset = CharacterSet(charactersIn: "abcABC")
         for idx: unichar in 0..<0xFFFF {
-            XCTAssertEqual(cset.contains(UnicodeScalar(idx)), (idx >= unichar(unicodeScalarLiteral: "a") && idx <= unichar(unicodeScalarLiteral: "c")) || (idx >= unichar(unicodeScalarLiteral: "A") && idx <= unichar(unicodeScalarLiteral: "C")) ? true : false)
+            if idx < 0xD800 || idx > 0xDFFF {
+                XCTAssertEqual(cset.contains(UnicodeScalar(idx)), (idx >= unichar(unicodeScalarLiteral: "a") && idx <= unichar(unicodeScalarLiteral: "c")) || (idx >= unichar(unicodeScalarLiteral: "A") && idx <= unichar(unicodeScalarLiteral: "C")) ? true : false)
+            }
         }
     }
     
