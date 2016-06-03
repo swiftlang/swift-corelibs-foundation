@@ -653,7 +653,7 @@ public class FileManager: NSObject {
     
     /* enumeratorAtPath: returns an NSDirectoryEnumerator rooted at the provided path. If the enumerator cannot be created, this returns NULL. Because NSDirectoryEnumerator is a subclass of NSEnumerator, the returned object can be used in the for...in construct.
      */
-    public func enumerator(atPath path: String) -> NSDirectoryEnumerator? {
+    public func enumerator(atPath path: String) -> DirectoryEnumerator? {
         return NSPathDirectoryEnumerator(path: path)
     }
     
@@ -661,7 +661,7 @@ public class FileManager: NSObject {
     
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
-    public func enumerator(at url: URL, includingPropertiesForKeys keys: [String]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: ((URL, NSError) -> Bool)? = nil) -> NSDirectoryEnumerator? {
+    public func enumerator(at url: URL, includingPropertiesForKeys keys: [String]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: ((URL, NSError) -> Bool)? = nil) -> DirectoryEnumerator? {
         if mask.contains(.skipsPackageDescendants) || mask.contains(.skipsHiddenFiles) {
             NSUnimplemented("Enumeration options not yet implemented")
         }
@@ -836,170 +836,172 @@ public protocol NSFileManagerDelegate : class {
     func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, removingItemAtURL URL: URL) -> Bool
 }
 
-public class NSDirectoryEnumerator : NSEnumerator {
-    
-    /* For NSDirectoryEnumerators created with -enumeratorAtPath:, the -fileAttributes and -directoryAttributes methods return an NSDictionary containing the keys listed below. For NSDirectoryEnumerators created with -enumeratorAtURL:includingPropertiesForKeys:options:errorHandler:, these two methods return nil.
-     */
-    public var fileAttributes: [String : AnyObject]? {
-        NSRequiresConcreteImplementation()
-    }
-    public var directoryAttributes: [String : AnyObject]? {
-        NSRequiresConcreteImplementation()
-    }
-    
-    /* This method returns the number of levels deep the current object is in the directory hierarchy being enumerated. The directory passed to -enumeratorAtURL:includingPropertiesForKeys:options:errorHandler: is considered to be level 0.
-     */
-    public var level: Int {
-        NSRequiresConcreteImplementation()
-    }
-    
-    public func skipDescendants() {
-        NSRequiresConcreteImplementation()
-    }
-}
-
-internal class NSPathDirectoryEnumerator: NSDirectoryEnumerator {
-    let baseURL: URL
-    let innerEnumerator : NSDirectoryEnumerator
-    override var fileAttributes: [String : AnyObject]? {
-        NSUnimplemented()
-    }
-    override var directoryAttributes: [String : AnyObject]? {
-        NSUnimplemented()
-    }
-    
-    override var level: Int {
-        NSUnimplemented()
-    }
-    
-    override func skipDescendants() {
-        NSUnimplemented()
-    }
-    
-    init?(path: String) {
-        let url = URL(fileURLWithPath: path)
-        self.baseURL = url
-        guard let ie = FileManager.defaultManager().enumerator(at: url, includingPropertiesForKeys: nil, options: [], errorHandler: nil) else {
-            return nil
-        }
-        self.innerEnumerator = ie
-    }
-    
-    override func nextObject() -> AnyObject? {
-        let o = innerEnumerator.nextObject()
-        guard let url = o as? URL else {
-            return nil
-        }
-        let path = url.path!.replacingOccurrences(of: baseURL.path!+"/", with: "")
-        return NSString(string: path)
-    }
-
-}
-
-internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
-    var _url : URL
-    var _options : FileManager.DirectoryEnumerationOptions
-    var _errorHandler : ((URL, NSError) -> Bool)?
-    var _stream : UnsafeMutablePointer<FTS>? = nil
-    var _current : UnsafeMutablePointer<FTSENT>? = nil
-    var _rootError : NSError? = nil
-    var _gotRoot : Bool = false
-    
-    init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: ((URL, NSError) -> Bool)?) {
-        _url = url
-        _options = options
-        _errorHandler = errorHandler
+extension FileManager {
+    public class DirectoryEnumerator : NSEnumerator {
         
-        if let path = _url.path {
-            if FileManager.defaultManager().fileExists(atPath: path) {
-                let fsRep = FileManager.defaultManager().fileSystemRepresentation(withPath: path)
-                let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
-                ps.initialize(with: UnsafeMutablePointer(fsRep))
-                ps.advanced(by: 1).initialize(with: nil)
-                _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
-                ps.deinitialize(count: 2)
-                ps.deallocateCapacity(2)
+        /* For NSDirectoryEnumerators created with -enumeratorAtPath:, the -fileAttributes and -directoryAttributes methods return an NSDictionary containing the keys listed below. For NSDirectoryEnumerators created with -enumeratorAtURL:includingPropertiesForKeys:options:errorHandler:, these two methods return nil.
+         */
+        public var fileAttributes: [String : AnyObject]? {
+            NSRequiresConcreteImplementation()
+        }
+        public var directoryAttributes: [String : AnyObject]? {
+            NSRequiresConcreteImplementation()
+        }
+        
+        /* This method returns the number of levels deep the current object is in the directory hierarchy being enumerated. The directory passed to -enumeratorAtURL:includingPropertiesForKeys:options:errorHandler: is considered to be level 0.
+         */
+        public var level: Int {
+            NSRequiresConcreteImplementation()
+        }
+        
+        public func skipDescendants() {
+            NSRequiresConcreteImplementation()
+        }
+    }
+
+    internal class NSPathDirectoryEnumerator: DirectoryEnumerator {
+        let baseURL: URL
+        let innerEnumerator : DirectoryEnumerator
+        override var fileAttributes: [String : AnyObject]? {
+            NSUnimplemented()
+        }
+        override var directoryAttributes: [String : AnyObject]? {
+            NSUnimplemented()
+        }
+        
+        override var level: Int {
+            NSUnimplemented()
+        }
+        
+        override func skipDescendants() {
+            NSUnimplemented()
+        }
+        
+        init?(path: String) {
+            let url = URL(fileURLWithPath: path)
+            self.baseURL = url
+            guard let ie = FileManager.defaultManager().enumerator(at: url, includingPropertiesForKeys: nil, options: [], errorHandler: nil) else {
+                return nil
+            }
+            self.innerEnumerator = ie
+        }
+        
+        override func nextObject() -> AnyObject? {
+            let o = innerEnumerator.nextObject()
+            guard let url = o as? URL else {
+                return nil
+            }
+            let path = url.path!.replacingOccurrences(of: baseURL.path!+"/", with: "")
+            return NSString(string: path)
+        }
+
+    }
+
+    internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
+        var _url : URL
+        var _options : FileManager.DirectoryEnumerationOptions
+        var _errorHandler : ((URL, NSError) -> Bool)?
+        var _stream : UnsafeMutablePointer<FTS>? = nil
+        var _current : UnsafeMutablePointer<FTSENT>? = nil
+        var _rootError : NSError? = nil
+        var _gotRoot : Bool = false
+        
+        init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: ((URL, NSError) -> Bool)?) {
+            _url = url
+            _options = options
+            _errorHandler = errorHandler
+            
+            if let path = _url.path {
+                if FileManager.defaultManager().fileExists(atPath: path) {
+                    let fsRep = FileManager.defaultManager().fileSystemRepresentation(withPath: path)
+                    let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
+                    ps.initialize(with: UnsafeMutablePointer(fsRep))
+                    ps.advanced(by: 1).initialize(with: nil)
+                    _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+                    ps.deinitialize(count: 2)
+                    ps.deallocateCapacity(2)
+                } else {
+                    _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
+                }
             } else {
                 _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
             }
-        } else {
-            _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
-        }
 
-    }
-    
-    deinit {
-        if let stream = _stream {
-            fts_close(stream)
         }
-    }
-    
-    override func nextObject() -> AnyObject? {
-        if let stream = _stream {
-            
-            if !_gotRoot  {
-                _gotRoot = true
-                
-                // Skip the root.
-                _current = fts_read(stream)
-                
+        
+        deinit {
+            if let stream = _stream {
+                fts_close(stream)
             }
-
-            _current = fts_read(stream)
-            while let current = _current {
-                switch Int32(current.pointee.fts_info) {
-                    case FTS_D:
-                        if _options.contains(.skipsSubdirectoryDescendants) {
-                            fts_set(_stream, _current, FTS_SKIP)
-                        }
-                        fallthrough
-                    case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                        let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
-                        return NSURL(fileURLWithPath: str)
-                    case FTS_DNR, FTS_ERR, FTS_NS:
-                        let keepGoing : Bool
-                        if let handler = _errorHandler {
-                            let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
-                            keepGoing = handler(URL(fileURLWithPath: str), _NSErrorWithErrno(current.pointee.fts_errno, reading: true))
-                        } else {
-                            keepGoing = true
-                        }
-                        if !keepGoing {
-                            fts_close(stream)
-                            _stream = nil
-                            return nil
-                        }
-                    default:
-                        break
+        }
+        
+        override func nextObject() -> AnyObject? {
+            if let stream = _stream {
+                
+                if !_gotRoot  {
+                    _gotRoot = true
+                    
+                    // Skip the root.
+                    _current = fts_read(stream)
+                    
                 }
+
                 _current = fts_read(stream)
+                while let current = _current {
+                    switch Int32(current.pointee.fts_info) {
+                        case FTS_D:
+                            if _options.contains(.skipsSubdirectoryDescendants) {
+                                fts_set(_stream, _current, FTS_SKIP)
+                            }
+                            fallthrough
+                        case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
+                            let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                            return NSURL(fileURLWithPath: str)
+                        case FTS_DNR, FTS_ERR, FTS_NS:
+                            let keepGoing : Bool
+                            if let handler = _errorHandler {
+                                let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                                keepGoing = handler(URL(fileURLWithPath: str), _NSErrorWithErrno(current.pointee.fts_errno, reading: true))
+                            } else {
+                                keepGoing = true
+                            }
+                            if !keepGoing {
+                                fts_close(stream)
+                                _stream = nil
+                                return nil
+                            }
+                        default:
+                            break
+                    }
+                    _current = fts_read(stream)
+                }
+                // TODO: Error handling if fts_read fails.
+                
+            } else if let error = _rootError {
+                // Was there an error opening the stream?
+                if let handler = _errorHandler {
+                    let _ = handler(_url, error)
+                }
             }
-            // TODO: Error handling if fts_read fails.
-            
-        } else if let error = _rootError {
-            // Was there an error opening the stream?
-            if let handler = _errorHandler {
-                let _ = handler(_url, error)
-            }
+            return nil
         }
-        return nil
-    }
-    
-    override var directoryAttributes : [String : AnyObject]? {
-        return nil
-    }
-    
-    override var fileAttributes: [String : AnyObject]? {
-        return nil
-    }
-    
-    override var level: Int {
-        return Int(_current?.pointee.fts_level ?? 0)
-    }
-    
-    override func skipDescendants() {
-        if let stream = _stream, current = _current {
-            fts_set(stream, current, FTS_SKIP)
+        
+        override var directoryAttributes : [String : AnyObject]? {
+            return nil
+        }
+        
+        override var fileAttributes: [String : AnyObject]? {
+            return nil
+        }
+        
+        override var level: Int {
+            return Int(_current?.pointee.fts_level ?? 0)
+        }
+        
+        override func skipDescendants() {
+            if let stream = _stream, current = _current {
+                fts_set(stream, current, FTS_SKIP)
+            }
         }
     }
 }
