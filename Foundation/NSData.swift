@@ -626,7 +626,7 @@ public class NSMutableData : NSData {
     }
     
     public override func copy(with zone: NSZone? = nil) -> AnyObject {
-        return NSData(data: self._swiftObject)
+        return NSData(bytes: bytes, length: length)
     }
 }
 
