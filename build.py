@@ -64,6 +64,8 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 		'-I/usr/include/libxml2'
 	]
 
+foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore -lxml2 '
+
 # Configure use of Dispatch in CoreFoundation and Foundation if libdispatch is being built
 #if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 #	foundation.CFLAGS += " "+" ".join([
@@ -76,11 +78,9 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 #		'-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
 #		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src'
 #	])
-#	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs '
+#	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
-
-foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore -lxml2 '
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	foundation.LDFLAGS += '-L${XCTEST_BUILD_DIR}'
