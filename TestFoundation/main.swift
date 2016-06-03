@@ -11,7 +11,7 @@
 import Foundation
 import XCTest
 #else
-import SwiftFoundation
+import Portablefoundation
 import SwiftXCTest
 #endif
 

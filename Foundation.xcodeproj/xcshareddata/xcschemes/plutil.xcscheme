@@ -11,13 +11,12 @@
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
-            buildForAnalyzing = "YES"
-            hideIssues = "NO">
+            buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5B5D885C1BBC938800234F36"
-               BuildableName = "SwiftFoundation.framework"
-               BlueprintName = "SwiftFoundation"
+               BuildableName = "PortableFoundation.framework"
+               BlueprintName = "PortableFoundation"
                ReferencedContainer = "container:Foundation.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -26,8 +25,7 @@
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
-            buildForAnalyzing = "YES"
-            hideIssues = "NO">
+            buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "EA66F66E1BF56CCB00136161"

@@ -9,7 +9,7 @@
 
 script = Script()
 
-foundation = DynamicLibrary("Foundation")
+foundation = DynamicLibrary(Configuration.current.module_name)
 
 foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefix.h'
 
@@ -22,6 +22,8 @@ elif Configuration.current.target.sdk == OSType.FreeBSD:
 elif Configuration.current.target.sdk == OSType.MacOSX:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_MACOSX '
 	foundation.LDFLAGS = '-licucore -twolevel_namespace -Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases -sectcreate __UNICODE __csbitmaps CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap -sectcreate __UNICODE __properties CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data -sectcreate __UNICODE __data CoreFoundation/CharacterSets/CFUnicodeData-L.mapping -segprot __UNICODE r r '
+	foundation.LDFLAGS += '-mmacosx-version-min=10.11 ' # Required to link symbol ___udivti3 from CFBigNumber
+	foundation.LDFLAGS += '-init ___CFInitialize -install_name @rpath/lib' + foundation.name + '.dylib -Xlinker -no_deduplicate '
 
 if Configuration.current.build_mode == Configuration.Debug:
         foundation.LDFLAGS += ' -lswiftSwiftOnoneSupport '
@@ -48,20 +50,20 @@ foundation.CFLAGS += " ".join([
 	'-Wno-unused-variable',
 	'-Wno-int-conversion',
 	'-Wno-unused-function',
-	'-I/usr/include/libxml2',
+	'-I${SYSROOT}/usr/include/libxml2',
 	'-I./',
 ])
 
 swift_cflags = [
-	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
-	'-I/usr/include/libxml2'
+	'-I${BUILD_DIR}/${MODULE_NAME}/usr/lib/swift',
+	'-I${SYSROOT}/usr/include/libxml2'
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	swift_cflags += [
 		'-I${XCTEST_BUILD_DIR}',
 		'-L${XCTEST_BUILD_DIR}',
-		'-I/usr/include/libxml2'
+		'-I${SYSROOT}/usr/include/libxml2'
 	]
 
 # Configure use of Dispatch in CoreFoundation and Foundation if libdispatch is being built
@@ -414,14 +416,14 @@ script.add_product(foundation)
 extra_script = """
 rule InstallFoundation
     command = mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
-    cp "${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
+    cp "${BUILD_DIR}/${MODULE_NAME}/${DYLIB_PREFIX}${MODULE_NAME}${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
     mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}"; $
-    cp "${BUILD_DIR}/Foundation/Foundation.swiftmodule" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
-    cp "${BUILD_DIR}/Foundation/Foundation.swiftdoc" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
+    cp "${BUILD_DIR}/${MODULE_NAME}/${MODULE_NAME}.swiftmodule" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
+    cp "${BUILD_DIR}/${MODULE_NAME}/${MODULE_NAME}.swiftdoc" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
     mkdir -p "${DSTROOT}/${PREFIX}/local/include"; $
-    rsync -r "${BUILD_DIR}/Foundation/${PREFIX}/lib/swift/CoreFoundation" "${DSTROOT}/${PREFIX}/lib/swift/"
+    rsync -r "${BUILD_DIR}/${MODULE_NAME}/${PREFIX}/lib/swift/CoreFoundation" "${DSTROOT}/${PREFIX}/lib/swift/"
 
-build ${BUILD_DIR}/.install: InstallFoundation ${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}
+build ${BUILD_DIR}/.install: InstallFoundation ${BUILD_DIR}/${MODULE_NAME}/${DYLIB_PREFIX}${MODULE_NAME}${DYLIB_SUFFIX}
 
 build install: phony | ${BUILD_DIR}/.install
 
@@ -429,7 +431,7 @@ build install: phony | ${BUILD_DIR}/.install
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	extra_script += """
 rule RunTestFoundation
-    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${XCTEST_BUILD_DIR} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${XCTEST_BUILD_DIR} lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
+    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/${MODULE_NAME}/:${XCTEST_BUILD_DIR} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/${MODULE_NAME}/:${XCTEST_BUILD_DIR} lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
     description = Building Tests
 
 build ${BUILD_DIR}/.test: RunTestFoundation | TestFoundation
@@ -440,7 +442,7 @@ build test: phony | ${BUILD_DIR}/.test
 else:
 	extra_script += """
 rule RunTestFoundation
-    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/ ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/ lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
+    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/${MODULE_NAME}/ ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/${MODULE_NAME}/ lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
     description = Building Tests
 
 build ${BUILD_DIR}/.test: RunTestFoundation | TestFoundation

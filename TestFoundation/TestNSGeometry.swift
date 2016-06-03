@@ -13,7 +13,7 @@
     import XCTest
     import CoreFoundation
 #else
-    import SwiftFoundation
+    import PortableFoundation
     import SwiftXCTest
 #endif
 

@@ -215,8 +215,8 @@
 		5BDC3FCC1BCF177E00ED97BB /* NSCFString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FCB1BCF177E00ED97BB /* NSCFString.swift */; };
 		5BDC3FCE1BCF17D300ED97BB /* NSCFDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FCD1BCF17D300ED97BB /* NSCFDictionary.swift */; };
 		5BDC3FD01BCF17E600ED97BB /* NSCFSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FCF1BCF17E600ED97BB /* NSCFSet.swift */; };
-		5BDC406C1BD6D89300ED97BB /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
-		5BDC406E1BD6D8C400ED97BB /* SwiftFoundation.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5BDC406C1BD6D89300ED97BB /* PortableFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* PortableFoundation.framework */; };
+		5BDC406E1BD6D8C400ED97BB /* PortableFoundation.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* PortableFoundation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5BDF62901C1A550800A89075 /* CFRegularExpression.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BDF628E1C1A550800A89075 /* CFRegularExpression.c */; };
 		5BDF62911C1A550800A89075 /* CFRegularExpression.h in Headers */ = {isa = PBXBuildFile; fileRef = 5BDF628F1C1A550800A89075 /* CFRegularExpression.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5BF7AE831BCD50CD008F214A /* NSArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F2E1BCC5DCB00ED97BB /* NSArray.swift */; };
@@ -256,7 +256,7 @@
 		61E011821C1B599A000037DD /* CFMachPort.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88D01BBC9AAC00234F36 /* CFMachPort.c */; };
 		7900433B1CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790043391CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift */; };
 		7900433C1CACD33E00ECCBF1 /* TestNSPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7900433A1CACD33E00ECCBF1 /* TestNSPredicate.swift */; };
-		AE35A1861CBAC85E0042DB84 /* SwiftFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AE35A1861CBAC85E0042DB84 /* PortableFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = AE35A1851CBAC85E0042DB84 /* PortableFoundation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */; };
 		D31302011C30CEA900295652 /* NSConcreteValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31302001C30CEA900295652 /* NSConcreteValue.swift */; };
 		D370696E1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */; };
@@ -273,9 +273,9 @@
 		D3E8D6D11C367AB600295652 /* NSSpecialValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */; };
 		D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */; };
 		D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */; };
-		D5C40F331CDA1D460005690C /* TestNSOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */; };
 		D51239DF1CD9DA0800D433EE /* CFSocket.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88E01BBC9B0300234F36 /* CFSocket.c */; };
 		D512D17C1CD883F00032E6A5 /* TestNSFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D512D17B1CD883F00032E6A5 /* TestNSFileHandle.swift */; };
+		D5C40F331CDA1D460005690C /* TestNSOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */; };
 		E1A03F361C4828650023AF4D /* PropertyList-1.0.dtd in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F351C4828650023AF4D /* PropertyList-1.0.dtd */; };
 		E1A03F381C482C730023AF4D /* NSXMLDTDTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F371C482C730023AF4D /* NSXMLDTDTestData.xml */; };
 		E1A3726F1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */; };
@@ -283,7 +283,7 @@
 		EA66F6481BF1619600136161 /* NSURLTestData.plist in Resources */ = {isa = PBXBuildFile; fileRef = EA66F63B1BF1619600136161 /* NSURLTestData.plist */; };
 		EA66F6671BF2F2F100136161 /* CoreFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = EA66F6651BF2F2E800136161 /* CoreFoundation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EA66F6761BF56CDE00136161 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6691BF55D4B00136161 /* main.swift */; };
-		EA66F6771BF56D4C00136161 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
+		EA66F6771BF56D4C00136161 /* PortableFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* PortableFoundation.framework */; };
 		EAB57B721BD1C7A5004AC5C5 /* NSPortMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB57B711BD1C7A5004AC5C5 /* NSPortMessage.swift */; };
 		EADE0B4E1BD09E0800C49C64 /* NSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B4D1BD09E0800C49C64 /* NSAffineTransform.swift */; };
 		EADE0B501BD09E3100C49C64 /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B4F1BD09E3100C49C64 /* NSAttributedString.swift */; };
@@ -373,7 +373,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5BDC406E1BD6D8C400ED97BB /* SwiftFoundation.framework in CopyFiles */,
+				5BDC406E1BD6D8C400ED97BB /* PortableFoundation.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -405,7 +405,7 @@
 		5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLInterface.h; sourceTree = "<group>"; };
 		5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLParser.swift; sourceTree = "<group>"; };
 		5B40F9F31C12524C000E72E3 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
-		5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftFoundation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B5D885D1BBC938800234F36 /* PortableFoundation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PortableFoundation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B5D886A1BBC948300234F36 /* CFApplicationPreferences.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFApplicationPreferences.c; sourceTree = "<group>"; };
 		5B5D886C1BBC94C400234F36 /* CFPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFPreferences.h; sourceTree = "<group>"; };
 		5B5D88721BBC952A00234F36 /* CFBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFBase.h; sourceTree = "<group>"; };
@@ -627,7 +627,7 @@
 		84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTimeZone.swift; sourceTree = "<group>"; };
 		88D28DE61C13AE9000494606 /* TestNSGeometry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSGeometry.swift; sourceTree = "<group>"; };
 		A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSByteCountFormatter.swift; sourceTree = "<group>"; };
-		AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftFoundation.h; sourceTree = "<group>"; };
+		AE35A1851CBAC85E0042DB84 /* PortableFoundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PortableFoundation.h; sourceTree = "<group>"; };
 		C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUUID.swift; sourceTree = "<group>"; };
 		C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAffineTransform.swift; sourceTree = "<group>"; };
 		CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NSStringTestData.txt; sourceTree = "<group>"; };
@@ -649,8 +649,8 @@
 		D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSSpecialValue.swift; sourceTree = "<group>"; };
 		D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-EdgeInsetsTest.plist"; sourceTree = "<group>"; };
 		D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-RectTest.plist"; sourceTree = "<group>"; };
-		D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOperationQueue.swift; sourceTree = "<group>"; };
 		D512D17B1CD883F00032E6A5 /* TestNSFileHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSFileHandle.swift; sourceTree = "<group>"; };
+		D5C40F321CDA1D460005690C /* TestNSOperationQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOperationQueue.swift; sourceTree = "<group>"; };
 		D834F9931C31C4060023812A /* TestNSOrderedSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSOrderedSet.swift; sourceTree = "<group>"; };
 		DCDBB8321C1768AC00313299 /* TestNSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSData.swift; sourceTree = "<group>"; };
 		E19E17DB1C2225930023AF4D /* TestNSXMLDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLDocument.swift; sourceTree = "<group>"; };
@@ -770,7 +770,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5BDC406C1BD6D89300ED97BB /* SwiftFoundation.framework in Frameworks */,
+				5BDC406C1BD6D89300ED97BB /* PortableFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -778,7 +778,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EA66F6771BF56D4C00136161 /* SwiftFoundation.framework in Frameworks */,
+				EA66F6771BF56D4C00136161 /* PortableFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -804,7 +804,7 @@
 		5B5D885E1BBC938800234F36 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */,
+				5B5D885D1BBC938800234F36 /* PortableFoundation.framework */,
 				5BDC405C1BD6D83B00ED97BB /* TestFoundation.app */,
 				5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */,
 				EA66F66F1BF56CCB00136161 /* plutil */,
@@ -1504,7 +1504,7 @@
 			isa = PBXGroup;
 			children = (
 				EADE0B531BD15DFF00C49C64 /* Info.plist */,
-				AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */,
+				AE35A1851CBAC85E0042DB84 /* PortableFoundation.h */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -1516,7 +1516,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AE35A1861CBAC85E0042DB84 /* SwiftFoundation.h in Headers */,
+				AE35A1861CBAC85E0042DB84 /* PortableFoundation.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1607,9 +1607,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		5B5D885C1BBC938800234F36 /* SwiftFoundation */ = {
+		5B5D885C1BBC938800234F36 /* PortableFoundation */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5B5D88651BBC938800234F36 /* Build configuration list for PBXNativeTarget "SwiftFoundation" */;
+			buildConfigurationList = 5B5D88651BBC938800234F36 /* Build configuration list for PBXNativeTarget "PortableFoundation" */;
 			buildPhases = (
 				5B5D88591BBC938800234F36 /* Frameworks */,
 				5B5D885A1BBC938800234F36 /* Headers */,
@@ -1622,9 +1622,9 @@
 			dependencies = (
 				EA993CE31BEACD8E000969A2 /* PBXTargetDependency */,
 			);
-			name = SwiftFoundation;
+			name = PortableFoundation;
 			productName = CoreFoundation;
-			productReference = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */;
+			productReference = 5B5D885D1BBC938800234F36 /* PortableFoundation.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		5B7C8A6D1BEA7F8F00C5B690 /* CoreFoundation */ = {
@@ -1715,7 +1715,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5B5D885C1BBC938800234F36 /* SwiftFoundation */,
+				5B5D885C1BBC938800234F36 /* PortableFoundation */,
 				5BDC405B1BD6D83B00ED97BB /* TestFoundation */,
 				5B7C8A6D1BEA7F8F00C5B690 /* CoreFoundation */,
 				EA66F66E1BF56CCB00136161 /* plutil */,
@@ -2161,7 +2161,7 @@
 				);
 				OTHER_LDFLAGS = (
 					"-twolevel_namespace",
-					"-Wl,-alias_list,CoreFoundation/Base.subproj/SymbolAliases",
+					"-Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases",
 					"-sectcreate",
 					__UNICODE,
 					__csbitmaps,
@@ -2230,7 +2230,7 @@
 				);
 				OTHER_LDFLAGS = (
 					"-twolevel_namespace",
-					"-Wl,-alias_list,CoreFoundation/Base.subproj/SymbolAliases",
+					"-Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases",
 					"-sectcreate",
 					__UNICODE,
 					__csbitmaps,
@@ -2400,7 +2400,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5B5D88651BBC938800234F36 /* Build configuration list for PBXNativeTarget "SwiftFoundation" */ = {
+		5B5D88651BBC938800234F36 /* Build configuration list for PBXNativeTarget "PortableFoundation" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5B5D88661BBC938800234F36 /* Debug */,

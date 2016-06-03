@@ -22,6 +22,7 @@ class Configuration:
     script_path = None
     build_script_path = None
     source_root = None
+    module_name = None
     target = None
     system_root = None
     toolchain = None
@@ -62,6 +63,7 @@ class Configuration:
             'script_path' : self._encode_path(self.script_path),
             'build_script_path' : self._encode_path(self.build_script_path),
             'source_root' : self._encode_path(self.source_root),
+            'module_name' : self.module_name,
             'target' : self.target.triple,
             'system_root' : self._encode_path(self.system_root),
             'toolchain' : self.toolchain,
