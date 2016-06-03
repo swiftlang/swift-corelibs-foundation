@@ -215,8 +215,38 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return false
     }
     
-    public func descriptionWithLocale(_ locale: AnyObject?) -> String { NSUnimplemented() }
-    public func descriptionWithLocale(_ locale: AnyObject?, indent level: Int) -> String { NSUnimplemented() }
+    public func descriptionWithLocale(_ locale: AnyObject?) -> String { return descriptionWithLocale(locale, indent: 0) }
+    public func descriptionWithLocale(_ locale: AnyObject?, indent level: Int) -> String {
+        var descriptions = [String]()
+        let cnt = count
+        for idx in 0..<cnt {
+            let obj = self[idx] as! NSObject
+            if let string = obj as? NSString {
+                descriptions.append(string._swiftObject)
+            } else if let array = obj as? NSArray {
+                descriptions.append(array.descriptionWithLocale(locale, indent: level + 1))
+            } else if let dict = obj as? NSDictionary {
+                descriptions.append(dict.descriptionWithLocale(locale, indent: level + 1))
+            } else {
+                descriptions.append(obj.description)
+            }
+        }
+        var indent = ""
+        for _ in 0..<level {
+            indent += "    "
+        }
+        var result = indent + "(\n"
+        for idx in 0..<cnt {
+            result += indent + "    " + descriptions[idx]
+            if idx + 1 < cnt {
+                result += ",\n"
+            } else {
+                result += "\n"
+            }
+        }
+        result += indent + ")"
+        return result
+    }
     
     public func firstObjectCommonWithArray(_ otherArray: [AnyObject]) -> AnyObject? {
         let set = NSSet(array: otherArray)
