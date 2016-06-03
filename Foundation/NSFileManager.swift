@@ -71,7 +71,7 @@ public class FileManager: NSObject {
     /* Returns the default singleton instance.
     */
     internal static let defaultInstance = FileManager()
-    public class func defaultManager() -> FileManager {
+    public class func `default`() -> FileManager {
         return defaultInstance
     }
     
@@ -109,7 +109,7 @@ public class FileManager: NSObject {
     
     /* -URLsForDirectory:inDomains: is analogous to NSSearchPathForDirectoriesInDomains(), but returns an array of NSURL instances for use with URL-taking APIs. This API is suitable when you need to search for a file or files which may live in one of a variety of locations in the domains specified.
      */
-    public func URLsForDirectory(_ directory: SearchPathDirectory, inDomains domainMask: SearchPathDomainMask) -> [URL] {
+    public func urlsForDirectory(_ directory: SearchPathDirectory, inDomains domainMask: SearchPathDomainMask) -> [URL] {
         NSUnimplemented()
     }
     
@@ -117,7 +117,7 @@ public class FileManager: NSObject {
      
         You may pass only one of the values from the NSSearchPathDomainMask enumeration, and you may not pass NSAllDomainsMask.
      */
-    public func URLForDirectory(_ directory: SearchPathDirectory, inDomain domain: SearchPathDomainMask, appropriateForURL url: URL?, create shouldCreate: Bool) throws -> URL {
+    public func urlForDirectory(_ directory: SearchPathDirectory, in domain: SearchPathDomainMask, appropriateFor url: URL?, create shouldCreate: Bool) throws -> URL {
         NSUnimplemented()
     }
     
@@ -129,7 +129,7 @@ public class FileManager: NSObject {
     
     /* Similar to -[NSFileManager getRelationship:ofDirectoryAtURL:toItemAtURL:error:], except that the directory is instead defined by an NSSearchPathDirectory and NSSearchPathDomainMask. Pass 0 for domainMask to instruct the method to automatically choose the domain appropriate for 'url'. For example, to discover if a file is contained by a Trash directory, call [fileManager getRelationship:&result ofDirectory:NSTrashDirectory inDomain:0 toItemAtURL:url error:&error].
      */
-    public func getRelationship(_ outRelationship: UnsafeMutablePointer<NSURLRelationship>, ofDirectory directory: SearchPathDirectory, inDomain domainMask: SearchPathDomainMask, toItemAtURL url: URL) throws {
+    public func getRelationship(_ outRelationship: UnsafeMutablePointer<NSURLRelationship>, ofDirectory directory: SearchPathDirectory, in domainMask: SearchPathDomainMask, toItemAtURL url: URL) throws {
         NSUnimplemented()
     }
     
@@ -466,7 +466,7 @@ public class FileManager: NSObject {
             return
         } else if errno == ENOTEMPTY {
 
-            let fsRep = FileManager.defaultManager().fileSystemRepresentation(withPath: path)
+            let fsRep = FileManager.default().fileSystemRepresentation(withPath: path)
             let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
             ps.initialize(with: UnsafeMutablePointer(fsRep))
             ps.advanced(by: 1).initialize(with: nil)
@@ -738,7 +738,7 @@ public class FileManager: NSObject {
             return nil
         }
         
-        guard let destination = try? FileManager.defaultManager().destinationOfSymbolicLink(atPath: path) else {
+        guard let destination = try? FileManager.default().destinationOfSymbolicLink(atPath: path) else {
             return nil
         }
         
@@ -880,7 +880,7 @@ extension FileManager {
         init?(path: String) {
             let url = URL(fileURLWithPath: path)
             self.baseURL = url
-            guard let ie = FileManager.defaultManager().enumerator(at: url, includingPropertiesForKeys: nil, options: [], errorHandler: nil) else {
+            guard let ie = FileManager.default().enumerator(at: url, includingPropertiesForKeys: nil, options: [], errorHandler: nil) else {
                 return nil
             }
             self.innerEnumerator = ie
@@ -912,8 +912,8 @@ extension FileManager {
             _errorHandler = errorHandler
             
             if let path = _url.path {
-                if FileManager.defaultManager().fileExists(atPath: path) {
-                    let fsRep = FileManager.defaultManager().fileSystemRepresentation(withPath: path)
+                if FileManager.default().fileExists(atPath: path) {
+                    let fsRep = FileManager.default().fileSystemRepresentation(withPath: path)
                     let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
                     ps.initialize(with: UnsafeMutablePointer(fsRep))
                     ps.advanced(by: 1).initialize(with: nil)
