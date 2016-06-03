@@ -156,11 +156,11 @@ public class Bundle: NSObject {
     // -----------------------------------------------------------------------------------
     // MARK: - URL Resource Lookup - Instance
 
-    public func URLForResource(_ name: String?, withExtension ext: String?) -> URL? {
-        return self.URLForResource(name, withExtension: ext, subdirectory: nil)
+    public func urlForResource(_ name: String?, withExtension ext: String?) -> URL? {
+        return self.urlForResource(name, withExtension: ext, subdirectory: nil)
     }
     
-    public func URLForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?) -> URL? {
+    public func urlForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?) -> URL? {
         // If both name and ext are nil/zero-length, return nil
         if (name == nil || name!.isEmpty) && (ext == nil || ext!.isEmpty) {
             return nil
@@ -168,7 +168,7 @@ public class Bundle: NSObject {
         return CFBundleCopyResourceURL(_bundle, name?._cfObject, ext?._cfObject, subpath?._cfObject)?._swiftObject
     }
     
-    public func URLForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> URL? {
+    public func urlForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> URL? {
         // If both name and ext are nil/zero-length, return nil
         if (name == nil || name!.isEmpty) && (ext == nil || ext!.isEmpty) {
             return nil
@@ -201,15 +201,15 @@ public class Bundle: NSObject {
     // MARK: - Path Resource Lookup - Instance
 
     public func pathForResource(_ name: String?, ofType ext: String?) -> String? {
-        return self.URLForResource(name, withExtension: ext, subdirectory: nil)?.path
+        return self.urlForResource(name, withExtension: ext, subdirectory: nil)?.path
     }
     
     public func pathForResource(_ name: String?, ofType ext: String?, inDirectory subpath: String?) -> String? {
-        return self.URLForResource(name, withExtension: ext, subdirectory: subpath)?.path
+        return self.urlForResource(name, withExtension: ext, subdirectory: subpath)?.path
     }
     
     public func pathForResource(_ name: String?, ofType ext: String?, inDirectory subpath: String?, forLocalization localizationName: String?) -> String? {
-        return self.URLForResource(name, withExtension: ext, subdirectory: subpath, localization: localizationName)?.path
+        return self.urlForResource(name, withExtension: ext, subdirectory: subpath, localization: localizationName)?.path
     }
     
     public func pathsForResources(ofType ext: String?, inDirectory subpath: String?) -> [String] {

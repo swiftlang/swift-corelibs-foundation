@@ -272,7 +272,7 @@ class TestNSString : XCTestCase {
     }
 
     func test_FromContentsOfURL() {
-        guard let testFileURL = testBundle().URLForResource("NSStringTestData", withExtension: "txt") else {
+        guard let testFileURL = testBundle().urlForResource("NSStringTestData", withExtension: "txt") else {
             XCTFail("URL for NSStringTestData.txt is nil")
             return
         }

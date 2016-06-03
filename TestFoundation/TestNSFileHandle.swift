@@ -30,7 +30,7 @@ class TestNSFileHandle : XCTestCase {
             let inputData = input.data(using: NSUTF8StringEncoding)!
 
             // write onto pipe
-            pipe.fileHandleForWriting.writeData(inputData)
+            pipe.fileHandleForWriting.write(inputData)
 
             let outputData = pipe.fileHandleForReading.availableData
             let output = String(data: outputData, encoding: NSUTF8StringEncoding)

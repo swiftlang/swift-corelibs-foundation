@@ -111,7 +111,7 @@ class TestNSTask : XCTestCase {
 
         task.launch()
 
-        inputPipe.fileHandleForWriting.writeData("Hello, 🐶.\n".data(using: NSUTF8StringEncoding)!)
+        inputPipe.fileHandleForWriting.write("Hello, 🐶.\n".data(using: NSUTF8StringEncoding)!)
 
         // Close the input pipe to send EOF to cat.
         inputPipe.fileHandleForWriting.closeFile()
@@ -204,7 +204,7 @@ class TestNSTask : XCTestCase {
             task.waitUntilExit()
             XCTAssertEqual(task.terminationStatus, 0)
 
-            handle.seekToFileOffset(0)
+            handle.seek(toFileOffset: 0)
             let data = handle.readDataToEndOfFile()
             guard let string = String(data: data, encoding: NSASCIIStringEncoding) else {
                 XCTFail("Could not read stdout")

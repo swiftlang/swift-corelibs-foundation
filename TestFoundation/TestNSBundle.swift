@@ -56,18 +56,18 @@ class TestNSBundle : XCTestCase {
         let bundle = Bundle.main()
         
         // bad resources
-        XCTAssertNil(bundle.URLForResource(nil, withExtension: nil, subdirectory: nil))
-        XCTAssertNil(bundle.URLForResource("", withExtension: "", subdirectory: nil))
-        XCTAssertNil(bundle.URLForResource("no_such_file", withExtension: nil, subdirectory: nil))
+        XCTAssertNil(bundle.urlForResource(nil, withExtension: nil, subdirectory: nil))
+        XCTAssertNil(bundle.urlForResource("", withExtension: "", subdirectory: nil))
+        XCTAssertNil(bundle.urlForResource("no_such_file", withExtension: nil, subdirectory: nil))
         
         // test file
-        let testPlist = bundle.URLForResource("Test", withExtension: "plist")
+        let testPlist = bundle.urlForResource("Test", withExtension: "plist")
         XCTAssertNotNil(testPlist)
         XCTAssertEqual("Test.plist", testPlist!.lastPathComponent)
         XCTAssert(FileManager.defaultManager().fileExists(atPath: testPlist!.path!))
         
         // aliases, paths
-        XCTAssertEqual(testPlist!.path, bundle.URLForResource("Test", withExtension: "plist", subdirectory: nil)!.path)
+        XCTAssertEqual(testPlist!.path, bundle.urlForResource("Test", withExtension: "plist", subdirectory: nil)!.path)
         XCTAssertEqual(testPlist!.path, bundle.pathForResource("Test", ofType: "plist"))
         XCTAssertEqual(testPlist!.path, bundle.pathForResource("Test", ofType: "plist", inDirectory: nil))
     }

@@ -25,10 +25,10 @@ public class FileHandle: NSObject, NSSecureCoding {
     }
     
     public func readDataToEndOfFile() -> Data {
-        return readDataOfLength(Int.max)
+        return readData(ofLength: Int.max)
     }
 
-    public func readDataOfLength(_ length: Int) -> Data {
+    public func readData(ofLength length: Int) -> Data {
         return _readDataOfLength(length, untilEOF: true)
     }
 
@@ -114,7 +114,7 @@ public class FileHandle: NSObject, NSSecureCoding {
         return Data()
     }
     
-    public func writeData(_ data: Data) {
+    public func write(_ data: Data) {
         data.enumerateBytes() { (bytes, range, stop) in
             do {
                 try NSData.writeToFileDescriptor(self._fd, path: nil, buf: UnsafePointer<Void>(bytes.baseAddress!), length: bytes.count)
@@ -134,11 +134,11 @@ public class FileHandle: NSObject, NSSecureCoding {
         return UInt64(lseek(_fd, 0, L_XTND))
     }
     
-    public func seekToFileOffset(_ offset: UInt64) {
+    public func seek(toFileOffset offset: UInt64) {
         lseek(_fd, off_t(offset), L_SET)
     }
     
-    public func truncateFileAtOffset(_ offset: UInt64) {
+    public func truncateFile(atOffset offset: UInt64) {
         if lseek(_fd, off_t(offset), L_SET) == 0 {
             ftruncate(_fd, off_t(offset))
         }
@@ -267,7 +267,7 @@ public let NSFileHandleNotificationFileHandleItem: String = "" // NSUnimplemente
 
 extension FileHandle {
     
-    public func readInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func readInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -276,7 +276,7 @@ extension FileHandle {
     }
 
     
-    public func readToEndOfFileInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func readToEndOfFileInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -285,7 +285,7 @@ extension FileHandle {
     }
 
     
-    public func acceptConnectionInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func acceptConnectionInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -294,7 +294,7 @@ extension FileHandle {
     }
 
     
-    public func waitForDataInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func waitForDataInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
