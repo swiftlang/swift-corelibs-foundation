@@ -64,7 +64,7 @@ class TestNSBundle : XCTestCase {
         let testPlist = bundle.URLForResource("Test", withExtension: "plist")
         XCTAssertNotNil(testPlist)
         XCTAssertEqual("Test.plist", testPlist!.lastPathComponent)
-        XCTAssert(NSFileManager.defaultManager().fileExists(atPath: testPlist!.path!))
+        XCTAssert(FileManager.defaultManager().fileExists(atPath: testPlist!.path!))
         
         // aliases, paths
         XCTAssertEqual(testPlist!.path, bundle.URLForResource("Test", withExtension: "plist", subdirectory: nil)!.path)
@@ -107,20 +107,20 @@ class TestNSBundle : XCTestCase {
         let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().UUIDString + "/"
         
         do {
-            try NSFileManager.defaultManager().createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
+            try FileManager.defaultManager().createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
             
             // Make a flat bundle in the playground
             let bundlePath = tempDir + _bundleName
-            try NSFileManager.defaultManager().createDirectory(atPath: bundlePath, withIntermediateDirectories: false, attributes: nil)
+            try FileManager.defaultManager().createDirectory(atPath: bundlePath, withIntermediateDirectories: false, attributes: nil)
             
             // Put some resources in the bundle
             for n in _bundleResourceNames {
-                let _ = NSFileManager.defaultManager().createFile(atPath: bundlePath + "/" + n, contents: nil, attributes: nil)
+                let _ = FileManager.defaultManager().createFile(atPath: bundlePath + "/" + n, contents: nil, attributes: nil)
             }
             // Add a resource into a subdirectory
             let subDirPath = bundlePath + "/" + _subDirectory
-            try NSFileManager.defaultManager().createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
-            let _ = NSFileManager.defaultManager().createFile(atPath: subDirPath + "/" + _main + "." + _type, contents: nil, attributes: nil)
+            try FileManager.defaultManager().createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
+            let _ = FileManager.defaultManager().createFile(atPath: subDirPath + "/" + _main + "." + _type, contents: nil, attributes: nil)
         } catch _ {
             return nil
         }
@@ -131,7 +131,7 @@ class TestNSBundle : XCTestCase {
     
     private func _cleanupPlayground(_ location: String) {
         do {
-            try NSFileManager.defaultManager().removeItem(atPath: location)
+            try FileManager.defaultManager().removeItem(atPath: location)
         } catch _ {
             // Oh well
         }

@@ -271,7 +271,7 @@ class TestNSURL : XCTestCase {
             return false
         }
         
-        let cwd = NSFileManager.defaultManager().currentDirectoryPath
+        let cwd = FileManager.defaultManager().currentDirectoryPath
         let cwdURL = URL(fileURLWithPath: cwd, isDirectory: true)
         // 1 for path separator
         cwdURL.withUnsafeFileSystemRepresentation {
@@ -405,7 +405,7 @@ class TestNSURL : XCTestCase {
         do {
             let url = URL(fileURLWithPath: "~")
             let result = try url.resolvingSymlinksInPath().absoluteString
-            let expected = "file://" + NSFileManager.defaultManager().currentDirectoryPath + "/~"
+            let expected = "file://" + FileManager.defaultManager().currentDirectoryPath + "/~"
             XCTAssertEqual(result, expected, "URLByResolvingSymlinksInPath resolves relative paths using current working directory.")
         } catch {
             XCTFail()
@@ -414,7 +414,7 @@ class TestNSURL : XCTestCase {
         do {
             let url = URL(fileURLWithPath: "anysite.com/search")
             let result = try url.resolvingSymlinksInPath().absoluteString
-            let expected = "file://" + NSFileManager.defaultManager().currentDirectoryPath + "/anysite.com/search"
+            let expected = "file://" + FileManager.defaultManager().currentDirectoryPath + "/anysite.com/search"
             XCTAssertEqual(result, expected)
         } catch {
             XCTFail()

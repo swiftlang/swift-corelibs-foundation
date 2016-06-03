@@ -64,12 +64,12 @@ public enum NSURLRelationship : Int {
     case other
 }
 
-public class NSFileManager : NSObject {
+public class FileManager: NSObject {
     
     /* Returns the default singleton instance.
     */
-    internal static let defaultInstance = NSFileManager()
-    public class func defaultManager() -> NSFileManager {
+    internal static let defaultInstance = FileManager()
+    public class func defaultManager() -> FileManager {
         return defaultInstance
     }
     
@@ -464,7 +464,7 @@ public class NSFileManager : NSObject {
             return
         } else if errno == ENOTEMPTY {
 
-            let fsRep = NSFileManager.defaultManager().fileSystemRepresentation(withPath: path)
+            let fsRep = FileManager.defaultManager().fileSystemRepresentation(withPath: path)
             let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
             ps.initialize(with: UnsafeMutablePointer(fsRep))
             ps.advanced(by: 1).initialize(with: nil)
@@ -736,7 +736,7 @@ public class NSFileManager : NSObject {
             return nil
         }
         
-        guard let destination = try? NSFileManager.defaultManager().destinationOfSymbolicLink(atPath: path) else {
+        guard let destination = try? FileManager.defaultManager().destinationOfSymbolicLink(atPath: path) else {
             return nil
         }
         
@@ -765,73 +765,73 @@ public class NSFileManager : NSObject {
 }
 
 extension NSFileManagerDelegate {
-    func fileManager(_ fileManager: NSFileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
-    func fileManager(_ fileManager: NSFileManager, shouldCopyItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldCopyItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
     
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, copyingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, copyingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, copyingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, copyingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return false }
 
-    func fileManager(_ fileManager: NSFileManager, shouldMoveItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
-    func fileManager(_ fileManager: NSFileManager, shouldMoveItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldMoveItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldMoveItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
     
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, movingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, movingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, movingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, movingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return false }
     
-    func fileManager(_ fileManager: NSFileManager, shouldLinkItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
-    func fileManager(_ fileManager: NSFileManager, shouldLinkItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldLinkItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldLinkItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
     
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, linkingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, linkingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, linkingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, linkingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return false }
     
-    func fileManager(_ fileManager: NSFileManager, shouldRemoveItemAtPath path: String) -> Bool { return true }
-    func fileManager(_ fileManager: NSFileManager, shouldRemoveItemAtURL url: URL) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldRemoveItemAtPath path: String) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldRemoveItemAtURL url: URL) -> Bool { return true }
     
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, removingItemAtPath path: String) -> Bool { return false }
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, removingItemAtURL url: URL) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, removingItemAtPath path: String) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, removingItemAtURL url: URL) -> Bool { return false }
 }
 
 public protocol NSFileManagerDelegate : class {
     
     /* fileManager:shouldCopyItemAtPath:toPath: gives the delegate an opportunity to filter the resulting copy. Returning YES from this method will allow the copy to happen. Returning NO from this method causes the item in question to be skipped. If the item skipped was a directory, no children of that directory will be copied, nor will the delegate be notified of those children.
      */
-    func fileManager(_ fileManager: NSFileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: NSFileManager, shouldCopyItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldCopyItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
     
     /* fileManager:shouldProceedAfterError:copyingItemAtPath:toPath: gives the delegate an opportunity to recover from or continue copying after an error. If an error occurs, the error object will contain an NSError indicating the problem. The source path and destination paths are also provided. If this method returns YES, the NSFileManager instance will continue as if the error had not occurred. If this method returns NO, the NSFileManager instance will stop copying, return NO from copyItemAtPath:toPath:error: and the error will be provied there.
      */
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, copyingItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, copyingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, copyingItemAtPath srcPath: String, toPath dstPath: String) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, copyingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
     
     /* fileManager:shouldMoveItemAtPath:toPath: gives the delegate an opportunity to not move the item at the specified path. If the source path and the destination path are not on the same device, a copy is performed to the destination path and the original is removed. If the copy does not succeed, an error is returned and the incomplete copy is removed, leaving the original in place.
     
      */
-    func fileManager(_ fileManager: NSFileManager, shouldMoveItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: NSFileManager, shouldMoveItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldMoveItemAtPath srcPath: String, toPath dstPath: String) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldMoveItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
     
     /* fileManager:shouldProceedAfterError:movingItemAtPath:toPath: functions much like fileManager:shouldProceedAfterError:copyingItemAtPath:toPath: above. The delegate has the opportunity to remedy the error condition and allow the move to continue.
      */
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, movingItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, movingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, movingItemAtPath srcPath: String, toPath dstPath: String) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, movingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
     
     /* fileManager:shouldLinkItemAtPath:toPath: acts as the other "should" methods, but this applies to the file manager creating hard links to the files in question.
      */
-    func fileManager(_ fileManager: NSFileManager, shouldLinkItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: NSFileManager, shouldLinkItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldLinkItemAtPath srcPath: String, toPath dstPath: String) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldLinkItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
     
     /* fileManager:shouldProceedAfterError:linkingItemAtPath:toPath: allows the delegate an opportunity to remedy the error which occurred in linking srcPath to dstPath. If the delegate returns YES from this method, the linking will continue. If the delegate returns NO from this method, the linking operation will stop and the error will be returned via linkItemAtPath:toPath:error:.
      */
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, linkingItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, linkingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, linkingItemAtPath srcPath: String, toPath dstPath: String) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, linkingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool
     
     /* fileManager:shouldRemoveItemAtPath: allows the delegate the opportunity to not remove the item at path. If the delegate returns YES from this method, the NSFileManager instance will attempt to remove the item. If the delegate returns NO from this method, the remove skips the item. If the item is a directory, no children of that item will be visited.
      */
-    func fileManager(_ fileManager: NSFileManager, shouldRemoveItemAtPath path: String) -> Bool
-    func fileManager(_ fileManager: NSFileManager, shouldRemoveItemAtURL URL: URL) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldRemoveItemAtPath path: String) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldRemoveItemAtURL URL: URL) -> Bool
     
     /* fileManager:shouldProceedAfterError:removingItemAtPath: allows the delegate an opportunity to remedy the error which occurred in removing the item at the path provided. If the delegate returns YES from this method, the removal operation will continue. If the delegate returns NO from this method, the removal operation will stop and the error will be returned via linkItemAtPath:toPath:error:.
      */
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, removingItemAtPath path: String) -> Bool
-    func fileManager(_ fileManager: NSFileManager, shouldProceedAfterError error: NSError, removingItemAtURL URL: URL) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, removingItemAtPath path: String) -> Bool
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, removingItemAtURL URL: URL) -> Bool
 }
 
 public class NSDirectoryEnumerator : NSEnumerator {
@@ -877,7 +877,7 @@ internal class NSPathDirectoryEnumerator: NSDirectoryEnumerator {
     init?(path: String) {
         let url = URL(fileURLWithPath: path)
         self.baseURL = url
-        guard let ie = NSFileManager.defaultManager().enumerator(at: url, includingPropertiesForKeys: nil, options: NSDirectoryEnumerationOptions(), errorHandler: nil) else {
+        guard let ie = FileManager.defaultManager().enumerator(at: url, includingPropertiesForKeys: nil, options: NSDirectoryEnumerationOptions(), errorHandler: nil) else {
             return nil
         }
         self.innerEnumerator = ie
@@ -909,8 +909,8 @@ internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
         _errorHandler = errorHandler
         
         if let path = _url.path {
-            if NSFileManager.defaultManager().fileExists(atPath: path) {
-                let fsRep = NSFileManager.defaultManager().fileSystemRepresentation(withPath: path)
+            if FileManager.defaultManager().fileExists(atPath: path) {
+                let fsRep = FileManager.defaultManager().fileSystemRepresentation(withPath: path)
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
                 ps.initialize(with: UnsafeMutablePointer(fsRep))
                 ps.advanced(by: 1).initialize(with: nil)
