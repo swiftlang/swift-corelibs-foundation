@@ -158,7 +158,7 @@ func lint(_ options: Options) -> Int32 {
         let data : NSData?
         if file == "-" {
             // stdin
-            data = NSFileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
+            data = NSFileHandle.standardInput().readDataToEndOfFile()
         } else {
             data = NSData(contentsOfFile: file)
         }
@@ -326,7 +326,7 @@ func display(_ options: Options) -> Int32 {
         let data : NSData?
         if file == "-" {
             // stdin
-            data = NSFileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
+            data = NSFileHandle.standardInput().readDataToEndOfFile()
         } else {
             data = NSData(contentsOfFile: file)
         }

@@ -25,10 +25,10 @@ public class NSFileHandle : NSObject, NSSecureCoding {
     }
     
     public func readDataToEndOfFile() -> NSData {
-        return readDataOfLength(Int.max)
+        return readData(ofLength: Int.max)
     }
 
-    public func readDataOfLength(_ length: Int) -> NSData {
+    public func readData(ofLength length: Int) -> NSData {
         return _readDataOfLength(length, untilEOF: true)
     }
 
@@ -114,7 +114,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         return NSData()
     }
     
-    public func writeData(_ data: NSData) {
+    public func write(_ data: NSData) {
         data.enumerateBytes() { (bytes, range, stop) in
             do {
                 try NSData.writeToFileDescriptor(self._fd, path: nil, buf: bytes, length: range.length)
@@ -134,11 +134,11 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         return UInt64(lseek(_fd, 0, L_XTND))
     }
     
-    public func seekToFileOffset(_ offset: UInt64) {
+    public func seek(toFileOffset offset: UInt64) {
         lseek(_fd, off_t(offset), L_SET)
     }
     
-    public func truncateFileAtOffset(_ offset: UInt64) {
+    public func truncateFile(atOffset offset: UInt64) {
         if lseek(_fd, off_t(offset), L_SET) == 0 {
             ftruncate(_fd, off_t(offset))
         }
@@ -193,25 +193,25 @@ extension NSFileHandle {
     internal static var _stdinFileHandle: NSFileHandle = {
         return NSFileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardInput() -> NSFileHandle {
+    public class func standardInput() -> NSFileHandle {
         return _stdinFileHandle
     }
     
     internal static var _stdoutFileHandle: NSFileHandle = {
         return NSFileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardOutput() -> NSFileHandle {
+    public class func standardOutput() -> NSFileHandle {
         return _stdoutFileHandle
     }
     
     internal static var _stderrFileHandle: NSFileHandle = {
         return NSFileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardError() -> NSFileHandle {
+    public class func standardError() -> NSFileHandle {
         return _stderrFileHandle
     }
     
-    public class func fileHandleWithNullDevice() -> NSFileHandle {
+    public class func nullDevice() -> NSFileHandle {
         NSUnimplemented()
     }
     
@@ -239,17 +239,17 @@ extension NSFileHandle {
         }
     }
     
-    public convenience init(forReadingFromURL url: NSURL) throws {
+    public convenience init(forReadingFrom url: NSURL) throws {
         let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_RDONLY, reading: true)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
     
-    public convenience init(forWritingToURL url: NSURL) throws {
+    public convenience init(forWritingTo url: NSURL) throws {
         let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_WRONLY, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
 
-    public convenience init(forUpdatingURL url: NSURL) throws {
+    public convenience init(forUpdating url: NSURL) throws {
         let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_RDWR, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
@@ -267,7 +267,7 @@ public let NSFileHandleNotificationFileHandleItem: String = "" // NSUnimplemente
 
 extension NSFileHandle {
     
-    public func readInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func readInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -276,7 +276,7 @@ extension NSFileHandle {
     }
 
     
-    public func readToEndOfFileInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func readToEndOfFileInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -285,7 +285,7 @@ extension NSFileHandle {
     }
 
     
-    public func acceptConnectionInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func acceptConnectionInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -294,7 +294,7 @@ extension NSFileHandle {
     }
 
     
-    public func waitForDataInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func waitForDataInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
