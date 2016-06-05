@@ -216,7 +216,7 @@ CF_PRIVATE CFHashRef __CFBagCreateTransfer(CFAllocatorRef allocator, const_any_p
     const_any_pointer_t *vlist = klist;
 #endif
     CFTypeID typeID = CFBagGetTypeID();
-    CFAssert2(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%ld) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
+    CFAssert(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%ld) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
     CFOptionFlags flags = kCFBasicHashLinearHashing; // kCFBasicHashExponentialHashing
     flags |= (CFDictionary ? kCFBasicHashHasKeys : 0) | (CFBag ? kCFBasicHashHasCounts : 0);
 
@@ -254,7 +254,7 @@ CFHashRef CFBagCreate(CFAllocatorRef allocator, const_any_pointer_t *klist, CFIn
     const CFBagValueCallBacks *valueCallBacks = 0;
 #endif
     CFTypeID typeID = CFBagGetTypeID();
-    CFAssert2(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%ld) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
+    CFAssert(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%ld) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
     CFBasicHashRef ht = __CFBagCreateGeneric(allocator, keyCallBacks, valueCallBacks, CFDictionary);
     if (!ht) return NULL;
     if (0 < numValues) CFBasicHashSetCapacity(ht, numValues);
@@ -275,7 +275,7 @@ CFMutableHashRef CFBagCreateMutable(CFAllocatorRef allocator, CFIndex capacity, 
     const CFBagValueCallBacks *valueCallBacks = 0;
 #endif
     CFTypeID typeID = CFBagGetTypeID();
-    CFAssert2(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
+    CFAssert(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
     CFBasicHashRef ht = __CFBagCreateGeneric(allocator, keyCallBacks, valueCallBacks, CFDictionary);
     if (!ht) return NULL;
     _CFRuntimeSetInstanceTypeIDAndIsa(ht, typeID);
@@ -285,7 +285,7 @@ CFMutableHashRef CFBagCreateMutable(CFAllocatorRef allocator, CFIndex capacity, 
 
 CFHashRef CFBagCreateCopy(CFAllocatorRef allocator, CFHashRef other) {
     CFTypeID typeID = CFBagGetTypeID();
-    CFAssert1(other, __kCFLogAssertion, "%s(): other CFBag cannot be NULL", __PRETTY_FUNCTION__);
+    CFAssert(other, __kCFLogAssertion, "%s(): other CFBag cannot be NULL", __PRETTY_FUNCTION__);
     __CFGenericValidateType(other, typeID);
     Boolean markImmutable = false;
     CFBasicHashRef ht = NULL;
@@ -345,9 +345,9 @@ CFHashRef CFBagCreateCopy(CFAllocatorRef allocator, CFHashRef other) {
 
 CFMutableHashRef CFBagCreateMutableCopy(CFAllocatorRef allocator, CFIndex capacity, CFHashRef other) {
     CFTypeID typeID = CFBagGetTypeID();
-    CFAssert1(other, __kCFLogAssertion, "%s(): other CFBag cannot be NULL", __PRETTY_FUNCTION__);
+    CFAssert(other, __kCFLogAssertion, "%s(): other CFBag cannot be NULL", __PRETTY_FUNCTION__);
     __CFGenericValidateType(other, typeID);
-    CFAssert2(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
+    CFAssert(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
     CFBasicHashRef ht = NULL;
     if (CF_IS_OBJC(typeID, other)) {
         CFIndex numValues = CFBagGetCount(other);
@@ -559,8 +559,8 @@ CF_EXPORT Boolean _CFBagIsMutable(CFHashRef hc) {
 CF_EXPORT void _CFBagSetCapacity(CFMutableHashRef hc, CFIndex cap) {
     if (CF_IS_OBJC(CFBagGetTypeID(), hc)) return;
     __CFGenericValidateType(hc, CFBagGetTypeID());
-    CFAssert2(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
-    CFAssert3(CFBagGetCount(hc) <= cap, __kCFLogAssertion, "%s(): desired capacity (%ld) is less than count (%ld)", __PRETTY_FUNCTION__, cap, CFBagGetCount(hc));
+    CFAssert(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
+    CFAssert(CFBagGetCount(hc) <= cap, __kCFLogAssertion, "%s(): desired capacity (%ld) is less than count (%ld)", __PRETTY_FUNCTION__, cap, CFBagGetCount(hc));
     CFBasicHashSetCapacity((CFBasicHashRef)hc, cap);
 }
 
@@ -604,7 +604,7 @@ void CFBagAddValue(CFMutableHashRef hc, const_any_pointer_t key) {
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFBagGetTypeID(), void, (NSMutableSet *)hc, addObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFBagGetTypeID());
-    CFAssert2(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
+    CFAssert(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
     if (!CFBasicHashIsMutable((CFBasicHashRef)hc)) {
         CFLog(3, CFSTR("%s(): immutable collection %p given to mutating function"), __PRETTY_FUNCTION__, hc);
     }
@@ -627,7 +627,7 @@ void CFBagReplaceValue(CFMutableHashRef hc, const_any_pointer_t key) {
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFBagGetTypeID(), void, (NSMutableSet *)hc, replaceObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFBagGetTypeID());
-    CFAssert2(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
+    CFAssert(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
     if (!CFBasicHashIsMutable((CFBasicHashRef)hc)) {
         CFLog(3, CFSTR("%s(): immutable collection %p given to mutating function"), __PRETTY_FUNCTION__, hc);
     }
@@ -650,7 +650,7 @@ void CFBagSetValue(CFMutableHashRef hc, const_any_pointer_t key) {
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFBagGetTypeID(), void, (NSMutableSet *)hc, setObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFBagGetTypeID());
-    CFAssert2(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
+    CFAssert(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
     if (!CFBasicHashIsMutable((CFBasicHashRef)hc)) {
         CFLog(3, CFSTR("%s(): immutable collection %p given to mutating function"), __PRETTY_FUNCTION__, hc);
     }
@@ -668,7 +668,7 @@ void CFBagRemoveValue(CFMutableHashRef hc, const_any_pointer_t key) {
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFBagGetTypeID(), void, (NSMutableSet *)hc, removeObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFBagGetTypeID());
-    CFAssert2(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
+    CFAssert(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
     if (!CFBasicHashIsMutable((CFBasicHashRef)hc)) {
         CFLog(3, CFSTR("%s(): immutable collection %p given to mutating function"), __PRETTY_FUNCTION__, hc);
     }
@@ -685,7 +685,7 @@ void CFBagRemoveAllValues(CFMutableHashRef hc) {
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFBagGetTypeID(), void, (NSMutableSet *)hc, removeAllObjects);
 #endif
     __CFGenericValidateType(hc, CFBagGetTypeID());
-    CFAssert2(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
+    CFAssert(CFBasicHashIsMutable((CFBasicHashRef)hc), __kCFLogAssertion, "%s(): immutable collection %p passed to mutating operation", __PRETTY_FUNCTION__, hc);
     if (!CFBasicHashIsMutable((CFBasicHashRef)hc)) {
         CFLog(3, CFSTR("%s(): immutable collection %p given to mutating function"), __PRETTY_FUNCTION__, hc);
     }

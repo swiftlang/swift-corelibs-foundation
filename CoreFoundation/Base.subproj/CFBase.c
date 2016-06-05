@@ -762,7 +762,7 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
 #else
     __CFGenericValidateType(allocator, __kCFAllocatorTypeID);
 #endif
-    CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
+    CFAssert(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     if (allocator->_base._cfisa != __CFISAForTypeID(__kCFAllocatorTypeID)) {	// malloc_zone_t *
 	return;

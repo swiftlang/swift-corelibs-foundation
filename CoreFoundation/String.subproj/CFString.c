@@ -589,12 +589,12 @@ CF_INLINE Boolean __CFCanUseLengthByte(CFIndex len) {
 /* Various string assertions
 */
 #define __CFAssertIsString(cf) __CFGenericValidateType(cf, __kCFStringTypeID)
-#define __CFAssertIndexIsInStringBounds(cf, idx) CFAssert3((idx) >= 0 && (idx) < __CFStrLength(cf), __kCFLogAssertion, "%s(): string index %d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, __CFStrLength(cf))
-#define __CFAssertRangeIsInStringBounds(cf, idx, count) CFAssert4((idx) >= 0 && (idx + count) <= __CFStrLength(cf), __kCFLogAssertion, "%s(): string range %d,%d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, count, __CFStrLength(cf))
-#define __CFAssertIsStringAndMutable(cf) {__CFGenericValidateType(cf, __kCFStringTypeID); CFAssert1(__CFStrIsMutable(cf), __kCFLogAssertion, "%s(): string not mutable", __PRETTY_FUNCTION__);}
-#define __CFAssertIsStringAndExternalMutable(cf) {__CFGenericValidateType(cf, __kCFStringTypeID); CFAssert1(__CFStrIsMutable(cf) && __CFStrIsExternalMutable(cf), __kCFLogAssertion, "%s(): string not external mutable", __PRETTY_FUNCTION__);}
-#define __CFAssertIsNotNegative(idx) CFAssert2(idx >= 0, __kCFLogAssertion, "%s(): index %d is negative", __PRETTY_FUNCTION__, idx)
-#define __CFAssertIfFixedLengthIsOK(cf, reqLen) CFAssert2(!__CFStrIsFixed(cf) || (reqLen <= __CFStrDesiredCapacity(cf)), __kCFLogAssertion, "%s(): length %d too large", __PRETTY_FUNCTION__, reqLen)
+#define __CFAssertIndexIsInStringBounds(cf, idx) CFAssert((idx) >= 0 && (idx) < __CFStrLength(cf), __kCFLogAssertion, "%s(): string index %d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, __CFStrLength(cf))
+#define __CFAssertRangeIsInStringBounds(cf, idx, count) CFAssert((idx) >= 0 && (idx + count) <= __CFStrLength(cf), __kCFLogAssertion, "%s(): string range %d,%d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, count, __CFStrLength(cf))
+#define __CFAssertIsStringAndMutable(cf) {__CFGenericValidateType(cf, __kCFStringTypeID); CFAssert(__CFStrIsMutable(cf), __kCFLogAssertion, "%s(): string not mutable", __PRETTY_FUNCTION__);}
+#define __CFAssertIsStringAndExternalMutable(cf) {__CFGenericValidateType(cf, __kCFStringTypeID); CFAssert(__CFStrIsMutable(cf) && __CFStrIsExternalMutable(cf), __kCFLogAssertion, "%s(): string not external mutable", __PRETTY_FUNCTION__);}
+#define __CFAssertIsNotNegative(idx) CFAssert(idx >= 0, __kCFLogAssertion, "%s(): index %d is negative", __PRETTY_FUNCTION__, idx)
+#define __CFAssertIfFixedLengthIsOK(cf, reqLen) CFAssert(!__CFStrIsFixed(cf) || (reqLen <= __CFStrDesiredCapacity(cf)), __kCFLogAssertion, "%s(): length %d too large", __PRETTY_FUNCTION__, reqLen)
 
 
 /* Basic algorithm is to shrink memory when capacity is SHRINKFACTOR times the required capacity or to allocate memory when the capacity is less than GROWFACTOR times the required capacity.  This function will return -1 if the new capacity is just too big (> LONG_MAX).
@@ -868,7 +868,7 @@ static void __CFStringChangeSizeMultiple(CFMutableStringRef str, const CFRange *
 
         Boolean hasLengthAndNullBytes = __CFStrHasLengthByte(str);
     
-        CFAssert1(hasLengthAndNullBytes == __CFStrHasNullByte(str), __kCFLogAssertion, "%s(): Invalid state in 8-bit string", __PRETTY_FUNCTION__);
+        CFAssert(hasLengthAndNullBytes == __CFStrHasNullByte(str), __kCFLogAssertion, "%s(): Invalid state in 8-bit string", __PRETTY_FUNCTION__);
     
         // Calculate pointers to the actual string content (skipping over the length byte, if present).  Note that keeping a reference to the base is needed for newContents under GC, since the copy may take a long time.
         const uint8_t *curContentsBody = hasLengthAndNullBytes ? (curContents+1) : curContents;
@@ -925,7 +925,7 @@ static void __CFStringDeallocate(CFTypeRef cf) {
     CFStringRef str = (CFStringRef)cf;
 
     // If in DEBUG mode, check to see if the string a CFSTR, and complain.
-    CFAssert1(__CFConstantStringTableBeingFreed || !__CFStrIsConstantString((CFStringRef)cf), __kCFLogAssertion, "Tried to deallocate CFSTR(\"%@\")", str);
+    CFAssert(__CFConstantStringTableBeingFreed || !__CFStrIsConstantString((CFStringRef)cf), __kCFLogAssertion, "Tried to deallocate CFSTR(\"%@\")", str);
 
     if (!__CFStrIsInline(str)) {
         uint8_t *contents;
@@ -4299,7 +4299,7 @@ double CFStringGetDoubleValue(CFStringRef str) {
 void CFStringSetExternalCharactersNoCopy(CFMutableStringRef string, UniChar *chars, CFIndex length, CFIndex capacity) {
     __CFAssertIsNotNegative(length);
     __CFAssertIsStringAndExternalMutable(string);
-    CFAssert4((length <= capacity) && ((capacity == 0) || ((capacity > 0) && chars)), __kCFLogAssertion, "%s(): Invalid args: characters %p length %d capacity %d", __PRETTY_FUNCTION__, chars, length, capacity);
+    CFAssert((length <= capacity) && ((capacity == 0) || ((capacity > 0) && chars)), __kCFLogAssertion, "%s(): Invalid args: characters %p length %d capacity %d", __PRETTY_FUNCTION__, chars, length, capacity);
     __CFStrSetContentPtr(string, chars);
     __CFStrSetExplicitLength(string, length);
     __CFStrSetCapacity(string, capacity * sizeof(UniChar));
@@ -4312,7 +4312,7 @@ void CFStringInsert(CFMutableStringRef str, CFIndex idx, CFStringRef insertedStr
     CF_SWIFT_FUNCDISPATCHV(__kCFStringTypeID, void, (CFSwiftRef)str, NSMutableString.insertString, idx, (CFSwiftRef)insertedStr);
     CF_OBJC_FUNCDISPATCHV(__kCFStringTypeID, void, (NSMutableString *)str, insertString:(NSString *)insertedStr atIndex:(NSUInteger)idx);
     __CFAssertIsStringAndMutable(str);
-    CFAssert3(idx >= 0 && idx <= __CFStrLength(str), __kCFLogAssertion, "%s(): string index %d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, __CFStrLength(str));
+    CFAssert(idx >= 0 && idx <= __CFStrLength(str), __kCFLogAssertion, "%s(): string index %d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, __CFStrLength(str));
     __CFStringReplace(str, CFRangeMake(idx, 0), insertedStr);
 }
 
@@ -4407,7 +4407,7 @@ void __CFStringAppendBytes(CFMutableStringRef str, const char *cStr, CFIndex app
         vBuf.chars.unicode = NULL;	// This will cause the decode function to allocate memory if necessary
 
         if (!__CFStringDecodeByteStream3((const uint8_t *)cStr, appendedLength, encoding, __CFStrIsUnicode(str), &vBuf, &usingPassedInMemory, 0)) {
-	    CFAssert1(0, __kCFLogAssertion, "Supplied bytes could not be converted specified encoding %d", encoding);
+	    CFAssert(0, __kCFLogAssertion, "Supplied bytes could not be converted specified encoding %d", encoding);
 	    return;
 	}
 

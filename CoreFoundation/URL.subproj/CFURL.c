@@ -307,7 +307,7 @@ CF_INLINE UInt32 _getSchemeTypeFromFlags(UInt32 flags)
 
 CF_INLINE void _setSchemeTypeInFlags(UInt32 *flags, UInt32 schemeType)
 {
-    CFAssert2((schemeType >= kHasUncommonScheme) &&  (schemeType < kMaxScheme), __kCFLogAssertion, "%s(): Received bad schemeType %d", __PRETTY_FUNCTION__, schemeType);
+    CFAssert((schemeType >= kHasUncommonScheme) &&  (schemeType < kMaxScheme), __kCFLogAssertion, "%s(): Received bad schemeType %d", __PRETTY_FUNCTION__, schemeType);
     *flags = (*flags & ~SCHEME_TYPE_MASK) + (schemeType << SCHEME_SHIFT);
 }
 
@@ -2093,7 +2093,7 @@ static CFURLRef _CFURLCreateWithURLString(CFAllocatorRef allocator, CFStringRef 
 
 CF_SWIFT_EXPORT void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CFStringRef fileSystemPath, CFURLPathStyle pathStyle, Boolean isDirectory, CFURLRef baseURL) {
     struct __CFURL *result = (struct __CFURL *)url;
-    CFAssert2(pathStyle == kCFURLPOSIXPathStyle || pathStyle == kCFURLWindowsPathStyle, __kCFLogAssertion, "%s(): encountered unknown path style %d", __PRETTY_FUNCTION__, pathStyle);
+    CFAssert(pathStyle == kCFURLPOSIXPathStyle || pathStyle == kCFURLWindowsPathStyle, __kCFLogAssertion, "%s(): encountered unknown path style %d", __PRETTY_FUNCTION__, pathStyle);
 
     CFStringRef urlString = NULL;
     Boolean isAbsolute;
@@ -2103,7 +2103,7 @@ CF_SWIFT_EXPORT void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CF
     CFIndex len = CFStringGetLength(fileSystemPath);
     const CFAllocatorRef allocator = kCFAllocatorSystemDefault;
 
-    CFAssert1(len > 0, __kCFLogAssertion, "%s(): fileSystemPath length must be non-empty", __PRETTY_FUNCTION__);
+    CFAssert(len > 0, __kCFLogAssertion, "%s(): fileSystemPath length must be non-empty", __PRETTY_FUNCTION__);
 
     // Determine if fileSystemPath is an absolute path. If kCFURLPOSIXPathStyle, determine if it is a file reference path.
     // Then, convert the fileSystemPath to a urlString. The urlString returned will have a pathDelim at the end if isDirectory
@@ -2148,7 +2148,7 @@ CF_SWIFT_EXPORT void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CF
             break;
     }
     
-    CFAssert2(urlString != NULL, __kCFLogAssertion, "%s(): Encountered malformed file system URL %@", __PRETTY_FUNCTION__, urlString);
+    CFAssert(urlString != NULL, __kCFLogAssertion, "%s(): Encountered malformed file system URL %@", __PRETTY_FUNCTION__, urlString);
     
     if ( urlString ) {
         if ( isAbsolute ) {
@@ -2218,10 +2218,10 @@ static CFURLRef _CFURLCreateWithFileSystemPath(CFAllocatorRef allocator, CFStrin
     Boolean input_isDirectory = isDirectory;
     CFURLRef input_baseURL = baseURL ? CFRetain(baseURL) : NULL;
 #endif
-    CFAssert1(fileSystemPath != NULL, __kCFLogAssertion, "%s(): NULL path string not permitted", __PRETTY_FUNCTION__);
+    CFAssert(fileSystemPath != NULL, __kCFLogAssertion, "%s(): NULL path string not permitted", __PRETTY_FUNCTION__);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
-    CFAssert2(pathStyle == kCFURLPOSIXPathStyle || pathStyle == kCFURLHFSPathStyle || pathStyle == kCFURLWindowsPathStyle, __kCFLogAssertion, "%s(): encountered unknown path style %d", __PRETTY_FUNCTION__, pathStyle);
+    CFAssert(pathStyle == kCFURLPOSIXPathStyle || pathStyle == kCFURLHFSPathStyle || pathStyle == kCFURLWindowsPathStyle, __kCFLogAssertion, "%s(): encountered unknown path style %d", __PRETTY_FUNCTION__, pathStyle);
 #pragma GCC diagnostic pop
     
     struct __CFURL *result = NULL;
@@ -2276,7 +2276,7 @@ static CFURLRef _CFURLCreateWithFileSystemPath(CFAllocatorRef allocator, CFStrin
                 break;
         }
         
-        CFAssert2(urlString != NULL, __kCFLogAssertion, "%s(): Encountered malformed file system URL %@", __PRETTY_FUNCTION__, urlString);
+        CFAssert(urlString != NULL, __kCFLogAssertion, "%s(): Encountered malformed file system URL %@", __PRETTY_FUNCTION__, urlString);
         
         if ( urlString ) {
             if ( isAbsolute ) {
@@ -2965,7 +2965,7 @@ CFURLRef CFURLCopyAbsoluteURL(CFURLRef  relativeURL) {
     Boolean filePathURLCreated = false;
 #endif
     
-    CFAssert1(relativeURL != NULL, __kCFLogAssertion, "%s(): Cannot create an absolute URL from a NULL relative URL", __PRETTY_FUNCTION__);
+    CFAssert(relativeURL != NULL, __kCFLogAssertion, "%s(): Cannot create an absolute URL from a NULL relative URL", __PRETTY_FUNCTION__);
     if (CF_IS_OBJC(CFURLGetTypeID(), relativeURL)) {
         anURL = (CFURLRef) CF_OBJC_CALLV((NSURL *)relativeURL, absoluteURL);
         if (anURL) CFRetain(anURL);
@@ -3732,7 +3732,7 @@ static CFRange _getCharRangeInNonDecomposableURL(CFURLRef url, CFURLComponentTyp
 CFRange CFURLGetByteRangeForComponent(CFURLRef url, CFURLComponentType component, CFRange *rangeIncludingSeparators) {
     CFRange charRange, charRangeWithSeparators;
     CFRange byteRange;
-    CFAssert2(component > 0 && component < 13, __kCFLogAssertion, "%s(): passed invalid component %d", __PRETTY_FUNCTION__, component);
+    CFAssert(component > 0 && component < 13, __kCFLogAssertion, "%s(): passed invalid component %d", __PRETTY_FUNCTION__, component);
     url = _CFURLFromNSURL(url);
 
     if (!(url->_flags & IS_DECOMPOSABLE)) {
@@ -4441,7 +4441,7 @@ static Boolean _pathHasFileIDPrefix( CFStringRef path )
 CF_EXPORT CFStringRef CFURLCopyFileSystemPath(CFURLRef anURL, CFURLPathStyle pathStyle) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
-    CFAssert2(pathStyle == kCFURLPOSIXPathStyle || pathStyle == kCFURLHFSPathStyle || pathStyle == kCFURLWindowsPathStyle, __kCFLogAssertion, "%s(): Encountered unknown path style %d", __PRETTY_FUNCTION__, pathStyle);
+    CFAssert(pathStyle == kCFURLPOSIXPathStyle || pathStyle == kCFURLHFSPathStyle || pathStyle == kCFURLWindowsPathStyle, __kCFLogAssertion, "%s(): Encountered unknown path style %d", __PRETTY_FUNCTION__, pathStyle);
 #pragma GCC diagnostic pop
     
     CFStringRef result = NULL;
@@ -4506,7 +4506,7 @@ CFStringRef CFURLCreateStringWithFileSystemPath(CFAllocatorRef allocator, CFURLR
                     relPath = URLPathToWindowsPath(urlPath, allocator, enc);
                     break;
                 default:
-                    CFAssert2(true, __kCFLogAssertion, "%s(): Received unknown path type %d", __PRETTY_FUNCTION__, fsType);
+                    CFAssert(true, __kCFLogAssertion, "%s(): Received unknown path type %d", __PRETTY_FUNCTION__, fsType);
             }
             CFRelease(urlPath);
         }            
@@ -4764,7 +4764,7 @@ CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRe
     CFURLRef result = NULL;
     url = _CFURLFromNSURL(url);
     __CFGenericValidateType(url, CFURLGetTypeID());
-    CFAssert1(pathComponent != NULL, __kCFLogAssertion, "%s(): Cannot be called with a NULL component to append", __PRETTY_FUNCTION__);
+    CFAssert(pathComponent != NULL, __kCFLogAssertion, "%s(): Cannot be called with a NULL component to append", __PRETTY_FUNCTION__);
 
     Boolean filePathURLCreated = false;
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
@@ -4820,7 +4820,7 @@ CFURLRef CFURLCreateCopyDeletingLastPathComponent(CFAllocatorRef allocator, CFUR
     Boolean appendDotDot = false;
 
     url = _CFURLFromNSURL(url);
-    CFAssert1(url != NULL, __kCFLogAssertion, "%s(): NULL argument not allowed", __PRETTY_FUNCTION__);
+    CFAssert(url != NULL, __kCFLogAssertion, "%s(): NULL argument not allowed", __PRETTY_FUNCTION__);
     __CFGenericValidateType(url, CFURLGetTypeID());
 
     Boolean filePathURLCreated = false;
@@ -4895,7 +4895,7 @@ CFURLRef CFURLCreateCopyAppendingPathExtension(CFAllocatorRef allocator, CFURLRe
     CFURLRef result = NULL;
     CFRange rg;
     
-    CFAssert1(url != NULL && extension != NULL, __kCFLogAssertion, "%s(): NULL argument not allowed", __PRETTY_FUNCTION__);
+    CFAssert(url != NULL && extension != NULL, __kCFLogAssertion, "%s(): NULL argument not allowed", __PRETTY_FUNCTION__);
     url = _CFURLFromNSURL(url);
     __CFGenericValidateType(url, CFURLGetTypeID());
     __CFGenericValidateType(extension, CFStringGetTypeID());
@@ -4947,7 +4947,7 @@ CFURLRef CFURLCreateCopyDeletingPathExtension(CFAllocatorRef allocator, CFURLRef
     CFRange rg, dotRg;
     CFURLRef result;
 
-    CFAssert1(url != NULL, __kCFLogAssertion, "%s(): NULL argument not allowed", __PRETTY_FUNCTION__);
+    CFAssert(url != NULL, __kCFLogAssertion, "%s(): NULL argument not allowed", __PRETTY_FUNCTION__);
     url = _CFURLFromNSURL(url);
     __CFGenericValidateType(url, CFURLGetTypeID());
     

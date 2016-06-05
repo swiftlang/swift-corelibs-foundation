@@ -471,7 +471,7 @@ mach_port_t CFMachPortGetPort(CFMachPortRef mp) {
 
 void CFMachPortGetContext(CFMachPortRef mp, CFMachPortContext *context) {
     __CFGenericValidateType(mp, CFMachPortGetTypeID());
-    CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
+    CFAssert(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
     objc_memmove_collectable(context, &mp->_context, sizeof(CFMachPortContext));
 }
 
