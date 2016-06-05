@@ -45,7 +45,7 @@ public class DateFormatter : Formatter {
 
     public func objectValue(_ string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
 
-    public override func stringForObjectValue(_ obj: AnyObject) -> String? {
+    public override func string(for obj: AnyObject) -> String? {
         guard let date = obj as? Date else { return nil }
         return string(from: date)
     }
@@ -69,7 +69,7 @@ public class DateFormatter : Formatter {
         let df = DateFormatter()
         df.dateStyle = dstyle
         df.timeStyle = tstyle
-        return df.stringForObjectValue(date._nsObject)!
+        return df.string(for: date._nsObject)!
     }
 
     public class func dateFormat(fromTemplate tmplate: String, options opts: Int, locale: Locale?) -> String? {

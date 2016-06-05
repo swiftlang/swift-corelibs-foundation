@@ -12,6 +12,7 @@
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
 		555683BD1C1250E70041D4C6 /* TestNSUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555683BC1C1250E70041D4C6 /* TestNSUserDefaults.swift */; };
+		5B0163BB1D024EB7003CCD96 /* DateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0163BA1D024EB7003CCD96 /* DateComponents.swift */; };
 		5B13B3251C582D4700651CE2 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6381BF1619600136161 /* main.swift */; };
 		5B13B3261C582D4C00651CE2 /* TestNSAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */; };
 		5B13B3271C582D4C00651CE2 /* TestNSArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63C1BF1619600136161 /* TestNSArray.swift */; };
@@ -411,6 +412,7 @@
 		52829AD61C160D64003BC4EF /* TestNSCalendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCalendar.swift; sourceTree = "<group>"; };
 		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Test.plist; sourceTree = "<group>"; };
 		555683BC1C1250E70041D4C6 /* TestNSUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUserDefaults.swift; sourceTree = "<group>"; usesTabs = 1; };
+		5B0163BA1D024EB7003CCD96 /* DateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateComponents.swift; sourceTree = "<group>"; };
 		5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRegularExpression.swift; sourceTree = "<group>"; };
 		5B23AB861CE62D17000DB898 /* Boxing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Boxing.swift; sourceTree = "<group>"; };
 		5B23AB881CE62D4D000DB898 /* ReferenceConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReferenceConvertible.swift; sourceTree = "<group>"; };
@@ -1500,6 +1502,7 @@
 			isa = PBXGroup;
 			children = (
 				5BDC3F301BCC5DCB00ED97BB /* NSCalendar.swift */,
+				5B0163BA1D024EB7003CCD96 /* DateComponents.swift */,
 				5BDC3F341BCC5DCB00ED97BB /* NSDate.swift */,
 				5B5C5EEF1CE61FA4001346BD /* Date.swift */,
 				5BDC3F491BCC5DCB00ED97BB /* NSTimeZone.swift */,
@@ -1876,6 +1879,7 @@
 				EADE0BB81BD15E0000C49C64 /* NSTask.swift in Sources */,
 				5BF7AEB31BCD51F9008F214A /* NSObjCRuntime.swift in Sources */,
 				5B94E8821C430DE70055C035 /* String.swift in Sources */,
+				5B0163BB1D024EB7003CCD96 /* DateComponents.swift in Sources */,
 				5BF7AEAB1BCD51F9008F214A /* NSDictionary.swift in Sources */,
 				EADE0BAA1BD15E0000C49C64 /* NSNumberFormatter.swift in Sources */,
 				D39A14011C2D6E0A00295652 /* NSKeyedUnarchiver.swift in Sources */,

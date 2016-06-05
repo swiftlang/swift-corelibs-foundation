@@ -398,14 +398,21 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return nil
     }
     
-    private func _convert(_ component: Int, type: String, vector: inout [Int32], compDesc: inout [Int8]) {
-        if component != NSDateComponentUndefined {
+    private func _convert(_ comp: Int?, type: String, vector: inout [Int32], compDesc: inout [Int8]) {
+        if let component = comp {
             vector.append(Int32(component))
             compDesc.append(Int8(type.utf8[type.utf8.startIndex]))
         }
     }
     
-    private func _convert(_ comps: NSDateComponents) -> (Array<Int32>, Array<Int8>) {
+    private func _convert(_ comp: Bool?, type: String, vector: inout [Int32], compDesc: inout [Int8]) {
+        if let component = comp {
+            vector.append(Int32(component ? 0 : 1))
+            compDesc.append(Int8(type.utf8[type.utf8.startIndex]))
+        }
+    }
+    
+    private func _convert(_ comps: DateComponents) -> (Array<Int32>, Array<Int8>) {
         var vector = [Int32]()
         var compDesc = [Int8]()
         _convert(comps.era, type: "E", vector: &vector, compDesc: &compDesc)
@@ -421,7 +428,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         _convert(comps.weekday, type: "E", vector: &vector, compDesc: &compDesc)
         _convert(comps.weekdayOrdinal, type: "F", vector: &vector, compDesc: &compDesc)
         _convert(comps.month, type: "M", vector: &vector, compDesc: &compDesc)
-        _convert(comps.leapMonth ? 1 : 0, type: "L", vector: &vector, compDesc: &compDesc)
+        _convert(comps.isLeapMonth, type: "L", vector: &vector, compDesc: &compDesc)
         _convert(comps.day, type: "d", vector: &vector, compDesc: &compDesc)
         _convert(comps.hour, type: "H", vector: &vector, compDesc: &compDesc)
         _convert(comps.minute, type: "m", vector: &vector, compDesc: &compDesc)
@@ -431,7 +438,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return (vector, compDesc)
     }
     
-    public func date(from comps: NSDateComponents) -> Date? {
+    public func date(from comps: DateComponents) -> Date? {
         var (vector, compDesc) = _convert(comps)
         
         self.timeZone = comps.timeZone ?? timeZone
@@ -484,14 +491,14 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    private func _components(_ unitFlags: Unit, vector: [Int32]) -> NSDateComponents {
+    private func _components(_ unitFlags: Unit, vector: [Int32]) -> DateComponents {
         var compIdx = 0
-        let comps = NSDateComponents()
+        var comps = DateComponents()
         _setComp(unitFlags, field: .era, vector: vector, compIndex: &compIdx) { comps.era = Int($0) }
         _setComp(unitFlags, field: .year, vector: vector, compIndex: &compIdx) { comps.year = Int($0) }
         _setComp(unitFlags, field: .quarter, vector: vector, compIndex: &compIdx) { comps.quarter = Int($0) }
         _setComp(unitFlags, field: .month, vector: vector, compIndex: &compIdx) { comps.month = Int($0) }
-        _setComp(unitFlags, field: .month, vector: vector, compIndex: &compIdx) { comps.leapMonth = $0 != 0 }
+        _setComp(unitFlags, field: .month, vector: vector, compIndex: &compIdx) { comps.isLeapMonth = $0 != 0 }
         _setComp(unitFlags, field: .day, vector: vector, compIndex: &compIdx) { comps.day = Int($0) }
         _setComp(unitFlags, field: .weekOfYear, vector: vector, compIndex: &compIdx) { comps.weekOfYear = Int($0) }
         _setComp(unitFlags, field: .weekOfMonth, vector: vector, compIndex: &compIdx) { comps.weekOfMonth = Int($0) }
@@ -514,7 +521,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// The Darwin version is not nullable but this one is since the conversion from the date and unit flags can potentially return nil
-    public func components(_ unitFlags: Unit, from date: Date) -> NSDateComponents? {
+    public func components(_ unitFlags: Unit, from date: Date) -> DateComponents? {
         let compDesc = _setup(unitFlags)
         
         // _CFCalendarDecomposeAbsoluteTimeV requires a bit of a funky vector layout; which does not express well in swift; this is the closest I can come up with to the required format
@@ -537,7 +544,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return nil
     }
     
-    public func date(byAdding comps: NSDateComponents, to date: Date, options opts: Options = []) -> Date? {
+    public func date(byAdding comps: DateComponents, to date: Date, options opts: Options = []) -> Date? {
         var (vector, compDesc) = _convert(comps)
         var at: CFAbsoluteTime = 0.0
         
@@ -554,7 +561,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return nil
     }
     
-    public func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> NSDateComponents {
+    public func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> DateComponents {
         let compDesc = _setup(unitFlags)
         var ints = [Int32](repeating: 0, count: 20)
         let res = ints.withUnsafeMutableBufferPointer { (intArrayBuffer: inout UnsafeMutableBufferPointer<Int32>) -> Bool in
@@ -579,10 +586,26 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     */
     public func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, year yearValuePointer: UnsafeMutablePointer<Int>?, month monthValuePointer: UnsafeMutablePointer<Int>?, day dayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
         if let comps = components([.era, .year, .month, .day], from: date) {
-            eraValuePointer?.pointee = comps.era
-            yearValuePointer?.pointee = comps.year
-            monthValuePointer?.pointee = comps.month
-            dayValuePointer?.pointee = comps.day
+            if let value = comps.era {
+                eraValuePointer?.pointee = value
+            } else {
+                eraValuePointer?.pointee = NSDateComponentUndefined
+            }
+            if let value = comps.year {
+                yearValuePointer?.pointee = value
+            } else {
+                yearValuePointer?.pointee = NSDateComponentUndefined
+            }
+            if let value = comps.month {
+                monthValuePointer?.pointee = value
+            } else {
+                monthValuePointer?.pointee = NSDateComponentUndefined
+            }
+            if let value = comps.day {
+                dayValuePointer?.pointee = value
+            } else {
+                dayValuePointer?.pointee = NSDateComponentUndefined
+            }
         }
     }
     
@@ -592,10 +615,26 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     */
     public func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, yearForWeekOfYear yearValuePointer: UnsafeMutablePointer<Int>?, weekOfYear weekValuePointer: UnsafeMutablePointer<Int>?, weekday weekdayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
         if let comps = components([.era, .yearForWeekOfYear, .weekOfYear, .weekday], from: date) {
-            eraValuePointer?.pointee = comps.era
-            yearValuePointer?.pointee = comps.yearForWeekOfYear
-            weekValuePointer?.pointee = comps.weekOfYear
-            weekdayValuePointer?.pointee = comps.weekday
+            if let value = comps.era {
+                eraValuePointer?.pointee = value
+            } else  {
+                eraValuePointer?.pointee = NSDateComponentUndefined
+            }
+            if let value = comps.yearForWeekOfYear {
+                yearValuePointer?.pointee = value
+            } else {
+                yearValuePointer?.pointee = NSDateComponentUndefined
+            }
+            if let value = comps.weekOfYear {
+                weekValuePointer?.pointee = value
+            } else {
+                weekValuePointer?.pointee = NSDateComponentUndefined
+            }
+            if let value = comps.weekday {
+                weekdayValuePointer?.pointee = value
+            } else {
+                weekdayValuePointer?.pointee = NSDateComponentUndefined
+            }
         }
     }
     
@@ -605,10 +644,27 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     */
     public func getHour(_ hourValuePointer: UnsafeMutablePointer<Int>?, minute minuteValuePointer: UnsafeMutablePointer<Int>?, second secondValuePointer: UnsafeMutablePointer<Int>?, nanosecond nanosecondValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
         if let comps = components([.hour, .minute, .second, .nanosecond], from: date) {
-            hourValuePointer?.pointee = comps.hour
-            minuteValuePointer?.pointee = comps.minute
-            secondValuePointer?.pointee = comps.second
-            nanosecondValuePointer?.pointee = comps.nanosecond
+            if let value = comps.hour {
+                hourValuePointer?.pointee = value
+            } else {
+                hourValuePointer?.pointee = NSDateComponentUndefined
+            }
+            if let value = comps.minute {
+                minuteValuePointer?.pointee = value
+            } else {
+                minuteValuePointer?.pointee = NSDateComponentUndefined
+            }
+            if let value = comps.second {
+                secondValuePointer?.pointee = value
+            } else {
+                secondValuePointer?.pointee = NSDateComponentUndefined
+            }
+            if let value = comps.nanosecond {
+                nanosecondValuePointer?.pointee = value
+            } else {
+                nanosecondValuePointer?.pointee = NSDateComponentUndefined
+            }
+
         }
     }
     
@@ -629,7 +685,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     Current era is assumed.
     */
     public func date(era eraValue: Int, year yearValue: Int, month monthValue: Int, day dayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> Date? {
-        let comps = NSDateComponents()
+        var comps = DateComponents()
         comps.era = eraValue
         comps.year = yearValue
         comps.month = monthValue
@@ -646,7 +702,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     Current era is assumed.
     */
     public func date(era eraValue: Int, yearForWeekOfYear yearValue: Int, weekOfYear weekValue: Int, weekday weekdayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> Date? {
-        let comps = NSDateComponents()
+        var comps = DateComponents()
         comps.era = eraValue
         comps.yearForWeekOfYear = yearValue
         comps.weekOfYear = weekValue
@@ -674,7 +730,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// The Darwin version is not nullable but this one is since the conversion from the date and unit flags can potentially return nil
-    public func components(in timezone: TimeZone, fromDate date: Date) -> NSDateComponents? {
+    public func components(in timezone: TimeZone, fromDate date: Date) -> DateComponents? {
         let oldTz = self.timeZone
         self.timeZone = timezone
         let comps = components([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .calendar, .timeZone], from: date)
@@ -777,13 +833,16 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
                 return .orderedAscending
             }
             if unit == .month && calendarIdentifier == kCFCalendarIdentifierChinese._swiftObject {
-                let leap1 = comp1.leapMonth
-                let leap2 = comp2.leapMonth
-                if !leap1 && leap2 {
-                    return .orderedAscending
-                } else if leap1 && !leap2 {
-                    return .orderedDescending
+                if let leap1 = comp1.isLeapMonth {
+                    if let leap2 = comp2.isLeapMonth {
+                        if !leap1 && leap2 {
+                            return .orderedAscending
+                        } else if leap1 && !leap2 {
+                            return .orderedDescending
+                        }
+                    }
                 }
+                
             }
             if unit == reducedUnits {
                 return .orderedSame
@@ -879,7 +938,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
             return _CFCalendarGetNextWeekend(_cfObject, rangep)
         }
         if res {
-            let comp = NSDateComponents()
+            var comp = DateComponents()
             comp.weekday = range.start
             if let nextStart = nextDate(after: date, matchingComponents: comp, options: options.union(.matchNextTime)) {
                 let start = nextStart + range.onsetTime
@@ -916,7 +975,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     For each date components object, if its time zone property is set, that time zone is used for it; if the calendar property is set, that is used rather than the receiving calendar, and if both the calendar and time zone are set, the time zone property value overrides the time zone of the calendar property.
     No options are currently defined; pass 0.
     */
-    public func components(_ unitFlags: Unit, from startingDateComp: NSDateComponents, to resultDateComp: NSDateComponents, options: Options = []) -> NSDateComponents? {
+    public func components(_ unitFlags: Unit, from startingDateComp: DateComponents, to resultDateComp: DateComponents, options: Options = []) -> DateComponents? {
         var startDate: Date?
         var toDate: Date?
         if let startCalendar = startingDateComp.calendar {
@@ -942,7 +1001,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     The NSCalendarWrapComponents option specifies if the component should be incremented and wrap around to zero/one on overflow, and should not cause higher units to be incremented.
     */
     public func date(byAdding unit: Unit, value: Int, to date: Date, options: Options = []) -> Date? {
-        let comps = NSDateComponents()
+        var comps = DateComponents()
         comps.setValue(value, forComponent: unit)
         return self.date(byAdding: comps, to: date, options: options)
     }
@@ -969,14 +1028,14 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     Result dates have an integer number of seconds (as if 0 was specified for the nanoseconds property of the NSDateComponents matching parameter), unless a value was set in the nanoseconds property, in which case the result date will have that number of nanoseconds (or as close as possible with floating point numbers).
     The enumeration is stopped by setting *stop = YES in the block and return.  It is not necessary to set *stop to NO to keep the enumeration going.
     */
-    public func enumerateDates(startingAfter start: Date, matchingComponents comps: NSDateComponents, options opts: Options = [], usingBlock block: (Date?, Bool, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateDates(startingAfter start: Date, matchingComponents comps: DateComponents, options opts: Options = [], usingBlock block: (Date?, Bool, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     
     /*
     This method computes the next date which matches (or most closely matches) a given set of components.
     The general semantics follow those of the -enumerateDatesStartingAfterDate:... method above.
     To compute a sequence of results, use the -enumerateDatesStartingAfterDate:... method above, rather than looping and calling this method with the previous loop iteration's result.
     */
-    public func nextDate(after date: Date, matchingComponents comps: NSDateComponents, options: Options = []) -> Date? {
+    public func nextDate(after date: Date, matchingComponents comps: DateComponents, options: Options = []) -> Date? {
         var result: Date?
         enumerateDates(startingAfter: date, matchingComponents: comps, options: options) { date, exactMatch, stop in
             result = date
@@ -991,7 +1050,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     To compute a sequence of results, use the -enumerateDatesStartingAfterDate:... method above, rather than looping and calling this method with the previous loop iteration's result.
     */
     public func nextDate(after date: Date, matchingUnit unit: Unit, value: Int, options: Options = []) -> Date? {
-        let comps = NSDateComponents()
+        var comps = DateComponents()
         comps.setValue(value, forComponent: unit)
         return nextDate(after:date, matchingComponents: comps, options: options)
     }
@@ -1002,7 +1061,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     To compute a sequence of results, use the -enumerateDatesStartingAfterDate:... method above, rather than looping and calling this method with the previous loop iteration's result.
     */
     public func nextDate(after date: Date, matchingHour hourValue: Int, minute minuteValue: Int, second secondValue: Int, options: Options = []) -> Date? {
-        let comps = NSDateComponents()
+        var comps = DateComponents()
         comps.hour = hourValue
         comps.minute = minuteValue
         comps.second = secondValue
@@ -1020,7 +1079,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         if currentValue == v {
             return date
         }
-        let targetComp = NSDateComponents()
+        var targetComp = DateComponents()
         targetComp.setValue(v, forComponent: unit)
         var result: Date?
         enumerateDates(startingAfter: date, matchingComponents: targetComp, options: .matchNextTime) { date, match, stop in
@@ -1037,7 +1096,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     */
     public func date(bySettingHour h: Int, minute m: Int, second s: Int, ofDate date: Date, options opts: Options = []) -> Date? {
         if let range = range(of: .day, forDate: date) {
-            let comps = NSDateComponents()
+            var comps = DateComponents()
             comps.hour = h
             comps.minute = m
             comps.second = s
@@ -1061,7 +1120,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     This API returns YES if the date has all the matched components. Otherwise, it returns NO.
     It is useful to test the return value of the -nextDateAfterDate:matchingUnit:value:options:, to find out if the components were obeyed or if the method had to fudge the result value due to missing time.
     */
-    public func date(_ date: Date, matchesComponents components: NSDateComponents) -> Bool {
+    public func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
         let units: [Unit] = [.era, .year, .month, .day, .hour, .minute, .second, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .nanosecond]
         var unitFlags: Unit = []
         for unit in units {
@@ -1070,27 +1129,27 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
             }
         }
         if unitFlags == [] {
-            if components.leapMonthSet {
+            if components.isLeapMonth != nil {
                 if let comp = self.components(.month, from: date) {
-                    return comp.leapMonth
+                    if let leap = comp.isLeapMonth {
+                        return leap
+                    }
                 }
                 return false
             }
         }
         if let comp = self.components(unitFlags, from: date) {
-            let tempComp = components.copy() as! NSDateComponents
-            if comp.leapMonthSet && !components.leapMonthSet {
-                tempComp.leapMonth = comp.leapMonth
-            }
-            let nanosecond = comp.value(forComponent: .nanosecond)
-            if nanosecond != NSDateComponentUndefined {
-                if labs(nanosecond - tempComp.value(forComponent: .nanosecond)) > 500 {
+            var compareComp = comp
+            var tempComp = components
+            tempComp.isLeapMonth = comp.isLeapMonth
+            if let nanosecond = comp.value(forComponent: .nanosecond) {
+                if labs(nanosecond - tempComp.value(forComponent: .nanosecond)!) > 500 {
                     return false
                 } else {
-                    comp.nanosecond = 0
+                    compareComp.nanosecond = 0
                     tempComp.nanosecond = 0
                 }
-                return tempComp.isEqual(comp)
+                return tempComp == compareComp
             }
         }
         return false
@@ -1221,7 +1280,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             if weekdayOrdinal != other.weekdayOrdinal {
                 return false
             }
-            if leapMonth != other.leapMonth {
+            if isLeapMonth != other.isLeapMonth {
                 return false
             }
             if calendar != other.calendar {
@@ -1253,7 +1312,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             self.yearForWeekOfYear = aDecoder.decodeIntegerForKey("NS.yearForWOY")
             self.weekday = aDecoder.decodeIntegerForKey("NS.weekday")
             self.weekdayOrdinal = aDecoder.decodeIntegerForKey("NS.weekdayOrdinal")
-            self.leapMonth = aDecoder.decodeBoolForKey("NS.leapMonth")
+            self.isLeapMonth = aDecoder.decodeBoolForKey("NS.isLeapMonth")
             self.calendar = aDecoder.decodeObjectOfClass(Calendar.self, forKey: "NS.calendar")
             self.timeZone = aDecoder.decodeObjectOfClass(TimeZone.self, forKey: "NS.timezone")
         } else {
@@ -1277,7 +1336,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             aCoder.encodeInteger(self.yearForWeekOfYear, forKey: "NS.yearForWOY")
             aCoder.encodeInteger(self.weekday, forKey: "NS.weekday")
             aCoder.encodeInteger(self.weekdayOrdinal, forKey: "NS.weekdayOrdinal")
-            aCoder.encodeBool(self.leapMonth, forKey: "NS.leapMonth")
+            aCoder.encodeBool(self.isLeapMonth, forKey: "NS.isLeapMonth")
             aCoder.encodeObject(self.calendar, forKey: "NS.calendar")
             aCoder.encodeObject(self.timeZone, forKey: "NS.timezone")
         } else {
@@ -1449,7 +1508,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var leapMonth: Bool {
+    public var isLeapMonth: Bool {
         get {
             return _values[15] == 1
         }
@@ -1466,7 +1525,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         if let tz = timeZone {
             calendar?.timeZone = tz
         }
-        return calendar?.date(from: self)
+        return calendar?.date(from: self._swiftObject)
     }
     
     /*
@@ -1575,7 +1634,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     If the time zone property is set in the NSDateComponents object, it is used.
     The calendar property must be set, or NO is returned.
     */
-    public var validDate: Bool {
+    public var isValidDate: Bool {
         if let cal = calendar {
             return isValidDate(in: cal)
         }
@@ -1600,7 +1659,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         if ns != NSDateComponentUndefined && 0 < ns {
             nanosecond = 0
         }
-        let d = calendar.date(from: self)
+        let d = calendar.date(from: self._swiftObject)
         if ns != NSDateComponentUndefined && 0 < ns {
             nanosecond = ns
         }
@@ -1626,7 +1685,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
                     }
                 }
                 if leapMonthSet {
-                    if comps.leapMonth != leapMonth {
+                    if comps.isLeapMonth != isLeapMonth {
                         return false
                     }
                 }
@@ -1696,6 +1755,16 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
         return false
     }
+}
+
+extension NSDateComponents : _SwiftBridgable {
+    typealias SwiftType = DateComponents
+    var _swiftObject: SwiftType { return DateComponents(reference: self) }
+}
+
+extension DateComponents : _NSBridgable {
+    typealias NSType = NSDateComponents
+    var _nsObject: NSType { return _bridgeToObjectiveC() }
 }
 
 extension Calendar: _CFBridgable { }

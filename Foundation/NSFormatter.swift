@@ -65,12 +65,12 @@ public class Formatter : NSObject, NSCopying, NSCoding {
         return self
     }
     
-    public func stringForObjectValue(_ obj: AnyObject) -> String? {
+    public func string(for obj: AnyObject) -> String? {
         NSRequiresConcreteImplementation()
     }
     
-    public func editingStringForObjectValue(_ obj: AnyObject) -> String? {
-        return stringForObjectValue(obj)
+    public func editingString(for obj: AnyObject) -> String? {
+        return string(for: obj)
     }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative

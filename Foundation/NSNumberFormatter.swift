@@ -52,7 +52,7 @@ public class NumberFormatter : Formatter {
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func objectValue(_ string: String, range: inout NSRange) throws -> AnyObject? { NSUnimplemented() }
     
-    public override func stringForObjectValue(_ obj: AnyObject) -> String? {
+    public override func string(for obj: AnyObject) -> String? {
         guard let number = obj as? NSNumber else { return nil }
         return stringFromNumber(number)
     }
@@ -81,7 +81,7 @@ public class NumberFormatter : Formatter {
     public class func localizedStringFromNumber(_ num: NSNumber, numberStyle nstyle: Style) -> String {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = nstyle
-        return numberFormatter.stringForObjectValue(num)!
+        return numberFormatter.string(for: num)!
     }
     
     internal func _reset() {
