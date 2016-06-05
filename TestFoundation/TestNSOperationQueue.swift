@@ -50,10 +50,10 @@ class TestNSOperationQueue : XCTestCase {
         let operation4: NSBlockOperation = NSBlockOperation (block: {
             msgOperations.append("Operation4 executed")
         })
-        operation4.queuePriority = OperationQueuePriority.VeryLow
-        operation3.queuePriority = OperationQueuePriority.VeryHigh
-        operation2.queuePriority = OperationQueuePriority.Low
-        operation1.queuePriority = OperationQueuePriority.Normal
+        operation4.queuePriority = OperationQueuePriority.veryLow
+        operation3.queuePriority = OperationQueuePriority.veryHigh
+        operation2.queuePriority = OperationQueuePriority.low
+        operation1.queuePriority = OperationQueuePriority.normal
         var operations = [NSOperation]()
         operations.append(operation1)
         operations.append(operation2)

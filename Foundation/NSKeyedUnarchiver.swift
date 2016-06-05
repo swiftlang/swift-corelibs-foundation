@@ -99,7 +99,7 @@ public class NSKeyedUnarchiver : NSCoder {
   
     private func _readPropertyList() throws {
         var plist : Any? = nil
-        var format = NSPropertyListFormat.BinaryFormat_v1_0
+        var format = NSPropertyListFormat.binaryFormat_v1_0
         
         // FIXME this implementation reads the entire property list into memory
         // which will not scale for large archives. We should support incremental
