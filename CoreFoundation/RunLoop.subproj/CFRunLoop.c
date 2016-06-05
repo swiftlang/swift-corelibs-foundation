@@ -2402,12 +2402,12 @@ static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort o
     if (result == 0)
         return false;
 
-    CFAssert2(result != -1, __kCFLogAssertion, "%s(): error %d from ppoll", __PRETTY_FUNCTION__, errno);
+    CFAssert(result != -1, __kCFLogAssertion, "%s(): error %d from ppoll", __PRETTY_FUNCTION__, errno);
 
     int awokenFd;
 
     if (onePort != CFPORT_NULL) {
-        CFAssert1(0 == (fdInfo.revents & (POLLERR|POLLHUP)), __kCFLogAssertion, "%s(): ppoll reported error for fd", __PRETTY_FUNCTION__);
+        CFAssert(0 == (fdInfo.revents & (POLLERR|POLLHUP)), __kCFLogAssertion, "%s(): ppoll reported error for fd", __PRETTY_FUNCTION__);
         awokenFd = onePort;
 
     } else {
@@ -2415,7 +2415,7 @@ static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort o
         do {
             result = epoll_wait(portSet, &event, 1 /*numEvents*/, 0 /*timeout*/);
         } while (result == -1 && errno == EINTR);
-        CFAssert2(result >= 0, __kCFLogAssertion, "%s(): error %d from epoll_wait", __PRETTY_FUNCTION__, errno);
+        CFAssert(result >= 0, __kCFLogAssertion, "%s(): error %d from epoll_wait", __PRETTY_FUNCTION__, errno);
 
         if (result == 0) {
             return false;
@@ -2438,7 +2438,7 @@ static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort o
         return false;   
     }
 
-    CFAssert2(result == sizeof(value), __kCFLogAssertion, "%s(): error %d from read(2) while acknowledging wakeup", __PRETTY_FUNCTION__, errno);
+    CFAssert(result == sizeof(value), __kCFLogAssertion, "%s(): error %d from read(2) while acknowledging wakeup", __PRETTY_FUNCTION__, errno);
     
     if (livePort)
         *livePort = awokenFd;
@@ -2472,7 +2472,7 @@ static Boolean __CFRunLoopWaitForMultipleObjects(__CFPortSet portSet, HANDLE *on
     // The run loop mode and loop are already in proper unlocked state from caller
     waitResult = MsgWaitForMultipleObjectsEx(__CFMin(handleCount, MAXIMUM_WAIT_OBJECTS), handles, timeout, mask, MWMO_INPUTAVAILABLE);
     
-    CFAssert2(waitResult != WAIT_FAILED, __kCFLogAssertion, "%s(): error %d from MsgWaitForMultipleObjects", __PRETTY_FUNCTION__, GetLastError());
+    CFAssert(waitResult != WAIT_FAILED, __kCFLogAssertion, "%s(): error %d from MsgWaitForMultipleObjects", __PRETTY_FUNCTION__, GetLastError());
     
     if (waitResult == WAIT_TIMEOUT) {
 	// do nothing, just return to caller
@@ -2490,7 +2490,7 @@ static Boolean __CFRunLoopWaitForMultipleObjects(__CFPortSet portSet, HANDLE *on
 	if (livePort) *livePort = handles[waitResult-WAIT_ABANDONED_0];
 	result = true;
     } else {
-	CFAssert2(waitResult == WAIT_FAILED, __kCFLogAssertion, "%s(): unexpected result from MsgWaitForMultipleObjects: %d", __PRETTY_FUNCTION__, waitResult);
+	CFAssert(waitResult == WAIT_FAILED, __kCFLogAssertion, "%s(): unexpected result from MsgWaitForMultipleObjects: %d", __PRETTY_FUNCTION__, waitResult);
 	result = false;
     }
     
@@ -2944,7 +2944,7 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
         ret = eventfd_write(rl->_wakeUpPort, 1);
     } while (ret == -1 && errno == EINTR);
 
-    CFAssert1(0 == ret, __kCFLogAssertion, "%s(): Unable to send wake message to eventfd", __PRETTY_FUNCTION__);
+    CFAssert(0 == ret, __kCFLogAssertion, "%s(): Unable to send wake message to eventfd", __PRETTY_FUNCTION__);
 #elif DEPLOYMENT_TARGET_WINDOWS
     SetEvent(rl->_wakeUpPort);
 #endif
@@ -3627,7 +3627,7 @@ Boolean CFRunLoopSourceIsValid(CFRunLoopSourceRef rls) {
 void CFRunLoopSourceGetContext(CFRunLoopSourceRef rls, CFRunLoopSourceContext *context) {
     CHECK_FOR_FORK();
     __CFGenericValidateType(rls, CFRunLoopSourceGetTypeID());
-    CFAssert1(0 == context->version || 1 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0 or 1", __PRETTY_FUNCTION__);
+    CFAssert(0 == context->version || 1 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0 or 1", __PRETTY_FUNCTION__);
     CFIndex size = 0;
     switch (context->version) {
     case 0:
@@ -3841,7 +3841,7 @@ Boolean CFRunLoopObserverIsValid(CFRunLoopObserverRef rlo) {
 void CFRunLoopObserverGetContext(CFRunLoopObserverRef rlo, CFRunLoopObserverContext *context) {
     CHECK_FOR_FORK();
     __CFGenericValidateType(rlo, CFRunLoopObserverGetTypeID());
-    CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
+    CFAssert(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
     *context = rlo->_context;
 }
 
@@ -4141,7 +4141,7 @@ Boolean CFRunLoopTimerIsValid(CFRunLoopTimerRef rlt) {
 void CFRunLoopTimerGetContext(CFRunLoopTimerRef rlt, CFRunLoopTimerContext *context) {
     CHECK_FOR_FORK();
     __CFGenericValidateType(rlt, CFRunLoopTimerGetTypeID());
-    CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
+    CFAssert(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
     *context = rlt->_context;
 }
 

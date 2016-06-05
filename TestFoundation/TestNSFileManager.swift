@@ -38,7 +38,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_createDirectory() {
         let fm = NSFileManager.defaultManager()
-        let path = "/tmp/testdir"
+        let path = "/tmp/testdir\(NSUUID().UUIDString)"
         
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -63,7 +63,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_createFile() {
         let fm = NSFileManager.defaultManager()
-        let path = "/tmp/testfile"
+        let path = "/tmp/testfile\(NSUUID().UUIDString)"
         
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -83,8 +83,8 @@ class TestNSFileManager : XCTestCase {
 
     func test_moveFile() {
         let fm = NSFileManager.defaultManager()
-        let path = "/tmp/testfile"
-        let path2 = "/tmp/testfile2"
+        let path = "/tmp/testfile\(NSUUID().UUIDString)"
+        let path2 = "/tmp/testfile2\(NSUUID().UUIDString)"
 
         func cleanup() {
             ignoreError { try fm.removeItem(atPath: path) }
@@ -179,14 +179,21 @@ class TestNSFileManager : XCTestCase {
             XCTAssert((attributes[NSFilePosixPermissions] as? NSNumber)?.int16Value == 0o0600)
         }
         catch { XCTFail("\(error)") }
+
+        do {
+            try fm.removeItem(atPath: path)
+        } catch {
+            XCTFail("Failed to clean up files")
+        }
     }
     
     func test_pathEnumerator() {
         let fm = NSFileManager.defaultManager()
-        let basePath = "/tmp/testdir"
-        let itemPath = "/tmp/testdir/item"
-        let basePath2 = "/tmp/testdir/path2"
-        let itemPath2 = "/tmp/testdir/path2/item"
+        let testDirName = "testdir\(NSUUID().UUIDString)"
+        let basePath = "/tmp/\(testDirName)"
+        let itemPath = "/tmp/\(testDirName)/item"
+        let basePath2 = "/tmp/\(testDirName)/path2"
+        let itemPath2 = "/tmp/\(testDirName)/path2/item"
         
         ignoreError { try fm.removeItem(atPath: basePath) }
         
@@ -215,8 +222,9 @@ class TestNSFileManager : XCTestCase {
     
     func test_directoryEnumerator() {
         let fm = NSFileManager.defaultManager()
-        let path = "/tmp/testdir"
-        let itemPath = "/tmp/testdir/item"
+        let testDirName = "testdir\(NSUUID().UUIDString)"
+        let path = "/tmp/\(testDirName)"
+        let itemPath = "/tmp/\(testDirName)/item"
         
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -239,8 +247,8 @@ class TestNSFileManager : XCTestCase {
             XCTFail()
         }
         
-        let subDirPath = "/tmp/testdir/testdir2"
-        let subDirItemPath = "/tmp/testdir/testdir2/item"
+        let subDirPath = "/tmp/\(testDirName)/testdir2"
+        let subDirItemPath = "/tmp/\(testDirName)/testdir2/item"
         do {
             try fm.createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
             fm.createFile(atPath: subDirItemPath, contents: NSData(), attributes: nil)
@@ -320,9 +328,10 @@ class TestNSFileManager : XCTestCase {
     
     func test_contentsOfDirectoryAtPath() {
         let fm = NSFileManager.defaultManager()
-        let path = "/tmp/testdir"
-        let itemPath1 = "/tmp/testdir/item"
-        let itemPath2 = "/tmp/testdir/item2"
+        let testDirName = "testdir\(NSUUID().UUIDString)"
+        let path = "/tmp/\(testDirName)"
+        let itemPath1 = "/tmp/\(testDirName)/item"
+        let itemPath2 = "/tmp/\(testDirName)/item2"
         
         ignoreError { try fm.removeItem(atPath: path) }
         

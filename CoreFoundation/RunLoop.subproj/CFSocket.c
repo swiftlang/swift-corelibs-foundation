@@ -439,7 +439,7 @@
  
  void CFSocketGetContext(CFSocketRef sock, CFSocketContext *context) {
  __CFGenericValidateType(sock, CFSocketGetTypeID());
- CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
+ CFAssert(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
  objc_memmove_collectable(context, &sock->_context, sizeof(CFSocketContext));
  }
  
@@ -2652,7 +2652,7 @@ CFDataRef CFSocketCopyPeerAddress(CFSocketRef s) {
 void CFSocketGetContext(CFSocketRef s, CFSocketContext *context) {
     CHECK_FOR_FORK();
     __CFGenericValidateType(s, CFSocketGetTypeID());
-    CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
+    CFAssert(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
     *context = s->_context;
 }
 

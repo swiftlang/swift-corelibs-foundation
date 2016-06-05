@@ -127,7 +127,7 @@ static CFComparisonResult CFNumberCompare_old(struct __CFNumber_old * number1, s
 
 
 #define __CFAssertIsNumber(cf) __CFGenericValidateType(cf, CFNumberGetTypeID())
-#define __CFAssertIsValidNumberType(type) CFAssert2((0 < type && type <= kCFNumberMaxType) || (type == kCFNumberSInt128Type), __kCFLogAssertion, "%s(): bad CFNumber type %d", __PRETTY_FUNCTION__, type);
+#define __CFAssertIsValidNumberType(type) CFAssert((0 < type && type <= kCFNumberMaxType) || (type == kCFNumberSInt128Type), __kCFLogAssertion, "%s(): bad CFNumber type %d", __PRETTY_FUNCTION__, type);
 
 /* The IEEE bit patterns... Also have:
 0x7f800000		float +Inf

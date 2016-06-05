@@ -201,8 +201,8 @@ static CFBinaryHeapRef __CFBinaryHeapInit(CFAllocatorRef allocator, UInt32 flags
     CFIndex idx;
     CFIndex size;
 
-    CFAssert2(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%d) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
-    CFAssert2(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%d) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
+    CFAssert(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%d) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
+    CFAssert(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%d) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
     size = sizeof(struct __CFBinaryHeap) - sizeof(CFRuntimeBase);
     if (CF_IS_COLLECTABLE_ALLOCATOR(allocator)) {
 	if (!callBacks || (callBacks->retain == NULL && callBacks->release == NULL)) {
@@ -294,7 +294,7 @@ Boolean CFBinaryHeapContainsValue(CFBinaryHeapRef heap, const void *value) {
 
 const void *CFBinaryHeapGetMinimum(CFBinaryHeapRef heap) {
     __CFGenericValidateType(heap, CFBinaryHeapGetTypeID());
-    CFAssert1(0 < __CFBinaryHeapCount(heap), __kCFLogAssertion, "%s(): binary heap is empty", __PRETTY_FUNCTION__);
+    CFAssert(0 < __CFBinaryHeapCount(heap), __kCFLogAssertion, "%s(): binary heap is empty", __PRETTY_FUNCTION__);
     return (0 < __CFBinaryHeapCount(heap)) ? heap->_buckets[0]._item : NULL;
 }
 
@@ -310,7 +310,7 @@ void CFBinaryHeapGetValues(CFBinaryHeapRef heap, const void **values) {
     CFIndex idx;
     CFIndex cnt;
     __CFGenericValidateType(heap, CFBinaryHeapGetTypeID());
-    CFAssert1(NULL != values, __kCFLogAssertion, "%s(): pointer to values may not be NULL", __PRETTY_FUNCTION__);
+    CFAssert(NULL != values, __kCFLogAssertion, "%s(): pointer to values may not be NULL", __PRETTY_FUNCTION__);
     cnt = __CFBinaryHeapCount(heap);
     if (0 == cnt) return;
     heapCopy = CFBinaryHeapCreateCopy(CFGetAllocator(heap), cnt, heap);
@@ -327,7 +327,7 @@ void CFBinaryHeapApplyFunction(CFBinaryHeapRef heap, CFBinaryHeapApplierFunction
     CFBinaryHeapRef heapCopy;
     CFIndex cnt;
     __CFGenericValidateType(heap, CFBinaryHeapGetTypeID());
-    CFAssert1(NULL != applier, __kCFLogAssertion, "%s(): pointer to applier function may not be NULL", __PRETTY_FUNCTION__);
+    CFAssert(NULL != applier, __kCFLogAssertion, "%s(): pointer to applier function may not be NULL", __PRETTY_FUNCTION__);
     cnt = __CFBinaryHeapCount(heap);
     if (0 == cnt) return;
     heapCopy = CFBinaryHeapCreateCopy(CFGetAllocator(heap), cnt, heap);

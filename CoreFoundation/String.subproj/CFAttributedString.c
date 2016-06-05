@@ -38,10 +38,10 @@ CF_INLINE void __CFAttributedStringSetMutable(CFAttributedStringRef attrStr, Boo
 /* Assertions
 */
 #define __CFAssertIsAttributedString(cf) __CFGenericValidateType(cf, CFAttributedStringGetTypeID())
-#define __CFAssertIndexIsInBounds(cf, idx) CFAssert3((idx) >= 0 && (idx) < CFAttributedStringGetLength(cf), __kCFLogAssertion, "%s(): index %d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, CFAttributedStringGetLength(cf))
-#define __CFAssertRangeIsInBounds(cf, idx, count) CFAssert4((idx) >= 0 && (idx + count) <= CFAttributedStringGetLength(cf), __kCFLogAssertion, "%s(): range %d,%d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, count, CFAttributedStringGetLength(cf))
-#define __CFAssertRangeIsWithinLength(len, idx, count) CFAssert4((idx) >= 0 && (idx + count) <= len, __kCFLogAssertion, "%s(): range %d,%d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, count, len)
-#define __CFAssertIsAttributedStringAndMutable(cf) CFAssert1((CFGetTypeID(cf) == CFAttributedStringGetTypeID()) && __CFAttributedStringIsMutable(cf), __kCFLogAssertion, "%s(): argument not a CFMutableAttributedString", __PRETTY_FUNCTION__)
+#define __CFAssertIndexIsInBounds(cf, idx) CFAssert((idx) >= 0 && (idx) < CFAttributedStringGetLength(cf), __kCFLogAssertion, "%s(): index %d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, CFAttributedStringGetLength(cf))
+#define __CFAssertRangeIsInBounds(cf, idx, count) CFAssert((idx) >= 0 && (idx + count) <= CFAttributedStringGetLength(cf), __kCFLogAssertion, "%s(): range %d,%d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, count, CFAttributedStringGetLength(cf))
+#define __CFAssertRangeIsWithinLength(len, idx, count) CFAssert((idx) >= 0 && (idx + count) <= len, __kCFLogAssertion, "%s(): range %d,%d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, count, len)
+#define __CFAssertIsAttributedStringAndMutable(cf) CFAssert((CFGetTypeID(cf) == CFAttributedStringGetTypeID()) && __CFAttributedStringIsMutable(cf), __kCFLogAssertion, "%s(): argument not a CFMutableAttributedString", __PRETTY_FUNCTION__)
 
 
 /*** "Polymorphic" functions ***/

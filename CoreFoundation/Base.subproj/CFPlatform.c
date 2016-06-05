@@ -72,8 +72,8 @@ CF_PRIVATE const wchar_t *_CFDLLPath(void) {
         CFAssert(ourModule, __kCFLogAssertion, "GetModuleHandle failed");
 
         DWORD wResult = GetModuleFileNameW(ourModule, cachedPath, MAX_PATH+1);
-        CFAssert1(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
-        CFAssert1(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", cachedPath);
+        CFAssert(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
+        CFAssert(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", cachedPath);
 
         // strip off last component, the DLL name
         CFIndex idx;
