@@ -51,7 +51,7 @@ public class DateComponentsFormatter : Formatter {
      */
     public override func string(for obj: AnyObject) -> String? { NSUnimplemented() }
     
-    public func string(from components: NSDateComponents) -> String? { NSUnimplemented() }
+    public func string(from components: DateComponents) -> String? { NSUnimplemented() }
     
     /* Normally, NSDateComponentsFormatter will calculate as though counting from the current date and time (e.g. in February, 1 month formatted as a number of days will be 28). -stringFromDate:toDate: calculates from the passed-in startDate instead.
      
@@ -65,7 +65,7 @@ public class DateComponentsFormatter : Formatter {
      */
     public func string(from ti: TimeInterval) -> String? { NSUnimplemented() }
     
-    public class func localizedString(from components: NSDateComponents, unitsStyle: UnitsStyle) -> String? { NSUnimplemented() }
+    public class func localizedString(from components: DateComponents, unitsStyle: UnitsStyle) -> String? { NSUnimplemented() }
     
     /* Choose how to indicate units. For example, 1h 10m vs 1:10. Default is NSDateComponentsFormatterUnitsStylePositional.
      */
