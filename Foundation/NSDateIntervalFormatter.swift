@@ -58,4 +58,6 @@ public class DateIntervalFormatter : Formatter {
             for en_GB, "4-8 Mar"
     */
     public func stringFromDate(_ fromDate: Date, toDate: Date) -> String { NSUnimplemented() }
+    
+    public func string(from dateInterval: NSDateInterval) -> String? { NSUnimplemented() }
 }

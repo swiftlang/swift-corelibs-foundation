@@ -26,19 +26,19 @@ public class EnergyFormatter : Formatter {
     
     /*@NSCopying*/ public var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
     public var unitStyle: UnitStyle // default is NSFormattingUnitStyleMedium
-    public var forFoodEnergyUse: Bool // default is NO; if it is set to YES, NSEnergyFormatterUnitKilocalorie may be “C” instead of “kcal"
+    public var isForFoodEnergyUse: Bool // default is NO; if it is set to YES, NSEnergyFormatterUnitKilocalorie may be “C” instead of “kcal"
     
     // Format a combination of a number and an unit to a localized string.
-    public func stringFromValue(_ value: Double, unit: Unit) -> String { NSUnimplemented() }
+    public func string(fromValue value: Double, unit: Unit) -> String { NSUnimplemented() }
     
     // Format a number in joules to a localized string with the locale-appropriate unit and an appropriate scale (e.g. 10.3J = 2.46cal in the US locale).
-    public func stringFromJoules(_ numberInJoules: Double) -> String { NSUnimplemented() }
+    public func string(fromJoules numberInJoules: Double) -> String { NSUnimplemented() }
     
     // Return a localized string of the given unit, and if the unit is singular or plural is based on the given number.
-    public func unitStringFromValue(_ value: Double, unit: Unit) -> String { NSUnimplemented() }
+    public func unitString(fromValue value: Double, unit: Unit) -> String { NSUnimplemented() }
     
     // Return the locale-appropriate unit, the same unit used by -stringFromJoules:.
-    public func unitStringFromJoules(_ numberInJoules: Double, usedUnit unitp: UnsafeMutablePointer<Unit>) -> String { NSUnimplemented() }
+    public func unitString(fromJoules numberInJoules: Double, usedUnit unitp: UnsafeMutablePointer<Unit>?) -> String { NSUnimplemented() }
     
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
