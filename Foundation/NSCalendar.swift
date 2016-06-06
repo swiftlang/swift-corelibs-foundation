@@ -385,7 +385,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     /// which is not implementable on Linux due to the lack of being able to properly implement AutoreleasingUnsafeMutablePointer.
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func range(of unit: Unit, forDate date: Date) -> NSDateInterval? {
+    public func range(of unit: Unit, forDate date: Date) -> DateInterval? {
         var start: CFAbsoluteTime = 0.0
         var ti: CFTimeInterval = 0.0
         let res: Bool = withUnsafeMutablePointers(&start, &ti) { startp, tip in
@@ -393,7 +393,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         }
         
         if res {
-            return NSDateInterval(start: Date(timeIntervalSinceReferenceDate: start), interval: ti)
+            return DateInterval(start: Date(timeIntervalSinceReferenceDate: start), duration: ti)
         }
         return nil
     }
@@ -753,7 +753,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
                 let range = self.range(of: unit, forDate: date1)
                 let ats = range!.start.timeIntervalSinceReferenceDate
                 let at2 = date2.timeIntervalSinceReferenceDate
-                if ats <= at2 && at2 < ats + range!.interval {
+                if ats <= at2 && at2 < ats + range!.duration {
                     return .orderedSame
                 }
                 if at2 < ats {
@@ -912,7 +912,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     /// - Note: A given entire Day within a calendar is not necessarily all in a weekend or not; weekends can start in the middle of a Day in some calendars and locales.
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func rangeOfWeekendContaining(_ date: Date) -> NSDateInterval? {
+    public func rangeOfWeekendContaining(_ date: Date) -> DateInterval? {
         if let next = nextWeekendAfter(date, options: []) {
             if let prev = nextWeekendAfter(next.start, options: .searchBackwards) {
                 if prev.start.timeIntervalSinceReferenceDate <= date.timeIntervalSinceReferenceDate && date.timeIntervalSinceReferenceDate <= prev.end.timeIntervalSinceReferenceDate {
@@ -932,7 +932,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     /// - Note: A given entire Day within a calendar is not necessarily all in a weekend or not; weekends can start in the middle of a Day in some calendars and locales.
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func nextWeekendAfter(_ date: Date, options: Options) -> NSDateInterval? {
+    public func nextWeekendAfter(_ date: Date, options: Options) -> DateInterval? {
         var range = _CFCalendarWeekendRange()
         let res = withUnsafeMutablePointer(&range) { rangep in
             return _CFCalendarGetNextWeekend(_cfObject, rangep)
@@ -961,7 +961,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
                             return nil
                         }
                     }
-                    return NSDateInterval(start: start, end: end)
+                    return DateInterval(start: start, end: end)
                 }
             }
         }

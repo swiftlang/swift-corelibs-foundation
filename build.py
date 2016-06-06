@@ -384,6 +384,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/Notification.swift',
 	'Foundation/URLComponents.swift',
 	'Foundation/DateComponents.swift',
+	'Foundation/DateInterval.swift',
 ])
 
 swift_sources.add_dependency(headers)
