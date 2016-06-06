@@ -34,9 +34,9 @@ public class Timer: NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
-    public init(fireDate: Date, interval: TimeInterval, repeats: Bool, fire: (Timer) -> Void ) {
+    public init(fire date: Date, interval: TimeInterval, repeats: Bool, block: (Timer) -> Swift.Void) {
         super.init()
-        _fire = fire
+        _fire = block
         var context = CFRunLoopTimerContext()
         withRetainedReference {
             context.info = $0
@@ -46,7 +46,7 @@ public class Timer: NSObject {
             if !repeats {
                 t = 0.0
             }
-            return CFRunLoopTimerCreate(kCFAllocatorSystemDefault, fireDate.timeIntervalSinceReferenceDate, t, 0, 0, __NSFireTimer, ctx)
+            return CFRunLoopTimerCreate(kCFAllocatorSystemDefault, date.timeIntervalSinceReferenceDate, t, 0, 0, __NSFireTimer, ctx)
         }
         _timer = timer
     }
@@ -55,8 +55,8 @@ public class Timer: NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
-    public class func scheduledTimer(_ ti: TimeInterval, repeats: Bool, fire: (Timer) -> Void) -> Timer {
-        let timer = Timer(fireDate: Date(timeIntervalSinceNow: ti), interval: ti, repeats: repeats, fire: fire)
+    public class func scheduledTimer(withTimeInterval interval: TimeInterval, repeats: Bool, block: (Timer) -> Void) -> Timer {
+        let timer = Timer(fire: Date(timeIntervalSinceNow: interval), interval: interval, repeats: repeats, block: block)
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._timer!, kCFRunLoopDefaultMode)
         return timer
     }
