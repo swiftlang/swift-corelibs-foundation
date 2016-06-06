@@ -411,7 +411,7 @@ public class XMLParser : NSObject {
     // initializes the parser with the specified URL.
     public convenience init?(contentsOf url: URL) {
         if url.isFileURL {
-            if let stream = InputStream(URL: url) {
+            if let stream = InputStream(url: url) {
                 self.init(stream: stream)
                 _url = url
             } else {
