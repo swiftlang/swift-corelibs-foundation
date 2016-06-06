@@ -31,35 +31,35 @@ class TestNSCompoundPredicate: XCTestCase {
         ]
     }
 
-    private func eval(_ predicate: NSPredicate, object: NSObject = NSObject()) -> Bool {
-        return predicate.evaluateWithObject(object, substitutionVariables: nil)
+    private func eval(_ predicate: Predicate, object: NSObject = NSObject()) -> Bool {
+        return predicate.evaluate(with: object, substitutionVariables: nil)
     }
 
     func test_NotPredicate() {
-        let notTruePredicate = NSCompoundPredicate(notPredicateWithSubpredicate: NSPredicate(value: true))
-        let notFalsePredicate = NSCompoundPredicate(notPredicateWithSubpredicate: NSPredicate(value: false))
+        let notTruePredicate = CompoundPredicate(notPredicateWithSubpredicate: Predicate(value: true))
+        let notFalsePredicate = CompoundPredicate(notPredicateWithSubpredicate: Predicate(value: false))
 
         XCTAssertFalse(eval(notTruePredicate))
         XCTAssertTrue(eval(notFalsePredicate))
     }
 
     func test_AndPredicateWithNoSubpredicates() {
-        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [])
+        let predicate = CompoundPredicate(andPredicateWithSubpredicates: [])
 
         XCTAssertTrue(eval(predicate))
     }
 
     func test_AndPredicateWithOneSubpredicate() {
-        let truePredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [NSPredicate(value: true)])
-        let falsePredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [NSPredicate(value: false)])
+        let truePredicate = CompoundPredicate(andPredicateWithSubpredicates: [Predicate(value: true)])
+        let falsePredicate = CompoundPredicate(andPredicateWithSubpredicates: [Predicate(value: false)])
 
         XCTAssertTrue(eval(truePredicate))
         XCTAssertFalse(eval(falsePredicate))
     }
 
     func test_AndPredicateWithMultipleSubpredicates() {
-        let truePredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [NSPredicate(value: true), NSPredicate(value: true)])
-        let falsePredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [NSPredicate(value: true), NSPredicate(value: false)])
+        let truePredicate = CompoundPredicate(andPredicateWithSubpredicates: [Predicate(value: true), Predicate(value: true)])
+        let falsePredicate = CompoundPredicate(andPredicateWithSubpredicates: [Predicate(value: true), Predicate(value: false)])
 
         XCTAssertTrue(eval(truePredicate))
         XCTAssertFalse(eval(falsePredicate))
@@ -67,22 +67,22 @@ class TestNSCompoundPredicate: XCTestCase {
 
 
     func test_OrPredicateWithNoSubpredicates() {
-        let predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [])
+        let predicate = CompoundPredicate(orPredicateWithSubpredicates: [])
 
         XCTAssertFalse(eval(predicate))
     }
 
     func test_OrPredicateWithOneSubpredicate() {
-        let truePredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [NSPredicate(value: true)])
-        let falsePredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [NSPredicate(value: false)])
+        let truePredicate = CompoundPredicate(orPredicateWithSubpredicates: [Predicate(value: true)])
+        let falsePredicate = CompoundPredicate(orPredicateWithSubpredicates: [Predicate(value: false)])
 
         XCTAssertTrue(eval(truePredicate))
         XCTAssertFalse(eval(falsePredicate))
     }
 
     func test_OrPredicateWithMultipleSubpredicates() {
-        let truePredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [NSPredicate(value: true), NSPredicate(value: false)])
-        let falsePredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [NSPredicate(value: false), NSPredicate(value: false)])
+        let truePredicate = CompoundPredicate(orPredicateWithSubpredicates: [Predicate(value: true), Predicate(value: false)])
+        let falsePredicate = CompoundPredicate(orPredicateWithSubpredicates: [Predicate(value: false), Predicate(value: false)])
 
         XCTAssertTrue(eval(truePredicate))
         XCTAssertFalse(eval(falsePredicate))
@@ -91,13 +91,13 @@ class TestNSCompoundPredicate: XCTestCase {
     func test_AndPredicateShortCircuits() {
         var shortCircuited = true
 
-        let bOK = NSPredicate(value: false)
-        let bDontEval = NSPredicate(block: { _ in
+        let bOK = Predicate(value: false)
+        let bDontEval = Predicate(block: { _ in
             shortCircuited = false
             return true
         })
 
-        let both = NSCompoundPredicate(andPredicateWithSubpredicates: [bOK, bDontEval])
+        let both = CompoundPredicate(andPredicateWithSubpredicates: [bOK, bDontEval])
         XCTAssertFalse(eval(both))
         XCTAssertTrue(shortCircuited)
     }
@@ -105,13 +105,13 @@ class TestNSCompoundPredicate: XCTestCase {
     func test_OrPredicateShortCircuits() {
         var shortCircuited = true
 
-        let bOK = NSPredicate(value: true)
-        let bDontEval = NSPredicate(block: { _ in
+        let bOK = Predicate(value: true)
+        let bDontEval = Predicate(block: { _ in
             shortCircuited = false
             return true
         })
 
-        let both = NSCompoundPredicate(orPredicateWithSubpredicates: [bOK, bDontEval])
+        let both = CompoundPredicate(orPredicateWithSubpredicates: [bOK, bDontEval])
         XCTAssertTrue(eval(both))
         XCTAssertTrue(shortCircuited)
     }

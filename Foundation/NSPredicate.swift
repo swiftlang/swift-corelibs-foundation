@@ -10,7 +10,7 @@
 
 // Predicates wrap some combination of expressions and operators and when evaluated return a BOOL.
 
-public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
+public class Predicate : NSObject, NSSecureCoding, NSCopying {
 
     private enum PredicateKind {
         case boolean(Bool)
@@ -58,13 +58,13 @@ public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     
     public var predicateFormat: String  { NSUnimplemented() } // returns the format string of the predicate
     
-    public func predicateWithSubstitutionVariables(_ variables: [String : AnyObject]) -> Self { NSUnimplemented() } // substitute constant values for variables
+    public func withSubstitutionVariables(_ variables: [String : AnyObject]) -> Self { NSUnimplemented() } // substitute constant values for variables
     
-    public func evaluateWithObject(_ object: AnyObject?) -> Bool {
-        return evaluateWithObject(object, substitutionVariables: nil)
+    public func evaluate(with object: AnyObject?) -> Bool {
+        return evaluate(with: object, substitutionVariables: nil)
     } // evaluate a predicate against a single object
     
-    public func evaluateWithObject(_ object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
+    public func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
         if bindings != nil {
             NSUnimplemented()
         }
@@ -81,18 +81,18 @@ public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
 }
 
 extension NSArray {
-    public func filteredArrayUsingPredicate(_ predicate: NSPredicate) -> [AnyObject] {
+    public func filteredArrayUsingPredicate(_ predicate: Predicate) -> [AnyObject] {
         return bridge().filter({ object in
-            return predicate.evaluateWithObject(object)
+            return predicate.evaluate(with: object)
         })
     } // evaluate a predicate against an array of objects and return a filtered array
 }
 
 extension NSMutableArray {
-    public func filterUsingPredicate(_ predicate: NSPredicate) {
+    public func filterUsingPredicate(_ predicate: Predicate) {
         let indexesToRemove = NSMutableIndexSet()
         for (index, object) in self.enumerated() {
-            if !predicate.evaluateWithObject(object) {
+            if !predicate.evaluate(with: object) {
                 indexesToRemove.addIndex(index)
             }
         }
@@ -101,17 +101,17 @@ extension NSMutableArray {
 }
 
 extension NSSet {
-    public func filteredSetUsingPredicate(_ predicate: NSPredicate) -> Set<NSObject> {
+    public func filteredSetUsingPredicate(_ predicate: Predicate) -> Set<NSObject> {
         return Set(bridge().filter({ object in
-            return predicate.evaluateWithObject(object)
+            return predicate.evaluate(with: object)
         }))
     } // evaluate a predicate against a set of objects and return a filtered set
 }
 
 extension NSMutableSet {
-    public func filterUsingPredicate(_ predicate: NSPredicate) {
+    public func filterUsingPredicate(_ predicate: Predicate) {
         for object in self {
-            if !predicate.evaluateWithObject(object) {
+            if !predicate.evaluate(with: object) {
                 self.removeObject(object)
             }
         }
@@ -119,18 +119,18 @@ extension NSMutableSet {
 }
 
 extension NSOrderedSet {
-    public func filteredOrderedSetUsingPredicate(_ predicate: NSPredicate) -> NSOrderedSet {
+    public func filteredOrderedSetUsingPredicate(_ predicate: Predicate) -> NSOrderedSet {
         return NSOrderedSet(array: self._orderedStorage.bridge().filter({ object in
-            return predicate.evaluateWithObject(object)
+            return predicate.evaluate(with: object)
         }))
     } // evaluate a predicate against an ordered set of objects and return a filtered ordered set
 }
 
 extension NSMutableOrderedSet {
-    public func filterUsingPredicate(_ predicate: NSPredicate) {
+    public func filterUsingPredicate(_ predicate: Predicate) {
         let indexesToRemove = NSMutableIndexSet()
         for (index, object) in self.enumerated() {
-            if !predicate.evaluateWithObject(object) {
+            if !predicate.evaluate(with: object) {
                 indexesToRemove.addIndex(index)
             }
         }
