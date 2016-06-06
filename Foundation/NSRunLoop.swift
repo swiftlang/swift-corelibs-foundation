@@ -88,11 +88,11 @@ public class RunLoop: NSObject {
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode.rawValue._cfObject)
     }
 
-    public func add(_ aPort: NSPort, forMode mode: RunLoopMode) {
+    public func add(_ aPort: Port, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func remove(_ aPort: NSPort, forMode mode: RunLoopMode) {
+    public func remove(_ aPort: Port, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
