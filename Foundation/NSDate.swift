@@ -67,12 +67,12 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
-            let ti = aDecoder.decodeDoubleForKey("NS.time")
+            let ti = aDecoder.decodeDouble(forKey: "NS.time")
             self.init(timeIntervalSinceReferenceDate: ti)
         } else {
             var ti: TimeInterval = 0.0
             withUnsafeMutablePointer(&ti) { (ptr: UnsafeMutablePointer<Double>) -> Void in
-                aDecoder.decodeValueOfObjCType("d", at: UnsafeMutablePointer<Void>(ptr))
+                aDecoder.decodeValue(ofObjCType: "d", at: UnsafeMutablePointer<Void>(ptr))
             }
             self.init(timeIntervalSinceReferenceDate: ti)
         }
@@ -92,7 +92,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public func encode(with aCoder: NSCoder) {
 	if aCoder.allowsKeyedCoding {
-	    aCoder.encodeDouble(_timeIntervalSinceReferenceDate, forKey: "NS.time")
+	    aCoder.encode(_timeIntervalSinceReferenceDate, forKey: "NS.time")
 	} else {
 	    NSUnimplemented()
 	}
@@ -306,8 +306,8 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     
     public func encode(with aCoder: NSCoder) {
         precondition(aCoder.allowsKeyedCoding)
-        aCoder.encodeObject(startDate._nsObject, forKey: "NS.startDate")
-        aCoder.encodeObject(endDate._nsObject, forKey: "NS.endDate")
+        aCoder.encode(startDate._nsObject, forKey: "NS.startDate")
+        aCoder.encode(endDate._nsObject, forKey: "NS.endDate")
     }
     
     public static func supportsSecureCoding() -> Bool {

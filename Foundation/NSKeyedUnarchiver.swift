@@ -382,7 +382,7 @@ public class NSKeyedUnarchiver : NSCoder {
         let oid = NSUniqueObject(object)
         
         if let unwrappedDelegate = self.delegate {
-            unwrappedDelegate.unarchiver(self, willReplaceObject: object, withObject: replacement)
+            unwrappedDelegate.unarchiver(self, willReplace: object, with: replacement)
         }
         
         self._replacementMap[oid] = replacement
@@ -409,7 +409,7 @@ public class NSKeyedUnarchiver : NSCoder {
         
         // object replaced by delegate. If the delegate returns nil, nil is encoded
         if let unwrappedDelegate = self.delegate {
-            object = unwrappedDelegate.unarchiver(self, didDecodeObject: decodedObject!)
+            object = unwrappedDelegate.unarchiver(self, didDecode: decodedObject!)
             if object != nil {
                 replaceObject(decodedObject!, withObject: object!)
                 return object
@@ -619,12 +619,12 @@ public class NSKeyedUnarchiver : NSCoder {
         return _classNameMap[codedName]
     }
     
-    public override func containsValueForKey(_ key: String) -> Bool {
+    public override func containsValue(forKey key: String) -> Bool {
         let any : Any? = _decodeValue(forKey: key)
         return any != nil
     }
     
-    public override func decodeObjectForKey(_ key: String) -> AnyObject? {
+    public override func decodeObject(forKey key: String) -> AnyObject? {
         do {
             return try _decodeObject(forKey: key)
         } catch let error as NSError {
@@ -710,49 +710,42 @@ public class NSKeyedUnarchiver : NSCoder {
         return _decodeValue(forKey: key)!
     }
     
-    public override func decodeBoolForKey(_ key: String) -> Bool {
+    public override func decodeBool(forKey key: String) -> Bool {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return false
         }
         return result.boolValue
     }
     
-    public override func decodeIntForKey(_ key: String) -> Int32  {
+    public override func decodeInt32(forKey key: String) -> Int32 {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return 0
         }
         return result.int32Value
     }
     
-    public override func decodeInt32ForKey(_ key: String) -> Int32 {
-        guard let result : NSNumber = _decodeValue(forKey: key) else {
-            return 0
-        }
-        return result.int32Value
-    }
-    
-    public override func decodeInt64ForKey(_ key: String) -> Int64 {
+    public override func decodeInt64(forKey key: String) -> Int64 {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return 0
         }
         return result.int64Value
     }
     
-    public override func decodeFloatForKey(_ key: String) -> Float {
+    public override func decodeFloat(forKey key: String) -> Float {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return 0
         }
         return result.floatValue
     }
     
-    public override func decodeDoubleForKey(_ key: String) -> Double {
+    public override func decodeDouble(forKey key: String) -> Double {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return 0
         }
         return result.doubleValue
     }
     
-    public override func decodeIntegerForKey(_ key: String) -> Int {
+    public override func decodeInteger(forKey key: String) -> Int {
         guard let result : NSNumber = _decodeValue(forKey: key) else {
             return 0
         }
@@ -760,7 +753,7 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     // returned bytes immutable, and they go away with the unarchiver, not the containing autorelease pool
-    public override func decodeBytesForKey(_ key: String, returnedLength lengthp: UnsafeMutablePointer<Int>?) -> UnsafePointer<UInt8>? {
+    public override func decodeBytes(forKey key: String, returnedLength lengthp: UnsafeMutablePointer<Int>?) -> UnsafePointer<UInt8>? {
         let ns : NSData? = _decodeValue(forKey: key)
         
         if let value = ns {
@@ -846,7 +839,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    public override func decodeValueOfObjCType(_ typep: UnsafePointer<Int8>, at addr: UnsafeMutablePointer<Void>) {
+    public override func decodeValue(ofObjCType typep: UnsafePointer<Int8>, at addr: UnsafeMutablePointer<Void>) {
         guard let type = _NSSimpleObjCType(UInt8(typep.pointee)) else {
             let spec = String(typep.pointee)
             fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: unsupported type encoding spec '\(spec)'")
@@ -932,13 +925,13 @@ public protocol NSKeyedUnarchiverDelegate : class {
     // the decoded one.  The object may be nil.  If the delegate returns nil,
     // the decoded value will be unchanged (that is, the original object will be
     // decoded). The delegate may use this to keep track of the decoded objects.
-    func unarchiver(_ unarchiver: NSKeyedUnarchiver, didDecodeObject object: AnyObject?) -> AnyObject?
+    func unarchiver(_ unarchiver: NSKeyedUnarchiver, didDecode object: AnyObject?) -> AnyObject?
     
     // Informs the delegate that the newObject is being substituted for the
     // object. This is also called when the delegate itself is doing/has done
     // the substitution. The delegate may use this method if it is keeping track
     // of the encoded or decoded objects.
-    func unarchiver(_ unarchiver: NSKeyedUnarchiver, willReplaceObject object: AnyObject, withObject newObject: AnyObject)
+    func unarchiver(_ unarchiver: NSKeyedUnarchiver, willReplace object: AnyObject, with newObject: AnyObject)
     
     // Notifies the delegate that decoding is about to finish.
     func unarchiverWillFinish(_ unarchiver: NSKeyedUnarchiver)
@@ -952,12 +945,12 @@ extension NSKeyedUnarchiverDelegate {
         return nil
     }
     
-    func unarchiver(_ unarchiver: NSKeyedUnarchiver, didDecodeObject object: AnyObject?) -> AnyObject? {
+    func unarchiver(_ unarchiver: NSKeyedUnarchiver, didDecode object: AnyObject?) -> AnyObject? {
         // Returning the same object is the same as doing nothing
         return object
     }
     
-    func unarchiver(_ unarchiver: NSKeyedUnarchiver, willReplaceObject object: AnyObject, withObject newObject: AnyObject) { }
+    func unarchiver(_ unarchiver: NSKeyedUnarchiver, willReplace object: AnyObject, with newObject: AnyObject) { }
     func unarchiverWillFinish(_ unarchiver: NSKeyedUnarchiver) { }
     func unarchiverDidFinish(_ unarchiver: NSKeyedUnarchiver) { }
 }

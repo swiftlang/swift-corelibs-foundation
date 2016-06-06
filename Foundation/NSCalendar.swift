@@ -124,8 +124,8 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
             if let locale = aDecoder.decodeObjectOfClass(Locale.self, forKey: "NS.locale") {
                 self.locale = locale
             }
-            self.firstWeekday = aDecoder.decodeIntegerForKey("NS.firstwkdy")
-            self.minimumDaysInFirstWeek = aDecoder.decodeIntegerForKey("NS.mindays")
+            self.firstWeekday = aDecoder.decodeInteger(forKey: "NS.firstwkdy")
+            self.minimumDaysInFirstWeek = aDecoder.decodeInteger(forKey: "NS.mindays")
             if let startDate = aDecoder.decodeObjectOfClass(NSDate.self, forKey: "NS.gstartdate") {
                 self._startDate = startDate._swiftObject
             }
@@ -147,12 +147,12 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     
     public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(self.calendarIdentifier.bridge(), forKey: "NS.identifier")
-            aCoder.encodeObject(self.timeZone, forKey: "NS.timezone")
-            aCoder.encodeObject(self.locale, forKey: "NS.locale")
-            aCoder.encodeInteger(self.firstWeekday, forKey: "NS.firstwkdy")
-            aCoder.encodeInteger(self.minimumDaysInFirstWeek, forKey: "NS.mindays")
-            aCoder.encodeObject(self._startDate?._nsObject, forKey: "NS.gstartdate")
+            aCoder.encode(self.calendarIdentifier.bridge(), forKey: "NS.identifier")
+            aCoder.encode(self.timeZone, forKey: "NS.timezone")
+            aCoder.encode(self.locale, forKey: "NS.locale")
+            aCoder.encode(self.firstWeekday, forKey: "NS.firstwkdy")
+            aCoder.encode(self.minimumDaysInFirstWeek, forKey: "NS.mindays")
+            aCoder.encode(self._startDate?._nsObject, forKey: "NS.gstartdate")
         } else {
             NSUnimplemented()
         }
@@ -1298,21 +1298,21 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         if aDecoder.allowsKeyedCoding {
             self.init()
             
-            self.era = aDecoder.decodeIntegerForKey("NS.era")
-            self.year = aDecoder.decodeIntegerForKey("NS.year")
-            self.quarter = aDecoder.decodeIntegerForKey("NS.quarter")
-            self.month = aDecoder.decodeIntegerForKey("NS.month")
-            self.day = aDecoder.decodeIntegerForKey("NS.day")
-            self.hour = aDecoder.decodeIntegerForKey("NS.hour")
-            self.minute = aDecoder.decodeIntegerForKey("NS.minute")
-            self.second = aDecoder.decodeIntegerForKey("NS.second")
-            self.nanosecond = aDecoder.decodeIntegerForKey("NS.nanosec")
-            self.weekOfYear = aDecoder.decodeIntegerForKey("NS.weekOfYear")
-            self.weekOfMonth = aDecoder.decodeIntegerForKey("NS.weekOfMonth")
-            self.yearForWeekOfYear = aDecoder.decodeIntegerForKey("NS.yearForWOY")
-            self.weekday = aDecoder.decodeIntegerForKey("NS.weekday")
-            self.weekdayOrdinal = aDecoder.decodeIntegerForKey("NS.weekdayOrdinal")
-            self.isLeapMonth = aDecoder.decodeBoolForKey("NS.isLeapMonth")
+            self.era = aDecoder.decodeInteger(forKey: "NS.era")
+            self.year = aDecoder.decodeInteger(forKey: "NS.year")
+            self.quarter = aDecoder.decodeInteger(forKey: "NS.quarter")
+            self.month = aDecoder.decodeInteger(forKey: "NS.month")
+            self.day = aDecoder.decodeInteger(forKey: "NS.day")
+            self.hour = aDecoder.decodeInteger(forKey: "NS.hour")
+            self.minute = aDecoder.decodeInteger(forKey: "NS.minute")
+            self.second = aDecoder.decodeInteger(forKey: "NS.second")
+            self.nanosecond = aDecoder.decodeInteger(forKey: "NS.nanosec")
+            self.weekOfYear = aDecoder.decodeInteger(forKey: "NS.weekOfYear")
+            self.weekOfMonth = aDecoder.decodeInteger(forKey: "NS.weekOfMonth")
+            self.yearForWeekOfYear = aDecoder.decodeInteger(forKey: "NS.yearForWOY")
+            self.weekday = aDecoder.decodeInteger(forKey: "NS.weekday")
+            self.weekdayOrdinal = aDecoder.decodeInteger(forKey: "NS.weekdayOrdinal")
+            self.isLeapMonth = aDecoder.decodeBool(forKey: "NS.isLeapMonth")
             self.calendar = aDecoder.decodeObjectOfClass(Calendar.self, forKey: "NS.calendar")
             self.timeZone = aDecoder.decodeObjectOfClass(TimeZone.self, forKey: "NS.timezone")
         } else {
@@ -1322,23 +1322,23 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     
     public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeInteger(self.era, forKey: "NS.era")
-            aCoder.encodeInteger(self.year, forKey: "NS.year")
-            aCoder.encodeInteger(self.quarter, forKey: "NS.quarter")
-            aCoder.encodeInteger(self.month, forKey: "NS.month")
-            aCoder.encodeInteger(self.day, forKey: "NS.day")
-            aCoder.encodeInteger(self.hour, forKey: "NS.hour")
-            aCoder.encodeInteger(self.minute, forKey: "NS.minute")
-            aCoder.encodeInteger(self.second, forKey: "NS.second")
-            aCoder.encodeInteger(self.nanosecond, forKey: "NS.nanosec")
-            aCoder.encodeInteger(self.weekOfYear, forKey: "NS.weekOfYear")
-            aCoder.encodeInteger(self.weekOfMonth, forKey: "NS.weekOfMonth")
-            aCoder.encodeInteger(self.yearForWeekOfYear, forKey: "NS.yearForWOY")
-            aCoder.encodeInteger(self.weekday, forKey: "NS.weekday")
-            aCoder.encodeInteger(self.weekdayOrdinal, forKey: "NS.weekdayOrdinal")
-            aCoder.encodeBool(self.isLeapMonth, forKey: "NS.isLeapMonth")
-            aCoder.encodeObject(self.calendar, forKey: "NS.calendar")
-            aCoder.encodeObject(self.timeZone, forKey: "NS.timezone")
+            aCoder.encode(self.era, forKey: "NS.era")
+            aCoder.encode(self.year, forKey: "NS.year")
+            aCoder.encode(self.quarter, forKey: "NS.quarter")
+            aCoder.encode(self.month, forKey: "NS.month")
+            aCoder.encode(self.day, forKey: "NS.day")
+            aCoder.encode(self.hour, forKey: "NS.hour")
+            aCoder.encode(self.minute, forKey: "NS.minute")
+            aCoder.encode(self.second, forKey: "NS.second")
+            aCoder.encode(self.nanosecond, forKey: "NS.nanosec")
+            aCoder.encode(self.weekOfYear, forKey: "NS.weekOfYear")
+            aCoder.encode(self.weekOfMonth, forKey: "NS.weekOfMonth")
+            aCoder.encode(self.yearForWeekOfYear, forKey: "NS.yearForWOY")
+            aCoder.encode(self.weekday, forKey: "NS.weekday")
+            aCoder.encode(self.weekdayOrdinal, forKey: "NS.weekdayOrdinal")
+            aCoder.encode(self.isLeapMonth, forKey: "NS.isLeapMonth")
+            aCoder.encode(self.calendar, forKey: "NS.calendar")
+            aCoder.encode(self.timeZone, forKey: "NS.timezone")
         } else {
             NSUnimplemented()
         }

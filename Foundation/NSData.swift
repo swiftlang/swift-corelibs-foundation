@@ -172,14 +172,14 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             } else {
                 return nil
             }
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.data") {
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.data") {
             guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
             self.init(data: data._swiftObject)
         } else {
             var len = 0
-            let bytes = aDecoder.decodeBytesForKey("NS.bytes", returnedLength: &len)
+            let bytes = aDecoder.decodeBytes(forKey: "NS.bytes", returnedLength: &len)
             self.init(bytes: bytes, length: len)
         }
     }

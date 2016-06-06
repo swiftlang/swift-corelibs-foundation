@@ -47,7 +47,7 @@ public class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
             self.init(name: name!.bridge(), data: data?._swiftObject)
         } else {
             if let name = aDecoder.decodeObject() as? NSString {
-                if aDecoder.versionForClassName("NSTimeZone") == 0 {
+                if aDecoder.version(forClassName: "NSTimeZone") == 0 {
                     self.init(name: name._swiftObject)
                 } else {
                     let data = aDecoder.decodeObject() as? NSData
@@ -94,9 +94,9 @@ public class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
     public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(self.name.bridge(), forKey:"NS.name")
+            aCoder.encode(self.name.bridge(), forKey:"NS.name")
             // darwin versions of this method can and will encode mutable data, however it is not required for compatability
-            aCoder.encodeObject(self.data._nsObject, forKey:"NS.data")
+            aCoder.encode(self.data._nsObject, forKey:"NS.data")
         } else {
         }
     }

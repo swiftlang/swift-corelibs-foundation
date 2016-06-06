@@ -115,7 +115,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
             
             var concreteValue : NSValue? = nil
             
-            if aDecoder.containsValueForKey("NS.special") {
+            if aDecoder.containsValue(forKey: "NS.special") {
                 // It's unfortunate that we can't specialise types at runtime
                 concreteValue = NSSpecialValue(coder: aDecoder)
             } else {

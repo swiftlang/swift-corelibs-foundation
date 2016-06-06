@@ -26,7 +26,7 @@ public class NSCoder : NSObject {
         }
     }
     
-    public func encodeValueOfObjCType(_ type: UnsafePointer<Int8>, at addr: UnsafePointer<Void>) {
+    public func encodeValue(ofObjCType type: UnsafePointer<Int8>, at addr: UnsafePointer<Void>) {
         NSRequiresConcreteImplementation()
     }
     
@@ -34,7 +34,7 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeValueOfObjCType(_ type: UnsafePointer<Int8>, at data: UnsafeMutablePointer<Void>) {
+    public func decodeValue(ofObjCType type: UnsafePointer<Int8>, at data: UnsafeMutablePointer<Void>) {
         NSRequiresConcreteImplementation()
     }
     
@@ -42,7 +42,7 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    public func versionForClassName(_ className: String) -> Int {
+    public func version(forClassName className: String) -> Int {
         NSRequiresConcreteImplementation()
     }
 
@@ -103,41 +103,41 @@ public class NSCoder : NSObject {
     }
     
     
-    public func encodeObject(_ object: AnyObject?) {
+    public func encode(_ object: AnyObject?) {
         var object = object
         withUnsafePointer(&object) { (ptr: UnsafePointer<AnyObject?>) -> Void in
-            encodeValueOfObjCType("@", at: unsafeBitCast(ptr, to: UnsafePointer<Void>.self))
+            encodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafePointer<Void>.self))
         }
     }
     
     public func encodeRootObject(_ rootObject: AnyObject) {
-        encodeObject(rootObject)
+        encode(rootObject)
     }
     
     public func encodeBycopyObject(_ anObject: AnyObject?) {
-        encodeObject(anObject)
+        encode(anObject)
     }
     
     public func encodeByrefObject(_ anObject: AnyObject?) {
-        encodeObject(anObject)
+        encode(anObject)
     }
     
     public func encodeConditionalObject(_ object: AnyObject?) {
-        encodeObject(object)
+        encode(object)
     }
     
-    public func encodeArrayOfObjCType(_ type: UnsafePointer<Int8>, count: Int, at array: UnsafePointer<Void>) {
-        encodeValueOfObjCType("[\(count)\(String(cString: type))]", at: array)
+    public func encodeArray(ofObjCType type: UnsafePointer<Int8>, count: Int, at array: UnsafePointer<Void>) {
+        encodeValue(ofObjCType: "[\(count)\(String(cString: type))]", at: array)
     }
     
     public func encodeBytes(_ byteaddr: UnsafePointer<Void>?, length: Int) {
         var newLength = UInt32(length)
         withUnsafePointer(&newLength) { (ptr: UnsafePointer<UInt32>) -> Void in
-            encodeValueOfObjCType("I", at: ptr)
+            encodeValue(ofObjCType: "I", at: ptr)
         }
         var empty: [Int8] = []
         withUnsafePointer(&empty) {
-            encodeArrayOfObjCType("c", count: length, at: byteaddr ?? UnsafePointer($0))
+            encodeArray(ofObjCType: "c", count: length, at: byteaddr ?? UnsafePointer($0))
         }
     }
     
@@ -148,23 +148,23 @@ public class NSCoder : NSObject {
         
         var obj: AnyObject? = nil
         withUnsafeMutablePointer(&obj) { (ptr: UnsafeMutablePointer<AnyObject?>) -> Void in
-            decodeValueOfObjCType("@", at: unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self))
+            decodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self))
         }
         return obj
     }
     
-    public func decodeArrayOfObjCType(_ itemType: UnsafePointer<Int8>, count: Int, at array: UnsafeMutablePointer<Void>) {
-        decodeValueOfObjCType("[\(count)\(String(cString: itemType))]", at: array)
+    public func decodeArray(ofObjCType itemType: UnsafePointer<Int8>, count: Int, at array: UnsafeMutablePointer<Void>) {
+        decodeValue(ofObjCType: "[\(count)\(String(cString: itemType))]", at: array)
     }
     
-    public func decodeBytesWithReturnedLength(_ lengthp: UnsafeMutablePointer<Int>) -> UnsafeMutablePointer<Void> {
+    public func decodeBytes(withReturnedLength lengthp: UnsafeMutablePointer<Int>) -> UnsafeMutablePointer<Void>? {
         var length: UInt32 = 0
         withUnsafeMutablePointer(&length) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-            decodeValueOfObjCType("I", at: unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self))
+            decodeValue(ofObjCType: "I", at: unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self))
         }
         // we cannot autorelease here so instead the pending buffers will manage the lifespan of the returned data... this is wasteful but good enough...
         let result = UnsafeMutablePointer<Void>(allocatingCapacity: Int(length))
-        decodeValueOfObjCType("c", at: result)
+        decodeValue(ofObjCType: "c", at: result)
         lengthp.pointee = Int(length)
         _pendingBuffers.append((result, Int(length)))
         return result
@@ -186,7 +186,7 @@ public class NSCoder : NSObject {
         return false
     }
     
-    public func encodeObject(_ objv: AnyObject?, forKey key: String) {
+    public func encode(_ objv: AnyObject?, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
@@ -194,75 +194,67 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    public func encodeBool(_ boolv: Bool, forKey key: String) {
+    public func encode(_ boolv: Bool, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
-    public func encodeInt(_ intv: Int32, forKey key: String) {
+    public func encode(_ intv: Int32, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
-    public func encodeInt32(_ intv: Int32, forKey key: String) {
+    public func encode(_ intv: Int64, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
-    public func encodeInt64(_ intv: Int64, forKey key: String) {
+    public func encode(_ realv: Float, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
-    public func encodeFloat(_ realv: Float, forKey key: String) {
+    public func encode(_ realv: Double, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
-    public func encodeDouble(_ realv: Double, forKey key: String) {
+    public func encodeBytes(_ bytesp: UnsafePointer<UInt8>?, length lenv: Int, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
-    public func encodeBytes(_ bytesp: UnsafePointer<UInt8>, length lenv: Int, forKey key: String) {
+    public func containsValue(forKey key: String) -> Bool {
         NSRequiresConcreteImplementation()
     }
     
-    public func containsValueForKey(_ key: String) -> Bool {
+    public func decodeObject(forKey key: String) -> AnyObject? {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeObjectForKey(_ key: String) -> AnyObject? {
+    public func decodeBool(forKey key: String) -> Bool {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeBoolForKey(_ key: String) -> Bool {
+    public func decodeInt32(forKey key: String) -> Int32 {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeIntForKey(_ key: String) -> Int32 {
+    public func decodeInt64(forKey key: String) -> Int64 {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeInt32ForKey(_ key: String) -> Int32 {
+    public func decodeFloat(forKey key: String) -> Float {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeInt64ForKey(_ key: String) -> Int64 {
+    public func decodeDouble(forKey key: String) -> Double {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeFloatForKey(_ key: String) -> Float {
+    public func decodeBytes(forKey key: String, returnedLength lengthp: UnsafeMutablePointer<Int>?) -> UnsafePointer<UInt8>? { // returned bytes immutable!
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeDoubleForKey(_ key: String) -> Double {
+    public func encode(_ intv: Int, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeBytesForKey(_ key: String, returnedLength lengthp: UnsafeMutablePointer<Int>?) -> UnsafePointer<UInt8>? { // returned bytes immutable!
-        NSRequiresConcreteImplementation()
-    }
-    
-    public func encodeInteger(_ intv: Int, forKey key: String) {
-        NSRequiresConcreteImplementation()
-    }
-    
-    public func decodeIntegerForKey(_ key: String) -> Int {
+    public func decodeInteger(forKey key: String) -> Int {
         NSRequiresConcreteImplementation()
     }
     

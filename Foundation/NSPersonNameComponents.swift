@@ -33,20 +33,20 @@ public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
     public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(self.namePrefix?.bridge(), forKey: "NS.namePrefix")
-            aCoder.encodeObject(self.givenName?.bridge(), forKey: "NS.givenName")
-            aCoder.encodeObject(self.middleName?.bridge(), forKey: "NS.middleName")
-            aCoder.encodeObject(self.familyName?.bridge(), forKey: "NS.familyName")
-            aCoder.encodeObject(self.nameSuffix?.bridge(), forKey: "NS.nameSuffix")
-            aCoder.encodeObject(self.nickname?.bridge(), forKey: "NS.nickname")
+            aCoder.encode(self.namePrefix?.bridge(), forKey: "NS.namePrefix")
+            aCoder.encode(self.givenName?.bridge(), forKey: "NS.givenName")
+            aCoder.encode(self.middleName?.bridge(), forKey: "NS.middleName")
+            aCoder.encode(self.familyName?.bridge(), forKey: "NS.familyName")
+            aCoder.encode(self.nameSuffix?.bridge(), forKey: "NS.nameSuffix")
+            aCoder.encode(self.nickname?.bridge(), forKey: "NS.nickname")
         } else {
             // FIXME check order
-            aCoder.encodeObject(self.namePrefix?.bridge())
-            aCoder.encodeObject(self.givenName?.bridge())
-            aCoder.encodeObject(self.middleName?.bridge())
-            aCoder.encodeObject(self.familyName?.bridge())
-            aCoder.encodeObject(self.nameSuffix?.bridge())
-            aCoder.encodeObject(self.nickname?.bridge())
+            aCoder.encode(self.namePrefix?.bridge())
+            aCoder.encode(self.givenName?.bridge())
+            aCoder.encode(self.middleName?.bridge())
+            aCoder.encode(self.familyName?.bridge())
+            aCoder.encode(self.nameSuffix?.bridge())
+            aCoder.encode(self.nickname?.bridge())
         }
     }
     

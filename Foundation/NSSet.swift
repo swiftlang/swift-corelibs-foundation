@@ -121,7 +121,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
             withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-                aDecoder.decodeValueOfObjCType("i", at: UnsafeMutablePointer<Void>(ptr))
+                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
             }
             let objects = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: Int(cnt))
             for idx in 0..<cnt {
@@ -130,13 +130,13 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
             objects.deinitialize(count: Int(cnt))
             objects.deallocateCapacity(Int(cnt))
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.objects") {
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
             self.init(array: objects)
         } else {
             var objects = [AnyObject]()
             var count = 0
-            while let object = aDecoder.decodeObjectForKey("NS.object.\(count)") {
+            while let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
                 objects.append(object)
                 count += 1
             }

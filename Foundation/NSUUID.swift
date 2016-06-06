@@ -60,7 +60,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public convenience required init?(coder: NSCoder) {
         if coder.allowsKeyedCoding {
             var length : Int = 0
-            let bytes = coder.decodeBytesForKey("NS.uuidbytes", returnedLength: &length)
+            let bytes = coder.decodeBytes(forKey: "NS.uuidbytes", returnedLength: &length)
             if (length == 16) {
                 self.init(UUIDBytes: bytes!)
             } else {

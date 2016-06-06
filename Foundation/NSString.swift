@@ -237,23 +237,23 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if !aDecoder.allowsKeyedCoding {
-            let archiveVersion = aDecoder.versionForClassName("NSString")
+            let archiveVersion = aDecoder.version(forClassName: "NSString")
             if archiveVersion == 1 {
                 var length = 0
-                let buffer = aDecoder.decodeBytesWithReturnedLength(&length)
-                self.init(bytes: buffer, length: length, encoding: NSUTF8StringEncoding)
+                let buffer = aDecoder.decodeBytes(withReturnedLength: &length)
+                self.init(bytes: buffer!, length: length, encoding: NSUTF8StringEncoding)
             } else {
                 aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
                     "NSDebugDescription": "NSString cannot decode class version \(archiveVersion)"
                     ]))
                 return nil
             }
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.string") {
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.string") {
             let str = aDecoder._decodePropertyListForKey("NS.string") as! String
             self.init(string: str)
         } else {
             var length = 0
-            let buffer = UnsafeMutablePointer<Void>(aDecoder.decodeBytesForKey("NS.bytes", returnedLength: &length)!)
+            let buffer = UnsafeMutablePointer<Void>(aDecoder.decodeBytes(forKey: "NS.bytes", returnedLength: &length)!)
             self.init(bytes: buffer, length: length, encoding: NSUTF8StringEncoding)
         }
     }
@@ -296,7 +296,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
             aKeyedCoder._encodePropertyList(self, forKey: "NS.string")
         } else {
-            aCoder.encodeObject(self)
+            aCoder.encode(self)
         }
     }
     

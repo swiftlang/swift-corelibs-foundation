@@ -79,8 +79,8 @@ extension NSRange: NSSpecialValueCoding {
     
     func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(NSNumber(value: self.location), forKey: "NS.rangeval.location")
-            aCoder.encodeObject(NSNumber(value: self.length), forKey: "NS.rangeval.length")
+            aCoder.encode(NSNumber(value: self.location), forKey: "NS.rangeval.location")
+            aCoder.encode(NSNumber(value: self.length), forKey: "NS.rangeval.length")
         } else {
             NSUnimplemented()
         }

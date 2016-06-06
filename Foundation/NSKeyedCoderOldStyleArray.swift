@@ -47,12 +47,12 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
     init?(coder aDecoder: NSCoder) {
         assert(aDecoder.allowsKeyedCoding)
         
-        guard let type = _NSSimpleObjCType(UInt8(aDecoder.decodeIntegerForKey("NS.type"))) else {
+        guard let type = _NSSimpleObjCType(UInt8(aDecoder.decodeInteger(forKey: "NS.type"))) else {
             return nil
         }
         
-        self._count = aDecoder.decodeIntegerForKey("NS.count")
-        self._size = aDecoder.decodeIntegerForKey("NS.size")
+        self._count = aDecoder.decodeInteger(forKey: "NS.count")
+        self._size = aDecoder.decodeInteger(forKey: "NS.size")
         self._type = type
         self._decoded = true
 
@@ -69,21 +69,21 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
             
             withUnsafePointer(&type) { typep in
                 let addr = self._addr.advanced(by: idx * self._size)
-                aDecoder.decodeValueOfObjCType(typep, at: addr)
+                aDecoder.decodeValue(ofObjCType: typep, at: addr)
             }
         }
     }
     
     func encode(with aCoder: NSCoder) {
-        aCoder.encodeInteger(self._count, forKey: "NS.count")
-        aCoder.encodeInteger(self._size, forKey: "NS.size")
-        aCoder.encodeInteger(Int(self._type), forKey: "NS.type")
+        aCoder.encode(self._count, forKey: "NS.count")
+        aCoder.encode(self._size, forKey: "NS.size")
+        aCoder.encode(Int(self._type), forKey: "NS.type")
         
         for idx in 0..<self._count {
             var type = Int8(self._type)
 
             withUnsafePointer(&type) { typep in
-                aCoder.encodeValueOfObjCType(typep, at: &self._addr[idx * self._size])
+                aCoder.encodeValue(ofObjCType: typep, at: &self._addr[idx * self._size])
             }
         }
     }

@@ -24,7 +24,7 @@ public class UserClass : NSObject, NSSecureCoding {
     }
     
     public func encode(with aCoder : NSCoder) {
-        aCoder.encodeInteger(ivar, forKey:"$ivar") // also test escaping
+        aCoder.encode(ivar, forKey:"$ivar") // also test escaping
     }
     
     init(_ value: Int) {
@@ -32,7 +32,7 @@ public class UserClass : NSObject, NSSecureCoding {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        self.ivar = aDecoder.decodeIntegerForKey("$ivar")
+        self.ivar = aDecoder.decodeInteger(forKey: "$ivar")
     }
     
     public override var description: String {
@@ -76,7 +76,7 @@ class TestNSKeyedArchiver : XCTestCase {
     private func test_archive(_ encode: (NSKeyedArchiver) -> Bool,
                               decode: (NSKeyedUnarchiver) -> Bool) {
         let data = NSMutableData()
-        let archiver = NSKeyedArchiver(forWritingWithMutableData: data)
+        let archiver = NSKeyedArchiver(forWritingWith: data)
         
         XCTAssertTrue(encode(archiver))
         archiver.finishEncoding()
@@ -89,7 +89,7 @@ class TestNSKeyedArchiver : XCTestCase {
         test_archive({ archiver -> Bool in
                 archiver.requiresSecureCoding = allowsSecureCoding
                 archiver.outputFormat = outputFormat
-                archiver.encodeObject(object, forKey: NSKeyedArchiveRootObjectKey)
+                archiver.encode(object, forKey: NSKeyedArchiveRootObjectKey)
                 archiver.finishEncoding()
                 return true
             },
@@ -144,14 +144,14 @@ class TestNSKeyedArchiver : XCTestCase {
 
         test_archive({ archiver -> Bool in
             array.withUnsafeBufferPointer { cArray in
-                archiver.encodeValueOfObjCType("[4i]", at: cArray.baseAddress!)
+                archiver.encodeValue(ofObjCType: "[4i]", at: cArray.baseAddress!)
             }
             return true
         },
         decode: {unarchiver -> Bool in
             var expected: Array<Int32> = [0, 0, 0, 0]
             expected.withUnsafeMutableBufferPointer {(p: inout UnsafeMutableBufferPointer<Int32>) in
-                unarchiver.decodeValueOfObjCType("[4i]", at: UnsafeMutablePointer<Void>(p.baseAddress!))
+                unarchiver.decodeValue(ofObjCType: "[4i]", at: UnsafeMutablePointer<Void>(p.baseAddress!))
             }
             XCTAssertEqual(expected, array)
             return true
@@ -222,7 +222,7 @@ class TestNSKeyedArchiver : XCTestCase {
         test_archive({ archiver -> Bool in
                 let value = NSValue(bytes: &charPtr, objCType: "*")
                 
-                archiver.encodeObject(value, forKey: "root")
+                archiver.encode(value, forKey: "root")
                 return true
             },
              decode: {unarchiver -> Bool in

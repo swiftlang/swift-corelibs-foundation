@@ -225,7 +225,7 @@ public class UserDefaults: NSObject {
                     return
                 }
             #endif
-            let data = NSKeyedArchiver.archivedDataWithRootObject(url._nsObject)
+            let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
             setObject(data._nsObject, forKey: defaultName)
         } else {
             setObject(nil, forKey: defaultName)

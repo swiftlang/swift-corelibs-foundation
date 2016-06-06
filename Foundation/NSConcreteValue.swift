@@ -128,7 +128,7 @@ internal class NSConcreteValue : NSValue {
 
             // FIXME: This will result in reading garbage memory.
             self.init(bytes: [], objCType: typep)
-            aDecoder.decodeValueOfObjCType(typep, at: self.value)
+            aDecoder.decodeValue(ofObjCType: typep, at: self.value)
         }
     }
     
@@ -136,8 +136,8 @@ internal class NSConcreteValue : NSValue {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {
-            aCoder.encodeObject(String(cString: self.objCType).bridge())
-            aCoder.encodeValueOfObjCType(self.objCType, at: self.value)
+            aCoder.encode(String(cString: self.objCType).bridge())
+            aCoder.encodeValue(ofObjCType: self.objCType, at: self.value)
         }
     }
     

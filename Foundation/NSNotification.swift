@@ -51,7 +51,7 @@ public class NSNotification: NSObject, NSCopying, NSCoding {
             guard let name = aDecoder.decodeObjectOfClass(NSString.self, forKey:"NS.name") else {
                 return nil
             }
-            let object = aDecoder.decodeObjectForKey("NS.object")
+            let object = aDecoder.decodeObject(forKey: "NS.object")
 //            let userInfo = aDecoder.decodeObjectOfClass(NSDictionary.self, forKey: "NS.userinfo")
             self.init(name: Name(rawValue: name.bridge()), object: object, userInfo: nil)
         } else {
@@ -66,12 +66,12 @@ public class NSNotification: NSObject, NSCopying, NSCoding {
     
     public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(self.name.rawValue.bridge(), forKey:"NS.name")
-            aCoder.encodeObject(self.object, forKey:"NS.object")
+            aCoder.encode(self.name.rawValue.bridge(), forKey:"NS.name")
+            aCoder.encode(self.object, forKey:"NS.object")
 //            aCoder.encodeObject(self.userInfo?.bridge(), forKey:"NS.userinfo")
         } else {
-            aCoder.encodeObject(self.name.rawValue.bridge())
-            aCoder.encodeObject(self.object)
+            aCoder.encode(self.name.rawValue.bridge())
+            aCoder.encode(self.object)
 //            aCoder.encodeObject(self.userInfo?.bridge())
         }
     }

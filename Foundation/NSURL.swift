@@ -199,8 +199,8 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
     
     public func encode(with aCoder: NSCoder) {
 	if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(self.baseURL?._nsObject, forKey:"NS.base")
-            aCoder.encodeObject(self.relativeString.bridge(), forKey:"NS.relative")
+            aCoder.encode(self.baseURL?._nsObject, forKey:"NS.base")
+            aCoder.encode(self.relativeString.bridge(), forKey:"NS.relative")
 	} else {
             NSUnimplemented()
         }

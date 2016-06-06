@@ -918,15 +918,15 @@ extension NSCoder {
 extension NSCoder {
     
     public func encodePoint(_ point: NSPoint, forKey key: String) {
-        self.encodeObject(NSStringFromPoint(point).bridge(), forKey: key)
+        self.encode(NSStringFromPoint(point).bridge(), forKey: key)
     }
     
     public func encodeSize(_ size: NSSize, forKey key: String) {
-        self.encodeObject(NSStringFromSize(size).bridge(), forKey: key)
+        self.encode(NSStringFromSize(size).bridge(), forKey: key)
     }
     
     public func encodeRect(_ rect: NSRect, forKey key: String) {
-        self.encodeObject(NSStringFromRect(rect).bridge(), forKey: key)
+        self.encode(NSStringFromRect(rect).bridge(), forKey: key)
     }
     
     public func decodePointForKey(_ key: String) -> NSPoint {
@@ -975,10 +975,10 @@ private extension NSCoder {
     }
     
     func _encodeCGFloat(_ value: CGFloat, forKey key: String) {
-        self.encodeDouble(value.native, forKey: key)
+        self.encode(value.native, forKey: key)
     }
     
     func _decodeCGFloatForKey(_ key: String) -> CGFloat {
-        return CGFloat(self.decodeDoubleForKey(key))
+        return CGFloat(self.decodeDouble(forKey: key))
     }
 }

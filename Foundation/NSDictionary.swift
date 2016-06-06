@@ -129,7 +129,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
             withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-                aDecoder.decodeValueOfObjCType("i", at: UnsafeMutablePointer<Void>(ptr))
+                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
             }
             let keys = UnsafeMutablePointer<NSObject>(allocatingCapacity: Int(cnt))
             let objects = UnsafeMutablePointer<AnyObject>(allocatingCapacity: Int(cnt))
@@ -143,7 +143,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             objects.deinitialize(count: Int(cnt))
             objects.deallocateCapacity(Int(cnt))
             
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.objects") {
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
             self.init(objects: objects, forKeys: keys)
@@ -151,8 +151,8 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             var objects = [AnyObject]()
             var keys = [NSObject]()
             var count = 0
-            while let key = aDecoder.decodeObjectForKey("NS.key.\(count)"),
-                let object = aDecoder.decodeObjectForKey("NS.object.\(count)") {
+            while let key = aDecoder.decodeObject(forKey: "NS.key.\(count)"),
+                let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
                     keys.append(key as! NSObject)
                     objects.append(object)
                     count += 1
