@@ -260,7 +260,7 @@ public class HTTPCookie : NSObject {
                 formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss O"   // per RFC 6265 '<rfc1123-date, defined in [RFC2616], Section 3.3.1>'
                 let timeZone = TimeZone(abbreviation: "GMT")
                 formatter.timeZone = timeZone
-                _expiresDate = formatter.dateFromString(dateString)
+                _expiresDate = formatter.date(from: dateString)
             } else {
                 _expiresDate = nil
             }

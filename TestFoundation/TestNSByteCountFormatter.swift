@@ -35,7 +35,7 @@ class TestNSByteCountFormatter : XCTestCase {
         XCTAssertEqual(formatter.includesUnit, true)
         XCTAssertEqual(formatter.includesCount, true)
         XCTAssertEqual(formatter.includesActualByteCount, false)
-        XCTAssertEqual(formatter.adaptive, true)
+        XCTAssertEqual(formatter.isAdaptive, true)
         XCTAssertEqual(formatter.zeroPadsFractionDigits, false)
         XCTAssertEqual(formatter.formattingContext, Formatter.Context.unknown)
     }

@@ -54,7 +54,7 @@ public class DateFormatter : Formatter {
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, _cfObject, date._cfObject)._swiftObject
     }
 
-    public func dateFromString(_ string: String) -> Date? {
+    public func date(from string: String) -> Date? {
         var range = CFRange(location: 0, length: string.length)
         let date = withUnsafeMutablePointer(&range) { (rangep: UnsafeMutablePointer<CFRange>) -> Date? in
             guard let res = CFDateFormatterCreateDateFromString(kCFAllocatorSystemDefault, _cfObject, string._cfObject, rangep) else {

@@ -52,7 +52,7 @@ public class ByteCountFormatter : Formatter {
     
     /* Shortcut for converting a byte count into a string without creating an NSByteCountFormatter and an NSNumber. If you need to specify options other than countStyle, create an instance of NSByteCountFormatter first.
     */
-    public class func stringFromByteCount(_ byteCount: Int64, countStyle: CountStyle) -> String { NSUnimplemented() }
+    public class func string(fromByteCount byteCount: Int64, countStyle: ByteCountFormatter.CountStyle) -> String { NSUnimplemented() }
     
     /* Convenience method on stringForObjectValue:. Convert a byte count into a string without creating an NSNumber.
     */
@@ -81,7 +81,7 @@ public class ByteCountFormatter : Formatter {
     
     /* Choose the display style. The "adaptive" algorithm is platform specific and uses a different number of fraction digits based on the magnitude (in 10.8: 0 fraction digits for bytes and KB; 1 fraction digits for MB; 2 for GB and above). Otherwise the result always tries to show at least three significant digits, introducing fraction digits as necessary. Default is YES.
     */
-    public var adaptive: Bool = true
+    public var isAdaptive: Bool = true
     
     /* Choose whether to zero pad fraction digits so a consistent number of fraction digits are displayed, causing updating displays to remain more stable. For instance, if the adaptive algorithm is used, this option formats 1.19 and 1.2 GB as "1.19 GB" and "1.20 GB" respectively, while without the option the latter would be displayed as "1.2 GB". Default value is NO.
     */

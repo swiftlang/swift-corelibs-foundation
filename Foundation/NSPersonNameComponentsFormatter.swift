@@ -56,16 +56,18 @@ public class PersonNameComponentsFormatter : Formatter {
     /* Shortcut for converting an NSPersonNameComponents object into a string without explicitly creating an instance.
         Create an instance for greater customizability.
      */
-    public class func localizedStringFromPersonNameComponents(_ components: NSPersonNameComponents, style nameFormatStyle: Style, options nameOptions: Options) -> String { NSUnimplemented() }
+    public class func localizedString(from components: PersonNameComponents, style nameFormatStyle: Style, options nameOptions: Options = []) -> String { NSUnimplemented() }
     
     /* Convenience method on stringForObjectValue:. Returns a string containing the formatted value of the provided components object.
      */
-    public func stringFromPersonNameComponents(_ components: NSPersonNameComponents) -> String { NSUnimplemented() }
+    public func string(from components: PersonNameComponents) -> String { NSUnimplemented() }
     
     /* Returns attributed string with annotations for each component. For each range, attributes can be obtained by querying
         dictionary key NSPersonNameComponentKey , using NSPersonNameComponent constant values.
      */
-    public func annotatedStringFromPersonNameComponents(_ components: NSPersonNameComponents) -> AttributedString { NSUnimplemented() }
+    public func annotatedString(from components: PersonNameComponents) -> AttributedString { NSUnimplemented() }
+    
+    public func personNameComponents(from string: String) -> PersonNameComponents? { NSUnimplemented() }
     
     /* NSPersonNameComponentsFormatter currently only implements formatting, not parsing. Until it implements parsing, this will always return NO.
      */

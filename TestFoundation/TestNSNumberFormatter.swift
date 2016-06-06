@@ -72,7 +72,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .decimalStyle
         numberFormatter.decimalSeparator = "-"
-        let formattedString = numberFormatter.stringFromNumber(42.42)
+        let formattedString = numberFormatter.string(from: 42.42)
         XCTAssertEqual(formattedString, "42-42")
     }
     
@@ -92,7 +92,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.decimalSeparator = "-"
         numberFormatter.alwaysShowsDecimalSeparator = true
-        let formattedString = numberFormatter.stringFromNumber(42)
+        let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "42-")
     }
     
@@ -100,7 +100,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.usesGroupingSeparator = true
         numberFormatter.groupingSeparator = "_"
-        let formattedString = numberFormatter.stringFromNumber(42_000)
+        let formattedString = numberFormatter.string(from: 42_000)
         XCTAssertEqual(formattedString, "42_000")
     }
     
@@ -108,14 +108,14 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .percentStyle
         numberFormatter.percentSymbol = "💯"
-        let formattedString = numberFormatter.stringFromNumber(0.42)
+        let formattedString = numberFormatter.string(from: 0.42)
         XCTAssertEqual(formattedString, "42💯")
     }
     
     func test_zeroSymbol() {
         let numberFormatter = NumberFormatter()
         numberFormatter.zeroSymbol = "⚽️"
-        let formattedString = numberFormatter.stringFromNumber(0)
+        let formattedString = numberFormatter.string(from: 0)
         XCTAssertEqual(formattedString, "⚽️")
     }
     var unknownZero: Int = 0
@@ -125,7 +125,7 @@ class TestNSNumberFormatter: XCTestCase {
         numberFormatter.notANumberSymbol = "👽"
         let number: Double = -42
         let numberObject = NSNumber(value: sqrt(number))
-        let formattedString = numberFormatter.stringFromNumber(numberObject)
+        let formattedString = numberFormatter.string(from: numberObject)
         XCTAssertEqual(formattedString, "👽")
     }
     
@@ -134,14 +134,14 @@ class TestNSNumberFormatter: XCTestCase {
         numberFormatter.positiveInfinitySymbol = "🚀"
 
         let numberObject = NSNumber(value: Double(42.0) / Double(0))
-        let formattedString = numberFormatter.stringFromNumber(numberObject)
+        let formattedString = numberFormatter.string(from: numberObject)
         XCTAssertEqual(formattedString, "🚀")
     }
     
     func test_minusSignSymbol() {
         let numberFormatter = NumberFormatter()
         numberFormatter.minusSign = "👎"
-        let formattedString = numberFormatter.stringFromNumber(-42)
+        let formattedString = numberFormatter.string(from: -42)
         XCTAssertEqual(formattedString, "👎42")
     }
     
@@ -170,21 +170,21 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .scientificStyle
         numberFormatter.exponentSymbol = "⬆️"
-        let formattedString = numberFormatter.stringFromNumber(42)
+        let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "4.2⬆️1")
     }
     
     func test_minimumIntegerDigits() {
         let numberFormatter = NumberFormatter()
         numberFormatter.minimumIntegerDigits = 3
-        let formattedString = numberFormatter.stringFromNumber(0)
+        let formattedString = numberFormatter.string(from: 0)
         XCTAssertEqual(formattedString, "000")
     }
     
     func test_maximumIntegerDigits() {
         let numberFormatter = NumberFormatter()
         numberFormatter.maximumIntegerDigits = 3
-        let formattedString = numberFormatter.stringFromNumber(1_000)
+        let formattedString = numberFormatter.string(from: 1_000)
         XCTAssertEqual(formattedString, "000")
     }
     
@@ -192,7 +192,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.minimumFractionDigits = 3
         numberFormatter.decimalSeparator = "-"
-        let formattedString = numberFormatter.stringFromNumber(42)
+        let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "42-000")
     }
     
@@ -200,7 +200,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.maximumFractionDigits = 3
         numberFormatter.decimalSeparator = "-"
-        let formattedString = numberFormatter.stringFromNumber(42.4242)
+        let formattedString = numberFormatter.string(from: 42.4242)
         XCTAssertEqual(formattedString, "42-424")
     }
     
@@ -209,7 +209,7 @@ class TestNSNumberFormatter: XCTestCase {
         numberFormatter.groupingSize = 4
         numberFormatter.groupingSeparator = "_"
         numberFormatter.usesGroupingSeparator = true
-        let formattedString = numberFormatter.stringFromNumber(42_000)
+        let formattedString = numberFormatter.string(from: 42_000)
         XCTAssertEqual(formattedString, "4_2000")
     }
     
@@ -218,7 +218,7 @@ class TestNSNumberFormatter: XCTestCase {
         numberFormatter.secondaryGroupingSize = 2
         numberFormatter.groupingSeparator = "_"
         numberFormatter.usesGroupingSeparator = true
-        let formattedString = numberFormatter.stringFromNumber(42_000_000)
+        let formattedString = numberFormatter.string(from: 42_000_000)
         XCTAssertEqual(formattedString, "4_20_00_000")
     }
     
@@ -226,7 +226,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.maximumFractionDigits = 0
         numberFormatter.roundingMode = .roundCeiling
-        let formattedString = numberFormatter.stringFromNumber(41.0001)
+        let formattedString = numberFormatter.string(from: 41.0001)
         XCTAssertEqual(formattedString, "42")
     }
     
@@ -234,7 +234,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .decimalStyle
         numberFormatter.roundingIncrement = 0.2
-        let formattedString = numberFormatter.stringFromNumber(4.25)
+        let formattedString = numberFormatter.string(from: 4.25)
         XCTAssertEqual(formattedString, "4.2")
     }
     
@@ -242,7 +242,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.paddingCharacter = "_"
         numberFormatter.formatWidth = 5
-        let formattedString = numberFormatter.stringFromNumber(42)
+        let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "___42")
     }
     
@@ -251,42 +251,42 @@ class TestNSNumberFormatter: XCTestCase {
         numberFormatter.paddingCharacter = "_"
         numberFormatter.formatWidth = 5
         numberFormatter.paddingPosition = .afterPrefix
-        let formattedString = numberFormatter.stringFromNumber(-42)
+        let formattedString = numberFormatter.string(from: -42)
         XCTAssertEqual(formattedString, "-__42")
     }
     
     func test_multiplier() {
         let numberFormatter = NumberFormatter()
         numberFormatter.multiplier = 2
-        let formattedString = numberFormatter.stringFromNumber(21)
+        let formattedString = numberFormatter.string(from: 21)
         XCTAssertEqual(formattedString, "42")
     }
     
     func test_positivePrefix() {
         let numberFormatter = NumberFormatter()
         numberFormatter.positivePrefix = "👍"
-        let formattedString = numberFormatter.stringFromNumber(42)
+        let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "👍42")
     }
     
     func test_positiveSuffix() {
         let numberFormatter = NumberFormatter()
         numberFormatter.positiveSuffix = "👍"
-        let formattedString = numberFormatter.stringFromNumber(42)
+        let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "42👍")
     }
     
     func test_negativePrefix() {
         let numberFormatter = NumberFormatter()
         numberFormatter.negativePrefix = "👎"
-        let formattedString = numberFormatter.stringFromNumber(-42)
+        let formattedString = numberFormatter.string(from: -42)
         XCTAssertEqual(formattedString, "👎42")
     }
     
     func test_negativeSuffix() {
         let numberFormatter = NumberFormatter()
         numberFormatter.negativeSuffix = "👎"
-        let formattedString = numberFormatter.stringFromNumber(-42)
+        let formattedString = numberFormatter.string(from: -42)
         XCTAssertEqual(formattedString, "-42👎")
     }
     
@@ -330,7 +330,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.usesSignificantDigits = true
         numberFormatter.minimumSignificantDigits = 3
-        let formattedString = numberFormatter.stringFromNumber(42)
+        let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "42.0")
     }
     
@@ -338,7 +338,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.usesSignificantDigits = true
         numberFormatter.maximumSignificantDigits = 3
-        let formattedString = numberFormatter.stringFromNumber(42.42424242)
+        let formattedString = numberFormatter.string(from: 42.42424242)
         XCTAssertEqual(formattedString, "42.4")
     }
 }

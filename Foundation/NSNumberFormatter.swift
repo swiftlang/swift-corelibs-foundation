@@ -54,16 +54,16 @@ public class NumberFormatter : Formatter {
     
     public override func string(for obj: AnyObject) -> String? {
         guard let number = obj as? NSNumber else { return nil }
-        return stringFromNumber(number)
+        return string(from: number)
     }
     
     // Even though NSNumberFormatter responds to the usual NSFormatter methods,
     //   here are some convenience methods which are a little more obvious.
-    public func stringFromNumber(_ number: NSNumber) -> String? {
+    public func string(from number: NSNumber) -> String? {
         return CFNumberFormatterCreateStringWithNumber(kCFAllocatorSystemDefault, _cfFormatter, number._cfObject)._swiftObject
     }
     
-    public func numberFromString(_ string: String) -> NSNumber? {
+    public func number(from string: String) -> NSNumber? {
         var range = CFRange(location: 0, length: string.length)
         let number = withUnsafeMutablePointer(&range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
             
@@ -78,7 +78,7 @@ public class NumberFormatter : Formatter {
         return number
     }
     
-    public class func localizedStringFromNumber(_ num: NSNumber, numberStyle nstyle: Style) -> String {
+    public class func localizedString(from num: NSNumber, number nstyle: Style) -> String {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = nstyle
         return numberFormatter.string(for: num)!
