@@ -113,10 +113,10 @@ public class NSKeyedArchiver : NSCoder {
     private var _cache : Array<CFKeyedArchiverUID> = []
 
     public weak var delegate: NSKeyedArchiverDelegate?
-    public var outputFormat = PropertyListSerialization.Format.binaryFormat_v1_0 {
+    public var outputFormat = PropertyListSerialization.PropertyListFormat.binary {
         willSet {
-            if outputFormat != PropertyListSerialization.Format.xmlFormat_v1_0 &&
-                outputFormat != PropertyListSerialization.Format.binaryFormat_v1_0 {
+            if outputFormat != PropertyListSerialization.PropertyListFormat.xml &&
+                outputFormat != PropertyListSerialization.PropertyListFormat.binary {
                 NSUnimplemented()
             }
         }
@@ -222,7 +222,7 @@ public class NSKeyedArchiver : NSCoder {
 
         let nsPlist = plist.bridge()
         
-        if self.outputFormat == PropertyListSerialization.Format.xmlFormat_v1_0 {
+        if self.outputFormat == PropertyListSerialization.PropertyListFormat.xml {
             success = _writeXMLData(nsPlist)
         } else {
             success = _writeBinaryData(nsPlist)

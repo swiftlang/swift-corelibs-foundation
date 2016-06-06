@@ -31,7 +31,7 @@ class TestNSPropertyList : XCTestCase {
 //        dict["foo"] = "bar"
         var data: Data? = nil
         do {
-            data = try PropertyListSerialization.dataWithPropertyList(dict, format: PropertyListSerialization.Format.binaryFormat_v1_0, options: 0)
+            data = try PropertyListSerialization.data(fromPropertyList: dict, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
         } catch {
             
         }
@@ -41,12 +41,12 @@ class TestNSPropertyList : XCTestCase {
     
     func test_decode() {
         var decoded: Any?
-        var fmt = PropertyListSerialization.Format.binaryFormat_v1_0
+        var fmt = PropertyListSerialization.PropertyListFormat.binary
         let path = testBundle().urlForResource("Test", withExtension: "plist")
         let data = try! Data(contentsOf: path!)
         do {
-            decoded = try withUnsafeMutablePointer(&fmt) { (format: UnsafeMutablePointer<PropertyListSerialization.Format>) -> Any in
-                return try PropertyListSerialization.propertyListWithData(data, options: [], format: format)
+            decoded = try withUnsafeMutablePointer(&fmt) { (format: UnsafeMutablePointer<PropertyListSerialization.PropertyListFormat>) -> Any in
+                return try PropertyListSerialization.propertyList(from: data, options: [], format: format)
             }
         } catch {
             

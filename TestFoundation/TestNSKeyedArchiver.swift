@@ -85,7 +85,7 @@ class TestNSKeyedArchiver : XCTestCase {
         XCTAssertTrue(decode(unarchiver))
     }
     
-    private func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: PropertyListSerialization.Format) {
+    private func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: PropertyListSerialization.PropertyListFormat) {
         test_archive({ archiver -> Bool in
                 archiver.requiresSecureCoding = allowsSecureCoding
                 archiver.outputFormat = outputFormat
@@ -112,8 +112,8 @@ class TestNSKeyedArchiver : XCTestCase {
     
     private func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true) {
         // test both XML and binary encodings
-        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.Format.xmlFormat_v1_0)
-        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.Format.binaryFormat_v1_0)
+        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.xml)
+        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.binary)
     }
     
     private func test_archive(_ object: NSObject, allowsSecureCoding: Bool = true) {

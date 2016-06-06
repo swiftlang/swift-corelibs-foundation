@@ -41,7 +41,7 @@ let kNullString = "<null>"
 private func getTestData() -> [Any]? {
     let testFilePath = testBundle().urlForResource("NSURLTestData", withExtension: "plist")
     let data = try! Data(contentsOf: testFilePath!)
-    guard let testRoot = try? PropertyListSerialization.propertyListWithData(data, options: [], format: nil) as? [String : Any] else {
+    guard let testRoot = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any] else {
         XCTFail("Unable to deserialize property list data")
         return nil
     }
