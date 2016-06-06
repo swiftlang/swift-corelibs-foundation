@@ -11,23 +11,7 @@
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
-            buildForAnalyzing = "YES"
-            hideIssues = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5B5D86DA1BBC74AD00234F36"
-               BuildableName = "SwiftXCTest.framework"
-               BlueprintName = "SwiftXCTest"
-               ReferencedContainer = "container:../swift-corelibs-xctest/XCTest.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES"
-            hideIssues = "NO">
+            buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5B5D885C1BBC938800234F36"
@@ -41,8 +25,21 @@
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
-            buildForAnalyzing = "YES"
-            hideIssues = "NO">
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5B5D86DA1BBC74AD00234F36"
+               BuildableName = "SwiftXCTest.framework"
+               BlueprintName = "SwiftXCTest"
+               ReferencedContainer = "container:../swift-corelibs-xctest/XCTest.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5BDC405B1BD6D83B00ED97BB"
