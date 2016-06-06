@@ -320,13 +320,21 @@ static bool __CFUniCharLoadFile(const wchar_t *bitmapName, const void **bytes, i
     return *bytes ? true : false;
 #elif USE_RAW_SYMBOL
     extern void *__CFCharacterSetBitmapData;
+#if __CF_BIG_ENDIAN__
+    extern void *__CFUnicodeDataB;
+#else
     extern void *__CFUnicodeDataL;
+#endif
     extern void *__CFUniCharPropertyDatabase;
     
     if (strcmp(bitmapName, CF_UNICHAR_BITMAP_FILE) == 0) {
         *bytes = &__CFCharacterSetBitmapData;
     } else if (strcmp(bitmapName, MAPPING_TABLE_FILE) == 0) {
+#if __CF_BIG_ENDIAN__
+        *bytes = &__CFUnicodeDataB;
+#else
         *bytes = &__CFUnicodeDataL;
+#endif
     } else if (strcmp(bitmapName, PROP_DB_FILE) == 0) {
         *bytes = &__CFUniCharPropertyDatabase;
     }

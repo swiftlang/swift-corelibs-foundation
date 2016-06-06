@@ -165,7 +165,11 @@ struct __CFConstStr {
         uint8_t _pad[4];
     } _base;
     uint8_t *_ptr;
+#if defined(__LP64__) && defined(__BIG_ENDIAN__)
+    uint64_t _length;
+#else
     uint32_t _length;
+#endif
 };
 
 #if DEPLOYMENT_TARGET_LINUX
@@ -174,10 +178,17 @@ struct __CFConstStr {
 #define CONST_STRING_LITERAL_SECTION
 #endif
 
+#if __BIG_ENDIAN__
+#define CFSTR(cStr)  ({ \
+static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0x00, 0x00, 0x07, 0xc8}, {0x00, 0x00, 0x00, 0x00}}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+(CFStringRef)&str; \
+})
+#else
 #define CFSTR(cStr)  ({ \
 static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0xc8, 0x07, 0x00, 0x00}, {0x00, 0x00, 0x00, 0x00}}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
 (CFStringRef)&str; \
 })
+#endif
 
 #else
 
