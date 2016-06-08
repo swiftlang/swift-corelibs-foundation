@@ -78,5 +78,20 @@ extension NSTextCheckingResult {
     
     
     
-    public func resultByAdjustingRangesWithOffset(_ offset: Int) -> NSTextCheckingResult { NSUnimplemented() }
+    public func resultByAdjustingRangesWithOffset(_ offset: Int) -> NSTextCheckingResult {
+        let count = self.numberOfRanges
+        var newRanges = [NSRange]()
+        for idx in 0..<count {
+           let currentRange = self.range(at: idx)
+           if (currentRange.location == NSNotFound) {
+              newRanges.append(currentRange)
+           } else if ((offset > 0 && NSNotFound - currentRange.location <= offset) || (offset < 0 && currentRange.location < -offset)) {
+              NSInvalidArgument(" \(offset) invalid offset for range {\(currentRange.location), \(currentRange.length)}")
+           } else {
+              newRanges.append(NSRange(location: currentRange.location + offset,length: currentRange.length))
+           }
+        }
+        let result = NSTextCheckingResult.regularExpressionCheckingResultWithRanges(&newRanges, count: count, regularExpression: self.regularExpression!)
+        return result
+    }
 }

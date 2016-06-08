@@ -60,6 +60,7 @@ XCTMain([
     testCase(TestNSString.allTests),
 //    testCase(TestNSThread.allTests),
     testCase(TestNSTask.allTests),
+    testCase(TestNSTextCheckingResult.allTests),
     testCase(TestNSTimer.allTests),
     testCase(TestNSTimeZone.allTests),
     testCase(TestNSURL.allTests),
