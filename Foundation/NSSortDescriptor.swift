@@ -42,7 +42,7 @@ public class NSSortDescriptor : NSObject, NSSecureCoding, NSCopying {
     
     public var comparator: NSComparator { NSUnimplemented() }
     
-    public func compareObject(_ object1: AnyObject, toObject object2: AnyObject) -> NSComparisonResult  { NSUnimplemented() }// primitive - override this method if you want to perform comparisons differently (not key based for example)
+    public func compareObject(_ object1: AnyObject, toObject object2: AnyObject) -> ComparisonResult  { NSUnimplemented() }// primitive - override this method if you want to perform comparisons differently (not key based for example)
     public var reversedSortDescriptor: AnyObject  { NSUnimplemented() } // primitive - override this method to return a sort descriptor instance with reversed sort order
 }
 

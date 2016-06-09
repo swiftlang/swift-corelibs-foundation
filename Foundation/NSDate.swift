@@ -181,7 +181,7 @@ extension NSDate {
         }
     }
     
-    public func compare(_ other: Date) -> NSComparisonResult {
+    public func compare(_ other: Date) -> ComparisonResult {
         let t1 = self.timeIntervalSinceReferenceDate
         let t2 = other.timeIntervalSinceReferenceDate
         if t1 < t2 {
@@ -315,7 +315,7 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     }
     
     /*
-     (NSComparisonResult)compare:(NSDateInterval *) prioritizes ordering by start date. If the start dates are equal, then it will order by duration.
+     (ComparisonResult)compare:(NSDateInterval *) prioritizes ordering by start date. If the start dates are equal, then it will order by duration.
      e.g.
      Given intervals a and b
      a.   |-----|
@@ -331,7 +331,7 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
      
      If both the start dates and the durations are equal, then the intervals are considered equal and NSOrderedSame is returned as the result.
      */
-    public func compare(_ dateInterval: DateInterval) -> NSComparisonResult {
+    public func compare(_ dateInterval: DateInterval) -> ComparisonResult {
         let result = startDate.compare(dateInterval.start)
         if result == .orderedSame {
             if self.duration < dateInterval.duration { return .orderedAscending }

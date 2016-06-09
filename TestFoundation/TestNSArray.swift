@@ -264,7 +264,7 @@ class TestNSArray : XCTestCase {
         return array.indexOfObject(NSNumber(value: value), inSortedRange: NSRange(location: startingFrom, length: length), options: options, usingComparator: compareIntNSNumber)
     }
     
-    func compareIntNSNumber(_ lhs: AnyObject, rhs: AnyObject) -> NSComparisonResult {
+    func compareIntNSNumber(_ lhs: AnyObject, rhs: AnyObject) -> ComparisonResult {
         let lhsInt = (lhs as! NSNumber).intValue
         let rhsInt = (rhs as! NSNumber).intValue
         if lhsInt == rhsInt {
@@ -319,7 +319,7 @@ class TestNSArray : XCTestCase {
         // sort with localized caseInsensitive compare
         let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
         let expectedResult: Array<String> = input.sorted()
-        let result = input.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+        let result = input.bridge().sortedArrayUsingComparator { left, right -> ComparisonResult in
             let l = left as! NSString
             let r = right as! NSString
             return l.localizedCaseInsensitiveCompare(r.bridge())
@@ -333,7 +333,7 @@ class TestNSArray : XCTestCase {
         // sort numbers
         let inputNumbers = [0, 10, 25, 100, 21, 22]
         let expectedNumbers = inputNumbers.sorted()
-        let resultNumbers = inputNumbers.bridge().sortedArrayUsingComparator { left, right -> NSComparisonResult in
+        let resultNumbers = inputNumbers.bridge().sortedArrayUsingComparator { left, right -> ComparisonResult in
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
             return l < r ? .orderedAscending : (l > r ? .orderedSame : .orderedDescending)
@@ -344,7 +344,7 @@ class TestNSArray : XCTestCase {
     func test_sortedArrayWithOptionsUsingComparator() {
         // check that sortedArrayWithOptions:comparator: works in the way sortedArrayUsingComparator does
         let input = ["this", "is", "a", "test", "of", "sort", "with", "strings"].bridge()
-        let comparator: (AnyObject, AnyObject) -> NSComparisonResult = { left, right -> NSComparisonResult in
+        let comparator: (AnyObject, AnyObject) -> ComparisonResult = { left, right -> ComparisonResult in
             let l = left as! NSString
             let r = right as! NSString
             return l.localizedCaseInsensitiveCompare(r.bridge())
@@ -380,7 +380,7 @@ class TestNSArray : XCTestCase {
         let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
         let expectedNumbers = inputNumbers.sorted()
 
-        mutableInput.sortUsingComparator { left, right -> NSComparisonResult in
+        mutableInput.sortUsingComparator { left, right -> ComparisonResult in
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
             return l < r ? .orderedAscending : (l > r ? .orderedSame : .orderedDescending)
@@ -392,7 +392,7 @@ class TestNSArray : XCTestCase {
         let inputStrings = ["this", "is", "a", "test", "of", "sort", "with", "strings"]
         let mutableStringsInput1 = inputStrings.bridge().mutableCopy() as! NSMutableArray
         let mutableStringsInput2 = inputStrings.bridge().mutableCopy() as! NSMutableArray
-        let comparator: (AnyObject, AnyObject) -> NSComparisonResult = { left, right -> NSComparisonResult in
+        let comparator: (AnyObject, AnyObject) -> ComparisonResult = { left, right -> ComparisonResult in
             let l = left as! NSString
             let r = right as! NSString
             return l.localizedCaseInsensitiveCompare(r.bridge())

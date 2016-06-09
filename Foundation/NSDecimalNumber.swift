@@ -88,7 +88,7 @@ public class NSDecimalNumber : NSNumber {
     public func rounding(accordingToBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     // Round to the scale of the behavior.
     
-    public override func compare(_ decimalNumber: NSNumber) -> NSComparisonResult { NSUnimplemented() }
+    public override func compare(_ decimalNumber: NSNumber) -> ComparisonResult { NSUnimplemented() }
     // compare two NSDecimalNumbers
     
     public class func setDefaultBehavior(_ behavior: NSDecimalNumberBehaviors) { NSUnimplemented() }

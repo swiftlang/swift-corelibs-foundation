@@ -131,7 +131,7 @@ public struct Date : ReferenceConvertible, Comparable, Equatable, CustomStringCo
         return Int(bitPattern: __CFHashDouble(_time))
     }
     
-    public func compare(_ other: Date) -> NSComparisonResult {
+    public func compare(_ other: Date) -> ComparisonResult {
         if _time < other.timeIntervalSinceReferenceDate {
             return .orderedAscending
         } else if _time > other.timeIntervalSinceReferenceDate {

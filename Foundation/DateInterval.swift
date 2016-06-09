@@ -91,7 +91,7 @@ public struct DateInterval : ReferenceConvertible, Comparable, Hashable {
      
      If both the start dates and the durations are equal, then the intervals are considered equal and `.OrderedSame` is returned as the result.
      */
-    public func compare(_ dateInterval: DateInterval) -> NSComparisonResult {
+    public func compare(_ dateInterval: DateInterval) -> ComparisonResult {
         let result = start.compare(dateInterval.start)
         if result == .orderedSame {
             if self.duration < dateInterval.duration { return .orderedAscending }

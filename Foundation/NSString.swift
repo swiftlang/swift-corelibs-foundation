@@ -399,41 +399,41 @@ extension NSString {
         }
     }
     
-    public func compare(_ string: String) -> NSComparisonResult {
+    public func compare(_ string: String) -> ComparisonResult {
         return compare(string, options: [], range: NSMakeRange(0, length))
     }
     
-    public func compare(_ string: String, options mask: NSStringCompareOptions) -> NSComparisonResult {
+    public func compare(_ string: String, options mask: NSStringCompareOptions) -> ComparisonResult {
         return compare(string, options: mask, range: NSMakeRange(0, length))
     }
     
-    public func compare(_ string: String, options mask: NSStringCompareOptions, range compareRange: NSRange) -> NSComparisonResult {
+    public func compare(_ string: String, options mask: NSStringCompareOptions, range compareRange: NSRange) -> ComparisonResult {
         return compare(string, options: mask, range: compareRange, locale: nil)
     }
     
-    public func compare(_ string: String, options mask: NSStringCompareOptions, range compareRange: NSRange, locale: AnyObject?) -> NSComparisonResult {
+    public func compare(_ string: String, options mask: NSStringCompareOptions, range compareRange: NSRange, locale: AnyObject?) -> ComparisonResult {
         var res: CFComparisonResult
         if let loc = locale {
             res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! Locale)._cfObject)
         } else {
             res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), nil)
         }
-        return NSComparisonResult._fromCF(res)
+        return ComparisonResult._fromCF(res)
     }
     
-    public func caseInsensitiveCompare(_ string: String) -> NSComparisonResult {
+    public func caseInsensitiveCompare(_ string: String) -> ComparisonResult {
         return compare(string, options: .caseInsensitiveSearch, range: NSMakeRange(0, length))
     }
     
-    public func localizedCompare(_ string: String) -> NSComparisonResult {
+    public func localizedCompare(_ string: String) -> ComparisonResult {
         return compare(string, options: [], range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
-    public func localizedCaseInsensitiveCompare(_ string: String) -> NSComparisonResult {
+    public func localizedCaseInsensitiveCompare(_ string: String) -> ComparisonResult {
         return compare(string, options: .caseInsensitiveSearch, range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
-    public func localizedStandardCompare(_ string: String) -> NSComparisonResult {
+    public func localizedStandardCompare(_ string: String) -> ComparisonResult {
         return compare(string, options: [.caseInsensitiveSearch, .numericSearch, .widthInsensitiveSearch, .forcedOrderingSearch], range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     

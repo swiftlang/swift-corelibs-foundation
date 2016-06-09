@@ -60,7 +60,7 @@ public func NSDecimalCopy(_ destination: UnsafeMutablePointer<Decimal>, _ source
 
 public func NSDecimalCompact(_ number: UnsafeMutablePointer<Decimal>) { NSUnimplemented() }
 
-public func NSDecimalCompare(_ leftOperand: UnsafePointer<Decimal>, _ rightOperand: UnsafePointer<Decimal>) -> NSComparisonResult { NSUnimplemented() }
+public func NSDecimalCompare(_ leftOperand: UnsafePointer<Decimal>, _ rightOperand: UnsafePointer<Decimal>) -> ComparisonResult { NSUnimplemented() }
 // NSDecimalCompare:Compares leftOperand and rightOperand.
 
 public func NSDecimalRound(_ result: UnsafeMutablePointer<Decimal>, _ number: UnsafePointer<Decimal>, _ scale: Int, _ roundingMode: Decimal.RoundingMode) { NSUnimplemented() }

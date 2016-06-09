@@ -135,13 +135,13 @@ public func NSGetSizeAndAlignment(_ typePtr: UnsafePointer<Int8>,
     return typePtr.advanced(by: 1)
 }
 
-public enum NSComparisonResult : Int {
+public enum ComparisonResult : Int {
     
     case orderedAscending = -1
     case orderedSame
     case orderedDescending
     
-    internal static func _fromCF(_ val: CFComparisonResult) -> NSComparisonResult {
+    internal static func _fromCF(_ val: CFComparisonResult) -> ComparisonResult {
         if val == kCFCompareLessThan {
             return .orderedAscending
         } else if  val == kCFCompareGreaterThan {
@@ -187,7 +187,7 @@ public struct NSEnumerationOptions : OptionSet {
     public static let reverse = NSEnumerationOptions(rawValue: UInt(1 << 1))
 }
 
-public typealias NSComparator = (AnyObject, AnyObject) -> NSComparisonResult
+public typealias NSComparator = (AnyObject, AnyObject) -> ComparisonResult
 
 public let NSNotFound: Int = Int.max
 

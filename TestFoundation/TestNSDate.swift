@@ -104,7 +104,7 @@ class TestNSDate : XCTestCase {
         let ti: TimeInterval = 1
         let d1 = Date()
         let d2 = d1 + ti
-        XCTAssertEqual(d1.compare(d2), NSComparisonResult.orderedAscending)
+        XCTAssertEqual(d1.compare(d2), ComparisonResult.orderedAscending)
     }
     
     func test_IsEqualToDate() {

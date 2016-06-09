@@ -427,7 +427,7 @@ public class NSNumber : NSValue {
         self.init(value: value)
     }
 
-    public func compare(_ otherNumber: NSNumber) -> NSComparisonResult {
+    public func compare(_ otherNumber: NSNumber) -> ComparisonResult {
         return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
     }
 

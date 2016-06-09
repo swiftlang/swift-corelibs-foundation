@@ -74,7 +74,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     
     // comparison support
     // sorting an array of indexPaths using this comparison results in an array representing nodes in depth-first traversal order
-    public func compare(_ otherObject: NSIndexPath) -> NSComparisonResult {
+    public func compare(_ otherObject: NSIndexPath) -> ComparisonResult {
         let thisLength = length
         let otherLength = otherObject.length
         let minLength = thisLength >= otherLength ? otherLength : thisLength

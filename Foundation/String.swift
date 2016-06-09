@@ -296,12 +296,12 @@ extension String {
         return _ns.capitalized(with: locale) as String
     }
     
-    // - (NSComparisonResult)caseInsensitiveCompare:(NSString *)aString
+    // - (ComparisonResult)caseInsensitiveCompare:(NSString *)aString
     
     /// Returns the result of invoking `compare:options:` with
     /// `NSCaseInsensitiveSearch` as the only option.
     @warn_unused_result
-    public func caseInsensitiveCompare(_ aString: String) -> NSComparisonResult {
+    public func caseInsensitiveCompare(_ aString: String) -> ComparisonResult {
         return _ns.caseInsensitiveCompare(aString)
     }
     
@@ -324,17 +324,17 @@ extension String {
         return _ns.commonPrefix(with: aString, options: options)
     }
     
-    // - (NSComparisonResult)
+    // - (ComparisonResult)
     //     compare:(NSString *)aString
     //
-    // - (NSComparisonResult)
+    // - (ComparisonResult)
     //     compare:(NSString *)aString options:(NSStringCompareOptions)mask
     //
-    // - (NSComparisonResult)
+    // - (ComparisonResult)
     //     compare:(NSString *)aString options:(NSStringCompareOptions)mask
     //     range:(NSRange)range
     //
-    // - (NSComparisonResult)
+    // - (ComparisonResult)
     //     compare:(NSString *)aString options:(NSStringCompareOptions)mask
     //     range:(NSRange)range locale:(id)locale
     
@@ -346,7 +346,7 @@ extension String {
         options mask: NSStringCompareOptions = [],
         range: Range<Index>? = nil,
         locale: Locale? = nil
-        ) -> NSComparisonResult {
+        ) -> ComparisonResult {
         // According to Ali Ozer, there may be some real advantage to
         // dispatching to the minimal selector for the supplied options.
         // So let's do that; the switch should compile away anyhow.
@@ -974,28 +974,28 @@ extension String {
         return _range(_ns.lineRange(for: _toNSRange(aRange)))
     }
     
-    // - (NSComparisonResult)localizedCaseInsensitiveCompare:(NSString *)aString
+    // - (ComparisonResult)localizedCaseInsensitiveCompare:(NSString *)aString
     
     /// Compares the string and a given string using a
     /// case-insensitive, localized, comparison.
     @warn_unused_result
     public
-    func localizedCaseInsensitiveCompare(_ aString: String) -> NSComparisonResult {
+    func localizedCaseInsensitiveCompare(_ aString: String) -> ComparisonResult {
         return _ns.localizedCaseInsensitiveCompare(aString)
     }
     
-    // - (NSComparisonResult)localizedCompare:(NSString *)aString
+    // - (ComparisonResult)localizedCompare:(NSString *)aString
     
     /// Compares the string and a given string using a localized
     /// comparison.
     @warn_unused_result
-    public func localizedCompare(_ aString: String) -> NSComparisonResult {
+    public func localizedCompare(_ aString: String) -> ComparisonResult {
         return _ns.localizedCompare(aString)
     }
     
     /// Compares strings as sorted by the Finder.
     @warn_unused_result
-    public func localizedStandardCompare(_ string: String) -> NSComparisonResult {
+    public func localizedStandardCompare(_ string: String) -> ComparisonResult {
         return _ns.localizedStandardCompare(string)
     }
     

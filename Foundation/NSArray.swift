@@ -395,13 +395,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     
     public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?) -> [AnyObject] {
         return sortedArrayWithOptions([]) { lhs, rhs in
-            return NSComparisonResult(rawValue: comparator(lhs, rhs, context))!
+            return ComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
     }
     
     public func sortedArrayUsingFunction(_ comparator: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?, hint: Data?) -> [AnyObject] {
         return sortedArrayWithOptions([]) { lhs, rhs in
-            return NSComparisonResult(rawValue: comparator(lhs, rhs, context))!
+            return ComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
     }
 
