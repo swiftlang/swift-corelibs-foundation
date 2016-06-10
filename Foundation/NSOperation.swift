@@ -74,7 +74,7 @@ public class Operation: NSObject {
     
     public func main() { }
     
-    public var cancelled: Bool {
+    public var isCancelled: Bool {
         return _cancelled
     }
     
@@ -85,20 +85,20 @@ public class Operation: NSObject {
         lock.unlock()
     }
     
-    public var executing: Bool {
+    public var isExecuting: Bool {
         return _executing
     }
     
-    public var finished: Bool {
+    public var isFinished: Bool {
         return _finished
     }
     
     // - Note: This property is NEVER used in the objective-c implementation!
-    public var asynchronous: Bool {
+    public var isAsynchronous: Bool {
         return false
     }
     
-    public var ready: Bool {
+    public var isReady: Bool {
         return _ready
     }
     
@@ -373,9 +373,9 @@ public class OperationQueue: NSObject {
     
     internal func _runOperation() {
         if let op = _dequeueOperation() {
-            if !op.cancelled {
+            if !op.isCancelled {
                 op._waitUntilReady()
-                if !op.cancelled {
+                if !op.isCancelled {
                     op.start()
                 }
             }
@@ -390,7 +390,7 @@ public class OperationQueue: NSObject {
         }
 #endif
         /*
-         If OperationQueuePriority was not supported this could be much faster
+         If QueuePriority was not supported this could be much faster
          since it would not need to have the extra book-keeping for managing a priority
          queue. However this implementation attempts to be similar to the specification.
          As a concequence this means that the dequeue may NOT nessicarly be the same as
