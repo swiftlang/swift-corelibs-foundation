@@ -70,6 +70,7 @@
 		5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
 		5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B40F9F31C12524C000E72E3 /* libxml2.dylib */; };
+		5B424C761D0B6E5B007B39C8 /* IndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B424C751D0B6E5B007B39C8 /* IndexPath.swift */; };
 		5B5C5EF01CE61FA4001346BD /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5C5EEF1CE61FA4001346BD /* Date.swift */; };
 		5B5D89761BBDADD300234F36 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89751BBDADD300234F36 /* libicucore.dylib */; };
 		5B5D89781BBDADDB00234F36 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89771BBDADDB00234F36 /* libz.dylib */; };
@@ -424,6 +425,7 @@
 		5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLInterface.h; sourceTree = "<group>"; };
 		5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLParser.swift; sourceTree = "<group>"; };
 		5B40F9F31C12524C000E72E3 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
+		5B424C751D0B6E5B007B39C8 /* IndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexPath.swift; sourceTree = "<group>"; };
 		5B5C5EEF1CE61FA4001346BD /* Date.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Date.swift; sourceTree = "<group>"; };
 		5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftFoundation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B5D886A1BBC948300234F36 /* CFApplicationPreferences.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFApplicationPreferences.c; sourceTree = "<group>"; };
@@ -1418,6 +1420,7 @@
 				5BDC3FC91BCF176100ED97BB /* NSCFArray.swift */,
 				EADE0B631BD15DFF00C49C64 /* NSIndexSet.swift */,
 				EADE0B621BD15DFF00C49C64 /* NSIndexPath.swift */,
+				5B424C751D0B6E5B007B39C8 /* IndexPath.swift */,
 				5BDC3F2E1BCC5DCB00ED97BB /* NSArray.swift */,
 				5BDC3F361BCC5DCB00ED97BB /* NSDictionary.swift */,
 				5BDC3FCD1BCF17D300ED97BB /* NSCFDictionary.swift */,
@@ -1866,6 +1869,7 @@
 				5BF7AEBC1BCD51F9008F214A /* NSThread.swift in Sources */,
 				D31302011C30CEA900295652 /* NSConcreteValue.swift in Sources */,
 				5BF7AEA81BCD51F9008F214A /* NSData.swift in Sources */,
+				5B424C761D0B6E5B007B39C8 /* IndexPath.swift in Sources */,
 				EADE0BB51BD15E0000C49C64 /* NSScanner.swift in Sources */,
 				EADE0BA01BD15DFF00C49C64 /* NSIndexPath.swift in Sources */,
 				5BF7AEB51BCD51F9008F214A /* NSPathUtilities.swift in Sources */,
