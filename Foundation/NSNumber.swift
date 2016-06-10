@@ -48,6 +48,38 @@ extension Int : _ObjectTypeBridgeable {
     }
 }
 
+extension Int : _ObjectiveCBridgeable {
+    public static func _isBridgedToObjectiveC() -> Bool {
+        return true
+    }
+
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSNumber {
+        return NSNumber(integer: self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout Int?
+        ) {
+        result = x.integerValue
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout Int?
+        ) -> Bool {
+        self._forceBridgeFromObjectiveC(x, result: &result)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(
+        _ source: NSNumber?
+        ) -> Int {
+        return source!.integerValue
+    }
+}
+
 extension UInt : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.uintValue
@@ -63,6 +95,38 @@ extension UInt : _ObjectTypeBridgeable {
     public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout UInt?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
+    }
+}
+
+extension UInt : _ObjectiveCBridgeable {
+    public static func _isBridgedToObjectiveC() -> Bool {
+        return true
+    }
+
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSNumber {
+        return NSNumber(unsignedInteger: self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout UInt?
+        ) {
+        result = x.unsignedIntegerValue
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout UInt?
+        ) -> Bool {
+        self._forceBridgeFromObjectiveC(x, result: &result)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(
+        _ source: NSNumber?
+        ) -> UInt {
+        return source!.unsignedIntegerValue
     }
 }
 
@@ -85,6 +149,38 @@ extension Float : _ObjectTypeBridgeable {
     }
 }
 
+extension Float : _ObjectiveCBridgeable {
+    public static func _isBridgedToObjectiveC() -> Bool {
+        return true
+    }
+
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSNumber {
+        return NSNumber(float: self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout Float?
+        ) {
+        result = x.floatValue
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout Float?
+        ) -> Bool {
+        self._forceBridgeFromObjectiveC(x, result: &result)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(
+        _ source: NSNumber?
+        ) -> Float {
+        return source!.floatValue
+    }
+}
+
 extension Double : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.doubleValue
@@ -104,6 +200,38 @@ extension Double : _ObjectTypeBridgeable {
     }
 }
 
+extension Double : _ObjectiveCBridgeable {
+    public static func _isBridgedToObjectiveC() -> Bool {
+        return true
+    }
+
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSNumber {
+        return NSNumber(double: self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout Double?
+        ) {
+        result = x.doubleValue
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout Double?
+        ) -> Bool {
+        self._forceBridgeFromObjectiveC(x, result: &result)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(
+        _ source: NSNumber?
+        ) -> Double {
+        return source!.doubleValue
+    }
+}
+
 extension Bool : _ObjectTypeBridgeable {
     public init(_ number: NSNumber) {
         self = number.boolValue
@@ -120,6 +248,38 @@ extension Bool : _ObjectTypeBridgeable {
     public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Bool?) -> Bool {
         _forceBridgeFromObject(x, result: &result)
         return true
+    }
+}
+
+extension Bool: _ObjectiveCBridgeable {
+    public static func _isBridgedToObjectiveC() -> Bool {
+        return true
+    }
+
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSNumber {
+        return NSNumber(bool: self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout Bool?
+        ) {
+        result = x.boolValue
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(
+        _ x: NSNumber,
+        result: inout Bool?
+        ) -> Bool {
+        self._forceBridgeFromObjectiveC(x, result: &result)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(
+        _ source: NSNumber?
+        ) -> Bool {
+        return source!.boolValue
     }
 }
 

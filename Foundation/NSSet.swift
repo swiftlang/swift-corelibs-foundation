@@ -70,6 +70,39 @@ extension Set : _ObjectTypeBridgeable {
     }
 }
 
+// Set<Element> is conditionally bridged to NSSet
+extension Set : _ObjectiveCBridgeable {
+  @_semantics("convertToObjectiveC")
+  public func _bridgeToObjectiveC() -> NSSet {
+    return _bridgeToObject()
+  }
+
+  public static func _forceBridgeFromObjectiveC(_ s: NSSet, result: inout Set?) {
+    _forceBridgeFromObject(s, result: &result)
+  }
+
+  public static func _conditionallyBridgeFromObjectiveC(
+    _ x: NSSet, result: inout Set?
+  ) -> Bool {
+    return _conditionallyBridgeFromObject(x, result: &result)
+  }
+
+  public static func _unconditionallyBridgeFromObjectiveC(_ s: NSSet?) -> Set {
+    // `nil` has historically been used as a stand-in for an empty
+    // set; map it to an empty set.
+    if _slowPath(s == nil) { return Set() }
+
+    var result:Set?
+    _forceBridgeFromObject(s!, result: &result)
+    return result!
+  }
+
+  public static func _isBridgedToObjectiveC() -> Bool {
+    return Swift._isBridgedToObjectiveC(Element.self)
+  }
+}
+
+
 public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
     internal var _storage: Set<NSObject>

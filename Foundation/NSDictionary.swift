@@ -82,6 +82,45 @@ extension Dictionary : _ObjectTypeBridgeable {
     }
 }
 
+// Dictionary<Key, Value> is conditionally bridged to NSDictionary
+extension Dictionary : _ObjectiveCBridgeable {
+  @_semantics("convertToObjectiveC")
+  public func _bridgeToObjectiveC() -> NSDictionary {
+    return _bridgeToObject()
+  }
+
+  public static func _forceBridgeFromObjectiveC(
+    _ d: NSDictionary,
+    result: inout Dictionary?
+  ) {
+    _forceBridgeFromObject(d, result: &result)
+  }
+
+  public static func _conditionallyBridgeFromObjectiveC(
+    _ x: NSDictionary,
+    result: inout Dictionary?
+  ) -> Bool {
+    return _conditionallyBridgeFromObject(x, result: &result)
+  }
+
+  public static func _isBridgedToObjectiveC() -> Bool {
+    return Swift._isBridgedToObjectiveC(Key.self) &&
+           Swift._isBridgedToObjectiveC(Value.self)
+  }
+
+  public static func _unconditionallyBridgeFromObjectiveC(
+    _ d: NSDictionary?
+  ) -> Dictionary {
+    // `nil` has historically been used as a stand-in for an empty
+    // dictionary; map it to an empty dictionary.
+    if _slowPath(d == nil) { return Dictionary() }
+
+    var result:Dictionary?
+    _forceBridgeFromObject(d!, result: &result)
+    return result!
+  }
+}
+
 public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
     internal var _storage = [NSObject: AnyObject]()

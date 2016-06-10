@@ -116,6 +116,43 @@ extension String : _ObjectTypeBridgeable {
     }
 }
 
+extension String : _ObjectiveCBridgeable {
+  public static func _isBridgedToObjectiveC() -> Bool {
+    return true
+  }
+
+  @_semantics("convertToObjectiveC")
+  public func _bridgeToObjectiveC() -> NSString {
+    return _bridgeToObject()
+  }
+
+  public static func _forceBridgeFromObjectiveC(
+    _ x: NSString,
+    result: inout String?
+  ) {
+    return _forceBridgeFromObject(x, result: &result)
+  }
+
+  public static func _conditionallyBridgeFromObjectiveC(
+    _ x: NSString,
+    result: inout String?
+  ) -> Bool {
+    return _conditionallyBridgeFromObject(x, result: &result)
+  }
+
+  public static func _unconditionallyBridgeFromObjectiveC(
+    _ source: NSString?
+  ) -> String {
+    // `nil` has historically been used as a stand-in for an empty
+    // string; map it to an empty string.
+    if _slowPath(source == nil) { return String() }
+    var result:String?
+    _forceBridgeFromObject(source!, result: &result)
+    return result!
+  }
+}
+
+
 public struct NSStringCompareOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }

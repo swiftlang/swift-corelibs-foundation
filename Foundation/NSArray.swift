@@ -34,6 +34,44 @@ extension Array : _ObjectTypeBridgeable {
     }
 }
 
+extension Array : _ObjectiveCBridgeable {
+
+  public static func _isBridgedToObjectiveC() -> Bool {
+    return Swift._isBridgedToObjectiveC(Element.self)
+  }
+
+  @_semantics("convertToObjectiveC")
+  public func _bridgeToObjectiveC() -> NSArray {
+    return _bridgeToObject()
+  }
+
+  public static func _forceBridgeFromObjectiveC(
+    _ source: NSArray,
+    result: inout Array?
+  ) {
+    _forceBridgeFromObject(source, result: &result)
+  }
+
+  public static func _conditionallyBridgeFromObjectiveC(
+    _ source: NSArray,
+    result: inout Array?
+  ) -> Bool {
+    return _conditionallyBridgeFromObject(source, result: &result)
+  }
+
+  public static func _unconditionallyBridgeFromObjectiveC(
+    _ source: NSArray?
+  ) -> Array {
+    // `nil` has historically been used as a stand-in for an empty
+    // array; map it to an empty array instead of failing.
+    if _slowPath(source == nil) { return Array() }
+
+    var result:Array?
+    _forceBridgeFromObject(source!, result: &result)
+    return result!
+  }
+}
+
 public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFArrayGetTypeID())
     internal var _storage = [AnyObject]()
