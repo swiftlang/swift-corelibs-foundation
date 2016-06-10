@@ -24,6 +24,7 @@ class TestNSCalendar: XCTestCase {
             ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),
             ("test_initializingWithInvalidIdentifier", test_initializingWithInvalidIdentifier),
             ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
+            ("test_copy",test_copy),
             // Disabled because this fails on linux https://bugs.swift.org/browse/SR-320
             // ("test_currentCalendarRRstability", test_currentCalendarRRstability),
         ]
@@ -87,5 +88,20 @@ class TestNSCalendar: XCTestCase {
         }
         
         XCTAssertEqual(AMSymbols.count, 10, "Accessing current calendar should work over multiple callouts")
+    }
+    
+    func test_copy() {
+        let calendar = Calendar.currentCalendar()
+
+        //Mutate below fields and check if change is being reflected in copy.
+        calendar.firstWeekday = 2 
+        calendar.minimumDaysInFirstWeek = 2
+
+        let copy = calendar.copy() as! Calendar
+        XCTAssertTrue(copy.isEqual(calendar))
+
+        //verify firstWeekday and minimumDaysInFirstWeek of 'copy'. 
+        XCTAssertEqual(copy.firstWeekday, 2)
+        XCTAssertEqual(copy.minimumDaysInFirstWeek, 2)
     }
 }
