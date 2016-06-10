@@ -402,13 +402,11 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     }
     
     /// Test for membership of a particular `UnicodeScalar` in the `CharacterSet`.
-    @warn_unused_result
     public func contains(_ member: UnicodeScalar) -> Bool {
         return _mapUnmanaged { $0.longCharacterIsMember(member.value) }
     }
     
     /// Returns a union of the `CharacterSet` with another `CharacterSet`.
-    @warn_unused_result
     public func union(_ other: CharacterSet) -> CharacterSet {
         // The underlying collection does not have a method to return new CharacterSets with changes applied, so we will copy and apply here
         var result = self
@@ -422,7 +420,6 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     }
     
     /// Returns an intersection of the `CharacterSet` with another `CharacterSet`.
-    @warn_unused_result
     public func intersection(_ other: CharacterSet) -> CharacterSet {
         // The underlying collection does not have a method to return new CharacterSets with changes applied, so we will copy and apply here
         var result = self
@@ -438,7 +435,6 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     }
     
     /// Returns the exclusive or of the `CharacterSet` with another `CharacterSet`.
-    @warn_unused_result
     public func symmetricDifference(_ other: CharacterSet) -> CharacterSet {
         return union(other).subtracting(intersection(other))
     }
@@ -449,7 +445,6 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     }
     
     /// Returns true if `self` is a superset of `other`.
-    @warn_unused_result
     public func isSuperset(of other: CharacterSet) -> Bool {
         return _mapUnmanaged { $0.isSuperset(of: other) }
     }
@@ -492,7 +487,6 @@ extension CharacterSet {
 }
 
 extension CharacterSet {
-    @warn_unused_result
     public func contains(_ member: unichar) -> Bool {
         return contains(UnicodeScalar(member))
     }

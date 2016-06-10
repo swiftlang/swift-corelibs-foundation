@@ -46,7 +46,6 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
 
-    @warn_unused_result
     public func decodeObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
         NSUnimplemented()
     }
@@ -62,22 +61,18 @@ public class NSCoder : NSObject {
         be casted to NSObject, nor is it Hashable.
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    @warn_unused_result
     public func decodeObjectOfClasses(_ classes: [AnyClass], forKey key: String) -> AnyObject? {
         NSUnimplemented()
     }
     
-    @warn_unused_result
     public func decodeTopLevelObject() throws -> AnyObject? {
         NSUnimplemented()
     }
     
-    @warn_unused_result
     public func decodeTopLevelObjectForKey(_ key: String) throws -> AnyObject? {
         NSUnimplemented()
     }
     
-    @warn_unused_result
     public func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? {
         NSUnimplemented()
     }
@@ -93,7 +88,6 @@ public class NSCoder : NSObject {
      be casted to NSObject, nor is it Hashable.
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    @warn_unused_result
     public func decodeTopLevelObjectOfClasses(_ classes: [AnyClass], forKey key: String) throws -> AnyObject? {
         NSUnimplemented()
     }

@@ -651,27 +651,22 @@ public class NSKeyedUnarchiver : NSCoder {
         return nil
     }
 
-    @warn_unused_result
     public override func decodeObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
         return decodeObjectOfClasses([cls], forKey: key) as? DecodedObjectType
     }
     
-    @warn_unused_result
     public override func decodeObjectOfClasses(_ classes: [AnyClass], forKey key: String) -> AnyObject? {
         return _decodeObjectOfClasses(classes, forKey: key)
     }
     
-    @warn_unused_result
     public override func decodeTopLevelObjectForKey(_ key: String) throws -> AnyObject? {
         return try decodeTopLevelObjectOfClasses([NSArray.self], forKey: key)
     }
     
-    @warn_unused_result
     public override func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? {
         return try self.decodeTopLevelObjectOfClasses([cls], forKey: key) as! DecodedObjectType?
     }
     
-    @warn_unused_result
     public override func decodeTopLevelObjectOfClasses(_ classes: [AnyClass], forKey key: String) throws -> AnyObject? {
         guard self._containers?.count == 1 else {
             throw _decodingError(NSCocoaError.CoderReadCorruptError,
@@ -895,7 +890,6 @@ public class NSKeyedUnarchiver : NSCoder {
 }
 
 extension NSKeyedUnarchiver {
-    @warn_unused_result
     public class func unarchiveTopLevelObjectWithData(_ data: Data) throws -> AnyObject? {
         var root : AnyObject? = nil
         
