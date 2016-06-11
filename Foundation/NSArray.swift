@@ -482,7 +482,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return result
     }
 
-    internal func sortedArrayFromRange(_ range: NSRange, options: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
+    internal func sortedArrayFromRange(_ range: NSRange, options: SortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
         // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
         guard options.isEmpty else {
             NSUnimplemented()
@@ -503,7 +503,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return sortedArrayFromRange(NSMakeRange(0, count), options: [], usingComparator: cmptr)
     }
 
-    public func sortedArrayWithOptions(_ opts: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
+    public func sortedArrayWithOptions(_ opts: SortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
         return sortedArrayFromRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
     }
 
@@ -850,7 +850,7 @@ public class NSMutableArray : NSArray {
         self.sortWithOptions([], usingComparator: cmptr)
     }
 
-    public func sortWithOptions(_ opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+    public func sortWithOptions(_ opts: SortOptions, usingComparator cmptr: NSComparator) {
         self.setArray(self.sortedArrayWithOptions(opts, usingComparator: cmptr))
     }
     

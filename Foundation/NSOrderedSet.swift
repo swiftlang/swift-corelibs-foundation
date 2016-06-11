@@ -261,7 +261,7 @@ extension NSOrderedSet {
     public func indexOfObject(_ object: AnyObject, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
     
     public func sortedArrayUsingComparator(_ cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
-    public func sortedArrayWithOptions(_ opts: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
+    public func sortedArrayWithOptions(_ opts: SortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
     
     public func descriptionWithLocale(_ locale: AnyObject?) -> String { NSUnimplemented() }
     public func descriptionWithLocale(_ locale: AnyObject?, indent level: Int) -> String { NSUnimplemented() }
@@ -526,11 +526,11 @@ extension NSMutableOrderedSet {
         sortRange(NSMakeRange(0, count), options: [], usingComparator: cmptr)
     }
 
-    public func sortWithOptions(_ opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+    public func sortWithOptions(_ opts: SortOptions, usingComparator cmptr: NSComparator) {
         sortRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
     }
 
-    public func sortRange(_ range: NSRange, options opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+    public func sortRange(_ range: NSRange, options opts: SortOptions, usingComparator cmptr: NSComparator) {
         // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
         guard opts.isEmpty else {
             NSUnimplemented()
