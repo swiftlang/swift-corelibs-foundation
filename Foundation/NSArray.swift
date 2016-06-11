@@ -417,11 +417,12 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     public func writeToFile(_ path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
     public func writeToURL(_ url: URL, atomically: Bool) -> Bool { NSUnimplemented() }
     
-    public func objectsAtIndexes(_ indexes: NSIndexSet) -> [AnyObject] {
+    public func objectsAtIndexes(_ indexes: IndexSet) -> [AnyObject] {
         var objs = [AnyObject]()
-        indexes.enumerateRangesUsingBlock { (range, _) in
-            objs.append(contentsOf: self.subarrayWithRange(range))
+        indexes.rangeView().forEach {
+            objs.append(contentsOf: self.subarrayWithRange(NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound)))
         }
+        
         return objs
     }
     
@@ -437,14 +438,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         self.enumerateObjectsWithOptions([], usingBlock: block)
     }
     public func enumerateObjectsWithOptions(_ opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        self.enumerateObjectsAtIndexes(NSIndexSet(indexesInRange: NSMakeRange(0, count)), options: opts, usingBlock: block)
+        self.enumerateObjectsAtIndexes(IndexSet(indexesIn: NSMakeRange(0, count)), options: opts, usingBlock: block)
     }
-    public func enumerateObjectsAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjectsAtIndexes(_ s: IndexSet, options opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         guard !opts.contains(.concurrent) else {
             NSUnimplemented()
         }
-        
-        s.enumerateIndexesWithOptions(opts) { (idx, stop) in
+        s._bridgeToObjectiveC().enumerate(opts) { (idx, stop) in
             block(self.objectAtIndex(idx), idx, stop)
         }
     }
@@ -453,9 +453,9 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return indexOfObjectWithOptions([], passingTest: predicate)
     }
     public func indexOfObjectWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
-        return indexOfObjectAtIndexes(NSIndexSet(indexesInRange: NSMakeRange(0, count)), options: opts, passingTest: predicate)
+        return indexOfObjectAtIndexes(IndexSet(indexesIn: NSMakeRange(0, count)), options: opts, passingTest: predicate)
     }
-    public func indexOfObjectAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexOfObjectAtIndexes(_ s: IndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         var result = NSNotFound
         enumerateObjectsAtIndexes(s, options: opts) { (obj, idx, stop) -> Void in
             if predicate(obj, idx, stop) {
@@ -466,17 +466,17 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         return result
     }
     
-    public func indexesOfObjectsPassingTest(_ predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
+    public func indexesOfObjectsPassingTest(_ predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         return indexesOfObjectsWithOptions([], passingTest: predicate)
     }
-    public func indexesOfObjectsWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
-        return indexesOfObjectsAtIndexes(NSIndexSet(indexesInRange: NSMakeRange(0, count)), options: opts, passingTest: predicate)
+    public func indexesOfObjectsWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+        return indexesOfObjectsAtIndexes(IndexSet(indexesIn: NSMakeRange(0, count)), options: opts, passingTest: predicate)
     }
-    public func indexesOfObjectsAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet {
-        let result = NSMutableIndexSet()
+    public func indexesOfObjectsAtIndexes(_ s: IndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+        var result = IndexSet()
         enumerateObjectsAtIndexes(s, options: opts) { (obj, idx, stop) in
             if predicate(obj, idx, stop) {
-                result.addIndex(idx)
+                result.insert(idx)
             }
         }
         return result
@@ -812,7 +812,7 @@ public class NSMutableArray : NSArray {
         }
     }
     
-    public func insertObjects(_ objects: [AnyObject], atIndexes indexes: NSIndexSet) {
+    public func insertObjects(_ objects: [AnyObject], atIndexes indexes: IndexSet) {
         precondition(objects.count == indexes.count)
         
         if self.dynamicType === NSMutableArray.self {
@@ -820,21 +820,22 @@ public class NSMutableArray : NSArray {
         }
 
         var objectIdx = 0
-        indexes.enumerateIndexesUsingBlock() { (insertionIndex, _) in
+        for insertionIndex in indexes {
             self.insertObject(objects[objectIdx], atIndex: insertionIndex)
             objectIdx += 1
         }
     }
     
-    public func removeObjectsAtIndexes(_ indexes: NSIndexSet) {
-        indexes.enumerateRangesWithOptions(.reverse) { (range, _) in
-            self.removeObjectsInRange(range)
+    public func removeObjectsAtIndexes(_ indexes: IndexSet) {
+        for range in indexes.rangeView().reversed() {
+            self.removeObjectsInRange(NSMakeRange(range.lowerBound, range.upperBound - range.lowerBound))
         }
     }
     
-    public func replaceObjectsAtIndexes(_ indexes: NSIndexSet, withObjects objects: [AnyObject]) {
+    public func replaceObjectsAtIndexes(_ indexes: IndexSet, withObjects objects: [AnyObject]) {
         var objectIndex = 0
-        indexes.enumerateRangesUsingBlock { (range, _) in
+        for countedRange in indexes.rangeView() {
+            let range = NSMakeRange(countedRange.lowerBound, countedRange.upperBound - countedRange.lowerBound)
             let subObjects = objects[objectIndex..<objectIndex + range.length]
             self.replaceObjectsInRange(range, withObjectsFromArray: Array(subObjects))
             objectIndex += range.length

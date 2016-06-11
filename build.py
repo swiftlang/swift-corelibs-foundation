@@ -386,6 +386,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/DateComponents.swift',
 	'Foundation/DateInterval.swift',
 	'Foundation/IndexPath.swift',
+	'Foundation/IndexSet.swift',
 ])
 
 swift_sources.add_dependency(headers)

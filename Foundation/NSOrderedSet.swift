@@ -143,7 +143,7 @@ extension NSOrderedSet {
         }
     }
 
-    public func objectsAtIndexes(_ indexes: NSIndexSet) -> [AnyObject] {
+    public func objectsAtIndexes(_ indexes: IndexSet) -> [AnyObject] {
         var entries = [AnyObject]()
         for idx in indexes {
             if idx >= count && idx < 0 {
@@ -248,15 +248,15 @@ extension NSOrderedSet {
     
     public func enumerateObjectsUsingBlock(_ block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     public func enumerateObjectsWithOptions(_ opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
-    public func enumerateObjectsAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateObjectsAtIndexes(_ s: IndexSet, options opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     
     public func indexOfObjectPassingTest(_ predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
     public func indexOfObjectWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
-    public func indexOfObjectAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
+    public func indexOfObjectAtIndexes(_ s: IndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
     
-    public func indexesOfObjectsPassingTest(_ predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
-    public func indexesOfObjectsWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
-    public func indexesOfObjectsAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
+    public func indexesOfObjectsPassingTest(_ predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
+    public func indexesOfObjectsWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
+    public func indexesOfObjectsAtIndexes(_ s: IndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
     
     public func indexOfObject(_ object: AnyObject, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
     
@@ -409,7 +409,7 @@ extension NSMutableOrderedSet {
         }
     }
 
-    public func moveObjectsAtIndexes(_ indexes: NSIndexSet, toIndex idx: Int) {
+    public func moveObjectsAtIndexes(_ indexes: IndexSet, toIndex idx: Int) {
         var removedObjects = [NSObject]()
         for index in indexes.lazy.reversed() {
             if let object = objectAtIndex(index) as? NSObject {
@@ -422,7 +422,7 @@ extension NSMutableOrderedSet {
         }
     }
     
-    public func insertObjects(_ objects: [AnyObject], atIndexes indexes: NSIndexSet) {
+    public func insertObjects(_ objects: [AnyObject], atIndexes indexes: IndexSet) {
         for (indexLocation, index) in indexes.enumerated() {
             if let object = objects[indexLocation] as? NSObject {
                 insertObject(object, atIndex: index)
@@ -452,7 +452,7 @@ extension NSMutableOrderedSet {
         }
     }
 
-    public func replaceObjectsAtIndexes(_ indexes: NSIndexSet, withObjects objects: [AnyObject]) {
+    public func replaceObjectsAtIndexes(_ indexes: IndexSet, withObjects objects: [AnyObject]) {
         for (indexLocation, index) in indexes.enumerated() {
             if let object = objects[indexLocation] as? NSObject {
                 replaceObjectAtIndex(index, withObject: object)
@@ -468,7 +468,7 @@ extension NSMutableOrderedSet {
         }
     }
 
-    public func removeObjectsAtIndexes(_ indexes: NSIndexSet) {
+    public func removeObjectsAtIndexes(_ indexes: IndexSet) {
         for index in indexes.lazy.reversed() {
             removeObjectAtIndex(index)
         }

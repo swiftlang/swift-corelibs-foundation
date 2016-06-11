@@ -90,10 +90,10 @@ extension NSArray {
 
 extension NSMutableArray {
     public func filterUsingPredicate(_ predicate: Predicate) {
-        let indexesToRemove = NSMutableIndexSet()
+        var indexesToRemove = IndexSet()
         for (index, object) in self.enumerated() {
             if !predicate.evaluate(with: object) {
-                indexesToRemove.addIndex(index)
+                indexesToRemove.insert(index)
             }
         }
         self.removeObjectsAtIndexes(indexesToRemove)
@@ -128,10 +128,10 @@ extension NSOrderedSet {
 
 extension NSMutableOrderedSet {
     public func filterUsingPredicate(_ predicate: Predicate) {
-        let indexesToRemove = NSMutableIndexSet()
+        var indexesToRemove = IndexSet()
         for (index, object) in self.enumerated() {
             if !predicate.evaluate(with: object) {
-                indexesToRemove.addIndex(index)
+                indexesToRemove.insert(index)
             }
         }
         self.removeObjectsAtIndexes(indexesToRemove)
