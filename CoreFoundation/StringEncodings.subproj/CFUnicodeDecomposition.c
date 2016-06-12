@@ -344,7 +344,7 @@ CF_INLINE void __CFUniCharMoveBufferFromEnd1(UTF32Char *convertedChars, CFIndex 
     while (convertedChars > limit) *(--dstP) = *(--convertedChars);
 }
 
-CF_PRIVATE CFIndex CFUniCharCompatibilityDecompose(UTF32Char *convertedChars, CFIndex length, CFIndex maxBufferLength) {
+CF_EXPORT CFIndex CFUniCharCompatibilityDecompose(UTF32Char *convertedChars, CFIndex length, CFIndex maxBufferLength) {
     UTF32Char currentChar;
     UTF32Char buffer[MAX_COMP_DECOMP_LEN];
     const UTF32Char *bufferP;

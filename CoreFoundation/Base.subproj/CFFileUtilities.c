@@ -61,7 +61,7 @@ CF_INLINE void closeAutoFSNoWait(int fd) {
     if (-1 != fd) close(fd);
 }
 
-CF_PRIVATE CFStringRef _CFCopyExtensionForAbstractType(CFStringRef abstractType) {
+CF_EXPORT CFStringRef _CFCopyExtensionForAbstractType(CFStringRef abstractType) {
     return (abstractType ? (CFStringRef)CFRetain(abstractType) : NULL);
 }
 
@@ -166,7 +166,7 @@ CF_PRIVATE Boolean _CFReadBytesFromFile(CFAllocatorRef alloc, CFURLRef url, void
     return _CFReadBytesFromPath(alloc, (const char *)path, bytes, length, maxLength, extraOpenFlags);
 }
 
-CF_PRIVATE Boolean _CFWriteBytesToFile(CFURLRef url, const void *bytes, CFIndex length) {
+CF_EXPORT Boolean _CFWriteBytesToFile(CFURLRef url, const void *bytes, CFIndex length) {
     int fd = -1;
     int mode;
     struct statinfo statBuf;
@@ -649,7 +649,7 @@ static Boolean _hasNet(CFStringRef path) {
     #define IS_SLASH(C)	((C) == '/')
 #endif
 
-CF_PRIVATE UniChar _CFGetSlash() {
+CF_EXPORT UniChar _CFGetSlash() {
     return CFPreferredSlash;
 }
 
@@ -657,7 +657,7 @@ CF_PRIVATE CFStringRef _CFGetSlashStr() {
     return CFPreferredSlashStr;
 }
 
-CF_PRIVATE Boolean _CFIsAbsolutePath(UniChar *unichars, CFIndex length) {
+CF_EXPORT Boolean _CFIsAbsolutePath(UniChar *unichars, CFIndex length) {
     if (length < 1) {
         return false;
     }
@@ -753,7 +753,7 @@ CF_PRIVATE void _CFAppendPathComponent2(CFMutableStringRef path, CFStringRef com
     CFStringAppend(path, component);
 }
 
-CF_PRIVATE Boolean _CFAppendPathComponent(UniChar *unichars, CFIndex *length, CFIndex maxLength, UniChar *component, CFIndex componentLength) {
+CF_EXPORT Boolean _CFAppendPathComponent(UniChar *unichars, CFIndex *length, CFIndex maxLength, UniChar *component, CFIndex componentLength) {
     if (0 == componentLength) {
         return true;
     }
@@ -820,7 +820,7 @@ CF_PRIVATE Boolean _CFAppendPathExtension2(CFMutableStringRef path, CFStringRef 
     return true;
 }
 
-CF_PRIVATE Boolean _CFAppendPathExtension(UniChar *unichars, CFIndex *length, CFIndex maxLength, UniChar *extension, CFIndex extensionLength) {
+CF_EXPORT Boolean _CFAppendPathExtension(UniChar *unichars, CFIndex *length, CFIndex maxLength, UniChar *extension, CFIndex extensionLength) {
     if (maxLength < *length + 1 + extensionLength) {
         return false;
     }
@@ -866,7 +866,7 @@ CF_PRIVATE Boolean _CFAppendPathExtension(UniChar *unichars, CFIndex *length, CF
     return true;
 }
 
-CF_PRIVATE Boolean _CFTransmutePathSlashes(UniChar *unichars, CFIndex *length, UniChar replSlash) {
+CF_EXPORT Boolean _CFTransmutePathSlashes(UniChar *unichars, CFIndex *length, UniChar replSlash) {
     CFIndex didx, sidx, scnt = *length;
     sidx = (1 < *length && HAS_NET(unichars)) ? 2 : 0;
     didx = sidx;
@@ -909,7 +909,7 @@ CF_PRIVATE CFStringRef _CFCreateLastPathComponent(CFAllocatorRef alloc, CFString
     return (CFStringRef)CFRetain(path);
 }
 
-CF_PRIVATE CFIndex _CFStartOfLastPathComponent(UniChar *unichars, CFIndex length) {
+CF_EXPORT CFIndex _CFStartOfLastPathComponent(UniChar *unichars, CFIndex length) {
     CFIndex idx;
     if (length < 2) {
         return 0;
@@ -941,7 +941,7 @@ CF_PRIVATE CFIndex _CFStartOfLastPathComponent2(CFStringRef path) {
     return 0;
 }
 
-CF_PRIVATE CFIndex _CFLengthAfterDeletingLastPathComponent(UniChar *unichars, CFIndex length) {
+CF_EXPORT CFIndex _CFLengthAfterDeletingLastPathComponent(UniChar *unichars, CFIndex length) {
     CFIndex idx;
     if (length < 2) {
         return 0;
@@ -981,7 +981,7 @@ CF_PRIVATE CFIndex _CFStartOfPathExtension2(CFStringRef path) {
     return 0;
 }
 
-CF_PRIVATE CFIndex _CFStartOfPathExtension(UniChar *unichars, CFIndex length) {
+CF_EXPORT CFIndex _CFStartOfPathExtension(UniChar *unichars, CFIndex length) {
     CFIndex idx;
     if (length < 2) {
         return 0;
@@ -1006,7 +1006,7 @@ CF_PRIVATE CFIndex _CFLengthAfterDeletingPathExtension2(CFStringRef path) {
     return ((0 < start) ? start : CFStringGetLength(path));
 }
 
-CF_PRIVATE CFIndex _CFLengthAfterDeletingPathExtension(UniChar *unichars, CFIndex length) {
+CF_EXPORT CFIndex _CFLengthAfterDeletingPathExtension(UniChar *unichars, CFIndex length) {
     CFIndex start = _CFStartOfPathExtension(unichars, length);
     return ((0 < start) ? start : length);
 }

@@ -147,7 +147,7 @@ CF_EXPORT void _CFMachPortInstallNotifyPort(CFRunLoopRef rl, CFStringRef mode);
 #endif
 
 
-CF_PRIVATE CFIndex __CFActiveProcessorCount();
+CF_EXPORT CFIndex __CFActiveProcessorCount();
 
 #ifndef CLANG_ANALYZER_NORETURN
 #if __has_feature(attribute_analyzer_noreturn)
@@ -429,7 +429,7 @@ extern CFTypeRef CFMakeUncollectable(CFTypeRef cf);
 
 CF_PRIVATE void _CFRaiseMemoryException(CFStringRef reason);
 
-CF_EXPORT CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
+CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
 
 CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;

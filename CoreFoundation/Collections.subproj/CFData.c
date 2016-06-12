@@ -516,7 +516,7 @@ CFMutableDataRef CFDataCreateMutableCopy(CFAllocatorRef allocator, CFIndex capac
     return r;
 }
 
-CFIndex CFDataGetLength(CFDataRef data) {
+CF_EXPORT CFIndex CFDataGetLength(CFDataRef data) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), CFIndex, (NSData *)data, length);
     __CFGenericValidateType(data, CFDataGetTypeID());
     return __CFDataLength(data);
