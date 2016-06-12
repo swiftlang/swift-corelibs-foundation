@@ -40,7 +40,7 @@ extension Dictionary : _ObjectTypeBridgeable {
         var failedConversion = false
         
         if x.dynamicType == NSDictionary.self || x.dynamicType == NSMutableDictionary.self {
-            x.enumerateKeysAndObjectsUsingBlock { key, value, stop in
+            x.enumerateKeysAndObjects([]) { key, value, stop in
                 guard let key = key as? Key, let value = value as? Value else {
                     failedConversion = true
                     stop.pointee = true
@@ -247,7 +247,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         guard let otherDictionary = object as? NSDictionary else {
             return false
         }
-        return self.isEqualToDictionary(otherDictionary.bridge())
+        return self.isEqual(to: otherDictionary.bridge())
     }
 
     public override var hash: Int {
@@ -305,9 +305,9 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     
-    public func allKeysForObject(_ anObject: AnyObject) -> [AnyObject] {
+    public func allKeys(for anObject: AnyObject) -> [AnyObject] {
         var matching = Array<AnyObject>()
-        enumerateKeysAndObjectsWithOptions([]) { key, value, _ in
+        enumerateKeysAndObjects([]) { key, value, _ in
             if value === anObject {
                 matching.append(key)
             }
@@ -326,7 +326,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     /// [Property List Programming Guide](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/PropertyLists/Introduction/Introduction.html#//apple_ref/doc/uid/10000048i)
     /// and [Archives and Serializations Programming Guide](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Archiving/Archiving.html#//apple_ref/doc/uid/10000047i).
     public override var description: String {
-        return descriptionWithLocale(nil)
+        return description(withLocale: nil)
     }
 
     public var descriptionInStringsFileFormat: String { NSUnimplemented() }
@@ -337,8 +337,8 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     /// - parameter locale: An object that specifies options used for formatting
     ///   each of the dictionary’s keys and values; pass `nil` if you don’t
     ///   want them formatted.
-    public func descriptionWithLocale(_ locale: AnyObject?) -> String {
-        return descriptionWithLocale(locale, indent: 0)
+    public func description(withLocale locale: AnyObject?) -> String {
+        return description(withLocale: locale, indent: 0)
     }
 
     /// Returns a string object that represents the contents of the dictionary,
@@ -353,7 +353,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     ///
     /// - returns: A string object that represents the contents of the dictionary,
     ///   formatted as a property list.
-    public func descriptionWithLocale(_ locale: AnyObject?, indent level: Int) -> String {
+    public func description(withLocale locale: AnyObject?, indent level: Int) -> String {
         if level > 100 { return "..." }
 
         var lines = [String]()
@@ -370,7 +370,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             } else if key is NSDecimalNumber {
                 line += (key as! NSDecimalNumber).description(withLocale: locale)
             } else if key is NSDictionary {
-                line += (key as! NSDictionary).descriptionWithLocale(locale, indent: level + 1)
+                line += (key as! NSDictionary).description(withLocale: locale, indent: level + 1)
             } else if key is NSOrderedSet {
                 line += (key as! NSOrderedSet).descriptionWithLocale(locale, indent: level + 1)
             } else if key is NSSet {
@@ -389,7 +389,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             } else if object is NSDecimalNumber {
                 line += (object as! NSDecimalNumber).description(withLocale: locale)
             } else if object is NSDictionary {
-                line += (object as! NSDictionary).descriptionWithLocale(locale, indent: level + 1)
+                line += (object as! NSDictionary).description(withLocale: locale, indent: level + 1)
             } else if object is NSOrderedSet {
                 line += (object as! NSOrderedSet).descriptionWithLocale(locale, indent: level + 1)
             } else if object is NSSet {
@@ -408,7 +408,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return lines.joined(separator: "\n")
     }
 
-    public func isEqualToDictionary(_ otherDictionary: [NSObject : AnyObject]) -> Bool {
+    public func isEqual(to otherDictionary: [NSObject : AnyObject]) -> Bool {
         if count != otherDictionary.count {
             return false
         }
@@ -463,7 +463,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return NSGeneratorEnumerator(ObjectGenerator(self))
     }
     
-    public func objectsForKeys(_ keys: [NSObject], notFoundMarker marker: AnyObject) -> [AnyObject] {
+    public func objects(forKeys keys: [AnyObject], notFoundMarker marker: AnyObject) -> [AnyObject] {
         var objects = [AnyObject]()
         for key in keys {
             if let object = objectForKey(key) {
@@ -475,14 +475,14 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return objects
     }
     
-    public func writeToFile(_ path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
-    public func writeToURL(_ url: URL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
+    public func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
+    public func write(to url: URL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
     
-    public func enumerateKeysAndObjectsUsingBlock(_ block: (NSObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        enumerateKeysAndObjectsWithOptions([], usingBlock: block)
+    public func enumerateKeysAndObjects(_ block: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+        enumerateKeysAndObjects([], using: block)
     }
 
-    public func enumerateKeysAndObjectsWithOptions(_ opts: EnumerationOptions, usingBlock block: (NSObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateKeysAndObjects(_ opts: EnumerationOptions = [], using block: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         let count = self.count
         var keys = [AnyObject]()
         var objects = [AnyObject]()
@@ -499,26 +499,26 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
     
-    public func keysSortedByValueUsingComparator(_ cmptr: NSComparator) -> [AnyObject] {
-        return keysSortedByValueWithOptions([], usingComparator: cmptr)
+    public func keysSortedByValue(comparator cmptr: @noescape (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
+        return keysSortedByValue([], usingComparator: cmptr)
     }
 
-    public func keysSortedByValueWithOptions(_ opts: SortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] {
+    public func keysSortedByValue(_ opts: SortOptions = [], usingComparator cmptr: @noescape (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
         let sorted = allKeys.sorted { lhs, rhs in
             return cmptr(lhs, rhs) == .orderedSame
         }
         return sorted
     }
 
-    public func keysOfEntriesPassingTest(_ predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
-        return keysOfEntriesWithOptions([], passingTest: predicate)
+    public func keysOfEntries(passingTest predicate: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+        return keysOfEntries([], passingTest: predicate)
     }
 
-    public func keysOfEntriesWithOptions(_ opts: EnumerationOptions, passingTest predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    public func keysOfEntries(_ opts: EnumerationOptions = [], passingTest predicate: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         var matching = Set<NSObject>()
-        enumerateKeysAndObjectsWithOptions(opts) { key, value, stop in
+        enumerateKeysAndObjects(opts) { key, value, stop in
             if predicate(key, value, stop) {
-                matching.insert(key)
+                matching.insert(key as! NSObject)
             }
         }
         return matching
@@ -566,7 +566,7 @@ extension Dictionary : _NSBridgable, _CFBridgable {
 
 public class NSMutableDictionary : NSDictionary {
     
-    public func removeObjectForKey(_ aKey: AnyObject) {
+    public func removeObject(forKey aKey: AnyObject) {
         if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
             if let key = aKey as? NSObject {
                 _storage.removeValue(forKey: key)
@@ -618,14 +618,14 @@ extension NSMutableDictionary {
 //            CFDictionaryRemoveAllValues(unsafeBitCast(self, CFMutableDictionaryRef.self))
         } else {
             for key in allKeys {
-                removeObjectForKey(key)
+                removeObject(forKey: key)
             }
         }
     }
     
     public func removeObjectsForKeys(_ keyArray: [AnyObject]) {
         for key in keyArray {
-            removeObjectForKey(key)
+            removeObject(forKey: key)
         }
     }
     
@@ -648,7 +648,7 @@ extension NSMutableDictionary {
             if let val = newValue {
                 setObject(val, forKey: key)
             } else {
-                removeObjectForKey(key)
+                removeObject(forKey: key)
             }
         }
     }
@@ -672,7 +672,7 @@ extension NSDictionary {
     As for any usage of hashing, is recommended that the keys have a well-distributed implementation of -hash, and the hash codes must satisfy the hash/isEqual: invariant.
     Keys with duplicate hash codes are allowed, but will cause lower performance and increase memory usage.
     */
-    public class func sharedKeySetForKeys(_ keys: [NSCopying]) -> AnyObject { NSUnimplemented() }
+    public class func sharedKeySet(forKeys keys: [NSCopying]) -> AnyObject { NSUnimplemented() }
 }
 
 extension NSMutableDictionary {
