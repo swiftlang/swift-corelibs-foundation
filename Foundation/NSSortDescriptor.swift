@@ -8,7 +8,7 @@
 //
 
 
-public class NSSortDescriptor : NSObject, NSSecureCoding, NSCopying {
+public class SortDescriptor: NSObject, NSSecureCoding, NSCopying {
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
@@ -48,28 +48,28 @@ public class NSSortDescriptor : NSObject, NSSecureCoding, NSCopying {
 
 extension NSSet {
     
-    public func sortedArrayUsingDescriptors(_ sortDescriptors: [NSSortDescriptor]) -> [AnyObject] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
+    public func sortedArrayUsingDescriptors(_ sortDescriptors: [SortDescriptor]) -> [AnyObject] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
 }
 
 extension NSArray {
     
-    public func sortedArrayUsingDescriptors(_ sortDescriptors: [NSSortDescriptor]) -> [AnyObject] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
+    public func sortedArrayUsingDescriptors(_ sortDescriptors: [SortDescriptor]) -> [AnyObject] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
 }
 
 extension NSMutableArray {
     
-    public func sortUsingDescriptors(_ sortDescriptors: [NSSortDescriptor]) { NSUnimplemented() } // sorts the array itself
+    public func sortUsingDescriptors(_ sortDescriptors: [SortDescriptor]) { NSUnimplemented() } // sorts the array itself
 }
 
 
 extension NSOrderedSet {
     
     // returns a new array by sorting the objects of the receiver
-    public func sortedArrayUsingDescriptors(_ sortDescriptors: [NSSortDescriptor]) -> [AnyObject] { NSUnimplemented() }
+    public func sortedArrayUsingDescriptors(_ sortDescriptors: [SortDescriptor]) -> [AnyObject] { NSUnimplemented() }
 }
 
 extension NSMutableOrderedSet {
     
     // sorts the ordered set itself
-    public func sortUsingDescriptors(_ sortDescriptors: [NSSortDescriptor]) { NSUnimplemented() }
+    public func sortUsingDescriptors(_ sortDescriptors: [SortDescriptor]) { NSUnimplemented() }
 }
