@@ -843,11 +843,11 @@ public class NSMutableArray : NSArray {
         self.setArray(self.sortedArray(compare, context: context))
     }
 
-    public func sortUsingComparator(_ cmptr: NSComparator) {
+    public func sortUsingComparator(_ cmptr: Comparator) {
         self.sortWithOptions([], usingComparator: cmptr)
     }
 
-    public func sortWithOptions(_ opts: SortOptions, usingComparator cmptr: NSComparator) {
+    public func sortWithOptions(_ opts: SortOptions, usingComparator cmptr: Comparator) {
         self.setArray(self.sortedArray(opts, usingComparator: cmptr))
     }
     

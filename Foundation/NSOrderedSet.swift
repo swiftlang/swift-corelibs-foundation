@@ -258,10 +258,10 @@ extension NSOrderedSet {
     public func indexesOfObjectsWithOptions(_ opts: EnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
     public func indexesOfObjectsAtIndexes(_ s: IndexSet, options opts: EnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
     
-    public func indexOfObject(_ object: AnyObject, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
+    public func indexOfObject(_ object: AnyObject, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: Comparator) -> Int { NSUnimplemented() } // binary search
     
-    public func sortedArrayUsingComparator(_ cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
-    public func sortedArrayWithOptions(_ opts: SortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
+    public func sortedArrayUsingComparator(_ cmptr: Comparator) -> [AnyObject] { NSUnimplemented() }
+    public func sortedArrayWithOptions(_ opts: SortOptions, usingComparator cmptr: Comparator) -> [AnyObject] { NSUnimplemented() }
     
     public func descriptionWithLocale(_ locale: AnyObject?) -> String { NSUnimplemented() }
     public func descriptionWithLocale(_ locale: AnyObject?, indent level: Int) -> String { NSUnimplemented() }
@@ -522,15 +522,15 @@ extension NSMutableOrderedSet {
         other.forEach(addObject)
     }
     
-    public func sortUsingComparator(_ cmptr: NSComparator) {
+    public func sortUsingComparator(_ cmptr: Comparator) {
         sortRange(NSMakeRange(0, count), options: [], usingComparator: cmptr)
     }
 
-    public func sortWithOptions(_ opts: SortOptions, usingComparator cmptr: NSComparator) {
+    public func sortWithOptions(_ opts: SortOptions, usingComparator cmptr: Comparator) {
         sortRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
     }
 
-    public func sortRange(_ range: NSRange, options opts: SortOptions, usingComparator cmptr: NSComparator) {
+    public func sortRange(_ range: NSRange, options opts: SortOptions, usingComparator cmptr: Comparator) {
         // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
         guard opts.isEmpty else {
             NSUnimplemented()

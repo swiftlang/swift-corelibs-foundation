@@ -38,9 +38,9 @@ public class SortDescriptor: NSObject, NSSecureCoding, NSCopying {
     
     public func allowEvaluation() { NSUnimplemented() } // Force a sort descriptor which was securely decoded to allow evaluation
     
-    public init(key: String?, ascending: Bool, comparator cmptr: NSComparator) { NSUnimplemented() }
+    public init(key: String?, ascending: Bool, comparator cmptr: Comparator) { NSUnimplemented() }
     
-    public var comparator: NSComparator { NSUnimplemented() }
+    public var comparator: Comparator { NSUnimplemented() }
     
     public func compareObject(_ object1: AnyObject, toObject object2: AnyObject) -> ComparisonResult  { NSUnimplemented() }// primitive - override this method if you want to perform comparisons differently (not key based for example)
     public var reversedSortDescriptor: AnyObject  { NSUnimplemented() } // primitive - override this method to return a sort descriptor instance with reversed sort order

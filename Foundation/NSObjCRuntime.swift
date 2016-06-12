@@ -187,7 +187,7 @@ public struct EnumerationOptions: OptionSet {
     public static let reverse = EnumerationOptions(rawValue: UInt(1 << 1))
 }
 
-public typealias NSComparator = (AnyObject, AnyObject) -> ComparisonResult
+public typealias Comparator = (AnyObject, AnyObject) -> ComparisonResult
 
 public let NSNotFound: Int = Int.max
 
