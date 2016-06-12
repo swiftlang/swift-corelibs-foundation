@@ -76,7 +76,7 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
         return _mapUnmanaged { $0.characterIsMember(member) }
     }
 
-    override func longCharacterIsMember(_ member: UTF32Char) -> Bool {
+    override func longCharacterIsMember(_ member: UInt32) -> Bool {
         return _mapUnmanaged { $0.longCharacterIsMember(member) }
     }
 

@@ -159,7 +159,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public func characterIsMember(_ aCharacter: unichar) -> Bool {
-        return longCharacterIsMember(UTF32Char(aCharacter))
+        return longCharacterIsMember(UInt32(aCharacter))
     }
     
     public var bitmapRepresentation: Data {
@@ -172,7 +172,7 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return copy._swiftObject
     }
     
-    public func longCharacterIsMember(_ theLongChar: UTF32Char) -> Bool {
+    public func longCharacterIsMember(_ theLongChar: UInt32) -> Bool {
         if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
             return _CFCharacterSetIsLongCharacterMember(unsafeBitCast(self, to: CFType.self), theLongChar)
         } else if self.dynamicType == _NSCFCharacterSet.self {

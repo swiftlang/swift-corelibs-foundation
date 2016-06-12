@@ -26,7 +26,7 @@ internal class _NSCFCharacterSet : NSMutableCharacterSet {
         return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, _cfObject)._swiftObject
     }
     
-    override func longCharacterIsMember(_ theLongChar: UTF32Char) -> Bool {
+    override func longCharacterIsMember(_ theLongChar: UInt32) -> Bool {
         return CFCharacterSetIsLongCharacterMember(_cfObject, theLongChar)
     }
     
@@ -96,7 +96,7 @@ internal  func _CFSwiftCharacterSetMutableCopy(_ cset: CFTypeRef) -> Unmanaged<C
     return Unmanaged.passRetained((cset as! NSCharacterSet).mutableCopy() as! CFMutableCharacterSet)
 }
 
-internal  func _CFSwiftCharacterSetLongCharacterIsMember(_ cset: CFTypeRef, _ ch:UTF32Char) -> Bool {
+internal  func _CFSwiftCharacterSetLongCharacterIsMember(_ cset: CFTypeRef, _ ch:UInt32) -> Bool {
     return (cset as! NSCharacterSet).longCharacterIsMember(ch)
 }
 
