@@ -121,7 +121,7 @@ class TestNSSet : XCTestCase {
         XCTAssertTrue(setCopy2.dynamicType === NSSet.self)
         XCTAssertFalse(setMutableCopy === setCopy2)
         for entry in setCopy2 {
-            XCTAssertTrue(setMutableCopy.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+            XCTAssertTrue(setMutableCopy.allObjects.bridge().indexOfObjectIdentical(to: entry) != NSNotFound)
         }
     }
 
@@ -133,14 +133,14 @@ class TestNSSet : XCTestCase {
         XCTAssertTrue(setMutableCopy1.dynamicType === NSMutableSet.self)
         XCTAssertFalse(set === setMutableCopy1)
         for entry in setMutableCopy1 {
-            XCTAssertTrue(set.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+            XCTAssertTrue(set.allObjects.bridge().indexOfObjectIdentical(to: entry) != NSNotFound)
         }
 
         let setMutableCopy2 = setMutableCopy1.mutableCopy() as! NSMutableSet
         XCTAssertTrue(setMutableCopy2.dynamicType === NSMutableSet.self)
         XCTAssertFalse(setMutableCopy2 === setMutableCopy1)
         for entry in setMutableCopy2 {
-            XCTAssertTrue(setMutableCopy1.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+            XCTAssertTrue(setMutableCopy1.allObjects.bridge().indexOfObjectIdentical(to: entry) != NSNotFound)
         }
     }
 
@@ -223,7 +223,7 @@ class TestNSSet : XCTestCase {
         XCTAssertTrue(setCopy.dynamicType === NSCountedSet.self)
         XCTAssertTrue(setMutableCopy.dynamicType === NSCountedSet.self)
         for entry in setCopy {
-            XCTAssertTrue(setMutableCopy.allObjects.bridge().indexOfObjectIdenticalTo(entry) != NSNotFound)
+            XCTAssertTrue(setMutableCopy.allObjects.bridge().indexOfObjectIdentical(to: entry) != NSNotFound)
         }
     }
 

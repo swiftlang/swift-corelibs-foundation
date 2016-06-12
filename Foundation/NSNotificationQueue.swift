@@ -165,11 +165,11 @@ public class NotificationQueue: NSObject {
     }
 
     private static func registerQueue(_ notificationQueue: NotificationQueue) {
-        self.notificationQueueList.addObject(notificationQueue)
+        self.notificationQueueList.add(notificationQueue)
     }
 
     private static func unregisterQueue(_ notificationQueue: NotificationQueue) {
-        guard self.notificationQueueList.indexOfObject(notificationQueue) != NSNotFound else {
+        guard self.notificationQueueList.index(of: notificationQueue) != NSNotFound else {
             return
         }
         self.notificationQueueList.removeObject(notificationQueue)

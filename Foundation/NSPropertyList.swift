@@ -123,7 +123,7 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
         return result
     } else if let array = input as? NSArray {
         var result : [Any] = []
-        array.enumerateObjectsUsingBlock { value, _, _ in
+        array.enumerateObjects([]) { value, _, _ in
             result.append(_expensivePropertyListConversion(value))
         }
 
