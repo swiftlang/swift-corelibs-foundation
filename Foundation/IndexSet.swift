@@ -769,7 +769,7 @@ private func _toNSRange(_ r : Range<IndexSet.Element>) -> NSRange {
     return NSMakeRange(r.lowerBound, r.upperBound - r.lowerBound)
 }
 
-extension IndexSet : _ObjectiveCBridgeable {
+extension IndexSet {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }
