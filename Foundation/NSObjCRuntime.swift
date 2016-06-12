@@ -179,12 +179,12 @@ public struct SortOptions: OptionSet {
     public static let stable = SortOptions(rawValue: UInt(1 << 4))
 }
 
-public struct NSEnumerationOptions : OptionSet {
+public struct EnumerationOptions: OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let concurrent = NSEnumerationOptions(rawValue: UInt(1 << 0))
-    public static let reverse = NSEnumerationOptions(rawValue: UInt(1 << 1))
+    public static let concurrent = EnumerationOptions(rawValue: UInt(1 << 0))
+    public static let reverse = EnumerationOptions(rawValue: UInt(1 << 1))
 }
 
 public typealias NSComparator = (AnyObject, AnyObject) -> ComparisonResult

@@ -434,10 +434,10 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     public func enumerateObjects(_ block: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.enumerateObjects([], using: block)
     }
-    public func enumerateObjects(_ opts: NSEnumerationOptions = [], using block: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    public func enumerateObjects(_ opts: EnumerationOptions = [], using block: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         self.enumerateObjects(at: IndexSet(indexesIn: NSMakeRange(0, count)), options: opts, using: block)
     }
-    public func enumerateObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], using block: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjects(at s: IndexSet, options opts: EnumerationOptions = [], using block: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         guard !opts.contains(.concurrent) else {
             NSUnimplemented()
         }
@@ -449,10 +449,10 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     public func indexOfObject(passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return indexOfObject([], passingTest: predicate)
     }
-    public func indexOfObject(_ opts: NSEnumerationOptions = [], passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexOfObject(_ opts: EnumerationOptions = [], passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return indexOfObject(at: IndexSet(indexesIn: NSMakeRange(0, count)), options: opts, passingTest: predicate)
     }
-    public func indexOfObject(at s: IndexSet, options opts: NSEnumerationOptions = [], passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    public func indexOfObject(at s: IndexSet, options opts: EnumerationOptions = [], passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         var result = NSNotFound
         enumerateObjects(at: s, options: opts) { (obj, idx, stop) -> Void in
             if predicate(obj, idx, stop) {
@@ -466,10 +466,10 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     public func indexesOfObjects(passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         return indexesOfObjects([], passingTest: predicate)
     }
-    public func indexesOfObjects(_ opts: NSEnumerationOptions = [], passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+    public func indexesOfObjects(_ opts: EnumerationOptions = [], passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         return indexesOfObjects(at: IndexSet(indexesIn: NSMakeRange(0, count)), options: opts, passingTest: predicate)
     }
-    public func indexesOfObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+    public func indexesOfObjects(at s: IndexSet, options opts: EnumerationOptions = [], passingTest predicate: @noescape (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         var result = IndexSet()
         enumerateObjects(at: s, options: opts) { (obj, idx, stop) in
             if predicate(obj, idx, stop) {
