@@ -133,8 +133,11 @@ extension Locale {
     
     public class func componentsFromLocaleIdentifier(_ string: String) -> [String : String] {
         var comps = Dictionary<String, String>()
-        CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._nsObject.enumerateKeysAndObjectsUsingBlock { (key: NSObject, object: AnyObject, stop: UnsafeMutablePointer<ObjCBool>) -> Void in
-            comps[(key as! NSString)._swiftObject] = (object as! NSString)._swiftObject
+        let values = CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._nsObject
+        values.enumerateKeysAndObjects([]) { (k, v, stop) in
+            let key = (k as! NSString)._swiftObject
+            let value = (v as! NSString)._swiftObject
+            comps[key] = value
         }
         return comps
     }

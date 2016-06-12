@@ -211,7 +211,7 @@ class TestNSFileManager : XCTestCase {
         if let e = FileManager.default().enumerator(atPath: basePath) {
             let foundItems = NSMutableSet()
             while let item = e.nextObject() as? NSString {
-                foundItems.addObject(item)
+                foundItems.add(item)
             }
             XCTAssertEqual(foundItems, NSMutableSet(array: ["item".bridge(),"path2".bridge(),"path2/item".bridge()]))
         } else {

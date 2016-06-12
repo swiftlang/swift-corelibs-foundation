@@ -112,7 +112,7 @@ extension NSMutableSet {
     public func filterUsingPredicate(_ predicate: Predicate) {
         for object in self {
             if !predicate.evaluate(with: object) {
-                self.removeObject(object)
+                self.remove(object)
             }
         }
     } // evaluate a predicate against a set of objects and filter the mutable set directly

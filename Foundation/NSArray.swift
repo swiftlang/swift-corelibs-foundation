@@ -226,7 +226,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             } else if let array = obj as? NSArray {
                 descriptions.append(array.description(withLocale: locale, indent: level + 1))
             } else if let dict = obj as? NSDictionary {
-                descriptions.append(dict.descriptionWithLocale(locale, indent: level + 1))
+                descriptions.append(dict.description(withLocale: locale, indent: level + 1))
             } else {
                 descriptions.append(obj.description)
             }
@@ -253,7 +253,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
 
         for idx in 0..<count {
             let item = self[idx]
-            if set.containsObject(item) {
+            if set.contains(item) {
                 return item
             }
         }
@@ -766,7 +766,7 @@ public class NSMutableArray : NSArray {
     public func removeObjects(in otherArray: [AnyObject]) {
         let set = NSSet(array : otherArray)
         for idx in (0..<count).reversed() {
-            if set.containsObject(object(at: idx)) {
+            if set.contains(object(at: idx)) {
                 removeObject(at: idx)
             }
         }

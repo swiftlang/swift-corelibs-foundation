@@ -374,7 +374,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             } else if key is NSOrderedSet {
                 line += (key as! NSOrderedSet).descriptionWithLocale(locale, indent: level + 1)
             } else if key is NSSet {
-                line += (key as! NSSet).descriptionWithLocale(locale)
+                line += (key as! NSSet).description(withLocale: locale)
             } else {
                 line += "\(key)"
             }
@@ -393,7 +393,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             } else if object is NSOrderedSet {
                 line += (object as! NSOrderedSet).descriptionWithLocale(locale, indent: level + 1)
             } else if object is NSSet {
-                line += (object as! NSSet).descriptionWithLocale(locale)
+                line += (object as! NSSet).description(withLocale: locale)
             } else {
                 line += "\(object)"
             }

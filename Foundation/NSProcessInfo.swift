@@ -48,7 +48,7 @@ public class ProcessInfo: NSObject {
     internal static var _environment: [String : String] = {
         let dict = __CFGetEnvironment()._nsObject
         var env = [String : String]()
-        dict.enumerateKeysAndObjectsUsingBlock { key, value, stop in
+        dict.enumerateKeysAndObjects([]) { key, value, stop in
             env[(key as! NSString)._swiftObject] = (value as! NSString)._swiftObject
         }
         return env

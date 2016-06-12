@@ -112,7 +112,7 @@ public class PropertyListSerialization : NSObject {
 internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
     if let dict = input as? NSDictionary {
         var result : [String : Any] = [:]
-        dict.enumerateKeysAndObjectsUsingBlock { key, value, _ in
+        dict.enumerateKeysAndObjects([]) { key, value, _ in
             guard let k = key as? NSString else {
                 fatalError("Non-string key in a property list")
             }

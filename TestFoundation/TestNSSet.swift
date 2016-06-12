@@ -84,8 +84,8 @@ class TestNSSet : XCTestCase {
     
     func test_setOperations() {
         let set = NSMutableSet(array: ["foo", "bar"].bridge().bridge())
-        set.unionSet(["bar".bridge(), "baz".bridge()])
-        XCTAssertTrue(set.isEqualToSet(["foo".bridge(), "bar".bridge(), "baz".bridge()]))
+        set.union(["bar".bridge(), "baz".bridge()])
+        XCTAssertTrue(set.isEqual(to: ["foo".bridge(), "bar".bridge(), "baz".bridge()]))
     }
 
     func test_equality() {
@@ -97,13 +97,13 @@ class TestNSSet : XCTestCase {
 
         XCTAssertTrue(set1 == set2)
         XCTAssertTrue(set1.isEqual(set2))
-        XCTAssertTrue(set1.isEqualToSet(set2.bridge()))
+        XCTAssertTrue(set1.isEqual(to: set2.bridge()))
         XCTAssertEqual(set1.hash, set2.hash)
         XCTAssertEqual(set1.hashValue, set2.hashValue)
 
         XCTAssertFalse(set1 == set3)
         XCTAssertFalse(set1.isEqual(set3))
-        XCTAssertFalse(set1.isEqualToSet(set3.bridge()))
+        XCTAssertFalse(set1.isEqual(to: set3.bridge()))
 
         XCTAssertFalse(set1.isEqual(nil))
         XCTAssertFalse(set1.isEqual(NSObject()))
@@ -185,9 +185,9 @@ class TestNSSet : XCTestCase {
 
         XCTAssertEqual(set.countForObject(v1), 2)
         XCTAssertEqual(set.countForObject(v2), 1)
-        set.addObject(v3asv1)
+        set.add(v3asv1)
         XCTAssertEqual(set.countForObject(v1), 3)
-        set.addObjectsFromArray([v1,v2])
+        set.addObjects(from: [v1,v2])
         XCTAssertEqual(set.countForObject(v1), 4)
         XCTAssertEqual(set.countForObject(v2), 2)
     }
@@ -200,10 +200,10 @@ class TestNSSet : XCTestCase {
 
         XCTAssertEqual(set.countForObject(v1), 2)
         XCTAssertEqual(set.countForObject(v2), 1)
-        set.removeObject(v2)
+        set.remove(v2)
         XCTAssertEqual(set.countForObject(v2), 0)
         XCTAssertEqual(set.countForObject(v1), 2)
-        set.removeObject(v2)
+        set.remove(v2)
         XCTAssertEqual(set.countForObject(v2), 0)
         XCTAssertEqual(set.countForObject(v1), 2)
         set.removeAllObjects()
