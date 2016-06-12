@@ -141,8 +141,8 @@ public struct NSStringCompareOptions : OptionSet {
 
 internal func _createRegexForPattern(_ pattern: String, _ options: RegularExpression.Options) -> RegularExpression? {
     struct local {
-        static let __NSRegularExpressionCache: NSCache = {
-            let cache = NSCache()
+        static let __NSRegularExpressionCache: Cache = {
+            let cache = Cache()
             cache.name = "NSRegularExpressionCache"
             cache.countLimit = 10
             return cache

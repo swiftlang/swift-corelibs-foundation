@@ -8,7 +8,7 @@
 //
 
 
-public class NSCache : NSObject {
+public class Cache: NSObject {
     private class NSCacheEntry {
         var key: AnyObject
         var value: AnyObject
@@ -178,11 +178,11 @@ public class NSCache : NSObject {
 }
 
 public protocol NSCacheDelegate : class {
-    func cache(_ cache: NSCache, willEvictObject obj: AnyObject)
+    func cache(_ cache: Cache, willEvictObject obj: AnyObject)
 }
 
 extension NSCacheDelegate {
-    func cache(_ cache: NSCache, willEvictObject obj: AnyObject) {
+    func cache(_ cache: Cache, willEvictObject obj: AnyObject) {
         // Default implementation does nothing
     }
 }
