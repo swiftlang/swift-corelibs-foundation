@@ -25,8 +25,8 @@ internal let kCFNumberFormatterCurrencyAccountingStyle = CFNumberFormatterStyle.
 public class NSNumberFormatter : NSFormatter {
     
     typealias CFType = CFNumberFormatter
-    private var _currentCfFormatter: CFType?
-    private var _cfFormatter: CFType {
+    fileprivate var _currentCfFormatter: CFType?
+    fileprivate var _cfFormatter: CFType {
         if let obj = _currentCfFormatter {
             return obj
         } else {

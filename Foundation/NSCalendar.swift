@@ -95,12 +95,12 @@ public struct NSCalendarOptions : OptionSet {
 
 public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFCalendar
-    private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
-    private var _identifier: UnsafeMutablePointer<Void>? = nil
-    private var _locale: UnsafeMutablePointer<Void>? = nil
-    private var _localeID: UnsafeMutablePointer<Void>? = nil
-    private var _tz: UnsafeMutablePointer<Void>? = nil
-    private var _cal: UnsafeMutablePointer<Void>? = nil
+    fileprivate var _base = _CFInfo(typeID: CFCalendarGetTypeID())
+    fileprivate var _identifier: UnsafeMutablePointer<Void>? = nil
+    fileprivate var _locale: UnsafeMutablePointer<Void>? = nil
+    fileprivate var _localeID: UnsafeMutablePointer<Void>? = nil
+    fileprivate var _tz: UnsafeMutablePointer<Void>? = nil
+    fileprivate var _cal: UnsafeMutablePointer<Void>? = nil
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFCalendar.self)
@@ -130,7 +130,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    private var _startDate : NSDate? {
+    fileprivate var _startDate : NSDate? {
         get {
             return CFCalendarCopyGregorianStartDate(self._cfObject)?._nsObject
         }
@@ -250,7 +250,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     // Methods to return component name strings localized to the calendar's locale
     
-    private func _symbols(_ key: CFString) -> [String] {
+    fileprivate func _symbols(_ key: CFString) -> [String] {
         let dateFormatter = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale?._cfObject, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle)
         CFDateFormatterSetProperty(dateFormatter, kCFDateFormatterCalendarKey, _cfObject)
         let result = (CFDateFormatterCopyProperty(dateFormatter, key) as! CFArray)._swiftObject
@@ -259,7 +259,7 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    private func _symbol(_ key: CFString) -> String {
+    fileprivate func _symbol(_ key: CFString) -> String {
         let dateFormatter = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale?._cfObject, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle)
         CFDateFormatterSetProperty(dateFormatter, kCFDateFormatterCalendarKey, self._cfObject)
         return (CFDateFormatterCopyProperty(dateFormatter, key) as! CFString)._swiftObject
@@ -394,14 +394,14 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         return nil
     }
     
-    private func _convert(_ component: Int, type: String, vector: inout [Int32], compDesc: inout [Int8]) {
+    fileprivate func _convert(_ component: Int, type: String, vector: inout [Int32], compDesc: inout [Int8]) {
         if component != NSDateComponentUndefined {
             vector.append(Int32(component))
             compDesc.append(Int8(type.utf8[type.utf8.startIndex]))
         }
     }
     
-    private func _convert(_ comps: NSDateComponents) -> (Array<Int32>, Array<Int8>) {
+    fileprivate func _convert(_ comps: NSDateComponents) -> (Array<Int32>, Array<Int8>) {
         var vector = [Int32]()
         var compDesc = [Int8]()
         _convert(comps.era, type: "E", vector: &vector, compDesc: &compDesc)
@@ -446,13 +446,13 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    private func _setup(_ unitFlags: NSCalendarUnit, field: NSCalendarUnit, type: String, compDesc: inout [Int8]) {
+    fileprivate func _setup(_ unitFlags: NSCalendarUnit, field: NSCalendarUnit, type: String, compDesc: inout [Int8]) {
         if unitFlags.contains(field) {
             compDesc.append(Int8(type.utf8[type.utf8.startIndex]))
         }
     }
     
-    private func _setup(_ unitFlags: NSCalendarUnit) -> [Int8] {
+    fileprivate func _setup(_ unitFlags: NSCalendarUnit) -> [Int8] {
         var compDesc = [Int8]()
         _setup(unitFlags, field: .era, type: "G", compDesc: &compDesc)
         _setup(unitFlags, field: .year, type: "y", compDesc: &compDesc)
@@ -473,14 +473,14 @@ public class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         return compDesc
     }
     
-    private func _setComp(_ unitFlags: NSCalendarUnit, field: NSCalendarUnit, vector: [Int32], compIndex: inout Int, setter: (Int32) -> Void) {
+    fileprivate func _setComp(_ unitFlags: NSCalendarUnit, field: NSCalendarUnit, vector: [Int32], compIndex: inout Int, setter: (Int32) -> Void) {
         if unitFlags.contains(field) {
             setter(vector[compIndex])
             compIndex += 1
         }
     }
     
-    private func _components(_ unitFlags: NSCalendarUnit, vector: [Int32]) -> NSDateComponents {
+    fileprivate func _components(_ unitFlags: NSCalendarUnit, vector: [Int32]) -> NSDateComponents {
         var compIdx = 0
         let comps = NSDateComponents()
         _setComp(unitFlags, field: .era, vector: vector, compIndex: &compIdx) { comps.era = Int($0) }

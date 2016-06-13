@@ -325,8 +325,8 @@ extension NSFileHandle {
 
 public class NSPipe : NSObject {
     
-    private let readHandle: NSFileHandle
-    private let writeHandle: NSFileHandle
+    fileprivate let readHandle: NSFileHandle
+    fileprivate let writeHandle: NSFileHandle
     
     public override init() {
         /// the `pipe` system call creates two `fd` in a malloc'ed area

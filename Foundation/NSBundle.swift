@@ -10,9 +10,9 @@
 import CoreFoundation
 
 public class NSBundle : NSObject {
-    private var _bundle : CFBundle!
+    fileprivate var _bundle : CFBundle!
 
-    private static var _mainBundle : NSBundle = {
+    fileprivate static var _mainBundle : NSBundle = {
         return NSBundle(cfBundle: CFBundleGetMainBundle())
     }()
     

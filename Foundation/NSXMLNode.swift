@@ -273,7 +273,7 @@ public class NSXMLNode : NSObject, NSCopying {
         }
     }
 
-    private var _objectValue: AnyObject? = nil
+    fileprivate var _objectValue: AnyObject? = nil
 
     /*!
         @method objectValue
@@ -325,7 +325,7 @@ public class NSXMLNode : NSObject, NSCopying {
         }
     }
 
-    private func _removeAllChildNodesExceptAttributes() {
+    fileprivate func _removeAllChildNodesExceptAttributes() {
         for node in _childNodes {
             if node.kind != NSXMLNodeKind.AttributeKind {
                 _CFXMLUnlinkNode(node._xmlNode)
@@ -791,7 +791,7 @@ public class NSXMLNode : NSObject, NSCopying {
             return NSXMLDTDNode._objectNodeForNode(node)
 
         default:
-            if let _private = _CFXMLNodeGetPrivateData(node) {
+            if let _fileprivate = _CFXMLNodeGetPrivateData(node) {
                 let unmanaged = Unmanaged<NSXMLNode>.fromOpaque(_private)
                 return unmanaged.takeUnretainedValue()
             }
@@ -882,8 +882,8 @@ internal protocol _NSXMLNodeCollectionType: Collection { }
 extension NSXMLNode: _NSXMLNodeCollectionType {
 
     public struct Index: Comparable {
-        private let node: _CFXMLNodePtr?
-        private let offset: Int?
+        fileprivate let node: _CFXMLNodePtr?
+        fileprivate let offset: Int?
     }
 
     public subscript(index: Index) -> NSXMLNode {

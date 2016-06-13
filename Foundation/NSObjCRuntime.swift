@@ -83,7 +83,7 @@ extension _NSSimpleObjCType {
 
 // mapping of ObjC types to sizes and alignments (note that .Int is 32-bit)
 // FIXME use a generic function, unfortuantely this seems to promote the size to 8
-private let _NSObjCSizesAndAlignments : Dictionary<_NSSimpleObjCType, (Int, Int)> = [
+fileprivate let _NSObjCSizesAndAlignments : Dictionary<_NSSimpleObjCType, (Int, Int)> = [
     .ID         : ( sizeof(AnyObject),              alignof(AnyObject)          ),
     .Class      : ( sizeof(AnyClass),               alignof(AnyClass)           ),
     .Char       : ( sizeof(CChar),                  alignof(CChar)              ),
@@ -234,9 +234,9 @@ internal protocol _NSBridgable {
 }
 
 #if os(OSX) || os(iOS)
-private let _SwiftFoundationModuleName = "SwiftFoundation"
+fileprivate let _SwiftFoundationModuleName = "SwiftFoundation"
 #else
-private let _SwiftFoundationModuleName = "Foundation"
+fileprivate let _SwiftFoundationModuleName = "Foundation"
 #endif
 
 /**

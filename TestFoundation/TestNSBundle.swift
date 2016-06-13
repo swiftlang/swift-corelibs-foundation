@@ -96,13 +96,13 @@ class TestNSBundle : XCTestCase {
         XCTAssertEqual(["en"], NSBundle.preferredLocalizations(from: ["en", "pl", "es"]))
     }
     
-    private let _bundleName = "MyBundle.bundle"
-    private let _bundleResourceNames = ["hello.world", "goodbye.world", "swift.org"]
-    private let _subDirectory = "Sources"
-    private let _main = "main"
-    private let _type = "swift"
+    fileprivate let _bundleName = "MyBundle.bundle"
+    fileprivate let _bundleResourceNames = ["hello.world", "goodbye.world", "swift.org"]
+    fileprivate let _subDirectory = "Sources"
+    fileprivate let _main = "main"
+    fileprivate let _type = "swift"
     
-    private func _setupPlayground() -> String? {
+    fileprivate func _setupPlayground() -> String? {
         // Make sure the directory is uniquely named
         let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().UUIDString + "/"
         
@@ -129,7 +129,7 @@ class TestNSBundle : XCTestCase {
         return tempDir
     }
     
-    private func _cleanupPlayground(_ location: String) {
+    fileprivate func _cleanupPlayground(_ location: String) {
         do {
             try NSFileManager.defaultManager().removeItem(atPath: location)
         } catch _ {

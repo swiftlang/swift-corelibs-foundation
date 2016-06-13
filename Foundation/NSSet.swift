@@ -71,7 +71,7 @@ extension Set : _ObjectTypeBridgeable {
 }
 
 public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
-    private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
+    fileprivate let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
     internal var _storage: Set<NSObject>
     
     public var count: Int {

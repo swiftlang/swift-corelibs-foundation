@@ -204,7 +204,7 @@ internal struct _NSStringBuffer {
     }
 }
 
-private func isADigit(_ ch: unichar) -> Bool {
+fileprivate func isADigit(_ ch: unichar) -> Bool {
     struct Local {
         static let set = NSCharacterSet.decimalDigits()
     }
@@ -255,7 +255,7 @@ extension Double : _FloatLike {
     static var min: Double { return DBL_MIN }
 }
 
-private func numericValue(_ ch: unichar) -> Int {
+fileprivate func numericValue(_ ch: unichar) -> Int {
     if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
         return Int(ch) - Int(unichar(unicodeScalarLiteral: "0"))
     } else {
@@ -263,7 +263,7 @@ private func numericValue(_ ch: unichar) -> Int {
     }
 }
 
-private func numericOrHexValue(_ ch: unichar) -> Int {
+fileprivate func numericOrHexValue(_ ch: unichar) -> Int {
     if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
         return Int(ch) - Int(unichar(unicodeScalarLiteral: "0"))
     } else if (ch >= unichar(unicodeScalarLiteral: "A") && ch <= unichar(unicodeScalarLiteral: "F")) {
@@ -275,7 +275,7 @@ private func numericOrHexValue(_ ch: unichar) -> Int {
     }
 }
 
-private func decimalSep(_ locale: NSLocale?) -> String {
+fileprivate func decimalSep(_ locale: NSLocale?) -> String {
     if let loc = locale {
         if let sep = loc.objectForKey(NSLocaleDecimalSeparator) as? NSString {
             return sep._swiftObject

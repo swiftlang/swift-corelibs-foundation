@@ -42,7 +42,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public var _code: Int
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    private var _userInfo: [String : Any]?
+    fileprivate var _userInfo: [String : Any]?
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.

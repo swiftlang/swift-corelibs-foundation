@@ -46,7 +46,7 @@ public var NSUTF32BigEndianStringEncoding: UInt { return 0x98000100 }
 public var NSUTF32LittleEndianStringEncoding: UInt { return 0x9c000100 }
 
 internal class __NSCFType : NSObject {
-    private var _cfinfo : Int32
+    fileprivate var _cfinfo : Int32
     
     override init() {
         // This is not actually called; _CFRuntimeCreateInstance will initialize _cfinfo

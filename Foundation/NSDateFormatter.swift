@@ -11,8 +11,8 @@ import CoreFoundation
 
 public class NSDateFormatter : NSFormatter {
     typealias CFType = CFDateFormatter
-    private var __cfObject: CFType?
-    private var _cfObject: CFType {
+    fileprivate var __cfObject: CFType?
+    fileprivate var _cfObject: CFType {
         guard let obj = __cfObject else {
             #if os(OSX) || os(iOS)
                 let dateStyle = CFDateFormatterStyle(rawValue: CFIndex(self.dateStyle.rawValue))!
@@ -83,7 +83,7 @@ public class NSDateFormatter : NSFormatter {
         NSUnimplemented()
     }
 
-    private func _reset() {
+    fileprivate func _reset() {
         __cfObject = nil
     }
 
@@ -123,7 +123,7 @@ public class NSDateFormatter : NSFormatter {
         }
     }
 
-    private var _dateFormat: String? { willSet { _reset() } }
+    fileprivate var _dateFormat: String? { willSet { _reset() } }
     public var dateFormat: String! {
         get {
             guard let format = _dateFormat else {

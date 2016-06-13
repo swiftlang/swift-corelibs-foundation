@@ -16,17 +16,17 @@ import Glibc
 
 import CoreFoundation
 
-private func disposeTLS(_ ctx: UnsafeMutablePointer<Void>?) -> Void {
+fileprivate func disposeTLS(_ ctx: UnsafeMutablePointer<Void>?) -> Void {
     Unmanaged<AnyObject>.fromOpaque(ctx!).release()
 }
 
 internal class NSThreadSpecific<T: AnyObject> {
 
-    private var NSThreadSpecificKeySet = false
-    private var NSThreadSpecificKeyLock = NSLock()
-    private var NSThreadSpecificKey = pthread_key_t()
+    fileprivate var NSThreadSpecificKeySet = false
+    fileprivate var NSThreadSpecificKeyLock = NSLock()
+    fileprivate var NSThreadSpecificKey = pthread_key_t()
 
-    private var key: pthread_key_t {
+    fileprivate var key: pthread_key_t {
         NSThreadSpecificKeyLock.lock()
         if !NSThreadSpecificKeySet {
             withUnsafeMutablePointer(&NSThreadSpecificKey) { key in
@@ -73,7 +73,7 @@ internal enum _NSThreadStatus {
     case Finished
 }
 
-private func NSThreadStart(_ context: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
+fileprivate func NSThreadStart(_ context: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
     let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(context!)
     let thread = unmanaged.takeUnretainedValue()
     NSThread._currentThread.set(thread)
@@ -155,9 +155,9 @@ public class NSThread : NSObject {
     
     internal var _main: (Void) -> Void = {}
 #if os(OSX) || os(iOS)
-    private var _thread: pthread_t? = nil
+    fileprivate var _thread: pthread_t? = nil
 #elseif os(Linux)
-    private var _thread = pthread_t()
+    fileprivate var _thread = pthread_t()
 #endif
     internal var _attr = pthread_attr_t()
     internal var _status = _NSThreadStatus.Initialized

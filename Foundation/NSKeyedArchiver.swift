@@ -92,25 +92,25 @@ public class NSKeyedArchiver : NSCoder {
         static let RequiresSecureCoding = ArchiverFlags(rawValue: 2)
     }
     
-    private class EncodingContext {
+    fileprivate class EncodingContext {
         // the object container that is being encoded
         var dict = Dictionary<String, Any>()
         // the index used for non-keyed objects (encodeObject: vs encodeObject:forKey:)
         var genericKey : UInt = 0
     }
 
-    private static var _classNameMap = Dictionary<String, String>()
-    private static var _classNameMapLock = NSLock()
+    fileprivate static var _classNameMap = Dictionary<String, String>()
+    fileprivate static var _classNameMapLock = NSLock()
     
-    private var _stream : AnyObject
-    private var _flags = ArchiverFlags(rawValue: 0)
-    private var _containers : Array<EncodingContext> = [EncodingContext()]
-    private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
-    private var _objRefMap : Dictionary<NSUniqueObject, UInt32> = [:]
-    private var _replacementMap : Dictionary<NSUniqueObject, AnyObject> = [:]
-    private var _classNameMap : Dictionary<String, String> = [:]
-    private var _classes : Dictionary<String, CFKeyedArchiverUID> = [:]
-    private var _cache : Array<CFKeyedArchiverUID> = []
+    fileprivate var _stream : AnyObject
+    fileprivate var _flags = ArchiverFlags(rawValue: 0)
+    fileprivate var _containers : Array<EncodingContext> = [EncodingContext()]
+    fileprivate var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
+    fileprivate var _objRefMap : Dictionary<NSUniqueObject, UInt32> = [:]
+    fileprivate var _replacementMap : Dictionary<NSUniqueObject, AnyObject> = [:]
+    fileprivate var _classNameMap : Dictionary<String, String> = [:]
+    fileprivate var _classes : Dictionary<String, CFKeyedArchiverUID> = [:]
+    fileprivate var _cache : Array<CFKeyedArchiverUID> = []
 
     public weak var delegate: NSKeyedArchiverDelegate?
     public var outputFormat = NSPropertyListFormat.BinaryFormat_v1_0 {
@@ -171,7 +171,7 @@ public class NSKeyedArchiver : NSCoder {
         return finishedEncoding
     }
     
-    private init(output: AnyObject) {
+    fileprivate init(output: AnyObject) {
         self._stream = output
         super.init()
     }
@@ -180,7 +180,7 @@ public class NSKeyedArchiver : NSCoder {
         self.init(output: data)
     }
     
-    private func _writeXMLData(_ plist : NSDictionary) -> Bool {
+    fileprivate func _writeXMLData(_ plist : NSDictionary) -> Bool {
         var success = false
         
         if let data = self._stream as? NSMutableData {
@@ -199,7 +199,7 @@ public class NSKeyedArchiver : NSCoder {
         return success
     }
     
-    private func _writeBinaryData(_ plist : NSDictionary) -> Bool {
+    fileprivate func _writeBinaryData(_ plist : NSDictionary) -> Bool {
         return __CFBinaryPlistWriteToStream(plist, self._stream) > 0
     }
 
@@ -257,7 +257,7 @@ public class NSKeyedArchiver : NSCoder {
         return true
     }
     
-    private func _validateStillEncoding() -> Bool {
+    fileprivate func _validateStillEncoding() -> Bool {
         if self._flags.contains(ArchiverFlags.FinishedEncoding) {
             fatalError("Encoder already finished")
         }
@@ -265,7 +265,7 @@ public class NSKeyedArchiver : NSCoder {
         return true
     }
     
-    private class func _supportsSecureCoding(_ objv : AnyObject?) -> Bool {
+    fileprivate class func _supportsSecureCoding(_ objv : AnyObject?) -> Bool {
         var supportsSecureCoding : Bool = false
         
         if let secureCodable = objv as? NSSecureCoding {
@@ -275,7 +275,7 @@ public class NSKeyedArchiver : NSCoder {
         return supportsSecureCoding
     }
     
-    private func _validateObjectSupportsSecureCoding(_ objv : AnyObject?) {
+    fileprivate func _validateObjectSupportsSecureCoding(_ objv : AnyObject?) {
         if objv != nil &&
             self.requiresSecureCoding &&
             !NSKeyedArchiver._supportsSecureCoding(objv) {
@@ -283,12 +283,12 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
-    private static func _createObjectRef(_ uid : UInt32) -> CFKeyedArchiverUID {
+    fileprivate static func _createObjectRef(_ uid : UInt32) -> CFKeyedArchiverUID {
         return Unmanaged<CFKeyedArchiverUID>.fromOpaque(
             UnsafePointer<Void>(_CFKeyedArchiverUIDCreate(kCFAllocatorSystemDefault, uid))).takeUnretainedValue()
     }
     
-    private func _createObjectRefCached(_ uid : UInt32) -> CFKeyedArchiverUID {
+    fileprivate func _createObjectRefCached(_ uid : UInt32) -> CFKeyedArchiverUID {
         if uid == 0 {
             return NSKeyedArchiveNullObjectReference
         } else if Int(uid) <= self._cache.count {
@@ -304,7 +304,7 @@ public class NSKeyedArchiver : NSCoder {
         Return a new object identifier, freshly allocated if need be. A placeholder null
         object is associated with the reference.
      */
-    private func _referenceObject(_ objv: AnyObject?, conditional: Bool = false) -> CFKeyedArchiverUID? {
+    fileprivate func _referenceObject(_ objv: AnyObject?, conditional: Bool = false) -> CFKeyedArchiverUID? {
         var uid : UInt32?
         
         if objv == nil {
@@ -331,7 +331,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Returns true if the object has already been encoded.
      */ 
-    private func _haveVisited(_ objv: AnyObject?) -> Bool {
+    fileprivate func _haveVisited(_ objv: AnyObject?) -> Bool {
         if objv == nil {
             return true // always have a null reference
         } else {
@@ -344,7 +344,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Get or create an object reference, and associate the object.
      */
-    private func _addObject(_ objv: AnyObject?) -> CFKeyedArchiverUID? {
+    fileprivate func _addObject(_ objv: AnyObject?) -> CFKeyedArchiverUID? {
         let haveVisited = _haveVisited(objv)
         let objectRef = _referenceObject(objv)
         
@@ -355,22 +355,22 @@ public class NSKeyedArchiver : NSCoder {
         return objectRef
     }
 
-    private func _pushEncodingContext(_ encodingContext: EncodingContext) {
+    fileprivate func _pushEncodingContext(_ encodingContext: EncodingContext) {
         self._containers.append(encodingContext)
     }
    
-    private func _popEncodingContext() {
+    fileprivate func _popEncodingContext() {
         self._containers.removeLast()
     }
     
-    private var _currentEncodingContext : EncodingContext {
+    fileprivate var _currentEncodingContext : EncodingContext {
         return self._containers.last!
     }
   
     /**
         Associate an encoded object or reference with a key in the current encoding context
      */
-    private func _setObjectInCurrentEncodingContext(_ object : AnyObject?, forKey key: String? = nil, escape: Bool = true) {
+    fileprivate func _setObjectInCurrentEncodingContext(_ object : AnyObject?, forKey key: String? = nil, escape: Bool = true) {
         let encodingContext = self._containers.last!
         var encodingKey : String
  
@@ -395,7 +395,7 @@ public class NSKeyedArchiver : NSCoder {
         The generic key is used for objects that are encoded without a key. It is a per-encoding
         context monotonically increasing integer prefixed with "$".
       */ 
-    private func _nextGenericKey() -> String {
+    fileprivate func _nextGenericKey() -> String {
         let key = "$" + String(_currentEncodingContext.genericKey)
         _currentEncodingContext.genericKey += 1
         return key
@@ -404,7 +404,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Update replacement object mapping
      */
-    private func replaceObject(_ object: AnyObject, withObject replacement: AnyObject?) {
+    fileprivate func replaceObject(_ object: AnyObject, withObject replacement: AnyObject?) {
         let oid = NSUniqueObject(object)
         
         if let unwrappedDelegate = self.delegate {
@@ -417,7 +417,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Returns true if the type cannot be encoded directly (i.e. is a container type)
      */
-    private func _isContainer(_ objv: AnyObject?) -> Bool {
+    fileprivate func _isContainer(_ objv: AnyObject?) -> Bool {
         // Note that we check for class equality rather than membership, because
         // their mutable subclasses are as object references
         let valueType = (objv == nil ||
@@ -432,7 +432,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Associates an object with an existing reference
      */ 
-    private func _setObject(_ objv: Any, forReference reference : CFKeyedArchiverUID) {
+    fileprivate func _setObject(_ objv: Any, forReference reference : CFKeyedArchiverUID) {
         let index = Int(objectRefGetValue(reference))
         self._objects[index] = objv
     }
@@ -440,7 +440,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Returns a dictionary describing class metadata for a class
      */
-    private func _classDictionary(_ clsv: AnyClass) -> Dictionary<String, Any> {
+    fileprivate func _classDictionary(_ clsv: AnyClass) -> Dictionary<String, Any> {
         func _classNameForClass(_ clsv: AnyClass) -> String? {
             var className : String?
             
@@ -491,7 +491,7 @@ public class NSKeyedArchiver : NSCoder {
         different), we maintain a private mapping between class name and
         object reference to avoid redundantly encoding class metadata
      */
-    private func _classReference(_ clsv: AnyClass) -> CFKeyedArchiverUID? {
+    fileprivate func _classReference(_ clsv: AnyClass) -> CFKeyedArchiverUID? {
         let className = NSStringFromClass(clsv)
         var classRef = self._classes[className] // keyed by actual class name
         
@@ -510,7 +510,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Return the object replacing another object (if any)
      */
-    private func _replacementObject(_ object: AnyObject?) -> AnyObject? {
+    fileprivate func _replacementObject(_ object: AnyObject?) -> AnyObject? {
         var objectToEncode : AnyObject? = nil // object to encode after substitution
 
         // nil cannot be mapped
@@ -551,7 +551,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
         Internal function to encode an object. Returns the object reference.
      */
-    private func _encodeObject(_ objv: AnyObject?, conditional: Bool = false) -> CFKeyedArchiverUID? {
+    fileprivate func _encodeObject(_ objv: AnyObject?, conditional: Bool = false) -> CFKeyedArchiverUID? {
         var object : AnyObject? = nil // object to encode after substitution
         var objectRef : CFKeyedArchiverUID? // encoded object reference
         let haveVisited : Bool
@@ -609,7 +609,7 @@ public class NSKeyedArchiver : NSCoder {
     /**
 	Encode an object and associate it with a key in the current encoding context.
      */
-    private func _encodeObject(_ objv: AnyObject?, forKey key: String?, conditional: Bool = false) {
+    fileprivate func _encodeObject(_ objv: AnyObject?, forKey key: String?, conditional: Bool = false) {
         if let objectRef = _encodeObject(objv, conditional: conditional) {
             _setObjectInCurrentEncodingContext(objectRef, forKey: key, escape: key != nil)
         }
@@ -654,7 +654,7 @@ public class NSKeyedArchiver : NSCoder {
         _encodePropertyList(objv, forKey: key)
     }
 
-    private func _encodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafePointer<Void>) {
+    fileprivate func _encodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafePointer<Void>) {
         switch type {
         case .ID:
             let objectp = unsafeBitCast(addr, to: UnsafePointer<AnyObject>.self)

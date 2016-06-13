@@ -227,7 +227,7 @@ internal extension NSJSONSerialization {
 }
 
 //MARK: - JSONSerializer
-private struct JSONWriter {
+fileprivate struct JSONWriter {
     
     var indent = 0
     let pretty: Bool
@@ -385,7 +385,7 @@ private struct JSONWriter {
 }
 
 //MARK: - JSONDeserializer
-private struct JSONReader {
+fileprivate struct JSONReader {
 
     static let whitespaceASCII: [UInt8] = [
         0x09, // Horizontal tab

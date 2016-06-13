@@ -12,14 +12,14 @@
 
 public class NSPredicate : NSObject, NSSecureCoding, NSCopying {
 
-    private enum PredicateKind {
+    fileprivate enum PredicateKind {
         case Boolean(Bool)
         case Block((AnyObject?, [String : AnyObject]?) -> Bool)
         // TODO: case for init(format:argumentArray:)
         // TODO: case for init(fromMetadataQueryString:)
     }
 
-    private let kind: PredicateKind
+    fileprivate let kind: PredicateKind
 
     public static func supportsSecureCoding() -> Bool {
         return true

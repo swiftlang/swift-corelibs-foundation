@@ -73,7 +73,7 @@ class TestNSKeyedArchiver : XCTestCase {
         ]
     }
 
-    private func test_archive(_ encode: (NSKeyedArchiver) -> Bool,
+    fileprivate func test_archive(_ encode: (NSKeyedArchiver) -> Bool,
                               decode: (NSKeyedUnarchiver) -> Bool) {
         let data = NSMutableData()
         let archiver = NSKeyedArchiver(forWritingWithMutableData: data)
@@ -85,7 +85,7 @@ class TestNSKeyedArchiver : XCTestCase {
         XCTAssertTrue(decode(unarchiver))
     }
     
-    private func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: NSPropertyListFormat) {
+    fileprivate func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: NSPropertyListFormat) {
         test_archive({ archiver -> Bool in
                 archiver.requiresSecureCoding = allowsSecureCoding
                 archiver.outputFormat = outputFormat
@@ -110,13 +110,13 @@ class TestNSKeyedArchiver : XCTestCase {
         })
     }
     
-    private func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true) {
+    fileprivate func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true) {
         // test both XML and binary encodings
         test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: NSPropertyListFormat.XMLFormat_v1_0)
         test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: NSPropertyListFormat.BinaryFormat_v1_0)
     }
     
-    private func test_archive(_ object: NSObject, allowsSecureCoding: Bool = true) {
+    fileprivate func test_archive(_ object: NSObject, allowsSecureCoding: Bool = true) {
         return test_archive(object, classes: [object.dynamicType], allowsSecureCoding: allowsSecureCoding)
     }
     

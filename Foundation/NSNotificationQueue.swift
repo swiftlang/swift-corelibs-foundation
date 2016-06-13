@@ -46,7 +46,7 @@ public class NSNotificationQueue : NSObject {
 
     // The NSNotificationQueue instance is associated with current thread.
     // The _notificationQueueList represents a list of notification queues related to the current thread.
-    private static var _notificationQueueList = NSThreadSpecific<NSMutableArray>()
+    fileprivate static var _notificationQueueList = NSThreadSpecific<NSMutableArray>()
     internal static var notificationQueueList: NotificationQueueList {
         return _notificationQueueList.get() {
             return NSMutableArray()
@@ -54,7 +54,7 @@ public class NSNotificationQueue : NSObject {
     }
 
     // The default notification queue for the current thread.
-    private static var _defaultQueue = NSThreadSpecific<NSNotificationQueue>()
+    fileprivate static var _defaultQueue = NSThreadSpecific<NSNotificationQueue>()
     public class func defaultQueue() -> NSNotificationQueue {
         return _defaultQueue.get() {
             return NSNotificationQueue(notificationCenter: NSNotificationCenter.defaultCenter())
@@ -127,17 +127,17 @@ public class NSNotificationQueue : NSObject {
 
     // MARK: Private
 
-    private func addRunloopObserver(_ observer: CFRunLoopObserver) {
+    fileprivate func addRunloopObserver(_ observer: CFRunLoopObserver) {
         CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
         CFRunLoopAddObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
-    private func removeRunloopObserver(_ observer: CFRunLoopObserver) {
+    fileprivate func removeRunloopObserver(_ observer: CFRunLoopObserver) {
         CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopDefaultMode)
         CFRunLoopRemoveObserver(NSRunLoop.currentRunLoop()._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
-    private func notify(_ currentMode: String?, notificationList: inout NSNotificationList) {
+    fileprivate func notify(_ currentMode: String?, notificationList: inout NSNotificationList) {
         for (idx, (notification, modes)) in notificationList.enumerated().reversed() {
             if currentMode == nil || modes.contains(currentMode!) {
                 self.notificationCenter.postNotification(notification)
@@ -149,7 +149,7 @@ public class NSNotificationQueue : NSObject {
     /**
      Gets queues from the notificationQueueList and posts all notification from the list related to the postingStyle parameter.
      */
-    private func notifyQueues(_ postingStyle: NSPostingStyle) {
+    fileprivate func notifyQueues(_ postingStyle: NSPostingStyle) {
         let currentMode = NSRunLoop.currentRunLoop().currentMode
         for queue in NSNotificationQueue.notificationQueueList {
             let notificationQueue = queue as! NSNotificationQueue
@@ -161,11 +161,11 @@ public class NSNotificationQueue : NSObject {
         }
     }
 
-    private static func registerQueue(_ notificationQueue: NSNotificationQueue) {
+    fileprivate static func registerQueue(_ notificationQueue: NSNotificationQueue) {
         self.notificationQueueList.addObject(notificationQueue)
     }
 
-    private static func unregisterQueue(_ notificationQueue: NSNotificationQueue) {
+    fileprivate static func unregisterQueue(_ notificationQueue: NSNotificationQueue) {
         guard self.notificationQueueList.indexOfObject(notificationQueue) != NSNotFound else {
             return
         }

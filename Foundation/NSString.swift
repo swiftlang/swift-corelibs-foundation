@@ -206,7 +206,7 @@ internal func isAParagraphSeparatorTypeCharacter(_ ch: unichar) -> Bool {
 }
 
 public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
-    private let _cfinfo = _CFInfo(typeID: CFStringGetTypeID())
+    fileprivate let _cfinfo = _CFInfo(typeID: CFStringGetTypeID())
     internal var _storage: String
     
     public var length: Int {

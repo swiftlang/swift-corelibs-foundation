@@ -212,7 +212,7 @@ class TestNSNotificationQueue : XCTestCase {
 
     // MARK: Private
 
-    private func scheduleTimer(withInterval interval: NSTimeInterval) {
+    fileprivate func scheduleTimer(withInterval interval: NSTimeInterval) {
         let e = expectation(withDescription: "Timer")
         let dummyTimer = NSTimer.scheduledTimer(interval, repeats: false) { _ in
             e.fulfill()
@@ -221,7 +221,7 @@ class TestNSNotificationQueue : XCTestCase {
         waitForExpectations(withTimeout: 0.1)
     }
 
-    private func executeInBackgroundThread(_ operation: () -> Void) {
+    fileprivate func executeInBackgroundThread(_ operation: () -> Void) {
         let e = expectation(withDescription: "Background Execution")
         let bgThread = NSThread() {
             operation()
