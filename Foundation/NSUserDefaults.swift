@@ -13,11 +13,11 @@ public let NSGlobalDomain: String = "NSGlobalDomain"
 public let NSArgumentDomain: String = "NSArgumentDomain"
 public let NSRegistrationDomain: String = "NSRegistrationDomain"
 
-private var registeredDefaults = [String: AnyObject]()
-private var sharedDefaults = NSUserDefaults()
+fileprivate var registeredDefaults = [String: AnyObject]()
+fileprivate var sharedDefaults = NSUserDefaults()
 
 public class NSUserDefaults : NSObject {
-    private let suite: String?
+    fileprivate let suite: String?
     
     public class func standardUserDefaults() -> NSUserDefaults {
         return sharedDefaults

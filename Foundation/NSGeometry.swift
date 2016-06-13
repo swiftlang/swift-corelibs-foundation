@@ -32,7 +32,7 @@ public struct CGFloat {
     /// The native value.
     public var native: NativeType
     
-    private var hash: Int {
+    fileprivate var hash: Int {
 #if arch(i386) || arch(arm)
         return Int(Float(self.native).bitPattern)
 #else
@@ -780,7 +780,7 @@ public func NSStringFromRect(_ aRect: NSRect) -> String {
     return "{\(originString), \(sizeString)}"
 }
 
-private func _scanDoublesFromString(_ aString: String, number: Int) -> [Double] {
+fileprivate func _scanDoublesFromString(_ aString: String, number: Int) -> [Double] {
     let scanner = NSScanner(string: aString)
     let digitSet = NSMutableCharacterSet.decimalDigits()
     digitSet.addCharacters(in: "-")
@@ -954,7 +954,7 @@ extension NSCoder {
     }
 }
 
-private extension NSCoder {
+fileprivate extension NSCoder {
     func _encodeCGFloat(_ value: CGFloat) {
         if let keyedArchiver = self as? NSKeyedArchiver {
             keyedArchiver._encodeValue(NSNumber(value: value.native))

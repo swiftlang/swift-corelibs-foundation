@@ -237,7 +237,7 @@ public class NSHTTPURLResponse : NSURLResponse {
 /// The transfer length can only be derived when the Transfer-Encoding is identity (default).
 /// For compressed content (Content-Encoding other than identity), there is not way to derive the
 /// content length from the transfer length.
-private func getExpectedContentLength(fromHeaderFields headerFields: [String : String]?) -> Int64? {
+fileprivate func getExpectedContentLength(fromHeaderFields headerFields: [String : String]?) -> Int64? {
     guard
         let f = headerFields,
         let contentLengthS = valueForCaseInsensitiveKey("content-length", fields: f),
@@ -248,7 +248,7 @@ private func getExpectedContentLength(fromHeaderFields headerFields: [String : S
 /// Parses the suggested filename from the `Content-Disposition` header.
 ///
 /// - SeeAlso: [RFC 2183](https://tools.ietf.org/html/rfc2183)
-private func getSuggestedFilename(fromHeaderFields headerFields: [String : String]?) -> String? {
+fileprivate func getSuggestedFilename(fromHeaderFields headerFields: [String : String]?) -> String? {
     // Typical use looks like this:
     //     Content-Disposition: attachment; filename="fname.ext"
     guard
@@ -262,7 +262,7 @@ private func getSuggestedFilename(fromHeaderFields headerFields: [String : Strin
     return nil
 }
 /// Parts corresponding to the `Content-Type` header field in a HTTP message.
-private struct ContentTypeComponents {
+fileprivate struct ContentTypeComponents {
     /// For `text/html; charset=ISO-8859-4` this would be `text/html`
     let mimeType: String
     /// For `text/html; charset=ISO-8859-4` this would be `ISO-8859-4`. Will be
@@ -304,7 +304,7 @@ extension ContentTypeComponents {
 /// attribute               = token
 /// value                   = token | quoted-string
 /// ```
-private struct ValueWithParameters {
+fileprivate struct ValueWithParameters {
     let value: String
     let parameters: [Parameter]
     struct Parameter {
@@ -313,7 +313,7 @@ private struct ValueWithParameters {
     }
 }
 
-private extension String {
+fileprivate extension String {
     /// Split the string at each ";", remove any quoting.
     /// 
     /// The trouble is if there's a
@@ -384,7 +384,7 @@ private extension String {
         return ValueWithParameters(value: t, parameters: parameters)
     }
 }
-private func valueForCaseInsensitiveKey(_ key: String, fields: [String: String]) -> String? {
+fileprivate func valueForCaseInsensitiveKey(_ key: String, fields: [String: String]) -> String? {
     let kk = key.lowercased()
     for (k, v) in fields {
         if k.lowercased() == kk {

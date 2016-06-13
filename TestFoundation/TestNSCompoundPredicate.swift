@@ -31,7 +31,7 @@ class TestNSCompoundPredicate: XCTestCase {
         ]
     }
 
-    private func eval(_ predicate: NSPredicate, object: NSObject = NSObject()) -> Bool {
+    fileprivate func eval(_ predicate: NSPredicate, object: NSObject = NSObject()) -> Bool {
         return predicate.evaluateWithObject(object, substitutionVariables: nil)
     }
 

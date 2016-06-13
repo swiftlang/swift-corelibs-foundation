@@ -12,16 +12,16 @@ import CoreFoundation
 
 public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFLocale
-    private var _base = _CFInfo(typeID: CFLocaleGetTypeID())
-    private var _identifier: UnsafeMutablePointer<Void>? = nil
-    private var _cache: UnsafeMutablePointer<Void>? = nil
-    private var _prefs: UnsafeMutablePointer<Void>? = nil
+    fileprivate var _base = _CFInfo(typeID: CFLocaleGetTypeID())
+    fileprivate var _identifier: UnsafeMutablePointer<Void>? = nil
+    fileprivate var _cache: UnsafeMutablePointer<Void>? = nil
+    fileprivate var _prefs: UnsafeMutablePointer<Void>? = nil
 #if os(OSX) || os(iOS)
-    private var _lock = pthread_mutex_t()
+    fileprivate var _lock = pthread_mutex_t()
 #elseif os(Linux)
-    private var _lock = Int32(0)
+    fileprivate var _lock = Int32(0)
 #endif
-    private var _nullLocale = false
+    fileprivate var _nullLocale = false
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)

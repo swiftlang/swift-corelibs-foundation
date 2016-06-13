@@ -67,11 +67,11 @@ internal class NSConcreteValue : NSValue {
         }
     }
     
-    private static var _cachedTypeInfo = Dictionary<String, TypeInfo>()
-    private static var _cachedTypeInfoLock = NSLock()
+    fileprivate static var _cachedTypeInfo = Dictionary<String, TypeInfo>()
+    fileprivate static var _cachedTypeInfoLock = NSLock()
     
-    private var _typeInfo : TypeInfo
-    private var _storage : UnsafeMutablePointer<UInt8>
+    fileprivate var _typeInfo : TypeInfo
+    fileprivate var _storage : UnsafeMutablePointer<UInt8>
       
     required init(bytes value: UnsafePointer<Void>, objCType type: UnsafePointer<Int8>) {
         let spec = String(cString: type)
@@ -141,15 +141,15 @@ internal class NSConcreteValue : NSValue {
         }
     }
     
-    private var _size : Int {
+    fileprivate var _size : Int {
         return self._typeInfo.size
     }
     
-    private var value : UnsafeMutablePointer<Void> {
+    fileprivate var value : UnsafeMutablePointer<Void> {
         return unsafeBitCast(self._storage, to: UnsafeMutablePointer<Void>.self)
     }
     
-    private func _isEqualToValue(_ other: NSConcreteValue) -> Bool {
+    fileprivate func _isEqualToValue(_ other: NSConcreteValue) -> Bool {
         if self === other {
             return true
         }

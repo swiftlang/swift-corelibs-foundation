@@ -20,44 +20,44 @@ public enum NSTaskTerminationReason : Int {
     case UncaughtSignal
 }
 
-private func WEXITSTATUS(_ status: CInt) -> CInt {
+fileprivate func WEXITSTATUS(_ status: CInt) -> CInt {
     return (status >> 8) & 0xff
 }
 
-private var managerThreadSetupOnceToken = pthread_once_t()
+fileprivate var managerThreadSetupOnceToken = pthread_once_t()
 // these are different sadly...
 #if os(OSX) || os(iOS)
-private var threadID: pthread_t? = nil
+fileprivate var threadID: pthread_t? = nil
 #elseif os(Linux)
-private var threadID = pthread_t()
+fileprivate var threadID = pthread_t()
 #endif
 
-private var managerThreadRunLoop : NSRunLoop? = nil
-private var managerThreadRunLoopIsRunning = false
-private var managerThreadRunLoopIsRunningCondition = NSCondition()
+fileprivate var managerThreadRunLoop : NSRunLoop? = nil
+fileprivate var managerThreadRunLoopIsRunning = false
+fileprivate var managerThreadRunLoopIsRunningCondition = NSCondition()
 
 #if os(OSX) || os(iOS)
 internal let kCFSocketDataCallBack = CFSocketCallBackType.dataCallBack.rawValue
 #endif
 
-private func emptyRunLoopCallback(_ context : UnsafeMutablePointer<Void>?) -> Void {}
+fileprivate func emptyRunLoopCallback(_ context : UnsafeMutablePointer<Void>?) -> Void {}
 
 
 // Retain method for run loop source
-private func runLoopSourceRetain(_ pointer : UnsafePointer<Void>?) -> UnsafePointer<Void>? {
+fileprivate func runLoopSourceRetain(_ pointer : UnsafePointer<Void>?) -> UnsafePointer<Void>? {
     let ref = Unmanaged<AnyObject>.fromOpaque(pointer!).takeUnretainedValue()
     let retained = Unmanaged<AnyObject>.passRetained(ref)
     return unsafeBitCast(retained, to: UnsafePointer<Void>.self)
 }
 
 // Release method for run loop source
-private func runLoopSourceRelease(_ pointer : UnsafePointer<Void>?) -> Void {
+fileprivate func runLoopSourceRelease(_ pointer : UnsafePointer<Void>?) -> Void {
     Unmanaged<AnyObject>.fromOpaque(pointer!).release()
 }
 
 // Equal method for run loop source
 
-private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
+fileprivate func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
     let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(a!)
     guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? NSRunLoop else {
@@ -76,7 +76,7 @@ private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?
     return true
 }
 
-@noreturn private func managerThread(_ x: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
+@noreturn fileprivate func managerThread(_ x: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
     
     managerThreadRunLoop = NSRunLoop.currentRunLoop()
     var emptySourceContext = CFRunLoopSourceContext (version: 0, info: Unmanaged.passUnretained(managerThreadRunLoop!).toOpaque(),
@@ -98,7 +98,7 @@ private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?
     fatalError("NSTask manager run loop exited unexpectedly; it should run forever once initialized")
 }
 
-private func managerThreadSetup() -> Void {
+fileprivate func managerThreadSetup() -> Void {
     pthread_create(&threadID, nil, managerThread, nil)
     
     managerThreadRunLoopIsRunningCondition.lock()
@@ -111,7 +111,7 @@ private func managerThreadSetup() -> Void {
 
 
 // Equal method for task in run loop source
-private func nstaskIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
+fileprivate func nstaskIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
     let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(a!)
     guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
@@ -170,12 +170,12 @@ public class NSTask : NSObject {
         }
     }
     
-    private var runLoopSourceContext : CFRunLoopSourceContext?
-    private var runLoopSource : CFRunLoopSource?
+    fileprivate var runLoopSourceContext : CFRunLoopSourceContext?
+    fileprivate var runLoopSource : CFRunLoopSource?
     
-    private weak var runLoop : NSRunLoop? = nil
+    fileprivate weak var runLoop : NSRunLoop? = nil
     
-    private var processLaunchedCondition = NSCondition()
+    fileprivate var processLaunchedCondition = NSCondition()
     
     // actions
     public func launch() {
@@ -418,7 +418,7 @@ extension NSTask {
 
 public let NSTaskDidTerminateNotification: String = "NSTaskDidTerminateNotification"
 
-private func posix(_ code: Int32) {
+fileprivate func posix(_ code: Int32) {
     switch code {
     case 0: return
     case EBADF: fatalError("POSIX command failed with error: \(code) -- EBADF")

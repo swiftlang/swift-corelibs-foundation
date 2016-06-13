@@ -33,7 +33,7 @@ internal class NSSpecialValue : NSValue {
     // Originally these were functions in NSSpecialValueCoding but it's probably
     // more convenient to keep it as a table here as nothing else really needs to
     // know about them
-    private static let _specialTypes : Dictionary<Int, NSSpecialValueCoding.Type> = [
+    fileprivate static let _specialTypes : Dictionary<Int, NSSpecialValueCoding.Type> = [
         1   : NSPoint.self,
         2   : NSSize.self,
         3   : NSRect.self,
@@ -41,11 +41,11 @@ internal class NSSpecialValue : NSValue {
         12  : NSEdgeInsets.self
     ]
     
-    private static func _typeFromFlags(_ flags: Int) -> NSSpecialValueCoding.Type? {
+    fileprivate static func _typeFromFlags(_ flags: Int) -> NSSpecialValueCoding.Type? {
         return _specialTypes[flags]
     }
     
-    private static func _flagsFromType(_ type: NSSpecialValueCoding.Type) -> Int {
+    fileprivate static func _flagsFromType(_ type: NSSpecialValueCoding.Type) -> Int {
         for (F, T) in _specialTypes {
             if T == type {
                 return F
@@ -54,7 +54,7 @@ internal class NSSpecialValue : NSValue {
         return 0
     }
     
-    private static func _objCTypeFromType(_ type: NSSpecialValueCoding.Type) -> String? {
+    fileprivate static func _objCTypeFromType(_ type: NSSpecialValueCoding.Type) -> String? {
         for (_, T) in _specialTypes {
             if T == type {
                 return T.objCType()

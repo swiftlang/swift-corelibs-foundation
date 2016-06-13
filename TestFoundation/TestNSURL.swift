@@ -38,7 +38,7 @@ let kNullURLString = "<null url>"
 let kNullString = "<null>"
 
 /// Reads the test data plist file and returns the list of objects
-private func getTestData() -> [Any]? {
+fileprivate func getTestData() -> [Any]? {
     let testFilePath = testBundle().pathForResource("NSURLTestData", ofType: "plist")
     let data = NSData(contentsOfFile: testFilePath!)
     guard let testRoot = try? NSPropertyListSerialization.propertyListWithData(data!, options: [], format: nil) as? [String : Any] else {
@@ -92,7 +92,7 @@ class TestNSURL : XCTestCase {
     }
     
     /// Returns a URL from the given url string and base
-    private func URLWithString(_ urlString : String, baseString : String?) -> NSURL? {
+    fileprivate func URLWithString(_ urlString : String, baseString : String?) -> NSURL? {
         if let baseString = baseString {
             let baseURL = NSURL(string: baseString)
             return NSURL(string: urlString, relativeToURL: baseURL)

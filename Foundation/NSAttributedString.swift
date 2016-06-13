@@ -11,9 +11,9 @@ import CoreFoundation
 
 public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
-    private let _cfinfo = _CFInfo(typeID: CFAttributedStringGetTypeID())
-    private let _string: NSString
-    private let _attributeArray: CFRunArrayRef
+    fileprivate let _cfinfo = _CFInfo(typeID: CFAttributedStringGetTypeID())
+    fileprivate let _string: NSString
+    fileprivate let _attributeArray: CFRunArrayRef
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
@@ -120,7 +120,7 @@ public class NSAttributedString : NSObject, NSCopying, NSMutableCopying, NSSecur
     
     public init(attributedString attrStr: NSAttributedString) { NSUnimplemented() }
     
-    private func addAttributesToAttributeArray(attrs: [String : AnyObject]?) {
+    fileprivate func addAttributesToAttributeArray(attrs: [String : AnyObject]?) {
         guard _string.length > 0 else {
             return
         }

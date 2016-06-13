@@ -244,7 +244,7 @@ class TestNSTask : XCTestCase {
     }
 }
 
-private func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> Void) rethrows {
+fileprivate func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> Void) rethrows {
     let url = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent("TestNSTask.XXXXXX")!
     var buffer = [Int8](repeating: 0, count: Int(PATH_MAX))
     url.getFileSystemRepresentation(&buffer, maxLength: buffer.count)
@@ -256,13 +256,13 @@ private func mkstemp(template: String, body: @noescape (NSFileHandle) throws -> 
     }
 }
 
-private enum Error: ErrorProtocol {
+fileprivate enum Error: ErrorProtocol {
     case TerminationStatus(Int32)
     case UnicodeDecodingError(NSData)
     case InvalidEnvironmentVariable(String)
 }
 
-private func runTask(_ arguments: [String], environment: [String: String]? = nil) throws -> String {
+fileprivate func runTask(_ arguments: [String], environment: [String: String]? = nil) throws -> String {
     let task = NSTask()
 
     var arguments = arguments
@@ -288,7 +288,7 @@ private func runTask(_ arguments: [String], environment: [String: String]? = nil
     return output
 }
 
-private func parseEnv(_ env: String) throws -> [String: String] {
+fileprivate func parseEnv(_ env: String) throws -> [String: String] {
     var result = [String: String]()
     for line in env.components(separatedBy: "\n") where line != "" {
         guard let range = line.range(of: "=") else {

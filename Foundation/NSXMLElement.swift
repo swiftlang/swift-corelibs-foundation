@@ -119,7 +119,7 @@ public class NSXMLElement : NSXMLNode {
         }
     }
 
-    private func removeAttributes() {
+    fileprivate func removeAttributes() {
         var nextAttribute = _CFXMLNodeProperties(_xmlNode)
         while let attribute = nextAttribute {
             var shouldFreeNode = true

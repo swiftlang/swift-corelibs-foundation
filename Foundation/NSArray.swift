@@ -35,7 +35,7 @@ extension Array : _ObjectTypeBridgeable {
 }
 
 public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
-    private let _cfinfo = _CFInfo(typeID: CFArrayGetTypeID())
+    fileprivate let _cfinfo = _CFInfo(typeID: CFArrayGetTypeID())
     internal var _storage = [AnyObject]()
     
     public var count: Int {

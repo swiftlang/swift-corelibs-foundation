@@ -18,7 +18,7 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         _indexes = Array(UnsafeBufferPointer(start: indexes, count: length))
     }
     
-    private init(indexes: [Int]) {
+    fileprivate init(indexes: [Int]) {
         _indexes = indexes
     }
     

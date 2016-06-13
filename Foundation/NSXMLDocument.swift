@@ -53,7 +53,7 @@ public enum NSXMLDocumentContentKind : UInt {
 	@discussion Note: if the application of a method would result in more than one element in the children array, an exception is thrown. Trying to add a document, namespace, attribute, or node with a parent also throws an exception. To add a node with a parent first detach or create a copy of it.
 */
 public class NSXMLDocument : NSXMLNode {
-    private var _xmlDoc: _CFXMLDocPtr {
+    fileprivate var _xmlDoc: _CFXMLDocPtr {
         return _CFXMLDocPtr(_xmlNode)
     }
     /*!

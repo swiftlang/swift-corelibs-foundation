@@ -132,7 +132,7 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
      [ m21  m22  0 ]
      [  tX   tY  1 ]
  */
-private extension NSAffineTransformStruct {
+fileprivate extension NSAffineTransformStruct {
     /**
      Creates an affine transformation matrix from translation values.
      The matrix takes the following form:

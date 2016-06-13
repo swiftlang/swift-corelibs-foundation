@@ -21,7 +21,7 @@ internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
 #endif
 
-private func _standardizedPath(_ path: String) -> String {
+fileprivate func _standardizedPath(_ path: String) -> String {
     if !path.absolutePath {
         return path._nsObject.stringByStandardizingPath
     }
@@ -607,7 +607,7 @@ public class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
 }
 
 public class NSURLComponents : NSObject, NSCopying {
-    private let _components : CFURLComponentsRef!
+    fileprivate let _components : CFURLComponentsRef!
     
     public override func copy() -> AnyObject {
         return copyWithZone(nil)

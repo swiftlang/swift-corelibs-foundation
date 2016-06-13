@@ -83,7 +83,7 @@ extension Dictionary : _ObjectTypeBridgeable {
 }
 
 public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
-    private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
+    fileprivate let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
     internal var _storage = [NSObject: AnyObject]()
     
     public var count: Int {

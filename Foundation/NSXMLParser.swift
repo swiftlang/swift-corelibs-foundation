@@ -40,7 +40,7 @@ extension NSXMLParser {
     }
 }
 
-private func UTF8STRING(_ bytes: UnsafePointer<UInt8>) -> String? {
+fileprivate func UTF8STRING(_ bytes: UnsafePointer<UInt8>) -> String? {
     let len = strlen(UnsafePointer<Int8>(bytes))
     let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: bytes, count: Int(len)))
     return str
@@ -392,13 +392,13 @@ internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLIn
 }
 
 public class NSXMLParser : NSObject {
-    private var _handler: _CFXMLInterfaceSAXHandler
+    fileprivate var _handler: _CFXMLInterfaceSAXHandler
     internal var _stream: NSInputStream?
     internal var _data: NSData?
     internal var _chunkSize = Int(4096 * 32) // a suitably large number for a decent chunk size
     internal var _haveDetectedEncoding = false
     internal var _bomChunk: NSData?
-    private var _parserContext: _CFXMLInterfaceParserContext?
+    fileprivate var _parserContext: _CFXMLInterfaceParserContext?
     internal var _delegateAborted = false
     internal var _url: NSURL?
     internal var _namespaces = [[String:String]]()

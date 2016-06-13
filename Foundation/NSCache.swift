@@ -9,7 +9,7 @@
 
 
 public class NSCache : NSObject {
-    private class NSCacheEntry {
+    fileprivate class NSCacheEntry {
         var key: AnyObject
         var value: AnyObject
         var cost: Int
@@ -22,10 +22,10 @@ public class NSCache : NSObject {
         }
     }
     
-    private var _entries = Dictionary<UnsafePointer<Void>, NSCacheEntry>()
-    private let _lock = NSLock()
-    private var _totalCost = 0
-    private var _byCost: NSCacheEntry?
+    fileprivate var _entries = Dictionary<UnsafePointer<Void>, NSCacheEntry>()
+    fileprivate let _lock = NSLock()
+    fileprivate var _totalCost = 0
+    fileprivate var _byCost: NSCacheEntry?
     
     public var name: String = ""
     public var totalCostLimit: Int = -1 // limits are imprecise/not strict
@@ -56,7 +56,7 @@ public class NSCache : NSObject {
         setObject(obj, forKey: key, cost: 0)
     }
     
-    private func remove(_ entry: NSCacheEntry) {
+    fileprivate func remove(_ entry: NSCacheEntry) {
         let oldPrev = entry.prevByCost
         let oldNext = entry.nextByCost
         oldPrev?.nextByCost = oldNext
@@ -66,7 +66,7 @@ public class NSCache : NSObject {
         }
     }
    
-    private func insert(_ entry: NSCacheEntry) {
+    fileprivate func insert(_ entry: NSCacheEntry) {
         if _byCost == nil {
             _byCost = entry
         } else {

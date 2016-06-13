@@ -9,8 +9,8 @@
 
 public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
-    private static var SideTable = [ObjectIdentifier : NSValue]()
-    private static var SideTableLock = NSLock()
+    fileprivate static var SideTable = [ObjectIdentifier : NSValue]()
+    fileprivate static var SideTableLock = NSLock()
 
     internal override init() {
         super.init()
@@ -92,7 +92,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    private static func _isSpecialObjCType(_ type: UnsafePointer<Int8>) -> Bool {
+    fileprivate static func _isSpecialObjCType(_ type: UnsafePointer<Int8>) -> Bool {
         return NSSpecialValue._typeFromObjCType(type) != nil
     }
     

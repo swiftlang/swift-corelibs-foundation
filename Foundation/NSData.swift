@@ -58,26 +58,26 @@ public struct NSDataBase64DecodingOptions : OptionSet {
     public static let anchored = NSDataSearchOptions(rawValue: UInt(1 << 1))
 }
 
-private final class _NSDataDeallocator {
+fileprivate final class _NSDataDeallocator {
     var handler: (UnsafeMutablePointer<Void>, Int) -> Void = {_,_ in }
 }
 
-private let __kCFMutable: CFOptionFlags = 0x01
-private let __kCFGrowable: CFOptionFlags = 0x02
-private let __kCFMutableVarietyMask: CFOptionFlags = 0x03
-private let __kCFBytesInline: CFOptionFlags = 0x04
-private let __kCFUseAllocator: CFOptionFlags = 0x08
-private let __kCFDontDeallocate: CFOptionFlags = 0x10
-private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
+fileprivate let __kCFMutable: CFOptionFlags = 0x01
+fileprivate let __kCFGrowable: CFOptionFlags = 0x02
+fileprivate let __kCFMutableVarietyMask: CFOptionFlags = 0x03
+fileprivate let __kCFBytesInline: CFOptionFlags = 0x04
+fileprivate let __kCFUseAllocator: CFOptionFlags = 0x08
+fileprivate let __kCFDontDeallocate: CFOptionFlags = 0x10
+fileprivate let __kCFAllocatesCollectable: CFOptionFlags = 0x20
 
 public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFData
-    private var _base = _CFInfo(typeID: CFDataGetTypeID())
-    private var _length: CFIndex = 0
-    private var _capacity: CFIndex = 0
-    private var _deallocator: UnsafeMutablePointer<Void>? = nil // for CF only
-    private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
-    private var _bytes: UnsafeMutablePointer<UInt8>? = nil
+    fileprivate var _base = _CFInfo(typeID: CFDataGetTypeID())
+    fileprivate var _length: CFIndex = 0
+    fileprivate var _capacity: CFIndex = 0
+    fileprivate var _deallocator: UnsafeMutablePointer<Void>? = nil // for CF only
+    fileprivate var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
+    fileprivate var _bytes: UnsafeMutablePointer<UInt8>? = nil
     
     internal var _cfObject: CFType {
         if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
@@ -185,7 +185,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return true
     }
     
-    private func byteDescription(limit: Int? = nil) -> String {
+    fileprivate func byteDescription(limit: Int? = nil) -> String {
         var s = ""
         let buffer = UnsafePointer<UInt8>(bytes)
         var i = 0
@@ -539,7 +539,7 @@ extension NSData {
         }
         return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
     }
-    private static func searchSubSequence<T : Collection, T2 : Sequence where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element, T.Indices.Iterator.Element == T.Index>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
+    fileprivate static func searchSubSequence<T : Collection, T2 : Sequence where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element, T.Indices.Iterator.Element == T.Index>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
         for index in seq.indices {
             if seq.suffix(from: index).starts(with: subSequence) {
                 return index
@@ -655,7 +655,7 @@ extension NSData {
     /**
       The ranges of ASCII characters that are used to encode data in Base64.
       */
-    private static let base64ByteMappings: [Range<UInt8>] = [
+    fileprivate static let base64ByteMappings: [Range<UInt8>] = [
         65 ..< 91,      // A-Z
         97 ..< 123,     // a-z
         48 ..< 58,      // 0-9
@@ -665,7 +665,7 @@ extension NSData {
     /**
      Padding character used when the number of bytes to encode is not divisible by 3
      */
-    private static let base64Padding : UInt8 = 61 // =
+    fileprivate static let base64Padding : UInt8 = 61 // =
     
     /**
         This method takes a byte with a character from Base64-encoded string
@@ -674,12 +674,12 @@ extension NSData {
         - parameter byte:       The byte with the Base64 character.
         - returns:              Base64DecodedByte value containing the result (Valid , Invalid, Padding)
         */
-    private enum Base64DecodedByte {
+    fileprivate enum Base64DecodedByte {
         case Valid(UInt8)
         case Invalid
         case Padding
     }
-    private static func base64DecodeByte(_ byte: UInt8) -> Base64DecodedByte {
+    fileprivate static func base64DecodeByte(_ byte: UInt8) -> Base64DecodedByte {
         guard byte != base64Padding else {return .Padding}
         var decodedStart: UInt8 = 0
         for range in base64ByteMappings {
@@ -702,7 +702,7 @@ extension NSData {
         - parameter byte:       The byte to encode
         - returns:              The ASCII value for the encoded character.
         */
-    private static func base64EncodeByte(_ byte: UInt8) -> UInt8 {
+    fileprivate static func base64EncodeByte(_ byte: UInt8) -> UInt8 {
         assert(byte < 64)
         var decodedStart: UInt8 = 0
         for range in base64ByteMappings {
@@ -726,7 +726,7 @@ extension NSData {
         - parameter options:    Options for handling invalid input
         - returns:              The decoded bytes.
         */
-    private static func base64DecodeBytes(_ bytes: [UInt8], options: NSDataBase64DecodingOptions = []) -> [UInt8]? {
+    fileprivate static func base64DecodeBytes(_ bytes: [UInt8], options: NSDataBase64DecodingOptions = []) -> [UInt8]? {
         var decodedBytes = [UInt8]()
         decodedBytes.reserveCapacity((bytes.count/3)*2)
 
@@ -796,7 +796,7 @@ extension NSData {
         - parameter options:    Options for formatting the result
         - returns:              The Base64-encoding for those bytes.
         */
-    private static func base64EncodeBytes(_ bytes: [UInt8], options: NSDataBase64EncodingOptions = []) -> [UInt8] {
+    fileprivate static func base64EncodeBytes(_ bytes: [UInt8], options: NSDataBase64EncodingOptions = []) -> [UInt8] {
         var result = [UInt8]()
         result.reserveCapacity((bytes.count/3)*4)
         

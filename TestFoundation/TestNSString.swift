@@ -583,7 +583,7 @@ class TestNSString : XCTestCase {
         #endif
     }
     
-    private func startWith(_ prefix: String, strings: [NSString]) -> Bool {
+    fileprivate func startWith(_ prefix: String, strings: [NSString]) -> Bool {
         for item in strings {
             guard item.hasPrefix(prefix) else {
                 return false
@@ -593,7 +593,7 @@ class TestNSString : XCTestCase {
         return true
     }
     
-    private func stringsAreCaseInsensitivelyEqual(_ lhs: NSString, _ rhs: NSString) -> Bool {
+    fileprivate func stringsAreCaseInsensitivelyEqual(_ lhs: NSString, _ rhs: NSString) -> Bool {
     	return lhs.compare(rhs.bridge(), options: .caseInsensitiveSearch) == .orderedSame
     }
 

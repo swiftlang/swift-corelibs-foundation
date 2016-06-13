@@ -46,7 +46,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     }
     
     // This doesn't feel like a particularly efficient generator of CFDictionary keys, but it works for now. We should probably put a function into CF that allows us to simply iterate the keys directly from the underlying CF storage.
-    private struct _NSCFKeyGenerator : IteratorProtocol {
+    fileprivate struct _NSCFKeyGenerator : IteratorProtocol {
         var keyArray : [NSObject] = []
         var index : Int = 0
         let count : Int

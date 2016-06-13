@@ -11,11 +11,11 @@ import CoreFoundation
 
 internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
-    private var _addr : UnsafeMutablePointer<UInt8> // free if decoding
-    private var _count : Int
-    private var _size : Int
-    private var _type : _NSSimpleObjCType
-    private var _decoded : Bool = false
+    fileprivate var _addr : UnsafeMutablePointer<UInt8> // free if decoding
+    fileprivate var _count : Int
+    fileprivate var _size : Int
+    fileprivate var _type : _NSSimpleObjCType
+    fileprivate var _decoded : Bool = false
     
     static func sizeForObjCType(_ type: _NSSimpleObjCType) -> Int? {
         var size : Int = 0

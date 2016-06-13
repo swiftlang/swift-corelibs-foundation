@@ -137,7 +137,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         return c
     }
     
-    private func setValues(from source: NSURLRequest) {
+    fileprivate func setValues(from source: NSURLRequest) {
         self.allHTTPHeaderFields = source.allHTTPHeaderFields
         self.url = source.url
         self.mainDocumentURL = source.mainDocumentURL
@@ -162,7 +162,7 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         NSUnimplemented()
     }
     
-    private override init() {}
+    fileprivate override init() {}
     
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
     public static func supportsSecureCoding() -> Bool { return true }
@@ -236,7 +236,7 @@ public class NSMutableURLRequest : NSURLRequest {
         super.init()
     }
     
-    private override init() { super.init() }
+    fileprivate override init() { super.init() }
     
     /*@NSCopying */ public override var url: NSURL? {
         get { return super.url }
@@ -305,7 +305,7 @@ public class NSMutableURLRequest : NSURLRequest {
 }
 
 /// Returns an existing key-value pair inside the header fields if it exists.
-private func existingHeaderField(_ key: String, inHeaderFields fields: [String: String]) -> (String, String)? {
+fileprivate func existingHeaderField(_ key: String, inHeaderFields fields: [String: String]) -> (String, String)? {
     for (k, v) in fields {
         if k.lowercased() == key.lowercased() {
             return (k, v)
