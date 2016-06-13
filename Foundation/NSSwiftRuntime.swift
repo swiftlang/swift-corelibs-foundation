@@ -110,16 +110,16 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafePointer<Void>.self))
     _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(NSCalendar.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(NSLocale.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(NSTimeZone.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(NSMutableCharacterSet.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(Calendar.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(Locale.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(TimeZone.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(_NSCFCharacterSet.self, to: UnsafePointer<Void>.self))
     
 //    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFReadStreamGetTypeID(), unsafeBitCast(NSInputStream.self, UnsafePointer<Void>.self))
 //    _CFRuntimeBridgeTypeToClass(CFWriteStreamGetTypeID(), unsafeBitCast(NSOutputStream.self, UnsafePointer<Void>.self))
-   _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(NSTimer.self, to: UnsafePointer<Void>.self))
+   _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(Timer.self, to: UnsafePointer<Void>.self))
     
     __CFSwiftBridge.NSObject.isEqual = _CFSwiftIsEqual
     __CFSwiftBridge.NSObject.hash = _CFSwiftGetHash
@@ -199,6 +199,14 @@ internal func __CFInitializeSwift() {
     
     __CFSwiftBridge.NSRunLoop._new = _NSRunLoopNew
     
+    __CFSwiftBridge.NSCharacterSet._expandedCFCharacterSet = _CFSwiftCharacterSetExpandedCFCharacterSet
+    __CFSwiftBridge.NSCharacterSet._retainedBitmapRepresentation = _CFSwiftCharacterSetRetainedBitmapRepresentation
+    __CFSwiftBridge.NSCharacterSet.characterIsMember = _CFSwiftCharacterSetCharacterIsMember
+    __CFSwiftBridge.NSCharacterSet.mutableCopy = _CFSwiftCharacterSetMutableCopy
+    __CFSwiftBridge.NSCharacterSet.longCharacterIsMember = _CFSwiftCharacterSetLongCharacterIsMember
+    __CFSwiftBridge.NSCharacterSet.hasMemberInPlane = _CFSwiftCharacterSetHasMemberInPlane
+    __CFSwiftBridge.NSCharacterSet.invertedSet = _CFSwiftCharacterSetInverted
+    
     __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
 
@@ -206,7 +214,6 @@ public protocol _ObjectTypeBridgeable {
     associatedtype _ObjectType : AnyObject
     
     /// Convert `self` to an Object type
-    @warn_unused_result
     func _bridgeToObject() -> _ObjectType
     
     /// Bridge from an object of the bridged class type to a value of 
@@ -330,18 +337,38 @@ public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
 
 /// Swift extensions for common operations in Foundation that use unsafe things...
 
-extension UnsafeMutablePointer {
-    internal init<T: AnyObject>(retained value: T) {
-        self.init(Unmanaged<T>.passRetained(value).toOpaque())
+
+extension NSObject {
+    static func unretainedReference<T, R: NSObject>(_ value: UnsafePointer<T>) -> R {
+        return unsafeBitCast(value, to: R.self)
     }
     
-    internal init<T: AnyObject>(unretained value: T) {
-        self.init(Unmanaged<T>.passUnretained(value).toOpaque())
+    static func unretainedReference<T, R: NSObject>(_ value: UnsafeMutablePointer<T>) -> R {
+        return unretainedReference(UnsafePointer<T>(value))
     }
     
-    internal func array(_ count: Int) -> [Pointee] {
-        let buffer = UnsafeBufferPointer<Pointee>(start: self, count: count)
-        return Array<Pointee>(buffer)
+    static func releaseReference<T>(_ value: UnsafePointer<T>) {
+        _CFSwiftRelease(UnsafeMutablePointer<Void>(value))
+    }
+    
+    static func releaseReference<T>(_ value: UnsafeMutablePointer<T>) {
+        _CFSwiftRelease(value)
+    }
+
+    func withRetainedReference<T, R>(_ work: @noescape (UnsafePointer<T>) -> R) -> R {
+        return work(UnsafePointer<T>(_CFSwiftRetain(unsafeBitCast(self, to: UnsafeMutablePointer<Void>.self))!))
+    }
+    
+    func withRetainedReference<T, R>(_ work: @noescape (UnsafeMutablePointer<T>) -> R) -> R {
+        return work(UnsafeMutablePointer<T>(_CFSwiftRetain(unsafeBitCast(self, to: UnsafeMutablePointer<Void>.self))!))
+    }
+    
+    func withUnretainedReference<T, R>(_ work: @noescape (UnsafePointer<T>) -> R) -> R {
+        return work(unsafeBitCast(self, to: UnsafePointer<T>.self))
+    }
+    
+    func withUnretainedReference<T, R>(_ work: @noescape (UnsafeMutablePointer<T>) -> R) -> R {
+        return work(unsafeBitCast(self, to: UnsafeMutablePointer<T>.self))
     }
 }
 

@@ -8,19 +8,21 @@
 //
 
 
-public enum NSDateIntervalFormatterStyle : UInt {
-    
-    case NoStyle
-    case ShortStyle
-    case MediumStyle
-    case LongStyle
-    case FullStyle
+extension DateIntervalFormatter {
+    public enum Style : UInt {
+        
+        case noStyle
+        case shortStyle
+        case mediumStyle
+        case longStyle
+        case fullStyle
+    }
 }
 
 // NSDateIntervalFormatter is used to format the range between two NSDates in a locale-sensitive way.
 // NSDateIntervalFormatter returns nil and NO for all methods in NSFormatter.
 
-public class NSDateIntervalFormatter : NSFormatter {
+public class DateIntervalFormatter : Formatter {
     
     public override init() {
         NSUnimplemented()
@@ -30,12 +32,12 @@ public class NSDateIntervalFormatter : NSFormatter {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ public var locale: NSLocale! // default is [NSLocale currentLocale]
-    /*@NSCopying*/ public var calendar: NSCalendar! // default is the calendar of the locale
-    /*@NSCopying*/ public var timeZone: NSTimeZone! // default is [NSTimeZone defaultTimeZone]
+    /*@NSCopying*/ public var locale: Locale! // default is [NSLocale currentLocale]
+    /*@NSCopying*/ public var calendar: Calendar! // default is the calendar of the locale
+    /*@NSCopying*/ public var timeZone: TimeZone! // default is [NSTimeZone defaultTimeZone]
     public var dateTemplate: String! // default is an empty string
-    public var dateStyle: NSDateIntervalFormatterStyle // default is NSDateIntervalFormatterNoStyle
-    public var timeStyle: NSDateIntervalFormatterStyle // default is NSDateIntervalFormatterNoStyle
+    public var dateStyle: Style // default is NSDateIntervalFormatterNoStyle
+    public var timeStyle: Style // default is NSDateIntervalFormatterNoStyle
     
     /*
          If the range smaller than the resolution specified by the dateTemplate, a single date format will be produced. If the range is larger than the format specified by the dateTemplate, a locale-specific fallback will be used to format the items missing from the pattern.
@@ -55,5 +57,7 @@ public class NSDateIntervalFormatter : NSFormatter {
             for en_US, "Mar 4-8"
             for en_GB, "4-8 Mar"
     */
-    public func stringFromDate(_ fromDate: NSDate, toDate: NSDate) -> String { NSUnimplemented() }
+    public func stringFromDate(_ fromDate: Date, toDate: Date) -> String { NSUnimplemented() }
+    
+    public func string(from dateInterval: NSDateInterval) -> String? { NSUnimplemented() }
 }

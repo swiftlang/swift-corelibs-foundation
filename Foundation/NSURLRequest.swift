@@ -46,58 +46,52 @@
 /// Specifically, these constants cover interactions that have to do
 /// with whether already-existing cache data is returned to satisfy a
 /// URL load request.
-public enum NSURLRequestCachePolicy : UInt {
-    /// Specifies that the caching logic defined in the protocol
-    /// implementation, if any, is used for a particular URL load request. This
-    /// is the default policy for URL load requests.
-    case useProtocolCachePolicy
-    /// Specifies that the data for the URL load should be loaded from the
-    /// origin source. No existing local cache data, regardless of its freshness
-    /// or validity, should be used to satisfy a URL load request.
-    case reloadIgnoringLocalCacheData
-    /// Specifies that not only should the local cache data be ignored, but that
-    /// proxies and other intermediates should be instructed to disregard their
-    /// caches so far as the protocol allows.  Unimplemented.
-    case reloadIgnoringLocalAndRemoteCacheData // Unimplemented
-    /// Older name for `NSURLRequestReloadIgnoringLocalCacheData`.
-    public static var reloadIgnoringCacheData: NSURLRequestCachePolicy { return .reloadIgnoringLocalCacheData }
-    /// Specifies that the existing cache data should be used to satisfy a URL
-    /// load request, regardless of its age or expiration date. However, if
-    /// there is no existing data in the cache corresponding to a URL load
-    /// request, the URL is loaded from the origin source.
-    case returnCacheDataElseLoad
-    /// Specifies that the existing cache data should be used to satisfy a URL
-    /// load request, regardless of its age or expiration date. However, if
-    /// there is no existing data in the cache corresponding to a URL load
-    /// request, no attempt is made to load the URL from the origin source, and
-    /// the load is considered to have failed. This constant specifies a
-    /// behavior that is similar to an "offline" mode.
-    case returnCacheDataDontLoad
-    /// Specifies that the existing cache data may be used provided the origin
-    /// source confirms its validity, otherwise the URL is loaded from the
-    /// origin source.
-    /// - Note: Unimplemented.
-    case reloadRevalidatingCacheData // Unimplemented
-}
-
-/// Network service type for an NSURLRequest
-///
-/// The `NSURLRequestNetworkServiceType` enum defines constants that
-/// can be used to specify the service type to associate with this request. The
-/// service type is used to provide the networking layers a hint of the purpose
-/// of the request.
-public enum NSURLRequestNetworkServiceType : UInt {
-    /// Is the default value for an `NSURLRequest` when created.
-    /// This value should be left unchanged for the vast majority of requests.
-    case networkServiceTypeDefault
-    /// Specifies that the request is for voice over IP control traffic.
-    case networkServiceTypeVoIP
-    /// Specifies that the request is for video traffic.
-    case networkServiceTypeVideo
-    /// Specifies that the request is for background traffic (such as a file download).
-    case networkServiceTypeBackground
-    /// Specifies that the request is for voice data.
-    case networkServiceTypeVoice
+extension NSURLRequest {
+    public enum CachePolicy : UInt {
+        /// Specifies that the caching logic defined in the protocol
+        /// implementation, if any, is used for a particular URL load request. This
+        /// is the default policy for URL load requests.
+        case useProtocolCachePolicy
+        /// Specifies that the data for the URL load should be loaded from the
+        /// origin source. No existing local cache data, regardless of its freshness
+        /// or validity, should be used to satisfy a URL load request.
+        case reloadIgnoringLocalCacheData
+        /// Specifies that not only should the local cache data be ignored, but that
+        /// proxies and other intermediates should be instructed to disregard their
+        /// caches so far as the protocol allows.  Unimplemented.
+        case reloadIgnoringLocalAndRemoteCacheData // Unimplemented
+        /// Older name for `NSURLRequestReloadIgnoringLocalCacheData`.
+        public static var reloadIgnoringCacheData: CachePolicy { return .reloadIgnoringLocalCacheData }
+        /// Specifies that the existing cache data should be used to satisfy a URL
+        /// load request, regardless of its age or expiration date. However, if
+        /// there is no existing data in the cache corresponding to a URL load
+        /// request, the URL is loaded from the origin source.
+        case returnCacheDataElseLoad
+        /// Specifies that the existing cache data should be used to satisfy a URL
+        /// load request, regardless of its age or expiration date. However, if
+        /// there is no existing data in the cache corresponding to a URL load
+        /// request, no attempt is made to load the URL from the origin source, and
+        /// the load is considered to have failed. This constant specifies a
+        /// behavior that is similar to an "offline" mode.
+        case returnCacheDataDontLoad
+        /// Specifies that the existing cache data may be used provided the origin
+        /// source confirms its validity, otherwise the URL is loaded from the
+        /// origin source.
+        /// - Note: Unimplemented.
+        case reloadRevalidatingCacheData // Unimplemented
+    }
+    
+    public enum NetworkServiceType : UInt {
+        case networkServiceTypeDefault // Standard internet traffic
+        
+        case networkServiceTypeVoIP // Voice over IP control traffic
+        
+        case networkServiceTypeVideo // Video traffic
+        
+        case networkServiceTypeBackground // Background traffic
+        
+        case networkServiceTypeVoice // Voice data
+    }
 }
 
 /// An `NSURLRequest` object represents a URL load request in a
@@ -121,35 +115,45 @@ public enum NSURLRequestNetworkServiceType : UInt {
 ///
 /// Objects of this class are used with the `NSURLSession` API to perform the
 /// load of a URL.
-public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
+public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         if self.dynamicType === NSURLRequest.self {
             // Already immutable
             return self
         }
-        let c = NSURLRequest()
+        let c = NSURLRequest(url: url!)
         c.setValues(from: self)
         return c
     }
     
+    public convenience init(url: URL) {
+        self.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60.0)
+    }
+    
+    public init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: TimeInterval) {
+        self.url = url
+        _cachePolicy = cachePolicy
+        _timeoutInterval = timeoutInterval
+    }
+    
     private func setValues(from source: NSURLRequest) {
-        self.allHTTPHeaderFields = source.allHTTPHeaderFields
+        self._allHTTPHeaderFields = source.allHTTPHeaderFields
         self.url = source.url
         self.mainDocumentURL = source.mainDocumentURL
         self.httpMethod = source.httpMethod
     }
     
     public override func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
     
-    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
-        let c = NSMutableURLRequest()
+    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+        let c = NSMutableURLRequest(url: url!)
         c.setValues(from: self)
         return c
     }
@@ -158,38 +162,43 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
-    
-    private override init() {}
     
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
     public static func supportsSecureCoding() -> Bool { return true }
     
-    /// Initializes an NSURLRequest with the given URL.
-    ///
-    /// - Parameter URL: The URL for the request.
-    public convenience init(url: NSURL) {
-        self.init()
-        self.url = url
-    }
-    
     /// The URL of the receiver.
-    /*@NSCopying */public private(set) var url: NSURL?
+    /*@NSCopying */public private(set) var url: URL?
     
     /// The main document URL associated with this load.
     ///
     /// This URL is used for the cookie "same domain as main
     /// document" policy. There may also be other future uses.
-    /*@NSCopying*/ public private(set) var mainDocumentURL: NSURL?
+    /*@NSCopying*/ public private(set) var mainDocumentURL: URL?
     
+    internal var _cachePolicy: CachePolicy = .useProtocolCachePolicy
+    public var cachePolicy: CachePolicy {
+        return _cachePolicy
+    }
+    
+    internal var _timeoutInterval: TimeInterval = 60.0
+    public var timeoutInterval: TimeInterval {
+        return _timeoutInterval
+    }
+
     /// Returns the HTTP request method of the receiver.
     public private(set) var httpMethod: String? = "GET"
     
     /// A dictionary containing all the HTTP header fields
     /// of the receiver.
-    public private(set) var allHTTPHeaderFields: [String: String]?
+    internal var _allHTTPHeaderFields: [String: String]? = nil
+    public var allHTTPHeaderFields: [String: String]? {
+        get {
+            return _allHTTPHeaderFields
+        }
+    }
     
     /// Returns the value which corresponds to the given header field.
     ///
@@ -202,6 +211,56 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
     public func value(forHTTPHeaderField field: String) -> String? {
         guard let f = allHTTPHeaderFields else { return nil }
         return existingHeaderField(field, inHeaderFields: f)?.1
+    }
+    
+    internal enum Body {
+        case data(Data)
+        case stream(InputStream)
+    }
+    internal var _body: Body?
+    
+    public var httpBody: Data? {
+        if let body = _body {
+            switch body {
+            case .data(let data):
+                return data
+            case .stream(_):
+                return nil
+            }
+        }
+        return nil
+    }
+    
+    public var httpBodyStream: InputStream? {
+        if let body = _body {
+            switch body {
+            case .data(_):
+                return nil
+            case .stream(let stream):
+                return stream
+            }
+        }
+        return nil
+    }
+    
+    internal var _networkServiceType: NetworkServiceType = .networkServiceTypeDefault
+    public var networkServiceType: NetworkServiceType {
+        return _networkServiceType
+    }
+    
+    internal var _allowsCellularAccess: Bool = true
+    public var allowsCellularAccess: Bool {
+        return _allowsCellularAccess
+    }
+    
+    internal var _httpShouldHandleCookies: Bool = true
+    public var httpShouldHandleCookies: Bool {
+        return _httpShouldHandleCookies
+    }
+    
+    internal var _httpShouldUsePipelining: Bool = true
+    public var httpShouldUsePipelining: Bool {
+        return _httpShouldUsePipelining
     }
 }
 
@@ -233,12 +292,18 @@ public class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopyin
 /// example.
 public class NSMutableURLRequest : NSURLRequest {
     public required init?(coder aDecoder: NSCoder) {
-        super.init()
+        NSUnimplemented()
     }
     
-    private override init() { super.init() }
+    public convenience init(url: URL) {
+        self.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60.0)
+    }
     
-    /*@NSCopying */ public override var url: NSURL? {
+    public override init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: TimeInterval) {
+        super.init(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
+    }
+    
+    /*@NSCopying */ public override var url: URL? {
         get { return super.url }
         //TODO: set { super.URL = newValue.map{ $0.copy() as! NSURL } }
         set { super.url = newValue }
@@ -252,7 +317,7 @@ public class NSMutableURLRequest : NSURLRequest {
     /// passed.  This main document will be used to implement the cookie
     /// *only from same domain as main document* policy, and possibly
     /// other things in the future.
-    /*@NSCopying*/ public override var mainDocumentURL: NSURL? {
+    /*@NSCopying*/ public override var mainDocumentURL: URL? {
         get { return super.mainDocumentURL }
         //TODO: set { super.mainDocumentURL = newValue.map{ $0.copy() as! NSURL } }
         set { super.mainDocumentURL = newValue }
@@ -263,6 +328,33 @@ public class NSMutableURLRequest : NSURLRequest {
     public override var httpMethod: String? {
         get { return super.httpMethod }
         set { super.httpMethod = newValue }
+    }
+    
+    public override var cachePolicy: CachePolicy {
+        get {
+            return _cachePolicy
+        }
+        set {
+            _cachePolicy = newValue
+        }
+    }
+    
+    public override var timeoutInterval: TimeInterval {
+        get {
+            return _timeoutInterval
+        }
+        set {
+            _timeoutInterval = newValue
+        }
+    }
+    
+    public override var allHTTPHeaderFields: [String: String]? {
+        get {
+            return _allHTTPHeaderFields
+        }
+        set {
+            _allHTTPHeaderFields = newValue
+        }
     }
     
     /// Sets the value of the given HTTP header field.
@@ -279,7 +371,7 @@ public class NSMutableURLRequest : NSURLRequest {
             f.removeValue(forKey: old.0)
         }
         f[field] = value
-        allHTTPHeaderFields = f
+        _allHTTPHeaderFields = f
     }
     
     /// Adds an HTTP header field in the current header dictionary.
@@ -300,7 +392,85 @@ public class NSMutableURLRequest : NSURLRequest {
         } else {
             f[field] = value
         }
-        allHTTPHeaderFields = f
+        _allHTTPHeaderFields = f
+    }
+    
+    public override var httpBody: Data? {
+        get {
+            if let body = _body {
+                switch body {
+                case .data(let data):
+                    return data
+                case .stream(_):
+                    return nil
+                }
+            }
+            return nil
+        }
+        set {
+            if let value = newValue {
+                _body = Body.data(value)
+            } else {
+                _body = nil
+            }
+        }
+    }
+    
+    public override var httpBodyStream: InputStream? {
+        get {
+            if let body = _body {
+                switch body {
+                case .data(_):
+                    return nil
+                case .stream(let stream):
+                    return stream
+                }
+            }
+            return nil
+        }
+        set {
+            if let value = newValue {
+                _body = Body.stream(value)
+            } else {
+                _body = nil
+            }
+        }
+    }
+    
+    public override var networkServiceType: NetworkServiceType {
+        get {
+            return _networkServiceType
+        }
+        set {
+            _networkServiceType = newValue
+        }
+    }
+    
+    public override var allowsCellularAccess: Bool {
+        get {
+            return _allowsCellularAccess
+        }
+        set {
+            _allowsCellularAccess = newValue
+        }
+    }
+    
+    public override var httpShouldHandleCookies: Bool {
+        get {
+            return _httpShouldHandleCookies
+        }
+        set {
+            _httpShouldHandleCookies = newValue
+        }
+    }
+    
+    public override var httpShouldUsePipelining: Bool {
+        get {
+            return _httpShouldUsePipelining
+        }
+        set {
+            _httpShouldUsePipelining = newValue
+        }
     }
 }
 

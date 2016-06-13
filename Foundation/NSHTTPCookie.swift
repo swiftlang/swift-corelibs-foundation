@@ -53,12 +53,12 @@ public let NSHTTPCookiePort: String = "Port"
 /// an immutable object initialized from a dictionary that contains
 /// the various cookie attributes. It has accessors to get the various
 /// attributes of a cookie.
-public class NSHTTPCookie : NSObject {
+public class HTTPCookie : NSObject {
 
     let _comment: String?
-    let _commentURL: NSURL?
+    let _commentURL: URL?
     let _domain: String
-    let _expiresDate: NSDate?
+    let _expiresDate: Date?
     let _HTTPOnly: Bool
     let _secure: Bool
     let _sessionOnly: Bool
@@ -207,7 +207,7 @@ public class NSHTTPCookie : NSObject {
         if let domain = properties[NSHTTPCookieDomain] as? String {
             canonicalDomain = domain
         } else if let
-            originURL = properties[NSHTTPCookieOriginURL] as? NSURL,
+            originURL = properties[NSHTTPCookieOriginURL] as? URL,
             host = originURL.host
         {
             canonicalDomain = host
@@ -253,14 +253,14 @@ public class NSHTTPCookie : NSObject {
         // TODO: factor into a utility function
         if version == 0 {
             let expiresProperty = properties[NSHTTPCookieExpires]
-            if let date = expiresProperty as? NSDate {
+            if let date = expiresProperty as? Date {
                 _expiresDate = date
             } else if let dateString = expiresProperty as? String {
-                let formatter = NSDateFormatter()
+                let formatter = DateFormatter()
                 formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss O"   // per RFC 6265 '<rfc1123-date, defined in [RFC2616], Section 3.3.1>'
-                let timeZone = NSTimeZone(abbreviation: "GMT")
+                let timeZone = TimeZone(abbreviation: "GMT")
                 formatter.timeZone = timeZone
-                _expiresDate = formatter.dateFromString(dateString)
+                _expiresDate = formatter.date(from: dateString)
             } else {
                 _expiresDate = nil
             }
@@ -268,7 +268,7 @@ public class NSHTTPCookie : NSObject {
             maximumAge = properties[NSHTTPCookieMaximumAge] as? String,
             secondsFromNow = Int(maximumAge)
             where _version == 1 {
-            _expiresDate = NSDate(timeIntervalSinceNow: Double(secondsFromNow))
+            _expiresDate = Date(timeIntervalSinceNow: Double(secondsFromNow))
         } else {
             _expiresDate = nil
         }
@@ -284,10 +284,10 @@ public class NSHTTPCookie : NSObject {
             _commentURL = nil
         } else {
             _comment = properties[NSHTTPCookieComment] as? String
-            if let commentURL = properties[NSHTTPCookieCommentURL] as? NSURL {
+            if let commentURL = properties[NSHTTPCookieCommentURL] as? URL {
                 _commentURL = commentURL
             } else if let commentURL = properties[NSHTTPCookieCommentURL] as? String {
-                _commentURL = NSURL(string: commentURL)
+                _commentURL = URL(string: commentURL)
             } else {
                 _commentURL = nil
             }
@@ -295,7 +295,7 @@ public class NSHTTPCookie : NSObject {
         _HTTPOnly = false
         _properties = [NSHTTPCookieComment : properties[NSHTTPCookieComment],
                        NSHTTPCookieCommentURL : properties[NSHTTPCookieCommentURL],
-                       "Created" : NSDate().timeIntervalSinceReferenceDate,         // Cocoa Compatibility
+                       "Created" : Date().timeIntervalSinceReferenceDate, // Cocoa Compatibility
                        NSHTTPCookieDiscard : _sessionOnly,
                        NSHTTPCookieDomain : _domain,
                        NSHTTPCookieExpires : _expiresDate,
@@ -316,7 +316,7 @@ public class NSHTTPCookie : NSObject {
     /// - Parameter cookies: The cookies to turn into request headers.
     /// - Returns: A dictionary where the keys are header field names, and the values
     /// are the corresponding header field values.
-    public class func requestHeaderFields(with cookies: [NSHTTPCookie]) -> [String : String] {
+    public class func requestHeaderFields(with cookies: [HTTPCookie]) -> [String : String] {
         var cookieString = cookies.reduce("") { (sum, next) -> String in
             return sum + "\(next._name)=\(next._value); "
         }
@@ -335,7 +335,7 @@ public class NSHTTPCookie : NSObject {
     /// - Parameter headerFields: The response header fields to check for cookies.
     /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpeted.
     /// - Returns: An array of NSHTTPCookie objects
-    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL URL: NSURL) -> [NSHTTPCookie] { NSUnimplemented() }
+    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL url: URL) -> [HTTPCookie] { NSUnimplemented() }
     
     /// Returns a dictionary representation of the receiver.
     ///
@@ -376,7 +376,7 @@ public class NSHTTPCookie : NSObject {
     /// The expires date is the date when the cookie should be
     /// deleted. The result will be nil if there is no specific expires
     /// date. This will be the case only for *session-only* cookies.
-    /*@NSCopying*/ public var expiresDate: NSDate? {
+    /*@NSCopying*/ public var expiresDate: Date? {
         return _expiresDate
     }
    
@@ -443,7 +443,7 @@ public class NSHTTPCookie : NSObject {
     /// This value specifies a URL which is suitable for
     /// presentation to the user as a link for further information about
     /// this cookie. It may be nil.
-    /*@NSCopying*/ public var commentURL: NSURL? {
+    /*@NSCopying*/ public var commentURL: URL? {
         return _commentURL
     }
     

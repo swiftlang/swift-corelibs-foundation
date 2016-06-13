@@ -9,34 +9,37 @@
 
 import CoreFoundation
 
-public struct NSPropertyListMutabilityOptions : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    static let Immutable = NSPropertyListMutabilityOptions(rawValue: 0)
-    static let MutableContainers = NSPropertyListMutabilityOptions(rawValue: 1)
-    static let MutableContainersAndLeaves = NSPropertyListMutabilityOptions(rawValue: 2)
-}
-
-public enum NSPropertyListFormat : UInt {
-    
-    case OpenStepFormat = 1
-    case XMLFormat_v1_0 = 100
-    case BinaryFormat_v1_0 = 200
-}
-
 #if os(OSX) || os(iOS)
 let kCFPropertyListOpenStepFormat = CFPropertyListFormat.openStepFormat
 let kCFPropertyListXMLFormat_v1_0 = CFPropertyListFormat.xmlFormat_v1_0
 let kCFPropertyListBinaryFormat_v1_0 = CFPropertyListFormat.binaryFormat_v1_0
 #endif
 
-public typealias NSPropertyListReadOptions = NSPropertyListMutabilityOptions
-public typealias NSPropertyListWriteOptions = Int
+extension PropertyListSerialization {
 
-public class NSPropertyListSerialization : NSObject {
+    public struct MutabilityOptions : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        static let immutable = MutabilityOptions(rawValue: 0)
+        static let mutableContainers = MutabilityOptions(rawValue: 1)
+        static let mutableContainersAndLeaves = MutabilityOptions(rawValue: 2)
+    }
 
-    public class func propertyList(_ plist: AnyObject, isValidForFormat format: NSPropertyListFormat) -> Bool {
+    public enum PropertyListFormat : UInt {
+        
+        case openStep = 1
+        case xml = 100
+        case binary = 200
+    }
+
+    public typealias ReadOptions = MutabilityOptions
+    public typealias WriteOptions = Int
+}
+
+public class PropertyListSerialization : NSObject {
+
+    public class func propertyList(_ plist: AnyObject, isValidFor format: PropertyListFormat) -> Bool {
 #if os(OSX) || os(iOS)
         let fmt = CFPropertyListFormat(rawValue: CFIndex(format.rawValue))!
 #else
@@ -45,7 +48,7 @@ public class NSPropertyListSerialization : NSObject {
         return CFPropertyListIsValid(unsafeBitCast(plist, to: CFPropertyList.self), fmt)
     }
     
-    public class func dataWithPropertyList(_ plist: AnyObject, format: NSPropertyListFormat, options opt: NSPropertyListWriteOptions) throws -> NSData {
+    public class func data(fromPropertyList plist: AnyObject, format: PropertyListFormat, options opt: WriteOptions) throws -> Data {
         var error: Unmanaged<CFError>? = nil
         let result = withUnsafeMutablePointer(&error) { (outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> CFData? in
 #if os(OSX) || os(iOS)
@@ -57,23 +60,23 @@ public class NSPropertyListSerialization : NSObject {
             return CFPropertyListCreateData(kCFAllocatorSystemDefault, plist, fmt, options, outErr)
         }
         if let res = result {
-            return res._nsObject
+            return res._swiftObject
         } else {
             throw error!.takeRetainedValue()._nsObject
         }
     }
     
     /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
-    public class func propertyListWithData(_ data: NSData, options opt: NSPropertyListReadOptions, format: UnsafeMutablePointer<NSPropertyListFormat>?) throws -> Any {
+    public class func propertyList(from data: Data, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0
         var error: Unmanaged<CFError>? = nil
         let decoded = withUnsafeMutablePointers(&fmt, &error) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>, outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> NSObject? in
-            return unsafeBitCast(CFPropertyListCreateWithData(kCFAllocatorSystemDefault, unsafeBitCast(data, to: CFData.self), CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), to: NSObject.self)
+            return unsafeBitCast(CFPropertyListCreateWithData(kCFAllocatorSystemDefault, data._cfObject, CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), to: NSObject.self)
         }
 #if os(OSX) || os(iOS)
-        format?.pointee = NSPropertyListFormat(rawValue: UInt(fmt.rawValue))!
+        format?.pointee = PropertyListFormat(rawValue: UInt(fmt.rawValue))!
 #else
-        format?.pointee = NSPropertyListFormat(rawValue: UInt(fmt))!
+        format?.pointee = PropertyListFormat(rawValue: UInt(fmt))!
 #endif
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
@@ -82,22 +85,26 @@ public class NSPropertyListSerialization : NSObject {
         }
     }
     
-    internal class func propertyListWithStream(_ stream: CFReadStream, length streamLength: Int, options opt: NSPropertyListReadOptions, format: UnsafeMutablePointer <NSPropertyListFormat>?) throws -> Any {
+    internal class func propertyListWithStream(_ stream: CFReadStream, length streamLength: Int, options opt: ReadOptions, format: UnsafeMutablePointer <PropertyListFormat>?) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0
         var error: Unmanaged<CFError>? = nil
         let decoded = withUnsafeMutablePointers(&fmt, &error) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>, outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> NSObject? in
             return unsafeBitCast(CFPropertyListCreateWithStream(kCFAllocatorSystemDefault, stream, streamLength, CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), to: NSObject.self)
         }
 #if os(OSX) || os(iOS)
-        format?.pointee = NSPropertyListFormat(rawValue: UInt(fmt.rawValue))!
+        format?.pointee = PropertyListFormat(rawValue: UInt(fmt.rawValue))!
 #else
-        format?.pointee = NSPropertyListFormat(rawValue: UInt(fmt))!
+        format?.pointee = PropertyListFormat(rawValue: UInt(fmt))!
 #endif
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
             return _expensivePropertyListConversion(decoded!)
         }
+    }
+    
+    public class func propertyList(with stream: InputStream, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
+        NSUnimplemented()
     }
 }
 
@@ -105,7 +112,7 @@ public class NSPropertyListSerialization : NSObject {
 internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
     if let dict = input as? NSDictionary {
         var result : [String : Any] = [:]
-        dict.enumerateKeysAndObjectsUsingBlock { key, value, _ in
+        dict.enumerateKeysAndObjects([]) { key, value, _ in
             guard let k = key as? NSString else {
                 fatalError("Non-string key in a property list")
             }
@@ -116,7 +123,7 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
         return result
     } else if let array = input as? NSArray {
         var result : [Any] = []
-        array.enumerateObjectsUsingBlock { value, _, _ in
+        array.enumerateObjects([]) { value, _, _ in
             result.append(_expensivePropertyListConversion(value))
         }
 
@@ -124,9 +131,9 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
     } else if let str = input as? NSString {
         return str._swiftObject
     } else if let date = input as? NSDate {
-        return date
+        return date._swiftObject
     } else if let data = input as? NSData {
-        return data
+        return data._swiftObject
     } else if let number = input as? NSNumber {
         return number
     } else if input === kCFBooleanTrue {
@@ -136,7 +143,7 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
     } else if input is __NSCFType && CFGetTypeID(input) == _CFKeyedArchiverUIDGetTypeID() {
         return input
     } else {
-        fatalError("Attempt to convert a non-plist type \(input)")
+        fatalError("Attempt to convert a non-plist type \(input.dynamicType)")
     }
 }
 

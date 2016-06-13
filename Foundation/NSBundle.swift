@@ -9,14 +9,14 @@
 
 import CoreFoundation
 
-public class NSBundle : NSObject {
+public class Bundle: NSObject {
     private var _bundle : CFBundle!
 
-    private static var _mainBundle : NSBundle = {
-        return NSBundle(cfBundle: CFBundleGetMainBundle())
+    private static var _mainBundle : Bundle = {
+        return Bundle(cfBundle: CFBundleGetMainBundle())
     }()
     
-    public class func main() -> NSBundle {
+    public class func main() -> Bundle {
         return _mainBundle
     }
     
@@ -35,11 +35,11 @@ public class NSBundle : NSObject {
             return nil
         }
         
-        let url = NSURL(fileURLWithPath: resolvedPath)
+        let url = URL(fileURLWithPath: resolvedPath)
         _bundle = CFBundleCreate(kCFAllocatorSystemDefault, unsafeBitCast(url, to: CFURL.self))
     }
     
-    public convenience init?(url: NSURL) {
+    public convenience init?(url: URL) {
         if let path = url.path {
             self.init(path: path)
         } else {
@@ -68,39 +68,39 @@ public class NSBundle : NSObject {
     public func loadAndReturnError() throws { NSUnimplemented() }
     
     /* Methods for locating various components of a bundle. */
-    public var bundleURL: NSURL {
-        return CFBundleCopyBundleURL(_bundle)._nsObject
+    public var bundleURL: URL {
+        return CFBundleCopyBundleURL(_bundle)._swiftObject
     }
     
-    public var resourceURL: NSURL? {
-        return CFBundleCopyResourcesDirectoryURL(_bundle)?._nsObject
+    public var resourceURL: URL? {
+        return CFBundleCopyResourcesDirectoryURL(_bundle)?._swiftObject
     }
     
-    public var executableURL: NSURL? {
-        return CFBundleCopyExecutableURL(_bundle)?._nsObject
+    public var executableURL: URL? {
+        return CFBundleCopyExecutableURL(_bundle)?._swiftObject
     }
     
     public func urlForAuxiliaryExecutable(_ executableName: String) -> NSURL? {
         return CFBundleCopyAuxiliaryExecutableURL(_bundle, executableName._cfObject)?._nsObject
     }
     
-    public var privateFrameworksURL: NSURL? {
-        return CFBundleCopyPrivateFrameworksURL(_bundle)?._nsObject
+    public var privateFrameworksURL: URL? {
+        return CFBundleCopyPrivateFrameworksURL(_bundle)?._swiftObject
     }
     
-    public var sharedFrameworksURL: NSURL? {
-        return CFBundleCopySharedFrameworksURL(_bundle)?._nsObject
+    public var sharedFrameworksURL: URL? {
+        return CFBundleCopySharedFrameworksURL(_bundle)?._swiftObject
     }
     
-    public var sharedSupportURL: NSURL? {
-        return CFBundleCopySharedSupportURL(_bundle)?._nsObject
+    public var sharedSupportURL: URL? {
+        return CFBundleCopySharedSupportURL(_bundle)?._swiftObject
     }
     
-    public var builtInPlugInsURL: NSURL? {
-        return CFBundleCopyBuiltInPlugInsURL(_bundle)?._nsObject
+    public var builtInPlugInsURL: URL? {
+        return CFBundleCopyBuiltInPlugInsURL(_bundle)?._swiftObject
     }
     
-    public var appStoreReceiptURL: NSURL? {
+    public var appStoreReceiptURL: URL? {
         // Always nil on this platform
         return nil
     }
@@ -140,13 +140,13 @@ public class NSBundle : NSObject {
     // -----------------------------------------------------------------------------------
     // MARK: - URL Resource Lookup - Class
     
-    public class func urlForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?, inBundleWith bundleURL: NSURL) -> NSURL? {
+    public class func urlForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?, inBundleWith bundleURL: URL) -> URL? {
         // If both name and ext are nil/zero-length, return nil
         if (name == nil || name!.isEmpty) && (ext == nil || ext!.isEmpty) {
             return nil
         }
         
-        return CFBundleCopyResourceURLInDirectory(bundleURL._cfObject, name?._cfObject, ext?._cfObject, subpath?._cfObject)._nsObject
+        return CFBundleCopyResourceURLInDirectory(bundleURL._cfObject, name?._cfObject, ext?._cfObject, subpath?._cfObject)._swiftObject
     }
     
     public class func urlsForResources(withExtension ext: String?, subdirectory subpath: String?, inBundleWith bundleURL: NSURL) -> [NSURL]? {
@@ -156,25 +156,25 @@ public class NSBundle : NSObject {
     // -----------------------------------------------------------------------------------
     // MARK: - URL Resource Lookup - Instance
 
-    public func URLForResource(_ name: String?, withExtension ext: String?) -> NSURL? {
-        return self.URLForResource(name, withExtension: ext, subdirectory: nil)
+    public func urlForResource(_ name: String?, withExtension ext: String?) -> URL? {
+        return self.urlForResource(name, withExtension: ext, subdirectory: nil)
     }
     
-    public func URLForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?) -> NSURL? {
+    public func urlForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?) -> URL? {
         // If both name and ext are nil/zero-length, return nil
         if (name == nil || name!.isEmpty) && (ext == nil || ext!.isEmpty) {
             return nil
         }
-        return CFBundleCopyResourceURL(_bundle, name?._cfObject, ext?._cfObject, subpath?._cfObject)?._nsObject
+        return CFBundleCopyResourceURL(_bundle, name?._cfObject, ext?._cfObject, subpath?._cfObject)?._swiftObject
     }
     
-    public func URLForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> NSURL? {
+    public func urlForResource(_ name: String?, withExtension ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> URL? {
         // If both name and ext are nil/zero-length, return nil
         if (name == nil || name!.isEmpty) && (ext == nil || ext!.isEmpty) {
             return nil
         }
 
-        return CFBundleCopyResourceURLForLocalization(_bundle, name?._cfObject, ext?._cfObject, subpath?._cfObject, localizationName?._cfObject)?._nsObject
+        return CFBundleCopyResourceURLForLocalization(_bundle, name?._cfObject, ext?._cfObject, subpath?._cfObject, localizationName?._cfObject)?._swiftObject
     }
     
     public func urlsForResources(withExtension ext: String?, subdirectory subpath: String?) -> [NSURL]? {
@@ -189,7 +189,7 @@ public class NSBundle : NSObject {
     // MARK: - Path Resource Lookup - Class
 
     public class func pathForResource(_ name: String?, ofType ext: String?, inDirectory bundlePath: String) -> String? {
-        return NSBundle.urlForResource(name, withExtension: ext, subdirectory: bundlePath, inBundleWith: NSURL(fileURLWithPath: bundlePath))?.path ?? nil
+        return Bundle.urlForResource(name, withExtension: ext, subdirectory: bundlePath, inBundleWith: URL(fileURLWithPath: bundlePath))?.path ?? nil
     }
     
     public class func pathsForResources(ofType ext: String?, inDirectory bundlePath: String) -> [String] {
@@ -201,15 +201,15 @@ public class NSBundle : NSObject {
     // MARK: - Path Resource Lookup - Instance
 
     public func pathForResource(_ name: String?, ofType ext: String?) -> String? {
-        return self.URLForResource(name, withExtension: ext, subdirectory: nil)?.path
+        return self.urlForResource(name, withExtension: ext, subdirectory: nil)?.path
     }
     
     public func pathForResource(_ name: String?, ofType ext: String?, inDirectory subpath: String?) -> String? {
-        return self.URLForResource(name, withExtension: ext, subdirectory: subpath)?.path
+        return self.urlForResource(name, withExtension: ext, subdirectory: subpath)?.path
     }
     
     public func pathForResource(_ name: String?, ofType ext: String?, inDirectory subpath: String?, forLocalization localizationName: String?) -> String? {
-        return self.URLForResource(name, withExtension: ext, subdirectory: subpath, localization: localizationName)?.path
+        return self.urlForResource(name, withExtension: ext, subdirectory: subpath, localization: localizationName)?.path
     }
     
     public func pathsForResources(ofType ext: String?, inDirectory subpath: String?) -> [String] {
@@ -264,7 +264,7 @@ public class NSBundle : NSObject {
     public func classNamed(_ className: String) -> AnyClass? { NSUnimplemented() }
     public var principalClass: AnyClass? { NSUnimplemented() }
     public var preferredLocalizations: [String] {
-        return NSBundle.preferredLocalizations(from: localizations)
+        return Bundle.preferredLocalizations(from: localizations)
     }
     public var localizations: [String] {
         let cfLocalizations: CFArray? = CFBundleCopyBundleLocalizations(_bundle)

@@ -10,7 +10,7 @@
 public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
     private static var SideTable = [ObjectIdentifier : NSValue]()
-    private static var SideTableLock = NSLock()
+    private static var SideTableLock = Lock()
 
     internal override init() {
         super.init()
@@ -115,7 +115,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
             
             var concreteValue : NSValue? = nil
             
-            if aDecoder.containsValueForKey("NS.special") {
+            if aDecoder.containsValue(forKey: "NS.special") {
                 // It's unfortunate that we can't specialise types at runtime
                 concreteValue = NSSpecialValue(coder: aDecoder)
             } else {
@@ -132,9 +132,9 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
         
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if self.dynamicType == NSValue.self {
-            _concreteValue.encodeWithCoder(aCoder)
+            _concreteValue.encode(with: aCoder)
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -145,10 +145,10 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
 }

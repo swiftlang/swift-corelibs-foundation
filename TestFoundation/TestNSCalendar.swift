@@ -30,10 +30,10 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_gettingDatesOnGregorianCalendar() {
-        let date = NSDate(timeIntervalSince1970: 1449332351)
+        let date = Date(timeIntervalSince1970: 1449332351)
         
-        let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)
-        calendar?.timeZone = NSTimeZone(name: "UTC")!
+        let calendar = Calendar(calendarIdentifier: NSCalendarIdentifierGregorian)
+        calendar?.timeZone = TimeZone(name: "UTC")!
         guard let components = calendar?.components([.year, .month, .day], from: date) else {
             XCTFail("Could not get date from the calendar")
             return
@@ -45,10 +45,10 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_gettingDatesOnHebrewCalendar() {
-        let date = NSDate(timeIntervalSince1970: 1552580351)
+        let date = Date(timeIntervalSince1970: 1552580351)
         
-        let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierHebrew)
-        calendar?.timeZone = NSTimeZone(name: "UTC")!
+        let calendar = Calendar(calendarIdentifier: NSCalendarIdentifierHebrew)
+        calendar?.timeZone = TimeZone(name: "UTC")!
         guard let components = calendar?.components([.year, .month, .day], from: date) else {
             XCTFail("Could not get date from the Hebrew calendar")
             return
@@ -56,14 +56,14 @@ class TestNSCalendar: XCTestCase {
         XCTAssertEqual(components.year, 5779)
         XCTAssertEqual(components.month, 7)
         XCTAssertEqual(components.day, 7)
-        XCTAssertFalse(components.leapMonth)
+        XCTAssertEqual(components.isLeapMonth, false)
     }
     
     func test_gettingDatesOnChineseCalendar() {
-        let date = NSDate(timeIntervalSince1970: 1591460351.0)
+        let date = Date(timeIntervalSince1970: 1591460351.0)
         
-        let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierChinese)
-        calendar?.timeZone = NSTimeZone(name: "UTC")!
+        let calendar = Calendar(calendarIdentifier: NSCalendarIdentifierChinese)
+        calendar?.timeZone = TimeZone(name: "UTC")!
         guard let components = calendar?.components([.year, .month, .day], from: date) else {
             XCTFail("Could not get date from the Chinese calendar")
             return
@@ -71,18 +71,18 @@ class TestNSCalendar: XCTestCase {
         XCTAssertEqual(components.year, 37)
         XCTAssertEqual(components.month, 4)
         XCTAssertEqual(components.day, 15)
-        XCTAssertTrue(components.leapMonth)
+        XCTAssertEqual(components.isLeapMonth, false)
     }
     
     func test_initializingWithInvalidIdentifier() {
-        let calendar = NSCalendar(calendarIdentifier: "nonexistant_calendar")
+        let calendar = Calendar(calendarIdentifier: "nonexistant_calendar")
         XCTAssertNil(calendar)
     }
     
     func test_currentCalendarRRstability() {
         var AMSymbols = [String]()
         for _ in 1...10 {
-            let cal = NSCalendar.currentCalendar()
+            let cal = Calendar.currentCalendar()
             AMSymbols.append(cal.AMSymbol)
         }
         

@@ -29,24 +29,24 @@ class TestNSPropertyList : XCTestCase {
     func test_BasicConstruction() {
         let dict = NSMutableDictionary(capacity: 0)
 //        dict["foo"] = "bar"
-        var data: NSData? = nil
+        var data: Data? = nil
         do {
-            data = try NSPropertyListSerialization.dataWithPropertyList(dict, format: NSPropertyListFormat.BinaryFormat_v1_0, options: 0)
+            data = try PropertyListSerialization.data(fromPropertyList: dict, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
         } catch {
             
         }
         XCTAssertNotNil(data)
-        XCTAssertEqual(data!.length, 42, "empty dictionary should be 42 bytes")
+        XCTAssertEqual(data!.count, 42, "empty dictionary should be 42 bytes")
     }
     
     func test_decode() {
         var decoded: Any?
-        var fmt = NSPropertyListFormat.BinaryFormat_v1_0
-        let path = testBundle().pathForResource("Test", ofType: "plist")
-        let data = NSData(contentsOfFile: path!)
+        var fmt = PropertyListSerialization.PropertyListFormat.binary
+        let path = testBundle().urlForResource("Test", withExtension: "plist")
+        let data = try! Data(contentsOf: path!)
         do {
-            decoded = try withUnsafeMutablePointer(&fmt) { (format: UnsafeMutablePointer<NSPropertyListFormat>) -> Any in
-                return try NSPropertyListSerialization.propertyListWithData(data!, options: [], format: format)
+            decoded = try withUnsafeMutablePointer(&fmt) { (format: UnsafeMutablePointer<PropertyListSerialization.PropertyListFormat>) -> Any in
+                return try PropertyListSerialization.propertyList(from: data, options: [], format: format)
             }
         } catch {
             

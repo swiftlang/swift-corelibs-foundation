@@ -66,11 +66,11 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_basicCreation() {
-        let doc = NSXMLDocument(rootElement: nil)
+        let doc = XMLDocument(rootElement: nil)
         XCTAssert(doc.version == "1.0", "expected 1.0, got \(doc.version)")
         doc.version = "1.1"
         XCTAssert(doc.version == "1.1", "expected 1.1, got \(doc.version)")
-        let node = NSXMLElement(name: "Hello", URI: "http://www.example.com")
+        let node = XMLElement(name: "Hello", uri: "http://www.example.com")
 
         doc.setRootElement(node)
 
@@ -79,12 +79,12 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_nextPreviousNode() {
-        let doc = NSXMLDocument(rootElement: nil)
-        let node = NSXMLElement(name: "Hello", URI: "http://www.example.com")
+        let doc = XMLDocument(rootElement: nil)
+        let node = XMLElement(name: "Hello", uri: "http://www.example.com")
 
-        let fooNode = NSXMLElement(name: "Foo")
-        let barNode = NSXMLElement(name: "Bar")
-        let bazNode = NSXMLElement(name: "Baz")
+        let fooNode = XMLElement(name: "Foo")
+        let barNode = XMLElement(name: "Bar")
+        let bazNode = XMLElement(name: "Baz")
 
         doc.setRootElement(node)
         node.addChild(fooNode)
@@ -103,12 +103,12 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_xpath() {
-        let doc = NSXMLDocument(rootElement: nil)
-        let foo = NSXMLElement(name: "foo")
-        let bar1 = NSXMLElement(name: "bar")
-        let bar2 = NSXMLElement(name: "bar")
-        let bar3 = NSXMLElement(name: "bar")
-        let baz = NSXMLElement(name: "baz")
+        let doc = XMLDocument(rootElement: nil)
+        let foo = XMLElement(name: "foo")
+        let bar1 = XMLElement(name: "bar")
+        let bar2 = XMLElement(name: "bar")
+        let bar3 = XMLElement(name: "bar")
+        let baz = XMLElement(name: "baz")
 
         doc.setRootElement(foo)
         foo.addChild(bar1)
@@ -118,13 +118,13 @@ class TestNSXMLDocument : XCTestCase {
 
         XCTAssertEqual(baz.XPath, "foo/bar[2]/baz")
 
-        let baz2 = NSXMLElement(name: "baz")
+        let baz2 = XMLElement(name: "baz")
         bar2.addChild(baz2)
 
         XCTAssertEqual(baz.XPath, "foo/bar[2]/baz[1]")
-        XCTAssertEqual(try! doc.nodesForXPath(baz.XPath!).first, baz)
+        XCTAssertEqual(try! doc.nodes(forXPath:baz.XPath!).first, baz)
 
-        let nodes = try! doc.nodesForXPath("foo/bar")
+        let nodes = try! doc.nodes(forXPath:"foo/bar")
         XCTAssertEqual(nodes.count, 3)
         XCTAssertEqual(nodes[0], bar1)
         XCTAssertEqual(nodes[1], bar2)
@@ -132,39 +132,39 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_elementCreation() {
-        let element = NSXMLElement(name: "test", stringValue: "This is my value")
-        XCTAssertEqual(element.XMLString, "<test>This is my value</test>")
+        let element = XMLElement(name: "test", stringValue: "This is my value")
+        XCTAssertEqual(element.xmlString, "<test>This is my value</test>")
         XCTAssertEqual(element.children?.count, 1)
     }
 
     func test_elementChildren() {
-        let element = NSXMLElement(name: "root")
-        let foo = NSXMLElement(name: "foo")
-        let bar = NSXMLElement(name: "bar")
-        let bar2 = bar.copy() as! NSXMLElement
+        let element = XMLElement(name: "root")
+        let foo = XMLElement(name: "foo")
+        let bar = XMLElement(name: "bar")
+        let bar2 = bar.copy() as! XMLElement
 
         element.addChild(foo)
         element.addChild(bar)
         element.addChild(bar2)
 
-        XCTAssertEqual(element.elementsForName("bar"), [bar, bar2])
-        XCTAssertFalse(element.elementsForName("foo").contains(bar))
-        XCTAssertFalse(element.elementsForName("foo").contains(bar2))
+        XCTAssertEqual(element.elements(forName:"bar"), [bar, bar2])
+        XCTAssertFalse(element.elements(forName:"foo").contains(bar))
+        XCTAssertFalse(element.elements(forName:"foo").contains(bar2))
 
-        let baz = NSXMLElement(name: "baz")
-        element.insertChild(baz, atIndex: 2)
+        let baz = XMLElement(name: "baz")
+        element.insertChild(baz, at: 2)
         XCTAssertEqual(element.children?[2], baz)
 
         foo.detach()
         bar.detach()
 
-        element.insertChildren([foo, bar], atIndex: 1)
+        element.insertChildren([foo, bar], at: 1)
         XCTAssertEqual(element.children?[1], foo)
         XCTAssertEqual(element.children?[2], bar)
         XCTAssertEqual(element.children?[0], baz, "\(element.children?[0])")
 
-        let faz = NSXMLElement(name: "faz")
-        element.replaceChildAtIndex(2, withNode: faz)
+        let faz = XMLElement(name: "faz")
+        element.replaceChild(at: 2, with: faz)
         XCTAssertEqual(element.children?[2], faz)
 
         for node in [foo, bar, baz, bar2, faz] {
@@ -177,12 +177,12 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_stringValue() {
-        let element = NSXMLElement(name: "root")
-        let foo = NSXMLElement(name: "foo")
+        let element = XMLElement(name: "root")
+        let foo = XMLElement(name: "foo")
         element.addChild(foo)
 
         element.stringValue = "Hello!<evil/>"
-        XCTAssertEqual(element.XMLString, "<root>Hello!&lt;evil/&gt;</root>")
+        XCTAssertEqual(element.xmlString, "<root>Hello!&lt;evil/&gt;</root>")
         XCTAssertEqual(element.stringValue, "Hello!<evil/>", element.stringValue ?? "stringValue unexpectedly nil")
 
         element.stringValue = nil
@@ -198,24 +198,24 @@ class TestNSXMLDocument : XCTestCase {
 
 
     func test_objectValue() {
-        let element = NSXMLElement(name: "root")
+        let element = XMLElement(name: "root")
         let dict: [String: AnyObject] = ["hello": "world"._bridgeToObject()]
         element.objectValue = dict._bridgeToObject()
 
-        XCTAssertEqual(element.XMLString, "<root>{\n    hello = world;\n}</root>", element.XMLString)
+        XCTAssertEqual(element.xmlString, "<root>{\n    hello = world;\n}</root>", element.xmlString)
     }
 
     func test_attributes() {
-        let element = NSXMLElement(name: "root")
-        let attribute = NSXMLNode.attributeWithName("color", stringValue: "#ff00ff") as! NSXMLNode
+        let element = XMLElement(name: "root")
+        let attribute = XMLNode.attributeWithName("color", stringValue: "#ff00ff") as! XMLNode
         element.addAttribute(attribute)
-        XCTAssertEqual(element.XMLString, "<root color=\"#ff00ff\"></root>", element.XMLString)
-        element.removeAttributeForName("color")
-        XCTAssertEqual(element.XMLString, "<root></root>", element.XMLString)
+        XCTAssertEqual(element.xmlString, "<root color=\"#ff00ff\"></root>", element.xmlString)
+        element.removeAttribute(forName:"color")
+        XCTAssertEqual(element.xmlString, "<root></root>", element.xmlString)
 
         element.addAttribute(attribute)
 
-        let otherAttribute = NSXMLNode.attributeWithName("foo", stringValue: "bar") as! NSXMLNode
+        let otherAttribute = XMLNode.attributeWithName("foo", stringValue: "bar") as! XMLNode
         element.addAttribute(otherAttribute)
 
         guard let attributes = element.attributes else {
@@ -227,8 +227,8 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(attributes.first, attribute)
         XCTAssertEqual(attributes.last, otherAttribute)
 
-        let barAttribute = NSXMLNode.attributeWithName("bar", stringValue: "buz") as! NSXMLNode
-        let bazAttribute = NSXMLNode.attributeWithName("baz", stringValue: "fiz") as! NSXMLNode
+        let barAttribute = XMLNode.attributeWithName("bar", stringValue: "buz") as! XMLNode
+        let bazAttribute = XMLNode.attributeWithName("baz", stringValue: "fiz") as! XMLNode
 
         element.attributes = [barAttribute, bazAttribute]
 
@@ -236,53 +236,53 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(element.attributes?.first, barAttribute)
         XCTAssertEqual(element.attributes?.last, bazAttribute)
 
-        element.setAttributesWithDictionary(["hello": "world", "foobar": "buzbaz"])
-        XCTAssertEqual(element.attributeForName("hello")?.stringValue, "world", "\(element.attributeForName("hello")?.stringValue)")
-        XCTAssertEqual(element.attributeForName("foobar")?.stringValue, "buzbaz", "\(element.attributes ?? [])")
+        element.setAttributesWith(["hello": "world", "foobar": "buzbaz"])
+        XCTAssertEqual(element.attribute(forName:"hello")?.stringValue, "world", "\(element.attribute(forName:"hello")?.stringValue)")
+        XCTAssertEqual(element.attribute(forName:"foobar")?.stringValue, "buzbaz", "\(element.attributes ?? [])")
     }
 
     func test_comments() {
-        let element = NSXMLElement(name: "root")
-        let comment = NSXMLNode.commentWithStringValue("Here is a comment") as! NSXMLNode
+        let element = XMLElement(name: "root")
+        let comment = XMLNode.comment(withStringValue:"Here is a comment") as! XMLNode
         element.addChild(comment)
-        XCTAssertEqual(element.XMLString, "<root><!--Here is a comment--></root>")
+        XCTAssertEqual(element.xmlString, "<root><!--Here is a comment--></root>")
     }
 
     func test_processingInstruction() {
-        let document = NSXMLDocument(rootElement: NSXMLElement(name: "root"))
-        let pi = NSXMLNode.processingInstructionWithName("xml-stylesheet", stringValue: "type=\"text/css\" href=\"style.css\"") as! NSXMLNode
+        let document = XMLDocument(rootElement: XMLElement(name: "root"))
+        let pi = XMLNode.processingInstruction(withName:"xml-stylesheet", stringValue: "type=\"text/css\" href=\"style.css\"") as! XMLNode
 
         document.addChild(pi)
 
-        XCTAssertEqual(pi.XMLString, "<?xml-stylesheet type=\"text/css\" href=\"style.css\"?>")
+        XCTAssertEqual(pi.xmlString, "<?xml-stylesheet type=\"text/css\" href=\"style.css\"?>")
     }
 
     func test_parseXMLString() throws {
         let string = "<?xml version=\"1.0\" encoding=\"utf-8\"?><!DOCTYPE test.dtd [\n        <!ENTITY author \"Robert Thompson\">\n        ]><root><author>&author;</author></root>"
 
-        let doc = try NSXMLDocument(XMLString: string, options: NSXMLNodeLoadExternalEntitiesNever)
+        let doc = try XMLDocument(xmlString: string, options: NSXMLNodeLoadExternalEntitiesNever)
         XCTAssert(doc.childCount == 1)
         XCTAssertEqual(doc.rootElement()?.children?[0].stringValue, "Robert Thompson")
 
-        guard let testDataURL = testBundle().URLForResource("NSXMLDocumentTestData", withExtension: "xml") else {
+        guard let testDataURL = testBundle().urlForResource("NSXMLDocumentTestData", withExtension: "xml") else {
             XCTFail("Could not find XML test data")
             return
         }
 
-        let newDoc = try NSXMLDocument(contentsOfURL: testDataURL, options: 0)
+        let newDoc = try XMLDocument(contentsOf: testDataURL, options: 0)
         XCTAssertEqual(newDoc.rootElement()?.name, "root")
         let root = newDoc.rootElement()!
         let children = root.children!
         XCTAssertEqual(children[0].stringValue, "Hello world", children[0].stringValue!)
         XCTAssertEqual(children[1].children?[0].stringValue, "I'm here", (children[1].children?[0].stringValue)!)
 
-        doc.insertChild(NSXMLElement(name: "body"), atIndex: 1)
+        doc.insertChild(XMLElement(name: "body"), at: 1)
         XCTAssertEqual(doc.children?[1].name, "body")
         XCTAssertEqual(doc.children?[2].name, "root", (doc.children?[2].name)!)
     }
 
     func test_prefixes() {
-        let element = NSXMLElement(name: "xml:root")
+        let element = XMLElement(name: "xml:root")
         XCTAssertEqual(element.prefix, "xml")
         XCTAssertEqual(element.localName, "root")
     }
@@ -290,18 +290,18 @@ class TestNSXMLDocument : XCTestCase {
     func test_validation_success() throws {
         let validString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT foo (#PCDATA)> ]><foo>Hello world</foo>"
         do {
-            let doc = try NSXMLDocument(XMLString: validString, options: 0)
+            let doc = try XMLDocument(xmlString: validString, options: 0)
             try doc.validate()
         } catch {
             XCTFail("\(error)")
         }
 
         let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string></dict></plist>"
-        let plistDoc = try NSXMLDocument(XMLString: plistDocString, options: 0)
+        let plistDoc = try XMLDocument(xmlString: plistDocString, options: 0)
         do {
             try plistDoc.validate()
             XCTAssert(plistDoc.rootElement()?.name == "plist")
-            let plist = try NSPropertyListSerialization.propertyListWithData(plistDoc.XMLData, options: [], format: nil) as! [String: Any]
+            let plist = try PropertyListSerialization.propertyList(from: plistDoc.xmlData, options: [], format: nil) as! [String: Any]
             XCTAssert((plist["MyKey"] as? String) == "Hello!")
         } catch let nsError as NSError {
             XCTFail("\(nsError.userInfo)")
@@ -311,17 +311,17 @@ class TestNSXMLDocument : XCTestCase {
     func test_validation_failure() throws {
         let xmlString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT img EMPTY> ]><foo><img>not empty</img></foo>"
         do {
-            let doc = try NSXMLDocument(XMLString: xmlString, options: 0)
+            let doc = try XMLDocument(xmlString: xmlString, options: 0)
             try doc.validate()
             XCTFail("Should have thrown")
         } catch let nsError as NSError {
-            XCTAssert(nsError.code == NSXMLParserError.InternalError.rawValue)
-            XCTAssert(nsError.domain == NSXMLParserErrorDomain)
+            XCTAssert(nsError.code == XMLParser.ErrorCode.internalError.rawValue)
+            XCTAssert(nsError.domain == XMLParser.ErrorDomain)
             XCTAssert((nsError.userInfo[NSLocalizedDescriptionKey] as! NSString).contains("Element img was declared EMPTY this one has content"))
         }
 
         let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string><key>MyBooleanThing</key><true>foobar</true></dict></plist>"
-        let plistDoc = try NSXMLDocument(XMLString: plistDocString, options: 0)
+        let plistDoc = try XMLDocument(xmlString: plistDocString, options: 0)
         do {
             try plistDoc.validate()
             XCTFail("Should have thrown!")
@@ -331,49 +331,49 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_dtd() throws {
-        let node = NSXMLNode.DTDNodeWithXMLString("<!ELEMENT foo (#PCDATA)>") as! NSXMLDTDNode
+        let node = XMLNode.dtdNode(withXMLString:"<!ELEMENT foo (#PCDATA)>") as! XMLDTDNode
         XCTAssert(node.name == "foo")
 
-        let dtd = try NSXMLDTD(contentsOfURL: testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")!, options: 0)
+        let dtd = try XMLDTD(contentsOf: testBundle().urlForResource("PropertyList-1.0", withExtension: "dtd")!, options: 0)
         //        dtd.systemID = testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")?.absoluteString
         dtd.name = "plist"
         //        dtd.publicID = "-//Apple//DTD PLIST 1.0//EN"
-        let plistNode = dtd.elementDeclarationForName("plist")
+        let plistNode = dtd.elementDeclaration(forName:"plist")
         XCTAssert(plistNode?.name == "plist")
-        let plistObjectNode = dtd.entityDeclarationForName("plistObject")
+        let plistObjectNode = dtd.entityDeclaration(forName:"plistObject")
         XCTAssert(plistObjectNode?.name == "plistObject")
         XCTAssert(plistObjectNode?.stringValue == "(array | data | date | dict | real | integer | string | true | false )")
-        let plistAttribute = dtd.attributeDeclarationForName("version", elementName: "plist")
+        let plistAttribute = dtd.attributeDeclaration(forName:"version", elementName: "plist")
         XCTAssert(plistAttribute?.name == "version")
 
-        let doc = try NSXMLDocument(XMLString: "<?xml version='1.0' encoding='utf-8'?><plist version='1.0'><dict><key>hello</key><string>world</string></dict></plist>", options: 0)
-        doc.DTD = dtd
+        let doc = try XMLDocument(xmlString: "<?xml version='1.0' encoding='utf-8'?><plist version='1.0'><dict><key>hello</key><string>world</string></dict></plist>", options: 0)
+        doc.dtd = dtd
         do {
             try doc.validate()
         } catch let error as NSError {
             XCTFail("\(error.userInfo)")
         }
 
-        let amp = NSXMLDTD.predefinedEntityDeclarationForName("amp")
+        let amp = XMLDTD.predefinedEntityDeclaration(forName:"amp")
         XCTAssert(amp?.name == "amp", amp?.name ?? "")
         XCTAssert(amp?.stringValue == "&", amp?.stringValue ?? "")
-        if let entityNode = NSXMLNode.DTDNodeWithXMLString("<!ENTITY author 'Robert Thompson'>") as? NSXMLDTDNode {
+        if let entityNode = XMLNode.dtdNode(withXMLString:"<!ENTITY author 'Robert Thompson'>") as? XMLDTDNode {
             XCTAssert(entityNode.name == "author")
             XCTAssert(entityNode.stringValue == "Robert Thompson")
         }
 
-        let elementDecl = NSXMLDTDNode(kind: .ElementDeclarationKind)
+        let elementDecl = XMLDTDNode(kind: .elementDeclaration)
         elementDecl.name = "MyElement"
         elementDecl.stringValue = "(#PCDATA | array)*"
         XCTAssert(elementDecl.stringValue == "(#PCDATA | array)*", elementDecl.stringValue ?? "nil string value")
     }
 
     func test_documentWithDTD() throws {
-        let doc = try NSXMLDocument(contentsOfURL: testBundle().URLForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
-        let dtd = doc.DTD
+        let doc = try XMLDocument(contentsOf: testBundle().urlForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
+        let dtd = doc.dtd
         XCTAssert(dtd?.name == "root")
 
-        let notation = dtd?.notationDeclarationForName("myNotation")
+        let notation = dtd?.notationDeclaration(forName:"myNotation")
         notation?.detach()
         XCTAssert(notation?.name == "myNotation")
         XCTAssert(notation?.systemID == "http://www.example.com", notation?.systemID ?? "nil system id!")
@@ -384,22 +384,22 @@ class TestNSXMLDocument : XCTestCase {
             XCTFail("\(error)")
         }
 
-        let root = dtd?.elementDeclarationForName("root")
+        let root = dtd?.elementDeclaration(forName:"root")
         root?.stringValue = "(#PCDATA)"
         do {
             try doc.validate()
             XCTFail("should have thrown")
         } catch let error as NSError {
-            XCTAssert(error.code == NSXMLParserError.InternalError.rawValue)
+            XCTAssert(error.code == XMLParser.ErrorCode.internalError.rawValue)
         } catch {
             XCTFail("\(error)")
         }
     }
     
     func test_dtd_attributes() throws {
-        let doc = try NSXMLDocument(contentsOfURL: testBundle().URLForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
-        let dtd = doc.DTD!
-        let attrDecl = dtd.attributeDeclarationForName("print", elementName: "foo")!
-        XCTAssert(attrDecl.DTDKind == .NSXMLAttributeEnumerationKind)
+        let doc = try XMLDocument(contentsOf: testBundle().urlForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
+        let dtd = doc.dtd!
+        let attrDecl = dtd.attributeDeclaration(forName: "print", elementName: "foo")!
+        XCTAssert(attrDecl.dtdKind == .enumerationAttribute)
     }
 }

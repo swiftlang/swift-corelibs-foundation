@@ -9,22 +9,23 @@
 
 
 // Expressions are the core of the predicate implementation. When expressionValueWithObject: is called, the expression is evaluated, and a value returned which can then be handled by an operator. Expressions can be anything from constants to method invocations. Scalars should be wrapped in appropriate NSValue classes.
-
-public enum NSExpressionType : UInt {
-    
-    case ConstantValueExpressionType // Expression that always returns the same value
-    case EvaluatedObjectExpressionType // Expression that always returns the parameter object itself
-    case VariableExpressionType // Expression that always returns whatever is stored at 'variable' in the bindings dictionary
-    case KeyPathExpressionType // Expression that returns something that can be used as a key path
-    case FunctionExpressionType // Expression that returns the result of evaluating a symbol
-    case UnionSetExpressionType // Expression that returns the result of doing a unionSet: on two expressions that evaluate to flat collections (arrays or sets)
-    case IntersectSetExpressionType // Expression that returns the result of doing an intersectSet: on two expressions that evaluate to flat collections (arrays or sets)
-    case MinusSetExpressionType // Expression that returns the result of doing a minusSet: on two expressions that evaluate to flat collections (arrays or sets)
-    case SubqueryExpressionType
-    case AggregateExpressionType
-    case AnyKeyExpressionType
-    case BlockExpressionType
-    case ConditionalExpressionType
+extension NSExpression {
+    public enum ExpressionType : UInt {
+        
+        case constantValue // Expression that always returns the same value
+        case evaluatedObject // Expression that always returns the parameter object itself
+        case variable // Expression that always returns whatever is stored at 'variable' in the bindings dictionary
+        case keyPath // Expression that returns something that can be used as a key path
+        case function // Expression that returns the result of evaluating a symbol
+        case unionSet // Expression that returns the result of doing a unionSet: on two expressions that evaluate to flat collections (arrays or sets)
+        case intersectSet // Expression that returns the result of doing an intersectSet: on two expressions that evaluate to flat collections (arrays or sets)
+        case minusSet // Expression that returns the result of doing a minusSet: on two expressions that evaluate to flat collections (arrays or sets)
+        case subquery
+        case aggregate
+        case anyKey
+        case block
+        case conditional
+    }
 }
 
 public class NSExpression : NSObject, NSSecureCoding, NSCopying {
@@ -37,15 +38,15 @@ public class NSExpression : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
 
@@ -105,12 +106,12 @@ public class NSExpression : NSObject, NSSecureCoding, NSCopying {
     public /*not inherited*/ init(forFunction target: NSExpression, selectorName name: String, arguments parameters: [AnyObject]?) { NSUnimplemented() } // Expression that invokes the selector on target with parameters. Will throw at runtime if target does not implement selector or if parameters are wrong.
     public class func expressionForAnyKey() -> NSExpression { NSUnimplemented() }
     public /*not inherited*/ init(forBlock block: (AnyObject?, [AnyObject], NSMutableDictionary?) -> AnyObject, arguments: [NSExpression]?) { NSUnimplemented() } // Expression that invokes the block with the parameters; note that block expressions are not encodable or representable as parseable strings.
-    public /*not inherited*/ init(forConditional predicate: NSPredicate, trueExpression: NSExpression, falseExpression: NSExpression) { NSUnimplemented() } // Expression that will return the result of trueExpression or falseExpression depending on the value of predicate
+    public /*not inherited*/ init(forConditional predicate: Predicate, trueExpression: NSExpression, falseExpression: NSExpression) { NSUnimplemented() } // Expression that will return the result of trueExpression or falseExpression depending on the value of predicate
     
-    public init(expressionType type: NSExpressionType) { NSUnimplemented() }
+    public init(expressionType type: ExpressionType) { NSUnimplemented() }
     
     // accessors for individual parameters - raise if not applicable
-    public var expressionType: NSExpressionType { NSUnimplemented() }
+    public var expressionType: ExpressionType { NSUnimplemented() }
     public var constantValue: AnyObject { NSUnimplemented() }
     public var keyPath: String { NSUnimplemented() }
     public var function: String { NSUnimplemented() }
@@ -119,12 +120,12 @@ public class NSExpression : NSObject, NSSecureCoding, NSCopying {
     public var arguments: [NSExpression]? { NSUnimplemented() } // array of expressions which will be passed as parameters during invocation of the selector on the operand of a function expression
     
     public var collection: AnyObject { NSUnimplemented() }
-    /*@NSCopying*/ public var predicate: NSPredicate { NSUnimplemented() }
-    /*@NSCopying*/ public var leftExpression: NSExpression { NSUnimplemented() } // expression which represents the left side of a set expression
-    /*@NSCopying*/ public var rightExpression: NSExpression { NSUnimplemented() } // expression which represents the right side of a set expression
+    /*@NSCopying*/ public var predicate: Predicate { NSUnimplemented() }
+    /*@NSCopying*/ public var left: NSExpression { NSUnimplemented() } // expression which represents the left side of a set expression
+    /*@NSCopying*/ public var right: NSExpression { NSUnimplemented() } // expression which represents the right side of a set expression
     
-    /*@NSCopying*/ public var trueExpression: NSExpression { NSUnimplemented() } // expression which will be evaluated if a conditional expression's predicate evaluates to true
-    /*@NSCopying*/ public var falseExpression: NSExpression { NSUnimplemented() } // expression which will be evaluated if a conditional expression's predicate evaluates to false
+    /*@NSCopying*/ public var `true`: NSExpression { NSUnimplemented() } // expression which will be evaluated if a conditional expression's predicate evaluates to true
+    /*@NSCopying*/ public var `false`: NSExpression { NSUnimplemented() } // expression which will be evaluated if a conditional expression's predicate evaluates to false
     
     public var expressionBlock: (AnyObject?, [AnyObject], NSMutableDictionary?) -> AnyObject { NSUnimplemented() }
     

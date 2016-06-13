@@ -135,13 +135,13 @@ public func NSGetSizeAndAlignment(_ typePtr: UnsafePointer<Int8>,
     return typePtr.advanced(by: 1)
 }
 
-public enum NSComparisonResult : Int {
+public enum ComparisonResult : Int {
     
     case orderedAscending = -1
     case orderedSame
     case orderedDescending
     
-    internal static func _fromCF(_ val: CFComparisonResult) -> NSComparisonResult {
+    internal static func _fromCF(_ val: CFComparisonResult) -> ComparisonResult {
         if val == kCFCompareLessThan {
             return .orderedAscending
         } else if  val == kCFCompareGreaterThan {
@@ -171,23 +171,23 @@ public enum NSQualityOfService : Int {
     case `default`
 }
 
-public struct NSSortOptions : OptionSet {
+public struct SortOptions: OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let concurrent = NSSortOptions(rawValue: UInt(1 << 0))
-    public static let stable = NSSortOptions(rawValue: UInt(1 << 4))
+    public static let concurrent = SortOptions(rawValue: UInt(1 << 0))
+    public static let stable = SortOptions(rawValue: UInt(1 << 4))
 }
 
-public struct NSEnumerationOptions : OptionSet {
+public struct EnumerationOptions: OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let concurrent = NSEnumerationOptions(rawValue: UInt(1 << 0))
-    public static let reverse = NSEnumerationOptions(rawValue: UInt(1 << 1))
+    public static let concurrent = EnumerationOptions(rawValue: UInt(1 << 0))
+    public static let reverse = EnumerationOptions(rawValue: UInt(1 << 1))
 }
 
-public typealias NSComparator = (AnyObject, AnyObject) -> NSComparisonResult
+public typealias Comparator = (AnyObject, AnyObject) -> ComparisonResult
 
 public let NSNotFound: Int = Int.max
 

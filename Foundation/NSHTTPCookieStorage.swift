@@ -16,11 +16,13 @@
     @constant NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain Accept cookies
     only from the main document domain
 */
-public enum NSHTTPCookieAcceptPolicy : UInt {
-    
-    case Always
-    case Never
-    case OnlyFromMainDocumentDomain
+extension HTTPCookie {
+    public enum AcceptPolicy : UInt {
+        
+        case always
+        case never
+        case onlyFromMainDocumentDomain
+    }
 }
 
 
@@ -32,7 +34,7 @@ public enum NSHTTPCookieAcceptPolicy : UInt {
     set of cookies.  It also has convenience methods to parse and
     generate cookie-related HTTP header fields.
 */
-public class NSHTTPCookieStorage : NSObject {
+public class HTTPCookieStorage: NSObject {
     
     public override init() { NSUnimplemented() }
     
@@ -43,7 +45,7 @@ public class NSHTTPCookieStorage : NSObject {
         @discussion Starting in OS X 10.11, each app has its own sharedHTTPCookieStorage singleton, 
         which will not be shared with other applications.
     */
-    public class func sharedHTTPCookieStorage() -> NSHTTPCookieStorage { NSUnimplemented() }
+    class var shared: HTTPCookieStorage { get { NSUnimplemented() } }
     
     /*!
         @method sharedCookieStorageForGroupContainerIdentifier:
@@ -56,7 +58,7 @@ public class NSHTTPCookieStorage : NSObject {
         shared among all applications and extensions with access to the same application group. Subsequent calls to this
         method with the same identifier will return the same cookie storage instance.
      */
-    public class func sharedCookieStorageForGroupContainerIdentifier(_ identifier: String) -> NSHTTPCookieStorage { NSUnimplemented() }
+    class func sharedCookieStorage(forGroupContainerIdentifier identifier: String) -> HTTPCookieStorage { NSUnimplemented() }
     
     /*!
         @method setCookie:
@@ -64,19 +66,19 @@ public class NSHTTPCookieStorage : NSObject {
         @discussion The cookie will override an existing cookie with the
         same name, domain and path, if any.
     */
-    public func setCookie(_ cookie: NSHTTPCookie) { NSUnimplemented() }
+    public func setCookie(_ cookie: HTTPCookie) { NSUnimplemented() }
     
     /*!
         @method deleteCookie:
         @abstract Delete the specified cookie
     */
-    public func deleteCookie(_ cookie: NSHTTPCookie) { NSUnimplemented() }
+    public func deleteCookie(_ cookie: HTTPCookie) { NSUnimplemented() }
     
     /*!
      @method removeCookiesSince:
      @abstract Delete all cookies from the cookie storage since the provided date.
      */
-    public func removeCookiesSinceDate(_ date: NSDate) { NSUnimplemented() }
+    public func removeCookiesSinceDate(_ date: Date) { NSUnimplemented() }
     
     /*!
         @method cookiesForURL:
@@ -88,7 +90,7 @@ public class NSHTTPCookieStorage : NSObject {
         <tt>+[NSCookie requestHeaderFieldsWithCookies:]</tt> to turn this array
         into a set of header fields to add to a request.
     */
-    public func cookiesForURL(_ URL: NSURL) -> [NSHTTPCookie]? { NSUnimplemented() }
+    public func cookiesForURL(_ url: URL) -> [HTTPCookie]? { NSUnimplemented() }
     
     /*!
         @method setCookies:forURL:mainDocumentURL:
@@ -107,14 +109,14 @@ public class NSHTTPCookieStorage : NSObject {
         dictionary and then use this method to store the resulting cookies
         in accordance with policy settings.
     */
-    public func setCookies(_ cookies: [NSHTTPCookie], forURL URL: NSURL?, mainDocumentURL: NSURL?) { NSUnimplemented() }
+    public func setCookies(_ cookies: [HTTPCookie], forURL url: URL?, mainDocumentURL: URL?) { NSUnimplemented() }
     
     /*!
         @method cookieAcceptPolicy
         @abstract The cookie accept policy preference of the
         receiver.
     */
-    public var cookieAcceptPolicy: NSHTTPCookieAcceptPolicy
+    public var cookieAcceptPolicy: HTTPCookie.AcceptPolicy
     
     /*!
       @method sortedCookiesUsingDescriptors:
@@ -122,7 +124,7 @@ public class NSHTTPCookieStorage : NSObject {
       @param sortOrder an array of NSSortDescriptors which represent the preferred sort order of the resulting array.
       @discussion proper sorting of cookies may require extensive string conversion, which can be avoided by allowing the system to perform the sorting.  This API is to be preferred over the more generic -[NSHTTPCookieStorage cookies] API, if sorting is going to be performed.
     */
-    public func sortedCookiesUsingDescriptors(_ sortOrder: [NSSortDescriptor]) -> [NSHTTPCookie] { NSUnimplemented() }
+    public func sortedCookiesUsingDescriptors(_ sortOrder: [SortDescriptor]) -> [HTTPCookie] { NSUnimplemented() }
 }
 
 /*!

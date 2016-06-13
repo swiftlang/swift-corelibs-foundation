@@ -28,24 +28,24 @@ class TestNSRunLoop : XCTestCase {
     }
     
     func test_constants() {
-        XCTAssertEqual(NSRunLoopCommonModes, "kCFRunLoopCommonModes",
-                       "\(NSRunLoopCommonModes) is not equal to kCFRunLoopCommonModes")
+        XCTAssertEqual(RunLoopMode.commonModes.rawValue, "kCFRunLoopCommonModes",
+                       "\(RunLoopMode.commonModes.rawValue) is not equal to kCFRunLoopCommonModes")
         
-        XCTAssertEqual(NSDefaultRunLoopMode, "kCFRunLoopDefaultMode",
-                       "\(NSDefaultRunLoopMode) is not equal to kCFRunLoopDefaultMode")
+        XCTAssertEqual(RunLoopMode.defaultRunLoopMode.rawValue, "kCFRunLoopDefaultMode",
+                       "\(RunLoopMode.defaultRunLoopMode.rawValue) is not equal to kCFRunLoopDefaultMode")
     }
     
     func test_runLoopInit() {
-        let mainRunLoop = NSRunLoop.mainRunLoop()
+        let mainRunLoop = RunLoop.main()
         XCTAssertNotNil(mainRunLoop)
-        let currentRunLoop = NSRunLoop.currentRunLoop()
+        let currentRunLoop = RunLoop.current()
         XCTAssertNotNil(currentRunLoop)
 
-        let secondAccessOfMainLoop = NSRunLoop.mainRunLoop()
+        let secondAccessOfMainLoop = RunLoop.main()
         XCTAssertEqual(mainRunLoop, secondAccessOfMainLoop, "fetching the main loop a second time should be equal")
         XCTAssertTrue(mainRunLoop === secondAccessOfMainLoop, "fetching the main loop a second time should be identical")
         
-        let secondAccessOfCurrentLoop = NSRunLoop.currentRunLoop()
+        let secondAccessOfCurrentLoop = RunLoop.current()
         XCTAssertEqual(currentRunLoop, secondAccessOfCurrentLoop, "fetching the current loop a second time should be equal")
         XCTAssertTrue(currentRunLoop === secondAccessOfCurrentLoop, "fetching the current loop a second time should be identical")
         
@@ -55,36 +55,36 @@ class TestNSRunLoop : XCTestCase {
     }
     
     func test_runLoopRunMode() {
-        let runLoop = NSRunLoop.currentRunLoop()
-        let timeInterval = NSTimeInterval(0.05)
-        let endDate = NSDate(timeInterval: timeInterval, sinceDate: NSDate())
+        let runLoop = RunLoop.current()
+        let timeInterval = TimeInterval(0.05)
+        let endDate = Date(timeInterval: timeInterval, since: Date())
         var flag = false
 
-        let dummyTimer = NSTimer.scheduledTimer(0.01, repeats: false) { _ in
+        let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { _ in
             flag = true
             guard let runLoopMode = runLoop.currentMode else {
                 XCTFail("Run loop mode is not defined")
                 return
             }
             
-            XCTAssertEqual(runLoopMode, NSDefaultRunLoopMode)
+            XCTAssertEqual(runLoopMode, RunLoopMode.defaultRunLoopMode)
         }
-        runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        let result = runLoop.runMode(NSDefaultRunLoopMode, beforeDate: endDate)
+        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
+        let result = runLoop.run(mode: .defaultRunLoopMode, before: endDate)
         
         XCTAssertFalse(result) // should be .Finished
         XCTAssertTrue(flag)
     }
     
     func test_runLoopLimitDate() {
-        let runLoop = NSRunLoop.currentRunLoop()
-        let timeInterval = NSTimeInterval(1)
-        let expectedTimeInterval = NSDate(timeInterval: timeInterval, sinceDate: NSDate()).timeIntervalSince1970
+        let runLoop = RunLoop.current()
+        let timeInterval = TimeInterval(1)
+        let expectedTimeInterval = Date(timeInterval: timeInterval, since: Date()).timeIntervalSince1970
 
-        let dummyTimer = NSTimer.scheduledTimer(timeInterval, repeats: false) { _ in }
-        runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
+        let dummyTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: false) { _ in }
+        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
         
-        guard let timerTickInterval = runLoop.limitDateForMode(NSDefaultRunLoopMode)?.timeIntervalSince1970 else {
+        guard let timerTickInterval = runLoop.limitDate(forMode: .defaultRunLoopMode)?.timeIntervalSince1970 else {
             return
         }
         

@@ -120,10 +120,10 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_ObjectsAtIndexes() {
         let set = NSOrderedSet(array: ["foo", "bar", "baz", "1", "2", "3"].bridge().bridge())
-        let indexSet = NSMutableIndexSet()
-        indexSet.addIndex(1)
-        indexSet.addIndex(3)
-        indexSet.addIndex(5)
+        var indexSet = IndexSet()
+        indexSet.insert(1)
+        indexSet.insert(3)
+        indexSet.insert(5)
         let objects = set.objectsAtIndexes(indexSet)
         XCTAssertEqual(objects[0] as? NSString, "bar")
         XCTAssertEqual(objects[1] as? NSString, "1")
@@ -224,10 +224,10 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_MoveObjects() {
         let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge(), "123".bridge(), "456".bridge())
-        let indexes = NSMutableIndexSet()
-        indexes.addIndex(1)
-        indexes.addIndex(2)
-        indexes.addIndex(4)
+        var indexes = IndexSet()
+        indexes.insert(1)
+        indexes.insert(2)
+        indexes.insert(4)
         set.moveObjectsAtIndexes(indexes, toIndex: 0)
         XCTAssertEqual(set.count, 5)
         XCTAssertEqual(set[0] as? NSString, "bar")
@@ -239,9 +239,9 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_InsertObjects() {
         let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
-        let indexes = NSMutableIndexSet()
-        indexes.addIndex(1)
-        indexes.addIndex(3)
+        var indexes = IndexSet()
+        indexes.insert(1)
+        indexes.insert(3)
         set.insertObjects(["123".bridge(), "456".bridge()], atIndexes: indexes)
         XCTAssertEqual(set.count, 5)
         XCTAssertEqual(set[0] as? NSString, "foo")
@@ -272,9 +272,9 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_ReplaceObjectsAtIndexes() {
         let set = NSMutableOrderedSet(arrayLiteral: "foo".bridge(), "bar".bridge(), "baz".bridge())
-        let indexes = NSMutableIndexSet()
-        indexes.addIndex(0)
-        indexes.addIndex(2)
+        var indexes = IndexSet()
+        indexes.insert(0)
+        indexes.insert(2)
         set.replaceObjectsAtIndexes(indexes, withObjects: ["a".bridge(), "b".bridge()])
         XCTAssertEqual(set.count, 3)
         XCTAssertEqual(set[0] as? NSString, "a")
@@ -347,7 +347,7 @@ class TestNSOrderedSet : XCTestCase {
             if let lhs = lhs as? NSString, rhs = rhs as? NSString {
                 return lhs.compare(rhs.bridge())
             }
-            return NSComparisonResult.orderedSame
+            return ComparisonResult.orderedSame
         }
         XCTAssertEqual(set[0] as? NSString, "a")
         XCTAssertEqual(set[1] as? NSString, "b")
@@ -358,7 +358,7 @@ class TestNSOrderedSet : XCTestCase {
             if let lhs = lhs as? NSString, rhs = rhs as? NSString {
                 return rhs.compare(lhs.bridge())
             }
-            return NSComparisonResult.orderedSame
+            return ComparisonResult.orderedSame
         }
         XCTAssertEqual(set[0] as? NSString, "a")
         XCTAssertEqual(set[1] as? NSString, "c")

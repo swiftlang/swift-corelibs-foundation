@@ -18,11 +18,13 @@
         Note: Whereas in Mac OS X any application can access any credential provided the user gives permission, on iOS an application can 
         access only its own credentials.
 */
-public enum NSURLCredentialPersistence : UInt {
-    case None
-    case ForSession
-    case Permanent
-    case Synchronizable
+extension URLCredential {
+    public enum Persistence : UInt {
+        case none
+        case forSession
+        case permanent
+        case synchronizable
+    }
 }
 
 
@@ -30,10 +32,10 @@ public enum NSURLCredentialPersistence : UInt {
     @class NSURLCredential
     @discussion This class is an immutable object representing an authentication credential.  The actual type of the credential is determined by the constructor called in the categories declared below.
 */
-public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
+public class URLCredential : NSObject, NSSecureCoding, NSCopying {
     private var _user : String
     private var _password : String
-    private var _persistence : NSURLCredentialPersistence
+    private var _persistence : Persistence
     
     /*!
         @method initWithUser:password:persistence:
@@ -43,8 +45,8 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
         @param persistence enum that says to store per session, permanently or not at all
         @result The initialized NSURLCredential
      */
-    public init(user: String, password: String, persistence: NSURLCredentialPersistence) {
-        guard persistence != .Permanent && persistence != .Synchronizable else {
+    public init(user: String, password: String, persistence: Persistence) {
+        guard persistence != .permanent && persistence != .synchronizable else {
             NSUnimplemented()
         }
         _user = user
@@ -66,7 +68,7 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -75,10 +77,10 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -87,7 +89,7 @@ public class NSURLCredential : NSObject, NSSecureCoding, NSCopying {
         @abstract Determine whether this credential is or should be stored persistently
         @result A value indicating whether this credential is stored permanently, per session or not at all.
      */
-    public var persistence: NSURLCredentialPersistence { return _persistence }
+    public var persistence: Persistence { return _persistence }
     
     /*!
         @method user

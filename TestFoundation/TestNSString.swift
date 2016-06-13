@@ -230,7 +230,7 @@ class TestNSString : XCTestCase {
 
     func test_FromASCIINSData() {
         let bytes = mockASCIIStringBytes
-        let data = NSData(bytes: bytes, length: bytes.count)
+        let data = Data(bytes: bytes, count: bytes.count)
         let string = NSString(data: data, encoding: NSASCIIStringEncoding)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
@@ -238,7 +238,7 @@ class TestNSString : XCTestCase {
 
     func test_FromUTF8NSData() {
         let bytes = mockUTF8StringBytes
-        let data = NSData(bytes: bytes, length: bytes.count)
+        let data = Data(bytes: bytes, count: bytes.count)
         let string = NSString(data: data, encoding: NSUTF8StringEncoding)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
@@ -246,7 +246,7 @@ class TestNSString : XCTestCase {
 
     func test_FromMalformedUTF8NSData() {
         let bytes = mockMalformedUTF8StringBytes
-        let data = NSData(bytes: bytes, length: bytes.count)
+        let data = Data(bytes: bytes, count: bytes.count)
         let string = NSString(data: data, encoding: NSUTF8StringEncoding)
         XCTAssertNil(string)
     }
@@ -272,7 +272,7 @@ class TestNSString : XCTestCase {
     }
 
     func test_FromContentsOfURL() {
-        guard let testFileURL = testBundle().URLForResource("NSStringTestData", withExtension: "txt") else {
+        guard let testFileURL = testBundle().urlForResource("NSStringTestData", withExtension: "txt") else {
             XCTFail("URL for NSStringTestData.txt is nil")
             return
         }
@@ -310,7 +310,7 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercased, "たちつてと")
 
         // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
-        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: NSLocale(localeIdentifier: "en")), "\u{0049}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: Locale(localeIdentifier: "en")), "\u{0049}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: NSLocale(localeIdentifier: "tr")), "\u{0130}")
         XCTAssertEqual(NSString(stringLiteral: "\u{00df}").uppercased, "\u{0053}\u{0053}")
@@ -324,10 +324,10 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercased, "たちつてと")
 
         // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
-        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: Locale(localeIdentifier: "en")), "\u{0069}\u{0307}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: NSLocale(localeIdentifier: "tr")), "\u{0069}")
-        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercased(with: NSLocale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercased(with: Locale(localeIdentifier: "en")), "\u{0069}\u{0307}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
     }
@@ -371,8 +371,8 @@ class TestNSString : XCTestCase {
     
     func test_rangeOfCharacterFromSet() {
         let string: NSString = "0Az"
-        let letters = NSCharacterSet.letters()
-        let decimalDigits = NSCharacterSet.decimalDigits()
+        let letters = CharacterSet.letters
+        let decimalDigits = CharacterSet.decimalDigits
         XCTAssertEqual(string.rangeOfCharacter(from: letters).location, 1)
         XCTAssertEqual(string.rangeOfCharacter(from: decimalDigits).location, 0)
         XCTAssertEqual(string.rangeOfCharacter(from: letters, options: [.backwardsSearch]).location, 2)
@@ -401,7 +401,7 @@ class TestNSString : XCTestCase {
         var buf : [UInt8] = []
         buf.reserveCapacity(reservedLength)
         var usedLen : CFIndex = 0
-        buf.withUnsafeMutableBufferPointer { p in
+        let _ = buf.withUnsafeMutableBufferPointer { p in
             CFStringGetBytes(cfString, CFRangeMake(0, CFStringGetLength(cfString)), CFStringEncoding(kCFStringEncodingUTF16), 0, false, p.baseAddress, reservedLength, &usedLen)
         }
         
@@ -435,7 +435,7 @@ class TestNSString : XCTestCase {
             var outName: NSString?
             var matches: [NSString] = []
             _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            _ = try NSFileManager.defaultManager().contentsOfDirectory(at: NSURL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
+            _ = try FileManager.default().contentsOfDirectory(at: URL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
             XCTAssert(outName == "/", "If NSString is valid path to directory which has '/' suffix then outName is '/'.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389
 //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")
@@ -448,8 +448,8 @@ class TestNSString : XCTestCase {
             var outName: NSString?
             var matches: [NSString] = []
             _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            let urlToTmp = NSURL(fileURLWithPath: "/private/tmp/").URLByStandardizingPath!
-            _ = try NSFileManager.defaultManager().contentsOfDirectory(at: urlToTmp, includingPropertiesForKeys: nil, options: [])
+            let urlToTmp = try URL(fileURLWithPath: "/private/tmp/").standardizingPath()
+            _ = try FileManager.default().contentsOfDirectory(at: urlToTmp, includingPropertiesForKeys: nil, options: [])
             XCTAssert(outName == "/tmp/", "If path could be completed to existing directory then outName is a string itself plus '/'.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389
             //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")
@@ -598,7 +598,7 @@ class TestNSString : XCTestCase {
     }
 
     func test_stringByTrimmingCharactersInSet() {
-        let characterSet = NSCharacterSet.whitespaces()
+        let characterSet = CharacterSet.whitespaces
         let string: NSString = " abc   "
         XCTAssertEqual(string.trimmingCharacters(in: characterSet), "abc")
     }
@@ -629,13 +629,13 @@ class TestNSString : XCTestCase {
         
         withVaList(argument) {
             pointer in
-            let string = NSString(format: "en_GB value is %d (%.1f)", locale: NSLocale.init(localeIdentifier: "en_GB"), arguments: pointer)
+            let string = NSString(format: "en_GB value is %d (%.1f)", locale: Locale.init(localeIdentifier: "en_GB"), arguments: pointer)
             XCTAssertEqual(string, "en_GB value is 1000 (42.0)")
         }
 
         withVaList(argument) {
             pointer in
-            let string = NSString(format: "de_DE value is %d (%.1f)", locale: NSLocale.init(localeIdentifier: "de_DE"), arguments: pointer)
+            let string = NSString(format: "de_DE value is %d (%.1f)", locale: Locale.init(localeIdentifier: "de_DE"), arguments: pointer)
             XCTAssertEqual(string, "de_DE value is 1000 (42,0)")
         }
         

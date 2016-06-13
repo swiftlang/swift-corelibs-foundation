@@ -33,10 +33,10 @@ public struct NSOperatingSystemVersion {
 
 
 
-public class NSProcessInfo : NSObject {
+public class ProcessInfo: NSObject {
     
-    internal static let _processInfo = NSProcessInfo()
-    public class func processInfo() -> NSProcessInfo {
+    internal static let _processInfo = ProcessInfo()
+    public class func processInfo() -> ProcessInfo {
         return _processInfo
     }
     
@@ -48,14 +48,14 @@ public class NSProcessInfo : NSObject {
     internal static var _environment: [String : String] = {
         let dict = __CFGetEnvironment()._nsObject
         var env = [String : String]()
-        dict.enumerateKeysAndObjectsUsingBlock { key, value, stop in
+        dict.enumerateKeysAndObjects([]) { key, value, stop in
             env[(key as! NSString)._swiftObject] = (value as! NSString)._swiftObject
         }
         return env
     }()
     
     public var environment: [String : String] {
-        return NSProcessInfo._environment
+        return ProcessInfo._environment
     }
     
     public var arguments: [String] {
@@ -63,7 +63,7 @@ public class NSProcessInfo : NSObject {
     }
     
     public var hostName: String {
-        if let name = NSHost.currentHost().name {
+        if let name = Host.currentHost().name {
             return name
         } else {
             return "localhost"
@@ -145,7 +145,7 @@ public class NSProcessInfo : NSObject {
         return true
     }
     
-    public var systemUptime: NSTimeInterval {
+    public var systemUptime: TimeInterval {
         return CFGetSystemUptime()
     }
 }

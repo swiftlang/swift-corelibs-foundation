@@ -158,7 +158,7 @@ func lint(_ options: Options) -> Int32 {
         let data : NSData?
         if file == "-" {
             // stdin
-            data = NSFileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
+            data = FileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
         } else {
             data = NSData(contentsOfFile: file)
         }
@@ -326,7 +326,7 @@ func display(_ options: Options) -> Int32 {
         let data : NSData?
         if file == "-" {
             // stdin
-            data = NSFileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
+            data = FileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
         } else {
             data = NSData(contentsOfFile: file)
         }
@@ -354,7 +354,7 @@ func display(_ options: Options) -> Int32 {
 }
 
 func main() -> Int32 {
-    var args = NSProcessInfo.processInfo().arguments
+    var args = ProcessInfo.processInfo().arguments
     
     if args.count < 2 {
         print("No files specified.")

@@ -16,25 +16,17 @@ import CoreFoundation
 #endif
 
 public enum NSTaskTerminationReason : Int {
-    case Exit
-    case UncaughtSignal
+    case exit
+    case uncaughtSignal
 }
 
 private func WEXITSTATUS(_ status: CInt) -> CInt {
     return (status >> 8) & 0xff
 }
 
-private var managerThreadSetupOnceToken = pthread_once_t()
-// these are different sadly...
-#if os(OSX) || os(iOS)
-private var threadID: pthread_t? = nil
-#elseif os(Linux)
-private var threadID = pthread_t()
-#endif
-
-private var managerThreadRunLoop : NSRunLoop? = nil
+private var managerThreadRunLoop : RunLoop? = nil
 private var managerThreadRunLoopIsRunning = false
-private var managerThreadRunLoopIsRunningCondition = NSCondition()
+private var managerThreadRunLoopIsRunningCondition = Condition()
 
 #if os(OSX) || os(iOS)
 internal let kCFSocketDataCallBack = CFSocketCallBackType.dataCallBack.rawValue
@@ -57,15 +49,15 @@ private func runLoopSourceRelease(_ pointer : UnsafePointer<Void>?) -> Void {
 
 // Equal method for run loop source
 
-private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
+private func runloopIsEqual(_ a : UnsafePointer<Void>?, _ b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
     let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(a!)
-    guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? NSRunLoop else {
+    guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? RunLoop else {
         return false
     }
     
     let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(a!)
-    guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? NSRunLoop else {
+    guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? RunLoop else {
         return false
     }
     
@@ -76,50 +68,17 @@ private func runloopIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?
     return true
 }
 
-@noreturn private func managerThread(_ x: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
-    
-    managerThreadRunLoop = NSRunLoop.currentRunLoop()
-    var emptySourceContext = CFRunLoopSourceContext (version: 0, info: Unmanaged.passUnretained(managerThreadRunLoop!).toOpaque(),
-                                                              retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil,
-                                                                      equal: runloopIsEqual, hash: nil, schedule: nil, cancel: nil,
-                                                                             perform: emptyRunLoopCallback)
-    
-    CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &emptySourceContext), kCFRunLoopDefaultMode)
-    
-    managerThreadRunLoopIsRunningCondition.lock()
-    
-    CFRunLoopPerformBlock(managerThreadRunLoop?._cfRunLoop, kCFRunLoopDefaultMode) { 
-        managerThreadRunLoopIsRunning = true
-        managerThreadRunLoopIsRunningCondition.broadcast()
-        managerThreadRunLoopIsRunningCondition.unlock()
-    }
-    
-    managerThreadRunLoop?.run()
-    fatalError("NSTask manager run loop exited unexpectedly; it should run forever once initialized")
-}
-
-private func managerThreadSetup() -> Void {
-    pthread_create(&threadID, nil, managerThread, nil)
-    
-    managerThreadRunLoopIsRunningCondition.lock()
-    while managerThreadRunLoopIsRunning == false {
-        managerThreadRunLoopIsRunningCondition.wait()
-    }
-    
-    managerThreadRunLoopIsRunningCondition.unlock()
-}
-
 
 // Equal method for task in run loop source
-private func nstaskIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
+private func nstaskIsEqual(_ a : UnsafePointer<Void>?, _ b : UnsafePointer<Void>?) -> _DarwinCompatibleBoolean {
     
     let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(a!)
-    guard let taskA = unmanagedTaskA.takeUnretainedValue() as? NSTask else {
+    guard let taskA = unmanagedTaskA.takeUnretainedValue() as? Task else {
         return false
     }
     
     let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(a!)
-    guard let taskB = unmanagedTaskB.takeUnretainedValue() as? NSTask else {
+    guard let taskB = unmanagedTaskB.takeUnretainedValue() as? Task else {
         return false
     }
     
@@ -130,7 +89,49 @@ private func nstaskIsEqual(_ a : UnsafePointer<Void>?, b : UnsafePointer<Void>?)
     return true
 }
 
-public class NSTask : NSObject {
+public class Task: NSObject {
+    private static func setup() {
+        struct Once {
+            static var done = false
+            static let lock = Lock()
+        }
+        Once.lock.synchronized {
+            if !Once.done {
+                let thread = Thread {
+                    managerThreadRunLoop = RunLoop.current()
+                    var emptySourceContext = CFRunLoopSourceContext()
+                    emptySourceContext.version = 0
+                    emptySourceContext.retain = runLoopSourceRetain
+                    emptySourceContext.release = runLoopSourceRelease
+                    emptySourceContext.equal = runloopIsEqual
+                    emptySourceContext.perform = emptyRunLoopCallback
+                    managerThreadRunLoop!.withUnretainedReference {
+                        emptySourceContext.info = $0
+                    }
+                    
+                    CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &emptySourceContext), kCFRunLoopDefaultMode)
+                    
+                    managerThreadRunLoopIsRunningCondition.lock()
+                    
+                    CFRunLoopPerformBlock(managerThreadRunLoop?._cfRunLoop, kCFRunLoopDefaultMode) {
+                        managerThreadRunLoopIsRunning = true
+                        managerThreadRunLoopIsRunningCondition.broadcast()
+                        managerThreadRunLoopIsRunningCondition.unlock()
+                    }
+                    
+                    managerThreadRunLoop?.run()
+                    fatalError("NSTask manager run loop exited unexpectedly; it should run forever once initialized")
+                }
+                thread.start()
+                managerThreadRunLoopIsRunningCondition.lock()
+                while managerThreadRunLoopIsRunning == false {
+                    managerThreadRunLoopIsRunningCondition.wait()
+                }
+                managerThreadRunLoopIsRunningCondition.unlock()
+                Once.done = true
+            }
+        }
+    }
     
     // Create an NSTask which can be run at a later time
     // An NSTask can only be run once. Subsequent attempts to
@@ -148,24 +149,24 @@ public class NSTask : NSObject {
     public var arguments: [String]?
     public var environment: [String : String]? // if not set, use current
     
-    public var currentDirectoryPath: String = NSFileManager.defaultInstance.currentDirectoryPath
+    public var currentDirectoryPath: String = FileManager.defaultInstance.currentDirectoryPath
     
     // standard I/O channels; could be either an NSFileHandle or an NSPipe
     public var standardInput: AnyObject? {
         willSet {
-            precondition(newValue is NSPipe || newValue is NSFileHandle,
+            precondition(newValue is Pipe || newValue is FileHandle,
                          "standardInput must be either NSPipe or NSFileHandle")
         }
     }
     public var standardOutput: AnyObject? {
         willSet {
-            precondition(newValue is NSPipe || newValue is NSFileHandle,
+            precondition(newValue is Pipe || newValue is FileHandle,
                          "standardOutput must be either NSPipe or NSFileHandle")
         }
     }
     public var standardError: AnyObject? {
         willSet {
-            precondition(newValue is NSPipe || newValue is NSFileHandle,
+            precondition(newValue is Pipe || newValue is FileHandle,
                          "standardError must be either NSPipe or NSFileHandle")
         }
     }
@@ -173,9 +174,9 @@ public class NSTask : NSObject {
     private var runLoopSourceContext : CFRunLoopSourceContext?
     private var runLoopSource : CFRunLoopSource?
     
-    private weak var runLoop : NSRunLoop? = nil
+    private weak var runLoop : RunLoop? = nil
     
-    private var processLaunchedCondition = NSCondition()
+    private var processLaunchedCondition = Condition()
     
     // actions
     public func launch() {
@@ -184,7 +185,7 @@ public class NSTask : NSObject {
     
         // Dispatch the manager thread if it isn't already running
         
-        pthread_once(&managerThreadSetupOnceToken, managerThreadSetup)
+        Task.setup()
         
         // Ensure that the launch path is set
         
@@ -237,14 +238,16 @@ public class NSTask : NSObject {
 
         var taskSocketPair : [Int32] = [0, 0]
         socketpair(AF_UNIX, _CF_SOCK_STREAM(), 0, &taskSocketPair)
-        
-        var context = CFSocketContext(version: 0, info: Unmanaged.passUnretained(self).toOpaque(),
-                                               retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil)
+        var context = CFSocketContext()
+        context.version = 0
+        context.retain = runLoopSourceRetain
+        context.release = runLoopSourceRelease
+		context.info = UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque())
         
         let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
             (socket, type, address, data, info )  in
             
-            let task = Unmanaged<NSTask>.fromOpaque(info!).takeUnretainedValue()
+            let task: Task = NSObject.unretainedReference(info!)
             
             task.processLaunchedCondition.lock()
             while task.running == false {
@@ -265,20 +268,10 @@ public class NSTask : NSObject {
             // If a termination handler has been set, invoke it on a background thread
             
             if task.terminationHandler != nil {
-                #if os(OSX) || os(iOS)
-                var threadID: pthread_t? = nil
-                #elseif os(Linux)
-                var threadID = pthread_t()
-                #endif
-                pthread_create(&threadID, nil, { (context) -> UnsafeMutablePointer<Void>! in
-                    
-                    let unmanagedTask : Unmanaged<NSTask> = Unmanaged.fromOpaque(context!)
-                    let task = unmanagedTask.takeRetainedValue()
-                    
-                    task.terminationHandler!( task )
-                    return context
-                    
-                    }, Unmanaged.passRetained(task).toOpaque())
+                let thread = Thread {
+                    task.terminationHandler!(task)
+                }
+                thread.start()
             }
             
             // Set the running flag to false
@@ -311,28 +304,28 @@ public class NSTask : NSObject {
         defer { posix_spawn_file_actions_destroy(&fileActions) }
 
         switch standardInput {
-        case let pipe as NSPipe:
+        case let pipe as Pipe:
             posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO))
             posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForWriting.fileDescriptor))
-        case let handle as NSFileHandle:
+        case let handle as FileHandle:
             posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDIN_FILENO))
         default: break
         }
 
         switch standardOutput {
-        case let pipe as NSPipe:
+        case let pipe as Pipe:
             posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO))
             posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
-        case let handle as NSFileHandle:
+        case let handle as FileHandle:
             posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDOUT_FILENO))
         default: break
         }
 
         switch standardError {
-        case let pipe as NSPipe:
+        case let pipe as Pipe:
             posix(posix_spawn_file_actions_adddup2(&fileActions, pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO))
             posix(posix_spawn_file_actions_addclose(&fileActions, pipe.fileHandleForReading.fileDescriptor))
-        case let handle as NSFileHandle:
+        case let handle as FileHandle:
             posix(posix_spawn_file_actions_adddup2(&fileActions, handle.fileDescriptor, STDERR_FILENO))
         default: break
         }
@@ -343,24 +336,41 @@ public class NSTask : NSObject {
         posix(posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp))
 
         // Close the write end of the input and output pipes.
-        if let pipe = standardInput as? NSPipe {
+        if let pipe = standardInput as? Pipe {
             pipe.fileHandleForReading.closeFile()
         }
-        if let pipe = standardOutput as? NSPipe {
+        if let pipe = standardOutput as? Pipe {
             pipe.fileHandleForWriting.closeFile()
         }
-        if let pipe = standardError as? NSPipe {
+        if let pipe = standardError as? Pipe {
             pipe.fileHandleForWriting.closeFile()
         }
 
         close(taskSocketPair[1])
         
-        self.runLoop = NSRunLoop.currentRunLoop()
+        self.runLoop = RunLoop.current()
+        self.runLoopSourceContext = CFRunLoopSourceContext(version: 0,
+                                                           info: UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque()),
+                                                           retain: { return runLoopSourceRetain($0) },
+                                                           release: { runLoopSourceRelease($0) },
+                                                           copyDescription: nil,
+                                                           equal: { return nstaskIsEqual($0, $1) },
+                                                           hash: nil,
+                                                           schedule: nil,
+                                                           cancel: nil,
+                                                           perform: { emptyRunLoopCallback($0) }
+        )
         
-        self.runLoopSourceContext = CFRunLoopSourceContext (version: 0, info: Unmanaged.passUnretained(self).toOpaque(),
-                                                                     retain: runLoopSourceRetain, release: runLoopSourceRelease, copyDescription: nil,
-                                                                             equal: nstaskIsEqual, hash: nil, schedule: nil, cancel: nil,
-                                                                                    perform: emptyRunLoopCallback)
+        var runLoopContext = CFRunLoopSourceContext()
+        runLoopContext.version = 0
+        runLoopContext.retain = runLoopSourceRetain
+        runLoopContext.release = runLoopSourceRelease
+        runLoopContext.equal = nstaskIsEqual
+        runLoopContext.perform = emptyRunLoopCallback
+        self.withUnretainedReference {
+            runLoopContext.info = $0
+        }
+        self.runLoopSourceContext = runLoopContext
         
         self.runLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &runLoopSourceContext!)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopDefaultMode)
@@ -389,15 +399,15 @@ public class NSTask : NSObject {
     /*
     A block to be invoked when the process underlying the NSTask terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The NSTask is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the NSTask has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an NSTask, the NSTaskDidTerminateNotification notification is not posted for that task.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of NSTask which hasn't been updated to include an implementation of the storage and use of it.  
     */
-    public var terminationHandler: ((NSTask) -> Void)?
+    public var terminationHandler: ((Task) -> Void)?
     public var qualityOfService: NSQualityOfService = .default  // read-only after the task is launched
 }
 
-extension NSTask {
+extension Task {
     
     // convenience; create and launch
-    public class func launchedTaskWithLaunchPath(_ path: String, arguments: [String]) -> NSTask {
-        let task = NSTask()
+    public class func launchedTaskWithLaunchPath(_ path: String, arguments: [String]) -> Task {
+        let task = Task()
         task.launchPath = path
         task.arguments = arguments
         task.launch()
@@ -410,7 +420,7 @@ extension NSTask {
         
         repeat {
             
-        } while( self.running == true && NSRunLoop.currentRunLoop().runMode(NSDefaultRunLoopMode, beforeDate: NSDate(timeIntervalSinceNow: 0.05)) )
+        } while( self.running == true && RunLoop.current().run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: 0.05)) )
         
         self.runLoop = nil
     }

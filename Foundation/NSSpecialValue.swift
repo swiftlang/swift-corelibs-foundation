@@ -97,7 +97,7 @@ internal class NSSpecialValue : NSValue {
         if !aDecoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {
-            let specialFlags = aDecoder.decodeIntegerForKey("NS.special")
+            let specialFlags = aDecoder.decodeInteger(forKey: "NS.special")
             guard let specialType = NSSpecialValue._typeFromFlags(specialFlags) else {
                 return nil
             }
@@ -110,11 +110,11 @@ internal class NSSpecialValue : NSValue {
         }
     }
     
-    override func encodeWithCoder(_ aCoder: NSCoder) {
+    override func encode(with aCoder: NSCoder) {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {
-            aCoder.encodeInteger(NSSpecialValue._flagsFromType(_value.dynamicType), forKey: "NS.special")
+            aCoder.encode(NSSpecialValue._flagsFromType(_value.dynamicType), forKey: "NS.special")
             _value.encodeWithCoder(aCoder)
         }
     }

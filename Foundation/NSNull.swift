@@ -11,10 +11,10 @@
 public class NSNull : NSObject, NSCopying, NSSecureCoding {
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
@@ -26,7 +26,7 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
         // Nothing to do here
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         // Nothing to do here
     }
     

@@ -54,12 +54,12 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
-            _code = aDecoder.decodeIntegerForKey("NSCode")
+            _code = aDecoder.decodeInteger(forKey: "NSCode")
             _domain = aDecoder.decodeObjectOfClass(NSString.self, forKey: "NSDomain")!._swiftObject
             if let info = aDecoder.decodeObjectOfClasses([NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
                 var filteredUserInfo = [String : Any]()
                 // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjectsUsingBlock() {
+                info.enumerateKeysAndObjects([]) {
                     if let key = $0.0 as? NSString {
                         filteredUserInfo[key._swiftObject] = $0.1
                     }
@@ -68,13 +68,13 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
             }
         } else {
             var codeValue: Int32 = 0
-            aDecoder.decodeValueOfObjCType("i", at: &codeValue)
+            aDecoder.decodeValue(ofObjCType: "i", at: &codeValue)
             _code = Int(codeValue)
             _domain = (aDecoder.decodeObject() as? NSString)!._swiftObject
             if let info = aDecoder.decodeObject() as? NSDictionary {
                 var filteredUserInfo = [String : Any]()
                 // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjectsUsingBlock() {
+                info.enumerateKeysAndObjects([]) {
                     if let key = $0.0 as? NSString {
                         filteredUserInfo[key._swiftObject] = $0.1
                     }
@@ -88,24 +88,24 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return true
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(_domain.bridge(), forKey: "NSDomain")
-            aCoder.encodeInt(Int32(_code), forKey: "NSCode")
-            aCoder.encodeObject(_userInfo?.bridge(), forKey: "NSUserInfo")
+            aCoder.encode(_domain.bridge(), forKey: "NSDomain")
+            aCoder.encode(Int32(_code), forKey: "NSCode")
+            aCoder.encode(_userInfo?.bridge(), forKey: "NSUserInfo")
         } else {
             var codeValue: Int32 = Int32(self._code)
-            aCoder.encodeValueOfObjCType("i", at: &codeValue)
-            aCoder.encodeObject(self._domain.bridge())
-            aCoder.encodeObject(self._userInfo?.bridge())
+            aCoder.encodeValue(ofObjCType: "i", at: &codeValue)
+            aCoder.encode(self._domain.bridge())
+            aCoder.encode(self._userInfo?.bridge())
         }
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
@@ -192,7 +192,6 @@ public protocol __BridgedNSError : RawRepresentable, ErrorProtocol {
     static var __NSErrorDomain: String { get }
 }
 
-@warn_unused_result
 public func ==<T: __BridgedNSError where T.RawValue: SignedInteger>(lhs: T, rhs: T) -> Bool {
     return lhs.rawValue.toIntMax() == rhs.rawValue.toIntMax()
 }
@@ -216,7 +215,6 @@ public extension __BridgedNSError where RawValue: SignedInteger {
     public final var hashValue: Int { return _code }
 }
 
-@warn_unused_result
 public func ==<T: __BridgedNSError where T.RawValue: UnsignedInteger>(lhs: T, rhs: T) -> Bool {
     return lhs.rawValue.toUIntMax() == rhs.rawValue.toUIntMax()
 }

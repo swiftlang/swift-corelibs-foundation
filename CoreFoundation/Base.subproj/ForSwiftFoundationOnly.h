@@ -25,6 +25,7 @@
 #include <CoreFoundation/CFLogUtilities.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
+#include <pthread.h>
 
 _CF_EXPORT_SCOPE_BEGIN
 
@@ -187,6 +188,27 @@ struct _NSRunLoop {
     _Nonnull CFTypeRef (*_Nonnull _new)(CFRunLoopRef rl);
 };
 
+struct _NSCharacterSetBridge {
+    _Nullable CFCharacterSetRef (*_Nonnull _expandedCFCharacterSet)(CFTypeRef cset);
+    _Nonnull CFDataRef (*_Nonnull _retainedBitmapRepresentation)(CFTypeRef cset);
+    
+    bool (*_Nonnull characterIsMember)(CFTypeRef cset, UniChar ch);
+    _Nonnull CFMutableCharacterSetRef (*_Nonnull mutableCopy)(CFTypeRef cset);
+    bool (*_Nonnull longCharacterIsMember)(CFTypeRef cset, UTF32Char ch);
+    bool (*_Nonnull hasMemberInPlane)(CFTypeRef cset, uint8_t thePlane);
+    _Nonnull CFCharacterSetRef (*_Nonnull invertedSet)(CFTypeRef cset);
+};
+
+struct _NSMutableCharacterSetBridge {
+    void (*_Nonnull addCharactersInRange)(CFTypeRef cset, CFRange range);
+    void (*_Nonnull removeCharactersInRange)(CFTypeRef cset, CFRange range);
+    void (*_Nonnull addCharactersInString)(CFTypeRef cset, CFStringRef string);
+    void (*_Nonnull removeCharactersInString)(CFTypeRef cset, CFStringRef string);
+    void (*_Nonnull formUnionWithCharacterSet)(CFTypeRef cset, CFTypeRef other);
+    void (*_Nonnull formIntersectionWithCharacterSet)(CFTypeRef cset, CFTypeRef other);
+    void (*_Nonnull invert)(CFTypeRef cset);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -199,9 +221,14 @@ struct _CFSwiftBridge {
     struct _NSMutableStringBridge NSMutableString;
     struct _NSXMLParserBridge NSXMLParser;
     struct _NSRunLoop NSRunLoop;
+    struct _NSCharacterSetBridge NSCharacterSet;
+    struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
 };
 
 CF_PRIVATE CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
+
+CF_PRIVATE void *_Nullable _CFSwiftRetain(void *_Nullable t);
+CF_PRIVATE void _CFSwiftRelease(void *_Nullable t);
 
 CF_PRIVATE CF_EXPORT void _CFRuntimeBridgeTypeToClass(CFTypeID type, const void *isa);
 
@@ -243,7 +270,25 @@ CF_PRIVATE CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
+CF_EXPORT CFHashCode __CFHashDouble(double d);
+
 CF_EXPORT Boolean _CFIsMainThread(void);
+
+CF_EXPORT CFHashCode __CFHashDouble(double d);
+
+typedef pthread_key_t _CFThreadSpecificKey;
+CF_EXPORT CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key);
+CF_EXPORT void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
+CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate();
+
+typedef pthread_attr_t _CFThreadAttributes;
+typedef pthread_t _CFThreadRef;
+
+CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context);
+
+CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar);
+CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
+CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 
 _CF_EXPORT_SCOPE_END
 

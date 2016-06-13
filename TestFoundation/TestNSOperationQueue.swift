@@ -27,8 +27,8 @@ class TestNSOperationQueue : XCTestCase {
     }
     
     func test_OperationCount() {
-        let queue = NSOperationQueue()
-        let op1 = NSBlockOperation(block: { sleep(2) })
+        let queue = OperationQueue()
+        let op1 = BlockOperation(block: { sleep(2) })
         queue.addOperation(op1)
         XCTAssertTrue(queue.operationCount == 1)
         /* uncomment below lines once Dispatch is enabled in Foundation */
@@ -38,28 +38,28 @@ class TestNSOperationQueue : XCTestCase {
 
     func test_OperationPriorities() {
         var msgOperations = [String]()
-        let operation1 : NSBlockOperation = NSBlockOperation (block: {
+        let operation1 : BlockOperation = BlockOperation(block: {
             msgOperations.append("Operation1 executed")
         })
-        let operation2 : NSBlockOperation = NSBlockOperation (block: {
+        let operation2 : BlockOperation = BlockOperation(block: {
             msgOperations.append("Operation2 executed")
         })
-        let operation3 : NSBlockOperation = NSBlockOperation (block: {
+        let operation3 : BlockOperation = BlockOperation(block: {
             msgOperations.append("Operation3 executed")
         })
-        let operation4: NSBlockOperation = NSBlockOperation (block: {
+        let operation4: BlockOperation = BlockOperation(block: {
             msgOperations.append("Operation4 executed")
         })
-        operation4.queuePriority = OperationQueuePriority.VeryLow
-        operation3.queuePriority = OperationQueuePriority.VeryHigh
-        operation2.queuePriority = OperationQueuePriority.Low
-        operation1.queuePriority = OperationQueuePriority.Normal
-        var operations = [NSOperation]()
+        operation4.queuePriority = .veryLow
+        operation3.queuePriority = .veryHigh
+        operation2.queuePriority = .low
+        operation1.queuePriority = .normal
+        var operations = [Operation]()
         operations.append(operation1)
         operations.append(operation2)
         operations.append(operation3)
         operations.append(operation4)
-        let queue = NSOperationQueue()
+        let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 1
         queue.addOperations(operations, waitUntilFinished: true)
         XCTAssertEqual(msgOperations[0], "Operation3 executed")

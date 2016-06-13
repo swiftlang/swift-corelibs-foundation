@@ -8,11 +8,11 @@
 //
 
 
-public typealias NSSocketNativeHandle = Int32
+public typealias SocketNativeHandle = Int32
 
 public let NSPortDidBecomeInvalidNotification: String = "NSPortDidBecomeInvalidNotification"
 
-public class NSPort : NSObject, NSCopying, NSCoding {
+public class Port : NSObject, NSCopying, NSCoding {
     
     public override init() {
         
@@ -22,11 +22,11 @@ public class NSPort : NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -40,53 +40,53 @@ public class NSPort : NSObject, NSCopying, NSCoding {
     
     // TODO: this delegate situation is confusing on all platforms
     /*
-    public func setDelegate(_ anObject: NSPortDelegate?)
-    public func delegate() -> NSPortDelegate?
+    public func setDelegate(_ anObject: PortDelegate?)
+    public func delegate() -> PortDelegate?
     */
     
     // These two methods should be implemented by subclasses
     // to setup monitoring of the port when added to a run loop,
     // and stop monitoring if needed when removed;
     // These methods should not be called directly!
-//    public func scheduleInRunLoop(_ runLoop: NSRunLoop, forMode mode: String) {
-//        NSUnimplemented()
-//    }
-//
-//    public func removeFromRunLoop(_ runLoop: NSRunLoop, forMode mode: String) {
-//        NSUnimplemented()
-//    }
+    public func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
+        NSUnimplemented()
+    }
+
+    public func remove(from runLoop: RunLoop, forMode mode: RunLoopMode) {
+        NSUnimplemented()
+    }
     
     public var reservedSpaceLength: Int {
         return 0
     }
     
-    public func sendBeforeDate(_ limitDate: NSDate, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
+    public func sendBeforeDate(_ limitDate: Date, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
         NSUnimplemented()
     }
 
-    public func sendBeforeDate(_ limitDate: NSDate, msgid msgID: Int, components: NSMutableArray?, from receivePort: NSPort?, reserved headerSpaceReserved: Int) -> Bool {
+    public func sendBeforeDate(_ limitDate: Date, msgid msgID: Int, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
         NSUnimplemented()
     }
 }
 
-extension NSPortDelegate {
-    func handlePortMessage(_ message: NSPortMessage) { }
+extension PortDelegate {
+    func handlePortMessage(_ message: PortMessage) { }
 }
 
-public protocol NSPortDelegate : class {
-    func handlePortMessage(_ message: NSPortMessage)
+public protocol PortDelegate : class {
+    func handlePortMessage(_ message: PortMessage)
 }
 
 // A subclass of NSPort which can be used for local
 // message sending on all platforms.
 
-public class NSMessagePort : NSPort {
+public class MessagePort : Port {
 }
 
 // A subclass of NSPort which can be used for remote
 // message sending on all platforms.
 
-public class NSSocketPort : NSPort {
+public class SocketPort : Port {
     
     public convenience override init() {
         NSUnimplemented()
@@ -96,15 +96,15 @@ public class NSSocketPort : NSPort {
         NSUnimplemented()
     }
     
-    public convenience init?(TCPPort port: UInt16) {
+    public convenience init?(tcpPort port: UInt16) {
         NSUnimplemented()
     }
     
-    public init?(protocolFamily family: Int32, socketType type: Int32, protocol: Int32, address: NSData) {
+    public init?(protocolFamily family: Int32, socketType type: Int32, protocol: Int32, address: Data) {
         NSUnimplemented()
     }
     
-    public init?(protocolFamily family: Int32, socketType type: Int32, protocol: Int32, socket sock: NSSocketNativeHandle) {
+    public init?(protocolFamily family: Int32, socketType type: Int32, protocol: Int32, socket sock: SocketNativeHandle) {
         NSUnimplemented()
     }
     
@@ -112,7 +112,7 @@ public class NSSocketPort : NSPort {
         NSUnimplemented()
     }
     
-    public init(remoteWithProtocolFamily family: Int32, socketType type: Int32, protocol: Int32, address: NSData) {
+    public init(remoteWithProtocolFamily family: Int32, socketType type: Int32, protocol: Int32, address: Data) {
         NSUnimplemented()
     }
 
@@ -128,11 +128,11 @@ public class NSSocketPort : NSPort {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ public var address: NSData {
+    /*@NSCopying*/ public var address: Data {
         NSUnimplemented()
     }
     
-    public var socket: NSSocketNativeHandle {
+    public var socket: SocketNativeHandle {
         NSUnimplemented()
     }
 }

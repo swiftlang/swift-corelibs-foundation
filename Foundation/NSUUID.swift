@@ -46,10 +46,10 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
@@ -60,7 +60,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public convenience required init?(coder: NSCoder) {
         if coder.allowsKeyedCoding {
             var length : Int = 0
-            let bytes = coder.decodeBytesForKey("NS.uuidbytes", returnedLength: &length)
+            let bytes = coder.decodeBytes(forKey: "NS.uuidbytes", returnedLength: &length)
             if (length == 16) {
                 self.init(UUIDBytes: bytes!)
             } else {
@@ -75,7 +75,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         aCoder.encodeBytes(buffer, length: 16, forKey: "NS.uuidbytes")
     }
     

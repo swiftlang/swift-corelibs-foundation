@@ -12,23 +12,23 @@ import CoreFoundation
     @class NSXMLDTD
     @abstract Defines the order, repetition, and allowable values for a document
 */
-public class NSXMLDTD : NSXMLNode {
+public class XMLDTD : XMLNode {
 
     internal var _xmlDTD: _CFXMLDTDPtr {
         return _CFXMLDTDPtr(_xmlNode)
     }
     
-    public convenience init(contentsOfURL url: NSURL, options mask: Int) throws {
+    public convenience init(contentsOf url: URL, options mask: Int) throws {
         let urlString = url.absoluteString
 
-        guard let node = _CFXMLParseDTD(urlString) else {
+        guard let node = _CFXMLParseDTD(urlString!) else {
             //TODO: throw error
             fatalError("parsing dtd string failed")
         }
         self.init(ptr: node)
     }
 
-    public convenience init(data: NSData, options mask: Int) throws {
+    public convenience init(data: Data, options mask: Int) throws {
         var unmanagedError: Unmanaged<CFError>? = nil
         
         guard let node = _CFXMLParseDTDFromData(data._cfObject, &unmanagedError) else {
@@ -82,7 +82,7 @@ public class NSXMLDTD : NSXMLNode {
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(_ child: NSXMLNode, atIndex index: Int) {
+    public func insertChild(_ child: XMLNode, at index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
     
@@ -90,7 +90,7 @@ public class NSXMLDTD : NSXMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(_ children: [NSXMLNode], atIndex index: Int) {
+    public func insertChildren(_ children: [XMLNode], at index: Int) {
         _insertChildren(children, atIndex: index)
     }
     
@@ -98,7 +98,7 @@ public class NSXMLDTD : NSXMLNode {
         @method removeChildAtIndex:
         @abstract Removes a child at a particular index.
     */
-    public func removeChildAtIndex(_ index: Int) {
+    public func removeChild(at index: Int) {
         _removeChildAtIndex(index)
     } //primitive
     
@@ -106,7 +106,7 @@ public class NSXMLDTD : NSXMLNode {
         @method setChildren:
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
-    public func setChildren(_ children: [NSXMLNode]?) {
+    public func setChildren(_ children: [XMLNode]?) {
         _setChildren(children)
     } //primitive
     
@@ -114,7 +114,7 @@ public class NSXMLDTD : NSXMLNode {
         @method addChild:
         @abstract Adds a child to the end of the existing children.
     */
-    public func addChild(_ child: NSXMLNode) {
+    public func addChild(_ child: XMLNode) {
         _addChild(child)
     }
     
@@ -122,7 +122,7 @@ public class NSXMLDTD : NSXMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChildAtIndex(_ index: Int, withNode node: NSXMLNode) {
+    public func replaceChild(at index: Int, with node: XMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
     
@@ -130,36 +130,36 @@ public class NSXMLDTD : NSXMLNode {
         @method entityDeclarationForName:
         @abstract Returns the entity declaration matching this name.
     */
-    public func entityDeclarationForName(_ name: String) -> NSXMLDTDNode? {
+    public func entityDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetEntityDesc(_xmlDTD, name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     } //primitive
     
     /*!
         @method notationDeclarationForName:
         @abstract Returns the notation declaration matching this name.
     */
-    public func notationDeclarationForName(_ name: String) -> NSXMLDTDNode? {
+    public func notationDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetNotationDesc(_xmlDTD, name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     } //primitive
     
     /*!
         @method elementDeclarationForName:
         @abstract Returns the element declaration matching this name.
     */
-    public func elementDeclarationForName(_ name: String) -> NSXMLDTDNode? {
+    public func elementDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetElementDesc(_xmlDTD, name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     } //primitive
     
     /*!
         @method attributeDeclarationForName:
         @abstract Returns the attribute declaration matching this name.
     */
-    public func attributeDeclarationForName(_ name: String, elementName: String) -> NSXMLDTDNode? {
+    public func attributeDeclaration(forName name: String, elementName: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetAttributeDesc(_xmlDTD, elementName, name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     } //primitive
     
     /*!
@@ -168,20 +168,19 @@ public class NSXMLDTD : NSXMLNode {
     	@discussion The five predefined entities are
     	<ul><li>&amp;lt; - &lt;</li><li>&amp;gt; - &gt;</li><li>&amp;amp; - &amp;</li><li>&amp;quot; - &quot;</li><li>&amp;apos; - &amp;</li></ul>
     */
-    public class func predefinedEntityDeclarationForName(_ name: String) -> NSXMLDTDNode? {
+    public class func predefinedEntityDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetPredefinedEntity(name) else { return nil }
-        return NSXMLDTDNode._objectNodeForNode(node)
+        return XMLDTDNode._objectNodeForNode(node)
     }
     
-    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> NSXMLDTD {
+    internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> XMLDTD {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDTD)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            let unmanaged = Unmanaged<NSXMLDTD>.fromOpaque(privateData)
-            return unmanaged.takeUnretainedValue()
+            return XMLDTD.unretainedReference(privateData)
         }
         
-        return NSXMLDTD(ptr: node)
+        return XMLDTD(ptr: node)
     }
     
     internal override init(ptr: _CFXMLNodePtr) {

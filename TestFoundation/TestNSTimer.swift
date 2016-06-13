@@ -28,37 +28,37 @@ class TestNSTimer : XCTestCase {
     }
     
     func test_timerInit() {
-        let timer = NSTimer(fireDate: NSDate(), interval: 0.3, repeats: false) { _ in }
+        let timer = Timer(fire: Date(), interval: 0.3, repeats: false) { _ in }
         XCTAssertNotNil(timer)
     }
     
     func test_timerTickOnce() {
         var flag = false
         
-        let dummyTimer = NSTimer.scheduledTimer(0.01, repeats: false) { timer in
+        let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { timer in
             XCTAssertFalse(flag)
 
             flag = true
             timer.invalidate()
         }
 
-        let runLoop = NSRunLoop.currentRunLoop()
-        runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        runLoop.runUntilDate(NSDate(timeIntervalSinceNow: 0.05))
+        let runLoop = RunLoop.current()
+        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
+        runLoop.run(until: Date(timeIntervalSinceNow: 0.05))
         
         XCTAssertTrue(flag)
     }
 
     func test_timerRepeats() {
         var flag = 0
-        let interval = NSTimeInterval(0.1)
+        let interval = TimeInterval(0.1)
         let numberOfRepeats = 3
-        var previousInterval = NSDate().timeIntervalSince1970
+        var previousInterval = Date().timeIntervalSince1970
         
-        let dummyTimer = NSTimer.scheduledTimer(interval, repeats: true) { timer in
+        let dummyTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
             XCTAssertEqual(timer.timeInterval, interval)
 
-            let currentInterval = NSDate().timeIntervalSince1970
+            let currentInterval = Date().timeIntervalSince1970
             XCTAssertEqualWithAccuracy(currentInterval, previousInterval + interval, accuracy: 0.01)
             previousInterval = currentInterval
             
@@ -68,9 +68,9 @@ class TestNSTimer : XCTestCase {
             }
         }
         
-        let runLoop = NSRunLoop.currentRunLoop()
-        runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        runLoop.runUntilDate(NSDate(timeIntervalSinceNow: interval * Double(numberOfRepeats + 1)))
+        let runLoop = RunLoop.current()
+        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
+        runLoop.run(until: Date(timeIntervalSinceNow: interval * Double(numberOfRepeats + 1)))
         
         XCTAssertEqual(flag, numberOfRepeats)
     }
@@ -78,7 +78,7 @@ class TestNSTimer : XCTestCase {
     func test_timerInvalidate() {
         var flag = false
         
-        let dummyTimer = NSTimer.scheduledTimer(0.01, repeats: true) { timer in
+        let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { timer in
             XCTAssertTrue(timer.valid)
             XCTAssertFalse(flag) // timer should tick only once
             
@@ -88,9 +88,9 @@ class TestNSTimer : XCTestCase {
             XCTAssertFalse(timer.valid)
         }
         
-        let runLoop = NSRunLoop.currentRunLoop()
-        runLoop.addTimer(dummyTimer, forMode: NSDefaultRunLoopMode)
-        runLoop.runUntilDate(NSDate(timeIntervalSinceNow: 0.05))
+        let runLoop = RunLoop.current()
+        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
+        runLoop.run(until: Date(timeIntervalSinceNow: 0.05))
         
         XCTAssertTrue(flag)
     }

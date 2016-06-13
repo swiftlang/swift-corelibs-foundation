@@ -283,6 +283,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSCFSet.swift',
 	'Foundation/NSCFString.swift',
 	'Foundation/NSCharacterSet.swift',
+	'Foundation/NSCFCharacterSet.swift',
 	'Foundation/NSCoder.swift',
 	'Foundation/NSComparisonPredicate.swift',
 	'Foundation/NSCompoundPredicate.swift',
@@ -372,6 +373,20 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSXMLNodeOptions.swift',
 	'Foundation/NSXMLParser.swift',
 	'Foundation/FoundationErrors.swift',
+	'Foundation/URL.swift',
+	'Foundation/Boxing.swift',
+	'Foundation/ReferenceConvertible.swift',
+	'Foundation/Date.swift',
+	'Foundation/Data.swift',
+	'Foundation/CharacterSet.swift',
+	'Foundation/URLRequest.swift',
+	'Foundation/PersonNameComponents.swift',
+	'Foundation/Notification.swift',
+	'Foundation/URLComponents.swift',
+	'Foundation/DateComponents.swift',
+	'Foundation/DateInterval.swift',
+	'Foundation/IndexPath.swift',
+	'Foundation/IndexSet.swift',
 ])
 
 swift_sources.add_dependency(headers)

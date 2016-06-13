@@ -18,7 +18,7 @@ public let NSDecimalNumberDivideByZeroException: String = "NSDecimalNumberDivide
 
 public protocol NSDecimalNumberBehaviors {
     
-    func roundingMode() -> NSRoundingMode
+    func roundingMode() -> Decimal.RoundingMode
     
     func scale() -> Int16
     // The scale could return NO_SCALE for no defined scale.
@@ -31,7 +31,7 @@ public protocol NSDecimalNumberBehaviors {
 public class NSDecimalNumber : NSNumber {
     
     public convenience init(mantissa: UInt64, exponent: Int16, isNegative flag: Bool) { NSUnimplemented() }
-    public init(decimal dcm: NSDecimal) { NSUnimplemented() }
+    public init(decimal dcm: Decimal) { NSUnimplemented() }
     public convenience init(string numberValue: String?) { NSUnimplemented() }
     public convenience init(string numberValue: String?, locale: AnyObject?) { NSUnimplemented() }
 
@@ -88,7 +88,7 @@ public class NSDecimalNumber : NSNumber {
     public func rounding(accordingToBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     // Round to the scale of the behavior.
     
-    public override func compare(_ decimalNumber: NSNumber) -> NSComparisonResult { NSUnimplemented() }
+    public override func compare(_ decimalNumber: NSNumber) -> ComparisonResult { NSUnimplemented() }
     // compare two NSDecimalNumbers
     
     public class func setDefaultBehavior(_ behavior: NSDecimalNumberBehaviors) { NSUnimplemented() }
@@ -116,7 +116,7 @@ public class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCodi
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -126,9 +126,9 @@ public class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCodi
     // ignore exactnessException (return nil)
     // raise on overflow, underflow and divide by zero.
     
-    public init(roundingMode: NSRoundingMode, scale: Int16, raiseOnExactness exact: Bool, raiseOnOverflow overflow: Bool, raiseOnUnderflow underflow: Bool, raiseOnDivideByZero divideByZero: Bool) { NSUnimplemented() }
+    public init(roundingMode: Decimal.RoundingMode, scale: Int16, raiseOnExactness exact: Bool, raiseOnOverflow overflow: Bool, raiseOnUnderflow underflow: Bool, raiseOnDivideByZero divideByZero: Bool) { NSUnimplemented() }
     
-    public func roundingMode() -> NSRoundingMode { NSUnimplemented() }
+    public func roundingMode() -> Decimal.RoundingMode { NSUnimplemented() }
     
     public func scale() -> Int16 { NSUnimplemented() }
     // The scale could return NO_SCALE for no defined scale.
@@ -137,13 +137,13 @@ public class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCodi
 
 extension NSNumber {
     
-    public var decimalValue: NSDecimal { NSUnimplemented() }
+    public var decimalValue: Decimal { NSUnimplemented() }
 }
 
 // Could be silently inexact for float and double.
 
-extension NSScanner {
+extension Scanner {
     
-    public func scanDecimal(_ dcm: UnsafeMutablePointer<NSDecimal>) -> Bool { NSUnimplemented() }
+    public func scanDecimal(_ dcm: UnsafeMutablePointer<Decimal>) -> Bool { NSUnimplemented() }
 }
 

@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-public class NSDateFormatter : NSFormatter {
+public class DateFormatter : Formatter {
     typealias CFType = CFDateFormatter
     private var __cfObject: CFType?
     private var _cfObject: CFType {
@@ -41,38 +41,38 @@ public class NSDateFormatter : NSFormatter {
         super.init(coder: coder)
     }
 
-    public var formattingContext: NSFormattingContext = .Unknown // default is NSFormattingContextUnknown
+    public var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
 
     public func objectValue(_ string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
 
-    public override func stringForObjectValue(_ obj: AnyObject) -> String? {
-        guard let date = obj as? NSDate else { return nil }
+    public override func string(for obj: AnyObject) -> String? {
+        guard let date = obj as? Date else { return nil }
         return string(from: date)
     }
 
-    public func string(from date: NSDate) -> String {
+    public func string(from date: Date) -> String {
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, _cfObject, date._cfObject)._swiftObject
     }
 
-    public func dateFromString(_ string: String) -> NSDate? {
+    public func date(from string: String) -> Date? {
         var range = CFRange(location: 0, length: string.length)
-        let date = withUnsafeMutablePointer(&range) { (rangep: UnsafeMutablePointer<CFRange>) -> NSDate? in
+        let date = withUnsafeMutablePointer(&range) { (rangep: UnsafeMutablePointer<CFRange>) -> Date? in
             guard let res = CFDateFormatterCreateDateFromString(kCFAllocatorSystemDefault, _cfObject, string._cfObject, rangep) else {
                 return nil
             }
-            return res._nsObject
+            return res._swiftObject
         }
         return date
     }
 
-    public class func localizedString(from date: NSDate, dateStyle dstyle: NSDateFormatterStyle, timeStyle tstyle: NSDateFormatterStyle) -> String {
-        let df = NSDateFormatter()
+    public class func localizedString(from date: Date, dateStyle dstyle: Style, timeStyle tstyle: Style) -> String {
+        let df = DateFormatter()
         df.dateStyle = dstyle
         df.timeStyle = tstyle
-        return df.stringForObjectValue(date)!
+        return df.string(for: date._nsObject)!
     }
 
-    public class func dateFormat(fromTemplate tmplate: String, options opts: Int, locale: NSLocale?) -> String? {
+    public class func dateFormat(fromTemplate tmplate: String, options opts: Int, locale: Locale?) -> String? {
         guard let res = CFDateFormatterCreateDateFormatFromTemplate(kCFAllocatorSystemDefault, tmplate._cfObject, CFOptionFlags(opts), locale?._cfObject) else {
             return nil
         }
@@ -136,21 +136,21 @@ public class NSDateFormatter : NSFormatter {
         }
     }
 
-    public var dateStyle: NSDateFormatterStyle = .NoStyle { willSet { _dateFormat = nil; _reset() } }
+    public var dateStyle: Style = .noStyle { willSet { _dateFormat = nil; _reset() } }
 
-    public var timeStyle: NSDateFormatterStyle = .NoStyle { willSet { _dateFormat = nil; _reset() } }
+    public var timeStyle: Style = .noStyle { willSet { _dateFormat = nil; _reset() } }
 
-    /*@NSCopying*/ public var locale: NSLocale! = .currentLocale() { willSet { _reset() } }
+    /*@NSCopying*/ public var locale: Locale! = .currentLocale() { willSet { _reset() } }
 
     public var generatesCalendarDates = false { willSet { _reset() } }
 
-    /*@NSCopying*/ public var timeZone: NSTimeZone! = .systemTimeZone() { willSet { _reset() } }
+    /*@NSCopying*/ public var timeZone: TimeZone! = .systemTimeZone() { willSet { _reset() } }
 
-    /*@NSCopying*/ internal var _calendar: NSCalendar! { willSet { _reset() } }
-    public var calendar: NSCalendar! {
+    /*@NSCopying*/ internal var _calendar: Calendar! { willSet { _reset() } }
+    public var calendar: Calendar! {
         get {
             guard let calendar = _calendar else {
-                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterCalendar) as! NSCalendar
+                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterCalendar) as! Calendar
             }
             return calendar
         }
@@ -161,11 +161,11 @@ public class NSDateFormatter : NSFormatter {
 
     public var lenient = false { willSet { _reset() } }
 
-    /*@NSCopying*/ internal var _twoDigitStartDate: NSDate? { willSet { _reset() } }
-    public var twoDigitStartDate: NSDate? {
+    /*@NSCopying*/ internal var _twoDigitStartDate: Date? { willSet { _reset() } }
+    public var twoDigitStartDate: Date? {
         get {
             guard let startDate = _twoDigitStartDate else {
-                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTwoDigitStartDate) as? NSDate
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTwoDigitStartDate) as? NSDate)?._swiftObject
             }
             return startDate
         }
@@ -174,7 +174,7 @@ public class NSDateFormatter : NSFormatter {
         }
     }
 
-    /*@NSCopying*/ public var defaultDate: NSDate? { willSet { _reset() } }
+    /*@NSCopying*/ public var defaultDate: Date? { willSet { _reset() } }
     
     internal var _eraSymbols: [String]! { willSet { _reset() } }
     public var eraSymbols: [String]! {
@@ -455,11 +455,11 @@ public class NSDateFormatter : NSFormatter {
         }
     }
 
-    internal var _gregorianStartDate: NSDate? { willSet { _reset() } }
-    public var gregorianStartDate: NSDate? {
+    internal var _gregorianStartDate: Date? { willSet { _reset() } }
+    public var gregorianStartDate: Date? {
         get {
             guard let startDate = _gregorianStartDate else {
-                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterGregorianStartDate) as? NSDate
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterGregorianStartDate) as? NSDate)?._swiftObject
             }
             return startDate
         }
@@ -471,10 +471,12 @@ public class NSDateFormatter : NSFormatter {
     public var doesRelativeDateFormatting = false { willSet { _reset() } }
 }
 
-public enum NSDateFormatterStyle : UInt {
-    case NoStyle
-    case ShortStyle
-    case MediumStyle
-    case LongStyle
-    case FullStyle
+extension DateFormatter {
+    public enum Style : UInt {
+        case noStyle
+        case shortStyle
+        case mediumStyle
+        case longStyle
+        case fullStyle
+    }
 }

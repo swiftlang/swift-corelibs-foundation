@@ -13,18 +13,18 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     internal var _orderedStorage: [NSObject]
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
 
     public override func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
 
-    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
+    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -40,10 +40,10 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             for idx in 0..<self.count {
-                aCoder.encodeObject(self.objectAtIndex(idx), forKey:"NS.object.\(idx)")
+                aCoder.encode(self.objectAtIndex(idx), forKey:"NS.object.\(idx)")
             }
         } else {
             NSUnimplemented()
@@ -54,8 +54,8 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         if aDecoder.allowsKeyedCoding {
             var idx = 0
             var objects : [AnyObject] = []
-            while aDecoder.containsValueForKey(("NS.object.\(idx)")) {
-                guard let object = aDecoder.decodeObjectForKey("NS.object.\(idx)") else {
+            while aDecoder.containsValue(forKey: ("NS.object.\(idx)")) {
+                guard let object = aDecoder.decodeObject(forKey: "NS.object.\(idx)") else {
                     return nil
                 }
                 objects.append(object)
@@ -143,7 +143,7 @@ extension NSOrderedSet {
         }
     }
 
-    public func objectsAtIndexes(_ indexes: NSIndexSet) -> [AnyObject] {
+    public func objectsAtIndexes(_ indexes: IndexSet) -> [AnyObject] {
         var entries = [AnyObject]()
         for idx in indexes {
             if idx >= count && idx < 0 {
@@ -247,21 +247,21 @@ extension NSOrderedSet {
     public var set: Set<NSObject> { NSUnimplemented() }
     
     public func enumerateObjectsUsingBlock(_ block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
-    public func enumerateObjectsWithOptions(_ opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
-    public func enumerateObjectsAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateObjectsWithOptions(_ opts: EnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
+    public func enumerateObjectsAtIndexes(_ s: IndexSet, options opts: EnumerationOptions, usingBlock block: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Void) { NSUnimplemented() }
     
     public func indexOfObjectPassingTest(_ predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
-    public func indexOfObjectWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
-    public func indexOfObjectAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
+    public func indexOfObjectWithOptions(_ opts: EnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
+    public func indexOfObjectAtIndexes(_ s: IndexSet, options opts: EnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
     
-    public func indexesOfObjectsPassingTest(_ predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
-    public func indexesOfObjectsWithOptions(_ opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
-    public func indexesOfObjectsAtIndexes(_ s: NSIndexSet, options opts: NSEnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> NSIndexSet { NSUnimplemented() }
+    public func indexesOfObjectsPassingTest(_ predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
+    public func indexesOfObjectsWithOptions(_ opts: EnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
+    public func indexesOfObjectsAtIndexes(_ s: IndexSet, options opts: EnumerationOptions, passingTest predicate: (AnyObject, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
     
-    public func indexOfObject(_ object: AnyObject, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: NSComparator) -> Int { NSUnimplemented() } // binary search
+    public func indexOfObject(_ object: AnyObject, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions, usingComparator cmp: Comparator) -> Int { NSUnimplemented() } // binary search
     
-    public func sortedArrayUsingComparator(_ cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
-    public func sortedArrayWithOptions(_ opts: NSSortOptions, usingComparator cmptr: NSComparator) -> [AnyObject] { NSUnimplemented() }
+    public func sortedArrayUsingComparator(_ cmptr: Comparator) -> [AnyObject] { NSUnimplemented() }
+    public func sortedArrayWithOptions(_ opts: SortOptions, usingComparator cmptr: Comparator) -> [AnyObject] { NSUnimplemented() }
     
     public func descriptionWithLocale(_ locale: AnyObject?) -> String { NSUnimplemented() }
     public func descriptionWithLocale(_ locale: AnyObject?, indent level: Int) -> String { NSUnimplemented() }
@@ -409,7 +409,7 @@ extension NSMutableOrderedSet {
         }
     }
 
-    public func moveObjectsAtIndexes(_ indexes: NSIndexSet, toIndex idx: Int) {
+    public func moveObjectsAtIndexes(_ indexes: IndexSet, toIndex idx: Int) {
         var removedObjects = [NSObject]()
         for index in indexes.lazy.reversed() {
             if let object = objectAtIndex(index) as? NSObject {
@@ -422,7 +422,7 @@ extension NSMutableOrderedSet {
         }
     }
     
-    public func insertObjects(_ objects: [AnyObject], atIndexes indexes: NSIndexSet) {
+    public func insertObjects(_ objects: [AnyObject], atIndexes indexes: IndexSet) {
         for (indexLocation, index) in indexes.enumerated() {
             if let object = objects[indexLocation] as? NSObject {
                 insertObject(object, atIndex: index)
@@ -452,7 +452,7 @@ extension NSMutableOrderedSet {
         }
     }
 
-    public func replaceObjectsAtIndexes(_ indexes: NSIndexSet, withObjects objects: [AnyObject]) {
+    public func replaceObjectsAtIndexes(_ indexes: IndexSet, withObjects objects: [AnyObject]) {
         for (indexLocation, index) in indexes.enumerated() {
             if let object = objects[indexLocation] as? NSObject {
                 replaceObjectAtIndex(index, withObject: object)
@@ -468,7 +468,7 @@ extension NSMutableOrderedSet {
         }
     }
 
-    public func removeObjectsAtIndexes(_ indexes: NSIndexSet) {
+    public func removeObjectsAtIndexes(_ indexes: IndexSet) {
         for index in indexes.lazy.reversed() {
             removeObjectAtIndex(index)
         }
@@ -522,15 +522,15 @@ extension NSMutableOrderedSet {
         other.forEach(addObject)
     }
     
-    public func sortUsingComparator(_ cmptr: NSComparator) {
+    public func sortUsingComparator(_ cmptr: Comparator) {
         sortRange(NSMakeRange(0, count), options: [], usingComparator: cmptr)
     }
 
-    public func sortWithOptions(_ opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+    public func sortWithOptions(_ opts: SortOptions, usingComparator cmptr: Comparator) {
         sortRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
     }
 
-    public func sortRange(_ range: NSRange, options opts: NSSortOptions, usingComparator cmptr: NSComparator) {
+    public func sortRange(_ range: NSRange, options opts: SortOptions, usingComparator cmptr: Comparator) {
         // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
         guard opts.isEmpty else {
             NSUnimplemented()

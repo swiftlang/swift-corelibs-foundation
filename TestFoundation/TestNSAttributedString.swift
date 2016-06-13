@@ -30,7 +30,7 @@ class TestNSAttributedString : XCTestCase {
     
     func test_initWithString() {
         let string = "Lorem 😀 ipsum dolor sit amet, consectetur adipiscing elit. ⌘ Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit. ಠ_ರೃ"
-        let attrString = NSAttributedString(string: string)
+        let attrString = AttributedString(string: string)
         XCTAssertEqual(attrString.string, string)
         XCTAssertEqual(attrString.length, string.utf16Count)
         
@@ -50,7 +50,7 @@ class TestNSAttributedString : XCTestCase {
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
         let attributes: [String : AnyObject] = ["attribute.placeholder.key" : "attribute.placeholder.value" as NSString]
         
-        let attrString = NSAttributedString(string: string, attributes: attributes)
+        let attrString = AttributedString(string: string, attributes: attributes)
         XCTAssertEqual(attrString.string, string)
         XCTAssertEqual(attrString.length, string.utf16Count)
         

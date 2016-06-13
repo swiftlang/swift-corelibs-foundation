@@ -367,7 +367,7 @@ class TestNSGeometry : XCTestCase {
         var inRect = NSZeroRect
         var slice = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
         var remainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        NSDivideRect(inRect, &slice, &remainder, CGFloat(0.0), .MaxX)
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(0.0), .maxX)
         var expectedSlice = NSZeroRect
         var expectedRemainder = NSZeroRect
         XCTAssertEqual(slice, expectedSlice)
@@ -377,7 +377,7 @@ class TestNSGeometry : XCTestCase {
         inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
         slice = NSZeroRect
         remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .MinX)
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .minX)
         expectedSlice = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(10.0), CGFloat(35.0))
         expectedRemainder = NSMakeRect(CGFloat(10.0), CGFloat(-5.0), CGFloat(15.0), CGFloat(35.0))
         XCTAssertEqual(slice, expectedSlice)
@@ -387,7 +387,7 @@ class TestNSGeometry : XCTestCase {
         inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
         slice = NSZeroRect
         remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, NSWidth(inRect) + CGFloat(1.0), .MinX)
+        NSDivideRect(inRect, &slice, &remainder, NSWidth(inRect) + CGFloat(1.0), .minX)
         expectedSlice = inRect
         expectedRemainder = NSMakeRect(CGFloat(25.0), CGFloat(-5.0), CGFloat(0.0), CGFloat(35.0))
         XCTAssertEqual(slice, expectedSlice)
@@ -397,7 +397,7 @@ class TestNSGeometry : XCTestCase {
         inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
         slice = NSZeroRect
         remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .MinY)
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .minY)
         expectedSlice = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(10.0))
         expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(5.0), CGFloat(25.0), CGFloat(25.0))
         XCTAssertEqual(slice, expectedSlice)
@@ -407,7 +407,7 @@ class TestNSGeometry : XCTestCase {
         inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
         slice = NSZeroRect
         remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, NSHeight(inRect) + CGFloat(1.0), .MinY)
+        NSDivideRect(inRect, &slice, &remainder, NSHeight(inRect) + CGFloat(1.0), .minY)
         expectedSlice = inRect
         expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(30.0), CGFloat(25.0), CGFloat(0.0))
         XCTAssertEqual(slice, expectedSlice)
@@ -417,7 +417,7 @@ class TestNSGeometry : XCTestCase {
         inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
         slice = NSZeroRect
         remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .MaxX)
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .maxX)
         expectedSlice = NSMakeRect(CGFloat(15.0), CGFloat(-5.0), CGFloat(10.0), CGFloat(35.0))
         expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(15.0), CGFloat(35.0))
         XCTAssertEqual(slice, expectedSlice)
@@ -427,7 +427,7 @@ class TestNSGeometry : XCTestCase {
         inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
         slice = NSZeroRect
         remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, NSWidth(inRect) + CGFloat(1.0), .MaxX)
+        NSDivideRect(inRect, &slice, &remainder, NSWidth(inRect) + CGFloat(1.0), .maxX)
         expectedSlice = inRect
         expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(0.0), CGFloat(35.0))
         XCTAssertEqual(slice, expectedSlice)
@@ -437,7 +437,7 @@ class TestNSGeometry : XCTestCase {
         inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
         slice = NSZeroRect
         remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .MaxY)
+        NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .maxY)
         expectedSlice = NSMakeRect(CGFloat(0.0), CGFloat(20.0), CGFloat(25.0), CGFloat(10.0))
         expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(25.0))
         XCTAssertEqual(slice, expectedSlice)
@@ -447,7 +447,7 @@ class TestNSGeometry : XCTestCase {
         inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
         slice = NSZeroRect
         remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, NSHeight(inRect) + CGFloat(1.0), .MaxY)
+        NSDivideRect(inRect, &slice, &remainder, NSHeight(inRect) + CGFloat(1.0), .maxY)
         expectedSlice = inRect
         expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(0.0))
         XCTAssertEqual(slice, expectedSlice)

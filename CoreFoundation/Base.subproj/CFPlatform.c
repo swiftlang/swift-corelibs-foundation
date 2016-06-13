@@ -600,8 +600,41 @@ static void *__CFTSDGetSpecific() {
 #endif
 }
 
+#if DEPLOYMENT_RUNTIME_SWIFT
 
+extern void swift_retain(void *);
+extern void swift_release(void *);
 
+static void _CFThreadSpecificDestructor(void *ctx) {
+    swift_release(ctx);
+}
+
+_CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
+    _CFThreadSpecificKey key;
+    pthread_key_create(&key, &_CFThreadSpecificDestructor);
+    return key;
+}
+
+CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
+    return (CFTypeRef)pthread_getspecific(key);
+}
+
+void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
+    if (value != NULL) {
+        swift_retain((void *)value);
+        pthread_setspecific(key, value);
+    } else {
+        pthread_setspecific(key, NULL);
+    }
+}
+
+_CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context) {
+    pthread_t thread;
+    pthread_create(&thread, &attrs, startfn, context);
+    return thread;
+}
+
+#endif
 
 static void __CFTSDFinalize(void *arg) {
     // Set our TSD so we're called again by pthreads. It will call the destructor PTHREAD_DESTRUCTOR_ITERATIONS times as long as a value is set in the thread specific data. We handle each case below.
@@ -1287,6 +1320,7 @@ CF_PRIVATE char **_CFEnviron(void) {
     return environ;
 #endif
 }
+
 #endif
 
 void *_CFReallocf(void *ptr, size_t size) {

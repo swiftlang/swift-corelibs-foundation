@@ -7,42 +7,43 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+extension Formatter {
+    public enum Context : Int {
+        
+        // The capitalization context to be used is unknown (this is the default value).
+        case unknown
 
-public enum NSFormattingContext : Int {
-    
-    // The capitalization context to be used is unknown (this is the default value).
-    case Unknown
+        // The capitalization context is determined dynamically from the set {NSFormattingContextStandalone, NSFormattingContextBeginningOfSentence, NSFormattingContextMiddleOfSentence}. For example, if a date is placed at the beginning of a sentence, NSFormattingContextBeginningOfSentence is used to format the string automatically. When this context is used, the formatter will return a string proxy that works like a normal string in most cases. After returning from the formatter, the string in the string proxy is formatted by using NSFormattingContextUnknown. When the string proxy is used in stringWithFormat:, we can determine where the %@ is and then set the context accordingly. With the new context, the string in the string proxy will be formatted again and be put into the final string returned from stringWithFormat:.
+        case dynamic
+        
+        // The capitalization context if a date or date symbol is to be formatted with capitalization appropriate for stand-alone usage such as an isolated name on a calendar page.
+        case standalone
+        
+        // The capitalization context if a date or date symbol is to be formatted with capitalization appropriate for a list or menu item.
+        case listItem
+        
+        // The capitalization context if a date or date symbol is to be formatted with capitalization appropriate for the beginning of a sentence.
+        case beginningOfSentence
 
-    // The capitalization context is determined dynamically from the set {NSFormattingContextStandalone, NSFormattingContextBeginningOfSentence, NSFormattingContextMiddleOfSentence}. For example, if a date is placed at the beginning of a sentence, NSFormattingContextBeginningOfSentence is used to format the string automatically. When this context is used, the formatter will return a string proxy that works like a normal string in most cases. After returning from the formatter, the string in the string proxy is formatted by using NSFormattingContextUnknown. When the string proxy is used in stringWithFormat:, we can determine where the %@ is and then set the context accordingly. With the new context, the string in the string proxy will be formatted again and be put into the final string returned from stringWithFormat:.
-    case Dynamic
-    
-    // The capitalization context if a date or date symbol is to be formatted with capitalization appropriate for stand-alone usage such as an isolated name on a calendar page.
-    case Standalone
-    
-    // The capitalization context if a date or date symbol is to be formatted with capitalization appropriate for a list or menu item.
-    case ListItem
-    
-    // The capitalization context if a date or date symbol is to be formatted with capitalization appropriate for the beginning of a sentence.
-    case BeginningOfSentence
+        // The capitalization context if a date or date symbol is to be formatted with capitalization appropriate for the middle of a sentence.
+        case middleOfSentence
+    }
 
-    // The capitalization context if a date or date symbol is to be formatted with capitalization appropriate for the middle of a sentence.
-    case MiddleOfSentence
+    /*
+     * There are 3 widths: long, medium, and short.
+     * For example, for English, when formatting "3 pounds"
+     * Long is "3 pounds"; medium is "3 lb"; short is "3#";
+     */
+
+    public enum UnitStyle : Int {
+        
+        case short
+        case medium
+        case long
+    }
 }
 
-/*
- * There are 3 widths: long, medium, and short.
- * For example, for English, when formatting "3 pounds"
- * Long is "3 pounds"; medium is "3 lb"; short is "3#";
- */
-
-public enum NSFormattingUnitStyle : Int {
-    
-    case Short
-    case Medium
-    case Long
-}
-
-public class NSFormatter : NSObject, NSCopying, NSCoding {
+public class Formatter : NSObject, NSCopying, NSCoding {
     
     public override init() {
         
@@ -52,24 +53,24 @@ public class NSFormatter : NSObject, NSCopying, NSCoding {
         
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
-    public func stringForObjectValue(_ obj: AnyObject) -> String? {
+    public func string(for obj: AnyObject) -> String? {
         NSRequiresConcreteImplementation()
     }
     
-    public func editingStringForObjectValue(_ obj: AnyObject) -> String? {
-        return stringForObjectValue(obj)
+    public func editingString(for obj: AnyObject) -> String? {
+        return string(for: obj)
     }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative

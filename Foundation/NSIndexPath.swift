@@ -8,7 +8,7 @@
 //
 
 
-public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
+public class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
     
     internal var _indexes : [Int]
     override public init() {
@@ -23,15 +23,15 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     public convenience init(index: Int) {
         self.init(indexes: [index])
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -41,18 +41,18 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     
     public static func supportsSecureCoding() -> Bool { return true }
     
-    public func indexPathByAddingIndex(_ index: Int) -> NSIndexPath {
-        return NSIndexPath(indexes: _indexes + [index])
+    public func adding(_ index: Int) -> IndexPath {
+        return IndexPath(indexes: _indexes + [index])
     }
-    public func indexPathByRemovingLastIndex() -> NSIndexPath {
+    public func removingLastIndex() -> IndexPath {
         if _indexes.count <= 1 {
-            return NSIndexPath(indexes: [])
+            return IndexPath(indexes: [])
         } else {
-            return NSIndexPath(indexes: [Int](_indexes[0..<_indexes.count - 1]))
+            return IndexPath(indexes: [Int](_indexes[0..<_indexes.count - 1]))
         }
     }
     
-    public func indexAtPosition(_ position: Int) -> Int {
+    public func index(atPosition position: Int) -> Int {
         return _indexes[position]
     }
     public var length: Int  {
@@ -74,13 +74,13 @@ public class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     
     // comparison support
     // sorting an array of indexPaths using this comparison results in an array representing nodes in depth-first traversal order
-    public func compare(_ otherObject: NSIndexPath) -> NSComparisonResult {
+    public func compare(_ otherObject: IndexPath) -> ComparisonResult {
         let thisLength = length
-        let otherLength = otherObject.length
+        let otherLength = otherObject.count
         let minLength = thisLength >= otherLength ? otherLength : thisLength
         for pos in 0..<minLength {
-            let otherValue = otherObject.indexAtPosition(pos)
-            let thisValue = indexAtPosition(pos)
+            let otherValue = otherObject[pos]
+            let thisValue = index(atPosition: pos)
             if thisValue < otherValue {
                 return .orderedAscending
             } else if thisValue > otherValue {

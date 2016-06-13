@@ -16,80 +16,52 @@ import Glibc
 
 import CoreFoundation
 
-private func disposeTLS(_ ctx: UnsafeMutablePointer<Void>?) -> Void {
-    Unmanaged<AnyObject>.fromOpaque(ctx!).release()
+// for some reason having this take a generic causes a crash...
+private func _compiler_crash_fix(_ key: _CFThreadSpecificKey, _ value: AnyObject?) {
+    _CThreadSpecificSet(key, value)
 }
 
-internal class NSThreadSpecific<T: AnyObject> {
-
-    private var NSThreadSpecificKeySet = false
-    private var NSThreadSpecificKeyLock = NSLock()
-    private var NSThreadSpecificKey = pthread_key_t()
-
-    private var key: pthread_key_t {
-        NSThreadSpecificKeyLock.lock()
-        if !NSThreadSpecificKeySet {
-            withUnsafeMutablePointer(&NSThreadSpecificKey) { key in
-                NSThreadSpecificKeySet = pthread_key_create(key, disposeTLS) == 0
-            }
-        }
-        NSThreadSpecificKeyLock.unlock()
-        return NSThreadSpecificKey
-    }
+internal class NSThreadSpecific<T: NSObject> {
+    private var key = _CFThreadSpecificKeyCreate()
     
     internal func get(_ generator: (Void) -> T) -> T {
-        let specific = pthread_getspecific(self.key)
-        if specific != nil {
-            return Unmanaged<T>.fromOpaque(specific!).takeUnretainedValue()
+        if let specific = _CFThreadSpecificGet(key) {
+            return specific as! T
         } else {
             let value = generator()
-            pthread_setspecific(self.key, Unmanaged<AnyObject>.passRetained(value).toOpaque())
+            _compiler_crash_fix(key, value)
             return value
         }
     }
     
     internal func set(_ value: T) {
-        let specific = pthread_getspecific(self.key)
-        var previous: Unmanaged<T>?
-        if specific != nil {
-            previous = Unmanaged<T>.fromOpaque(specific!)
-        }
-        if let prev = previous {
-            if prev.takeUnretainedValue() === value {
-                return
-            }
-        }
-        pthread_setspecific(self.key,  Unmanaged<AnyObject>.passRetained(value).toOpaque())
-        if let prev = previous {
-            prev.release()
-        }
+        _compiler_crash_fix(key, value)
     }
 }
 
 internal enum _NSThreadStatus {
-    case Initialized
-    case Starting
-    case Executing
-    case Finished
+    case initialized
+    case starting
+    case executing
+    case finished
 }
 
 private func NSThreadStart(_ context: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
-    let unmanaged: Unmanaged<NSThread> = Unmanaged.fromOpaque(context!)
-    let thread = unmanaged.takeUnretainedValue()
-    NSThread._currentThread.set(thread)
-    thread._status = _NSThreadStatus.Executing
+    let thread: Thread = NSObject.unretainedReference(context!)
+    Thread._currentThread.set(thread)
+    thread._status = .executing
     thread.main()
-    thread._status = _NSThreadStatus.Finished
-    unmanaged.release()
+    thread._status = .finished
+    Thread.releaseReference(context!)
     return nil
 }
 
-public class NSThread : NSObject {
+public class Thread: NSObject {
     
-    static internal var _currentThread = NSThreadSpecific<NSThread>()
-    public static func currentThread() -> NSThread {
-        return NSThread._currentThread.get() {
-            return NSThread(thread: pthread_self())
+    static internal var _currentThread = NSThreadSpecific<Thread>()
+    public static func current() -> Thread {
+        return Thread._currentThread.get() {
+            return Thread(thread: pthread_self())
         }
     }
 
@@ -97,15 +69,15 @@ public class NSThread : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public class func detachNewThread(_ main: (Void) -> Void) {
-        let t = NSThread(main)
+        let t = Thread(main)
         t.start()
     }
     
     public class func isMultiThreaded() -> Bool {
         return true
     }
-
-    public class func sleepUntilDate(_ date: NSDate) {
+    
+    public class func sleepUntilDate(_ date: Date) {
         let start_ut = CFGetSystemUptime()
         let start_at = CFAbsoluteTimeGetCurrent()
         let end_at = date.timeIntervalSinceReferenceDate
@@ -128,7 +100,7 @@ public class NSThread : NSObject {
         }
     }
 
-    public class func sleepForTimeInterval(_ interval: NSTimeInterval) {
+    public class func sleepForTimeInterval(_ interval: TimeInterval) {
         var ti = interval
         let start_ut = CFGetSystemUptime()
         let end_ut = start_ut + ti
@@ -160,7 +132,7 @@ public class NSThread : NSObject {
     private var _thread = pthread_t()
 #endif
     internal var _attr = pthread_attr_t()
-    internal var _status = _NSThreadStatus.Initialized
+    internal var _status = _NSThreadStatus.initialized
     internal var _cancelled = false
     /// - Note: this differs from the Darwin implementation in that the keys must be Strings
     public var threadDictionary = [String:AnyObject]()
@@ -178,15 +150,14 @@ public class NSThread : NSObject {
     }
 
     public func start() {
-        precondition(_status == .Initialized, "attempting to start a thread that has already been started")
-        _status = .Starting
+        precondition(_status == .initialized, "attempting to start a thread that has already been started")
+        _status = .starting
         if _cancelled {
-            _status = .Finished
+            _status = .finished
             return
         }
-        withUnsafeMutablePointers(&_thread, &_attr) { thread, attr in
-            let ptr = Unmanaged.passRetained(self)
-            pthread_create(thread, attr, NSThreadStart, ptr.toOpaque())
+        _thread = self.withRetainedReference {
+            return _CFThreadCreate(self._attr, NSThreadStart, $0)
         }
     }
     
@@ -215,11 +186,11 @@ public class NSThread : NSObject {
     }
 
     public var executing: Bool {
-        return _status == .Executing
+        return _status == .executing
     }
 
     public var finished: Bool {
-        return _status == .Finished
+        return _status == .finished
     }
     
     public var cancelled: Bool {

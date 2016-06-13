@@ -43,7 +43,6 @@ extension NSRange {
         length = x.count
     }
     
-    @warn_unused_result
     public func toRange() -> CountableRange<Int>? {
         if location == NSNotFound { return nil }
         let min = location
@@ -79,8 +78,8 @@ extension NSRange: NSSpecialValueCoding {
     
     func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(NSNumber(value: self.location), forKey: "NS.rangeval.location")
-            aCoder.encodeObject(NSNumber(value: self.length), forKey: "NS.rangeval.length")
+            aCoder.encode(NSNumber(value: self.location), forKey: "NS.rangeval.location")
+            aCoder.encode(NSNumber(value: self.length), forKey: "NS.rangeval.length")
         } else {
             NSUnimplemented()
         }
@@ -180,8 +179,8 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
         // fail early if the string is empty
         return emptyRange
     }
-    let scanner = NSScanner(string: aString)
-    let digitSet = NSCharacterSet.decimalDigits()
+    let scanner = Scanner(string: aString)
+    let digitSet = CharacterSet.decimalDigits
     let _ = scanner.scanUpToCharactersFromSet(digitSet)
     if scanner.atEnd {
         // fail early if there are no decimal digits
