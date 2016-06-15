@@ -148,9 +148,7 @@ public class NSJSONSerialization : NSObject {
         else if opt.contains(.allowFragments), let (value, _) = try reader.parseValue(0) {
             return value
         }
-        throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-            "NSDebugDescription" : "JSON text did not start with array or object and option to allow fragments not set."
-        ])
+        fatalError("JSON text did not start with array or object and option to allow fragments not set.")
     }
     
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
