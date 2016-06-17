@@ -206,7 +206,6 @@ public protocol _ObjectTypeBridgeable {
     associatedtype _ObjectType : AnyObject
     
     /// Convert `self` to an Object type
-    @warn_unused_result
     func _bridgeToObject() -> _ObjectType
     
     /// Bridge from an object of the bridged class type to a value of 

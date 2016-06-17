@@ -192,7 +192,6 @@ public protocol __BridgedNSError : RawRepresentable, ErrorProtocol {
     static var __NSErrorDomain: String { get }
 }
 
-@warn_unused_result
 public func ==<T: __BridgedNSError where T.RawValue: SignedInteger>(lhs: T, rhs: T) -> Bool {
     return lhs.rawValue.toIntMax() == rhs.rawValue.toIntMax()
 }
@@ -216,7 +215,6 @@ public extension __BridgedNSError where RawValue: SignedInteger {
     public final var hashValue: Int { return _code }
 }
 
-@warn_unused_result
 public func ==<T: __BridgedNSError where T.RawValue: UnsignedInteger>(lhs: T, rhs: T) -> Bool {
     return lhs.rawValue.toUIntMax() == rhs.rawValue.toUIntMax()
 }
