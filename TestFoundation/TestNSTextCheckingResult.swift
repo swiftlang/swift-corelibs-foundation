@@ -18,7 +18,7 @@
 #endif
 
 class TestNSTextCheckingResult: XCTestCase {
-    static var allTests: [(String, TestNSTextCheckingResult -> () throws -> Void)] {
+    static var allTests: [(String, (TestNSTextCheckingResult) -> () throws -> Void)] {
         return [
            ("test_textCheckingResult", test_textCheckingResult),
         ]
