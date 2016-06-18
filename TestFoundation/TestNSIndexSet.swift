@@ -98,7 +98,7 @@ class TestNSIndexSet : XCTestCase {
         
         var additionSet = IndexSet()
         additionSet.insert(1)
-        additionSet.insert(integersIn: 6..<10)
+        additionSet.insert(integersIn: 6..<9)
         
         XCTAssertTrue(removalSet.isEqual(to: additionSet))
         
