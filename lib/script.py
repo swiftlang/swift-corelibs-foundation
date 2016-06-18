@@ -65,6 +65,10 @@ DYLIB_PREFIX          = """ + Configuration.current.target.dynamic_library_prefi
 DYLIB_SUFFIX          = """ + Configuration.current.target.dynamic_library_suffix + """
 PREFIX                = """ + Configuration.current.prefix + """
 """
+        if Configuration.current.requires_pkg_config:
+            base_flags += """
+PKG_CONFIG            = """ + Configuration.current.pkg_config + """
+"""
         if Configuration.current.system_root is not None:
             base_flags += """
 SYSROOT               = """ + Configuration.current.system_root.absolute() + """

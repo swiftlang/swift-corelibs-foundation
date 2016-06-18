@@ -32,6 +32,8 @@ class Configuration:
     install_directory = None
     prefix = None
     swift_install = None
+    pkg_config = None
+    requires_pkg_config = False
     clang = None
     clangxx = None
     swift = None
@@ -73,6 +75,8 @@ class Configuration:
             'install_directory' : self._encode_path(self.install_directory),
             'prefix' : self.prefix,
             'swift_install' : self.swift_install,
+            'pkg_config' : self.pkg_config,
+            'requires_pkg_config' : self.requires_pkg_config,
             'clang' : self.clang,
             'clangxx' : self.clangxx,
             'swift' : self.swift,
