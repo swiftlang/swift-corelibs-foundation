@@ -71,7 +71,7 @@ class TestNSCalendar: XCTestCase {
         XCTAssertEqual(components.year, 37)
         XCTAssertEqual(components.month, 4)
         XCTAssertEqual(components.day, 15)
-        XCTAssertEqual(components.isLeapMonth, false)
+        XCTAssertEqual(components.isLeapMonth, true)
     }
     
     func test_initializingWithInvalidIdentifier() {
