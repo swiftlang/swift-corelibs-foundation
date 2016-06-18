@@ -17,3 +17,6 @@ Build
 .build
 .configuration
 
+*.swp
+*.orig
+.arcconfig
