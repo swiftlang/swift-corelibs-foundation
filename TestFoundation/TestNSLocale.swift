@@ -19,6 +19,7 @@ class TestNSLocale : XCTestCase {
     static var allTests: [(String, (TestNSLocale) -> () throws -> Void)] {
         return [
             ("test_constants", test_constants),
+            ("test_copy", test_copy)
         ]
     }
     
@@ -85,4 +86,10 @@ class TestNSLocale : XCTestCase {
 
     }
 
+    func test_copy() {
+        let locale = NSLocale(localeIdentifier: "en_US")
+        let localeCopy = locale.copy()
+
+        XCTAssertTrue(locale === localeCopy)
+    }
 }
