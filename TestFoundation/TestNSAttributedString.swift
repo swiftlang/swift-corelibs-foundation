@@ -79,4 +79,45 @@ class TestNSAttributedString : XCTestCase {
         XCTAssertEqual(validAttribute, "attribute.placeholder.value")
     }
     
+    func test_longestEffectiveRange() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
+        
+        let attrKey = "attribute.placeholder.key"
+        let attrValue = "attribute.placeholder.value" as NSString
+        
+        let attrRange1 = NSRange(location: 0, length: 20)
+        let attrRange2 = NSRange(location: 18, length: 10)
+        
+        let attrString = NSMutableAttributedString(string: string)
+        attrString.addAttribute(attrKey, value: attrValue, range: attrRange1)
+        attrString.addAttribute(attrKey, value: attrValue, range: attrRange2)
+        
+        let searchRange = NSRange(location: 0, length: attrString.length)
+        var range = NSRange()
+        
+        _ = attrString.attribute(attrKey, atIndex: 0, longestEffectiveRange: &range, inRange: searchRange)
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, 29)
+        
+        _ = attrString.attributesAtIndex(0, longestEffectiveRange: &range, inRange: searchRange)
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, 29)
+    }
+    
+}
+
+class TestNSMutableAttributedString : XCTestCase {
+    
+    static var allTests: [(String, (TestNSMutableAttributedString) -> () throws -> Void)] {
+        return [
+            ("test_initWithString", test_initWithString),
+        ]
+    }
+    
+    func test_initWithString() {
+        let string = "Lorem 😀 ipsum dolor sit amet, consectetur adipiscing elit. ⌘ Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit. ಠ_ರೃ"
+        let mutableAttrString = NSMutableAttributedString(string: string)
+        XCTAssertEqual(mutableAttrString.mutableString, NSMutableString(string: string))
+    }
+    
 }
