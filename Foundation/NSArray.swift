@@ -39,19 +39,17 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     internal var _storage = [AnyObject]()
     
     public var count: Int {
-        if self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self {
-            return _storage.count
-        } else {
+        guard self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
         }
+        return _storage.count
     }
     
     public func objectAtIndex(_ index: Int) -> AnyObject {
-        if self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self {
-           return _storage[index]
-        } else {
-            NSRequiresConcreteImplementation()
+        guard self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self else {
+           NSRequiresConcreteImplementation()
         }
+        return _storage[index]
     }
     
     public convenience override init() {
@@ -617,11 +615,10 @@ public class NSMutableArray : NSArray {
     }
     
     public func insertObject(_ anObject: AnyObject, atIndex index: Int) {
-        if self.dynamicType === NSMutableArray.self {
-            _storage.insert(anObject, at: index)
-        } else {
+        guard self.dynamicType === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
         }
+        _storage.insert(anObject, at: index)
     }
     
     public func removeLastObject() {
@@ -631,21 +628,19 @@ public class NSMutableArray : NSArray {
     }
     
     public func removeObjectAtIndex(_ index: Int) {
-        if self.dynamicType === NSMutableArray.self {
-            _storage.remove(at: index)
-        } else {
+        guard self.dynamicType === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
         }
+        _storage.remove(at: index)
     }
     
     public func replaceObjectAtIndex(_ index: Int, withObject anObject: AnyObject) {
-        if self.dynamicType === NSMutableArray.self {
-            let min = index
-            let max = index + 1
-            _storage.replaceSubrange(min..<max, with: [anObject])
-        } else {
+        guard self.dynamicType === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
         }
+        let min = index
+        let max = index + 1
+        _storage.replaceSubrange(min..<max, with: [anObject])
     }
     
     public convenience init() {
