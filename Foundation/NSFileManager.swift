@@ -888,7 +888,7 @@ extension FileManager {
         
         override func nextObject() -> AnyObject? {
             let o = innerEnumerator.nextObject()
-            guard let url = o as? URL else {
+            guard let url = o as? NSURL else {
                 return nil
             }
             let path = url.path!.replacingOccurrences(of: baseURL.path!+"/", with: "")
