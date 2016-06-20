@@ -114,59 +114,52 @@ public class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public var name: String {
-        if self.dynamicType === TimeZone.self {
-            return CFTimeZoneGetName(_cfObject)._swiftObject
-        } else {
+        guard self.dynamicType === TimeZone.self else {
             NSRequiresConcreteImplementation()
         }
+        return CFTimeZoneGetName(_cfObject)._swiftObject
     }
     
     public var data: Data {
-        if self.dynamicType === TimeZone.self {
-            return CFTimeZoneGetData(_cfObject)._swiftObject
-        } else {
+        guard self.dynamicType === TimeZone.self else {
             NSRequiresConcreteImplementation()
         }
+        return CFTimeZoneGetData(_cfObject)._nsObject
     }
     
     public func secondsFromGMT(for aDate: Date) -> Int {
-        if self.dynamicType === TimeZone.self {
-            return Int(CFTimeZoneGetSecondsFromGMT(_cfObject, aDate.timeIntervalSinceReferenceDate))
-        } else {
+        guard self.dynamicType === TimeZone.self else {
             NSRequiresConcreteImplementation()
         }
+        return Int(CFTimeZoneGetSecondsFromGMT(_cfObject, aDate.timeIntervalSinceReferenceDate))
     }
     
     public func abbreviation(for aDate: Date) -> String? {
-        if self.dynamicType === TimeZone.self {
-            return CFTimeZoneCopyAbbreviation(_cfObject, aDate.timeIntervalSinceReferenceDate)._swiftObject
-        } else {
+        guard self.dynamicType === TimeZone.self else {
             NSRequiresConcreteImplementation()
         }
+        return CFTimeZoneCopyAbbreviation(_cfObject, aDate.timeIntervalSinceReferenceDate)._swiftObject
     }
     
     public func isDaylightSavingTime(for aDate: Date) -> Bool {
-        if self.dynamicType === TimeZone.self {
-            return CFTimeZoneIsDaylightSavingTime(_cfObject, aDate.timeIntervalSinceReferenceDate)
-        } else {
+        guard self.dynamicType === TimeZone.self else {
             NSRequiresConcreteImplementation()
         }
+        return CFTimeZoneIsDaylightSavingTime(_cfObject, aDate.timeIntervalSinceReferenceDate)
     }
     
     public func daylightSavingTimeOffset(for aDate: Date) -> TimeInterval {
-        if self.dynamicType === TimeZone.self {
-            return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
-        } else {
+        guard self.dynamicType === TimeZone.self else {
             NSRequiresConcreteImplementation()
         }
+        return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
     }
     
     public func nextDaylightSavingTimeTransition(after aDate: Date) -> Date? {
-        if self.dynamicType === TimeZone.self {
-            return Date(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
-        } else {
+        guard self.dynamicType === TimeZone.self else {
             NSRequiresConcreteImplementation()
         }
+        return Date(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
     }
 }
 

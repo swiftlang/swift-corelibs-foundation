@@ -28,6 +28,7 @@ class TestNSBundle : XCTestCase {
             ("test_infoPlist", test_infoPlist),
             ("test_localizations", test_localizations),
             ("test_URLsForResourcesWithExtension", test_URLsForResourcesWithExtension),
+            ("test_bundleLoad", test_bundleLoad),
         ]
     }
     
@@ -152,4 +153,13 @@ class TestNSBundle : XCTestCase {
         
         _cleanupPlayground(playground)
     }
+    func test_bundleLoad(){
+        let bundle = NSBundle.main()
+        bundle.load()
+        XCTAssertTrue(bundle.isLoaded)
+        let descriptionString="NSBundle <\(bundle.bundlePath)> (\(bundle.isLoaded  ? "loaded" : "not yet loaded"))"
+        XCTAssertEqual(descriptionString,bundle.description)
+        
+    }
+
 }

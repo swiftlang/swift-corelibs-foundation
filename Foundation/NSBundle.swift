@@ -59,9 +59,18 @@ public class Bundle: NSObject {
         _bundle = result
     }
     
+    override public var description: String {
+        return "\(String(NSBundle.self)) <\(bundleURL.path!)> (\(isLoaded  ? "loaded" : "not yet loaded"))"
+    }
+
+    
     /* Methods for loading and unloading bundles. */
-    public func load() -> Bool { NSUnimplemented() }
-    public var isLoaded: Bool { NSUnimplemented() }
+    public func load() -> Bool {
+        return  CFBundleLoadExecutable(_bundle)
+    }
+    public var isLoaded: Bool {
+        return CFBundleIsExecutableLoaded(_bundle)
+    }
     public func unload() -> Bool { NSUnimplemented() }
     
     public func preflight() throws { NSUnimplemented() }

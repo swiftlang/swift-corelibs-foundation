@@ -25,12 +25,15 @@ class Configuration:
     target = None
     system_root = None
     toolchain = None
+    linker = None
     build_directory = None
     intermediate_directory = None
     module_cache_directory = None
     install_directory = None
     prefix = None
     swift_install = None
+    pkg_config = None
+    requires_pkg_config = False
     clang = None
     clangxx = None
     swift = None
@@ -64,13 +67,16 @@ class Configuration:
             'source_root' : self._encode_path(self.source_root),
             'target' : self.target.triple,
             'system_root' : self._encode_path(self.system_root),
-            'toolchain' : self.toolchain,
+            'toolchain' : self._encode_path(self.toolchain),
+            'linker' : self.linker,
             'build_directory' : self._encode_path(self.build_directory),
             'intermediate_directory' : self._encode_path(self.intermediate_directory),
             'module_cache_directory' : self._encode_path(self.module_cache_directory),
             'install_directory' : self._encode_path(self.install_directory),
             'prefix' : self.prefix,
             'swift_install' : self.swift_install,
+            'pkg_config' : self.pkg_config,
+            'requires_pkg_config' : self.requires_pkg_config,
             'clang' : self.clang,
             'clangxx' : self.clangxx,
             'swift' : self.swift,

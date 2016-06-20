@@ -55,7 +55,9 @@ public class Locale: NSObject, NSCopying, NSSecureCoding {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
+    public func copy(with zone: NSZone? = nil) -> AnyObject { 
+        return self 
+    }
     
     public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {

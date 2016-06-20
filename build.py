@@ -15,7 +15,8 @@ foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefi
 
 if Configuration.current.target.sdk == OSType.Linux:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE '
-	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `icu-config --ldflags` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString -Wl,-Bsymbolic '
+	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `${PKG_CONFIG} icu-uc icu-i18n --libs` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString -Wl,-Bsymbolic '
+	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 '
 	foundation.LDFLAGS = ''
@@ -48,21 +49,23 @@ foundation.CFLAGS += " ".join([
 	'-Wno-unused-variable',
 	'-Wno-int-conversion',
 	'-Wno-unused-function',
-	'-I/usr/include/libxml2',
+	'-I${SYSROOT}/usr/include/libxml2',
 	'-I./',
 ])
 
 swift_cflags = [
 	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
-	'-I/usr/include/libxml2'
+	'-I${SYSROOT}/usr/include/libxml2'
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	swift_cflags += [
 		'-I${XCTEST_BUILD_DIR}',
 		'-L${XCTEST_BUILD_DIR}',
-		'-I/usr/include/libxml2'
+		'-I${SYSROOT}/usr/include/libxml2'
 	]
+
+foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore -lxml2 '
 
 # Configure use of Dispatch in CoreFoundation and Foundation if libdispatch is being built
 #if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
@@ -76,11 +79,9 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 #		'-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
 #		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src'
 #	])
-#	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs '
+#	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
-
-foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore -lxml2 '
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	foundation.LDFLAGS += '-L${XCTEST_BUILD_DIR}'

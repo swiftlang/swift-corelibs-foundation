@@ -210,20 +210,18 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     internal var _storage: String
     
     public var length: Int {
-        if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
-            return _storage.utf16.count
-        } else {
+        guard self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self else {
             NSRequiresConcreteImplementation()
         }
+        return _storage.utf16.count
     }
     
     public func character(at index: Int) -> unichar {
-        if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
-            let start = _storage.utf16.startIndex
-            return _storage.utf16[start.advanced(by: index)]
-        } else {
+        guard self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self else {
             NSRequiresConcreteImplementation()
         }
+        let start = _storage.utf16.startIndex
+        return _storage.utf16[start.advanced(by: index)]
     }
     
     public override convenience init() {
@@ -1290,15 +1288,15 @@ extension NSString : StringLiteralConvertible { }
 
 public class NSMutableString : NSString {
     public func replaceCharacters(in range: NSRange, with aString: String) {
-        if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
-            // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
-            let start = _storage.startIndex
-            let min = _storage.index(start, offsetBy: range.location)
-            let max = _storage.index(start, offsetBy: range.location + range.length)
-            _storage.replaceSubrange(min..<max, with: aString)
-        } else {
+        guard self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self else {
             NSRequiresConcreteImplementation()
         }
+
+        // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
+        let start = _storage.startIndex
+        let min = _storage.index(start, offsetBy: range.location)
+        let max = _storage.index(start, offsetBy: range.location + range.length)
+        _storage.replaceSubrange(min..<max, with: aString)
     }
     
     public required override init(characters: UnsafePointer<unichar>, length: Int) {

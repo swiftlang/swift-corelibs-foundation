@@ -48,6 +48,7 @@ import sys
 def reconfigure(config, path):
     with open(path, 'r') as infile:
         info = json.load(infile)
+        config.requires_pkg_config = info['requires_pkg_config']
         if 'version' in info and info['version'] == config.version:
             if 'command' in info and info['command'] is not None:
                 config.command = info['command']
@@ -64,7 +65,9 @@ def reconfigure(config, path):
             if 'system_root' in info and info['system_root'] is not None:
                 config.system_root = Path(info['system_root'])
             if 'toolchain' in info and info['toolchain'] is not None:
-                config.toolchain = info['toolchain']
+                config.toolchain = Path(info['toolchain'])
+            if 'linker' in info and info['linker'] is not None:
+                config.linker = info['linker']
             if 'build_directory' in info and info['build_directory'] is not None:
                 config.build_directory = Path(info['build_directory'])
             if 'intermediate_directory' in info and info['intermediate_directory'] is not None:
@@ -77,6 +80,8 @@ def reconfigure(config, path):
                 config.prefix = info['prefix']
             if 'swift_install' in info and info['swift_install'] is not None:
                 config.swift_install = info['swift_install']
+            if 'pkg_config' in info and info['pkg_config'] is not None:
+                config.pkg_config = info['pkg_config']
             if 'clang' in info and info['clang'] is not None:
                 config.clang = info['clang']
             if 'clangxx' in info and info['clangxx'] is not None:
@@ -133,6 +138,8 @@ def main():
     parser.add_argument('--target', dest='target', type=str, default=Target.default())
     parser.add_argument('--sysroot', dest='sysroot', type=str, default=None)
     parser.add_argument('--toolchain', dest='toolchain', type=str, default=None)
+    parser.add_argument('--linker', dest='linker', type=str, default=None)
+    parser.add_argument('--pkg-config', dest='pkg_config', type=str, default="pkg-config")
     parser.add_argument('--bootstrap', dest='bootstrap', type=str, default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "bootstrap"))
     parser.add_argument('--reconfigure', dest='reconfigure', action="store_true")
     parser.add_argument('-v', '--verbose', dest='verbose', action="store_true")
@@ -170,10 +177,15 @@ def main():
         elif config.swift_sdk is None:
             config.swift_sdk = "/usr"
         config.toolchain = Path.path(args.toolchain)
+        config.pkg_config = args.pkg_config
+        config.linker = args.linker
         config.bootstrap_directory = Path.path(args.bootstrap)
         config.verbose = args.verbose
         if config.toolchain is not None:
-            config.ar = os.path.join(config.toolchain.relative(), "bin", "ar")
+            ar_path = os.path.join(config.toolchain.relative(), "ar")
+            if not os.path.exists(ar_path):
+                ar_path = os.path.join(config.toolchain.relative(), "bin", "ar")
+            config.ar = ar_path
         elif config.ar is None:
             config.ar = "ar"
 
