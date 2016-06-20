@@ -178,9 +178,13 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
             self.init(data: data._swiftObject)
         } else {
-            var len = 0
-            let bytes = aDecoder.decodeBytes(forKey: "NS.bytes", returnedLength: &len)
-            self.init(bytes: bytes, length: len)
+            let result : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
+                guard let buffer = $0 else { return nil }
+                return Data(buffer: buffer)
+            }
+
+            guard let r = result else { return nil }
+            self.init(data: r)
         }
     }
     

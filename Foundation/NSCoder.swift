@@ -150,7 +150,9 @@ public class NSCoder : NSObject {
     public func decodeArray(ofObjCType itemType: UnsafePointer<Int8>, count: Int, at array: UnsafeMutablePointer<Void>) {
         decodeValue(ofObjCType: "[\(count)\(String(cString: itemType))]", at: array)
     }
-    
+   
+    /*
+    // TODO: This is disabled, as functions which return unsafe interior pointers are inherently unsafe when we have no autorelease pool. 
     public func decodeBytes(withReturnedLength lengthp: UnsafeMutablePointer<Int>) -> UnsafeMutablePointer<Void>? {
         var length: UInt32 = 0
         withUnsafeMutablePointer(&length) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
@@ -163,6 +165,7 @@ public class NSCoder : NSObject {
         _pendingBuffers.append((result, Int(length)))
         return result
     }
+    */
     
     public func encodePropertyList(_ aPropertyList: AnyObject) {
         NSUnimplemented()
@@ -240,10 +243,17 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
+    // TODO: This is disabled, as functions which return unsafe interior pointers are inherently unsafe when we have no autorelease pool. 
+    /*
     public func decodeBytes(forKey key: String, returnedLength lengthp: UnsafeMutablePointer<Int>?) -> UnsafePointer<UInt8>? { // returned bytes immutable!
         NSRequiresConcreteImplementation()
     }
-    
+    */
+    /// - experimental: This method does not exist in the Darwin Foundation.
+    public func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: @noescape (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
+        NSRequiresConcreteImplementation()
+    }
+
     public func encode(_ intv: Int, forKey key: String) {
         NSRequiresConcreteImplementation()
     }

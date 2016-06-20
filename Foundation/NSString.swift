@@ -237,24 +237,18 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if !aDecoder.allowsKeyedCoding {
-            let archiveVersion = aDecoder.version(forClassName: "NSString")
-            if archiveVersion == 1 {
-                var length = 0
-                let buffer = aDecoder.decodeBytes(withReturnedLength: &length)
-                self.init(bytes: buffer!, length: length, encoding: NSUTF8StringEncoding)
-            } else {
-                aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
-                    "NSDebugDescription": "NSString cannot decode class version \(archiveVersion)"
-                    ]))
-                return nil
-            }
+            aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: ["NSDebugDescription": "NSUUID cannot be decoded by non-keyed coders"]))
+            return nil
         } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.string") {
             let str = aDecoder._decodePropertyListForKey("NS.string") as! String
             self.init(string: str)
         } else {
-            var length = 0
-            let buffer = UnsafeMutablePointer<Void>(aDecoder.decodeBytes(forKey: "NS.bytes", returnedLength: &length)!)
-            self.init(bytes: buffer, length: length, encoding: NSUTF8StringEncoding)
+            let decodedData : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
+                guard let buffer = $0 else { return nil }
+                return Data(buffer: buffer)
+            }
+            guard let data = decodedData else { return nil }
+            self.init(data: data, encoding: NSUTF8StringEncoding)
         }
     }
     
@@ -1217,11 +1211,16 @@ extension NSString {
     }
     
     public convenience init?(data: Data, encoding: UInt) {
+        guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<Void>) -> CFString? in
+            return CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(bytes), data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
+        }) else { return nil }
         
-//        data.withUnsafeBytes { (bytes: UnsafePointer<Void>) -> Void in
-            self.init(bytes: data._nsObject.bytes, length: data.count, encoding: encoding)
-//        }
-        
+        var str: String?
+        if String._conditionallyBridgeFromObject(cf._nsObject, result: &str) {
+            self.init(str!)
+        } else {
+            return nil
+        }
     }
     
     public convenience init?(bytes: UnsafePointer<Void>, length len: Int, encoding: UInt) {
