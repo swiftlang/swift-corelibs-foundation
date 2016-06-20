@@ -33,10 +33,10 @@ class TestNSPipe : XCTestCase {
         // First write some data into the pipe
         let stringAsData = text.bridge().data(using: NSUTF8StringEncoding)
         XCTAssertNotNil(stringAsData)
-        aPipe.fileHandleForWriting.writeData(stringAsData!)
+        aPipe.fileHandleForWriting.write(stringAsData!)
         
         // Then read it out again
-        let data = aPipe.fileHandleForReading.readDataOfLength(text.characters.count)
+        let data = aPipe.fileHandleForReading.readData(ofLength: text.characters.count)
         
         // Confirm that we did read data
         XCTAssertNotNil(data)
