@@ -87,7 +87,7 @@ class TestNSLocale : XCTestCase {
     }
 
     func test_copy() {
-        let locale = NSLocale(localeIdentifier: "en_US")
+        let locale = Locale(localeIdentifier: "en_US")
         let localeCopy = locale.copy()
 
         XCTAssertTrue(locale === localeCopy)

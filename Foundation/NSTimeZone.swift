@@ -124,7 +124,7 @@ public class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         guard self.dynamicType === TimeZone.self else {
             NSRequiresConcreteImplementation()
         }
-        return CFTimeZoneGetData(_cfObject)._nsObject
+        return CFTimeZoneGetData(_cfObject)._swiftObject
     }
     
     public func secondsFromGMT(for aDate: Date) -> Int {

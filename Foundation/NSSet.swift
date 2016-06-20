@@ -353,7 +353,7 @@ extension NSSet : Sequence {
 
 public class NSMutableSet : NSSet {
     
-    public override func add(_ object: AnyObject) {
+    public func add(_ object: AnyObject) {
         guard self.dynamicType === NSMutableSet.self else {
             NSRequiresConcreteImplementation()
         }
@@ -504,7 +504,7 @@ public class NSCountedSet : NSMutableSet {
         return count
     }
 
-    public override func addObject(_ object: AnyObject) {
+    public override func add(_ object: AnyObject) {
         guard self.dynamicType === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }

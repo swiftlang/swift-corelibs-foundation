@@ -60,7 +60,7 @@ public class Bundle: NSObject {
     }
     
     override public var description: String {
-        return "\(String(NSBundle.self)) <\(bundleURL.path!)> (\(isLoaded  ? "loaded" : "not yet loaded"))"
+        return "\(String(Bundle.self)) <\(bundleURL.path!)> (\(isLoaded  ? "loaded" : "not yet loaded"))"
     }
 
     

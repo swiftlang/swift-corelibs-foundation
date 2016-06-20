@@ -154,12 +154,9 @@ class TestNSBundle : XCTestCase {
         _cleanupPlayground(playground)
     }
     func test_bundleLoad(){
-        let bundle = NSBundle.main()
-        bundle.load()
+        let bundle = Bundle.main()
+        let _ = bundle.load()
         XCTAssertTrue(bundle.isLoaded)
-        let descriptionString="NSBundle <\(bundle.bundlePath)> (\(bundle.isLoaded  ? "loaded" : "not yet loaded"))"
-        XCTAssertEqual(descriptionString,bundle.description)
-        
     }
 
 }
