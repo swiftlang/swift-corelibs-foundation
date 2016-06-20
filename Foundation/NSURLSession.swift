@@ -208,10 +208,10 @@ extension NSURLSession {
 
 public enum NSURLSessionTaskState : Int {
     
-    case Running /* The task is currently being serviced by the session */
-    case Suspended
-    case Canceling /* The task has been told to cancel.  The session will receive a URLSession:task:didCompleteWithError: message. */
-    case Completed /* The task has completed and the session will receive no more delegate notifications */
+    case running /* The task is currently being serviced by the session */
+    case suspended
+    case canceling /* The task has been told to cancel.  The session will receive a URLSession:task:didCompleteWithError: message. */
+    case completed /* The task has completed and the session will receive no more delegate notifications */
 }
 
 /*
@@ -547,18 +547,18 @@ public class NSURLSessionConfiguration : NSObject, NSCopying {
  */
 public enum NSURLSessionAuthChallengeDisposition : Int {
     
-    case UseCredential /* Use the specified credential, which may be nil */
-    case PerformDefaultHandling /* Default handling for the challenge - as if this delegate were not implemented; the credential parameter is ignored. */
-    case CancelAuthenticationChallenge /* The entire request will be canceled; the credential parameter is ignored. */
-    case RejectProtectionSpace /* This challenge is rejected and the next authentication protection space should be tried; the credential parameter is ignored. */
+    case useCredential /* Use the specified credential, which may be nil */
+    case performDefaultHandling /* Default handling for the challenge - as if this delegate were not implemented; the credential parameter is ignored. */
+    case cancelAuthenticationChallenge /* The entire request will be canceled; the credential parameter is ignored. */
+    case rejectProtectionSpace /* This challenge is rejected and the next authentication protection space should be tried; the credential parameter is ignored. */
 }
 
 public enum NSURLSessionResponseDisposition : Int {
     
-    case Cancel /* Cancel the load, this is the same as -[task cancel] */
-    case Allow /* Allow the load to continue */
-    case BecomeDownload /* Turn this request into a download */
-    case BecomeStream /* Turn this task into a stream task */
+    case cancel /* Cancel the load, this is the same as -[task cancel] */
+    case allow /* Allow the load to continue */
+    case becomeDownload /* Turn this request into a download */
+    case becomeStream /* Turn this task into a stream task */
 }
 
 /*

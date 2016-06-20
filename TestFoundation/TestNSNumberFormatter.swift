@@ -70,7 +70,7 @@ class TestNSNumberFormatter: XCTestCase {
     
     func test_decimalSeparator() {
         let numberFormatter = NSNumberFormatter()
-        numberFormatter.numberStyle = .DecimalStyle
+        numberFormatter.numberStyle = .decimalStyle
         numberFormatter.decimalSeparator = "-"
         let formattedString = numberFormatter.stringFromNumber(42.42)
         XCTAssertEqual(formattedString, "42-42")
@@ -106,7 +106,7 @@ class TestNSNumberFormatter: XCTestCase {
     
     func test_percentSymbol() {
         let numberFormatter = NSNumberFormatter()
-        numberFormatter.numberStyle = .PercentStyle
+        numberFormatter.numberStyle = .percentStyle
         numberFormatter.percentSymbol = "💯"
         let formattedString = numberFormatter.stringFromNumber(0.42)
         XCTAssertEqual(formattedString, "42💯")
@@ -168,7 +168,7 @@ class TestNSNumberFormatter: XCTestCase {
     
     func test_exponentSymbol() {
         let numberFormatter = NSNumberFormatter()
-        numberFormatter.numberStyle = .ScientificStyle
+        numberFormatter.numberStyle = .scientificStyle
         numberFormatter.exponentSymbol = "⬆️"
         let formattedString = numberFormatter.stringFromNumber(42)
         XCTAssertEqual(formattedString, "4.2⬆️1")
@@ -225,14 +225,14 @@ class TestNSNumberFormatter: XCTestCase {
     func test_roundingMode() {
         let numberFormatter = NSNumberFormatter()
         numberFormatter.maximumFractionDigits = 0
-        numberFormatter.roundingMode = .RoundCeiling
+        numberFormatter.roundingMode = .roundCeiling
         let formattedString = numberFormatter.stringFromNumber(41.0001)
         XCTAssertEqual(formattedString, "42")
     }
     
     func test_roundingIncrement() {
         let numberFormatter = NSNumberFormatter()
-        numberFormatter.numberStyle = .DecimalStyle
+        numberFormatter.numberStyle = .decimalStyle
         numberFormatter.roundingIncrement = 0.2
         let formattedString = numberFormatter.stringFromNumber(4.25)
         XCTAssertEqual(formattedString, "4.2")
@@ -250,7 +250,7 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NSNumberFormatter()
         numberFormatter.paddingCharacter = "_"
         numberFormatter.formatWidth = 5
-        numberFormatter.paddingPosition = .AfterPrefix
+        numberFormatter.paddingPosition = .afterPrefix
         let formattedString = numberFormatter.stringFromNumber(-42)
         XCTAssertEqual(formattedString, "-__42")
     }

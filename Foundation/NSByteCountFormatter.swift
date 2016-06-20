@@ -31,12 +31,12 @@ public struct NSByteCountFormatterUnits : OptionSet {
 public enum NSByteCountFormatterCountStyle : Int {
     
     // Specifies display of file or storage byte counts. The actual behavior for this is platform-specific; on OS X 10.8, this uses the decimal style, but that may change over time.
-    case File
+    case file
     // Specifies display of memory byte counts. The actual behavior for this is platform-specific; on OS X 10.8, this uses the binary style, but that may change over time.
-    case Memory
+    case memory
     // The following two allow specifying the number of bytes for KB explicitly. It's better to use one of the above values in most cases.
-    case Decimal // 1000 bytes are shown as 1 KB
-    case Binary // 1024 bytes are shown as 1 KB
+    case decimal // 1000 bytes are shown as 1 KB
+    case binary // 1024 bytes are shown as 1 KB
 }
 
 public class NSByteCountFormatter : NSFormatter {
@@ -62,7 +62,7 @@ public class NSByteCountFormatter : NSFormatter {
     
     /* Specify how the count is displayed by indicating the number of bytes to be used for kilobyte. The default setting is NSByteCountFormatterFileCount, which is the system specific value for file and storage sizes.
     */
-    public var countStyle: NSByteCountFormatterCountStyle = .File
+    public var countStyle: NSByteCountFormatterCountStyle = .file
     
     /* Choose whether to allow more natural display of some values, such as zero, where it may be displayed as "Zero KB," ignoring all other flags or options (with the exception of NSByteCountFormatterUseBytes, which would generate "Zero bytes"). The result is appropriate for standalone output. Default value is YES. Special handling of certain values such as zero is especially important in some languages, so it's highly recommended that this property be left in its default state.
     */
@@ -87,6 +87,6 @@ public class NSByteCountFormatter : NSFormatter {
     
     /* Specify the formatting context for the formatted string. Default is NSFormattingContextUnknown.
     */
-    public var formattingContext: NSFormattingContext = .Unknown
+    public var formattingContext: NSFormattingContext = .unknown
 }
 

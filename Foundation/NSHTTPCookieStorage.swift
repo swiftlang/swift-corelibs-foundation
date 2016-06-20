@@ -18,9 +18,9 @@
 */
 public enum NSHTTPCookieAcceptPolicy : UInt {
     
-    case Always
-    case Never
-    case OnlyFromMainDocumentDomain
+    case always
+    case never
+    case onlyFromMainDocumentDomain
 }
 
 

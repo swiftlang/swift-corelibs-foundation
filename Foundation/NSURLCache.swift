@@ -28,9 +28,9 @@
 */
 public enum NSURLCacheStoragePolicy : UInt {
     
-    case Allowed
-    case AllowedInMemoryOnly
-    case NotAllowed
+    case allowed
+    case allowedInMemoryOnly
+    case notAllowed
 }
 
 /*!

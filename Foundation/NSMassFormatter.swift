@@ -10,11 +10,11 @@
 
 public enum NSMassFormatterUnit : Int {
     
-    case Gram
-    case Kilogram
-    case Ounce
-    case Pound
-    case Stone
+    case gram
+    case kilogram
+    case ounce
+    case pound
+    case stone
 }
 
 public class NSMassFormatter : NSFormatter {

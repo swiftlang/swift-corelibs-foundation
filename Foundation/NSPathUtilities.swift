@@ -564,33 +564,33 @@ public extension NSString {
 
 public enum NSSearchPathDirectory : UInt {
     
-    case ApplicationDirectory // supported applications (Applications)
-    case DemoApplicationDirectory // unsupported applications, demonstration versions (Demos)
-    case DeveloperApplicationDirectory // developer applications (Developer/Applications). DEPRECATED - there is no one single Developer directory.
-    case AdminApplicationDirectory // system and network administration applications (Administration)
-    case LibraryDirectory // various documentation, support, and configuration files, resources (Library)
-    case DeveloperDirectory // developer resources (Developer) DEPRECATED - there is no one single Developer directory.
-    case UserDirectory // user home directories (Users)
-    case DocumentationDirectory // documentation (Documentation)
-    case DocumentDirectory // documents (Documents)
-    case CoreServiceDirectory // location of CoreServices directory (System/Library/CoreServices)
-    case AutosavedInformationDirectory // location of autosaved documents (Documents/Autosaved)
-    case DesktopDirectory // location of user's desktop
-    case CachesDirectory // location of discardable cache files (Library/Caches)
-    case ApplicationSupportDirectory // location of application support files (plug-ins, etc) (Library/Application Support)
-    case DownloadsDirectory // location of the user's "Downloads" directory
-    case InputMethodsDirectory // input methods (Library/Input Methods)
-    case MoviesDirectory // location of user's Movies directory (~/Movies)
-    case MusicDirectory // location of user's Music directory (~/Music)
-    case PicturesDirectory // location of user's Pictures directory (~/Pictures)
-    case PrinterDescriptionDirectory // location of system's PPDs directory (Library/Printers/PPDs)
-    case SharedPublicDirectory // location of user's Public sharing directory (~/Public)
-    case PreferencePanesDirectory // location of the PreferencePanes directory for use with System Preferences (Library/PreferencePanes)
-    case ApplicationScriptsDirectory // location of the user scripts folder for the calling application (~/Library/Application Scripts/code-signing-id)
-    case ItemReplacementDirectory // For use with NSFileManager's URLForDirectory:inDomain:appropriateForURL:create:error:
-    case AllApplicationsDirectory // all directories where applications can occur
-    case AllLibrariesDirectory // all directories where resources can occur
-    case TrashDirectory // location of Trash directory
+    case applicationDirectory // supported applications (Applications)
+    case demoApplicationDirectory // unsupported applications, demonstration versions (Demos)
+    case developerApplicationDirectory // developer applications (Developer/Applications). DEPRECATED - there is no one single Developer directory.
+    case adminApplicationDirectory // system and network administration applications (Administration)
+    case libraryDirectory // various documentation, support, and configuration files, resources (Library)
+    case developerDirectory // developer resources (Developer) DEPRECATED - there is no one single Developer directory.
+    case userDirectory // user home directories (Users)
+    case documentationDirectory // documentation (Documentation)
+    case documentDirectory // documents (Documents)
+    case coreServiceDirectory // location of CoreServices directory (System/Library/CoreServices)
+    case autosavedInformationDirectory // location of autosaved documents (Documents/Autosaved)
+    case desktopDirectory // location of user's desktop
+    case cachesDirectory // location of discardable cache files (Library/Caches)
+    case applicationSupportDirectory // location of application support files (plug-ins, etc) (Library/Application Support)
+    case downloadsDirectory // location of the user's "Downloads" directory
+    case inputMethodsDirectory // input methods (Library/Input Methods)
+    case moviesDirectory // location of user's Movies directory (~/Movies)
+    case musicDirectory // location of user's Music directory (~/Music)
+    case picturesDirectory // location of user's Pictures directory (~/Pictures)
+    case printerDescriptionDirectory // location of system's PPDs directory (Library/Printers/PPDs)
+    case sharedPublicDirectory // location of user's Public sharing directory (~/Public)
+    case preferencePanesDirectory // location of the PreferencePanes directory for use with System Preferences (Library/PreferencePanes)
+    case applicationScriptsDirectory // location of the user scripts folder for the calling application (~/Library/Application Scripts/code-signing-id)
+    case itemReplacementDirectory // For use with NSFileManager's URLForDirectory:inDomain:appropriateForURL:create:error:
+    case allApplicationsDirectory // all directories where applications can occur
+    case allLibrariesDirectory // all directories where resources can occur
+    case TtrashDirectory // location of Trash directory
 }
 
 public struct NSSearchPathDomainMask : OptionSet {

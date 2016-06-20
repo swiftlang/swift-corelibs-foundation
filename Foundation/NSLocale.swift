@@ -179,11 +179,11 @@ extension NSLocale {
 }
 
 public enum NSLocaleLanguageDirection : UInt {
-    case Unknown
-    case LeftToRight
-    case RightToLeft
-    case TopToBottom
-    case BottomToTop
+    case unknown
+    case leftToRight
+    case rightToLeft
+    case topToBottom
+    case bottomToTop
 }
 
 public let NSCurrentLocaleDidChangeNotification: String = "kCFLocaleCurrentLocaleDidChangeNotification"

@@ -19,19 +19,19 @@
 /***************	Type definitions		***********/
 public enum NSRoundingMode : UInt {
     
-    case RoundPlain // Round up on a tie
-    case RoundDown // Always down == truncate
-    case RoundUp // Always up
-    case RoundBankers // on a tie round so last digit is even
+    case roundPlain // Round up on a tie
+    case roundDown // Always down == truncate
+    case roundUp // Always up
+    case roundBankers // on a tie round so last digit is even
 }
 
 public enum NSCalculationError : UInt {
     
-    case NoError
-    case LossOfPrecision // Result lost precision
-    case Underflow // Result became 0
-    case Overflow // Result exceeds possible representation
-    case DivideByZero
+    case noError
+    case lossOfPrecision // Result lost precision
+    case underflow // Result became 0
+    case overflow // Result exceeds possible representation
+    case divideByZero
 }
 
 public var NSDecimalMaxSize: Int32 { NSUnimplemented() }

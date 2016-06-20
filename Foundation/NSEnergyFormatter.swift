@@ -10,10 +10,10 @@
 
 public enum NSEnergyFormatterUnit : Int {
     
-    case Joule
-    case Kilojoule
-    case Calorie // chemistry "calories", abbr "cal"
-    case Kilocalorie // kilocalories in general, abbr “kcal”, or “C” in some locales (e.g. US) when usesFoodEnergy is set to YES
+    case joule
+    case kilojoule
+    case calorie // chemistry "calories", abbr "cal"
+    case kilocalorie // kilocalories in general, abbr “kcal”, or “C” in some locales (e.g. US) when usesFoodEnergy is set to YES
 }
 
 

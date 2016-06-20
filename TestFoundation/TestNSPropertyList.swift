@@ -31,7 +31,7 @@ class TestNSPropertyList : XCTestCase {
 //        dict["foo"] = "bar"
         var data: NSData? = nil
         do {
-            data = try NSPropertyListSerialization.dataWithPropertyList(dict, format: NSPropertyListFormat.BinaryFormat_v1_0, options: 0)
+            data = try NSPropertyListSerialization.dataWithPropertyList(dict, format: NSPropertyListFormat.binaryFormat_v1_0, options: 0)
         } catch {
             
         }
@@ -41,7 +41,7 @@ class TestNSPropertyList : XCTestCase {
     
     func test_decode() {
         var decoded: Any?
-        var fmt = NSPropertyListFormat.BinaryFormat_v1_0
+        var fmt = NSPropertyListFormat.binaryFormat_v1_0
         let path = testBundle().pathForResource("Test", ofType: "plist")
         let data = NSData(contentsOfFile: path!)
         do {

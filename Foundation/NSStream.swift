@@ -10,14 +10,14 @@
 
 public enum NSStreamStatus : UInt {
     
-    case NotOpen
-    case Opening
-    case Open
-    case Reading
-    case Writing
-    case AtEnd
-    case Closed
-    case Error
+    case notOpen
+    case opening
+    case open
+    case reading
+    case writing
+    case atEnd
+    case closed
+    case error
 }
 
 public struct NSStreamEvent : OptionSet {
