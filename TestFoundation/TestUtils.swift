@@ -17,7 +17,7 @@
 
 func ensureFiles(_ fileNames: [String]) -> Bool {
     var result = true
-    let fm = NSFileManager.defaultManager()
+    let fm = NSFileManager.default()
     for name in fileNames {
         guard !fm.fileExists(atPath: name) else {
             continue

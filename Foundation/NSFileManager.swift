@@ -69,7 +69,7 @@ public class NSFileManager : NSObject {
     /* Returns the default singleton instance.
     */
     internal static let defaultInstance = NSFileManager()
-    public class func defaultManager() -> NSFileManager {
+    public class func `default`() -> NSFileManager {
         return defaultInstance
     }
     
@@ -464,7 +464,7 @@ public class NSFileManager : NSObject {
             return
         } else if errno == ENOTEMPTY {
 
-            let fsRep = NSFileManager.defaultManager().fileSystemRepresentation(withPath: path)
+            let fsRep = NSFileManager.default().fileSystemRepresentation(withPath: path)
             let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
             ps.initialize(with: UnsafeMutablePointer(fsRep))
             ps.advanced(by: 1).initialize(with: nil)
@@ -732,7 +732,7 @@ public class NSFileManager : NSObject {
             return nil
         }
         
-        guard let destination = try? NSFileManager.defaultManager().destinationOfSymbolicLink(atPath: path) else {
+        guard let destination = try? NSFileManager.default().destinationOfSymbolicLink(atPath: path) else {
             return nil
         }
         
@@ -873,7 +873,7 @@ internal class NSPathDirectoryEnumerator: NSDirectoryEnumerator {
     init?(path: String) {
         let url = NSURL(fileURLWithPath: path)
         self.baseURL = url
-        guard let ie = NSFileManager.defaultManager().enumerator(at: url, includingPropertiesForKeys: nil, options: NSDirectoryEnumerationOptions(), errorHandler: nil) else {
+        guard let ie = NSFileManager.default().enumerator(at: url, includingPropertiesForKeys: nil, options: NSDirectoryEnumerationOptions(), errorHandler: nil) else {
             return nil
         }
         self.innerEnumerator = ie
@@ -905,8 +905,8 @@ internal class NSURLDirectoryEnumerator : NSDirectoryEnumerator {
         _errorHandler = errorHandler
         
         if let path = _url.path {
-            if NSFileManager.defaultManager().fileExists(atPath: path) {
-                let fsRep = NSFileManager.defaultManager().fileSystemRepresentation(withPath: path)
+            if NSFileManager.default().fileExists(atPath: path) {
+                let fsRep = NSFileManager.default().fileSystemRepresentation(withPath: path)
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
                 ps.initialize(with: UnsafeMutablePointer(fsRep))
                 ps.advanced(by: 1).initialize(with: nil)
