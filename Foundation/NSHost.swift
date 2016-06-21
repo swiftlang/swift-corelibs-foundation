@@ -90,7 +90,7 @@ public class Host: NSObject {
                     res = info.ai_next
                     continue
                 }
-                let sa_len: socklen_t = socklen_t((family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in))
+                let sa_len: socklen_t = socklen_t((family == AF_INET6) ? sizeof(sockaddr_in6.self) : sizeof(sockaddr_in.self))
                 let lookupInfo = { (content: inout [String], flags: Int32) in
                     let hname = UnsafeMutablePointer<Int8>(allocatingCapacity: 1024)
                     if (getnameinfo(info.ai_addr, sa_len, hname, 1024, nil, 0, flags) == 0) {

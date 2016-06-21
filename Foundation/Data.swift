@@ -198,7 +198,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// - parameter buffer: A buffer pointer to copy. The size is calculated from `SourceType` and `buffer.count`.
     public init<SourceType>(buffer: UnsafeBufferPointer<SourceType>) {
-        _wrapped = _SwiftNSData(immutableObject: NSData(bytes: buffer.baseAddress, length: sizeof(SourceType) * buffer.count))
+        _wrapped = _SwiftNSData(immutableObject: NSData(bytes: buffer.baseAddress, length: sizeof(SourceType.self) * buffer.count))
     }
     
     /// Initialize a `Data` with the contents of an Array.
@@ -382,9 +382,9 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
             precondition(r.upperBound >= 0)
             precondition(r.upperBound <= cnt, "The range is outside the bounds of the data")
             
-            copyRange = r.lowerBound..<(r.lowerBound + Swift.min(buffer.count * sizeof(DestinationType), r.count))
+            copyRange = r.lowerBound..<(r.lowerBound + Swift.min(buffer.count * sizeof(DestinationType.self), r.count))
         } else {
-            copyRange = 0..<Swift.min(buffer.count * sizeof(DestinationType), cnt)
+            copyRange = 0..<Swift.min(buffer.count * sizeof(DestinationType.self), cnt)
         }
         
         guard !copyRange.isEmpty else { return 0 }
@@ -471,7 +471,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     /// - parameter buffer: The buffer of bytes to append. The size is calculated from `SourceType` and `buffer.count`.
     public mutating func append<SourceType>(_ buffer : UnsafeBufferPointer<SourceType>) {
         _applyUnmanagedMutation {
-            $0.append(buffer.baseAddress!, length: buffer.count * sizeof(SourceType))
+            $0.append(buffer.baseAddress!, length: buffer.count * sizeof(SourceType.self))
         }
     }
     
