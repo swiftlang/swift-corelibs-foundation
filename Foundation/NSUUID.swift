@@ -11,36 +11,36 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-    import Darwin
+    import Darwin.uuid
 #elseif os(Linux)
     import Glibc
 #endif
 
 open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    internal var buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
+    internal var buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
     
     public override init() {
         _cf_uuid_generate_random(buffer)
     }
     
     public convenience init?(uuidString string: String) {
-        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
+        let buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
         if _cf_uuid_parse(string, buffer) != 0 {
             return nil
         }
-        self.init(UUIDBytes: buffer)
+        self.init(uuidBytes: buffer)
     }
     
-    public init(UUIDBytes bytes: UnsafePointer<UInt8>) {
-        memcpy(unsafeBitCast(buffer, to: UnsafeMutableRawPointer.self), UnsafeRawPointer(bytes), 16)
+    public init(uuidBytes bytes: UnsafePointer<UInt8>) {
+        memcpy(unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
     }
     
-    open func getUUIDBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
+    open func getBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
         _cf_uuid_copy(uuid, buffer)
     }
     
     open var uuidString: String {
-        let strPtr = UnsafeMutablePointer<Int8>.allocate(capacity: 37)
+        let strPtr = UnsafeMutablePointer<Int8>(allocatingCapacity: 37)
         _cf_uuid_unparse_upper(buffer, strPtr)
         return String(cString: strPtr)
     }
@@ -68,7 +68,7 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
             guard data.count == 16 else { return nil }
             let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
             data.copyBytes(to: buffer, count: 16)
-            self.init(UUIDBytes: buffer)
+            self.init(uuidBytes: buffer)
         } else {
             // NSUUIDs cannot be decoded by non-keyed coders
             coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
