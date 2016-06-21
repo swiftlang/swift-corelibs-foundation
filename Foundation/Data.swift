@@ -10,17 +10,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-
-internal func __NSDataInvokeDeallocatorVM(_ mem: UnsafeMutablePointer<Void>, _ length: Int) -> Void {
-    
-}
+#if os(OSX) || os(iOS)
+import Darwin
+#elseif os(Linux)
+import Glibc
+#endif
 
 internal func __NSDataInvokeDeallocatorUnmap(_ mem: UnsafeMutablePointer<Void>, _ length: Int) -> Void {
-    
+    munmap(mem, length)
 }
 
 internal func __NSDataInvokeDeallocatorFree(_ mem: UnsafeMutablePointer<Void>, _ length: Int) -> Void {
-    
+    free(mem)
 }
 
 internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
@@ -150,9 +151,6 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// When creating a `Data` with the no-copy initializer, you may specify a `Data.Deallocator` to customize the behavior of how the backing store is deallocated.
     public enum Deallocator {
-        /// Use a virtual memory deallocator.
-        case virtualMemory
-        
         /// Use `munmap`.
         case unmap
         
@@ -167,8 +165,6 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         
         private var _deallocator : ((UnsafeMutablePointer<Void>, Int) -> Void)? {
             switch self {
-            case .virtualMemory:
-                return { __NSDataInvokeDeallocatorVM($0, $1) }
             case .unmap:
                 return { __NSDataInvokeDeallocatorUnmap($0, $1) }
             case .free:
