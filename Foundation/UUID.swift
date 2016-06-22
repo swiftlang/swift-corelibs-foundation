@@ -13,7 +13,7 @@ import CoreFoundation
 #if os(OSX) || os(iOS)
     import Darwin.uuid
 #elseif os(Linux)
-    import Glibc
+    import CUUID
 #endif
 
 /// Represents UUID strings, which can be used to uniquely identify types, interfaces, and other items.
