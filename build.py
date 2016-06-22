@@ -87,7 +87,7 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	foundation.LDFLAGS += '-L${XCTEST_BUILD_DIR}'
 
 headers = CopyHeaders(
-module = 'CoreFoundation/Base.subproj/linux.modulemap',
+module = 'CoreFoundation/Base.subproj/module.modulemap',
 public = [
 	'CoreFoundation/Stream.subproj/CFStream.h',
 	'CoreFoundation/String.subproj/CFStringEncodingExt.h',
