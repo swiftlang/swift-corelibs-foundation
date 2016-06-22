@@ -54,7 +54,7 @@ CONST_STRING_DECL(kCFPreferencesCurrentUser, "kCFPreferencesCurrentUser")
 
 
 static CFAllocatorRef _preferencesAllocator = NULL;
-CF_PRIVATE CFAllocatorRef __CFPreferencesAllocator(void) {
+CF_EXPORT CFAllocatorRef __CFPreferencesAllocator(void) {
     if (!_preferencesAllocator) {
 #if DEBUG_PREFERENCES_MEMORY
         _preferencesAllocator = CFCountingAllocatorCreate(NULL);
@@ -557,7 +557,7 @@ static void __CFPreferencesPerformSynchronize(const void *key, const void *value
     if (!_CFPreferencesDomainSynchronize(domain)) *cumulativeResult = false;
 }
 
-CF_PRIVATE Boolean _CFSynchronizeDomainCache(void) {
+CF_EXPORT Boolean _CFSynchronizeDomainCache(void) {
     Boolean result = true;
     __CFLock(&domainCacheLock);
     if (domainCache) {
@@ -577,7 +577,7 @@ CF_PRIVATE void _CFPreferencesPurgeDomainCache(void) {
     __CFUnlock(&domainCacheLock);
 }
 
-CF_PRIVATE CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
+CF_EXPORT CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
     CFArrayRef  domains;
     CFMutableArrayRef  marray;
@@ -703,11 +703,11 @@ void _CFPreferencesDomainSet(CFPreferencesDomainRef domain, CFStringRef  key, CF
     domain->_callBacks->writeValue(domain->_context, domain->_domain, key, value);
 }
 
-CF_PRIVATE Boolean _CFPreferencesDomainSynchronize(CFPreferencesDomainRef domain) {
+CF_EXPORT Boolean _CFPreferencesDomainSynchronize(CFPreferencesDomainRef domain) {
     return domain->_callBacks->synchronize(domain->_context, domain->_domain);
 }
 
-CF_PRIVATE void _CFPreferencesDomainSetIsWorldReadable(CFPreferencesDomainRef domain, Boolean isWorldReadable) {
+CF_EXPORT void _CFPreferencesDomainSetIsWorldReadable(CFPreferencesDomainRef domain, Boolean isWorldReadable) {
     if (domain->_callBacks->setIsWorldReadable) {
         domain->_callBacks->setIsWorldReadable(domain->_context, domain->_domain, isWorldReadable);
     }

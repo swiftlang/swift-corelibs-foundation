@@ -563,7 +563,7 @@ const uint8_t *CFUniCharGetBitmapPtrForPlane(uint32_t charset, uint32_t plane) {
     return NULL;
 }
 
-CF_PRIVATE uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, void *bitmap, bool isInverted) {
+CF_EXPORT uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, void *bitmap, bool isInverted) {
     const uint8_t *src = CFUniCharGetBitmapPtrForPlane(charset, plane);
     int numBytes = (8 * 1024);
 
@@ -691,7 +691,7 @@ CF_PRIVATE uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, 
     return (isInverted ? kCFUniCharBitmapAll : kCFUniCharBitmapEmpty);
 }
 
-CF_PRIVATE uint32_t CFUniCharGetNumberOfPlanes(uint32_t charset) {
+CF_EXPORT uint32_t CFUniCharGetNumberOfPlanes(uint32_t charset) {
     if ((charset == kCFUniCharControlCharacterSet) || (charset == kCFUniCharControlAndFormatterCharacterSet)) {
         return 15; // 0 to 14
     } else if (charset < kCFUniCharDecimalDigitCharacterSet) {
@@ -714,7 +714,7 @@ static const void **__CFUniCharMappingTables = NULL;
 
 static CFLock_t __CFUniCharMappingTableLock = CFLockInit;
 
-CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
+CF_EXPORT const void *CFUniCharGetMappingData(uint32_t type) {
 
     __CFLock(&__CFUniCharMappingTableLock);
 
@@ -1128,7 +1128,7 @@ CF_INLINE bool __CFUniCharIsAfter_i(UTF16Char *buffer, CFIndex length) {
     return true;
 }
 
-CF_PRIVATE uint32_t CFUniCharGetConditionalCaseMappingFlags(UTF32Char theChar, UTF16Char *buffer, CFIndex currentIndex, CFIndex length, uint32_t type, const uint8_t *langCode, uint32_t lastFlags) {
+CF_EXPORT uint32_t CFUniCharGetConditionalCaseMappingFlags(UTF32Char theChar, UTF16Char *buffer, CFIndex currentIndex, CFIndex length, uint32_t type, const uint8_t *langCode, uint32_t lastFlags) {
     if (theChar == 0x03A3) { // GREEK CAPITAL LETTER SIGMA
         if ((type == kCFUniCharToLowercase) && (currentIndex > 0)) {
             UTF16Char *start = buffer;
@@ -1275,12 +1275,12 @@ const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint3
     return (plane < __CFUniCharUnicodePropertyTable[propertyType]._numPlanes ? __CFUniCharUnicodePropertyTable[propertyType]._planes[plane] : NULL);
 }
 
-CF_PRIVATE uint32_t CFUniCharGetNumberOfPlanesForUnicodePropertyData(uint32_t propertyType) {
+CF_EXPORT uint32_t CFUniCharGetNumberOfPlanesForUnicodePropertyData(uint32_t propertyType) {
     (void)CFUniCharGetUnicodePropertyDataForPlane(propertyType, 0);
     return __CFUniCharUnicodePropertyTable[propertyType]._numPlanes;
 }
 
-CF_PRIVATE uint32_t CFUniCharGetUnicodeProperty(UTF32Char character, uint32_t propertyType) {
+CF_EXPORT uint32_t CFUniCharGetUnicodeProperty(UTF32Char character, uint32_t propertyType) {
     if (propertyType == kCFUniCharCombiningProperty) {
         return CFUniCharGetCombiningPropertyForCharacter(character, (const uint8_t *)CFUniCharGetUnicodePropertyDataForPlane(propertyType, (character >> 16) & 0xFF));
     } else if (propertyType == kCFUniCharBidiProperty) {

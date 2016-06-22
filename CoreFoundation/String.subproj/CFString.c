@@ -1590,7 +1590,7 @@ CFStringRef  CFStringCreateWithCharactersNoCopy(CFAllocatorRef alloc, const UniC
 }
 
 
-CFStringRef  CFStringCreateWithBytes(CFAllocatorRef alloc, const uint8_t *bytes, CFIndex numBytes, CFStringEncoding encoding, Boolean externalFormat) {
+CF_EXPORT CFStringRef  CFStringCreateWithBytes(CFAllocatorRef alloc, const uint8_t *bytes, CFIndex numBytes, CFStringEncoding encoding, Boolean externalFormat) {
     return __CFStringCreateImmutableFunnel3(alloc, bytes, numBytes, encoding, externalFormat, true, false, false, false, ALLOCATORSFREEFUNC, 0);
 }
 
@@ -1933,7 +1933,7 @@ CFMutableStringRef CFStringCreateMutable(CFAllocatorRef alloc, CFIndex maxLength
     return __CFStringCreateMutableFunnel(alloc, maxLength, __kCFNotInlineContentsDefaultFree);
 }
 
-CFMutableStringRef  CFStringCreateMutableCopy(CFAllocatorRef alloc, CFIndex maxLength, CFStringRef string) {
+CF_EXPORT CFMutableStringRef  CFStringCreateMutableCopy(CFAllocatorRef alloc, CFIndex maxLength, CFStringRef string) {
     CFMutableStringRef newString;
     // TODO: Re-enable this when CFHash, CFEqual, etc. work with bridged NSString objects from Swift. The existing implementation below still works.
 //    CF_SWIFT_FUNCDISPATCHV(__kCFStringTypeID, CFMutableStringRef, (CFSwiftRef)string, _CFSwiftStringCreateMutableCopy);
@@ -1956,7 +1956,7 @@ CF_PRIVATE void _CFStrSetDesiredCapacity(CFMutableStringRef str, CFIndex len) {
 
 /* This one is for CF
 */
-CFIndex CFStringGetLength(CFStringRef str) {
+CF_EXPORT CFIndex CFStringGetLength(CFStringRef str) {
     CF_SWIFT_FUNCDISPATCHV(__kCFStringTypeID, CFIndex, (CFSwiftRef)str, NSString.length);
     CF_OBJC_FUNCDISPATCHV(__kCFStringTypeID, CFIndex, (NSString *)str, length);
 
@@ -2041,7 +2041,7 @@ int _CFStringCheckAndGetCharacters(CFStringRef str, CFRange range, UniChar *buff
 }
 
 
-CFIndex CFStringGetBytes(CFStringRef str, CFRange range, CFStringEncoding encoding, uint8_t lossByte, Boolean isExternalRepresentation, uint8_t *buffer, CFIndex maxBufLen, CFIndex *usedBufLen) {
+CF_EXPORT CFIndex CFStringGetBytes(CFStringRef str, CFRange range, CFStringEncoding encoding, uint8_t lossByte, Boolean isExternalRepresentation, uint8_t *buffer, CFIndex maxBufLen, CFIndex *usedBufLen) {
     if (CF_IS_SWIFT(CFStringGetTypeID(), str) && __CFSwiftBridge.NSString.__getBytes != NULL) {
         return __CFSwiftBridge.NSString.__getBytes(str, encoding, range, buffer, maxBufLen, usedBufLen);
     }
@@ -4192,7 +4192,7 @@ CFStringRef CFStringCreateFromExternalRepresentation(CFAllocatorRef alloc, CFDat
 }
 
 
-CFDataRef CFStringCreateExternalRepresentation(CFAllocatorRef alloc, CFStringRef string, CFStringEncoding encoding, uint8_t lossByte) {
+CF_EXPORT CFDataRef CFStringCreateExternalRepresentation(CFAllocatorRef alloc, CFStringRef string, CFStringEncoding encoding, uint8_t lossByte) {
     CFIndex length;
     CFIndex guessedByteLength;
     uint8_t *bytes;
