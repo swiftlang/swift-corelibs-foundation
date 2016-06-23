@@ -593,6 +593,7 @@ extension TestNSJSONSerialization {
             ("test_serialize_number", test_serialize_number),
             ("test_serialize_stringEscaping", test_serialize_stringEscaping),
             ("test_serialize_invalid_json", test_serialize_invalid_json),
+            ("test_jsonReadingOffTheEndOfBuffers", test_jsonReadingOffTheEndOfBuffers),
         ]
     }
 
@@ -748,6 +749,23 @@ extension TestNSJSONSerialization {
             XCTFail("Dictionary keys must be strings")
         } catch {
             // should get here
+        }
+    }
+    
+    func test_jsonReadingOffTheEndOfBuffers() {
+        let data = "12345679".data(using: .utf8)!
+        do {
+            let res = try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Any in
+                let slice = Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(bytes), count: 1, deallocator: .none)
+                return try JSONSerialization.jsonObject(with: slice, options: .allowFragments)
+            }
+            if let num = res as? Int {
+                XCTAssertEqual(1, num) // the slice truncation should only parse 1 byte!
+            } else {
+                XCTFail("expected an integer but got a \(res)")
+            }
+        } catch {
+            XCTFail("Unknow json decoding failure")
         }
     }
 }

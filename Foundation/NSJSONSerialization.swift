@@ -630,33 +630,40 @@ private struct JSONReader {
         0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
     ]
     func parseNumber(_ input: Index) throws -> (Any, Index)? {
-        func parseTypedNumber(_ address: UnsafePointer<UInt8>) -> (Any, IndexDistance)? {
-            let startPointer = UnsafePointer<Int8>(address)
-            let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
-            defer { intEndPointer.deallocateCapacity(1) }
-            let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
-            defer { doubleEndPointer.deallocateCapacity(1) }
-            
-            let intResult = strtol(startPointer, intEndPointer, 10)
-            let intDistance = startPointer.distance(to: intEndPointer[0]!)
-            let doubleResult = strtod(startPointer, doubleEndPointer)
-            let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
-            
-            guard intDistance > 0 || doubleDistance > 0 else {
-                return nil
+        func parseTypedNumber(_ address: UnsafePointer<UInt8>, count: Int) -> (Any, IndexDistance)? {
+            let temp_buffer_size = 64
+            var temp_buffer = [UInt8](repeating: 0, count: temp_buffer_size)
+            return temp_buffer.withUnsafeMutableBufferPointer { (buffer: inout UnsafeMutableBufferPointer<UInt8>) -> (Any, IndexDistance)? in
+                memcpy(buffer.baseAddress!, address, min(count, temp_buffer_size - 1)) // ensure null termination
+                
+                let startPointer = UnsafePointer<Int8>(buffer.baseAddress!)
+                let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
+                defer { intEndPointer.deallocateCapacity(1) }
+                let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
+                defer { doubleEndPointer.deallocateCapacity(1) }
+                
+                let intResult = strtol(startPointer, intEndPointer, 10)
+                let intDistance = startPointer.distance(to: intEndPointer[0]!)
+                let doubleResult = strtod(startPointer, doubleEndPointer)
+                let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
+                
+                guard intDistance > 0 || doubleDistance > 0 else {
+                    return nil
+                }
+                
+                if intDistance == doubleDistance {
+                    return (intResult, intDistance)
+                }
+                guard doubleDistance > 0 else {
+                    return nil
+                }
+                return (doubleResult, doubleDistance)
             }
-            
-            if intDistance == doubleDistance {
-                return (intResult, intDistance)
-            }
-            guard doubleDistance > 0 else {
-                return nil
-            }
-            return (doubleResult, doubleDistance)
         }
         
         if source.encoding == String.Encoding.utf8 {
-            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input)).map { return ($0.0, input + $0.1) }
+            
+            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0.0, input + $0.1) }
         }
         else {
             var numberCharacters = [UInt8]()
@@ -668,7 +675,9 @@ private struct JSONReader {
             
             numberCharacters.append(0)
             
-            return numberCharacters.withUnsafeBufferPointer { parseTypedNumber($0.baseAddress!) }.map { return ($0.0, index) }
+            return numberCharacters.withUnsafeBufferPointer {
+                parseTypedNumber($0.baseAddress!, count: $0.count)
+            }.map { return ($0.0, index) }
         }
     }
 
