@@ -61,28 +61,6 @@ func _countFormatSpecifiers(_ a: String) -> Int {
   return count
 }
 
-// We only need this for UnsafeMutablePointer, but there's not currently a way
-// to write that constraint.
-extension Optional {
-  /// Invokes `body` with `nil` if `self` is `nil`; otherwise, passes the
-  /// address of `object` to `body`.
-  ///
-  /// This is intended for use with Foundation APIs that return an Objective-C
-  /// type via out-parameter where it is important to be able to *ignore* that
-  /// parameter by passing `nil`. (For some APIs, this may allow the
-  /// implementation to avoid some work.)
-  ///
-  /// In most cases it would be simpler to just write this code inline, but if
-  /// `body` is complicated than that results in unnecessarily repeated code.
-  internal func _withNilOrAddress<NSType : AnyObject, ResultType>(
-    of object: inout NSType?,
-    body: @noescape (AutoreleasingUnsafeMutablePointer<NSType?>?) -> ResultType
-  ) -> ResultType {
-    return self == nil ? body(nil) : body(&object)
-  }
-}
-
-
 extension String {
 
   //===--- Bridging Helpers -----------------------------------------------===//
