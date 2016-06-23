@@ -626,19 +626,19 @@ class TestNSString : XCTestCase {
             let string = NSString(format: "Default value is %d (%.1f)", locale: nil, arguments: pointer)
             XCTAssertEqual(string, "Default value is 1000 (42.0)")
         }
-#if false // these are failing and should be investigated on why this behavior changed
+        
         withVaList(argument) {
             pointer in
             let string = NSString(format: "en_GB value is %d (%.1f)", locale: Locale.init(localeIdentifier: "en_GB"), arguments: pointer)
-            XCTAssertEqual(string, "en_GB value is 1000 (42.0)")
+            XCTAssertEqual(string, "en_GB value is 1,000 (42.0)")
         }
 
         withVaList(argument) {
             pointer in
             let string = NSString(format: "de_DE value is %d (%.1f)", locale: Locale.init(localeIdentifier: "de_DE"), arguments: pointer)
-            XCTAssertEqual(string, "de_DE value is 1000 (42,0)")
+            XCTAssertEqual(string, "de_DE value is 1.000 (42,0)")
         }
-#endif
+        
         withVaList(argument) {
             pointer in
             let loc: NSDictionary = ["NSDecimalSeparator" as NSString : "&" as NSString]
