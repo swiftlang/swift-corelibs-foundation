@@ -1469,3 +1469,26 @@ extension NSString : CustomPlaygroundQuickLookable {
         return .text(self.bridge())
     }
 }
+
+#if !(os(OSX) || os(iOS))
+extension String {
+    public func hasPrefix(_ prefix: String) -> Bool {
+        let cfstring = self._cfObject
+        let range = CFRangeMake(0, CFStringGetLength(cfstring))
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareNonliteral)
+        
+        return CFStringFindWithOptions(cfstring, prefix._cfObject,
+                                       range, opts, nil)
+    }
+    
+    public func hasSuffix(_ suffix: String) -> Bool {
+        let cfstring = self._cfObject
+        let range = CFRangeMake(0, CFStringGetLength(cfstring))
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareBackwards | kCFCompareNonliteral)
+        return CFStringFindWithOptions(cfstring, suffix._cfObject,
+                                       range, opts, nil)
+    }
+}
+#endif
