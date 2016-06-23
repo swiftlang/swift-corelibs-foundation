@@ -258,7 +258,7 @@ private func getSuggestedFilename(fromHeaderFields headerFields: [String : Strin
         else { return nil }
     for part in field.parameters where part.attribute == "filename" {
         if let path = part.value {
-            return URL(fileURLWithPath: path).pathComponents!.map{ $0 == "/" ? "" : $0}.joined(separator: "_")
+            return _pathComponents(path)?.map{ $0 == "/" ? "" : $0}.joined(separator: "_")
         } else {
             return nil
         }
