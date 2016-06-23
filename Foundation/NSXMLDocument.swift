@@ -64,7 +64,7 @@ public class XMLDocument : XMLNode {
         @abstract Returns a document created from either XML or HTML, if the HTMLTidy option is set. Parse errors are returned in <tt>error</tt>.
     */
     public convenience init(xmlString string: String, options mask: Int) throws {
-        guard let data = string._bridgeToObject().data(using: NSUTF8StringEncoding) else {
+        guard let data = string.data(using: .utf8) else {
             // TODO: Throw an error
             fatalError("String: '\(string)' could not be converted to NSData using UTF-8 encoding")
         }
@@ -314,7 +314,7 @@ public class XMLDocument : XMLNode {
         let string = xmlString(withOptions: options)
         // TODO: support encodings other than UTF-8
 
-        return string._bridgeToObject().data(using: NSUTF8StringEncoding) ?? Data()
+        return string.data(using: .utf8) ?? Data()
     }
 
     /*!

@@ -388,6 +388,8 @@ swift_sources = CompileSwiftSources([
 	'Foundation/DateInterval.swift',
 	'Foundation/IndexPath.swift',
 	'Foundation/IndexSet.swift',
+	'Foundation/NSStringEncodings.swift',
+	'Foundation/ExtraStringAPIs.swift',
 ])
 
 swift_sources.add_dependency(headers)

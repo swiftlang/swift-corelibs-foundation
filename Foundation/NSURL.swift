@@ -28,6 +28,42 @@ private func _standardizedPath(_ path: String) -> String {
     return path
 }
 
+internal func _pathComponents(_ path: String?) -> [String]? {
+    if let p = path {
+        var result = [String]()
+        if p.length == 0 {
+            return result
+        } else {
+            let characterView = p.characters
+            var curPos = characterView.startIndex
+            let endPos = characterView.endIndex
+            if characterView[curPos] == "/" {
+                result.append("/")
+            }
+            
+            while curPos < endPos {
+                while curPos < endPos && characterView[curPos] == "/" {
+                    curPos = characterView.index(after: curPos)
+                }
+                if curPos == endPos {
+                    break
+                }
+                var curEnd = curPos
+                while curEnd < endPos && characterView[curEnd] != "/" {
+                    curEnd = characterView.index(after: curEnd)
+                }
+                result.append(String(characterView[curPos ..< curEnd]))
+                curPos = curEnd
+            }
+        }
+        if p.length > 1 && p.hasSuffix("/") {
+            result.append("/")
+        }
+        return result
+    }
+    return nil
+}
+
 public struct URLResourceKey : RawRepresentable, Equatable, Hashable, Comparable {
     public private(set) var rawValue: String
     public init(rawValue: String) {
@@ -417,7 +453,7 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
         
         let passwordBuf = buf[passwordRange.location ..< passwordRange.location+passwordRange.length]
         return passwordBuf.withUnsafeBufferPointer { ptr in
-            NSString(bytes: ptr.baseAddress!, length: passwordBuf.count, encoding: NSUTF8StringEncoding)?._swiftObject
+            NSString(bytes: ptr.baseAddress!, length: passwordBuf.count, encoding: String.Encoding.utf8.rawValue)?._swiftObject
         }
     }
     
@@ -567,17 +603,73 @@ extension NSURL {
             return URL(fileURLWithPath: path)
         }
     }
+    
+    internal func _pathByFixingSlashes(compress : Bool = true, stripTrailing: Bool = true) -> String? {
+        if let p = path {
+            if p == "/" {
+                return p
+            }
+            
+            var result = p
+            if compress {
+                result.withMutableCharacters { characterView in
+                    let startPos = characterView.startIndex
+                    var endPos = characterView.endIndex
+                    var curPos = startPos
+                    
+                    while curPos < endPos {
+                        if characterView[curPos] == "/" {
+                            var afterLastSlashPos = curPos
+                            while afterLastSlashPos < endPos && characterView[afterLastSlashPos] == "/" {
+                                afterLastSlashPos = characterView.index(after: afterLastSlashPos)
+                            }
+                            if afterLastSlashPos != characterView.index(after: curPos) {
+                                characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
+                                endPos = characterView.endIndex
+                            }
+                            curPos = afterLastSlashPos
+                        } else {
+                            curPos = characterView.index(after: curPos)
+                        }
+                    }
+                }
+            }
+            if stripTrailing && result.hasSuffix("/") {
+                result.remove(at: result.characters.index(before: result.characters.endIndex))
+            }
+            return result
+        }
+        return nil
+    }
 
     public var pathComponents: [String]? {
-        return self.path?.pathComponents
+        return _pathComponents(path)
     }
     
     public var lastPathComponent: String? {
-        return self.path?.lastPathComponent
+        guard let fixedSelf = _pathByFixingSlashes() else {
+            return nil
+        }
+        if fixedSelf.length <= 1 {
+            return fixedSelf
+        }
+        
+        return String(fixedSelf.characters.suffix(from: fixedSelf._startOfLastPathComponent))
     }
     
     public var pathExtension: String? {
-        return self.path?.pathExtension
+        guard let fixedSelf = _pathByFixingSlashes() else {
+            return nil
+        }
+        if fixedSelf.length <= 1 {
+            return ""
+        }
+        
+        if let extensionPos = fixedSelf._startOfPathExtension {
+            return String(fixedSelf.characters.suffix(from: extensionPos))
+        } else {
+            return ""
+        }
     }
     
     public func appendingPathComponent(_ pathComponent: String) -> URL? {
@@ -639,7 +731,8 @@ extension NSURL {
             absolutePath = workingDir.bridge().stringByAppendingPathComponent(selfPath)
         }
 
-        var components = absolutePath.pathComponents
+        
+        var components = URL(fileURLWithPath: absolutePath).pathComponents!
         guard !components.isEmpty else {
             return URL(string: absoluteString)
         }

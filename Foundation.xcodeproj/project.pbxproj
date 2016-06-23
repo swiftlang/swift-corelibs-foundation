@@ -67,6 +67,8 @@
 		5B2B59821C24D00500271109 /* CFStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89031BBC9BC300234F36 /* CFStream.c */; };
 		5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89871BBDB1B400234F36 /* CFSocketStream.c */; };
 		5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89831BBDB13800234F36 /* CFConcreteStreams.c */; };
+		5B4092101D1B304C0022B067 /* NSStringEncodings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40920F1D1B304C0022B067 /* NSStringEncodings.swift */; };
+		5B4092121D1B30B40022B067 /* ExtraStringAPIs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4092111D1B30B40022B067 /* ExtraStringAPIs.swift */; };
 		5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
 		5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B40F9F31C12524C000E72E3 /* libxml2.dylib */; };
@@ -430,6 +432,8 @@
 		5B23AB8A1CE62F9B000DB898 /* PersonNameComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonNameComponents.swift; sourceTree = "<group>"; };
 		5B23AB8C1CE63228000DB898 /* URL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		5B2A98CC1D021886008A0B75 /* NSCFCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSCFCharacterSet.swift; sourceTree = "<group>"; };
+		5B40920F1D1B304C0022B067 /* NSStringEncodings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSStringEncodings.swift; sourceTree = "<group>"; };
+		5B4092111D1B30B40022B067 /* ExtraStringAPIs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtraStringAPIs.swift; sourceTree = "<group>"; };
 		5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInterface.c; sourceTree = "<group>"; };
 		5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLInterface.h; sourceTree = "<group>"; };
 		5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLParser.swift; sourceTree = "<group>"; };
@@ -1466,8 +1470,10 @@
 				5B2A98CC1D021886008A0B75 /* NSCFCharacterSet.swift */,
 				5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */,
 				5BDC3F451BCC5DCB00ED97BB /* NSString.swift */,
+				5B40920F1D1B304C0022B067 /* NSStringEncodings.swift */,
 				5BDC3FCB1BCF177E00ED97BB /* NSCFString.swift */,
 				5B94E8811C430DE70055C035 /* String.swift */,
+				5B4092111D1B30B40022B067 /* ExtraStringAPIs.swift */,
 			);
 			name = String;
 			sourceTree = "<group>";
@@ -1902,6 +1908,7 @@
 				5BF7AEAB1BCD51F9008F214A /* NSDictionary.swift in Sources */,
 				EADE0BAA1BD15E0000C49C64 /* NSNumberFormatter.swift in Sources */,
 				D39A14011C2D6E0A00295652 /* NSKeyedUnarchiver.swift in Sources */,
+				5B4092101D1B304C0022B067 /* NSStringEncodings.swift in Sources */,
 				5BF7AEAF1BCD51F9008F214A /* NSHost.swift in Sources */,
 				EADE0B4E1BD09E0800C49C64 /* NSAffineTransform.swift in Sources */,
 				EADE0BC71BD15E0000C49C64 /* NSXMLDocument.swift in Sources */,
@@ -1924,6 +1931,7 @@
 				EADE0BCC1BD15E0000C49C64 /* NSXMLNodeOptions.swift in Sources */,
 				5BF7AEB21BCD51F9008F214A /* NSNumber.swift in Sources */,
 				EADE0BBC1BD15E0000C49C64 /* NSURLCache.swift in Sources */,
+				5B4092121D1B30B40022B067 /* ExtraStringAPIs.swift in Sources */,
 				5BC46D541D05D6D900005853 /* DateInterval.swift in Sources */,
 				EADE0BC51BD15E0000C49C64 /* NSUserDefaults.swift in Sources */,
 				5BF7AEB11BCD51F9008F214A /* NSLock.swift in Sources */,

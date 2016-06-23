@@ -484,12 +484,12 @@ public class FileManager: NSObject {
                     switch Int32(current!.pointee.fts_info) {
                         case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
                             if unlink(current!.pointee.fts_path) == -1 {
-                                let str = NSString(bytes: current!.pointee.fts_path, length: Int(strlen(current!.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                                let str = NSString(bytes: current!.pointee.fts_path, length: Int(strlen(current!.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
                                 throw _NSErrorWithErrno(errno, reading: false, path: str)
                             }
                         case FTS_DP:
                             if rmdir(current!.pointee.fts_path) == -1 {
-                                let str = NSString(bytes: current!.pointee.fts_path, length: Int(strlen(current!.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                                let str = NSString(bytes: current!.pointee.fts_path, length: Int(strlen(current!.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
                                 throw _NSErrorWithErrno(errno, reading: false, path: str)
                             }
                         default:
@@ -716,7 +716,7 @@ public class FileManager: NSObject {
     /* stringWithFileSystemRepresentation:length: returns an NSString created from an array of bytes that are in the filesystem representation.
      */
     public func string(withFileSystemRepresentation str: UnsafePointer<Int8>, length len: Int) -> String {
-        return NSString(bytes: str, length: len, encoding: NSUTF8StringEncoding)!._swiftObject
+        return NSString(bytes: str, length: len, encoding: String.Encoding.utf8.rawValue)!._swiftObject
     }
     
     /* -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: is for developers who wish to perform a safe-save without using the full NSDocument machinery that is available in the AppKit.
@@ -955,12 +955,12 @@ extension FileManager {
                             }
                             fallthrough
                         case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                            let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                            let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
                             return NSURL(fileURLWithPath: str)
                         case FTS_DNR, FTS_ERR, FTS_NS:
                             let keepGoing : Bool
                             if let handler = _errorHandler {
-                                let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: NSUTF8StringEncoding)!._swiftObject
+                                let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
                                 keepGoing = handler(URL(fileURLWithPath: str), _NSErrorWithErrno(current.pointee.fts_errno, reading: true))
                             } else {
                                 keepGoing = true

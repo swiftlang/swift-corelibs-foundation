@@ -31,7 +31,7 @@ class TestNSPipe : XCTestCase {
         let text = "test-pipe"
         
         // First write some data into the pipe
-        let stringAsData = text.bridge().data(using: NSUTF8StringEncoding)
+        let stringAsData = text.data(using: .utf8)
         XCTAssertNotNil(stringAsData)
         aPipe.fileHandleForWriting.write(stringAsData!)
         
@@ -42,7 +42,7 @@ class TestNSPipe : XCTestCase {
         XCTAssertNotNil(data)
         
         // Confirm the data can be converted to a String
-        let convertedData = String(data: data, encoding: NSUTF8StringEncoding)
+        let convertedData = String(data: data, encoding: .utf8)
         XCTAssertNotNil(convertedData)
         
         // Confirm the data written in is the same as the data we read
