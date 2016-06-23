@@ -429,7 +429,7 @@ extern CFTypeRef CFMakeUncollectable(CFTypeRef cf);
 
 CF_PRIVATE void _CFRaiseMemoryException(CFStringRef reason);
 
-CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
+extern CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
 
 CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;
