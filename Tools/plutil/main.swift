@@ -135,19 +135,19 @@ func parseArguments(_ args: [String]) throws -> Options {
 func lint(_ options: Options) -> Int32 {
     if options.output != nil {
         print("-o is not used with -lint")
-        help()
+        let _ = help()
         return EXIT_FAILURE
     }
     
     if options.fileExtension != nil {
         print("-e is not used with -lint")
-        help()
+        let _ = help()
         return EXIT_FAILURE
     }
     
     if options.inputs.count < 1 {
         print("No files specified.")
-        help()
+        let _ = help()
         return EXIT_FAILURE
     }
     
@@ -155,17 +155,17 @@ func lint(_ options: Options) -> Int32 {
     
     var doError = false
     for file in options.inputs {
-        let data : NSData?
+        let data : Data?
         if file == "-" {
             // stdin
             data = FileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
         } else {
-            data = NSData(contentsOfFile: file)
+            data = try? Data(contentsOf: URL(fileURLWithPath: file))
         }
         
         if let d = data {
             do {
-                let _ = try NSPropertyListSerialization.propertyListWithData(d, options: [], format: nil)
+                let _ = try PropertyListSerialization.propertyList(from: d, options: [], format: nil)
                 if !silent {
                     print("\(file): OK")
                 }
@@ -317,23 +317,23 @@ func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .Primary) {
 func display(_ options: Options) -> Int32 {
     if options.inputs.count < 1 {
         print("No files specified.")
-        help()
+        let _ = help()
         return EXIT_FAILURE
     }
     
     var doError = false
     for file in options.inputs {
-        let data : NSData?
+        let data : Data?
         if file == "-" {
             // stdin
             data = FileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
         } else {
-            data = NSData(contentsOfFile: file)
+            data = try? Data(contentsOf: URL(fileURLWithPath: file))
         }
         
         if let d = data {
             do {
-                let plist = try NSPropertyListSerialization.propertyListWithData(d, options: [], format: nil)
+                let plist = try PropertyListSerialization.propertyList(from: d, options: [], format: nil)
                 displayPlist(plist)
             } catch {
                 print("\(file): \(error)")
@@ -379,7 +379,7 @@ func main() -> Int32 {
         switch err as! OptionParseError {
             case .UnrecognizedArgument(let arg):
                 print("unrecognized option: \(arg)")
-                help()
+                let _ = help()
                 break
             case .InvalidFormat(let format):
                 print("unrecognized format \(format)\nformat should be one of: xml1 binary1 json")
