@@ -391,6 +391,10 @@ swift_sources = CompileSwiftSources([
 	'Foundation/IndexSet.swift',
 	'Foundation/NSStringEncodings.swift',
 	'Foundation/ExtraStringAPIs.swift',
+	'Foundation/Measurement.swift',
+	'Foundation/NSMeasurement.swift',
+	'Foundation/NSMeasurementFormatter.swift',
+	'Foundation/Unit.swift',
 ])
 
 swift_sources.add_dependency(headers)
