@@ -243,7 +243,6 @@ extension String {
 
   /// A capitalized representation of the `String` that is produced
   /// using the current locale.
-  @available(OSX 10.11, iOS 9.0, *)
   public var localizedCapitalized: String {
     return _ns.localizedCapitalized
   }
@@ -937,7 +936,6 @@ extension String {
 
   /// A lowercase version of the string that is produced using the current
   /// locale.
-  @available(OSX 10.11, iOS 9.0, *)
   public var localizedLowercase: String {
     return _ns.localizedLowercase
   }
@@ -1127,7 +1125,6 @@ extension String {
   /// similar to how searches are done generally in the system.  The search is
   /// locale-aware, case and diacritic insensitive.  The exact list of search
   /// options applied may change over time.
-  @available(OSX 10.11, iOS 9.0, *)
   public func localizedStandardContains(_ string: String) -> Bool {
     return _ns.localizedStandardContains(string)
   }
@@ -1142,7 +1139,6 @@ extension String {
   /// similar to how searches are done generally in the system.  The search is
   /// locale-aware, case and diacritic insensitive.  The exact list of search
   /// options applied may change over time.
-  @available(OSX 10.11, iOS 9.0, *)
   public func localizedStandardRange(of string: String) -> Range<Index>? {
     return _optionalRange(_ns.localizedStandardRange(of: string))
   }
@@ -1389,7 +1385,6 @@ extension String {
 
   /// An uppercase version of the string that is produced using the current
   /// locale.
-  @available(OSX 10.11, iOS 9.0, *)
   public var localizedUppercase: String {
     return _ns.localizedUppercase as String
   }
@@ -1442,7 +1437,6 @@ extension String {
 
   /// Perform string transliteration.
 #if false
-  @available(OSX 10.11, iOS 9.0, *)
   public func applyingTransform(
     _ transform: StringTransform, reverse: Bool
   ) -> String? {
