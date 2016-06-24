@@ -54,7 +54,7 @@ public class ByteCountFormatter : Formatter {
     */
     public class func string(fromByteCount byteCount: Int64, countStyle: ByteCountFormatter.CountStyle) -> String { NSUnimplemented() }
     
-    /* Convenience method on stringForObjectValue:. Convert a byte count into a string without creating an NSNumber.
+    /* Convenience method on string(for:):. Convert a byte count into a string without creating an NSNumber.
     */
     public func stringFromByteCount(_ byteCount: Int64) -> String { NSUnimplemented() }
     
