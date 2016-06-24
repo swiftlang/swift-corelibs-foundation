@@ -25,6 +25,7 @@
 #include <CoreFoundation/CFLogUtilities.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
+#include <pthread.h>
 
 _CF_EXPORT_SCOPE_BEGIN
 
@@ -42,8 +43,8 @@ typedef struct __CFSwiftObject *CFSwiftRef;
     } \
 } while (0)
 
-CF_PRIVATE CF_EXPORT bool _CFIsSwift(CFTypeID type, CFSwiftRef obj);
-CF_PRIVATE CF_EXPORT void _CFDeinit(CFTypeRef cf);
+CF_EXPORT bool _CFIsSwift(CFTypeID type, CFSwiftRef obj);
+CF_EXPORT void _CFDeinit(CFTypeRef cf);
 
 struct _NSObjectBridge {
     CFTypeID (*_cfTypeID)(CFTypeRef object);
@@ -187,6 +188,27 @@ struct _NSRunLoop {
     _Nonnull CFTypeRef (*_Nonnull _new)(CFRunLoopRef rl);
 };
 
+struct _NSCharacterSetBridge {
+    _Nullable CFCharacterSetRef (*_Nonnull _expandedCFCharacterSet)(CFTypeRef cset);
+    _Nonnull CFDataRef (*_Nonnull _retainedBitmapRepresentation)(CFTypeRef cset);
+    
+    bool (*_Nonnull characterIsMember)(CFTypeRef cset, UniChar ch);
+    _Nonnull CFMutableCharacterSetRef (*_Nonnull mutableCopy)(CFTypeRef cset);
+    bool (*_Nonnull longCharacterIsMember)(CFTypeRef cset, UTF32Char ch);
+    bool (*_Nonnull hasMemberInPlane)(CFTypeRef cset, uint8_t thePlane);
+    _Nonnull CFCharacterSetRef (*_Nonnull invertedSet)(CFTypeRef cset);
+};
+
+struct _NSMutableCharacterSetBridge {
+    void (*_Nonnull addCharactersInRange)(CFTypeRef cset, CFRange range);
+    void (*_Nonnull removeCharactersInRange)(CFTypeRef cset, CFRange range);
+    void (*_Nonnull addCharactersInString)(CFTypeRef cset, CFStringRef string);
+    void (*_Nonnull removeCharactersInString)(CFTypeRef cset, CFStringRef string);
+    void (*_Nonnull formUnionWithCharacterSet)(CFTypeRef cset, CFTypeRef other);
+    void (*_Nonnull formIntersectionWithCharacterSet)(CFTypeRef cset, CFTypeRef other);
+    void (*_Nonnull invert)(CFTypeRef cset);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -199,31 +221,36 @@ struct _CFSwiftBridge {
     struct _NSMutableStringBridge NSMutableString;
     struct _NSXMLParserBridge NSXMLParser;
     struct _NSRunLoop NSRunLoop;
+    struct _NSCharacterSetBridge NSCharacterSet;
+    struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
 };
 
-CF_PRIVATE CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
+CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
 
-CF_PRIVATE CF_EXPORT void _CFRuntimeBridgeTypeToClass(CFTypeID type, const void *isa);
+CF_PRIVATE void *_Nullable _CFSwiftRetain(void *_Nullable t);
+CF_PRIVATE void _CFSwiftRelease(void *_Nullable t);
+
+CF_EXPORT void _CFRuntimeBridgeTypeToClass(CFTypeID type, const void *isa);
 
 typedef	unsigned char __cf_uuid[16];
 typedef	char __cf_uuid_string[37];
 typedef __cf_uuid _cf_uuid_t;
 typedef __cf_uuid_string _cf_uuid_string_t;
 
-CF_PRIVATE CF_EXPORT void _cf_uuid_clear(_cf_uuid_t uu);
-CF_PRIVATE CF_EXPORT int _cf_uuid_compare(const _cf_uuid_t uu1, const _cf_uuid_t uu2);
-CF_PRIVATE CF_EXPORT void _cf_uuid_copy(_cf_uuid_t dst, const _cf_uuid_t src);
-CF_PRIVATE CF_EXPORT void _cf_uuid_generate(_cf_uuid_t out);
-CF_PRIVATE CF_EXPORT void _cf_uuid_generate_random(_cf_uuid_t out);
-CF_PRIVATE CF_EXPORT void _cf_uuid_generate_time(_cf_uuid_t out);
-CF_PRIVATE CF_EXPORT int _cf_uuid_is_null(const _cf_uuid_t uu);
-CF_PRIVATE CF_EXPORT int _cf_uuid_parse(const _cf_uuid_string_t in, _cf_uuid_t uu);
-CF_PRIVATE CF_EXPORT void _cf_uuid_unparse(const _cf_uuid_t uu, _cf_uuid_string_t out);
-CF_PRIVATE CF_EXPORT void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out);
-CF_PRIVATE CF_EXPORT void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
+CF_EXPORT void _cf_uuid_clear(_cf_uuid_t uu);
+CF_EXPORT int _cf_uuid_compare(const _cf_uuid_t uu1, const _cf_uuid_t uu2);
+CF_EXPORT void _cf_uuid_copy(_cf_uuid_t dst, const _cf_uuid_t src);
+CF_EXPORT void _cf_uuid_generate(_cf_uuid_t out);
+CF_EXPORT void _cf_uuid_generate_random(_cf_uuid_t out);
+CF_EXPORT void _cf_uuid_generate_time(_cf_uuid_t out);
+CF_EXPORT int _cf_uuid_is_null(const _cf_uuid_t uu);
+CF_EXPORT int _cf_uuid_parse(const _cf_uuid_string_t in, _cf_uuid_t uu);
+CF_EXPORT void _cf_uuid_unparse(const _cf_uuid_t uu, _cf_uuid_string_t out);
+CF_EXPORT void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out);
+CF_EXPORT void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
 
 
-CF_PRIVATE CF_EXPORT int32_t _CF_SOCK_STREAM();
+CF_EXPORT int32_t _CF_SOCK_STREAM();
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
 #if !__COREFOUNDATION_FORFOUNDATIONONLY__
 typedef const struct __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
@@ -239,11 +266,29 @@ extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef al
 extern _Nullable CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
 extern void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date);
 
-CF_PRIVATE CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
+CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
+CF_EXPORT CFHashCode __CFHashDouble(double d);
+
 CF_EXPORT Boolean _CFIsMainThread(void);
+
+CF_EXPORT CFHashCode __CFHashDouble(double d);
+
+typedef pthread_key_t _CFThreadSpecificKey;
+CF_EXPORT CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key);
+CF_EXPORT void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
+CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate();
+
+typedef pthread_attr_t _CFThreadAttributes;
+typedef pthread_t _CFThreadRef;
+
+CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context);
+
+CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar);
+CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
+CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 
 _CF_EXPORT_SCOPE_END
 

@@ -31,24 +31,24 @@ class TestNSPredicate: XCTestCase {
     }
 
     func test_BooleanPredicate() {
-        let truePredicate = NSPredicate(value: true)
-        let falsePredicate = NSPredicate(value: false)
+        let truePredicate = Predicate(value: true)
+        let falsePredicate = Predicate(value: false)
 
-        XCTAssertTrue(truePredicate.evaluateWithObject(NSObject()))
-        XCTAssertFalse(falsePredicate.evaluateWithObject(NSObject()))
+        XCTAssertTrue(truePredicate.evaluate(with: NSObject()))
+        XCTAssertFalse(falsePredicate.evaluate(with: NSObject()))
     }
 
 
     func test_BlockPredicateWithoutVariableBindings() {
-        let isNSStringPredicate = NSPredicate { (object, bindings) -> Bool in
+        let isNSStringPredicate = Predicate { (object, bindings) -> Bool in
             return object is NSString
         }
 
-        XCTAssertTrue(isNSStringPredicate.evaluateWithObject(NSString()))
-        XCTAssertFalse(isNSStringPredicate.evaluateWithObject(NSArray()))
+        XCTAssertTrue(isNSStringPredicate.evaluate(with: NSString()))
+        XCTAssertFalse(isNSStringPredicate.evaluate(with: NSArray()))
     }
 
-    let lengthLessThanThreePredicate = NSPredicate { (obj, bindings) -> Bool in
+    let lengthLessThanThreePredicate = Predicate { (obj, bindings) -> Bool in
         return (obj as? NSString).map({ $0.length < 3 }) == true
     }
 

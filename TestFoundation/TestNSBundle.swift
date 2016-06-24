@@ -28,11 +28,12 @@ class TestNSBundle : XCTestCase {
             ("test_infoPlist", test_infoPlist),
             ("test_localizations", test_localizations),
             ("test_URLsForResourcesWithExtension", test_URLsForResourcesWithExtension),
+            ("test_bundleLoad", test_bundleLoad),
         ]
     }
     
     func test_paths() {
-        let bundle = NSBundle.mainBundle()
+        let bundle = Bundle.main()
         
         // bundlePath
         XCTAssert(!bundle.bundlePath.isEmpty)
@@ -53,27 +54,27 @@ class TestNSBundle : XCTestCase {
     }
     
     func test_resources() {
-        let bundle = NSBundle.mainBundle()
+        let bundle = Bundle.main()
         
         // bad resources
-        XCTAssertNil(bundle.URLForResource(nil, withExtension: nil, subdirectory: nil))
-        XCTAssertNil(bundle.URLForResource("", withExtension: "", subdirectory: nil))
-        XCTAssertNil(bundle.URLForResource("no_such_file", withExtension: nil, subdirectory: nil))
+        XCTAssertNil(bundle.urlForResource(nil, withExtension: nil, subdirectory: nil))
+        XCTAssertNil(bundle.urlForResource("", withExtension: "", subdirectory: nil))
+        XCTAssertNil(bundle.urlForResource("no_such_file", withExtension: nil, subdirectory: nil))
         
         // test file
-        let testPlist = bundle.URLForResource("Test", withExtension: "plist")
+        let testPlist = bundle.urlForResource("Test", withExtension: "plist")
         XCTAssertNotNil(testPlist)
         XCTAssertEqual("Test.plist", testPlist!.lastPathComponent)
-        XCTAssert(NSFileManager.defaultManager().fileExists(atPath: testPlist!.path!))
+        XCTAssert(FileManager.default().fileExists(atPath: testPlist!.path!))
         
         // aliases, paths
-        XCTAssertEqual(testPlist!.path, bundle.URLForResource("Test", withExtension: "plist", subdirectory: nil)!.path)
+        XCTAssertEqual(testPlist!.path, bundle.urlForResource("Test", withExtension: "plist", subdirectory: nil)!.path)
         XCTAssertEqual(testPlist!.path, bundle.pathForResource("Test", ofType: "plist"))
         XCTAssertEqual(testPlist!.path, bundle.pathForResource("Test", ofType: "plist", inDirectory: nil))
     }
     
     func test_infoPlist() {
-        let bundle = NSBundle.mainBundle()
+        let bundle = Bundle.main()
         
         // bundleIdentifier
         XCTAssertEqual("org.swift.TestFoundation", bundle.bundleIdentifier)
@@ -89,11 +90,11 @@ class TestNSBundle : XCTestCase {
     }
     
     func test_localizations() {
-        let bundle = NSBundle.mainBundle()
+        let bundle = Bundle.main()
         
         XCTAssertEqual(["en"], bundle.localizations)
         XCTAssertEqual(["en"], bundle.preferredLocalizations)
-        XCTAssertEqual(["en"], NSBundle.preferredLocalizationsFromArray(["en", "pl", "es"]))
+        XCTAssertEqual(["en"], Bundle.preferredLocalizations(from: ["en", "pl", "es"]))
     }
     
     private let _bundleName = "MyBundle.bundle"
@@ -107,20 +108,20 @@ class TestNSBundle : XCTestCase {
         let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().UUIDString + "/"
         
         do {
-            try NSFileManager.defaultManager().createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
+            try FileManager.default().createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
             
             // Make a flat bundle in the playground
             let bundlePath = tempDir + _bundleName
-            try NSFileManager.defaultManager().createDirectory(atPath: bundlePath, withIntermediateDirectories: false, attributes: nil)
+            try FileManager.default().createDirectory(atPath: bundlePath, withIntermediateDirectories: false, attributes: nil)
             
             // Put some resources in the bundle
             for n in _bundleResourceNames {
-                NSFileManager.defaultManager().createFile(atPath: bundlePath + "/" + n, contents: nil, attributes: nil)
+                let _ = FileManager.default().createFile(atPath: bundlePath + "/" + n, contents: nil, attributes: nil)
             }
             // Add a resource into a subdirectory
             let subDirPath = bundlePath + "/" + _subDirectory
-            try NSFileManager.defaultManager().createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
-            NSFileManager.defaultManager().createFile(atPath: subDirPath + "/" + _main + "." + _type, contents: nil, attributes: nil)
+            try FileManager.default().createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
+            let _ = FileManager.default().createFile(atPath: subDirPath + "/" + _main + "." + _type, contents: nil, attributes: nil)
         } catch _ {
             return nil
         }
@@ -131,7 +132,7 @@ class TestNSBundle : XCTestCase {
     
     private func _cleanupPlayground(_ location: String) {
         do {
-            try NSFileManager.defaultManager().removeItem(atPath: location)
+            try FileManager.default().removeItem(atPath: location)
         } catch _ {
             // Oh well
         }
@@ -140,10 +141,10 @@ class TestNSBundle : XCTestCase {
     func test_URLsForResourcesWithExtension() {
         guard let playground = _setupPlayground() else { XCTFail("Unable to create playground"); return }
         
-        let bundle = NSBundle(path: playground + _bundleName)
+        let bundle = Bundle(path: playground + _bundleName)
         XCTAssertNotNil(bundle)
         
-        let worldResources = bundle?.URLsForResourcesWithExtension("world", subdirectory: nil)
+        let worldResources = bundle?.urlsForResources(withExtension: "world", subdirectory: nil)
         XCTAssertNotNil(worldResources)
         XCTAssertEqual(worldResources?.count, 2)
         
@@ -152,4 +153,10 @@ class TestNSBundle : XCTestCase {
         
         _cleanupPlayground(playground)
     }
+    func test_bundleLoad(){
+        let bundle = Bundle.main()
+        let _ = bundle.load()
+        XCTAssertTrue(bundle.isLoaded)
+    }
+
 }

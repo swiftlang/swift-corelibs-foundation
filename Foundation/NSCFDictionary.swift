@@ -80,7 +80,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
         return NSGeneratorEnumerator(_NSCFKeyGenerator(self))
     }
 
-    override func removeObjectForKey(_ aKey: AnyObject) {
+    override func removeObject(forKey aKey: AnyObject) {
         CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self))
     }
     
@@ -145,7 +145,7 @@ internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valueb
     if valuebuf == nil && keybuf == nil {
         return
     }
-    (dictionary as! NSDictionary).enumerateKeysAndObjectsUsingBlock { key, value, _ in
+    (dictionary as! NSDictionary).enumerateKeysAndObjects([]) { key, value, _ in
         valuebuf?[idx] = Unmanaged<AnyObject>.passUnretained(value)
         keybuf?[idx] = Unmanaged<AnyObject>.passUnretained(key)
         idx += 1
@@ -153,7 +153,7 @@ internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valueb
 }
 
 internal func _CFSwiftDictionaryApplyFunction(_ dictionary: AnyObject, applier: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Void, context: UnsafeMutablePointer<Void>) {
-    (dictionary as! NSDictionary).enumerateKeysAndObjectsUsingBlock { key, value, _ in
+    (dictionary as! NSDictionary).enumerateKeysAndObjects([]) { key, value, _ in
         applier(key, value, context)
     }
 }
@@ -171,7 +171,7 @@ internal func _CFSwiftDictionarySetValue(_ dictionary:  AnyObject, key: AnyObjec
 }
 
 internal func _CFSwiftDictionaryRemoveValue(_ dictionary:  AnyObject, key: AnyObject) {
-    (dictionary as! NSMutableDictionary).removeObjectForKey(key)
+    (dictionary as! NSMutableDictionary).removeObject(forKey: key)
 }
 
 internal func _CFSwiftDictionaryRemoveAllValues(_ dictionary: AnyObject) {

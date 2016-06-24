@@ -48,29 +48,32 @@ internal let kCFStringNormalizationFormKC = CFStringNormalizationForm.KC
     
 #endif
 
-public struct NSStringEncodingConversionOptions : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    public static let allowLossy = NSStringEncodingConversionOptions(rawValue: 1)
-    public static let externalRepresentation = NSStringEncodingConversionOptions(rawValue: 2)
-    internal static let FailOnPartialEncodingConversion = NSStringEncodingConversionOptions(rawValue: 1 << 20)
-}
+extension NSString {
 
-public struct NSStringEnumerationOptions : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    public static let byLines = NSStringEnumerationOptions(rawValue: 0)
-    public static let byParagraphs = NSStringEnumerationOptions(rawValue: 1)
-    public static let byComposedCharacterSequences = NSStringEnumerationOptions(rawValue: 2)
-    public static let byWords = NSStringEnumerationOptions(rawValue: 3)
-    public static let bySentences = NSStringEnumerationOptions(rawValue: 4)
-    public static let reverse = NSStringEnumerationOptions(rawValue: 1 << 8)
-    public static let substringNotRequired = NSStringEnumerationOptions(rawValue: 1 << 9)
-    public static let localized = NSStringEnumerationOptions(rawValue: 1 << 10)
-    
-    internal static let ForceFullTokens = NSStringEnumerationOptions(rawValue: 1 << 20)
+    public struct EncodingConversionOptions : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        public static let allowLossy = EncodingConversionOptions(rawValue: 1)
+        public static let externalRepresentation = EncodingConversionOptions(rawValue: 2)
+        internal static let failOnPartialEncodingConversion = EncodingConversionOptions(rawValue: 1 << 20)
+    }
+
+    public struct EnumerationOptions : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        public static let byLines = EnumerationOptions(rawValue: 0)
+        public static let byParagraphs = EnumerationOptions(rawValue: 1)
+        public static let byComposedCharacterSequences = EnumerationOptions(rawValue: 2)
+        public static let byWords = EnumerationOptions(rawValue: 3)
+        public static let bySentences = EnumerationOptions(rawValue: 4)
+        public static let reverse = EnumerationOptions(rawValue: 1 << 8)
+        public static let substringNotRequired = EnumerationOptions(rawValue: 1 << 9)
+        public static let localized = EnumerationOptions(rawValue: 1 << 10)
+        
+        internal static let forceFullTokens = EnumerationOptions(rawValue: 1 << 20)
+    }
 }
 
 extension String : _ObjectTypeBridgeable {
@@ -116,33 +119,36 @@ extension String : _ObjectTypeBridgeable {
     }
 }
 
-public struct NSStringCompareOptions : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    public static let caseInsensitiveSearch = NSStringCompareOptions(rawValue: 1)
-    public static let literalSearch = NSStringCompareOptions(rawValue: 2)
-    public static let backwardsSearch = NSStringCompareOptions(rawValue: 4)
-    public static let anchoredSearch = NSStringCompareOptions(rawValue: 8)
-    public static let numericSearch = NSStringCompareOptions(rawValue: 64)
-    public static let diacriticInsensitiveSearch = NSStringCompareOptions(rawValue: 128)
-    public static let widthInsensitiveSearch = NSStringCompareOptions(rawValue: 256)
-    public static let forcedOrderingSearch = NSStringCompareOptions(rawValue: 512)
-    public static let regularExpressionSearch = NSStringCompareOptions(rawValue: 1024)
-    
-    internal func _cfValue(_ fixLiteral: Bool = false) -> CFStringCompareFlags {
+
+extension NSString {
+    public struct CompareOptions : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        public static let caseInsensitive = CompareOptions(rawValue: 1)
+        public static let literal = CompareOptions(rawValue: 2)
+        public static let backwards = CompareOptions(rawValue: 4)
+        public static let anchored = CompareOptions(rawValue: 8)
+        public static let numeric = CompareOptions(rawValue: 64)
+        public static let diacriticInsensitive = CompareOptions(rawValue: 128)
+        public static let widthInsensitive = CompareOptions(rawValue: 256)
+        public static let forcedOrdering = CompareOptions(rawValue: 512)
+        public static let regularExpression = CompareOptions(rawValue: 1024)
+        
+        internal func _cfValue(_ fixLiteral: Bool = false) -> CFStringCompareFlags {
 #if os(OSX) || os(iOS)
-        return contains(.literalSearch) || !fixLiteral ? CFStringCompareFlags(rawValue: rawValue) : CFStringCompareFlags(rawValue: rawValue).union(.compareNonliteral)
+            return contains(.literal) || !fixLiteral ? CFStringCompareFlags(rawValue: rawValue) : CFStringCompareFlags(rawValue: rawValue).union(.compareNonliteral)
 #else
-        return contains(.literalSearch) || !fixLiteral ? CFStringCompareFlags(rawValue) : CFStringCompareFlags(rawValue) | UInt(kCFCompareNonliteral)
+            return contains(.literal) || !fixLiteral ? CFStringCompareFlags(rawValue) : CFStringCompareFlags(rawValue) | UInt(kCFCompareNonliteral)
 #endif
+        }
     }
 }
 
-internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpressionOptions) -> NSRegularExpression? {
+internal func _createRegexForPattern(_ pattern: String, _ options: RegularExpression.Options) -> RegularExpression? {
     struct local {
-        static let __NSRegularExpressionCache: NSCache = {
-            let cache = NSCache()
+        static let __NSRegularExpressionCache: Cache = {
+            let cache = Cache()
             cache.name = "NSRegularExpressionCache"
             cache.countLimit = 10
             return cache
@@ -150,10 +156,10 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
     }
     let key = "\(options):\(pattern)"
     if let regex = local.__NSRegularExpressionCache.object(forKey: key._nsObject) {
-        return (regex as! NSRegularExpression)
+        return (regex as! RegularExpression)
     }
     do {
-        let regex = try NSRegularExpression(pattern: pattern, options: options)
+        let regex = try RegularExpression(pattern: pattern, options: options)
         local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
         return regex
     } catch {
@@ -163,18 +169,18 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
     return nil
 }
 
-internal func _bytesInEncoding(_ str: NSString, _ encoding: NSStringEncoding, _ fatalOnError: Bool, _ externalRep: Bool, _ lossy: Bool) -> UnsafePointer<Int8>? {
+internal func _bytesInEncoding(_ str: NSString, _ encoding: String.Encoding, _ fatalOnError: Bool, _ externalRep: Bool, _ lossy: Bool) -> UnsafePointer<Int8>? {
     let theRange = NSMakeRange(0, str.length)
     var cLength = 0
     var used = 0
-    var options: NSStringEncodingConversionOptions = []
+    var options: NSString.EncodingConversionOptions = []
     if externalRep {
         options.formUnion(.externalRepresentation)
     }
     if lossy {
         options.formUnion(.allowLossy)
     }
-    if !str.getBytes(nil, maxLength: Int.max - 1, usedLength: &cLength, encoding: encoding, options: options, range: theRange, remaining: nil) {
+    if !str.getBytes(nil, maxLength: Int.max - 1, usedLength: &cLength, encoding: encoding.rawValue, options: options, range: theRange, remaining: nil) {
         if fatalOnError {
             fatalError("Conversion on encoding failed")
         }
@@ -182,7 +188,7 @@ internal func _bytesInEncoding(_ str: NSString, _ encoding: NSStringEncoding, _ 
     }
     
     let buffer = malloc(cLength + 1)!
-    if !str.getBytes(buffer, maxLength: cLength, usedLength: &used, encoding: encoding, options: options, range: theRange, remaining: nil) {
+    if !str.getBytes(buffer, maxLength: cLength, usedLength: &used, encoding: encoding.rawValue, options: options, range: theRange, remaining: nil) {
         fatalError("Internal inconsistency; previously claimed getBytes returned success but failed with similar invocation")
     }
     
@@ -210,20 +216,18 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     internal var _storage: String
     
     public var length: Int {
-        if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
-            return _storage.utf16.count
-        } else {
+        guard self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self else {
             NSRequiresConcreteImplementation()
         }
+        return _storage.utf16.count
     }
     
     public func character(at index: Int) -> unichar {
-        if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
-            let start = _storage.utf16.startIndex
-            return _storage.utf16[start.advanced(by: index)]
-        } else {
+        guard self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self else {
             NSRequiresConcreteImplementation()
         }
+        let start = _storage.utf16.startIndex
+        return _storage.utf16[start.advanced(by: index)]
     }
     
     public override convenience init() {
@@ -237,24 +241,18 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if !aDecoder.allowsKeyedCoding {
-            let archiveVersion = aDecoder.versionForClassName("NSString")
-            if archiveVersion == 1 {
-                var length = 0
-                let buffer = aDecoder.decodeBytesWithReturnedLength(&length)
-                self.init(bytes: buffer, length: length, encoding: NSUTF8StringEncoding)
-            } else {
-                aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
-                    "NSDebugDescription": "NSString cannot decode class version \(archiveVersion)"
-                    ]))
-                return nil
-            }
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.string") {
+            aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: ["NSDebugDescription": "NSUUID cannot be decoded by non-keyed coders"]))
+            return nil
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.string") {
             let str = aDecoder._decodePropertyListForKey("NS.string") as! String
             self.init(string: str)
         } else {
-            var length = 0
-            let buffer = UnsafeMutablePointer<Void>(aDecoder.decodeBytesForKey("NS.bytes", returnedLength: &length)!)
-            self.init(bytes: buffer, length: length, encoding: NSUTF8StringEncoding)
+            let decodedData : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
+                guard let buffer = $0 else { return nil }
+                return Data(buffer: buffer)
+            }
+            guard let data = decodedData else { return nil }
+            self.init(data: data, encoding: String.Encoding.utf8.rawValue)
         }
     }
     
@@ -263,18 +261,18 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
     public override func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
     
-    public func mutableCopyWithZone(_ zone: NSZone) -> AnyObject {
+    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
             if let contents = _fastContents {
                 return NSMutableString(characters: contents, length: length)
@@ -292,11 +290,11 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         return true
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
             aKeyedCoder._encodePropertyList(self, forKey: "NS.string")
         } else {
-            aCoder.encodeObject(self)
+            aCoder.encode(self)
         }
     }
     
@@ -399,63 +397,63 @@ extension NSString {
         }
     }
     
-    public func compare(_ string: String) -> NSComparisonResult {
+    public func compare(_ string: String) -> ComparisonResult {
         return compare(string, options: [], range: NSMakeRange(0, length))
     }
     
-    public func compare(_ string: String, options mask: NSStringCompareOptions) -> NSComparisonResult {
+    public func compare(_ string: String, options mask: CompareOptions) -> ComparisonResult {
         return compare(string, options: mask, range: NSMakeRange(0, length))
     }
     
-    public func compare(_ string: String, options mask: NSStringCompareOptions, range compareRange: NSRange) -> NSComparisonResult {
+    public func compare(_ string: String, options mask: CompareOptions, range compareRange: NSRange) -> ComparisonResult {
         return compare(string, options: mask, range: compareRange, locale: nil)
     }
     
-    public func compare(_ string: String, options mask: NSStringCompareOptions, range compareRange: NSRange, locale: AnyObject?) -> NSComparisonResult {
+    public func compare(_ string: String, options mask: CompareOptions, range compareRange: NSRange, locale: AnyObject?) -> ComparisonResult {
         var res: CFComparisonResult
         if let loc = locale {
-            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! NSLocale)._cfObject)
+            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! Locale)._cfObject)
         } else {
             res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), nil)
         }
-        return NSComparisonResult._fromCF(res)
+        return ComparisonResult._fromCF(res)
     }
     
-    public func caseInsensitiveCompare(_ string: String) -> NSComparisonResult {
-        return compare(string, options: .caseInsensitiveSearch, range: NSMakeRange(0, length))
+    public func caseInsensitiveCompare(_ string: String) -> ComparisonResult {
+        return compare(string, options: .caseInsensitive, range: NSMakeRange(0, length))
     }
     
-    public func localizedCompare(_ string: String) -> NSComparisonResult {
-        return compare(string, options: [], range: NSMakeRange(0, length), locale: NSLocale.currentLocale())
+    public func localizedCompare(_ string: String) -> ComparisonResult {
+        return compare(string, options: [], range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
-    public func localizedCaseInsensitiveCompare(_ string: String) -> NSComparisonResult {
-        return compare(string, options: .caseInsensitiveSearch, range: NSMakeRange(0, length), locale: NSLocale.currentLocale())
+    public func localizedCaseInsensitiveCompare(_ string: String) -> ComparisonResult {
+        return compare(string, options: .caseInsensitive, range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
-    public func localizedStandardCompare(_ string: String) -> NSComparisonResult {
-        return compare(string, options: [.caseInsensitiveSearch, .numericSearch, .widthInsensitiveSearch, .forcedOrderingSearch], range: NSMakeRange(0, length), locale: NSLocale.currentLocale())
+    public func localizedStandardCompare(_ string: String) -> ComparisonResult {
+        return compare(string, options: [.caseInsensitive, .numeric, .widthInsensitive, .forcedOrdering], range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
     public func isEqual(to aString: String) -> Bool {
         if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
             return _storage == aString
         } else {
-            return length == aString.length && compare(aString, options: .literalSearch, range: NSMakeRange(0, length)) == .orderedSame
+            return length == aString.length && compare(aString, options: .literal, range: NSMakeRange(0, length)) == .orderedSame
         }
     }
     
     public func hasPrefix(_ str: String) -> Bool {
-        return range(of: str, options: .anchoredSearch, range: NSMakeRange(0, length)).location != NSNotFound
+        return range(of: str, options: .anchored, range: NSMakeRange(0, length)).location != NSNotFound
     }
     
     public func hasSuffix(_ str: String) -> Bool {
-        return range(of: str, options: [.anchoredSearch, .backwardsSearch], range: NSMakeRange(0, length)).location != NSNotFound
+        return range(of: str, options: [.anchored, .backwards], range: NSMakeRange(0, length)).location != NSNotFound
     }
     
-    public func commonPrefix(with str: String, options mask: NSStringCompareOptions = []) -> String {
+    public func commonPrefix(with str: String, options mask: CompareOptions = []) -> String {
         var currentSubstring: CFMutableString?
-        let isLiteral = mask.contains(.literalSearch)
+        let isLiteral = mask.contains(.literal)
         var lastMatch = NSRange()
         let selfLen = length
         let otherLen = str.length
@@ -484,7 +482,7 @@ extension NSString {
                 } else {
                     CFStringSetExternalCharactersNoCopy(currentSubstring, selfChars, range.length, range.length)
                 }
-                if other.range(of: currentSubstring!._swiftObject, options: mask.union(.anchoredSearch), range: NSMakeRange(0, otherLen)).length != 0 { // Match
+                if other.range(of: currentSubstring!._swiftObject, options: mask.union(.anchored), range: NSMakeRange(0, otherLen)).length != 0 { // Match
                     lastMatch = range
                     low = probe + 1
                 } else {
@@ -504,46 +502,46 @@ extension NSString {
     }
     
     public func localizedCaseInsensitiveContains(_ str: String) -> Bool {
-        return range(of: str, options: .caseInsensitiveSearch, range: NSMakeRange(0, length), locale: NSLocale.currentLocale()).location != NSNotFound
+        return range(of: str, options: .caseInsensitive, range: NSMakeRange(0, length), locale: Locale.currentLocale()).location != NSNotFound
     }
     
     public func localizedStandardContains(_ str: String) -> Bool {
-        return range(of: str, options: [.caseInsensitiveSearch, .diacriticInsensitiveSearch], range: NSMakeRange(0, length), locale: NSLocale.currentLocale()).location != NSNotFound
+        return range(of: str, options: [.caseInsensitive, .diacriticInsensitive], range: NSMakeRange(0, length), locale: Locale.currentLocale()).location != NSNotFound
     }
     
     public func localizedStandardRange(of str: String) -> NSRange {
-        return range(of: str, options: [.caseInsensitiveSearch, .diacriticInsensitiveSearch], range: NSMakeRange(0, length), locale: NSLocale.currentLocale())
+        return range(of: str, options: [.caseInsensitive, .diacriticInsensitive], range: NSMakeRange(0, length), locale: Locale.currentLocale())
     }
     
     public func range(of searchString: String) -> NSRange {
         return range(of: searchString, options: [], range: NSMakeRange(0, length), locale: nil)
     }
     
-    public func range(of searchString: String, options mask: NSStringCompareOptions = []) -> NSRange {
+    public func range(of searchString: String, options mask: CompareOptions = []) -> NSRange {
         return range(of: searchString, options: mask, range: NSMakeRange(0, length), locale: nil)
     }
     
-    public func range(of searchString: String, options mask: NSStringCompareOptions = [], range searchRange: NSRange) -> NSRange {
+    public func range(of searchString: String, options mask: CompareOptions = [], range searchRange: NSRange) -> NSRange {
         return range(of: searchString, options: mask, range: searchRange, locale: nil)
     }
     
-    internal func _rangeOfRegularExpressionPattern(regex pattern: String, options mask: NSStringCompareOptions, range searchRange: NSRange, locale: NSLocale?) -> NSRange {
+    internal func _rangeOfRegularExpressionPattern(regex pattern: String, options mask: CompareOptions, range searchRange: NSRange, locale: Locale?) -> NSRange {
         var matchedRange = NSMakeRange(NSNotFound, 0)
-        let regexOptions: NSRegularExpressionOptions = mask.contains(.caseInsensitiveSearch) ? .caseInsensitive : []
-        let matchingOptions: NSMatchingOptions = mask.contains(.anchoredSearch) ? .anchored : []
+        let regexOptions: RegularExpression.Options = mask.contains(.caseInsensitive) ? .caseInsensitive : []
+        let matchingOptions: NSMatchingOptions = mask.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             matchedRange = regex.rangeOfFirstMatch(in: _swiftObject, options: matchingOptions, range: searchRange)
         }
         return matchedRange
     }
     
-    public func range(of searchString: String, options mask: NSStringCompareOptions = [], range searchRange: NSRange, locale: NSLocale?) -> NSRange {
+    public func range(of searchString: String, options mask: CompareOptions = [], range searchRange: NSRange, locale: Locale?) -> NSRange {
         let findStrLen = searchString.length
         let len = length
         
         precondition(searchRange.length <= len && searchRange.location <= len - searchRange.length, "Bounds Range {\(searchRange.location), \(searchRange.length)} out of bounds; string length \(len)")
         
-        if mask.contains(.regularExpressionSearch) {
+        if mask.contains(.regularExpression) {
             return _rangeOfRegularExpressionPattern(regex: searchString, options: mask, range:searchRange, locale: locale)
         }
         
@@ -566,15 +564,15 @@ extension NSString {
         }
     }
     
-    public func rangeOfCharacter(from searchSet: NSCharacterSet) -> NSRange {
+    public func rangeOfCharacter(from searchSet: CharacterSet) -> NSRange {
         return rangeOfCharacter(from: searchSet, options: [], range: NSMakeRange(0, length))
     }
     
-    public func rangeOfCharacter(from searchSet: NSCharacterSet, options mask: NSStringCompareOptions = []) -> NSRange {
+    public func rangeOfCharacter(from searchSet: CharacterSet, options mask: CompareOptions = []) -> NSRange {
         return rangeOfCharacter(from: searchSet, options: mask, range: NSMakeRange(0, length))
     }
     
-    public func rangeOfCharacter(from searchSet: NSCharacterSet, options mask: NSStringCompareOptions = [], range searchRange: NSRange) -> NSRange {
+    public func rangeOfCharacter(from searchSet: CharacterSet, options mask: CompareOptions = [], range searchRange: NSRange) -> NSRange {
         let len = length
         
         precondition(searchRange.length <= len && searchRange.location <= len - searchRange.length, "Bounds Range {\(searchRange.location), \(searchRange.length)} out of bounds; string length \(len)")
@@ -619,53 +617,53 @@ extension NSString {
     public func appending(_ aString: String) -> String {
         return _swiftObject + aString
     }
-    
+
     public var doubleValue: Double {
         var start: Int = 0
         var result = 0.0
-        _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
+        let _ = _swiftObject.scan(CharacterSet.whitespaces, locale: nil, locationToScanFrom: &start) { (value: Double) -> Void in
             result = value
         }
         return result
     }
-    
+
     public var floatValue: Float {
         var start: Int = 0
         var result: Float = 0.0
-        _swiftObject.scan(NSCharacterSet.whitespaces(), locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
+        let _ = _swiftObject.scan(CharacterSet.whitespaces, locale: nil, locationToScanFrom: &start) { (value: Float) -> Void in
             result = value
         }
         return result
     }
-    
+
     public var intValue: Int32 {
-        return NSScanner(string: _swiftObject).scanInt() ?? 0
+        return Scanner(string: _swiftObject).scanInt() ?? 0
     }
-    
+
     public var integerValue: Int {
-        let scanner = NSScanner(string: _swiftObject)
+        let scanner = Scanner(string: _swiftObject)
         var value: Int = 0
-        scanner.scanInteger(&value)
+        let _ = scanner.scanInteger(&value)
         return value
     }
-    
+
     public var longLongValue: Int64 {
-        return NSScanner(string: _swiftObject).scanLongLong() ?? 0
+        return Scanner(string: _swiftObject).scanLongLong() ?? 0
     }
-    
+
     public var boolValue: Bool {
-        let scanner = NSScanner(string: _swiftObject)
+        let scanner = Scanner(string: _swiftObject)
         // skip initial whitespace if present
-        scanner.scanCharactersFromSet(NSCharacterSet.whitespaces())
+        let _ = scanner.scanCharactersFromSet(.whitespaces)
         // scan a single optional '+' or '-' character, followed by zeroes
         if scanner.scanString(string: "+") == nil {
-            scanner.scanString(string: "-")
+            let _ = scanner.scanString(string: "-")
         }
         // scan any following zeroes
-        scanner.scanCharactersFromSet(NSCharacterSet(charactersIn: "0"))
-        return scanner.scanCharactersFromSet(NSCharacterSet(charactersIn: "tTyY123456789")) != nil
+        let _ = scanner.scanCharactersFromSet(CharacterSet(charactersIn: "0"))
+        return scanner.scanCharactersFromSet(CharacterSet(charactersIn: "tTyY123456789")) != nil
     }
-    
+
     public var uppercased: String {
         return uppercased(with: nil)
     }
@@ -679,30 +677,30 @@ extension NSString {
     }
     
     public var localizedUppercase: String {
-        return uppercased(with: NSLocale.currentLocale())
+        return uppercased(with: Locale.currentLocale())
     }
     
     public var localizedLowercase: String {
-        return lowercased(with: NSLocale.currentLocale())
+        return lowercased(with: Locale.currentLocale())
     }
     
     public var localizedCapitalized: String {
-        return capitalized(with: NSLocale.currentLocale())
+        return capitalized(with: Locale.currentLocale())
     }
     
-    public func uppercased(with locale: NSLocale?) -> String {
+    public func uppercased(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
         CFStringUppercase(mutableCopy, locale?._cfObject ?? nil)
         return mutableCopy._swiftObject
     }
 
-    public func lowercased(with locale: NSLocale?) -> String {
+    public func lowercased(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
         CFStringLowercase(mutableCopy, locale?._cfObject ?? nil)
         return mutableCopy._swiftObject
     }
     
-    public func capitalized(with locale: NSLocale?) -> String {
+    public func capitalized(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
         CFStringCapitalize(mutableCopy, locale?._cfObject ?? nil)
         return mutableCopy._swiftObject
@@ -808,7 +806,7 @@ extension NSString {
         return NSMakeRange(start, parEnd - start)
     }
     
-    public func enumerateSubstrings(in range: NSRange, options opts: NSStringEnumerationOptions = [], using block: (String?, NSRange, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateSubstrings(in range: NSRange, options opts: EnumerationOptions = [], using block: (String?, NSRange, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         NSUnimplemented()
     }
     
@@ -819,21 +817,21 @@ extension NSString {
     }
     
     public var utf8String: UnsafePointer<Int8>? {
-        return _bytesInEncoding(self, NSUTF8StringEncoding, false, false, false)
+        return _bytesInEncoding(self, String.Encoding.utf8, false, false, false)
     }
     
     public var fastestEncoding: UInt {
-        return NSUnicodeStringEncoding
+        return String.Encoding.unicode.rawValue
     }
     
     public var smallestEncoding: UInt {
-        if canBeConverted(to: NSASCIIStringEncoding) {
-            return NSASCIIStringEncoding
+        if canBeConverted(to: String.Encoding.ascii.rawValue) {
+            return String.Encoding.ascii.rawValue
         }
-        return NSUnicodeStringEncoding
+        return String.Encoding.unicode.rawValue
     }
     
-    public func data(using encoding: UInt, allowLossyConversion lossy: Bool) -> NSData? {
+    public func data(using encoding: UInt, allowLossyConversion lossy: Bool) -> Data? {
         let len = length
         var reqSize = 0
         
@@ -842,37 +840,41 @@ extension NSString {
             return nil
         }
         
-        let convertedLen = __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == NSASCIIStringEncoding ? 0xFF : 0x3F) : 0, nil, 0, &reqSize)
+        let convertedLen = __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, nil, 0, &reqSize)
         if convertedLen != len {
             return nil 	// Not able to do it all...
         }
         
-        if let data = NSMutableData(length: reqSize) {
+        var data = Data(count: reqSize)
+        if data != nil {
             if 0 < reqSize {
-                if __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == NSASCIIStringEncoding ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(data.mutableBytes), reqSize, &reqSize) == convertedLen {
-                    data.length = reqSize
-                } else {
-                    fatalError("didn't convert all characters")
+                data!.count = data!.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<UInt8>) -> Int in
+                    if __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(mutableBytes), reqSize, &reqSize) == convertedLen {
+                        return reqSize
+                    } else {
+                        fatalError("didn't convert all characters")
+                    }
                 }
+                
                 return data
             }
         }
         return nil
     }
     
-    public func data(using encoding: UInt) -> NSData? {
+    public func data(using encoding: UInt) -> Data? {
         return data(using: encoding, allowLossyConversion: false)
     }
     
     public func canBeConverted(to encoding: UInt) -> Bool {
-        if encoding == NSUnicodeStringEncoding || encoding == NSNonLossyASCIIStringEncoding || encoding == NSUTF8StringEncoding {
+        if encoding == String.Encoding.unicode.rawValue || encoding == String.Encoding.nonLossyASCII.rawValue || encoding == String.Encoding.utf8.rawValue {
             return true
         }
         return __CFStringEncodeByteStream(_cfObject, 0, length, false, CFStringConvertNSStringEncodingToEncoding(encoding), 0, nil, 0, nil) == length
     }
    
     public func cString(using encoding: UInt) -> UnsafePointer<Int8>? { 
-        return _bytesInEncoding(self, encoding, false, false, false)
+        return _bytesInEncoding(self, String.Encoding(rawValue: encoding), false, false, false)
     }
     
     public func getCString(_ buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferCount: Int, encoding: UInt) -> Bool {
@@ -893,7 +895,7 @@ extension NSString {
         return false
     }
     
-    public func getBytes(_ buffer: UnsafeMutablePointer<Void>?, maxLength maxBufferCount: Int, usedLength usedBufferCount: UnsafeMutablePointer<Int>?, encoding: UInt, options: NSStringEncodingConversionOptions = [], range: NSRange, remaining leftover: NSRangePointer?) -> Bool {
+    public func getBytes(_ buffer: UnsafeMutablePointer<Void>?, maxLength maxBufferCount: Int, usedLength usedBufferCount: UnsafeMutablePointer<Int>?, encoding: UInt, options: EncodingConversionOptions = [], range: NSRange, remaining leftover: NSRangePointer?) -> Bool {
         var totalBytesWritten = 0
         var numCharsProcessed = 0
         let cfStringEncoding = CFStringConvertNSStringEncodingToEncoding(encoding)
@@ -902,8 +904,8 @@ extension NSString {
             if CFStringIsEncodingAvailable(cfStringEncoding) {
                 let lossyOk = options.contains(.allowLossy)
                 let externalRep = options.contains(.externalRepresentation)
-                let failOnPartial = options.contains(.FailOnPartialEncodingConversion)
-                numCharsProcessed = __CFStringEncodeByteStream(_cfObject, range.location, range.length, externalRep, cfStringEncoding, lossyOk ? (encoding == NSASCIIStringEncoding ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(buffer), buffer != nil ? maxBufferCount : 0, &totalBytesWritten)
+                let failOnPartial = options.contains(.failOnPartialEncodingConversion)
+                numCharsProcessed = __CFStringEncodeByteStream(_cfObject, range.location, range.length, externalRep, cfStringEncoding, lossyOk ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(buffer), buffer != nil ? maxBufferCount : 0, &totalBytesWritten)
                 if (failOnPartial && numCharsProcessed < range.length) || numCharsProcessed == 0 {
                     result = false
                 }
@@ -942,7 +944,7 @@ extension NSString {
                     numEncodings += 1
                 }
                 
-                let theEncodingList = UnsafeMutablePointer<NSStringEncoding>(allocatingCapacity: numEncodings + 1)
+                let theEncodingList = UnsafeMutablePointer<String.Encoding.RawValue>(allocatingCapacity: numEncodings + 1)
                 theEncodingList.advanced(by: numEncodings).pointee = 0 // Terminator
                 
                 numEncodings -= 1
@@ -1021,7 +1023,7 @@ extension NSString {
         }
     }
     
-    public func components(separatedBy separator: NSCharacterSet) -> [String] {
+    public func components(separatedBy separator: CharacterSet) -> [String] {
         let len = length
         var range = rangeOfCharacter(from: separator, options: [], range: NSMakeRange(0, len))
         if range.length == 0 {
@@ -1044,10 +1046,10 @@ extension NSString {
         }
     }
     
-    public func trimmingCharacters(in set: NSCharacterSet) -> String {
+    public func trimmingCharacters(in set: CharacterSet) -> String {
         let len = length
         var buf = _NSStringBuffer(string: self, start: 0, end: len)
-        while !buf.isAtEnd && set.characterIsMember(buf.currentCharacter) {
+        while !buf.isAtEnd && set.contains(buf.currentCharacter) {
             buf.advance()
         }
         
@@ -1057,7 +1059,7 @@ extension NSString {
             return ""
         } else if startOfNonTrimmedRange < len - 1 {
             buf.location = len - 1
-            while set.characterIsMember(buf.currentCharacter) && buf.location >= startOfNonTrimmedRange {
+            while set.contains(buf.currentCharacter) && buf.location >= startOfNonTrimmedRange {
                 buf.rewind()
             }
             let endOfNonTrimmedRange = buf.location
@@ -1085,27 +1087,27 @@ extension NSString {
         return mStr._swiftObject
     }
     
-    public func folding(_ options: NSStringCompareOptions = [], locale: NSLocale?) -> String {
+    public func folding(_ options: CompareOptions = [], locale: Locale?) -> String {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringFold(string, options._cfValue(), locale?._cfObject)
         return string._swiftObject
     }
     
-    internal func _stringByReplacingOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: NSStringCompareOptions, range: NSRange) -> String {
-        let regexOptions: NSRegularExpressionOptions = options.contains(.caseInsensitiveSearch) ? .caseInsensitive : []
-        let matchingOptions: NSMatchingOptions = options.contains(.anchoredSearch) ? .anchored : []
+    internal func _stringByReplacingOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: CompareOptions, range: NSRange) -> String {
+        let regexOptions: RegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
+        let matchingOptions: NSMatchingOptions = options.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             return regex.stringByReplacingMatches(in: _swiftObject, options: matchingOptions, range: range, withTemplate: replacement)
         }
         return ""
     }
     
-    public func replacingOccurrences(of target: String, with replacement: String, options: NSStringCompareOptions = [], range searchRange: NSRange) -> String {
-        if options.contains(.regularExpressionSearch) {
+    public func replacingOccurrences(of target: String, with replacement: String, options: CompareOptions = [], range searchRange: NSRange) -> String {
+        if options.contains(.regularExpression) {
             return _stringByReplacingOccurrencesOfRegularExpressionPattern(target, withTemplate: replacement, options: options, range: searchRange)
         }
-        let str = mutableCopyWithZone(nil) as! NSMutableString
+        let str = mutableCopy(with: nil) as! NSMutableString
         if str.replaceOccurrences(of: target, with: replacement, options: options, range: searchRange) == 0 {
             return _swiftObject
         } else {
@@ -1118,7 +1120,7 @@ extension NSString {
     }
     
     public func replacingCharacters(in range: NSRange, with replacement: String) -> String {
-        let str = mutableCopyWithZone(nil) as! NSMutableString
+        let str = mutableCopy(with: nil) as! NSMutableString
         str.replaceCharacters(in: range, with: replacement)
         return str._swiftObject
     }
@@ -1133,7 +1135,7 @@ extension NSString {
         }
     }
     
-    internal func _getExternalRepresentation(_ data: inout NSData, _ dest: NSURL, _ enc: UInt) throws {
+    internal func _getExternalRepresentation(_ data: inout Data, _ dest: URL, _ enc: UInt) throws {
         let length = self.length
         var numBytes = 0
         let theRange = NSMakeRange(0, length)
@@ -1142,40 +1144,31 @@ extension NSString {
                 NSURLErrorKey: dest,
             ])
         }
-        let mData = NSMutableData(length: numBytes)!
+        var mData = Data(count: numBytes)!
         // The getBytes:... call should hopefully not fail, given it succeeded above, but check anyway (mutable string changing behind our back?)
         var used = 0
-        if !getBytes(mData.mutableBytes, maxLength: numBytes, usedLength: &used, encoding: enc, options: [], range: theRange, remaining: nil) {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnknownError.rawValue, userInfo: [
-                NSURLErrorKey: dest,
-            ])
+        try mData.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<Void>) -> Void in
+            if !getBytes(mutableBytes, maxLength: numBytes, usedLength: &used, encoding: enc, options: [], range: theRange, remaining: nil) {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnknownError.rawValue, userInfo: [
+                    NSURLErrorKey: dest,
+                ])
+            }
         }
         data = mData
     }
     
-    internal func _writeTo(_ url: NSURL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
-        var data = NSData()
+    internal func _writeTo(_ url: URL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
+        var data = Data()
         try _getExternalRepresentation(&data, url, enc)
-        
-        if url.fileURL {
-            try data.write(to: url, options: useAuxiliaryFile ? .dataWritingAtomic : [])
-        } else {
-            if let path = url.path {
-                try data.write(toFile: path, options: useAuxiliaryFile ? .dataWritingAtomic : [])
-            } else {
-                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [
-                    NSURLErrorKey: url,
-                ])
-            }
-        }
+        try data.write(to: url, options: useAuxiliaryFile ? .dataWritingAtomic : [])
     }
     
-    public func write(to url: NSURL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
+    public func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
         try _writeTo(url, useAuxiliaryFile, enc)
     }
     
     public func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
-        try _writeTo(NSURL(fileURLWithPath: path), useAuxiliaryFile, enc)
+        try _writeTo(URL(fileURLWithPath: path), useAuxiliaryFile, enc)
     }
     
     public convenience init(charactersNoCopy characters: UnsafeMutablePointer<unichar>, length: Int, freeWhenDone freeBuffer: Bool) /* "NoCopy" is a hint */ {
@@ -1203,7 +1196,7 @@ extension NSString {
     public convenience init(format: String, locale: AnyObject?, arguments argList: CVaListPointer) {
         let str: CFString
         if let loc = locale {
-            if loc.dynamicType === NSLocale.self || loc.dynamicType === NSDictionary.self {
+            if loc.dynamicType === Locale.self || loc.dynamicType === NSDictionary.self {
                 str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(loc, to: CFDictionary.self), format._cfObject, argList)
             } else {
                 fatalError("locale parameter must be a NSLocale or a NSDictionary")
@@ -1221,8 +1214,17 @@ extension NSString {
         self.init(str._swiftObject)
     }
     
-    public convenience init?(data: NSData, encoding: UInt) {
-        self.init(bytes: data.bytes, length: data.length, encoding: encoding)
+    public convenience init?(data: Data, encoding: UInt) {
+        guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<Void>) -> CFString? in
+            return CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(bytes), data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
+        }) else { return nil }
+        
+        var str: String?
+        if String._conditionallyBridgeFromObject(cf._nsObject, result: &str) {
+            self.init(str!)
+        } else {
+            return nil
+        }
     }
     
     public convenience init?(bytes: UnsafePointer<Void>, length len: Int, encoding: UInt) {
@@ -1257,8 +1259,9 @@ extension NSString {
         }
     }
 
-    public convenience init(contentsOfURL url: NSURL, encoding enc: UInt) throws {
-        let readResult = try NSData.init(contentsOfURL: url, options: [])
+    public convenience init(contentsOf url: URL, encoding enc: UInt) throws {
+        let readResult = try NSData(contentsOf: url, options: [])
+
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to create a string using the specified encoding."
@@ -1275,10 +1278,10 @@ extension NSString {
     }
 
     public convenience init(contentsOfFile path: String, encoding enc: UInt) throws {
-        try self.init(contentsOfURL: NSURL(fileURLWithPath: path), encoding: enc)
+        try self.init(contentsOf: URL(fileURLWithPath: path), encoding: enc)
     }
     
-    public convenience init(contentsOfURL url: NSURL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
+    public convenience init(contentsOf url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
         NSUnimplemented()    
     }
     
@@ -1291,15 +1294,15 @@ extension NSString : StringLiteralConvertible { }
 
 public class NSMutableString : NSString {
     public func replaceCharacters(in range: NSRange, with aString: String) {
-        if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
-            // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
-            let start = _storage.startIndex
-            let min = _storage.index(start, offsetBy: range.location)
-            let max = _storage.index(start, offsetBy: range.location + range.length)
-            _storage.replaceSubrange(min..<max, with: aString)
-        } else {
+        guard self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self else {
             NSRequiresConcreteImplementation()
         }
+
+        // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
+        let start = _storage.startIndex
+        let min = _storage.index(start, offsetBy: range.location)
+        let max = _storage.index(start, offsetBy: range.location + range.length)
+        _storage.replaceSubrange(min..<max, with: aString)
     }
     
     public required override init(characters: UnsafePointer<unichar>, length: Int) {
@@ -1371,22 +1374,22 @@ extension NSMutableString {
         replaceCharacters(in: NSMakeRange(0, length), with: aString)
     }
     
-    internal func _replaceOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: NSStringCompareOptions, range searchRange: NSRange) -> Int {
-        let regexOptions: NSRegularExpressionOptions = options.contains(.caseInsensitiveSearch) ? .caseInsensitive : []
-        let matchingOptions: NSMatchingOptions = options.contains(.anchoredSearch) ? .anchored : []
+    internal func _replaceOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: CompareOptions, range searchRange: NSRange) -> Int {
+        let regexOptions: RegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
+        let matchingOptions: NSMatchingOptions = options.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             return regex.replaceMatches(in: self, options: matchingOptions, range: searchRange, withTemplate: replacement)
         }
         return 0
     }
     
-    public func replaceOccurrences(of target: String, with replacement: String, options: NSStringCompareOptions = [], range searchRange: NSRange) -> Int {
-        let backwards = options.contains(.backwardsSearch)
+    public func replaceOccurrences(of target: String, with replacement: String, options: CompareOptions = [], range searchRange: NSRange) -> Int {
+        let backwards = options.contains(.backwards)
         let len = length
         
         precondition(searchRange.length <= len && searchRange.location <= len - searchRange.length, "Search range is out of bounds")
         
-        if options.contains(.regularExpressionSearch) {
+        if options.contains(.regularExpression) {
             return _replaceOccurrencesOfRegularExpressionPattern(target, withTemplate:replacement, options:options, range: searchRange)
         }
         
@@ -1466,3 +1469,26 @@ extension NSString : CustomPlaygroundQuickLookable {
         return .text(self.bridge())
     }
 }
+
+#if !(os(OSX) || os(iOS))
+extension String {
+    public func hasPrefix(_ prefix: String) -> Bool {
+        let cfstring = self._cfObject
+        let range = CFRangeMake(0, CFStringGetLength(cfstring))
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareNonliteral)
+        
+        return CFStringFindWithOptions(cfstring, prefix._cfObject,
+                                       range, opts, nil)
+    }
+    
+    public func hasSuffix(_ suffix: String) -> Bool {
+        let cfstring = self._cfObject
+        let range = CFRangeMake(0, CFStringGetLength(cfstring))
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareBackwards | kCFCompareNonliteral)
+        return CFStringFindWithOptions(cfstring, suffix._cfObject,
+                                       range, opts, nil)
+    }
+}
+#endif

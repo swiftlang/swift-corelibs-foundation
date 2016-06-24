@@ -16,11 +16,11 @@ import Glibc
 
 import CoreFoundation
 
-public class NSHost : NSObject {
+public class Host: NSObject {
     enum ResolveType {
-        case Name
-        case Address
-        case Current
+        case name
+        case address
+        case current
     }
     internal var _info: String?
     internal var _type: ResolveType
@@ -33,21 +33,21 @@ public class NSHost : NSObject {
         _type = type
     }
     
-    static internal let current = NSHost(nil, .Current)
+    static internal let current = Host(nil, .current)
     
-    public class func currentHost() -> NSHost {
-        return NSHost.current
+    public class func currentHost() -> Host {
+        return Host.current
     }
     
     public convenience init(name: String?) {
-        self.init(name, .Name)
+        self.init(name, .name)
     }
     
     public convenience init(address: String) {
-        self.init(address, .Address)
+        self.init(address, .address)
     }
     
-    public func isEqualToHost(_ aHost: NSHost) -> Bool {
+    public func isEqual(to aHost: Host) -> Bool {
         return false
     }
     
@@ -62,13 +62,13 @@ public class NSHost : NSObject {
         if let info = _info {
             var flags: Int32 = 0
             switch (_type) {
-            case .Name:
+            case .name:
                 flags = AI_PASSIVE | AI_CANONNAME
                 break
-            case .Address:
+            case .address:
                 flags = AI_PASSIVE | AI_CANONNAME | AI_NUMERICHOST
                 break
-            case .Current:
+            case .current:
                 _resolveCurrent()
                 return
             }
@@ -90,7 +90,7 @@ public class NSHost : NSObject {
                     res = info.ai_next
                     continue
                 }
-                let sa_len: socklen_t = socklen_t((family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in))
+                let sa_len: socklen_t = socklen_t((family == AF_INET6) ? sizeof(sockaddr_in6.self) : sizeof(sockaddr_in.self))
                 let lookupInfo = { (content: inout [String], flags: Int32) in
                     let hname = UnsafeMutablePointer<Int8>(allocatingCapacity: 1024)
                     if (getnameinfo(info.ai_addr, sa_len, hname, 1024, nil, 0, flags) == 0) {

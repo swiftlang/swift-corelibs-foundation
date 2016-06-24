@@ -33,25 +33,25 @@ class TestNSTimeZone: XCTestCase {
     }
 
     func test_abbreviation() {
-        let tz = NSTimeZone.systemTimeZone()
+        let tz = TimeZone.systemTimeZone()
         let abbreviation1 = tz.abbreviation
-        let abbreviation2 = tz.abbreviation(for: NSDate())
+        let abbreviation2 = tz.abbreviation(for: Date())
         XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1) should be equal to \(abbreviation2)")
     }
     
     func test_initializingTimeZoneWithOffset() {
-        let tz = NSTimeZone(name: "GMT-0400")
+        let tz = TimeZone(name: "GMT-0400")
         XCTAssertNotNil(tz)
-        let seconds = tz?.secondsFromGMT(for: NSDate())
+        let seconds = tz?.secondsFromGMT(for: Date())
         XCTAssertEqual(seconds, -14400, "GMT-0400 should be -14400 seconds but got \(seconds) instead")
     }
     
     func test_initializingTimeZoneWithAbbreviation() {
         // Test invalid timezone abbreviation
-        var tz = NSTimeZone(abbreviation: "XXX")
+        var tz = TimeZone(abbreviation: "XXX")
         XCTAssertNil(tz)
         // Test valid timezone abbreviation of "AST" for "America/Halifax"
-        tz = NSTimeZone(abbreviation: "AST")
+        tz = TimeZone(abbreviation: "AST")
         let expectedName = "America/Halifax"
         XCTAssertEqual(tz?.name, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(tz?.name)\"")
     }
@@ -61,8 +61,8 @@ class TestNSTimeZone: XCTestCase {
         var t = time(nil)
         var lt = tm()
         localtime_r(&t, &lt)
-        let zoneName = NSTimeZone.systemTimeZone().abbreviation ?? "Invalid Abbreviation"
-        let expectedName = NSString(CString: lt.tm_zone, encoding: NSASCIIStringEncoding)?.bridge() ?? "Invalid Zone"
+        let zoneName = TimeZone.systemTimeZone().abbreviation ?? "Invalid Abbreviation"
+        let expectedName = String(cString: lt.tm_zone, encoding: String.Encoding.ascii) ?? "Invalid Zone"
         XCTAssertEqual(zoneName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(zoneName)\"")
     }
 }

@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-public class NSLocale : NSObject, NSCopying, NSSecureCoding {
+public class Locale: NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFLocale
     private var _base = _CFInfo(typeID: CFLocaleGetTypeID())
     private var _identifier: UnsafeMutablePointer<Void>? = nil
@@ -52,15 +52,17 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func copy(with zone: NSZone? = nil) -> AnyObject { 
+        return self 
+    }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             let identifier = CFLocaleGetIdentifier(self._cfObject)
-            aCoder.encodeObject(identifier, forKey: "NS.identifier")
+            aCoder.encode(identifier, forKey: "NS.identifier")
         } else {
             NSUnimplemented()
         }
@@ -71,17 +73,17 @@ public class NSLocale : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-extension NSLocale {
-    public class func currentLocale() -> NSLocale {
+extension Locale {
+    public class func currentLocale() -> Locale {
         return CFLocaleCopyCurrent()._nsObject
     }
     
-    public class func systemLocale() -> NSLocale {
+    public class func systemLocale() -> Locale {
         return CFLocaleGetSystem()._nsObject
     }
 }
 
-extension NSLocale {
+extension Locale {
     
     public class func availableLocaleIdentifiers() -> [String] {
         var identifiers = Array<String>()
@@ -133,8 +135,11 @@ extension NSLocale {
     
     public class func componentsFromLocaleIdentifier(_ string: String) -> [String : String] {
         var comps = Dictionary<String, String>()
-        CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._nsObject.enumerateKeysAndObjectsUsingBlock { (key: NSObject, object: AnyObject, stop: UnsafeMutablePointer<ObjCBool>) -> Void in
-            comps[(key as! NSString)._swiftObject] = (object as! NSString)._swiftObject
+        let values = CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._nsObject
+        values.enumerateKeysAndObjects([]) { (k, v, stop) in
+            let key = (k as! NSString)._swiftObject
+            let value = (v as! NSString)._swiftObject
+            comps[key] = value
         }
         return comps
     }
@@ -179,11 +184,11 @@ extension NSLocale {
 }
 
 public enum NSLocaleLanguageDirection : UInt {
-    case Unknown
-    case LeftToRight
-    case RightToLeft
-    case TopToBottom
-    case BottomToTop
+    case unknown
+    case leftToRight
+    case rightToLeft
+    case topToBottom
+    case bottomToTop
 }
 
 public let NSCurrentLocaleDidChangeNotification: String = "kCFLocaleCurrentLocaleDidChangeNotification"
@@ -210,8 +215,8 @@ public let NSLocaleAlternateQuotationBeginDelimiterKey: String = "kCFLocaleAlter
 public let NSLocaleAlternateQuotationEndDelimiterKey: String = "kCFLocaleAlternateQuotationEndDelimiterKey"
 
 extension CFLocale : _NSBridgable {
-    typealias NSType = NSLocale
-    internal var _nsObject: NSLocale {
+    typealias NSType = Locale
+    internal var _nsObject: Locale {
         return unsafeBitCast(self, to: NSType.self)
     }
 }

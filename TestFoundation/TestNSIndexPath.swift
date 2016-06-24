@@ -28,28 +28,28 @@ class TestNSIndexPath: XCTestCase {
     func test_BasicConstruction() {
         // Test `init()`
         do {
-            let path = NSIndexPath()
-            XCTAssertEqual(path.length, 0)
+            let path = IndexPath()
+            XCTAssertEqual(path.count, 0)
         }
         
         // Test `init(index:)`
         do {
-            let path = NSIndexPath(index: 8)
-            XCTAssertEqual(path.length, 1)
+            let path = IndexPath(index: 8)
+            XCTAssertEqual(path.count, 1)
             
-            let index0 = path.indexAtPosition(0)
+            let index0 = path[0]
             XCTAssertEqual(index0, 8)
         }
         
         // Test `init(indexes:)`
         do {
-            let path = NSIndexPath(indexes: [1, 2], length: 2)
-            XCTAssertEqual(path.length, 2)
+            let path = IndexPath(indexes: [1, 2])
+            XCTAssertEqual(path.count, 2)
             
-            let index0 = path.indexAtPosition(0)
+            let index0 = path[0]
             XCTAssertEqual(index0, 1)
             
-            let index1 = path.indexAtPosition(1)
+            let index1 = path[1]
             XCTAssertEqual(index1, 2)
         }
     }

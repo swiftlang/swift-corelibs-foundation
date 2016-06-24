@@ -15,7 +15,8 @@ foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefi
 
 if Configuration.current.target.sdk == OSType.Linux:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE '
-	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `icu-config --ldflags` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString -Wl,-Bsymbolic '
+	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `${PKG_CONFIG} icu-uc icu-i18n --libs` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString -Wl,-Bsymbolic '
+	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 '
 	foundation.LDFLAGS = ''
@@ -48,21 +49,23 @@ foundation.CFLAGS += " ".join([
 	'-Wno-unused-variable',
 	'-Wno-int-conversion',
 	'-Wno-unused-function',
-	'-I/usr/include/libxml2',
+	'-I${SYSROOT}/usr/include/libxml2',
 	'-I./',
 ])
 
 swift_cflags = [
 	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
-	'-I/usr/include/libxml2'
+	'-I${SYSROOT}/usr/include/libxml2'
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	swift_cflags += [
 		'-I${XCTEST_BUILD_DIR}',
 		'-L${XCTEST_BUILD_DIR}',
-		'-I/usr/include/libxml2'
+		'-I${SYSROOT}/usr/include/libxml2'
 	]
+
+foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore -lxml2 '
 
 # Configure use of Dispatch in CoreFoundation and Foundation if libdispatch is being built
 #if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
@@ -74,19 +77,18 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 #	swift_cflags += ([
 #		'-DDEPLOYMENT_ENABLE_LIBDISPATCH',
 #		'-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
-#		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src'
+#		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src',
+#		'-Xcc -fblocks'
 #	])
-#	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs '
+#	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
-
-foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore -lxml2 '
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	foundation.LDFLAGS += '-L${XCTEST_BUILD_DIR}'
 
 headers = CopyHeaders(
-module = 'CoreFoundation/Base.subproj/linux.modulemap',
+module = 'CoreFoundation/Base.subproj/module.modulemap',
 public = [
 	'CoreFoundation/Stream.subproj/CFStream.h',
 	'CoreFoundation/String.subproj/CFStringEncodingExt.h',
@@ -259,7 +261,7 @@ sources = CompileSources([
 	'CoreFoundation/URL.subproj/CFURLComponents.c',
 	'CoreFoundation/URL.subproj/CFURLComponents_URIParser.c',
 	'CoreFoundation/String.subproj/CFCharacterSetData.S',
-	'CoreFoundation/String.subproj/CFUnicodeDataL.S',
+	'CoreFoundation/String.subproj/CFUnicodeData.S',
 	'CoreFoundation/String.subproj/CFUniCharPropertyDatabase.S',
 	'CoreFoundation/String.subproj/CFRegularExpression.c',
 	'CoreFoundation/String.subproj/CFAttributedString.c',
@@ -283,6 +285,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSCFSet.swift',
 	'Foundation/NSCFString.swift',
 	'Foundation/NSCharacterSet.swift',
+	'Foundation/NSCFCharacterSet.swift',
 	'Foundation/NSCoder.swift',
 	'Foundation/NSComparisonPredicate.swift',
 	'Foundation/NSCompoundPredicate.swift',
@@ -372,6 +375,26 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSXMLNodeOptions.swift',
 	'Foundation/NSXMLParser.swift',
 	'Foundation/FoundationErrors.swift',
+	'Foundation/URL.swift',
+	'Foundation/Boxing.swift',
+	'Foundation/ReferenceConvertible.swift',
+	'Foundation/Date.swift',
+	'Foundation/Data.swift',
+	'Foundation/CharacterSet.swift',
+	'Foundation/URLRequest.swift',
+	'Foundation/PersonNameComponents.swift',
+	'Foundation/Notification.swift',
+	'Foundation/URLComponents.swift',
+	'Foundation/DateComponents.swift',
+	'Foundation/DateInterval.swift',
+	'Foundation/IndexPath.swift',
+	'Foundation/IndexSet.swift',
+	'Foundation/NSStringEncodings.swift',
+	'Foundation/ExtraStringAPIs.swift',
+	'Foundation/Measurement.swift',
+	'Foundation/NSMeasurement.swift',
+	'Foundation/NSMeasurementFormatter.swift',
+	'Foundation/Unit.swift',
 ])
 
 swift_sources.add_dependency(headers)
@@ -411,6 +434,12 @@ foundation.add_phase(plutil)
 
 script.add_product(foundation)
 
+LIBS_DIRS = "LD_LIBRARY_PATH=${BUILD_DIR}/Foundation/"
+if "XCTEST_BUILD_DIR" in Configuration.current.variables:
+    LIBS_DIRS += ":${XCTEST_BUILD_DIR}" 
+if "LIBDISPATCH_BUILD_DIR" in Configuration.current.variables:
+    LIBS_DIRS += ":"+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+"/src/.libs"
+
 extra_script = """
 rule InstallFoundation
     command = mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
@@ -426,21 +455,9 @@ build ${BUILD_DIR}/.install: InstallFoundation ${BUILD_DIR}/Foundation/${DYLIB_P
 build install: phony | ${BUILD_DIR}/.install
 
 """
-if "XCTEST_BUILD_DIR" in Configuration.current.variables:
-	extra_script += """
+extra_script += """
 rule RunTestFoundation
-    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${XCTEST_BUILD_DIR} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${XCTEST_BUILD_DIR} lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
-    description = Building Tests
-
-build ${BUILD_DIR}/.test: RunTestFoundation | TestFoundation
-
-build test: phony | ${BUILD_DIR}/.test
-
-"""
-else:
-	extra_script += """
-rule RunTestFoundation
-    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/ ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/ lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
+    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${LIBS_DIRS} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${LIBS_DIRS} lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
     description = Building Tests
 
 build ${BUILD_DIR}/.test: RunTestFoundation | TestFoundation

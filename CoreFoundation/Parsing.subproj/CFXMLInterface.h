@@ -153,7 +153,7 @@ void _CFXMLNodeSetPrivateData(_CFXMLNodePtr node, void* data);
 void* _Nullable  _CFXMLNodeGetPrivateData(_CFXMLNodePtr node);
 _CFXMLNodePtr _Nullable _CFXMLNodeProperties(_CFXMLNodePtr node);
 CFIndex _CFXMLNodeGetType(_CFXMLNodePtr node);
-const char* _CFXMLNodeGetName(_CFXMLNodePtr node);
+const char* _Nullable _CFXMLNodeGetName(_CFXMLNodePtr node);
 void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name);
 CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNodeGetContent(_CFXMLNodePtr node);
 void _CFXMLNodeSetContent(_CFXMLNodePtr node,  const unsigned char* _Nullable content);

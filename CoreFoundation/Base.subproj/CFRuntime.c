@@ -349,7 +349,7 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
     return memory;
 #else
     if (__CFRuntimeClassTableSize <= typeID) HALT;
-    CFAssert1(typeID != _kCFRuntimeNotATypeID, __kCFLogAssertion, "%s(): Uninitialized type id", __PRETTY_FUNCTION__);
+    CFAssert(typeID != _kCFRuntimeNotATypeID, __kCFLogAssertion, "%s(): Uninitialized type id", __PRETTY_FUNCTION__);
     CFRuntimeClass *cls = __CFRuntimeClassTable[typeID];
     if (NULL == cls) {
 	return NULL;
@@ -426,7 +426,7 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
 #if DEPLOYMENT_RUNTIME_SWIFT
 #else
 void _CFRuntimeInitStaticInstance(void *ptr, CFTypeID typeID) {
-    CFAssert1(typeID != _kCFRuntimeNotATypeID, __kCFLogAssertion, "%s(): Uninitialized type id", __PRETTY_FUNCTION__);
+    CFAssert(typeID != _kCFRuntimeNotATypeID, __kCFLogAssertion, "%s(): Uninitialized type id", __PRETTY_FUNCTION__);
     if (__CFRuntimeClassTableSize <= typeID) HALT;
     CFRuntimeClass *cfClass = __CFRuntimeClassTable[typeID];
     Boolean customRC = !!(cfClass->version & _kCFRuntimeCustomRefCount);
@@ -555,12 +555,12 @@ CF_PRIVATE void __CFGenericValidateType_(CFTypeRef cf, CFTypeID type, const char
     if (cf && CF_IS_SWIFT(type, (CFSwiftRef)cf)) return;
 #endif
     if (cf && CF_IS_OBJC(type, cf)) return;
-    CFAssert2((cf != NULL) && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)), __kCFLogAssertion, "%s(): pointer %p is not a CF object", func, cf); \
-    CFAssert3(__CFGenericTypeID_inline(cf) == type, __kCFLogAssertion, "%s(): pointer %p is not a %s", func, cf, __CFRuntimeClassTable[type]->className);	\
+    CFAssert((cf != NULL) && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)), __kCFLogAssertion, "%s(): pointer %p is not a CF object", func, cf); \
+    CFAssert(__CFGenericTypeID_inline(cf) == type, __kCFLogAssertion, "%s(): pointer %p is not a %s", func, cf, __CFRuntimeClassTable[type]->className);	\
 }
 
 #define __CFGenericAssertIsCF(cf) \
-    CFAssert2(cf != NULL && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)), __kCFLogAssertion, "%s(): pointer %p is not a CF object", __PRETTY_FUNCTION__, cf);
+    CFAssert(cf != NULL && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)), __kCFLogAssertion, "%s(): pointer %p is not a CF object", __PRETTY_FUNCTION__, cf);
 
 
 #define CFTYPE_IS_OBJC(obj) (false)
@@ -590,7 +590,7 @@ CFTypeID CFGetTypeID(CFTypeRef cf) {
 }
 
 CFStringRef CFCopyTypeIDDescription(CFTypeID type) {
-    CFAssert2((NULL != __CFRuntimeClassTable[type]) && __kCFNotATypeTypeID != type && __kCFTypeTypeID != type, __kCFLogAssertion, "%s(): type %d is not a CF type ID", __PRETTY_FUNCTION__, type);
+    CFAssert((NULL != __CFRuntimeClassTable[type]) && __kCFNotATypeTypeID != type && __kCFTypeTypeID != type, __kCFLogAssertion, "%s(): type %d is not a CF type ID", __PRETTY_FUNCTION__, type);
     return CFStringCreateWithCString(kCFAllocatorSystemDefault, __CFRuntimeClassTable[type]->className, kCFStringEncodingASCII);
 }
 
@@ -1259,8 +1259,8 @@ static CFBundleRef RegisterCoreFoundationBundle(void) {
     CFAssert(ourModule, __kCFLogAssertion, "GetModuleHandle failed");
 
     wResult = GetModuleFileNameW(ourModule, path, MAX_PATH+1);
-    CFAssert1(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
-    CFAssert1(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", path);
+    CFAssert(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
+    CFAssert(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", path);
 
     // strip off last component, the DLL name
     for (idx = wResult - 1; idx; idx--) {
@@ -1337,6 +1337,7 @@ static bool (*CAS32)(int32_t, int32_t, volatile int32_t *) = OSAtomicCompareAndS
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 extern void swift_retain(void *);
+extern void swift_release(void *);
 #endif
 
 // For "tryR==true", a return of NULL means "failed".
@@ -1468,7 +1469,6 @@ Boolean _CFIsDeallocating(CFTypeRef cf) {
 static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 #if DEPLOYMENT_RUNTIME_SWIFT
     // We always call through to swift_release, since all CFTypeRefs are at least _NSCFType objects
-    extern void swift_release(void *);
     swift_release((void *)cf);
 #else
     uint32_t cfinfo = *(uint32_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
@@ -1817,6 +1817,25 @@ void * objc_retainAutoreleasedReturnValue(void *obj) {
         return obj;
     }
     else return NULL;
+}
+
+CFHashCode __CFHashDouble(double d) {
+    return _CFHashDouble(d);
+}
+
+void * _Nullable _CFSwiftRetain(void *_Nullable t) {
+    if (t != NULL) {
+        swift_retain((void *)t);
+        return t;
+    } else {
+        return NULL;
+    }
+}
+
+void _CFSwiftRelease(void *_Nullable t) {
+    if (t != NULL) {
+        swift_release(t);
+    }
 }
 
 #endif

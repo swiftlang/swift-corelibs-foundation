@@ -14,12 +14,12 @@ public let NSArgumentDomain: String = "NSArgumentDomain"
 public let NSRegistrationDomain: String = "NSRegistrationDomain"
 
 private var registeredDefaults = [String: AnyObject]()
-private var sharedDefaults = NSUserDefaults()
+private var sharedDefaults = UserDefaults()
 
-public class NSUserDefaults : NSObject {
+public class UserDefaults: NSObject {
     private let suite: String?
     
-    public class func standardUserDefaults() -> NSUserDefaults {
+    public class func standardUserDefaults() -> UserDefaults {
         return sharedDefaults
     }
     
@@ -88,10 +88,10 @@ public class NSUserDefaults : NSObject {
             cfType = bType._cfObject
         } else if let bType = value as? NSDictionary {
             cfType = bType._cfObject
-        } else if let bType = value as? NSURL {
+        } else if let bType = value as? URL {
 			setURL(bType, forKey: defaultName)
 			return
-        } else if let bType = value as? NSData {
+        } else if let bType = value as? Data {
             cfType = bType._cfObject
         }
         
@@ -120,14 +120,14 @@ public class NSUserDefaults : NSObject {
         //This got out of hand fast...
         let cVal = bVal._swiftObject
         enum convErr: ErrorProtocol {
-            case ConvErr
+            case convErr
         }
         do {
             let dVal = try cVal.map({ (key, val) -> (String, AnyObject) in
                 if let strKey = key as? NSString {
                     return (strKey._swiftObject, val)
                 } else {
-                    throw convErr.ConvErr
+                    throw convErr.convErr
                 }
             })
             var eVal = [String : AnyObject]()
@@ -140,8 +140,8 @@ public class NSUserDefaults : NSObject {
         } catch _ { }
         return nil
     }
-    public func dataForKey(_ defaultName: String) -> NSData? {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSData else {
+    public func dataForKey(_ defaultName: String) -> Data? {
+        guard let aVal = objectForKey(defaultName), bVal = aVal as? Data else {
             return nil
         }
         return bVal
@@ -176,7 +176,7 @@ public class NSUserDefaults : NSObject {
         }
         return bVal.boolValue
     }
-    public func URLForKey(_ defaultName: String) -> NSURL? {
+    public func URLForKey(_ defaultName: String) -> URL? {
         guard let aVal = objectForKey(defaultName) else {
             return nil
         }
@@ -184,9 +184,9 @@ public class NSUserDefaults : NSObject {
         if let bVal = aVal as? NSString {
             let cVal = bVal.stringByExpandingTildeInPath
             
-            return NSURL(fileURLWithPath: cVal)
-        } else if let bVal = aVal as? NSData {
-            return NSKeyedUnarchiver.unarchiveObjectWithData(bVal) as? NSURL
+            return URL(fileURLWithPath: cVal)
+        } else if let bVal = aVal as? Data {
+            return NSKeyedUnarchiver.unarchiveObjectWithData(bVal) as? URL
         }
         
         return nil
@@ -204,7 +204,7 @@ public class NSUserDefaults : NSObject {
     public func setBool(_ value: Bool, forKey defaultName: String) {
         setObject(NSNumber(value: value), forKey: defaultName)
     }
-    public func setURL(_ url: NSURL?, forKey defaultName: String) {
+    public func setURL(_ url: URL?, forKey defaultName: String) {
 		if let url = url {
             //FIXME: CFURLIsFileReferenceURL is limited to OS X/iOS
             #if os(OSX) || os(iOS)
@@ -225,8 +225,8 @@ public class NSUserDefaults : NSObject {
                     return
                 }
             #endif
-            let data = NSKeyedArchiver.archivedDataWithRootObject(url)
-            setObject(data, forKey: defaultName)
+            let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
+            setObject(data._nsObject, forKey: defaultName)
         } else {
             setObject(nil, forKey: defaultName)
         }

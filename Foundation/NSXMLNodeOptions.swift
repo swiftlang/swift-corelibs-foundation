@@ -43,6 +43,7 @@
     @constant NSXMLDocumentIncludeContentTypeDeclaration Include a content type declaration for HTML or XHTML
 */
 
+// [FOU-0057] NSXMLNodeOptions should be an OptionSet 
 public var NSXMLNodeOptionsNone: Int { return 0 }
 
 // Init

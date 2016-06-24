@@ -147,7 +147,7 @@ CF_EXPORT void _CFMachPortInstallNotifyPort(CFRunLoopRef rl, CFStringRef mode);
 #endif
 
 
-CF_PRIVATE CFIndex __CFActiveProcessorCount();
+CF_EXPORT CFIndex __CFActiveProcessorCount();
 
 #ifndef CLANG_ANALYZER_NORETURN
 #if __has_feature(attribute_analyzer_noreturn)
@@ -158,50 +158,36 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount();
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
-#define __builtin_unreachable() do { } while (0)
+#if !defined(__GNUC__)
+#define __builtin_trap() DebugBreak()
+#define __builtin_unreachable() __assume(0)
+#endif
 #endif
 
-#if defined(__i386__) || defined(__x86_64__)
-    #if defined(__GNUC__)
-        #define HALT do {__builtin_trap(); kill(getpid(), 9); __builtin_unreachable(); } while (0)
-    #elif defined(_MSC_VER)
-        #define HALT do { DebugBreak(); abort(); __builtin_unreachable(); } while (0)
-    #else
-        #error Compiler not supported
-    #endif
-#elif defined(__ppc__) || (__arm__) || (__aarch64__)
-    #if defined(__GNUC__)
-        #define HALT do {__builtin_trap(); kill(getpid(), 9); __builtin_unreachable(); } while (0)
-    #elif defined(_MSC_VER)
-        #define HALT do { DebugBreak(); abort(); __builtin_unreachable(); } while (0)
-    #else
-        #error Compiler not supported
-    #endif
+#if defined(__GNUC__)
+    #define HALT do {__builtin_trap(); kill(getpid(), 9); __builtin_unreachable(); } while (0)
+#elif defined(_MSC_VER)
+    #define HALT do { __builtin_trap(); abort(); __builtin_unreachable(); } while (0)
+#else
+    #error Compiler not supported
 #endif
 
 #if defined(DEBUG)
-    #define __CFAssert(cond, prio, desc, a1, a2, a3, a4, a5)	\
-	do {			\
-	    if (!(cond)) {	\
-		CFLog(prio, CFSTR(desc), a1, a2, a3, a4, a5); \
-		HALT;		\
-	    }			\
-	} while (0)
+    #define __CFAssert(cond, prio, desc, ...)                                  \
+        do {                                                                   \
+          if (!(cond)) {                                                       \
+            CFLog(prio, CFSTR(desc), ##__VA_ARGS__);                             \
+            HALT;                                                              \
+          }                                                                    \
+        } while (0)
 #else
-    #define __CFAssert(cond, prio, desc, a1, a2, a3, a4, a5)	\
-	do {} while (0)
+    #define __CFAssert(cond, prio, desc, ...)                                  \
+      do {                                                                     \
+      } while (0)
 #endif
 
-#define CFAssert(condition, priority, description)			\
-    __CFAssert((condition), (priority), description, 0, 0, 0, 0, 0)
-#define CFAssert1(condition, priority, description, a1)			\
-    __CFAssert((condition), (priority), description, (a1), 0, 0, 0, 0)
-#define CFAssert2(condition, priority, description, a1, a2)		\
-    __CFAssert((condition), (priority), description, (a1), (a2), 0, 0, 0)
-#define CFAssert3(condition, priority, description, a1, a2, a3)		\
-    __CFAssert((condition), (priority), description, (a1), (a2), (a3), 0, 0)
-#define CFAssert4(condition, priority, description, a1, a2, a3, a4)	\
-    __CFAssert((condition), (priority), description, (a1), (a2), (a3), (a4), 0)
+#define CFAssert(condition, priority, description, ...)                        \
+  __CFAssert((condition), (priority), description, ##__VA_ARGS__)
 
 #define __kCFLogAssertion	3
 
@@ -355,72 +341,71 @@ CF_PRIVATE Boolean __CFProcessIsRestricted();
 
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
+#if defined(__CONSTANT_CFSTRINGS__)
 CF_EXPORT void *__CFConstantStringClassReference[];
-
-#ifdef __CONSTANT_CFSTRINGS__
-
-#if DEPLOYMENT_RUNTIME_SWIFT
-
-#if DEPLOYMENT_TARGET_LINUX
-#define CONST_STRING_SECTION __attribute__((section(".cfstr.data")))
 #else
-#define CONST_STRING_SECTION
-#endif
-
-// TODO: Pinned retain count for constants?
-#define CONST_STRING_DECL(S, V) \
-const struct __CFConstStr __##S CONST_STRING_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-const CFStringRef S = (CFStringRef)&__##S;
-
-#define PE_CONST_STRING_DECL(S, V) \
-const static struct __CFConstStr __##S CONST_STRING_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
-
-#else
-
-#define CONST_STRING_DECL(S, V) \
-const struct __CFConstStr __##S = {{(uintptr_t)&__CFConstantStringClassReference, _CFSWIFT_RC_INIT {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-const CFStringRef S = (CFStringRef)&__##S;
-
-#define PE_CONST_STRING_DECL(S, V) \
-const static struct __CFConstStr __##S = {{(uintptr_t)&__CFConstantStringClassReference, _CFSWIFT_RC_INIT {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
-
-#endif
-
-#else
+CF_EXPORT int __CFConstantStringClassReference[];
 
 struct CF_CONST_STRING {
     CFRuntimeBase _base;
     uint8_t *_ptr;
+#if defined(__LP64__) && defined(__BIG_ENDIAN__)
+    uint64_t _length;
+#else
     uint32_t _length;
+#endif
 };
-
-CF_EXPORT int __CFConstantStringClassReference[];
-
-/* CFNetwork also has a copy of the CONST_STRING_DECL macro (for use on platforms without constant string support in cc); please warn cfnetwork-core@group.apple.com of any necessary changes to this macro. -- REW, 1/28/2002 */
-
-#if __CF_BIG_ENDIAN__
-
-#define CONST_STRING_DECL(S, V)			\
-static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0x00, 0x00, 0x07, 0xc8}}, (uint8_t *)V, sizeof(V) - 1}; \
-const CFStringRef S = (CFStringRef) & __ ## S ## __;
-#define PE_CONST_STRING_DECL(S, V)			\
-static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0x00, 0x00, 0x07, 0xc8}}, (uint8_t *)V, sizeof(V) - 1}; \
-CF_PRIVATE const CFStringRef S = (CFStringRef) & __ ## S ## __;
-
-#elif __CF_LITTLE_ENDIAN__
-
-#define CONST_STRING_DECL(S, V)			\
-static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-const CFStringRef S = (CFStringRef) & __ ## S ## __;
-#define PE_CONST_STRING_DECL(S, V)			\
-static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
-CF_PRIVATE const CFStringRef S = (CFStringRef) & __ ## S ## __;
-
 #endif
 
-#endif // __CONSTANT_CFSTRINGS__
+#if __CF_BIG_ENDIAN__
+#define __CFSTR_FLAGS {0x00, 0x00, 0x07, 0xc8}
+#elif __CF_LITTLE_ENDIAN__
+#define __CFSTR_FLAGS {0xc8, 0x07, 0x00, 0x00}
+#endif
+
+#if defined(__CONSTANT_CFSTRINGS__)
+#define __CFSTR_TAG __CFConstStr
+#define __CFSTR_CONST const
+#else
+#define __CFSTR_TAG CF_CONST_STRING
+#define __CFSTR_CONST
+#endif
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+ // TODO: Pinned retain count for constants?
+ #define __CFSTR_RC_INIT _CF_CONSTANT_OBJECT_STRONG_RC, 0,
+
+ #if DEPLOYMENT_TARGET_LINUX
+  #define __CFSTR_SECTION __attribute__((section(".cfstr.data")))
+ #else
+  #define __CFSTR_SECTION
+ #endif
+#else
+ #define __CFSTR_RC_INIT
+ #define __CFSTR_SECTION
+#endif
+
+/*
+ * CFNetwork also has a copy of the CONST_STRING_DECL macro (for use on
+ * platforms without constant string support in cc); please warn
+ * cfnetwork-core@group.apple.com of any necessary changes to this macro.
+ *  -- REW, 1/28/2002
+ */
+#define CONST_STRING_DECL(S, V)                                                \
+  __CFSTR_CONST struct __CFSTR_TAG __##S __CFSTR_SECTION = {                   \
+      {(uintptr_t)&__CFConstantStringClassReference,                           \
+       __CFSTR_RC_INIT __CFSTR_FLAGS},                                         \
+      (uint8_t *)(V),                                                          \
+      sizeof(V) - 1};                                                          \
+  const CFStringRef S = (CFStringRef)&__##S;
+
+#define PE_CONST_STRING_DECL(S, V)                                             \
+  static __CFSTR_CONST struct __CFSTR_TAG __##S __CFSTR_SECTION = {            \
+      {(uintptr_t)&__CFConstantStringClassReference,                           \
+       __CFSTR_RC_INIT __CFSTR_FLAGS},                                         \
+      (uint8_t *)(V),                                                          \
+      sizeof(V) - 1};                                                          \
+  CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
 
 CF_EXPORT bool __CFOASafe;
 CF_EXPORT void __CFSetLastAllocationEventName(void *ptr, const char *classname);
@@ -444,7 +429,7 @@ extern CFTypeRef CFMakeUncollectable(CFTypeRef cf);
 
 CF_PRIVATE void _CFRaiseMemoryException(CFStringRef reason);
 
-CF_EXPORT CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
+extern CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
 
 CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;

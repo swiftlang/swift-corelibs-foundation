@@ -628,7 +628,7 @@ Boolean CFMessagePortSetName(CFMessagePortRef ms, CFStringRef name) {
 void CFMessagePortGetContext(CFMessagePortRef ms, CFMessagePortContext *context) {
     __CFGenericValidateType(ms, CFMessagePortGetTypeID());
 //#warning CF: assert that this is a local port
-    CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
+    CFAssert(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
     memmove(context, &ms->_context, sizeof(CFMessagePortContext));
 }
 

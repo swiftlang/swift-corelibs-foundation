@@ -53,19 +53,19 @@ class TestNSDateFormatter: XCTestCase {
                             "standaloneQuarterSymbols" : ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"],
                             "shortStandaloneQuarterSymbols" : ["Q1", "Q2", "Q3", "Q4"]]
         
-        let f = NSDateFormatter()
+        let f = DateFormatter()
         XCTAssertNotNil(f)
         XCTAssertNotNil(f.timeZone)
         XCTAssertNotNil(f.locale)
         
-        f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
+        f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
+        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
 
         // Assert default values are set properly
         XCTAssertFalse(f.generatesCalendarDates)
         XCTAssertNotNil(f.calendar)
         XCTAssertFalse(f.lenient)
-        XCTAssertEqual(f.twoDigitStartDate!, NSDate(timeIntervalSince1970: -631152000))
+        XCTAssertEqual(f.twoDigitStartDate!, Date(timeIntervalSince1970: -631152000))
         XCTAssertNil(f.defaultDate)
         XCTAssertEqual(f.eraSymbols, symbolDictionaryOne["eraSymbols"]!)
         XCTAssertEqual(f.monthSymbols, symbolDictionaryOne["monthSymbols"]!)
@@ -87,7 +87,7 @@ class TestNSDateFormatter: XCTestCase {
         XCTAssertEqual(f.shortQuarterSymbols, symbolDictionaryTwo["shortQuarterSymbols"]!)
         XCTAssertEqual(f.standaloneQuarterSymbols, symbolDictionaryTwo["standaloneQuarterSymbols"]!)
         XCTAssertEqual(f.shortStandaloneQuarterSymbols, symbolDictionaryTwo["shortStandaloneQuarterSymbols"]!)
-        XCTAssertEqual(f.gregorianStartDate, NSDate(timeIntervalSince1970: -12219292800))
+        XCTAssertEqual(f.gregorianStartDate, Date(timeIntervalSince1970: -12219292800))
         XCTAssertFalse(f.doesRelativeDateFormatting)
         
     }
@@ -107,17 +107,17 @@ class TestNSDateFormatter: XCTestCase {
             1477285038 : "10/24/16, 4:57 AM", 1478062638 : "11/2/16, 4:57 AM", 1482641838 : "12/25/16, 4:57 AM"
         ]
         
-        let f = NSDateFormatter()
-        f.dateStyle = .ShortStyle
-        f.timeStyle = .ShortStyle
+        let f = DateFormatter()
+        f.dateStyle = .shortStyle
+        f.timeStyle = .shortStyle
         
         // ensure tests give consistent results by setting specific timeZone and locale
-        f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
+        f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
+        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
@@ -140,15 +140,15 @@ class TestNSDateFormatter: XCTestCase {
             1477285038 : "Oct 24, 2016, 4:57:18 AM", 1478062638 : "Nov 2, 2016, 4:57:18 AM", 1482641838 : "Dec 25, 2016, 4:57:18 AM"
         ]
         
-        let f = NSDateFormatter()
-        f.dateStyle = .MediumStyle
-        f.timeStyle = .MediumStyle
-        f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
+        let f = DateFormatter()
+        f.dateStyle = .mediumStyle
+        f.timeStyle = .mediumStyle
+        f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
+        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
@@ -172,15 +172,15 @@ class TestNSDateFormatter: XCTestCase {
             1477285038 : "October 24, 2016 at 4:57:18 AM GMT", 1478062638 : "November 2, 2016 at 4:57:18 AM GMT", 1482641838 : "December 25, 2016 at 4:57:18 AM GMT"
         ]
         
-        let f = NSDateFormatter()
-        f.dateStyle = .LongStyle
-        f.timeStyle = .LongStyle
-        f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
+        let f = DateFormatter()
+        f.dateStyle = .longStyle
+        f.timeStyle = .longStyle
+        f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
+        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
@@ -206,15 +206,15 @@ class TestNSDateFormatter: XCTestCase {
             1478062638 : "Wednesday, November 2, 2016 at 4:57:18 AM GMT", 1482641838 : "Sunday, December 25, 2016 at 4:57:18 AM GMT"
         ]
         
-        let f = NSDateFormatter()
-        f.dateStyle = .FullStyle
-        f.timeStyle = .FullStyle
-        f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
+        let f = DateFormatter()
+        f.dateStyle = .fullStyle
+        f.timeStyle = .fullStyle
+        f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
+        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
 
             XCTAssertEqual(sf, stringResult)
@@ -240,14 +240,14 @@ class TestNSDateFormatter: XCTestCase {
              1478062638 : "Wednesday, November 2, 2016 at 04:57:18 AM GMT", 1482641838 : "Sunday, December 25, 2016 at 04:57:18 AM GMT"
         ]
         
-        let f = NSDateFormatter()
+        let f = DateFormatter()
         f.dateFormat = "EEEE, MMMM d, y 'at' hh:mm:ss a zzzz"
-        f.timeZone = NSTimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = NSLocale(localeIdentifier: DEFAULT_LOCALE)
+        f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
+        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
@@ -260,16 +260,16 @@ class TestNSDateFormatter: XCTestCase {
         f.dateFormat = "Q"
         
         for (timestamp, stringResult) in quarterTimestamps {
-            let testDate = NSDate(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
             
             XCTAssertEqual(sf, stringResult)
         }
         
         // Check .dateFormat resets when style changes
-        let testDate = NSDate(timeIntervalSince1970: 1457738454)
-        f.dateStyle = .MediumStyle
-        f.timeStyle = .MediumStyle
+        let testDate = Date(timeIntervalSince1970: 1457738454)
+        f.dateStyle = .mediumStyle
+        f.timeStyle = .mediumStyle
         XCTAssertEqual(f.string(from: testDate), "Mar 11, 2016, 11:20:54 PM")
         XCTAssertEqual(f.dateFormat, "MMM d, y, h:mm:ss a")
         

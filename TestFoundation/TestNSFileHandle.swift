@@ -23,17 +23,17 @@ class TestNSFileHandle : XCTestCase {
     }
 
     func test_pipe() {
-        let pipe = NSPipe()
+        let pipe = Pipe()
         let inputs = ["Hello", "world", "🐶"]
 
         for input in inputs {
-            let inputData = input.data(using: NSUTF8StringEncoding)!
+            let inputData = input.data(using: .utf8)!
 
             // write onto pipe
-            pipe.fileHandleForWriting.writeData(inputData)
+            pipe.fileHandleForWriting.write(inputData)
 
             let outputData = pipe.fileHandleForReading.availableData
-            let output = String(data: outputData, encoding: NSUTF8StringEncoding)
+            let output = String(data: outputData, encoding: .utf8)
 
             XCTAssertEqual(output, input)
         }

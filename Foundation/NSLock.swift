@@ -16,13 +16,13 @@ import Glibc
 
 import CoreFoundation
 
-public protocol NSLocking {
+public protocol Locking {
     
     func lock()
     func unlock()
 }
 
-public class NSLock : NSObject, NSLocking {
+public class Lock: NSObject, Locking {
     internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
     
     public override init() {
@@ -50,7 +50,7 @@ public class NSLock : NSObject, NSLocking {
     public var name: String?
 }
 
-extension NSLock {
+extension Lock {
     internal func synchronized<T>(_ closure: @noescape () -> T) -> T {
         self.lock()
         defer { self.unlock() }
@@ -58,8 +58,8 @@ extension NSLock {
     }
 }
 
-public class NSConditionLock : NSObject, NSLocking {
-    internal var _cond = NSCondition()
+public class NSConditionLock : NSObject, Locking {
+    internal var _cond = Condition()
     internal var _value: Int
     internal var _thread: pthread_t?
     
@@ -70,11 +70,11 @@ public class NSConditionLock : NSObject, NSLocking {
     public init(condition: Int) {
         _value = condition
     }
-    
+
     public func lock() {
-        lockBeforeDate(NSDate.distantFuture())
+        let _ = lockBeforeDate(Date.distantFuture)
     }
-    
+
     public func unlock() {
         _cond.lock()
         _thread = nil
@@ -85,17 +85,17 @@ public class NSConditionLock : NSObject, NSLocking {
     public var condition: Int {
         return _value
     }
-    
+
     public func lockWhenCondition(_ condition: Int) {
-        lockWhenCondition(condition, beforeDate: NSDate.distantFuture())
+        let _ = lockWhenCondition(condition, beforeDate: Date.distantFuture)
     }
-    
+
     public func tryLock() -> Bool {
-        return lockBeforeDate(NSDate.distantPast())
+        return lockBeforeDate(Date.distantPast)
     }
     
     public func tryLockWhenCondition(_ condition: Int) -> Bool {
-        return lockWhenCondition(condition, beforeDate: NSDate.distantPast())
+        return lockWhenCondition(condition, beforeDate: Date.distantPast)
     }
 
     public func unlockWithCondition(_ condition: Int) {
@@ -106,7 +106,7 @@ public class NSConditionLock : NSObject, NSLocking {
         _cond.unlock()
     }
 
-    public func lockBeforeDate(_ limit: NSDate) -> Bool {
+    public func lockBeforeDate(_ limit: Date) -> Bool {
         _cond.lock()
         while _thread == nil {
             if !_cond.waitUntilDate(limit) {
@@ -119,7 +119,7 @@ public class NSConditionLock : NSObject, NSLocking {
         return true
     }
     
-    public func lockWhenCondition(_ condition: Int, beforeDate limit: NSDate) -> Bool {
+    public func lockWhenCondition(_ condition: Int, beforeDate limit: Date) -> Bool {
         _cond.lock()
         while _thread != nil || _value != condition {
             if !_cond.waitUntilDate(limit) {
@@ -135,7 +135,7 @@ public class NSConditionLock : NSObject, NSLocking {
     public var name: String?
 }
 
-public class NSRecursiveLock : NSObject, NSLocking {
+public class RecursiveLock: NSObject, Locking {
     internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
     
     public override init() {
@@ -168,7 +168,7 @@ public class NSRecursiveLock : NSObject, NSLocking {
     public var name: String?
 }
 
-public class NSCondition : NSObject, NSLocking {
+public class Condition: NSObject, Locking {
     internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
     internal var cond = UnsafeMutablePointer<pthread_cond_t>(allocatingCapacity: 1)
     
@@ -198,7 +198,7 @@ public class NSCondition : NSObject, NSLocking {
         pthread_cond_wait(cond, mutex)
     }
     
-    public func waitUntilDate(_ limit: NSDate) -> Bool {
+    public func waitUntilDate(_ limit: Date) -> Bool {
         let lim = limit.timeIntervalSinceReferenceDate
         let ti = lim - CFAbsoluteTimeGetCurrent()
         if ti < 0.0 {

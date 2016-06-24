@@ -22,7 +22,7 @@ internal let kCFNumberFormatterCurrencyPluralStyle = CFNumberFormatterStyle.curr
 internal let kCFNumberFormatterCurrencyAccountingStyle = CFNumberFormatterStyle.currencyAccountingStyle
 #endif
 
-public class NSNumberFormatter : NSFormatter {
+public class NumberFormatter : Formatter {
     
     typealias CFType = CFNumberFormatter
     private var _currentCfFormatter: CFType?
@@ -45,25 +45,25 @@ public class NSNumberFormatter : NSFormatter {
     
     // this is for NSUnitFormatter
     
-    public var formattingContext: NSFormattingContext = .Unknown // default is NSFormattingContextUnknown
+    public var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
     
     // Report the used range of the string and an NSError, in addition to the usual stuff from NSFormatter
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func objectValue(_ string: String, range: inout NSRange) throws -> AnyObject? { NSUnimplemented() }
     
-    public override func stringForObjectValue(_ obj: AnyObject) -> String? {
+    public override func string(for obj: AnyObject) -> String? {
         guard let number = obj as? NSNumber else { return nil }
-        return stringFromNumber(number)
+        return string(from: number)
     }
     
     // Even though NSNumberFormatter responds to the usual NSFormatter methods,
     //   here are some convenience methods which are a little more obvious.
-    public func stringFromNumber(_ number: NSNumber) -> String? {
+    public func string(from number: NSNumber) -> String? {
         return CFNumberFormatterCreateStringWithNumber(kCFAllocatorSystemDefault, _cfFormatter, number._cfObject)._swiftObject
     }
     
-    public func numberFromString(_ string: String) -> NSNumber? {
+    public func number(from string: String) -> NSNumber? {
         var range = CFRange(location: 0, length: string.length)
         let number = withUnsafeMutablePointer(&range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
             
@@ -78,10 +78,10 @@ public class NSNumberFormatter : NSFormatter {
         return number
     }
     
-    public class func localizedStringFromNumber(_ num: NSNumber, numberStyle nstyle: NSNumberFormatterStyle) -> String {
-        let numberFormatter = NSNumberFormatter()
+    public class func localizedString(from num: NSNumber, number nstyle: Style) -> String {
+        let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = nstyle
-        return numberFormatter.stringForObjectValue(num)!
+        return numberFormatter.string(for: num)!
     }
     
     internal func _reset() {
@@ -139,18 +139,18 @@ public class NSNumberFormatter : NSFormatter {
     }
     
     // Attributes of an NSNumberFormatter
-    internal var _numberStyle: NSNumberFormatterStyle = .NoStyle
-    public var numberStyle: NSNumberFormatterStyle {
+    internal var _numberStyle: Style = .noStyle
+    public var numberStyle: Style {
         get {
             return _numberStyle
         }
         
         set {
             switch newValue {
-            case .NoStyle, .OrdinalStyle, .SpellOutStyle:
+            case .noStyle, .ordinalStyle, .spellOutStyle:
                 _usesSignificantDigits = false
                 
-            case .CurrencyStyle, .CurrencyPluralStyle, .CurrencyISOCodeStyle, .CurrencyAccountingStyle:
+            case .currencyStyle, .currencyPluralStyle, .currencyISOCodeStyle, .currencyAccountingStyle:
                 _usesSignificantDigits = false
                 _usesGroupingSeparator = true
                 _minimumFractionDigits = 2
@@ -164,8 +164,8 @@ public class NSNumberFormatter : NSFormatter {
         }
     }
     
-    internal var _locale: NSLocale = NSLocale.currentLocale()
-    /*@NSCopying*/ public var locale: NSLocale! {
+    internal var _locale: Locale = Locale.currentLocale()
+    /*@NSCopying*/ public var locale: Locale! {
         get {
             return _locale
         }
@@ -601,8 +601,8 @@ public class NSNumberFormatter : NSFormatter {
     
     //
     
-    internal var _paddingPosition: NSNumberFormatterPadPosition = .BeforePrefix
-    public var paddingPosition: NSNumberFormatterPadPosition {
+    internal var _paddingPosition: PadPosition = .beforePrefix
+    public var paddingPosition: PadPosition {
         get {
             return _paddingPosition
         }
@@ -612,8 +612,8 @@ public class NSNumberFormatter : NSFormatter {
         }
     }
     
-    internal var _roundingMode: NSNumberFormatterRoundingMode = .RoundHalfEven
-    public var roundingMode: NSNumberFormatterRoundingMode {
+    internal var _roundingMode: RoundingMode = .roundHalfEven
+    public var roundingMode: RoundingMode {
         get {
             return _roundingMode
         }
@@ -868,32 +868,34 @@ public class NSNumberFormatter : NSFormatter {
 //    }
 }
 
-public enum NSNumberFormatterStyle : UInt {
-    case NoStyle
-    case DecimalStyle
-    case CurrencyStyle
-    case PercentStyle
-    case ScientificStyle
-    case SpellOutStyle
-    case OrdinalStyle
-    case CurrencyISOCodeStyle
-    case CurrencyPluralStyle
-    case CurrencyAccountingStyle
-}
+extension NumberFormatter {
+    public enum Style : UInt {
+        case noStyle
+        case decimalStyle
+        case currencyStyle
+        case percentStyle
+        case scientificStyle
+        case spellOutStyle
+        case ordinalStyle
+        case currencyISOCodeStyle
+        case currencyPluralStyle
+        case currencyAccountingStyle
+    }
 
-public enum NSNumberFormatterPadPosition : UInt {
-    case BeforePrefix
-    case AfterPrefix
-    case BeforeSuffix
-    case AfterSuffix
-}
+    public enum PadPosition : UInt {
+        case beforePrefix
+        case afterPrefix
+        case beforeSuffix
+        case afterSuffix
+    }
 
-public enum NSNumberFormatterRoundingMode : UInt {
-    case RoundCeiling
-    case RoundFloor
-    case RoundDown
-    case RoundUp
-    case RoundHalfEven
-    case RoundHalfDown
-    case RoundHalfUp
+    public enum RoundingMode : UInt {
+        case roundCeiling
+        case roundFloor
+        case roundDown
+        case roundUp
+        case roundHalfEven
+        case roundHalfDown
+        case roundHalfUp
+    }
 }

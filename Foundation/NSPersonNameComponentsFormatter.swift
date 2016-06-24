@@ -8,36 +8,38 @@
 //
 
 
-public enum NSPersonNameComponentsFormatterStyle : Int {
-    
-    case Default
-    
-    /* Relies on user preferences and language defaults to display shortened form appropriate
-      for display in space-constrained settings, e.g. C Darwin */
-    case Short
-    
-    /* The minimally necessary features for differentiation in a casual setting , e.g. Charles Darwin */
-    case Medium
-    
-    /* The fully-qualified name complete with all known components, e.g. Charles Robert Darwin, FRS */
-    case Long
-    
-    /* The maximally-abbreviated form of a name suitable for monograms, e.g. CRD) */
-    case Abbreviated
+extension PersonNameComponentsFormatter {
+    public enum Style : Int {
+        
+        case `default`
+        
+        /* Relies on user preferences and language defaults to display shortened form appropriate
+          for display in space-constrained settings, e.g. C Darwin */
+        case short
+        
+        /* The minimally necessary features for differentiation in a casual setting , e.g. Charles Darwin */
+        case medium
+        
+        /* The fully-qualified name complete with all known components, e.g. Charles Robert Darwin, FRS */
+        case long
+        
+        /* The maximally-abbreviated form of a name suitable for monograms, e.g. CRD) */
+        case abbreviated
+    }
+
+    public struct Options : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        /* Indicates that the formatter should format the component object's phoneticRepresentation components instead of its own components.
+         The developer must have populated these manually. e.g.: Developer creates components object with the following properties:
+         <family:"Family", given:"Given", phoneticRepresentation:<family:"FamilyPhonetic", given:"GivenPhonetic">>.
+         If this option is specified, we perform formatting operations on <family "FamilyPhonetic", given "GivenPhonetic"> instead. */
+        public static let phonetic = Options(rawValue: 1 << 1)
+    }
 }
 
-public struct NSPersonNameComponentsFormatterOptions : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    /* Indicates that the formatter should format the component object's phoneticRepresentation components instead of its own components.
-     The developer must have populated these manually. e.g.: Developer creates components object with the following properties:
-     <family:"Family", given:"Given", phoneticRepresentation:<family:"FamilyPhonetic", given:"GivenPhonetic">>.
-     If this option is specified, we perform formatting operations on <family "FamilyPhonetic", given "GivenPhonetic"> instead. */
-    public static let Phonetic = NSPersonNameComponentsFormatterOptions(rawValue: 1 << 1)
-}
-
-public class NSPersonNameComponentsFormatter : NSFormatter {
+public class PersonNameComponentsFormatter : Formatter {
     
     public required init?(coder: NSCoder) {
         NSUnimplemented()
@@ -45,7 +47,7 @@ public class NSPersonNameComponentsFormatter : NSFormatter {
     
     /* Specify the formatting style for the formatted string on an instance. ShortStyle will fall back to user preferences and language-specific defaults
      */
-    public var style: NSPersonNameComponentsFormatterStyle
+    public var style: Style
     
     /* Specify that the formatter should only format the components object's phoneticRepresentation
      */
@@ -54,16 +56,18 @@ public class NSPersonNameComponentsFormatter : NSFormatter {
     /* Shortcut for converting an NSPersonNameComponents object into a string without explicitly creating an instance.
         Create an instance for greater customizability.
      */
-    public class func localizedStringFromPersonNameComponents(_ components: NSPersonNameComponents, style nameFormatStyle: NSPersonNameComponentsFormatterStyle, options nameOptions: NSPersonNameComponentsFormatterOptions) -> String { NSUnimplemented() }
+    public class func localizedString(from components: PersonNameComponents, style nameFormatStyle: Style, options nameOptions: Options = []) -> String { NSUnimplemented() }
     
-    /* Convenience method on stringForObjectValue:. Returns a string containing the formatted value of the provided components object.
+    /* Convenience method on string(for:):. Returns a string containing the formatted value of the provided components object.
      */
-    public func stringFromPersonNameComponents(_ components: NSPersonNameComponents) -> String { NSUnimplemented() }
+    public func string(from components: PersonNameComponents) -> String { NSUnimplemented() }
     
     /* Returns attributed string with annotations for each component. For each range, attributes can be obtained by querying
         dictionary key NSPersonNameComponentKey , using NSPersonNameComponent constant values.
      */
-    public func annotatedStringFromPersonNameComponents(_ components: NSPersonNameComponents) -> NSAttributedString { NSUnimplemented() }
+    public func annotatedString(from components: PersonNameComponents) -> AttributedString { NSUnimplemented() }
+    
+    public func personNameComponents(from string: String) -> PersonNameComponents? { NSUnimplemented() }
     
     /* NSPersonNameComponentsFormatter currently only implements formatting, not parsing. Until it implements parsing, this will always return NO.
      */

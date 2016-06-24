@@ -52,6 +52,7 @@ class ArchType:
     kalimba     = 38
     shave       = 39
     armv6       = 40
+    s390x       = 41
 # Do not assume that these are 1:1 mapping.  This should follow
 # canonical naming conventions for arm, etc. architectures.
 # See apple/swift PR #608    
@@ -137,6 +138,8 @@ class ArchType:
             return "kalimba"
         if value == ArchType.shave:
             return "shave"
+        if value == ArchType.s390x:
+            return "s390x"
         return "unknown"
 # Not 1:1, See to_string
     @staticmethod
@@ -227,6 +230,8 @@ class ArchType:
             return ArchType.kalimba
         if string == "shave":
             return ArchType.shave
+        if string == "s390x":
+            return ArchType.s390x
 
         return ArchType.UnknownArch
 

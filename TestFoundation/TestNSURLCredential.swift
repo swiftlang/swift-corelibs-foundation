@@ -25,11 +25,11 @@ class TestNSURLCredential : XCTestCase {
     }
     
     func test_construction() {
-        let credential = NSURLCredential(user: "swiftUser", password: "swiftPassword", persistence: .ForSession)
+        let credential = URLCredential(user: "swiftUser", password: "swiftPassword", persistence: .forSession)
         XCTAssertNotNil(credential)
         XCTAssertEqual(credential.user, "swiftUser")
         XCTAssertEqual(credential.password, "swiftPassword")
-        XCTAssertEqual(credential.persistence, NSURLCredentialPersistence.ForSession)
+        XCTAssertEqual(credential.persistence, URLCredential.Persistence.forSession)
         XCTAssertEqual(credential.hasPassword, true)
     }
 }

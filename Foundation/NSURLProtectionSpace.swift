@@ -104,15 +104,15 @@ public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMe
     @class NSURLProtectionSpace
     @discussion This class represents a protection space requiring authentication.
 */
-public class NSURLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
+public class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     public static func supportsSecureCoding() -> Bool { return true }
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     public required init?(coder aDecoder: NSCoder) {
@@ -212,14 +212,14 @@ public class NSURLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
     public override func isProxy() -> Bool { NSUnimplemented() }
 }
 
-extension NSURLProtectionSpace {
+extension URLProtectionSpace {
     
     /*!
         @method distinguishedNames
         @abstract Returns an array of acceptable certificate issuing authorities for client certification authentication. Issuers are identified by their distinguished name and returned as a DER encoded data.
         @result An array of NSData objects.  (Nil if the authenticationMethod is not NSURLAuthenticationMethodClientCertificate)
      */
-    public var distinguishedNames: [NSData]? { NSUnimplemented() }
+    public var distinguishedNames: [Data]? { NSUnimplemented() }
 }
 
 // TODO: Currently no implementation of Security.framework

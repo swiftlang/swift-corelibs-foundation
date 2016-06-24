@@ -30,7 +30,7 @@ class TestNSURLRequest : XCTestCase {
         ]
     }
     
-    let url = NSURL(string: "http://swift.org")!
+    let url = URL(string: "http://swift.org")!
     
     func test_construction() {
         let request = NSURLRequest(url: url)
@@ -43,7 +43,7 @@ class TestNSURLRequest : XCTestCase {
     }
     
     func test_mutableConstruction() {
-        let url = NSURL(string: "http://swift.org")!
+        let url = URL(string: "http://swift.org")!
         let request = NSMutableURLRequest(url: url)
         
         //Confirm initial state matches NSURLRequest responses
@@ -59,7 +59,7 @@ class TestNSURLRequest : XCTestCase {
         request.httpMethod = "POST"
         XCTAssertEqual(request.httpMethod, "POST")
         
-        let newURL = NSURL(string: "http://github.com")!
+        let newURL = URL(string: "http://github.com")!
         request.url = newURL
         XCTAssertEqual(request.url, newURL)
     }
@@ -84,8 +84,8 @@ class TestNSURLRequest : XCTestCase {
     func test_copy() {
         let mutableRequest = NSMutableURLRequest(url: url)
         
-        let urlA = NSURL(string: "http://swift.org")!
-        let urlB = NSURL(string: "http://github.com")!
+        let urlA = URL(string: "http://swift.org")!
+        let urlB = URL(string: "http://github.com")!
         mutableRequest.mainDocumentURL = urlA
         mutableRequest.url = urlB
         mutableRequest.httpMethod = "POST"
@@ -108,8 +108,8 @@ class TestNSURLRequest : XCTestCase {
 
         // Change the original, and check that the copy has unchanged
         // values:
-        let urlC = NSURL(string: "http://apple.com")!
-        let urlD = NSURL(string: "http://ibm.com")!
+        let urlC = URL(string: "http://apple.com")!
+        let urlD = URL(string: "http://ibm.com")!
         mutableRequest.mainDocumentURL = urlC
         mutableRequest.url = urlD
         mutableRequest.httpMethod = "HEAD"
@@ -132,8 +132,8 @@ class TestNSURLRequest : XCTestCase {
     func test_mutableCopy_1() {
         let originalRequest = NSMutableURLRequest(url: url)
         
-        let urlA = NSURL(string: "http://swift.org")!
-        let urlB = NSURL(string: "http://github.com")!
+        let urlA = URL(string: "http://swift.org")!
+        let urlB = URL(string: "http://github.com")!
         originalRequest.mainDocumentURL = urlA
         originalRequest.url = urlB
         originalRequest.httpMethod = "POST"
@@ -144,8 +144,8 @@ class TestNSURLRequest : XCTestCase {
         }
         
         // Change the original, and check that the copy has unchanged values:
-        let urlC = NSURL(string: "http://apple.com")!
-        let urlD = NSURL(string: "http://ibm.com")!
+        let urlC = URL(string: "http://apple.com")!
+        let urlD = URL(string: "http://ibm.com")!
         originalRequest.mainDocumentURL = urlC
         originalRequest.url = urlD
         originalRequest.httpMethod = "HEAD"
@@ -159,8 +159,8 @@ class TestNSURLRequest : XCTestCase {
     func test_mutableCopy_2() {
         let originalRequest = NSMutableURLRequest(url: url)
         
-        let urlA = NSURL(string: "http://swift.org")!
-        let urlB = NSURL(string: "http://github.com")!
+        let urlA = URL(string: "http://swift.org")!
+        let urlB = URL(string: "http://github.com")!
         originalRequest.mainDocumentURL = urlA
         originalRequest.url = urlB
         originalRequest.httpMethod = "POST"
@@ -171,8 +171,8 @@ class TestNSURLRequest : XCTestCase {
         }
         
         // Change the copy, and check that the original has unchanged values:
-        let urlC = NSURL(string: "http://apple.com")!
-        let urlD = NSURL(string: "http://ibm.com")!
+        let urlC = URL(string: "http://apple.com")!
+        let urlD = URL(string: "http://ibm.com")!
         requestCopy.mainDocumentURL = urlC
         requestCopy.url = urlD
         requestCopy.httpMethod = "HEAD"
@@ -184,7 +184,7 @@ class TestNSURLRequest : XCTestCase {
     }
 
     func test_mutableCopy_3() {
-        let urlA = NSURL(string: "http://swift.org")!
+        let urlA = URL(string: "http://swift.org")!
         let originalRequest = NSURLRequest(url: urlA)
         
         guard let requestCopy = originalRequest.mutableCopy() as? NSMutableURLRequest else {
@@ -192,8 +192,8 @@ class TestNSURLRequest : XCTestCase {
         }
         
         // Change the copy, and check that the original has unchanged values:
-        let urlC = NSURL(string: "http://apple.com")!
-        let urlD = NSURL(string: "http://ibm.com")!
+        let urlC = URL(string: "http://apple.com")!
+        let urlD = URL(string: "http://ibm.com")!
         requestCopy.mainDocumentURL = urlC
         requestCopy.url = urlD
         requestCopy.httpMethod = "HEAD"

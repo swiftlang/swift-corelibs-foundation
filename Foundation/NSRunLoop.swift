@@ -19,69 +19,104 @@ import CoreFoundation
     internal let kCFRunLoopAllActivities = CFRunLoopActivity.allActivities.rawValue
 #endif
 
-public let NSDefaultRunLoopMode: String = "kCFRunLoopDefaultMode"
-public let NSRunLoopCommonModes: String = "kCFRunLoopCommonModes"
+public struct RunLoopMode : RawRepresentable, Equatable, Hashable, Comparable {
+    public private(set) var rawValue: String
+    
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
+    public var hashValue: Int {
+        return rawValue.hashValue
+    }
+}
+
+public func ==(lhs: RunLoopMode, rhs: RunLoopMode) -> Bool {
+    return lhs.rawValue == rhs.rawValue
+}
+
+public func <(lhs: RunLoopMode, rhs: RunLoopMode) -> Bool {
+    return lhs.rawValue < rhs.rawValue
+}
+
+
+extension RunLoopMode {
+    public static let defaultRunLoopMode = RunLoopMode("kCFRunLoopDefaultMode")
+    public static let commonModes = RunLoopMode("kCFRunLoopCommonModes")
+}
 
 internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
-    let rl = Unmanaged<NSRunLoop>.passRetained(NSRunLoop(cfObject: cf))
+    let rl = Unmanaged<RunLoop>.passRetained(RunLoop(cfObject: cf))
     return unsafeBitCast(rl, to: Unmanaged<AnyObject>.self) // this retain is balanced on the other side of the CF fence
 }
 
-public class NSRunLoop : NSObject {
+public class RunLoop: NSObject {
     internal var _cfRunLoop : CFRunLoop!
-    internal static var _mainRunLoop : NSRunLoop = {
-        return NSRunLoop(cfObject: CFRunLoopGetMain())
+    internal static var _mainRunLoop : RunLoop = {
+        return RunLoop(cfObject: CFRunLoopGetMain())
     }()
 
     internal init(cfObject : CFRunLoop) {
         _cfRunLoop = cfObject
     }
 
-    public class func currentRunLoop() -> NSRunLoop {
-        return _CFRunLoopGet2(CFRunLoopGetCurrent()) as! NSRunLoop
+    public class func current() -> RunLoop {
+        return _CFRunLoopGet2(CFRunLoopGetCurrent()) as! RunLoop
     }
 
-    public class func mainRunLoop() -> NSRunLoop {
-        return _CFRunLoopGet2(CFRunLoopGetMain()) as! NSRunLoop
+    public class func main() -> RunLoop {
+        return _CFRunLoopGet2(CFRunLoopGetMain()) as! RunLoop
     }
 
-    public var currentMode: String? {
-        return CFRunLoopCopyCurrentMode(_cfRunLoop)?._swiftObject
+    public var currentMode: RunLoopMode? {
+        if let mode = CFRunLoopCopyCurrentMode(_cfRunLoop) {
+            return RunLoopMode(mode._swiftObject)
+        } else {
+            return nil
+        }
+    }
+    
+    public func getCFRunLoop() -> CFRunLoop {
+        return _cfRunLoop
     }
 
-    public func addTimer(_ timer: NSTimer, forMode mode: String) {
-        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode._cfObject)
+    public func add(_ timer: Timer, forMode mode: RunLoopMode) {
+        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode.rawValue._cfObject)
     }
 
-    public func addPort(_ aPort: NSPort, forMode mode: String) {
+    public func add(_ aPort: Port, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func removePort(_ aPort: NSPort, forMode mode: String) {
+    public func remove(_ aPort: Port, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func limitDateForMode(_ mode: String) -> NSDate? {
+    public func limitDate(forMode mode: RunLoopMode) -> Date? {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return nil
         }
-        let modeArg = mode._cfObject
+        let modeArg = mode.rawValue._cfObject
         
         CFRunLoopRunInMode(modeArg, -10.0, true) /* poll run loop to fire ready timers and performers, as used to be done here */
         if _CFRunLoopFinished(_cfRunLoop, modeArg) {
             return nil
         }
         
-        let nextTimerFireAbsoluteTime = CFRunLoopGetNextTimerFireDate(CFRunLoopGetCurrent(), mode._cfObject)
+        let nextTimerFireAbsoluteTime = CFRunLoopGetNextTimerFireDate(CFRunLoopGetCurrent(), modeArg)
 
         if (nextTimerFireAbsoluteTime == 0) {
-            return NSDate.distantFuture()
+            return Date.distantFuture
         }
 
-        return NSDate(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
+        return Date(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
     }
 
-    public func acceptInputForMode(_ mode: String, beforeDate limitDate: NSDate) {
+    public func acceptInputForMode(_ mode: String, before limitDate: Date) {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return
         }
@@ -90,21 +125,21 @@ public class NSRunLoop : NSObject {
 
 }
 
-extension NSRunLoop {
+extension RunLoop {
 
     public func run() {
-        while runMode(NSDefaultRunLoopMode, beforeDate: NSDate.distantFuture()) { }
+        while run(mode: .defaultRunLoopMode, before: Date.distantFuture) { }
     }
 
-    public func runUntilDate(_ limitDate: NSDate) {
-        while runMode(NSDefaultRunLoopMode, beforeDate: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
+    public func run(until limitDate: Date) {
+        while run(mode: .defaultRunLoopMode, before: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
     }
 
-    public func runMode(_ mode: String, beforeDate limitDate: NSDate) -> Bool {
+    public func run(mode: RunLoopMode, before limitDate: Date) -> Bool {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return false
         }
-        let modeArg = mode._cfObject
+        let modeArg = mode.rawValue._cfObject
         if _CFRunLoopFinished(_cfRunLoop, modeArg) {
             return false
         }
@@ -115,4 +150,11 @@ extension NSRunLoop {
         return true
     }
 
+    public func perform(inModes modes: [RunLoopMode], block: () -> Void) {
+        CFRunLoopPerformBlock(getCFRunLoop(), (modes.map { $0.rawValue._nsObject })._cfObject, block)
+    }
+    
+    public func perform(_ block: () -> Void) {
+        perform(inModes: [.defaultRunLoopMode], block: block)
+    }
 }

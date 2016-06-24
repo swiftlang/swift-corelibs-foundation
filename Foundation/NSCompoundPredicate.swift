@@ -10,17 +10,19 @@
 
 // Compound predicates are predicates which act on the results of evaluating other operators. We provide the basic boolean operators: AND, OR, and NOT.
 
-public enum NSCompoundPredicateType : UInt {
-    
-    case NotPredicateType
-    case AndPredicateType
-    case OrPredicateType
+extension CompoundPredicate {
+    public enum LogicalType : UInt {
+        
+        case not
+        case and
+        case or
+    }
 }
 
-public class NSCompoundPredicate : NSPredicate {
+public class CompoundPredicate : Predicate {
     
-    public init(type: NSCompoundPredicateType, subpredicates: [NSPredicate]) {
-        if type == .NotPredicateType && subpredicates.count == 0 {
+    public init(type: LogicalType, subpredicates: [Predicate]) {
+        if type == .not && subpredicates.count == 0 {
             preconditionFailure("Unsupported predicate count of \(subpredicates.count) for \(type)")
         }
         self.compoundPredicateType = type
@@ -29,33 +31,33 @@ public class NSCompoundPredicate : NSPredicate {
     }
     public required init?(coder: NSCoder) { NSUnimplemented() }
     
-    public let compoundPredicateType: NSCompoundPredicateType
-    public let subpredicates: [NSPredicate]
+    public let compoundPredicateType: LogicalType
+    public let subpredicates: [Predicate]
 
     /*** Convenience Methods ***/
-    public convenience init(andPredicateWithSubpredicates subpredicates: [NSPredicate]) {
-        self.init(type: .AndPredicateType, subpredicates: subpredicates)
+    public convenience init(andPredicateWithSubpredicates subpredicates: [Predicate]) {
+        self.init(type: .and, subpredicates: subpredicates)
     }
-    public convenience init(orPredicateWithSubpredicates subpredicates: [NSPredicate]) {
-        self.init(type: .OrPredicateType, subpredicates: subpredicates)
+    public convenience init(orPredicateWithSubpredicates subpredicates: [Predicate]) {
+        self.init(type: .or, subpredicates: subpredicates)
     }
-    public convenience init(notPredicateWithSubpredicate predicate: NSPredicate) {
-        self.init(type: .NotPredicateType, subpredicates: [predicate])
+    public convenience init(notPredicateWithSubpredicate predicate: Predicate) {
+        self.init(type: .not, subpredicates: [predicate])
     }
 
-    override public func evaluateWithObject(_ object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
+    override public func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
         switch compoundPredicateType {
-        case .AndPredicateType:
+        case .and:
             return subpredicates.reduce(true, combine: {
-                $0 && $1.evaluateWithObject(object, substitutionVariables: bindings)
+                $0 && $1.evaluate(with: object, substitutionVariables: bindings)
             })
-        case .OrPredicateType:
+        case .or:
             return subpredicates.reduce(false, combine: {
-                $0 || $1.evaluateWithObject(object, substitutionVariables: bindings)
+                $0 || $1.evaluate(with: object, substitutionVariables: bindings)
             })
-        case .NotPredicateType:
+        case .not:
             // safe to get the 0th item here since we trap if there's not at least one on init
-            return !(subpredicates[0].evaluateWithObject(object, substitutionVariables: bindings))
+            return !(subpredicates[0].evaluate(with: object, substitutionVariables: bindings))
         }
     }
 }

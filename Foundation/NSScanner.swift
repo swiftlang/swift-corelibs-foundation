@@ -11,18 +11,18 @@
 
 import CoreFoundation
 
-public class NSScanner : NSObject, NSCopying {
+public class Scanner: NSObject, NSCopying {
     internal var _scanString: String
-    internal var _skipSet: NSCharacterSet?
-    internal var _invertedSkipSet: NSCharacterSet?
+    internal var _skipSet: CharacterSet?
+    internal var _invertedSkipSet: CharacterSet?
     internal var _scanLocation: Int
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
-        return NSScanner(string: string)
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
+        return Scanner(string: string)
     }
     
     public var string: String {
@@ -40,17 +40,17 @@ public class NSScanner : NSObject, NSCopying {
             _scanLocation = newValue
         }
     }
-    /*@NSCopying*/ public var charactersToBeSkipped: NSCharacterSet? {
+    /*@NSCopying*/ public var charactersToBeSkipped: CharacterSet? {
         get {
             return _skipSet
         }
         set {
-            _skipSet = newValue?.copy() as? NSCharacterSet
+            _skipSet = newValue
             _invertedSkipSet = nil
         }
     }
     
-    internal var invertedSkipSet: NSCharacterSet? {
+    internal var invertedSkipSet: CharacterSet? {
         if let inverted = _invertedSkipSet {
             return inverted
         } else {
@@ -63,13 +63,13 @@ public class NSScanner : NSObject, NSCopying {
     }
     
     public var caseSensitive: Bool = false
-    public var locale: NSLocale?
+    public var locale: Locale?
     
-    internal static let defaultSkipSet = NSCharacterSet.whitespacesAndNewlines()
+    internal static let defaultSkipSet = CharacterSet.whitespacesAndNewlines
     
     public init(string: String) {
         _scanString = string
-        _skipSet = NSScanner.defaultSkipSet
+        _skipSet = Scanner.defaultSkipSet
         _scanLocation = 0
     }
 }
@@ -174,9 +174,9 @@ internal struct _NSStringBuffer {
         }
     }
     
-    mutating func skip(_ skipSet: NSCharacterSet?) {
+    mutating func skip(_ skipSet: CharacterSet?) {
         if let set = skipSet {
-            while set.characterIsMember(currentCharacter) && !isAtEnd {
+            while set.contains(currentCharacter) && !isAtEnd {
                 advance()
             }
         }
@@ -206,9 +206,9 @@ internal struct _NSStringBuffer {
 
 private func isADigit(_ ch: unichar) -> Bool {
     struct Local {
-        static let set = NSCharacterSet.decimalDigits()
+        static let set = CharacterSet.decimalDigits
     }
-    return Local.set.characterIsMember(ch)
+    return Local.set.contains(ch)
 }
 
 // This is just here to allow just enough generic math to handle what is needed for scanning an abstract integer from a string, perhaps these should be on IntegerType?
@@ -275,19 +275,19 @@ private func numericOrHexValue(_ ch: unichar) -> Int {
     }
 }
 
-private func decimalSep(_ locale: NSLocale?) -> String {
+private func decimalSep(_ locale: Locale?) -> String {
     if let loc = locale {
         if let sep = loc.objectForKey(NSLocaleDecimalSeparator) as? NSString {
             return sep._swiftObject
         }
         return "."
     } else {
-        return decimalSep(NSLocale.currentLocale())
+        return decimalSep(Locale.currentLocale())
     }
 }
 
 extension String {
-    internal func scan<T: _IntegerLike>(_ skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: _IntegerLike>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var neg = false
@@ -324,7 +324,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _IntegerLike>(_ skipSet: NSCharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: _IntegerLike>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var localResult: T = 0
@@ -366,7 +366,7 @@ extension String {
         return true
     }
     
-    internal func scan<T: _FloatLike>(_ skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: _FloatLike>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         let ds_chars = decimalSep(locale).utf16
         let ds = ds_chars[ds_chars.startIndex]
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
@@ -425,12 +425,12 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _FloatLike>(_ skipSet: NSCharacterSet?, locale: NSLocale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: _FloatLike>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         NSUnimplemented()
     }
 }
 
-extension NSScanner {
+extension Scanner {
     
     // On overflow, the below methods will return success and clamp
     public func scanInt(_ result: UnsafeMutablePointer<Int32>) -> Bool {
@@ -510,7 +510,7 @@ extension NSScanner {
 /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer and better Optional usage.
 /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
 /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-extension NSScanner {
+extension Scanner {
     public func scanInt() -> Int32? {
         var value: Int32 = 0
         return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Int32>) -> Int32? in
@@ -627,7 +627,7 @@ extension NSScanner {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
-        let options: NSStringCompareOptions = [caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch, NSStringCompareOptions.anchoredSearch]
+        let options: NSString.CompareOptions = [caseSensitive ? [] : NSString.CompareOptions.caseInsensitive, NSString.CompareOptions.anchored]
         
         if let invSkipSet = charactersToBeSkipped?.inverted {
             let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
@@ -644,11 +644,11 @@ extension NSScanner {
         return nil
     }
     
-    public func scanCharactersFromSet(_ set: NSCharacterSet) -> String? {
+    public func scanCharactersFromSet(_ set: CharacterSet) -> String? {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
-        let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch
+        let options: NSString.CompareOptions = caseSensitive ? [] : NSString.CompareOptions.caseInsensitive
         if let invSkipSet = charactersToBeSkipped?.inverted {
             let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
@@ -669,7 +669,7 @@ extension NSScanner {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
-        let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch
+        let options: NSString.CompareOptions = caseSensitive ? [] : NSString.CompareOptions.caseInsensitive
         if let invSkipSet = charactersToBeSkipped?.inverted {
             let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen
@@ -686,11 +686,11 @@ extension NSScanner {
         return nil
     }
     
-    public func scanUpToCharactersFromSet(_ set: NSCharacterSet) -> String? {
+    public func scanUpToCharactersFromSet(_ set: CharacterSet) -> String? {
         let str = self.string._bridgeToObject()
         var stringLoc = scanLocation
         let stringLen = str.length
-        let options: NSStringCompareOptions = caseSensitive ? [] : NSStringCompareOptions.caseInsensitiveSearch
+        let options: NSString.CompareOptions = caseSensitive ? [] : NSString.CompareOptions.caseInsensitive
         if let invSkipSet = charactersToBeSkipped?.inverted {
             let range = str.rangeOfCharacter(from: invSkipSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen

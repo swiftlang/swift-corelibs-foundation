@@ -43,7 +43,6 @@ extension NSRange {
         length = x.count
     }
     
-    @warn_unused_result
     public func toRange() -> CountableRange<Int>? {
         if location == NSNotFound { return nil }
         let min = location
@@ -79,8 +78,8 @@ extension NSRange: NSSpecialValueCoding {
     
     func encodeWithCoder(_ aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(NSNumber(value: self.location), forKey: "NS.rangeval.location")
-            aCoder.encodeObject(NSNumber(value: self.length), forKey: "NS.rangeval.length")
+            aCoder.encode(NSNumber(value: self.location), forKey: "NS.rangeval.location")
+            aCoder.encode(NSNumber(value: self.length), forKey: "NS.rangeval.length")
         } else {
             NSUnimplemented()
         }
@@ -89,7 +88,7 @@ extension NSRange: NSSpecialValueCoding {
     static func objCType() -> String {
 #if arch(i386) || arch(arm)
         return "{_NSRange=II}"
-#elseif arch(x86_64) || arch(arm64)
+#elseif arch(x86_64) || arch(arm64) || arch(s390x)
         return "{_NSRange=QQ}"
 #else
         NSUnimplemented()
@@ -180,9 +179,9 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
         // fail early if the string is empty
         return emptyRange
     }
-    let scanner = NSScanner(string: aString)
-    let digitSet = NSCharacterSet.decimalDigits()
-    scanner.scanUpToCharactersFromSet(digitSet)
+    let scanner = Scanner(string: aString)
+    let digitSet = CharacterSet.decimalDigits
+    let _ = scanner.scanUpToCharactersFromSet(digitSet)
     if scanner.atEnd {
         // fail early if there are no decimal digits
         return emptyRange
@@ -195,7 +194,7 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
         // return early if there are no more characters after the first int in the string
         return partialRange
     }
-    scanner.scanUpToCharactersFromSet(digitSet)
+    let _ = scanner.scanUpToCharactersFromSet(digitSet)
     if scanner.atEnd {
         // return early if there are no integer characters after the first int in the string
         return partialRange

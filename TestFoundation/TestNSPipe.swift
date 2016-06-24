@@ -27,22 +27,22 @@ class TestNSPipe : XCTestCase {
     }
     
     func test_NSPipe() {
-        let aPipe = NSPipe()
+        let aPipe = Pipe()
         let text = "test-pipe"
         
         // First write some data into the pipe
-        let stringAsData = text.bridge().data(using: NSUTF8StringEncoding)
+        let stringAsData = text.data(using: .utf8)
         XCTAssertNotNil(stringAsData)
-        aPipe.fileHandleForWriting.writeData(stringAsData!)
+        aPipe.fileHandleForWriting.write(stringAsData!)
         
         // Then read it out again
-        let data = aPipe.fileHandleForReading.readDataOfLength(text.characters.count)
+        let data = aPipe.fileHandleForReading.readData(ofLength: text.characters.count)
         
         // Confirm that we did read data
         XCTAssertNotNil(data)
         
         // Confirm the data can be converted to a String
-        let convertedData = String(data: data, encoding: NSUTF8StringEncoding)
+        let convertedData = String(data: data, encoding: .utf8)
         XCTAssertNotNil(convertedData)
         
         // Confirm the data written in is the same as the data we read

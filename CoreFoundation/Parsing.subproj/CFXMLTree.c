@@ -225,7 +225,7 @@ static void _CFAppendXMLProlog(CFMutableStringRef str, const CFXMLTreeRef tree) 
             break;
         }
         default:
-            CFAssert1(false, __kCFLogAssertion, "Encountered unexpected XMLDataTypeID %d", CFXMLNodeGetTypeCode(CFXMLTreeGetNode(tree)));
+            CFAssert(false, __kCFLogAssertion, "Encountered unexpected XMLDataTypeID %d", CFXMLNodeGetTypeCode(CFXMLTreeGetNode(tree)));
     }
 }
 

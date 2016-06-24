@@ -31,26 +31,26 @@ public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
     static public func supportsSecureCoding() -> Bool { return true }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encodeObject(self.namePrefix?.bridge(), forKey: "NS.namePrefix")
-            aCoder.encodeObject(self.givenName?.bridge(), forKey: "NS.givenName")
-            aCoder.encodeObject(self.middleName?.bridge(), forKey: "NS.middleName")
-            aCoder.encodeObject(self.familyName?.bridge(), forKey: "NS.familyName")
-            aCoder.encodeObject(self.nameSuffix?.bridge(), forKey: "NS.nameSuffix")
-            aCoder.encodeObject(self.nickname?.bridge(), forKey: "NS.nickname")
+            aCoder.encode(self.namePrefix?.bridge(), forKey: "NS.namePrefix")
+            aCoder.encode(self.givenName?.bridge(), forKey: "NS.givenName")
+            aCoder.encode(self.middleName?.bridge(), forKey: "NS.middleName")
+            aCoder.encode(self.familyName?.bridge(), forKey: "NS.familyName")
+            aCoder.encode(self.nameSuffix?.bridge(), forKey: "NS.nameSuffix")
+            aCoder.encode(self.nickname?.bridge(), forKey: "NS.nickname")
         } else {
             // FIXME check order
-            aCoder.encodeObject(self.namePrefix?.bridge())
-            aCoder.encodeObject(self.givenName?.bridge())
-            aCoder.encodeObject(self.middleName?.bridge())
-            aCoder.encodeObject(self.familyName?.bridge())
-            aCoder.encodeObject(self.nameSuffix?.bridge())
-            aCoder.encodeObject(self.nickname?.bridge())
+            aCoder.encode(self.namePrefix?.bridge())
+            aCoder.encode(self.givenName?.bridge())
+            aCoder.encode(self.middleName?.bridge())
+            aCoder.encode(self.familyName?.bridge())
+            aCoder.encode(self.nameSuffix?.bridge())
+            aCoder.encode(self.nickname?.bridge())
         }
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject { NSUnimplemented() }
+    public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     
     /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
     
@@ -75,6 +75,6 @@ public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     /* Each element of the phoneticRepresentation should correspond to an element of the original PersonNameComponents instance.
        The phoneticRepresentation of the phoneticRepresentation object itself will be ignored. nil by default, must be instantiated.
     */
-    /*@NSCopying*/ public var phoneticRepresentation: NSPersonNameComponents?
+    /*@NSCopying*/ public var phoneticRepresentation: PersonNameComponents?
 }
 

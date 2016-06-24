@@ -268,23 +268,23 @@ public class NSNumber : NSValue {
             break
         }
     }
-    
+
     public required convenience init?(coder aDecoder: NSCoder) {
         if !aDecoder.allowsKeyedCoding {
             var objCType: UnsafeMutablePointer<Int8>? = nil
             withUnsafeMutablePointer(&objCType, { (ptr: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>) -> Void in
-                aDecoder.decodeValueOfObjCType(String(_NSSimpleObjCType.CharPtr), at: UnsafeMutablePointer<Void>(ptr))
+                aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.CharPtr), at: UnsafeMutablePointer<Void>(ptr))
             })
             if objCType == nil {
                 return nil
             }
             var size: Int = 0
-            NSGetSizeAndAlignment(objCType!, &size, nil)
+            let _ = NSGetSizeAndAlignment(objCType!, &size, nil)
             let buffer = malloc(size)!
-            aDecoder.decodeValueOfObjCType(objCType!, at: buffer)
+            aDecoder.decodeValue(ofObjCType: objCType!, at: buffer)
             self.init(bytes: buffer, objCType: objCType!)
             free(buffer)
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValueForKey("NS.number") {
+        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.number") {
             let number = aDecoder._decodePropertyListForKey("NS.number")
             if let val = number as? Double {
                 self.init(value:val)
@@ -296,12 +296,12 @@ public class NSNumber : NSValue {
                 return nil
             }
         } else {
-            if aDecoder.containsValueForKey("NS.boolval") {
-                self.init(value: aDecoder.decodeBoolForKey("NS.boolval"))
-            } else if aDecoder.containsValueForKey("NS.intval") {
-                self.init(value: aDecoder.decodeInt64ForKey("NS.intval"))
-            } else if aDecoder.containsValueForKey("NS.dblval") {
-                self.init(value: aDecoder.decodeDoubleForKey("NS.dblval"))
+            if aDecoder.containsValue(forKey: "NS.boolval") {
+                self.init(value: aDecoder.decodeBool(forKey: "NS.boolval"))
+            } else if aDecoder.containsValue(forKey: "NS.intval") {
+                self.init(value: aDecoder.decodeInt64(forKey: "NS.intval"))
+            } else if aDecoder.containsValue(forKey: "NS.dblval") {
+                self.init(value: aDecoder.decodeDouble(forKey: "NS.dblval"))
             } else {
                 return nil
             }
@@ -427,7 +427,7 @@ public class NSNumber : NSValue {
         self.init(value: value)
     }
 
-    public func compare(_ otherNumber: NSNumber) -> NSComparisonResult {
+    public func compare(_ otherNumber: NSNumber) -> ComparisonResult {
         return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
     }
 
@@ -439,7 +439,7 @@ public class NSNumber : NSValue {
             CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
 
         } else {
-            formatter = CFNumberFormatterCreate(nil, (aLocale as! NSLocale)._cfObject, kCFNumberFormatterDecimalStyle)
+            formatter = CFNumberFormatterCreate(nil, (aLocale as! Locale)._cfObject, kCFNumberFormatterDecimalStyle)
         }
         return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
     }
@@ -493,7 +493,7 @@ extension NSNumber : CustomPlaygroundQuickLookable {
         case kCFNumberDoubleType:
             return .double(self.doubleValue)
         case kCFNumberCGFloatType:
-            if sizeof(CGFloat) == sizeof(Float32) {
+            if sizeof(CGFloat.self) == sizeof(Float32.self) {
                 return .float(self.floatValue)
             } else {
                 return .double(self.doubleValue)

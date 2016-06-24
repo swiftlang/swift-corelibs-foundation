@@ -16,7 +16,7 @@
 /// the actual bytes representing the content of a URL. See
 /// `NSURLSession` for more information about receiving the content
 /// data for a URL load.
-public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
+public class URLResponse : NSObject, NSSecureCoding, NSCopying {
 
     static public func supportsSecureCoding() -> Bool {
         return true
@@ -26,15 +26,15 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
     public override func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
     
-    public func copyWithZone(_ zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -46,7 +46,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
     /// - Parameter expectedContentLength: the expected content length of the associated data
     /// - Parameter textEncodingName the name of the text encoding for the associated data, if applicable, else nil
     /// - Returns: The initialized NSURLResponse.
-    public init(url: NSURL, mimeType: String?, expectedContentLength length: Int, textEncodingName name: String?) {
+    public init(url: URL, mimeType: String?, expectedContentLength length: Int, textEncodingName name: String?) {
         self.url = url
         self.mimeType = mimeType
         self.expectedContentLength = Int64(length)
@@ -56,7 +56,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
     }
     
     /// The URL of the receiver.
-    /*@NSCopying*/ public private(set) var url: NSURL?
+    /*@NSCopying*/ public private(set) var url: URL?
 
     
     /// The MIME type of the receiver.
@@ -113,7 +113,7 @@ public class NSURLResponse : NSObject, NSSecureCoding, NSCopying {
 /// HTTP URL load. It is a specialization of NSURLResponse which
 /// provides conveniences for accessing information specific to HTTP
 /// protocol responses.
-public class NSHTTPURLResponse : NSURLResponse {
+public class NSHTTPURLResponse : URLResponse {
     
     /// Initializer for NSHTTPURLResponse objects.
     ///
@@ -122,7 +122,7 @@ public class NSHTTPURLResponse : NSURLResponse {
     /// - Parameter httpVersion: The version of the HTTP response as represented by the server.  This is typically represented as "HTTP/1.1".
     /// - Parameter headerFields: A dictionary representing the header keys and values of the server response.
     /// - Returns: the instance of the object, or `nil` if an error occurred during initialization.
-    public init?(url: NSURL, statusCode: Int, httpVersion: String?, headerFields: [String : String]?) {
+    public init?(url: URL, statusCode: Int, httpVersion: String?, headerFields: [String : String]?) {
         self.statusCode = statusCode
         self.allHeaderFields = headerFields ?? [:]
         super.init(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
@@ -257,7 +257,11 @@ private func getSuggestedFilename(fromHeaderFields headerFields: [String : Strin
         let field = contentDisposition.httpHeaderParts
         else { return nil }
     for part in field.parameters where part.attribute == "filename" {
-        return part.value?.pathComponents.map{ $0 == "/" ? "" : $0}.joined(separator: "_")
+        if let path = part.value {
+            return _pathComponents(path)?.map{ $0 == "/" ? "" : $0}.joined(separator: "_")
+        } else {
+            return nil
+        }
     }
     return nil
 }
@@ -322,7 +326,7 @@ private extension String {
     var httpHeaderParts: ValueWithParameters? {
         var type: String?
         var parameters: [ValueWithParameters.Parameter] = []
-        let ws = NSCharacterSet.whitespaces()
+        let ws = CharacterSet.whitespaces
         func append(_ string: String) {
             if type == nil {
                 type = string

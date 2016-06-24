@@ -8,34 +8,36 @@
 //
 
 
-public enum NSDateComponentsFormatterUnitsStyle : Int {
-    
-    case Positional // "1:10; may fall back to abbreviated units in some cases, e.g. 3d"
-    case Abbreviated // "1h 10m"
-    case Short // "1hr 10min"
-    case Full // "1 hour, 10 minutes"
-    case SpellOut // "One hour, ten minutes"
-}
+extension DateComponentsFormatter {
+    public enum UnitsStyle : Int {
+        
+        case positional // "1:10; may fall back to abbreviated units in some cases, e.g. 3d"
+        case abbreviated // "1h 10m"
+        case short // "1hr 10min"
+        case full // "1 hour, 10 minutes"
+        case spellOut // "One hour, ten minutes"
+    }
 
-public struct NSDateComponentsFormatterZeroFormattingBehavior : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    public static let None = NSDateComponentsFormatterZeroFormattingBehavior(rawValue: 0) //drop none, pad none
-    public static let Default = NSDateComponentsFormatterZeroFormattingBehavior(rawValue: 1 << 0) //Positional units: drop leading zeros, pad other zeros. All others: drop all zeros.
-    
-    public static let DropLeading = NSDateComponentsFormatterZeroFormattingBehavior(rawValue: 1 << 1) // Off: "0h 10m", On: "10m"
-    public static let DropMiddle = NSDateComponentsFormatterZeroFormattingBehavior(rawValue: 1 << 2) // Off: "1h 0m 10s", On: "1h 10s"
-    public static let DropTrailing = NSDateComponentsFormatterZeroFormattingBehavior(rawValue: 1 << 3) // Off: "1h 0m", On: "1h"
-    public static let DropAll = [NSDateComponentsFormatterZeroFormattingBehavior.DropLeading, NSDateComponentsFormatterZeroFormattingBehavior.DropMiddle, NSDateComponentsFormatterZeroFormattingBehavior.DropTrailing]
-    
-    public static let Pad = NSDateComponentsFormatterZeroFormattingBehavior(rawValue: 1 << 16) // Off: "1:0:10", On: "01:00:10"
+    public struct ZeroFormattingBehavior : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        
+        public static let none = ZeroFormattingBehavior(rawValue: 0) //drop none, pad none
+        public static let `default` = ZeroFormattingBehavior(rawValue: 1 << 0) //Positional units: drop leading zeros, pad other zeros. All others: drop all zeros.
+        
+        public static let dropLeading = ZeroFormattingBehavior(rawValue: 1 << 1) // Off: "0h 10m", On: "10m"
+        public static let dropMiddle = ZeroFormattingBehavior(rawValue: 1 << 2) // Off: "1h 0m 10s", On: "1h 10s"
+        public static let dropTrailing = ZeroFormattingBehavior(rawValue: 1 << 3) // Off: "1h 0m", On: "1h"
+        public static let dropAll = [ZeroFormattingBehavior.dropLeading, ZeroFormattingBehavior.dropMiddle, ZeroFormattingBehavior.dropTrailing]
+        
+        public static let pad = ZeroFormattingBehavior(rawValue: 1 << 16) // Off: "1:0:10", On: "01:00:10"
+    }
 }
 
 /* NSDateComponentsFormatter provides locale-correct and flexible string formatting of quantities of time, such as "1 day" or "1h 10m", as specified by NSDateComponents. For formatting intervals of time (such as "2PM to 5PM"), see NSDateIntervalFormatter. NSDateComponentsFormatter is thread-safe, in that calling methods on it from multiple threads will not cause crashes or incorrect results, but it makes no attempt to prevent confusion when one thread sets something and another thread isn't expecting it to change.
  */
 
-public class NSDateComponentsFormatter : NSFormatter {
+public class DateComponentsFormatter : Formatter {
     
     public override init() {
         NSUnimplemented()
@@ -47,9 +49,9 @@ public class NSDateComponentsFormatter : NSFormatter {
     
     /* 'obj' must be an instance of NSDateComponents.
      */
-    public override func stringForObjectValue(_ obj: AnyObject) -> String? { NSUnimplemented() }
+    public override func string(for obj: AnyObject) -> String? { NSUnimplemented() }
     
-    public func stringFromDateComponents(_ components: NSDateComponents) -> String? { NSUnimplemented() }
+    public func string(from components: DateComponents) -> String? { NSUnimplemented() }
     
     /* Normally, NSDateComponentsFormatter will calculate as though counting from the current date and time (e.g. in February, 1 month formatted as a number of days will be 28). -stringFromDate:toDate: calculates from the passed-in startDate instead.
      
@@ -57,17 +59,17 @@ public class NSDateComponentsFormatter : NSFormatter {
      
        Note that this is still formatting the quantity of time between the dates, not the pair of dates itself. For strings like "Feb 22nd - Feb 28th", use NSDateIntervalFormatter.
      */
-    public func stringFromDate(_ startDate: NSDate, toDate endDate: NSDate) -> String? { NSUnimplemented() }
+    public func string(from startDate: Date, to endDate: Date) -> String? { NSUnimplemented() }
     
     /* Convenience method for formatting a number of seconds. See 'allowedUnits' for how the default set of allowed units differs from -stringFromDateComponents:.
      */
-    public func stringFromTimeInterval(_ ti: NSTimeInterval) -> String? { NSUnimplemented() }
+    public func string(from ti: TimeInterval) -> String? { NSUnimplemented() }
     
-    public class func localizedStringFromDateComponents(_ components: NSDateComponents, unitsStyle: NSDateComponentsFormatterUnitsStyle) -> String? { NSUnimplemented() }
+    public class func localizedString(from components: DateComponents, unitsStyle: UnitsStyle) -> String? { NSUnimplemented() }
     
     /* Choose how to indicate units. For example, 1h 10m vs 1:10. Default is NSDateComponentsFormatterUnitsStylePositional.
      */
-    public var unitsStyle: NSDateComponentsFormatterUnitsStyle
+    public var unitsStyle: UnitsStyle
     
     /* Bitmask of units to include. Set to 0 to get the default behavior. Note that, especially if the maximum number of units is low, unit collapsing is on, or zero dropping is on, not all allowed units may actually be used for a given NSDateComponents. Default value is the components of the passed-in NSDateComponents object, or years | months | weeks | days | hours | minutes | seconds if passed an NSTimeInterval or pair of NSDates.
      
@@ -83,17 +85,17 @@ public class NSDateComponentsFormatter : NSFormatter {
      
        Specifying any other NSCalendarUnits will result in an exception.
      */
-    public var allowedUnits: NSCalendarUnit
+    public var allowedUnits: Calendar.Unit
     
     /* Bitmask specifying how to handle zeros in units. This includes both padding and dropping zeros so that a consistent number digits are displayed, causing updating displays to remain more stable. Default is NSDateComponentsFormatterZeroFormattingBehaviorDefault.
      
        If the combination of zero formatting behavior and style would lead to ambiguous date formats (for example, 1:10 meaning 1 hour, 10 seconds), NSDateComponentsFormatter will throw an exception.
      */
-    public var zeroFormattingBehavior: NSDateComponentsFormatterZeroFormattingBehavior
+    public var zeroFormattingBehavior: ZeroFormattingBehavior
     
     /* Specifies the locale and calendar to use for formatting date components that do not themselves have calendars. Defaults to NSAutoupdatingCurrentCalendar. If set to nil, uses the gregorian calendar with the en_US_POSIX locale.
      */
-    /*@NSCopying*/ public var calendar: NSCalendar?
+    /*@NSCopying*/ public var calendar: Calendar?
     
     /* Choose whether non-integer units should be used to handle display of values that can't be exactly represented with the allowed units. For example, if minutes aren't allowed, then "1h 30m" could be formatted as "1.5h". Default is NO.
      */
@@ -125,7 +127,7 @@ public class NSDateComponentsFormatter : NSFormatter {
     /* 
        Currently unimplemented, will be removed in a future seed.
      */
-    public var formattingContext: NSFormattingContext
+    public var formattingContext: Context
     
     /* NSDateComponentsFormatter currently only implements formatting, not parsing. Until it implements parsing, this will always return NO.
      */

@@ -8,9 +8,9 @@
 //
 
 
-public class NSPortMessage : NSObject {
+public class PortMessage : NSObject {
     
-    public init(sendPort: NSPort?, receivePort replyPort: NSPort?, components: [AnyObject]?) {
+    public init(sendPort: Port?, receivePort replyPort: Port?, components: [AnyObject]?) {
         NSUnimplemented()
     }
     
@@ -18,15 +18,15 @@ public class NSPortMessage : NSObject {
         NSUnimplemented()
     }
     
-    public var receivePort: NSPort? {
+    public var receivePort: Port? {
         NSUnimplemented()
     }
     
-    public var sendPort: NSPort? {
+    public var sendPort: Port? {
         NSUnimplemented()
     }
     
-    public func sendBeforeDate(_ date: NSDate) -> Bool {
+    public func sendBeforeDate(_ date: Date) -> Bool {
         NSUnimplemented()
     }
     

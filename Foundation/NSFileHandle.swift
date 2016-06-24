@@ -15,24 +15,24 @@ import Darwin
 import Glibc
 #endif
 
-public class NSFileHandle : NSObject, NSSecureCoding {
+public class FileHandle: NSObject, NSSecureCoding {
     internal var _fd: Int32
     internal var _closeOnDealloc: Bool
     internal var _closed: Bool = false
     
-    public var availableData: NSData {
+    public var availableData: Data {
         return _readDataOfLength(Int.max, untilEOF: false)
     }
     
-    public func readDataToEndOfFile() -> NSData {
-        return readDataOfLength(Int.max)
+    public func readDataToEndOfFile() -> Data {
+        return readData(ofLength: Int.max)
     }
 
-    public func readDataOfLength(_ length: Int) -> NSData {
+    public func readData(ofLength length: Int) -> Data {
         return _readDataOfLength(length, untilEOF: true)
     }
 
-    internal func _readDataOfLength(_ length: Int, untilEOF: Bool) -> NSData {
+    internal func _readDataOfLength(_ length: Int, untilEOF: Bool) -> Data {
         var statbuf = stat()
         var dynamicBuffer: UnsafeMutablePointer<UInt8>? = nil
         var total = 0
@@ -108,16 +108,16 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         }
         
         if total > 0 {
-            return NSData(bytesNoCopy: UnsafeMutablePointer<Void>(dynamicBuffer!), length: total)
+            return Data(bytesNoCopy: dynamicBuffer!, count: total, deallocator: .none)
         }
         
-        return NSData()
+        return Data()
     }
     
-    public func writeData(_ data: NSData) {
+    public func write(_ data: Data) {
         data.enumerateBytes() { (bytes, range, stop) in
             do {
-                try NSData.writeToFileDescriptor(self._fd, path: nil, buf: bytes, length: range.length)
+                try NSData.writeToFileDescriptor(self._fd, path: nil, buf: UnsafePointer<Void>(bytes.baseAddress!), length: bytes.count)
             } catch {
                 fatalError("Write failure")
             }
@@ -134,11 +134,11 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         return UInt64(lseek(_fd, 0, L_XTND))
     }
     
-    public func seekToFileOffset(_ offset: UInt64) {
+    public func seek(toFileOffset offset: UInt64) {
         lseek(_fd, off_t(offset), L_SET)
     }
     
-    public func truncateFileAtOffset(_ offset: UInt64) {
+    public func truncateFile(atOffset offset: UInt64) {
         if lseek(_fd, off_t(offset), L_SET) == 0 {
             ftruncate(_fd, off_t(offset))
         }
@@ -179,7 +179,7 @@ public class NSFileHandle : NSObject, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public func encodeWithCoder(_ aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -188,30 +188,30 @@ public class NSFileHandle : NSObject, NSSecureCoding {
     }
 }
 
-extension NSFileHandle {
+extension FileHandle {
     
-    internal static var _stdinFileHandle: NSFileHandle = {
-        return NSFileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
+    internal static var _stdinFileHandle: FileHandle = {
+        return FileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardInput() -> NSFileHandle {
+    public class func fileHandleWithStandardInput() -> FileHandle {
         return _stdinFileHandle
     }
     
-    internal static var _stdoutFileHandle: NSFileHandle = {
-        return NSFileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
+    internal static var _stdoutFileHandle: FileHandle = {
+        return FileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardOutput() -> NSFileHandle {
+    public class func fileHandleWithStandardOutput() -> FileHandle {
         return _stdoutFileHandle
     }
     
-    internal static var _stderrFileHandle: NSFileHandle = {
-        return NSFileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
+    internal static var _stderrFileHandle: FileHandle = {
+        return FileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardError() -> NSFileHandle {
+    public class func fileHandleWithStandardError() -> FileHandle {
         return _stderrFileHandle
     }
     
-    public class func fileHandleWithNullDevice() -> NSFileHandle {
+    public class func fileHandleWithNullDevice() -> FileHandle {
         NSUnimplemented()
     }
     
@@ -227,7 +227,7 @@ extension NSFileHandle {
         self.init(path: path, flags: O_RDWR, createMode: 0)
     }
     
-    internal static func _openFileDescriptorForURL(_ url : NSURL, flags: Int32, reading: Bool) throws -> Int32 {
+    internal static func _openFileDescriptorForURL(_ url : URL, flags: Int32, reading: Bool) throws -> Int32 {
         if let path = url.path {
             let fd = _CFOpenFile(path, flags)
             if fd < 0 {
@@ -239,18 +239,18 @@ extension NSFileHandle {
         }
     }
     
-    public convenience init(forReadingFromURL url: NSURL) throws {
-        let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_RDONLY, reading: true)
+    public convenience init(forReadingFromURL url: URL) throws {
+        let fd = try FileHandle._openFileDescriptorForURL(url, flags: O_RDONLY, reading: true)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
     
-    public convenience init(forWritingToURL url: NSURL) throws {
-        let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_WRONLY, reading: false)
+    public convenience init(forWritingToURL url: URL) throws {
+        let fd = try FileHandle._openFileDescriptorForURL(url, flags: O_WRONLY, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
 
-    public convenience init(forUpdatingURL url: NSURL) throws {
-        let fd = try NSFileHandle._openFileDescriptorForURL(url, flags: O_RDWR, reading: false)
+    public convenience init(forUpdatingURL url: URL) throws {
+        let fd = try FileHandle._openFileDescriptorForURL(url, flags: O_RDWR, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
 }
@@ -265,9 +265,9 @@ public let NSFileHandleDataAvailableNotification: String = "" // NSUnimplemented
 public let NSFileHandleNotificationDataItem: String = "" // NSUnimplemented
 public let NSFileHandleNotificationFileHandleItem: String = "" // NSUnimplemented
 
-extension NSFileHandle {
+extension FileHandle {
     
-    public func readInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func readInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -276,7 +276,7 @@ extension NSFileHandle {
     }
 
     
-    public func readToEndOfFileInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func readToEndOfFileInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -285,7 +285,7 @@ extension NSFileHandle {
     }
 
     
-    public func acceptConnectionInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func acceptConnectionInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -294,7 +294,7 @@ extension NSFileHandle {
     }
 
     
-    public func waitForDataInBackgroundAndNotifyForModes(_ modes: [String]?) {
+    public func waitForDataInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
@@ -302,17 +302,17 @@ extension NSFileHandle {
         NSUnimplemented()
     }
     
-    public var readabilityHandler: ((NSFileHandle) -> Void)? {
+    public var readabilityHandler: ((FileHandle) -> Void)? {
         NSUnimplemented()
     }
 
-    public var writeabilityHandler: ((NSFileHandle) -> Void)? {
+    public var writeabilityHandler: ((FileHandle) -> Void)? {
         NSUnimplemented()
     }
 
 }
 
-extension NSFileHandle {
+extension FileHandle {
     
     public convenience init(fileDescriptor fd: Int32) {
         self.init(fileDescriptor: fd, closeOnDealloc: false)
@@ -323,10 +323,10 @@ extension NSFileHandle {
     }
 }
 
-public class NSPipe : NSObject {
+public class Pipe: NSObject {
     
-    private let readHandle: NSFileHandle
-    private let writeHandle: NSFileHandle
+    private let readHandle: FileHandle
+    private let writeHandle: FileHandle
     
     public override init() {
         /// the `pipe` system call creates two `fd` in a malloc'ed area
@@ -341,19 +341,19 @@ public class NSPipe : NSObject {
         /// don't need to add a `deinit` to this class
         
         /// Create the read handle from the first fd in `fds`
-        self.readHandle = NSFileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
+        self.readHandle = FileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
         
         /// Advance `fds` by one to create the write handle from the second fd
-        self.writeHandle = NSFileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
+        self.writeHandle = FileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
         
         super.init()
     }
     
-    public var fileHandleForReading: NSFileHandle {
+    public var fileHandleForReading: FileHandle {
         return self.readHandle
     }
     
-    public var fileHandleForWriting: NSFileHandle {
+    public var fileHandleForWriting: FileHandle {
         return self.writeHandle
     }
 }

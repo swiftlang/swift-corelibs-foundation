@@ -50,7 +50,7 @@ int _CFArgc(void) { return *_NSGetArgc(); }
 #endif
 
 
-CF_PRIVATE Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
+CF_EXPORT Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
     return getcwd(path, maxlen) != NULL;
 }
 
@@ -72,8 +72,8 @@ CF_PRIVATE const wchar_t *_CFDLLPath(void) {
         CFAssert(ourModule, __kCFLogAssertion, "GetModuleHandle failed");
 
         DWORD wResult = GetModuleFileNameW(ourModule, cachedPath, MAX_PATH+1);
-        CFAssert1(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
-        CFAssert1(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", cachedPath);
+        CFAssert(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
+        CFAssert(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", cachedPath);
 
         // strip off last component, the DLL name
         CFIndex idx;
@@ -182,7 +182,7 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-CF_PRIVATE CFStringRef _CFProcessNameString(void) {
+CF_EXPORT CFStringRef _CFProcessNameString(void) {
     static CFStringRef __CFProcessNameString = NULL;
     if (!__CFProcessNameString) {
         const char *processName = *_CFGetProgname();
@@ -223,7 +223,7 @@ static CFURLRef _CFCopyHomeDirURLForUser(struct passwd *upwd, bool fallBackToHom
 #define CFMaxHostNameLength	256
 #define CFMaxHostNameSize	(CFMaxHostNameLength+1)
 
-CF_PRIVATE CFStringRef _CFStringCreateHostName(void) {
+CF_EXPORT CFStringRef _CFStringCreateHostName(void) {
     char myName[CFMaxHostNameSize];
 
     // return @"" instead of nil a la CFUserName() and Ali Ozer
@@ -600,8 +600,41 @@ static void *__CFTSDGetSpecific() {
 #endif
 }
 
+#if DEPLOYMENT_RUNTIME_SWIFT
 
+extern void swift_retain(void *);
+extern void swift_release(void *);
 
+static void _CFThreadSpecificDestructor(void *ctx) {
+    swift_release(ctx);
+}
+
+_CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
+    _CFThreadSpecificKey key;
+    pthread_key_create(&key, &_CFThreadSpecificDestructor);
+    return key;
+}
+
+CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
+    return (CFTypeRef)pthread_getspecific(key);
+}
+
+void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
+    if (value != NULL) {
+        swift_retain((void *)value);
+        pthread_setspecific(key, value);
+    } else {
+        pthread_setspecific(key, NULL);
+    }
+}
+
+_CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context) {
+    pthread_t thread;
+    pthread_create(&thread, &attrs, startfn, context);
+    return thread;
+}
+
+#endif
 
 static void __CFTSDFinalize(void *arg) {
     // Set our TSD so we're called again by pthreads. It will call the destructor PTHREAD_DESTRUCTOR_ITERATIONS times as long as a value is set in the thread specific data. We handle each case below.
@@ -1278,7 +1311,7 @@ int _CFOpenFile(const char *path, int opts) {
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-CF_PRIVATE char **_CFEnviron(void) {
+CF_EXPORT char **_CFEnviron(void) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     return *_NSGetEnviron();
 #elif DEPLOYMENT_TARGET_WINDOWS
@@ -1287,6 +1320,7 @@ CF_PRIVATE char **_CFEnviron(void) {
     return environ;
 #endif
 }
+
 #endif
 
 void *_CFReallocf(void *ptr, size_t size) {

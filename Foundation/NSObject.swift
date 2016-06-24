@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-public protocol NSObjectProtocol {
+public protocol NSObjectProtocol: class {
     
     func isEqual(_ object: AnyObject?) -> Bool
     var hash: Int { get }
@@ -42,23 +42,23 @@ public struct NSZone : NilLiteralConvertible {
 
 public protocol NSCopying {
     
-    func copyWithZone(_ zone: NSZone) -> AnyObject
+    func copy(with zone: NSZone?) -> AnyObject
 }
 
 extension NSCopying {
     public func copy() -> AnyObject {
-        return copyWithZone(nil)
+        return copy(with: nil)
     }
 }
 
 public protocol NSMutableCopying {
     
-    func mutableCopyWithZone(_ zone: NSZone) -> AnyObject
+    func mutableCopy(with zone: NSZone?) -> AnyObject
 }
 
 extension NSMutableCopying {
     public func mutableCopy() -> AnyObject {
-        return mutableCopyWithZone(nil)
+        return mutableCopy(with: nil)
     }
 }
 
@@ -71,14 +71,14 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
     
     public func copy() -> AnyObject {
         if let copyable = self as? NSCopying {
-            return copyable.copyWithZone(nil)
+            return copyable.copy(with: nil)
         }
         return self
     }
     
     public func mutableCopy() -> AnyObject {
         if let copyable = self as? NSMutableCopying {
-            return copyable.mutableCopyWithZone(nil)
+            return copyable.mutableCopy(with: nil)
         }
         return self
     }

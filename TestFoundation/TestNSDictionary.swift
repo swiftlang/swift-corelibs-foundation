@@ -115,13 +115,13 @@ class TestNSDictionary : XCTestCase {
 
         XCTAssertTrue(dict1 == dict2)
         XCTAssertTrue(dict1.isEqual(dict2))
-        XCTAssertTrue(dict1.isEqualToDictionary(dict2.bridge()))
+        XCTAssertTrue(dict1.isEqual(to: dict2.bridge()))
         XCTAssertEqual(dict1.hash, dict2.hash)
         XCTAssertEqual(dict1.hashValue, dict2.hashValue)
 
         XCTAssertFalse(dict1 == dict3)
         XCTAssertFalse(dict1.isEqual(dict3))
-        XCTAssertFalse(dict1.isEqualToDictionary(dict3.bridge()))
+        XCTAssertFalse(dict1.isEqual(to: dict3.bridge()))
 
         XCTAssertFalse(dict1.isEqual(nil))
         XCTAssertFalse(dict1.isEqual(NSObject()))
