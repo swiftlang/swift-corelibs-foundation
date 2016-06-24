@@ -133,7 +133,9 @@ public class NSProgress : NSObject {
     
     /* Set a value in the dictionary returned by invocations of -userInfo, with appropriate KVO notification for properties whose values can depend on values in the user info dictionary, like localizedDescription. If a nil value is passed then the dictionary entry is removed.
     */
-    public func setUserInfoObject(_ objectOrNil: AnyObject?, forKey key: String) { NSUnimplemented() }
+    public func setUserInfoObject(_ objectOrNil: AnyObject?, forKey key: String) {
+        userInfo[key.bridge()] = objectOrNil
+    }
     
     /* Whether the progress being made is indeterminate. -isIndeterminate returns YES when the value of the totalUnitCount or completedUnitCount property is less than zero. Zero values for both of those properties indicates that there turned out to not be any work to do after all; -isIndeterminate returns NO and -fractionCompleted returns 1.0 in that case. NSProgress is by default KVO-compliant for these properties, with the notifications always being sent on the thread which updates the property.
     */
@@ -167,7 +169,7 @@ public class NSProgress : NSObject {
     
     /* Arbitrary values associated with the receiver. Returns a KVO-compliant dictionary that changes as -setUserInfoObject:forKey: is sent to the receiver. The dictionary will send all of its KVO notifications on the thread which updates the property. The result will never be nil, but may be an empty dictionary. Some entries have meanings that are recognized by the NSProgress class itself. See the NSProgress...Key string constants listed below.
     */
-    public var userInfo: [NSObject : AnyObject]
+    public private(set) var userInfo: [NSObject : AnyObject]
     
     /* Either a string identifying what kind of progress is being made, like NSProgressKindFile, or nil. If the value of the localizedDescription property has not been set to a non-nil value then the default implementation of -localizedDescription uses the progress kind to determine how to use the values of other properties, as well as values in the user info dictionary, to create a string that is presentable to the user. This is most useful when -localizedDescription is actually being invoked in another process, whose localization language may be different, as a result of using the publish and subscribe mechanism described here.
     */

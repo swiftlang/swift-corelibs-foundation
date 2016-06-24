@@ -16,25 +16,40 @@
 #endif
 
 class TestNSProgress: XCTestCase {
-
     static var allTests: [(String, (TestNSProgress) -> () throws -> Void)] {
         return [
-            ("test_initWithTotalUnitCount", test_init),
+            // Creating Progress Objects
+            ("test_init", test_init),
             ("test_initWithUserInfo", test_initWithUserInfo),
+            
+            // Current Progress Object
+            ("test_currentProgress", test_currentProgress),
+            
+            // Reporting Progress
             ("test_totalUnitCount", test_totalUnitCount),
             ("test_completedUnitCount", test_completedUnitCount),
+            
+            // Observing Progress
             ("test_fractionCompleted", test_fractionCompleted),
+            
+            // Progress Information
             ("test_isIndeterminate", test_isIndeterminate),
             ("test_kind", test_kind),
-            ("test_currentProgress", test_currentProgress)
+            ("test_setUserInfoObject", test_setUserInfoObject),
         ]
     }
+}
+
+//MARK: - Creating Progress Objects
+
+extension TestNSProgress {
     
     func test_init() {
         let progress = NSProgress()
         XCTAssertTrue(progress.userInfo.isEmpty)
         XCTAssertEqual(progress.totalUnitCount, 0)
         XCTAssertEqual(progress.completedUnitCount, 0)
+        XCTAssertNil(progress.kind)
         XCTAssertTrue(progress.isCancellable)
         XCTAssertFalse(progress.isPausable)
     }
@@ -44,17 +59,46 @@ class TestNSProgress: XCTestCase {
         XCTAssertTrue(progress.userInfo.isEmpty)
         XCTAssertEqual(progress.totalUnitCount, 0)
         XCTAssertEqual(progress.completedUnitCount, 0)
+        XCTAssertNil(progress.kind)
         XCTAssertTrue(progress.isCancellable)
         XCTAssertFalse(progress.isPausable)
         
         progress = NSProgress(parent: nil, userInfo: ["key".bridge(): "value".bridge()])
-        XCTAssertTrue(progress.userInfo.count == 1)
-        XCTAssertEqual(progress.userInfo["key".bridge()] as? NSString, "value".bridge())
+        XCTAssertTrue(progress.userInfo == ["key".bridge(): "value".bridge()] as [NSObject:AnyObject])
         XCTAssertEqual(progress.totalUnitCount, 0)
         XCTAssertEqual(progress.completedUnitCount, 0)
+        XCTAssertNil(progress.kind)
         XCTAssertTrue(progress.isCancellable)
         XCTAssertFalse(progress.isPausable)
     }
+    
+}
+
+//MARK: - Current Progress Object
+
+extension TestNSProgress {
+    
+    func test_currentProgress() {
+        XCTAssertNil(NSProgress.current())
+        XCTAssertTrue(isTrueInThread { NSProgress.current() == nil })
+        
+        let progress = NSProgress()
+        progress.becomeCurrent(withPendingUnitCount: 0)
+        
+        XCTAssertEqual(NSProgress.current(), progress)
+        XCTAssertTrue(isTrueInThread { NSProgress.current() == nil })
+        
+        progress.resignCurrent()
+        
+        XCTAssertNil(NSProgress.current())
+        XCTAssertTrue(isTrueInThread { NSProgress.current() == nil })
+    }
+    
+}
+
+//MARK: - Reporting Progress
+
+extension TestNSProgress {
     
     func test_totalUnitCount() {
         let progress = NSProgress(parent: nil, userInfo: nil)
@@ -67,6 +111,12 @@ class TestNSProgress: XCTestCase {
         progress.completedUnitCount = 50
         XCTAssertEqual(progress.completedUnitCount, 50)
     }
+    
+}
+
+//MARK: - Observing Progress
+
+extension TestNSProgress {
     
     func test_fractionCompleted() {
         let progress = NSProgress(parent: nil, userInfo: nil)
@@ -116,6 +166,12 @@ class TestNSProgress: XCTestCase {
         XCTAssertEqual(progress.fractionCompleted, 1.5)
     }
     
+}
+
+//MARK: - Progress Information
+
+extension TestNSProgress {
+    
     func test_isIndeterminate() {
         let progress = NSProgress(parent: nil, userInfo: nil)
         
@@ -157,26 +213,22 @@ class TestNSProgress: XCTestCase {
         XCTAssertEqual(progress.kind, NSProgressKindFile)
     }
     
-    func test_currentProgress() {
-        let progress = NSProgress()
+    func test_setUserInfoObject() {
+        let progress = NSProgress(parent: nil, userInfo: nil)
         
-        XCTAssertNil(NSProgress.current())
-        XCTAssertTrue(isTrueInThread { NSProgress.current() == nil })
+        progress.setUserInfoObject(NSNumber(value: 5), forKey: "number")
+        XCTAssertTrue(progress.userInfo == ["number".bridge(): NSNumber(value: 5)] as [NSObject:AnyObject])
         
-        progress.becomeCurrent(withPendingUnitCount: 0)
+        progress.setUserInfoObject("hello".bridge(), forKey: "string")
+        XCTAssertTrue(progress.userInfo == ["number".bridge(): NSNumber(value: 5), "string".bridge(): "hello".bridge()] as [NSObject:AnyObject])
         
-        XCTAssertEqual(NSProgress.current(), progress)
-        XCTAssertTrue(isTrueInThread { NSProgress.current() == nil })
-        
-        progress.resignCurrent()
-        
-        XCTAssertNil(NSProgress.current())
-        XCTAssertTrue(isTrueInThread { NSProgress.current() == nil })
+        progress.setUserInfoObject(nil, forKey: "number")
+        XCTAssertTrue(progress.userInfo == ["string".bridge(): "hello".bridge()] as [NSObject:AnyObject])
     }
 
 }
 
-func isTrueInThread(predicate: () -> Bool) -> Bool {
+private func isTrueInThread(predicate: () -> Bool) -> Bool {
     var result: Bool = false
     let thread = NSThread {
         result = predicate()
@@ -189,4 +241,8 @@ func isTrueInThread(predicate: () -> Bool) -> Bool {
     }
     
     return result
+}
+
+private func ==(lhs: [NSObject: AnyObject], rhs: [NSObject: AnyObject] ) -> Bool {
+    return lhs.bridge() == rhs.bridge()
 }
