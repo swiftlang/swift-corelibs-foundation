@@ -530,54 +530,43 @@ extension TestNSJSONSerialization {
     }
 
     func test_isValidJSONObjectFalse() {
-#if false // this is too complex for the compiler to build consistently
-        let falseJSON: [Any] = [
-            // 0
-            NSNumber(value: Int(0)),
-
-            // NSNull()
-            NSNull(),
-
-            // "string"
-            "string",
-
-            // [1, 2, 3, [4 : 5]]
-            Array<Any>(arrayLiteral:
-                NSNumber(value: Int(1)),
-                NSNumber(value: Int(2)),
-                NSNumber(value: Int(3)),
-                Dictionary<NSNumber, Any>(dictionaryLiteral:
-                    (
-                        NSNumber(value: Int(4)),
-                        NSNumber(value: Int(5))
-                    )
+        var falseJSON = [Any]()
+        falseJSON.append(NSNumber(value: Int(0)))
+        falseJSON.append(NSNull())
+        falseJSON.append("string")
+        falseJSON.append(Array<Any>(arrayLiteral:
+            NSNumber(value: Int(1)),
+            NSNumber(value: Int(2)),
+            NSNumber(value: Int(3)),
+            Dictionary<NSNumber, Any>(dictionaryLiteral:
+                (
+                    NSNumber(value: Int(4)),
+                    NSNumber(value: Int(5))
                 )
-            ),
-
-            // [1, 2, Infinity]
-            [NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Double(1) / Double(0))],
-
-            // [NSNull() : 1]
-            [NSNull() : NSNumber(value: Int(1))],
-
-            // [[[[1 : 2]]]]
+            )
+        ))
+        
+        let one = NSNumber(value: Int(1))
+        let two = NSNumber(value: Int(2))
+        let divo = NSNumber(value: Double(1) / Double(0))
+        falseJSON.append([one, two, divo])
+        falseJSON.append([NSNull() : NSNumber(value: Int(1))])
+        falseJSON.append(Array<Any>(arrayLiteral:
             Array<Any>(arrayLiteral:
                 Array<Any>(arrayLiteral:
-                    Array<Any>(arrayLiteral:
-                        Dictionary<NSNumber, Any>(dictionaryLiteral:
-                            (
-                                NSNumber(value: Int(1)),
-                                NSNumber(value: Int(2))
-                            )
+                    Dictionary<NSNumber, Any>(dictionaryLiteral:
+                        (
+                            NSNumber(value: Int(1)),
+                            NSNumber(value: Int(2))
                         )
                     )
                 )
             )
-        ]
+        ))
+        
         for testCase in falseJSON {
             XCTAssertFalse(JSONSerialization.isValidJSONObject(testCase))
         }
-#endif
     }
 
 }
