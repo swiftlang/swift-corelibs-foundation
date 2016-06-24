@@ -77,9 +77,9 @@ public class Bundle: NSObject {
     public func unload() -> Bool { NSUnimplemented() }
     
     public func preflight() throws {
-        var unmangaedError:Unmanaged<CFError>? = nil
-        try withUnsafeMutablePointer(&unmangaedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>)  in
-            CFBundlePreflightExecutable(_bundle,  unmanagedCFError)
+        var unmanagedError:Unmanaged<CFError>? = nil
+        try withUnsafeMutablePointer(&unmanagedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>)  in
+            CFBundlePreflightExecutable(_bundle, unmanagedCFError)
             if let error = unmanagedCFError.pointee {
                 throw   error.takeRetainedValue()._nsObject
             }
@@ -87,9 +87,9 @@ public class Bundle: NSObject {
     }
     
     public func loadAndReturnError() throws {
-        var unmangaedError:Unmanaged<CFError>? = nil
-        try  withUnsafeMutablePointer(&unmangaedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>)  in
-            CFBundleLoadExecutableAndReturnError(_bundle,  unmanagedCFError)
+        var unmanagedError:Unmanaged<CFError>? = nil
+        try  withUnsafeMutablePointer(&unmanagedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>)  in
+            CFBundleLoadExecutableAndReturnError(_bundle, unmanagedCFError)
             if let error = unmanagedCFError.pointee {
                 let retainedValue = error.takeRetainedValue()
                 throw  retainedValue._nsObject
