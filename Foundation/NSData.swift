@@ -57,7 +57,6 @@ extension NSData {
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
         public static let ignoreUnknownCharacters = Base64DecodingOptions(rawValue: UInt(1 << 0))
-        public static let anchored = Base64DecodingOptions(rawValue: UInt(1 << 1))
     }
 }
 
