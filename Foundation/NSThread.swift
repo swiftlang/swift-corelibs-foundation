@@ -146,6 +146,8 @@ public class Thread: NSObject {
         _main = main
         let _ = withUnsafeMutablePointer(&_attr) { attr in
             pthread_attr_init(attr)
+            pthread_attr_setscope(attr, Int32(PTHREAD_SCOPE_SYSTEM))
+            pthread_attr_setdetachstate(attr, Int32(PTHREAD_CREATE_DETACHED))
         }
     }
 
