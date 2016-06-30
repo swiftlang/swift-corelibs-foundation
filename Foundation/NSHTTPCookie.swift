@@ -69,6 +69,11 @@ public class HTTPCookie : NSObject {
     let _version: Int
     var _properties: [String : Any]
 
+    static let _attributes: [String] = [NSHTTPCookieName, NSHTTPCookieValue, NSHTTPCookieOriginURL, NSHTTPCookieVersion,
+                                        NSHTTPCookieDomain, NSHTTPCookiePath, NSHTTPCookieSecure, NSHTTPCookieExpires, 
+                                        NSHTTPCookieComment, NSHTTPCookieCommentURL, NSHTTPCookieDiscard, NSHTTPCookieMaximumAge,
+                                        NSHTTPCookiePort] 
+
     /// Initialize a NSHTTPCookie object with a dictionary of parameters
     ///
     /// - Parameter properties: The dictionary of properties to be used to
@@ -327,7 +332,7 @@ public class HTTPCookie : NSObject {
         }
         return ["Cookie": cookieString]
     }
-    
+   
     /// Return an array of cookies parsed from the specified response header fields and URL.
     ///
     /// This method will ignore irrelevant header fields so
@@ -335,8 +340,98 @@ public class HTTPCookie : NSObject {
     /// - Parameter headerFields: The response header fields to check for cookies.
     /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpeted.
     /// - Returns: An array of NSHTTPCookie objects
-    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL url: URL) -> [HTTPCookie] { NSUnimplemented() }
+    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL url: URL) -> [HTTPCookie] {
+
+        //HTTP Cookie parsing based on RFC 6265: https://tools.ietf.org/html/rfc6265
+        //Though RFC6265 suggests that multiple cookies cannot be folded into a single Set-Cookie field, this is
+        //pretty common. It also suggests that commas and semicolons among other characters, cannot be a part of 
+        // names and values. This implementation takes care of multiple cookies in the same field, however it doesn't   
+        //support commas and semicolons in names and values(except for dates)
+
+        guard let cookies: String = headerFields["Set-Cookie"]  else { return [] }  
+
+        let nameValuePairs = cookies.components(separatedBy: ";")          //split the name/value and attribute/value pairs
+                                .map({$0.trim()})                           //trim whitespaces
+                                .map({removeCommaFromDate($0)})     //get rid of commas in dates
+                                .flatMap({$0.components(separatedBy: ",")}) //cookie boundaries are marked by commas
+                                .map({$0.trim()})                           //trim again
+                                .filter({$0.caseInsensitiveCompare("HTTPOnly") != .orderedSame})  //we don't use HTTPOnly, do we?
+                                .flatMap({createNameValuePair(pair: $0)})   //create Name and Value properties 
+
+        //mark cookie boundaries in the name-value array
+        var cookieIndices = (0..<nameValuePairs.count).filter({nameValuePairs[$0].hasPrefix("Name")})
+        cookieIndices.append(nameValuePairs.count)  
+
+        //bake the cookies
+        var httpCookies: [HTTPCookie] = []
+        for i in 0..<cookieIndices.count-1 {
+            if let aCookie = createHttpCookie(url: url, pairs: nameValuePairs, start: cookieIndices[i], end: cookieIndices[i+1]) {
+                httpCookies.append(aCookie)
+            }
+        }
     
+        return httpCookies
+    } 
+
+    //Bake a cookie
+    private class func createHttpCookie(url: URL, pairs: [String], start: Int, end: Int) -> HTTPCookie? {
+        var properties: [String:Any] = [:]
+        for index in start..<end {
+            let name = pairs[index].components(separatedBy: "=")[0]
+            var value = pairs[index].components(separatedBy: "\(name)=")[1]  //a value can have an "="
+            if canonicalize(name) == "Expires" {
+                value = value.insertComma(at: 3)    //re-insert the comma   
+            }
+            properties[canonicalize(name)] = value
+        }
+ 
+        //if domain wasn't provided use the URL
+        if properties[NSHTTPCookieDomain] == nil {
+            properties[NSHTTPCookieDomain] = url.absoluteString
+        }
+        
+        //the default Path is "/"
+        if properties[NSHTTPCookiePath] == nil {
+            properties[NSHTTPCookiePath] = "/"
+        } 
+
+        return HTTPCookie(properties: properties)
+    }
+
+    //we pass this to a map()
+    private class func removeCommaFromDate(_ value: String) -> String {
+        if value.hasPrefix("Expires") || value.hasPrefix("expires")  {
+            return value.removeCommas()
+        }
+        return value
+    }
+
+    //These cookie attributes are defined in RFC 6265 and 2965(which is obsolete)
+    //HTTPCookie supports these
+    private class func isCookieAttribute(_ string: String) -> Bool {
+        return _attributes.first(where: {$0.caseInsensitiveCompare(string) == .orderedSame}) != nil
+    }
+
+    //Cookie attribute names are case-insensitive as per RFC6265: https://tools.ietf.org/html/rfc6265
+    //but HTTPCookie needs only the first letter of each attribute in uppercase
+    private class func canonicalize(_ name: String) -> String {
+        let idx = _attributes.index(where: {$0.caseInsensitiveCompare(name) == .orderedSame})!
+        return _attributes[idx]
+    }
+
+    //A name=value pair should be translated to two properties, Name=name and Value=value
+    private class func createNameValuePair(pair: String) -> [String] {
+        if pair.caseInsensitiveCompare(NSHTTPCookieSecure) == .orderedSame {
+            return ["Secure=TRUE"]
+        }
+        let name = pair.components(separatedBy: "=")[0]
+        let value = pair.components(separatedBy: "\(name)=")[1]
+        if !isCookieAttribute(name) {
+            return ["Name=\(name)", "Value=\(value)"]
+        }
+        return [pair]
+    }
+
     /// Returns a dictionary representation of the receiver.
     ///
     /// This method returns a dictionary representation of the
@@ -459,3 +554,19 @@ public class HTTPCookie : NSObject {
         return _portList
     }
 }
+
+//utils for cookie parsing
+internal extension String {
+    func trim() -> String {
+        return self.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines())
+    }
+
+    func removeCommas() -> String {
+        return self.replacingOccurrences(of: ",", with: "")
+    }
+
+    func insertComma(at index:Int) -> String {
+        return  String(self.characters.prefix(index)) + ","  + String(self.characters.suffix(self.characters.count-index))
+    }
+}
+

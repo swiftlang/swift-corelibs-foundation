@@ -222,22 +222,22 @@ class TestNSNotificationQueue : XCTestCase {
     // MARK: Private
 
     private func scheduleTimer(withInterval interval: TimeInterval) {
-        let e = expectation(withDescription: "Timer")
+        let e = expectation(description: "Timer")
         let dummyTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { _ in
             e.fulfill()
         }
         RunLoop.current().add(dummyTimer, forMode: .defaultRunLoopMode)
-        waitForExpectations(withTimeout: 0.1)
+        waitForExpectations(timeout: 0.1)
     }
 
     private func executeInBackgroundThread(_ operation: () -> Void) {
-        let e = expectation(withDescription: "Background Execution")
+        let e = expectation(description: "Background Execution")
         let bgThread = Thread() {
             operation()
             e.fulfill()
         }
         bgThread.start()
 
-        waitForExpectations(withTimeout: 0.2)
+        waitForExpectations(timeout: 0.2)
     }
 }

@@ -37,6 +37,9 @@ public class Bundle: NSObject {
         
         let url = URL(fileURLWithPath: resolvedPath)
         _bundle = CFBundleCreate(kCFAllocatorSystemDefault, unsafeBitCast(url, to: CFURL.self))
+        if (_bundle == nil) {
+            return nil
+        }
     }
     
     public convenience init?(url: URL) {
@@ -73,8 +76,27 @@ public class Bundle: NSObject {
     }
     public func unload() -> Bool { NSUnimplemented() }
     
-    public func preflight() throws { NSUnimplemented() }
-    public func loadAndReturnError() throws { NSUnimplemented() }
+    public func preflight() throws {
+        var unmanagedError:Unmanaged<CFError>? = nil
+        try withUnsafeMutablePointer(&unmanagedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>)  in
+            CFBundlePreflightExecutable(_bundle, unmanagedCFError)
+            if let error = unmanagedCFError.pointee {
+                throw   error.takeRetainedValue()._nsObject
+            }
+        }
+    }
+    
+    public func loadAndReturnError() throws {
+        var unmanagedError:Unmanaged<CFError>? = nil
+        try  withUnsafeMutablePointer(&unmanagedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>)  in
+            CFBundleLoadExecutableAndReturnError(_bundle, unmanagedCFError)
+            if let error = unmanagedCFError.pointee {
+                let retainedValue = error.takeRetainedValue()
+                throw  retainedValue._nsObject
+            }
+        }
+    }
+
     
     /* Methods for locating various components of a bundle. */
     public var bundleURL: URL {
