@@ -60,8 +60,12 @@ class TestProgress: XCTestCase {
         XCTAssertTrue(progress.isCancellable)
         XCTAssertFalse(progress.isPausable)
         
-        progress = Progress(parent: nil, userInfo: ["key".bridge(): "value".bridge()])
-        XCTAssertTrue(progress.userInfo == ["key".bridge(): "value".bridge()] as [NSObject:AnyObject])
+        progress = Progress(parent: nil, userInfo: [
+            "key".bridge(): "value".bridge()
+        ])
+        XCTAssertTrue(progress.userInfo == [
+            "key".bridge(): "value".bridge()
+        ] as [NSObject:AnyObject])
         XCTAssertEqual(progress.totalUnitCount, 0)
         XCTAssertEqual(progress.completedUnitCount, 0)
         XCTAssertNil(progress.kind)
@@ -213,13 +217,20 @@ class TestProgress: XCTestCase {
         let progress = Progress(parent: nil, userInfo: nil)
         
         progress.setUserInfoObject(NSNumber(value: 5), forKey: "number")
-        XCTAssertTrue(progress.userInfo == ["number".bridge(): NSNumber(value: 5)] as [NSObject:AnyObject])
+        XCTAssertTrue(progress.userInfo == [
+            "number".bridge(): NSNumber(value: 5)
+        ] as [NSObject:AnyObject])
         
         progress.setUserInfoObject("hello".bridge(), forKey: "string")
-        XCTAssertTrue(progress.userInfo == ["number".bridge(): NSNumber(value: 5), "string".bridge(): "hello".bridge()] as [NSObject:AnyObject])
+        XCTAssertTrue(progress.userInfo == [
+            "number".bridge(): NSNumber(value: 5),
+            "string".bridge(): "hello".bridge()
+        ] as [NSObject:AnyObject])
         
         progress.setUserInfoObject(nil, forKey: "number")
-        XCTAssertTrue(progress.userInfo == ["string".bridge(): "hello".bridge()] as [NSObject:AnyObject])
+        XCTAssertTrue(progress.userInfo == [
+            "string".bridge(): "hello".bridge()
+        ] as [NSObject:AnyObject])
     }
 
 }
@@ -228,7 +239,9 @@ class TestProgress: XCTestCase {
 typealias ClosureThread = Thread
 extension Thread {
     var isFinished: Bool { return finished }
-    class func sleep(forTimeInterval timeInterval: TimeInterval) { sleepForTimeInterval(timeInterval) }
+    class func sleep(forTimeInterval timeInterval: TimeInterval) {
+        sleepForTimeInterval(timeInterval)
+    }
 }
 #endif
 
@@ -244,6 +257,6 @@ private func isTrueInThread(predicate: () -> Bool) -> Bool {
     return result
 }
 
-private func ==(lhs: [NSObject: AnyObject], rhs: [NSObject: AnyObject] ) -> Bool {
+private func ==(lhs: [NSObject:AnyObject], rhs: [NSObject:AnyObject] ) -> Bool {
     return (lhs.bridge() as NSDictionary) == (rhs.bridge() as NSDictionary)
 }
