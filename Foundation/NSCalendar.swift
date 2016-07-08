@@ -177,7 +177,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     }
     
 
-    public class func current() -> Calendar {
+    public class func currentCalendar() -> Calendar {
         return CFCalendarCopyCurrent()._nsObject
     }
     
