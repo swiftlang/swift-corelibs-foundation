@@ -331,10 +331,13 @@ CFTypeID CFDataGetTypeID(void) {
 CF_SWIFT_EXPORT void _CFDataInit(CFMutableDataRef memory, CFOptionFlags flags, CFIndex capacity, const uint8_t *bytes, CFIndex length, Boolean noCopy) {
     Boolean isMutable = ((flags & __kCFMutable) != 0);
     Boolean isGrowable = ((flags & __kCFGrowable) != 0);
+    Boolean isDontDeallocate = ((flags & __kCFDontDeallocate) != 0);
     
     __CFDataSetNumBytesUsed(memory, 0);
     __CFDataSetLength(memory, 0);
-    __CFDataSetInfoBits(memory, __kCFDontDeallocate);
+    if(isDontDeallocate) {
+        __CFDataSetInfoBits(memory, __kCFDontDeallocate);
+    }
     
     if (isMutable && isGrowable) {
         __CFDataSetCapacity(memory, __CFDataRoundUpCapacity(1));
