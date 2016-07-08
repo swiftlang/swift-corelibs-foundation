@@ -148,7 +148,7 @@ public class NSKeyedArchiver : NSCoder {
                 if finishedEncoding {
                     try _NSCleanupTemporaryFile(auxFilePath, path)
                 } else {
-                    try FileManager.default().removeItem(atPath: auxFilePath)
+                    try FileManager.default.removeItem(atPath: auxFilePath)
                 }
             } catch _ {
             }

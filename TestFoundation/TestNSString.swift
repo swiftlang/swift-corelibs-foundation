@@ -435,7 +435,7 @@ class TestNSString : XCTestCase {
             var outName: NSString?
             var matches: [NSString] = []
             _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            _ = try FileManager.default().contentsOfDirectory(at: URL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
+            _ = try FileManager.default.contentsOfDirectory(at: URL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
             XCTAssert(outName == "/", "If NSString is valid path to directory which has '/' suffix then outName is '/'.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389
 //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")
@@ -449,7 +449,7 @@ class TestNSString : XCTestCase {
             var matches: [NSString] = []
             _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
             let urlToTmp = try URL(fileURLWithPath: "/private/tmp/").standardizingPath()
-            _ = try FileManager.default().contentsOfDirectory(at: urlToTmp, includingPropertiesForKeys: nil, options: [])
+            _ = try FileManager.default.contentsOfDirectory(at: urlToTmp, includingPropertiesForKeys: nil, options: [])
             XCTAssert(outName == "/tmp/", "If path could be completed to existing directory then outName is a string itself plus '/'.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389
             //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")

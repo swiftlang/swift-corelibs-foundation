@@ -404,7 +404,7 @@ extension NSData {
         if fd == -1 {
             throw _NSErrorWithErrno(errno, reading: false, path: dirPath)
         }
-        let pathResult = FileManager.default().string(withFileSystemRepresentation:buf, length: Int(strlen(buf)))
+        let pathResult = FileManager.default.string(withFileSystemRepresentation:buf, length: Int(strlen(buf)))
         return (fd, pathResult)
     }
 
@@ -468,7 +468,7 @@ extension NSData {
                 } catch let err {
                     if let auxFilePath = auxFilePath {
                         do {
-                            try FileManager.default().removeItem(atPath: auxFilePath)
+                            try FileManager.default.removeItem(atPath: auxFilePath)
                         } catch _ {}
                     }
                     throw err
@@ -478,7 +478,7 @@ extension NSData {
         if let auxFilePath = auxFilePath {
             if rename(auxFilePath, path) != 0 {
                 do {
-                    try FileManager.default().removeItem(atPath: auxFilePath)
+                    try FileManager.default.removeItem(atPath: auxFilePath)
                 } catch _ {}
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
