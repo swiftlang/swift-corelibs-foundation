@@ -80,10 +80,10 @@ class TestNSCalendar: XCTestCase {
         XCTAssertNil(calendar)
     }
     
-    func test_currentCalendarRRstability() {
+    func test_currentRRstability() {
         var AMSymbols = [String]()
         for _ in 1...10 {
-            let cal = Calendar.currentCalendar()
+            let cal = Calendar.current
             AMSymbols.append(cal.AMSymbol)
         }
         
@@ -91,7 +91,7 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_copy() {
-        let calendar = Calendar.currentCalendar()
+        let calendar = Calendar.current
 
         //Mutate below fields and check if change is being reflected in copy.
         calendar.firstWeekday = 2 
