@@ -59,7 +59,7 @@ private func NSThreadStart(_ context: UnsafeMutablePointer<Void>?) -> UnsafeMuta
 public class Thread: NSObject {
     
     static internal var _currentThread = NSThreadSpecific<Thread>()
-    public static func current() -> Thread {
+    public static var current: Thread {
         return Thread._currentThread.get() {
             return Thread(thread: pthread_self())
         }
