@@ -60,7 +60,8 @@ class TestNSURL : XCTestCase {
             // TODO: these tests fail on linux, more investigation is needed
             ("test_fileURLWithPath", test_fileURLWithPath),
             ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
-            ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath)
+            ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath),
+            ("test_copy", test_copy)
         ]
     }
     
@@ -446,6 +447,16 @@ class TestNSURL : XCTestCase {
         } catch {
             XCTFail()
         }
+    }
+
+    func test_copy() {
+        let url = NSURL(string: "https://www.swift.org")
+        let urlCopy = url!.copy() as! NSURL
+        XCTAssertTrue(url!.isEqual(urlCopy))
+
+        let queryItem = NSURLQueryItem(name: "id", value: "23")
+        let queryItemCopy = queryItem.copy() as! NSURLQueryItem
+        XCTAssertTrue(queryItem.isEqual(queryItemCopy))
     }
 }
     
