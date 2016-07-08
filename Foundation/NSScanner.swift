@@ -282,7 +282,7 @@ private func decimalSep(_ locale: Locale?) -> String {
         }
         return "."
     } else {
-        return decimalSep(Locale.currentLocale())
+        return decimalSep(Locale.current)
     }
 }
 
