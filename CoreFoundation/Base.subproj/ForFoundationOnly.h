@@ -564,6 +564,7 @@ CF_EXPORT Boolean _CFRunLoopFinished(CFRunLoopRef rl, CFStringRef mode);
 CF_EXPORT CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
 
 CF_EXPORT CFIndex _CFStreamInstanceSize(void);
+CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(CFAllocatorRef alloc, CFDataRef data);
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     typedef struct {

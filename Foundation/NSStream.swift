@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
 extension Stream {
     public struct PropertyKey : RawRepresentable, Equatable, Hashable, Comparable {
         public private(set) var rawValue: String
@@ -60,17 +62,17 @@ public func <(lhs: Stream.PropertyKey, rhs: Stream.PropertyKey) -> Bool {
 // NSStream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
 // Subclassers of NSInputStream and NSOutputStream must also implement these methods.
 public class Stream: NSObject {
-    
+
     public override init() {
-        
+
     }
     
     public func open() {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     public func close() {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     public weak var delegate: StreamDelegate?
@@ -95,7 +97,7 @@ public class Stream: NSObject {
     }
     
     public var streamStatus: Status {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     /*@NSCopying */public var streamError: NSError? {
@@ -106,9 +108,12 @@ public class Stream: NSObject {
 // NSInputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
 public class InputStream: Stream {
+
+    private var _stream: CFReadStream!
+
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-        NSUnimplemented()
+        return CFReadStreamRead(_stream, buffer, CFIndex(len._bridgeToObject()))
     }
     
     // returns in O(1) a pointer to the buffer in 'buffer' and by reference in 'len' how many bytes are available. This buffer is only valid until the next stream operation. Subclassers may return NO for this if it is not appropriate for the stream type. This may return NO if the buffer is not available.
@@ -118,19 +123,31 @@ public class InputStream: Stream {
     
     // returns YES if the stream has bytes available or if it impossible to tell without actually doing the read.
     public var hasBytesAvailable: Bool {
-        NSUnimplemented()
+        return CFReadStreamHasBytesAvailable(_stream)
     }
     
     public init(data: Data) {
-        NSUnimplemented()
+        _stream = CFReadStreamCreateWithData(kCFAllocatorSystemDefault, data._cfObject)
     }
     
     public init?(url: URL) {
-        NSUnimplemented()
+        _stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
     }
 
     public convenience init?(fileAtPath path: String) {
-        NSUnimplemented()
+        self.init(url: URL(fileURLWithPath: path))
+    }
+
+    public override func open() {
+        CFReadStreamOpen(_stream)
+    }
+    
+    public override func close() {
+        CFReadStreamClose(_stream)
+    }
+    
+    public override var streamStatus: Status {
+        return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
     }
 }
 
