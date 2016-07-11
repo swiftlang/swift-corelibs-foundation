@@ -163,7 +163,7 @@ extension String {
   public static func localizedStringWithFormat(
     _ format: String, _ arguments: CVarArg...
   ) -> String {
-    return String(format: format, locale: Locale.currentLocale(),
+    return String(format: format, locale: Locale.current,
       arguments: arguments)
   }
 
@@ -1476,7 +1476,7 @@ extension String {
   ///       locale: Locale.current()) != nil
   public func localizedCaseInsensitiveContains(_ other: String) -> Bool {
     let r = self.range(
-      of: other, options: .caseInsensitive, locale: Locale.currentLocale()
+      of: other, options: .caseInsensitive, locale: Locale.current
     ) != nil
     _sanityCheck(r == _ns.localizedCaseInsensitiveContains(other))
     return r

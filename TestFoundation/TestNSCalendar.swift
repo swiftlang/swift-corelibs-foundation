@@ -83,7 +83,7 @@ class TestNSCalendar: XCTestCase {
     func test_currentCalendarRRstability() {
         var AMSymbols = [String]()
         for _ in 1...10 {
-            let cal = Calendar.currentCalendar()
+            let cal = Calendar.current()
             AMSymbols.append(cal.AMSymbol)
         }
         

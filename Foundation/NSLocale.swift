@@ -74,7 +74,7 @@ public class Locale: NSObject, NSCopying, NSSecureCoding {
 }
 
 extension Locale {
-    public class func currentLocale() -> Locale {
+    public class var current: Locale {
         return CFLocaleCopyCurrent()._nsObject
     }
     

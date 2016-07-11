@@ -140,7 +140,7 @@ public class DateFormatter : Formatter {
 
     public var timeStyle: Style = .noStyle { willSet { _dateFormat = nil; _reset() } }
 
-    /*@NSCopying*/ public var locale: Locale! = .currentLocale() { willSet { _reset() } }
+    /*@NSCopying*/ public var locale: Locale! = .current { willSet { _reset() } }
 
     public var generatesCalendarDates = false { willSet { _reset() } }
 
