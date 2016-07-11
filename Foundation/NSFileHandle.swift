@@ -193,25 +193,28 @@ extension FileHandle {
     internal static var _stdinFileHandle: FileHandle = {
         return FileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardInput() -> FileHandle {
+
+    public class func standardInput() -> FileHandle {
         return _stdinFileHandle
     }
     
     internal static var _stdoutFileHandle: FileHandle = {
         return FileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardOutput() -> FileHandle {
+
+    public class func standardOutput() -> FileHandle {
         return _stdoutFileHandle
     }
     
     internal static var _stderrFileHandle: FileHandle = {
         return FileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
     }()
-    public class func fileHandleWithStandardError() -> FileHandle {
+    
+    public class func standardError() -> FileHandle {
         return _stderrFileHandle
     }
     
-    public class func fileHandleWithNullDevice() -> FileHandle {
+    public class func nullDevice() -> FileHandle {
         NSUnimplemented()
     }
     
@@ -239,17 +242,17 @@ extension FileHandle {
         }
     }
     
-    public convenience init(forReadingFromURL url: URL) throws {
+    public convenience init(forReadingFrom url: URL) throws {
         let fd = try FileHandle._openFileDescriptorForURL(url, flags: O_RDONLY, reading: true)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
     
-    public convenience init(forWritingToURL url: URL) throws {
+    public convenience init(forWritingTo url: URL) throws {
         let fd = try FileHandle._openFileDescriptorForURL(url, flags: O_WRONLY, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
 
-    public convenience init(forUpdatingURL url: URL) throws {
+    public convenience init(forUpdating url: URL) throws {
         let fd = try FileHandle._openFileDescriptorForURL(url, flags: O_RDWR, reading: false)
         self.init(fileDescriptor: fd, closeOnDealloc: true)
     }
