@@ -424,15 +424,15 @@ extension NSString {
     }
     
     public func localizedCompare(_ string: String) -> ComparisonResult {
-        return compare(string, options: [], range: NSMakeRange(0, length), locale: Locale.currentLocale())
+        return compare(string, options: [], range: NSMakeRange(0, length), locale: Locale.current)
     }
     
     public func localizedCaseInsensitiveCompare(_ string: String) -> ComparisonResult {
-        return compare(string, options: .caseInsensitive, range: NSMakeRange(0, length), locale: Locale.currentLocale())
+        return compare(string, options: .caseInsensitive, range: NSMakeRange(0, length), locale: Locale.current)
     }
     
     public func localizedStandardCompare(_ string: String) -> ComparisonResult {
-        return compare(string, options: [.caseInsensitive, .numeric, .widthInsensitive, .forcedOrdering], range: NSMakeRange(0, length), locale: Locale.currentLocale())
+        return compare(string, options: [.caseInsensitive, .numeric, .widthInsensitive, .forcedOrdering], range: NSMakeRange(0, length), locale: Locale.current)
     }
     
     public func isEqual(to aString: String) -> Bool {
@@ -502,15 +502,15 @@ extension NSString {
     }
     
     public func localizedCaseInsensitiveContains(_ str: String) -> Bool {
-        return range(of: str, options: .caseInsensitive, range: NSMakeRange(0, length), locale: Locale.currentLocale()).location != NSNotFound
+        return range(of: str, options: .caseInsensitive, range: NSMakeRange(0, length), locale: Locale.current).location != NSNotFound
     }
     
     public func localizedStandardContains(_ str: String) -> Bool {
-        return range(of: str, options: [.caseInsensitive, .diacriticInsensitive], range: NSMakeRange(0, length), locale: Locale.currentLocale()).location != NSNotFound
+        return range(of: str, options: [.caseInsensitive, .diacriticInsensitive], range: NSMakeRange(0, length), locale: Locale.current.location != NSNotFound)
     }
     
     public func localizedStandardRange(of str: String) -> NSRange {
-        return range(of: str, options: [.caseInsensitive, .diacriticInsensitive], range: NSMakeRange(0, length), locale: Locale.currentLocale())
+        return range(of: str, options: [.caseInsensitive, .diacriticInsensitive], range: NSMakeRange(0, length), locale: Locale.current)
     }
     
     public func range(of searchString: String) -> NSRange {
@@ -677,15 +677,15 @@ extension NSString {
     }
     
     public var localizedUppercase: String {
-        return uppercased(with: Locale.currentLocale())
+        return uppercased(with: Locale.current)
     }
     
     public var localizedLowercase: String {
-        return lowercased(with: Locale.currentLocale())
+        return lowercased(with: Locale.current)
     }
     
     public var localizedCapitalized: String {
-        return capitalized(with: Locale.currentLocale())
+        return capitalized(with: Locale.current)
     }
     
     public func uppercased(with locale: Locale?) -> String {
