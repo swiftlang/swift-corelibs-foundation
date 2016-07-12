@@ -59,7 +59,7 @@ struct Options {
     var inputs = [String]()
 }
 
-enum OptionParseError : ErrorProtocol {
+enum OptionParseError : Swift.Error {
     case UnrecognizedArgument(String)
     case MissingArgument(String)
     case InvalidFormat(String)
