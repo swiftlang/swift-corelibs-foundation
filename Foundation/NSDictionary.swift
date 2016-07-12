@@ -679,7 +679,7 @@ extension NSMutableDictionary {
     public convenience init(sharedKeySet keyset: AnyObject) { NSUnimplemented() }
 }
 
-extension NSDictionary : DictionaryLiteralConvertible { }
+extension NSDictionary : ExpressibleByDictionaryLiteral { }
 
 extension Dictionary : Bridgeable {
     public func bridge() -> NSDictionary { return _nsObject }

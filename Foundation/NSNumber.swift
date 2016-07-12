@@ -130,7 +130,7 @@ extension Bool : _CFBridgable {
     }
 }
 
-extension NSNumber : FloatLiteralConvertible, IntegerLiteralConvertible, BooleanLiteralConvertible {
+extension NSNumber : ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral, ExpressibleByBooleanLiteral {
 
 }
 
