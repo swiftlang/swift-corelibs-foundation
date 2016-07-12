@@ -883,8 +883,8 @@ internal protocol _NSXMLNodeCollectionType: Collection { }
 extension XMLNode: _NSXMLNodeCollectionType {
 
     public struct Index: Comparable {
-        private let node: _CFXMLNodePtr?
-        private let offset: Int?
+        fileprivate let node: _CFXMLNodePtr?
+        fileprivate let offset: Int?
     }
 
     public subscript(index: Index) -> XMLNode {

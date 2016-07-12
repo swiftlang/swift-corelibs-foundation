@@ -12,8 +12,8 @@ import CoreFoundation
 public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     private let _cfinfo = _CFInfo(typeID: CFAttributedStringGetTypeID())
-    private var _string: NSString
-    private var _attributeArray: CFRunArrayRef
+    fileprivate var _string: NSString
+    fileprivate var _attributeArray: CFRunArrayRef
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
@@ -111,13 +111,13 @@ public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 }
 
 private extension AttributedString {
-    private struct RangeInfo {
+    fileprivate struct RangeInfo {
         let rangePointer: NSRangePointer
         let shouldFetchLongestEffectiveRange: Bool
         let longestEffectiveRangeSearchRange: NSRange?
     }
     
-    private func _attributesAtIndex(_ location: Int, rangeInfo: RangeInfo) -> [String : AnyObject] {
+    fileprivate func _attributesAtIndex(_ location: Int, rangeInfo: RangeInfo) -> [String : AnyObject] {
         var cfRange = CFRange()
         return withUnsafeMutablePointer(&cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> [String : AnyObject] in
             // Get attributes value using CoreFoundation function
@@ -147,7 +147,7 @@ private extension AttributedString {
         }
     }
     
-    private func _attribute(_ attrName: String, atIndex location: Int, rangeInfo: RangeInfo) -> AnyObject? {
+    fileprivate func _attribute(_ attrName: String, atIndex location: Int, rangeInfo: RangeInfo) -> AnyObject? {
         var cfRange = CFRange()
         return withUnsafeMutablePointer(&cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> AnyObject? in
             // Get attribute value using CoreFoundation function
@@ -171,7 +171,7 @@ private extension AttributedString {
         }
     }
     
-    private func addAttributesToAttributeArray(attrs: [String : AnyObject]?) {
+    fileprivate func addAttributesToAttributeArray(attrs: [String : AnyObject]?) {
         guard _string.length > 0 else {
             return
         }

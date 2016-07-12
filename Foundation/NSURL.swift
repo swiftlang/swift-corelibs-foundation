@@ -787,7 +787,7 @@ extension NSURL {
         return URL(fileURLWithPath: resolvedPath)
     }
 
-    private func _pathByRemovingDots(_ comps: [String]) -> String {
+    fileprivate func _pathByRemovingDots(_ comps: [String]) -> String {
         var components = comps
         
         if(components.last == "/") {

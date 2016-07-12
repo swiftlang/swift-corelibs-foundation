@@ -23,8 +23,8 @@ public class NSKeyedUnarchiver : NSCoder {
     }
     
     class DecodingContext {
-        private var dict : Dictionary<String, Any>
-        private var genericKey : UInt = 0
+        fileprivate var dict : Dictionary<String, Any>
+        fileprivate var genericKey : UInt = 0
         
         init(_ dict : Dictionary<String, Any>) {
             self.dict = dict
