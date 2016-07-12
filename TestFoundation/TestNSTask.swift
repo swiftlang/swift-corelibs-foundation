@@ -261,7 +261,7 @@ private func mkstemp(template: String, body: @noescape (FileHandle) throws -> Vo
     
 }
 
-private enum Error: ErrorProtocol {
+private enum Error: Swift.Error {
     case TerminationStatus(Int32)
     case UnicodeDecodingError(Data)
     case InvalidEnvironmentVariable(String)

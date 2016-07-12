@@ -165,7 +165,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
 }
 
-extension NSError : ErrorProtocol { }
+extension NSError : Swift.Error { }
 
 extension NSError : _CFBridgable { }
 extension CFError : _NSBridgable {
@@ -184,11 +184,11 @@ extension CFError : _NSBridgable {
 }
 
 
-public protocol _ObjectTypeBridgeableErrorType : ErrorProtocol {
+public protocol _ObjectTypeBridgeableErrorType : Swift.Error {
     init?(_bridgedNSError: NSError)
 }
 
-public protocol __BridgedNSError : RawRepresentable, ErrorProtocol {
+public protocol __BridgedNSError : RawRepresentable, Swift.Error {
     static var __NSErrorDomain: String { get }
 }
 

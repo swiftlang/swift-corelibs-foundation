@@ -1063,7 +1063,7 @@ let comparisonTests = [
     ComparisonTest("\u{0341}", "\u{0954}"),
 ]
 
-enum Stack: ErrorProtocol {
+enum Stack: Swift.Error {
     case Stack([UInt])
 }
 

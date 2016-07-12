@@ -634,7 +634,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     public func filteredIndexSet(in range : Range<Element>? = nil, includeInteger: @noescape (Element) throws -> Bool) rethrows -> IndexSet {
         let r : NSRange = range != nil ? _toNSRange(range!) : NSMakeRange(0, NSNotFound - 1)
         return try _handle.map {
-            var error : ErrorProtocol? = nil
+            var error : Swift.Error? = nil
             let result = $0.indexes(in: r, options: [], passingTest: { (i, stop) -> Bool in
                 do {
                     let include = try includeInteger(i)

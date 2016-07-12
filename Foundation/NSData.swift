@@ -553,7 +553,7 @@ extension NSData {
     }
     
     internal func enumerateByteRangesUsingBlockRethrows(_ block: @noescape (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
-        var err : ErrorProtocol? = nil
+        var err : Swift.Error? = nil
         self.enumerateBytes() { (buf, range, stop) -> Void in
             do {
                 try block(buf, range, stop)
