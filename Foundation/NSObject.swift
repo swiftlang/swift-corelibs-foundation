@@ -30,7 +30,7 @@ extension NSObjectProtocol {
     }
 }
 
-public struct NSZone : NilLiteralConvertible {
+public struct NSZone : ExpressibleByNilLiteral {
     public init() {
         
     }

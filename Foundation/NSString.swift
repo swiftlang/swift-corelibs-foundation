@@ -12,7 +12,7 @@ import CoreFoundation
 
 public typealias unichar = UInt16
 
-extension unichar : UnicodeScalarLiteralConvertible {
+extension unichar : ExpressibleByUnicodeScalarLiteral {
     public typealias UnicodeScalarLiteralType = UnicodeScalar
     
     public init(unicodeScalarLiteral scalar: UnicodeScalar) {
@@ -1290,7 +1290,7 @@ extension NSString {
     }
 }
 
-extension NSString : StringLiteralConvertible { }
+extension NSString : ExpressibleByStringLiteral { }
 
 public class NSMutableString : NSString {
     public func replaceCharacters(in range: NSRange, with aString: String) {

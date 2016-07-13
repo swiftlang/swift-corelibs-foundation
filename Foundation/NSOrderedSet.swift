@@ -8,7 +8,7 @@
 //
 
 /****************       Immutable Ordered Set   ****************/
-public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ArrayLiteralConvertible {
+public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ExpressibleByArrayLiteral {
     internal var _storage: Set<NSObject>
     internal var _orderedStorage: [NSObject]
     
