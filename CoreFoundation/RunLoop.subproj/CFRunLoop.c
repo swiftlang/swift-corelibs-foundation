@@ -61,13 +61,12 @@ extern void _dispatch_main_queue_callback_4CF(mach_msg_header_t *msg);
 #elif DEPLOYMENT_TARGET_WINDOWS
 #include <process.h>
 DISPATCH_EXPORT HANDLE _dispatch_get_main_queue_handle_4CF(void);
-DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void);
+DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void*);
 
 #define MACH_PORT_NULL 0
 #define mach_port_name_t HANDLE
 #define mach_port_t HANDLE
 #define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
-#define _dispatch_main_queue_callback_4CF(x) _dispatch_main_queue_callback_4CF()
 
 #define AbsoluteTime LARGE_INTEGER 
 
@@ -78,8 +77,7 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void);
 #include <sys/eventfd.h>
 #include <sys/timerfd.h>
 
-#define _dispatch_get_main_queue_port_4CF dispatch_get_main_queue_eventfd_4CF
-#define _dispatch_main_queue_callback_4CF(x) dispatch_main_queue_drain_4CF()
+#define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR || DEPLOYMENT_TARGET_LINUX
