@@ -9,7 +9,7 @@
 
     .global __CFCharacterSetBitmapData
 __CFCharacterSetBitmapData:
-    .incbin "CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap"
+    .incbin CF_CHARACTERSET_BITMAP
 
     .global __CFCharacterSetBitmapDataEnd
 __CFCharacterSetBitmapDataEnd:

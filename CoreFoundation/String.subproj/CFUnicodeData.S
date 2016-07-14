@@ -7,10 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+
 #if defined(__BIG_ENDIAN__)
     .global __CFUnicodeDataB
 __CFUnicodeDataB:
-    .incbin "CoreFoundation/CharacterSets/CFUnicodeData-B.mapping"
+    .incbin CF_CHARACTERSET_UNICODE_DATA_B
 
     .global __CFUnicodeDataBEnd
 __CFUnicodeDataBEnd:
@@ -22,7 +23,7 @@ __CFUnicodeDataBSize:
 #else
     .global __CFUnicodeDataL
 __CFUnicodeDataL:
-    .incbin "CoreFoundation/CharacterSets/CFUnicodeData-L.mapping"
+    .incbin CF_CHARACTERSET_UNICODE_DATA_L
 
     .global __CFUnicodeDataLEnd
 __CFUnicodeDataLEnd:

@@ -9,7 +9,7 @@
 
     .global __CFUniCharPropertyDatabase
 __CFUniCharPropertyDatabase:
-    .incbin "CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data"
+    .incbin CF_CHARACTERSET_UNICHAR_DB
 
     .global __CFUniCharPropertyDatabaseEnd
 __CFUniCharPropertyDatabaseEnd:

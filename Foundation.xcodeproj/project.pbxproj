@@ -2397,6 +2397,10 @@
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",
+					"-DCF_CHARACTERSET_UNICODE_DATA_B=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-B.mapping\\\\\"",
+					"-DCF_CHARACTERSET_UNICHAR_DB=\\\\\"CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data\\\\\"",
+					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2431,6 +2435,10 @@
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",
+					"-DCF_CHARACTERSET_UNICODE_DATA_B=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-B.mapping\\\\\"",
+					"-DCF_CHARACTERSET_UNICHAR_DB=\\\\\"CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data\\\\\"",
+					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
