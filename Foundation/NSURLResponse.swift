@@ -35,7 +35,7 @@ public class URLResponse : NSObject, NSSecureCoding, NSCopying {
     }
     
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        NSUnimplemented()
+        return self
     }
     
     /// Initialize an NSURLResponse with the provided values.
