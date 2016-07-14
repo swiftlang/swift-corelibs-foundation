@@ -460,7 +460,7 @@ public class XMLParser : NSObject {
     public var allowedExternalEntityURLs: Set<URL>?
     
     internal static func currentParser() -> XMLParser? {
-        if let current = Thread.current().threadDictionary["__CurrentNSXMLParser"] {
+        if let current = Thread.current.threadDictionary["__CurrentNSXMLParser"] {
             return current as? XMLParser
         } else {
             return nil
@@ -469,9 +469,9 @@ public class XMLParser : NSObject {
     
     internal static func setCurrentParser(_ parser: XMLParser?) {
         if let p = parser {
-            Thread.current().threadDictionary["__CurrentNSXMLParser"] = p
+            Thread.current.threadDictionary["__CurrentNSXMLParser"] = p
         } else {
-            Thread.current().threadDictionary.removeValue(forKey: "__CurrentNSXMLParser")
+            Thread.current.threadDictionary.removeValue(forKey: "__CurrentNSXMLParser")
         }
     }
     

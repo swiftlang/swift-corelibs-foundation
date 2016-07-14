@@ -26,8 +26,8 @@ class TestNSThread : XCTestCase {
     }
 
     func test_currentThread() {
-        let thread1 = Thread.current()
-        let thread2 = Thread.current()
+        let thread1 = Thread.current
+        let thread2 = Thread.current
         XCTAssertNotNil(thread1)
         XCTAssertNotNil(thread2)
         XCTAssertEqual(thread1, thread2)
