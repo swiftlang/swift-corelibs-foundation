@@ -395,7 +395,7 @@ class TestNSString : XCTestCase {
         let testString = "hello world"
         let string = NSString(string: testString)
         let cfString = unsafeBitCast(string, to: CFString.self)
-        
+
         // Get the bytes as UTF16
         let reservedLength = 50
         var buf : [UInt8] = []
@@ -404,7 +404,7 @@ class TestNSString : XCTestCase {
         let _ = buf.withUnsafeMutableBufferPointer { p in
             CFStringGetBytes(cfString, CFRangeMake(0, CFStringGetLength(cfString)), CFStringEncoding(kCFStringEncodingUTF16), 0, false, p.baseAddress, reservedLength, &usedLen)
         }
-        
+
         // Make a new string out of it
         let newCFString = CFStringCreateWithBytes(nil, buf, usedLen, CFStringEncoding(kCFStringEncodingUTF16), false)
         let newString = unsafeBitCast(newCFString, to: NSString.self)
