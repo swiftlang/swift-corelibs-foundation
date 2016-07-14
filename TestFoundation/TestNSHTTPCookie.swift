@@ -158,8 +158,11 @@ class TestNSHTTPCookie: XCTestCase {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss O"   
         formatter.timeZone = TimeZone(abbreviation: "GMT") 
-        let expiresDate = formatter.date(from: "Wed, 21 Sep 2016 05:33:00 GMT")!
-        XCTAssertTrue(expiresDate.compare(cookies[0].expiresDate!) == .orderedSame)
+        if let expiresDate = formatter.date(from: "Wed, 21 Sep 2016 05:33:00 GMT") {
+            XCTAssertTrue(expiresDate.compare(cookies[0].expiresDate!) == .orderedSame)
+        } else {
+            XCTFail("Unable to parse the given date from the formatter")
+        }
     }
 
     func test_cookiesWithResponseHeaderNoPathNoDomain() {
