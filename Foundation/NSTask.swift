@@ -315,7 +315,7 @@ public class Task: NSObject {
         var addclose = Set<Int32>()
 
         switch standardInput {
-        case let pipe as NSPipe:
+        case let pipe as Pipe:
             adddup2[STDIN_FILENO] = pipe.fileHandleForReading.fileDescriptor
             addclose.insert(pipe.fileHandleForWriting.fileDescriptor)
         case let handle as FileHandle:
@@ -324,7 +324,7 @@ public class Task: NSObject {
         }
 
         switch standardOutput {
-        case let pipe as NSPipe:
+        case let pipe as Pipe:
             adddup2[STDOUT_FILENO] = pipe.fileHandleForWriting.fileDescriptor
             addclose.insert(pipe.fileHandleForReading.fileDescriptor)
         case let handle as FileHandle:
@@ -333,7 +333,7 @@ public class Task: NSObject {
         }
 
         switch standardError {
-        case let pipe as NSPipe:
+        case let pipe as Pipe:
             adddup2[STDERR_FILENO] = pipe.fileHandleForWriting.fileDescriptor
             addclose.insert(pipe.fileHandleForReading.fileDescriptor)
         case let handle as FileHandle:
