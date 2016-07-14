@@ -87,8 +87,8 @@ class TestNSURLResponse : XCTestCase {
         XCTAssertEqual(res.suggestedFilename, "Unknown")
     }
     func test_copyWithZone() {
-        let url = NSURL(string: "a/test/path")!
-        let res = NSURLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
+        let url = URL(string: "a/test/path")!
+        let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertTrue(res.isEqual(res.copy()))
     }
 }
