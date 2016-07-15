@@ -23,6 +23,12 @@ class TestNSStream : XCTestCase {
             ("test_InputStreamWithFile", test_InputStreamWithFile),
             ("test_InputStreamHasBytesAvailable", test_InputStreamHasBytesAvailable),
             ("test_InputStreamInvalidPath", test_InputStreamInvalidPath),
+            ("test_outputStreamCreationToFile", test_outputStreamCreationToFile),
+            ("test_outputStreamCreationToBuffer", test_outputStreamCreationToBuffer),
+            ("test_outputStreamCreationWithUrl", test_outputStreamCreationWithUrl),
+            ("test_outputStreamCreationToMemory", test_outputStreamCreationToMemory),
+            ("test_outputStreamHasSpaceAvailable", test_outputStreamHasSpaceAvailable),
+            ("test_ouputStreamWithInvalidPath", test_ouputStreamWithInvalidPath),
         ]
     }
     
@@ -118,19 +124,111 @@ class TestNSStream : XCTestCase {
         XCTAssertEqual(Stream.Status.error, fileStream.streamStatus)
     }
     
-    private func createTestFile(_ path: String,_contents: Data) -> String? {
+    func test_outputStreamCreationToFile() {
+        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
+        if filePath != nil {
+            let outputStream = NSOutputStream(toFileAtPath: filePath!, append: true)
+            XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
+            var myString = "Hello world!"
+            let encodedData = [UInt8](myString.utf8)
+            outputStream?.open()
+            XCTAssertEqual(Stream.Status.open, outputStream!.streamStatus)
+            let result: Int? = outputStream?.write(encodedData, maxLength: encodedData.count)
+            outputStream?.close()
+            XCTAssertEqual(myString.characters.count, result)
+            XCTAssertEqual(Stream.Status.closed, outputStream!.streamStatus)
+            removeTestFile(filePath!)
+        } else {
+            XCTFail("Unable to create temp file");
+        }
+    }
+    
+    func  test_outputStreamCreationToBuffer() {
+        var buffer = Array<UInt8>(repeating: 0, count: 12)
+        var myString = "Hello world!"
+        let encodedData = [UInt8](myString.utf8)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 12)
+        XCTAssertEqual(Stream.Status.notOpen, outputStream.streamStatus)
+        outputStream.open()
+        XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)
+        let result: Int? = outputStream.write(encodedData, maxLength: encodedData.count)
+        outputStream.close()
+        XCTAssertEqual(Stream.Status.closed, outputStream.streamStatus)
+        XCTAssertEqual(myString.characters.count, result)
+        XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue),myString._bridgeToObject())
+    }
+    
+    func test_outputStreamCreationWithUrl() {
+        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
+        if filePath != nil {
+            let outputStream = NSOutputStream(url: URL(fileURLWithPath: filePath!), append: true)
+            XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
+            var myString = "Hello world!"
+            let encodedData = [UInt8](myString.utf8)
+            outputStream!.open()
+            XCTAssertEqual(Stream.Status.open, outputStream!.streamStatus)
+            let result: Int? = outputStream?.write(encodedData, maxLength: encodedData.count)
+            outputStream?.close()
+            XCTAssertEqual(myString.characters.count, result)
+            XCTAssertEqual(Stream.Status.closed, outputStream!.streamStatus)
+            removeTestFile(filePath!)
+        } else {
+            XCTFail("Unable to create temp file");
+        }
+    }
+    
+    func test_outputStreamCreationToMemory(){
+        var buffer = Array<UInt8>(repeating: 0, count: 12)
+        var myString = "Hello world!"
+        let encodedData = [UInt8](myString.utf8)
+        let outputStream = NSOutputStream.outputStreamToMemory()
+        XCTAssertEqual(Stream.Status.notOpen, outputStream.streamStatus)
+        outputStream.open()
+        XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)
+        let result: Int? = outputStream.write(encodedData, maxLength: encodedData.count)
+        XCTAssertEqual(myString.characters.count, result)
+        //verify the data written
+        let dataWritten  = outputStream.propertyForKey(NSStreamDataWrittenToMemoryStreamKey)
+        if let nsdataWritten = dataWritten as? NSData {
+            nsdataWritten.getBytes(UnsafeMutablePointer<UInt8>(buffer), length: result!)
+            XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), myString._bridgeToObject())
+            outputStream.close()
+        } else {
+            XCTFail("Unable to get data from memeory.")
+        }
+    }
+
+    func test_outputStreamHasSpaceAvailable() {
+        let buffer = Array<UInt8>(repeating: 0, count: 12)
+        var myString = "Welcome To Hello world  !"
+        let encodedData = [UInt8](myString.utf8)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 12)
+        outputStream.open()
+        XCTAssertTrue(outputStream.hasSpaceAvailable)
+        _ = outputStream.write(encodedData, maxLength: encodedData.count)
+        XCTAssertFalse(outputStream.hasSpaceAvailable)
+    }
+    
+    func test_ouputStreamWithInvalidPath(){
+        let outputStream = NSOutputStream(toFileAtPath: "http:///home/sdsfsdfd", append: true)
+        XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
+        outputStream?.open()
+        XCTAssertEqual(Stream.Status.error, outputStream!.streamStatus)
+    }
+    
+    private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().UUIDString + "/"
         do {
             try FileManager.default().createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
-            if FileManager.default().createFile(atPath: tempDir + "/" + path, contents: _contents, attributes: nil) {
-                return  tempDir + path
+            if FileManager.default().createFile(atPath: tempDir + "/" + path, contents: _contents,
+                                                attributes: nil) {
+                return tempDir + path
             } else {
                 return nil
             }
         } catch _ {
             return nil
         }
-        
     }
     
     private func removeTestFile(_ location: String) {
@@ -141,5 +239,4 @@ class TestNSStream : XCTestCase {
         }
     }
 }
-
 
