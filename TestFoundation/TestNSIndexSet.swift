@@ -25,7 +25,8 @@ class TestNSIndexSet : XCTestCase {
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_removal", test_removal),
-            ("test_addition",test_addition),
+            ("test_addition", test_addition),
+            ("test_setAlgebra", test_setAlgebra),
         ]
     }
     
@@ -166,6 +167,45 @@ class TestNSIndexSet : XCTestCase {
             i += 1
         }
     
+    }
+    
+    func test_setAlgebra() {
+        
+        var is1, is2, expected: IndexSet
+        
+        do {
+            is1 = IndexSet(integersIn: 0..<5)
+            is2 = IndexSet(integersIn: 3..<10)
+            
+            expected = IndexSet(integersIn: 0..<3)
+            expected.insert(integersIn: 5..<10)
+            
+            XCTAssertTrue(expected == is1.symmetricDifference(is2))
+            XCTAssertTrue(expected == is2.symmetricDifference(is1))
+        }
+        
+        do {
+            is1 = IndexSet([0, 2])
+            is2 = IndexSet([0, 1, 2])
+            XCTAssertTrue(IndexSet(integer: 1) == is1.symmetricDifference(is2))
+        }
+        
+        do {
+            is1 = IndexSet(integersIn: 0..<5)
+            is2 = IndexSet(integersIn: 4..<10)
+            
+            expected = IndexSet(integer: 4)
+            
+            XCTAssertTrue(expected == is1.intersection(is2))
+            XCTAssertTrue(expected == is2.intersection(is1))
+        }
+        
+        do {
+            is1 = IndexSet([0, 2])
+            is2 = IndexSet([0, 1, 2])
+            XCTAssertTrue(is1 == is1.intersection(is2))
+        }
+        
     }
     
 }
