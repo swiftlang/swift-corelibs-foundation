@@ -351,7 +351,8 @@ public class NSMutableOrderedSet : NSOrderedSet {
             fatalError("\(self): Index out of bounds")
         }
 
-        if let objectToReplace = objectAtIndex(idx) as? NSObject, object = object as? NSObject {
+        if let objectToReplace = objectAtIndex(idx) as? NSObject,
+           let object = object as? NSObject {
             _orderedStorage[idx] = object
             _storage.remove(objectToReplace)
             _storage.insert(object)
@@ -401,7 +402,8 @@ extension NSMutableOrderedSet {
             fatalError("\(self): Index out of bounds")
         }
 
-        if let object1 = objectAtIndex(idx1) as? NSObject, object2 = objectAtIndex(idx2) as? NSObject {
+        if let object1 = objectAtIndex(idx1) as? NSObject,
+           let object2 = objectAtIndex(idx2) as? NSObject {
             _orderedStorage[idx1] = object2
             _orderedStorage[idx2] = object1
         }

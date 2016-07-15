@@ -755,13 +755,12 @@ public class FileManager: NSObject {
     }
     
     internal func _pathIsSymbolicLink(_ path: String) -> Bool {
-        guard let
-            attrs = try? attributesOfItem(atPath: path),
-            fileType = attrs[NSFileType] as? String
+        guard
+            let attrs = try? attributesOfItem(atPath: path),
+            let fileType = attrs[NSFileType] as? String
         else {
             return false
         }
-        
         return fileType == NSFileTypeSymbolicLink
     }
 }
@@ -999,7 +998,7 @@ extension FileManager {
         }
         
         override func skipDescendants() {
-            if let stream = _stream, current = _current {
+            if let stream = _stream, let current = _current {
                 fts_set(stream, current, FTS_SKIP)
             }
         }

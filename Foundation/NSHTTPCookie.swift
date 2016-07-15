@@ -200,31 +200,31 @@ public class HTTPCookie : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public init?(properties: [String : Any]) {
-        guard let
-            path = properties[NSHTTPCookiePath] as? String,
-            name = properties[NSHTTPCookieName] as? String,
-            value = properties[NSHTTPCookieValue] as? String
+        guard
+            let path = properties[NSHTTPCookiePath] as? String,
+            let name = properties[NSHTTPCookieName] as? String,
+            let value = properties[NSHTTPCookieValue] as? String
         else {
             return nil
         }
-        
+
         let canonicalDomain: String
         if let domain = properties[NSHTTPCookieDomain] as? String {
             canonicalDomain = domain
-        } else if let
-            originURL = properties[NSHTTPCookieOriginURL] as? URL,
-            host = originURL.host
+        } else if
+            let originURL = properties[NSHTTPCookieOriginURL] as? URL,
+            let host = originURL.host
         {
             canonicalDomain = host
         } else {
             return nil
         }
-        
+
         _path = path
         _name = name
         _value = value
         _domain = canonicalDomain
-        
+
         if let
             secureString = properties[NSHTTPCookieSecure] as? String
             where secureString.characters.count > 0
@@ -269,9 +269,9 @@ public class HTTPCookie : NSObject {
             } else {
                 _expiresDate = nil
             }
-        } else if let
-            maximumAge = properties[NSHTTPCookieMaximumAge] as? String,
-            secondsFromNow = Int(maximumAge)
+        } else if
+            let maximumAge = properties[NSHTTPCookieMaximumAge] as? String,
+            let secondsFromNow = Int(maximumAge)
             where _version == 1 {
             _expiresDate = Date(timeIntervalSinceNow: Double(secondsFromNow))
         } else {
