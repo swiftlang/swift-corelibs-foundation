@@ -102,19 +102,22 @@ public class UserDefaults: NSObject {
     }
     
     public func stringForKey(_ defaultName: String) -> String? {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSString else {
+        guard let aVal = objectForKey(defaultName),
+              let bVal = aVal as? NSString else {
             return nil
         }
         return bVal._swiftObject
     }
     public func arrayForKey(_ defaultName: String) -> [AnyObject]? {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSArray else {
+        guard let aVal = objectForKey(defaultName),
+              let bVal = aVal as? NSArray else {
             return nil
         }
         return bVal._swiftObject
     }
     public func dictionaryForKey(_ defaultName: String) -> [String : AnyObject]? {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSDictionary else {
+        guard let aVal = objectForKey(defaultName),
+              let bVal = aVal as? NSDictionary else {
             return nil
         }
         //This got out of hand fast...
@@ -141,37 +144,43 @@ public class UserDefaults: NSObject {
         return nil
     }
     public func dataForKey(_ defaultName: String) -> Data? {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? Data else {
+        guard let aVal = objectForKey(defaultName),
+              let bVal = aVal as? Data else {
             return nil
         }
         return bVal
     }
     public func stringArrayForKey(_ defaultName: String) -> [String]? {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSArray else {
+        guard let aVal = objectForKey(defaultName),
+              let bVal = aVal as? NSArray else {
             return nil
         }
         return _expensivePropertyListConversion(bVal) as? [String]
     }
     public func integerForKey(_ defaultName: String) -> Int {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
+        guard let aVal = objectForKey(defaultName),
+              let bVal = aVal as? NSNumber else {
             return 0
         }
         return bVal.intValue
     }
     public func floatForKey(_ defaultName: String) -> Float {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
+        guard let aVal = objectForKey(defaultName),
+              let bVal = aVal as? NSNumber else {
             return 0
         }
         return bVal.floatValue
     }
     public func doubleForKey(_ defaultName: String) -> Double {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
+        guard let aVal = objectForKey(defaultName),
+              let bVal = aVal as? NSNumber else {
             return 0
         }
         return bVal.doubleValue
     }
     public func boolForKey(_ defaultName: String) -> Bool {
-        guard let aVal = objectForKey(defaultName), bVal = aVal as? NSNumber else {
+        guard let aVal = objectForKey(defaultName),
+              let bVal = aVal as? NSNumber else {
             return false
         }
         return bVal.boolValue
