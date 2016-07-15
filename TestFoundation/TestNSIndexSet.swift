@@ -180,14 +180,14 @@ class TestNSIndexSet : XCTestCase {
             expected = IndexSet(integersIn: 0..<3)
             expected.insert(integersIn: 5..<10)
             
-            XCTAssertTrue(expected.isEqual(to: is1.symmetricDifference(is2)))
-            XCTAssertTrue(expected.isEqual(to: is2.symmetricDifference(is1)))
+            XCTAssertTrue(expected == is1.symmetricDifference(is2))
+            XCTAssertTrue(expected == is2.symmetricDifference(is1))
         }
         
         do {
             is1 = IndexSet([0, 2])
             is2 = IndexSet([0, 1, 2])
-            XCTAssertTrue(IndexSet(integer: 1).isEqual(to: is1.symmetricDifference(is2)))
+            XCTAssertTrue(IndexSet(integer: 1) == is1.symmetricDifference(is2))
         }
         
         do {
@@ -196,14 +196,14 @@ class TestNSIndexSet : XCTestCase {
             
             expected = IndexSet(integer: 4)
             
-            XCTAssertTrue(expected.isEqual(to: is1.intersection(is2)))
-            XCTAssertTrue(expected.isEqual(to: is2.intersection(is1)))
+            XCTAssertTrue(expected == is1.intersection(is2))
+            XCTAssertTrue(expected == is2.intersection(is1))
         }
         
         do {
             is1 = IndexSet([0, 2])
             is2 = IndexSet([0, 1, 2])
-            XCTAssertTrue(is1.isEqual(to: is1.intersection(is2)))
+            XCTAssertTrue(is1 == is1.intersection(is2))
         }
         
     }
