@@ -462,7 +462,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
         return _handle.map { $0.contains(in: _toNSRange(range)) }
     }
     
-    /// Returns `true` if `self` contains any of the integers in `indexSet`.
+    /// Returns `true` if `self` contains all of the integers in `indexSet`.
     public func contains(integersIn indexSet: IndexSet) -> Bool {
         return _handle.map { $0.contains(indexSet) }
     }
@@ -523,21 +523,19 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
         
         while let i = boundaryIterator.next() {
             if !flag {
-                // Starting a range; if the edge is contained or not depends on the xor of this particular value.
-                let startInclusive = self.contains(i) != other.contains(i)
-                start = startInclusive ? i : i + 1
-                flag = true
-            } else {
-                // Ending a range; if the edge is contained or not depends on the xor of this particular value.
-                let endInclusive = self.contains(i) != other.contains(i)
-                let end = endInclusive ? i + 1 : i
-                if start < end {
-                    // Otherwise, we had an empty range
-                    result.insert(integersIn: start..<end)
+                // Start a range if one set contains but not the other.
+                if self.contains(i) != other.contains(i) {
+                    flag = true
+                    start = i
                 }
-                flag = false
+            } else {
+                // End a range if both sets contain or both sets do not contain.
+                if self.contains(i) == other.contains(i) {
+                    flag = false
+                    result.insert(integersIn: start..<i)
+                }
             }
-            // We never have to worry about having flag set to false after exiting this loop because the iterator will always return an even number of results; ranges come in pairs, and we always alternate flag
+            // We never have to worry about having flag set to false after exiting this loop because the last boundary is guaranteed to be past the end of ranges in both index sets
         }
         
         return result
@@ -563,10 +561,10 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
                     start = i
                 }
             } else {
-                // If both sets contain then end a range.
-                if self.contains(i) && other.contains(i) {
+                // If both sets do not contain then end a range.
+                if !self.contains(i) || !other.contains(i) {
                     flag = false
-                    result.insert(integersIn: start..<(i + 1))
+                    result.insert(integersIn: start..<i)
                 }
             }
         }
@@ -702,7 +700,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     }
 }
 
-/// Iterate two index sets on the boundaries of their ranges. This is where all of the interesting stuff happens for exclusive or, intersect, etc.
+/// Iterate two index sets on the boundaries of their ranges. This is where all of the interesting stuff happens for exclusive or, intersect, etc.
 private struct IndexSetBoundaryIterator : IteratorProtocol {
     private typealias Element = IndexSet.Element
     
@@ -710,8 +708,8 @@ private struct IndexSetBoundaryIterator : IteratorProtocol {
     private var i2 : IndexSet.RangeView.Iterator
     private var i1Range : CountableRange<Element>?
     private var i2Range : CountableRange<Element>?
-    private var i1UsedFirst : Bool
-    private var i2UsedFirst : Bool
+    private var i1UsedLower : Bool
+    private var i2UsedLower : Bool
     
     private init(_ is1 : IndexSet, _ is2 : IndexSet) {
         i1 = is1.rangeView().makeIterator()
@@ -720,9 +718,9 @@ private struct IndexSetBoundaryIterator : IteratorProtocol {
         i1Range = i1.next()
         i2Range = i2.next()
         
-        // A sort of cheap iterator on [i1Range.first, i1Range.last]
-        i1UsedFirst = false
-        i2UsedFirst = false
+        // A sort of cheap iterator on [i1Range.lowerBound, i1Range.upperBound]
+        i1UsedLower = false
+        i2UsedLower = false
     }
     
     private mutating func next() -> Element? {
@@ -732,29 +730,34 @@ private struct IndexSetBoundaryIterator : IteratorProtocol {
         
         let nextIn1 : Element
         if let r = i1Range {
-            nextIn1 = i1UsedFirst ? r.last! : r.first!
+            nextIn1 = i1UsedLower ? r.upperBound : r.lowerBound
         } else {
             nextIn1 = Int.max
         }
         
         let nextIn2 : Element
         if let r = i2Range {
-            nextIn2 = i2UsedFirst ? r.last! : r.first!
+            nextIn2 = i2UsedLower ? r.upperBound : r.lowerBound
         } else {
             nextIn2 = Int.max
         }
         
         var result : Element
         if nextIn1 <= nextIn2 {
-            // 1 has the next element, or they are the same. We need to iterate both the value from is1 and is2 in the == case.
+            // 1 has the next element, or they are the same.
             result = nextIn1
-            if i1UsedFirst { i1Range = i1.next() }
-            i1UsedFirst = !i1UsedFirst
+            if i1UsedLower { i1Range = i1.next() }
+            // We need to iterate both the value from is1 and is2 in the == case.
+            if result == nextIn2 {
+                if i2UsedLower { i2Range = i2.next() }
+                i2UsedLower = !i2UsedLower
+            }
+            i1UsedLower = !i1UsedLower
         } else {
             // 2 has the next element
             result = nextIn2
-            if i2UsedFirst { i2Range = i2.next() }
-            i2UsedFirst = !i2UsedFirst
+            if i2UsedLower { i2Range = i2.next() }
+            i2UsedLower = !i2UsedLower
         }
         
         return result
