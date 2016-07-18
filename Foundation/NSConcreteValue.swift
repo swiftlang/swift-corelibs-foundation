@@ -92,7 +92,7 @@ internal class NSConcreteValue : NSValue {
         self._typeInfo = typeInfo!
 
         self._storage = UnsafeMutablePointer<UInt8>(allocatingCapacity: self._typeInfo.size)
-        self._storage.initializeFrom(unsafeBitCast(value, to: UnsafeMutablePointer<UInt8>.self), count: self._typeInfo.size)
+        self._storage.initialize(from: unsafeBitCast(value, to: UnsafeMutablePointer<UInt8>.self), count: self._typeInfo.size)
     }
 
     deinit {
@@ -101,7 +101,7 @@ internal class NSConcreteValue : NSValue {
     }
     
     override func getValue(_ value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<UInt8>(value).moveInitializeFrom(unsafeBitCast(self._storage, to: UnsafeMutablePointer<UInt8>.self), count: self._size)
+        UnsafeMutablePointer<UInt8>(value).moveInitialize(from: unsafeBitCast(self._storage, to: UnsafeMutablePointer<UInt8>.self), count: self._size)
     }
     
     override var objCType : UnsafePointer<Int8> {

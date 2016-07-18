@@ -227,10 +227,10 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     
     public convenience init(objects: [AnyObject], forKeys keys: [NSObject]) {
         let keyBuffer = UnsafeMutablePointer<NSObject>(allocatingCapacity: keys.count)
-        keyBuffer.initializeFrom(keys)
+        keyBuffer.initialize(from: keys)
 
         let valueBuffer = UnsafeMutablePointer<AnyObject>(allocatingCapacity: objects.count)
-        valueBuffer.initializeFrom(objects)
+        valueBuffer.initialize(from: objects)
 
         self.init(objects: valueBuffer, forKeys:keyBuffer, count: keys.count)
         

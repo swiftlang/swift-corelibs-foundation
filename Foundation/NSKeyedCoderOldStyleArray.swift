@@ -94,7 +94,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
     
     func fillObjCType(_ type: _NSSimpleObjCType, count: Int, at addr: UnsafeMutablePointer<Void>) {
         if type == self._type && count <= self._count {
-            UnsafeMutablePointer<UInt8>(addr).moveInitializeFrom(self._addr, count: count * self._size)
+            UnsafeMutablePointer<UInt8>(addr).moveInitialize(from: self._addr, count: count * self._size)
         }
     }
     
