@@ -375,7 +375,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSXMLParser.swift',
 	'Foundation/FoundationErrors.swift',
 	'Foundation/URL.swift',
-    'Foundation/UUID.swift',
+	'Foundation/UUID.swift',
 	'Foundation/Boxing.swift',
 	'Foundation/ReferenceConvertible.swift',
 	'Foundation/Date.swift',
