@@ -205,7 +205,7 @@ public class Task: NSObject {
         let argv : UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> = args.withUnsafeBufferPointer {
             let array : UnsafeBufferPointer<String> = $0
             let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: array.count + 1)
-            buffer.initializeFrom(array.map { $0.withCString(strdup) })
+            buffer.initialize(from: array.map { $0.withCString(strdup) })
             buffer[array.count] = nil
             return buffer
         }
@@ -223,7 +223,7 @@ public class Task: NSObject {
         if let env = environment {
             let nenv = env.count
             envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1 + nenv)
-            envp.initializeFrom(env.map { strdup("\($0)=\($1)") })
+            envp.initialize(from: env.map { strdup("\($0)=\($1)") })
             envp[env.count] = nil
         } else {
             envp = _CFEnviron()

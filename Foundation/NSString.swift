@@ -882,7 +882,7 @@ extension NSString {
         if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
             if _storage._core.isASCII {
                 used = min(self.length, maxBufferCount - 1)
-                buffer.moveAssignFrom(unsafeBitCast(_storage._core.startASCII, to: UnsafeMutablePointer<Int8>.self)
+                buffer.moveAssign(from: unsafeBitCast(_storage._core.startASCII, to: UnsafeMutablePointer<Int8>.self)
                     , count: used)
                 buffer.advanced(by: used).initialize(with: 0)
                 return true
