@@ -64,7 +64,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
             let cf = dict._cfObject
             count = CFDictionaryGetCount(cf)
             
-            let keys = UnsafeMutablePointer<UnsafePointer<Void>?>(allocatingCapacity: count)            
+            let keys = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: count)            
             CFDictionaryGetKeysAndValues(cf, keys, nil)
             
             for idx in 0..<count {
@@ -72,7 +72,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
                 keyArray.append(key)
             }
             keys.deinitialize()
-            keys.deallocateCapacity(count)
+            keys.deallocate(capacity: count)
         }
     }
 

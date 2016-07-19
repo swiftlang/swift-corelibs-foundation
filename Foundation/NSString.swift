@@ -91,12 +91,12 @@ extension String : _ObjectTypeBridgeable {
                 result = String(cString: str!)
             } else {
                 let length = CFStringGetLength(cf)
-                let buffer = UnsafeMutablePointer<UniChar>(allocatingCapacity: length)
+                let buffer = UnsafeMutablePointer<UniChar>.allocate(capacity: length)
                 CFStringGetCharacters(cf, CFRangeMake(0, length), buffer)
                 
                 let str = String._fromCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: buffer, count: length))
                 buffer.deinitialize(count: length)
-                buffer.deallocateCapacity(length)
+                buffer.deallocate(capacity: length)
                 result = str
             }
         } else if x.dynamicType == _NSCFConstantString.self {
@@ -278,11 +278,11 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
                 return NSMutableString(characters: contents, length: length)
             }
         }
-        let characters = UnsafeMutablePointer<unichar>(allocatingCapacity: length)
+        let characters = UnsafeMutablePointer<unichar>.allocate(capacity: length)
         getCharacters(characters, range: NSMakeRange(0, length))
         let result = NSMutableString(characters: characters, length: length)
         characters.deinitialize()
-        characters.deallocateCapacity(length)
+        characters.deallocate(capacity: length)
         return result
     }
     
@@ -388,11 +388,11 @@ extension NSString {
             let max = start.advanced(by: range.location + range.length)
             return String(_storage.utf16[min..<max])
         } else {
-            let buff = UnsafeMutablePointer<unichar>(allocatingCapacity: range.length)
+            let buff = UnsafeMutablePointer<unichar>.allocate(capacity: range.length)
             getCharacters(buff, range: range)
             let result = String(buff)
             buff.deinitialize()
-            buff.deallocateCapacity(range.length)
+            buff.deallocate(capacity: range.length)
             return result
         }
     }
@@ -944,7 +944,7 @@ extension NSString {
                     numEncodings += 1
                 }
                 
-                let theEncodingList = UnsafeMutablePointer<String.Encoding.RawValue>(allocatingCapacity: numEncodings + 1)
+                let theEncodingList = UnsafeMutablePointer<String.Encoding.RawValue>.allocate(capacity: numEncodings + 1)
                 theEncodingList.advanced(by: numEncodings).pointee = 0 // Terminator
                 
                 numEncodings -= 1

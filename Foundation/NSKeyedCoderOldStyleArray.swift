@@ -40,7 +40,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
     deinit {
         if self._decoded {
             self._addr.deinitialize(count: self._count * self._size)
-            self._addr.deallocateCapacity(self._count * self._size)
+            self._addr.deallocate(capacity: self._count * self._size)
         }
     }
     
@@ -60,7 +60,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
             return nil
         }
         
-        self._addr = UnsafeMutablePointer<UInt8>(allocatingCapacity: self._count * self._size)
+        self._addr = UnsafeMutablePointer<UInt8>.allocate(capacity: self._count * self._size)
         
         super.init()
         

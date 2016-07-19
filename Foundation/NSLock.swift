@@ -23,7 +23,7 @@ public protocol Locking {
 }
 
 public class Lock: NSObject, Locking {
-    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
+    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
     
     public override init() {
         pthread_mutex_init(mutex, nil)
@@ -32,7 +32,7 @@ public class Lock: NSObject, Locking {
     deinit {
         pthread_mutex_destroy(mutex)
         mutex.deinitialize()
-        mutex.deallocateCapacity(1)
+        mutex.deallocate(capacity: 1)
     }
     
     public func lock() {
@@ -136,7 +136,7 @@ public class NSConditionLock : NSObject, Locking {
 }
 
 public class RecursiveLock: NSObject, Locking {
-    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
+    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
     
     public override init() {
         super.init()
@@ -150,7 +150,7 @@ public class RecursiveLock: NSObject, Locking {
     deinit {
         pthread_mutex_destroy(mutex)
         mutex.deinitialize()
-        mutex.deallocateCapacity(1)
+        mutex.deallocate(capacity: 1)
     }
     
     public func lock() {
@@ -169,8 +169,8 @@ public class RecursiveLock: NSObject, Locking {
 }
 
 public class Condition: NSObject, Locking {
-    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>(allocatingCapacity: 1)
-    internal var cond = UnsafeMutablePointer<pthread_cond_t>(allocatingCapacity: 1)
+    internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
+    internal var cond = UnsafeMutablePointer<pthread_cond_t>.allocate(capacity: 1)
     
     public override init() {
         pthread_mutex_init(mutex, nil)
@@ -182,8 +182,8 @@ public class Condition: NSObject, Locking {
         pthread_cond_destroy(cond)
         mutex.deinitialize()
         cond.deinitialize()
-        mutex.deallocateCapacity(1)
-        cond.deallocateCapacity(1)
+        mutex.deallocate(capacity: 1)
+        cond.deallocate(capacity: 1)
     }
     
     public func lock() {

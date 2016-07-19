@@ -72,13 +72,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
                 aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
             }
-            let objects = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: Int(cnt))
+            let objects = UnsafeMutablePointer<AnyObject?>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {
                 objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject())
             }
             self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
             objects.deinitialize(count: Int(cnt))
-            objects.deallocateCapacity(Int(cnt))
+            objects.deallocate(capacity: Int(cnt))
         } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
             self.init(array: objects)
@@ -158,11 +158,11 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
 //            self.init(objects: ptr.baseAddress, count: array.count)
 //        }
         let cnt = array.count
-        let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: cnt)
+        let buffer = UnsafeMutablePointer<AnyObject?>.allocate(capacity: cnt)
         buffer.initialize(from: optionalArray)
         self.init(objects: buffer, count: cnt)
         buffer.deinitialize(count: cnt)
-        buffer.deallocateCapacity(cnt)
+        buffer.deallocate(capacity: cnt)
     }
 
     public override func isEqual(_ object: AnyObject?) -> Bool {
@@ -376,14 +376,14 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     
     /*@NSCopying*/ public var sortedArrayHint: Data {
         let size = count
-        let buffer = UnsafeMutablePointer<Int32>(allocatingCapacity: size)
+        let buffer = UnsafeMutablePointer<Int32>.allocate(capacity: size)
         for idx in 0..<count {
             let item = object(at: idx) as! NSObject
             let hash = item.hash
             buffer.advanced(by: idx).pointee = Int32(hash).littleEndian
         }
         return Data(bytesNoCopy: unsafeBitCast(buffer, to: UnsafeMutablePointer<UInt8>.self), count: count * sizeof(Int.self), deallocator: .custom({ _ in
-            buffer.deallocateCapacity(size)
+            buffer.deallocate(capacity: size)
             buffer.deinitialize(count: size)
         }))
     }

@@ -22,7 +22,7 @@ public class NSCoder : NSObject {
     deinit {
         for buffer in _pendingBuffers {
             buffer.0.deinitialize()
-            buffer.0.deallocateCapacity(buffer.1)
+            buffer.0.deallocate(capacity: buffer.1)
         }
     }
     
@@ -159,7 +159,7 @@ public class NSCoder : NSObject {
             decodeValue(ofObjCType: "I", at: unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self))
         }
         // we cannot autorelease here so instead the pending buffers will manage the lifespan of the returned data... this is wasteful but good enough...
-        let result = UnsafeMutablePointer<Void>(allocatingCapacity: Int(length))
+        let result = UnsafeMutablePointer<Void>.allocate(capacity: Int(length))
         decodeValue(ofObjCType: "c", at: result)
         lengthp.pointee = Int(length)
         _pendingBuffers.append((result, Int(length)))

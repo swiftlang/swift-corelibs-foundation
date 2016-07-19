@@ -204,7 +204,7 @@ public class Task: NSObject {
         
         let argv : UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> = args.withUnsafeBufferPointer {
             let array : UnsafeBufferPointer<String> = $0
-            let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: array.count + 1)
+            let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: array.count + 1)
             buffer.initialize(from: array.map { $0.withCString(strdup) })
             buffer[array.count] = nil
             return buffer
@@ -215,14 +215,14 @@ public class Task: NSObject {
                 free(UnsafeMutablePointer<Void>(arg.pointee))
             }
             
-            argv.deallocateCapacity(args.count + 1)
+            argv.deallocate(capacity: args.count + 1)
         }
         
         let envp: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>
         
         if let env = environment {
             let nenv = env.count
-            envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1 + nenv)
+            envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1 + nenv)
             envp.initialize(from: env.map { strdup("\($0)=\($1)") })
             envp[env.count] = nil
         } else {
@@ -234,7 +234,7 @@ public class Task: NSObject {
                 for pair in envp ..< envp + env.count {
                     free(UnsafeMutablePointer<Void>(pair.pointee))
                 }
-                envp.deallocateCapacity(env.count + 1)
+                envp.deallocate(capacity: env.count + 1)
             }
         }
 

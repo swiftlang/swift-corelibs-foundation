@@ -12,7 +12,7 @@ import CoreFoundation
 
 extension Set : _ObjectTypeBridgeable {
     public func _bridgeToObject() -> NSSet {
-        let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: count)
+        let buffer = UnsafeMutablePointer<AnyObject?>.allocate(capacity: count)
         
         for (idx, obj) in enumerated() {
             buffer.advanced(by: idx).initialize(to: _NSObjectRepresentableBridge(obj))
@@ -21,7 +21,7 @@ extension Set : _ObjectTypeBridgeable {
         let set = NSSet(objects: buffer, count: count)
         
         buffer.deinitialize(count: count)
-        buffer.deallocateCapacity(count)
+        buffer.deallocate(capacity: count)
         
         return set
     }
@@ -43,7 +43,7 @@ extension Set : _ObjectTypeBridgeable {
             let cf = x._cfObject
             let cnt = CFSetGetCount(cf)
             
-            let objs = UnsafeMutablePointer<UnsafePointer<Void>?>(allocatingCapacity: cnt)
+            let objs = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: cnt)
             
             CFSetGetValues(cf, objs)
             
@@ -57,7 +57,7 @@ extension Set : _ObjectTypeBridgeable {
                 }
             }
             objs.deinitialize(count: cnt)
-            objs.deallocateCapacity(cnt)
+            objs.deallocate(capacity: cnt)
         }
         if !failedConversion {
             result = set
@@ -122,13 +122,13 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
                 aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
             }
-            let objects = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: Int(cnt))
+            let objects = UnsafeMutablePointer<AnyObject?>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {
                 objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject())
             }
             self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
             objects.deinitialize(count: Int(cnt))
-            objects.deallocateCapacity(Int(cnt))
+            objects.deallocate(capacity: Int(cnt))
         } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
             self.init(array: objects)
@@ -201,13 +201,13 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     public convenience init(array: [AnyObject]) {
-        let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: array.count)
+        let buffer = UnsafeMutablePointer<AnyObject?>.allocate(capacity: array.count)
         for (idx, element) in array.enumerated() {
             buffer.advanced(by: idx).initialize(to: element)
         }
         self.init(objects: buffer, count: array.count)
         buffer.deinitialize(count: array.count)
-        buffer.deallocateCapacity(array.count)
+        buffer.deallocate(capacity: array.count)
     }
 
     public convenience init(set: Set<NSObject>) {

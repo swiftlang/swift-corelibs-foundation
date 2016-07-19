@@ -352,10 +352,10 @@ extension Array {
         if let fastpath = fastpath {
             return body(fastpath)
         } else if self.count > count {
-            let buffer = UnsafeMutablePointer<Element>(allocatingCapacity: count)
+            let buffer = UnsafeMutablePointer<Element>.allocate(capacity: count)
             let res = body(buffer)
             buffer.deinitialize(count: count)
-            buffer.deallocateCapacity(count)
+            buffer.deallocate(capacity: count)
             return res
         } else {
             return withUnsafeMutableBufferPointer() { (bufferPtr: inout UnsafeMutableBufferPointer<Element>) -> R in

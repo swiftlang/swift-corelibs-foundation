@@ -333,7 +333,7 @@ public class Pipe: NSObject {
     
     public override init() {
         /// the `pipe` system call creates two `fd` in a malloc'ed area
-        var fds = UnsafeMutablePointer<Int32>(allocatingCapacity: 2)
+        var fds = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
         defer {
             free(fds)
         }

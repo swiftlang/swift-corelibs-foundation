@@ -467,12 +467,12 @@ public class FileManager: NSObject {
         } else if errno == ENOTEMPTY {
 
             let fsRep = FileManager.default().fileSystemRepresentation(withPath: path)
-            let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
+            let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
             ps.initialize(to: UnsafeMutablePointer(fsRep))
             ps.advanced(by: 1).initialize(to: nil)
             let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
             ps.deinitialize(count: 2)
-            ps.deallocateCapacity(2)
+            ps.deallocate(capacity: 2)
 
             if stream != nil {
                 defer {
@@ -701,13 +701,13 @@ public class FileManager: NSObject {
         if len == kCFNotFound {
             fatalError("string could not be converted")
         }
-        let buf = UnsafeMutablePointer<Int8>(allocatingCapacity: len)
+        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
         for i in 0..<len {
             buf.advanced(by: i).initialize(to: 0)
         }
         if !path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
             buf.deinitialize(count: len)
-            buf.deallocateCapacity(len)
+            buf.deallocate(capacity: len)
             fatalError("string could not be converted")
         }
         return UnsafePointer(buf)
@@ -913,12 +913,12 @@ extension FileManager {
             if let path = _url.path {
                 if FileManager.default().fileExists(atPath: path) {
                     let fsRep = FileManager.default().fileSystemRepresentation(withPath: path)
-                    let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
+                    let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
                     ps.initialize(to: UnsafeMutablePointer(fsRep))
                     ps.advanced(by: 1).initialize(to: nil)
                     _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
                     ps.deinitialize(count: 2)
-                    ps.deallocateCapacity(2)
+                    ps.deallocate(capacity: 2)
                 } else {
                     _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
                 }
