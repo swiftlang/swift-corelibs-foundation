@@ -20,8 +20,8 @@ extension Dictionary : _ObjectTypeBridgeable {
         self.forEach {
             let key = _NSObjectRepresentableBridge($0.0)
             let value = _NSObjectRepresentableBridge($0.1)
-            keyBuffer.advanced(by: idx).initialize(with: key)
-            valueBuffer.advanced(by: idx).initialize(with: value)
+            keyBuffer.advanced(by: idx).initialize(to: key)
+            valueBuffer.advanced(by: idx).initialize(to: value)
             idx += 1
         }
         
@@ -131,8 +131,8 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             let keys = UnsafeMutablePointer<NSObject>(allocatingCapacity: Int(cnt))
             let objects = UnsafeMutablePointer<AnyObject>(allocatingCapacity: Int(cnt))
             for idx in 0..<cnt {
-                keys.advanced(by: Int(idx)).initialize(with: aDecoder.decodeObject()! as! NSObject)
-                objects.advanced(by: Int(idx)).initialize(with: aDecoder.decodeObject()!)
+                keys.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()! as! NSObject)
+                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()!)
             }
             self.init(objects: UnsafePointer<AnyObject>(objects), forKeys: UnsafePointer<NSObject>(keys), count: Int(cnt))
             keys.deinitialize(count: Int(cnt))

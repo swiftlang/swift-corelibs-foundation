@@ -287,7 +287,7 @@ extension NSOrderedSet {
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: array.count)
         for (idx, element) in array.enumerated() {
-            buffer.advanced(by: idx).initialize(with: element)
+            buffer.advanced(by: idx).initialize(to: element)
         }
         self.init(objects: buffer, count: array.count)
         buffer.deinitialize(count: array.count)

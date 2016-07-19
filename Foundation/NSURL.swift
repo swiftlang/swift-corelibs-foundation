@@ -501,7 +501,7 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
         
         let _fsrBuffer = UnsafeMutablePointer<Int8>(allocatingCapacity: bufSize)
         for i in 0..<bufSize {
-            _fsrBuffer.advanced(by: i).initialize(with: 0)
+            _fsrBuffer.advanced(by: i).initialize(to: 0)
         }
         
         if getFileSystemRepresentation(_fsrBuffer, maxLength: bufSize) {

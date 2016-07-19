@@ -468,8 +468,8 @@ public class FileManager: NSObject {
 
             let fsRep = FileManager.default().fileSystemRepresentation(withPath: path)
             let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
-            ps.initialize(with: UnsafeMutablePointer(fsRep))
-            ps.advanced(by: 1).initialize(with: nil)
+            ps.initialize(to: UnsafeMutablePointer(fsRep))
+            ps.advanced(by: 1).initialize(to: nil)
             let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
             ps.deinitialize(count: 2)
             ps.deallocateCapacity(2)
@@ -703,7 +703,7 @@ public class FileManager: NSObject {
         }
         let buf = UnsafeMutablePointer<Int8>(allocatingCapacity: len)
         for i in 0..<len {
-            buf.advanced(by: i).initialize(with: 0)
+            buf.advanced(by: i).initialize(to: 0)
         }
         if !path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
             buf.deinitialize(count: len)
@@ -914,8 +914,8 @@ extension FileManager {
                 if FileManager.default().fileExists(atPath: path) {
                     let fsRep = FileManager.default().fileSystemRepresentation(withPath: path)
                     let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 2)
-                    ps.initialize(with: UnsafeMutablePointer(fsRep))
-                    ps.advanced(by: 1).initialize(with: nil)
+                    ps.initialize(to: UnsafeMutablePointer(fsRep))
+                    ps.advanced(by: 1).initialize(to: nil)
                     _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
                     ps.deinitialize(count: 2)
                     ps.deallocateCapacity(2)

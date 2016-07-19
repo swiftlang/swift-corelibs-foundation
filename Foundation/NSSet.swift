@@ -15,7 +15,7 @@ extension Set : _ObjectTypeBridgeable {
         let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: count)
         
         for (idx, obj) in enumerated() {
-            buffer.advanced(by: idx).initialize(with: _NSObjectRepresentableBridge(obj))
+            buffer.advanced(by: idx).initialize(to: _NSObjectRepresentableBridge(obj))
         }
         
         let set = NSSet(objects: buffer, count: count)
@@ -124,7 +124,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             }
             let objects = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: Int(cnt))
             for idx in 0..<cnt {
-                objects.advanced(by: Int(idx)).initialize(with: aDecoder.decodeObject())
+                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject())
             }
             self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
             objects.deinitialize(count: Int(cnt))
@@ -203,7 +203,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     public convenience init(array: [AnyObject]) {
         let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: array.count)
         for (idx, element) in array.enumerated() {
-            buffer.advanced(by: idx).initialize(with: element)
+            buffer.advanced(by: idx).initialize(to: element)
         }
         self.init(objects: buffer, count: array.count)
         buffer.deinitialize(count: array.count)
