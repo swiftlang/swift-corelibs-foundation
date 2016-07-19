@@ -29,6 +29,9 @@ class TestNSBundle : XCTestCase {
             ("test_localizations", test_localizations),
             ("test_URLsForResourcesWithExtension", test_URLsForResourcesWithExtension),
             ("test_bundleLoad", test_bundleLoad),
+            ("test_bundleLoadWithError", test_bundleLoadWithError),
+            ("test_bundleWithInvalidPath", test_bundleWithInvalidPath),
+            ("test_bundlePreflight", test_bundlePreflight),
         ]
     }
     
@@ -153,10 +156,46 @@ class TestNSBundle : XCTestCase {
         
         _cleanupPlayground(playground)
     }
+    
     func test_bundleLoad(){
         let bundle = Bundle.main()
         let _ = bundle.load()
         XCTAssertTrue(bundle.isLoaded)
     }
+    
+    func test_bundleLoadWithError(){
+        let bundleValid = Bundle.main()
+        //test valid load using loadAndReturnError
+        do{
+            try bundleValid.loadAndReturnError()
+        }catch{
+            XCTFail("should not fail to load")
+        }
+        // executable cannot be located
+        guard let playground = _setupPlayground() else { XCTFail("Unable to create playground"); return }
+        let bundle = Bundle(path: playground + _bundleName)
+        XCTAssertThrowsError(try bundle!.loadAndReturnError())
+        _cleanupPlayground(playground)
+    }
+    
+    func test_bundleWithInvalidPath(){
+        let bundleInvalid = Bundle(path: "/tmp/test.playground")
+        XCTAssertNil(bundleInvalid)
+    }
+    
+    func test_bundlePreflight(){
+        let bundleValid = Bundle.main()
+        do{
+            try bundleValid.preflight()
+        }catch{
+            XCTFail("should not fail to load")
+        }
+        // executable cannot be located ..preflight should report error
+        guard let playground = _setupPlayground() else { XCTFail("Unable to create playground"); return }
+        let bundle = Bundle(path: playground + _bundleName)
+        XCTAssertThrowsError(try bundle!.preflight())
+        _cleanupPlayground(playground)
+    }
+
 
 }

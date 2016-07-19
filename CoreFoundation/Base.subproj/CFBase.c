@@ -779,7 +779,7 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
     context->preferredSize = __CFAllocatorGetPreferredSizeFunction(&allocator->_context);
 }
 
-CF_PRIVATE void *_CFAllocatorAllocateGC(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
+CF_EXPORT void *_CFAllocatorAllocateGC(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
 {
     if (CF_IS_COLLECTABLE_ALLOCATOR(allocator))
         return auto_zone_allocate_object((auto_zone_t*)kCFAllocatorSystemDefault->_context.info, size, CF_GET_GC_MEMORY_TYPE(hint), false, false);
@@ -787,7 +787,7 @@ CF_PRIVATE void *_CFAllocatorAllocateGC(CFAllocatorRef allocator, CFIndex size, 
         return CFAllocatorAllocate(allocator, size, hint);
 }
 
-CF_PRIVATE void *_CFAllocatorReallocateGC(CFAllocatorRef allocator, void *ptr, CFIndex newsize, CFOptionFlags hint)
+CF_EXPORT void *_CFAllocatorReallocateGC(CFAllocatorRef allocator, void *ptr, CFIndex newsize, CFOptionFlags hint)
 {
     if (CF_IS_COLLECTABLE_ALLOCATOR(allocator)) {
 	if (ptr && (newsize == 0)) {
@@ -801,7 +801,7 @@ CF_PRIVATE void *_CFAllocatorReallocateGC(CFAllocatorRef allocator, void *ptr, C
     return CFAllocatorReallocate(allocator, ptr, newsize, hint);
 }
 
-CF_PRIVATE void _CFAllocatorDeallocateGC(CFAllocatorRef allocator, void *ptr)
+CF_EXPORT void _CFAllocatorDeallocateGC(CFAllocatorRef allocator, void *ptr)
 {
     // when running GC, don't deallocate.
     if (!CF_IS_COLLECTABLE_ALLOCATOR(allocator)) CFAllocatorDeallocate(allocator, ptr);

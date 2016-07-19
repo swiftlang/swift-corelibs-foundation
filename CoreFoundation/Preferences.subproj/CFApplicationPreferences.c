@@ -423,7 +423,7 @@ void _CFApplicationPreferencesSetStandardSearchList(_CFApplicationPreferences *a
 #undef ADD_DOMAIN
 
 
-CF_PRIVATE _CFApplicationPreferences *_CFStandardApplicationPreferences(CFStringRef appName) {
+CF_EXPORT _CFApplicationPreferences *_CFStandardApplicationPreferences(CFStringRef appName) {
     _CFApplicationPreferences *appPreferences;
 //    CFAssert(appName != kCFPreferencesAnyApplication, __kCFLogAssertion, "Cannot use any of the CFPreferences...App... functions with an appName of kCFPreferencesAnyApplication");
     __CFLock(&__CFApplicationPreferencesLock);

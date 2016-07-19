@@ -850,11 +850,11 @@ uint32_t CFStringEncodingBytesToUnicode(uint32_t encoding, uint32_t flags, const
     return theResult;
 }
 
-CF_PRIVATE bool CFStringEncodingIsValidEncoding(uint32_t encoding) {
+CF_EXPORT bool CFStringEncodingIsValidEncoding(uint32_t encoding) {
     return (CFStringEncodingGetConverter(encoding) ? true : false);
 }
 
-CF_PRIVATE CFIndex CFStringEncodingCharLengthForBytes(uint32_t encoding, uint32_t flags, const uint8_t *bytes, CFIndex numBytes) {
+CF_EXPORT CFIndex CFStringEncodingCharLengthForBytes(uint32_t encoding, uint32_t flags, const uint8_t *bytes, CFIndex numBytes) {
     const _CFEncodingConverter *converter = __CFGetConverter(encoding);
 
     if (converter) {
@@ -898,7 +898,7 @@ CF_PRIVATE CFIndex CFStringEncodingCharLengthForBytes(uint32_t encoding, uint32_
     return 0;
 }
 
-CF_PRIVATE CFIndex CFStringEncodingByteLengthForCharacters(uint32_t encoding, uint32_t flags, const UniChar *characters, CFIndex numChars) {
+CF_EXPORT CFIndex CFStringEncodingByteLengthForCharacters(uint32_t encoding, uint32_t flags, const UniChar *characters, CFIndex numChars) {
     const _CFEncodingConverter *converter = __CFGetConverter(encoding);
 
     if (converter) {
@@ -981,7 +981,7 @@ static void __CFStringEncodingFliterDupes(CFStringEncoding *encodings, CFIndex n
     }
 }
 
-CF_PRIVATE const CFStringEncoding *CFStringEncodingListOfAvailableEncodings(void) {
+CF_EXPORT const CFStringEncoding *CFStringEncodingListOfAvailableEncodings(void) {
     static const CFStringEncoding *encodings = NULL;
 
     if (NULL == encodings) {

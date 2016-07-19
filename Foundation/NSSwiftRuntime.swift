@@ -20,31 +20,6 @@ import CoreFoundation
 
 public typealias ObjCBool = Bool
 
-public typealias NSStringEncoding = UInt
-public var NSASCIIStringEncoding: UInt { return 1 }
-public var NSNEXTSTEPStringEncoding: UInt { return 2 }
-public var NSJapaneseEUCStringEncoding: UInt { return 3 }
-public var NSUTF8StringEncoding: UInt { return 4 }
-public var NSISOLatin1StringEncoding: UInt { return 5 }
-public var NSSymbolStringEncoding: UInt { return 6 }
-public var NSNonLossyASCIIStringEncoding: UInt { return 7 }
-public var NSShiftJISStringEncoding: UInt { return 8 }
-public var NSISOLatin2StringEncoding: UInt { return 9 }
-public var NSUnicodeStringEncoding: UInt { return 10 }
-public var NSWindowsCP1251StringEncoding: UInt { return 11 }
-public var NSWindowsCP1252StringEncoding: UInt { return 12 }
-public var NSWindowsCP1253StringEncoding: UInt { return 13 }
-public var NSWindowsCP1254StringEncoding: UInt { return 14 }
-public var NSWindowsCP1250StringEncoding: UInt { return 15 }
-public var NSISO2022JPStringEncoding: UInt { return 21 }
-public var NSMacOSRomanStringEncoding: UInt { return 30 }
-public var NSUTF16StringEncoding: UInt { return NSUnicodeStringEncoding }
-public var NSUTF16BigEndianStringEncoding: UInt { return 0x90000100 }
-public var NSUTF16LittleEndianStringEncoding: UInt { return 0x94000100 }
-public var NSUTF32StringEncoding: UInt { return 0x8c000100 }
-public var NSUTF32BigEndianStringEncoding: UInt { return 0x98000100 }
-public var NSUTF32LittleEndianStringEncoding: UInt { return 0x9c000100 }
-
 internal class __NSCFType : NSObject {
     private var _cfinfo : Int32
     
@@ -92,7 +67,7 @@ internal func _CFSwiftIsEqual(_ cf1: AnyObject, cf2: AnyObject) -> Bool {
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
 internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
     withUnsafeMutablePointer(&arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
-        bzero(unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self), sizeof(T))
+        bzero(unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self), sizeof(T.self))
     }
 }
 

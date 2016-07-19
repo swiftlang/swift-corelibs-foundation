@@ -2375,7 +2375,7 @@ CF_EXPORT CFURLRef CFBundleCopySharedSupportURL(CFBundleRef bundle) {
     return result;
 }
 
-CF_PRIVATE CFURLRef _CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle) {
+CF_EXPORT CFURLRef _CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle) {
     return CFBundleCopyBuiltInPlugInsURL(bundle);
 }
 

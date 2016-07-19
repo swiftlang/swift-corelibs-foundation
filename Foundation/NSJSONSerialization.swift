@@ -111,7 +111,7 @@ public class JSONSerialization : NSObject {
             pretty: opt.contains(.prettyPrinted),
             writer: { (str: String?) in
                 if let str = str {
-                    result.append(UnsafePointer<UInt8>(str.bridge().cString(using: NSUTF8StringEncoding)!), count: str.lengthOfBytes(using: NSUTF8StringEncoding))
+                    result.append(UnsafePointer<UInt8>(str.cString(using: .utf8)!), count: str.lengthOfBytes(using: .utf8))
                 }
             }
         )
@@ -127,7 +127,7 @@ public class JSONSerialization : NSObject {
     /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
     public class func jsonObject(with data: Data, options opt: ReadingOptions = []) throws -> Any {
         return try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Any in
-            let encoding: NSStringEncoding
+            let encoding: String.Encoding
             let buffer: UnsafeBufferPointer<UInt8>
             if let detected = parseBOM(bytes, length: data.count) {
                 encoding = detected.encoding
@@ -174,18 +174,18 @@ public class JSONSerialization : NSObject {
 internal extension JSONSerialization {
     
     /// Detect the encoding format of the NSData contents
-    class func detectEncoding(_ bytes: UnsafePointer<UInt8>, _ length: Int) -> NSStringEncoding {
+    class func detectEncoding(_ bytes: UnsafePointer<UInt8>, _ length: Int) -> String.Encoding {
 
         if length >= 4 {
             switch (bytes[0], bytes[1], bytes[2], bytes[3]) {
             case (0, 0, 0, _):
-                return NSUTF32BigEndianStringEncoding
+                return .utf32BigEndian
             case (_, 0, 0, 0):
-                return NSUTF32LittleEndianStringEncoding
+                return .utf32LittleEndian
             case (0, _, 0, _):
-                return NSUTF16BigEndianStringEncoding
+                return .utf16BigEndian
             case (_, 0, _, 0):
-                return NSUTF16LittleEndianStringEncoding
+                return .utf16LittleEndian
             default:
                 break
             }
@@ -193,34 +193,34 @@ internal extension JSONSerialization {
         else if length >= 2 {
             switch (bytes[0], bytes[1]) {
             case (0, _):
-                return NSUTF16BigEndianStringEncoding
+                return .utf16BigEndian
             case (_, 0):
-                return NSUTF16LittleEndianStringEncoding
+                return .utf16LittleEndian
             default:
                 break
             }
         }
-        return NSUTF8StringEncoding
+        return .utf8
     }
     
-    static func parseBOM(_ bytes: UnsafePointer<UInt8>, length: Int) -> (encoding: NSStringEncoding, skipLength: Int)? {
+    static func parseBOM(_ bytes: UnsafePointer<UInt8>, length: Int) -> (encoding: String.Encoding, skipLength: Int)? {
         if length >= 2 {
             switch (bytes[0], bytes[1]) {
             case (0xEF, 0xBB):
                 if length >= 3 && bytes[2] == 0xBF {
-                    return (NSUTF8StringEncoding, 3)
+                    return (.utf8, 3)
                 }
             case (0x00, 0x00):
                 if length >= 4 && bytes[2] == 0xFE && bytes[3] == 0xFF {
-                    return (NSUTF32BigEndianStringEncoding, 4)
+                    return (.utf32BigEndian, 4)
                 }
             case (0xFF, 0xFE):
                 if length >= 4 && bytes[2] == 0 && bytes[3] == 0 {
-                    return (NSUTF32LittleEndianStringEncoding, 4)
+                    return (.utf32LittleEndian, 4)
                 }
-                return (NSUTF16LittleEndianStringEncoding, 2)
+                return (.utf16LittleEndian, 2)
             case (0xFE, 0xFF):
-                return (NSUTF16BigEndianStringEncoding, 2)
+                return (.utf16BigEndian, 2)
             default:
                 break
             }
@@ -413,20 +413,20 @@ private struct JSONReader {
 
     struct UnicodeSource {
         let buffer: UnsafeBufferPointer<UInt8>
-        let encoding: NSStringEncoding
+        let encoding: String.Encoding
         let step: Int
 
-        init(buffer: UnsafeBufferPointer<UInt8>, encoding: NSStringEncoding) {
+        init(buffer: UnsafeBufferPointer<UInt8>, encoding: String.Encoding) {
             self.buffer = buffer
             self.encoding = encoding
 
             self.step = {
                 switch encoding {
-                case NSUTF8StringEncoding:
+                case String.Encoding.utf8:
                     return 1
-                case NSUTF16BigEndianStringEncoding, NSUTF16LittleEndianStringEncoding:
+                case String.Encoding.utf16BigEndian, String.Encoding.utf16LittleEndian:
                     return 2
-                case NSUTF32BigEndianStringEncoding, NSUTF32LittleEndianStringEncoding:
+                case String.Encoding.utf32BigEndian, String.Encoding.utf32LittleEndian:
                     return 4
                 default:
                     return 1
@@ -441,15 +441,15 @@ private struct JSONReader {
 
             let index: Int
             switch encoding {
-            case NSUTF8StringEncoding:
+            case String.Encoding.utf8:
                 index = input
-            case NSUTF16BigEndianStringEncoding where buffer[input] == 0:
+            case String.Encoding.utf16BigEndian where buffer[input] == 0:
                 index = input + 1
-            case NSUTF32BigEndianStringEncoding where buffer[input] == 0 && buffer[input+1] == 0 && buffer[input+2] == 0:
+            case String.Encoding.utf32BigEndian where buffer[input] == 0 && buffer[input+1] == 0 && buffer[input+2] == 0:
                 index = input + 3
-            case NSUTF16LittleEndianStringEncoding where buffer[input+1] == 0:
+            case String.Encoding.utf16LittleEndian where buffer[input+1] == 0:
                 index = input
-            case NSUTF32LittleEndianStringEncoding where buffer[input+1] == 0 && buffer[input+2] == 0 && buffer[input+3] == 0:
+            case String.Encoding.utf32LittleEndian where buffer[input+1] == 0 && buffer[input+2] == 0 && buffer[input+3] == 0:
                 index = input
             default:
                 return nil
@@ -459,7 +459,8 @@ private struct JSONReader {
 
         func takeString(_ begin: Index, end: Index) throws -> String {
             let byteLength = begin.distance(to: end)
-            guard let chunk = NSString(bytes: buffer.baseAddress!.advanced(by: begin), length: byteLength, encoding: encoding)?.bridge() else {
+            
+            guard let chunk = String(data: Data(bytes: buffer.baseAddress!.advanced(by: begin), count: byteLength), encoding: encoding) else {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                     "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
                     ])
@@ -629,33 +630,40 @@ private struct JSONReader {
         0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
     ]
     func parseNumber(_ input: Index) throws -> (Any, Index)? {
-        func parseTypedNumber(_ address: UnsafePointer<UInt8>) -> (Any, IndexDistance)? {
-            let startPointer = UnsafePointer<Int8>(address)
-            let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
-            defer { intEndPointer.deallocateCapacity(1) }
-            let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
-            defer { doubleEndPointer.deallocateCapacity(1) }
-            
-            let intResult = strtol(startPointer, intEndPointer, 10)
-            let intDistance = startPointer.distance(to: intEndPointer[0]!)
-            let doubleResult = strtod(startPointer, doubleEndPointer)
-            let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
-            
-            guard intDistance > 0 || doubleDistance > 0 else {
-                return nil
+        func parseTypedNumber(_ address: UnsafePointer<UInt8>, count: Int) -> (Any, IndexDistance)? {
+            let temp_buffer_size = 64
+            var temp_buffer = [UInt8](repeating: 0, count: temp_buffer_size)
+            return temp_buffer.withUnsafeMutableBufferPointer { (buffer: inout UnsafeMutableBufferPointer<UInt8>) -> (Any, IndexDistance)? in
+                memcpy(buffer.baseAddress!, address, min(count, temp_buffer_size - 1)) // ensure null termination
+                
+                let startPointer = UnsafePointer<Int8>(buffer.baseAddress!)
+                let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
+                defer { intEndPointer.deallocateCapacity(1) }
+                let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
+                defer { doubleEndPointer.deallocateCapacity(1) }
+                
+                let intResult = strtol(startPointer, intEndPointer, 10)
+                let intDistance = startPointer.distance(to: intEndPointer[0]!)
+                let doubleResult = strtod(startPointer, doubleEndPointer)
+                let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
+                
+                guard intDistance > 0 || doubleDistance > 0 else {
+                    return nil
+                }
+                
+                if intDistance == doubleDistance {
+                    return (intResult, intDistance)
+                }
+                guard doubleDistance > 0 else {
+                    return nil
+                }
+                return (doubleResult, doubleDistance)
             }
-            
-            if intDistance == doubleDistance {
-                return (intResult, intDistance)
-            }
-            guard doubleDistance > 0 else {
-                return nil
-            }
-            return (doubleResult, doubleDistance)
         }
         
-        if source.encoding == NSUTF8StringEncoding {
-            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input)).map { return ($0.0, input + $0.1) }
+        if source.encoding == String.Encoding.utf8 {
+            
+            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0.0, input + $0.1) }
         }
         else {
             var numberCharacters = [UInt8]()
@@ -667,7 +675,9 @@ private struct JSONReader {
             
             numberCharacters.append(0)
             
-            return numberCharacters.withUnsafeBufferPointer { parseTypedNumber($0.baseAddress!) }.map { return ($0.0, index) }
+            return numberCharacters.withUnsafeBufferPointer {
+                parseTypedNumber($0.baseAddress!, count: $0.count)
+            }.map { return ($0.0, index) }
         }
     }
 
