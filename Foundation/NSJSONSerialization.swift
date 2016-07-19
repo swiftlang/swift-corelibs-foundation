@@ -637,10 +637,10 @@ private struct JSONReader {
                 memcpy(buffer.baseAddress!, address, min(count, temp_buffer_size - 1)) // ensure null termination
                 
                 let startPointer = UnsafePointer<Int8>(buffer.baseAddress!)
-                let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
-                defer { intEndPointer.deallocateCapacity(1) }
-                let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>(allocatingCapacity: 1)
-                defer { doubleEndPointer.deallocateCapacity(1) }
+                let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
+                defer { intEndPointer.deallocate(capacity: 1) }
+                let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
+                defer { doubleEndPointer.deallocate(capacity: 1) }
                 
                 let intResult = strtol(startPointer, intEndPointer, 10)
                 let intDistance = startPointer.distance(to: intEndPointer[0]!)

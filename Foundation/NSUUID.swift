@@ -17,14 +17,14 @@ import CoreFoundation
 #endif
 
 public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    internal var buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
+    internal var buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
     
     public override init() {
         _cf_uuid_generate_random(buffer)
     }
     
     public convenience init?(UUIDString string: String) {
-        let buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         if _cf_uuid_parse(string, buffer) != 0 {
             return nil
         }
@@ -40,7 +40,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public var UUIDString: String {
-        let strPtr = UnsafeMutablePointer<Int8>(allocatingCapacity: 37)
+        let strPtr = UnsafeMutablePointer<Int8>.allocate(capacity: 37)
         _cf_uuid_unparse_upper(buffer, strPtr)
         return String(cString: strPtr)
     }
@@ -66,7 +66,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
             guard let data = decodedData else { return nil }
             guard data.count == 16 else { return nil }
-            let buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
+            let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
             data.copyBytes(to: buffer, count: 16)
             self.init(UUIDBytes: buffer)
         } else {

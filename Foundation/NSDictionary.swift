@@ -12,8 +12,8 @@ import CoreFoundation
 
 extension Dictionary : _ObjectTypeBridgeable {
     public func _bridgeToObject() -> NSDictionary {
-        let keyBuffer = UnsafeMutablePointer<NSObject>(allocatingCapacity: count)
-        let valueBuffer = UnsafeMutablePointer<AnyObject>(allocatingCapacity: count)
+        let keyBuffer = UnsafeMutablePointer<NSObject>.allocate(capacity: count)
+        let valueBuffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: count)
         
         var idx = 0
         
@@ -29,8 +29,8 @@ extension Dictionary : _ObjectTypeBridgeable {
         
         keyBuffer.deinitialize(count: count)
         valueBuffer.deinitialize(count: count)
-        keyBuffer.deallocateCapacity(count)
-        valueBuffer.deallocateCapacity(count)
+        keyBuffer.deallocate(capacity: count)
+        valueBuffer.deallocate(capacity: count)
 
         return dict
     }
@@ -52,8 +52,8 @@ extension Dictionary : _ObjectTypeBridgeable {
             let cf = x._cfObject
             let cnt = CFDictionaryGetCount(cf)
 
-            let keys = UnsafeMutablePointer<UnsafePointer<Void>?>(allocatingCapacity: cnt)
-            let values = UnsafeMutablePointer<UnsafePointer<Void>?>(allocatingCapacity: cnt)
+            let keys = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: cnt)
+            let values = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: cnt)
             
             CFDictionaryGetKeysAndValues(cf, keys, values)
             
@@ -68,8 +68,8 @@ extension Dictionary : _ObjectTypeBridgeable {
             }
             keys.deinitialize(count: cnt)
             values.deinitialize(count: cnt)
-            keys.deallocateCapacity(cnt)
-            values.deallocateCapacity(cnt)
+            keys.deallocate(capacity: cnt)
+            values.deallocate(capacity: cnt)
         }
         if !failedConversion {
             result = dict
@@ -128,17 +128,17 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
                 aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
             }
-            let keys = UnsafeMutablePointer<NSObject>(allocatingCapacity: Int(cnt))
-            let objects = UnsafeMutablePointer<AnyObject>(allocatingCapacity: Int(cnt))
+            let keys = UnsafeMutablePointer<NSObject>.allocate(capacity: Int(cnt))
+            let objects = UnsafeMutablePointer<AnyObject>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {
                 keys.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()! as! NSObject)
                 objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()!)
             }
             self.init(objects: UnsafePointer<AnyObject>(objects), forKeys: UnsafePointer<NSObject>(keys), count: Int(cnt))
             keys.deinitialize(count: Int(cnt))
-            keys.deallocateCapacity(Int(cnt))
+            keys.deallocate(capacity: Int(cnt))
             objects.deinitialize(count: Int(cnt))
-            objects.deallocateCapacity(Int(cnt))
+            objects.deallocate(capacity: Int(cnt))
             
         } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
@@ -226,18 +226,18 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
 //    }
     
     public convenience init(objects: [AnyObject], forKeys keys: [NSObject]) {
-        let keyBuffer = UnsafeMutablePointer<NSObject>(allocatingCapacity: keys.count)
+        let keyBuffer = UnsafeMutablePointer<NSObject>.allocate(capacity: keys.count)
         keyBuffer.initialize(from: keys)
 
-        let valueBuffer = UnsafeMutablePointer<AnyObject>(allocatingCapacity: objects.count)
+        let valueBuffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: objects.count)
         valueBuffer.initialize(from: objects)
 
         self.init(objects: valueBuffer, forKeys:keyBuffer, count: keys.count)
         
         keyBuffer.deinitialize(count: keys.count)
         valueBuffer.deinitialize(count: objects.count)
-        keyBuffer.deallocateCapacity(keys.count)
-        valueBuffer.deallocateCapacity(objects.count)
+        keyBuffer.deallocate(capacity: keys.count)
+        valueBuffer.deallocate(capacity: objects.count)
     }
 
     public override func isEqual(_ object: AnyObject?) -> Bool {

@@ -285,13 +285,13 @@ extension NSOrderedSet {
     }
 
     public convenience init(array: [AnyObject]) {
-        let buffer = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: array.count)
+        let buffer = UnsafeMutablePointer<AnyObject?>.allocate(capacity: array.count)
         for (idx, element) in array.enumerated() {
             buffer.advanced(by: idx).initialize(to: element)
         }
         self.init(objects: buffer, count: array.count)
         buffer.deinitialize(count: array.count)
-        buffer.deallocateCapacity(array.count)
+        buffer.deallocate(capacity: array.count)
     }
 
     public convenience init(array set: [AnyObject], copyItems flag: Bool) {
