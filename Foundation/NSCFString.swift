@@ -135,7 +135,7 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
             for idx in 0..<range.length {
                 let characterIndex = encodingView.index(start, offsetBy: idx + range.location)
                 let character = encodingView[characterIndex]
-                buffer.advanced(by: idx).initialize(with: character)
+                buffer.advanced(by: idx).initialize(to: character)
             }
         }
         usedBufLen?.pointee = range.length
@@ -149,8 +149,8 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
                 let character = encodingView[start.advanced(by: idx + range.location)]
                 let byte0 = UInt8(character & 0x00ff)
                 let byte1 = UInt8((character >> 8) & 0x00ff)
-                buffer.advanced(by: idx * 2).initialize(with: byte0)
-                buffer.advanced(by: (idx * 2) + 1).initialize(with: byte1)
+                buffer.advanced(by: idx * 2).initialize(to: byte0)
+                buffer.advanced(by: (idx * 2) + 1).initialize(to: byte1)
             }
         }
         // Every character was 2 bytes

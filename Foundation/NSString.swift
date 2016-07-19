@@ -192,7 +192,7 @@ internal func _bytesInEncoding(_ str: NSString, _ encoding: String.Encoding, _ f
         fatalError("Internal inconsistency; previously claimed getBytes returned success but failed with similar invocation")
     }
     
-    UnsafeMutablePointer<Int8>(buffer).advanced(by: cLength).initialize(with: 0)
+    UnsafeMutablePointer<Int8>(buffer).advanced(by: cLength).initialize(to: 0)
     
     return UnsafePointer<Int8>(buffer) // leaked and should be autoreleased via a NSData backing but we cannot here
 }
@@ -884,12 +884,12 @@ extension NSString {
                 used = min(self.length, maxBufferCount - 1)
                 buffer.moveAssign(from: unsafeBitCast(_storage._core.startASCII, to: UnsafeMutablePointer<Int8>.self)
                     , count: used)
-                buffer.advanced(by: used).initialize(with: 0)
+                buffer.advanced(by: used).initialize(to: 0)
                 return true
             }
         }
         if getBytes(UnsafeMutablePointer<Void>(buffer), maxLength: maxBufferCount, usedLength: &used, encoding: encoding, options: [], range: NSMakeRange(0, self.length), remaining: nil) {
-            buffer.advanced(by: used).initialize(with: 0)
+            buffer.advanced(by: used).initialize(to: 0)
             return true
         }
         return false

@@ -74,7 +74,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             }
             let objects = UnsafeMutablePointer<AnyObject?>(allocatingCapacity: Int(cnt))
             for idx in 0..<cnt {
-                objects.advanced(by: Int(idx)).initialize(with: aDecoder.decodeObject())
+                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject())
             }
             self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
             objects.deinitialize(count: Int(cnt))
