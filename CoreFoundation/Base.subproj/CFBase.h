@@ -153,6 +153,16 @@
 #endif
 #endif
 
+#elif TARGET_OS_LINUX
+
+#if !defined(CF_EXPORT)
+#if defined(__cplusplus)
+#define CF_EXPORT extern "C" __attribute__ (( __visibility__("default") ))
+#else
+#endif
+#define CF_EXPORT extern __attribute__ (( __visibility__("default") ))
+#endif
+
 #else
 #define CF_EXPORT extern
 #endif

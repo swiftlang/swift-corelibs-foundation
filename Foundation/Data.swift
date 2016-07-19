@@ -10,17 +10,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-
-internal func __NSDataInvokeDeallocatorVM(_ mem: UnsafeMutablePointer<Void>, _ length: Int) -> Void {
-    
-}
+#if os(OSX) || os(iOS)
+import Darwin
+#elseif os(Linux)
+import Glibc
+#endif
 
 internal func __NSDataInvokeDeallocatorUnmap(_ mem: UnsafeMutablePointer<Void>, _ length: Int) -> Void {
-    
+    munmap(mem, length)
 }
 
 internal func __NSDataInvokeDeallocatorFree(_ mem: UnsafeMutablePointer<Void>, _ length: Int) -> Void {
-    
+    free(mem)
 }
 
 internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
@@ -150,9 +151,6 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// When creating a `Data` with the no-copy initializer, you may specify a `Data.Deallocator` to customize the behavior of how the backing store is deallocated.
     public enum Deallocator {
-        /// Use a virtual memory deallocator.
-        case virtualMemory
-        
         /// Use `munmap`.
         case unmap
         
@@ -167,8 +165,6 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         
         private var _deallocator : ((UnsafeMutablePointer<Void>, Int) -> Void)? {
             switch self {
-            case .virtualMemory:
-                return { __NSDataInvokeDeallocatorVM($0, $1) }
             case .unmap:
                 return { __NSDataInvokeDeallocatorUnmap($0, $1) }
             case .free:
@@ -198,7 +194,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// - parameter buffer: A buffer pointer to copy. The size is calculated from `SourceType` and `buffer.count`.
     public init<SourceType>(buffer: UnsafeBufferPointer<SourceType>) {
-        _wrapped = _SwiftNSData(immutableObject: NSData(bytes: buffer.baseAddress, length: sizeof(SourceType) * buffer.count))
+        _wrapped = _SwiftNSData(immutableObject: NSData(bytes: buffer.baseAddress, length: sizeof(SourceType.self) * buffer.count))
     }
     
     /// Initialize a `Data` with the contents of an Array.
@@ -259,8 +255,8 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// Returns nil when the input is not recognized as valid Base-64.
     /// - parameter base64String: The string to parse.
-    /// - parameter options: Encoding options. Default value is `[]`.
-    public init?(base64Encoded base64String: String, options: Data.Base64EncodingOptions = []) {
+    /// - parameter options: Decoding options. Default value is `[]`.
+    public init?(base64Encoded base64String: String, options: Data.Base64DecodingOptions = []) {
         if let d = NSData(base64Encoded: base64String, options: Base64DecodingOptions(rawValue: options.rawValue)) {
             _wrapped = _SwiftNSData(immutableObject: d)
         } else {
@@ -382,9 +378,9 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
             precondition(r.upperBound >= 0)
             precondition(r.upperBound <= cnt, "The range is outside the bounds of the data")
             
-            copyRange = r.lowerBound..<(r.lowerBound + Swift.min(buffer.count * sizeof(DestinationType), r.count))
+            copyRange = r.lowerBound..<(r.lowerBound + Swift.min(buffer.count * sizeof(DestinationType.self), r.count))
         } else {
-            copyRange = 0..<Swift.min(buffer.count * sizeof(DestinationType), cnt)
+            copyRange = 0..<Swift.min(buffer.count * sizeof(DestinationType.self), cnt)
         }
         
         guard !copyRange.isEmpty else { return 0 }
@@ -471,7 +467,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     /// - parameter buffer: The buffer of bytes to append. The size is calculated from `SourceType` and `buffer.count`.
     public mutating func append<SourceType>(_ buffer : UnsafeBufferPointer<SourceType>) {
         _applyUnmanagedMutation {
-            $0.append(buffer.baseAddress!, length: buffer.count * sizeof(SourceType))
+            $0.append(buffer.baseAddress!, length: buffer.count * sizeof(SourceType.self))
         }
     }
     

@@ -214,7 +214,6 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     /// Set the value of one of the properties, using an enumeration value instead of a property name.
     ///
     /// The calendar and timeZone and isLeapMonth properties cannot be set by this method.
-    @available(OSX 10.9, iOS 8.0, *)
     public mutating func setValue(_ value: Int?, forComponent unit: Calendar.Unit) {
         _applyMutation { $0.setValue(_setter(value), forComponent: unit) }
     }
@@ -222,7 +221,6 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     /// Returns the value of one of the properties, using an enumeration value instead of a property name.
     ///
     /// The calendar and timeZone and isLeapMonth property values cannot be retrieved by this method.
-    @available(OSX 10.9, iOS 8.0, *)
     public func value(forComponent unit: Calendar.Unit) -> Int? {
         return _handle.map { $0.value(forComponent: unit) }
     }
@@ -238,7 +236,6 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     /// If the time zone property is set in the `DateComponents`, it is used.
     ///
     /// The calendar property must be set, or the result is always `false`.
-    @available(OSX 10.9, iOS 8.0, *)
     public var isValidDate: Bool {
         return _handle.map { $0.isValidDate }
     }
@@ -250,7 +247,6 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     /// Except for some trivial cases (e.g., 'seconds' should be 0 - 59 in any calendar), this method is not necessarily cheap.
     ///
     /// If the time zone property is set in the `DateComponents`, it is used.
-    @available(OSX 10.9, iOS 8.0, *)
     public func isValidDate(in calendar: Calendar) -> Bool {
         return _handle.map { $0.isValidDate(in: calendar) }
     }

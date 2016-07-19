@@ -12,7 +12,7 @@ There is more information on the Foundation framework [here](https://developer.a
 
 > Important: This project is in the early stages of development. It is not yet ready for production use, but it is ready for contributions. It is scheduled to be part of the Swift 3 release.
 
-This project provides an implementation of the Foundation API for platforms where there is no Objective-C runtime. On OS X, iOS, and other Apple platforms, apps should use the Foundation that comes with the operating system. Our goal is to abstract away the exact underlying platform as much as possible.
+This project provides an implementation of the Foundation API for platforms where there is no Objective-C runtime. On macOS, iOS, and other Apple platforms, apps should use the Foundation that comes with the operating system. Our goal is to abstract away the exact underlying platform as much as possible.
 
 ## Goals
 

@@ -108,8 +108,8 @@ static uint32_t __CFUniCharGetMappedValue_P(const __CFUniCharPrecomposeMappings 
     return 0;
 }
 
-CF_PRIVATE
-UTF32Char CFUniCharPrecomposeCharacter(UTF32Char base, UTF32Char combining) {
+CF_EXPORT UTF32Char CFUniCharPrecomposeCharacter(UTF32Char base,
+                                                 UTF32Char combining) {
     uint32_t value;
 
     if (NULL == __CFUniCharPrecompSourceTable) __CFUniCharLoadPrecompositionTable();

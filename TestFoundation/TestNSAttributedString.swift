@@ -32,7 +32,7 @@ class TestNSAttributedString : XCTestCase {
         let string = "Lorem 😀 ipsum dolor sit amet, consectetur adipiscing elit. ⌘ Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit. ಠ_ರೃ"
         let attrString = AttributedString(string: string)
         XCTAssertEqual(attrString.string, string)
-        XCTAssertEqual(attrString.length, string.utf16Count)
+        XCTAssertEqual(attrString.length, string.utf16.count)
         
         var range = NSRange()
         let attrs = attrString.attributesAtIndex(0, effectiveRange: &range)
@@ -52,7 +52,7 @@ class TestNSAttributedString : XCTestCase {
         
         let attrString = AttributedString(string: string, attributes: attributes)
         XCTAssertEqual(attrString.string, string)
-        XCTAssertEqual(attrString.length, string.utf16Count)
+        XCTAssertEqual(attrString.length, string.utf16.count)
         
         var range = NSRange()
         let attrs = attrString.attributesAtIndex(0, effectiveRange: &range)

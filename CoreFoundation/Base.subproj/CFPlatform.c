@@ -50,7 +50,7 @@ int _CFArgc(void) { return *_NSGetArgc(); }
 #endif
 
 
-CF_PRIVATE Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
+CF_EXPORT Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
     return getcwd(path, maxlen) != NULL;
 }
 
@@ -182,7 +182,7 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-CF_PRIVATE CFStringRef _CFProcessNameString(void) {
+CF_EXPORT CFStringRef _CFProcessNameString(void) {
     static CFStringRef __CFProcessNameString = NULL;
     if (!__CFProcessNameString) {
         const char *processName = *_CFGetProgname();
@@ -223,7 +223,7 @@ static CFURLRef _CFCopyHomeDirURLForUser(struct passwd *upwd, bool fallBackToHom
 #define CFMaxHostNameLength	256
 #define CFMaxHostNameSize	(CFMaxHostNameLength+1)
 
-CF_PRIVATE CFStringRef _CFStringCreateHostName(void) {
+CF_EXPORT CFStringRef _CFStringCreateHostName(void) {
     char myName[CFMaxHostNameSize];
 
     // return @"" instead of nil a la CFUserName() and Ali Ozer
@@ -1311,7 +1311,7 @@ int _CFOpenFile(const char *path, int opts) {
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-CF_PRIVATE char **_CFEnviron(void) {
+CF_EXPORT char **_CFEnviron(void) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     return *_NSGetEnviron();
 #elif DEPLOYMENT_TARGET_WINDOWS

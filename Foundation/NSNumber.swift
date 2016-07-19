@@ -493,7 +493,7 @@ extension NSNumber : CustomPlaygroundQuickLookable {
         case kCFNumberDoubleType:
             return .double(self.doubleValue)
         case kCFNumberCGFloatType:
-            if sizeof(CGFloat) == sizeof(Float32) {
+            if sizeof(CGFloat.self) == sizeof(Float32.self) {
                 return .float(self.floatValue)
             } else {
                 return .double(self.doubleValue)

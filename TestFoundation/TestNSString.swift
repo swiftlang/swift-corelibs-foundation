@@ -113,7 +113,7 @@ class TestNSString : XCTestCase {
         let t = nonLiteral2.character(at: 0)
         XCTAssertTrue(t == 52)
         
-        let externalString: NSString = String.localizedNameOfStringEncoding(String.defaultCStringEncoding()).bridge()
+        let externalString: NSString = String.localizedName(of: String.defaultCStringEncoding()).bridge()
         XCTAssertTrue(externalString.length >= 4)
         
         let cluster: NSString = "✌🏾"
@@ -210,28 +210,28 @@ class TestNSString : XCTestCase {
 
     func test_FromASCIIData() {
         let bytes = mockASCIIStringBytes
-        let string = NSString(bytes: bytes, length: bytes.count, encoding: NSASCIIStringEncoding)
+        let string = NSString(bytes: bytes, length: bytes.count, encoding: String.Encoding.ascii.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
     }
 
     func test_FromUTF8Data() {
         let bytes = mockUTF8StringBytes
-        let string = NSString(bytes: bytes, length: bytes.count, encoding: NSUTF8StringEncoding)
+        let string = NSString(bytes: bytes, length: bytes.count, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
     }
 
     func test_FromMalformedUTF8Data() {
         let bytes = mockMalformedUTF8StringBytes
-        let string = NSString(bytes: bytes, length: bytes.count, encoding: NSUTF8StringEncoding)
+        let string = NSString(bytes: bytes, length: bytes.count, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNil(string)
     }
 
     func test_FromASCIINSData() {
         let bytes = mockASCIIStringBytes
         let data = Data(bytes: bytes, count: bytes.count)
-        let string = NSString(data: data, encoding: NSASCIIStringEncoding)
+        let string = NSString(data: data, encoding: String.Encoding.ascii.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
     }
@@ -239,7 +239,7 @@ class TestNSString : XCTestCase {
     func test_FromUTF8NSData() {
         let bytes = mockUTF8StringBytes
         let data = Data(bytes: bytes, count: bytes.count)
-        let string = NSString(data: data, encoding: NSUTF8StringEncoding)
+        let string = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
     }
@@ -247,27 +247,27 @@ class TestNSString : XCTestCase {
     func test_FromMalformedUTF8NSData() {
         let bytes = mockMalformedUTF8StringBytes
         let data = Data(bytes: bytes, count: bytes.count)
-        let string = NSString(data: data, encoding: NSUTF8StringEncoding)
+        let string = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNil(string)
     }
 
     func test_FromNullTerminatedCStringInASCII() {
         let bytes = mockASCIIStringBytes + [0x00]
-        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSASCIIStringEncoding)
+        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.ascii.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
     }
 
     func test_FromNullTerminatedCStringInUTF8() {
         let bytes = mockUTF8StringBytes + [0x00]
-        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
+        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
     }
 
     func test_FromMalformedNullTerminatedCStringInUTF8() {
         let bytes = mockMalformedUTF8StringBytes + [0x00]
-        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: NSUTF8StringEncoding)
+        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNil(string)
     }
 
@@ -278,13 +278,13 @@ class TestNSString : XCTestCase {
         }
 
         do {
-            let string = try NSString(contentsOf: testFileURL, encoding: NSUTF8StringEncoding)
+            let string = try NSString(contentsOf: testFileURL, encoding: String.Encoding.utf8.rawValue)
             XCTAssertEqual(string, "swift-corelibs-foundation")
         } catch {
             XCTFail("Unable to init NSString from contentsOf:encoding:")
         }
         do {
-            let string = try NSString(contentsOf: testFileURL, encoding: NSUTF16StringEncoding)
+            let string = try NSString(contentsOf: testFileURL, encoding: String.Encoding.utf16.rawValue)
             XCTAssertNotEqual(string, "swift-corelibs-foundation", "Wrong result when reading UTF-8 file with UTF-16 encoding in contentsOf:encoding")
         } catch {
             XCTFail("Unable to init NSString from contentsOf:encoding:")
@@ -296,7 +296,7 @@ class TestNSString : XCTestCase {
         XCTAssertNotNil(testFilePath)
         
         do {
-            let str = try NSString(contentsOfFile: testFilePath!, encoding: NSUTF8StringEncoding)
+            let str = try NSString(contentsOfFile: testFilePath!, encoding: String.Encoding.utf8.rawValue)
             XCTAssertEqual(str, "swift-corelibs-foundation")
         } catch {
             XCTFail("Unable to init NSString from contentsOfFile:encoding:")
@@ -375,7 +375,7 @@ class TestNSString : XCTestCase {
         let decimalDigits = CharacterSet.decimalDigits
         XCTAssertEqual(string.rangeOfCharacter(from: letters).location, 1)
         XCTAssertEqual(string.rangeOfCharacter(from: decimalDigits).location, 0)
-        XCTAssertEqual(string.rangeOfCharacter(from: letters, options: [.backwardsSearch]).location, 2)
+        XCTAssertEqual(string.rangeOfCharacter(from: letters, options: .backwards).location, 2)
         XCTAssertEqual(string.rangeOfCharacter(from: letters, options: [], range: NSMakeRange(2, 1)).location, 2)
     }
     
@@ -594,7 +594,7 @@ class TestNSString : XCTestCase {
     }
     
     private func stringsAreCaseInsensitivelyEqual(_ lhs: NSString, _ rhs: NSString) -> Bool {
-    	return lhs.compare(rhs.bridge(), options: .caseInsensitiveSearch) == .orderedSame
+    	return lhs.compare(rhs.bridge(), options: .caseInsensitive) == .orderedSame
     }
 
     func test_stringByTrimmingCharactersInSet() {
@@ -627,17 +627,19 @@ class TestNSString : XCTestCase {
             XCTAssertEqual(string, "Default value is 1000 (42.0)")
         }
         
+#if false // these two tests expose bugs in icu4c's localization on some linux builds (disable until we can get a uniform fix for this)
         withVaList(argument) {
             pointer in
             let string = NSString(format: "en_GB value is %d (%.1f)", locale: Locale.init(localeIdentifier: "en_GB"), arguments: pointer)
-            XCTAssertEqual(string, "en_GB value is 1000 (42.0)")
+            XCTAssertEqual(string, "en_GB value is 1,000 (42.0)")
         }
 
         withVaList(argument) {
             pointer in
             let string = NSString(format: "de_DE value is %d (%.1f)", locale: Locale.init(localeIdentifier: "de_DE"), arguments: pointer)
-            XCTAssertEqual(string, "de_DE value is 1000 (42,0)")
+            XCTAssertEqual(string, "de_DE value is 1.000 (42,0)")
         }
+#endif
         
         withVaList(argument) {
             pointer in
@@ -744,7 +746,7 @@ class TestNSString : XCTestCase {
         var res: Bool = false
         chars.withUnsafeMutableBufferPointer() {
             let ptr = $0.baseAddress!
-            res = str.getCString(ptr, maxLength: count, encoding: NSASCIIStringEncoding)
+            res = str.getCString(ptr, maxLength: count, encoding: String.Encoding.ascii.rawValue)
         }
         XCTAssertTrue(res, "getCString should work on simple strings with ascii string encoding")
         XCTAssertEqual(chars, expected, "getCString on \(str) should have resulted in \(expected) but got \(chars)")
@@ -758,12 +760,12 @@ class TestNSString : XCTestCase {
         var res: Bool = false
         chars.withUnsafeMutableBufferPointer() {
             let ptr = $0.baseAddress!
-            res = str.getCString(ptr, maxLength: count, encoding: NSASCIIStringEncoding)
+            res = str.getCString(ptr, maxLength: count, encoding: String.Encoding.ascii.rawValue)
         }
         XCTAssertFalse(res, "getCString should not work on non ascii strings accessing as ascii string encoding")
         chars.withUnsafeMutableBufferPointer() {
             let ptr = $0.baseAddress!
-            res = str.getCString(ptr, maxLength: count, encoding: NSUTF8StringEncoding)
+            res = str.getCString(ptr, maxLength: count, encoding: String.Encoding.utf8.rawValue)
         }
         XCTAssertTrue(res, "getCString should work on UTF8 encoding")
         XCTAssertEqual(chars, expected, "getCString on \(str) should have resulted in \(expected) but got \(chars)")
@@ -862,9 +864,9 @@ class TestNSString : XCTestCase {
     }
 
     func test_stringByRemovingPercentEncoding() {
-        let s1 = "a%20b".stringByRemovingPercentEncoding
+        let s1 = "a%20b".removingPercentEncoding
         XCTAssertEqual(s1, "a b")
-        let s2 = "a%1 b".stringByRemovingPercentEncoding
+        let s2 = "a%1 b".removingPercentEncoding
         XCTAssertNil(s2, "returns nil for a string with an invalid percent encoding")
     }
     

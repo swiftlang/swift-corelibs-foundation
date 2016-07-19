@@ -20,7 +20,7 @@ public func NSTemporaryDirectory() -> String {
     var buf = [Int8](repeating: 0, count: 100)
     let r = confstr(_CS_DARWIN_USER_TEMP_DIR, &buf, buf.count)
     if r != 0 && r < buf.count {
-        return String(CString: buf, encoding: NSUTF8StringEncoding)!
+        return String(cString: buf, encoding: .utf8)!
     }
     #endif
     if let tmpdir = ProcessInfo.processInfo().environment["TMPDIR"] {
@@ -172,36 +172,7 @@ public extension NSString {
     }
     
     public var pathComponents : [String] {
-        var result = [String]()
-        if length == 0 {
-            return result
-        } else {
-            let characterView = _swiftObject.characters
-            var curPos = characterView.startIndex
-            let endPos = characterView.endIndex
-            if characterView[curPos] == "/" {
-                result.append("/")
-            }
-            
-            while curPos < endPos {
-                while curPos < endPos && characterView[curPos] == "/" {
-                    curPos = characterView.index(after: curPos)
-                }
-                if curPos == endPos {
-                    break
-                }
-                var curEnd = curPos
-                while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd = characterView.index(after: curEnd)
-                }
-                result.append(String(characterView[curPos ..< curEnd]))
-                curPos = curEnd
-            }
-        }
-        if length > 1 && hasSuffix("/") {
-            result.append("/")
-        }
-        return result
+        return _pathComponents(self._swiftObject)!
     }
     
     public var lastPathComponent : String {
@@ -507,7 +478,7 @@ public extension NSString {
         if caseSensetive {
             return { $0 != nil && $0!.hasPrefix(thePrefix) }
         } else {
-            return { $0 != nil && $0!.bridge().range(of: thePrefix, options: .caseInsensitiveSearch).location == 0 }
+            return { $0 != nil && $0!.bridge().range(of: thePrefix, options: .caseInsensitive).location == 0 }
         }
     }
     

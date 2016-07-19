@@ -389,7 +389,7 @@ CF_EXPORT void* _CFStreamGetInfoPointer(struct _CFStream* stream) {
     return stream == NULL? NULL : stream->info;
 }
 
-CF_PRIVATE struct _CFStream *_CFStreamCreateWithConstantCallbacks(CFAllocatorRef alloc, void *info,  const struct _CFStreamCallBacks *cb, Boolean isReading) {
+CF_EXPORT struct _CFStream *_CFStreamCreateWithConstantCallbacks(CFAllocatorRef alloc, void *info,  const struct _CFStreamCallBacks *cb, Boolean isReading) {
     struct _CFStream *newStream;
     if (cb->version != 1) return NULL;
     newStream = _CFStreamCreate(alloc, isReading);

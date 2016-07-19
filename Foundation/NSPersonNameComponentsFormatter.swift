@@ -58,7 +58,7 @@ public class PersonNameComponentsFormatter : Formatter {
      */
     public class func localizedString(from components: PersonNameComponents, style nameFormatStyle: Style, options nameOptions: Options = []) -> String { NSUnimplemented() }
     
-    /* Convenience method on stringForObjectValue:. Returns a string containing the formatted value of the provided components object.
+    /* Convenience method on string(for:):. Returns a string containing the formatted value of the provided components object.
      */
     public func string(from components: PersonNameComponents) -> String { NSUnimplemented() }
     

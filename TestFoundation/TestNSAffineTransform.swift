@@ -43,27 +43,27 @@ class TestNSAffineTransform : XCTestCase {
     
     func checkPointTransformation(_ transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newPoint = transform.transformPoint(point)
-        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold, file: file, line: line,
-                                   "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)")
-        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold, file: file, line: line,
-                                   "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)")
+        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold,
+                                   "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold,
+                                   "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)", file: file, line: line)
     }
     
     func checkSizeTransformation(_ transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newSize = transform.transformSize(size)
-        XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold, file: file, line: line,
-                                   "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)")
-        XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold, file: file, line: line,
-                                   "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)")
+        XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold,
+                                   "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)", file: file, line: line)
+        XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold,
+                                   "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)", file: file, line: line)
     }
     
     func checkRectTransformation(_ transform: NSAffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newRect = transform.transformRect(rect)
         
-        checkPointTransformation(transform, point: newRect.origin, expectedPoint: expectedRect.origin, file: file, line: line,
-                                 "origin (expected: \(expectedRect.origin), was: \(newRect.origin)): \(message)")
-        checkSizeTransformation(transform, size: newRect.size, expectedSize: expectedRect.size, file: file, line: line,
-                                "size (expected: \(expectedRect.size), was: \(newRect.size)): \(message)")
+        checkPointTransformation(transform, point: newRect.origin, expectedPoint: expectedRect.origin,
+                                 "origin (expected: \(expectedRect.origin), was: \(newRect.origin)): \(message)", file: file, line: line)
+        checkSizeTransformation(transform, size: newRect.size, expectedSize: expectedRect.size,
+                                "size (expected: \(expectedRect.size), was: \(newRect.size)): \(message)", file: file, line: line)
     }
 
     func test_BasicConstruction() {

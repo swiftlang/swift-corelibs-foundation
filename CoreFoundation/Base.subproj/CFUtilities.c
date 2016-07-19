@@ -95,7 +95,7 @@
    }
    
 */
-CF_PRIVATE CFIndex CFBSearch(const void *element, CFIndex elementSize, const void *list, CFIndex count, CFComparatorFunction comparator, void *context) {
+CF_EXPORT CFIndex CFBSearch(const void *element, CFIndex elementSize, const void *list, CFIndex count, CFComparatorFunction comparator, void *context) {
     const char *ptr = (const char *)list;
     while (0 < count) {
         CFIndex half = count / 2;
@@ -390,7 +390,7 @@ CF_PRIVATE void *__CFLookupCFNetworkFunction(const char *name) {
 }
 #endif
 
-CF_PRIVATE CFIndex __CFActiveProcessorCount() {
+CF_EXPORT CFIndex __CFActiveProcessorCount() {
 #if CF_HAVE_HW_CONFIG_COMMPAGE
     static const uintptr_t p = _COMM_PAGE_ACTIVE_CPUS;
     return (CFIndex)(*(uint8_t*)p);
@@ -424,7 +424,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount() {
 #endif
 }
 
-CF_PRIVATE CFIndex __CFProcessorCount() {
+CF_EXPORT CFIndex __CFProcessorCount() {
     int32_t pcnt;
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     int32_t mib[] = {CTL_HW, HW_NCPU};
@@ -442,7 +442,7 @@ CF_PRIVATE CFIndex __CFProcessorCount() {
     return pcnt;
 }
 
-CF_PRIVATE uint64_t __CFMemorySize() {
+CF_EXPORT uint64_t __CFMemorySize() {
     uint64_t memsize = 0;
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     int32_t mib[] = {CTL_HW, HW_NCPU};
