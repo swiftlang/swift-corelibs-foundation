@@ -33,7 +33,7 @@ class TestNSCalendar: XCTestCase {
         let date = Date(timeIntervalSince1970: 1449332351)
         
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(name: "UTC")!
+        calendar.timeZone = TimeZone(identifier: "UTC")!
          let components = calendar.dateComponents([.year, .month, .day], from: date)
         
         XCTAssertEqual(components.year, 2015)
@@ -45,7 +45,7 @@ class TestNSCalendar: XCTestCase {
         let date = Date(timeIntervalSince1970: 1552580351)
         
         var calendar = Calendar(identifier: .hebrew)
-        calendar.timeZone = TimeZone(name: "UTC")!
+        calendar.timeZone = TimeZone(identifier: "UTC")!
         let components = calendar.dateComponents([.year, .month, .day], from: date)
         XCTAssertEqual(components.year, 5779)
         XCTAssertEqual(components.month, 7)
@@ -57,7 +57,7 @@ class TestNSCalendar: XCTestCase {
         let date = Date(timeIntervalSince1970: 1591460351.0)
         
         var calendar = Calendar(identifier: .chinese)
-        calendar.timeZone = TimeZone(name: "UTC")!
+        calendar.timeZone = TimeZone(identifier: "UTC")!
         let components = calendar.dateComponents([.year, .month, .day], from: date)
         XCTAssertEqual(components.year, 37)
         XCTAssertEqual(components.month, 4)

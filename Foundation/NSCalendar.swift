@@ -141,8 +141,8 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
             
             self.init(identifier: NSCalendar.Identifier.init(rawValue: calendarIdentifier._swiftObject))
             
-            if let timeZone = aDecoder.decodeObjectOfClass(TimeZone.self, forKey: "NS.timezone") {
-                self.timeZone = timeZone
+            if let timeZone = aDecoder.decodeObjectOfClass(NSTimeZone.self, forKey: "NS.timezone") {
+                self.timeZone = timeZone._swiftObject
             }
             if let locale = aDecoder.decodeObjectOfClass(NSLocale.self, forKey: "NS.locale") {
                 self.locale = locale._swiftObject
@@ -171,7 +171,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(self.calendarIdentifier.rawValue.bridge(), forKey: "NS.identifier")
-            aCoder.encode(self.timeZone, forKey: "NS.timezone")
+            aCoder.encode(self.timeZone._nsObject, forKey: "NS.timezone")
             aCoder.encode(self.locale?._bridgeToObjectiveC(), forKey: "NS.locale")
             aCoder.encode(self.firstWeekday, forKey: "NS.firstwkdy")
             aCoder.encode(self.minimumDaysInFirstWeek, forKey: "NS.mindays")
@@ -240,7 +240,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
         _CFDeinit(self)
     }
     
-    open var calendarIdentifier: String  {
+    open var calendarIdentifier: Identifier  {
         get {
             return Identifier(rawValue: CFCalendarGetIdentifier(_cfObject)._swiftObject)
         }
@@ -256,7 +256,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     }
     /*@NSCopying*/ open var timeZone: TimeZone {
         get {
-            return CFCalendarCopyTimeZone(_cfObject)._nsObject
+            return CFCalendarCopyTimeZone(_cfObject)._swiftObject
         }
         set {
             CFCalendarSetTimeZone(_cfObject, newValue._cfObject)
@@ -552,7 +552,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// The Darwin version is not nullable but this one is since the conversion from the date and unit flags can potentially return nil
-    open func components(_ unitFlags: Unit, from date: Date) -> DateComponents? {
+    open func components(_ unitFlags: Unit, from date: Date) -> DateComponents {
         let compDesc = _setup(unitFlags)
         
         // _CFCalendarDecomposeAbsoluteTimeV requires a bit of a funky vector layout; which does not express well in swift; this is the closest I can come up with to the required format
@@ -616,27 +616,26 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     Pass NULL for a NSInteger pointer parameter if you don't care about that value.
     */
     open func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, year yearValuePointer: UnsafeMutablePointer<Int>?, month monthValuePointer: UnsafeMutablePointer<Int>?, day dayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
-        if let comps = components([.era, .year, .month, .day], from: date) {
-            if let value = comps.era {
-                eraValuePointer?.pointee = value
-            } else {
-                eraValuePointer?.pointee = NSDateComponentUndefined
-            }
-            if let value = comps.year {
-                yearValuePointer?.pointee = value
-            } else {
-                yearValuePointer?.pointee = NSDateComponentUndefined
-            }
-            if let value = comps.month {
-                monthValuePointer?.pointee = value
-            } else {
-                monthValuePointer?.pointee = NSDateComponentUndefined
-            }
-            if let value = comps.day {
-                dayValuePointer?.pointee = value
-            } else {
-                dayValuePointer?.pointee = NSDateComponentUndefined
-            }
+        let comps = components([.era, .year, .month, .day], from: date)
+        if let value = comps.era {
+            eraValuePointer?.pointee = value
+        } else {
+            eraValuePointer?.pointee = NSDateComponentUndefined
+        }
+        if let value = comps.year {
+            yearValuePointer?.pointee = value
+        } else {
+            yearValuePointer?.pointee = NSDateComponentUndefined
+        }
+        if let value = comps.month {
+            monthValuePointer?.pointee = value
+        } else {
+            monthValuePointer?.pointee = NSDateComponentUndefined
+        }
+        if let value = comps.day {
+            dayValuePointer?.pointee = value
+        } else {
+            dayValuePointer?.pointee = NSDateComponentUndefined
         }
         if let value = comps.year {
             yearValuePointer?.pointee = value
@@ -660,27 +659,26 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     Pass NULL for a NSInteger pointer parameter if you don't care about that value.
     */
     open func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, yearForWeekOfYear yearValuePointer: UnsafeMutablePointer<Int>?, weekOfYear weekValuePointer: UnsafeMutablePointer<Int>?, weekday weekdayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
-        if let comps = components([.era, .yearForWeekOfYear, .weekOfYear, .weekday], from: date) {
-            if let value = comps.era {
-                eraValuePointer?.pointee = value
-            } else  {
-                eraValuePointer?.pointee = NSDateComponentUndefined
-            }
-            if let value = comps.yearForWeekOfYear {
-                yearValuePointer?.pointee = value
-            } else {
-                yearValuePointer?.pointee = NSDateComponentUndefined
-            }
-            if let value = comps.weekOfYear {
-                weekValuePointer?.pointee = value
-            } else {
-                weekValuePointer?.pointee = NSDateComponentUndefined
-            }
-            if let value = comps.weekday {
-                weekdayValuePointer?.pointee = value
-            } else {
-                weekdayValuePointer?.pointee = NSDateComponentUndefined
-            }
+        let comps = components([.era, .yearForWeekOfYear, .weekOfYear, .weekday], from: date)
+        if let value = comps.era {
+            eraValuePointer?.pointee = value
+        } else  {
+            eraValuePointer?.pointee = NSDateComponentUndefined
+        }
+        if let value = comps.yearForWeekOfYear {
+            yearValuePointer?.pointee = value
+        } else {
+            yearValuePointer?.pointee = NSDateComponentUndefined
+        }
+        if let value = comps.weekOfYear {
+            weekValuePointer?.pointee = value
+        } else {
+            weekValuePointer?.pointee = NSDateComponentUndefined
+        }
+        if let value = comps.weekday {
+            weekdayValuePointer?.pointee = value
+        } else {
+            weekdayValuePointer?.pointee = NSDateComponentUndefined
         }
         if let value = comps.yearForWeekOfYear {
             yearValuePointer?.pointee = value
@@ -704,28 +702,26 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     Pass NULL for a NSInteger pointer parameter if you don't care about that value.
     */
     open func getHour(_ hourValuePointer: UnsafeMutablePointer<Int>?, minute minuteValuePointer: UnsafeMutablePointer<Int>?, second secondValuePointer: UnsafeMutablePointer<Int>?, nanosecond nanosecondValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
-        if let comps = components([.hour, .minute, .second, .nanosecond], from: date) {
-            if let value = comps.hour {
-                hourValuePointer?.pointee = value
-            } else {
-                hourValuePointer?.pointee = NSDateComponentUndefined
-            }
-            if let value = comps.minute {
-                minuteValuePointer?.pointee = value
-            } else {
-                minuteValuePointer?.pointee = NSDateComponentUndefined
-            }
-            if let value = comps.second {
-                secondValuePointer?.pointee = value
-            } else {
-                secondValuePointer?.pointee = NSDateComponentUndefined
-            }
-            if let value = comps.nanosecond {
-                nanosecondValuePointer?.pointee = value
-            } else {
-                nanosecondValuePointer?.pointee = NSDateComponentUndefined
-            }
-
+        let comps = components([.hour, .minute, .second, .nanosecond], from: date)
+        if let value = comps.hour {
+            hourValuePointer?.pointee = value
+        } else {
+            hourValuePointer?.pointee = NSDateComponentUndefined
+        }
+        if let value = comps.minute {
+            minuteValuePointer?.pointee = value
+        } else {
+            minuteValuePointer?.pointee = NSDateComponentUndefined
+        }
+        if let value = comps.second {
+            secondValuePointer?.pointee = value
+        } else {
+            secondValuePointer?.pointee = NSDateComponentUndefined
+        }
+        if let value = comps.nanosecond {
+            nanosecondValuePointer?.pointee = value
+        } else {
+            nanosecondValuePointer?.pointee = NSDateComponentUndefined
         }
         if let value = comps.minute {
             minuteValuePointer?.pointee = value
@@ -796,7 +792,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     If there were two midnights, it returns the first.  If there was none, it returns the first moment that did exist.
     */
     open func startOfDay(for date: Date) -> Date {
-        return range(of: .day, forDate: date)!.start
+        return range(of: .day, for: date)!.start
     }
     
     /*
@@ -806,7 +802,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// The Darwin version is not nullable but this one is since the conversion from the date and unit flags can potentially return nil
-    open func components(in timezone: TimeZone, fromDate date: Date) -> DateComponents? {
+    open func components(in timezone: TimeZone, from date: Date) -> DateComponents {
         let oldTz = self.timeZone
         self.timeZone = timezone
         let comps = components([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .calendar, .timeZone], from: date)
@@ -903,9 +899,9 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
         for unit in units {
             let value1 = comp1.value(for: Calendar._fromCalendarUnit(unit))
             let value2 = comp2.value(for: Calendar._fromCalendarUnit(unit))
-            if value1 > value2 {
+            if value1! > value2! {
                 return .orderedDescending
-            } else if value1 < value2 {
+            } else if value1! < value2! {
                 return .orderedAscending
             }
             if unit == .month && calendarIdentifier == .chinese {
@@ -930,14 +926,14 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     /*
     This API compares the given dates down to the given unit, reporting them equal if they are the same in the given unit and all larger units.
     */
-    open func isDate(_ date1: Date, equalToDate date2: Date, toUnitGranularity unit: Unit) -> Bool {
+    open func isDate(_ date1: Date, equalTo date2: Date, toUnitGranularity unit: Unit) -> Bool {
         return compare(date1, to: date2, toUnitGranularity: unit) == .orderedSame
     }
     
     /*
     This API compares the Days of the given dates, reporting them equal if they are in the same Day.
     */
-    open func isDate(_ date1: Date, inSameDayAsDate date2: Date) -> Bool {
+    open func isDate(_ date1: Date, inSameDayAs date2: Date) -> Bool {
         return compare(date1, to: date2, toUnitGranularity: .day) == .orderedSame
     }
     
@@ -952,7 +948,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     This API reports if the date is within "yesterday".
     */
     open func isDateInYesterday(_ date: Date) -> Bool {
-        if let interval = range(of: .day, forDate: Date()) {
+        if let interval = range(of: .day, for: Date()) {
             let inYesterday = interval.start - 60.0
             return compare(date, to: inYesterday, toUnitGranularity: .day) == .orderedSame
         } else {
@@ -964,7 +960,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     This API reports if the date is within "tomorrow".
     */
     open func isDateInTomorrow(_ date: Date) -> Bool {
-        if let interval = range(of: .day, forDate: Date()) {
+        if let interval = range(of: .day, for: Date()) {
             let inTomorrow = interval.end + 60.0
             return compare(date, to: inTomorrow, toUnitGranularity: .day) == .orderedSame
         } else {
@@ -988,7 +984,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     /// - Note: A given entire Day within a calendar is not necessarily all in a weekend or not; weekends can start in the middle of a Day in some calendars and locales.
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open func rangeOfWeekendContaining(_ date: Date) -> DateInterval? {
+    open func range(ofWeekendContaining date: Date) -> DateInterval? {
         if let next = nextWeekendAfter(date, options: []) {
             if let prev = nextWeekendAfter(next.start, options: .searchBackwards) {
                 if prev.start.timeIntervalSinceReferenceDate <= date.timeIntervalSinceReferenceDate && date.timeIntervalSinceReferenceDate <= prev.end.timeIntervalSinceReferenceDate {
@@ -1051,7 +1047,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     For each date components object, if its time zone property is set, that time zone is used for it; if the calendar property is set, that is used rather than the receiving calendar, and if both the calendar and time zone are set, the time zone property value overrides the time zone of the calendar property.
     No options are currently defined; pass 0.
     */
-    open func components(_ unitFlags: Unit, from startingDateComp: DateComponents, to resultDateComp: DateComponents, options: Options = []) -> DateComponents? {
+    open func components(_ unitFlags: Unit, from startingDateComp: DateComponents, to resultDateComp: DateComponents, options: Options = []) -> DateComponents {
         var startDate: Date?
         var toDate: Date?
         if let startCalendar = startingDateComp.calendar {
@@ -1111,7 +1107,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     The general semantics follow those of the -enumerateDatesStartingAfterDate:... method above.
     To compute a sequence of results, use the -enumerateDatesStartingAfterDate:... method above, rather than looping and calling this method with the previous loop iteration's result.
     */
-    open func nextDate(after date: Date, matchingComponents comps: DateComponents, options: Options = []) -> Date? {
+    open func nextDate(after date: Date, matching comps: DateComponents, options: Options = []) -> Date? {
         var result: Date?
         enumerateDates(startingAfter: date, matching: comps, options: options) { date, exactMatch, stop in
             result = date
@@ -1150,7 +1146,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     If no such time exists, the next available time is returned (which could, for example, be in a different day, week, month, ... than the nominal target date).  Setting a component to something which would be inconsistent forces other units to change; for example, setting the Weekday to Thursday probably shifts the Day and possibly Month and Year.
     The specific behaviors here are as yet unspecified; for example, if I change the weekday to Thursday, does that move forward to the next, backward to the previous, or to the nearest Thursday?  A likely rule is that the algorithm will try to produce a result which is in the next-larger unit to the one given (there's a table of this mapping at the top of this document).  So for the "set to Thursday" example, find the Thursday in the Week in which the given date resides (which could be a forwards or backwards move, and not necessarily the nearest Thursday).  For forwards or backwards behavior, one can use the -nextDateAfterDate:matchingUnit:value:options: method above.
     */
-    open func date(bySettingUnit unit: Unit, value v: Int, ofDate date: Date, options opts: Options = []) -> Date? {
+    open func date(bySettingUnit unit: Unit, value v: Int, of date: Date, options opts: Options = []) -> Date? {
         let currentValue = component(unit, from: date)
         if currentValue == v {
             return date
@@ -1170,8 +1166,8 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     If no such time exists, the next available time is returned (which could, for example, be in a different day than the nominal target date).
     The intent is to return a date on the same day as the original date argument.  This may result in a date which is earlier than the given date, of course.
     */
-    open func date(bySettingHour h: Int, minute m: Int, second s: Int, ofDate date: Date, options opts: Options = []) -> Date? {
-        if let range = range(of: .day, forDate: date) {
+    open func date(bySettingHour h: Int, minute m: Int, second s: Int, of date: Date, options opts: Options = []) -> Date? {
+        if let range = range(of: .day, for: date) {
             var comps = DateComponents()
             comps.hour = h
             comps.minute = m
@@ -1277,7 +1273,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             calHash = cal.hashValue
         }
         if let tz = timeZone {
-            calHash ^= tz.hash
+            calHash ^= tz.hashValue
         }
         var y = year
         if NSDateComponentUndefined == y {
@@ -1388,7 +1384,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             self.weekdayOrdinal = aDecoder.decodeInteger(forKey: "NS.weekdayOrdinal")
             self.isLeapMonth = aDecoder.decodeBool(forKey: "NS.isLeapMonth")
             self.calendar = aDecoder.decodeObjectOfClass(NSCalendar.self, forKey: "NS.calendar")?._swiftObject
-            self.timeZone = aDecoder.decodeObjectOfClass(TimeZone.self, forKey: "NS.timezone")
+            self.timeZone = aDecoder.decodeObjectOfClass(NSTimeZone.self, forKey: "NS.timezone")?._swiftObject
         } else {
             NSUnimplemented()
         }
@@ -1412,7 +1408,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             aCoder.encode(self.weekdayOrdinal, forKey: "NS.weekdayOrdinal")
             aCoder.encode(self.isLeapMonth, forKey: "NS.isLeapMonth")
             aCoder.encode(self.calendar?._nsObject, forKey: "NS.calendar")
-            aCoder.encode(self.timeZone, forKey: "NS.timezone")
+            aCoder.encode(self.timeZone?._nsObject, forKey: "NS.timezone")
         } else {
             NSUnimplemented()
         }
@@ -1442,18 +1438,8 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             }
         }
     }
-    /*@NSCopying*/ open var timeZone: TimeZone? {
-        get {
-            return _timeZone
-        }
-        set {
-            if let val = newValue {
-                _timeZone = (val.copy() as! TimeZone)
-            } else {
-                _timeZone = nil
-            }
-        }
-    }
+    /*@NSCopying*/ open var timeZone: TimeZone?
+    
     // these all should probably be optionals
     
     open var era: Int {
@@ -1606,7 +1592,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     This API allows one to set a specific component of NSDateComponents, by enum constant value rather than property name.
     The calendar and timeZone and isLeapMonth properties cannot be set by this method.
     */
-    open func setValue(_ value: Int, forComponent unit: Calendar.Unit) {
+    open func setValue(_ value: Int, forComponent unit: NSCalendar.Unit) {
         switch unit {
             case NSCalendar.Unit.era:
                 era = value
@@ -1665,7 +1651,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     This API allows one to get the value of a specific component of NSDateComponents, by enum constant value rather than property name.
     The calendar and timeZone and isLeapMonth property values cannot be gotten by this method.
     */
-    open func value(forComponent unit: Calendar.Unit) -> Int {
+    open func value(forComponent unit: NSCalendar.Unit) -> Int {
         switch unit {
             case NSCalendar.Unit.era:
                 return era
@@ -1722,7 +1708,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     If the time zone property is set in the NSDateComponents object, it is used.
     */
     open func isValidDate(in calendar: Calendar) -> Bool {
-        let cal = calendar.copy() as! Calendar
+        var cal = calendar
         if let tz = timeZone {
             cal.timeZone = tz
         }

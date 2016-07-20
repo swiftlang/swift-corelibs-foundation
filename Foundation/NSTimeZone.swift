@@ -64,8 +64,8 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open override func isEqual(_ object: AnyObject?) -> Bool {
-        if let tz = object as? TimeZone {
-            return isEqual(to: tz)
+        if let tz = object as? NSTimeZone {
+            return isEqual(to: tz._swiftObject)
         } else {
             return false
         }
@@ -193,7 +193,14 @@ extension CFTimeZone : _SwiftBridgable, _NSBridgable {
     var _swiftObject: TimeZone { return _nsObject._swiftObject }
 }
 
-extension TimeZone {
+extension TimeZone : _NSBridgable, _CFBridgable {
+    typealias NSType = NSTimeZone
+    typealias CFType = CFTimeZone
+    var _nsObject : NSTimeZone { return _bridgeToObjectiveC() }
+    var _cfObject : CFTimeZone { return _nsObject._cfObject }
+}
+
+extension NSTimeZone {
     open class func localTimeZone() -> TimeZone { NSUnimplemented() }
     
     open class var knownTimeZoneNames: [String] { NSUnimplemented() }

@@ -30,7 +30,7 @@ internal func __NSCalendarInit(_ identifier : String) -> NSCalendar? {
 public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, Hashable, Equatable, ReferenceConvertible, _MutableBoxing {
     public typealias ReferenceType = NSCalendar
     
-    private var _autoupdating: Bool
+    internal var _autoupdating: Bool
     internal var _handle: _MutableHandle<NSCalendar>
     
     /// Calendar supports many different kinds of calendars. Each is identified by an identifier here.
@@ -777,11 +777,11 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     /// - parameter repeatedTimePolicy: Determines the behavior of the search algorithm when the input produces a time that occurs twice on a particular day.
     /// - parameter direction: Which direction in time to search. The default value is `.forward`, which means later in time.
     /// - parameter block: A closure that is called with search results.
-    public func enumerateDates(startingAfter start: Date, matching components: DateComponents, matchingPolicy: MatchingPolicy, repeatedTimePolicy: RepeatedTimePolicy = .first, direction: SearchDirection = .forward, using block: @noescape (result: Date?, exactMatch: Bool, stop: inout Bool) -> Void) {
+    public func enumerateDates(startingAfter start: Date, matching components: DateComponents, matchingPolicy: MatchingPolicy, repeatedTimePolicy: RepeatedTimePolicy = .first, direction: SearchDirection = .forward, using block: @noescape (_ result: Date?, _ exactMatch: Bool, _ stop: inout Bool) -> Void) {
         _handle.map {
             $0.enumerateDates(startingAfter: start, matching: components, options: Calendar._toCalendarOptions(matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction)) { (result, exactMatch, stop) in
                 var stopv = false
-                block(result: result, exactMatch: exactMatch, stop: &stopv)
+                block(result, exactMatch, &stopv)
                 if stopv {
                     stop.pointee = true
                 }

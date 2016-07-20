@@ -30,8 +30,8 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
     
     public typealias LanguageDirection = NSLocale.LanguageDirection
     
-    private var _wrapped : NSLocale
-    private var _autoupdating : Bool
+    internal var _wrapped : NSLocale
+    internal var _autoupdating : Bool
     
     /// Returns the user's current locale.
     public static var current : Locale {

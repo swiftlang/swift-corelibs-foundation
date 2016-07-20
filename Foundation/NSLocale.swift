@@ -75,7 +75,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
 
 extension NSLocale {
     open class var current: Locale {
-        return CFLocaleCopyCurrent(). _swiftObject
+        return CFLocaleCopyCurrent()._swiftObject
     }
     
     open class func systemLocale() -> Locale {
@@ -88,7 +88,7 @@ extension NSLocale {
         return (object(forKey: .identifier) as! NSString)._swiftObject
     }
     
-	open class var availableLocaleIdentifiers: [String] {
+    open class var availableLocaleIdentifiers: [String] {
         var identifiers = Array<String>()
         for obj in CFLocaleCopyAvailableLocaleIdentifiers()._nsObject {
             identifiers.append((obj as! NSString)._swiftObject)

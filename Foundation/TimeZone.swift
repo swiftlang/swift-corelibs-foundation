@@ -32,8 +32,8 @@ internal func __NSTimeZoneCurrent() -> NSTimeZone {
 public struct TimeZone : CustomStringConvertible, CustomDebugStringConvertible, Hashable, Equatable, ReferenceConvertible {
     public typealias ReferenceType = NSTimeZone
     
-    private var _wrapped : NSTimeZone
-    private var _autoupdating : Bool
+    internal var _wrapped : NSTimeZone
+    internal var _autoupdating : Bool
     
     /// The time zone currently used by the system.
     public static var current : TimeZone {

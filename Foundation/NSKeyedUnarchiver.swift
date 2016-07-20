@@ -467,7 +467,7 @@ open class NSKeyedUnarchiver : NSCoder {
 
                 let innerDecodingContext = DecodingContext(dict)
 
-                let classReference = innerDecodingContext.dict["$class"] as? CFKeyedArchiverUID
+                let classReference = innerDecodingContext.dict["$class"] as CFKeyedArchiverUID?
                 if !NSKeyedUnarchiver._isReference(classReference) {
                     throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                          withDescription: "Invalid class reference \(classReference). The data may be corrupt.")
