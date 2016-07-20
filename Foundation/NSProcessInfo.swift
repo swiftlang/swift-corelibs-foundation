@@ -59,7 +59,7 @@ public class ProcessInfo: NSObject {
     }
     
     public var arguments: [String] {
-        return Process.arguments // seems reasonable to flip the script here...
+        return CommandLine.arguments // seems reasonable to flip the script here...
     }
     
     public var hostName: String {
