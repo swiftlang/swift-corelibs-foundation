@@ -59,7 +59,7 @@ class TestNSDateFormatter: XCTestCase {
         XCTAssertNotNil(f.locale)
         
         f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
+        f.locale = Locale(identifier: DEFAULT_LOCALE)
 
         // Assert default values are set properly
         XCTAssertFalse(f.generatesCalendarDates)
@@ -113,7 +113,7 @@ class TestNSDateFormatter: XCTestCase {
         
         // ensure tests give consistent results by setting specific timeZone and locale
         f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
+        f.locale = Locale(identifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             
@@ -144,7 +144,7 @@ class TestNSDateFormatter: XCTestCase {
         f.dateStyle = .mediumStyle
         f.timeStyle = .mediumStyle
         f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
+        f.locale = Locale(identifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             
@@ -176,7 +176,7 @@ class TestNSDateFormatter: XCTestCase {
         f.dateStyle = .longStyle
         f.timeStyle = .longStyle
         f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
+        f.locale = Locale(identifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             
@@ -210,7 +210,7 @@ class TestNSDateFormatter: XCTestCase {
         f.dateStyle = .fullStyle
         f.timeStyle = .fullStyle
         f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
+        f.locale = Locale(identifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             
@@ -243,7 +243,7 @@ class TestNSDateFormatter: XCTestCase {
         let f = DateFormatter()
         f.dateFormat = "EEEE, MMMM d, y 'at' hh:mm:ss a zzzz"
         f.timeZone = TimeZone(name: DEFAULT_TIMEZONE)
-        f.locale = Locale(localeIdentifier: DEFAULT_LOCALE)
+        f.locale = Locale(identifier: DEFAULT_LOCALE)
         
         for (timestamp, stringResult) in timestamps {
             

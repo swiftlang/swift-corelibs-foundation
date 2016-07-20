@@ -38,16 +38,19 @@ extension CFRange {
 public typealias NSRange = _NSRange
 
 extension NSRange {
-    public init(_ x: CountableRange<Int>) {
-        location = x.startIndex
+    public init(_ x: Range<Int>) {
+        location = x.lowerBound
         length = x.count
     }
     
-    public func toRange() -> CountableRange<Int>? {
+    public func toRange() -> Range<Int>? {
         if location == NSNotFound { return nil }
-        let min = location
-        let max = location + length
-        return min..<max
+        return location..<(location+length)
+    }
+    
+    internal func toCountableRange() -> CountableRange<Int>? {
+        if location == NSNotFound { return nil }
+        return location..<(location+length)
     }
 }
 

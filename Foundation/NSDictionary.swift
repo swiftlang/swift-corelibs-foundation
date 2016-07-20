@@ -334,7 +334,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     /// - parameter locale: An object that specifies options used for formatting
     ///   each of the dictionary’s keys and values; pass `nil` if you don’t
     ///   want them formatted.
-    public func description(withLocale locale: AnyObject?) -> String {
+    public func description(withLocale locale: Locale?) -> String {
         return description(withLocale: locale, indent: 0)
     }
 
@@ -350,7 +350,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     ///
     /// - returns: A string object that represents the contents of the dictionary,
     ///   formatted as a property list.
-    public func description(withLocale locale: AnyObject?, indent level: Int) -> String {
+    public func description(withLocale locale: Locale?, indent level: Int) -> String {
         if level > 100 { return "..." }
 
         var lines = [String]()
@@ -363,13 +363,13 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             if key is NSArray {
                 line += (key as! NSArray).description(withLocale: locale, indent: level + 1)
             } else if key is Date {
-                line += (key as! NSDate).descriptionWithLocale(locale)
+                line += (key as! NSDate).description(withLocale: locale)
             } else if key is NSDecimalNumber {
                 line += (key as! NSDecimalNumber).description(withLocale: locale)
             } else if key is NSDictionary {
                 line += (key as! NSDictionary).description(withLocale: locale, indent: level + 1)
             } else if key is NSOrderedSet {
-                line += (key as! NSOrderedSet).descriptionWithLocale(locale, indent: level + 1)
+                line += (key as! NSOrderedSet).description(withLocale: locale, indent: level + 1)
             } else if key is NSSet {
                 line += (key as! NSSet).description(withLocale: locale)
             } else {
@@ -382,13 +382,13 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             if object is NSArray {
                 line += (object as! NSArray).description(withLocale: locale, indent: level + 1)
             } else if object is Date {
-                line += (object as! NSDate).descriptionWithLocale(locale)
+                line += (object as! NSDate).description(withLocale: locale)
             } else if object is NSDecimalNumber {
                 line += (object as! NSDecimalNumber).description(withLocale: locale)
             } else if object is NSDictionary {
                 line += (object as! NSDictionary).description(withLocale: locale, indent: level + 1)
             } else if object is NSOrderedSet {
-                line += (object as! NSOrderedSet).descriptionWithLocale(locale, indent: level + 1)
+                line += (object as! NSOrderedSet).description(withLocale: locale, indent: level + 1)
             } else if object is NSSet {
                 line += (object as! NSSet).description(withLocale: locale)
             } else {

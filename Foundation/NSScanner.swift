@@ -277,7 +277,7 @@ private func numericOrHexValue(_ ch: unichar) -> Int {
 
 private func decimalSep(_ locale: Locale?) -> String {
     if let loc = locale {
-        if let sep = loc.objectForKey(NSLocaleDecimalSeparator) as? NSString {
+        if let sep = loc._bridgeToObjectiveC().object(forKey: .decimalSeparator) as? NSString {
             return sep._swiftObject
         }
         return "."

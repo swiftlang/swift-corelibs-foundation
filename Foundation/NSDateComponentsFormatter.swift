@@ -85,7 +85,7 @@ public class DateComponentsFormatter : Formatter {
      
        Specifying any other NSCalendarUnits will result in an exception.
      */
-    public var allowedUnits: Calendar.Unit
+    public var allowedUnits: NSCalendar.Unit
     
     /* Bitmask specifying how to handle zeros in units. This includes both padding and dropping zeros so that a consistent number digits are displayed, causing updating displays to remain more stable. Default is NSDateComponentsFormatterZeroFormattingBehaviorDefault.
      

@@ -182,7 +182,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return true
     }
     
-    public func description(withLocale locale: AnyObject?) -> String { NSUnimplemented() }
+    public func description(withLocale locale: Locale?) -> String { NSUnimplemented() }
     
     override public var _cfTypeID: CFTypeID {
         return CFSetGetTypeID()

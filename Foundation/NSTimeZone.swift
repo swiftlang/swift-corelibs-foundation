@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-public class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
+public class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFTimeZone
     private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())
     private var _name: UnsafeMutablePointer<Void>? = nil
@@ -114,59 +114,59 @@ public class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public var name: String {
-        guard self.dynamicType === TimeZone.self else {
+        guard self.dynamicType === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneGetName(_cfObject)._swiftObject
     }
     
     public var data: Data {
-        guard self.dynamicType === TimeZone.self else {
+        guard self.dynamicType === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneGetData(_cfObject)._swiftObject
     }
     
     public func secondsFromGMT(for aDate: Date) -> Int {
-        guard self.dynamicType === TimeZone.self else {
+        guard self.dynamicType === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return Int(CFTimeZoneGetSecondsFromGMT(_cfObject, aDate.timeIntervalSinceReferenceDate))
     }
     
     public func abbreviation(for aDate: Date) -> String? {
-        guard self.dynamicType === TimeZone.self else {
+        guard self.dynamicType === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneCopyAbbreviation(_cfObject, aDate.timeIntervalSinceReferenceDate)._swiftObject
     }
     
     public func isDaylightSavingTime(for aDate: Date) -> Bool {
-        guard self.dynamicType === TimeZone.self else {
+        guard self.dynamicType === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneIsDaylightSavingTime(_cfObject, aDate.timeIntervalSinceReferenceDate)
     }
     
     public func daylightSavingTimeOffset(for aDate: Date) -> TimeInterval {
-        guard self.dynamicType === TimeZone.self else {
+        guard self.dynamicType === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
     }
     
     public func nextDaylightSavingTimeTransition(after aDate: Date) -> Date? {
-        guard self.dynamicType === TimeZone.self else {
+        guard self.dynamicType === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return Date(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
     }
 }
 
-extension TimeZone {
+extension NSTimeZone {
 
     public class func systemTimeZone() -> TimeZone {
-        return CFTimeZoneCopySystem()._nsObject
+        return CFTimeZoneCopySystem()._swiftObject
     }
 
     public class func resetSystemTimeZone() {
@@ -174,7 +174,7 @@ extension TimeZone {
     }
 
     public class func defaultTimeZone() -> TimeZone {
-        return CFTimeZoneCopyDefault()._nsObject
+        return CFTimeZoneCopyDefault()._swiftObject
     }
 
     public class func setDefaultTimeZone(_ aTimeZone: TimeZone) {
@@ -182,24 +182,39 @@ extension TimeZone {
     }
 }
 
-extension TimeZone: _CFBridgable { }
-
-extension CFTimeZone : _NSBridgable {
-    typealias NSType = TimeZone
-    internal var _nsObject : NSType {
-        return unsafeBitCast(self, to: NSType.self)
-    }
+extension NSTimeZone: _SwiftBridgable, _CFBridgable {
+    typealias SwiftType = TimeZone
+    var _swiftObject: TimeZone { return TimeZone(reference: self) }
 }
 
-extension TimeZone {
+extension CFTimeZone : _SwiftBridgable, _NSBridgable {
+    typealias NSType = NSTimeZone
+    var _nsObject : NSTimeZone { return unsafeBitCast(self, to: NSTimeZone.self) }
+    var _swiftObject: TimeZone { return _nsObject._swiftObject }
+}
+
+extension TimeZone : _NSBridgable, _CFBridgable {
+    typealias NSType = NSTimeZone
+    typealias CFType = CFTimeZone
+    var _nsObject : NSTimeZone { return _bridgeToObjectiveC() }
+    var _cfObject : CFTimeZone { return _nsObject._cfObject }
+}
+
+extension NSTimeZone {
     public class func localTimeZone() -> TimeZone { NSUnimplemented() }
     
-    public class func knownTimeZoneNames() -> [String] { NSUnimplemented() }
+    public class var knownTimeZoneNames: [String] { NSUnimplemented() }
     
-    public class func abbreviationDictionary() -> [String : String] { NSUnimplemented() }
-    public class func setAbbreviationDictionary(_ dict: [String : String]) { NSUnimplemented() }
+    public class var abbreviationDictionary: [String : String] {
+        get {
+            NSUnimplemented()
+        }
+        set {
+            NSUnimplemented()
+        }
+    }
     
-    public class func timeZoneDataVersion() -> String { NSUnimplemented() }
+    public class var timeZoneDataVersion: String { NSUnimplemented() }
     
     public var secondsFromGMT: Int { NSUnimplemented() }
 
@@ -219,14 +234,18 @@ extension TimeZone {
         return CFEqual(self._cfObject, aTimeZone._cfObject)
     }
     
-    public func localizedName(_ style: NSTimeZoneNameStyle, locale: Locale?) -> String? { NSUnimplemented() }
-}
-public enum NSTimeZoneNameStyle : Int {
-    case standard    // Central Standard Time
-    case shortStandard    // CST
-    case daylightSaving    // Central Daylight Time
-    case shortDaylightSaving    // CDT
-    case generic    // Central Time
-    case shortGeneric    // CT
+    public func localizedName(_ style: NameStyle, locale: Locale?) -> String? { NSUnimplemented() }
 }
 
+extension NSTimeZone {
+
+    public enum NameStyle : Int {
+        case standard    // Central Standard Time
+        case shortStandard    // CST
+        case daylightSaving    // Central Daylight Time
+        case shortDaylightSaving    // CDT
+        case generic    // Central Time
+        case shortGeneric    // CT
+    }
+
+}
