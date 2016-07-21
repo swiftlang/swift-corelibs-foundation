@@ -915,11 +915,11 @@ public func <(lhs: XMLNode.Index, rhs: XMLNode.Index) -> Bool {
     switch (lhs.offset, rhs.offset) {
     case (nil, nil):
       return false
-    case (nil, _):
+    case (nil, _?):
       return false
-    case (_, nil):
+    case (_?, nil):
       return true
-    case (let lhsOffset, let rhsOffset):
+    case (let lhsOffset?, let rhsOffset?):
       return lhsOffset < rhsOffset
     }
 }
