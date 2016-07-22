@@ -202,8 +202,22 @@ open class JSONSerialization : NSObject {
     
     /* Create a JSON object from JSON data stream. The stream should be opened and configured. All other behavior of this method is the same as the JSONObjectWithData:options:error: method.
      */
-    open class func jsonObject(with stream: InputStream, options opt: ReadingOptions = []) throws -> AnyObject {
-        NSUnimplemented()
+    open class func jsonObject(with stream: InputStream, options opt: ReadingOptions = []) throws -> Any {
+        var data = Data()
+        guard stream.streamStatus == .open || stream.streamStatus == .reading else {
+            fatalError("Stream is not available for reading")
+        }
+        repeat {
+            var buffer = [UInt8](repeating: 0, count: 1024)
+            var bytesRead: Int = 0
+            bytesRead = stream.read(&buffer, maxLength: buffer.count)
+            if bytesRead < 0 {
+                throw stream.streamError!
+            } else {
+                data.append(&buffer, count: bytesRead)
+            }
+        } while stream.hasBytesAvailable
+        return try jsonObject(with: data, options: opt)
     }
 }
 
