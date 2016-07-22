@@ -159,7 +159,9 @@ public class JSONSerialization : NSObject {
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
      */
     public class func writeJSONObject(_ obj: AnyObject, toStream stream: NSOutputStream, options opt: WritingOptions) throws -> Int {
-        NSUnimplemented()
+            let jsonData = try data(withJSONObject: obj, options: opt)
+            let jsonNSData = jsonData.bridge()
+            return stream.write(UnsafeMutablePointer<UInt8>(jsonNSData.bytes), maxLength: jsonNSData.length)
     }
     
     /* Create a JSON object from JSON data stream. The stream should be opened and configured. All other behavior of this method is the same as the JSONObjectWithData:options:error: method.
