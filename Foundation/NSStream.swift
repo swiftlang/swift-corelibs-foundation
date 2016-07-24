@@ -69,11 +69,11 @@ public func <(lhs: NSStream.PropertyKey, rhs: NSStream.PropertyKey) -> Bool {
 
 // NSStream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
 // Subclassers of NSInputStream and NSOutputStream must also implement these methods.
-public class NSStream: NSObject {
+public class NSStream: NSObject, NSCopying {
 
-//    public override init() {
-//
-//    }
+    public override init() {
+
+    }
     
     public func open() {
         NSRequiresConcreteImplementation()
@@ -111,10 +111,18 @@ public class NSStream: NSObject {
     /*@NSCopying */public var streamError: NSError? {
         NSRequiresConcreteImplementation()
     }
+    
+    public override func copy() -> AnyObject {
+        return self
+    }
+    
+    public func copy(with zone: NSZone?) -> AnyObject {
+        return self
+    }
 }
 
-internal final class _SwiftNSStream : NSData, _SwiftNativeFoundationType {
-    internal typealias ImmutableType = NSStream
+internal final class _SwiftInputStream : NSInputStream, _SwiftNativeFoundationType {
+    internal typealias ImmutableType = NSInputStream
     internal typealias MutableType = NSMutableData
     
     var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType>
@@ -122,32 +130,27 @@ internal final class _SwiftNSStream : NSData, _SwiftNativeFoundationType {
     init(immutableObject: AnyObject) {
         // Take ownership.
         __wrapped = .Immutable(Unmanaged.passRetained(_unsafeReferenceCast(immutableObject, to: ImmutableType.self)))
-        
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
-        super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+        super.init(data:Data())
     }
     
     init(mutableObject: AnyObject) {
         // Take ownership.
         __wrapped = .Mutable(Unmanaged.passRetained(_unsafeReferenceCast(mutableObject, to: MutableType.self)))
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
-        super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+        super.init(data:Data())
     }
     
     internal required init(unmanagedImmutableObject: Unmanaged<ImmutableType>) {
         // Take ownership.
         __wrapped = .Immutable(unmanagedImmutableObject)
         
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
-        super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+        super.init(data:Data())
     }
     
     internal required init(unmanagedMutableObject: Unmanaged<MutableType>) {
         // Take ownership.
         __wrapped = .Mutable(unmanagedMutableObject)
         
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
-        super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+        super.init(data:Data())
     }
     
     required convenience init?(coder aDecoder: NSCoder) {
@@ -155,7 +158,7 @@ internal final class _SwiftNSStream : NSData, _SwiftNativeFoundationType {
     }
     
     required convenience init() {
-        self.init(immutableObject: NSData())
+        self.init(immutableObject: NSInputStream(data:Data()))
     }
     
     deinit {
@@ -165,31 +168,36 @@ internal final class _SwiftNSStream : NSData, _SwiftNativeFoundationType {
     // Stubs
     // -----
     
-    
+    func isEqual(to other: NSInputStream) -> Bool {
+        return true
+    }
     
 }
 
-public struct InputStream {
-    private var _stream: NSInputStream!
+public struct InputStream: ReferenceConvertible, CustomStringConvertible, Equatable, Hashable,_MutablePairBoxing{
+    public typealias ReferenceType = NSInputStream
+    internal var _wrapped : _SwiftInputStream =  _SwiftInputStream()
+
     
     public var streamError:NSError? {
-        return _stream.streamError
+        return _wrapped._mapUnmanaged{ return $0.streamError }
     }
     
     public var hasBytesAvailable:Bool {
-        return _stream.hasBytesAvailable
+        return _wrapped._mapUnmanaged{ return $0.hasBytesAvailable }
     }
     
     public var streamStatus: NSStream.Status {
-        return NSStream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream._stream)))!
+        return NSStream.Status(rawValue: UInt(CFReadStreamGetStatus(_wrapped._mapUnmanaged{ return $0._stream })))!
     }
     
     public init(data: Data) {
-        _stream = NSInputStream(data: data)
+        _wrapped = _SwiftInputStream(immutableObject: NSInputStream(data: data))
     }
     
     public init?(url: URL) {
-        _stream = NSInputStream(url:url)
+        guard let nsis = NSInputStream(url:url) else { return nil }
+        _wrapped = _SwiftInputStream(immutableObject: nsis)
     }
     
     public init?(fileAtPath path: String) {
@@ -197,29 +205,41 @@ public struct InputStream {
     }
     
     public func open() {
-        _stream.open()
+        _wrapped._mapUnmanaged{ $0.open() }
     }
     
     public func close() {
-        _stream.close()
+        _wrapped._mapUnmanaged{ $0.close() }
     }
     
     public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-        return _stream.read(buffer, maxLength: len)
+        return _wrapped._mapUnmanaged{ return $0.read(buffer, maxLength: len) }
     }
     
     public func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
-        return _stream.getBuffer(buffer, length: len)
+        return _wrapped._mapUnmanaged{ return $0.getBuffer(buffer, length: len) }
     }
     
     public func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
-        return _stream.setProperty(property, forKey: key)
+        return _wrapped._mapUnmanaged{ return $0.setProperty(property, forKey: key) }
     }
     
     public  func propertyForKey(_ key: String) -> AnyObject? {
-        return _stream.propertyForKey(key)
+        return _wrapped._mapUnmanaged{ return $0.propertyForKey(key) }
     }
+    public var description: String { return "" }
+
+    public var debugDescription: String { return "" }
+    
+    public var hashValue: Int { return 1 }
+
+
 }
+
+public func ==(d1 : InputStream, d2 : InputStream) -> Bool {
+    return d1._wrapped.isEqual(to: d2._wrapped._mapUnmanaged{return $0})
+}
+
 
 // NSInputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.

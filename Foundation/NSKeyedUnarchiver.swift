@@ -38,7 +38,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     private enum Stream {
         case data(Data)
-        case stream(InputStream)
+        case stream(_SwiftInputStream)
     }
     
     private var _stream : Stream
@@ -74,7 +74,7 @@ public class NSKeyedUnarchiver : NSCoder {
             return nil
         }
         
-        let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(unsafeBitCast(readStream, to: InputStream.self)))
+        let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(unsafeBitCast(readStream, to: _SwiftInputStream.self)))
         do {
             try root = keyedUnarchiver.decodeTopLevelObjectForKey(NSKeyedArchiveRootObjectKey)
             keyedUnarchiver.finishDecoding()
@@ -242,7 +242,7 @@ public class NSKeyedUnarchiver : NSCoder {
         
         if _flags.contains(UnarchiverFlags.RequiresSecureCoding) {
             if let unwrappedAllowedClasses = allowedClasses {
-                if unwrappedAllowedClasses.contains({NSKeyedUnarchiver._classIsKindOfClass(assertedClass!, $0)}) {
+                if unwrappedAllowedClasses.contains(where: {NSKeyedUnarchiver._classIsKindOfClass(assertedClass!, $0)}) {
                     return true
                 }
             }
