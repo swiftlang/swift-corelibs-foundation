@@ -71,9 +71,9 @@ public func <(lhs: Stream.PropertyKey, rhs: Stream.PropertyKey) -> Bool {
 // Subclassers of NSInputStream and NSOutputStream must also implement these methods.
 public class Stream: NSObject {
 
-    public override init() {
-
-    }
+//    public override init() {
+//
+//    }
     
     public func open() {
         NSRequiresConcreteImplementation()
@@ -87,11 +87,11 @@ public class Stream: NSObject {
     // By default, a stream is its own delegate, and subclassers of NSInputStream and NSOutputStream must maintain this contract. [someStream setDelegate:nil] must restore this behavior. As usual, delegates are not retained.
     
     public func propertyForKey(_ key: String) -> AnyObject? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     public func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
 
 // Re-enable once run loop is compiled on all platforms
@@ -109,7 +109,7 @@ public class Stream: NSObject {
     }
     
     /*@NSCopying */public var streamError: NSError? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
 }
 
@@ -118,7 +118,7 @@ public class Stream: NSObject {
 public class InputStream: Stream {
 
     private var _stream: CFReadStream!
-
+    
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         return CFReadStreamRead(_stream, buffer, CFIndex(len._bridgeToObject()))
@@ -126,7 +126,9 @@ public class InputStream: Stream {
     
     // returns in O(1) a pointer to the buffer in 'buffer' and by reference in 'len' how many bytes are available. This buffer is only valid until the next stream operation. Subclassers may return NO for this if it is not appropriate for the stream type. This may return NO if the buffer is not available.
     public func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
-        NSUnimplemented()
+        guard let bufPtr = CFReadStreamGetBuffer(_stream, 0, len) else { return false }
+        buffer.pointee = UnsafeMutablePointer<UInt8>(bufPtr)
+        return true
     }
     
     // returns YES if the stream has bytes available or if it impossible to tell without actually doing the read.
@@ -142,6 +144,10 @@ public class InputStream: Stream {
         _stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
     }
 
+    public static func initialize(url:URL) -> CFReadStream{
+        return CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
+    }
+    
     public convenience init?(fileAtPath path: String) {
         self.init(url: URL(fileURLWithPath: path))
     }
@@ -154,9 +160,23 @@ public class InputStream: Stream {
         CFReadStreamClose(_stream)
     }
     
+    override public var streamError: NSError?{
+        let error = CFReadStreamCopyError(_stream)
+        return error?._nsObject
+    }
+    
     public override var streamStatus: Status {
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
     }
+    
+    public override func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
+        return CFReadStreamSetProperty(_stream, key._cfObject, property)
+    }
+    
+    public override func propertyForKey(_ key: String) -> AnyObject? {
+        return CFReadStreamCopyProperty(_stream, key._cfObject)
+    }
+
 }
 
 // NSOutputStream is an abstract class representing the base functionality of a write stream.
@@ -209,12 +229,17 @@ public class NSOutputStream : Stream {
         return self.init(toMemory: ())
     }
     
-    public override func propertyForKey(_ key: String) -> AnyObject? {
-        return CFWriteStreamCopyProperty(_stream, key._cfObject)
+    override public var streamError: NSError?{
+        let error = CFWriteStreamCopyError(_stream)
+        return error?._nsObject
     }
     
     public  override func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
         return CFWriteStreamSetProperty(_stream, key._cfObject, property)
+    }
+    
+    public override func propertyForKey(_ key: String) -> AnyObject? {
+        return CFWriteStreamCopyProperty(_stream, key._cfObject)
     }
 }
 
