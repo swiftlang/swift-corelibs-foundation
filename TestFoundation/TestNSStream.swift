@@ -44,14 +44,14 @@ class TestNSStream : XCTestCase {
         let message: NSString = "Hello, playground"
         let messageData: Data = message.data(using: String.Encoding.utf8.rawValue)!
         let dataStream: InputStream = InputStream(data: messageData)
-        XCTAssertEqual(Stream.Status.notOpen, dataStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.notOpen, dataStream.streamStatus)
         dataStream.open()
-        XCTAssertEqual(Stream.Status.open, dataStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.open, dataStream.streamStatus)
         var buffer = [UInt8](repeating: 0, count: 20)
         if dataStream.hasBytesAvailable {
             let result: Int = dataStream.read(&buffer, maxLength: buffer.count)
             dataStream.close()
-            XCTAssertEqual(Stream.Status.closed, dataStream.streamStatus)
+            XCTAssertEqual(NSStream.Status.closed, dataStream.streamStatus)
             if(result > 0){
                 let output = NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue)
                 XCTAssertEqual(message, output!)
@@ -67,14 +67,14 @@ class TestNSStream : XCTestCase {
         if testFile != nil {
             let url = URL(fileURLWithPath: testFile!)
             let urlStream: InputStream = InputStream(url: url)!
-            XCTAssertEqual(Stream.Status.notOpen, urlStream.streamStatus)
+            XCTAssertEqual(NSStream.Status.notOpen, urlStream.streamStatus)
             urlStream.open()
-            XCTAssertEqual(Stream.Status.open, urlStream.streamStatus)
+            XCTAssertEqual(NSStream.Status.open, urlStream.streamStatus)
             var buffer = [UInt8](repeating: 0, count: 20)
             if urlStream.hasBytesAvailable {
                 let result :Int = urlStream.read(&buffer, maxLength: buffer.count)
                 urlStream.close()
-                XCTAssertEqual(Stream.Status.closed, urlStream.streamStatus)
+                XCTAssertEqual(NSStream.Status.closed, urlStream.streamStatus)
                 XCTAssertEqual(messageData.count, result)
                 if(result > 0) {
                     let output = NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue)
@@ -94,14 +94,14 @@ class TestNSStream : XCTestCase {
         let testFile = createTestFile("testFile_in.txt", _contents: messageData)
         if testFile != nil {
             let fileStream: InputStream = InputStream(fileAtPath: testFile!)!
-            XCTAssertEqual(Stream.Status.notOpen, fileStream.streamStatus)
+            XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
             fileStream.open()
-            XCTAssertEqual(Stream.Status.open, fileStream.streamStatus)
+            XCTAssertEqual(NSStream.Status.open, fileStream.streamStatus)
             var buffer = [UInt8](repeating: 0, count: 20)
             if fileStream.hasBytesAvailable {
                 let result: Int = fileStream.read(&buffer, maxLength: buffer.count)
                 fileStream.close()
-                XCTAssertEqual(Stream.Status.closed, fileStream.streamStatus)
+                XCTAssertEqual(NSStream.Status.closed, fileStream.streamStatus)
                 XCTAssertEqual(messageData.count, result)
                 if(result > 0){
                     let output = NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue)
@@ -127,9 +127,9 @@ class TestNSStream : XCTestCase {
     
     func test_InputStreamInvalidPath() {
         let fileStream: InputStream = InputStream(fileAtPath: "/tmp/file.txt")!
-        XCTAssertEqual(Stream.Status.notOpen, fileStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
         fileStream.open()
-        XCTAssertEqual(Stream.Status.error, fileStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.error, fileStream.streamStatus)
     }
     
     /* This test is the success case for Streams that are in the blessed list with the
@@ -140,9 +140,9 @@ class TestNSStream : XCTestCase {
         let message: NSString = "Hello, playground"
         let messageData: Data = message.data(using: String.Encoding.utf8.rawValue)!
         let dataStream: InputStream = InputStream(data: messageData)
-        XCTAssertEqual(Stream.Status.notOpen, dataStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.notOpen, dataStream.streamStatus)
         dataStream.open()
-        XCTAssertEqual(Stream.Status.open, dataStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.open, dataStream.streamStatus)
         let buffer = UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>(allocatingCapacity: 1)
         let ptr = UnsafeMutablePointer<Int>(allocatingCapacity:1)
         let gotBuffer = dataStream.getBuffer(buffer, length:ptr)
@@ -160,9 +160,9 @@ class TestNSStream : XCTestCase {
         let testFile = createTestFile("testFile_in.txt", _contents: messageData)
         if testFile != nil {
             let fileStream: InputStream = InputStream(fileAtPath: testFile!)!
-            XCTAssertEqual(Stream.Status.notOpen, fileStream.streamStatus)
+            XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
             fileStream.open()
-            XCTAssertEqual(Stream.Status.open, fileStream.streamStatus)
+            XCTAssertEqual(NSStream.Status.open, fileStream.streamStatus)
             let buffer = UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>(allocatingCapacity: 1)
             let ptr = UnsafeMutablePointer<Int>(allocatingCapacity:1)
             let gotBuffer = fileStream.getBuffer(buffer, length:ptr)
@@ -176,7 +176,7 @@ class TestNSStream : XCTestCase {
     func test_InputOutStreamError(){
         let testFile = "/Path/to/nil"
         let fileStream: InputStream = InputStream(fileAtPath: testFile)!
-        XCTAssertEqual(Stream.Status.notOpen, fileStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
         fileStream.open()
         
         //Example Call site::
@@ -210,7 +210,7 @@ class TestNSStream : XCTestCase {
         
         let testFile = "/Path/to/nil"
         let fileStream: InputStream = InputStream(fileAtPath: testFile)!
-        XCTAssertEqual(Stream.Status.notOpen, fileStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
         fileStream.open()
         
         //Set: failure case
@@ -242,15 +242,15 @@ class TestNSStream : XCTestCase {
         let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
         if filePath != nil {
             let outputStream = NSOutputStream(toFileAtPath: filePath!, append: true)
-            XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
+            XCTAssertEqual(NSStream.Status.notOpen, outputStream!.streamStatus)
             var myString = "Hello world!"
             let encodedData = [UInt8](myString.utf8)
             outputStream?.open()
-            XCTAssertEqual(Stream.Status.open, outputStream!.streamStatus)
+            XCTAssertEqual(NSStream.Status.open, outputStream!.streamStatus)
             let result: Int? = outputStream?.write(encodedData, maxLength: encodedData.count)
             outputStream?.close()
             XCTAssertEqual(myString.characters.count, result)
-            XCTAssertEqual(Stream.Status.closed, outputStream!.streamStatus)
+            XCTAssertEqual(NSStream.Status.closed, outputStream!.streamStatus)
             removeTestFile(filePath!)
         } else {
             XCTFail("Unable to create temp file");
@@ -262,12 +262,12 @@ class TestNSStream : XCTestCase {
         var myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
         let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 12)
-        XCTAssertEqual(Stream.Status.notOpen, outputStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.notOpen, outputStream.streamStatus)
         outputStream.open()
-        XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.open, outputStream.streamStatus)
         let result: Int? = outputStream.write(encodedData, maxLength: encodedData.count)
         outputStream.close()
-        XCTAssertEqual(Stream.Status.closed, outputStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.closed, outputStream.streamStatus)
         XCTAssertEqual(myString.characters.count, result)
         XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue),myString._bridgeToObject())
     }
@@ -276,15 +276,15 @@ class TestNSStream : XCTestCase {
         let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
         if filePath != nil {
             let outputStream = NSOutputStream(url: URL(fileURLWithPath: filePath!), append: true)
-            XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
+            XCTAssertEqual(NSStream.Status.notOpen, outputStream!.streamStatus)
             var myString = "Hello world!"
             let encodedData = [UInt8](myString.utf8)
             outputStream!.open()
-            XCTAssertEqual(Stream.Status.open, outputStream!.streamStatus)
+            XCTAssertEqual(NSStream.Status.open, outputStream!.streamStatus)
             let result: Int? = outputStream?.write(encodedData, maxLength: encodedData.count)
             outputStream?.close()
             XCTAssertEqual(myString.characters.count, result)
-            XCTAssertEqual(Stream.Status.closed, outputStream!.streamStatus)
+            XCTAssertEqual(NSStream.Status.closed, outputStream!.streamStatus)
             removeTestFile(filePath!)
         } else {
             XCTFail("Unable to create temp file");
@@ -296,9 +296,9 @@ class TestNSStream : XCTestCase {
         var myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
         let outputStream = NSOutputStream.outputStreamToMemory()
-        XCTAssertEqual(Stream.Status.notOpen, outputStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.notOpen, outputStream.streamStatus)
         outputStream.open()
-        XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)
+        XCTAssertEqual(NSStream.Status.open, outputStream.streamStatus)
         let result: Int? = outputStream.write(encodedData, maxLength: encodedData.count)
         XCTAssertEqual(myString.characters.count, result)
         //verify the data written
@@ -325,15 +325,15 @@ class TestNSStream : XCTestCase {
     
     func test_ouputStreamWithInvalidPath(){
         let outputStream = NSOutputStream(toFileAtPath: "http:///home/sdsfsdfd", append: true)
-        XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
+        XCTAssertEqual(NSStream.Status.notOpen, outputStream!.streamStatus)
         outputStream?.open()
-        XCTAssertEqual(Stream.Status.error, outputStream!.streamStatus)
+        XCTAssertEqual(NSStream.Status.error, outputStream!.streamStatus)
     }
     
     func test_outputStreamGetSetProperty(){
         let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
         let outputStream = NSOutputStream(url: URL(fileURLWithPath: filePath!), append: false)
-        XCTAssertEqual(Stream.Status.notOpen, outputStream?.streamStatus)
+        XCTAssertEqual(NSStream.Status.notOpen, outputStream?.streamStatus)
 
         //Set: failure case
         let value = NSString(string:"value")

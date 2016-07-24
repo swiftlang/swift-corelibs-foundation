@@ -17,7 +17,7 @@ internal extension UInt {
 }
 #endif
 
-extension Stream {
+extension NSStream {
     public struct PropertyKey : RawRepresentable, Equatable, Hashable, Comparable {
         public private(set) var rawValue: String
         
@@ -58,18 +58,18 @@ extension Stream {
     }
 }
 
-public func ==(lhs: Stream.PropertyKey, rhs: Stream.PropertyKey) -> Bool {
+public func ==(lhs: NSStream.PropertyKey, rhs: NSStream.PropertyKey) -> Bool {
     return lhs.rawValue == rhs.rawValue
 }
 
-public func <(lhs: Stream.PropertyKey, rhs: Stream.PropertyKey) -> Bool {
+public func <(lhs: NSStream.PropertyKey, rhs: NSStream.PropertyKey) -> Bool {
     return lhs.rawValue < rhs.rawValue
 }
 
 
 // NSStream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
 // Subclassers of NSInputStream and NSOutputStream must also implement these methods.
-public class Stream: NSObject {
+public class NSStream: NSObject {
 
 //    public override init() {
 //
@@ -113,9 +113,117 @@ public class Stream: NSObject {
     }
 }
 
+internal final class _SwiftNSStream : NSData, _SwiftNativeFoundationType {
+    internal typealias ImmutableType = NSStream
+    internal typealias MutableType = NSMutableData
+    
+    var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType>
+    
+    init(immutableObject: AnyObject) {
+        // Take ownership.
+        __wrapped = .Immutable(Unmanaged.passRetained(_unsafeReferenceCast(immutableObject, to: ImmutableType.self)))
+        
+        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
+        super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+    }
+    
+    init(mutableObject: AnyObject) {
+        // Take ownership.
+        __wrapped = .Mutable(Unmanaged.passRetained(_unsafeReferenceCast(mutableObject, to: MutableType.self)))
+        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
+        super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+    }
+    
+    internal required init(unmanagedImmutableObject: Unmanaged<ImmutableType>) {
+        // Take ownership.
+        __wrapped = .Immutable(unmanagedImmutableObject)
+        
+        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
+        super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+    }
+    
+    internal required init(unmanagedMutableObject: Unmanaged<MutableType>) {
+        // Take ownership.
+        __wrapped = .Mutable(unmanagedMutableObject)
+        
+        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
+        super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+    }
+    
+    required convenience init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    required convenience init() {
+        self.init(immutableObject: NSData())
+    }
+    
+    deinit {
+        releaseWrappedObject()
+    }
+    
+    // Stubs
+    // -----
+    
+    
+    
+}
+
+public struct InputStream {
+    private var _stream: NSInputStream!
+    
+    public var streamError:NSError? {
+        return _stream.streamError
+    }
+    
+    public var hasBytesAvailable:Bool {
+        return _stream.hasBytesAvailable
+    }
+    
+    public var streamStatus: NSStream.Status {
+        return NSStream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream._stream)))!
+    }
+    
+    public init(data: Data) {
+        _stream = NSInputStream(data: data)
+    }
+    
+    public init?(url: URL) {
+        _stream = NSInputStream(url:url)
+    }
+    
+    public init?(fileAtPath path: String) {
+        self.init(url: URL(fileURLWithPath: path))
+    }
+    
+    public func open() {
+        _stream.open()
+    }
+    
+    public func close() {
+        _stream.close()
+    }
+    
+    public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+        return _stream.read(buffer, maxLength: len)
+    }
+    
+    public func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
+        return _stream.getBuffer(buffer, length: len)
+    }
+    
+    public func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
+        return _stream.setProperty(property, forKey: key)
+    }
+    
+    public  func propertyForKey(_ key: String) -> AnyObject? {
+        return _stream.propertyForKey(key)
+    }
+}
+
 // NSInputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
-public class InputStream: Stream {
+public class NSInputStream: NSStream {
 
     private var _stream: CFReadStream!
     
@@ -166,7 +274,7 @@ public class InputStream: Stream {
     }
     
     public override var streamStatus: Status {
-        return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
+        return NSStream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
     }
     
     public override func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
@@ -182,7 +290,7 @@ public class InputStream: Stream {
 // NSOutputStream is an abstract class representing the base functionality of a write stream.
 // Subclassers are required to implement these methods.
 // Currently this is left as named NSOutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
-public class NSOutputStream : Stream {
+public class NSOutputStream : NSStream {
     
     private  var _stream: CFWriteStream!
     
@@ -222,7 +330,7 @@ public class NSOutputStream : Stream {
     }
     
     public override var streamStatus: Status {
-        return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_stream)))!
+        return NSStream.Status(rawValue: UInt(CFWriteStreamGetStatus(_stream)))!
     }
     
     public class func outputStreamToMemory() -> Self {
@@ -259,11 +367,11 @@ extension Stream {
 #endif
 
 extension StreamDelegate {
-    func stream(_ aStream: Stream, handleEvent eventCode: Stream.Event) { }
+    func stream(_ aStream: NSStream, handleEvent eventCode: NSStream.Event) { }
 }
 
 public protocol StreamDelegate : class {
-    func stream(_ aStream: Stream, handleEvent eventCode: Stream.Event)
+    func stream(_ aStream: NSStream, handleEvent eventCode: NSStream.Event)
 }
 
 // NSString constants for the propertyForKey/setProperty:forKey: API

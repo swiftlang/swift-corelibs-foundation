@@ -103,7 +103,7 @@ public class PropertyListSerialization : NSObject {
         }
     }
     
-    public class func propertyList(with stream: InputStream, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
+    public class func propertyList(with stream: NSInputStream, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
         NSUnimplemented()
     }
 }
