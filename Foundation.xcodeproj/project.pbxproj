@@ -1769,20 +1769,24 @@
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
 						CreatedOnToolsVersion = 7.1;
+						LastSwiftMigration = 0800;
 						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
 					5B7C8A6D1BEA7F8F00C5B690 = {
 						CreatedOnToolsVersion = 7.2;
+						LastSwiftMigration = 0800;
 						ProvisioningStyle = Manual;
 					};
 					5BDC405B1BD6D83B00ED97BB = {
 						CreatedOnToolsVersion = 7.1;
+						LastSwiftMigration = 0800;
 						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
 					EA66F66E1BF56CCB00136161 = {
 						CreatedOnToolsVersion = 7.1;
+						LastSwiftMigration = 0800;
 						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
@@ -2299,6 +2303,7 @@
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -2367,6 +2372,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -2401,6 +2407,7 @@
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PUBLIC_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -2435,6 +2442,7 @@
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PUBLIC_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -2456,6 +2464,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -2477,6 +2486,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -2489,6 +2499,7 @@
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -2499,6 +2510,7 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
