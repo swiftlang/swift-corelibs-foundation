@@ -218,7 +218,7 @@ class TestNSRegularExpression : XCTestCase {
                 let rangeCount = result.numberOfRanges
                 XCTAssertEqual(captureCount + 1, rangeCount, "Complex regex \(patternString) in \(searchString) mismatch \(captureCount) groups but \(result) has \(rangeCount) ranges", file: file, line: line)
             }
-            if let first = firstResult where matches.count > 0 {
+            if let first = firstResult, matches.count > 0 {
                 XCTAssertTrue(NSEqualRanges(first.range, firstMatchOverallRange), "Complex regex \(patternString) in \(searchString) match range \(NSStringFromRange(first.range)) should be \(NSStringFromRange(firstMatchOverallRange))", file: file, line: line)
                 if captureCount > 0 {
                     XCTAssertTrue(NSEqualRanges(first.range(at: 1), firstMatchFirstCaptureRange), "Complex regex \(patternString) in \(searchString) match range \(first.range(at: 1)) should be \(NSStringFromRange(firstMatchFirstCaptureRange))", file: file, line: line)
