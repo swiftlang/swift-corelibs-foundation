@@ -344,7 +344,7 @@ class TestNSOrderedSet : XCTestCase {
     func test_Sorting() {
         let set = NSMutableOrderedSet(arrayLiteral: "a".bridge(), "d".bridge(), "c".bridge(), "b".bridge())
         set.sortUsingComparator { lhs, rhs in
-            if let lhs = lhs as? NSString, rhs = rhs as? NSString {
+            if let lhs = lhs as? NSString, let rhs = rhs as? NSString {
                 return lhs.compare(rhs.bridge())
             }
             return ComparisonResult.orderedSame
@@ -355,7 +355,7 @@ class TestNSOrderedSet : XCTestCase {
         XCTAssertEqual(set[3] as? NSString, "d")
 
         set.sortRange(NSMakeRange(1, 2), options: []) { lhs, rhs in
-            if let lhs = lhs as? NSString, rhs = rhs as? NSString {
+            if let lhs = lhs as? NSString, let rhs = rhs as? NSString {
                 return rhs.compare(lhs.bridge())
             }
             return ComparisonResult.orderedSame
