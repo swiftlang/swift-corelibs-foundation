@@ -32,7 +32,7 @@ public struct CGFloat {
     /// The native value.
     public var native: NativeType
     
-    private var hash: Int {
+    fileprivate var hash: Int {
 #if arch(i386) || arch(arm)
         return Int(Float(self.native).bitPattern)
 #else

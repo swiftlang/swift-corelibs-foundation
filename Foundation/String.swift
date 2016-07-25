@@ -75,9 +75,9 @@ extension String {
   /// representation.
   func _index(_ utf16Index: Int) -> Index {
     return Index(
-      _base: String.UnicodeScalarView.Index(_position: utf16Index),
-      in: characters
-    )
+      String.UTF16View.Index(utf16Index),
+      within: self
+    )!
   }
 
   /// Return a `Range<Index>` corresponding to the given `NSRange` of

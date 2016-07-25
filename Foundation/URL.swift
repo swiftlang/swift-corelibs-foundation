@@ -15,15 +15,15 @@
  As a convenience, volume resource values can be requested from any file system URL. The value returned will reflect the property value for the volume on which the resource is located.
 */
 public struct URLResourceValues {
-    private var _values: [URLResourceKey: AnyObject]
-    private var _keys: Set<URLResourceKey>
+    fileprivate var _values: [URLResourceKey: AnyObject]
+    fileprivate var _keys: Set<URLResourceKey>
     
     public init() {
         _values = [:]
         _keys = []
     }
     
-    private init(keys: Set<URLResourceKey>, values: [URLResourceKey: AnyObject]) {
+    fileprivate init(keys: Set<URLResourceKey>, values: [URLResourceKey: AnyObject]) {
         _values = values
         _keys = keys
     }
