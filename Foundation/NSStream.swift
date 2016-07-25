@@ -177,18 +177,18 @@ internal final class _SwiftInputStream : NSInputStream, _SwiftNativeFoundationTy
 public struct InputStream: ReferenceConvertible, CustomStringConvertible, Equatable, Hashable,_MutablePairBoxing{
     public typealias ReferenceType = NSInputStream
     internal var _wrapped : _SwiftInputStream =  _SwiftInputStream()
-
+    public typealias Status = NSStream.Status
     
     public var streamError:NSError? {
-        return _wrapped._mapUnmanaged{ return $0.streamError }
+        return _wrapped._mapUnmanaged{ $0.streamError }
     }
     
     public var hasBytesAvailable:Bool {
-        return _wrapped._mapUnmanaged{ return $0.hasBytesAvailable }
+        return _wrapped._mapUnmanaged{ $0.hasBytesAvailable }
     }
     
-    public var streamStatus: NSStream.Status {
-        return NSStream.Status(rawValue: UInt(CFReadStreamGetStatus(_wrapped._mapUnmanaged{ return $0._stream })))!
+    public var streamStatus: Status {
+        return Status(rawValue: UInt(CFReadStreamGetStatus(_wrapped._mapUnmanaged{ $0._stream })))!
     }
     
     public init(data: Data) {
@@ -213,25 +213,25 @@ public struct InputStream: ReferenceConvertible, CustomStringConvertible, Equata
     }
     
     public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-        return _wrapped._mapUnmanaged{ return $0.read(buffer, maxLength: len) }
+        return _wrapped._mapUnmanaged{ $0.read(buffer, maxLength: len) }
     }
     
     public func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
-        return _wrapped._mapUnmanaged{ return $0.getBuffer(buffer, length: len) }
+        return _wrapped._mapUnmanaged{ $0.getBuffer(buffer, length: len) }
     }
     
     public func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
-        return _wrapped._mapUnmanaged{ return $0.setProperty(property, forKey: key) }
+        return _wrapped._mapUnmanaged{ $0.setProperty(property, forKey: key) }
     }
     
     public  func propertyForKey(_ key: String) -> AnyObject? {
-        return _wrapped._mapUnmanaged{ return $0.propertyForKey(key) }
+        return _wrapped._mapUnmanaged{ $0.propertyForKey(key) }
     }
-    public var description: String { return "" }
+    public var description: String { return _mapUnmanaged{ $0.description } }
 
-    public var debugDescription: String { return "" }
+    public var debugDescription: String { return _mapUnmanaged{ $0.debugDescription } }
     
-    public var hashValue: Int { return 1 }
+    public var hashValue: Int { return _mapUnmanaged{ $0.hashValue } }
 
 
 }
