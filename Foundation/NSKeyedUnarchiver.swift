@@ -38,7 +38,7 @@ public class NSKeyedUnarchiver : NSCoder {
     
     private enum Stream {
         case data(Data)
-        case stream(_SwiftInputStream)
+        case stream(InputStream)
     }
     
     private var _stream : Stream
@@ -74,7 +74,7 @@ public class NSKeyedUnarchiver : NSCoder {
             return nil
         }
         
-        let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(unsafeBitCast(readStream, to: _SwiftInputStream.self)))
+        let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(unsafeBitCast(readStream, to: InputStream.self)))
         do {
             try root = keyedUnarchiver.decodeTopLevelObjectForKey(NSKeyedArchiveRootObjectKey)
             keyedUnarchiver.finishDecoding()
