@@ -48,11 +48,11 @@ public class CompoundPredicate : Predicate {
     override public func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
         switch compoundPredicateType {
         case .and:
-            return subpredicates.reduce(true, combine: {
+            return subpredicates.reduce(true, {
                 $0 && $1.evaluate(with: object, substitutionVariables: bindings)
             })
         case .or:
-            return subpredicates.reduce(false, combine: {
+            return subpredicates.reduce(false, {
                 $0 || $1.evaluate(with: object, substitutionVariables: bindings)
             })
         case .not:

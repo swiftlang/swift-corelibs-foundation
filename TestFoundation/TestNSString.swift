@@ -1092,10 +1092,10 @@ func checkHasPrefixHasSuffix(_ lhs: String, _ rhs: String, _ stack: [UInt]) -> I
             Array(String($0).unicodeScalars)
     }
     let expectHasPrefix = lhsNFDGraphemeClusters.starts(
-        with: rhsNFDGraphemeClusters, isEquivalent: (==))
+        with: rhsNFDGraphemeClusters, by: (==))
     let expectHasSuffix =
         lhsNFDGraphemeClusters.lazy.reversed().starts(
-            with: rhsNFDGraphemeClusters.lazy.reversed(), isEquivalent: (==))
+            with: rhsNFDGraphemeClusters.lazy.reversed(), by: (==))
 
     func testFailure(_ lhs: Bool, _ rhs: Bool, _ stack: [UInt]) -> Int {
         guard lhs == rhs else {

@@ -632,14 +632,14 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     public override func encodePropertyList(_ aPropertyList: AnyObject) {
-        if !NSPropertyListClasses.contains({ $0 == aPropertyList.dynamicType }) {
+        if !NSPropertyListClasses.contains(where: { $0 == aPropertyList.dynamicType }) {
             fatalError("Cannot encode non-property list type \(aPropertyList.dynamicType) as property list")
         }
         encode(aPropertyList)
     }
     
     public func encodePropertyList(_ aPropertyList: AnyObject, forKey key: String) {
-        if !NSPropertyListClasses.contains({ $0 == aPropertyList.dynamicType }) {
+        if !NSPropertyListClasses.contains(where: { $0 == aPropertyList.dynamicType }) {
             fatalError("Cannot encode non-property list type \(aPropertyList.dynamicType) as property list")
         }
         encode(aPropertyList, forKey: key)
