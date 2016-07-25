@@ -96,12 +96,12 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
         public let startIndex : Index
         public let endIndex : Index
         
-        private var indexSet : IndexSet
+        fileprivate var indexSet : IndexSet
         
         // Range of element values
         private var intersectingRange : Range<IndexSet.Element>?
         
-        private init(indexSet : IndexSet, intersecting range : Range<IndexSet.Element>?) {
+        fileprivate init(indexSet : IndexSet, intersecting range : Range<IndexSet.Element>?) {
             self.indexSet = indexSet
             self.intersectingRange = range
             
@@ -165,13 +165,13 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     
     /// The mechanism for getting to the integers stored in an IndexSet.
     public struct Index : CustomStringConvertible, Comparable {
-        private let indexSet : IndexSet
-        private var value : IndexSet.Element
-        private var extent : Range<IndexSet.Element>
-        private var rangeIndex : Int
-        private let rangeCount : Int
+        fileprivate let indexSet : IndexSet
+        fileprivate var value : IndexSet.Element
+        fileprivate var extent : Range<IndexSet.Element>
+        fileprivate var rangeIndex : Int
+        fileprivate let rangeCount : Int
         
-        private init(firstIn indexSet : IndexSet) {
+        fileprivate init(firstIn indexSet : IndexSet) {
             self.indexSet = indexSet
             self.rangeCount = indexSet._rangeCount
             self.rangeIndex = 0
@@ -179,7 +179,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             self.value = extent.lowerBound
         }
         
-        private init(lastIn indexSet : IndexSet) {
+        fileprivate init(lastIn indexSet : IndexSet) {
             self.indexSet = indexSet
             let rangeCount = indexSet._rangeCount
             self.rangeIndex = rangeCount - 1
@@ -193,7 +193,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             self.rangeCount = rangeCount
         }
         
-        private init(indexSet: IndexSet, index: Int) {
+        fileprivate init(indexSet: IndexSet, index: Int) {
             self.indexSet = indexSet
             self.rangeCount = self.indexSet._rangeCount
             self.value = index
@@ -207,7 +207,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
         }
         
         // First or last value in a specified range
-        private init(indexSet: IndexSet, rangeIndex: Int, rangeCount: Int, first : Bool) {
+        fileprivate init(indexSet: IndexSet, rangeIndex: Int, rangeCount: Int, first : Bool) {
             self.indexSet = indexSet
             let extent = indexSet._range(at: rangeIndex)
             if first {
@@ -220,7 +220,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             self.rangeIndex = rangeIndex
         }
         
-        private init(indexSet: IndexSet, value: Int, extent: Range<Int>, rangeIndex: Int, rangeCount: Int) {
+        fileprivate init(indexSet: IndexSet, value: Int, extent: Range<Int>, rangeIndex: Int, rangeCount: Int) {
             self.indexSet = indexSet
             self.value = value
             self.extent = extent
@@ -228,7 +228,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             self.rangeIndex = rangeIndex
         }
         
-        private func successor() -> Index {
+        fileprivate func successor() -> Index {
             if value + 1 == extent.upperBound {
                 // Move to the next range
                 if rangeIndex + 1 == rangeCount {
@@ -243,7 +243,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             }
         }
         
-        private mutating func _successorInPlace() {
+        fileprivate mutating func _successorInPlace() {
             if value + 1 == extent.upperBound {
                 // Move to the next range
                 if rangeIndex + 1 == rangeCount {
@@ -260,7 +260,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             }
         }
         
-        private func predecessor() -> Index {
+        fileprivate func predecessor() -> Index {
             if value == extent.lowerBound {
                 // Move to the next range
                 if rangeIndex == 0 {
@@ -279,7 +279,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             return "index \(value) in a range of \(extent) [range #\(rangeIndex + 1)/\(rangeCount)]"
         }
         
-        private mutating func _predecessorInPlace() {
+        fileprivate mutating func _predecessorInPlace() {
             if value == extent.lowerBound {
                 // Move to the next range
                 if rangeIndex == 0 {
@@ -299,7 +299,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     public typealias ReferenceType = NSIndexSet
     public typealias Element = Int
     
-    private var _handle: _MutablePairHandle<NSIndexSet, NSMutableIndexSet>
+    fileprivate var _handle: _MutablePairHandle<NSIndexSet, NSMutableIndexSet>
     
     internal init(indexesIn range: NSRange) {
         _handle = _MutablePairHandle(NSIndexSet(indexesIn: range), copying: false)
@@ -691,18 +691,18 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     
     // MARK: - Bridging Support
     
-    private var reference: NSIndexSet {
+    fileprivate var reference: NSIndexSet {
         return _handle.reference
     }
     
-    private init(reference: NSIndexSet) {
+    fileprivate init(reference: NSIndexSet) {
         _handle = _MutablePairHandle(reference)
     }
 }
 
 /// Iterate two index sets on the boundaries of their ranges. This is where all of the interesting stuff happens for exclusive or, intersect, etc.
 private struct IndexSetBoundaryIterator : IteratorProtocol {
-    private typealias Element = IndexSet.Element
+    fileprivate typealias Element = IndexSet.Element
     
     private var i1 : IndexSet.RangeView.Iterator
     private var i2 : IndexSet.RangeView.Iterator
@@ -711,7 +711,7 @@ private struct IndexSetBoundaryIterator : IteratorProtocol {
     private var i1UsedLower : Bool
     private var i2UsedLower : Bool
     
-    private init(_ is1 : IndexSet, _ is2 : IndexSet) {
+    fileprivate init(_ is1 : IndexSet, _ is2 : IndexSet) {
         i1 = is1.rangeView().makeIterator()
         i2 = is2.rangeView().makeIterator()
         
@@ -723,7 +723,7 @@ private struct IndexSetBoundaryIterator : IteratorProtocol {
         i2UsedLower = false
     }
     
-    private mutating func next() -> Element? {
+    fileprivate mutating func next() -> Element? {
         if i1Range == nil && i2Range == nil {
             return nil
         }
@@ -817,7 +817,7 @@ private enum _MutablePair<ImmutableType, MutableType> {
 ///
 /// a.k.a. Box
 private final class _MutablePairHandle<ImmutableType : NSObject, MutableType : NSObject where ImmutableType : NSMutableCopying, MutableType : NSMutableCopying> {
-    private var _pointer: _MutablePair<ImmutableType, MutableType>
+    fileprivate var _pointer: _MutablePair<ImmutableType, MutableType>
     
     /// Initialize with an immutable reference instance.
     ///
