@@ -28,6 +28,7 @@ class TestNSStream : XCTestCase {
             ("test_InputStreamGetBufferSuccessFromBlessedList", test_InputStreamGetBufferSuccessFromBlessedList),
             ("test_InputStreamGetBufferFailedExcludedFromBlessedList", test_InputStreamGetBufferFailedExcludedFromBlessedList),
             ("test_inputStreamGetSetProperty", test_inputStreamGetSetProperty),
+            ("test_inputStreamSetPropertyCOW", test_inputStreamSetPropertyCOW),
             ("test_outputStreamCreationToFile", test_outputStreamCreationToFile),
             ("test_outputStreamCreationToBuffer", test_outputStreamCreationToBuffer),
             ("test_outputStreamCreationWithUrl", test_outputStreamCreationWithUrl),
@@ -210,7 +211,7 @@ class TestNSStream : XCTestCase {
     func test_inputStreamGetSetProperty(){
         
         let testFile = "/Path/to/nil"
-        let fileStream: InputStream = InputStream(fileAtPath: testFile)!
+        var fileStream: InputStream = InputStream(fileAtPath: testFile)!
         XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
         fileStream.open()
         
@@ -358,7 +359,25 @@ class TestNSStream : XCTestCase {
         XCTAssertTrue(1._bridgeToObject() == didGetShouldNotBeNil as! NSNumber)
     }
     
-    
+    //Stream has-a testing
+    func test_inputStreamSetPropertyCOW(){
+        
+        let testFile = "/Path/to/nil"
+        let fileStream: InputStream = InputStream(fileAtPath: testFile)!
+        var fileStream2 = fileStream
+        XCTAssertTrue(fileStream2 === fileStream)
+        
+        XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
+        fileStream.open()
+        
+        //Set: case where COW due to the fact that InputStream is no longer uniquly referenced
+        let inputStreamSetProperty_validKey = "kCFStreamPropertyFileCurrentOffset"
+        let didSetShouldSucceed = fileStream2.setProperty(1._bridgeToObject(), forKey:inputStreamSetProperty_validKey)
+        XCTAssertTrue(didSetShoul
+            Succeed)
+        XCTAssertFalse(fileStream2 === fileStream)
+        
+    }
     
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().UUIDString + "/"

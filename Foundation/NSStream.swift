@@ -123,7 +123,7 @@ public class NSStream: NSObject, NSCopying {
 
 internal final class _SwiftInputStream : NSInputStream, _SwiftNativeFoundationType {
     internal typealias ImmutableType = NSInputStream
-    internal typealias MutableType = NSMutableData
+    internal typealias MutableType = NSInputStream
     
     var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType>
     
@@ -220,8 +220,10 @@ public struct InputStream: ReferenceConvertible, CustomStringConvertible, Equata
         return _wrapped._mapUnmanaged{ $0.getBuffer(buffer, length: len) }
     }
     
-    public func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
-        return _wrapped._mapUnmanaged{ $0.setProperty(property, forKey: key) }
+    public mutating func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
+        return _applyUnmanagedMutation{
+            return $0.setProperty(property, forKey: key)
+        }
     }
     
     public  func propertyForKey(_ key: String) -> AnyObject? {
@@ -233,7 +235,11 @@ public struct InputStream: ReferenceConvertible, CustomStringConvertible, Equata
     
     public var hashValue: Int { return _mapUnmanaged{ $0.hashValue } }
 
+}
 
+
+public func === (lhs: InputStream, rhs: InputStream) -> Bool {
+    return lhs._mapUnmanaged{ unsafeAddress(of: $0) } == rhs._mapUnmanaged{ unsafeAddress(of: $0) }
 }
 
 public func ==(d1 : InputStream, d2 : InputStream) -> Bool {
@@ -243,9 +249,11 @@ public func ==(d1 : InputStream, d2 : InputStream) -> Bool {
 
 // NSInputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
-public class NSInputStream: NSStream {
+public class NSInputStream: NSStream, NSMutableCopying {
 
     private var _stream: CFReadStream!
+    private var _data:Data?
+    private var _url:URL?
     
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -265,10 +273,12 @@ public class NSInputStream: NSStream {
     }
     
     public init(data: Data) {
+        _data = data
         _stream = CFReadStreamCreateWithData(kCFAllocatorSystemDefault, data._cfObject)
     }
     
     public init?(url: URL) {
+        _url = url
         _stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
     }
 
@@ -303,6 +313,15 @@ public class NSInputStream: NSStream {
     
     public override func propertyForKey(_ key: String) -> AnyObject? {
         return CFReadStreamCopyProperty(_stream, key._cfObject)
+    }
+
+    public func mutableCopy(with zone: NSZone?) -> AnyObject{
+        
+        if let data = _data { return NSInputStream(data:data) }
+        if let url = _url { return NSInputStream(url:url)! }
+        
+        fatalError("mutableCopy should be able to recreate NSInputStream with  \(_data) or \(_url)")
+        return self
     }
 
 }
@@ -373,13 +392,13 @@ public class NSOutputStream : NSStream {
 
 // Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
 #if false
-extension Stream {
+extension NSStream {
     public class func getStreamsToHost(withName hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
         NSUnimplemented()
     }
 }
 
-extension Stream {
+extension NSStream {
     public class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
         NSUnimplemented()
     }
