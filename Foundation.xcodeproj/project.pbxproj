@@ -367,6 +367,7 @@
 		EADE0BCB1BD15E0000C49C64 /* NSXMLNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */; };
 		EADE0BCC1BD15E0000C49C64 /* NSXMLNodeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */; };
 		EADE0BCD1BD15E0000C49C64 /* NSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */; };
+		F03A43181D4877DD00A7791E /* CFAsmMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = F03A43161D48778200A7791E /* CFAsmMacros.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F9E0BB371CA70B8000F7FF3C /* TestNSURLCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E0BB361CA70B8000F7FF3C /* TestNSURLCredential.swift */; };
 /* End PBXBuildFile section */
 
@@ -798,6 +799,7 @@
 		EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNode.swift; sourceTree = "<group>"; };
 		EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNodeOptions.swift; sourceTree = "<group>"; };
 		EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLParser.swift; sourceTree = "<group>"; };
+		F03A43161D48778200A7791E /* CFAsmMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAsmMacros.h; sourceTree = "<group>"; };
 		F9E0BB361CA70B8000F7FF3C /* TestNSURLCredential.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLCredential.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -880,6 +882,7 @@
 		5B5D88711BBC951A00234F36 /* Base */ = {
 			isa = PBXGroup;
 			children = (
+				F03A43161D48778200A7791E /* CFAsmMacros.h */,
 				5BDC3F721BCC60EF00ED97BB /* module.modulemap */,
 				5B5D88741BBC954000234F36 /* CFAvailability.h */,
 				5B5D895D1BBDABBF00234F36 /* CFBase.c */,
@@ -1643,6 +1646,7 @@
 				5B7C8AD51BEA80FC00C5B690 /* CFBundle.h in Headers */,
 				5B6228C11C17905B009587FE /* CFAttributedString.h in Headers */,
 				5B7C8AE21BEA80FC00C5B690 /* CFURLAccess.h in Headers */,
+				F03A43181D4877DD00A7791E /* CFAsmMacros.h in Headers */,
 				5B7C8ACA1BEA80FC00C5B690 /* CFError.h in Headers */,
 				5B7C8AE91BEA81AC00C5B690 /* CFLocaleInternal.h in Headers */,
 				5B7C8AE61BEA81AC00C5B690 /* ForSwiftFoundationOnly.h in Headers */,
