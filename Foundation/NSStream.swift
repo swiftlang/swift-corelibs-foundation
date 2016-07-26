@@ -208,7 +208,7 @@ public class NSInputStream: NSStream, NSMutableCopying, NSCopying {
         CFReadStreamClose(_stream)
     }
     
-    override public var streamError: NSError?{
+    public override var streamError: NSError?{
         let error = CFReadStreamCopyError(_stream)
         return error?._nsObject
     }
@@ -347,7 +347,7 @@ public class NSOutputStream : NSStream , NSCopying, NSMutableCopying{
         return self.init(toMemory: ())
     }
     
-    override public var streamError: NSError?{
+    public override var streamError: NSError?{
         let error = CFWriteStreamCopyError(_stream)
         return error?._nsObject
     }
