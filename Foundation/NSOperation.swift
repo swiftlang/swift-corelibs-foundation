@@ -324,7 +324,7 @@ public class OperationQueue: NSObject {
             if let requestedName = _name {
                 effectiveName = requestedName
             } else {
-                effectiveName = "NSOperationQueue::\(unsafeAddress(of: self))"
+                effectiveName = "NSOperationQueue::\(Unmanaged.passUnretained(self).toOpaque())"
             }
             let attr: DispatchQueueAttributes
             if maxConcurrentOperationCount == 1 {
