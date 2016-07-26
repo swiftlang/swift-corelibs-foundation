@@ -95,7 +95,7 @@ public class ProcessInfo: NSObject {
             return NSOperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
         
-        let productVersionKey = unsafeBitCast(_kCFSystemVersionProductVersionKey, to: UnsafePointer<Void>.self)
+        let productVersionKey = unsafeBitCast(_kCFSystemVersionProductVersionKey, to: UnsafeRawPointer.self)
         guard let productVersion = unsafeBitCast(CFDictionaryGetValue(systemVersionDictionary, productVersionKey), to: NSString!.self) else {
             return NSOperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }

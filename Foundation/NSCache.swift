@@ -22,7 +22,7 @@ public class Cache: NSObject {
         }
     }
     
-    private var _entries = Dictionary<UnsafePointer<Void>, NSCacheEntry>()
+    private var _entries = Dictionary<UnsafeRawPointer, NSCacheEntry>()
     private let _lock = Lock()
     private var _totalCost = 0
     private var _byCost: NSCacheEntry?
@@ -41,7 +41,7 @@ public class Cache: NSObject {
     public func object(forKey key: AnyObject) -> AnyObject? {
         var object: AnyObject?
         
-        let keyRef = unsafeBitCast(key, to: UnsafePointer<Void>.self)
+        let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
         
         _lock.lock()
         if let entry = _entries[keyRef] {
@@ -84,7 +84,7 @@ public class Cache: NSObject {
     }
     
     public func setObject(_ obj: AnyObject, forKey key: AnyObject, cost g: Int) {
-        let keyRef = unsafeBitCast(key, to: UnsafePointer<Void>.self)
+        let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
         
         _lock.lock()
         _totalCost += g
@@ -152,13 +152,13 @@ public class Cache: NSObject {
         
         _lock.lock()
         for entry in toRemove {
-            _entries.removeValue(forKey: unsafeBitCast(entry.key, to: UnsafePointer<Void>.self)) // the cost list is already fixed up in the purge routines
+            _entries.removeValue(forKey: unsafeBitCast(entry.key, to: UnsafeRawPointer.self)) // the cost list is already fixed up in the purge routines
         }
         _lock.unlock()
     }
     
     public func removeObject(forKey key: AnyObject) {
-        let keyRef = unsafeBitCast(key, to: UnsafePointer<Void>.self)
+        let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
         
         _lock.lock()
         if let entry = _entries.removeValue(forKey: keyRef) {
