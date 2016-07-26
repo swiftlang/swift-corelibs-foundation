@@ -100,7 +100,7 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
     }
     
     public var description: String {
-        return "<\(self.dynamicType): \(unsafeAddress(of: self))>"
+        return "<\(self.dynamicType): \(Unmanaged.passUnretained(self).toOpaque())>"
     }
     
     public var debugDescription: String {
