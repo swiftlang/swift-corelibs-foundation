@@ -343,10 +343,10 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
         let bytesNeeded = CFURLGetBytes(_cfObject, nil, 0)
         assert(bytesNeeded > 0)
         
-        let buffer = malloc(bytesNeeded)!
-        let bytesFilled = CFURLGetBytes(_cfObject, UnsafeMutablePointer<UInt8>(buffer), bytesNeeded)
+        let buffer = malloc(bytesNeeded)!.bindMemory(to: UInt8.self, capacity: bytesNeeded)
+        let bytesFilled = CFURLGetBytes(_cfObject, buffer, bytesNeeded)
         if bytesFilled == bytesNeeded {
-            return Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(buffer), count: bytesNeeded, deallocator: .none)
+            return Data(bytesNoCopy: buffer, count: bytesNeeded, deallocator: .none)
         } else {
             fatalError()
         }
