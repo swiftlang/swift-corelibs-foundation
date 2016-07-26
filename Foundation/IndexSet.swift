@@ -678,7 +678,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             return result
         case .Mutable(let m):
             // Only create a new box if we are not uniquely referenced
-            if !isUniquelyReferencedNonObjC(&_handle) {
+            if !isKnownUniquelyReferenced(&_handle) {
                 let copy = m.mutableCopy(with: nil) as! NSMutableIndexSet
                 _handle = _MutablePairHandle(copy, copying: false)
                 let result = try whatToDo(copy)
