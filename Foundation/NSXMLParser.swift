@@ -565,13 +565,13 @@ public class XMLParser : NSObject {
         XMLParser.setCurrentParser(self)
         if let stream = _stream {
             stream.open()
-            let buffer = malloc(_chunkSize)!.bindMemory(to: UInt8.self, capacity: _chunkSize)
-            var len = stream.read(buffer, maxLength: _chunkSize)
+            let buffer = malloc(_chunkSize)!
+            var len = stream.read(UnsafeMutablePointer<UInt8>(buffer), maxLength: _chunkSize)
             if len != -1 {
                 while len > 0 {
-                    let data = Data(bytesNoCopy: buffer, count: len, deallocator: .none)
+                    let data = Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(buffer), count: len, deallocator: .none)
                     result = parseData(data)
-                    len = stream.read(buffer, maxLength: _chunkSize)
+                    len = stream.read(UnsafeMutablePointer<UInt8>(buffer), maxLength: _chunkSize)
                 }
             } else {
                 result = false
@@ -579,7 +579,7 @@ public class XMLParser : NSObject {
             free(buffer)
             stream.close()
         } else if let data = _data {
-            let buffer = malloc(_chunkSize)!.bindMemory(to: UInt8.self, capacity: _chunkSize)
+            let buffer = malloc(_chunkSize)!
             var range = NSMakeRange(0, min(_chunkSize, data.count))
             while result {
                 let chunk = data.withUnsafeBytes { (buffer: UnsafePointer<UInt8>) -> Data in

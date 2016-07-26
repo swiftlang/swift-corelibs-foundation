@@ -39,8 +39,7 @@ public class Timer: NSObject {
         _fire = block
         var context = CFRunLoopTimerContext()
         withRetainedReference {
-            (refPtr: UnsafeMutablePointer<UInt8>) in
-            context.info = UnsafeMutableRawPointer(refPtr)
+            context.info = $0
         }
         let timer = withUnsafeMutablePointer(&context) { (ctx: UnsafeMutablePointer<CFRunLoopTimerContext>) -> CFRunLoopTimer in
             var t = interval

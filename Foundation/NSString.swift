@@ -194,7 +194,7 @@ internal func _bytesInEncoding(_ str: NSString, _ encoding: String.Encoding, _ f
     
     buffer.advanced(by: cLength).initialize(to: 0)
     
-    return UnsafePointer(buffer) // leaked and should be autoreleased via a NSData backing but we cannot here
+    return buffer // leaked and should be autoreleased via a NSData backing but we cannot here
 }
 
 internal func isALineSeparatorTypeCharacter(_ ch: unichar) -> Bool {
@@ -905,7 +905,7 @@ extension NSString {
                 let lossyOk = options.contains(.allowLossy)
                 let externalRep = options.contains(.externalRepresentation)
                 let failOnPartial = options.contains(.failOnPartialEncodingConversion)
-                let bytePtr = buffer?.bindMemory(to: UInt8.self, capacity: maxBufferCount)
+                let bytePtr = buffer?.bindMemory(as: UInt8.self, capacity: maxBufferCount)
                 numCharsProcessed = __CFStringEncodeByteStream(_cfObject, range.location, range.length, externalRep, cfStringEncoding, lossyOk ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, bytePtr, bytePtr != nil ? maxBufferCount : 0, &totalBytesWritten)
                 if (failOnPartial && numCharsProcessed < range.length) || numCharsProcessed == 0 {
                     result = false
@@ -1230,7 +1230,7 @@ extension NSString {
     }
     
     public convenience init?(bytes: UnsafeRawPointer, length len: Int, encoding: UInt) {
-        let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: len)
+        let bytePtr = bytes.bindMemory(as: UInt8.self, capacity: len)
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, len, CFStringConvertNSStringEncodingToEncoding(encoding), true) else {
             return nil
         }
@@ -1265,7 +1265,7 @@ extension NSString {
     public convenience init(contentsOf url: URL, encoding enc: UInt) throws {
         let readResult = try NSData(contentsOf: url, options: [])
 
-        let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity: readResult.length)
+        let bytePtr = readResult.bindMemory(as: UInt8.self, capacity: readResult.length)
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to create a string using the specified encoding."
@@ -1402,7 +1402,7 @@ extension NSMutableString {
             let numOccurrences = CFArrayGetCount(findResults)
             for cnt in 0..<numOccurrences {
                 let rangePtr = CFArrayGetValueAtIndex(findResults, backwards ? cnt : numOccurrences - cnt - 1)
-                replaceCharacters(in: NSRange(rangePtr!.load(as: CFRange.self)), with: replacement)
+                replaceCharacters(in: NSRange(range!.load(as: CFRange)), with: replacement)
             }
             return numOccurrences
         } else {
