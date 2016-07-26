@@ -94,7 +94,7 @@ public class Host: NSObject {
                 let lookupInfo = { (content: inout [String], flags: Int32) in
                     let hname = UnsafeMutablePointer<Int8>.allocate(capacity: 1024)
                     if (getnameinfo(info.ai_addr, sa_len, hname, 1024, nil, 0, flags) == 0) {
-                        content.append(String(hname))
+                        content.append(String(describing: hname))
                     }
                     hname.deinitialize()
                     hname.deallocate(capacity: 1024)

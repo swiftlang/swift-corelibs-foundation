@@ -311,7 +311,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public required init(stringLiteral value: StaticString) {
-        _storage = String(value)
+        _storage = String(describing: value)
     }
     
     internal var _fastCStringContents: UnsafePointer<Int8>? {
@@ -366,7 +366,7 @@ extension NSString {
     
     public func substring(from: Int) -> String {
         if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
-            return String(_storage.utf16.suffix(from: _storage.utf16.startIndex.advanced(by: from)))
+            return String(_storage.utf16.suffix(from: _storage.utf16.startIndex.advanced(by: from)))!
         } else {
             return substring(with: NSMakeRange(from, length - from))
         }
@@ -375,7 +375,7 @@ extension NSString {
     public func substring(to: Int) -> String {
         if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
             return String(_storage.utf16.prefix(upTo: _storage.utf16.startIndex
-            .advanced(by: to)))
+            .advanced(by: to)))!
         } else {
             return substring(with: NSMakeRange(0, to))
         }
@@ -386,11 +386,11 @@ extension NSString {
             let start = _storage.utf16.startIndex
             let min = start.advanced(by: range.location)
             let max = start.advanced(by: range.location + range.length)
-            return String(_storage.utf16[min..<max])
+            return String(_storage.utf16[min..<max])!
         } else {
             let buff = UnsafeMutablePointer<unichar>.allocate(capacity: range.length)
             getCharacters(buff, range: range)
-            let result = String(buff)
+            let result = String(describing: buff)
             buff.deinitialize()
             buff.deallocate(capacity: range.length)
             return result
