@@ -151,7 +151,7 @@ class TestNSKeyedArchiver : XCTestCase {
         decode: {unarchiver -> Bool in
             var expected: Array<Int32> = [0, 0, 0, 0]
             expected.withUnsafeMutableBufferPointer {(p: inout UnsafeMutableBufferPointer<Int32>) in
-                unarchiver.decodeValue(ofObjCType: "[4i]", at: UnsafeMutableRawPointer(p.baseAddress!))
+                unarchiver.decodeValue(ofObjCType: "[4i]", at: UnsafeMutablePointer<Void>(p.baseAddress!))
             }
             XCTAssertEqual(expected, array)
             return true

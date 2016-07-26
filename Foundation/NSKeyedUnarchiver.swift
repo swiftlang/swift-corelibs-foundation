@@ -763,7 +763,7 @@ public class NSKeyedUnarchiver : NSCoder {
         return decodeObject() as? Data
     }
     
-    private func _decodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafeMutableRawPointer) {
+    private func _decodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafeMutablePointer<Void>) {
         switch type {
         case .ID:
             if let ns = decodeObject() {
@@ -834,7 +834,7 @@ public class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    public override func decodeValue(ofObjCType typep: UnsafePointer<Int8>, at addr: UnsafeMutableRawPointer) {
+    public override func decodeValue(ofObjCType typep: UnsafePointer<Int8>, at addr: UnsafeMutablePointer<Void>) {
         guard let type = _NSSimpleObjCType(UInt8(typep.pointee)) else {
             let spec = String(typep.pointee)
             fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: unsupported type encoding spec '\(spec)'")

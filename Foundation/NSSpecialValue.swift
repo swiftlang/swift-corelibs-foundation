@@ -10,10 +10,10 @@
 internal protocol NSSpecialValueCoding {
     static func objCType() -> String
     
-    init(bytes value: UnsafeRawPointer)
+    init(bytes value: UnsafePointer<Void>)
     func encodeWithCoder(_ aCoder: NSCoder)
     init?(coder aDecoder: NSCoder)
-    func getValue(_ value: UnsafeMutableRawPointer)
+    func getValue(_ value: UnsafeMutablePointer<Void>)
     
     // Ideally we would make NSSpecialValue a generic class and specialise it for
     // NSPoint, etc, but then we couldn't implement NSValue.init?(coder:) because 
@@ -81,7 +81,7 @@ internal class NSSpecialValue : NSValue {
         self._value = value
     }
     
-    required init(bytes value: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
+    required init(bytes value: UnsafePointer<Void>, objCType type: UnsafePointer<Int8>) {
         guard let specialType = NSSpecialValue._typeFromObjCType(type) else {
             NSUnimplemented()
         }
@@ -89,7 +89,7 @@ internal class NSSpecialValue : NSValue {
         self._value = specialType.init(bytes: value)
     }
 
-    override func getValue(_ value: UnsafeMutableRawPointer) {
+    override func getValue(_ value: UnsafeMutablePointer<Void>) {
         self._value.getValue(value)
     }
 

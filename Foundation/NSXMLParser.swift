@@ -372,7 +372,7 @@ internal func _NSXMLParserProcessingInstruction(_ ctx: _CFXMLInterface, target: 
 internal func _NSXMLParserCdataBlock(_ ctx: _CFXMLInterface, value: UnsafePointer<UInt8>, len: Int32) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
-        delegate.parser(parser, foundCDATA: Data(bytes: UnsafeRawPointer(value), count: Int(len)))
+        delegate.parser(parser, foundCDATA: Data(bytes: UnsafePointer<Void>(value), count: Int(len)))
     }
 }
 
