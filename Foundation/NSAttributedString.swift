@@ -111,13 +111,13 @@ public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 }
 
 private extension AttributedString {
-    fileprivate struct RangeInfo {
+    struct RangeInfo {
         let rangePointer: NSRangePointer
         let shouldFetchLongestEffectiveRange: Bool
         let longestEffectiveRangeSearchRange: NSRange?
     }
     
-    fileprivate func _attributesAtIndex(_ location: Int, rangeInfo: RangeInfo) -> [String : AnyObject] {
+    func _attributesAtIndex(_ location: Int, rangeInfo: RangeInfo) -> [String : AnyObject] {
         var cfRange = CFRange()
         return withUnsafeMutablePointer(&cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> [String : AnyObject] in
             // Get attributes value using CoreFoundation function
@@ -147,7 +147,7 @@ private extension AttributedString {
         }
     }
     
-    fileprivate func _attribute(_ attrName: String, atIndex location: Int, rangeInfo: RangeInfo) -> AnyObject? {
+    func _attribute(_ attrName: String, atIndex location: Int, rangeInfo: RangeInfo) -> AnyObject? {
         var cfRange = CFRange()
         return withUnsafeMutablePointer(&cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> AnyObject? in
             // Get attribute value using CoreFoundation function
@@ -171,7 +171,7 @@ private extension AttributedString {
         }
     }
     
-    fileprivate func addAttributesToAttributeArray(attrs: [String : AnyObject]?) {
+    func addAttributesToAttributeArray(attrs: [String : AnyObject]?) {
         guard _string.length > 0 else {
             return
         }

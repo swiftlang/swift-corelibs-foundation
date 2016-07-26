@@ -170,13 +170,13 @@ public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying
     public static func supportsSecureCoding() -> Bool { return true }
     
     /// The URL of the receiver.
-    /*@NSCopying */public private(set) var url: URL?
+    /*@NSCopying */public fileprivate(set) var url: URL?
     
     /// The main document URL associated with this load.
     ///
     /// This URL is used for the cookie "same domain as main
     /// document" policy. There may also be other future uses.
-    /*@NSCopying*/ public private(set) var mainDocumentURL: URL?
+    /*@NSCopying*/ public fileprivate(set) var mainDocumentURL: URL?
     
     internal var _cachePolicy: CachePolicy = .useProtocolCachePolicy
     public var cachePolicy: CachePolicy {
@@ -189,7 +189,7 @@ public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying
     }
 
     /// Returns the HTTP request method of the receiver.
-    public private(set) var httpMethod: String? = "GET"
+    public fileprivate(set) var httpMethod: String? = "GET"
     
     /// A dictionary containing all the HTTP header fields
     /// of the receiver.
