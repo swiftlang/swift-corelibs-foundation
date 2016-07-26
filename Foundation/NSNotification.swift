@@ -107,10 +107,10 @@ extension NSNotification {
 }
 
 private class NSNotificationReceiver : NSObject {
-    private weak var object: NSObject?
-    private var name: Notification.Name?
-    private var block: ((Notification) -> Void)?
-    private var sender: AnyObject?
+    fileprivate weak var object: NSObject?
+    fileprivate var name: Notification.Name?
+    fileprivate var block: ((Notification) -> Void)?
+    fileprivate var sender: AnyObject?
 }
 
 extension Sequence where Iterator.Element : NSNotificationReceiver {
@@ -122,7 +122,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
     ///  - elements that property `name` is not equal to parameter `name` if specified.
     ///  - elements that property `sender` is not equal to parameter `object` if specified.
     ///
-    private func filterOutObserver(_ observerToFilter: AnyObject, name:Notification.Name? = nil, object: AnyObject? = nil) -> [Iterator.Element] {
+    fileprivate func filterOutObserver(_ observerToFilter: AnyObject, name:Notification.Name? = nil, object: AnyObject? = nil) -> [Iterator.Element] {
         return self.filter { observer in
 
             let differentObserver = observer.object !== observerToFilter
@@ -141,7 +141,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
     ///  - elements that property `sender` is `nil` or equals specified parameter `sender`.
     ///  - elements that property `name` is `nil` or equals specified parameter `name`.
     ///
-    private func observersMatchingName(_ name:Notification.Name? = nil, sender: AnyObject? = nil) -> [Iterator.Element] {
+    fileprivate func observersMatchingName(_ name:Notification.Name? = nil, sender: AnyObject? = nil) -> [Iterator.Element] {
         return self.filter { observer in
 
             let emptyName = observer.name == nil

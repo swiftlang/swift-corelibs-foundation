@@ -404,7 +404,7 @@ public class XMLParser : NSObject {
     internal var _chunkSize = Int(4096 * 32) // a suitably large number for a decent chunk size
     internal var _haveDetectedEncoding = false
     internal var _bomChunk: Data?
-    private var _parserContext: _CFXMLInterfaceParserContext?
+    fileprivate var _parserContext: _CFXMLInterfaceParserContext?
     internal var _delegateAborted = false
     internal var _url: URL?
     internal var _namespaces = [[String:String]]()

@@ -883,8 +883,8 @@ internal protocol _NSXMLNodeCollectionType: Collection { }
 extension XMLNode: _NSXMLNodeCollectionType {
 
     public struct Index: Comparable {
-        private let node: _CFXMLNodePtr?
-        private let offset: Int?
+        fileprivate let node: _CFXMLNodePtr?
+        fileprivate let offset: Int?
     }
 
     public subscript(index: Index) -> XMLNode {
@@ -915,11 +915,11 @@ public func <(lhs: XMLNode.Index, rhs: XMLNode.Index) -> Bool {
     switch (lhs.offset, rhs.offset) {
     case (nil, nil):
       return false
-    case (nil, _):
+    case (nil, _?):
       return false
-    case (_, nil):
+    case (_?, nil):
       return true
-    case (let lhsOffset, let rhsOffset):
+    case (let lhsOffset?, let rhsOffset?):
       return lhsOffset < rhsOffset
     }
 }

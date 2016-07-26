@@ -108,7 +108,7 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return objectAtIndex(idx)
     }
 
-    private func _insertObject(_ object: AnyObject) {
+    fileprivate func _insertObject(_ object: AnyObject) {
         guard !containsObject(object), let object = object as? NSObject else {
             return
         }
@@ -117,7 +117,7 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         _orderedStorage.append(object)
     }
 
-    private func _insertObjects(_ objects: UnsafePointer<AnyObject?>, count cnt: Int) {
+    fileprivate func _insertObjects(_ objects: UnsafePointer<AnyObject?>, count cnt: Int) {
         let buffer = UnsafeBufferPointer(start: objects, count: cnt)
         for obj in buffer {
             _insertObject(obj!)
@@ -371,7 +371,7 @@ public class NSMutableOrderedSet : NSOrderedSet {
 
     public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
 
-    private func _removeObject(_ object: AnyObject) {
+    fileprivate func _removeObject(_ object: AnyObject) {
       guard containsObject(object), let object = object as? NSObject else {
         return
       }

@@ -193,7 +193,7 @@ public class NSKeyedArchiver : NSCoder {
             }
         } else {
             success = CFPropertyListWrite(plist, self._stream as! CFWriteStream,
-                                          kCFPropertyListOpenStepFormat, 0, nil) > 0
+                                          kCFPropertyListXMLFormat_v1_0, 0, nil) > 0
         }
         
         return success

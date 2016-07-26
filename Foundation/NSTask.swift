@@ -176,7 +176,7 @@ public class Task: NSObject {
     private var runLoopSourceContext : CFRunLoopSourceContext?
     private var runLoopSource : CFRunLoopSource?
     
-    private weak var runLoop : RunLoop? = nil
+    fileprivate weak var runLoop : RunLoop? = nil
     
     private var processLaunchedCondition = Condition()
     
