@@ -170,9 +170,11 @@ public class Thread: NSObject {
     public var stackSize: Int {
         get {
             var size: Int = 0
-            return withUnsafeMutablePointers(&_attr, &size) { attr, sz in
-                pthread_attr_getstacksize(attr, sz)
-                return sz.pointee
+            return withUnsafeMutablePointer(&_attr) { attr in
+                withUnsafeMutablePointer(&size) { sz in
+                    pthread_attr_getstacksize(attr, sz)
+                    return sz.pointee
+                }
             }
         }
         set {
