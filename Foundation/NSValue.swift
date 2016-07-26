@@ -76,7 +76,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func getValue(_ value: UnsafeMutablePointer<Void>) {
+    public func getValue(_ value: UnsafeMutableRawPointer) {
         if self.dynamicType == NSValue.self {
             return _concreteValue.getValue(value)
         } else {
@@ -96,7 +96,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return NSSpecialValue._typeFromObjCType(type) != nil
     }
     
-    public convenience required init(bytes value: UnsafePointer<Void>, objCType type: UnsafePointer<Int8>) {
+    public convenience required init(bytes value: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
         if self.dynamicType == NSValue.self {
             self.init()
             if NSValue._isSpecialObjCType(type) {

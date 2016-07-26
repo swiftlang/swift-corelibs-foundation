@@ -123,11 +123,11 @@ public func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Boo
 public class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
-    private var _identifier: UnsafeMutablePointer<Void>? = nil
-    private var _locale: UnsafeMutablePointer<Void>? = nil
-    private var _localeID: UnsafeMutablePointer<Void>? = nil
-    private var _tz: UnsafeMutablePointer<Void>? = nil
-    private var _cal: UnsafeMutablePointer<Void>? = nil
+    private var _identifier: UnsafeMutableRawPointer? = nil
+    private var _locale: UnsafeMutableRawPointer? = nil
+    private var _localeID: UnsafeMutableRawPointer? = nil
+    private var _tz: UnsafeMutableRawPointer? = nil
+    private var _cal: UnsafeMutableRawPointer? = nil
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFCalendar.self)
