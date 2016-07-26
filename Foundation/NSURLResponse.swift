@@ -232,7 +232,7 @@ public class NSHTTPURLResponse : URLResponse {
     /// A string that represents the contents of the NSHTTPURLResponse Object.
     /// This property is intended to produce readable output.
     override public var description: String {
-        var result = "<\(self.dynamicType) \(unsafeAddress(of: self))> { URL: \(url!.absoluteString) }{ status: \(statusCode), headers {\n"
+        var result = "<\(self.dynamicType) \(Unmanaged.passUnretained(self).toOpaque())> { URL: \(url!.absoluteString) }{ status: \(statusCode), headers {\n"
         for(key, value) in allHeaderFields {
             if((key.lowercased() == "content-disposition" && suggestedFilename != "Unknown") || key.lowercased() == "content-type") {
                 result += "   \"\(key)\" = \"\(value)\";\n"

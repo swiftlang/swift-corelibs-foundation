@@ -85,7 +85,7 @@ public class NSNotification: NSObject, NSCopying, NSCoding {
     }
     
     public override var description: String {
-        var str = "\(self.dynamicType) \(unsafeAddress(of: self)) {"
+        var str = "\(self.dynamicType) \(Unmanaged.passUnretained(self).toOpaque()) {"
         
         str += "name = \(self.name.rawValue)"
         if let object = self.object {
