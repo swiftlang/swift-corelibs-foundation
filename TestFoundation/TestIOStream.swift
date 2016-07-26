@@ -15,9 +15,9 @@
     import SwiftXCTest
 #endif
 
-class TestNSStream : XCTestCase {
-    typealias NSStreamTestCases = (String, (TestNSStream) -> () throws -> Void)
-    static var allTests: [NSStreamTestCases] {
+class TestIOStream : XCTestCase {
+    typealias IOStreamTestCases = (String, (TestIOStream) -> () throws -> Void)
+    static var allTests: [IOStreamTestCases] {
         return [
             ("test_InputStreamWithData", test_InputStreamWithData),
             ("test_InputStreamWithUrl", test_InputStreamWithUrl),
@@ -28,6 +28,8 @@ class TestNSStream : XCTestCase {
             ("test_InputStreamGetBufferSuccessFromBlessedList", test_InputStreamGetBufferSuccessFromBlessedList),
             ("test_InputStreamGetBufferFailedExcludedFromBlessedList", test_InputStreamGetBufferFailedExcludedFromBlessedList),
             ("test_inputStreamGetSetProperty", test_inputStreamGetSetProperty),
+            ("test_inputStreamSetPropertyCOW", test_inputStreamSetPropertyCOW),
+            ("test_inputStreamDelegateCOW", test_inputStreamDelegateCOW),
             ("test_outputStreamCreationToFile", test_outputStreamCreationToFile),
             ("test_outputStreamCreationToBuffer", test_outputStreamCreationToBuffer),
             ("test_outputStreamCreationWithUrl", test_outputStreamCreationWithUrl),
@@ -35,16 +37,16 @@ class TestNSStream : XCTestCase {
             ("test_outputStreamHasSpaceAvailable", test_outputStreamHasSpaceAvailable),
             ("test_ouputStreamWithInvalidPath", test_ouputStreamWithInvalidPath),
             ("test_outputStreamGetSetProperty", test_outputStreamGetSetProperty),
-
-
+            ("test_outputStreamSetPropertyCOW", test_outputStreamSetPropertyCOW),
+            ("test_oputStreamDelegateCOW", test_oputStreamDelegateCOW),
+            
         ]
     }
-    
     
     func test_InputStreamWithData(){
         let message: NSString = "Hello, playground"
         let messageData: Data = message.data(using: String.Encoding.utf8.rawValue)!
-        let dataStream = NSInputStream(data: messageData)
+        let dataStream: InputStream = InputStream(data: messageData)
         XCTAssertEqual(NSStream.Status.notOpen, dataStream.streamStatus)
         dataStream.open()
         XCTAssertEqual(NSStream.Status.open, dataStream.streamStatus)
@@ -67,7 +69,7 @@ class TestNSStream : XCTestCase {
         let testFile = createTestFile("testFile_in.txt", _contents: messageData)
         if testFile != nil {
             let url = URL(fileURLWithPath: testFile!)
-            let urlStream = NSInputStream(url: url)!
+            let urlStream: InputStream = InputStream(url: url)!
             XCTAssertEqual(NSStream.Status.notOpen, urlStream.streamStatus)
             urlStream.open()
             XCTAssertEqual(NSStream.Status.open, urlStream.streamStatus)
@@ -94,7 +96,7 @@ class TestNSStream : XCTestCase {
         //Initialiser with file
         let testFile = createTestFile("testFile_in.txt", _contents: messageData)
         if testFile != nil {
-            let fileStream = NSInputStream(fileAtPath: testFile!)!
+            let fileStream: InputStream = InputStream(fileAtPath: testFile!)!
             XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
             fileStream.open()
             XCTAssertEqual(NSStream.Status.open, fileStream.streamStatus)
@@ -118,7 +120,7 @@ class TestNSStream : XCTestCase {
     func test_InputStreamHasBytesAvailable() {
         let message: NSString = "Hello, playground"
         let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
-        let stream = NSInputStream(data: messageData)
+        let stream: InputStream = InputStream(data: messageData)
         var buffer = [UInt8](repeating: 0, count: 20)
         stream.open()
         XCTAssertTrue(stream.hasBytesAvailable)
@@ -127,7 +129,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_InputStreamInvalidPath() {
-        let fileStream = NSInputStream(fileAtPath: "/tmp/file.txt")!
+        let fileStream: InputStream = InputStream(fileAtPath: "/tmp/file.txt")!
         XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
         fileStream.open()
         XCTAssertEqual(NSStream.Status.error, fileStream.streamStatus)
@@ -140,7 +142,7 @@ class TestNSStream : XCTestCase {
     func test_InputStreamGetBufferSuccessFromBlessedList(){
         let message: NSString = "Hello, playground"
         let messageData: Data = message.data(using: String.Encoding.utf8.rawValue)!
-        let dataStream = NSInputStream(data: messageData)
+        let dataStream: InputStream = InputStream(data: messageData)
         XCTAssertEqual(NSStream.Status.notOpen, dataStream.streamStatus)
         dataStream.open()
         XCTAssertEqual(NSStream.Status.open, dataStream.streamStatus)
@@ -160,7 +162,7 @@ class TestNSStream : XCTestCase {
         let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
         let testFile = createTestFile("testFile_in.txt", _contents: messageData)
         if testFile != nil {
-            let fileStream = NSInputStream(fileAtPath: testFile!)!
+            let fileStream: InputStream = InputStream(fileAtPath: testFile!)!
             XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
             fileStream.open()
             XCTAssertEqual(NSStream.Status.open, fileStream.streamStatus)
@@ -176,7 +178,7 @@ class TestNSStream : XCTestCase {
     
     func test_InputOutStreamError(){
         let testFile = "/Path/to/nil"
-        let fileStream = NSInputStream(fileAtPath: testFile)!
+        let fileStream: InputStream = InputStream(fileAtPath: testFile)!
         XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
         fileStream.open()
         
@@ -203,12 +205,14 @@ class TestNSStream : XCTestCase {
         //
         //JIRA:: https://bugs.swift.org/browse/SR-2186
         //let error = fileStream.streamError
+        
+        
     }
     
     func test_inputStreamGetSetProperty(){
         
         let testFile = "/Path/to/nil"
-        let fileStream = NSInputStream(fileAtPath: testFile)!
+        var fileStream: InputStream = InputStream(fileAtPath: testFile)!
         XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
         fileStream.open()
         
@@ -234,10 +238,49 @@ class TestNSStream : XCTestCase {
         XCTAssertTrue(1._bridgeToObject() == didGetShouldNotBeNil as! NSNumber)
     }
     
+    func test_inputStreamSetPropertyCOW(){
+        
+        let testFile = "/Path/to/nil"
+        let fileStream: InputStream = InputStream(fileAtPath: testFile)!
+        var fileStream2 = fileStream
+        XCTAssertTrue(fileStream2 === fileStream)
+        
+        XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
+        fileStream.open()
+        
+        //Set: case where COW due to the fact that InputStream is no longer uniquly referenced
+        let inputStreamSetProperty_validKey = "kCFStreamPropertyFileCurrentOffset"
+        let didSetShouldSucceed = fileStream2.setProperty(1._bridgeToObject(), forKey:inputStreamSetProperty_validKey)
+        XCTAssertTrue(didSetShouldSucceed)
+        XCTAssertFalse(fileStream2 === fileStream)
+        
+    }
+    
+    func test_inputStreamDelegateCOW(){
+        class TestClass:StreamDelegate {
+            func stream(_ aStream: NSStream, handleEvent eventCode: NSStream.Event) {}
+        }
+        let streamDelegate = TestClass()
+        let testFile = "/Path/to/nil"
+        var fileStream: InputStream = InputStream(fileAtPath: testFile)!
+        fileStream.delegate = streamDelegate
+        XCTAssertNotNil(fileStream.delegate)
+        var fileStream2 = fileStream
+        XCTAssertTrue(fileStream2 === fileStream)
+        
+        XCTAssertEqual(NSStream.Status.notOpen, fileStream.streamStatus)
+        fileStream.open()
+        
+        //Set: case where COW due to the fact that InputStream is no longer uniquly referenced
+        fileStream2.delegate = streamDelegate
+        XCTAssertFalse(fileStream2 === fileStream)
+    }
+
+    
     func test_outputStreamCreationToFile() {
         let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
         if filePath != nil {
-            let outputStream = NSOutputStream(toFileAtPath: filePath!, append: true)
+            let outputStream = OutStream(toFileAtPath: filePath!, append: true)
             XCTAssertEqual(NSStream.Status.notOpen, outputStream!.streamStatus)
             var myString = "Hello world!"
             let encodedData = [UInt8](myString.utf8)
@@ -257,7 +300,7 @@ class TestNSStream : XCTestCase {
         var buffer = Array<UInt8>(repeating: 0, count: 12)
         var myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 12)
+        let outputStream = OutStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 12)
         XCTAssertEqual(NSStream.Status.notOpen, outputStream.streamStatus)
         outputStream.open()
         XCTAssertEqual(NSStream.Status.open, outputStream.streamStatus)
@@ -271,7 +314,7 @@ class TestNSStream : XCTestCase {
     func test_outputStreamCreationWithUrl() {
         let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
         if filePath != nil {
-            let outputStream = NSOutputStream(url: URL(fileURLWithPath: filePath!), append: true)
+            let outputStream = OutStream(url: URL(fileURLWithPath: filePath!), append: true)
             XCTAssertEqual(NSStream.Status.notOpen, outputStream!.streamStatus)
             var myString = "Hello world!"
             let encodedData = [UInt8](myString.utf8)
@@ -312,7 +355,7 @@ class TestNSStream : XCTestCase {
         let buffer = Array<UInt8>(repeating: 0, count: 12)
         var myString = "Welcome To Hello world  !"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 12)
+        let outputStream = OutStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 12)
         outputStream.open()
         XCTAssertTrue(outputStream.hasSpaceAvailable)
         _ = outputStream.write(encodedData, maxLength: encodedData.count)
@@ -320,7 +363,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_ouputStreamWithInvalidPath(){
-        let outputStream = NSOutputStream(toFileAtPath: "http:///home/sdsfsdfd", append: true)
+        let outputStream = OutStream(toFileAtPath: "http:///home/sdsfsdfd", append: true)
         XCTAssertEqual(NSStream.Status.notOpen, outputStream!.streamStatus)
         outputStream?.open()
         XCTAssertEqual(NSStream.Status.error, outputStream!.streamStatus)
@@ -328,7 +371,7 @@ class TestNSStream : XCTestCase {
     
     func test_outputStreamGetSetProperty(){
         let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
-        let outputStream = NSOutputStream(url: URL(fileURLWithPath: filePath!), append: false)
+        var outputStream = OutStream(url: URL(fileURLWithPath: filePath!), append: false)
         XCTAssertEqual(NSStream.Status.notOpen, outputStream?.streamStatus)
         
         //Set: failure case
@@ -351,6 +394,45 @@ class TestNSStream : XCTestCase {
         let didGetShouldNotBeNil = outputStream?.propertyForKey(inputStreamSetProperty_validKey)
         XCTAssertNotNil(didGetShouldNotBeNil)
         XCTAssertTrue(1._bridgeToObject() == didGetShouldNotBeNil as! NSNumber)
+    }
+    
+    
+    //Stream has-a testing
+    func test_outputStreamSetPropertyCOW(){
+        
+        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
+        if filePath != nil {
+            let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
+            let outputStream = OutStream(url: URL(fileURLWithPath: filePath!), append: false)!
+            var outStream2 = outputStream
+            XCTAssertTrue(outputStream === outStream2)
+            XCTAssertEqual(NSStream.Status.notOpen, outputStream.streamStatus)
+            let inputStreamSetProperty_validKey = "kCFStreamPropertyFileCurrentOffset"
+            let _ = outStream2.setProperty(1._bridgeToObject(), forKey:inputStreamSetProperty_validKey)
+            XCTAssertFalse(outputStream === outStream2)
+            
+        }
+    }
+    
+    func test_oputStreamDelegateCOW(){
+        class TestClass:StreamDelegate {
+            func stream(_ aStream: NSStream, handleEvent eventCode: NSStream.Event) {}
+        }
+        let streamDelegate = TestClass()
+        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
+        if filePath != nil {
+            var outputStream = OutStream(url: URL(fileURLWithPath: filePath!), append: false)!
+            outputStream.delegate = streamDelegate
+            var outputStream2 = outputStream
+            XCTAssertTrue(outputStream === outputStream2)
+            
+            XCTAssertEqual(NSStream.Status.notOpen, outputStream.streamStatus)
+            outputStream.open()
+            
+            //Set: case where COW due to the fact that InputStream is no longer uniquly referenced
+            outputStream2.delegate = streamDelegate
+            XCTAssertFalse(outputStream === outputStream2)
+        }
     }
     
     
@@ -377,3 +459,4 @@ class TestNSStream : XCTestCase {
         }
     }
 }
+

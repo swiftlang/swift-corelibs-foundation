@@ -58,6 +58,7 @@ XCTMain([
     testCase(TestNSScanner.allTests),
     testCase(TestNSSet.allTests),
     testCase(TestNSStream.allTests),
+    testCase(TestIOStream.allTests),
     testCase(TestNSString.allTests),
 //    testCase(TestNSThread.allTests),
     testCase(TestNSTask.allTests),
