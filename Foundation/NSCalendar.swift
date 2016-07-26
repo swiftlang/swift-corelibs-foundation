@@ -417,8 +417,10 @@ public class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     public func range(of unit: Unit, for date: Date) -> DateInterval? {
         var start: CFAbsoluteTime = 0.0
         var ti: CFTimeInterval = 0.0
-        let res: Bool = withUnsafeMutablePointers(&start, &ti) { startp, tip in
-           return CFCalendarGetTimeRangeOfUnit(_cfObject, unit._cfValue, date.timeIntervalSinceReferenceDate, startp, tip)
+        let res: Bool = withUnsafeMutablePointer(&start) { startp in
+            withUnsafeMutablePointer(&ti) { tip in
+                return CFCalendarGetTimeRangeOfUnit(_cfObject, unit._cfValue, date.timeIntervalSinceReferenceDate, startp, tip)
+            }
         }
         
         if res {
