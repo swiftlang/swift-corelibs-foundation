@@ -319,7 +319,7 @@ extension NSObject {
     }
     
     static func unretainedReference<R: NSObject>(_ value: UnsafeMutableRawPointer) -> R {
-        return unretainedReference(value)
+        return unretainedReference(UnsafeRawPointer(value))
     }
     
     static func releaseReference(_ value: UnsafeRawPointer) {
