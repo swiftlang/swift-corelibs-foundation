@@ -72,7 +72,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         } else {
             var ti: TimeInterval = 0.0
             withUnsafeMutablePointer(&ti) { (ptr: UnsafeMutablePointer<Double>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "d", at: UnsafeMutablePointer<Void>(ptr))
+                aDecoder.decodeValue(ofObjCType: "d", at: UnsafeMutableRawPointer(ptr))
             }
             self.init(timeIntervalSinceReferenceDate: ti)
         }

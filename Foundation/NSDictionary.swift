@@ -52,8 +52,8 @@ extension Dictionary : _ObjectTypeBridgeable {
             let cf = x._cfObject
             let cnt = CFDictionaryGetCount(cf)
 
-            let keys = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: cnt)
-            let values = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: cnt)
+            let keys = UnsafeMutablePointer<UnsafeRawPointer?>.allocate(capacity: cnt)
+            let values = UnsafeMutablePointer<UnsafeRawPointer?>.allocate(capacity: cnt)
             
             CFDictionaryGetKeysAndValues(cf, keys, values)
             
@@ -126,7 +126,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
             withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
+                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
             }
             let keys = UnsafeMutablePointer<NSObject>.allocate(capacity: Int(cnt))
             let objects = UnsafeMutablePointer<AnyObject>.allocate(capacity: Int(cnt))

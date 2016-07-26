@@ -34,7 +34,7 @@ internal final class _NSCFArray : NSMutableArray {
     }
     
     override func insert(_ anObject: AnyObject, at index: Int) {
-        CFArrayInsertValueAtIndex(_cfMutableObject, index, unsafeBitCast(anObject, to: UnsafePointer<Void>.self))
+        CFArrayInsertValueAtIndex(_cfMutableObject, index, unsafeBitCast(anObject, to: UnsafeRawPointer.self))
     }
     
     override func removeObject(at index: Int) {

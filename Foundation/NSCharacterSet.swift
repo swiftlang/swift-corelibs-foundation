@@ -33,9 +33,9 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     typealias CFType = CFCharacterSet
     private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
     private var _hashValue = CFHashCode(0)
-    private var _buffer: UnsafeMutablePointer<Void>? = nil
+    private var _buffer: UnsafeMutableRawPointer? = nil
     private var _length = CFIndex(0)
-    private var _annex: UnsafeMutablePointer<Void>? = nil
+    private var _annex: UnsafeMutableRawPointer? = nil
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)

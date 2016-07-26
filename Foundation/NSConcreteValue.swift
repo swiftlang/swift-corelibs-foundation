@@ -71,9 +71,9 @@ internal class NSConcreteValue : NSValue {
     private static var _cachedTypeInfoLock = Lock()
     
     private var _typeInfo : TypeInfo
-    private var _storage : UnsafeMutablePointer<UInt8>
+    private var _storage : UnsafeMutableRawPointer
       
-    required init(bytes value: UnsafePointer<Void>, objCType type: UnsafePointer<Int8>) {
+    required init(bytes value: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
         let spec = String(cString: type)
         var typeInfo : TypeInfo? = nil
 
@@ -91,17 +91,17 @@ internal class NSConcreteValue : NSValue {
 
         self._typeInfo = typeInfo!
 
-        self._storage = UnsafeMutablePointer<UInt8>.allocate(capacity: self._typeInfo.size)
-        self._storage.initialize(from: unsafeBitCast(value, to: UnsafeMutablePointer<UInt8>.self), count: self._typeInfo.size)
+        self._storage = UnsafeMutableRawPointer.allocate(bytes: self._typeInfo.size, alignedTo: 1)
+        self._storage.copyBytes(from: value, count: self._typeInfo.size)
     }
 
     deinit {
-        self._storage.deinitialize(count: self._size)
-        self._storage.deallocate(capacity: self._size)
+        // Cannot deinitialize raw memory.
+        self._storage.deallocate(bytes: self._size, alignedTo: 1)
     }
     
-    override func getValue(_ value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<UInt8>(value).moveInitialize(from: unsafeBitCast(self._storage, to: UnsafeMutablePointer<UInt8>.self), count: self._size)
+    override func getValue(_ value: UnsafeMutableRawPointer) {
+        value.copyBytes(from: self._storage, count: self._size)
     }
     
     override var objCType : UnsafePointer<Int8> {
@@ -145,8 +145,8 @@ internal class NSConcreteValue : NSValue {
         return self._typeInfo.size
     }
     
-    private var value : UnsafeMutablePointer<Void> {
-        return unsafeBitCast(self._storage, to: UnsafeMutablePointer<Void>.self)
+    private var value : UnsafeMutableRawPointer {
+        return self._storage
     }
     
     private func _isEqualToValue(_ other: NSConcreteValue) -> Bool {
