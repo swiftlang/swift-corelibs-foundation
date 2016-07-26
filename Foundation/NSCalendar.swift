@@ -417,8 +417,8 @@ public class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     public func range(of unit: Unit, for date: Date) -> DateInterval? {
         var start: CFAbsoluteTime = 0.0
         var ti: CFTimeInterval = 0.0
-        let res: Bool = withUnsafeMutablePointer(&start) { startp in
-            withUnsafeMutablePointer(&ti) { tip in
+        let res: Bool = withUnsafeMutablePointer(to: &start) { startp in
+            withUnsafeMutablePointer(to: &ti) { tip in
                 return CFCalendarGetTimeRangeOfUnit(_cfObject, unit._cfValue, date.timeIntervalSinceReferenceDate, startp, tip)
             }
         }
@@ -475,7 +475,7 @@ public class NSCalendar: NSObject, NSCopying, NSSecureCoding {
         self.timeZone = comps.timeZone ?? timeZone
         
         var at: CFAbsoluteTime = 0.0
-        let res: Bool = withUnsafeMutablePointer(&at) { t in
+        let res: Bool = withUnsafeMutablePointer(to: &at) { t in
             return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
                 return _CFCalendarComposeAbsoluteTimeV(_cfObject, t, compDesc, vectorBuffer.baseAddress!, Int32(vectorBuffer.count))
             }
@@ -579,7 +579,7 @@ public class NSCalendar: NSObject, NSCopying, NSSecureCoding {
         var (vector, compDesc) = _convert(comps)
         var at: CFAbsoluteTime = 0.0
         
-        let res: Bool = withUnsafeMutablePointer(&at) { t in
+        let res: Bool = withUnsafeMutablePointer(to: &at) { t in
             return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
                 return _CFCalendarAddComponentsV(_cfObject, t, CFOptionFlags(opts.rawValue), compDesc, vectorBuffer.baseAddress!, Int32(vector.count))
             }
@@ -961,7 +961,7 @@ public class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func nextWeekendAfter(_ date: Date, options: Options) -> DateInterval? {
         var range = _CFCalendarWeekendRange()
-        let res = withUnsafeMutablePointer(&range) { rangep in
+        let res = withUnsafeMutablePointer(to: &range) { rangep in
             return _CFCalendarGetNextWeekend(_cfObject, rangep)
         }
         if res {

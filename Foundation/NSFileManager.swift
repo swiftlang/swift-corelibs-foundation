@@ -252,7 +252,7 @@ public class FileManager: NSObject {
         }
 
         while let entry = readdir(dir!) {
-            if let entryName = withUnsafePointer(&entry.pointee.d_name, { (ptr) -> String? in
+            if let entryName = withUnsafePointer(to: &entry.pointee.d_name, { (ptr) -> String? in
                 return String(cString: UnsafePointer<Int8>(ptr))
             }) {
                 // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
@@ -294,7 +294,7 @@ public class FileManager: NSObject {
         var entry = readdir(dir!)
         
         while entry != nil {
-            if let entryName = withUnsafePointer(&entry!.pointee.d_name, { (ptr) -> String? in
+            if let entryName = withUnsafePointer(to: &entry!.pointee.d_name, { (ptr) -> String? in
                 let int8Ptr = unsafeBitCast(ptr, to: UnsafePointer<Int8>.self)
                 return String(cString: int8Ptr)
             }) {
@@ -302,7 +302,7 @@ public class FileManager: NSObject {
                 if entryName != "." && entryName != ".." {
                     contents.append(entryName)
                     
-                    if let entryType = withUnsafePointer(&entry!.pointee.d_type, { (ptr) -> Int32? in
+                    if let entryType = withUnsafePointer(to: &entry!.pointee.d_type, { (ptr) -> Int32? in
                         let int32Ptr = unsafeBitCast(ptr, to: UnsafePointer<UInt8>.self)
                         return Int32(int32Ptr.pointee)
                     }) {

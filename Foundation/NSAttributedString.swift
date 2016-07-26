@@ -119,7 +119,7 @@ private extension AttributedString {
     
     func _attributesAtIndex(_ location: Int, rangeInfo: RangeInfo) -> [String : AnyObject] {
         var cfRange = CFRange()
-        return withUnsafeMutablePointer(&cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> [String : AnyObject] in
+        return withUnsafeMutablePointer(to: &cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> [String : AnyObject] in
             // Get attributes value using CoreFoundation function
             let value: CFDictionary
             if rangeInfo.shouldFetchLongestEffectiveRange, let searchRange = rangeInfo.longestEffectiveRangeSearchRange {
@@ -149,7 +149,7 @@ private extension AttributedString {
     
     func _attribute(_ attrName: String, atIndex location: Int, rangeInfo: RangeInfo) -> AnyObject? {
         var cfRange = CFRange()
-        return withUnsafeMutablePointer(&cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> AnyObject? in
+        return withUnsafeMutablePointer(to: &cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> AnyObject? in
             // Get attribute value using CoreFoundation function
             let attribute: AnyObject?
             if rangeInfo.shouldFetchLongestEffectiveRange, let searchRange = rangeInfo.longestEffectiveRangeSearchRange {

@@ -513,7 +513,7 @@ extension Scanner {
 extension Scanner {
     public func scanInt() -> Int32? {
         var value: Int32 = 0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Int32>) -> Int32? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int32>) -> Int32? in
             if scanInt(ptr) {
                 return ptr.pointee
             } else {
@@ -524,7 +524,7 @@ extension Scanner {
     
     public func scanInteger() -> Int? {
         var value: Int = 0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Int>) -> Int? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int>) -> Int? in
             if scanInteger(ptr) {
                 return ptr.pointee
             } else {
@@ -535,7 +535,7 @@ extension Scanner {
     
     public func scanLongLong() -> Int64? {
         var value: Int64 = 0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Int64>) -> Int64? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int64>) -> Int64? in
             if scanLongLong(ptr) {
                 return ptr.pointee
             } else {
@@ -546,7 +546,7 @@ extension Scanner {
     
     public func scanUnsignedLongLong() -> UInt64? {
         var value: UInt64 = 0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<UInt64>) -> UInt64? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<UInt64>) -> UInt64? in
             if scanUnsignedLongLong(ptr) {
                 return ptr.pointee
             } else {
@@ -557,7 +557,7 @@ extension Scanner {
     
     public func scanFloat() -> Float? {
         var value: Float = 0.0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Float>) -> Float? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Float>) -> Float? in
             if scanFloat(ptr) {
                 return ptr.pointee
             } else {
@@ -568,7 +568,7 @@ extension Scanner {
     
     public func scanDouble() -> Double? {
         var value: Double = 0.0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Double>) -> Double? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Double>) -> Double? in
             if scanDouble(ptr) {
                 return ptr.pointee
             } else {
@@ -579,7 +579,7 @@ extension Scanner {
     
     public func scanHexInt() -> UInt32? {
         var value: UInt32 = 0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<UInt32>) -> UInt32? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<UInt32>) -> UInt32? in
             if scanHexInt(ptr) {
                 return ptr.pointee
             } else {
@@ -590,7 +590,7 @@ extension Scanner {
     
     public func scanHexLongLong() -> UInt64? {
         var value: UInt64 = 0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<UInt64>) -> UInt64? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<UInt64>) -> UInt64? in
             if scanHexLongLong(ptr) {
                 return ptr.pointee
             } else {
@@ -601,7 +601,7 @@ extension Scanner {
     
     public func scanHexFloat() -> Float? {
         var value: Float = 0.0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Float>) -> Float? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Float>) -> Float? in
             if scanHexFloat(ptr) {
                 return ptr.pointee
             } else {
@@ -612,7 +612,7 @@ extension Scanner {
     
     public func scanHexDouble() -> Double? {
         var value: Double = 0.0
-        return withUnsafeMutablePointer(&value) { (ptr: UnsafeMutablePointer<Double>) -> Double? in
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Double>) -> Double? in
             if scanHexDouble(ptr) {
                 return ptr.pointee
             } else {

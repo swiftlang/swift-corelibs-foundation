@@ -119,7 +119,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             // We're stuck with (int) here (rather than unsigned int)
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
-            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+            withUnsafeMutablePointer(to: &cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
                 aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
             }
             let objects = UnsafeMutablePointer<AnyObject?>.allocate(capacity: Int(cnt))
@@ -301,7 +301,7 @@ extension NSSet {
     public func enumerateObjects(_ opts: EnumerationOptions = [], using block: @noescape (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop : ObjCBool = false
         for obj in self {
-            withUnsafeMutablePointer(&stop) { stop in
+            withUnsafeMutablePointer(to: &stop) { stop in
                 block(obj, stop)
             }
             if stop {

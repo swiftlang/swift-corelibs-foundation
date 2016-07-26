@@ -65,7 +65,7 @@ public class NumberFormatter : Formatter {
     
     public func number(from string: String) -> NSNumber? {
         var range = CFRange(location: 0, length: string.length)
-        let number = withUnsafeMutablePointer(&range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
+        let number = withUnsafeMutablePointer(to: &range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
             
             #if os(OSX) || os(iOS)
                 let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, CFNumberFormatterOptionFlags.parseIntegersOnly.rawValue)
