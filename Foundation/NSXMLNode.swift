@@ -719,7 +719,7 @@ public class XMLNode: NSObject, NSCopying {
         var result: [XMLNode] = []
         for i in 0..<CFArrayGetCount(nodes) {
             let nodePtr = CFArrayGetValueAtIndex(nodes, i)!
-            result.append(XMLNode._objectNodeForNode(_CFXMLNodePtr(nodePtr)))
+            result.append(XMLNode._objectNodeForNode(_CFXMLNodePtr(mutating: nodePtr)))
         }
 
         return result

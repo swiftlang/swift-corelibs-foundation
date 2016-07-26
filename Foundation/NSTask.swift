@@ -108,7 +108,8 @@ public class Task: NSObject {
                     emptySourceContext.equal = runloopIsEqual
                     emptySourceContext.perform = emptyRunLoopCallback
                     managerThreadRunLoop!.withUnretainedReference {
-                        emptySourceContext.info = $0
+                        (refPtr: UnsafeMutablePointer<UInt8>) in
+                        emptySourceContext.info = UnsafeMutableRawPointer(refPtr)
                     }
                     
                     CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &emptySourceContext), kCFRunLoopDefaultMode)
@@ -386,7 +387,8 @@ public class Task: NSObject {
         runLoopContext.equal = nstaskIsEqual
         runLoopContext.perform = emptyRunLoopCallback
         self.withUnretainedReference {
-            runLoopContext.info = $0
+            (refPtr: UnsafeMutablePointer<UInt8>) in
+            runLoopContext.info = UnsafeMutableRawPointer(refPtr)
         }
         self.runLoopSourceContext = runLoopContext
         

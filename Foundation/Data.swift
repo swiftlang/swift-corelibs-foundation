@@ -173,7 +173,8 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
                 return nil
             case .custom(let b):
                 return { (ptr, len) in
-                    b(UnsafeMutablePointer<UInt8>(ptr), len)
+                    let bytePtr = ptr.bindMemory(to: UInt8.self, capacity: len)
+                    b(bytePtr, len)
                 }
             }
         }
@@ -439,7 +440,8 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         _mapUnmanaged {
             $0.enumerateBytes { (ptr, range, stop) in
                 var stopv = false
-                block(buffer: UnsafeBufferPointer(start: UnsafePointer<UInt8>(ptr), count: range.length), byteIndex: range.length, stop: &stopv)
+                let bytePtr = ptr.bindMemory(to: UInt8.self, capacity: range.length)
+                block(buffer: UnsafeBufferPointer(start: bytePtr, count: range.length), byteIndex: range.length, stop: &stopv)
                 if stopv {
                     stop.pointee = true
                 }
