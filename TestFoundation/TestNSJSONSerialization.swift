@@ -585,6 +585,10 @@ extension TestNSJSONSerialization {
             ("test_serialize_stringEscaping", test_serialize_stringEscaping),
             ("test_serialize_invalid_json", test_serialize_invalid_json),
             ("test_jsonReadingOffTheEndOfBuffers", test_jsonReadingOffTheEndOfBuffers),
+            ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
+            ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
+            ("test_invalidJsonObjectToStreamBuffer", test_invalidJsonObjectToStreamBuffer),
+            ("test_jsonObjectToOutputStreamInsufficeintBuffer", test_jsonObjectToOutputStreamInsufficeintBuffer),
         ]
     }
 
@@ -757,6 +761,99 @@ extension TestNSJSONSerialization {
             }
         } catch {
             XCTFail("Unknow json decoding failure")
+        }
+    }
+    
+    func test_jsonObjectToOutputStreamBuffer(){
+        let dict = ["a":["b":1]]
+        do {
+            let buffer = Array<UInt8>(repeating: 0, count: 20)
+            let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 20)
+            outputStream.open()
+            let result = try JSONSerialization.writeJSONObject(dict.bridge(), toStream: outputStream, options: [])
+            outputStream.close()
+            if(result > -1) {
+                XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+            }
+        } catch {
+            XCTFail("Error thrown: \(error)")
+        }
+    }
+    
+    func test_jsonObjectToOutputStreamFile() {
+        let dict = ["a":["b":1]]
+        do {
+            let filePath = createTestFile("TestFileOut.txt",_contents: Data(capacity: 128)!)
+            if filePath != nil {
+                let outputStream = NSOutputStream(toFileAtPath: filePath!, append: true)
+                outputStream?.open()
+                let result = try JSONSerialization.writeJSONObject(dict.bridge(), toStream: outputStream!, options: [])
+                outputStream?.close()
+                if(result > -1) {
+                    let fileStream: InputStream = InputStream(fileAtPath: filePath!)!
+                    var buffer = [UInt8](repeating: 0, count: 20)
+                    fileStream.open()
+                    if fileStream.hasBytesAvailable {
+                        let resultRead: Int = fileStream.read(&buffer, maxLength: buffer.count)
+                        fileStream.close()
+                        if(resultRead > -1){
+                            XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+                        }
+                    }
+                    removeTestFile(filePath!)
+                } else {
+                    XCTFail("Unable to create temp file")
+                }
+            }
+        } catch {
+            XCTFail("Error thrown: \(error)")
+        }
+    }
+    
+    func test_jsonObjectToOutputStreamInsufficeintBuffer() {
+        let dict = ["a":["b":1]]
+        let buffer = Array<UInt8>(repeating: 0, count: 10)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 20)
+        outputStream.open()
+        do {
+            let result = try JSONSerialization.writeJSONObject(dict.bridge(), toStream: outputStream, options: [])
+            outputStream.close()
+            if(result > -1) {
+                XCTAssertNotEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+            }
+        } catch {
+            XCTFail("Error occurred while writing to stream")
+        }
+    }
+    
+    func test_invalidJsonObjectToStreamBuffer() {
+        let str = "Invalid JSON"
+        let buffer = Array<UInt8>(repeating: 0, count: 10)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 20)
+        outputStream.open()
+        XCTAssertThrowsError(try JSONSerialization.writeJSONObject(str.bridge(), toStream: outputStream, options: []))
+    }
+    
+    private func createTestFile(_ path: String,_contents: Data) -> String? {
+        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().UUIDString + "/"
+        do {
+            try FileManager.default().createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
+            if FileManager.default().createFile(atPath: tempDir + "/" + path, contents: _contents,
+                                                attributes: nil) {
+                return tempDir + path
+            } else {
+                return nil
+            }
+        } catch _ {
+            return nil
+        }
+    }
+    
+    private func removeTestFile(_ location: String) {
+        do {
+            try FileManager.default().removeItem(atPath: location)
+        } catch _ {
+            
         }
     }
 }
