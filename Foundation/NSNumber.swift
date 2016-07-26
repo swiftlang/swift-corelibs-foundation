@@ -225,43 +225,43 @@ public class NSNumber : NSValue {
         _CFNumberInitBool(_cfObject, value)
     }
     
-    public required convenience init(bytes buffer: UnsafeRawPointer, objCType: UnsafePointer<Int8>) {
+    public required convenience init(bytes buffer: UnsafePointer<Void>, objCType: UnsafePointer<Int8>) {
         guard let type = _NSSimpleObjCType(UInt8(objCType.pointee)) else {
             fatalError("NSNumber.init: unsupported type encoding spec '\(String(cString: objCType))'")
         }
         switch type {
         case .Bool:
-            self.init(value:buffer.load(as: Bool.self))
+            self.init(value:UnsafePointer<Bool>(buffer).pointee)
             break
         case .Char:
-            self.init(value:buffer.load(as: Int8.self))
+            self.init(value:UnsafePointer<Int8>(buffer).pointee)
             break
         case .UChar:
-            self.init(value:buffer.load(as: UInt8.self))
+            self.init(value:UnsafePointer<UInt8>(buffer).pointee)
             break
         case .Short:
-            self.init(value:buffer.load(as: Int16.self))
+            self.init(value:UnsafePointer<Int16>(buffer).pointee)
             break
         case .UShort:
-            self.init(value:buffer.load(as: UInt16.self))
+            self.init(value:UnsafePointer<UInt16>(buffer).pointee)
             break
         case .Int, .Long:
-            self.init(value:buffer.load(as: Int32.self))
+            self.init(value:UnsafePointer<Int32>(buffer).pointee)
             break
         case .UInt, .ULong:
-            self.init(value:buffer.load(as: UInt32.self))
+            self.init(value:UnsafePointer<UInt32>(buffer).pointee)
             break
         case .LongLong:
-            self.init(value:buffer.load(as: Int64.self))
+            self.init(value:UnsafePointer<Int64>(buffer).pointee)
             break
         case .ULongLong:
-            self.init(value:buffer.load(as: UInt64.self))
+            self.init(value:UnsafePointer<UInt64>(buffer).pointee)
             break
         case .Float:
-            self.init(value:buffer.load(as: Float.self))
+            self.init(value:UnsafePointer<Float>(buffer).pointee)
             break
         case .Double:
-            self.init(value:buffer.load(as: Double.self))
+            self.init(value:UnsafePointer<Double>(buffer).pointee)
             break
         default:
             fatalError("NSNumber.init: unsupported type encoding spec '\(String(cString: objCType))'")
@@ -273,7 +273,7 @@ public class NSNumber : NSValue {
         if !aDecoder.allowsKeyedCoding {
             var objCType: UnsafeMutablePointer<Int8>? = nil
             withUnsafeMutablePointer(&objCType, { (ptr: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>) -> Void in
-                aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.CharPtr), at: UnsafeMutableRawPointer(ptr))
+                aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.CharPtr), at: UnsafeMutablePointer<Void>(ptr))
             })
             if objCType == nil {
                 return nil

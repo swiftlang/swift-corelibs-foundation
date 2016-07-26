@@ -285,7 +285,7 @@ public class NSKeyedArchiver : NSCoder {
     
     private static func _createObjectRef(_ uid : UInt32) -> CFKeyedArchiverUID {
         return Unmanaged<CFKeyedArchiverUID>.fromOpaque(
-            UnsafeRawPointer(_CFKeyedArchiverUIDCreate(kCFAllocatorSystemDefault, uid))).takeUnretainedValue()
+            UnsafePointer<Void>(_CFKeyedArchiverUIDCreate(kCFAllocatorSystemDefault, uid))).takeUnretainedValue()
     }
     
     private func _createObjectRefCached(_ uid : UInt32) -> CFKeyedArchiverUID {
@@ -654,7 +654,7 @@ public class NSKeyedArchiver : NSCoder {
         _encodePropertyList(objv, forKey: key)
     }
 
-    private func _encodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafeRawPointer) {
+    private func _encodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafePointer<Void>) {
         switch type {
         case .ID:
             let objectp = unsafeBitCast(addr, to: UnsafePointer<AnyObject>.self)
@@ -710,7 +710,7 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
-    public override func encodeValue(ofObjCType typep: UnsafePointer<Int8>, at addr: UnsafeRawPointer) {
+    public override func encodeValue(ofObjCType typep: UnsafePointer<Int8>, at addr: UnsafePointer<Void>) {
         guard let type = _NSSimpleObjCType(UInt8(typep.pointee)) else {
             let spec = String(typep.pointee)
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unsupported type encoding spec '\(spec)'")

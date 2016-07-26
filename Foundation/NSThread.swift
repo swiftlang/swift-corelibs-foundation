@@ -46,7 +46,7 @@ internal enum _NSThreadStatus {
     case finished
 }
 
-private func NSThreadStart(_ context: UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? {
+private func NSThreadStart(_ context: UnsafeMutablePointer<Void>?) -> UnsafeMutablePointer<Void>? {
     let thread: Thread = NSObject.unretainedReference(context!)
     Thread._currentThread.set(thread)
     thread._status = .executing

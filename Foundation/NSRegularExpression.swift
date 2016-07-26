@@ -120,7 +120,7 @@ internal class _NSRegularExpressionMatcher {
     }
 }
 
-internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ranges: UnsafeMutablePointer<CFRange>?, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
+internal func _NSRegularExpressionMatch(_ context: UnsafeMutablePointer<Void>?, ranges: UnsafeMutablePointer<CFRange>?, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
     let matcher = unsafeBitCast(context, to: _NSRegularExpressionMatcher.self)
     if ranges == nil {
 #if os(OSX) || os(iOS)
@@ -153,7 +153,7 @@ extension RegularExpression {
 #else
         let opts = _CFRegularExpressionMatchingOptions(options.rawValue)
 #endif
-            _CFRegularExpressionEnumerateMatchesInString(_internal, string._cfObject, opts, CFRange(range), unsafeBitCast(matcher, to: UnsafeMutableRawPointer.self), _NSRegularExpressionMatch)
+            _CFRegularExpressionEnumerateMatchesInString(_internal, string._cfObject, opts, CFRange(range), unsafeBitCast(matcher, to: UnsafeMutablePointer<Void>.self), _NSRegularExpressionMatch)
         }
     }
     

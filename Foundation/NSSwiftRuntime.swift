@@ -67,7 +67,7 @@ internal func _CFSwiftIsEqual(_ cf1: AnyObject, cf2: AnyObject) -> Bool {
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
 internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
     withUnsafeMutablePointer(&arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
-        bzero(unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self), sizeof(T.self))
+        bzero(unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self), sizeof(T.self))
     }
 }
 
@@ -307,7 +307,7 @@ extension Bool : _NSObjectRepresentable {
 }
 
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
-    return unsafeBitCast(lhs, to: UnsafeRawPointer.self) == unsafeBitCast(rhs, to: UnsafeRawPointer.self)
+    return unsafeBitCast(lhs, to: UnsafePointer<Void>.self) == unsafeBitCast(rhs, to: UnsafePointer<Void>.self)
 }
 
 /// Swift extensions for common operations in Foundation that use unsafe things...
@@ -323,7 +323,7 @@ extension NSObject {
     }
     
     static func releaseReference<T>(_ value: UnsafePointer<T>) {
-        _CFSwiftRelease(UnsafeMutableRawPointer(mutating: value))
+        _CFSwiftRelease(UnsafeMutablePointer<Void>(value))
     }
     
     static func releaseReference<T>(_ value: UnsafeMutablePointer<T>) {
@@ -331,11 +331,11 @@ extension NSObject {
     }
 
     func withRetainedReference<T, R>(_ work: @noescape (UnsafePointer<T>) -> R) -> R {
-        return work(UnsafePointer<T>(_CFSwiftRetain(unsafeBitCast(self, to: UnsafeMutableRawPointer.self))!))
+        return work(UnsafePointer<T>(_CFSwiftRetain(unsafeBitCast(self, to: UnsafeMutablePointer<Void>.self))!))
     }
     
     func withRetainedReference<T, R>(_ work: @noescape (UnsafeMutablePointer<T>) -> R) -> R {
-        return work(UnsafeMutablePointer<T>(_CFSwiftRetain(unsafeBitCast(self, to: UnsafeMutableRawPointer.self))!))
+        return work(UnsafeMutablePointer<T>(_CFSwiftRetain(unsafeBitCast(self, to: UnsafeMutablePointer<Void>.self))!))
     }
     
     func withUnretainedReference<T, R>(_ work: @noescape (UnsafePointer<T>) -> R) -> R {

@@ -16,11 +16,11 @@ import Darwin
 import Glibc
 #endif
 
-internal func __NSDataInvokeDeallocatorUnmap(_ mem: UnsafeMutableRawPointer, _ length: Int) -> Void {
+internal func __NSDataInvokeDeallocatorUnmap(_ mem: UnsafeMutablePointer<Void>, _ length: Int) -> Void {
     munmap(mem, length)
 }
 
-internal func __NSDataInvokeDeallocatorFree(_ mem: UnsafeMutableRawPointer, _ length: Int) -> Void {
+internal func __NSDataInvokeDeallocatorFree(_ mem: UnsafeMutablePointer<Void>, _ length: Int) -> Void {
     free(mem)
 }
 
@@ -34,14 +34,14 @@ internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
         // Take ownership.
         __wrapped = .Immutable(Unmanaged.passRetained(_unsafeReferenceCast(immutableObject, to: ImmutableType.self)))
         
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutableRawPointer.self)
+        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
         super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
     }
     
     init(mutableObject: AnyObject) {
         // Take ownership.
         __wrapped = .Mutable(Unmanaged.passRetained(_unsafeReferenceCast(mutableObject, to: MutableType.self)))
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutableRawPointer.self)
+        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
         super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
     }
     
@@ -49,7 +49,7 @@ internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
         // Take ownership.
         __wrapped = .Immutable(unmanagedImmutableObject)
         
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutableRawPointer.self)
+        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
         super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
     }
     
@@ -57,7 +57,7 @@ internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
         // Take ownership.
         __wrapped = .Mutable(unmanagedMutableObject)
         
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutableRawPointer.self)
+        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutablePointer<Void>.self)
         super.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
     }
     
@@ -82,7 +82,7 @@ internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
         }
     }
     
-    override var bytes : UnsafeRawPointer {
+    override var bytes : UnsafePointer<Void> {
         return _mapUnmanaged { $0.bytes }
     }
     
@@ -90,11 +90,11 @@ internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
 //        return _mapUnmanaged { $0.subdata(with: range) }
 //    }
 //    
-//    override func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
+//    override func getBytes(_ buffer: UnsafeMutablePointer<Void>, length: Int) {
 //        return _mapUnmanaged { $0.getBytes(buffer, length: length) }
 //    }
 //    
-//    override func getBytes(_ buffer: UnsafeMutableRawPointer, range: NSRange) {
+//    override func getBytes(_ buffer: UnsafeMutablePointer<Void>, range: NSRange) {
 //        return _mapUnmanaged { $0.getBytes(buffer, range: range) }
 //    }
 //    
@@ -112,7 +112,7 @@ internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
 //        }
 //    }
 //    
-//    override func enumerateByteRanges(using block: @noescape (UnsafeRawPointer, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
+//    override func enumerateByteRanges(using block: @noescape (UnsafePointer<Void>, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
 //        return _mapUnmanaged { $0.enumerateBytes(block) }
 //    }
 //    
@@ -163,7 +163,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         /// A custom deallocator.
         case custom((UnsafeMutablePointer<UInt8>, Int) -> Void)
         
-        fileprivate var _deallocator : ((UnsafeMutableRawPointer, Int) -> Void)? {
+        fileprivate var _deallocator : ((UnsafeMutablePointer<Void>, Int) -> Void)? {
             switch self {
             case .unmap:
                 return { __NSDataInvokeDeallocatorUnmap($0, $1) }
@@ -186,7 +186,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// - parameter bytes: A pointer to the memory. It will be copied.
     /// - parameter count: The number of bytes to copy.
-    public init(bytes: UnsafeRawPointer, count: Int) {
+    public init(bytes: UnsafePointer<Void>, count: Int) {
         _wrapped = _SwiftNSData(immutableObject: NSData(bytes: bytes, length: count))
     }
     
@@ -279,8 +279,8 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     }
 
     public init?(count: Int) {
-        if let memory = malloc(count)?.bindMemory(to: UInt8.self, capacity: count) {
-            self.init(bytesNoCopy: memory, count: count, deallocator: .free)
+        if let memory = malloc(count) {
+            self.init(bytesNoCopy: UnsafeMutablePointer<UInt8>(memory), count: count, deallocator: .free)
         } else {
             return nil
         }
@@ -304,7 +304,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         }
     }
     
-    private func _getUnsafeBytesPointer() -> UnsafeRawPointer {
+    private func _getUnsafeBytesPointer() -> UnsafePointer<Void> {
         return _mapUnmanaged { return $0.bytes }
     }
     
@@ -314,11 +314,10 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     public func withUnsafeBytes<ResultType, ContentType>(_ body: @noescape (UnsafePointer<ContentType>) throws -> ResultType) rethrows -> ResultType {
         let bytes =  _getUnsafeBytesPointer()
         defer { _fixLifetime(self)}
-        let contentPtr = bytes.bindMemory(to: ContentType.self, capacity: count / strideof(ContentType.self))
-        return try body(contentPtr)
+        return try body(UnsafePointer(bytes))
     }
     
-    private mutating func _getUnsafeMutableBytesPointer() -> UnsafeMutableRawPointer {
+    private mutating func _getUnsafeMutableBytesPointer() -> UnsafeMutablePointer<Void> {
         return _applyUnmanagedMutation {
             return $0.mutableBytes
         }
@@ -331,8 +330,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     public mutating func withUnsafeMutableBytes<ResultType, ContentType>(_ body: @noescape (UnsafeMutablePointer<ContentType>) throws -> ResultType) rethrows -> ResultType {
         let mutableBytes = _getUnsafeMutableBytesPointer()
         defer { _fixLifetime(self)}
-        let contentPtr = mutableBytes.bindMemory(to: ContentType.self, capacity: count / strideof(ContentType.self))
-        return try body(contentPtr)
+        return try body(UnsafeMutablePointer(mutableBytes))
     }
     
     // MARK: -
