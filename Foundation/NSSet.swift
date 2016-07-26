@@ -43,7 +43,7 @@ extension Set : _ObjectTypeBridgeable {
             let cf = x._cfObject
             let cnt = CFSetGetCount(cf)
             
-            let objs = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: cnt)
+            let objs = UnsafeMutablePointer<UnsafeRawPointer?>.allocate(capacity: cnt)
             
             CFSetGetValues(cf, objs)
             
@@ -120,7 +120,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
             withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
+                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
             }
             let objects = UnsafeMutablePointer<AnyObject?>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {

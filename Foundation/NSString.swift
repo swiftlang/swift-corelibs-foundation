@@ -187,14 +187,14 @@ internal func _bytesInEncoding(_ str: NSString, _ encoding: String.Encoding, _ f
         return nil
     }
     
-    let buffer = malloc(cLength + 1)!
+    let buffer = malloc(cLength + 1)!.bindMemory(to: Int8.self, capacity: cLength + 1)
     if !str.getBytes(buffer, maxLength: cLength, usedLength: &used, encoding: encoding.rawValue, options: options, range: theRange, remaining: nil) {
         fatalError("Internal inconsistency; previously claimed getBytes returned success but failed with similar invocation")
     }
     
-    UnsafeMutablePointer<Int8>(buffer).advanced(by: cLength).initialize(to: 0)
+    buffer.advanced(by: cLength).initialize(to: 0)
     
-    return UnsafePointer<Int8>(buffer) // leaked and should be autoreleased via a NSData backing but we cannot here
+    return UnsafePointer(buffer) // leaked and should be autoreleased via a NSData backing but we cannot here
 }
 
 internal func isALineSeparatorTypeCharacter(_ ch: unichar) -> Bool {
@@ -888,14 +888,14 @@ extension NSString {
                 return true
             }
         }
-        if getBytes(UnsafeMutablePointer<Void>(buffer), maxLength: maxBufferCount, usedLength: &used, encoding: encoding, options: [], range: NSMakeRange(0, self.length), remaining: nil) {
+        if getBytes(UnsafeMutableRawPointer(buffer), maxLength: maxBufferCount, usedLength: &used, encoding: encoding, options: [], range: NSMakeRange(0, self.length), remaining: nil) {
             buffer.advanced(by: used).initialize(to: 0)
             return true
         }
         return false
     }
     
-    public func getBytes(_ buffer: UnsafeMutablePointer<Void>?, maxLength maxBufferCount: Int, usedLength usedBufferCount: UnsafeMutablePointer<Int>?, encoding: UInt, options: EncodingConversionOptions = [], range: NSRange, remaining leftover: NSRangePointer?) -> Bool {
+    public func getBytes(_ buffer: UnsafeMutableRawPointer?, maxLength maxBufferCount: Int, usedLength usedBufferCount: UnsafeMutablePointer<Int>?, encoding: UInt, options: EncodingConversionOptions = [], range: NSRange, remaining leftover: NSRangePointer?) -> Bool {
         var totalBytesWritten = 0
         var numCharsProcessed = 0
         let cfStringEncoding = CFStringConvertNSStringEncodingToEncoding(encoding)
@@ -905,7 +905,8 @@ extension NSString {
                 let lossyOk = options.contains(.allowLossy)
                 let externalRep = options.contains(.externalRepresentation)
                 let failOnPartial = options.contains(.failOnPartialEncodingConversion)
-                numCharsProcessed = __CFStringEncodeByteStream(_cfObject, range.location, range.length, externalRep, cfStringEncoding, lossyOk ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(buffer), buffer != nil ? maxBufferCount : 0, &totalBytesWritten)
+                let bytePtr = buffer?.bindMemory(to: UInt8.self, capacity: maxBufferCount)
+                numCharsProcessed = __CFStringEncodeByteStream(_cfObject, range.location, range.length, externalRep, cfStringEncoding, lossyOk ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, bytePtr, bytePtr != nil ? maxBufferCount : 0, &totalBytesWritten)
                 if (failOnPartial && numCharsProcessed < range.length) || numCharsProcessed == 0 {
                     result = false
                 }
@@ -1147,7 +1148,8 @@ extension NSString {
         var mData = Data(count: numBytes)!
         // The getBytes:... call should hopefully not fail, given it succeeded above, but check anyway (mutable string changing behind our back?)
         var used = 0
-        try mData.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<Void>) -> Void in
+        // This binds mData memory to UInt8 because Data.withUnsafeMutableBytes does not handle raw pointers.
+        try mData.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<UInt8>) -> Void in
             if !getBytes(mutableBytes, maxLength: numBytes, usedLength: &used, encoding: enc, options: [], range: theRange, remaining: nil) {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnknownError.rawValue, userInfo: [
                     NSURLErrorKey: dest,
@@ -1175,7 +1177,7 @@ extension NSString {
         // ignore the no-copy-ness
         self.init(characters: characters, length: length)
         if freeBuffer { // cant take a hint here...
-            free(UnsafeMutablePointer<Void>(characters))
+            free(UnsafeMutableRawPointer(characters))
         }
     }
     
@@ -1215,8 +1217,8 @@ extension NSString {
     }
     
     public convenience init?(data: Data, encoding: UInt) {
-        guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<Void>) -> CFString? in
-            return CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(bytes), data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
+        guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
+            return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
         }) else { return nil }
         
         var str: String?
@@ -1227,8 +1229,9 @@ extension NSString {
         }
     }
     
-    public convenience init?(bytes: UnsafePointer<Void>, length len: Int, encoding: UInt) {
-        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(bytes), len, CFStringConvertNSStringEncodingToEncoding(encoding), true) else {
+    public convenience init?(bytes: UnsafeRawPointer, length len: Int, encoding: UInt) {
+        let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: len)
+        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, len, CFStringConvertNSStringEncodingToEncoding(encoding), true) else {
             return nil
         }
         var str: String?
@@ -1239,7 +1242,7 @@ extension NSString {
         }
     }
     
-    public convenience init?(bytesNoCopy bytes: UnsafeMutablePointer<Void>, length len: Int, encoding: UInt, freeWhenDone freeBuffer: Bool) /* "NoCopy" is a hint */ {
+    public convenience init?(bytesNoCopy bytes: UnsafeMutableRawPointer, length len: Int, encoding: UInt, freeWhenDone freeBuffer: Bool) /* "NoCopy" is a hint */ {
         // just copy for now since the internal storage will be a copy anyhow
         self.init(bytes: bytes, length: len, encoding: encoding)
         if freeBuffer { // dont take the hint
@@ -1262,7 +1265,8 @@ extension NSString {
     public convenience init(contentsOf url: URL, encoding enc: UInt) throws {
         let readResult = try NSData(contentsOf: url, options: [])
 
-        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, UnsafePointer<UInt8>(readResult.bytes), readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
+        let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity: readResult.length)
+        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to create a string using the specified encoding."
                 ])
@@ -1397,8 +1401,8 @@ extension NSMutableString {
         if let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorSystemDefault, _cfObject, target._cfObject, CFRange(searchRange), options._cfValue(true)) {
             let numOccurrences = CFArrayGetCount(findResults)
             for cnt in 0..<numOccurrences {
-                let range = UnsafePointer<CFRange>(CFArrayGetValueAtIndex(findResults, backwards ? cnt : numOccurrences - cnt - 1)!)
-                replaceCharacters(in: NSRange(range.pointee), with: replacement)
+                let rangePtr = CFArrayGetValueAtIndex(findResults, backwards ? cnt : numOccurrences - cnt - 1)
+                replaceCharacters(in: NSRange(rangePtr!.load(as: CFRange.self)), with: replacement)
             }
             return numOccurrences
         } else {

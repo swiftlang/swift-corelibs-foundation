@@ -363,12 +363,12 @@ class TestNSArray : XCTestCase {
         let mutableInput = inputNumbers.bridge().mutableCopy() as! NSMutableArray
         let expectedNumbers = inputNumbers.sorted()
 
-        func compare(_ left: AnyObject, right:AnyObject,  context: UnsafeMutablePointer<Void>?) -> Int {
+        func compare(_ left: AnyObject, right:AnyObject,  context: UnsafeMutableRawPointer?) -> Int {
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
             return l < r ? -1 : (l > r ? 0 : 1)
         }
-        mutableInput.sortUsingFunction(compare, context: UnsafeMutablePointer<Void>(bitPattern: 0))
+        mutableInput.sortUsingFunction(compare, context: UnsafeMutableRawPointer(bitPattern: 0))
 
         XCTAssertEqual(mutableInput.map { ($0 as! NSNumber).intValue}, expectedNumbers)
     }
