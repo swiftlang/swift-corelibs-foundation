@@ -166,7 +166,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
 
     public override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let otherObject = object where otherObject is NSArray else {
+        guard let otherObject = object, otherObject is NSArray else {
             return false
         }
         let otherArray = otherObject as! NSArray

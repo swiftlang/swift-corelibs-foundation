@@ -226,8 +226,7 @@ public class HTTPCookie : NSObject {
         _domain = canonicalDomain
 
         if let
-            secureString = properties[NSHTTPCookieSecure] as? String
-            where secureString.characters.count > 0
+            secureString = properties[NSHTTPCookieSecure] as? String, secureString.characters.count > 0
         {
             _secure = true
         } else {
@@ -236,8 +235,7 @@ public class HTTPCookie : NSObject {
 
         let version: Int
         if let
-            versionString = properties[NSHTTPCookieVersion] as? String
-            where versionString == "1"
+            versionString = properties[NSHTTPCookieVersion] as? String, versionString == "1"
         {
             version = 1
         } else {
@@ -245,8 +243,7 @@ public class HTTPCookie : NSObject {
         }
         _version = version
         
-        if let portString = properties[NSHTTPCookiePort] as? String
-        where _version == 1 {
+        if let portString = properties[NSHTTPCookiePort] as? String, _version == 1 {
             _portList = portString.characters
                 .split(separator: ",")
                 .flatMap { Int(String($0)) }
@@ -271,8 +268,7 @@ public class HTTPCookie : NSObject {
             }
         } else if
             let maximumAge = properties[NSHTTPCookieMaximumAge] as? String,
-            let secondsFromNow = Int(maximumAge)
-            where _version == 1 {
+            let secondsFromNow = Int(maximumAge), _version == 1 {
             _expiresDate = Date(timeIntervalSinceNow: Double(secondsFromNow))
         } else {
             _expiresDate = nil
