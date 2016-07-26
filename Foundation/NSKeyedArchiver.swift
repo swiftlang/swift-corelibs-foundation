@@ -238,14 +238,14 @@ public class NSKeyedArchiver : NSCoder {
     }
 
     public class func setClassName(_ codedName: String?, for cls: AnyClass) {
-        let clsName = String(cls.dynamicType)
+        let clsName = String(describing: cls.dynamicType)
         _classNameMapLock.synchronized {
             _classNameMap[clsName] = codedName
         }
     }
     
     public func setClassName(_ codedName: String?, for cls: AnyClass) {
-        let clsName = String(cls.dynamicType)
+        let clsName = String(describing: cls.dynamicType)
         _classNameMap[clsName] = codedName
     }
     

@@ -258,7 +258,7 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
     if components[0] == _SwiftFoundationModuleName {
         return components[1]
     } else {
-        return String(aClassName)
+        return String(describing: aClassName)
     }
 }
 

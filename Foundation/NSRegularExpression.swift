@@ -225,7 +225,7 @@ extension RegularExpression {
             if currentRange.location > NSMaxRange(previousRange) {
                 let min = start.advanced(by: NSMaxRange(previousRange))
                 let max = start.advanced(by: currentRange.location)
-                str += String(string.utf16[min..<max])
+                str += String(string.utf16[min..<max])!
             }
             str += replacement
             previousRange = currentRange
@@ -234,7 +234,7 @@ extension RegularExpression {
         if length > NSMaxRange(previousRange) {
             let min = start.advanced(by: NSMaxRange(previousRange))
             let max = start.advanced(by: length)
-            str += String(string.utf16[min..<max])
+            str += String(string.utf16[min..<max])!
         }
         
         return str
@@ -311,7 +311,7 @@ extension RegularExpression {
                             let start = string.utf16.startIndex
                             let min = start.advanced(by: substringRange.location)
                             let max = start.advanced(by: substringRange.location + substringRange.length)
-                            substring = String(string.utf16[min..<max])
+                            substring = String(string.utf16[min..<max])!
                         }
                         str.replaceCharacters(in: rangeToReplace, with: substring)
                         
