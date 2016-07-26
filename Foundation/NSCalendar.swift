@@ -831,8 +831,8 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         let comp2 = components(reducedUnits, from: date2)!
     
         for unit in units {
-            let value1 = comp1.value(forComponent: unit)
-            let value2 = comp2.value(forComponent: unit)
+            let value1 = comp1.value(forComponent: unit)!
+            let value2 = comp2.value(forComponent: unit)!
             if value1 > value2 {
                 return .orderedDescending
             } else if value1 < value2 {
