@@ -32,7 +32,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public init(UUIDBytes bytes: UnsafePointer<UInt8>) {
-        memcpy(unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
+        memcpy(unsafeBitCast(buffer, to: UnsafeMutableRawPointer.self), UnsafeRawPointer(bytes), 16)
     }
     
     public func getUUIDBytes(_ uuid: UnsafeMutablePointer<UInt8>) {

@@ -37,7 +37,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     }
     
     override func objectForKey(_ aKey: AnyObject) -> AnyObject? {
-        let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self))
+        let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(aKey, to: UnsafeRawPointer.self))
         if value != nil {
             return unsafeBitCast(value, to: AnyObject.self)
         } else {
@@ -64,7 +64,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
             let cf = dict._cfObject
             count = CFDictionaryGetCount(cf)
             
-            let keys = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: count)            
+            let keys = UnsafeMutablePointer<UnsafeRawPointer?>.allocate(capacity: count)            
             CFDictionaryGetKeysAndValues(cf, keys, nil)
             
             for idx in 0..<count {
@@ -81,11 +81,11 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     }
 
     override func removeObject(forKey aKey: AnyObject) {
-        CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self))
+        CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafeRawPointer.self))
     }
     
     override func setObject(_ anObject: AnyObject, forKey aKey: NSObject) {
-        CFDictionarySetValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafePointer<Void>.self), unsafeBitCast(anObject, to: UnsafePointer<Void>.self))
+        CFDictionarySetValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafeRawPointer.self), unsafeBitCast(anObject, to: UnsafeRawPointer.self))
     }
     
     override var classForCoder: AnyClass {
@@ -152,7 +152,7 @@ internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valueb
     }
 }
 
-internal func _CFSwiftDictionaryApplyFunction(_ dictionary: AnyObject, applier: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>) -> Void, context: UnsafeMutablePointer<Void>) {
+internal func _CFSwiftDictionaryApplyFunction(_ dictionary: AnyObject, applier: @convention(c) (AnyObject, AnyObject, UnsafeMutableRawPointer) -> Void, context: UnsafeMutableRawPointer) {
     (dictionary as! NSDictionary).enumerateKeysAndObjects([]) { key, value, _ in
         applier(key, value, context)
     }

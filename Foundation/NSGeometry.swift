@@ -100,11 +100,9 @@ public func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
 }
 
 extension CGPoint: NSSpecialValueCoding {
-    init(bytes: UnsafePointer<Void>) {
-        let buffer = UnsafePointer<CGFloat>(bytes)
-
-        self.x = buffer.pointee
-        self.y = buffer.advanced(by: 1).pointee
+    init(bytes: UnsafeRawPointer) {
+        self.x = bytes.load(as: CGFloat.self)
+        self.y = bytes.load(fromByteOffset: strideof(CGFloat.self), as: CGFloat.self)
     }
     
     init?(coder aDecoder: NSCoder) {
@@ -127,8 +125,8 @@ extension CGPoint: NSSpecialValueCoding {
         return "{CGPoint=dd}"
     }
 
-    func getValue(_ value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<CGPoint>(value).pointee = self
+    func getValue(_ value: UnsafeMutableRawPointer) {
+        value.initializeMemory(as: CGPoint.self, to: self)
     }
 
     func isEqual(_ aValue: Any) -> Bool {
@@ -167,11 +165,9 @@ public func ==(lhs: CGSize, rhs: CGSize) -> Bool {
 }
 
 extension CGSize: NSSpecialValueCoding {
-    init(bytes: UnsafePointer<Void>) {
-        let buffer = UnsafePointer<CGFloat>(bytes)
-
-        self.width = buffer.pointee
-        self.height = buffer.advanced(by: 1).pointee
+    init(bytes: UnsafeRawPointer) {
+        self.width = bytes.load(as: CGFloat.self)
+        self.height = bytes.load(fromByteOffset: strideof(CGFloat.self), as: CGFloat.self)
     }
     
     init?(coder aDecoder: NSCoder) {
@@ -194,8 +190,8 @@ extension CGSize: NSSpecialValueCoding {
         return "{CGSize=dd}"
     }
     
-    func getValue(_ value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<CGSize>(value).pointee = self
+    func getValue(_ value: UnsafeMutableRawPointer) {
+        value.initializeMemory(as: CGSize.self, to: self)
     }
     
     func isEqual(_ aValue: Any) -> Bool {
@@ -249,11 +245,13 @@ public typealias NSRectPointer = UnsafeMutablePointer<NSRect>
 public typealias NSRectArray = UnsafeMutablePointer<NSRect>
 
 extension CGRect: NSSpecialValueCoding {
-    init(bytes: UnsafePointer<Void>) {
-        let buffer = UnsafePointer<CGFloat>(bytes)
-
-        self.origin = CGPoint(x: buffer.pointee, y: buffer.advanced(by: 1).pointee)
-        self.size = CGSize(width: buffer.advanced(by: 2).pointee, height: buffer.advanced(by: 3).pointee)
+    init(bytes: UnsafeRawPointer) {
+        self.origin = CGPoint(
+            x: bytes.load(as: CGFloat.self),
+            y: bytes.load(fromByteOffset: 1 * strideof(CGFloat.self), as: CGFloat.self))
+        self.size = CGSize(
+            width: bytes.load(fromByteOffset: 2 * strideof(CGFloat.self), as: CGFloat.self),
+            height: bytes.load(fromByteOffset: 3 * strideof(CGFloat.self), as: CGFloat.self))
     }
 
     init?(coder aDecoder: NSCoder) {
@@ -276,8 +274,8 @@ extension CGRect: NSSpecialValueCoding {
         return "{CGRect={CGPoint=dd}{CGSize=dd}}"
     }
     
-    func getValue(_ value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<CGRect>(value).pointee = self
+    func getValue(_ value: UnsafeMutableRawPointer) {
+        value.initializeMemory(as: CGRect.self, to: self)
     }
     
     func isEqual(_ aValue: Any) -> Bool {
@@ -344,13 +342,11 @@ public struct NSEdgeInsets {
 }
 
 extension NSEdgeInsets: NSSpecialValueCoding {
-    init(bytes: UnsafePointer<Void>) {
-        let buffer = UnsafePointer<CGFloat>(bytes)
-
-        self.top = buffer.pointee
-        self.left = buffer.advanced(by: 1).pointee
-        self.bottom = buffer.advanced(by: 2).pointee
-        self.right = buffer.advanced(by: 3).pointee
+    init(bytes: UnsafeRawPointer) {
+        self.top = bytes.load(as: CGFloat.self)
+        self.left = bytes.load(fromByteOffset: strideof(CGFloat.self), as: CGFloat.self)
+        self.bottom = bytes.load(fromByteOffset: 2 * strideof(CGFloat.self), as: CGFloat.self)
+        self.right = bytes.load(fromByteOffset: 3 * strideof(CGFloat.self), as: CGFloat.self)
     }
 
     init?(coder aDecoder: NSCoder) {
@@ -379,8 +375,8 @@ extension NSEdgeInsets: NSSpecialValueCoding {
         return "{NSEdgeInsets=dddd}"
     }
     
-    func getValue(_ value: UnsafeMutablePointer<Void>) {
-        UnsafeMutablePointer<NSEdgeInsets>(value).pointee = self
+    func getValue(_ value: UnsafeMutableRawPointer) {
+        value.initializeMemory(as: NSEdgeInsets.self, to: self)
     }
     
     func isEqual(_ aValue: Any) -> Bool {
