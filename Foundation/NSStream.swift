@@ -71,9 +71,7 @@ public func <(lhs: NSStream.PropertyKey, rhs: NSStream.PropertyKey) -> Bool {
 // Subclassers of NSInputStream and NSOutputStream must also implement these methods.
 public class NSStream: NSObject {
 
-    public override init() {
-
-    }
+    internal override init() {}
     
     public func open() {
         NSRequiresConcreteImplementation()
@@ -162,8 +160,7 @@ public class NSInputStream: NSStream, NSMutableCopying, NSCopying {
     private var _data:Data?
     private var _url:URL?
     
-    override init(){
-    }
+    internal override init(){}
     
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -298,8 +295,8 @@ public class NSOutputStream : NSStream , NSCopying, NSMutableCopying{
     private var _append:Bool?
     
     
-    internal override init(){
-    }
+    internal override init(){}
+    
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     public func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         return  CFWriteStreamWrite(_stream, buffer, len)

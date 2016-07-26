@@ -16,8 +16,8 @@
 #endif
 
 class TestIOStream : XCTestCase {
-    typealias NSStreamTestCases = (String, (TestIOStream) -> () throws -> Void)
-    static var allTests: [NSStreamTestCases] {
+    typealias IOStreamTestCases = (String, (TestIOStream) -> () throws -> Void)
+    static var allTests: [IOStreamTestCases] {
         return [
             ("test_InputStreamWithData", test_InputStreamWithData),
             ("test_InputStreamWithUrl", test_InputStreamWithUrl),
