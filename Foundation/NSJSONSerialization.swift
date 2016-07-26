@@ -161,7 +161,8 @@ public class JSONSerialization : NSObject {
     public class func writeJSONObject(_ obj: AnyObject, toStream stream: NSOutputStream, options opt: WritingOptions) throws -> Int {
             let jsonData = try data(withJSONObject: obj, options: opt)
             let jsonNSData = jsonData.bridge()
-            return stream.write(UnsafeMutablePointer<UInt8>(jsonNSData.bytes), maxLength: jsonNSData.length)
+            let bytePtr = jsonNSData.bytes.bindMemory(to: UInt8.self, capacity: jsonNSData.length)
+            return stream.write(bytePtr, maxLength: jsonNSData.length)
     }
     
     /* Create a JSON object from JSON data stream. The stream should be opened and configured. All other behavior of this method is the same as the JSONObjectWithData:options:error: method.
