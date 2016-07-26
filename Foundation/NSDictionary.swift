@@ -354,11 +354,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         if level > 100 { return "..." }
 
         var lines = [String]()
-        let indentation = String(repeating: Character(" "), count: level * 4)
+        let indentation = String(repeating: " ", count: level * 4)
         lines.append(indentation + "{")
 
         for key in self.allKeys {
-            var line = String(repeating: Character(" "), count: (level + 1) * 4)
+            var line = String(repeating: " ", count: (level + 1) * 4)
 
             if key is NSArray {
                 line += (key as! NSArray).description(withLocale: locale, indent: level + 1)

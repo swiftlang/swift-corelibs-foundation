@@ -201,7 +201,7 @@ enum DisplayType {
 
 extension Dictionary {
     func display(_ indent: Int = 0, type: DisplayType = .Primary) {
-        let indentation = String(repeating: Character(" "), count: indent * 2)
+        let indentation = String(repeating: " ", count: indent * 2)
         if type == .Primary || type == .Key {
             print("\(indentation)[\n", terminator: "")
         } else {
@@ -224,7 +224,7 @@ extension Dictionary {
 
 extension Array {
     func display(_ indent: Int = 0, type: DisplayType = .Primary) {
-        let indentation = String(repeating: Character(" "), count: indent * 2)
+        let indentation = String(repeating: " ", count: indent * 2)
         if type == .Primary || type == .Key {
             print("\(indentation)[\n", terminator: "")
         } else {
@@ -242,7 +242,7 @@ extension Array {
 
 extension String {
     func display(_ indent: Int = 0, type: DisplayType = .Primary) {
-        let indentation = String(repeating: Character(" "), count: indent * 2)
+        let indentation = String(repeating: " ", count: indent * 2)
         if type == .Primary {
             print("\(indentation)\"\(self)\"\n", terminator: "")
         }
@@ -256,7 +256,7 @@ extension String {
 
 extension Bool {
     func display(_ indent: Int = 0, type: DisplayType = .Primary) {
-        let indentation = String(repeating: Character(" "), count: indent * 2)
+        let indentation = String(repeating: " ", count: indent * 2)
         if type == .Primary {
             print("\(indentation)\"\(self ? "1" : "0")\"\n", terminator: "")
         }
@@ -270,7 +270,7 @@ extension Bool {
 
 extension NSNumber {
     func display(_ indent: Int = 0, type: DisplayType = .Primary) {
-        let indentation = String(repeating: Character(" "), count: indent * 2)
+        let indentation = String(repeating: " ", count: indent * 2)
         if type == .Primary {
             print("\(indentation)\"\(self)\"\n", terminator: "")
         }
@@ -284,7 +284,7 @@ extension NSNumber {
 
 extension NSData {
     func display(_ indent: Int = 0, type: DisplayType = .Primary) {
-        let indentation = String(repeating: Character(" "), count: indent * 2)
+        let indentation = String(repeating: " ", count: indent * 2)
         if type == .Primary {
             print("\(indentation)\"\(self)\"\n", terminator: "")
         }
