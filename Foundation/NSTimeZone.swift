@@ -13,9 +13,9 @@ import CoreFoundation
 public class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFTimeZone
     private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())
-    private var _name: UnsafeMutablePointer<Void>? = nil
-    private var _data: UnsafeMutablePointer<Void>? = nil
-    private var _periods: UnsafeMutablePointer<Void>? = nil
+    private var _name: UnsafeMutableRawPointer? = nil
+    private var _data: UnsafeMutableRawPointer? = nil
+    private var _periods: UnsafeMutableRawPointer? = nil
     private var _periodCnt = Int32(0)
     
     internal var _cfObject: CFType {
@@ -86,7 +86,7 @@ public class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public convenience init?(abbreviation: String) {
         let abbr = abbreviation._cfObject
-        guard let name = unsafeBitCast(CFDictionaryGetValue(CFTimeZoneCopyAbbreviationDictionary(), unsafeBitCast(abbr, to: UnsafePointer<Void>.self)), to: NSString!.self) else {
+        guard let name = unsafeBitCast(CFDictionaryGetValue(CFTimeZoneCopyAbbreviationDictionary(), unsafeBitCast(abbr, to: UnsafeRawPointer.self)), to: NSString!.self) else {
             return nil
         }
         self.init(name: name._swiftObject , data: nil)
