@@ -314,19 +314,19 @@ public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
 
 
 extension NSObject {
-    static func unretainedReference<T, R: NSObject>(_ value: UnsafePointer<T>) -> R {
+    static func unretainedReference<R: NSObject>(_ value: UnsafeRawPointer) -> R {
         return unsafeBitCast(value, to: R.self)
     }
     
-    static func unretainedReference<T, R: NSObject>(_ value: UnsafeMutablePointer<T>) -> R {
-        return unretainedReference(UnsafePointer<T>(value))
+    static func unretainedReference<R: NSObject>(_ value: UnsafeMutableRawPointer) -> R {
+        return unretainedReference(value)
     }
     
-    static func releaseReference<T>(_ value: UnsafePointer<T>) {
+    static func releaseReference(_ value: UnsafeRawPointer) {
         _CFSwiftRelease(UnsafeMutableRawPointer(mutating: value))
     }
     
-    static func releaseReference<T>(_ value: UnsafeMutablePointer<T>) {
+    static func releaseReference(_ value: UnsafeMutableRawPointer) {
         _CFSwiftRelease(value)
     }
 
