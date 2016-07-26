@@ -69,7 +69,7 @@ public func <(lhs: NSStream.PropertyKey, rhs: NSStream.PropertyKey) -> Bool {
 
 // NSStream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
 // Subclassers of NSInputStream and NSOutputStream must also implement these methods.
-public class NSStream: NSObject, NSCopying {
+public class NSStream: NSObject {
 
     public override init() {
 
@@ -112,13 +112,6 @@ public class NSStream: NSObject, NSCopying {
         NSRequiresConcreteImplementation()
     }
     
-    public override func copy() -> AnyObject {
-        return self
-    }
-    
-    public func copy(with zone: NSZone?) -> AnyObject {
-        return self
-    }
 }
 
 internal final class _SwiftInputStream : NSInputStream, _SwiftNativeFoundationType {
@@ -130,130 +123,47 @@ internal final class _SwiftInputStream : NSInputStream, _SwiftNativeFoundationTy
     init(immutableObject: AnyObject) {
         // Take ownership.
         __wrapped = .Immutable(Unmanaged.passRetained(_unsafeReferenceCast(immutableObject, to: ImmutableType.self)))
-        super.init(data:Data())
+        super.init()
     }
     
     init(mutableObject: AnyObject) {
         // Take ownership.
         __wrapped = .Mutable(Unmanaged.passRetained(_unsafeReferenceCast(mutableObject, to: MutableType.self)))
-        super.init(data:Data())
+        super.init()
     }
     
     internal required init(unmanagedImmutableObject: Unmanaged<ImmutableType>) {
         // Take ownership.
         __wrapped = .Immutable(unmanagedImmutableObject)
-        
         super.init(data:Data())
     }
     
     internal required init(unmanagedMutableObject: Unmanaged<MutableType>) {
         // Take ownership.
         __wrapped = .Mutable(unmanagedMutableObject)
-        
-        super.init(data:Data())
+        super.init()
     }
     
     required convenience init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    required convenience init() {
-        self.init(immutableObject: NSInputStream(data:Data()))
-    }
     
     deinit {
         releaseWrappedObject()
     }
     
-    // Stubs
-    // -----
-    
-    func isEqual(to other: NSInputStream) -> Bool {
-        return true
-    }
-    
 }
 
-public struct InputStream: ReferenceConvertible, CustomStringConvertible, Equatable, Hashable,_MutablePairBoxing{
-    public typealias ReferenceType = NSInputStream
-    internal var _wrapped : _SwiftInputStream =  _SwiftInputStream()
-    public typealias Status = NSStream.Status
-    
-    public var streamError:NSError? {
-        return _wrapped._mapUnmanaged{ $0.streamError }
-    }
-    
-    public var hasBytesAvailable:Bool {
-        return _wrapped._mapUnmanaged{ $0.hasBytesAvailable }
-    }
-    
-    public var streamStatus: Status {
-        return Status(rawValue: UInt(CFReadStreamGetStatus(_wrapped._mapUnmanaged{ $0._stream })))!
-    }
-    
-    public init(data: Data) {
-        _wrapped = _SwiftInputStream(immutableObject: NSInputStream(data: data))
-    }
-    
-    public init?(url: URL) {
-        guard let nsis = NSInputStream(url:url) else { return nil }
-        _wrapped = _SwiftInputStream(immutableObject: nsis)
-    }
-    
-    public init?(fileAtPath path: String) {
-        self.init(url: URL(fileURLWithPath: path))
-    }
-    
-    public func open() {
-        _wrapped._mapUnmanaged{ $0.open() }
-    }
-    
-    public func close() {
-        _wrapped._mapUnmanaged{ $0.close() }
-    }
-    
-    public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-        return _wrapped._mapUnmanaged{ $0.read(buffer, maxLength: len) }
-    }
-    
-    public func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
-        return _wrapped._mapUnmanaged{ $0.getBuffer(buffer, length: len) }
-    }
-    
-    public mutating func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
-        return _applyUnmanagedMutation{
-            return $0.setProperty(property, forKey: key)
-        }
-    }
-    
-    public  func propertyForKey(_ key: String) -> AnyObject? {
-        return _wrapped._mapUnmanaged{ $0.propertyForKey(key) }
-    }
-    public var description: String { return _mapUnmanaged{ $0.description } }
-
-    public var debugDescription: String { return _mapUnmanaged{ $0.debugDescription } }
-    
-    public var hashValue: Int { return _mapUnmanaged{ $0.hashValue } }
-
-}
-
-
-public func === (lhs: InputStream, rhs: InputStream) -> Bool {
-    return lhs._mapUnmanaged{ unsafeAddress(of: $0) } == rhs._mapUnmanaged{ unsafeAddress(of: $0) }
-}
-
-public func ==(d1 : InputStream, d2 : InputStream) -> Bool {
-    return d1._wrapped.isEqual(to: d2._wrapped._mapUnmanaged{return $0})
-}
-
-
-// NSInputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
-public class NSInputStream: NSStream, NSMutableCopying {
+public class NSInputStream: NSStream, NSMutableCopying, NSCopying {
 
     private var _stream: CFReadStream!
     private var _data:Data?
     private var _url:URL?
+    
+    override init(){
+    }
     
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -314,25 +224,82 @@ public class NSInputStream: NSStream, NSMutableCopying {
     public override func propertyForKey(_ key: String) -> AnyObject? {
         return CFReadStreamCopyProperty(_stream, key._cfObject)
     }
-
+    
+    public func copy(with zone: NSZone?) -> AnyObject{
+        if let data = _data {
+            return NSInputStream(data:data)
+        } else if let url = _url {
+            return NSInputStream(url:url)!
+        } else {
+          NSRequiresConcreteImplementation()
+        }
+    }
+    
     public func mutableCopy(with zone: NSZone?) -> AnyObject{
-        
-        if let data = _data { return NSInputStream(data:data) }
-        if let url = _url { return NSInputStream(url:url)! }
-        
-        fatalError("mutableCopy should be able to recreate NSInputStream with  \(_data) or \(_url)")
-        return self
+        return copy(with: nil)
     }
 
+}
+
+internal final class _SwiftOutputStream : NSOutputStream, _SwiftNativeFoundationType {
+    internal typealias ImmutableType = NSOutputStream
+    internal typealias MutableType = NSOutputStream
+    
+    var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType>
+    
+    init(immutableObject: AnyObject) {
+        // Take ownership.
+        __wrapped = .Immutable(Unmanaged.passRetained(_unsafeReferenceCast(immutableObject, to: ImmutableType.self)))
+        super.init()
+    }
+    
+    init(mutableObject: AnyObject) {
+        // Take ownership.
+        __wrapped = .Mutable(Unmanaged.passRetained(_unsafeReferenceCast(mutableObject, to: MutableType.self)))
+        super.init()
+    }
+    
+    internal required init(unmanagedImmutableObject: Unmanaged<ImmutableType>) {
+        // Take ownership.
+        __wrapped = .Immutable(unmanagedImmutableObject)
+        super.init()
+    }
+    
+    internal required init(unmanagedMutableObject: Unmanaged<MutableType>) {
+        // Take ownership.
+        __wrapped = .Mutable(unmanagedMutableObject)
+        super.init()
+    }
+    
+    required convenience init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    required public init(toMemory: ()) {
+        __wrapped = .Immutable(Unmanaged.passRetained(_unsafeReferenceCast(toMemory, to: ImmutableType.self)))
+        fatalError("init(toMemory:) has not been implemented")
+    }
+    
+    deinit {
+        releaseWrappedObject()
+    }
+    
 }
 
 // NSOutputStream is an abstract class representing the base functionality of a write stream.
 // Subclassers are required to implement these methods.
 // Currently this is left as named NSOutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
-public class NSOutputStream : NSStream {
+public class NSOutputStream : NSStream , NSCopying, NSMutableCopying{
     
-    private  var _stream: CFWriteStream!
+    private var _stream: CFWriteStream!
+    private var _buffer: UnsafeMutablePointer<UInt8>?
+    private var _capacity:Int?
+    private var _url:URL?
+    private var _append:Bool?
     
+    
+    internal override init(){
+    }
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     public func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         return  CFWriteStreamWrite(_stream, buffer, len)
@@ -348,10 +315,14 @@ public class NSOutputStream : NSStream {
     }
 
     public init(toBuffer buffer: UnsafeMutablePointer<UInt8>, capacity: Int) {
+        _buffer = buffer
+        _capacity = capacity
         _stream = CFWriteStreamCreateWithBuffer(kCFAllocatorSystemDefault, buffer, capacity)
     }
     
     public init?(url: URL, append shouldAppend: Bool) {
+        _url = url
+        _append = shouldAppend
         _stream = CFWriteStreamCreateWithFile(kCFAllocatorSystemDefault, url._cfObject)
         CFWriteStreamSetProperty(_stream, kCFStreamPropertyAppendToFile, shouldAppend._cfObject)
     }
@@ -387,6 +358,20 @@ public class NSOutputStream : NSStream {
     
     public override func propertyForKey(_ key: String) -> AnyObject? {
         return CFWriteStreamCopyProperty(_stream, key._cfObject)
+    }
+    
+    public func copy(with zone: NSZone?) -> AnyObject{
+        if let url = _url , let shouldAppend = _append {
+            return NSOutputStream(url: url, append: shouldAppend)!
+        } else if let buffer = _buffer, let capacity = _capacity {
+            return NSOutputStream(toBuffer: buffer, capacity: capacity)
+        } else {
+           return  NSOutputStream(toMemory: ())
+        }
+    }
+    
+    public func mutableCopy(with zone: NSZone?) -> AnyObject{
+        return copy(with: nil)
     }
 }
 
