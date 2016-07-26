@@ -86,7 +86,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             NSRequiresConcreteImplementation()
         }
         
-        guard let obj = object as? NSObject where _storage.contains(obj) else {
+        guard let obj = object as? NSObject, _storage.contains(obj) else {
             return nil
         }
         
@@ -189,7 +189,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     public override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let otherObject = object where otherObject is NSSet else {
+        guard let otherObject = object, otherObject is NSSet else {
             return false
         }
         let otherSet = otherObject as! NSSet
