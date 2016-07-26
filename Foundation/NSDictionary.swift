@@ -125,7 +125,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             // We're stuck with (int) here (rather than unsigned int)
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
-            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+            withUnsafeMutablePointer(to: &cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
                 aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
             }
             let keys = UnsafeMutablePointer<NSObject>.allocate(capacity: Int(cnt))
@@ -486,7 +486,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         getObjects(&objects, andKeys: &keys, count: count)
         var stop = ObjCBool(false)
         for idx in 0..<count {
-            withUnsafeMutablePointer(&stop, { stop in
+            withUnsafeMutablePointer(to: &stop, { stop in
                 block(keys[idx] as! NSObject, objects[idx], stop)
             })
 

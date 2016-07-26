@@ -69,7 +69,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             // We're stuck with (int) here (rather than unsigned int)
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
-            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+            withUnsafeMutablePointer(to: &cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
                 aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
             }
             let objects = UnsafeMutablePointer<AnyObject?>.allocate(capacity: Int(cnt))

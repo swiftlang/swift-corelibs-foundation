@@ -99,7 +99,7 @@ public class NSCoder : NSObject {
     
     public func encode(_ object: AnyObject?) {
         var object = object
-        withUnsafePointer(&object) { (ptr: UnsafePointer<AnyObject?>) -> Void in
+        withUnsafePointer(to: &object) { (ptr: UnsafePointer<AnyObject?>) -> Void in
             encodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeRawPointer.self))
         }
     }
@@ -126,11 +126,11 @@ public class NSCoder : NSObject {
     
     public func encodeBytes(_ byteaddr: UnsafeRawPointer?, length: Int) {
         var newLength = UInt32(length)
-        withUnsafePointer(&newLength) { (ptr: UnsafePointer<UInt32>) -> Void in
+        withUnsafePointer(to: &newLength) { (ptr: UnsafePointer<UInt32>) -> Void in
             encodeValue(ofObjCType: "I", at: ptr)
         }
         var empty: [Int8] = []
-        withUnsafePointer(&empty) {
+        withUnsafePointer(to: &empty) {
             encodeArray(ofObjCType: "c", count: length, at: byteaddr ?? UnsafeRawPointer($0))
         }
     }
@@ -141,7 +141,7 @@ public class NSCoder : NSObject {
         }
         
         var obj: AnyObject? = nil
-        withUnsafeMutablePointer(&obj) { (ptr: UnsafeMutablePointer<AnyObject?>) -> Void in
+        withUnsafeMutablePointer(to: &obj) { (ptr: UnsafeMutablePointer<AnyObject?>) -> Void in
             decodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self))
         }
         return obj
@@ -155,7 +155,7 @@ public class NSCoder : NSObject {
     // TODO: This is disabled, as functions which return unsafe interior pointers are inherently unsafe when we have no autorelease pool. 
     public func decodeBytes(withReturnedLength lengthp: UnsafeMutablePointer<Int>) -> UnsafeMutableRawPointer? {
         var length: UInt32 = 0
-        withUnsafeMutablePointer(&length) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+        withUnsafeMutablePointer(to: &length) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
             decodeValue(ofObjCType: "I", at: unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self))
         }
         // we cannot autorelease here so instead the pending buffers will manage the lifespan of the returned data... this is wasteful but good enough...

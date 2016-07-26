@@ -68,7 +68,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         for idx in 0..<self._count {
             var type = Int8(self._type)
             
-            withUnsafePointer(&type) { typep in
+            withUnsafePointer(to: &type) { typep in
                 let addr = self._addr.advanced(by: idx * self._size)
                 aDecoder.decodeValue(ofObjCType: typep, at: addr)
             }
@@ -83,7 +83,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         for idx in 0..<self._count {
             var type = Int8(self._type)
 
-            withUnsafePointer(&type) { typep in
+            withUnsafePointer(to: &type) { typep in
                 aCoder.encodeValue(ofObjCType: typep, at: self._addr + (idx * self._size))
             }
         }

@@ -87,13 +87,13 @@ public class Thread: NSObject {
             var __ts__ = timespec(tv_sec: LONG_MAX, tv_nsec: 0)
             if ti < Double(LONG_MAX) {
                 var integ = 0.0
-                let frac: Double = withUnsafeMutablePointer(&integ) { integp in
+                let frac: Double = withUnsafeMutablePointer(to: &integ) { integp in
                     return modf(ti, integp)
                 }
                 __ts__.tv_sec = Int(integ)
                 __ts__.tv_nsec = Int(frac * 1000000000.0)
             }
-            let _ = withUnsafePointer(&__ts__) { ts in
+            let _ = withUnsafePointer(to: &__ts__) { ts in
                 nanosleep(ts, nil)
             }
             ti = end_ut - CFGetSystemUptime()
@@ -108,13 +108,13 @@ public class Thread: NSObject {
             var __ts__ = timespec(tv_sec: LONG_MAX, tv_nsec: 0)
             if ti < Double(LONG_MAX) {
                 var integ = 0.0
-                let frac: Double = withUnsafeMutablePointer(&integ) { integp in
+                let frac: Double = withUnsafeMutablePointer(to: &integ) { integp in
                     return modf(ti, integp)
                 }
                 __ts__.tv_sec = Int(integ)
                 __ts__.tv_nsec = Int(frac * 1000000000.0)
             }
-            let _ = withUnsafePointer(&__ts__) { ts in
+            let _ = withUnsafePointer(to: &__ts__) { ts in
                 nanosleep(ts, nil)
             }
             ti = end_ut - CFGetSystemUptime()
@@ -144,7 +144,7 @@ public class Thread: NSObject {
 
     public init(_ main: (Void) -> Void) {
         _main = main
-        let _ = withUnsafeMutablePointer(&_attr) { attr in
+        let _ = withUnsafeMutablePointer(to: &_attr) { attr in
             pthread_attr_init(attr)
             pthread_attr_setscope(attr, Int32(PTHREAD_SCOPE_SYSTEM))
             pthread_attr_setdetachstate(attr, Int32(PTHREAD_CREATE_DETACHED))
@@ -170,8 +170,8 @@ public class Thread: NSObject {
     public var stackSize: Int {
         get {
             var size: Int = 0
-            return withUnsafeMutablePointer(&_attr) { attr in
-                withUnsafeMutablePointer(&size) { sz in
+            return withUnsafeMutablePointer(to: &_attr) { attr in
+                withUnsafeMutablePointer(to: &size) { sz in
                     pthread_attr_getstacksize(attr, sz)
                     return sz.pointee
                 }
@@ -183,7 +183,7 @@ public class Thread: NSObject {
             if (1 << 30) < s {
                 s = 1 << 30
             }
-            let _ = withUnsafeMutablePointer(&_attr) { attr in
+            let _ = withUnsafeMutablePointer(to: &_attr) { attr in
                 pthread_attr_setstacksize(attr, s)
             }
         }
