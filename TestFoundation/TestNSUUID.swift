@@ -23,7 +23,7 @@ class TestNSUUID : XCTestCase {
         return [
             ("test_Equality", test_Equality),
             ("test_InvalidUUID", test_InvalidUUID),
-            ("test_UUIDString", test_UUIDString),
+            ("test_uuidString", test_uuidString),
             ("test_description", test_description),
             // Disabled until NSKeyedArchiver and NSKeyedUnarchiver are implemented
             // ("test_NSCoding", test_NSCoding),
@@ -31,8 +31,8 @@ class TestNSUUID : XCTestCase {
     }
     
     func test_Equality() {
-        let uuidA = NSUUID(UUIDString: "E621E1F8-C36C-495A-93FC-0C247A3E6E5F")
-        let uuidB = NSUUID(UUIDString: "e621e1f8-c36c-495a-93fc-0c247a3e6e5f")
+        let uuidA = NSUUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E5F")
+        let uuidB = NSUUID(uuidString: "e621e1f8-c36c-495a-93fc-0c247a3e6e5f")
         let uuidC = NSUUID(UUIDBytes: [0xe6,0x21,0xe1,0xf8,0xc3,0x6c,0x49,0x5a,0x93,0xfc,0x0c,0x24,0x7a,0x3e,0x6e,0x5f])
         let uuidD = NSUUID()
         
@@ -42,20 +42,20 @@ class TestNSUUID : XCTestCase {
     }
     
     func test_InvalidUUID() {
-        let uuid = NSUUID(UUIDString: "Invalid UUID")
-        XCTAssertNil(uuid, "The convenience initializer `init?(UUIDString string:)` must return nil for an invalid UUID string.")
+        let uuid = NSUUID(uuidString: "Invalid UUID")
+        XCTAssertNil(uuid, "The convenience initializer `init?(uuidString string:)` must return nil for an invalid UUID string.")
     }
     
-    // `UUIDString` should return an uppercase string
+    // `uuidString` should return an uppercase string
     // See: https://bugs.swift.org/browse/SR-865
-    func test_UUIDString() {
+    func test_uuidString() {
         let uuid = NSUUID(UUIDBytes: [0xe6,0x21,0xe1,0xf8,0xc3,0x6c,0x49,0x5a,0x93,0xfc,0x0c,0x24,0x7a,0x3e,0x6e,0x5f])
-        XCTAssertEqual(uuid.UUIDString, "E621E1F8-C36C-495A-93FC-0C247A3E6E5F", "The UUIDString representation must be uppercase.")
+        XCTAssertEqual(uuid.uuidString, "E621E1F8-C36C-495A-93FC-0C247A3E6E5F", "The uuidString representation must be uppercase.")
     }
     
     func test_description() {
         let uuid = NSUUID()
-        XCTAssertEqual(uuid.description, uuid.UUIDString, "The description must be the same as the UUIDString.")
+        XCTAssertEqual(uuid.description, uuid.uuidString, "The description must be the same as the uuidString.")
     }
     
     func test_NSCoding() {

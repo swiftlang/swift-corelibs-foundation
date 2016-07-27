@@ -496,7 +496,7 @@ class TestNSString : XCTestCase {
         }
 
         do {
-            let path = tmpPath(NSUUID().UUIDString)
+            let path = tmpPath(NSUUID().uuidString)
             var outName: NSString?
             var matches: [NSString] = []
             let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
@@ -802,7 +802,7 @@ class TestNSString : XCTestCase {
         }
         
         do {
-            let userName = NSUUID().UUIDString
+            let userName = NSUUID().uuidString
             let path = NSString(string: "~\(userName)/")
             let result = path.stringByExpandingTildeInPath
           	// next assert fails in VirtualBox because home directory for unknown user resolved to /var/run/vboxadd

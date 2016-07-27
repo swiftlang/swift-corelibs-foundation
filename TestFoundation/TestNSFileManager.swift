@@ -38,7 +38,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_createDirectory() {
         let fm = FileManager.default()
-        let path = "/tmp/testdir\(NSUUID().UUIDString)"
+        let path = "/tmp/testdir\(NSUUID().uuidString)"
         
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -63,7 +63,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_createFile() {
         let fm = FileManager.default()
-        let path = "/tmp/testfile\(NSUUID().UUIDString)"
+        let path = "/tmp/testfile\(NSUUID().uuidString)"
         
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -83,8 +83,8 @@ class TestNSFileManager : XCTestCase {
 
     func test_moveFile() {
         let fm = FileManager.default()
-        let path = "/tmp/testfile\(NSUUID().UUIDString)"
-        let path2 = "/tmp/testfile2\(NSUUID().UUIDString)"
+        let path = "/tmp/testfile\(NSUUID().uuidString)"
+        let path2 = "/tmp/testfile2\(NSUUID().uuidString)"
 
         func cleanup() {
             ignoreError { try fm.removeItem(atPath: path) }
@@ -115,7 +115,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_fileAttributes() {
         let fm = FileManager.default()
-        let path = "/tmp/test_fileAttributes\(NSUUID().UUIDString)"
+        let path = "/tmp/test_fileAttributes\(NSUUID().uuidString)"
 
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -162,7 +162,7 @@ class TestNSFileManager : XCTestCase {
     }
     
     func test_setFileAttributes() {
-        let path = "/tmp/test_setFileAttributes\(NSUUID().UUIDString)"
+        let path = "/tmp/test_setFileAttributes\(NSUUID().uuidString)"
         let fm = FileManager.default()
         
         ignoreError { try fm.removeItem(atPath: path) }
@@ -189,7 +189,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_pathEnumerator() {
         let fm = FileManager.default()
-        let testDirName = "testdir\(NSUUID().UUIDString)"
+        let testDirName = "testdir\(NSUUID().uuidString)"
         let basePath = "/tmp/\(testDirName)"
         let itemPath = "/tmp/\(testDirName)/item"
         let basePath2 = "/tmp/\(testDirName)/path2"
@@ -222,7 +222,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_directoryEnumerator() {
         let fm = FileManager.default()
-        let testDirName = "testdir\(NSUUID().UUIDString)"
+        let testDirName = "testdir\(NSUUID().uuidString)"
         let path = "/tmp/\(testDirName)"
         let itemPath = "/tmp/\(testDirName)/item"
         
@@ -328,7 +328,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_contentsOfDirectoryAtPath() {
         let fm = FileManager.default()
-        let testDirName = "testdir\(NSUUID().UUIDString)"
+        let testDirName = "testdir\(NSUUID().uuidString)"
         let path = "/tmp/\(testDirName)"
         let itemPath1 = "/tmp/\(testDirName)/item"
         let itemPath2 = "/tmp/\(testDirName)/item2"
