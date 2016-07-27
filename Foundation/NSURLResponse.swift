@@ -357,9 +357,9 @@ private extension String {
             }
         }
         
-        let escape = UnicodeScalar(0x5c)    //  \
-        let quote = UnicodeScalar(0x22)     //  "
-        let separator = UnicodeScalar(0x3b) //  ;
+        let escape = UnicodeScalar(0x5c)!    //  \
+        let quote = UnicodeScalar(0x22)!     //  "
+        let separator = UnicodeScalar(0x3b)! //  ;
         enum State {
             case nonQuoted(String)
             case nonQuotedEscaped(String)
