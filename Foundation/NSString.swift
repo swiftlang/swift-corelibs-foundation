@@ -550,7 +550,7 @@ extension NSString {
         }
         
         var result = CFRange()
-        let res = withUnsafeMutablePointer(&result) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
+        let res = withUnsafeMutablePointer(to: &result) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
             if let loc = locale {
                 return CFStringFindWithOptionsAndLocale(_cfObject, searchString._cfObject, CFRange(searchRange), mask._cfValue(true), loc._cfObject, rangep)
             } else {
@@ -578,7 +578,7 @@ extension NSString {
         precondition(searchRange.length <= len && searchRange.location <= len - searchRange.length, "Bounds Range {\(searchRange.location), \(searchRange.length)} out of bounds; string length \(len)")
         
         var result = CFRange()
-        let res = withUnsafeMutablePointer(&result) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
+        let res = withUnsafeMutablePointer(to: &result) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
             return CFStringFindCharacterFromSet(_cfObject, searchSet._cfObject, CFRange(searchRange), mask._cfValue(), rangep)
         }
         if res {
@@ -1413,7 +1413,7 @@ extension NSMutableString {
     
     public func applyTransform(_ transform: String, reverse: Bool, range: NSRange, updatedRange resultingRange: NSRangePointer?) -> Bool {
         var cfRange = CFRangeMake(range.location, range.length)
-        return withUnsafeMutablePointer(&cfRange) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
+        return withUnsafeMutablePointer(to: &cfRange) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
             if CFStringTransform(_cfMutableObject, rangep, transform._cfObject, reverse) {
                 resultingRange?.pointee.location = rangep.pointee.location
                 resultingRange?.pointee.length = rangep.pointee.length

@@ -270,7 +270,7 @@ extension NSData {
         }
 
         var info = stat()
-        let ret = withUnsafeMutablePointer(&info) { infoPointer -> Bool in
+        let ret = withUnsafeMutablePointer(to: &info) { infoPointer -> Bool in
             if fstat(fd, infoPointer) < 0 {
                 return false
             }
@@ -574,7 +574,7 @@ extension NSData {
 
     public func enumerateBytes(_ block: @noescape (UnsafeRawPointer, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
         var stop = false
-        withUnsafeMutablePointer(&stop) { stopPointer in
+        withUnsafeMutablePointer(to: &stop) { stopPointer in
             block(bytes, NSMakeRange(0, length), stopPointer)
         }
     }
