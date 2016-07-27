@@ -39,9 +39,9 @@ class TestNSCharacterSet : XCTestCase {
         ]
     }
     
-    let capitalA = UnicodeScalar(0x0041) // LATIN CAPITAL LETTER A
-    let capitalB = UnicodeScalar(0x0042) // LATIN CAPITAL LETTER B
-    let capitalC = UnicodeScalar(0x0043) // LATIN CAPITAL LETTER C
+    let capitalA = UnicodeScalar(0x0041)! // LATIN CAPITAL LETTER A
+    let capitalB = UnicodeScalar(0x0042)! // LATIN CAPITAL LETTER B
+    let capitalC = UnicodeScalar(0x0043)! // LATIN CAPITAL LETTER C
     
     func testBasicConstruction() {
         // Create a character set
@@ -95,14 +95,14 @@ class TestNSCharacterSet : XCTestCase {
     
     func testRanges() {
         // Simple range check
-        let asciiUppercase = CharacterSet(charactersIn: UnicodeScalar(0x41)...UnicodeScalar(0x5A))
-        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x49)))
-        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x5A)))
-        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x41)))
-        XCTAssertTrue(!asciiUppercase.contains(UnicodeScalar(0x5B)))
+        let asciiUppercase = CharacterSet(charactersIn: UnicodeScalar(0x41)!...UnicodeScalar(0x5A)!)
+        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x49)!))
+        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x5A)!))
+        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x41)!))
+        XCTAssertTrue(!asciiUppercase.contains(UnicodeScalar(0x5B)!))
         
         // Some string filtering tests
-        let asciiLowercase = CharacterSet(charactersIn: UnicodeScalar(0x61)...UnicodeScalar(0x7B))
+        let asciiLowercase = CharacterSet(charactersIn: UnicodeScalar(0x61)!...UnicodeScalar(0x7B)!)
         let testString = "helloHELLOhello"
         let expected = "HELLO"
         
@@ -111,26 +111,26 @@ class TestNSCharacterSet : XCTestCase {
     }
     
     func testInsertAndRemove() {
-        var asciiUppercase = CharacterSet(charactersIn: UnicodeScalar(0x41)...UnicodeScalar(0x5A))
-        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x49)))
-        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x5A)))
-        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x41)))
+        var asciiUppercase = CharacterSet(charactersIn: UnicodeScalar(0x41)!...UnicodeScalar(0x5A)!)
+        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x49)!))
+        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x5A)!))
+        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x41)!))
         
         asciiUppercase.remove(UnicodeScalar(0x49))
-        XCTAssertTrue(!asciiUppercase.contains(UnicodeScalar(0x49)))
-        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x5A)))
-        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x41)))
+        XCTAssertTrue(!asciiUppercase.contains(UnicodeScalar(0x49)!))
+        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x5A)!))
+        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x41)!))
         
         
         // Zero-length range
-        asciiUppercase.remove(charactersIn: UnicodeScalar(0x41)..<UnicodeScalar(0x41))
-        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x41)))
+        asciiUppercase.remove(charactersIn: UnicodeScalar(0x41)!..<UnicodeScalar(0x41)!)
+        XCTAssertTrue(asciiUppercase.contains(UnicodeScalar(0x41)!))
         
-        asciiUppercase.remove(charactersIn: UnicodeScalar(0x41)..<UnicodeScalar(0x42))
-        XCTAssertTrue(!asciiUppercase.contains(UnicodeScalar(0x41)))
+        asciiUppercase.remove(charactersIn: UnicodeScalar(0x41)!..<UnicodeScalar(0x42)!)
+        XCTAssertTrue(!asciiUppercase.contains(UnicodeScalar(0x41)!))
         
         asciiUppercase.remove(charactersIn: "Z")
-        XCTAssertTrue(!asciiUppercase.contains(UnicodeScalar(0x5A)))
+        XCTAssertTrue(!asciiUppercase.contains(UnicodeScalar(0x5A)!))
     }
     
     func testBasics() {
@@ -156,16 +156,16 @@ class TestNSCharacterSet : XCTestCase {
     func test_Predefines() {
         let cset = CharacterSet.controlCharacters
         
-        XCTAssertTrue(cset.contains(UnicodeScalar(0xFEFF)), "Control set should contain UFEFF")
-        XCTAssertTrue(CharacterSet.letters.contains(UnicodeScalar(0x61)), "Letter set should contain 'a'")
-        XCTAssertTrue(CharacterSet.lowercaseLetters.contains(UnicodeScalar(0x61)), "Lowercase Letter set should contain 'a'")
-        XCTAssertTrue(CharacterSet.uppercaseLetters.contains(UnicodeScalar(0x41)), "Uppercase Letter set should contain 'A'")
-        XCTAssertTrue(CharacterSet.uppercaseLetters.contains(UnicodeScalar(0x01C5)), "Uppercase Letter set should contain U01C5")
-        XCTAssertTrue(CharacterSet.capitalizedLetters.contains(UnicodeScalar(0x01C5)), "Uppercase Letter set should contain U01C5")
-        XCTAssertTrue(CharacterSet.symbols.contains(UnicodeScalar(0x002B)), "Symbol set should contain U002B")
-        XCTAssertTrue(CharacterSet.symbols.contains(UnicodeScalar(0x20B1)), "Symbol set should contain U20B1")
-        XCTAssertTrue(CharacterSet.newlines.contains(UnicodeScalar(0x000A)), "Newline set should contain 0x000A")
-        XCTAssertTrue(CharacterSet.newlines.contains(UnicodeScalar(0x2029)), "Newline set should contain 0x2029")
+        XCTAssertTrue(cset.contains(UnicodeScalar(0xFEFF)!), "Control set should contain UFEFF")
+        XCTAssertTrue(CharacterSet.letters.contains(UnicodeScalar(0x61)!), "Letter set should contain 'a'")
+        XCTAssertTrue(CharacterSet.lowercaseLetters.contains(UnicodeScalar(0x61)!), "Lowercase Letter set should contain 'a'")
+        XCTAssertTrue(CharacterSet.uppercaseLetters.contains(UnicodeScalar(0x41)!), "Uppercase Letter set should contain 'A'")
+        XCTAssertTrue(CharacterSet.uppercaseLetters.contains(UnicodeScalar(0x01C5)!), "Uppercase Letter set should contain U01C5")
+        XCTAssertTrue(CharacterSet.capitalizedLetters.contains(UnicodeScalar(0x01C5)!), "Uppercase Letter set should contain U01C5")
+        XCTAssertTrue(CharacterSet.symbols.contains(UnicodeScalar(0x002B)!), "Symbol set should contain U002B")
+        XCTAssertTrue(CharacterSet.symbols.contains(UnicodeScalar(0x20B1)!), "Symbol set should contain U20B1")
+        XCTAssertTrue(CharacterSet.newlines.contains(UnicodeScalar(0x000A)!), "Newline set should contain 0x000A")
+        XCTAssertTrue(CharacterSet.newlines.contains(UnicodeScalar(0x2029)!), "Newline set should contain 0x2029")
         
         let mcset = CharacterSet.whitespacesAndNewlines
         let cset2 = CharacterSet.whitespacesAndNewlines
@@ -180,35 +180,35 @@ class TestNSCharacterSet : XCTestCase {
     
     func test_Range() {
 //        let cset1 = CharacterSet(range: NSMakeRange(0x20, 40))
-        let cset1 = CharacterSet(charactersIn: UnicodeScalar(0x20)..<UnicodeScalar(0x20 + 40))
+        let cset1 = CharacterSet(charactersIn: UnicodeScalar(0x20)!..<UnicodeScalar(0x20 + 40)!)
         for idx: unichar in 0..<0xFFFF {
             if idx < 0xD800 || idx > 0xDFFF {
-                XCTAssertEqual(cset1.contains(UnicodeScalar(idx)), (idx >= 0x20 && idx < 0x20 + 40 ? true : false))
+                XCTAssertEqual(cset1.contains(UnicodeScalar(idx)!), (idx >= 0x20 && idx < 0x20 + 40 ? true : false))
             }
             
         }
         
-        let cset2 = CharacterSet(charactersIn: UnicodeScalar(0x0000)..<UnicodeScalar(0xFFFF))
+        let cset2 = CharacterSet(charactersIn: UnicodeScalar(0x0000)!..<UnicodeScalar(0xFFFF)!)
         for idx: unichar in 0..<0xFFFF {
             if idx < 0xD800 || idx > 0xDFFF {
-                XCTAssertEqual(cset2.contains(UnicodeScalar(idx)), true)
+                XCTAssertEqual(cset2.contains(UnicodeScalar(idx)!), true)
             }
             
         }
         
 
-        let cset3 = CharacterSet(charactersIn: UnicodeScalar(0x0000)..<UnicodeScalar(10))
+        let cset3 = CharacterSet(charactersIn: UnicodeScalar(0x0000)!..<UnicodeScalar(10)!)
         for idx: unichar in 0..<0xFFFF {
             if idx < 0xD800 || idx > 0xDFFF {
-                XCTAssertEqual(cset3.contains(UnicodeScalar(idx)), (idx < 10 ? true : false))
+                XCTAssertEqual(cset3.contains(UnicodeScalar(idx)!), (idx < 10 ? true : false))
             }
             
         }
         
-        let cset4 = CharacterSet(charactersIn: UnicodeScalar(0x20)..<UnicodeScalar(0x20))
+        let cset4 = CharacterSet(charactersIn: UnicodeScalar(0x20)!..<UnicodeScalar(0x20)!)
         for idx: unichar in 0..<0xFFFF {
             if idx < 0xD800 || idx > 0xDFFF {
-                XCTAssertEqual(cset4.contains(UnicodeScalar(idx)), false)
+                XCTAssertEqual(cset4.contains(UnicodeScalar(idx)!), false)
             }
             
         }
@@ -218,7 +218,7 @@ class TestNSCharacterSet : XCTestCase {
         let cset = CharacterSet(charactersIn: "abcABC")
         for idx: unichar in 0..<0xFFFF {
             if idx < 0xD800 || idx > 0xDFFF {
-                XCTAssertEqual(cset.contains(UnicodeScalar(idx)), (idx >= unichar(unicodeScalarLiteral: "a") && idx <= unichar(unicodeScalarLiteral: "c")) || (idx >= unichar(unicodeScalarLiteral: "A") && idx <= unichar(unicodeScalarLiteral: "C")) ? true : false)
+                XCTAssertEqual(cset.contains(UnicodeScalar(idx)!), (idx >= unichar(unicodeScalarLiteral: "a") && idx <= unichar(unicodeScalarLiteral: "c")) || (idx >= unichar(unicodeScalarLiteral: "A") && idx <= unichar(unicodeScalarLiteral: "C")) ? true : false)
             }
         }
     }
