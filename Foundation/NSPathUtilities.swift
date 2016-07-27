@@ -146,7 +146,7 @@ internal extension String {
         }
         
         let temp = _stringByRemovingPrefix(prefix)
-        if FileManager.default().fileExists(atPath: temp) {
+        if FileManager.default.fileExists(atPath: temp) {
             return temp
         }
         
@@ -347,7 +347,7 @@ public extension NSString {
                 
             default:
                 resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
-                if let destination = FileManager.default()._tryToResolveTrailingSymlinkInPath(resolvedPath) {
+                if let destination = FileManager.default._tryToResolveTrailingSymlinkInPath(resolvedPath) {
                     resolvedPath = destination
                 }
             }
@@ -427,7 +427,7 @@ public extension NSString {
         }
         
         var isDirectory = false
-        let exists = FileManager.default().fileExists(atPath: path, isDirectory: &isDirectory)
+        let exists = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
         return exists && isDirectory
     }
     
@@ -436,7 +436,7 @@ public extension NSString {
     internal func _getNamesAtURL(_ filePathURL: URL, prependWith: String, namePredicate: _FileNamePredicate, typePredicate: _FileNamePredicate) -> [String] {
         var result: [String] = []
         
-        if let enumerator = FileManager.default().enumerator(at: filePathURL, includingPropertiesForKeys: nil, options: .skipsSubdirectoryDescendants, errorHandler: nil) {
+        if let enumerator = FileManager.default.enumerator(at: filePathURL, includingPropertiesForKeys: nil, options: .skipsSubdirectoryDescendants, errorHandler: nil) {
             for item in enumerator.lazy.map({ $0 as! URL }) {
                 let itemName = item.lastPathComponent
                 
@@ -618,14 +618,14 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     if fd == -1 {
         throw _NSErrorWithErrno(errno, reading: false, path: filePath)
     }
-    let pathResult = FileManager.default().string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
+    let pathResult = FileManager.default.string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
     return (fd, pathResult)
 }
 
 internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String) throws  {
     if rename(auxFilePath, filePath) != 0 {
         do {
-            try FileManager.default().removeItem(atPath: auxFilePath)
+            try FileManager.default.removeItem(atPath: auxFilePath)
         } catch _ {
         }
         throw _NSErrorWithErrno(errno, reading: false, path: filePath)
