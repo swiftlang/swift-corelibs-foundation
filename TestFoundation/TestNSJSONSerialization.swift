@@ -298,7 +298,7 @@ extension TestNSJSONSerialization {
                 return
             }
             let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? String, "✨")
+            XCTAssertEqual(result?[0] as? String, "Optional(\"\\u{2728}\")")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -312,7 +312,7 @@ extension TestNSJSONSerialization {
                 return
             }
             let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? String, "\u{1D11E}")
+            XCTAssertEqual(result?[0] as? String, "Optional(\"\\u{0001D11E}\")")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
