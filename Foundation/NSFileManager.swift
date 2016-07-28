@@ -70,7 +70,7 @@ open class FileManager: NSObject {
     
     /* Returns the default singleton instance.
     */
-    public static let default = FileManager()
+    public static let `default` = FileManager()
     
     /* Returns an NSArray of NSURLs locating the mounted volumes available on the computer. The property keys that can be requested are available in NSURL.
      */
