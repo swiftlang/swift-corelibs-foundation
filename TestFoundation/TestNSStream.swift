@@ -147,7 +147,7 @@ class TestNSStream : XCTestCase {
         var buffer = Array<UInt8>(repeating: 0, count: 12)
         var myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 12)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
         XCTAssertEqual(Stream.Status.notOpen, outputStream.streamStatus)
         outputStream.open()
         XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)
@@ -190,7 +190,7 @@ class TestNSStream : XCTestCase {
         //verify the data written
         let dataWritten  = outputStream.propertyForKey(NSStreamDataWrittenToMemoryStreamKey)
         if let nsdataWritten = dataWritten as? NSData {
-            nsdataWritten.getBytes(UnsafeMutablePointer<UInt8>(buffer), length: result!)
+            nsdataWritten.getBytes(UnsafeMutablePointer(mutating: buffer), length: result!)
             XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), myString._bridgeToObject())
             outputStream.close()
         } else {
@@ -202,7 +202,7 @@ class TestNSStream : XCTestCase {
         let buffer = Array<UInt8>(repeating: 0, count: 12)
         var myString = "Welcome To Hello world  !"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 12)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
         outputStream.open()
         XCTAssertTrue(outputStream.hasSpaceAvailable)
         _ = outputStream.write(encodedData, maxLength: encodedData.count)
