@@ -106,7 +106,7 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
         return reciprocal / baseUnitValue
     }
     
-    private required convenience init?(coder aDecoder: NSCoder) {
+    fileprivate required convenience init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
             let reciprocal = aDecoder.decodeDouble(forKey: "NS.reciprocal")
             self.init(reciprocal: reciprocal)
@@ -118,7 +118,7 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
         }
     }
     
-    private func encode(with aCoder: NSCoder) {
+    fileprivate func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(self.reciprocal, forKey:"NS.reciprocal")
         } else {
@@ -126,7 +126,7 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
         }
     }
     
-    private static func supportsSecureCoding() -> Bool { return true }
+    fileprivate static func supportsSecureCoding() -> Bool { return true }
 }
 
 /*
