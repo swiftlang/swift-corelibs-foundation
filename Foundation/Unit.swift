@@ -94,7 +94,7 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
     private private(set) var reciprocal: Double
     
     
-    private init(reciprocal: Double) {
+    fileprivate init(reciprocal: Double) {
         self.reciprocal = reciprocal
     }
     

@@ -43,7 +43,7 @@ extension Set : _ObjectTypeBridgeable {
             let cf = x._cfObject
             let cnt = CFSetGetCount(cf)
             
-            let objs = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: cnt)
+            let objs = UnsafeMutablePointer<UnsafeRawPointer?>.allocate(capacity: cnt)
             
             CFSetGetValues(cf, objs)
             
@@ -86,7 +86,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             NSRequiresConcreteImplementation()
         }
         
-        guard let obj = object as? NSObject where _storage.contains(obj) else {
+        guard let obj = object as? NSObject, _storage.contains(obj) else {
             return nil
         }
         
@@ -119,8 +119,8 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             // We're stuck with (int) here (rather than unsigned int)
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
-            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
+            withUnsafeMutablePointer(to: &cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
             }
             let objects = UnsafeMutablePointer<AnyObject?>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {
@@ -189,7 +189,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     public override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let otherObject = object where otherObject is NSSet else {
+        guard let otherObject = object, otherObject is NSSet else {
             return false
         }
         let otherSet = otherObject as! NSSet
@@ -301,7 +301,7 @@ extension NSSet {
     public func enumerateObjects(_ opts: EnumerationOptions = [], using block: @noescape (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop : ObjCBool = false
         for obj in self {
-            withUnsafeMutablePointer(&stop) { stop in
+            withUnsafeMutablePointer(to: &stop) { stop in
                 block(obj, stop)
             }
             if stop {

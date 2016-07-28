@@ -53,7 +53,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
     public convenience override init() {
         var tv = timeval()
-        let _ = withUnsafeMutablePointer(&tv) { t in
+        let _ = withUnsafeMutablePointer(to: &tv) { t in
             gettimeofday(t, nil)
         }
         var timestamp = TimeInterval(tv.tv_sec) - NSTimeIntervalSince1970
@@ -71,8 +71,8 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
             self.init(timeIntervalSinceReferenceDate: ti)
         } else {
             var ti: TimeInterval = 0.0
-            withUnsafeMutablePointer(&ti) { (ptr: UnsafeMutablePointer<Double>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "d", at: UnsafeMutablePointer<Void>(ptr))
+            withUnsafeMutablePointer(to: &ti) { (ptr: UnsafeMutablePointer<Double>) -> Void in
+                aDecoder.decodeValue(ofObjCType: "d", at: UnsafeMutableRawPointer(ptr))
             }
             self.init(timeIntervalSinceReferenceDate: ti)
         }

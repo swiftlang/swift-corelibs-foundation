@@ -67,7 +67,7 @@ public class URLResponse : NSObject, NSSecureCoding, NSCopying {
     /// that the origin server or source reported the information
     /// incorrectly or imprecisely. An attempt to guess the MIME type may
     /// be made if the origin source did not report any such information.
-    public private(set) var mimeType: String?
+    public fileprivate(set) var mimeType: String?
     
     /// The expected content length of the receiver.
     ///
@@ -81,7 +81,7 @@ public class URLResponse : NSObject, NSSecureCoding, NSCopying {
     /// The expected content length of the receiver, or `-1` if
     /// there is no expectation that can be arrived at regarding expected
     /// content length.
-    public private(set) var expectedContentLength: Int64
+    public fileprivate(set) var expectedContentLength: Int64
     
     /// The name of the text encoding of the receiver.
     ///
@@ -90,7 +90,7 @@ public class URLResponse : NSObject, NSSecureCoding, NSCopying {
     /// URL load. Clients can inspect this string and convert it to an
     /// NSStringEncoding or CFStringEncoding using the methods and
     /// functions made available in the appropriate framework.
-    public private(set) var textEncodingName: String?
+    public fileprivate(set) var textEncodingName: String?
     
     /// A suggested filename if the resource were saved to disk.
     ///
@@ -104,7 +104,7 @@ public class URLResponse : NSObject, NSSecureCoding, NSCopying {
     /// method appends the proper file extension based on the MIME type.
     ///
     /// This method always returns a valid filename.
-    public private(set) var suggestedFilename: String?
+    public fileprivate(set) var suggestedFilename: String?
 }
 
 /// A Response to an HTTP URL load.
@@ -232,7 +232,7 @@ public class NSHTTPURLResponse : URLResponse {
     /// A string that represents the contents of the NSHTTPURLResponse Object.
     /// This property is intended to produce readable output.
     override public var description: String {
-        var result = "<\(self.dynamicType) \(unsafeAddress(of: self))> { URL: \(url!.absoluteString) }{ status: \(statusCode), headers {\n"
+        var result = "<\(self.dynamicType) \(Unmanaged.passUnretained(self).toOpaque())> { URL: \(url!.absoluteString) }{ status: \(statusCode), headers {\n"
         for(key, value) in allHeaderFields {
             if((key.lowercased() == "content-disposition" && suggestedFilename != "Unknown") || key.lowercased() == "content-type") {
                 result += "   \"\(key)\" = \"\(value)\";\n"
@@ -357,9 +357,9 @@ private extension String {
             }
         }
         
-        let escape = UnicodeScalar(0x5c)    //  \
-        let quote = UnicodeScalar(0x22)     //  "
-        let separator = UnicodeScalar(0x3b) //  ;
+        let escape = UnicodeScalar(0x5c)!    //  \
+        let quote = UnicodeScalar(0x22)!     //  "
+        let separator = UnicodeScalar(0x3b)! //  ;
         enum State {
             case nonQuoted(String)
             case nonQuotedEscaped(String)

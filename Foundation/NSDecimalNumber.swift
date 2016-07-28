@@ -51,7 +51,7 @@ public class NSDecimalNumber : NSNumber {
         NSUnimplemented()
     }
     
-    public required convenience init(bytes buffer: UnsafePointer<Void>, objCType type: UnsafePointer<Int8>) {
+    public required convenience init(bytes buffer: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
         NSRequiresConcreteImplementation()
     }
     

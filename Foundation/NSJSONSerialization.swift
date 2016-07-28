@@ -159,7 +159,10 @@ public class JSONSerialization : NSObject {
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
      */
     public class func writeJSONObject(_ obj: AnyObject, toStream stream: NSOutputStream, options opt: WritingOptions) throws -> Int {
-        NSUnimplemented()
+            let jsonData = try data(withJSONObject: obj, options: opt)
+            let jsonNSData = jsonData.bridge()
+            let bytePtr = jsonNSData.bytes.bindMemory(to: UInt8.self, capacity: jsonNSData.length)
+            return stream.write(bytePtr, maxLength: jsonNSData.length)
     }
     
     /* Create a JSON object from JSON data stream. The stream should be opened and configured. All other behavior of this method is the same as the JSONObjectWithData:options:error: method.
@@ -481,7 +484,7 @@ private struct JSONReader {
 
     func consumeWhitespace(_ input: Index) -> Index? {
         var index = input
-        while let (char, nextIndex) = source.takeASCII(index) where JSONReader.whitespaceASCII.contains(char) {
+        while let (char, nextIndex) = source.takeASCII(index), JSONReader.whitespaceASCII.contains(char) {
             index = nextIndex
         }
         return index
@@ -519,7 +522,7 @@ private struct JSONReader {
 
     func takeMatching(_ match: (UInt8) -> Bool) -> ([Character], Index) -> ([Character], Index)? {
         return { input, index in
-            guard let (byte, index) = self.source.takeASCII(index) where match(byte) else {
+            guard let (byte, index) = self.source.takeASCII(index), match(byte) else {
                 return nil
             }
             return (input + [Character(UnicodeScalar(byte))], index)
@@ -599,7 +602,7 @@ private struct JSONReader {
             return (String(UnicodeScalar(codeUnit)), index)
         }
 
-        guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit) where UTF16.isTrailSurrogate(trailCodeUnit) else {
+        guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit) , UTF16.isTrailSurrogate(trailCodeUnit) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to convert unicode escape sequence (no low-surrogate code point) to UTF8-encoded character at position \(source.distanceFromStart(input))"
             ])
@@ -668,7 +671,7 @@ private struct JSONReader {
         else {
             var numberCharacters = [UInt8]()
             var index = input
-            while let (ascii, nextIndex) = source.takeASCII(index) where JSONReader.numberCodePoints.contains(ascii) {
+            while let (ascii, nextIndex) = source.takeASCII(index), JSONReader.numberCodePoints.contains(ascii) {
                 numberCharacters.append(ascii)
                 index = nextIndex
             }

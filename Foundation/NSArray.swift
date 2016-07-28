@@ -69,8 +69,8 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             // We're stuck with (int) here (rather than unsigned int)
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
-            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
+            withUnsafeMutablePointer(to: &cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
             }
             let objects = UnsafeMutablePointer<AnyObject?>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {
@@ -166,7 +166,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
 
     public override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let otherObject = object where otherObject is NSArray else {
+        guard let otherObject = object, otherObject is NSArray else {
             return false
         }
         let otherArray = otherObject as! NSArray
@@ -388,13 +388,13 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
         }))
     }
     
-    public func sortedArray(_ comparator: @noescape @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Swift.Void>?) -> Int, context: UnsafeMutablePointer<Swift.Void>?) -> [AnyObject] {
+    public func sortedArray(_ comparator: @noescape @convention(c) (AnyObject, AnyObject, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?) -> [AnyObject] {
         return sortedArray([]) { lhs, rhs in
             return ComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
     }
     
-    public func sortedArray(_ comparator: @noescape @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Swift.Void>?) -> Int, context: UnsafeMutablePointer<Swift.Void>?, hint: Data?) -> [AnyObject] {
+    public func sortedArray(_ comparator: @noescape @convention(c) (AnyObject, AnyObject, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?, hint: Data?) -> [AnyObject] {
         return sortedArray([]) { lhs, rhs in
             return ComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
@@ -834,7 +834,7 @@ public class NSMutableArray : NSArray {
         }
     }
 
-    public func sortUsingFunction(_ compare: @convention(c) (AnyObject, AnyObject, UnsafeMutablePointer<Void>?) -> Int, context: UnsafeMutablePointer<Void>?) {
+    public func sortUsingFunction(_ compare: @convention(c) (AnyObject, AnyObject, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?) {
         self.setArray(self.sortedArray(compare, context: context))
     }
 

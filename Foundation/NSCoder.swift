@@ -17,16 +17,16 @@ public protocol NSSecureCoding : NSCoding {
 }
 
 public class NSCoder : NSObject {
-    internal var _pendingBuffers = Array<(UnsafeMutablePointer<Void>, Int)>()
+    internal var _pendingBuffers = Array<(UnsafeMutableRawPointer, Int)>()
     
     deinit {
         for buffer in _pendingBuffers {
-            buffer.0.deinitialize()
-            buffer.0.deallocate(capacity: buffer.1)
+            // Cannot deinitialize a pointer to unknown type.
+            buffer.0.deallocate(bytes: buffer.1, alignedTo: alignof(Int.self))
         }
     }
     
-    public func encodeValue(ofObjCType type: UnsafePointer<Int8>, at addr: UnsafePointer<Void>) {
+    public func encodeValue(ofObjCType type: UnsafePointer<Int8>, at addr: UnsafeRawPointer) {
         NSRequiresConcreteImplementation()
     }
     
@@ -34,7 +34,7 @@ public class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    public func decodeValue(ofObjCType type: UnsafePointer<Int8>, at data: UnsafeMutablePointer<Void>) {
+    public func decodeValue(ofObjCType type: UnsafePointer<Int8>, at data: UnsafeMutableRawPointer) {
         NSRequiresConcreteImplementation()
     }
     
@@ -99,8 +99,8 @@ public class NSCoder : NSObject {
     
     public func encode(_ object: AnyObject?) {
         var object = object
-        withUnsafePointer(&object) { (ptr: UnsafePointer<AnyObject?>) -> Void in
-            encodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafePointer<Void>.self))
+        withUnsafePointer(to: &object) { (ptr: UnsafePointer<AnyObject?>) -> Void in
+            encodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeRawPointer.self))
         }
     }
     
@@ -120,18 +120,18 @@ public class NSCoder : NSObject {
         encode(object)
     }
     
-    public func encodeArray(ofObjCType type: UnsafePointer<Int8>, count: Int, at array: UnsafePointer<Void>) {
+    public func encodeArray(ofObjCType type: UnsafePointer<Int8>, count: Int, at array: UnsafeRawPointer) {
         encodeValue(ofObjCType: "[\(count)\(String(cString: type))]", at: array)
     }
     
-    public func encodeBytes(_ byteaddr: UnsafePointer<Void>?, length: Int) {
+    public func encodeBytes(_ byteaddr: UnsafeRawPointer?, length: Int) {
         var newLength = UInt32(length)
-        withUnsafePointer(&newLength) { (ptr: UnsafePointer<UInt32>) -> Void in
+        withUnsafePointer(to: &newLength) { (ptr: UnsafePointer<UInt32>) -> Void in
             encodeValue(ofObjCType: "I", at: ptr)
         }
         var empty: [Int8] = []
-        withUnsafePointer(&empty) {
-            encodeArray(ofObjCType: "c", count: length, at: byteaddr ?? UnsafePointer($0))
+        withUnsafePointer(to: &empty) {
+            encodeArray(ofObjCType: "c", count: length, at: byteaddr ?? UnsafeRawPointer($0))
         }
     }
     
@@ -141,25 +141,25 @@ public class NSCoder : NSObject {
         }
         
         var obj: AnyObject? = nil
-        withUnsafeMutablePointer(&obj) { (ptr: UnsafeMutablePointer<AnyObject?>) -> Void in
-            decodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self))
+        withUnsafeMutablePointer(to: &obj) { (ptr: UnsafeMutablePointer<AnyObject?>) -> Void in
+            decodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self))
         }
         return obj
     }
     
-    public func decodeArray(ofObjCType itemType: UnsafePointer<Int8>, count: Int, at array: UnsafeMutablePointer<Void>) {
+    public func decodeArray(ofObjCType itemType: UnsafePointer<Int8>, count: Int, at array: UnsafeMutableRawPointer) {
         decodeValue(ofObjCType: "[\(count)\(String(cString: itemType))]", at: array)
     }
    
     /*
     // TODO: This is disabled, as functions which return unsafe interior pointers are inherently unsafe when we have no autorelease pool. 
-    public func decodeBytes(withReturnedLength lengthp: UnsafeMutablePointer<Int>) -> UnsafeMutablePointer<Void>? {
+    public func decodeBytes(withReturnedLength lengthp: UnsafeMutablePointer<Int>) -> UnsafeMutableRawPointer? {
         var length: UInt32 = 0
-        withUnsafeMutablePointer(&length) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-            decodeValue(ofObjCType: "I", at: unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self))
+        withUnsafeMutablePointer(to: &length) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+            decodeValue(ofObjCType: "I", at: unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self))
         }
         // we cannot autorelease here so instead the pending buffers will manage the lifespan of the returned data... this is wasteful but good enough...
-        let result = UnsafeMutablePointer<Void>.allocate(capacity: Int(length))
+        let result = UnsafeMutableRawPointer.allocate(bytes: Int(length), alignedTo: alignof(Int.self))
         decodeValue(ofObjCType: "c", at: result)
         lengthp.pointee = Int(length)
         _pendingBuffers.append((result, Int(length)))

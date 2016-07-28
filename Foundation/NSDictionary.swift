@@ -52,8 +52,8 @@ extension Dictionary : _ObjectTypeBridgeable {
             let cf = x._cfObject
             let cnt = CFDictionaryGetCount(cf)
 
-            let keys = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: cnt)
-            let values = UnsafeMutablePointer<UnsafePointer<Void>?>.allocate(capacity: cnt)
+            let keys = UnsafeMutablePointer<UnsafeRawPointer?>.allocate(capacity: cnt)
+            let values = UnsafeMutablePointer<UnsafeRawPointer?>.allocate(capacity: cnt)
             
             CFDictionaryGetKeysAndValues(cf, keys, values)
             
@@ -125,8 +125,8 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             // We're stuck with (int) here (rather than unsigned int)
             // because that's the way the code was originally written, unless
             // we go to a new version of the class, which has its own problems.
-            withUnsafeMutablePointer(&cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutablePointer<Void>(ptr))
+            withUnsafeMutablePointer(to: &cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
+                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
             }
             let keys = UnsafeMutablePointer<NSObject>.allocate(capacity: Int(cnt))
             let objects = UnsafeMutablePointer<AnyObject>.allocate(capacity: Int(cnt))
@@ -354,11 +354,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         if level > 100 { return "..." }
 
         var lines = [String]()
-        let indentation = String(repeating: Character(" "), count: level * 4)
+        let indentation = String(repeating: " ", count: level * 4)
         lines.append(indentation + "{")
 
         for key in self.allKeys {
-            var line = String(repeating: Character(" "), count: (level + 1) * 4)
+            var line = String(repeating: " ", count: (level + 1) * 4)
 
             if key is NSArray {
                 line += (key as! NSArray).description(withLocale: locale, indent: level + 1)
@@ -486,7 +486,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         getObjects(&objects, andKeys: &keys, count: count)
         var stop = ObjCBool(false)
         for idx in 0..<count {
-            withUnsafeMutablePointer(&stop, { stop in
+            withUnsafeMutablePointer(to: &stop, { stop in
                 block(keys[idx] as! NSObject, objects[idx], stop)
             })
 

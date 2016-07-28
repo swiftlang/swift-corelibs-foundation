@@ -45,7 +45,7 @@ class TestNSPropertyList : XCTestCase {
         let path = testBundle().urlForResource("Test", withExtension: "plist")
         let data = try! Data(contentsOf: path!)
         do {
-            decoded = try withUnsafeMutablePointer(&fmt) { (format: UnsafeMutablePointer<PropertyListSerialization.PropertyListFormat>) -> Any in
+            decoded = try withUnsafeMutablePointer(to: &fmt) { (format: UnsafeMutablePointer<PropertyListSerialization.PropertyListFormat>) -> Any in
                 return try PropertyListSerialization.propertyList(from: data, options: [], format: format)
             }
         } catch {
