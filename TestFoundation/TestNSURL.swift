@@ -249,9 +249,9 @@ class TestNSURL : XCTestCase {
         return String(cString: buf)
     }
     static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
-    static let gFileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo().globallyUniqueString)"
+    static let gFileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo.globallyUniqueString)"
     static let gFileDoesNotExistName = "TestCFURL_file_does_not_exist"
-    static let gDirectoryExistsName = "TestCFURL_directory_exists\(ProcessInfo.processInfo().globallyUniqueString)"
+    static let gDirectoryExistsName = "TestCFURL_directory_exists\(ProcessInfo.processInfo.globallyUniqueString)"
     static let gDirectoryDoesNotExistName = "TestCFURL_directory_does_not_exist"
     static let gFileExistsPath = gBaseTemporaryDirectoryPath + gFileExistsName
     static let gFileDoesNotExistPath = gBaseTemporaryDirectoryPath + gFileDoesNotExistName
