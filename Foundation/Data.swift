@@ -194,7 +194,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// - parameter buffer: A buffer pointer to copy. The size is calculated from `SourceType` and `buffer.count`.
     public init<SourceType>(buffer: UnsafeBufferPointer<SourceType>) {
-        _wrapped = _SwiftNSData(immutableObject: NSData(bytes: buffer.baseAddress, length: MemoryLayout<SourceType>.size * buffer.count))
+        _wrapped = _SwiftNSData(immutableObject: NSData(bytes: buffer.baseAddress, length: MemoryLayout<SourceType>.stride * buffer.count))
     }
     
     /// Initialize a `Data` with the contents of an Array.
@@ -362,7 +362,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     
     /// Copy the contents of the data into a buffer.
     ///
-    /// This function copies the bytes in `range` from the data into the buffer. If the count of the `range` is greater than `MemoryLayout<DestinationType>.size * buffer.count` then the first N bytes will be copied into the buffer.
+    /// This function copies the bytes in `range` from the data into the buffer. If the count of the `range` is greater than `MemoryLayout<DestinationType>.stride * buffer.count` then the first N bytes will be copied into the buffer.
     /// - precondition: The range must be within the bounds of the data. Otherwise `fatalError` is called.
     /// - parameter buffer: A buffer to copy the data into.
     /// - parameter range: A range in the data to copy into the buffer. If the range is empty, this function will return 0 without copying anything. If the range is nil, as much data as will fit into `buffer` is copied.
@@ -380,9 +380,9 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
             precondition(r.upperBound >= 0)
             precondition(r.upperBound <= cnt, "The range is outside the bounds of the data")
             
-            copyRange = r.lowerBound..<(r.lowerBound + Swift.min(buffer.count * MemoryLayout<DestinationType>.size, r.count))
+            copyRange = r.lowerBound..<(r.lowerBound + Swift.min(buffer.count * MemoryLayout<DestinationType>.stride, r.count))
         } else {
-            copyRange = 0..<Swift.min(buffer.count * MemoryLayout<DestinationType>.size, cnt)
+            copyRange = 0..<Swift.min(buffer.count * MemoryLayout<DestinationType>.stride, cnt)
         }
         
         guard !copyRange.isEmpty else { return 0 }
@@ -470,7 +470,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     /// - parameter buffer: The buffer of bytes to append. The size is calculated from `SourceType` and `buffer.count`.
     public mutating func append<SourceType>(_ buffer : UnsafeBufferPointer<SourceType>) {
         _applyUnmanagedMutation {
-            $0.append(buffer.baseAddress!, length: buffer.count * MemoryLayout<SourceType>.size)
+            $0.append(buffer.baseAddress!, length: buffer.count * MemoryLayout<SourceType>.stride)
         }
     }
     
