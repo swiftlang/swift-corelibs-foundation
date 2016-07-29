@@ -241,6 +241,11 @@ public extension NSCocoaError {
     public var isXPCConnectionError: Bool {
         return rawValue >= 4096 && rawValue <= 4224
     }
+    
+     public var isXPCConnectionHandledError: Bool {
+     return rawValue >= 4568 && rawValue <= 4439
+ }
+    
 }
 
 #if os(OSX) || os(iOS)
