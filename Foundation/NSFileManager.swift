@@ -252,12 +252,13 @@ public class FileManager: NSObject {
         }
 
         while let entry = readdir(dir!) {
-            let entryName = withUnsafePointer(to: &entry.pointee.d_name) {
-                String(cString: UnsafeRawPointer($0).assumingMemoryBound(to: CChar.self))
-            }
-            // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
-            if entryName != "." && entryName != ".." {
-                contents.append(entryName)
+            if let entryName = withUnsafePointer(to: &entry.pointee.d_name, { (ptr) -> String? in
+                return String(cString: UnsafePointer<Int8>(ptr))
+            }) {
+                // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
+                if entryName != "." && entryName != ".." {
+                    contents.append(entryName)
+                }
             }
         }
         
@@ -293,27 +294,31 @@ public class FileManager: NSObject {
         var entry = readdir(dir!)
         
         while entry != nil {
-            let entryName = withUnsafePointer(to: &entry!.pointee.d_name) {
-                String(cString: UnsafeRawPointer($0).assumingMemoryBound(to: CChar.self))
-            }
-            // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
-            if entryName != "." && entryName != ".." {
-                contents.append(entryName)
+            if let entryName = withUnsafePointer(to: &entry!.pointee.d_name, { (ptr) -> String? in
+                let int8Ptr = unsafeBitCast(ptr, to: UnsafePointer<Int8>.self)
+                return String(cString: int8Ptr)
+            }) {
+                // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
+                if entryName != "." && entryName != ".." {
+                    contents.append(entryName)
                     
-                let entryType = withUnsafePointer(to: &entry!.pointee.d_type) { (ptr) -> Int32 in
-                    return Int32(ptr.pointee)
-                }
-                #if os(OSX) || os(iOS)
-                    let tempEntryType = entryType
-                #elseif os(Linux)
-                    let tempEntryType = Int(entryType)
-                #endif
+                    if let entryType = withUnsafePointer(to: &entry!.pointee.d_type, { (ptr) -> Int32? in
+                        let int32Ptr = unsafeBitCast(ptr, to: UnsafePointer<UInt8>.self)
+                        return Int32(int32Ptr.pointee)
+                    }) {
+                        #if os(OSX) || os(iOS)
+                            let tempEntryType = entryType
+                        #elseif os(Linux)
+                            let tempEntryType = Int(entryType)
+                        #endif
                         
-                if tempEntryType == DT_DIR {
-                    let subPath: String = path + "/" + entryName
+                        if tempEntryType == DT_DIR {
+                            let subPath: String = path + "/" + entryName
                             
-                    let entries =  try subpathsOfDirectory(atPath: subPath)
-                    contents.append(contentsOf: entries.map({file in "\(entryName)/\(file)"}))
+                            let entries =  try subpathsOfDirectory(atPath: subPath)
+                            contents.append(contentsOf: entries.map({file in "\(entryName)/\(file)"}))
+                        }
+                    }
                 }
             }
             
@@ -463,7 +468,7 @@ public class FileManager: NSObject {
 
             let fsRep = FileManager.default().fileSystemRepresentation(withPath: path)
             let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
-            ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
+            ps.initialize(to: UnsafeMutablePointer(fsRep))
             ps.advanced(by: 1).initialize(to: nil)
             let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
             ps.deinitialize(count: 2)
@@ -909,7 +914,7 @@ extension FileManager {
                 if FileManager.default().fileExists(atPath: path) {
                     let fsRep = FileManager.default().fileSystemRepresentation(withPath: path)
                     let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
-                    ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
+                    ps.initialize(to: UnsafeMutablePointer(fsRep))
                     ps.advanced(by: 1).initialize(to: nil)
                     _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
                     ps.deinitialize(count: 2)

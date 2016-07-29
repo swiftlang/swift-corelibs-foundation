@@ -216,8 +216,8 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_charptr() {
-        let charArray = [CChar]("Hello world, we are testing!\0".utf8CString)
-        var charPtr = UnsafeMutablePointer(mutating: charArray)
+        let charArray = [UInt8]("Hello world, we are testing!\0".utf8)
+        var charPtr = UnsafeMutablePointer<CChar>(charArray)
 
         test_archive({ archiver -> Bool in
                 let value = NSValue(bytes: &charPtr, objCType: "*")

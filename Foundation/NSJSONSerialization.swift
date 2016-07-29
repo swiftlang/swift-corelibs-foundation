@@ -111,8 +111,7 @@ public class JSONSerialization : NSObject {
             pretty: opt.contains(.prettyPrinted),
             writer: { (str: String?) in
                 if let str = str {
-                    let count = str.lengthOfBytes(using: .utf8)
-                    result.append(UnsafeRawPointer(str.cString(using: .utf8)!).bindMemory(to: UInt8.self, capacity: count), count: count)
+                    result.append(UnsafePointer<UInt8>(str.cString(using: .utf8)!), count: str.lengthOfBytes(using: .utf8))
                 }
             }
         )
@@ -636,11 +635,11 @@ private struct JSONReader {
     func parseNumber(_ input: Index) throws -> (Any, Index)? {
         func parseTypedNumber(_ address: UnsafePointer<UInt8>, count: Int) -> (Any, IndexDistance)? {
             let temp_buffer_size = 64
-            var temp_buffer = [Int8](repeating: 0, count: temp_buffer_size)
-            return temp_buffer.withUnsafeMutableBufferPointer { (buffer: inout UnsafeMutableBufferPointer<Int8>) -> (Any, IndexDistance)? in
+            var temp_buffer = [UInt8](repeating: 0, count: temp_buffer_size)
+            return temp_buffer.withUnsafeMutableBufferPointer { (buffer: inout UnsafeMutableBufferPointer<UInt8>) -> (Any, IndexDistance)? in
                 memcpy(buffer.baseAddress!, address, min(count, temp_buffer_size - 1)) // ensure null termination
                 
-                let startPointer = buffer.baseAddress!
+                let startPointer = UnsafePointer<Int8>(buffer.baseAddress!)
                 let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
                 defer { intEndPointer.deallocate(capacity: 1) }
                 let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
