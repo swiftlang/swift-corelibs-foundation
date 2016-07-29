@@ -144,6 +144,7 @@ public = [
 private = [
 	'CoreFoundation/Base.subproj/ForSwiftFoundationOnly.h',
 	'CoreFoundation/Base.subproj/ForFoundationOnly.h',
+	'CoreFoundation/Base.subproj/CFAsmMacros.h',
 	'CoreFoundation/String.subproj/CFBurstTrie.h',
 	'CoreFoundation/Error.subproj/CFError_Private.h',
 	'CoreFoundation/URL.subproj/CFURLPriv.h',
