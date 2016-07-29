@@ -694,7 +694,7 @@ extension String {
     freeWhenDone flag: Bool
   ) {
     self = NSString(
-      charactersNoCopy: UnsafeMutablePointer(mutating: utf16CodeUnitsNoCopy),
+      charactersNoCopy: UnsafeMutablePointer(utf16CodeUnitsNoCopy),
       length: count,
       freeWhenDone: flag)._swiftObject
   }

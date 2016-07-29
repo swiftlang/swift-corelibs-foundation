@@ -43,10 +43,7 @@ extension XMLParser {
 }
 
 private func UTF8STRING(_ bytes: UnsafePointer<UInt8>) -> String? {
-    // strlen operates on the wrong type, char*. We can't rebind the memory to a different type without knowing it's length,
-    // but since we know strlen is in libc, its safe to directly bitcast the pointer without worrying about multiple accesses
-    // of different types visible to the compiler.
-    let len = strlen(unsafeBitCast(bytes, to: UnsafePointer<Int8>.self))
+    let len = strlen(UnsafePointer<Int8>(bytes))
     let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: bytes, count: Int(len)))
     return str
 }
@@ -247,10 +244,9 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
     let parser = ctx.parser
     let reportQNameURI = parser.shouldProcessNamespaces
     let reportNamespaces = parser.shouldReportNamespacePrefixes
-    // Since strlen is in libc, it's safe to bitcast the UInt8 pointer argument to an Int8 (char *) pointer.
-    let prefixLen = prefix != nil ? UInt(strlen(unsafeBitCast(prefix!, to: UnsafePointer<Int8>.self))) : 0
+    let prefixLen = prefix != nil ? UInt(strlen(UnsafePointer<Int8>(prefix!))) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
-    let qualifiedNameString = prefixLen != 0 ? _colonSeparatedStringFromPrefixAndSuffix(prefix!, UInt(prefixLen), localname, UInt(strlen(unsafeBitCast(localname, to: UnsafePointer<Int8>.self)))) : localnameString
+    let qualifiedNameString = prefixLen != 0 ? _colonSeparatedStringFromPrefixAndSuffix(prefix!, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : localnameString
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nil
     
     var nsDict = [String:String]()
@@ -263,7 +259,7 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
                 if reportNamespaces {
                     namespaceNameString = UTF8STRING(ns)
                 }
-                asAttrNamespaceNameString = _colonSeparatedStringFromPrefixAndSuffix("xmlns", 5, ns, UInt(strlen(unsafeBitCast(ns, to: UnsafePointer<Int8>.self))))
+                asAttrNamespaceNameString = _colonSeparatedStringFromPrefixAndSuffix("xmlns", 5, ns, UInt(strlen(UnsafePointer<Int8>(ns))))
             } else {
                 namespaceNameString = ""
                 asAttrNamespaceNameString = "xmlns"
@@ -294,10 +290,9 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         var attributeQName: String
         let attrLocalName = attributes[idx]!
         let attrPrefix = attributes[idx + 1]
-        // Since strlen is in libc, it's safe to bitcast the UInt8 pointer argument to an Int8 (char *) pointer.
-        let attrPrefixLen = attrPrefix != nil ? strlen(unsafeBitCast(attrPrefix!, to: UnsafePointer<Int8>.self)) : 0
+        let attrPrefixLen = attrPrefix != nil ? strlen(UnsafePointer<Int8>(attrPrefix!)) : 0
         if attrPrefixLen != 0 {
-            attributeQName = _colonSeparatedStringFromPrefixAndSuffix(attrPrefix!, UInt(attrPrefixLen), attrLocalName, UInt(strlen((unsafeBitCast(attrLocalName, to: UnsafePointer<Int8>.self)))))
+            attributeQName = _colonSeparatedStringFromPrefixAndSuffix(attrPrefix!, UInt(attrPrefixLen), attrLocalName, UInt(strlen((UnsafePointer<Int8>(attrLocalName)))))
         } else {
             attributeQName = UTF8STRING(attrLocalName)!
         }
@@ -309,14 +304,10 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
             let numBytesWithoutTerminator = attributes[idx + 4]! - attributes[idx + 3]!
             let numBytesWithTerminator = numBytesWithoutTerminator + 1
             if numBytesWithoutTerminator != 0 {
-                var chars = [UInt8](repeating: 0, count: numBytesWithTerminator)
-                attributeValue = chars.withUnsafeMutableBufferPointer({ (buffer: inout UnsafeMutableBufferPointer<UInt8>) -> String in
-                    // In Swift code, buffer is alwaus accessed as UInt8.
-                    // Since strncpy is in libc, it's safe to bitcast the UInt8 pointer arguments to an Int8 (char *) pointer.
-                    strncpy(unsafeBitCast(buffer.baseAddress!, to: UnsafeMutablePointer<Int8>.self),
-                        unsafeBitCast(attributes[idx + 3]!, to: UnsafePointer<Int8>.self),
-                        numBytesWithoutTerminator) //not strlcpy because attributes[i+3] is not Nul terminated
-                    return UTF8STRING(buffer.baseAddress!)!
+                var chars = [Int8](repeating: 0, count: numBytesWithTerminator)
+                attributeValue = chars.withUnsafeMutableBufferPointer({ (buffer: inout UnsafeMutableBufferPointer<Int8>) -> String in
+                    strncpy(buffer.baseAddress!, UnsafePointer<Int8>(attributes[idx + 3]!), numBytesWithoutTerminator) //not strlcpy because attributes[i+3] is not Nul terminated
+                    return UTF8STRING(UnsafePointer<UInt8>(buffer.baseAddress!))!
                 })
             }
             attrDict[attributeQName] = attributeValue
@@ -336,10 +327,10 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
 internal func _NSXMLParserEndElementNs(_ ctx: _CFXMLInterface , localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>?, URI: UnsafePointer<UInt8>) -> Void {
     let parser = ctx.parser
     let reportQNameURI = parser.shouldProcessNamespaces
-    let prefixLen = prefix != nil ? strlen(unsafeBitCast(prefix!, to: UnsafePointer<Int8>.self)) : 0
+    let prefixLen = prefix != nil ? strlen(UnsafePointer<Int8>(prefix!)) : 0
     let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
     let nilStr: String? = nil
-    let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix!, UInt(prefixLen), localname, UInt(strlen(unsafeBitCast(localname, to: UnsafePointer<Int8>.self)))) : nilStr
+    let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix!, UInt(prefixLen), localname, UInt(strlen(UnsafePointer<Int8>(localname)))) : nilStr
     let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nilStr
     
     
@@ -552,8 +543,7 @@ public class XMLParser : NSObject {
 
                 if (totalLength > 4) {
                     let remainingData = allExistingData.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Data in
-                        let ptr = bytes.advanced(by: 4)
-                        return Data(bytesNoCopy: UnsafeMutablePointer(mutating: ptr), count: totalLength - 4, deallocator: .none)
+                        return Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(bytes.advanced(by: 4)), count: totalLength - 4, deallocator: .none)
                     }
                     
                     let _ = parseData(remainingData)
@@ -594,7 +584,7 @@ public class XMLParser : NSObject {
             while result {
                 let chunk = data.withUnsafeBytes { (buffer: UnsafePointer<UInt8>) -> Data in
                     let ptr = buffer.advanced(by: range.location)
-                    return Data(bytesNoCopy: UnsafeMutablePointer(mutating: ptr), count: range.length, deallocator: .none)
+                    return Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(ptr), count: range.length, deallocator: .none)
                 }
                 result = parseData(chunk)
                 if range.location + range.length >= data.count {

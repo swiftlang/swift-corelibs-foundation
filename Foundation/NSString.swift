@@ -469,7 +469,7 @@ extension NSString {
         var numCharsBuffered = 0
         var arrayBuffer = [unichar](repeating: 0, count: 100)
         let other = str._nsObject
-        return arrayBuffer.withUnsafeMutablePointerOrAllocation(selfLen, fastpath: UnsafeMutablePointer<unichar>(mutating: _fastContents)) { (selfChars: UnsafeMutablePointer<unichar>) -> String in
+        return arrayBuffer.withUnsafeMutablePointerOrAllocation(selfLen, fastpath: UnsafeMutablePointer<unichar>(_fastContents)) { (selfChars: UnsafeMutablePointer<unichar>) -> String in
             // Now do the binary search. Note that the probe value determines the length of the substring to check.
             while true {
                 let range = NSMakeRange(0, isLiteral ? probe + 1 : NSMaxRange(rangeOfComposedCharacterSequence(at: probe))) // Extend the end of the composed char sequence
@@ -1182,12 +1182,8 @@ extension NSString {
     }
     
     public convenience init?(UTF8String nullTerminatedCString: UnsafePointer<Int8>) {
-        let count = Int(strlen(nullTerminatedCString))
-        if let str = nullTerminatedCString.withMemoryRebound(to: UInt8.self, capacity: count, {
-            let buffer = UnsafeBufferPointer<UInt8>(start: $0, count: count)
-            return String._fromCodeUnitSequence(UTF8.self, input: buffer)
-            }) as String?
-        {
+        let buffer = UnsafeBufferPointer<UInt8>(start: UnsafePointer<UInt8>(nullTerminatedCString), count: Int(strlen(nullTerminatedCString)))
+        if let str = String._fromCodeUnitSequence(UTF8.self, input: buffer) {
             self.init(str)
         } else {
             return nil
