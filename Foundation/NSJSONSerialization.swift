@@ -599,7 +599,7 @@ private struct JSONReader {
         }
 
         if !UTF16.isLeadSurrogate(codeUnit) {
-            return (String(UnicodeScalar(codeUnit)), index)
+            return (String(UnicodeScalar(codeUnit)!), index)
         }
 
         guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit) , UTF16.isTrailSurrogate(trailCodeUnit) else {
@@ -610,7 +610,7 @@ private struct JSONReader {
 
         let highValue = (UInt32(codeUnit  - 0xD800) << 10)
         let lowValue  =  UInt32(trailCodeUnit - 0xDC00)
-        return (String(UnicodeScalar(highValue + lowValue + 0x10000)), finalIndex)
+        return (String(UnicodeScalar(highValue + lowValue + 0x10000)!), finalIndex)
     }
 
     func isHexChr(_ byte: UInt8) -> Bool {

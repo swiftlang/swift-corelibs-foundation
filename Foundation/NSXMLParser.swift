@@ -61,7 +61,7 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
     let policy = parser.externalEntityResolvingPolicy
     var a: URL?
     if let allowedEntityURLs = parser.allowedExternalEntityURLs {
-        if let url = URL(string: String(urlStr)) {
+        if let url = URL(string: String(describing: urlStr)) {
             a = url
             if let scheme = url.scheme {
                 if scheme == "file" {
@@ -84,7 +84,7 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
         guard let url = parser._url else { break }
         
         if a == nil {
-            a = URL(string: String(urlStr))
+            a = URL(string: String(describing: urlStr))
         }
         
         guard let aUrl = a else { break }
