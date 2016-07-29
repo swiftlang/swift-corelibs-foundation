@@ -7,28 +7,30 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#include <CoreFoundation/CFAsmMacros.h>
+
 #if defined(__BIG_ENDIAN__)
-    .global __CFUnicodeDataB
-__CFUnicodeDataB:
+    .global _C_LABEL(__CFUnicodeDataB)
+_C_LABEL(__CFUnicodeDataB):
     .incbin "CoreFoundation/CharacterSets/CFUnicodeData-B.mapping"
 
-    .global __CFUnicodeDataBEnd
-__CFUnicodeDataBEnd:
+    .global _C_LABEL(__CFUnicodeDataBEnd)
+_C_LABEL(__CFUnicodeDataBEnd):
     .byte 0
 
-    .global __CFUnicodeDataBSize
-__CFUnicodeDataBSize:
-    .int __CFUnicodeDataBEnd - __CFUnicodeDataB
+    .global _C_LABEL(__CFUnicodeDataBSize)
+_C_LABEL(__CFUnicodeDataBSize):
+    .int _C_LABEL(__CFUnicodeDataBEnd) - _C_LABEL(__CFUnicodeDataB)
 #else
-    .global __CFUnicodeDataL
-__CFUnicodeDataL:
+    .global _C_LABEL(__CFUnicodeDataL)
+_C_LABEL(__CFUnicodeDataL):
     .incbin "CoreFoundation/CharacterSets/CFUnicodeData-L.mapping"
 
-    .global __CFUnicodeDataLEnd
-__CFUnicodeDataLEnd:
+    .global _C_LABEL(__CFUnicodeDataLEnd)
+_C_LABEL(__CFUnicodeDataLEnd):
     .byte 0
 
-    .global __CFUnicodeDataLSize
-__CFUnicodeDataLSize:
-    .int __CFUnicodeDataLEnd - __CFUnicodeDataL
+    .global _C_LABEL(__CFUnicodeDataLSize)
+_C_LABEL(__CFUnicodeDataLSize):
+    .int _C_LABEL(__CFUnicodeDataLEnd) - _C_LABEL(__CFUnicodeDataL)
 #endif

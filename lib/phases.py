@@ -139,6 +139,12 @@ class Assemble(CompileSource):
         generated = """
 build """ + self.output.relative() + """: Assemble """ + self.path.relative() + self.generate_dependencies() + """
     flags = """
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative()
+        generated += " -I" + Configuration.current.build_directory.relative()
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PUBLIC_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PRIVATE_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PROJECT_HEADERS_FOLDER_PATH
         asflags = TargetConditional.value(self.product.ASFLAGS)
         if asflags is not None:
             generated += " " + asflags
