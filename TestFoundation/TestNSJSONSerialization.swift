@@ -298,7 +298,10 @@ extension TestNSJSONSerialization {
                 return
             }
             let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? String, "Optional(\"\\u{2728}\")")
+            // u2728 will generate a Optional("✨")
+            // "✨" will be using the failable UnicodeScalar init? and therefore get an
+            // UnicodeScalar?
+            XCTAssertEqual(result?[0] as? String, "✨")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -312,7 +315,10 @@ extension TestNSJSONSerialization {
                 return
             }
             let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? String, "Optional(\"\\u{0001D11E}\")")
+            // uD834 will generate a Optional("𝄞")
+            // "𝄞" will be using the failable UnicodeScalar init? and therefore get an
+            // UnicodeScalar?
+            XCTAssertEqual(result?[0] as? String, "𝄞")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
