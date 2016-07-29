@@ -153,7 +153,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return userInfo[NSHelpAnchorErrorKey] as? String
     }
     
-    internal typealias NSErrorProvider = (error: NSError, key: String) -> AnyObject?
+    internal typealias NSErrorProvider = (_ error: NSError, _ key: String) -> AnyObject?
     internal static var userInfoProviders = [String: NSErrorProvider]()
     
     public class func setUserInfoValueProviderForDomain(_ errorDomain: String, provider: ((NSError, String) -> AnyObject?)?) {
