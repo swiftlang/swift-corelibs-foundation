@@ -22,7 +22,7 @@ public class NSCoder : NSObject {
     deinit {
         for buffer in _pendingBuffers {
             // Cannot deinitialize a pointer to unknown type.
-            buffer.0.deallocate(bytes: buffer.1, alignedTo: alignof(Int.self))
+            buffer.0.deallocate(bytes: buffer.1, alignedTo: MemoryLayout<Int>.alignment)
         }
     }
     
@@ -159,7 +159,7 @@ public class NSCoder : NSObject {
             decodeValue(ofObjCType: "I", at: unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self))
         }
         // we cannot autorelease here so instead the pending buffers will manage the lifespan of the returned data... this is wasteful but good enough...
-        let result = UnsafeMutableRawPointer.allocate(bytes: Int(length), alignedTo: alignof(Int.self))
+        let result = UnsafeMutableRawPointer.allocate(bytes: Int(length), alignedTo: MemoryLayout<Int>.alignment)
         decodeValue(ofObjCType: "c", at: result)
         lengthp.pointee = Int(length)
         _pendingBuffers.append((result, Int(length)))
