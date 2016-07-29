@@ -74,8 +74,12 @@ public class XMLElement: XMLNode {
         @abstract Adds an attribute. Attributes with duplicate names are not added.
     */
     public func addAttribute(_ attribute: XMLNode) {
-        guard _CFXMLNodeHasProp(_xmlNode, UnsafePointer<UInt8>(_CFXMLNodeGetName(attribute._xmlNode)!)) == nil else { return }
-        addChild(attribute)
+        let name = _CFXMLNodeGetName(attribute._xmlNode)!
+        let len = strlen(name)
+        name.withMemoryRebound(to: UInt8.self, capacity: Int(len)) {
+            guard _CFXMLNodeHasProp(_xmlNode, $0) == nil else { return }
+            addChild(attribute)
+        }
     } //primitive
 
     /*!
