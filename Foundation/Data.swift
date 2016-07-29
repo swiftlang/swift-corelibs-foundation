@@ -130,7 +130,7 @@ internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
  
  This type provides "copy-on-write" behavior, and is also bridged to the Objective-C `NSData` class. You can wrap an instance of a custom subclass of `NSData` in `struct Data` by converting it using `myData as Data`.
  
- `Data` can be initialized with an `UnsafePointer` and count, an array of `UInt8` (the primitive byte type), or an `UnsafeBufferPointer`. The buffer-oriented functions provide an extra measure of safety by automatically performing the size calculation, as the type is known at compile time.
+ `Data` can be initialized with an `UnsafeRawPointer` and count, an array of `UInt8` (the primitive byte type), an `UnsafeBufferPointer`,the contents of a file, or base-64 encoded data or strings. The buffer-oriented functions provide an extra measure of safety by automatically performing the size calculation, as the type is known at compile time.
  */
 public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, Hashable, RandomAccessCollection, MutableCollection, _MutablePairBoxing {
     /// The Objective-C bridged type of `Data`.
@@ -161,7 +161,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         case none
         
         /// A custom deallocator.
-        case custom((UnsafeMutablePointer<UInt8>, Int) -> Void)
+        case custom((UnsafeMutableRawPointer, Int) -> Void)
         
         fileprivate var _deallocator : ((UnsafeMutableRawPointer, Int) -> Void)? {
             switch self {
@@ -173,8 +173,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
                 return nil
             case .custom(let b):
                 return { (ptr, len) in
-                    let bytePtr = ptr.bindMemory(to: UInt8.self, capacity: len)
-                    b(bytePtr, len)
+                    b(ptr, len)
                 }
             }
         }
@@ -238,7 +237,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     /// - parameter bytes: A pointer to the bytes.
     /// - parameter count: The size of the bytes.
     /// - parameter deallocator: Specifies the mechanism to free the indicated buffer, or `.none`.
-    public init(bytesNoCopy bytes: UnsafeMutablePointer<UInt8>, count: Int, deallocator: Deallocator) {
+    public init(bytesNoCopy bytes: UnsafeMutableRawPointer, count: Int, deallocator: Deallocator) {
         let whichDeallocator = deallocator._deallocator
         _wrapped = _SwiftNSData(immutableObject: NSData(bytesNoCopy: bytes, length: count, deallocator: whichDeallocator))
     }
@@ -348,7 +347,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         _mapUnmanaged { $0.getBytes(pointer, length: count) }
     }
     
-    private func _copyBytesHelper(to pointer: UnsafeMutablePointer<UInt8>, from range: NSRange) {
+    private func _copyBytesHelper(to pointer: UnsafeMutableRawPointer, from range: NSRange) {
         _mapUnmanaged { $0.getBytes(pointer, range: range) }
     }
     
@@ -389,7 +388,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         guard !copyRange.isEmpty else { return 0 }
         
         let nsRange = NSMakeRange(copyRange.lowerBound, copyRange.upperBound - copyRange.lowerBound)
-        let pointer : UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>(buffer.baseAddress!)
+        let pointer = UnsafeMutableRawPointer(buffer.baseAddress!)
         _copyBytesHelper(to: pointer, from: nsRange)
         return copyRange.count
     }
