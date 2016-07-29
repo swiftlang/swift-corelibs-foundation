@@ -150,11 +150,11 @@ extension RunLoop {
         return true
     }
 
-    public func perform(inModes modes: [RunLoopMode], block: () -> Void) {
+    public func perform(inModes modes: [RunLoopMode], block: @escaping () -> Void) {
         CFRunLoopPerformBlock(getCFRunLoop(), (modes.map { $0.rawValue._nsObject })._cfObject, block)
     }
     
-    public func perform(_ block: () -> Void) {
+    public func perform(_ block: @escaping () -> Void) {
         perform(inModes: [.defaultRunLoopMode], block: block)
     }
 }
