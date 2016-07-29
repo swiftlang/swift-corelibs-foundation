@@ -23,7 +23,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         _cf_uuid_generate_random(buffer)
     }
     
-    public convenience init?(UUIDString string: String) {
+    public convenience init?(uuidString string: String) {
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         if _cf_uuid_parse(string, buffer) != 0 {
             return nil
@@ -39,7 +39,7 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         _cf_uuid_copy(uuid, buffer)
     }
     
-    public var UUIDString: String {
+    public var uuidString: String {
         let strPtr = UnsafeMutablePointer<Int8>.allocate(capacity: 37)
         _cf_uuid_unparse_upper(buffer, strPtr)
         return String(cString: strPtr)
@@ -97,6 +97,6 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public override var description: String {
-        return UUIDString
+        return uuidString
     }
 }
