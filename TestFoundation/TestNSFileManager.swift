@@ -107,10 +107,9 @@ class TestNSFileManager : XCTestCase {
         let str = "☃"
         let result = FileManager.default().fileSystemRepresentation(withPath: str)
         XCTAssertNotNil(result)
-        let uintResult = UnsafePointer<UInt8>(result)
-        XCTAssertEqual(uintResult[0], 0xE2)
-        XCTAssertEqual(uintResult[1], 0x98)
-        XCTAssertEqual(uintResult[2], 0x83)
+        XCTAssertEqual(UInt8(bitPattern: result[0]), 0xE2)
+        XCTAssertEqual(UInt8(bitPattern: result[1]), 0x98)
+        XCTAssertEqual(UInt8(bitPattern: result[2]), 0x83)
     }
     
     func test_fileAttributes() {
