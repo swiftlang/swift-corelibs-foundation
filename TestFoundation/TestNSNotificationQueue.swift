@@ -230,7 +230,7 @@ class TestNSNotificationQueue : XCTestCase {
         waitForExpectations(timeout: 0.1)
     }
 
-    private func executeInBackgroundThread(_ operation: () -> Void) {
+    private func executeInBackgroundThread(_ operation: @escaping () -> Void) {
         let e = expectation(description: "Background Execution")
         let bgThread = Thread() {
             operation()

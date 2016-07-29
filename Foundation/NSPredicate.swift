@@ -51,7 +51,7 @@ public class Predicate : NSObject, NSSecureCoding, NSCopying {
         super.init()
     } // return predicates that always evaluate to true/false
 
-    public init(block: (AnyObject?, [String : AnyObject]?) -> Bool) {
+    public init(block: @escaping (AnyObject?, [String : AnyObject]?) -> Bool) {
         kind = .block(block)
         super.init()
     }
