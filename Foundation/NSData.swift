@@ -257,7 +257,7 @@ extension NSData {
     internal struct NSDataReadResult {
         var bytes: UnsafeMutableRawPointer
         var length: Int
-        var deallocator: ((buffer: UnsafeMutableRawPointer, length: Int) -> Void)?
+        var deallocator: ((_ buffer: UnsafeMutableRawPointer, _ length: Int) -> Void)?
     }
     
     internal static func readBytesFromFileWithExtendedAttributes(_ path: String, options: ReadingOptions) throws -> NSDataReadResult {
