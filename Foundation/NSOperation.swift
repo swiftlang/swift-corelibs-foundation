@@ -174,7 +174,7 @@ public class BlockOperation: Operation {
     internal var _block: () -> Void
     internal var _executionBlocks = [ExecutionBlock]()
     
-    public init(block: () -> Void) {
+    public init(block: @escaping () -> Void) {
         _block = block
     }
     
@@ -187,7 +187,7 @@ public class BlockOperation: Operation {
         executionBlocks.forEach { $0() }
     }
     
-    public func addExecutionBlock(_ block: () -> Void) {
+    public func addExecutionBlock(_ block: @escaping () -> Void) {
         lock.lock()
         _executionBlocks.append(block)
         lock.unlock()
@@ -437,7 +437,7 @@ public class OperationQueue: NSObject {
         lock.unlock()
     }
     
-    public func addOperationWithBlock(_ block: () -> Void) {
+    public func addOperationWithBlock(_ block: @escaping () -> Void) {
         let op = BlockOperation(block: block)
         op.qualityOfService = qualityOfService
         addOperation(op)

@@ -240,7 +240,7 @@ private struct JSONWriter {
     let pretty: Bool
     let writer: (String?) -> Void
     
-    init(pretty: Bool = false, writer: (String?) -> Void) {
+    init(pretty: Bool = false, writer: @escaping (String?) -> Void) {
         self.pretty = pretty
         self.writer = writer
     }
@@ -521,7 +521,7 @@ private struct JSONReader {
         return index
     }
 
-    func takeMatching(_ match: (UInt8) -> Bool) -> ([Character], Index) -> ([Character], Index)? {
+    func takeMatching(_ match: @escaping (UInt8) -> Bool) -> ([Character], Index) -> ([Character], Index)? {
         return { input, index in
             guard let (byte, index) = self.source.takeASCII(index), match(byte) else {
                 return nil

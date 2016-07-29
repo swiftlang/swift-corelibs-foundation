@@ -68,7 +68,7 @@ public class Thread: NSObject {
     /// Alternative API for detached thread creation
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public class func detachNewThread(_ main: (Void) -> Void) {
+    public class func detachNewThread(_ main: @escaping (Void) -> Void) {
         let t = Thread(main)
         t.start()
     }
@@ -142,7 +142,7 @@ public class Thread: NSObject {
         _thread = thread
     }
 
-    public init(_ main: (Void) -> Void) {
+    public init(_ main: @escaping (Void) -> Void) {
         _main = main
         let _ = withUnsafeMutablePointer(to: &_attr) { attr in
             pthread_attr_init(attr)
