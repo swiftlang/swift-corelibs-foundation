@@ -102,7 +102,7 @@ public func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
 extension CGPoint: NSSpecialValueCoding {
     init(bytes: UnsafeRawPointer) {
         self.x = bytes.load(as: CGFloat.self)
-        self.y = bytes.load(fromByteOffset: strideof(CGFloat.self), as: CGFloat.self)
+        self.y = bytes.load(fromByteOffset: MemoryLayout<CGFloat>.stride, as: CGFloat.self)
     }
     
     init?(coder aDecoder: NSCoder) {
@@ -167,7 +167,7 @@ public func ==(lhs: CGSize, rhs: CGSize) -> Bool {
 extension CGSize: NSSpecialValueCoding {
     init(bytes: UnsafeRawPointer) {
         self.width = bytes.load(as: CGFloat.self)
-        self.height = bytes.load(fromByteOffset: strideof(CGFloat.self), as: CGFloat.self)
+        self.height = bytes.load(fromByteOffset: MemoryLayout<CGFloat>.stride, as: CGFloat.self)
     }
     
     init?(coder aDecoder: NSCoder) {
@@ -248,10 +248,10 @@ extension CGRect: NSSpecialValueCoding {
     init(bytes: UnsafeRawPointer) {
         self.origin = CGPoint(
             x: bytes.load(as: CGFloat.self),
-            y: bytes.load(fromByteOffset: 1 * strideof(CGFloat.self), as: CGFloat.self))
+            y: bytes.load(fromByteOffset: 1 * MemoryLayout<CGFloat>.stride, as: CGFloat.self))
         self.size = CGSize(
-            width: bytes.load(fromByteOffset: 2 * strideof(CGFloat.self), as: CGFloat.self),
-            height: bytes.load(fromByteOffset: 3 * strideof(CGFloat.self), as: CGFloat.self))
+            width: bytes.load(fromByteOffset: 2 * MemoryLayout<CGFloat>.stride, as: CGFloat.self),
+            height: bytes.load(fromByteOffset: 3 * MemoryLayout<CGFloat>.stride, as: CGFloat.self))
     }
 
     init?(coder aDecoder: NSCoder) {
@@ -344,9 +344,9 @@ public struct NSEdgeInsets {
 extension NSEdgeInsets: NSSpecialValueCoding {
     init(bytes: UnsafeRawPointer) {
         self.top = bytes.load(as: CGFloat.self)
-        self.left = bytes.load(fromByteOffset: strideof(CGFloat.self), as: CGFloat.self)
-        self.bottom = bytes.load(fromByteOffset: 2 * strideof(CGFloat.self), as: CGFloat.self)
-        self.right = bytes.load(fromByteOffset: 3 * strideof(CGFloat.self), as: CGFloat.self)
+        self.left = bytes.load(fromByteOffset: MemoryLayout<CGFloat>.stride, as: CGFloat.self)
+        self.bottom = bytes.load(fromByteOffset: 2 * MemoryLayout<CGFloat>.stride, as: CGFloat.self)
+        self.right = bytes.load(fromByteOffset: 3 * MemoryLayout<CGFloat>.stride, as: CGFloat.self)
     }
 
     init?(coder aDecoder: NSCoder) {

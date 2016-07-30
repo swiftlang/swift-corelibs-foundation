@@ -84,22 +84,22 @@ extension _NSSimpleObjCType {
 // mapping of ObjC types to sizes and alignments (note that .Int is 32-bit)
 // FIXME use a generic function, unfortuantely this seems to promote the size to 8
 private let _NSObjCSizesAndAlignments : Dictionary<_NSSimpleObjCType, (Int, Int)> = [
-    .ID         : ( sizeof(AnyObject.self),              alignof(AnyObject.self)          ),
-    .Class      : ( sizeof(AnyClass.self),               alignof(AnyClass.self)           ),
-    .Char       : ( sizeof(CChar.self),                  alignof(CChar.self)              ),
-    .UChar      : ( sizeof(UInt8.self),                  alignof(UInt8.self)              ),
-    .Short      : ( sizeof(Int16.self),                  alignof(Int16.self)              ),
-    .UShort     : ( sizeof(UInt16.self),                 alignof(UInt16.self)             ),
-    .Int        : ( sizeof(Int32.self),                  alignof(Int32.self)              ),
-    .UInt       : ( sizeof(UInt32.self),                 alignof(UInt32.self)             ),
-    .Long       : ( sizeof(Int32.self),                  alignof(Int32.self)              ),
-    .ULong      : ( sizeof(UInt32.self),                 alignof(UInt32.self)             ),
-    .LongLong   : ( sizeof(Int64.self),                  alignof(Int64.self)              ),
-    .ULongLong  : ( sizeof(UInt64.self),                 alignof(UInt64.self)             ),
-    .Float      : ( sizeof(Float.self),                  alignof(Float.self)              ),
-    .Double     : ( sizeof(Double.self),                 alignof(Double.self)             ),
-    .Bool       : ( sizeof(Bool.self),                   alignof(Bool.self)               ),
-    .CharPtr    : ( sizeof(UnsafePointer<CChar>.self),   alignof(UnsafePointer<CChar>.self))
+    .ID         : ( MemoryLayout<AnyObject>.size,              MemoryLayout<AnyObject>.alignment          ),
+    .Class      : ( MemoryLayout<AnyClass>.size,               MemoryLayout<AnyClass>.alignment           ),
+    .Char       : ( MemoryLayout<CChar>.size,                  MemoryLayout<CChar>.alignment              ),
+    .UChar      : ( MemoryLayout<UInt8>.size,                  MemoryLayout<UInt8>.alignment              ),
+    .Short      : ( MemoryLayout<Int16>.size,                  MemoryLayout<Int16>.alignment              ),
+    .UShort     : ( MemoryLayout<UInt16>.size,                 MemoryLayout<UInt16>.alignment             ),
+    .Int        : ( MemoryLayout<Int32>.size,                  MemoryLayout<Int32>.alignment              ),
+    .UInt       : ( MemoryLayout<UInt32>.size,                 MemoryLayout<UInt32>.alignment             ),
+    .Long       : ( MemoryLayout<Int32>.size,                  MemoryLayout<Int32>.alignment              ),
+    .ULong      : ( MemoryLayout<UInt32>.size,                 MemoryLayout<UInt32>.alignment             ),
+    .LongLong   : ( MemoryLayout<Int64>.size,                  MemoryLayout<Int64>.alignment              ),
+    .ULongLong  : ( MemoryLayout<UInt64>.size,                 MemoryLayout<UInt64>.alignment             ),
+    .Float      : ( MemoryLayout<Float>.size,                  MemoryLayout<Float>.alignment              ),
+    .Double     : ( MemoryLayout<Double>.size,                 MemoryLayout<Double>.alignment             ),
+    .Bool       : ( MemoryLayout<Bool>.size,                   MemoryLayout<Bool>.alignment               ),
+    .CharPtr    : ( MemoryLayout<UnsafePointer<CChar>>.size,   MemoryLayout<UnsafePointer<CChar>>.alignment)
 ]
 
 internal func _NSGetSizeAndAlignment(_ type: _NSSimpleObjCType,
