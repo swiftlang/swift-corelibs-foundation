@@ -117,7 +117,7 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     private func test_archive(_ object: NSObject, allowsSecureCoding: Bool = true) {
-        return test_archive(object, classes: [object.dynamicType], allowsSecureCoding: allowsSecureCoding)
+        return test_archive(object, classes: [type(of: object)], allowsSecureCoding: allowsSecureCoding)
     }
     
     func test_archive_array() {

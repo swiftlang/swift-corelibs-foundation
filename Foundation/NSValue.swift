@@ -34,7 +34,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     deinit {
-        if self.dynamicType == NSValue.self {
+        if type(of: self) == NSValue.self {
             NSValue.SideTableLock.synchronized {
                 NSValue.SideTable[ObjectIdentifier(self)] = nil
             }
@@ -43,7 +43,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public override var hash: Int {
         get {
-            if self.dynamicType == NSValue.self {
+            if type(of: self) == NSValue.self {
                 return _concreteValue.hash
             } else {
                 return super.hash
@@ -54,7 +54,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public override func isEqual(_ object: AnyObject?) -> Bool {
         if self === object {
             return true
-        } else if self.dynamicType == NSValue.self && object?.dynamicType == NSValue.self {
+        } else if let o = object, type(of: self) == NSValue.self && type(of: o) == NSValue.self {
             // bypass _concreteValue accessor in order to avoid acquiring lock twice
             let (lhs, rhs) = NSValue.SideTableLock.synchronized {
                 return (NSValue.SideTable[ObjectIdentifier(self)]!,
@@ -68,7 +68,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public override var description : String {
         get {
-            if self.dynamicType == NSValue.self {
+            if type(of: self) == NSValue.self {
                 return _concreteValue.description
             } else {
                 return super.description
@@ -77,7 +77,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public func getValue(_ value: UnsafeMutableRawPointer) {
-        if self.dynamicType == NSValue.self {
+        if type(of: self) == NSValue.self {
             return _concreteValue.getValue(value)
         } else {
             NSRequiresConcreteImplementation()
@@ -85,7 +85,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public var objCType: UnsafePointer<Int8> {
-        if self.dynamicType == NSValue.self {
+        if type(of: self) == NSValue.self {
             return _concreteValue.objCType
         } else {
             NSRequiresConcreteImplementation()
@@ -97,7 +97,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public convenience required init(bytes value: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
-        if self.dynamicType == NSValue.self {
+        if type(of: self) == NSValue.self {
             self.init()
             if NSValue._isSpecialObjCType(type) {
                 self._concreteValue = NSSpecialValue(bytes: unsafeBitCast(value, to: UnsafePointer<UInt8>.self), objCType: type)
@@ -110,7 +110,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if self.dynamicType == NSValue.self {
+        if type(of: self) == NSValue.self {
             self.init()
             
             var concreteValue : NSValue? = nil
@@ -133,7 +133,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
         
     public func encode(with aCoder: NSCoder) {
-        if self.dynamicType == NSValue.self {
+        if type(of: self) == NSValue.self {
             _concreteValue.encode(with: aCoder)
         } else {
             NSRequiresConcreteImplementation()

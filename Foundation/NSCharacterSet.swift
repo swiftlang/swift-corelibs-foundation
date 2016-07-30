@@ -173,9 +173,9 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public func longCharacterIsMember(_ theLongChar: UInt32) -> Bool {
-        if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
+        if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
             return _CFCharacterSetIsLongCharacterMember(unsafeBitCast(self, to: CFType.self), theLongChar)
-        } else if self.dynamicType == _NSCFCharacterSet.self {
+        } else if type(of: self) == _NSCFCharacterSet.self {
             return CFCharacterSetIsLongCharacterMember(_cfObject, theLongChar)
         } else {
             NSRequiresConcreteImplementation()
@@ -195,9 +195,9 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
+        if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
             return _CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
-        } else if self.dynamicType == _NSCFCharacterSet.self {
+        } else if type(of: self) == _NSCFCharacterSet.self {
             return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
         } else {
             NSRequiresConcreteImplementation()
@@ -209,9 +209,9 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
+        if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
             return _CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
-        } else if self.dynamicType == _NSCFCharacterSet.self {
+        } else if type(of: self) == _NSCFCharacterSet.self {
             return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
         } else {
             NSRequiresConcreteImplementation()

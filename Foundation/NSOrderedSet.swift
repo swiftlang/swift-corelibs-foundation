@@ -217,14 +217,14 @@ extension NSOrderedSet {
     }
     
     public func objectEnumerator() -> NSEnumerator {
-        guard self.dynamicType === NSOrderedSet.self || self.dynamicType === NSMutableOrderedSet.self else {
+        guard type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self else {
             NSRequiresConcreteImplementation()
         }
         return NSGeneratorEnumerator(_orderedStorage.makeIterator())
     }
 
     public func reverseObjectEnumerator() -> NSEnumerator { 
-        guard self.dynamicType === NSOrderedSet.self || self.dynamicType === NSMutableOrderedSet.self else {
+        guard type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self else {
             NSRequiresConcreteImplementation()
         }
         return NSGeneratorEnumerator(_orderedStorage.reversed().makeIterator())

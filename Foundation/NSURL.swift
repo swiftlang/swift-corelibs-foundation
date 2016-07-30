@@ -181,7 +181,7 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
     
     
     internal var _cfObject : CFType {
-        if self.dynamicType === NSURL.self {
+        if type(of: self) === NSURL.self {
             return unsafeBitCast(self, to: CFType.self)
         } else {
             return CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)

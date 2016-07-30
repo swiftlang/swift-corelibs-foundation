@@ -284,7 +284,7 @@ public class NSNumber : NSValue {
             aDecoder.decodeValue(ofObjCType: objCType!, at: buffer)
             self.init(bytes: buffer, objCType: objCType!)
             free(buffer)
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.number") {
+        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.number") {
             let number = aDecoder._decodePropertyListForKey("NS.number")
             if let val = number as? Double {
                 self.init(value:val)
