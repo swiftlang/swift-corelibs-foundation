@@ -147,7 +147,7 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
     } else if input is __NSCFType && CFGetTypeID(input) == _CFKeyedArchiverUIDGetTypeID() {
         return input
     } else {
-        fatalError("Attempt to convert a non-plist type \(input.dynamicType)")
+        fatalError("Attempt to convert a non-plist type \(type(of: input))")
     }
 }
 
