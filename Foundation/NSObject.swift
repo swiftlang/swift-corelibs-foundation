@@ -100,7 +100,7 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
     }
     
     public var description: String {
-        return "<\(self.dynamicType): \(Unmanaged.passUnretained(self).toOpaque())>"
+        return "<\(type(of: self)): \(Unmanaged.passUnretained(self).toOpaque())>"
     }
     
     public var debugDescription: String {
@@ -113,7 +113,7 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
     
     // TODO move these back into extensions once extension methods can be overriden
     public var classForCoder: AnyClass {
-        return self.dynamicType
+        return type(of: self)
     }
  
     public func replacementObjectForCoder(_ aCoder: NSCoder) -> AnyObject? {

@@ -114,13 +114,13 @@ internal class NSSpecialValue : NSValue {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {
-            aCoder.encode(NSSpecialValue._flagsFromType(_value.dynamicType), forKey: "NS.special")
+            aCoder.encode(NSSpecialValue._flagsFromType(type(of: _value)), forKey: "NS.special")
             _value.encodeWithCoder(aCoder)
         }
     }
     
     override var objCType : UnsafePointer<Int8> {
-        let typeName = NSSpecialValue._objCTypeFromType(_value.dynamicType)
+        let typeName = NSSpecialValue._objCTypeFromType(type(of: _value))
         return typeName!.bridge().utf8String! // leaky
     }
     

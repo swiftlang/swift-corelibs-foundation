@@ -39,14 +39,14 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     internal var _storage = [AnyObject]()
     
     public var count: Int {
-        guard self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self else {
+        guard type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
         }
         return _storage.count
     }
     
     public func object(at index: Int) -> AnyObject {
-        guard self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self else {
+        guard type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self else {
            NSRequiresConcreteImplementation()
         }
         return _storage[index]
@@ -79,7 +79,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
             self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
             objects.deinitialize(count: Int(cnt))
             objects.deallocate(capacity: Int(cnt))
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
+        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
             self.init(array: objects)
         } else {
@@ -114,10 +114,10 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType === NSArray.self {
+        if type(of: self) === NSArray.self {
             // return self for immutable type
             return self
-        } else if self.dynamicType === NSMutableArray.self {
+        } else if type(of: self) === NSMutableArray.self {
             let array = NSArray()
             array._storage = self._storage
             return array
@@ -130,7 +130,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
     
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self {
             // always create and return an NSMutableArray
             let mutableArray = NSMutableArray()
             mutableArray._storage = self._storage
@@ -178,7 +178,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     }
 
     internal var allObjects: [AnyObject] {
-        if self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self {
             return _storage
         } else {
             return (0..<count).map { idx in
@@ -261,7 +261,7 @@ public class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NS
     internal func getObjects(_ objects: inout [AnyObject], range: NSRange) {
         objects.reserveCapacity(objects.count + range.length)
 
-        if self.dynamicType === NSArray.self || self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self {
             objects += _storage[range.toRange()!]
             return
         }
@@ -646,7 +646,7 @@ public class NSMutableArray : NSArray {
     }
     
     public func insert(_ anObject: AnyObject, at index: Int) {
-        guard self.dynamicType === NSMutableArray.self else {
+        guard type(of: self) === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
         }
         _storage.insert(anObject, at: index)
@@ -659,14 +659,14 @@ public class NSMutableArray : NSArray {
     }
     
     public func removeObject(at index: Int) {
-        guard self.dynamicType === NSMutableArray.self else {
+        guard type(of: self) === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
         }
         _storage.remove(at: index)
     }
     
     public func replaceObject(at index: Int, with anObject: AnyObject) {
-        guard self.dynamicType === NSMutableArray.self else {
+        guard type(of: self) === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
         }
         let min = index
@@ -681,7 +681,7 @@ public class NSMutableArray : NSArray {
     public init(capacity numItems: Int) {
         super.init(objects: [], count: 0)
 
-        if self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSMutableArray.self {
             _storage.reserveCapacity(numItems)
         }
     }
@@ -703,7 +703,7 @@ public class NSMutableArray : NSArray {
     }
     
     public func addObjectsFromArray(_ otherArray: [AnyObject]) {
-        if self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSMutableArray.self {
             _storage += otherArray
         } else {
             for obj in otherArray {
@@ -713,7 +713,7 @@ public class NSMutableArray : NSArray {
     }
     
     public func exchangeObject(at idx1: Int, withObjectAt idx2: Int) {
-        if self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSMutableArray.self {
             swap(&_storage[idx1], &_storage[idx2])
         } else {
             NSUnimplemented()
@@ -721,7 +721,7 @@ public class NSMutableArray : NSArray {
     }
     
     public func removeAllObjects() {
-        if self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSMutableArray.self {
             _storage.removeAll()
         } else {
             while count > 0 {
@@ -768,7 +768,7 @@ public class NSMutableArray : NSArray {
     }
     
     public func removeObjects(in range: NSRange) {
-        if self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSMutableArray.self {
             _storage.removeSubrange(range.toRange()!)
         } else {
             for idx in range.toRange()!.reversed() {
@@ -783,7 +783,7 @@ public class NSMutableArray : NSArray {
     }
     
     public func replaceObjectsInRange(_ range: NSRange, withObjectsFromArray otherArray: [AnyObject]) {
-        if self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSMutableArray.self {
             _storage.reserveCapacity(count - range.length + otherArray.count)
             for idx in 0..<range.length {
                 _storage[idx + range.location] = otherArray[idx]
@@ -797,7 +797,7 @@ public class NSMutableArray : NSArray {
     }
     
     public func setArray(_ otherArray: [AnyObject]) {
-        if self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSMutableArray.self {
             _storage = otherArray
         } else {
             replaceObjectsInRange(NSMakeRange(0, count), withObjectsFromArray: otherArray)
@@ -807,7 +807,7 @@ public class NSMutableArray : NSArray {
     public func insertObjects(_ objects: [AnyObject], atIndexes indexes: IndexSet) {
         precondition(objects.count == indexes.count)
         
-        if self.dynamicType === NSMutableArray.self {
+        if type(of: self) === NSMutableArray.self {
             _storage.reserveCapacity(count + indexes.count)
         }
 

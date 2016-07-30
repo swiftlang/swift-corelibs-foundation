@@ -248,7 +248,7 @@ internal func _NSObjectRepresentableBridge(_ value: Any) -> NSObject {
     } else if let obj = value as? Bool {
         return obj._bridgeToObject()
     }
-    fatalError("Unable to convert value of type \(value.dynamicType)")
+    fatalError("Unable to convert value of type \(type(of: value))")
 }
 
 extension Array : _NSObjectRepresentable {

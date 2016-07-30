@@ -20,7 +20,7 @@ internal let NSKeyedArchivePlistVersion = 100000
 internal let NSKeyedArchiverSystemVersion : UInt32 = 2000
 
 internal func objectRefGetValue(_ objectRef : CFKeyedArchiverUID) -> UInt32 {
-    assert(objectRef.dynamicType == __NSCFType.self)
+    assert(type(of: objectRef) == __NSCFType.self)
     assert(CFGetTypeID(objectRef) == _CFKeyedArchiverUIDGetTypeID())
 
     return _CFKeyedArchiverUIDGetValue(unsafeBitCast(objectRef, to: CFKeyedArchiverUIDRef.self))
@@ -211,7 +211,7 @@ public class NSKeyedArchiver : NSCoder {
         var plist = Dictionary<String, Any>()
         var success : Bool
 
-        plist["$archiver"] = NSStringFromClass(self.dynamicType)
+        plist["$archiver"] = NSStringFromClass(type(of: self))
         plist["$version"] = NSKeyedArchivePlistVersion
         plist["$objects"] = self._objects
         plist["$top"] = self._containers[0].dict
@@ -238,14 +238,14 @@ public class NSKeyedArchiver : NSCoder {
     }
 
     public class func setClassName(_ codedName: String?, for cls: AnyClass) {
-        let clsName = String(describing: cls.dynamicType)
+        let clsName = String(describing: type(of: cls))
         _classNameMapLock.synchronized {
             _classNameMap[clsName] = codedName
         }
     }
     
     public func setClassName(_ codedName: String?, for cls: AnyClass) {
-        let clsName = String(describing: cls.dynamicType)
+        let clsName = String(describing: type(of: cls))
         _classNameMap[clsName] = codedName
     }
     
@@ -269,7 +269,7 @@ public class NSKeyedArchiver : NSCoder {
         var supportsSecureCoding : Bool = false
         
         if let secureCodable = objv as? NSSecureCoding {
-            supportsSecureCoding = secureCodable.dynamicType.supportsSecureCoding()
+            supportsSecureCoding = type(of: secureCodable).supportsSecureCoding()
         }
         
         return supportsSecureCoding
@@ -422,9 +422,9 @@ public class NSKeyedArchiver : NSCoder {
         // their mutable subclasses are as object references
         let valueType = (objv == nil ||
                          objv is String ||
-                         objv!.dynamicType === NSString.self ||
-                         objv!.dynamicType === NSNumber.self ||
-                         objv!.dynamicType === NSData.self)
+                         type(of: objv!) === NSString.self ||
+                         type(of: objv!) === NSNumber.self ||
+                         type(of: objv!) === NSData.self)
         
         return !valueType
     }
@@ -586,7 +586,7 @@ public class NSKeyedArchiver : NSCoder {
                 let ns = object as? NSObject
                 cls = ns?.classForKeyedArchiver
                 if cls == nil {
-                    cls = object!.dynamicType
+                    cls = type(of: object!)
                 }
 
                 _setObjectInCurrentEncodingContext(_classReference(cls!), forKey: "$class", escape: false)
@@ -632,15 +632,15 @@ public class NSKeyedArchiver : NSCoder {
     }
     
     public override func encodePropertyList(_ aPropertyList: AnyObject) {
-        if !NSPropertyListClasses.contains(where: { $0 == aPropertyList.dynamicType }) {
-            fatalError("Cannot encode non-property list type \(aPropertyList.dynamicType) as property list")
+        if !NSPropertyListClasses.contains(where: { $0 == type(of: aPropertyList) }) {
+            fatalError("Cannot encode non-property list type \(type(of: aPropertyList)) as property list")
         }
         encode(aPropertyList)
     }
     
     public func encodePropertyList(_ aPropertyList: AnyObject, forKey key: String) {
-        if !NSPropertyListClasses.contains(where: { $0 == aPropertyList.dynamicType }) {
-            fatalError("Cannot encode non-property list type \(aPropertyList.dynamicType) as property list")
+        if !NSPropertyListClasses.contains(where: { $0 == type(of: aPropertyList) }) {
+            fatalError("Cannot encode non-property list type \(type(of: aPropertyList)) as property list")
         }
         encode(aPropertyList, forKey: key)
     }

@@ -122,7 +122,7 @@ public class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying
     }
     
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType === NSURLRequest.self {
+        if type(of: self) === NSURLRequest.self {
             // Already immutable
             return self
         }
