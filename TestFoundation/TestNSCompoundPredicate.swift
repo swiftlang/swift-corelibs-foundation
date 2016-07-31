@@ -92,7 +92,7 @@ class TestNSCompoundPredicate: XCTestCase {
         var shortCircuited = true
 
         let bOK = Predicate(value: false)
-        let bDontEval = Predicate(block: { _ in
+        let bDontEval = Predicate(block: { _, _ in
             shortCircuited = false
             return true
         })
@@ -106,7 +106,7 @@ class TestNSCompoundPredicate: XCTestCase {
         var shortCircuited = true
 
         let bOK = Predicate(value: true)
-        let bDontEval = Predicate(block: { _ in
+        let bDontEval = Predicate(block: { _, _ in
             shortCircuited = false
             return true
         })

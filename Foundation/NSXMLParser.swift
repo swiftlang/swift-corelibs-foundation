@@ -640,7 +640,7 @@ public class XMLParser : NSObject {
         _namespaces.append(ns)
         if let del = self.delegate {
             ns.forEach {
-                del.parser(self, didStartMappingPrefix: $0.0, toURI: $0.1)
+                del.parser(self, didStartMappingPrefix: $0, toURI: $1)
             }
         }
     }
@@ -648,8 +648,8 @@ public class XMLParser : NSObject {
     internal func _popNamespaces() {
         let ns = _namespaces.removeLast()
         if let del = self.delegate {
-            ns.forEach {
-                del.parser(self, didEndMappingPrefix: $0.0)
+            ns.forEach { prefix, _ in
+                del.parser(self, didEndMappingPrefix: prefix)
             }
         }
     }

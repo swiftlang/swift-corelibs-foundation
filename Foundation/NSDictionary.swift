@@ -18,8 +18,8 @@ extension Dictionary : _ObjectTypeBridgeable {
         var idx = 0
         
         self.forEach {
-            let key = _NSObjectRepresentableBridge($0.0)
-            let value = _NSObjectRepresentableBridge($0.1)
+            let key = _NSObjectRepresentableBridge($0)
+            let value = _NSObjectRepresentableBridge($1)
             keyBuffer.advanced(by: idx).initialize(to: key)
             valueBuffer.advanced(by: idx).initialize(to: value)
             idx += 1
