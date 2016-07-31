@@ -59,6 +59,7 @@ class TestNSString : XCTestCase {
             ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
             // Swift3 updates broke the expectations of this test. disabling for now
             // ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
+            ("test_FromBytesOrDataWithInternalNullCharacter", test_FromBytesOrDataWithInternalNullCharacter ),
             ("test_uppercaseString", test_uppercaseString ),
             ("test_lowercaseString", test_lowercaseString ),
             ("test_capitalizedString", test_capitalizedString ),
@@ -69,7 +70,7 @@ class TestNSString : XCTestCase {
             ("test_FromContentOfFile",test_FromContentOfFile),
             ("test_swiftStringUTF16", test_swiftStringUTF16),
             // This test takes forever on build servers; it has been seen up to 1852.084 seconds
-//            ("test_completePathIntoString", test_completePathIntoString),
+            // ("test_completePathIntoString", test_completePathIntoString),
             ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
             ("test_initializeWithFormat", test_initializeWithFormat),
             ("test_initializeWithFormat2", test_initializeWithFormat2),
@@ -269,6 +270,16 @@ class TestNSString : XCTestCase {
         let bytes = mockMalformedUTF8StringBytes + [0x00]
         let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNil(string)
+    }
+
+    func test_FromBytesOrDataWithInternalNullCharacter() {
+        let bytes = mockASCIIStringBytes + [0x00] + mockASCIIStringBytes
+        let length = mockASCIIStringBytes.count * 2 + 1
+        let data = Data(bytes: bytes, count: length)
+        let string1 = NSString(bytes: bytes, length: length, encoding: String.Encoding.ascii.rawValue)
+        XCTAssertTrue(string1?.isEqual(to: mockASCIIString + "\0" + mockASCIIString) ?? false)
+        let string2 = NSString(data: data, encoding: String.Encoding.ascii.rawValue)
+        XCTAssertTrue(string2?.isEqual(to: mockASCIIString + "\0" + mockASCIIString) ?? false)
     }
 
     func test_FromContentsOfURL() {
