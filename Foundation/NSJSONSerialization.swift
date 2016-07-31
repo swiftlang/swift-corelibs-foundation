@@ -667,7 +667,7 @@ private struct JSONReader {
         
         if source.encoding == String.Encoding.utf8 {
             
-            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0.0, input + $0.1) }
+            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0, input + $1) }
         }
         else {
             var numberCharacters = [UInt8]()
@@ -681,7 +681,7 @@ private struct JSONReader {
             
             return numberCharacters.withUnsafeBufferPointer {
                 parseTypedNumber($0.baseAddress!, count: $0.count)
-            }.map { return ($0.0, index) }
+            }.map { any, _ in return (any, index) }
         }
     }
 
