@@ -1221,10 +1221,7 @@ extension NSString {
     }
     
     public convenience init?(data: Data, encoding: UInt) {
-        guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
-            return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
-        }) else { return nil }
-        
+        guard let cf = CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, data._cfObject, CFStringConvertNSStringEncodingToEncoding(encoding)) else { return nil }
         var str: String?
         if String._conditionallyBridgeFromObject(cf._nsObject, result: &str) {
             self.init(str!)
@@ -1234,8 +1231,8 @@ extension NSString {
     }
     
     public convenience init?(bytes: UnsafeRawPointer, length len: Int, encoding: UInt) {
-        let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: len)
-        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, len, CFStringConvertNSStringEncodingToEncoding(encoding), true) else {
+        let extRep = NSData(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), length: len, freeWhenDone: false)._cfObject
+        guard let cf = CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, extRep, CFStringConvertNSStringEncodingToEncoding(encoding)) else {
             return nil
         }
         var str: String?
@@ -1265,12 +1262,10 @@ extension NSString {
             return nil
         }
     }
-
+    
     public convenience init(contentsOf url: URL, encoding enc: UInt) throws {
         let readResult = try NSData(contentsOf: url, options: [])
-
-        let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity: readResult.length)
-        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, readResult.length, CFStringConvertNSStringEncodingToEncoding(enc), true) else {
+        guard let cf = CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, readResult._cfObject, CFStringConvertNSStringEncodingToEncoding(enc)) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadInapplicableStringEncodingError.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to create a string using the specified encoding."
                 ])
@@ -1284,7 +1279,7 @@ extension NSString {
                 ])
         }
     }
-
+    
     public convenience init(contentsOfFile path: String, encoding enc: UInt) throws {
         try self.init(contentsOf: URL(fileURLWithPath: path), encoding: enc)
     }
