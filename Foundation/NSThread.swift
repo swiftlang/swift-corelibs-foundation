@@ -10,7 +10,7 @@
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
@@ -131,12 +131,16 @@ open class Thread : NSObject {
     }
     
     internal var _main: (Void) -> Void = {}
-#if os(OSX) || os(iOS)
+#if os(OSX) || os(iOS) || CYGWIN
     private var _thread: pthread_t? = nil
 #elseif os(Linux) || os(Android)
     private var _thread = pthread_t()
 #endif
+#if CYGWIN
+    internal var _attr : pthread_attr_t? = nil
+#else
     internal var _attr = pthread_attr_t()
+#endif
     internal var _status = _NSThreadStatus.initialized
     internal var _cancelled = false
     /// - Note: this differs from the Darwin implementation in that the keys must be Strings
@@ -167,9 +171,19 @@ open class Thread : NSObject {
             _status = .finished
             return
         }
+#if CYGWIN
+        if let attr = self._attr {
+            _thread = self.withRetainedReference {
+              return _CFThreadCreate(attr, NSThreadStart, $0)
+            }
+        } else {
+            _thread = nil
+        }
+#else
         _thread = self.withRetainedReference {
             return _CFThreadCreate(self._attr, NSThreadStart, $0)
         }
+#endif
     }
     
     open func main() {

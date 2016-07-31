@@ -58,8 +58,10 @@ extern pthread_t pthread_main_thread_np(void);
 typedef struct voucher_s *voucher_t;
 extern mach_port_t _dispatch_get_main_queue_port_4CF(void);
 extern void _dispatch_main_queue_callback_4CF(mach_msg_header_t *msg);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
+#include <windows.h>
 #include <process.h>
+#define DISPATCH_EXPORT extern
 DISPATCH_EXPORT HANDLE _dispatch_get_main_queue_handle_4CF(void);
 DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void*);
 
@@ -68,9 +70,11 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void*);
 #define mach_port_t HANDLE
 #define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
 
-#define AbsoluteTime LARGE_INTEGER 
+#define LARGE_INTEGER uint64_t
 
 #elif DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_CYGWIN
+#else
 #include <dlfcn.h>
 #include <poll.h>
 #include <sys/epoll.h>
@@ -78,6 +82,7 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void*);
 #include <sys/timerfd.h>
 
 #define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
+#endif
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR || DEPLOYMENT_TARGET_LINUX
@@ -347,7 +352,7 @@ CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
     }
 }
 
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
 
 typedef HANDLE __CFPort;
 #define CFPORT_NULL NULL
@@ -373,6 +378,8 @@ static __CFPortSet __CFPortSetAllocate(void) {
     result->used = 0;
     result->size = 4;
     result->handles = (HANDLE *)CFAllocatorAllocate(kCFAllocatorSystemDefault, result->size * sizeof(HANDLE), 0);
+
+#define CF_SPINLOCK_INIT_FOR_STRUCTS(X) InitializeCriticalSection(&X)
     CF_SPINLOCK_INIT_FOR_STRUCTS(result->lock);
     return result;
 }
@@ -522,7 +529,7 @@ static uint32_t __CFSendTrivialMachMessage(mach_port_t port, uint32_t msg_id, CF
     if (result == MACH_SEND_TIMED_OUT) mach_msg_destroy(&header);
     return result;
 }
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN
 
 static int mk_timer_create(void) {
     return timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK|TFD_CLOEXEC);
@@ -552,7 +559,7 @@ CF_INLINE int64_t __CFUInt64ToAbsoluteTime(int64_t x) {
     return x;
 }
 
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
 
 static HANDLE mk_timer_create(void) {
     return CreateWaitableTimer(NULL, FALSE, NULL);
@@ -572,13 +579,13 @@ static kern_return_t mk_timer_arm(HANDLE name, LARGE_INTEGER expire_time) {
     // There is a race we know about here, (timer fire time calculated -> thread suspended -> timer armed == late timer fire), but we don't have a way to avoid it at this time, since the only way to specify an absolute value to the timer is to calculate the relative time first. Fixing that would probably require not using the TSR for timers on Windows.
     uint64_t now = mach_absolute_time();
     if (now > expire_time) {
-        result.QuadPart = 0;
+        result = 0;
     } else {
         uint64_t timeDiff = expire_time - now;
         CFTimeInterval amountOfTimeToWait = __CFTSRToTimeInterval(timeDiff);
         // Result is in 100 ns (10**-7 sec) units to be consistent with a FILETIME.
         // CFTimeInterval is in seconds.
-        result.QuadPart = -(amountOfTimeToWait * 10000000);
+        result = -(amountOfTimeToWait * 10000000);
     }
 
     BOOL res = SetWaitableTimer(name, &result, 0, NULL, NULL, FALSE);
@@ -2355,7 +2362,7 @@ static Boolean __CFRunLoopServiceMachPort(mach_port_name_t port, mach_msg_header
     return false;
 }
 
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN
 
 #define TIMEOUT_INFINITY UINT64_MAX
 
@@ -2444,7 +2451,7 @@ static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort o
     return true;
 }
 
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
 
 #define TIMEOUT_INFINITY INFINITE
 
@@ -2594,7 +2601,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
         mach_msg_header_t *msg = NULL;
         mach_port_t livePort = MACH_PORT_NULL;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
         HANDLE livePort = NULL;
         Boolean windowsMessageReceived = false;
 #elif DEPLOYMENT_TARGET_LINUX
@@ -2623,11 +2630,11 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             if (__CFRunLoopServiceMachPort(dispatchPort, &msg, sizeof(msg_buffer), &livePort, 0, &voucherState, NULL)) {
                 goto handle_msg;
             }
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN
             if (__CFRunLoopServiceFileDescriptors(CFPORTSET_NULL, dispatchPort, 0, &livePort)) {
                 goto handle_msg;
             }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
             if (__CFRunLoopWaitForMultipleObjects(NULL, &dispatchPort, 0, 0, &livePort, NULL)) {
                 goto handle_msg;
             }
@@ -2695,7 +2702,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 #elif DEPLOYMENT_TARGET_WINDOWS
         // Here, use the app-supplied message queue mask. They will set this if they are interested in having this run loop receive windows messages.
         __CFRunLoopWaitForMultipleObjects(waitSet, NULL, poll ? 0 : TIMEOUT_INFINITY, rlm->_msgQMask, &livePort, &windowsMessageReceived);
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN
         __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, TIMEOUT_INFINITY, &livePort);
 #endif
         
@@ -2820,7 +2827,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 		    (void)mach_msg(reply, MACH_SEND_MSG, reply->msgh_size, 0, MACH_PORT_NULL, 0, MACH_PORT_NULL);
 		    CFAllocatorDeallocate(kCFAllocatorSystemDefault, reply);
 		}
-#elif DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_WINDOWS || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
                 sourceHandledThisLoop = __CFRunLoopDoSource1(rl, rlm, rls) || sourceHandledThisLoop;
 #endif
 	    }
@@ -2936,7 +2943,7 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
      * wakeup pending, since the queue length is 1. */
     ret = __CFSendTrivialMachMessage(rl->_wakeUpPort, 0, MACH_SEND_TIMEOUT, 0);
     if (ret != MACH_MSG_SUCCESS && ret != MACH_SEND_TIMED_OUT) CRASH("*** Unable to send message to wake up port. (%d) ***", ret);
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN
     int ret;
     do {
         ret = eventfd_write(rl->_wakeUpPort, 1);
@@ -3481,7 +3488,7 @@ static CFStringRef __CFRunLoopSourceCopyDescription(CFTypeRef cf) {	/* DOES CALL
 	void *addr = rls->_context.version0.version == 0 ? (void *)rls->_context.version0.perform : (rls->_context.version0.version == 1 ? (void *)rls->_context.version1.perform : NULL);
 #if DEPLOYMENT_TARGET_WINDOWS
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %p}"), rls->_context.version0.version, rls->_context.version0.info, addr);
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
 	Dl_info info;
 	const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %s (%p)}"), rls->_context.version0.version, rls->_context.version0.info, name, addr);
@@ -3682,7 +3689,7 @@ static CFStringRef __CFRunLoopObserverCopyDescription(CFTypeRef cf) {	/* DOES CA
     }
 #if DEPLOYMENT_TARGET_WINDOWS
     result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopObserver %p [%p]>{valid = %s, activities = 0x%x, repeats = %s, order = %d, callout = %p, context = %@}"), cf, CFGetAllocator(rlo), __CFIsValid(rlo) ? "Yes" : "No", rlo->_activities, __CFRunLoopObserverRepeats(rlo) ? "Yes" : "No", rlo->_order, rlo->_callout, contextDesc);    
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
     void *addr = rlo->_callout;
     Dl_info info;
     const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";

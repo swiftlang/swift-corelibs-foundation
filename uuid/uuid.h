@@ -41,6 +41,9 @@
 #include <sys/types.h>
 typedef	unsigned char __darwin_uuid_t[16];
 typedef	char __darwin_uuid_string_t[37];
+#ifdef uuid_t
+#undef uuid_t
+#endif
 typedef __darwin_uuid_t	uuid_t;
 #endif
 

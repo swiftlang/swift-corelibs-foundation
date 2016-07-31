@@ -9,7 +9,7 @@
 
 #if os(OSX) || os(iOS)
     import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
     import Glibc
 #endif
 
@@ -129,7 +129,7 @@ open class FileManager : NSObject {
                 }
                 #if os(OSX) || os(iOS)
                     let modeT = number.uint16Value
-                #elseif os(Linux) || os(Android)
+                #elseif os(Linux) || os(Android) || CYGWIN
                     let modeT = number.uint32Value
                 #endif
                 if chmod(path, mode_t(modeT)) != 0 {
@@ -252,7 +252,7 @@ open class FileManager : NSObject {
                 }
                 #if os(OSX) || os(iOS)
                     let tempEntryType = entryType
-                #elseif os(Linux) || os(Android)
+                #elseif os(Linux) || os(Android) || CYGWIN
                     let tempEntryType = Int32(entryType)
                 #endif
 

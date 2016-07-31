@@ -98,7 +98,10 @@ CF_EXTERN_C_BEGIN
 #include <CoreFoundation/CFRuntime.h>
 #include <limits.h>
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_CYGWIN
+#else
 #include <xlocale.h>
+#endif
 #include <unistd.h>
 #include <sys/time.h>
 #include <signal.h>

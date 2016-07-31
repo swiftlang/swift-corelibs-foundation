@@ -46,6 +46,7 @@
     
         TARGET_OS_WIN32           - Generated code will run under 32-bit Windows
         TARGET_OS_UNIX            - Generated code will run under some Unix (not OSX) 
+           TARGET_OS_CYGWIN           - Generated code will run under 64-bit Cygwin
         TARGET_OS_MAC             - Generated code will run under Mac OS X variant
            TARGET_OS_IPHONE          - Generated code for firmware, devices, or simulator 
               TARGET_OS_IOS             - Generated code will run under iOS 
@@ -76,21 +77,31 @@
 #define TARGET_OS_LINUX        0
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          0
+#define TARGET_OS_CYGWIN       0
 #elif __linux__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        1
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          0
+#define TARGET_OS_CYGWIN       0
+#elif __CYGWIN__
+#define TARGET_OS_DARWIN       0
+#define TARGET_OS_LINUX        1
+#define TARGET_OS_WINDOWS      0
+#define TARGET_OS_BSD          0
+#define TARGET_OS_CYGWIN       1
 #elif _WIN32 || _WIN64
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        0
 #define TARGET_OS_WINDOWS      1
 #define TARGET_OS_BSD          0
+#define TARGET_OS_CYGWIN       0
 #elif __unix__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        0
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          1
+#define TARGET_OS_CYGWIN       0
 #else
 #error unknown operating system
 #endif

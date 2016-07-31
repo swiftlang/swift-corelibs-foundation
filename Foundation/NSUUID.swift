@@ -12,7 +12,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
     import Darwin.uuid
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
     import Glibc
 #endif
 
