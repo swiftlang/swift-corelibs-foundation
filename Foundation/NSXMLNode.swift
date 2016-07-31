@@ -578,8 +578,8 @@ public class XMLNode: NSObject, NSCopying {
             if let parentNode = _CFXMLNodeGetParent(parent!) {
                 let grandparent = XMLNode._objectNodeForNode(parentNode)
                 let possibleParentNodes = grandparent.filter { $0.name == self.parent?.name }
-                let count = possibleParentNodes.reduce(0) {
-                    return $0.0 + 1
+                let count = possibleParentNodes.reduce(0) { n, _ in
+                    return n + 1
                 }
 
                 if count <= 1 {
