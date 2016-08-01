@@ -39,7 +39,7 @@ extension PersonNameComponentsFormatter {
     }
 }
 
-public class PersonNameComponentsFormatter : Formatter {
+open class PersonNameComponentsFormatter : Formatter {
     
     public required init?(coder: NSCoder) {
         NSUnimplemented()
@@ -47,33 +47,33 @@ public class PersonNameComponentsFormatter : Formatter {
     
     /* Specify the formatting style for the formatted string on an instance. ShortStyle will fall back to user preferences and language-specific defaults
      */
-    public var style: Style
+    open var style: Style
     
     /* Specify that the formatter should only format the components object's phoneticRepresentation
      */
-    public var phonetic: Bool
+    open var phonetic: Bool
     
     /* Shortcut for converting an NSPersonNameComponents object into a string without explicitly creating an instance.
         Create an instance for greater customizability.
      */
-    public class func localizedString(from components: PersonNameComponents, style nameFormatStyle: Style, options nameOptions: Options = []) -> String { NSUnimplemented() }
+    open class func localizedString(from components: PersonNameComponents, style nameFormatStyle: Style, options nameOptions: Options = []) -> String { NSUnimplemented() }
     
     /* Convenience method on string(for:):. Returns a string containing the formatted value of the provided components object.
      */
-    public func string(from components: PersonNameComponents) -> String { NSUnimplemented() }
+    open func string(from components: PersonNameComponents) -> String { NSUnimplemented() }
     
     /* Returns attributed string with annotations for each component. For each range, attributes can be obtained by querying
         dictionary key NSPersonNameComponentKey , using NSPersonNameComponent constant values.
      */
-    public func annotatedString(from components: PersonNameComponents) -> AttributedString { NSUnimplemented() }
+    open func annotatedString(from components: PersonNameComponents) -> AttributedString { NSUnimplemented() }
     
-    public func personNameComponents(from string: String) -> PersonNameComponents? { NSUnimplemented() }
+    open func personNameComponents(from string: String) -> PersonNameComponents? { NSUnimplemented() }
     
     /* NSPersonNameComponentsFormatter currently only implements formatting, not parsing. Until it implements parsing, this will always return NO.
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public override func objectValue(_ string: String) throws -> AnyObject? { return nil }
+    open override func objectValue(_ string: String) throws -> AnyObject? { return nil }
 }
 
 // Attributed String identifier key string

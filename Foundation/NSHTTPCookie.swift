@@ -53,7 +53,7 @@ public let NSHTTPCookiePort: String = "Port"
 /// an immutable object initialized from a dictionary that contains
 /// the various cookie attributes. It has accessors to get the various
 /// attributes of a cookie.
-public class HTTPCookie : NSObject {
+open class HTTPCookie : NSObject {
 
     let _comment: String?
     let _commentURL: URL?
@@ -317,7 +317,7 @@ public class HTTPCookie : NSObject {
     /// - Parameter cookies: The cookies to turn into request headers.
     /// - Returns: A dictionary where the keys are header field names, and the values
     /// are the corresponding header field values.
-    public class func requestHeaderFields(with cookies: [HTTPCookie]) -> [String : String] {
+    open class func requestHeaderFields(with cookies: [HTTPCookie]) -> [String : String] {
         var cookieString = cookies.reduce("") { (sum, next) -> String in
             return sum + "\(next._name)=\(next._value); "
         }
@@ -336,7 +336,7 @@ public class HTTPCookie : NSObject {
     /// - Parameter headerFields: The response header fields to check for cookies.
     /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpeted.
     /// - Returns: An array of NSHTTPCookie objects
-    public class func cookies(withResponseHeaderFields headerFields: [String : String], forURL url: URL) -> [HTTPCookie] {
+    open class func cookies(withResponseHeaderFields headerFields: [String : String], forURL url: URL) -> [HTTPCookie] {
 
         //HTTP Cookie parsing based on RFC 6265: https://tools.ietf.org/html/rfc6265
         //Though RFC6265 suggests that multiple cookies cannot be folded into a single Set-Cookie field, this is
@@ -440,7 +440,7 @@ public class HTTPCookie : NSObject {
     ///
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public var properties: [String : Any]? {
+    open var properties: [String : Any]? {
         return _properties
     }
     
@@ -448,17 +448,17 @@ public class HTTPCookie : NSObject {
     ///
     /// Version 0 maps to "old-style" Netscape cookies.
     /// Version 1 maps to RFC2965 cookies. There may be future versions.
-    public var version: Int {
+    open var version: Int {
         return _version
     }
     
     /// The name of the receiver.
-    public var name: String {
+    open var name: String {
         return _name
     }
     
     /// The value of the receiver.
-    public var value: String {
+    open var value: String {
         return _value
     }
     
@@ -467,7 +467,7 @@ public class HTTPCookie : NSObject {
     /// The expires date is the date when the cookie should be
     /// deleted. The result will be nil if there is no specific expires
     /// date. This will be the case only for *session-only* cookies.
-    /*@NSCopying*/ public var expiresDate: Date? {
+    /*@NSCopying*/ open var expiresDate: Date? {
         return _expiresDate
     }
    
@@ -476,7 +476,7 @@ public class HTTPCookie : NSObject {
     /// `true` if this receiver should be discarded at the end of the
     /// session (regardless of expiration date), `false` if receiver need not
     /// be discarded at the end of the session.
-    public var isSessionOnly: Bool {
+    open var isSessionOnly: Bool {
         return _sessionOnly
     }
     
@@ -486,7 +486,7 @@ public class HTTPCookie : NSObject {
     /// should be sent. A domain with a leading dot means the cookie
     /// should be sent to subdomains as well, assuming certain other
     /// restrictions are valid. See RFC 2965 for more detail.
-    public var domain: String {
+    open var domain: String {
         return _domain
     }
     
@@ -495,7 +495,7 @@ public class HTTPCookie : NSObject {
     /// This value specifies the URL path under the cookie's
     /// domain for which this cookie should be sent. The cookie will also
     /// be sent for children of that path, so `"/"` is the most general.
-    public var path: String {
+    open var path: String {
         return _path
     }
    
@@ -505,7 +505,7 @@ public class HTTPCookie : NSObject {
     /// Cookies marked as such must only be sent via an encrypted connection to
     /// trusted servers (i.e. via SSL or TLS), and should not be delievered to any
     /// javascript applications to prevent cross-site scripting vulnerabilities. 
-    public var isSecure: Bool {
+    open var isSecure: Bool {
         return _secure
     }
     
@@ -516,7 +516,7 @@ public class HTTPCookie : NSObject {
     /// for URL's that match both the path and domain of the respective Cookies.
     /// Specifically these cookies should not be delivered to any javascript
     /// applications to prevent cross-site scripting vulnerabilities.
-    public var isHTTPOnly: Bool {
+    open var isHTTPOnly: Bool {
         return _HTTPOnly
     }
     
@@ -525,7 +525,7 @@ public class HTTPCookie : NSObject {
     /// This value specifies a string which is suitable for
     /// presentation to the user explaining the contents and purpose of this
     /// cookie. It may be nil.
-    public var comment: String? {
+    open var comment: String? {
         return _comment
     }
     
@@ -534,7 +534,7 @@ public class HTTPCookie : NSObject {
     /// This value specifies a URL which is suitable for
     /// presentation to the user as a link for further information about
     /// this cookie. It may be nil.
-    /*@NSCopying*/ public var commentURL: URL? {
+    /*@NSCopying*/ open var commentURL: URL? {
         return _commentURL
     }
     
@@ -546,7 +546,7 @@ public class HTTPCookie : NSObject {
     ///
     /// The array may be nil, in which case this cookie can be sent to any
     /// port.
-    public var portList: [NSNumber]? {
+    open var portList: [NSNumber]? {
         return _portList
     }
 }

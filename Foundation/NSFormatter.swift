@@ -43,7 +43,7 @@ extension Formatter {
     }
 }
 
-public class Formatter : NSObject, NSCopying, NSCoding {
+open class Formatter : NSObject, NSCopying, NSCoding {
     
     public override init() {
         
@@ -53,29 +53,29 @@ public class Formatter : NSObject, NSCopying, NSCoding {
         
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
-    public func string(for obj: AnyObject) -> String? {
+    open func string(for obj: AnyObject) -> String? {
         NSRequiresConcreteImplementation()
     }
     
-    public func editingString(for obj: AnyObject) -> String? {
+    open func editingString(for obj: AnyObject) -> String? {
         return string(for: obj)
     }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func objectValue(_ string: String) throws -> AnyObject? {
+    open func objectValue(_ string: String) throws -> AnyObject? {
         NSRequiresConcreteImplementation()
     }
 }

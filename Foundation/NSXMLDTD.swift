@@ -12,7 +12,7 @@ import CoreFoundation
     @class NSXMLDTD
     @abstract Defines the order, repetition, and allowable values for a document
 */
-public class XMLDTD : XMLNode {
+open class XMLDTD : XMLNode {
 
     internal var _xmlDTD: _CFXMLDTDPtr {
         return _CFXMLDTDPtr(_xmlNode)
@@ -43,10 +43,10 @@ public class XMLDTD : XMLNode {
     } //primitive
     
     /*!
-        @method publicID
-        @abstract Sets the public id. This identifier should be in the default catalog in /etc/xml/catalog or in a path specified by the environment variable XML_CATALOG_FILES. When the public id is set the system id must also be set.
+        @method openID
+        @abstract Sets the open id. This identifier should be in the default catalog in /etc/xml/catalog or in a path specified by the environment variable XML_CATALOG_FILES. When the public id is set the system id must also be set.
     */
-    public var publicID: String? {
+    open var publicID: String? {
         get {
             return _CFXMLDTDExternalID(_xmlDTD)?._swiftObject
         }
@@ -64,7 +64,7 @@ public class XMLDTD : XMLNode {
         @method systemID
         @abstract Sets the system id. This should be a URL that points to a valid DTD.
     */
-    public var systemID: String? {
+    open var systemID: String? {
         get {
             return _CFXMLDTDSystemID(_xmlDTD)?._swiftObject
         }
@@ -82,7 +82,7 @@ public class XMLDTD : XMLNode {
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(_ child: XMLNode, at index: Int) {
+    open func insertChild(_ child: XMLNode, at index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
     
@@ -90,7 +90,7 @@ public class XMLDTD : XMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(_ children: [XMLNode], at index: Int) {
+    open func insertChildren(_ children: [XMLNode], at index: Int) {
         _insertChildren(children, atIndex: index)
     }
     
@@ -98,7 +98,7 @@ public class XMLDTD : XMLNode {
         @method removeChildAtIndex:
         @abstract Removes a child at a particular index.
     */
-    public func removeChild(at index: Int) {
+    open func removeChild(at index: Int) {
         _removeChildAtIndex(index)
     } //primitive
     
@@ -106,7 +106,7 @@ public class XMLDTD : XMLNode {
         @method setChildren:
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
-    public func setChildren(_ children: [XMLNode]?) {
+    open func setChildren(_ children: [XMLNode]?) {
         _setChildren(children)
     } //primitive
     
@@ -114,7 +114,7 @@ public class XMLDTD : XMLNode {
         @method addChild:
         @abstract Adds a child to the end of the existing children.
     */
-    public func addChild(_ child: XMLNode) {
+    open func addChild(_ child: XMLNode) {
         _addChild(child)
     }
     
@@ -122,7 +122,7 @@ public class XMLDTD : XMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChild(at index: Int, with node: XMLNode) {
+    open func replaceChild(at index: Int, with node: XMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
     
@@ -130,7 +130,7 @@ public class XMLDTD : XMLNode {
         @method entityDeclarationForName:
         @abstract Returns the entity declaration matching this name.
     */
-    public func entityDeclaration(forName name: String) -> XMLDTDNode? {
+    open func entityDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetEntityDesc(_xmlDTD, name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     } //primitive
@@ -139,7 +139,7 @@ public class XMLDTD : XMLNode {
         @method notationDeclarationForName:
         @abstract Returns the notation declaration matching this name.
     */
-    public func notationDeclaration(forName name: String) -> XMLDTDNode? {
+    open func notationDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetNotationDesc(_xmlDTD, name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     } //primitive
@@ -148,7 +148,7 @@ public class XMLDTD : XMLNode {
         @method elementDeclarationForName:
         @abstract Returns the element declaration matching this name.
     */
-    public func elementDeclaration(forName name: String) -> XMLDTDNode? {
+    open func elementDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetElementDesc(_xmlDTD, name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     } //primitive
@@ -157,7 +157,7 @@ public class XMLDTD : XMLNode {
         @method attributeDeclarationForName:
         @abstract Returns the attribute declaration matching this name.
     */
-    public func attributeDeclaration(forName name: String, elementName: String) -> XMLDTDNode? {
+    open func attributeDeclaration(forName name: String, elementName: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetAttributeDesc(_xmlDTD, elementName, name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     } //primitive
@@ -168,7 +168,7 @@ public class XMLDTD : XMLNode {
     	@discussion The five predefined entities are
     	<ul><li>&amp;lt; - &lt;</li><li>&amp;gt; - &gt;</li><li>&amp;amp; - &amp;</li><li>&amp;quot; - &quot;</li><li>&amp;apos; - &amp;</li></ul>
     */
-    public class func predefinedEntityDeclaration(forName name: String) -> XMLDTDNode? {
+    open class func predefinedEntityDeclaration(forName name: String) -> XMLDTDNode? {
         guard let node = _CFXMLDTDGetPredefinedEntity(name) else { return nil }
         return XMLDTDNode._objectNodeForNode(node)
     }

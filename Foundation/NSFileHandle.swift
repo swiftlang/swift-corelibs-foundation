@@ -15,20 +15,20 @@ import Darwin
 import Glibc
 #endif
 
-public class FileHandle: NSObject, NSSecureCoding {
+open class FileHandle: NSObject, NSSecureCoding {
     internal var _fd: Int32
     internal var _closeOnDealloc: Bool
     internal var _closed: Bool = false
     
-    public var availableData: Data {
+    open var availableData: Data {
         return _readDataOfLength(Int.max, untilEOF: false)
     }
     
-    public func readDataToEndOfFile() -> Data {
+    open func readDataToEndOfFile() -> Data {
         return readData(ofLength: Int.max)
     }
 
-    public func readData(ofLength length: Int) -> Data {
+    open func readData(ofLength length: Int) -> Data {
         return _readDataOfLength(length, untilEOF: true)
     }
 
@@ -115,7 +115,7 @@ public class FileHandle: NSObject, NSSecureCoding {
         return Data()
     }
     
-    public func write(_ data: Data) {
+    open func write(_ data: Data) {
         data.enumerateBytes() { (bytes, range, stop) in
             do {
                 try NSData.writeToFileDescriptor(self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
@@ -127,29 +127,29 @@ public class FileHandle: NSObject, NSSecureCoding {
     
     // TODO: Error handling.
     
-    public var offsetInFile: UInt64 {
+    open var offsetInFile: UInt64 {
         return UInt64(lseek(_fd, 0, L_INCR))
     }
     
-    public func seekToEndOfFile() -> UInt64 {
+    open func seekToEndOfFile() -> UInt64 {
         return UInt64(lseek(_fd, 0, L_XTND))
     }
     
-    public func seek(toFileOffset offset: UInt64) {
+    open func seek(toFileOffset offset: UInt64) {
         lseek(_fd, off_t(offset), L_SET)
     }
     
-    public func truncateFile(atOffset offset: UInt64) {
+    open func truncateFile(atOffset offset: UInt64) {
         if lseek(_fd, off_t(offset), L_SET) == 0 {
             ftruncate(_fd, off_t(offset))
         }
     }
     
-    public func synchronizeFile() {
+    open func synchronizeFile() {
         fsync(_fd)
     }
     
-    public func closeFile() {
+    open func closeFile() {
         if !_closed {
             close(_fd)
             _closed = true
@@ -180,7 +180,7 @@ public class FileHandle: NSObject, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -195,7 +195,7 @@ extension FileHandle {
         return FileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
     }()
 
-    public class func standardInput() -> FileHandle {
+    open class func standardInput() -> FileHandle {
         return _stdinFileHandle
     }
     
@@ -203,7 +203,7 @@ extension FileHandle {
         return FileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
     }()
 
-    public class func standardOutput() -> FileHandle {
+    open class func standardOutput() -> FileHandle {
         return _stdoutFileHandle
     }
     
@@ -211,11 +211,11 @@ extension FileHandle {
         return FileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
     }()
     
-    public class func standardError() -> FileHandle {
+    open class func standardError() -> FileHandle {
         return _stderrFileHandle
     }
     
-    public class func nullDevice() -> FileHandle {
+    open class func nullDevice() -> FileHandle {
         NSUnimplemented()
     }
     
@@ -327,7 +327,7 @@ extension FileHandle {
     }
 }
 
-public class Pipe: NSObject {
+open class Pipe: NSObject {
     
     private let readHandle: FileHandle
     private let writeHandle: FileHandle
@@ -353,11 +353,11 @@ public class Pipe: NSObject {
         super.init()
     }
     
-    public var fileHandleForReading: FileHandle {
+    open var fileHandleForReading: FileHandle {
         return self.readHandle
     }
     
-    public var fileHandleForWriting: FileHandle {
+    open var fileHandleForWriting: FileHandle {
         return self.writeHandle
     }
 }

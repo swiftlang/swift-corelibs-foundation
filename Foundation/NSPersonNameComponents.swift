@@ -8,7 +8,7 @@
 //
 
 
-public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
+open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
     public convenience required init?(coder aDecoder: NSCoder) {
         self.init()
@@ -31,7 +31,7 @@ public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
     static public func supportsSecureCoding() -> Bool { return true }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(self.namePrefix?.bridge(), forKey: "NS.namePrefix")
             aCoder.encode(self.givenName?.bridge(), forKey: "NS.givenName")
@@ -50,31 +50,31 @@ public class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     
     /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
     
     /* Pre-nominal letters denoting title, salutation, or honorific, e.g. Dr., Mr. */
-    public var namePrefix: String?
+    open var namePrefix: String?
     
     /* Name bestowed upon an individual by one's parents, e.g. Johnathan */
-    public var givenName: String?
+    open var givenName: String?
     
     /* Secondary given name chosen to differentiate those with the same first name, e.g. Maple  */
-    public var middleName: String?
+    open var middleName: String?
     
     /* Name passed from one generation to another to indicate lineage, e.g. Appleseed  */
-    public var familyName: String?
+    open var familyName: String?
     
     /* Post-nominal letters denoting degree, accreditation, or other honor, e.g. Esq., Jr., Ph.D. */
-    public var nameSuffix: String?
+    open var nameSuffix: String?
     
     /* Name substituted for the purposes of familiarity, e.g. "Johnny"*/
-    public var nickname: String?
+    open var nickname: String?
     
     /* Each element of the phoneticRepresentation should correspond to an element of the original PersonNameComponents instance.
        The phoneticRepresentation of the phoneticRepresentation object itself will be ignored. nil by default, must be instantiated.
     */
-    /*@NSCopying*/ public var phoneticRepresentation: PersonNameComponents?
+    /*@NSCopying*/ open var phoneticRepresentation: PersonNameComponents?
 }
 

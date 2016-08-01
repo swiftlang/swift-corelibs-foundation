@@ -17,7 +17,7 @@ private func pthread_main_np() -> Int32 {
 #endif
 #endif
 
-public class Operation: NSObject {
+open class Operation: NSObject {
     let lock = Lock()
     internal weak var _queue: OperationQueue?
     internal var _cancelled = false
@@ -48,7 +48,7 @@ public class Operation: NSObject {
     }
     
     /// - Note: Operations that are asynchronous from the execution of the operation queue itself are not supported since there is no KVO to trigger the finish.
-    public func start() {
+    open func start() {
         main()
         finish()
     }
@@ -72,37 +72,37 @@ public class Operation: NSObject {
 #endif
     }
     
-    public func main() { }
+    open func main() { }
     
-    public var isCancelled: Bool {
+    open var isCancelled: Bool {
         return _cancelled
     }
     
-    public func cancel() {
+    open func cancel() {
         lock.lock()
         _cancelled = true
         _leaveGroups()
         lock.unlock()
     }
     
-    public var isExecuting: Bool {
+    open var isExecuting: Bool {
         return _executing
     }
     
-    public var isFinished: Bool {
+    open var isFinished: Bool {
         return _finished
     }
     
     // - Note: This property is NEVER used in the objective-c implementation!
-    public var isAsynchronous: Bool {
+    open var isAsynchronous: Bool {
         return false
     }
     
-    public var isReady: Bool {
+    open var isReady: Bool {
         return _ready
     }
     
-    public func addDependency(_ op: Operation) {
+    open func addDependency(_ op: Operation) {
         lock.lock()
         _dependencies.insert(op)
         op.lock.lock()
@@ -114,7 +114,7 @@ public class Operation: NSObject {
         lock.unlock()
     }
     
-    public func removeDependency(_ op: Operation) {
+    open func removeDependency(_ op: Operation) {
         lock.lock()
         _dependencies.remove(op)
         op.lock.lock()
@@ -129,27 +129,27 @@ public class Operation: NSObject {
         lock.unlock()
     }
     
-    public var dependencies: [Operation] {
+    open var dependencies: [Operation] {
         lock.lock()
         let ops = _dependencies.map() { $0 }
         lock.unlock()
         return ops
     }
     
-    public var queuePriority: QueuePriority = .normal
+    open var queuePriority: QueuePriority = .normal
     public var completionBlock: (() -> Void)?
-    public func waitUntilFinished() {
+    open func waitUntilFinished() {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         _group.wait()
 #endif
     }
     
-    public var threadPriority: Double = 0.5
+    open var threadPriority: Double = 0.5
     
     /// - Note: Quality of service is not directly supported here since there are not qos class promotions available outside of darwin targets.
-    public var qualityOfService: NSQualityOfService = .default
+    open var qualityOfService: NSQualityOfService = .default
     
-    public var name: String?
+    open var name: String?
     
     internal func _waitUntilReady() {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
@@ -169,7 +169,7 @@ extension Operation {
     }
 }
 
-public class BlockOperation: Operation {
+open class BlockOperation: Operation {
     typealias ExecutionBlock = () -> Void
     internal var _block: () -> Void
     internal var _executionBlocks = [ExecutionBlock]()
@@ -178,7 +178,7 @@ public class BlockOperation: Operation {
         _block = block
     }
     
-    override public func main() {
+    override open func main() {
         lock.lock()
         let block = _block
         let executionBlocks = _executionBlocks
@@ -187,13 +187,13 @@ public class BlockOperation: Operation {
         executionBlocks.forEach { $0() }
     }
     
-    public func addExecutionBlock(_ block: @escaping () -> Void) {
+    open func addExecutionBlock(_ block: @escaping () -> Void) {
         lock.lock()
         _executionBlocks.append(block)
         lock.unlock()
     }
     
-    public var executionBlocks: [() -> Void] {
+    open var executionBlocks: [() -> Void] {
         lock.lock()
         let blocks = _executionBlocks
         lock.unlock()
@@ -293,7 +293,7 @@ internal struct _OperationList {
     }
 }
 
-public class OperationQueue: NSObject {
+open class OperationQueue: NSObject {
     let lock = Lock()
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
     var __concurrencyGate: DispatchSemaphore?
@@ -366,7 +366,7 @@ public class OperationQueue: NSObject {
         return op
     }
     
-    public func addOperation(_ op: Operation) {
+    open func addOperation(_ op: Operation) {
         addOperations([op], waitUntilFinished: false)
     }
     
@@ -381,7 +381,7 @@ public class OperationQueue: NSObject {
         }
     }
     
-    public func addOperations(_ ops: [Operation], waitUntilFinished wait: Bool) {
+    open func addOperations(_ ops: [Operation], waitUntilFinished wait: Bool) {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         var waitGroup: DispatchGroup?
         if wait {
@@ -437,14 +437,14 @@ public class OperationQueue: NSObject {
         lock.unlock()
     }
     
-    public func addOperationWithBlock(_ block: @escaping () -> Void) {
+    open func addOperationWithBlock(_ block: @escaping () -> Void) {
         let op = BlockOperation(block: block)
         op.qualityOfService = qualityOfService
         addOperation(op)
     }
     
     // WARNING: the return value of this property can never be used to reliably do anything sensible
-    public var operations: [Operation] {
+    open var operations: [Operation] {
         lock.lock()
         let ops = _operations.map() { $0 }
         lock.unlock()
@@ -452,17 +452,17 @@ public class OperationQueue: NSObject {
     }
     
     // WARNING: the return value of this property can never be used to reliably do anything sensible
-    public var operationCount: Int {
+    open var operationCount: Int {
         lock.lock()
         let count = _operations.count
         lock.unlock()
         return count
     }
     
-    public var maxConcurrentOperationCount: Int = NSOperationQueueDefaultMaxConcurrentOperationCount
+    open var maxConcurrentOperationCount: Int = NSOperationQueueDefaultMaxConcurrentOperationCount
     
     internal var _suspended = false
-    public var suspended: Bool {
+    open var suspended: Bool {
         get {
             return _suspended
         }
@@ -485,7 +485,7 @@ public class OperationQueue: NSObject {
     }
     
     internal var _name: String?
-    public var name: String? {
+    open var name: String? {
         get {
             lock.lock()
             let val = _name
@@ -502,11 +502,11 @@ public class OperationQueue: NSObject {
         }
     }
     
-    public var qualityOfService: NSQualityOfService = .default
+    open var qualityOfService: NSQualityOfService = .default
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
     // Note: this will return non nil whereas the objective-c version will only return non nil when it has been set.
     // it uses a target queue assignment instead of returning the actual underlying queue.
-    public var underlyingQueue: DispatchQueue? {
+    open var underlyingQueue: DispatchQueue? {
         get {
             lock.lock()
             let queue = __underlyingQueue
@@ -521,14 +521,14 @@ public class OperationQueue: NSObject {
     }
 #endif
     
-    public func cancelAllOperations() {
+    open func cancelAllOperations() {
         lock.lock()
         let ops = _operations.map() { $0 }
         lock.unlock()
         ops.forEach() { $0.cancel() }
     }
     
-    public func waitUntilAllOperationsAreFinished() {
+    open func waitUntilAllOperationsAreFinished() {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         queueGroup.wait()
 #endif
@@ -538,7 +538,7 @@ public class OperationQueue: NSObject {
     static let OperationQueueKey = DispatchSpecificKey<Unmanaged<OperationQueue>>()
 #endif
 
-    public class func currentQueue() -> OperationQueue? {
+    open class func currentQueue() -> OperationQueue? {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         let specific = DispatchQueue.getSpecific(key: OperationQueue.OperationQueueKey)
         if specific == nil {
@@ -555,7 +555,7 @@ public class OperationQueue: NSObject {
 #endif
     }
     
-    public class func mainQueue() -> OperationQueue {
+    open class func mainQueue() -> OperationQueue {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         let specific = DispatchQueue.main.getSpecific(key: OperationQueue.OperationQueueKey)
         if specific == nil {

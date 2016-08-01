@@ -27,7 +27,7 @@ extension NotificationQueue {
     }
 }
 
-public class NotificationQueue: NSObject {
+open class NotificationQueue: NSObject {
 
     internal typealias NotificationQueueList = NSMutableArray
     internal typealias NSNotificationListEntry = (Notification, [RunLoopMode]) // Notification ans list of modes the notification may be posted in.
@@ -58,7 +58,7 @@ public class NotificationQueue: NSObject {
 
     // The default notification queue for the current thread.
     private static var _defaultQueue = NSThreadSpecific<NotificationQueue>()
-    public class func defaultQueue() -> NotificationQueue {
+    open class func defaultQueue() -> NotificationQueue {
         return _defaultQueue.get() {
             return NotificationQueue(notificationCenter: NotificationCenter.defaultCenter())
         }
@@ -76,11 +76,11 @@ public class NotificationQueue: NSObject {
         removeRunloopObserver(self.asapRunloopObserver)
     }
 
-    public func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle) {
+    open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle) {
         enqueueNotification(notification, postingStyle: postingStyle, coalesceMask: [.CoalescingOnName, .CoalescingOnSender], forModes: nil)
     }
 
-    public func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: Coalescing, forModes modes: [RunLoopMode]?) {
+    open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: Coalescing, forModes modes: [RunLoopMode]?) {
         var runloopModes: [RunLoopMode] = [.defaultRunLoopMode]
         if let modes = modes  {
             runloopModes = modes
@@ -105,7 +105,7 @@ public class NotificationQueue: NSObject {
         }
     }
     
-    public func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: Coalescing) {
+    open func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: Coalescing) {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
         case [.CoalescingOnName, .CoalescingOnSender]:

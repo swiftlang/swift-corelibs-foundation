@@ -54,7 +54,7 @@ internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
     return unsafeBitCast(rl, to: Unmanaged<AnyObject>.self) // this retain is balanced on the other side of the CF fence
 }
 
-public class RunLoop: NSObject {
+open class RunLoop: NSObject {
     internal var _cfRunLoop : CFRunLoop!
     internal static var _mainRunLoop : RunLoop = {
         return RunLoop(cfObject: CFRunLoopGetMain())
@@ -64,15 +64,15 @@ public class RunLoop: NSObject {
         _cfRunLoop = cfObject
     }
 
-    public class func current() -> RunLoop {
+    open class func current() -> RunLoop {
         return _CFRunLoopGet2(CFRunLoopGetCurrent()) as! RunLoop
     }
 
-    public class func main() -> RunLoop {
+    open class func main() -> RunLoop {
         return _CFRunLoopGet2(CFRunLoopGetMain()) as! RunLoop
     }
 
-    public var currentMode: RunLoopMode? {
+    open var currentMode: RunLoopMode? {
         if let mode = CFRunLoopCopyCurrentMode(_cfRunLoop) {
             return RunLoopMode(mode._swiftObject)
         } else {
@@ -80,23 +80,23 @@ public class RunLoop: NSObject {
         }
     }
     
-    public func getCFRunLoop() -> CFRunLoop {
+    open func getCFRunLoop() -> CFRunLoop {
         return _cfRunLoop
     }
 
-    public func add(_ timer: Timer, forMode mode: RunLoopMode) {
+    open func add(_ timer: Timer, forMode mode: RunLoopMode) {
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode.rawValue._cfObject)
     }
 
-    public func add(_ aPort: Port, forMode mode: RunLoopMode) {
+    open func add(_ aPort: Port, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func remove(_ aPort: Port, forMode mode: RunLoopMode) {
+    open func remove(_ aPort: Port, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func limitDate(forMode mode: RunLoopMode) -> Date? {
+    open func limitDate(forMode mode: RunLoopMode) -> Date? {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return nil
         }
@@ -116,7 +116,7 @@ public class RunLoop: NSObject {
         return Date(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
     }
 
-    public func acceptInputForMode(_ mode: String, before limitDate: Date) {
+    open func acceptInputForMode(_ mode: String, before limitDate: Date) {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return
         }

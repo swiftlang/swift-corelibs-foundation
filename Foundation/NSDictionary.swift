@@ -82,25 +82,25 @@ extension Dictionary : _ObjectTypeBridgeable {
     }
 }
 
-public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
+open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
     internal var _storage = [NSObject: AnyObject]()
     
-    public var count: Int {
+    open var count: Int {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
         return _storage.count
     }
     
-    public func objectForKey(_ aKey: AnyObject) -> AnyObject? {
+    open func objectForKey(_ aKey: AnyObject) -> AnyObject? {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
         return _storage[aKey as! NSObject]
     }
     
-    public func keyEnumerator() -> NSEnumerator {
+    open func keyEnumerator() -> NSEnumerator {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
@@ -158,7 +158,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if let keyedArchiver = aCoder as? NSKeyedArchiver {
             keyedArchiver._encodeArrayOfObjects(self.allKeys._nsObject, forKey:"NS.keys")
             keyedArchiver._encodeArrayOfObjects(self.allValues._nsObject, forKey:"NS.objects")
@@ -171,11 +171,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return true
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
 
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         if type(of: self) === NSDictionary.self {
             // return self for immutable type
             return self
@@ -187,11 +187,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return NSDictionary(objects: self.allValues, forKeys: self.allKeys.map({ $0 as! NSObject}))
     }
 
-    public override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> AnyObject {
         return mutableCopy(with: nil)
     }
 
-    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             // always create and return an NSMutableDictionary
             let mutableDictionary = NSMutableDictionary()
@@ -240,18 +240,18 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         valueBuffer.deallocate(capacity: objects.count)
     }
 
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: AnyObject?) -> Bool {
         guard let otherDictionary = object as? NSDictionary else {
             return false
         }
         return self.isEqual(to: otherDictionary.bridge())
     }
 
-    public override var hash: Int {
+    open override var hash: Int {
         return self.count
     }
 
-    public var allKeys: [AnyObject] {
+    open var allKeys: [AnyObject] {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             return _storage.keys.map { $0 }
         } else {
@@ -264,7 +264,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
     
-    public var allValues: [AnyObject] {
+    open var allValues: [AnyObject] {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             return _storage.values.map { $0 }
         } else {
@@ -280,7 +280,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     /// Alternative pseudo funnel method for fastpath fetches from dictionaries
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func getObjects(_ objects: inout [AnyObject], andKeys keys: inout [AnyObject], count: Int) {
+    open func getObjects(_ objects: inout [AnyObject], andKeys keys: inout [AnyObject], count: Int) {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             for (key, value) in _storage {
                 keys.append(key)
@@ -297,12 +297,12 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
     
-    public subscript (key: AnyObject) -> AnyObject? {
+    open subscript (key: AnyObject) -> AnyObject? {
         return objectForKey(key)
     }
     
     
-    public func allKeys(for anObject: AnyObject) -> [AnyObject] {
+    open func allKeys(for anObject: AnyObject) -> [AnyObject] {
         var matching = Array<AnyObject>()
         enumerateKeysAndObjects([]) { key, value, _ in
             if value === anObject {
@@ -322,11 +322,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     /// store dictionary data for later retrieval, see
     /// [Property List Programming Guide](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/PropertyLists/Introduction/Introduction.html#//apple_ref/doc/uid/10000048i)
     /// and [Archives and Serializations Programming Guide](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Archiving/Archiving.html#//apple_ref/doc/uid/10000047i).
-    public override var description: String {
+    open override var description: String {
         return description(withLocale: nil)
     }
 
-    public var descriptionInStringsFileFormat: String { NSUnimplemented() }
+    open var descriptionInStringsFileFormat: String { NSUnimplemented() }
 
     /// Returns a string object that represents the contents of the dictionary,
     /// formatted as a property list.
@@ -334,7 +334,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     /// - parameter locale: An object that specifies options used for formatting
     ///   each of the dictionary’s keys and values; pass `nil` if you don’t
     ///   want them formatted.
-    public func description(withLocale locale: Locale?) -> String {
+    open func description(withLocale locale: Locale?) -> String {
         return description(withLocale: locale, indent: 0)
     }
 
@@ -350,7 +350,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     ///
     /// - returns: A string object that represents the contents of the dictionary,
     ///   formatted as a property list.
-    public func description(withLocale locale: Locale?, indent level: Int) -> String {
+    open func description(withLocale locale: Locale?, indent level: Int) -> String {
         if level > 100 { return "..." }
 
         var lines = [String]()
@@ -405,7 +405,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return lines.joined(separator: "\n")
     }
 
-    public func isEqual(to otherDictionary: [NSObject : AnyObject]) -> Bool {
+    open func isEqual(to otherDictionary: [NSObject : AnyObject]) -> Bool {
         if count != otherDictionary.count {
             return false
         }
@@ -456,11 +456,11 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
 
-    public func objectEnumerator() -> NSEnumerator {
+    open func objectEnumerator() -> NSEnumerator {
         return NSGeneratorEnumerator(ObjectGenerator(self))
     }
     
-    public func objects(forKeys keys: [AnyObject], notFoundMarker marker: AnyObject) -> [AnyObject] {
+    open func objects(forKeys keys: [AnyObject], notFoundMarker marker: AnyObject) -> [AnyObject] {
         var objects = [AnyObject]()
         for key in keys {
             if let object = objectForKey(key) {
@@ -472,8 +472,8 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return objects
     }
     
-    public func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
-    public func write(to url: URL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
+    open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
+    open func write(to url: URL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
     
     public func enumerateKeysAndObjects(_ block: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateKeysAndObjects([], using: block)
@@ -496,22 +496,22 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
     
-    public func keysSortedByValue(comparator cmptr: @noescape (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
+    open func keysSortedByValue(comparator cmptr: @noescape (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
         return keysSortedByValue([], usingComparator: cmptr)
     }
 
-    public func keysSortedByValue(_ opts: SortOptions = [], usingComparator cmptr: @noescape (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
+    open func keysSortedByValue(_ opts: SortOptions = [], usingComparator cmptr: @noescape (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
         let sorted = allKeys.sorted { lhs, rhs in
             return cmptr(lhs, rhs) == .orderedSame
         }
         return sorted
     }
 
-    public func keysOfEntries(passingTest predicate: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    open func keysOfEntries(passingTest predicate: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         return keysOfEntries([], passingTest: predicate)
     }
 
-    public func keysOfEntries(_ opts: EnumerationOptions = [], passingTest predicate: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    open func keysOfEntries(_ opts: EnumerationOptions = [], passingTest predicate: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         var matching = Set<NSObject>()
         enumerateKeysAndObjects(opts) { key, value, stop in
             if predicate(key, value, stop) {
@@ -521,7 +521,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return matching
     }
     
-    override public var _cfTypeID: CFTypeID {
+    override open var _cfTypeID: CFTypeID {
         return CFDictionaryGetTypeID()
     }
     
@@ -561,9 +561,9 @@ extension Dictionary : _NSBridgable, _CFBridgable {
     internal var _cfObject: CFDictionary { return _nsObject._cfObject }
 }
 
-public class NSMutableDictionary : NSDictionary {
+open class NSMutableDictionary : NSDictionary {
     
-    public func removeObject(forKey aKey: AnyObject) {
+    open func removeObject(forKey aKey: AnyObject) {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
@@ -573,7 +573,7 @@ public class NSMutableDictionary : NSDictionary {
         }
     }
     
-    public func setObject(_ anObject: AnyObject, forKey aKey: NSObject) {
+    open func setObject(_ anObject: AnyObject, forKey aKey: NSObject) {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
@@ -665,7 +665,7 @@ extension NSDictionary {
     As for any usage of hashing, is recommended that the keys have a well-distributed implementation of -hash, and the hash codes must satisfy the hash/isEqual: invariant.
     Keys with duplicate hash codes are allowed, but will cause lower performance and increase memory usage.
     */
-    public class func sharedKeySet(forKeys keys: [NSCopying]) -> AnyObject { NSUnimplemented() }
+    open class func sharedKeySet(forKeys keys: [NSCopying]) -> AnyObject { NSUnimplemented() }
 }
 
 extension NSMutableDictionary {

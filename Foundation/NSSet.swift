@@ -70,18 +70,18 @@ extension Set : _ObjectTypeBridgeable {
     }
 }
 
-public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
+open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
     internal var _storage: Set<NSObject>
     
-    public var count: Int {
+    open var count: Int {
         guard type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self || type(of: self) === NSCountedSet.self else {
                 NSRequiresConcreteImplementation()
         }
         return _storage.count
     }
     
-    public func member(_ object: AnyObject) -> AnyObject? {
+    open func member(_ object: AnyObject) -> AnyObject? {
         guard type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self || type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
@@ -93,7 +93,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return obj // this is not exactly the same behavior, but it is reasonably close
     }
     
-    public func objectEnumerator() -> NSEnumerator {
+    open func objectEnumerator() -> NSEnumerator {
         guard type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self || type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
@@ -143,16 +143,16 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         // The encoding of a NSSet is identical to the encoding of an NSArray of its contents
         self.allObjects._nsObject.encode(with: aCoder)
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         if type(of: self) === NSSet.self {
             // return self for immutable type
             return self
@@ -164,11 +164,11 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return NSSet(array: self.allObjects)
     }
     
-    public override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> AnyObject {
         return mutableCopy(with: nil)
     }
 
-    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
             // always create and return an NSMutableSet
             let mutableSet = NSMutableSet()
@@ -182,13 +182,13 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return true
     }
     
-    public func description(withLocale locale: Locale?) -> String { NSUnimplemented() }
+    open func description(withLocale locale: Locale?) -> String { NSUnimplemented() }
     
-    override public var _cfTypeID: CFTypeID {
+    override open var _cfTypeID: CFTypeID {
         return CFSetGetTypeID()
     }
 
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: AnyObject?) -> Bool {
         guard let otherObject = object, otherObject is NSSet else {
             return false
         }
@@ -196,7 +196,7 @@ public class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return self.isEqual(to: otherSet.bridge())
     }
 
-    public override var hash: Int {
+    open override var hash: Int {
         return self.count
     }
 
@@ -351,16 +351,16 @@ extension NSSet : Sequence {
     }
 }
 
-public class NSMutableSet : NSSet {
+open class NSMutableSet : NSSet {
     
-    public func add(_ object: AnyObject) {
+    open func add(_ object: AnyObject) {
         guard type(of: self) === NSMutableSet.self else {
             NSRequiresConcreteImplementation()
         }
         _storage.insert(object as! NSObject)
     }
     
-    public func remove(_ object: AnyObject) {
+    open func remove(_ object: AnyObject) {
         guard type(of: self) === NSMutableSet.self else {
             NSRequiresConcreteImplementation()
         }
@@ -386,7 +386,7 @@ public class NSMutableSet : NSSet {
         NSUnimplemented()
     }
     
-    public func addObjects(from array: [AnyObject]) {
+    open func addObjects(from array: [AnyObject]) {
         if type(of: self) === NSMutableSet.self {
             for case let obj as NSObject in array {
                 _storage.insert(obj)
@@ -396,7 +396,7 @@ public class NSMutableSet : NSSet {
         }
     }
     
-    public func intersect(_ otherSet: Set<NSObject>) {
+    open func intersect(_ otherSet: Set<NSObject>) {
         if type(of: self) === NSMutableSet.self {
             _storage.formIntersection(otherSet)
         } else {
@@ -406,7 +406,7 @@ public class NSMutableSet : NSSet {
         }
     }
     
-    public func minus(_ otherSet: Set<NSObject>) {
+    open func minus(_ otherSet: Set<NSObject>) {
         if type(of: self) === NSMutableSet.self {
             _storage.subtract(otherSet)
         } else {
@@ -414,7 +414,7 @@ public class NSMutableSet : NSSet {
         }
     }
     
-    public func removeAllObjects() {
+    open func removeAllObjects() {
         if type(of: self) === NSMutableSet.self {
             _storage.removeAll()
         } else {
@@ -422,7 +422,7 @@ public class NSMutableSet : NSSet {
         }
     }
     
-    public func union(_ otherSet: Set<NSObject>) {
+    open func union(_ otherSet: Set<NSObject>) {
         if type(of: self) === NSMutableSet.self {
             _storage.formUnion(otherSet)
         } else {
@@ -430,7 +430,7 @@ public class NSMutableSet : NSSet {
         }
     }
     
-    public func setSet(_ otherSet: Set<NSObject>) {
+    open func setSet(_ otherSet: Set<NSObject>) {
         if type(of: self) === NSMutableSet.self {
             _storage = otherSet
         } else {
@@ -442,7 +442,7 @@ public class NSMutableSet : NSSet {
 }
 
 /****************	Counted Set	****************/
-public class NSCountedSet : NSMutableSet {
+open class NSCountedSet : NSMutableSet {
     internal var _table: Dictionary<NSObject, Int>
 
     public required init(capacity numItems: Int) {
@@ -474,7 +474,7 @@ public class NSCountedSet : NSMutableSet {
 
     public required convenience init?(coder: NSCoder) { NSUnimplemented() }
 
-    public override func copy(with zone: NSZone? = nil) -> AnyObject {
+    open override func copy(with zone: NSZone? = nil) -> AnyObject {
         if type(of: self) === NSCountedSet.self {
             let countedSet = NSCountedSet()
             countedSet._storage = self._storage
@@ -484,7 +484,7 @@ public class NSCountedSet : NSMutableSet {
         return NSCountedSet(array: self.allObjects)
     }
 
-    public override func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open override func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         if type(of: self) === NSCountedSet.self {
             let countedSet = NSCountedSet()
             countedSet._storage = self._storage
@@ -494,7 +494,7 @@ public class NSCountedSet : NSMutableSet {
         return NSCountedSet(array: self.allObjects)
     }
 
-    public func countForObject(_ object: AnyObject) -> Int {
+    open func countForObject(_ object: AnyObject) -> Int {
         guard type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
@@ -504,7 +504,7 @@ public class NSCountedSet : NSMutableSet {
         return count
     }
 
-    public override func add(_ object: AnyObject) {
+    open override func add(_ object: AnyObject) {
         guard type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
@@ -517,7 +517,7 @@ public class NSCountedSet : NSMutableSet {
         }
     }
 
-    public override func remove(_ object: AnyObject) {
+    open override func remove(_ object: AnyObject) {
         guard type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
@@ -533,7 +533,7 @@ public class NSCountedSet : NSMutableSet {
         }
     }
 
-    public override func removeAllObjects() {
+    open override func removeAllObjects() {
         if type(of: self) === NSCountedSet.self {
             _storage.removeAll()
             _table.removeAll()

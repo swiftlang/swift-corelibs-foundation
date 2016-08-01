@@ -8,7 +8,7 @@
 //
 
 
-public class Cache: NSObject {
+open class Cache: NSObject {
     private class NSCacheEntry {
         var key: AnyObject
         var value: AnyObject
@@ -27,18 +27,18 @@ public class Cache: NSObject {
     private var _totalCost = 0
     private var _byCost: NSCacheEntry?
     
-    public var name: String = ""
-    public var totalCostLimit: Int = -1 // limits are imprecise/not strict
-    public var countLimit: Int = -1 // limits are imprecise/not strict
-    public var evictsObjectsWithDiscardedContent: Bool = false
+    open var name: String = ""
+    open var totalCostLimit: Int = -1 // limits are imprecise/not strict
+    open var countLimit: Int = -1 // limits are imprecise/not strict
+    open var evictsObjectsWithDiscardedContent: Bool = false
 
     public override init() {
         
     }
     
-    public weak var delegate: NSCacheDelegate?
+    open weak var delegate: NSCacheDelegate?
     
-    public func object(forKey key: AnyObject) -> AnyObject? {
+    open func object(forKey key: AnyObject) -> AnyObject? {
         var object: AnyObject?
         
         let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
@@ -52,7 +52,7 @@ public class Cache: NSObject {
         return object
     }
     
-    public func setObject(_ obj: AnyObject, forKey key: AnyObject) {
+    open func setObject(_ obj: AnyObject, forKey key: AnyObject) {
         setObject(obj, forKey: key, cost: 0)
     }
     
@@ -83,7 +83,7 @@ public class Cache: NSObject {
         }
     }
     
-    public func setObject(_ obj: AnyObject, forKey key: AnyObject, cost g: Int) {
+    open func setObject(_ obj: AnyObject, forKey key: AnyObject, cost g: Int) {
         let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
         
         _lock.lock()
@@ -157,7 +157,7 @@ public class Cache: NSObject {
         _lock.unlock()
     }
     
-    public func removeObject(forKey key: AnyObject) {
+    open func removeObject(forKey key: AnyObject) {
         let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
         
         _lock.lock()
@@ -168,7 +168,7 @@ public class Cache: NSObject {
         _lock.unlock()
     }
     
-    public func removeAllObjects() {
+    open func removeAllObjects() {
         _lock.lock()
         _entries.removeAll()
         _byCost = nil

@@ -150,7 +150,7 @@ public protocol URLProtocolClient : NSObjectProtocol {
     data. Concrete subclasses handle the specifics associated with one
     or more protocols or URL schemes.
 */
-public class URLProtocol : NSObject {
+open class URLProtocol : NSObject {
     
     /*! 
         @method initWithRequest:cachedResponse:client:
@@ -172,21 +172,21 @@ public class URLProtocol : NSObject {
         @abstract Returns the NSURLProtocolClient of the receiver. 
         @result The NSURLProtocolClient of the receiver.  
     */
-    public var client: URLProtocolClient? { NSUnimplemented() }
+    open var client: URLProtocolClient? { NSUnimplemented() }
     
     /*! 
         @method request
         @abstract Returns the NSURLRequest of the receiver. 
         @result The NSURLRequest of the receiver. 
     */
-    /*@NSCopying*/ public var request: URLRequest { NSUnimplemented() }
+    /*@NSCopying*/ open var request: URLRequest { NSUnimplemented() }
     
     /*! 
         @method cachedResponse
         @abstract Returns the NSCachedURLResponse of the receiver.  
         @result The NSCachedURLResponse of the receiver. 
     */
-    /*@NSCopying*/ public var cachedResponse: CachedURLResponse? { NSUnimplemented() }
+    /*@NSCopying*/ open var cachedResponse: CachedURLResponse? { NSUnimplemented() }
     
     /*======================================================================
       Begin responsibilities for protocol implementors
@@ -207,7 +207,7 @@ public class URLProtocol : NSObject {
         @param request A request to inspect.
         @result YES if the protocol can handle the given request, NO if not.
     */
-    public class func canInit(with request: URLRequest) -> Bool { NSUnimplemented() }
+    open class func canInit(with request: URLRequest) -> Bool { NSUnimplemented() }
     
     /*! 
         @method canonicalRequestForRequest:
@@ -227,7 +227,7 @@ public class URLProtocol : NSObject {
         @param request A request to make canonical.
         @result The canonical form of the given request. 
     */
-    public class func canonicalRequest(for request: URLRequest) -> URLRequest { NSUnimplemented() }
+    open class func canonicalRequest(for request: URLRequest) -> URLRequest { NSUnimplemented() }
     
     /*!
         @method requestIsCacheEquivalent:toRequest:
@@ -238,7 +238,7 @@ public class URLProtocol : NSObject {
         implementation-specific checks.
         @result YES if the two requests are cache-equivalent, NO otherwise.
     */
-    public class func requestIsCacheEquivalent(_ a: URLRequest, to b: URLRequest) -> Bool { NSUnimplemented() }
+    open class func requestIsCacheEquivalent(_ a: URLRequest, to b: URLRequest) -> Bool { NSUnimplemented() }
     
     /*! 
         @method startLoading
@@ -246,7 +246,7 @@ public class URLProtocol : NSObject {
         @discussion When this method is called, the protocol implementation
         should start loading a request.
     */
-    public func startLoading() { NSUnimplemented() }
+    open func startLoading() { NSUnimplemented() }
     
     /*! 
         @method stopLoading
@@ -256,7 +256,7 @@ public class URLProtocol : NSObject {
         to a cancel operation, so protocol implementations must be able to
         handle this call while a load is in progress.
     */
-    public func stopLoading() { NSUnimplemented() }
+    open func stopLoading() { NSUnimplemented() }
     
     /*======================================================================
       End responsibilities for protocol implementors
@@ -274,7 +274,7 @@ public class URLProtocol : NSObject {
         @result The property stored with the given key, or nil if no property
         had previously been stored with the given key in the given request.
     */
-    public class func property(forKey key: String, in request: URLRequest) -> AnyObject? { NSUnimplemented() }
+    open class func property(forKey key: String, in request: URLRequest) -> AnyObject? { NSUnimplemented() }
     
     /*! 
         @method setProperty:forKey:inRequest:
@@ -287,7 +287,7 @@ public class URLProtocol : NSObject {
         @param key The string to use for the property storage. 
         @param request The request in which to store the property. 
     */
-    public class func setProperty(_ value: AnyObject, forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
+    open class func setProperty(_ value: AnyObject, forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
     
     /*!
         @method removePropertyForKey:inRequest:
@@ -298,7 +298,7 @@ public class URLProtocol : NSObject {
         @param key The key whose value should be removed
         @param request The request to be modified
     */
-    public class func removeProperty(forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
+    open class func removeProperty(forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
     
     /*! 
         @method registerClass:
@@ -323,7 +323,7 @@ public class URLProtocol : NSObject {
         The only way that failure can occur is if the given class is not a
         subclass of NSURLProtocol.
     */
-    public class func registerClass(_ protocolClass: AnyClass) -> Bool { NSUnimplemented() }
+    open class func registerClass(_ protocolClass: AnyClass) -> Bool { NSUnimplemented() }
     
     /*! 
         @method unregisterClass:
@@ -332,10 +332,10 @@ public class URLProtocol : NSObject {
         consulted in calls to NSURLProtocol class methods.
         @param protocolClass The class to unregister.
     */
-    public class func unregisterClass(_ protocolClass: AnyClass) { NSUnimplemented() }
+    open class func unregisterClass(_ protocolClass: AnyClass) { NSUnimplemented() }
 
-    public class func canInit(with task: URLSessionTask) -> Bool { NSUnimplemented() }
+    open class func canInit(with task: URLSessionTask) -> Bool { NSUnimplemented() }
     public convenience init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
-    /*@NSCopying*/ public var task: URLSessionTask? { NSUnimplemented() }
+    /*@NSCopying*/ open var task: URLSessionTask? { NSUnimplemented() }
 }
 

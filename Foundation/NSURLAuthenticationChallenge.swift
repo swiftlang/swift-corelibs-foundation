@@ -46,7 +46,7 @@ public protocol URLAuthenticationChallengeSender : NSObjectProtocol {
     provides all the information about the challenge, and has a method
     to indicate when it's done.
 */
-public class URLAuthenticationChallenge : NSObject, NSSecureCoding {
+open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
     
     static public func supportsSecureCoding() -> Bool {
         return true
@@ -56,7 +56,7 @@ public class URLAuthenticationChallenge : NSObject, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -94,7 +94,7 @@ public class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      @abstract Get a description of the protection space that requires authentication
      @result The protection space that needs authentication
      */
-    /*@NSCopying*/ public var protectionSpace: URLProtectionSpace {
+    /*@NSCopying*/ open var protectionSpace: URLProtectionSpace {
         get {
             NSUnimplemented()
         }
@@ -113,7 +113,7 @@ public class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      credential is not ready to use as-is, but provides a default
      username the client could use when prompting.
      */
-    /*@NSCopying*/ public var proposedCredential: URLCredential? {
+    /*@NSCopying*/ open var proposedCredential: URLCredential? {
         get {
             NSUnimplemented()
         }
@@ -125,7 +125,7 @@ public class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      @abstract Get count of previous failed authentication attempts
      @result The count of previous failures
      */
-    public var previousFailureCount: Int {
+    open var previousFailureCount: Int {
         get {
             NSUnimplemented()
         }
@@ -141,7 +141,7 @@ public class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      then this method will return the response. Otherwise it will
      return nil.
      */
-    /*@NSCopying*/ public var failureResponse: URLResponse? {
+    /*@NSCopying*/ open var failureResponse: URLResponse? {
         get {
             NSUnimplemented()
         }
@@ -156,7 +156,7 @@ public class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      then this method will return the error. Otherwise it will
      return nil.
      */
-    /*@NSCopying*/ public var error: NSError? {
+    /*@NSCopying*/ open var error: NSError? {
         get {
             NSUnimplemented()
         }
@@ -169,7 +169,7 @@ public class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      @result The sender of the challenge
      @discussion The sender is the object you should reply to when done processing the challenge.
      */
-    public var sender: URLAuthenticationChallengeSender? {
+    open var sender: URLAuthenticationChallengeSender? {
         get {
             NSUnimplemented()
         }

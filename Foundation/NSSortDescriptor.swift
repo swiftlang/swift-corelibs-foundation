@@ -8,13 +8,13 @@
 //
 
 
-public class SortDescriptor: NSObject, NSSecureCoding, NSCopying {
+open class SortDescriptor: NSObject, NSSecureCoding, NSCopying {
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -22,28 +22,28 @@ public class SortDescriptor: NSObject, NSSecureCoding, NSCopying {
         return true
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
 
     // keys may be key paths
     public init(key: String?, ascending: Bool) { NSUnimplemented() }
     
-    public var key: String? { NSUnimplemented() }
-    public var ascending: Bool { NSUnimplemented() }
+    open var key: String? { NSUnimplemented() }
+    open var ascending: Bool { NSUnimplemented() }
     
-    public func allowEvaluation() { NSUnimplemented() } // Force a sort descriptor which was securely decoded to allow evaluation
+    open func allowEvaluation() { NSUnimplemented() } // Force a sort descriptor which was securely decoded to allow evaluation
     
     public init(key: String?, ascending: Bool, comparator cmptr: Comparator) { NSUnimplemented() }
     
-    public var comparator: Comparator { NSUnimplemented() }
+    open var comparator: Comparator { NSUnimplemented() }
     
-    public func compareObject(_ object1: AnyObject, toObject object2: AnyObject) -> ComparisonResult  { NSUnimplemented() }// primitive - override this method if you want to perform comparisons differently (not key based for example)
-    public var reversedSortDescriptor: AnyObject  { NSUnimplemented() } // primitive - override this method to return a sort descriptor instance with reversed sort order
+    open func compareObject(_ object1: AnyObject, toObject object2: AnyObject) -> ComparisonResult  { NSUnimplemented() }// primitive - override this method if you want to perform comparisons differently (not key based for example)
+    open var reversedSortDescriptor: AnyObject  { NSUnimplemented() } // primitive - override this method to return a sort descriptor instance with reversed sort order
 }
 
 extension NSSet {

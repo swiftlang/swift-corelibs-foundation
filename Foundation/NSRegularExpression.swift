@@ -27,18 +27,18 @@ extension RegularExpression {
     }
 }
 
-public class RegularExpression: NSObject, NSCopying, NSCoding {
+open class RegularExpression: NSObject, NSCopying, NSCoding {
     internal var _internal: _CFRegularExpression
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -63,11 +63,11 @@ public class RegularExpression: NSObject, NSCopying, NSCoding {
         }
     }
     
-    public var pattern: String {
+    open var pattern: String {
         return _CFRegularExpressionGetPattern(_internal)._swiftObject
     }
     
-    public var options: Options {
+    open var options: Options {
 #if os(OSX) || os(iOS)
         let opt = _CFRegularExpressionGetOptions(_internal).rawValue
 #else
@@ -77,13 +77,13 @@ public class RegularExpression: NSObject, NSCopying, NSCoding {
         return Options(rawValue: opt)
     }
     
-    public var numberOfCaptureGroups: Int {
+    open var numberOfCaptureGroups: Int {
         return _CFRegularExpressionGetNumberOfCaptureGroups(_internal)
     }
     
     /* This class method will produce a string by adding backslash escapes as necessary to the given string, to escape any characters that would otherwise be treated as pattern metacharacters.
     */
-    public class func escapedPattern(for string: String) -> String { 
+    open class func escapedPattern(for string: String) -> String { 
         return _CFRegularExpressionCreateEscapedPattern(string._cfObject)._swiftObject
     }
 }
@@ -337,7 +337,7 @@ extension RegularExpression {
     
     /* This class method will produce a string by adding backslash escapes as necessary to the given string, to escape any characters that would otherwise be treated as template metacharacters. 
     */
-    public class func escapedTemplate(for string: String) -> String {
+    open class func escapedTemplate(for string: String) -> String {
         return _CFRegularExpressionCreateEscapedPattern(string._cfObject)._swiftObject
     }
 }

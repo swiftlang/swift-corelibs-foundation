@@ -8,7 +8,7 @@
 //
 
 
-public class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
+open class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
     
     internal var _indexes : [Int]
     override public init() {
@@ -22,16 +22,16 @@ public class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
         _indexes = indexes
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     public convenience init(index: Int) {
         self.init(indexes: [index])
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -41,10 +41,10 @@ public class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
     
     public static func supportsSecureCoding() -> Bool { return true }
     
-    public func adding(_ index: Int) -> IndexPath {
+    open func adding(_ index: Int) -> IndexPath {
         return IndexPath(indexes: _indexes + [index])
     }
-    public func removingLastIndex() -> IndexPath {
+    open func removingLastIndex() -> IndexPath {
         if _indexes.count <= 1 {
             return IndexPath(indexes: [])
         } else {
@@ -52,10 +52,10 @@ public class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func index(atPosition position: Int) -> Int {
+    open func index(atPosition position: Int) -> Int {
         return _indexes[position]
     }
-    public var length: Int  {
+    open var length: Int  {
         return _indexes.count
     }
     
@@ -66,7 +66,7 @@ public class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
      @discussion
         It is the developer’s responsibility to allocate the memory for the C array.
      */
-    public func getIndexes(_ indexes: UnsafeMutablePointer<Int>, range positionRange: NSRange) {
+    open func getIndexes(_ indexes: UnsafeMutablePointer<Int>, range positionRange: NSRange) {
         for (pos, idx) in _indexes[positionRange.location ..< NSMaxRange(positionRange)].enumerated() {
             indexes.advanced(by: pos).pointee = idx
         }
@@ -74,7 +74,7 @@ public class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
     
     // comparison support
     // sorting an array of indexPaths using this comparison results in an array representing nodes in depth-first traversal order
-    public func compare(_ otherObject: IndexPath) -> ComparisonResult {
+    open func compare(_ otherObject: IndexPath) -> ComparisonResult {
         let thisLength = length
         let otherLength = otherObject.count
         let minLength = thisLength >= otherLength ? otherLength : thisLength

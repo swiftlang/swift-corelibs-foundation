@@ -8,27 +8,27 @@
 //
 
 
-public class PortMessage : NSObject {
+open class PortMessage : NSObject {
     
     public init(sendPort: Port?, receivePort replyPort: Port?, components: [AnyObject]?) {
         NSUnimplemented()
     }
     
-    public var components: [AnyObject]? {
+    open var components: [AnyObject]? {
         NSUnimplemented()
     }
     
-    public var receivePort: Port? {
+    open var receivePort: Port? {
         NSUnimplemented()
     }
     
-    public var sendPort: Port? {
+    open var sendPort: Port? {
         NSUnimplemented()
     }
     
-    public func sendBeforeDate(_ date: Date) -> Bool {
+    open func sendBeforeDate(_ date: Date) -> Bool {
         NSUnimplemented()
     }
     
-    public var msgid: UInt32
+    open var msgid: UInt32
 }

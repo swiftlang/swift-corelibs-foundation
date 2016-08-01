@@ -2,7 +2,7 @@
  NSUnitConverter describes how to convert a unit to and from the base unit of its dimension.  Use the NSUnitConverter protocol to implement new ways of converting a unit.
  */
 
-public class UnitConverter : NSObject {
+open class UnitConverter : NSObject {
     
     
     /*
@@ -20,7 +20,7 @@ public class UnitConverter : NSObject {
      @param value Value in terms of the unit class
      @return Value in terms of the base unit
      */
-    public func baseUnitValue(fromValue value: Double) -> Double {
+    open func baseUnitValue(fromValue value: Double) -> Double {
         return value
     }
     
@@ -30,17 +30,17 @@ public class UnitConverter : NSObject {
      @param baseUnitValue Value in terms of the base unit
      @return Value in terms of the unit class
      */
-    public func value(fromBaseUnitValue baseUnitValue: Double) -> Double {
+    open func value(fromBaseUnitValue baseUnitValue: Double) -> Double {
         return baseUnitValue
     }
 }
 
-public class UnitConverterLinear : UnitConverter, NSSecureCoding {
+open class UnitConverterLinear : UnitConverter, NSSecureCoding {
     
     
-    public private(set) var coefficient: Double
+    open private(set) var coefficient: Double
     
-    public private(set) var constant: Double
+    open private(set) var constant: Double
     
     
     public convenience init(coefficient: Double) {
@@ -53,11 +53,11 @@ public class UnitConverterLinear : UnitConverter, NSSecureCoding {
         self.constant = constant
     }
     
-    public override func baseUnitValue(fromValue value: Double) -> Double {
+    open override func baseUnitValue(fromValue value: Double) -> Double {
         return value * coefficient + constant
     }
     
-    public override func value(fromBaseUnitValue baseUnitValue: Double) -> Double {
+    open override func value(fromBaseUnitValue baseUnitValue: Double) -> Double {
         return (baseUnitValue - constant) / coefficient
     }
     
@@ -75,7 +75,7 @@ public class UnitConverterLinear : UnitConverter, NSSecureCoding {
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(self.coefficient, forKey:"NS.coefficient")
             aCoder.encode(self.constant, forKey:"NS.constant")
@@ -133,17 +133,17 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
  NSUnit is the base class for all unit types (dimensional and dimensionless).
  */
 
-public class Unit : NSObject, NSCopying, NSSecureCoding {
+open class Unit : NSObject, NSCopying, NSSecureCoding {
     
     
-    public private(set) var symbol: String
+    open private(set) var symbol: String
     
     
     public init(symbol: String) {
         self.symbol = symbol
     }
     
-    public func copy(with zone: NSZone?) -> AnyObject {
+    open func copy(with zone: NSZone?) -> AnyObject {
         return self
     }
     
@@ -159,7 +159,7 @@ public class Unit : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(self.symbol.bridge(), forKey:"NS.symbol")
         } else {
@@ -170,10 +170,10 @@ public class Unit : NSObject, NSCopying, NSSecureCoding {
     public static func supportsSecureCoding() -> Bool { return true }
 }
 
-public class Dimension : Unit {
+open class Dimension : Unit {
     
     
-    public private(set) var converter: UnitConverter
+    open private(set) var converter: UnitConverter
     
     
     public init(symbol: String, converter: UnitConverter) {
@@ -186,7 +186,7 @@ public class Dimension : Unit {
      e.g.
      NSUnitSpeed *metersPerSecond = [NSUnitSpeed baseUnit];
      */
-    public class func baseUnit() -> Self {
+    open class func baseUnit() -> Self {
         fatalError("*** You must override baseUnit in your class to define its base unit.")
     }
     
@@ -208,7 +208,7 @@ public class Dimension : Unit {
         }
     }
     
-    public override func encode(with aCoder: NSCoder) {
+    open override func encode(with aCoder: NSCoder) {
         super.encode(with: aCoder)
         
         if aCoder.allowsKeyedCoding {
@@ -219,7 +219,7 @@ public class Dimension : Unit {
     }
 }
 
-public class UnitAcceleration : Dimension {
+open class UnitAcceleration : Dimension {
     
     /*
      Base unit - metersPerSecondSquared
@@ -239,28 +239,28 @@ public class UnitAcceleration : Dimension {
         super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
-    public class var metersPerSecondSquared: UnitAcceleration {
+    open class var metersPerSecondSquared: UnitAcceleration {
         get {
             return UnitAcceleration(symbol: Symbol.metersPerSecondSquared, coefficient: Coefficient.metersPerSecondSquared)
         }
     }
     
-    public class var gravity: UnitAcceleration {
+    open class var gravity: UnitAcceleration {
         get {
             return UnitAcceleration(symbol: Symbol.gravity, coefficient: Coefficient.gravity)
         }
     }
     
-    public override class func baseUnit() -> UnitAcceleration {
+    open override class func baseUnit() -> UnitAcceleration {
         return UnitAcceleration.metersPerSecondSquared
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitAngle : Dimension {
+open class UnitAngle : Dimension {
     
     /*
      Base unit - degrees
@@ -289,52 +289,52 @@ public class UnitAngle : Dimension {
     }
     
     
-    public class var degrees: UnitAngle {
+    open class var degrees: UnitAngle {
         get {
             return UnitAngle(symbol: Symbol.degrees, coefficient: Coefficient.degrees)
         }
     }
     
-    public class var arcMinutes: UnitAngle {
+    open class var arcMinutes: UnitAngle {
         get {
             return UnitAngle(symbol: Symbol.arcMinutes, coefficient: Coefficient.arcMinutes)
         }
     }
     
-    public class var arcSeconds: UnitAngle {
+    open class var arcSeconds: UnitAngle {
         get {
             return UnitAngle(symbol: Symbol.arcSeconds, coefficient: Coefficient.arcSeconds)
         }
     }
     
-    public class var radians: UnitAngle {
+    open class var radians: UnitAngle {
         get {
             return UnitAngle(symbol: Symbol.radians, coefficient: Coefficient.radians)
         }
     }
     
-    public class var gradians: UnitAngle {
+    open class var gradians: UnitAngle {
         get {
             return UnitAngle(symbol: Symbol.gradians, coefficient: Coefficient.gradians)
         }
     }
     
-    public class var revolutions: UnitAngle {
+    open class var revolutions: UnitAngle {
         get {
             return UnitAngle(symbol: Symbol.revolutions, coefficient: Coefficient.revolutions)
         }
     }
     
-    public override class func baseUnit() -> UnitAngle {
+    open override class func baseUnit() -> UnitAngle {
         return UnitAngle.degrees
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitArea : Dimension {
+open class UnitArea : Dimension {
     
     /*
      Base unit - squareMeters
@@ -379,100 +379,100 @@ public class UnitArea : Dimension {
     }
     
     
-    public class var squareMegameters: UnitArea {
+    open class var squareMegameters: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareMegameters, coefficient: Coefficient.squareMegameters)
         }
     }
     
-    public class var squareKilometers: UnitArea {
+    open class var squareKilometers: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareKilometers, coefficient: Coefficient.squareKilometers)
         }
     }
     
-    public class var squareMeters: UnitArea {
+    open class var squareMeters: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareMeters, coefficient: Coefficient.squareMeters)
         }
     }
     
-    public class var squareCentimeters: UnitArea {
+    open class var squareCentimeters: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareCentimeters, coefficient: Coefficient.squareCentimeters)
         }
     }
     
-    public class var squareMillimeters: UnitArea {
+    open class var squareMillimeters: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareMillimeters, coefficient: Coefficient.squareMillimeters)
         }
     }
     
-    public class var squareMicrometers: UnitArea {
+    open class var squareMicrometers: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareMicrometers, coefficient: Coefficient.squareMicrometers)
         }
     }
     
-    public class var squareNanometers: UnitArea {
+    open class var squareNanometers: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareNanometers, coefficient: Coefficient.squareNanometers)
         }
     }
     
-    public class var squareInches: UnitArea {
+    open class var squareInches: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareInches, coefficient: Coefficient.squareInches)
         }
     }
     
-    public class var squareFeet: UnitArea {
+    open class var squareFeet: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareFeet, coefficient: Coefficient.squareFeet)
         }
     }
     
-    public class var squareYards: UnitArea {
+    open class var squareYards: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareYards, coefficient: Coefficient.squareYards)
         }
     }
     
-    public class var squareMiles: UnitArea {
+    open class var squareMiles: UnitArea {
         get {
             return UnitArea(symbol: Symbol.squareMiles, coefficient: Coefficient.squareMiles)
         }
     }
     
-    public class var acres: UnitArea {
+    open class var acres: UnitArea {
         get {
             return UnitArea(symbol: Symbol.acres, coefficient: Coefficient.acres)
         }
     }
     
-    public class var ares: UnitArea {
+    open class var ares: UnitArea {
         get {
             return UnitArea(symbol: Symbol.ares, coefficient: Coefficient.ares)
         }
     }
     
-    public class var hectares: UnitArea {
+    open class var hectares: UnitArea {
         get {
             return UnitArea(symbol: Symbol.hectares, coefficient: Coefficient.hectares)
         }
     }
     
-    public override class func baseUnit() -> UnitArea {
+    open override class func baseUnit() -> UnitArea {
         return UnitArea.squareMeters
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitConcentrationMass : Dimension {
+open class UnitConcentrationMass : Dimension {
     
     /*
      Base unit - gramsPerLiter
@@ -495,32 +495,32 @@ public class UnitConcentrationMass : Dimension {
     }
     
     
-    public class var gramsPerLiter: UnitConcentrationMass {
+    open class var gramsPerLiter: UnitConcentrationMass {
         get {
             return UnitConcentrationMass(symbol: Symbol.gramsPerLiter, coefficient: Coefficient.gramsPerLiter)
         }
     }
     
-    public class var milligramsPerDeciliter: UnitConcentrationMass {
+    open class var milligramsPerDeciliter: UnitConcentrationMass {
         get {
             return UnitConcentrationMass(symbol: Symbol.milligramsPerDeciliter, coefficient: Coefficient.milligramsPerDeciliter)
         }
     }
     
-    public class func millimolesPerLiter(withGramsPerMole gramsPerMole: Double) -> UnitConcentrationMass {
+    open class func millimolesPerLiter(withGramsPerMole gramsPerMole: Double) -> UnitConcentrationMass {
         return UnitConcentrationMass(symbol: Symbol.millimolesPerLiter, coefficient: Coefficient.millimolesPerLiter * gramsPerMole)
     }
     
-    public override class func baseUnit() -> UnitConcentrationMass {
+    open override class func baseUnit() -> UnitConcentrationMass {
         return UnitConcentrationMass.gramsPerLiter
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitDispersion : Dimension {
+open class UnitDispersion : Dimension {
     
     /*
      Base unit - partsPerMillion
@@ -539,22 +539,22 @@ public class UnitDispersion : Dimension {
     }
     
     
-    public class var partsPerMillion: UnitDispersion {
+    open class var partsPerMillion: UnitDispersion {
         get {
             return UnitDispersion(symbol: Symbol.partsPerMillion, coefficient: Coefficient.partsPerMillion)
         }
     }
     
-    public override class func baseUnit() -> UnitDispersion {
+    open override class func baseUnit() -> UnitDispersion {
         return UnitDispersion.partsPerMillion
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitDuration : Dimension {
+open class UnitDuration : Dimension {
     
     /*
      Base unit - seconds
@@ -576,34 +576,34 @@ public class UnitDuration : Dimension {
         super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
-    public class var seconds: UnitDuration {
+    open class var seconds: UnitDuration {
         get {
             return UnitDuration(symbol: Symbol.seconds, coefficient: Coefficient.seconds)
         }
     }
     
-    public class var minutes: UnitDuration {
+    open class var minutes: UnitDuration {
         get {
             return UnitDuration(symbol: Symbol.minutes, coefficient: Coefficient.minutes)
         }
     }
     
-    public class var hours: UnitDuration {
+    open class var hours: UnitDuration {
         get {
             return UnitDuration(symbol: Symbol.hours, coefficient: Coefficient.hours)
         }
     }
     
-    public override class func baseUnit() -> UnitDuration {
+    open override class func baseUnit() -> UnitDuration {
         return UnitDuration.seconds
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitElectricCharge : Dimension {
+open class UnitElectricCharge : Dimension {
     /*
      Base unit - coulombs
      */
@@ -631,52 +631,52 @@ public class UnitElectricCharge : Dimension {
     }
     
     
-    public class var coulombs: UnitElectricCharge {
+    open class var coulombs: UnitElectricCharge {
         get {
             return UnitElectricCharge(symbol: Symbol.coulombs, coefficient: Coefficient.coulombs)
         }
     }
     
-    public class var megaampereHours: UnitElectricCharge {
+    open class var megaampereHours: UnitElectricCharge {
         get {
             return UnitElectricCharge(symbol: Symbol.megaampereHours, coefficient: Coefficient.megaampereHours)
         }
     }
     
-    public class var kiloampereHours: UnitElectricCharge {
+    open class var kiloampereHours: UnitElectricCharge {
         get {
             return UnitElectricCharge(symbol: Symbol.kiloampereHours, coefficient: Coefficient.kiloampereHours)
         }
     }
     
-    public class var ampereHours: UnitElectricCharge {
+    open class var ampereHours: UnitElectricCharge {
         get {
             return UnitElectricCharge(symbol: Symbol.ampereHours, coefficient: Coefficient.ampereHours)
         }
     }
     
-    public class var milliampereHours: UnitElectricCharge {
+    open class var milliampereHours: UnitElectricCharge {
         get {
             return UnitElectricCharge(symbol: Symbol.milliampereHours, coefficient: Coefficient.milliampereHours)
         }
     }
     
-    public class var microampereHours: UnitElectricCharge {
+    open class var microampereHours: UnitElectricCharge {
         get {
             return UnitElectricCharge(symbol: Symbol.microampereHours, coefficient: Coefficient.microampereHours)
         }
     }
     
-    public override class func baseUnit() -> UnitElectricCharge {
+    open override class func baseUnit() -> UnitElectricCharge {
         return UnitElectricCharge.coulombs
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitElectricCurrent : Dimension {
+open class UnitElectricCurrent : Dimension {
     
     /*
      Base unit - amperes
@@ -703,46 +703,46 @@ public class UnitElectricCurrent : Dimension {
     }
     
     
-    public class var megaamperes: UnitElectricCurrent {
+    open class var megaamperes: UnitElectricCurrent {
         get {
             return UnitElectricCurrent(symbol: Symbol.megaamperes, coefficient: Coefficient.megaamperes)
         }
     }
     
-    public class var kiloamperes: UnitElectricCurrent {
+    open class var kiloamperes: UnitElectricCurrent {
         get {
             return UnitElectricCurrent(symbol: Symbol.kiloamperes, coefficient: Coefficient.kiloamperes)
         }
     }
     
-    public class var amperes: UnitElectricCurrent {
+    open class var amperes: UnitElectricCurrent {
         get {
             return UnitElectricCurrent(symbol: Symbol.amperes, coefficient: Coefficient.amperes)
         }
     }
     
-    public class var milliamperes: UnitElectricCurrent {
+    open class var milliamperes: UnitElectricCurrent {
         get {
             return UnitElectricCurrent(symbol: Symbol.milliamperes, coefficient: Coefficient.milliamperes)
         }
     }
     
-    public class var microamperes: UnitElectricCurrent {
+    open class var microamperes: UnitElectricCurrent {
         get {
             return UnitElectricCurrent(symbol: Symbol.microamperes, coefficient: Coefficient.microamperes)
         }
     }
     
-    public override class func baseUnit() -> UnitElectricCurrent {
+    open override class func baseUnit() -> UnitElectricCurrent {
         return UnitElectricCurrent.amperes
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitElectricPotentialDifference : Dimension {
+open class UnitElectricPotentialDifference : Dimension {
     
     /*
      Base unit - volts
@@ -770,46 +770,46 @@ public class UnitElectricPotentialDifference : Dimension {
     }
     
     
-    public class var megavolts: UnitElectricPotentialDifference {
+    open class var megavolts: UnitElectricPotentialDifference {
         get {
             return UnitElectricPotentialDifference(symbol: Symbol.megavolts, coefficient: Coefficient.megavolts)
         }
     }
     
-    public class var kilovolts: UnitElectricPotentialDifference {
+    open class var kilovolts: UnitElectricPotentialDifference {
         get {
             return UnitElectricPotentialDifference(symbol: Symbol.kilovolts, coefficient: Coefficient.kilovolts)
         }
     }
     
-    public class var volts: UnitElectricPotentialDifference {
+    open class var volts: UnitElectricPotentialDifference {
         get {
             return UnitElectricPotentialDifference(symbol: Symbol.volts, coefficient: Coefficient.volts)
         }
     }
     
-    public class var millivolts: UnitElectricPotentialDifference {
+    open class var millivolts: UnitElectricPotentialDifference {
         get {
             return UnitElectricPotentialDifference(symbol: Symbol.millivolts, coefficient: Coefficient.millivolts)
         }
     }
     
-    public class var microvolts: UnitElectricPotentialDifference {
+    open class var microvolts: UnitElectricPotentialDifference {
         get {
             return UnitElectricPotentialDifference(symbol: Symbol.microvolts, coefficient: Coefficient.microvolts)
         }
     }
     
-    public override class func baseUnit() -> UnitElectricPotentialDifference {
+    open override class func baseUnit() -> UnitElectricPotentialDifference {
         return UnitElectricPotentialDifference.volts
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitElectricResistance : Dimension {
+open class UnitElectricResistance : Dimension {
     
     /*
      Base unit - ohms
@@ -836,46 +836,46 @@ public class UnitElectricResistance : Dimension {
         super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
-    public class var megaohms: UnitElectricResistance {
+    open class var megaohms: UnitElectricResistance {
         get {
             return UnitElectricResistance(symbol: Symbol.megaohms, coefficient: Coefficient.megaohms)
         }
     }
     
-    public class var kiloohms: UnitElectricResistance {
+    open class var kiloohms: UnitElectricResistance {
         get {
             return UnitElectricResistance(symbol: Symbol.kiloohms, coefficient: Coefficient.kiloohms)
         }
     }
     
-    public class var ohms: UnitElectricResistance {
+    open class var ohms: UnitElectricResistance {
         get {
             return UnitElectricResistance(symbol: Symbol.ohms, coefficient: Coefficient.ohms)
         }
     }
     
-    public class var milliohms: UnitElectricResistance {
+    open class var milliohms: UnitElectricResistance {
         get {
             return UnitElectricResistance(symbol: Symbol.milliohms, coefficient: Coefficient.milliohms)
         }
     }
     
-    public class var microohms: UnitElectricResistance {
+    open class var microohms: UnitElectricResistance {
         get {
             return UnitElectricResistance(symbol: Symbol.microohms, coefficient: Coefficient.microohms)
         }
     }
     
-    public override class func baseUnit() -> UnitElectricResistance {
+    open override class func baseUnit() -> UnitElectricResistance {
         return UnitElectricResistance.ohms
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitEnergy : Dimension {
+open class UnitEnergy : Dimension {
     
     /*
      Base unit - joules
@@ -902,46 +902,46 @@ public class UnitEnergy : Dimension {
         super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
-    public class var kilojoules: UnitEnergy {
+    open class var kilojoules: UnitEnergy {
         get {
             return UnitEnergy(symbol: Symbol.kilojoules, coefficient: Coefficient.kilojoules)
         }
     }
     
-    public class var joules: UnitEnergy {
+    open class var joules: UnitEnergy {
         get {
             return UnitEnergy(symbol: Symbol.joules, coefficient: Coefficient.joules)
         }
     }
     
-    public class var kilocalories: UnitEnergy {
+    open class var kilocalories: UnitEnergy {
         get {
             return UnitEnergy(symbol: Symbol.kilocalories, coefficient: Coefficient.kilocalories)
         }
     }
     
-    public class var calories: UnitEnergy {
+    open class var calories: UnitEnergy {
         get {
             return UnitEnergy(symbol: Symbol.calories, coefficient: Coefficient.calories)
         }
     }
     
-    public class var kilowattHours: UnitEnergy {
+    open class var kilowattHours: UnitEnergy {
         get {
             return UnitEnergy(symbol: Symbol.kilowattHours, coefficient: Coefficient.kilowattHours)
         }
     }
     
-    public override class func baseUnit() -> UnitEnergy {
+    open override class func baseUnit() -> UnitEnergy {
         return UnitEnergy.joules
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitFrequency : Dimension {
+open class UnitFrequency : Dimension {
     
     /*
      Base unit - hertz
@@ -974,64 +974,64 @@ public class UnitFrequency : Dimension {
     }
     
     
-    public class var terahertz: UnitFrequency {
+    open class var terahertz: UnitFrequency {
         get {
             return UnitFrequency(symbol: Symbol.terahertz, coefficient: Coefficient.terahertz)
         }
     }
     
-    public class var gigahertz: UnitFrequency {
+    open class var gigahertz: UnitFrequency {
         get {
             return UnitFrequency(symbol: Symbol.gigahertz, coefficient: Coefficient.gigahertz)
         }
     }
     
-    public class var megahertz: UnitFrequency {
+    open class var megahertz: UnitFrequency {
         get {
             return UnitFrequency(symbol: Symbol.megahertz, coefficient: Coefficient.megahertz)
         }
     }
     
-    public class var kilohertz: UnitFrequency {
+    open class var kilohertz: UnitFrequency {
         get {
             return UnitFrequency(symbol: Symbol.kilohertz, coefficient: Coefficient.kilohertz)
         }
     }
     
-    public class var hertz: UnitFrequency {
+    open class var hertz: UnitFrequency {
         get {
             return UnitFrequency(symbol: Symbol.hertz, coefficient: Coefficient.hertz)
         }
     }
     
-    public class var millihertz: UnitFrequency {
+    open class var millihertz: UnitFrequency {
         get {
             return UnitFrequency(symbol: Symbol.millihertz, coefficient: Coefficient.millihertz)
         }
     }
     
-    public class var microhertz: UnitFrequency {
+    open class var microhertz: UnitFrequency {
         get {
             return UnitFrequency(symbol: Symbol.microhertz, coefficient: Coefficient.microhertz)
         }
     }
     
-    public class var nanohertz: UnitFrequency {
+    open class var nanohertz: UnitFrequency {
         get {
             return UnitFrequency(symbol: Symbol.nanohertz, coefficient: Coefficient.nanohertz)
         }
     }
     
-    public override class func baseUnit() -> UnitFrequency {
+    open override class func baseUnit() -> UnitFrequency {
         return UnitFrequency.hertz
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitFuelEfficiency : Dimension {
+open class UnitFuelEfficiency : Dimension {
     
     /*
      Base unit - litersPer100Kilometers
@@ -1054,34 +1054,34 @@ public class UnitFuelEfficiency : Dimension {
     }
     
     
-    public class var litersPer100Kilometers: UnitFuelEfficiency {
+    open class var litersPer100Kilometers: UnitFuelEfficiency {
         get {
             return UnitFuelEfficiency(symbol: Symbol.litersPer100Kilometers, reciprocal: Coefficient.litersPer100Kilometers)
         }
     }
     
-    public class var milesPerImperialGallon: UnitFuelEfficiency {
+    open class var milesPerImperialGallon: UnitFuelEfficiency {
         get {
             return UnitFuelEfficiency(symbol: Symbol.milesPerImperialGallon, reciprocal: Coefficient.milesPerImperialGallon)
         }
     }
     
-    public class var milesPerGallon: UnitFuelEfficiency {
+    open class var milesPerGallon: UnitFuelEfficiency {
         get {
             return UnitFuelEfficiency(symbol: Symbol.milesPerGallon, reciprocal: Coefficient.milesPerGallon)
         }
     }
     
-    public override class func baseUnit() -> UnitFuelEfficiency {
+    open override class func baseUnit() -> UnitFuelEfficiency {
         return UnitFuelEfficiency.litersPer100Kilometers
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitLength : Dimension {
+open class UnitLength : Dimension {
     
     /*
      Base unit - meters
@@ -1141,148 +1141,148 @@ public class UnitLength : Dimension {
         super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
-    public class var megameters: UnitLength {
+    open class var megameters: UnitLength {
         get {
             return UnitLength(symbol: Symbol.megameters, coefficient: Coefficient.megameters)
         }
     }
     
-    public class var kilometers: UnitLength {
+    open class var kilometers: UnitLength {
         get {
             return UnitLength(symbol: Symbol.kilometers, coefficient: Coefficient.kilometers)
         }
     }
     
-    public class var hectometers: UnitLength {
+    open class var hectometers: UnitLength {
         get {
             return UnitLength(symbol: Symbol.hectometers, coefficient: Coefficient.hectometers)
         }
     }
     
-    public class var decameters: UnitLength {
+    open class var decameters: UnitLength {
         get {
             return UnitLength(symbol: Symbol.decameters, coefficient: Coefficient.decameters)
         }
     }
     
-    public class var meters: UnitLength {
+    open class var meters: UnitLength {
         get {
             return UnitLength(symbol: Symbol.meters, coefficient: Coefficient.meters)
         }
     }
     
-    public class var decimeters: UnitLength {
+    open class var decimeters: UnitLength {
         get {
             return UnitLength(symbol: Symbol.decimeters, coefficient: Coefficient.decimeters)
         }
     }
     
-    public class var centimeters: UnitLength {
+    open class var centimeters: UnitLength {
         get {
             return UnitLength(symbol: Symbol.centimeters, coefficient: Coefficient.centimeters)
         }
     }
     
-    public class var millimeters: UnitLength {
+    open class var millimeters: UnitLength {
         get {
             return UnitLength(symbol: Symbol.millimeters, coefficient: Coefficient.millimeters)
         }
     }
     
-    public class var micrometers: UnitLength {
+    open class var micrometers: UnitLength {
         get {
             return UnitLength(symbol: Symbol.micrometers, coefficient: Coefficient.micrometers)
         }
     }
     
-    public class var nanometers: UnitLength {
+    open class var nanometers: UnitLength {
         get {
             return UnitLength(symbol: Symbol.nanometers, coefficient: Coefficient.nanometers)
         }
     }
     
-    public class var picometers: UnitLength {
+    open class var picometers: UnitLength {
         get {
             return UnitLength(symbol: Symbol.picometers, coefficient: Coefficient.picometers)
         }
     }
     
-    public class var inches: UnitLength {
+    open class var inches: UnitLength {
         get {
             return UnitLength(symbol: Symbol.inches, coefficient: Coefficient.inches)
         }
     }
     
-    public class var feet: UnitLength {
+    open class var feet: UnitLength {
         get {
             return UnitLength(symbol: Symbol.feet, coefficient: Coefficient.feet)
         }
     }
     
-    public class var yards: UnitLength {
+    open class var yards: UnitLength {
         get {
             return UnitLength(symbol: Symbol.yards, coefficient: Coefficient.yards)
         }
     }
     
-    public class var miles: UnitLength {
+    open class var miles: UnitLength {
         get {
             return UnitLength(symbol: Symbol.miles, coefficient: Coefficient.miles)
         }
     }
     
-    public class var scandinavianMiles: UnitLength {
+    open class var scandinavianMiles: UnitLength {
         get {
             return UnitLength(symbol: Symbol.scandinavianMiles, coefficient: Coefficient.scandinavianMiles)
         }
     }
     
-    public class var lightyears: UnitLength {
+    open class var lightyears: UnitLength {
         get {
             return UnitLength(symbol: Symbol.lightyears, coefficient: Coefficient.lightyears)
         }
     }
     
-    public class var nauticalMiles: UnitLength {
+    open class var nauticalMiles: UnitLength {
         get {
             return UnitLength(symbol: Symbol.nauticalMiles, coefficient: Coefficient.nauticalMiles)
         }
     }
     
-    public class var fathoms: UnitLength {
+    open class var fathoms: UnitLength {
         get {
             return UnitLength(symbol: Symbol.fathoms, coefficient: Coefficient.fathoms)
         }
     }
     
-    public class var furlongs: UnitLength {
+    open class var furlongs: UnitLength {
         get {
             return UnitLength(symbol: Symbol.furlongs, coefficient: Coefficient.furlongs)
         }
     }
     
-    public class var astronomicalUnits: UnitLength {
+    open class var astronomicalUnits: UnitLength {
         get {
             return UnitLength(symbol: Symbol.astronomicalUnits, coefficient: Coefficient.astronomicalUnits)
         }
     }
     
-    public class var parsecs: UnitLength {
+    open class var parsecs: UnitLength {
         get {
             return UnitLength(symbol: Symbol.parsecs, coefficient: Coefficient.parsecs)
         }
     }
     
-    public override class func baseUnit() -> UnitLength {
+    open override class func baseUnit() -> UnitLength {
         return UnitLength.meters
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitIlluminance : Dimension {
+open class UnitIlluminance : Dimension {
     
     /*
      Base unit - lux
@@ -1300,22 +1300,22 @@ public class UnitIlluminance : Dimension {
         super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
-    public class var lux: UnitIlluminance {
+    open class var lux: UnitIlluminance {
         get {
             return UnitIlluminance(symbol: Symbol.lux, coefficient: Coefficient.lux)
         }
     }
     
-    public override class func baseUnit() -> UnitIlluminance {
+    open override class func baseUnit() -> UnitIlluminance {
         return UnitIlluminance.lux
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitMass : Dimension {
+open class UnitMass : Dimension {
     
     /*
      Base unit - kilograms
@@ -1363,112 +1363,112 @@ public class UnitMass : Dimension {
         super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
-    public class var kilograms: UnitMass {
+    open class var kilograms: UnitMass {
         get {
             return UnitMass(symbol: Symbol.kilograms, coefficient: Coefficient.kilograms)
         }
     }
     
-    public class var grams: UnitMass {
+    open class var grams: UnitMass {
         get {
             return UnitMass(symbol: Symbol.grams, coefficient: Coefficient.grams)
         }
     }
     
-    public class var decigrams: UnitMass {
+    open class var decigrams: UnitMass {
         get {
             return UnitMass(symbol: Symbol.decigrams, coefficient: Coefficient.decigrams)
         }
     }
     
-    public class var centigrams: UnitMass {
+    open class var centigrams: UnitMass {
         get {
             return UnitMass(symbol: Symbol.centigrams, coefficient: Coefficient.centigrams)
         }
     }
     
-    public class var milligrams: UnitMass {
+    open class var milligrams: UnitMass {
         get {
             return UnitMass(symbol: Symbol.milligrams, coefficient: Coefficient.milligrams)
         }
     }
     
-    public class var micrograms: UnitMass {
+    open class var micrograms: UnitMass {
         get {
             return UnitMass(symbol: Symbol.micrograms, coefficient: Coefficient.micrograms)
         }
     }
     
-    public class var nanograms: UnitMass {
+    open class var nanograms: UnitMass {
         get {
             return UnitMass(symbol: Symbol.nanograms, coefficient: Coefficient.nanograms)
         }
     }
     
-    public class var picograms: UnitMass {
+    open class var picograms: UnitMass {
         get {
             return UnitMass(symbol: Symbol.picograms, coefficient: Coefficient.picograms)
         }
     }
     
-    public class var ounces: UnitMass {
+    open class var ounces: UnitMass {
         get {
             return UnitMass(symbol: Symbol.ounces, coefficient: Coefficient.ounces)
         }
     }
     
-    public class var pounds: UnitMass {
+    open class var pounds: UnitMass {
         get {
             return UnitMass(symbol: Symbol.pounds, coefficient: Coefficient.pounds)
         }
     }
     
-    public class var stones: UnitMass {
+    open class var stones: UnitMass {
         get {
             return UnitMass(symbol: Symbol.stones, coefficient: Coefficient.stones)
         }
     }
     
-    public class var metricTons: UnitMass {
+    open class var metricTons: UnitMass {
         get {
             return UnitMass(symbol: Symbol.metricTons, coefficient: Coefficient.metricTons)
         }
     }
     
-    public class var shortTons: UnitMass {
+    open class var shortTons: UnitMass {
         get {
             return UnitMass(symbol: Symbol.shortTons, coefficient: Coefficient.shortTons)
         }
     }
     
-    public class var carats: UnitMass {
+    open class var carats: UnitMass {
         get {
             return UnitMass(symbol: Symbol.carats, coefficient: Coefficient.carats)
         }
     }
     
-    public class var ouncesTroy: UnitMass {
+    open class var ouncesTroy: UnitMass {
         get {
             return UnitMass(symbol: Symbol.ouncesTroy, coefficient: Coefficient.ouncesTroy)
         }
     }
     
-    public class var slugs: UnitMass {
+    open class var slugs: UnitMass {
         get {
             return UnitMass(symbol: Symbol.slugs, coefficient: Coefficient.slugs)
         }
     }
     
-    public override class func baseUnit() -> UnitMass {
+    open override class func baseUnit() -> UnitMass {
         return UnitMass.kilograms
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitPower : Dimension {
+open class UnitPower : Dimension {
     
     /*
      Base unit - watts
@@ -1506,82 +1506,82 @@ public class UnitPower : Dimension {
         super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
-    public class var terawatts: UnitPower {
+    open class var terawatts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.terawatts, coefficient: Coefficient.terawatts)
         }
     }
     
-    public class var gigawatts: UnitPower {
+    open class var gigawatts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.gigawatts, coefficient: Coefficient.gigawatts)
         }
     }
     
-    public class var megawatts: UnitPower {
+    open class var megawatts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.megawatts, coefficient: Coefficient.megawatts)
         }
     }
     
-    public class var kilowatts: UnitPower {
+    open class var kilowatts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.kilowatts, coefficient: Coefficient.kilowatts)
         }
     }
     
-    public class var watts: UnitPower {
+    open class var watts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.watts, coefficient: Coefficient.watts)
         }
     }
     
-    public class var milliwatts: UnitPower {
+    open class var milliwatts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.milliwatts, coefficient: Coefficient.milliwatts)
         }
     }
     
-    public class var microwatts: UnitPower {
+    open class var microwatts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.microwatts, coefficient: Coefficient.microwatts)
         }
     }
     
-    public class var nanowatts: UnitPower {
+    open class var nanowatts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.nanowatts, coefficient: Coefficient.nanowatts)
         }
     }
     
-    public class var picowatts: UnitPower {
+    open class var picowatts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.picowatts, coefficient: Coefficient.picowatts)
         }
     }
     
-    public class var femtowatts: UnitPower {
+    open class var femtowatts: UnitPower {
         get {
             return UnitPower(symbol: Symbol.femtowatts, coefficient: Coefficient.femtowatts)
         }
     }
     
-    public class var horsepower: UnitPower {
+    open class var horsepower: UnitPower {
         get {
             return UnitPower(symbol: Symbol.horsepower, coefficient: Coefficient.horsepower)
         }
     }
     
-    public override class func baseUnit() -> UnitPower {
+    open override class func baseUnit() -> UnitPower {
         return UnitPower.watts
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitPressure : Dimension {
+open class UnitPressure : Dimension {
     
     /*
      Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
@@ -1618,76 +1618,76 @@ public class UnitPressure : Dimension {
     }
     
     
-    public class var newtonsPerMetersSquared: UnitPressure {
+    open class var newtonsPerMetersSquared: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.newtonsPerMetersSquared, coefficient: Coefficient.newtonsPerMetersSquared)
         }
     }
     
-    public class var gigapascals: UnitPressure {
+    open class var gigapascals: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.gigapascals, coefficient: Coefficient.gigapascals)
         }
     }
     
-    public class var megapascals: UnitPressure {
+    open class var megapascals: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.megapascals, coefficient: Coefficient.megapascals)
         }
     }
     
-    public class var kilopascals: UnitPressure {
+    open class var kilopascals: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.kilopascals, coefficient: Coefficient.kilopascals)
         }
     }
     
-    public class var hectopascals: UnitPressure {
+    open class var hectopascals: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.hectopascals, coefficient: Coefficient.hectopascals)
         }
     }
     
-    public class var inchesOfMercury: UnitPressure {
+    open class var inchesOfMercury: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.inchesOfMercury, coefficient: Coefficient.inchesOfMercury)
         }
     }
     
-    public class var bars: UnitPressure {
+    open class var bars: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.bars, coefficient: Coefficient.bars)
         }
     }
     
-    public class var millibars: UnitPressure {
+    open class var millibars: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.millibars, coefficient: Coefficient.millibars)
         }
     }
     
-    public class var millimetersOfMercury: UnitPressure {
+    open class var millimetersOfMercury: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.millimetersOfMercury, coefficient: Coefficient.millimetersOfMercury)
         }
     }
     
-    public class var poundsForcePerSquareInch: UnitPressure {
+    open class var poundsForcePerSquareInch: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.poundsForcePerSquareInch, coefficient: Coefficient.poundsForcePerSquareInch)
         }
     }
     
-    public override class func baseUnit() -> UnitPressure {
+    open override class func baseUnit() -> UnitPressure {
         return UnitPressure.newtonsPerMetersSquared
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitSpeed : Dimension {
+open class UnitSpeed : Dimension {
     
     /*
      Base unit - metersPerSecond
@@ -1712,40 +1712,40 @@ public class UnitSpeed : Dimension {
     }
     
     
-    public class var metersPerSecond: UnitSpeed {
+    open class var metersPerSecond: UnitSpeed {
         get {
             return UnitSpeed(symbol: Symbol.metersPerSecond, coefficient: Coefficient.metersPerSecond)
         }
     }
     
-    public class var kilometersPerHour: UnitSpeed {
+    open class var kilometersPerHour: UnitSpeed {
         get {
             return UnitSpeed(symbol: Symbol.kilometersPerHour, coefficient: Coefficient.kilometersPerHour)
         }
     }
     
-    public class var milesPerHour: UnitSpeed {
+    open class var milesPerHour: UnitSpeed {
         get {
             return UnitSpeed(symbol: Symbol.milesPerHour, coefficient: Coefficient.milesPerHour)
         }
     }
     
-    public class var knots: UnitSpeed {
+    open class var knots: UnitSpeed {
         get {
             return UnitSpeed(symbol: Symbol.knots, coefficient: Coefficient.knots)
         }
     }
     
-    public override class func baseUnit() -> UnitSpeed {
+    open override class func baseUnit() -> UnitSpeed {
         return UnitSpeed.metersPerSecond
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitTemperature : Dimension {
+open class UnitTemperature : Dimension {
     
     /*
      Base unit - kelvin
@@ -1773,34 +1773,34 @@ public class UnitTemperature : Dimension {
         super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient, constant: constant))
     }
     
-    public class var kelvin: UnitTemperature {
+    open class var kelvin: UnitTemperature {
         get {
             return UnitTemperature(symbol: Symbol.kelvin, coefficient: Coefficient.kelvin, constant: Constant.kelvin)
         }
     }
     
-    public class var celsius: UnitTemperature {
+    open class var celsius: UnitTemperature {
         get {
             return UnitTemperature(symbol: Symbol.celsius, coefficient: Coefficient.celsius, constant: Constant.celsius)
         }
     }
     
-    public class var fahrenheit: UnitTemperature {
+    open class var fahrenheit: UnitTemperature {
         get {
             return UnitTemperature(symbol: Symbol.fahrenheit, coefficient: Coefficient.fahrenheit, constant: Constant.fahrenheit)
         }
     }
     
-    public override class func baseUnit() -> UnitTemperature {
+    open override class func baseUnit() -> UnitTemperature {
         return UnitTemperature.kelvin
     }
     
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }
 
-public class UnitVolume : Dimension {
+open class UnitVolume : Dimension {
     
     /*
      Base unit - liters
@@ -1879,196 +1879,196 @@ public class UnitVolume : Dimension {
     }
     
     
-    public class var megaliters: UnitVolume {
+    open class var megaliters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.megaliters, coefficient: Coefficient.megaliters)
         }
     }
     
-    public class var kiloliters: UnitVolume {
+    open class var kiloliters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.kiloliters, coefficient: Coefficient.kiloliters)
         }
     }
     
-    public class var liters: UnitVolume {
+    open class var liters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.liters, coefficient: Coefficient.liters)
         }
     }
     
-    public class var deciliters: UnitVolume {
+    open class var deciliters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.deciliters, coefficient: Coefficient.deciliters)
         }
     }
     
-    public class var centiliters: UnitVolume {
+    open class var centiliters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.centiliters, coefficient: Coefficient.centiliters)
         }
     }
     
-    public class var milliliters: UnitVolume {
+    open class var milliliters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.milliliters, coefficient: Coefficient.milliliters)
         }
     }
     
-    public class var cubicKilometers: UnitVolume {
+    open class var cubicKilometers: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cubicKilometers, coefficient: Coefficient.cubicKilometers)
         }
     }
     
-    public class var cubicMeters: UnitVolume {
+    open class var cubicMeters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cubicMeters, coefficient: Coefficient.cubicMeters)
         }
     }
     
-    public class var cubicDecimeters: UnitVolume {
+    open class var cubicDecimeters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cubicDecimeters, coefficient: Coefficient.cubicDecimeters)
         }
     }
     
-    public class var cubicCentimeters: UnitVolume {
+    open class var cubicCentimeters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cubicCentimeters, coefficient: Coefficient.cubicCentimeters)
         }
     }
     
-    public class var cubicMillimeters: UnitVolume {
+    open class var cubicMillimeters: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cubicMillimeters, coefficient: Coefficient.cubicMillimeters)
         }
     }
     
-    public class var cubicInches: UnitVolume {
+    open class var cubicInches: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cubicInches, coefficient: Coefficient.cubicInches)
         }
     }
     
-    public class var cubicFeet: UnitVolume {
+    open class var cubicFeet: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cubicFeet, coefficient: Coefficient.cubicFeet)
         }
     }
     
-    public class var cubicYards: UnitVolume {
+    open class var cubicYards: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cubicYards, coefficient: Coefficient.cubicYards)
         }
     }
     
-    public class var cubicMiles: UnitVolume {
+    open class var cubicMiles: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cubicMiles, coefficient: Coefficient.cubicMiles)
         }
     }
     
-    public class var acreFeet: UnitVolume {
+    open class var acreFeet: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.acreFeet, coefficient: Coefficient.acreFeet)
         }
     }
     
-    public class var bushels: UnitVolume {
+    open class var bushels: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.bushels, coefficient: Coefficient.bushels)
         }
     }
     
-    public class var teaspoons: UnitVolume {
+    open class var teaspoons: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.teaspoons, coefficient: Coefficient.teaspoons)
         }
     }
     
-    public class var tablespoons: UnitVolume {
+    open class var tablespoons: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.tablespoons, coefficient: Coefficient.tablespoons)
         }
     }
     
-    public class var fluidOunces: UnitVolume {
+    open class var fluidOunces: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.fluidOunces, coefficient: Coefficient.fluidOunces)
         }
     }
     
-    public class var cups: UnitVolume {
+    open class var cups: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.cups, coefficient: Coefficient.cups)
         }
     }
     
-    public class var pints: UnitVolume {
+    open class var pints: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.pints, coefficient: Coefficient.pints)
         }
     }
     
-    public class var quarts: UnitVolume {
+    open class var quarts: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.quarts, coefficient: Coefficient.quarts)
         }
     }
     
-    public class var gallons: UnitVolume {
+    open class var gallons: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.gallons, coefficient: Coefficient.gallons)
         }
     }
     
-    public class var imperialTeaspoons: UnitVolume {
+    open class var imperialTeaspoons: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.imperialTeaspoons, coefficient: Coefficient.imperialTeaspoons)
         }
     }
     
-    public class var imperialTablespoons: UnitVolume {
+    open class var imperialTablespoons: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.imperialTablespoons, coefficient: Coefficient.imperialTablespoons)
         }
     }
     
-    public class var imperialFluidOunces: UnitVolume {
+    open class var imperialFluidOunces: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.imperialFluidOunces, coefficient: Coefficient.imperialFluidOunces)
         }
     }
     
-    public class var imperialPints: UnitVolume {
+    open class var imperialPints: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.imperialPints, coefficient: Coefficient.imperialPints)
         }
     }
     
-    public class var imperialQuarts: UnitVolume {
+    open class var imperialQuarts: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.imperialQuarts, coefficient: Coefficient.imperialQuarts)
         }
     }
     
-    public class var imperialGallons: UnitVolume {
+    open class var imperialGallons: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.imperialGallons, coefficient: Coefficient.imperialGallons)
         }
     }
     
-    public class var metricCups: UnitVolume {
+    open class var metricCups: UnitVolume {
         get {
             return UnitVolume(symbol: Symbol.metricCups, coefficient: Coefficient.metricCups)
         }
     }
     
-    public override class func baseUnit() -> UnitVolume {
+    open override class func baseUnit() -> UnitVolume {
         return UnitVolume.liters
     }
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    public override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
 }

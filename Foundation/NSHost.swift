@@ -16,7 +16,7 @@ import Glibc
 
 import CoreFoundation
 
-public class Host: NSObject {
+open class Host: NSObject {
     enum ResolveType {
         case name
         case address
@@ -35,7 +35,7 @@ public class Host: NSObject {
     
     static internal let current = Host(nil, .current)
     
-    public class func currentHost() -> Host {
+    open class func currentHost() -> Host {
         return Host.current
     }
     
@@ -47,7 +47,7 @@ public class Host: NSObject {
         self.init(address, .address)
     }
     
-    public func isEqual(to aHost: Host) -> Bool {
+    open func isEqual(to aHost: Host) -> Bool {
         return false
     }
     
@@ -110,25 +110,25 @@ public class Host: NSObject {
 
     }
     
-    public var name: String? {
+    open var name: String? {
         return names.first
     }
     
-    public var names: [String] {
+    open var names: [String] {
         _resolve()
         return _names
     }
     
-    public var address: String? {
+    open var address: String? {
         return addresses.first
     }
     
-    public var addresses: [String] {
+    open var addresses: [String] {
         _resolve()
         return _addresses
     }
     
-    public var localizedName: String? {
+    open var localizedName: String? {
         return nil
     }
 }
