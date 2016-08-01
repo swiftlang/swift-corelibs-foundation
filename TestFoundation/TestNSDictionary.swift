@@ -135,7 +135,7 @@ class TestNSDictionary : XCTestCase {
 
         let dictMutableCopy = inputDictionary.mutableCopy() as! NSMutableDictionary
         let dictCopy2 = dictMutableCopy.copy() as! NSDictionary
-        XCTAssertTrue(dictCopy2.dynamicType === NSDictionary.self)
+        XCTAssertTrue(type(of: dictCopy2) === NSDictionary.self)
         XCTAssertFalse(dictMutableCopy === dictCopy2)
         XCTAssertTrue(dictMutableCopy == dictCopy2)
     }
@@ -144,12 +144,12 @@ class TestNSDictionary : XCTestCase {
         let inputDictionary : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"].bridge()
 
         let dictMutableCopy1 = inputDictionary.mutableCopy() as! NSMutableDictionary
-        XCTAssertTrue(dictMutableCopy1.dynamicType === NSMutableDictionary.self)
+        XCTAssertTrue(type(of: dictMutableCopy1) === NSMutableDictionary.self)
         XCTAssertFalse(inputDictionary === dictMutableCopy1)
         XCTAssertTrue(inputDictionary == dictMutableCopy1)
 
         let dictMutableCopy2 = dictMutableCopy1.mutableCopy() as! NSMutableDictionary
-        XCTAssertTrue(dictMutableCopy2.dynamicType === NSMutableDictionary.self)
+        XCTAssertTrue(type(of: dictMutableCopy2) === NSMutableDictionary.self)
         XCTAssertFalse(dictMutableCopy2 === dictMutableCopy1)
         XCTAssertTrue(dictMutableCopy2 == dictMutableCopy1)
     }

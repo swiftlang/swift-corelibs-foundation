@@ -82,7 +82,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     private var _bytes: UnsafeMutablePointer<UInt8>? = nil
     
     internal var _cfObject: CFType {
-        if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
+        if type(of: self) === NSData.self || type(of: self) === NSMutableData.self {
             return unsafeBitCast(self, to: CFType.self)
         } else {
             let bytePtr = self.bytes.bindMemory(to: UInt8.self, capacity: self.length)
@@ -111,14 +111,14 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         if let allocatedBytes = _bytes {
             _deallocHandler?.handler(allocatedBytes, _length)
         }
-        if self.dynamicType === NSData.self || self.dynamicType === NSMutableData.self {
+        if type(of: self) === NSData.self || type(of: self) === NSMutableData.self {
             _CFDeinit(self._cfObject)
         }
     }
     
     internal init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)?) {
         super.init()
-        let options : CFOptionFlags = (self.dynamicType == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
+        let options : CFOptionFlags = (type(of: self) == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
         let bytePtr = bytes?.bindMemory(to: UInt8.self, capacity: length)
         if copy {
             _CFDataInit(unsafeBitCast(self, to: CFMutableData.self), options, length, bytePtr, length, false)
@@ -174,7 +174,7 @@ public class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             } else {
                 return nil
             }
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.data") {
+        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.data") {
             guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
@@ -257,7 +257,7 @@ extension NSData {
     internal struct NSDataReadResult {
         var bytes: UnsafeMutableRawPointer
         var length: Int
-        var deallocator: ((buffer: UnsafeMutableRawPointer, length: Int) -> Void)?
+        var deallocator: ((_ buffer: UnsafeMutableRawPointer, _ length: Int) -> Void)?
     }
     
     internal static func readBytesFromFileWithExtendedAttributes(_ path: String, options: ReadingOptions) throws -> NSDataReadResult {

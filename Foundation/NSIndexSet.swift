@@ -86,8 +86,8 @@ public class NSIndexSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         let set = NSMutableIndexSet()
-        enumerateRanges([]) {
-            set.add(in: $0.0)
+        enumerateRanges([]) { i, _ in
+            set.add(in: i)
         }
         return set
     }

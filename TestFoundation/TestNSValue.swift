@@ -120,7 +120,7 @@ class TestNSValue : XCTestCase {
 
     func test_valueWithCharPtr() {
         let charArray = [UInt8]("testing123".utf8)
-        var charPtr = UnsafeMutablePointer<UInt8>(charArray)
+        var charPtr = UnsafeMutablePointer(mutating: charArray)
         var expectedPtr: UnsafeMutablePointer<UInt8>? = nil
         
         NSValue(bytes: &charPtr, objCType: "*").getValue(&expectedPtr)

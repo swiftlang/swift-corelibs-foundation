@@ -82,9 +82,9 @@ extension String : _ObjectTypeBridgeable {
     }
     
     public static func _forceBridgeFromObject(_ x: NSString, result: inout String?) {
-        if x.dynamicType == NSString.self || x.dynamicType == NSMutableString.self {
+        if type(of: x) == NSString.self || type(of: x) == NSMutableString.self {
             result = x._storage
-        } else if x.dynamicType == _NSCFString.self {
+        } else if type(of: x) == _NSCFString.self {
             let cf = unsafeBitCast(x, to: CFString.self)
             let str = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8))
             if str != nil {
@@ -99,7 +99,7 @@ extension String : _ObjectTypeBridgeable {
                 buffer.deallocate(capacity: length)
                 result = str
             }
-        } else if x.dynamicType == _NSCFConstantString.self {
+        } else if type(of: x) == _NSCFConstantString.self {
             let conststr = unsafeBitCast(x, to: _NSCFConstantString.self)
             let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)))
             result = str
@@ -216,14 +216,14 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     internal var _storage: String
     
     public var length: Int {
-        guard self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self else {
+        guard type(of: self) === NSString.self || type(of: self) === NSMutableString.self else {
             NSRequiresConcreteImplementation()
         }
         return _storage.utf16.count
     }
     
     public func character(at index: Int) -> unichar {
-        guard self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self else {
+        guard type(of: self) === NSString.self || type(of: self) === NSMutableString.self else {
             NSRequiresConcreteImplementation()
         }
         let start = _storage.utf16.startIndex
@@ -243,7 +243,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
         if !aDecoder.allowsKeyedCoding {
             aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: ["NSDebugDescription": "NSUUID cannot be decoded by non-keyed coders"]))
             return nil
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.string") {
+        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.string") {
             let str = aDecoder._decodePropertyListForKey("NS.string") as! String
             self.init(string: str)
         } else {
@@ -273,7 +273,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self {
+        if type(of: self) === NSString.self || type(of: self) === NSMutableString.self {
             if let contents = _fastContents {
                 return NSMutableString(characters: contents, length: length)
             }
@@ -311,11 +311,11 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     public required init(stringLiteral value: StaticString) {
-        _storage = String(value)
+        _storage = String(describing: value)
     }
     
     internal var _fastCStringContents: UnsafePointer<Int8>? {
-        if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
+        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._core.isASCII {
                 return unsafeBitCast(_storage._core.startASCII, to: UnsafePointer<Int8>.self)
             }
@@ -324,7 +324,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     internal var _fastContents: UnsafePointer<UniChar>? {
-        if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
+        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if !_storage._core.isASCII {
                 return unsafeBitCast(_storage._core.startUTF16, to: UnsafePointer<UniChar>.self)
             }
@@ -333,7 +333,7 @@ public class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, N
     }
     
     internal var _encodingCantBeStoredInEightBitCFString: Bool {
-        if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
+        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             return !_storage._core.isASCII
         }
         return false
@@ -365,32 +365,32 @@ extension NSString {
     }
     
     public func substring(from: Int) -> String {
-        if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
-            return String(_storage.utf16.suffix(from: _storage.utf16.startIndex.advanced(by: from)))
+        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
+            return String(_storage.utf16.suffix(from: _storage.utf16.startIndex.advanced(by: from)))!
         } else {
             return substring(with: NSMakeRange(from, length - from))
         }
     }
     
     public func substring(to: Int) -> String {
-        if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
+        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             return String(_storage.utf16.prefix(upTo: _storage.utf16.startIndex
-            .advanced(by: to)))
+            .advanced(by: to)))!
         } else {
             return substring(with: NSMakeRange(0, to))
         }
     }
     
     public func substring(with range: NSRange) -> String {
-        if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
+        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             let start = _storage.utf16.startIndex
             let min = start.advanced(by: range.location)
             let max = start.advanced(by: range.location + range.length)
-            return String(_storage.utf16[min..<max])
+            return String(_storage.utf16[min..<max])!
         } else {
             let buff = UnsafeMutablePointer<unichar>.allocate(capacity: range.length)
             getCharacters(buff, range: range)
-            let result = String(buff)
+            let result = String(describing: buff)
             buff.deinitialize()
             buff.deallocate(capacity: range.length)
             return result
@@ -436,7 +436,7 @@ extension NSString {
     }
     
     public func isEqual(to aString: String) -> Bool {
-        if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
+        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             return _storage == aString
         } else {
             return length == aString.length && compare(aString, options: .literal, range: NSMakeRange(0, length)) == .orderedSame
@@ -469,7 +469,7 @@ extension NSString {
         var numCharsBuffered = 0
         var arrayBuffer = [unichar](repeating: 0, count: 100)
         let other = str._nsObject
-        return arrayBuffer.withUnsafeMutablePointerOrAllocation(selfLen, fastpath: UnsafeMutablePointer<unichar>(_fastContents)) { (selfChars: UnsafeMutablePointer<unichar>) -> String in
+        return arrayBuffer.withUnsafeMutablePointerOrAllocation(selfLen, fastpath: UnsafeMutablePointer<unichar>(mutating: _fastContents)) { (selfChars: UnsafeMutablePointer<unichar>) -> String in
             // Now do the binary search. Note that the probe value determines the length of the substring to check.
             while true {
                 let range = NSMakeRange(0, isLiteral ? probe + 1 : NSMaxRange(rangeOfComposedCharacterSequence(at: probe))) // Extend the end of the composed char sequence
@@ -879,7 +879,7 @@ extension NSString {
     
     public func getCString(_ buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferCount: Int, encoding: UInt) -> Bool {
         var used = 0
-        if self.dynamicType == NSString.self || self.dynamicType == NSMutableString.self {
+        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._core.isASCII {
                 used = min(self.length, maxBufferCount - 1)
                 buffer.moveAssign(from: unsafeBitCast(_storage._core.startASCII, to: UnsafeMutablePointer<Int8>.self)
@@ -1182,8 +1182,12 @@ extension NSString {
     }
     
     public convenience init?(UTF8String nullTerminatedCString: UnsafePointer<Int8>) {
-        let buffer = UnsafeBufferPointer<UInt8>(start: UnsafePointer<UInt8>(nullTerminatedCString), count: Int(strlen(nullTerminatedCString)))
-        if let str = String._fromCodeUnitSequence(UTF8.self, input: buffer) {
+        let count = Int(strlen(nullTerminatedCString))
+        if let str = nullTerminatedCString.withMemoryRebound(to: UInt8.self, capacity: count, {
+            let buffer = UnsafeBufferPointer<UInt8>(start: $0, count: count)
+            return String._fromCodeUnitSequence(UTF8.self, input: buffer)
+            }) as String?
+        {
             self.init(str)
         } else {
             return nil
@@ -1198,7 +1202,7 @@ extension NSString {
     public convenience init(format: String, locale: AnyObject?, arguments argList: CVaListPointer) {
         let str: CFString
         if let loc = locale {
-            if loc.dynamicType === Locale.self || loc.dynamicType === NSDictionary.self {
+            if type(of: loc) === Locale.self || type(of: loc) === NSDictionary.self {
                 str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(loc, to: CFDictionary.self), format._cfObject, argList)
             } else {
                 fatalError("locale parameter must be a NSLocale or a NSDictionary")
@@ -1298,7 +1302,7 @@ extension NSString : ExpressibleByStringLiteral { }
 
 public class NSMutableString : NSString {
     public func replaceCharacters(in range: NSRange, with aString: String) {
-        guard self.dynamicType === NSString.self || self.dynamicType === NSMutableString.self else {
+        guard type(of: self) === NSString.self || type(of: self) === NSMutableString.self else {
             NSRequiresConcreteImplementation()
         }
 
@@ -1347,7 +1351,7 @@ public class NSMutableString : NSString {
     }
     
     internal func appendCharacters(_ characters: UnsafePointer<unichar>, length: Int) {
-        if self.dynamicType == NSMutableString.self {
+        if type(of: self) == NSMutableString.self {
             _storage.append(String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
         } else {
             replaceCharacters(in: NSMakeRange(self.length, 0), with: String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
@@ -1355,7 +1359,7 @@ public class NSMutableString : NSString {
     }
     
     internal func _cfAppendCString(_ characters: UnsafePointer<Int8>, length: Int) {
-        if self.dynamicType == NSMutableString.self {
+        if type(of: self) == NSMutableString.self {
             _storage.append(String(cString: characters))
         }
     }

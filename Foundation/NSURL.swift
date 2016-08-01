@@ -181,7 +181,7 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
     
     
     internal var _cfObject : CFType {
-        if self.dynamicType === NSURL.self {
+        if type(of: self) === NSURL.self {
             return unsafeBitCast(self, to: CFType.self)
         } else {
             return CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)
@@ -488,7 +488,9 @@ public class NSURL: NSObject, NSSecureCoding, NSCopying {
     /* Returns the URL's path in file system representation. File system representation is a null-terminated C string with canonical UTF-8 encoding.
     */
     public func getFileSystemRepresentation(_ buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferLength: Int) -> Bool {
-        return CFURLGetFileSystemRepresentation(_cfObject, true, UnsafeMutablePointer<UInt8>(buffer), maxBufferLength)
+        return buffer.withMemoryRebound(to: UInt8.self, capacity: maxBufferLength) {
+            CFURLGetFileSystemRepresentation(_cfObject, true, $0, maxBufferLength)
+        }
     }
     
     /* Returns the URL's path in file system representation. File system representation is a null-terminated C string with canonical UTF-8 encoding. The returned C string will be automatically freed just as a returned object would be released; your code should copy the representation or use getFileSystemRepresentation:maxLength: if it needs to store the representation outside of the autorelease context in which the representation is created.

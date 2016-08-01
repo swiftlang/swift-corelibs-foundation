@@ -298,7 +298,9 @@ extension TestNSJSONSerialization {
                 return
             }
             let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? String, "Optional(\"\\u{2728}\")")
+            // result?[0] as? String returns an Optional<String> and RHS is promoted
+            // to Optional<String>
+            XCTAssertEqual(result?[0] as? String, "✨")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -312,7 +314,9 @@ extension TestNSJSONSerialization {
                 return
             }
             let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as? String, "Optional(\"\\u{0001D11E}\")")
+            // result?[0] as? String returns an Optional<String> and RHS is promoted
+            // to Optional<String>
+            XCTAssertEqual(result?[0] as? String, "\u{1D11E}")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -751,7 +755,7 @@ extension TestNSJSONSerialization {
         let data = "12345679".data(using: .utf8)!
         do {
             let res = try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Any in
-                let slice = Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(bytes), count: 1, deallocator: .none)
+                let slice = Data(bytesNoCopy: UnsafeMutablePointer(mutating: bytes), count: 1, deallocator: .none)
                 return try JSONSerialization.jsonObject(with: slice, options: .allowFragments)
             }
             if let num = res as? Int {
@@ -768,7 +772,7 @@ extension TestNSJSONSerialization {
         let dict = ["a":["b":1]]
         do {
             let buffer = Array<UInt8>(repeating: 0, count: 20)
-            let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 20)
+            let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 20)
             outputStream.open()
             let result = try JSONSerialization.writeJSONObject(dict.bridge(), toStream: outputStream, options: [])
             outputStream.close()
@@ -813,7 +817,7 @@ extension TestNSJSONSerialization {
     func test_jsonObjectToOutputStreamInsufficeintBuffer() {
         let dict = ["a":["b":1]]
         let buffer = Array<UInt8>(repeating: 0, count: 10)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 20)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 20)
         outputStream.open()
         do {
             let result = try JSONSerialization.writeJSONObject(dict.bridge(), toStream: outputStream, options: [])
@@ -829,13 +833,13 @@ extension TestNSJSONSerialization {
     func test_invalidJsonObjectToStreamBuffer() {
         let str = "Invalid JSON"
         let buffer = Array<UInt8>(repeating: 0, count: 10)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer<UInt8>(buffer), capacity: 20)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 20)
         outputStream.open()
         XCTAssertThrowsError(try JSONSerialization.writeJSONObject(str.bridge(), toStream: outputStream, options: []))
     }
     
     private func createTestFile(_ path: String,_contents: Data) -> String? {
-        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().UUIDString + "/"
+        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {
             try FileManager.default().createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
             if FileManager.default().createFile(atPath: tempDir + "/" + path, contents: _contents,

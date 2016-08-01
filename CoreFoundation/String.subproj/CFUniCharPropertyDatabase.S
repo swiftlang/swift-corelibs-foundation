@@ -7,14 +7,16 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-    .global __CFUniCharPropertyDatabase
-__CFUniCharPropertyDatabase:
+#include <CoreFoundation/CFAsmMacros.h>
+
+    .global _C_LABEL(__CFUniCharPropertyDatabase)
+_C_LABEL(__CFUniCharPropertyDatabase):
     .incbin "CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data"
 
-    .global __CFUniCharPropertyDatabaseEnd
-__CFUniCharPropertyDatabaseEnd:
+    .global _C_LABEL(__CFUniCharPropertyDatabaseEnd)
+_C_LABEL(__CFUniCharPropertyDatabaseEnd):
     .byte 0
 
-    .global __CFUniCharPropertyDatabaseSize
-__CFUniCharPropertyDatabaseSize:
-    .int __CFUniCharPropertyDatabaseEnd - __CFUniCharPropertyDatabase
+    .global _C_LABEL(__CFUniCharPropertyDatabaseSize)
+_C_LABEL(__CFUniCharPropertyDatabaseSize):
+    .int _C_LABEL(__CFUniCharPropertyDatabaseEnd) - _C_LABEL(__CFUniCharPropertyDatabase)

@@ -54,7 +54,7 @@ extension NSRange {
 extension NSRange: NSSpecialValueCoding {
     init(bytes: UnsafeRawPointer) {
         self.location = bytes.load(as: Int.self)
-        self.length = bytes.load(fromByteOffset: strideof(Int.self), as: Int.self)
+        self.length = bytes.load(fromByteOffset: MemoryLayout<Int>.stride, as: Int.self)
     }
     
     init?(coder aDecoder: NSCoder) {

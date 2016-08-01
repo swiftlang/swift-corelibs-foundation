@@ -117,7 +117,7 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     private func test_archive(_ object: NSObject, allowsSecureCoding: Bool = true) {
-        return test_archive(object, classes: [object.dynamicType], allowsSecureCoding: allowsSecureCoding)
+        return test_archive(object, classes: [type(of: object)], allowsSecureCoding: allowsSecureCoding)
     }
     
     func test_archive_array() {
@@ -216,8 +216,8 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_charptr() {
-        let charArray = [UInt8]("Hello world, we are testing!\0".utf8)
-        var charPtr = UnsafeMutablePointer<CChar>(charArray)
+        let charArray = [CChar]("Hello world, we are testing!\0".utf8CString)
+        var charPtr = UnsafeMutablePointer(mutating: charArray)
 
         test_archive({ archiver -> Bool in
                 let value = NSValue(bytes: &charPtr, objCType: "*")

@@ -108,7 +108,7 @@ class TestNSBundle : XCTestCase {
     
     private func _setupPlayground() -> String? {
         // Make sure the directory is uniquely named
-        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().UUIDString + "/"
+        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"
         
         do {
             try FileManager.default().createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)

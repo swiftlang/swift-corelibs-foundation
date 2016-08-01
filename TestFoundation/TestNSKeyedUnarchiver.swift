@@ -51,7 +51,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
     
     func test_unarchive_complex() {
-        let uuid = NSUUID(UUIDString: "71DC068E-3420-45FF-919E-3A267D55EC22")!
+        let uuid = NSUUID(uuidString: "71DC068E-3420-45FF-919E-3A267D55EC22")!
         let url = URL(string: "index.xml", relativeTo: URL(string: "https://www.swift.org"))!
         let array = NSArray(array: [ NSNull(), NSString(string: "hello"), NSNumber(value: 34545), ["key" : "val"].bridge() ])
         let dict : Dictionary<String, NSObject> = [
@@ -106,7 +106,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
     
     func test_unarchive_uuid() {
-        let uuid = NSUUID(UUIDString: "0AD863BA-7584-40CF-8896-BD87B3280C34")
+        let uuid = NSUUID(uuidString: "0AD863BA-7584-40CF-8896-BD87B3280C34")
         test_unarchive_from_file("NSKeyedUnarchiver-UUIDTest", uuid!)
     }
 }

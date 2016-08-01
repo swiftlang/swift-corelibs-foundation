@@ -59,9 +59,9 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
             if let info = aDecoder.decodeObjectOfClasses([NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
                 var filteredUserInfo = [String : Any]()
                 // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjects([]) {
-                    if let key = $0.0 as? NSString {
-                        filteredUserInfo[key._swiftObject] = $0.1
+                info.enumerateKeysAndObjects([]) { key, object, _ in
+                    if let key = key as? NSString {
+                        filteredUserInfo[key._swiftObject] = object
                     }
                 }
                 _userInfo = filteredUserInfo
@@ -74,9 +74,9 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
             if let info = aDecoder.decodeObject() as? NSDictionary {
                 var filteredUserInfo = [String : Any]()
                 // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjects([]) {
-                    if let key = $0.0 as? NSString {
-                        filteredUserInfo[key._swiftObject] = $0.1
+                info.enumerateKeysAndObjects([]) { key, object, _ in
+                    if let key = key as? NSString {
+                        filteredUserInfo[key._swiftObject] = object
                     }
                 }
                 _userInfo = filteredUserInfo
@@ -153,7 +153,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return userInfo[NSHelpAnchorErrorKey] as? String
     }
     
-    internal typealias NSErrorProvider = (error: NSError, key: String) -> AnyObject?
+    internal typealias NSErrorProvider = (_ error: NSError, _ key: String) -> AnyObject?
     internal static var userInfoProviders = [String: NSErrorProvider]()
     
     public class func setUserInfoValueProviderForDomain(_ errorDomain: String, provider: ((NSError, String) -> AnyObject?)?) {

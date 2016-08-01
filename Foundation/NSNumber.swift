@@ -284,7 +284,7 @@ public class NSNumber : NSValue {
             aDecoder.decodeValue(ofObjCType: objCType!, at: buffer)
             self.init(bytes: buffer, objCType: objCType!)
             free(buffer)
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.number") {
+        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.number") {
             let number = aDecoder._decodePropertyListForKey("NS.number")
             if let val = number as? Double {
                 self.init(value:val)
@@ -493,7 +493,7 @@ extension NSNumber : CustomPlaygroundQuickLookable {
         case kCFNumberDoubleType:
             return .double(self.doubleValue)
         case kCFNumberCGFloatType:
-            if sizeof(CGFloat.self) == sizeof(Float32.self) {
+            if MemoryLayout<CGFloat>.size == MemoryLayout<Float32>.size {
                 return .float(self.floatValue)
             } else {
                 return .double(self.doubleValue)

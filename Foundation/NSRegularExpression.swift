@@ -114,7 +114,7 @@ public struct NSMatchingFlags : OptionSet {
 internal class _NSRegularExpressionMatcher {
     var regex: RegularExpression
     var block: (TextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void
-    init(regex: RegularExpression, block: (TextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    init(regex: RegularExpression, block: @escaping (TextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.regex = regex
         self.block = block
     }
@@ -128,15 +128,21 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ran
 #else
         let opts = options
 #endif
-        matcher.block(nil, NSMatchingFlags(rawValue: opts), UnsafeMutablePointer<ObjCBool>(stop))
+        stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
+            matcher.block(nil, NSMatchingFlags(rawValue: opts), $0)
+        })
     } else {
-        let result = TextCheckingResult.regularExpressionCheckingResultWithRanges(NSRangePointer(ranges!), count: count, regularExpression: matcher.regex)
+        let result = ranges!.withMemoryRebound(to: NSRange.self, capacity: count) { rangePtr in
+            TextCheckingResult.regularExpressionCheckingResultWithRanges(rangePtr, count: count, regularExpression: matcher.regex)
+        }
 #if os(OSX) || os(iOS)
         let flags = NSMatchingFlags(rawValue: options.rawValue)
 #else
         let flags = NSMatchingFlags(rawValue: options)
 #endif
-        matcher.block(result, flags, UnsafeMutablePointer<ObjCBool>(stop))
+        stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
+            matcher.block(result, flags, $0)
+        })
     }
 }
 
@@ -145,7 +151,7 @@ extension RegularExpression {
     /* The fundamental matching method on NSRegularExpression is a block iterator.  There are several additional convenience methods, for returning all matches at once, the number of matches, the first match, or the range of the first match.  Each match is specified by an instance of NSTextCheckingResult (of type NSTextCheckingTypeRegularExpression) in which the overall match range is given by the range property (equivalent to range at:0) and any capture group ranges are given by range at: for indexes from 1 to numberOfCaptureGroups.  {NSNotFound, 0} is used if a particular capture group does not participate in the match.
     */
     
-    public func enumerateMatches(in string: String, options: NSMatchingOptions, range: NSRange, using block: (TextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    public func enumerateMatches(in string: String, options: NSMatchingOptions, range: NSRange, using block: @escaping (TextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         let matcher = _NSRegularExpressionMatcher(regex: self, block: block)
         withExtendedLifetime(matcher) { (m: _NSRegularExpressionMatcher) -> Void in
 #if os(OSX) || os(iOS)
@@ -225,7 +231,7 @@ extension RegularExpression {
             if currentRange.location > NSMaxRange(previousRange) {
                 let min = start.advanced(by: NSMaxRange(previousRange))
                 let max = start.advanced(by: currentRange.location)
-                str += String(string.utf16[min..<max])
+                str += String(string.utf16[min..<max])!
             }
             str += replacement
             previousRange = currentRange
@@ -234,7 +240,7 @@ extension RegularExpression {
         if length > NSMaxRange(previousRange) {
             let min = start.advanced(by: NSMaxRange(previousRange))
             let max = start.advanced(by: length)
-            str += String(string.utf16[min..<max])
+            str += String(string.utf16[min..<max])!
         }
         
         return str
@@ -311,7 +317,7 @@ extension RegularExpression {
                             let start = string.utf16.startIndex
                             let min = start.advanced(by: substringRange.location)
                             let max = start.advanced(by: substringRange.location + substringRange.length)
-                            substring = String(string.utf16[min..<max])
+                            substring = String(string.utf16[min..<max])!
                         }
                         str.replaceCharacters(in: rangeToReplace, with: substring)
                         

@@ -18,8 +18,8 @@ extension Dictionary : _ObjectTypeBridgeable {
         var idx = 0
         
         self.forEach {
-            let key = _NSObjectRepresentableBridge($0.0)
-            let value = _NSObjectRepresentableBridge($0.1)
+            let key = _NSObjectRepresentableBridge($0)
+            let value = _NSObjectRepresentableBridge($1)
             keyBuffer.advanced(by: idx).initialize(to: key)
             valueBuffer.advanced(by: idx).initialize(to: value)
             idx += 1
@@ -39,7 +39,7 @@ extension Dictionary : _ObjectTypeBridgeable {
         var dict = [Key: Value]()
         var failedConversion = false
         
-        if x.dynamicType == NSDictionary.self || x.dynamicType == NSMutableDictionary.self {
+        if type(of: x) == NSDictionary.self || type(of: x) == NSMutableDictionary.self {
             x.enumerateKeysAndObjects([]) { key, value, stop in
                 guard let key = key as? Key, let value = value as? Value else {
                     failedConversion = true
@@ -48,7 +48,7 @@ extension Dictionary : _ObjectTypeBridgeable {
                 }
                 dict[key] = value
             }
-        } else if x.dynamicType == _NSCFDictionary.self {
+        } else if type(of: x) == _NSCFDictionary.self {
             let cf = x._cfObject
             let cnt = CFDictionaryGetCount(cf)
 
@@ -87,21 +87,21 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     internal var _storage = [NSObject: AnyObject]()
     
     public var count: Int {
-        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
+        guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
         return _storage.count
     }
     
     public func objectForKey(_ aKey: AnyObject) -> AnyObject? {
-        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
+        guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
         return _storage[aKey as! NSObject]
     }
     
     public func keyEnumerator() -> NSEnumerator {
-        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
+        guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
         return NSGeneratorEnumerator(_storage.keys.makeIterator())
@@ -140,7 +140,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             objects.deinitialize(count: Int(cnt))
             objects.deallocate(capacity: Int(cnt))
             
-        } else if aDecoder.dynamicType == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
+        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
             self.init(objects: objects, forKeys: keys)
@@ -176,10 +176,10 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public func copy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType === NSDictionary.self {
+        if type(of: self) === NSDictionary.self {
             // return self for immutable type
             return self
-        } else if self.dynamicType === NSMutableDictionary.self {
+        } else if type(of: self) === NSMutableDictionary.self {
             let dictionary = NSDictionary()
             dictionary._storage = self._storage
             return dictionary
@@ -192,7 +192,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+        if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             // always create and return an NSMutableDictionary
             let mutableDictionary = NSMutableDictionary()
             mutableDictionary._storage = self._storage
@@ -252,7 +252,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
 
     public var allKeys: [AnyObject] {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+        if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             return _storage.keys.map { $0 }
         } else {
             var keys = [AnyObject]()
@@ -265,7 +265,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     }
     
     public var allValues: [AnyObject] {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+        if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             return _storage.values.map { $0 }
         } else {
             var values = [AnyObject]()
@@ -281,7 +281,7 @@ public class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func getObjects(_ objects: inout [AnyObject], andKeys keys: inout [AnyObject], count: Int) {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+        if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             for (key, value) in _storage {
                 keys.append(key)
                 objects.append(value)
@@ -564,7 +564,7 @@ extension Dictionary : _NSBridgable, _CFBridgable {
 public class NSMutableDictionary : NSDictionary {
     
     public func removeObject(forKey aKey: AnyObject) {
-        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
+        guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
 
@@ -574,7 +574,7 @@ public class NSMutableDictionary : NSDictionary {
     }
     
     public func setObject(_ anObject: AnyObject, forKey aKey: NSObject) {
-        guard self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self else {
+        guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
         _storage[aKey] = anObject
@@ -606,7 +606,7 @@ extension NSMutableDictionary {
     }
     
     public func removeAllObjects() {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+        if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             _storage.removeAll()
 //            CFDictionaryRemoveAllValues(unsafeBitCast(self, CFMutableDictionaryRef.self))
         } else {
@@ -623,7 +623,7 @@ extension NSMutableDictionary {
     }
     
     public func setDictionary(_ otherDictionary: [NSObject : AnyObject]) {
-        if self.dynamicType === NSDictionary.self || self.dynamicType === NSMutableDictionary.self {
+        if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             _storage = otherDictionary
         } else {
             removeAllObjects()

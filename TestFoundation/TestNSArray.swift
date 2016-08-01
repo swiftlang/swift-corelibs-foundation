@@ -429,7 +429,7 @@ class TestNSArray : XCTestCase {
 
         let arrayMutableCopy = array.mutableCopy() as! NSMutableArray
         let arrayCopy2 = arrayMutableCopy.copy() as! NSArray
-        XCTAssertTrue(arrayCopy2.dynamicType === NSArray.self)
+        XCTAssertTrue(type(of: arrayCopy2) === NSArray.self)
         XCTAssertFalse(arrayMutableCopy === arrayCopy2)
         for entry in arrayCopy2 {
             XCTAssertTrue(array.indexOfObjectIdentical(to: entry) != NSNotFound)
@@ -441,14 +441,14 @@ class TestNSArray : XCTestCase {
         let array = ["this", "is", "a", "test", "of", "mutableCopy", "with", "strings"].bridge()
 
         let arrayMutableCopy1 = array.mutableCopy() as! NSMutableArray
-        XCTAssertTrue(arrayMutableCopy1.dynamicType === NSMutableArray.self)
+        XCTAssertTrue(type(of: arrayMutableCopy1) === NSMutableArray.self)
         XCTAssertFalse(array === arrayMutableCopy1)
         for entry in arrayMutableCopy1 {
             XCTAssertTrue(array.indexOfObjectIdentical(to: entry) != NSNotFound)
         }
 
         let arrayMutableCopy2 = arrayMutableCopy1.mutableCopy() as! NSMutableArray
-        XCTAssertTrue(arrayMutableCopy2.dynamicType === NSMutableArray.self)
+        XCTAssertTrue(type(of: arrayMutableCopy2) === NSMutableArray.self)
         XCTAssertFalse(arrayMutableCopy2 === arrayMutableCopy1)
         for entry in arrayMutableCopy2 {
             XCTAssertTrue(arrayMutableCopy1.indexOfObjectIdentical(to: entry) != NSNotFound)

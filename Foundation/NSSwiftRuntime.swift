@@ -67,7 +67,7 @@ internal func _CFSwiftIsEqual(_ cf1: AnyObject, cf2: AnyObject) -> Bool {
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
 internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
     withUnsafeMutablePointer(to: &arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
-        bzero(unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self), sizeof(T.self))
+        bzero(unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self), MemoryLayout<T>.size)
     }
 }
 
@@ -248,7 +248,7 @@ internal func _NSObjectRepresentableBridge(_ value: Any) -> NSObject {
     } else if let obj = value as? Bool {
         return obj._bridgeToObject()
     }
-    fatalError("Unable to convert value of type \(value.dynamicType)")
+    fatalError("Unable to convert value of type \(type(of: value))")
 }
 
 extension Array : _NSObjectRepresentable {

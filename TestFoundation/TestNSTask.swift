@@ -251,7 +251,7 @@ private func mkstemp(template: String, body: @noescape (FileHandle) throws -> Vo
     let url = try! URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestNSTask.XXXXXX")
     var buffer = [Int8](repeating: 0, count: Int(PATH_MAX))
     try url.withUnsafeFileSystemRepresentation {
-        switch mkstemp(UnsafeMutablePointer<Int8>($0)) {
+        switch mkstemp(UnsafeMutablePointer(mutating: $0)) {
         case -1: XCTFail("Could not create temporary file")
         case let fd:
             defer { unlink(&buffer) }
