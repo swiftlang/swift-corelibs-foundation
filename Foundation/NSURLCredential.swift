@@ -32,7 +32,7 @@ extension URLCredential {
     @class NSURLCredential
     @discussion This class is an immutable object representing an authentication credential.  The actual type of the credential is determined by the constructor called in the categories declared below.
 */
-public class URLCredential : NSObject, NSSecureCoding, NSCopying {
+open class URLCredential : NSObject, NSSecureCoding, NSCopying {
     private var _user : String
     private var _password : String
     private var _persistence : Persistence
@@ -68,7 +68,7 @@ public class URLCredential : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -76,11 +76,11 @@ public class URLCredential : NSObject, NSSecureCoding, NSCopying {
         return true
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -89,14 +89,14 @@ public class URLCredential : NSObject, NSSecureCoding, NSCopying {
         @abstract Determine whether this credential is or should be stored persistently
         @result A value indicating whether this credential is stored permanently, per session or not at all.
      */
-    public var persistence: Persistence { return _persistence }
+    open var persistence: Persistence { return _persistence }
     
     /*!
         @method user
         @abstract Get the username
         @result The user string
      */
-    public var user: String? { return _user }
+    open var user: String? { return _user }
     
     /*!
         @method password
@@ -106,7 +106,7 @@ public class URLCredential : NSObject, NSSecureCoding, NSCopying {
         password from an external store, possible resulting in prompting,
         so do not call it unless needed.
      */
-    public var password: String? { return _password }
+    open var password: String? { return _password }
 
     /*!
         @method hasPassword
@@ -117,7 +117,7 @@ public class URLCredential : NSObject, NSSecureCoding, NSCopying {
         method returns YES, since getting the password may fail, or the
         user may refuse access.
      */
-    public var hasPassword: Bool {
+    open var hasPassword: Bool {
         // Currently no support for SecTrust/SecIdentity, always return true
         return true
     }

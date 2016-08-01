@@ -8,23 +8,23 @@
 //
 
 /****************       Immutable Ordered Set   ****************/
-public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ExpressibleByArrayLiteral {
+open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ExpressibleByArrayLiteral {
     internal var _storage: Set<NSObject>
     internal var _orderedStorage: [NSObject]
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
 
-    public override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> AnyObject {
         return mutableCopy(with: nil)
     }
 
-    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -32,7 +32,7 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return true
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: AnyObject?) -> Bool {
         if let orderedSet = object as? NSOrderedSet {
             return isEqualToOrderedSet(orderedSet)
         } else {
@@ -40,7 +40,7 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             for idx in 0..<self.count {
                 aCoder.encode(self.objectAtIndex(idx), forKey:"NS.object.\(idx)")
@@ -67,15 +67,15 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
     
-    public var count: Int {
+    open var count: Int {
         return _storage.count
     }
 
-    public func objectAtIndex(_ idx: Int) -> AnyObject {
+    open func objectAtIndex(_ idx: Int) -> AnyObject {
         return _orderedStorage[idx]
     }
 
-    public func indexOfObject(_ object: AnyObject) -> Int {
+    open func indexOfObject(_ object: AnyObject) -> Int {
         guard let object = object as? NSObject else {
             return NSNotFound
         }
@@ -104,7 +104,7 @@ public class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
       self.init(array: elements)
     }
     
-    public subscript (idx: Int) -> AnyObject {
+    open subscript (idx: Int) -> AnyObject {
         return objectAtIndex(idx)
     }
 
@@ -324,9 +324,9 @@ extension NSOrderedSet {
 
 /****************       Mutable Ordered Set     ****************/
 
-public class NSMutableOrderedSet : NSOrderedSet {
+open class NSMutableOrderedSet : NSOrderedSet {
     
-    public func insertObject(_ object: AnyObject, atIndex idx: Int) {
+    open func insertObject(_ object: AnyObject, atIndex idx: Int) {
         guard idx < count && idx >= 0 else {
             fatalError("\(self): Index out of bounds")
         }
@@ -341,12 +341,12 @@ public class NSMutableOrderedSet : NSOrderedSet {
         }
     }
 
-    public func removeObjectAtIndex(_ idx: Int) {
+    open func removeObjectAtIndex(_ idx: Int) {
         _storage.remove(_orderedStorage[idx])
         _orderedStorage.remove(at: idx)
     }
 
-    public func replaceObjectAtIndex(_ idx: Int, withObject object: AnyObject) {
+    open func replaceObjectAtIndex(_ idx: Int, withObject object: AnyObject) {
         guard idx < count && idx >= 0 else {
             fatalError("\(self): Index out of bounds")
         }

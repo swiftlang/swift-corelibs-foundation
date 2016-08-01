@@ -12,7 +12,7 @@ public typealias SocketNativeHandle = Int32
 
 public let NSPortDidBecomeInvalidNotification: String = "NSPortDidBecomeInvalidNotification"
 
-public class Port : NSObject, NSCopying, NSCoding {
+open class Port : NSObject, NSCopying, NSCoding {
     
     public override init() {
         
@@ -22,49 +22,49 @@ public class Port : NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
-    public func invalidate() {
+    open func invalidate() {
         NSUnimplemented()
     }
 
-    public var valid: Bool {
+    open var valid: Bool {
         NSUnimplemented()
     }
     
     // TODO: this delegate situation is confusing on all platforms
     /*
-    public func setDelegate(_ anObject: PortDelegate?)
-    public func delegate() -> PortDelegate?
+    open func setDelegate(_ anObject: PortDelegate?)
+    open func delegate() -> PortDelegate?
     */
     
     // These two methods should be implemented by subclasses
     // to setup monitoring of the port when added to a run loop,
     // and stop monitoring if needed when removed;
     // These methods should not be called directly!
-    public func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
+    open func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
 
-    public func remove(from runLoop: RunLoop, forMode mode: RunLoopMode) {
+    open func remove(from runLoop: RunLoop, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
     
-    public var reservedSpaceLength: Int {
+    open var reservedSpaceLength: Int {
         return 0
     }
     
-    public func sendBeforeDate(_ limitDate: Date, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
+    open func sendBeforeDate(_ limitDate: Date, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
         NSUnimplemented()
     }
 
-    public func sendBeforeDate(_ limitDate: Date, msgid msgID: Int, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
+    open func sendBeforeDate(_ limitDate: Date, msgid msgID: Int, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
         NSUnimplemented()
     }
 }
@@ -80,13 +80,13 @@ public protocol PortDelegate : class {
 // A subclass of NSPort which can be used for local
 // message sending on all platforms.
 
-public class MessagePort : Port {
+open class MessagePort : Port {
 }
 
 // A subclass of NSPort which can be used for remote
 // message sending on all platforms.
 
-public class SocketPort : Port {
+open class SocketPort : Port {
     
     public convenience override init() {
         NSUnimplemented()
@@ -116,23 +116,23 @@ public class SocketPort : Port {
         NSUnimplemented()
     }
 
-    public var protocolFamily: Int32 {
+    open var protocolFamily: Int32 {
         NSUnimplemented()
     }
     
-    public var socketType: Int32 {
+    open var socketType: Int32 {
         NSUnimplemented()
     }
     
-    public var `protocol`: Int32 {
+    open var `protocol`: Int32 {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ public var address: Data {
+    /*@NSCopying*/ open var address: Data {
         NSUnimplemented()
     }
     
-    public var socket: SocketNativeHandle {
+    open var socket: SocketNativeHandle {
         NSUnimplemented()
     }
 }

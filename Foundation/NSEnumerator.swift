@@ -7,9 +7,9 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public class NSEnumerator : NSObject {
+open class NSEnumerator : NSObject {
     
-    public func nextObject() -> AnyObject? {
+    open func nextObject() -> AnyObject? {
         NSRequiresConcreteImplementation()
     }
 

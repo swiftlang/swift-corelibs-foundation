@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
+open class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     private let _cfinfo = _CFInfo(typeID: CFAttributedStringGetTypeID())
     fileprivate var _string: NSString
@@ -19,7 +19,7 @@ public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
@@ -27,27 +27,27 @@ public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         return true
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
 
-    public override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> AnyObject {
         return mutableCopy(with: nil)
     }
     
-    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
-    public var string: String {
+    open var string: String {
         return _string._swiftObject
     }
     
-    public func attributesAtIndex(_ location: Int, effectiveRange range: NSRangePointer) -> [String : AnyObject] {
+    open func attributesAtIndex(_ location: Int, effectiveRange range: NSRangePointer) -> [String : AnyObject] {
         let rangeInfo = RangeInfo(
             rangePointer: range,
             shouldFetchLongestEffectiveRange: false,
@@ -55,11 +55,11 @@ public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         return _attributesAtIndex(location, rangeInfo: rangeInfo)
     }
 
-    public var length: Int {
+    open var length: Int {
         return CFAttributedStringGetLength(_cfObject)
     }
     
-    public func attribute(_ attrName: String, atIndex location: Int, effectiveRange range: NSRangePointer) -> AnyObject? {
+    open func attribute(_ attrName: String, atIndex location: Int, effectiveRange range: NSRangePointer) -> AnyObject? {
         let rangeInfo = RangeInfo(
             rangePointer: range,
             shouldFetchLongestEffectiveRange: false,
@@ -67,9 +67,9 @@ public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         return _attribute(attrName, atIndex: location, rangeInfo: rangeInfo)
     }
     
-    public func attributedSubstringFromRange(_ range: NSRange) -> AttributedString { NSUnimplemented() }
+    open func attributedSubstringFromRange(_ range: NSRange) -> AttributedString { NSUnimplemented() }
     
-    public func attributesAtIndex(_ location: Int, longestEffectiveRange range: NSRangePointer, inRange rangeLimit: NSRange) -> [String : AnyObject] {
+    open func attributesAtIndex(_ location: Int, longestEffectiveRange range: NSRangePointer, inRange rangeLimit: NSRange) -> [String : AnyObject] {
         let rangeInfo = RangeInfo(
             rangePointer: range,
             shouldFetchLongestEffectiveRange: true,
@@ -77,7 +77,7 @@ public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         return _attributesAtIndex(location, rangeInfo: rangeInfo)
     }
     
-    public func attribute(_ attrName: String, atIndex location: Int, longestEffectiveRange range: NSRangePointer, inRange rangeLimit: NSRange) -> AnyObject? {
+    open func attribute(_ attrName: String, atIndex location: Int, longestEffectiveRange range: NSRangePointer, inRange rangeLimit: NSRange) -> AnyObject? {
         let rangeInfo = RangeInfo(
             rangePointer: range,
             shouldFetchLongestEffectiveRange: true,
@@ -85,7 +85,7 @@ public class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         return _attribute(attrName, atIndex: location, rangeInfo: rangeInfo)
     }
     
-    public func isEqualToAttributedString(_ other: AttributedString) -> Bool { NSUnimplemented() }
+    open func isEqualToAttributedString(_ other: AttributedString) -> Bool { NSUnimplemented() }
     
     public init(string str: String) {
         _string = str._nsObject
@@ -204,31 +204,31 @@ extension AttributedString {
 }
 
 
-public class NSMutableAttributedString : AttributedString {
+open class NSMutableAttributedString : AttributedString {
     
-    public func replaceCharactersInRange(_ range: NSRange, withString str: String) { NSUnimplemented() }
-    public func setAttributes(_ attrs: [String : AnyObject]?, range: NSRange) { NSUnimplemented() }
+    open func replaceCharactersInRange(_ range: NSRange, withString str: String) { NSUnimplemented() }
+    open func setAttributes(_ attrs: [String : AnyObject]?, range: NSRange) { NSUnimplemented() }
     
-    public var mutableString: NSMutableString {
+    open var mutableString: NSMutableString {
         return _string as! NSMutableString
     }
     
-    public func addAttribute(_ name: String, value: AnyObject, range: NSRange) {
+    open func addAttribute(_ name: String, value: AnyObject, range: NSRange) {
         CFAttributedStringSetAttribute(_cfMutableObject, CFRange(range), name._cfObject, value)
     }
     
-    public func addAttributes(_ attrs: [String : AnyObject], range: NSRange) { NSUnimplemented() }
+    open func addAttributes(_ attrs: [String : AnyObject], range: NSRange) { NSUnimplemented() }
     
-    public func removeAttribute(_ name: String, range: NSRange) { NSUnimplemented() }
+    open func removeAttribute(_ name: String, range: NSRange) { NSUnimplemented() }
     
-    public func replaceCharactersInRange(_ range: NSRange, withAttributedString attrString: AttributedString) { NSUnimplemented() }
-    public func insertAttributedString(_ attrString: AttributedString, atIndex loc: Int) { NSUnimplemented() }
-    public func appendAttributedString(_ attrString: AttributedString) { NSUnimplemented() }
+    open func replaceCharactersInRange(_ range: NSRange, withAttributedString attrString: AttributedString) { NSUnimplemented() }
+    open func insertAttributedString(_ attrString: AttributedString, atIndex loc: Int) { NSUnimplemented() }
+    open func appendAttributedString(_ attrString: AttributedString) { NSUnimplemented() }
     public func deleteCharactersInRange(_ range: NSRange) { NSUnimplemented() }
-    public func setAttributedString(_ attrString: AttributedString) { NSUnimplemented() }
+    open func setAttributedString(_ attrString: AttributedString) { NSUnimplemented() }
     
-    public func beginEditing() { NSUnimplemented() }
-    public func endEditing() { NSUnimplemented() }
+    open func beginEditing() { NSUnimplemented() }
+    open func endEditing() { NSUnimplemented() }
     
     public override init(string str: String) {
         super.init(string: str)

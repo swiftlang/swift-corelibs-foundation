@@ -11,25 +11,25 @@
 
 import CoreFoundation
 
-public class Scanner: NSObject, NSCopying {
+open class Scanner: NSObject, NSCopying {
     internal var _scanString: String
     internal var _skipSet: CharacterSet?
     internal var _invertedSkipSet: CharacterSet?
     internal var _scanLocation: Int
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         return Scanner(string: string)
     }
     
-    public var string: String {
+    open var string: String {
         return _scanString
     }
     
-    public var scanLocation: Int {
+    open var scanLocation: Int {
         get {
             return _scanLocation
         }
@@ -40,7 +40,7 @@ public class Scanner: NSObject, NSCopying {
             _scanLocation = newValue
         }
     }
-    /*@NSCopying*/ public var charactersToBeSkipped: CharacterSet? {
+    /*@NSCopying*/ open var charactersToBeSkipped: CharacterSet? {
         get {
             return _skipSet
         }
@@ -62,8 +62,8 @@ public class Scanner: NSObject, NSCopying {
         }
     }
     
-    public var caseSensitive: Bool = false
-    public var locale: Locale?
+    open var caseSensitive: Bool = false
+    open var locale: Locale?
     
     internal static let defaultSkipSet = CharacterSet.whitespacesAndNewlines
     
@@ -503,7 +503,7 @@ extension Scanner {
         return stringLoc == stringLen
     }
     
-    public class func localizedScannerWithString(_ string: String) -> AnyObject { NSUnimplemented() }
+    open class func localizedScannerWithString(_ string: String) -> AnyObject { NSUnimplemented() }
 }
 
 

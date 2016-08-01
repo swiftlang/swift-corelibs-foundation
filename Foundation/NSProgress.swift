@@ -24,11 +24,11 @@
 
  The localizedDescription and localizedAdditionalDescription properties are meant to be observed as well as set. So are the cancellable and pausable properties. totalUnitCount and completedUnitCount on the other hand are often not the best properties to observe when presenting progress to the user. For example, you should observe fractionCompleted instead of observing totalUnitCount and completedUnitCount and doing your own calculation. NSProgress' default implementation of fractionCompleted does fairly sophisticated things like taking child NSProgresses into account.
  */
-public class NSProgress : NSObject {
+open class NSProgress : NSObject {
     
     /* The instance of NSProgress associated with the current thread by a previous invocation of -becomeCurrentWithPendingUnitCount:, if any. The purpose of this per-thread value is to allow code that does work to usefully report progress even when it is widely separated from the code that actually presents progress to the user, without requiring layers of intervening code to pass the instance of NSProgress through. Using the result of invoking this directly will often not be the right thing to do, because the invoking code will often not even know what units of work the current progress object deals in. Invoking +progressWithTotalUnitCount: to create a child NSProgress object and then using that to report progress makes more sense in that situation.
     */
-    public class func currentProgress() -> NSProgress? { NSUnimplemented() }
+    open class func currentProgress() -> NSProgress? { NSUnimplemented() }
     
     /* Return an instance of NSProgress that has been initialized with -initWithParent:userInfo:. The initializer is passed the current progress object, if there is one, and the value of the totalUnitCount property is set. In many cases you can simply precede code that does a substantial amount of work with an invocation of this method, with repeated invocations of -setCompletedUnitCount: and -isCancelled in the loop that does the work.
     
@@ -38,7 +38,7 @@ public class NSProgress : NSObject {
     
     /* Return an instance of NSProgress that has been initialized with -initWithParent:userInfo:. The initializer is passed nil for the parent, resulting in a progress object that is not part of an existing progress tree. The value of the totalUnitCount property is also set.
      */
-    public class func discreteProgressWithTotalUnitCount(_ unitCount: Int64) -> NSProgress { NSUnimplemented() }
+    open class func discreteProgressWithTotalUnitCount(_ unitCount: Int64) -> NSProgress { NSUnimplemented() }
     
     /* Return an instance of NSProgress that has been attached to a parent progress with the given pending unit count.
      */
@@ -52,21 +52,21 @@ public class NSProgress : NSObject {
      
        With this mechanism, code that doesn't know anything about its callers can report progress accurately by using +progressWithTotalUnitCount: and -setCompletedUnitCount:. The calling code will account for the fact that the work done is only a portion of the work to be done as part of a larger operation. The unit of work in a call to -becomeCurrentWithPendingUnitCount: has to be the same unit of work as that used for the value of the totalUnitCount property, but the unit of work used by the child can be a completely different one, and often will be. You must always balance invocations of this method with invocations of -resignCurrent.
     */
-    public func becomeCurrentWithPendingUnitCount(_ unitCount: Int64) { NSUnimplemented() }
+    open func becomeCurrentWithPendingUnitCount(_ unitCount: Int64) { NSUnimplemented() }
     
     /* Balance the most recent previous invocation of -becomeCurrentWithPendingUnitCount: on the same thread by restoring the current progress object to what it was before -becomeCurrentWithPendingUnitCount: was invoked.
     */
-    public func resignCurrent() { NSUnimplemented() }
+    open func resignCurrent() { NSUnimplemented() }
     
     /* Directly add a child progress to the receiver, assigning it a portion of the receiver's total unit count.
      */
-    public func addChild(_ child: NSProgress, withPendingUnitCount inUnitCount: Int64) { NSUnimplemented() }
+    open func addChild(_ child: NSProgress, withPendingUnitCount inUnitCount: Int64) { NSUnimplemented() }
     
     /* The size of the job whose progress is being reported, and how much of it has been completed so far, respectively. For an NSProgress with a kind of NSProgressKindFile, the unit of these properties is bytes while the NSProgressFileTotalCountKey and NSProgressFileCompletedCountKey keys in the userInfo dictionary are used for the overall count of files. For any other kind of NSProgress, the unit of measurement you use does not matter as long as you are consistent. The values may be reported to the user in the localizedDescription and localizedAdditionalDescription.
      
        If the receiver NSProgress object is a "leaf progress" (no children), then the fractionCompleted is generally completedUnitCount / totalUnitCount. If the receiver NSProgress has children, the fractionCompleted will reflect progress made in child objects in addition to its own completedUnitCount. As children finish, the completedUnitCount of the parent will be updated.
     */
-    public var totalUnitCount: Int64
+    open var totalUnitCount: Int64
     public var completedUnitCount: Int64
     
     /* A description of what progress is being made, fit to present to the user. NSProgress is by default KVO-compliant for this property, with the notifications always being sent on thread which updates the property. The default implementation of the getter for this property does not always return the most recently set value of the property. If the most recently set value of this property is nil then NSProgress uses the value of the kind property to determine how to use the values of other properties, as well as values in the user info dictionary, to return a computed string. If it fails to do that then it returns an empty string.
@@ -76,7 +76,7 @@ public class NSProgress : NSObject {
         30% completed
         Copying “TextEdit”…
     */
-    public var localizedDescription: String!
+    open var localizedDescription: String!
     
     /* A more specific description of what progress is being made, fit to present to the user. NSProgress is by default KVO-compliant for this property, with the notifications always being sent on thread which updates the property. The default implementation of the getter for this property does not always return the most recently set value of the property. If the most recently set value of this property is nil then NSProgress uses the value of the kind property to determine how to use the values of other properties, as well as values in the user info dictionary, to return a computed string. If it fails to do that then it returns an empty string. The difference between this and localizedDescription is that this text is meant to be more specific about what work is being done at any particular moment.
     
@@ -88,37 +88,37 @@ public class NSProgress : NSObject {
         1 minute remaining (1 KB/sec)
     
     */
-    public var localizedAdditionalDescription: String!
+    open var localizedAdditionalDescription: String!
     
     /* Whether the work being done can be cancelled or paused, respectively. By default NSProgresses are cancellable but not pausable. NSProgress is by default KVO-compliant for these properties, with the notifications always being sent on the thread which updates the property. These properties are for communicating whether controls for cancelling and pausing should appear in a progress reporting user interface. NSProgress itself does not do anything with these properties other than help pass their values from progress reporters to progress observers. It is valid for the values of these properties to change in virtually any way during the lifetime of an NSProgress. Of course, if an NSProgress is cancellable you should actually implement cancellability by setting a cancellation handler or by making your code poll the result of invoking -isCancelled. Likewise for pausability.
     */
-    public var cancellable: Bool
-    public var pausable: Bool
+    open var cancellable: Bool
+    open var pausable: Bool
     
     /* Whether the work being done has been cancelled or paused, respectively. NSProgress is by default KVO-compliant for these properties, with the notifications always being sent on the thread which updates the property. Instances of NSProgress that have parents are at least as cancelled or paused as their parents.
     */
-    public var cancelled: Bool { NSUnimplemented() }
-    public var paused: Bool { NSUnimplemented() }
+    open var cancelled: Bool { NSUnimplemented() }
+    open var paused: Bool { NSUnimplemented() }
     
     /* A block to be invoked when cancel is invoked. The block will be invoked even when the method is invoked on an ancestor of the receiver, or an instance of NSProgress in another process that resulted from publishing the receiver or an ancestor of the receiver. Your block won't be invoked on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
     */
-    public var cancellationHandler: (() -> Void)?
+    open var cancellationHandler: (() -> Void)?
     
     /* A block to be invoked when pause is invoked. The block will be invoked even when the method is invoked on an ancestor of the receiver, or an instance of NSProgress in another process that resulted from publishing the receiver or an ancestor of the receiver. Your block won't be invoked on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
      */
-    public var pausingHandler: (() -> Void)?
+    open var pausingHandler: (() -> Void)?
     
     /* A block to be invoked when resume is invoked. The block will be invoked even when the method is invoked on an ancestor of the receiver, or an instance of NSProgress in another process that resulted from publishing the receiver or an ancestor of the receiver. Your block won't be invoked on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
      */
-    public var resumingHandler: (() -> Void)?
+    open var resumingHandler: (() -> Void)?
     
     /* Set a value in the dictionary returned by invocations of -userInfo, with appropriate KVO notification for properties whose values can depend on values in the user info dictionary, like localizedDescription. If a nil value is passed then the dictionary entry is removed.
     */
-    public func setUserInfoObject(_ objectOrNil: AnyObject?, forKey key: String) { NSUnimplemented() }
+    open func setUserInfoObject(_ objectOrNil: AnyObject?, forKey key: String) { NSUnimplemented() }
     
     /* Whether the progress being made is indeterminate. -isIndeterminate returns YES when the value of the totalUnitCount or completedUnitCount property is less than zero. Zero values for both of those properties indicates that there turned out to not be any work to do after all; -isIndeterminate returns NO and -fractionCompleted returns 1.0 in that case. NSProgress is by default KVO-compliant for these properties, with the notifications always being sent on the thread which updates the property.
     */
-    public var indeterminate: Bool { NSUnimplemented() }
+    open var indeterminate: Bool { NSUnimplemented() }
     
     /* The fraction of the overall work completed by this progress object, including work done by any children it may have.
     */
@@ -126,23 +126,23 @@ public class NSProgress : NSObject {
     
     /* Invoke the block registered with the cancellationHandler property, if there is one, and set the cancelled property to YES. Do this for the receiver, any descendants of the receiver, the instance of NSProgress that was published in another process to make the receiver if that's the case, and any descendants of such a published instance of NSProgress.
     */
-    public func cancel() { NSUnimplemented() }
+    open func cancel() { NSUnimplemented() }
     
     /* Invoke the block registered with the pausingHandler property, if there is one, and set the paused property to YES. Do this for the receiver, any descendants of the receiver, the instance of NSProgress that was published in another process to make the receiver if that's the case, and any descendants of such a published instance of NSProgress.
     */
-    public func pause() { NSUnimplemented() }
+    open func pause() { NSUnimplemented() }
     
     /* Invoke the block registered with the resumingHandler property, if there is one, and set the paused property to NO. Do this for the receiver, any descendants of the receiver, the instance of NSProgress that was published in another process to make the receiver if that's the case, and any descendants of such a published instance of NSProgress.
     */
-    public func resume() { NSUnimplemented() }
+    open func resume() { NSUnimplemented() }
     
     /* Arbitrary values associated with the receiver. Returns a KVO-compliant dictionary that changes as -setUserInfoObject:forKey: is sent to the receiver. The dictionary will send all of its KVO notifications on the thread which updates the property. The result will never be nil, but may be an empty dictionary. Some entries have meanings that are recognized by the NSProgress class itself. See the NSProgress...Key string constants listed below.
     */
-    public var userInfo: [NSObject : AnyObject] { NSUnimplemented() }
+    open var userInfo: [NSObject : AnyObject] { NSUnimplemented() }
     
     /* Either a string identifying what kind of progress is being made, like NSProgressKindFile, or nil. If the value of the localizedDescription property has not been set to a non-nil value then the default implementation of -localizedDescription uses the progress kind to determine how to use the values of other properties, as well as values in the user info dictionary, to create a string that is presentable to the user. This is most useful when -localizedDescription is actually being invoked in another process, whose localization language may be different, as a result of using the publish and subscribe mechanism described here.
     */
-    public var kind: String?
+    open var kind: String?
     
 }
 

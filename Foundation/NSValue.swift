@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
+open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
     private static var SideTable = [ObjectIdentifier : NSValue]()
     private static var SideTableLock = Lock()
@@ -41,7 +41,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public override var hash: Int {
+    open override var hash: Int {
         get {
             if type(of: self) == NSValue.self {
                 return _concreteValue.hash
@@ -51,7 +51,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: AnyObject?) -> Bool {
         if self === object {
             return true
         } else if let o = object, type(of: self) == NSValue.self && type(of: o) == NSValue.self {
@@ -66,7 +66,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public override var description : String {
+    open override var description : String {
         get {
             if type(of: self) == NSValue.self {
                 return _concreteValue.description
@@ -76,7 +76,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func getValue(_ value: UnsafeMutableRawPointer) {
+    open func getValue(_ value: UnsafeMutableRawPointer) {
         if type(of: self) == NSValue.self {
             return _concreteValue.getValue(value)
         } else {
@@ -84,7 +84,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public var objCType: UnsafePointer<Int8> {
+    open var objCType: UnsafePointer<Int8> {
         if type(of: self) == NSValue.self {
             return _concreteValue.objCType
         } else {
@@ -132,7 +132,7 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
         
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if type(of: self) == NSValue.self {
             _concreteValue.encode(with: aCoder)
         } else {
@@ -140,15 +140,15 @@ public class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public class func supportsSecureCoding() -> Bool {
+    open class func supportsSecureCoding() -> Bool {
         return true
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
 }

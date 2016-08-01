@@ -19,13 +19,13 @@ extension TextCheckingResult {
     }
 }
 
-public class TextCheckingResult: NSObject, NSCopying, NSCoding {
+open class TextCheckingResult: NSObject, NSCopying, NSCoding {
     
     public override init() {
         super.init()
     }
     
-    public class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: RegularExpression) -> TextCheckingResult {
+    open class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: RegularExpression) -> TextCheckingResult {
         return _NSRegularExpressionTextCheckingResultResult(ranges: ranges, count: count, regularExpression: regularExpression)
     }
 
@@ -33,25 +33,25 @@ public class TextCheckingResult: NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
     /* Mandatory properties, used with all types of results. */
-    public var resultType: CheckingType { NSUnimplemented() }
-    public var range: NSRange { return range(at: 0) }
+    open var resultType: CheckingType { NSUnimplemented() }
+    open var range: NSRange { return range(at: 0) }
     /* A result must have at least one range, but may optionally have more (for example, to represent regular expression capture groups).  The range at index 0 always matches the range property.  Additional ranges, if any, will have indexes from 1 to numberOfRanges-1. */
-    public func range(at idx: Int) -> NSRange { NSUnimplemented() }
-    public var regularExpression: RegularExpression? { return nil }
-    public var numberOfRanges: Int { return 1 }
+    open func range(at idx: Int) -> NSRange { NSUnimplemented() }
+    open var regularExpression: RegularExpression? { return nil }
+    open var numberOfRanges: Int { return 1 }
 }
 
 internal class _NSRegularExpressionTextCheckingResultResult : TextCheckingResult {

@@ -55,7 +55,7 @@ extension XMLDocument {
     @abstract An XML Document
 	@discussion Note: if the application of a method would result in more than one element in the children array, an exception is thrown. Trying to add a document, namespace, attribute, or node with a parent also throws an exception. To add a node with a parent first detach or create a copy of it.
 */
-public class XMLDocument : XMLNode {
+open class XMLDocument : XMLNode {
     private var _xmlDoc: _CFXMLDocPtr {
         return _CFXMLDocPtr(_xmlNode)
     }
@@ -109,13 +109,13 @@ public class XMLDocument : XMLNode {
         }
     }
 
-    public class func replacementClassForClass(_ cls: AnyClass) -> AnyClass { NSUnimplemented() }
+    open class func replacementClassForClass(_ cls: AnyClass) -> AnyClass { NSUnimplemented() }
 
     /*!
         @method characterEncoding
         @abstract Sets the character encoding to an IANA type.
     */
-    public var characterEncoding: String? {
+    open var characterEncoding: String? {
         get {
             return _CFXMLDocCharacterEncoding(_xmlDoc)?._swiftObject
         }
@@ -132,7 +132,7 @@ public class XMLDocument : XMLNode {
         @method version
         @abstract Sets the XML version. Should be 1.0 or 1.1.
     */
-    public var version: String? {
+    open var version: String? {
         get {
             return _CFXMLDocVersion(_xmlDoc)?._swiftObject
         }
@@ -150,7 +150,7 @@ public class XMLDocument : XMLNode {
         @method standalone
         @abstract Set whether this document depends on an external DTD. If this option is set the standalone declaration will appear on output.
     */
-    public var standalone: Bool {
+    open var standalone: Bool {
         get {
             return _CFXMLDocStandalone(_xmlDoc)
         }
@@ -163,7 +163,7 @@ public class XMLDocument : XMLNode {
         @method documentContentKind
         @abstract The kind of document.
     */
-    public var documentContentKind: ContentKind  {
+    open var documentContentKind: ContentKind  {
         get {
             let properties = _CFXMLDocProperties(_xmlDoc)
 
@@ -192,13 +192,13 @@ public class XMLDocument : XMLNode {
         @method MIMEType
         @abstract Set the MIME type, eg text/xml.
     */
-    public var mimeType: String? //primitive
+    open var mimeType: String? //primitive
 
     /*!
         @method DTD
         @abstract Set the associated DTD. This DTD will be output with the document.
     */
-    /*@NSCopying*/ public var dtd: XMLDTD? {
+    /*@NSCopying*/ open var dtd: XMLDTD? {
         get {
             return XMLDTD._objectNodeForNode(_CFXMLDocDTD(_xmlDoc)!)
         }
@@ -229,7 +229,7 @@ public class XMLDocument : XMLNode {
         @method setRootElement:
         @abstract Set the root element. Removes all other children including comments and processing-instructions.
     */
-    public func setRootElement(_ root: XMLElement) {
+    open func setRootElement(_ root: XMLElement) {
         precondition(root.parent == nil)
 
         for child in _childNodes {
@@ -244,7 +244,7 @@ public class XMLDocument : XMLNode {
         @method rootElement
         @abstract The root element.
     */
-    public func rootElement() -> XMLElement? {
+    open func rootElement() -> XMLElement? {
         guard let rootPtr = _CFXMLDocRootElement(_xmlDoc) else {
             return nil
         }
@@ -256,7 +256,7 @@ public class XMLDocument : XMLNode {
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.
     */
-    public func insertChild(_ child: XMLNode, at index: Int) {
+    open func insertChild(_ child: XMLNode, at index: Int) {
         _insertChild(child, atIndex: index)
     } //primitive
 
@@ -264,7 +264,7 @@ public class XMLDocument : XMLNode {
         @method insertChildren:atIndex:
         @abstract Insert several children at a particular index.
     */
-    public func insertChildren(_ children: [XMLNode], at index: Int) {
+    open func insertChildren(_ children: [XMLNode], at index: Int) {
         _insertChildren(children, atIndex: index)
     }
 
@@ -272,7 +272,7 @@ public class XMLDocument : XMLNode {
         @method removeChildAtIndex:atIndex:
         @abstract Removes a child at a particular index.
     */
-    public func removeChild(at index: Int) {
+    open func removeChild(at index: Int) {
         _removeChildAtIndex(index)
     } //primitive
 
@@ -280,7 +280,7 @@ public class XMLDocument : XMLNode {
         @method setChildren:
         @abstract Removes all existing children and replaces them with the new children. Set children to nil to simply remove all children.
     */
-    public func setChildren(_ children: [XMLNode]?) {
+    open func setChildren(_ children: [XMLNode]?) {
         _setChildren(children)
     } //primitive
 
@@ -288,7 +288,7 @@ public class XMLDocument : XMLNode {
         @method addChild:
         @abstract Adds a child to the end of the existing children.
     */
-    public func addChild(_ child: XMLNode) {
+    open func addChild(_ child: XMLNode) {
         _addChild(child)
     }
 
@@ -296,7 +296,7 @@ public class XMLDocument : XMLNode {
         @method replaceChildAtIndex:withNode:
         @abstract Replaces a child at a particular index with another child.
     */
-    public func replaceChild(at index: Int, with node: XMLNode) {
+    open func replaceChild(at index: Int, with node: XMLNode) {
         _replaceChildAtIndex(index, withNode: node)
     }
 
@@ -304,13 +304,13 @@ public class XMLDocument : XMLNode {
         @method XMLData
         @abstract Invokes XMLDataWithOptions with NSXMLNodeOptionsNone.
     */
-    /*@NSCopying*/ public var xmlData: Data { return xmlData(withOptions: NSXMLNodeOptionsNone) }
+    /*@NSCopying*/ open var xmlData: Data { return xmlData(withOptions: NSXMLNodeOptionsNone) }
 
     /*!
         @method XMLDataWithOptions:
         @abstract The representation of this node as it would appear in an XML document, encoded based on characterEncoding.
     */
-    public func xmlData(withOptions options: Int) -> Data {
+    open func xmlData(withOptions options: Int) -> Data {
         let string = xmlString(withOptions: options)
         // TODO: support encodings other than UTF-8
 
@@ -321,21 +321,21 @@ public class XMLDocument : XMLNode {
         @method objectByApplyingXSLT:arguments:error:
         @abstract Applies XSLT with arguments (NSString key/value pairs) to this document, returning a new document.
     */
-    public func object(byApplyingXSLT xslt: NSData, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    open func object(byApplyingXSLT xslt: NSData, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
 
     /*!
         @method objectByApplyingXSLTString:arguments:error:
         @abstract Applies XSLT as expressed by a string with arguments (NSString key/value pairs) to this document, returning a new document.
     */
-    public func object(byApplyingXSLTString xslt: String, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    open func object(byApplyingXSLTString xslt: String, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
 
     /*!
         @method objectByApplyingXSLTAtURL:arguments:error:
         @abstract Applies the XSLT at a URL with arguments (NSString key/value pairs) to this document, returning a new document. Error may contain a connection error from the URL.
     */
-    public func objectByApplyingXSLT(at xsltURL: URL, arguments argument: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    open func objectByApplyingXSLT(at xsltURL: URL, arguments argument: [String : String]?) throws -> AnyObject { NSUnimplemented() }
 
-    public func validate() throws {
+    open func validate() throws {
         var unmanagedError: Unmanaged<CFError>? = nil
         let result = _CFXMLDocValidate(_xmlDoc, &unmanagedError)
         if !result,
