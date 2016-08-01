@@ -128,7 +128,9 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ran
 #else
         let opts = options
 #endif
-        matcher.block(nil, NSMatchingFlags(rawValue: opts), UnsafeMutablePointer<ObjCBool>(stop))
+        stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
+            matcher.block(nil, NSMatchingFlags(rawValue: opts), $0)
+        })
     } else {
         let result = ranges!.withMemoryRebound(to: NSRange.self, capacity: count) { rangePtr in
             TextCheckingResult.regularExpressionCheckingResultWithRanges(rangePtr, count: count, regularExpression: matcher.regex)
@@ -138,7 +140,9 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ran
 #else
         let flags = NSMatchingFlags(rawValue: options)
 #endif
-        matcher.block(result, flags, UnsafeMutablePointer<ObjCBool>(stop))
+        stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
+            matcher.block(result, flags, $0)
+        })
     }
 }
 
