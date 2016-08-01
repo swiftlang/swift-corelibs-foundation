@@ -8,13 +8,13 @@
 //
 
 
-public class NSNull : NSObject, NSCopying, NSSecureCoding {
+open class NSNull : NSObject, NSCopying, NSSecureCoding {
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
@@ -26,7 +26,7 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
         // Nothing to do here
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         // Nothing to do here
     }
     
@@ -34,7 +34,7 @@ public class NSNull : NSObject, NSCopying, NSSecureCoding {
         return true
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: AnyObject?) -> Bool {
         return object is NSNull
     }
 }

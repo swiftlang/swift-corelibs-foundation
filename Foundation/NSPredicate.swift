@@ -10,7 +10,7 @@
 
 // Predicates wrap some combination of expressions and operators and when evaluated return a BOOL.
 
-public class Predicate : NSObject, NSSecureCoding, NSCopying {
+open class Predicate : NSObject, NSSecureCoding, NSCopying {
 
     private enum PredicateKind {
         case boolean(Bool)
@@ -29,15 +29,15 @@ public class Predicate : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
@@ -56,15 +56,15 @@ public class Predicate : NSObject, NSSecureCoding, NSCopying {
         super.init()
     }
     
-    public var predicateFormat: String  { NSUnimplemented() } // returns the format string of the predicate
+    open var predicateFormat: String  { NSUnimplemented() } // returns the format string of the predicate
     
-    public func withSubstitutionVariables(_ variables: [String : AnyObject]) -> Self { NSUnimplemented() } // substitute constant values for variables
+    open func withSubstitutionVariables(_ variables: [String : AnyObject]) -> Self { NSUnimplemented() } // substitute constant values for variables
     
-    public func evaluate(with object: AnyObject?) -> Bool {
+    open func evaluate(with object: AnyObject?) -> Bool {
         return evaluate(with: object, substitutionVariables: nil)
     } // evaluate a predicate against a single object
     
-    public func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
+    open func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
         if bindings != nil {
             NSUnimplemented()
         }
@@ -77,7 +77,7 @@ public class Predicate : NSObject, NSSecureCoding, NSCopying {
         }
     } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered
     
-    public func allowEvaluation() { NSUnimplemented() } // Force a predicate which was securely decoded to allow evaluation
+    open func allowEvaluation() { NSUnimplemented() } // Force a predicate which was securely decoded to allow evaluation
 }
 
 extension NSArray {

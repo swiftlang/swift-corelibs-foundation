@@ -31,16 +31,16 @@ public struct NSAffineTransformStruct {
     }
 }
 
-public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
+open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         return NSAffineTransform(transform: self)
     }
     // Necessary because `NSObject.copy()` returns `self`.
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     public required init?(coder aDecoder: NSCoder) {
@@ -65,37 +65,37 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     // Translating
-    public func translateXBy(_ deltaX: CGFloat, yBy deltaY: CGFloat) {
+    open func translateXBy(_ deltaX: CGFloat, yBy deltaY: CGFloat) {
         let translation = NSAffineTransformStruct.translation(tX: deltaX, tY: deltaY)
         
         transformStruct = translation.concat(transformStruct)
     }
     
     // Rotating
-    public func rotateByDegrees(_ angle: CGFloat) {
+    open func rotateByDegrees(_ angle: CGFloat) {
         let rotation = NSAffineTransformStruct.rotation(degrees: angle)
         
         transformStruct = rotation.concat(transformStruct)
     }
-    public func rotateByRadians(_ angle: CGFloat) {
+    open func rotateByRadians(_ angle: CGFloat) {
         let rotation = NSAffineTransformStruct.rotation(radians: angle)
         
         transformStruct = rotation.concat(transformStruct)
     }
     
     // Scaling
-    public func scaleBy(_ scale: CGFloat) {
+    open func scaleBy(_ scale: CGFloat) {
         scaleXBy(scale, yBy: scale)
     }
 
-    public func scaleXBy(_ scaleX: CGFloat, yBy scaleY: CGFloat) {
+    open func scaleXBy(_ scaleX: CGFloat, yBy scaleY: CGFloat) {
         let scale = NSAffineTransformStruct.scale(sX: scaleX, sY: scaleY)
         
         transformStruct = scale.concat(transformStruct)
     }
     
     // Inverting
-    public func invert() {
+    open func invert() {
         if let inverse = transformStruct.inverse {
             transformStruct = inverse
         }
@@ -105,24 +105,24 @@ public class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     // Transforming with transform
-    public func appendTransform(_ transform: NSAffineTransform) {
+    open func appendTransform(_ transform: NSAffineTransform) {
         transformStruct = transformStruct.concat(transform.transformStruct)
     }
-    public func prependTransform(_ transform: NSAffineTransform) {
+    open func prependTransform(_ transform: NSAffineTransform) {
         transformStruct = transform.transformStruct.concat(transformStruct)
     }
     
     // Transforming points and sizes
-    public func transformPoint(_ aPoint: NSPoint) -> NSPoint {
+    open func transformPoint(_ aPoint: NSPoint) -> NSPoint {
         return transformStruct.applied(toPoint: aPoint)
     }
 
-    public func transformSize(_ aSize: NSSize) -> NSSize {
+    open func transformSize(_ aSize: NSSize) -> NSSize {
         return transformStruct.applied(toSize: aSize)
     }
 
     // Transform Struct
-    public var transformStruct: NSAffineTransformStruct
+    open var transformStruct: NSAffineTransformStruct
 }
 
 /**

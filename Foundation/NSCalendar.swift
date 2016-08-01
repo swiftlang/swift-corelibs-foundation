@@ -97,7 +97,7 @@ extension Calendar {
     }
 }
     
-public class Calendar: NSObject, NSCopying, NSSecureCoding {
+open class Calendar: NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
     private var _identifier: UnsafeMutableRawPointer? = nil
@@ -145,7 +145,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(self.calendarIdentifier.bridge(), forKey: "NS.identifier")
             aCoder.encode(self.timeZone, forKey: "NS.timezone")
@@ -162,11 +162,11 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return true
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         let copy = Calendar(calendarIdentifier: calendarIdentifier)!
         copy.locale = locale
         copy.timeZone = timeZone
@@ -177,11 +177,11 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     }
     
 
-    public class var current: Calendar {
+    open class var current: Calendar {
         return CFCalendarCopyCurrent()._nsObject
     }
     
-    public class func autoupdatingCurrentCalendar() -> Calendar { NSUnimplemented() }  // tracks changes to user's preferred calendar identifier
+    open class func autoupdatingCurrentCalendar() -> Calendar { NSUnimplemented() }  // tracks changes to user's preferred calendar identifier
     
     public /*not inherited*/ init?(identifier calendarIdentifierConstant: String) {
         super.init()
@@ -197,11 +197,11 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public override var hash: Int {
+    open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: AnyObject?) -> Bool {
         if let cal = object as? Calendar {
             return CFEqual(_cfObject, cal._cfObject)
         } else {
@@ -209,7 +209,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public override var description: String {
+    open override var description: String {
         return CFCopyDescription(_cfObject)._swiftObject
     }
 
@@ -217,13 +217,13 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         _CFDeinit(self)
     }
     
-    public var calendarIdentifier: String  {
+    open var calendarIdentifier: String  {
         get {
             return CFCalendarGetIdentifier(_cfObject)._swiftObject
         }
     }
     
-    /*@NSCopying*/ public var locale: Locale? {
+    /*@NSCopying*/ open var locale: Locale? {
         get {
             return CFCalendarCopyLocale(_cfObject)._nsObject
         }
@@ -231,7 +231,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
             CFCalendarSetLocale(_cfObject, newValue?._cfObject)
         }
     }
-    /*@NSCopying*/ public var timeZone: TimeZone {
+    /*@NSCopying*/ open var timeZone: TimeZone {
         get {
             return CFCalendarCopyTimeZone(_cfObject)._nsObject
         }
@@ -240,7 +240,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var firstWeekday: Int {
+    open var firstWeekday: Int {
         get {
             return CFCalendarGetFirstWeekday(_cfObject)
         }
@@ -249,7 +249,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var minimumDaysInFirstWeek: Int {
+    open var minimumDaysInFirstWeek: Int {
         get {
             return CFCalendarGetMinimumDaysInFirstWeek(_cfObject)
         }
@@ -275,89 +275,89 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return (CFDateFormatterCopyProperty(dateFormatter, key) as! CFString)._swiftObject
     }
     
-    public var eraSymbols: [String] {
+    open var eraSymbols: [String] {
         return _symbols(kCFDateFormatterEraSymbolsKey)
     }
     
-    public var longEraSymbols: [String] {
+    open var longEraSymbols: [String] {
         return _symbols(kCFDateFormatterLongEraSymbolsKey)
     }
     
-    public var monthSymbols: [String] {
+    open var monthSymbols: [String] {
         return _symbols(kCFDateFormatterMonthSymbolsKey)
     }
     
-    public var shortMonthSymbols: [String] {
+    open var shortMonthSymbols: [String] {
         return _symbols(kCFDateFormatterShortMonthSymbolsKey)
     }
     
-    public var veryShortMonthSymbols: [String] {
+    open var veryShortMonthSymbols: [String] {
         return _symbols(kCFDateFormatterVeryShortMonthSymbolsKey)
     }
     
-    public var standaloneMonthSymbols: [String] {
+    open var standaloneMonthSymbols: [String] {
         return _symbols(kCFDateFormatterStandaloneMonthSymbolsKey)
     }
     
-    public var shortStandaloneMonthSymbols: [String] {
+    open var shortStandaloneMonthSymbols: [String] {
         return _symbols(kCFDateFormatterShortStandaloneMonthSymbolsKey)
     }
     
-    public var veryShortStandaloneMonthSymbols: [String] {
+    open var veryShortStandaloneMonthSymbols: [String] {
         return _symbols(kCFDateFormatterVeryShortStandaloneMonthSymbolsKey)
     }
     
-    public var weekdaySymbols: [String] {
+    open var weekdaySymbols: [String] {
         return _symbols(kCFDateFormatterWeekdaySymbolsKey)
     }
     
-    public var shortWeekdaySymbols: [String] {
+    open var shortWeekdaySymbols: [String] {
         return _symbols(kCFDateFormatterShortWeekdaySymbolsKey)
     }
     
-    public var veryShortWeekdaySymbols: [String] {
+    open var veryShortWeekdaySymbols: [String] {
         return _symbols(kCFDateFormatterVeryShortWeekdaySymbolsKey)
     }
     
-    public var standaloneWeekdaySymbols: [String] {
+    open var standaloneWeekdaySymbols: [String] {
         return _symbols(kCFDateFormatterStandaloneWeekdaySymbolsKey)
     }
     
-    public var shortStandaloneWeekdaySymbols: [String] {
+    open var shortStandaloneWeekdaySymbols: [String] {
         return _symbols(kCFDateFormatterShortStandaloneWeekdaySymbolsKey)
     }
 
-    public var veryShortStandaloneWeekdaySymbols: [String] {
+    open var veryShortStandaloneWeekdaySymbols: [String] {
         return _symbols(kCFDateFormatterVeryShortStandaloneWeekdaySymbolsKey)
     }
     
-    public var quarterSymbols: [String] {
+    open var quarterSymbols: [String] {
         return _symbols(kCFDateFormatterQuarterSymbolsKey)
     }
     
-    public var shortQuarterSymbols: [String] {
+    open var shortQuarterSymbols: [String] {
         return _symbols(kCFDateFormatterShortQuarterSymbolsKey)
     }
     
-    public var standaloneQuarterSymbols: [String] {
+    open var standaloneQuarterSymbols: [String] {
         return _symbols(kCFDateFormatterStandaloneQuarterSymbolsKey)
     }
     
-    public var shortStandaloneQuarterSymbols: [String] {
+    open var shortStandaloneQuarterSymbols: [String] {
         return _symbols(kCFDateFormatterShortStandaloneQuarterSymbolsKey)
     }
     
-    public var AMSymbol: String {
+    open var AMSymbol: String {
         return _symbol(kCFDateFormatterAMSymbolKey)
     }
     
-    public var PMSymbol: String {
+    open var PMSymbol: String {
         return _symbol(kCFDateFormatterPMSymbolKey)
     }
     
     // Calendrical calculations
     
-    public func minimumRange(of unit: Unit) -> NSRange {
+    open func minimumRange(of unit: Unit) -> NSRange {
         let r = CFCalendarGetMinimumRangeOfUnit(self._cfObject, unit._cfValue)
         if (r.location == kCFNotFound) {
             return NSMakeRange(NSNotFound, NSNotFound)
@@ -365,7 +365,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return NSMakeRange(r.location, r.length)
     }
     
-    public func maximumRange(of unit: Unit) -> NSRange {
+    open func maximumRange(of unit: Unit) -> NSRange {
         let r = CFCalendarGetMaximumRangeOfUnit(_cfObject, unit._cfValue)
         if r.location == kCFNotFound {
             return NSMakeRange(NSNotFound, NSNotFound)
@@ -373,7 +373,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return NSMakeRange(r.location, r.length)
     }
     
-    public func range(of smaller: Unit, in larger: Unit, for date: Date) -> NSRange {
+    open func range(of smaller: Unit, in larger: Unit, for date: Date) -> NSRange {
         let r = CFCalendarGetRangeOfUnit(_cfObject, smaller._cfValue, larger._cfValue, date.timeIntervalSinceReferenceDate)
         if r.location == kCFNotFound {
             return NSMakeRange(NSNotFound, NSNotFound)
@@ -381,17 +381,17 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return NSMakeRange(r.location, r.length)
     }
     
-    public func ordinality(of smaller: Unit, in larger: Unit, for date: Date) -> Int {
+    open func ordinality(of smaller: Unit, in larger: Unit, for date: Date) -> Int {
         return Int(CFCalendarGetOrdinalityOfUnit(_cfObject, smaller._cfValue, larger._cfValue, date.timeIntervalSinceReferenceDate))
     }
     
     /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer.
     /// The current exposed API in Foundation on Darwin platforms is:
-    /// public func rangeOfUnit(_ unit: Unit, startDate datep: AutoreleasingUnsafeMutablePointer<NSDate?>, interval tip: UnsafeMutablePointer<NSTimeInterval>, forDate date: NSDate) -> Bool
+    /// open func rangeOfUnit(_ unit: Unit, startDate datep: AutoreleasingUnsafeMutablePointer<NSDate?>, interval tip: UnsafeMutablePointer<NSTimeInterval>, forDate date: NSDate) -> Bool
     /// which is not implementable on Linux due to the lack of being able to properly implement AutoreleasingUnsafeMutablePointer.
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func range(of unit: Unit, forDate date: Date) -> DateInterval? {
+    open func range(of unit: Unit, forDate date: Date) -> DateInterval? {
         var start: CFAbsoluteTime = 0.0
         var ti: CFTimeInterval = 0.0
         let res: Bool = withUnsafeMutablePointer(to: &start) { startp in
@@ -446,7 +446,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return (vector, compDesc)
     }
     
-    public func date(from comps: DateComponents) -> Date? {
+    open func date(from comps: DateComponents) -> Date? {
         var (vector, compDesc) = _convert(comps)
         
         self.timeZone = comps.timeZone ?? timeZone
@@ -529,7 +529,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// The Darwin version is not nullable but this one is since the conversion from the date and unit flags can potentially return nil
-    public func components(_ unitFlags: Unit, from date: Date) -> DateComponents? {
+    open func components(_ unitFlags: Unit, from date: Date) -> DateComponents? {
         let compDesc = _setup(unitFlags)
         
         // _CFCalendarDecomposeAbsoluteTimeV requires a bit of a funky vector layout; which does not express well in swift; this is the closest I can come up with to the required format
@@ -552,7 +552,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return nil
     }
     
-    public func date(byAdding comps: DateComponents, to date: Date, options opts: Options = []) -> Date? {
+    open func date(byAdding comps: DateComponents, to date: Date, options opts: Options = []) -> Date? {
         var (vector, compDesc) = _convert(comps)
         var at: CFAbsoluteTime = 0.0
         
@@ -569,7 +569,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
         return nil
     }
     
-    public func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> DateComponents {
+    open func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> DateComponents {
         let compDesc = _setup(unitFlags)
         var ints = [Int32](repeating: 0, count: 20)
         let res = ints.withUnsafeMutableBufferPointer { (intArrayBuffer: inout UnsafeMutableBufferPointer<Int32>) -> Bool in
@@ -592,7 +592,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     This API is a convenience for getting era, year, month, and day of a given date.
     Pass NULL for a NSInteger pointer parameter if you don't care about that value.
     */
-    public func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, year yearValuePointer: UnsafeMutablePointer<Int>?, month monthValuePointer: UnsafeMutablePointer<Int>?, day dayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
+    open func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, year yearValuePointer: UnsafeMutablePointer<Int>?, month monthValuePointer: UnsafeMutablePointer<Int>?, day dayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
         if let comps = components([.era, .year, .month, .day], from: date) {
             if let value = comps.era {
                 eraValuePointer?.pointee = value
@@ -621,7 +621,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     This API is a convenience for getting era, year for week-of-year calculations, week of year, and weekday of a given date.
     Pass NULL for a NSInteger pointer parameter if you don't care about that value.
     */
-    public func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, yearForWeekOfYear yearValuePointer: UnsafeMutablePointer<Int>?, weekOfYear weekValuePointer: UnsafeMutablePointer<Int>?, weekday weekdayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
+    open func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, yearForWeekOfYear yearValuePointer: UnsafeMutablePointer<Int>?, weekOfYear weekValuePointer: UnsafeMutablePointer<Int>?, weekday weekdayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
         if let comps = components([.era, .yearForWeekOfYear, .weekOfYear, .weekday], from: date) {
             if let value = comps.era {
                 eraValuePointer?.pointee = value
@@ -650,7 +650,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     This API is a convenience for getting hour, minute, second, and nanoseconds of a given date.
     Pass NULL for a NSInteger pointer parameter if you don't care about that value.
     */
-    public func getHour(_ hourValuePointer: UnsafeMutablePointer<Int>?, minute minuteValuePointer: UnsafeMutablePointer<Int>?, second secondValuePointer: UnsafeMutablePointer<Int>?, nanosecond nanosecondValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
+    open func getHour(_ hourValuePointer: UnsafeMutablePointer<Int>?, minute minuteValuePointer: UnsafeMutablePointer<Int>?, second secondValuePointer: UnsafeMutablePointer<Int>?, nanosecond nanosecondValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
         if let comps = components([.hour, .minute, .second, .nanosecond], from: date) {
             if let value = comps.hour {
                 hourValuePointer?.pointee = value
@@ -679,7 +679,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     /*
     Get just one component's value.
     */
-    public func component(_ unit: Unit, from date: Date) -> Int {
+    open func component(_ unit: Unit, from date: Date) -> Int {
         let comps = components(unit, from: date)
         if let res = comps?.value(forComponent: unit) {
             return res
@@ -692,7 +692,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     Create a date with given components.
     Current era is assumed.
     */
-    public func date(era eraValue: Int, year yearValue: Int, month monthValue: Int, day dayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> Date? {
+    open func date(era eraValue: Int, year yearValue: Int, month monthValue: Int, day dayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> Date? {
         var comps = DateComponents()
         comps.era = eraValue
         comps.year = yearValue
@@ -709,7 +709,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     Create a date with given components.
     Current era is assumed.
     */
-    public func date(era eraValue: Int, yearForWeekOfYear yearValue: Int, weekOfYear weekValue: Int, weekday weekdayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> Date? {
+    open func date(era eraValue: Int, yearForWeekOfYear yearValue: Int, weekOfYear weekValue: Int, weekday weekdayValue: Int, hour hourValue: Int, minute minuteValue: Int, second secondValue: Int, nanosecond nanosecondValue: Int) -> Date? {
         var comps = DateComponents()
         comps.era = eraValue
         comps.yearForWeekOfYear = yearValue
@@ -727,7 +727,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     Pass in [NSDate date], for example, if you want the start of "today".
     If there were two midnights, it returns the first.  If there was none, it returns the first moment that did exist.
     */
-    public func startOfDay(for date: Date) -> Date {
+    open func startOfDay(for date: Date) -> Date {
         return range(of: .day, forDate: date)!.start
     }
     
@@ -738,7 +738,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// The Darwin version is not nullable but this one is since the conversion from the date and unit flags can potentially return nil
-    public func components(in timezone: TimeZone, fromDate date: Date) -> DateComponents? {
+    open func components(in timezone: TimeZone, fromDate date: Date) -> DateComponents? {
         let oldTz = self.timeZone
         self.timeZone = timezone
         let comps = components([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .calendar, .timeZone], from: date)
@@ -749,7 +749,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     /*
     This API compares the given dates down to the given unit, reporting them equal if they are the same in the given unit and all larger units, otherwise either less than or greater than.
     */
-    public func compare(_ date1: Date, to date2: Date, toUnitGranularity unit: Unit) -> ComparisonResult {
+    open func compare(_ date1: Date, to date2: Date, toUnitGranularity unit: Unit) -> ComparisonResult {
         switch (unit) {
             case Unit.calendar:
                 return .orderedSame
@@ -862,28 +862,28 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     /*
     This API compares the given dates down to the given unit, reporting them equal if they are the same in the given unit and all larger units.
     */
-    public func isDate(_ date1: Date, equalToDate date2: Date, toUnitGranularity unit: Unit) -> Bool {
+    open func isDate(_ date1: Date, equalToDate date2: Date, toUnitGranularity unit: Unit) -> Bool {
         return compare(date1, to: date2, toUnitGranularity: unit) == .orderedSame
     }
     
     /*
     This API compares the Days of the given dates, reporting them equal if they are in the same Day.
     */
-    public func isDate(_ date1: Date, inSameDayAsDate date2: Date) -> Bool {
+    open func isDate(_ date1: Date, inSameDayAsDate date2: Date) -> Bool {
         return compare(date1, to: date2, toUnitGranularity: .day) == .orderedSame
     }
     
     /*
     This API reports if the date is within "today".
     */
-    public func isDateInToday(_ date: Date) -> Bool {
+    open func isDateInToday(_ date: Date) -> Bool {
         return compare(date, to: Date(), toUnitGranularity: .day) == .orderedSame
     }
     
     /*
     This API reports if the date is within "yesterday".
     */
-    public func isDateInYesterday(_ date: Date) -> Bool {
+    open func isDateInYesterday(_ date: Date) -> Bool {
         if let interval = range(of: .day, forDate: Date()) {
             let inYesterday = interval.start - 60.0
             return compare(date, to: inYesterday, toUnitGranularity: .day) == .orderedSame
@@ -895,7 +895,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     /*
     This API reports if the date is within "tomorrow".
     */
-    public func isDateInTomorrow(_ date: Date) -> Bool {
+    open func isDateInTomorrow(_ date: Date) -> Bool {
         if let interval = range(of: .day, forDate: Date()) {
             let inTomorrow = interval.end + 60.0
             return compare(date, to: inTomorrow, toUnitGranularity: .day) == .orderedSame
@@ -907,20 +907,20 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     /*
     This API reports if the date is within a weekend period, as defined by the calendar and calendar's locale.
     */
-    public func isDateInWeekend(_ date: Date) -> Bool {
+    open func isDateInWeekend(_ date: Date) -> Bool {
         return _CFCalendarIsWeekend(_cfObject, date.timeIntervalSinceReferenceDate)
     }
     
     /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer.
     /// The current exposed API in Foundation on Darwin platforms is:
-    /// public func rangeOfWeekendStartDate(_ datep: AutoreleasingUnsafeMutablePointer<NSDate?>, interval tip: UnsafeMutablePointer<NSTimeInterval>, containingDate date: NSDate) -> Bool
+    /// open func rangeOfWeekendStartDate(_ datep: AutoreleasingUnsafeMutablePointer<NSDate?>, interval tip: UnsafeMutablePointer<NSTimeInterval>, containingDate date: NSDate) -> Bool
     /// which is not implementable on Linux due to the lack of being able to properly implement AutoreleasingUnsafeMutablePointer.
     /// Find the range of the weekend around the given date, returned via two by-reference parameters.
     /// Returns nil if the given date is not in a weekend.
     /// - Note: A given entire Day within a calendar is not necessarily all in a weekend or not; weekends can start in the middle of a Day in some calendars and locales.
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func rangeOfWeekendContaining(_ date: Date) -> DateInterval? {
+    open func rangeOfWeekendContaining(_ date: Date) -> DateInterval? {
         if let next = nextWeekendAfter(date, options: []) {
             if let prev = nextWeekendAfter(next.start, options: .searchBackwards) {
                 if prev.start.timeIntervalSinceReferenceDate <= date.timeIntervalSinceReferenceDate && date.timeIntervalSinceReferenceDate <= prev.end.timeIntervalSinceReferenceDate {
@@ -933,14 +933,14 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     
     /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer.
     /// The current exposed API in Foundation on Darwin platforms is:
-    /// public func nextWeekendStartDate(_ datep: AutoreleasingUnsafeMutablePointer<NSDate?>, interval tip: UnsafeMutablePointer<NSTimeInterval>, options: Options, afterDate date: NSDate) -> Bool
+    /// open func nextWeekendStartDate(_ datep: AutoreleasingUnsafeMutablePointer<NSDate?>, interval tip: UnsafeMutablePointer<NSTimeInterval>, options: Options, afterDate date: NSDate) -> Bool
     /// Returns the range of the next weekend, via two by-reference parameters, which starts strictly after the given date.
     /// The .SearchBackwards option can be used to find the previous weekend range strictly before the date.
     /// Returns nil if there are no such things as weekend in the calendar and its locale.
     /// - Note: A given entire Day within a calendar is not necessarily all in a weekend or not; weekends can start in the middle of a Day in some calendars and locales.
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func nextWeekendAfter(_ date: Date, options: Options) -> DateInterval? {
+    open func nextWeekendAfter(_ date: Date, options: Options) -> DateInterval? {
         var range = _CFCalendarWeekendRange()
         let res = withUnsafeMutablePointer(to: &range) { rangep in
             return _CFCalendarGetNextWeekend(_cfObject, rangep)
@@ -983,7 +983,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     For each date components object, if its time zone property is set, that time zone is used for it; if the calendar property is set, that is used rather than the receiving calendar, and if both the calendar and time zone are set, the time zone property value overrides the time zone of the calendar property.
     No options are currently defined; pass 0.
     */
-    public func components(_ unitFlags: Unit, from startingDateComp: DateComponents, to resultDateComp: DateComponents, options: Options = []) -> DateComponents? {
+    open func components(_ unitFlags: Unit, from startingDateComp: DateComponents, to resultDateComp: DateComponents, options: Options = []) -> DateComponents? {
         var startDate: Date?
         var toDate: Date?
         if let startCalendar = startingDateComp.calendar {
@@ -1008,7 +1008,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     This API returns a new NSDate object representing the date calculated by adding an amount of a specific component to a given date.
     The NSCalendarWrapComponents option specifies if the component should be incremented and wrap around to zero/one on overflow, and should not cause higher units to be incremented.
     */
-    public func date(byAdding unit: Unit, value: Int, to date: Date, options: Options = []) -> Date? {
+    open func date(byAdding unit: Unit, value: Int, to date: Date, options: Options = []) -> Date? {
         var comps = DateComponents()
         comps.setValue(value, forComponent: unit)
         return self.date(byAdding: comps, to: date, options: options)
@@ -1043,7 +1043,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     The general semantics follow those of the -enumerateDatesStartingAfterDate:... method above.
     To compute a sequence of results, use the -enumerateDatesStartingAfterDate:... method above, rather than looping and calling this method with the previous loop iteration's result.
     */
-    public func nextDate(after date: Date, matchingComponents comps: DateComponents, options: Options = []) -> Date? {
+    open func nextDate(after date: Date, matchingComponents comps: DateComponents, options: Options = []) -> Date? {
         var result: Date?
         enumerateDates(startingAfter: date, matchingComponents: comps, options: options) { date, exactMatch, stop in
             result = date
@@ -1057,7 +1057,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     The general semantics follow those of the -enumerateDatesStartingAfterDate:... method above.
     To compute a sequence of results, use the -enumerateDatesStartingAfterDate:... method above, rather than looping and calling this method with the previous loop iteration's result.
     */
-    public func nextDate(after date: Date, matchingUnit unit: Unit, value: Int, options: Options = []) -> Date? {
+    open func nextDate(after date: Date, matchingUnit unit: Unit, value: Int, options: Options = []) -> Date? {
         var comps = DateComponents()
         comps.setValue(value, forComponent: unit)
         return nextDate(after:date, matchingComponents: comps, options: options)
@@ -1068,7 +1068,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     The general semantics follow those of the -enumerateDatesStartingAfterDate:... method above.
     To compute a sequence of results, use the -enumerateDatesStartingAfterDate:... method above, rather than looping and calling this method with the previous loop iteration's result.
     */
-    public func nextDate(after date: Date, matchingHour hourValue: Int, minute minuteValue: Int, second secondValue: Int, options: Options = []) -> Date? {
+    open func nextDate(after date: Date, matchingHour hourValue: Int, minute minuteValue: Int, second secondValue: Int, options: Options = []) -> Date? {
         var comps = DateComponents()
         comps.hour = hourValue
         comps.minute = minuteValue
@@ -1082,7 +1082,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     If no such time exists, the next available time is returned (which could, for example, be in a different day, week, month, ... than the nominal target date).  Setting a component to something which would be inconsistent forces other units to change; for example, setting the Weekday to Thursday probably shifts the Day and possibly Month and Year.
     The specific behaviors here are as yet unspecified; for example, if I change the weekday to Thursday, does that move forward to the next, backward to the previous, or to the nearest Thursday?  A likely rule is that the algorithm will try to produce a result which is in the next-larger unit to the one given (there's a table of this mapping at the top of this document).  So for the "set to Thursday" example, find the Thursday in the Week in which the given date resides (which could be a forwards or backwards move, and not necessarily the nearest Thursday).  For forwards or backwards behavior, one can use the -nextDateAfterDate:matchingUnit:value:options: method above.
     */
-    public func date(bySettingUnit unit: Unit, value v: Int, ofDate date: Date, options opts: Options = []) -> Date? {
+    open func date(bySettingUnit unit: Unit, value v: Int, ofDate date: Date, options opts: Options = []) -> Date? {
         let currentValue = component(unit, from: date)
         if currentValue == v {
             return date
@@ -1102,7 +1102,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     If no such time exists, the next available time is returned (which could, for example, be in a different day than the nominal target date).
     The intent is to return a date on the same day as the original date argument.  This may result in a date which is earlier than the given date, of course.
     */
-    public func date(bySettingHour h: Int, minute m: Int, second s: Int, ofDate date: Date, options opts: Options = []) -> Date? {
+    open func date(bySettingHour h: Int, minute m: Int, second s: Int, ofDate date: Date, options opts: Options = []) -> Date? {
         if let range = range(of: .day, forDate: date) {
             var comps = DateComponents()
             comps.hour = h
@@ -1128,7 +1128,7 @@ public class Calendar: NSObject, NSCopying, NSSecureCoding {
     This API returns YES if the date has all the matched components. Otherwise, it returns NO.
     It is useful to test the return value of the -nextDateAfterDate:matchingUnit:value:options:, to find out if the components were obeyed or if the method had to fudge the result value due to missing time.
     */
-    public func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
+    open func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
         let units: [Unit] = [.era, .year, .month, .day, .hour, .minute, .second, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .nanosecond]
         var unitFlags: Unit = []
         for unit in units {
@@ -1197,7 +1197,7 @@ public let NSCalendarDayChangedNotification: String = "" // NSUnimplemented
 
 public var NSDateComponentUndefined: Int = LONG_MAX
 
-public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
+open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     internal var _calendar: Calendar?
     internal var _timeZone: TimeZone?
     internal var _values = [Int](repeating: NSDateComponentUndefined, count: 19)
@@ -1205,7 +1205,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         super.init()
     }
     
-    public override var hash: Int {
+    open override var hash: Int {
         var calHash = 0
         if let cal = calendar {
             calHash = cal.hash
@@ -1244,7 +1244,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         return calHash + (32832013 * (y + yy) + 2678437 * m + 86413 * d + 3607 * h + 61 * mm + s) + (41 * weekOfYear + 11 * weekOfMonth + 7 * weekday + 3 * weekdayOrdinal + quarter) * (1 << 5)
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: AnyObject?) -> Bool {
         if let other = object as? NSDateComponents {
             if era != other.era {
                 return false
@@ -1328,7 +1328,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(self.era, forKey: "NS.era")
             aCoder.encode(self.year, forKey: "NS.year")
@@ -1356,15 +1356,15 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         return true
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ public var calendar: Calendar? {
+    /*@NSCopying*/ open var calendar: Calendar? {
         get {
             return _calendar
         }
@@ -1376,7 +1376,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             }
         }
     }
-    /*@NSCopying*/ public var timeZone: TimeZone? {
+    /*@NSCopying*/ open var timeZone: TimeZone? {
         get {
             return _timeZone
         }
@@ -1390,7 +1390,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     }
     // these all should probably be optionals
     
-    public var era: Int {
+    open var era: Int {
         get {
             return _values[0]
         }
@@ -1399,7 +1399,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var year: Int {
+    open var year: Int {
         get {
             return _values[1]
         }
@@ -1408,7 +1408,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var month: Int {
+    open var month: Int {
         get {
             return _values[2]
         }
@@ -1417,7 +1417,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var day: Int {
+    open var day: Int {
         get {
             return _values[3]
         }
@@ -1426,7 +1426,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var hour: Int {
+    open var hour: Int {
         get {
             return _values[4]
         }
@@ -1435,7 +1435,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var minute: Int {
+    open var minute: Int {
         get {
             return _values[5]
         }
@@ -1444,7 +1444,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var second: Int {
+    open var second: Int {
         get {
             return _values[6]
         }
@@ -1453,7 +1453,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var weekday: Int {
+    open var weekday: Int {
         get {
             return _values[8]
         }
@@ -1462,7 +1462,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var weekdayOrdinal: Int {
+    open var weekdayOrdinal: Int {
         get {
             return _values[9]
         }
@@ -1471,7 +1471,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var quarter: Int {
+    open var quarter: Int {
         get {
             return _values[10]
         }
@@ -1480,7 +1480,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var nanosecond: Int {
+    open var nanosecond: Int {
         get {
             return _values[11]
         }
@@ -1489,7 +1489,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var weekOfYear: Int {
+    open var weekOfYear: Int {
         get {
             return _values[12]
         }
@@ -1498,7 +1498,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var weekOfMonth: Int {
+    open var weekOfMonth: Int {
         get {
             return _values[13]
         }
@@ -1507,7 +1507,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var yearForWeekOfYear: Int {
+    open var yearForWeekOfYear: Int {
         get {
             return _values[14]
         }
@@ -1516,7 +1516,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public var isLeapMonth: Bool {
+    open var isLeapMonth: Bool {
         get {
             return _values[15] == 1
         }
@@ -1529,7 +1529,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         return _values[15] != NSDateComponentUndefined
     }
     
-    /*@NSCopying*/ public var date: Date? {
+    /*@NSCopying*/ open var date: Date? {
         if let tz = timeZone {
             calendar?.timeZone = tz
         }
@@ -1540,7 +1540,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     This API allows one to set a specific component of NSDateComponents, by enum constant value rather than property name.
     The calendar and timeZone and isLeapMonth properties cannot be set by this method.
     */
-    public func setValue(_ value: Int, forComponent unit: Calendar.Unit) {
+    open func setValue(_ value: Int, forComponent unit: Calendar.Unit) {
         switch unit {
             case Calendar.Unit.era:
                 era = value
@@ -1599,7 +1599,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     This API allows one to get the value of a specific component of NSDateComponents, by enum constant value rather than property name.
     The calendar and timeZone and isLeapMonth property values cannot be gotten by this method.
     */
-    public func value(forComponent unit: Calendar.Unit) -> Int {
+    open func value(forComponent unit: Calendar.Unit) -> Int {
         switch unit {
             case Calendar.Unit.era:
                 return era
@@ -1642,7 +1642,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     If the time zone property is set in the NSDateComponents object, it is used.
     The calendar property must be set, or NO is returned.
     */
-    public var isValidDate: Bool {
+    open var isValidDate: Bool {
         if let cal = calendar {
             return isValidDate(in: cal)
         }
@@ -1655,7 +1655,7 @@ public class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     Except for some trivial cases (e.g., 'seconds' should be 0 - 59 in any calendar), this method is not necessarily cheap.
     If the time zone property is set in the NSDateComponents object, it is used.
     */
-    public func isValidDate(in calendar: Calendar) -> Bool {
+    open func isValidDate(in calendar: Calendar) -> Bool {
         let cal = calendar.copy() as! Calendar
         if let tz = timeZone {
             cal.timeZone = tz

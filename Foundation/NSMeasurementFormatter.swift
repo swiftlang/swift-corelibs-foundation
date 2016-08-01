@@ -22,7 +22,7 @@ extension MeasurementFormatter {
     }
 }
 
-public class MeasurementFormatter : Formatter, NSSecureCoding {
+open class MeasurementFormatter : Formatter, NSSecureCoding {
     
     
     /*
@@ -41,39 +41,39 @@ public class MeasurementFormatter : Formatter, NSSecureCoding {
      Note that NSMeasurementFormatter will handle converting measurement objects to the preferred units in a particular locale.  For instance, if provided a measurement object in kilometers and the set locale is en_US, the formatter will implicitly convert the measurement object to miles and return the formatted string as the equivalent measurement in miles.
      
      */
-    public var unitOptions: MeasurementFormatter.UnitOptions = []
+    open var unitOptions: MeasurementFormatter.UnitOptions = []
     
     
     /*
      If not specified, unitStyle is set to NSFormattingUnitStyleMedium.
      */
-    public var unitStyle: Formatter.UnitStyle
+    open var unitStyle: Formatter.UnitStyle
     
     
     /*
      If not specified, locale is set to the user's current locale.
      */
-    /*@NSCopying*/ public var locale: Locale!
+    /*@NSCopying*/ open var locale: Locale!
     
     
     /*
      If not specified, the number formatter is set up with NSNumberFormatterDecimalStyle.
      */
-    public var numberFormatter: NumberFormatter!
+    open var numberFormatter: NumberFormatter!
     
     
-    public func string(from measurement: Measurement<Unit>) -> String { NSUnimplemented() }
+    open func string(from measurement: Measurement<Unit>) -> String { NSUnimplemented() }
     
     
     /*
      @param An NSUnit
      @return A formatted string representing the localized form of the unit without a value attached to it.  This method will return [unit symbol] if the provided unit cannot be localized.
      */
-    public func string(from unit: Unit) -> String { NSUnimplemented() }
+    open func string(from unit: Unit) -> String { NSUnimplemented() }
     
     public override init() { NSUnimplemented() }
     
     public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
-    public override func encode(with aCoder: NSCoder) { NSUnimplemented() }
+    open override func encode(with aCoder: NSCoder) { NSUnimplemented() }
     public static func supportsSecureCoding() -> Bool { return true }
 }

@@ -11,9 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 
-public class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
-    public private(set) var unit: Unit
-    public private(set) var doubleValue: Double
+open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
+    open private(set) var unit: Unit
+    open private(set) var doubleValue: Double
     
     @available(*, unavailable)
     public convenience override init() { fatalError("Measurements must be constructed with a value and unit") }
@@ -23,19 +23,19 @@ public class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         self.unit = unit
     }
     
-    public func canBeConverted(to unit: Unit) -> Bool { NSUnimplemented() }
+    open func canBeConverted(to unit: Unit) -> Bool { NSUnimplemented() }
     
-    public func converting(to unit: Unit) -> Measurement<Unit> { NSUnimplemented() }
+    open func converting(to unit: Unit) -> Measurement<Unit> { NSUnimplemented() }
     
-    public func adding(_ measurement: Measurement<Unit>) -> Measurement<Unit> { NSUnimplemented() }
+    open func adding(_ measurement: Measurement<Unit>) -> Measurement<Unit> { NSUnimplemented() }
     
-    public func subtracting(_ measurement: Measurement<Unit>) -> Measurement<Unit> { NSUnimplemented() }
+    open func subtracting(_ measurement: Measurement<Unit>) -> Measurement<Unit> { NSUnimplemented() }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     
-    public class func supportsSecureCoding() -> Bool { return true }
+    open class func supportsSecureCoding() -> Bool { return true }
     
-    public func encode(with aCoder: NSCoder) { NSUnimplemented() }
+    open func encode(with aCoder: NSCoder) { NSUnimplemented() }
     
     public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
 }

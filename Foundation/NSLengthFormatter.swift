@@ -22,32 +22,32 @@ extension LengthFormatter {
     }
 }
 
-public class LengthFormatter : Formatter {
+open class LengthFormatter : Formatter {
     
     public required init?(coder: NSCoder) {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ public var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
-    public var unitStyle: UnitStyle // default is NSFormattingUnitStyleMedium
+    /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
+    open var unitStyle: UnitStyle // default is NSFormattingUnitStyleMedium
     
-    public var isForPersonHeightUse: Bool // default is NO; if it is set to YES, the number argument for -stringFromMeters: and -unitStringFromMeters: is considered as a person's height
+    open var isForPersonHeightUse: Bool // default is NO; if it is set to YES, the number argument for -stringFromMeters: and -unitStringFromMeters: is considered as a person's height
     
     // Format a combination of a number and an unit to a localized string.
-    public func string(fromValue value: Double, unit: LengthFormatter.Unit) -> String { NSUnimplemented() }
+    open func string(fromValue value: Double, unit: LengthFormatter.Unit) -> String { NSUnimplemented() }
     
     // Format a number in meters to a localized string with the locale-appropriate unit and an appropriate scale (e.g. 4.3m = 14.1ft in the US locale).
-    public func string(fromMeters numberInMeters: Double) -> String { NSUnimplemented() }
+    open func string(fromMeters numberInMeters: Double) -> String { NSUnimplemented() }
     
     // Return a localized string of the given unit, and if the unit is singular or plural is based on the given number.
-    public func unitString(fromValue value: Double, unit: Unit) -> String { NSUnimplemented() }
+    open func unitString(fromValue value: Double, unit: Unit) -> String { NSUnimplemented() }
     
     // Return the locale-appropriate unit, the same unit used by -stringFromMeters:.
-    public func unitString(fromMeters numberInMeters: Double, usedUnit unitp: UnsafeMutablePointer<Unit>?) -> String { NSUnimplemented() }
+    open func unitString(fromMeters numberInMeters: Double, usedUnit unitp: UnsafeMutablePointer<Unit>?) -> String { NSUnimplemented() }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public override func objectValue(_ string: String) throws -> AnyObject? { return nil }
+    open override func objectValue(_ string: String) throws -> AnyObject? { return nil }
 }
 
 

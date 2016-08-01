@@ -47,15 +47,15 @@ extension ComparisonPredicate {
 }
 // Comparison predicates are predicates which do some form of comparison between the results of two expressions and return a BOOL. They take an operator, a left expression, and a right expression, and return the result of invoking the operator with the results of evaluating the expressions.
 
-public class ComparisonPredicate : Predicate {
+open class ComparisonPredicate : Predicate {
     
     public init(leftExpression lhs: NSExpression, rightExpression rhs: NSExpression, modifier: Modifier, type: Operator, options: Options) { NSUnimplemented() }
     public required init?(coder: NSCoder) { NSUnimplemented() }
     
-    public var predicateOperatorType: Operator { NSUnimplemented() }
-    public var comparisonPredicateModifier: Modifier { NSUnimplemented() }
-    public var leftExpression: NSExpression { NSUnimplemented() }
-    public var rightExpression: NSExpression { NSUnimplemented() }
-    public var options: Options { NSUnimplemented() }
+    open var predicateOperatorType: Operator { NSUnimplemented() }
+    open var comparisonPredicateModifier: Modifier { NSUnimplemented() }
+    open var leftExpression: NSExpression { NSUnimplemented() }
+    open var rightExpression: NSExpression { NSUnimplemented() }
+    open var options: Options { NSUnimplemented() }
 }
 

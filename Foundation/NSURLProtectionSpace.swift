@@ -104,15 +104,15 @@ public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMe
     @class NSURLProtectionSpace
     @discussion This class represents a protection space requiring authentication.
 */
-public class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
+open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
     public static func supportsSecureCoding() -> Bool { return true }
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     public required init?(coder aDecoder: NSCoder) {
@@ -160,14 +160,14 @@ public class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
         authentication, and may be nil otherwise.
         @result The realm string
     */
-    public var realm: String? { NSUnimplemented() }
+    open var realm: String? { NSUnimplemented() }
     
     /*!
         @method receivesCredentialSecurely
         @abstract Determine if the password for this protection space can be sent securely
         @result YES if a secure authentication method or protocol will be used, NO otherwise
     */
-    public var receivesCredentialSecurely: Bool { NSUnimplemented() }
+    open var receivesCredentialSecurely: Bool { NSUnimplemented() }
     
     /*!
         @method isProxy
@@ -180,36 +180,36 @@ public class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
         @abstract Get the proxy host if this is a proxy authentication, or the host from the URL.
         @result The host for this protection space.
     */
-    public var host: String { NSUnimplemented() }
+    open var host: String { NSUnimplemented() }
     
     /*!
         @method port
         @abstract Get the proxy port if this is a proxy authentication, or the port from the URL.
         @result The port for this protection space, or 0 if not set.
     */
-    public var port: Int { NSUnimplemented() }
+    open var port: Int { NSUnimplemented() }
     
     /*!
         @method proxyType
         @abstract Get the type of this protection space, if a proxy
         @result The type string, or nil if not a proxy.
      */
-    public var proxyType: String? { NSUnimplemented() }
+    open var proxyType: String? { NSUnimplemented() }
     
     /*!
         @method protocol
         @abstract Get the protocol of this protection space, if not a proxy
         @result The type string, or nil if a proxy.
     */
-    public var `protocol`: String? { NSUnimplemented() }
+    open var `protocol`: String? { NSUnimplemented() }
     
     /*!
         @method authenticationMethod
         @abstract Get the authentication method to be used for this protection space
         @result The authentication method
     */
-    public var authenticationMethod: String { NSUnimplemented() }
-    public override func isProxy() -> Bool { NSUnimplemented() }
+    open var authenticationMethod: String { NSUnimplemented() }
+    open override func isProxy() -> Bool { NSUnimplemented() }
 }
 
 extension URLProtectionSpace {

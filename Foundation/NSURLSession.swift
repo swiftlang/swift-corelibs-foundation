@@ -78,13 +78,13 @@
 
 public let NSURLSessionTransferSizeUnknown: Int64 = -1
 
-public class URLSession: NSObject {
+open class URLSession: NSObject {
     
     /*
      * The shared session uses the currently set global NSURLCache,
      * NSHTTPCookieStorage and NSURLCredentialStorage objects.
      */
-    public class func sharedSession() -> URLSession { NSUnimplemented() }
+    open class func sharedSession() -> URLSession { NSUnimplemented() }
     
     /*
      * Customization of NSURLSession occurs during creation of a new session.
@@ -96,15 +96,15 @@ public class URLSession: NSObject {
     public /*not inherited*/ init(configuration: URLSessionConfiguration) { NSUnimplemented() }
     public /*not inherited*/ init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue queue: OperationQueue?) { NSUnimplemented() }
     
-    public var delegateQueue: OperationQueue { NSUnimplemented() }
-    public var delegate: URLSessionDelegate? { NSUnimplemented() }
-    /*@NSCopying*/ public var configuration: URLSessionConfiguration { NSUnimplemented() }
+    open var delegateQueue: OperationQueue { NSUnimplemented() }
+    open var delegate: URLSessionDelegate? { NSUnimplemented() }
+    /*@NSCopying*/ open var configuration: URLSessionConfiguration { NSUnimplemented() }
     
     /*
      * The sessionDescription property is available for the developer to
      * provide a descriptive label for the session.
      */
-    public var sessionDescription: String?
+    open var sessionDescription: String?
     
     /* -finishTasksAndInvalidate returns immediately and existing tasks will be allowed
      * to run to completion.  New tasks may not be created.  The session
@@ -118,14 +118,14 @@ public class URLSession: NSObject {
      * session with the same identifier until URLSession:didBecomeInvalidWithError: has
      * been issued.
      */
-    public func finishTasksAndInvalidate() { NSUnimplemented() }
+    open func finishTasksAndInvalidate() { NSUnimplemented() }
     
     /* -invalidateAndCancel acts as -finishTasksAndInvalidate, but issues
      * -cancel to all outstanding tasks for this session.  Note task 
      * cancellation is subject to the state of the task, and some tasks may
      * have already have completed at the time they are sent -cancel. 
      */
-    public func invalidateAndCancel() { NSUnimplemented() }
+    open func invalidateAndCancel() { NSUnimplemented() }
     
     public func resetWithCompletionHandler(_ completionHandler: () -> Void)  { NSUnimplemented() }/* empty all cookies, cache and credential stores, removes disk files, issues -flushWithCompletionHandler:. Invokes completionHandler() on the delegate queue if not nil. */
     public func flushWithCompletionHandler(_ completionHandler: () -> Void)  { NSUnimplemented() }/* flush storage to disk and clear transient network caches.  Invokes completionHandler() on the delegate queue if not nil. */
@@ -140,32 +140,32 @@ public class URLSession: NSObject {
      */
     
     /* Creates a data task with the given request.  The request may have a body stream. */
-    public func dataTaskWithRequest(_ request: URLRequest) -> URLSessionDataTask { NSUnimplemented() }
+    open func dataTaskWithRequest(_ request: URLRequest) -> URLSessionDataTask { NSUnimplemented() }
     
     /* Creates a data task to retrieve the contents of the given URL. */
-    public func dataTaskWithURL(_ url: URL) -> URLSessionDataTask { NSUnimplemented() }
+    open func dataTaskWithURL(_ url: URL) -> URLSessionDataTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The body of the request will be created from the file referenced by fileURL */
-    public func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask { NSUnimplemented() }
+    open func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
-    public func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: Data) -> URLSessionUploadTask { NSUnimplemented() }
+    open func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData: Data) -> URLSessionUploadTask { NSUnimplemented() }
     
     /* Creates an upload task with the given request.  The previously set body stream of the request (if any) is ignored and the URLSession:task:needNewBodyStream: delegate will be called when the body payload is required. */
-    public func uploadTaskWithStreamedRequest(_ request: URLRequest) -> URLSessionUploadTask { NSUnimplemented() }
+    open func uploadTaskWithStreamedRequest(_ request: URLRequest) -> URLSessionUploadTask { NSUnimplemented() }
     
     /* Creates a download task with the given request. */
-    public func downloadTaskWithRequest(_ request: URLRequest) -> URLSessionDownloadTask { NSUnimplemented() }
+    open func downloadTaskWithRequest(_ request: URLRequest) -> URLSessionDownloadTask { NSUnimplemented() }
     
     /* Creates a download task to download the contents of the given URL. */
-    public func downloadTaskWithURL(_ url: URL) -> URLSessionDownloadTask { NSUnimplemented() }
+    open func downloadTaskWithURL(_ url: URL) -> URLSessionDownloadTask { NSUnimplemented() }
     
     /* Creates a download task with the resume data.  If the download cannot be successfully resumed, URLSession:task:didCompleteWithError: will be called. */
-    public func downloadTaskWithResumeData(_ resumeData: Data) -> URLSessionDownloadTask { NSUnimplemented() }
+    open func downloadTaskWithResumeData(_ resumeData: Data) -> URLSessionDownloadTask { NSUnimplemented() }
     
     /* Creates a bidirectional stream task to a given host and port.
      */
-    public func streamTaskWithHostName(_ hostname: String, port: Int) -> URLSessionStreamTask { NSUnimplemented() }
+    open func streamTaskWithHostName(_ hostname: String, port: Int) -> URLSessionStreamTask { NSUnimplemented() }
 }
 
 /*
@@ -221,24 +221,24 @@ extension URLSessionTask {
  * of processing a given request.
  */
 
-public class URLSessionTask: NSObject, NSCopying {
+open class URLSessionTask: NSObject, NSCopying {
     
     public override init() {
         NSUnimplemented()
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
-    public var taskIdentifier: Int { NSUnimplemented() } /* an identifier for this task, assigned by and unique to the owning session */
-    /*@NSCopying*/ public var originalRequest: URLRequest? { NSUnimplemented() } /* may be nil if this is a stream task */
-    /*@NSCopying*/ public var currentRequest: URLRequest? { NSUnimplemented() } /* may differ from originalRequest due to http server redirection */
-    /*@NSCopying*/ public var response: URLResponse? { NSUnimplemented() } /* may be nil if no response has been received */
+    open var taskIdentifier: Int { NSUnimplemented() } /* an identifier for this task, assigned by and unique to the owning session */
+    /*@NSCopying*/ open var originalRequest: URLRequest? { NSUnimplemented() } /* may be nil if this is a stream task */
+    /*@NSCopying*/ open var currentRequest: URLRequest? { NSUnimplemented() } /* may differ from originalRequest due to http server redirection */
+    /*@NSCopying*/ open var response: URLResponse? { NSUnimplemented() } /* may be nil if no response has been received */
     
     /* Byte count properties may be zero if no body is expected, 
      * or NSURLSessionTransferSizeUnknown if it is not possible 
@@ -246,22 +246,22 @@ public class URLSessionTask: NSObject, NSCopying {
      */
     
     /* number of body bytes already received */
-    public var countOfBytesReceived: Int64 { NSUnimplemented() }
+    open var countOfBytesReceived: Int64 { NSUnimplemented() }
     
     /* number of body bytes already sent */
-    public var countOfBytesSent: Int64 { NSUnimplemented() }
+    open var countOfBytesSent: Int64 { NSUnimplemented() }
     
     /* number of body bytes we expect to send, derived from the Content-Length of the HTTP request */
-    public var countOfBytesExpectedToSend: Int64 { NSUnimplemented() }
+    open var countOfBytesExpectedToSend: Int64 { NSUnimplemented() }
     
     /* number of byte bytes we expect to receive, usually derived from the Content-Length header of an HTTP response. */
-    public var countOfBytesExpectedToReceive: Int64 { NSUnimplemented() }
+    open var countOfBytesExpectedToReceive: Int64 { NSUnimplemented() }
     
     /*
      * The taskDescription property is available for the developer to
      * provide a descriptive label for the task.
      */
-    public var taskDescription: String?
+    open var taskDescription: String?
     
     /* -cancel returns immediately, but marks a task as being canceled.
      * The task will signal -URLSession:task:didCompleteWithError: with an
@@ -269,18 +269,18 @@ public class URLSessionTask: NSObject, NSCopying {
      * cases, the task may signal other work before it acknowledges the 
      * cancelation.  -cancel may be sent to a task that has been suspended.
      */
-    public func cancel() { NSUnimplemented() }
+    open func cancel() { NSUnimplemented() }
     
     /*
      * The current state of the task within the session.
      */
-    public var state: State { NSUnimplemented() }
+    open var state: State { NSUnimplemented() }
     
     /*
      * The error, if any, delivered via -URLSession:task:didCompleteWithError:
      * This property will be nil in the event that no error occured.
      */
-    /*@NSCopying*/ public var error: NSError? { NSUnimplemented() }
+    /*@NSCopying*/ open var error: NSError? { NSUnimplemented() }
     
     /*
      * Suspending a task will prevent the NSURLSession from continuing to
@@ -291,8 +291,8 @@ public class URLSessionTask: NSObject, NSCopying {
      * will be disabled while a task is suspended. -suspend and -resume are
      * nestable. 
      */
-    public func suspend() { NSUnimplemented() }
-    public func resume() { NSUnimplemented() }
+    open func suspend() { NSUnimplemented() }
+    open func resume() { NSUnimplemented() }
     
     /*
      * Sets a scaling factor for the priority of the task. The scaling factor is a
@@ -309,7 +309,7 @@ public class URLSessionTask: NSObject, NSCopying {
      * priority levels are provided: NSURLSessionTaskPriorityLow and
      * NSURLSessionTaskPriorityHigh, but use is not restricted to these.
      */
-    public var priority: Float
+    open var priority: Float
 }
 
 public let NSURLSessionTaskPriorityDefault: Float = 0.0 // NSUnimplemented
@@ -321,7 +321,7 @@ public let NSURLSessionTaskPriorityHigh: Float = 0.0 // NSUnimplemented
  * functionality over an NSURLSessionTask and its presence is merely
  * to provide lexical differentiation from download and upload tasks.
  */
-public class URLSessionDataTask: URLSessionTask {
+open class URLSessionDataTask: URLSessionTask {
 }
 
 /*
@@ -330,14 +330,14 @@ public class URLSessionDataTask: URLSessionTask {
  * that may be sent referencing an NSURLSessionDataTask equally apply
  * to NSURLSessionUploadTasks.
  */
-public class URLSessionUploadTask: URLSessionDataTask {
+open class URLSessionUploadTask: URLSessionDataTask {
 }
 
 /*
  * NSURLSessionDownloadTask is a task that represents a download to
  * local storage.
  */
-public class URLSessionDownloadTask: URLSessionTask {
+open class URLSessionDownloadTask: URLSessionTask {
     
     /* Cancel the download (and calls the superclass -cancel).  If
      * conditions will allow for resuming the download in the future, the
@@ -372,7 +372,7 @@ public class URLSessionDownloadTask: URLSessionTask {
  * disassociated from the underlying session.
  */
 
-public class URLSessionStreamTask: URLSessionTask {
+open class URLSessionStreamTask: URLSessionTask {
     
     /* Read minBytes, or at most maxBytes bytes and invoke the completion
      * handler on the sessions delegate queue with the data or an error.
@@ -394,7 +394,7 @@ public class URLSessionStreamTask: URLSessionTask {
      * message. When that message is received, the task object is
      * considered completed and will not receive any more delegate
      * messages. */
-    public func captureStreams() { NSUnimplemented() }
+    open func captureStreams() { NSUnimplemented() }
     
     /* Enqueue a request to close the write end of the underlying socket.
      * All outstanding IO will complete before the write side of the
@@ -402,26 +402,26 @@ public class URLSessionStreamTask: URLSessionTask {
      * back to the client, so best practice is to continue reading from
      * the server until you receive EOF.
      */
-    public func closeWrite() { NSUnimplemented() }
+    open func closeWrite() { NSUnimplemented() }
     
     /* Enqueue a request to close the read side of the underlying socket.
      * All outstanding IO will complete before the read side is closed.
      * You may continue writing to the server.
      */
-    public func closeRead() { NSUnimplemented() }
+    open func closeRead() { NSUnimplemented() }
     
     /*
      * Begin encrypted handshake.  The hanshake begins after all pending 
      * IO has completed.  TLS authentication callbacks are sent to the 
      * session's -URLSession:task:didReceiveChallenge:completionHandler:
      */
-    public func startSecureConnection() { NSUnimplemented() }
+    open func startSecureConnection() { NSUnimplemented() }
     
     /*
      * Cleanly close a secure connection after all pending secure IO has 
      * completed.
      */
-    public func stopSecureConnection() { NSUnimplemented() }
+    open func stopSecureConnection() { NSUnimplemented() }
 }
 
 /*
@@ -439,50 +439,50 @@ public class URLSessionStreamTask: URLSessionTask {
  * on behalf of a suspended application, within certain constraints.
  */
 
-public class URLSessionConfiguration: NSObject, NSCopying {
+open class URLSessionConfiguration: NSObject, NSCopying {
     
     public override init() {
         NSUnimplemented()
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         NSUnimplemented()
     }
     
-    public class func defaultSessionConfiguration() -> URLSessionConfiguration { NSUnimplemented() }
-    public class func ephemeralSessionConfiguration() -> URLSessionConfiguration { NSUnimplemented() }
-    public class func backgroundSessionConfigurationWithIdentifier(_ identifier: String) -> URLSessionConfiguration { NSUnimplemented() }
+    open class func defaultSessionConfiguration() -> URLSessionConfiguration { NSUnimplemented() }
+    open class func ephemeralSessionConfiguration() -> URLSessionConfiguration { NSUnimplemented() }
+    open class func backgroundSessionConfigurationWithIdentifier(_ identifier: String) -> URLSessionConfiguration { NSUnimplemented() }
     
     /* identifier for the background session configuration */
-    public var identifier: String? { NSUnimplemented() }
+    open var identifier: String? { NSUnimplemented() }
     
     /* default cache policy for requests */
-    public var requestCachePolicy: NSURLRequest.CachePolicy
+    open var requestCachePolicy: NSURLRequest.CachePolicy
     
     /* default timeout for requests.  This will cause a timeout if no data is transmitted for the given timeout value, and is reset whenever data is transmitted. */
-    public var timeoutIntervalForRequest: TimeInterval
+    open var timeoutIntervalForRequest: TimeInterval
     
     /* default timeout for requests.  This will cause a timeout if a resource is not able to be retrieved within a given timeout. */
-    public var timeoutIntervalForResource: TimeInterval
+    open var timeoutIntervalForResource: TimeInterval
     
     /* type of service for requests. */
-    public var networkServiceType: URLRequest.NetworkServiceType
+    open var networkServiceType: URLRequest.NetworkServiceType
     
     /* allow request to route over cellular. */
-    public var allowsCellularAccess: Bool
+    open var allowsCellularAccess: Bool
     
     /* allows background tasks to be scheduled at the discretion of the system for optimal performance. */
-    public var discretionary: Bool
+    open var discretionary: Bool
     
     /* The identifier of the shared data container into which files in background sessions should be downloaded.
      * App extensions wishing to use background sessions *must* set this property to a valid container identifier, or
      * all transfers in that session will fail with NSURLErrorBackgroundSessionRequiresSharedContainer.
      */
-    public var sharedContainerIdentifier: String?
+    open var sharedContainerIdentifier: String?
     
     /* 
      * Allows the app to be resumed or launched in the background when tasks in background sessions complete
@@ -491,46 +491,46 @@ public class URLSessionConfiguration: NSObject, NSCopying {
      */
     
     /* The proxy dictionary, as described by <CFNetwork/CFHTTPStream.h> */
-    public var connectionProxyDictionary: [NSObject : AnyObject]?
+    open var connectionProxyDictionary: [NSObject : AnyObject]?
     
     // TODO: We don't have the SSLProtocol type from Security
     /*
     /* The minimum allowable versions of the TLS protocol, from <Security/SecureTransport.h> */
-    public var TLSMinimumSupportedProtocol: SSLProtocol
+    open var TLSMinimumSupportedProtocol: SSLProtocol
     
     /* The maximum allowable versions of the TLS protocol, from <Security/SecureTransport.h> */
-    public var TLSMaximumSupportedProtocol: SSLProtocol
+    open var TLSMaximumSupportedProtocol: SSLProtocol
     */
     
     /* Allow the use of HTTP pipelining */
-    public var HTTPShouldUsePipelining: Bool
+    open var HTTPShouldUsePipelining: Bool
     
     /* Allow the session to set cookies on requests */
-    public var HTTPShouldSetCookies: Bool
+    open var HTTPShouldSetCookies: Bool
     
     /* Policy for accepting cookies.  This overrides the policy otherwise specified by the cookie storage. */
-    public var httpCookieAcceptPolicy: HTTPCookie.AcceptPolicy
+    open var httpCookieAcceptPolicy: HTTPCookie.AcceptPolicy
     
     /* Specifies additional headers which will be set on outgoing requests.
        Note that these headers are added to the request only if not already present. */
-    public var HTTPAdditionalHeaders: [NSObject : AnyObject]?
+    open var HTTPAdditionalHeaders: [NSObject : AnyObject]?
     
     /* The maximum number of simultanous persistent connections per host */
-    public var HTTPMaximumConnectionsPerHost: Int
+    open var HTTPMaximumConnectionsPerHost: Int
     
     /* The cookie storage object to use, or nil to indicate that no cookies should be handled */
-    public var httpCookieStorage: HTTPCookieStorage?
+    open var httpCookieStorage: HTTPCookieStorage?
     
     /* The credential storage object, or nil to indicate that no credential storage is to be used */
-    public var urlCredentialStorage: URLCredentialStorage?
+    open var urlCredentialStorage: URLCredentialStorage?
     
     /* The URL resource cache, or nil to indicate that no caching is to be performed */
-    public var urlCache: URLCache?
+    open var urlCache: URLCache?
     
     /* Enable extended background idle mode for any tcp sockets created.    Enabling this mode asks the system to keep the socket open
      *  and delay reclaiming it when the process moves to the background (see https://developer.apple.com/library/ios/technotes/tn2277/_index.html) 
      */
-    public var shouldUseExtendedBackgroundIdleMode: Bool
+    open var shouldUseExtendedBackgroundIdleMode: Bool
     
     /* An optional array of Class objects which subclass NSURLProtocol.
        The Class will be sent +canInitWithRequest: when determining if
@@ -541,7 +541,7 @@ public class URLSessionConfiguration: NSObject, NSCopying {
        Custom NSURLProtocol subclasses are not available to background
        sessions.
      */
-    public var protocolClasses: [AnyClass]?
+    open var protocolClasses: [AnyClass]?
 }
 
 /*

@@ -62,66 +62,66 @@ extension NSMutableCopying {
     }
 }
 
-public class NSObject : NSObjectProtocol, Equatable, Hashable {
+open class NSObject : NSObjectProtocol, Equatable, Hashable {
     // Important: add no ivars here. It will subvert the careful layout of subclasses that bridge into CF.    
     
     public init() {
         
     }
     
-    public func copy() -> AnyObject {
+    open func copy() -> AnyObject {
         if let copyable = self as? NSCopying {
             return copyable.copy(with: nil)
         }
         return self
     }
     
-    public func mutableCopy() -> AnyObject {
+    open func mutableCopy() -> AnyObject {
         if let copyable = self as? NSMutableCopying {
             return copyable.mutableCopy(with: nil)
         }
         return self
     }
     
-    public func isEqual(_ object: AnyObject?) -> Bool {
+    open func isEqual(_ object: AnyObject?) -> Bool {
         return object === self
     }
     
-    public var hash: Int {
+    open var hash: Int {
         return ObjectIdentifier(self).hashValue
     }
     
-    public func `self`() -> Self {
+    open func `self`() -> Self {
         return self
     }
     
-    public func isProxy() -> Bool {
+    open func isProxy() -> Bool {
         return false
     }
     
-    public var description: String {
+    open var description: String {
         return "<\(type(of: self)): \(Unmanaged.passUnretained(self).toOpaque())>"
     }
     
-    public var debugDescription: String {
+    open var debugDescription: String {
         return description
     }
     
-    public var _cfTypeID: CFTypeID {
+    open var _cfTypeID: CFTypeID {
         return 0
     }
     
     // TODO move these back into extensions once extension methods can be overriden
-    public var classForCoder: AnyClass {
+    open var classForCoder: AnyClass {
         return type(of: self)
     }
  
-    public func replacementObjectForCoder(_ aCoder: NSCoder) -> AnyObject? {
+    open func replacementObjectForCoder(_ aCoder: NSCoder) -> AnyObject? {
         return self
     }
 
     // TODO: Could perhaps be an extension of NSCoding instead. The reason it is an extension of NSObject is the lack of default implementations on protocols in Objective-C.
-    public var classForKeyedArchiver: AnyClass? {
+    open var classForKeyedArchiver: AnyClass? {
         return self.classForCoder
     }
     
@@ -133,7 +133,7 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
     // [self classForArchiver] by default, NOT -classForCoder as might be
     // expected.  This is a concession to source compatibility.
     
-    public func replacementObjectForKeyedArchiver(_ archiver: NSKeyedArchiver) -> AnyObject? {
+    open func replacementObjectForKeyedArchiver(_ archiver: NSKeyedArchiver) -> AnyObject? {
         return self.replacementObjectForCoder(archiver)
     }
     
@@ -147,15 +147,15 @@ public class NSObject : NSObjectProtocol, Equatable, Hashable {
     // -replacementObjectForCoder: as might be expected.  This is a concession
     // to source compatibility.
     
-    public class func classFallbacksForKeyedArchiver() -> [String] {
+    open class func classFallbacksForKeyedArchiver() -> [String] {
         return []
     }
 
-    public class func classForKeyedUnarchiver() -> AnyClass {
+    open class func classForKeyedUnarchiver() -> AnyClass {
         return self
     }
 
-    public var hashValue: Int {
+    open var hashValue: Int {
         return hash
     }
 }
