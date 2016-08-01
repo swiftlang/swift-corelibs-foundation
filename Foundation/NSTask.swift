@@ -152,7 +152,7 @@ open class Task: NSObject {
     open var arguments: [String]?
     open var environment: [String : String]? // if not set, use current
     
-    open var currentDirectoryPath: String = FileManager.defaultInstance.currentDirectoryPath
+    open var currentDirectoryPath: String = FileManager.default.currentDirectoryPath
     
     // standard I/O channels; could be either an NSFileHandle or an NSPipe
     open var standardInput: AnyObject? {
