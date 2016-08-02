@@ -841,8 +841,8 @@ extension TestNSJSONSerialization {
     private func createTestFile(_ path: String,_contents: Data) -> String? {
         let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {
-            try FileManager.default().createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
-            if FileManager.default().createFile(atPath: tempDir + "/" + path, contents: _contents,
+            try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
+            if FileManager.default.createFile(atPath: tempDir + "/" + path, contents: _contents,
                                                 attributes: nil) {
                 return tempDir + path
             } else {
@@ -855,7 +855,7 @@ extension TestNSJSONSerialization {
     
     private func removeTestFile(_ location: String) {
         do {
-            try FileManager.default().removeItem(atPath: location)
+            try FileManager.default.removeItem(atPath: location)
         } catch _ {
             
         }
