@@ -384,7 +384,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             let hash = item.hash
             buffer.advanced(by: idx).pointee = Int32(hash).littleEndian
         }
-        return Data(bytesNoCopy: unsafeBitCast(buffer, to: UnsafeMutablePointer<UInt8>.self), count: count * MemoryLayout<Int>.size, deallocator: .custom({ _, _ in
+        return Data(bytesNoCopy: unsafeBitCast(buffer, to: UnsafeMutablePointer<UInt8>.self), count: count * MemoryLayout<Int>.size, deallocator: .custom({ _ in
             buffer.deallocate(capacity: size)
             buffer.deinitialize(count: size)
         }))
