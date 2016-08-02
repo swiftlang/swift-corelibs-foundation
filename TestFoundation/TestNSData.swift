@@ -40,7 +40,8 @@ class TestNSData: XCTestCase {
             ("test_base64DecodeWithPadding1", test_base64DecodeWithPadding1),
             ("test_base64DecodeWithPadding2", test_base64DecodeWithPadding2),
             ("test_rangeOfData",test_rangeOfData),
-            ("test_initMutableDataWithLength", test_initMutableDataWithLength)
+            ("test_initMutableDataWithLength", test_initMutableDataWithLength),
+            ("test_initDataWithCount", test_initDataWithCount)
         ]
     }
     
@@ -345,4 +346,16 @@ class TestNSData: XCTestCase {
         XCTAssertEqual(mData!.length, 30)
     }
 
+    func test_initDataWithCount() {
+        let dataSize = 1024
+        guard let data = Data(count: dataSize) else {
+            XCTFail("Could not create zeroed data")
+            return
+        }
+        XCTAssertEqual(data.count, dataSize)
+        if let index = (data.index { $0 != 0 }) {
+            XCTFail("Byte at index: \(index) is not zero: \(data[index])")
+            return
+        }
+    }
 }
