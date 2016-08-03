@@ -15,7 +15,7 @@ internal func __NSFireTimer(_ timer: CFRunLoopTimer?, info: UnsafeMutableRawPoin
     t._fire(t)
 }
 
-public class Timer: NSObject {
+open class Timer: NSObject {
     typealias CFType = CFRunLoopTimer
     
     internal var _cfObject: CFType {
@@ -56,13 +56,13 @@ public class Timer: NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
-    public class func scheduledTimer(withTimeInterval interval: TimeInterval, repeats: Bool, block: @escaping (Timer) -> Void) -> Timer {
+    open class func scheduledTimer(withTimeInterval interval: TimeInterval, repeats: Bool, block: @escaping (Timer) -> Void) -> Timer {
         let timer = Timer(fire: Date(timeIntervalSinceNow: interval), interval: interval, repeats: repeats, block: block)
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._timer!, kCFRunLoopDefaultMode)
         return timer
     }
     
-    public func fire() {
+    open func fire() {
         if !valid {
             return
         }
@@ -72,7 +72,7 @@ public class Timer: NSObject {
         }
     }
 
-    public var fireDate: Date {
+    open var fireDate: Date {
         get {
             return Date(timeIntervalSinceReferenceDate: CFRunLoopTimerGetNextFireDate(_timer!))
         }
@@ -81,11 +81,11 @@ public class Timer: NSObject {
         }
     }
     
-    public var timeInterval: TimeInterval {
+    open var timeInterval: TimeInterval {
         return CFRunLoopTimerGetInterval(_timer!)
     }
 
-    public var tolerance: TimeInterval {
+    open var tolerance: TimeInterval {
         get {
             return CFRunLoopTimerGetTolerance(_timer!)
         }
@@ -94,11 +94,11 @@ public class Timer: NSObject {
         }
     }
     
-    public func invalidate() {
+    open func invalidate() {
         CFRunLoopTimerInvalidate(_timer!)
     }
 
-    public var valid: Bool {
+    open var valid: Bool {
         return CFRunLoopTimerIsValid(_timer!)
     }
 }

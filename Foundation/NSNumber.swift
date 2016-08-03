@@ -134,7 +134,7 @@ extension NSNumber : ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral, Exp
 
 }
 
-public class NSNumber : NSValue {
+open class NSNumber : NSValue {
     typealias CFType = CFNumber
     // This layout MUST be the same as CFNumber so that they are bridgeable
     private var _base = _CFInfo(typeID: CFNumberGetTypeID())
@@ -144,11 +144,11 @@ public class NSNumber : NSValue {
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    public override var hash: Int {
+    open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: AnyObject?) -> Bool {
         if let number = object as? NSNumber {
             return CFEqual(_cfObject, number._cfObject)
         } else {
@@ -308,7 +308,7 @@ public class NSNumber : NSValue {
         }
     }
 
-    public var int8Value: Int8 {
+    open var int8Value: Int8 {
         var val: Int8 = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<Int8>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberCharType, value)
@@ -316,7 +316,7 @@ public class NSNumber : NSValue {
         return val
     }
 
-    public var uint8Value: UInt8 {
+    open var uint8Value: UInt8 {
         var val: UInt8 = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<UInt8>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberCharType, value)
@@ -324,7 +324,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var int16Value: Int16 {
+    open var int16Value: Int16 {
         var val: Int16 = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<Int16>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberShortType, value)
@@ -332,7 +332,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var uint16Value: UInt16 {
+    open var uint16Value: UInt16 {
         var val: UInt16 = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<UInt16>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberShortType, value)
@@ -340,7 +340,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var int32Value: Int32 {
+    open var int32Value: Int32 {
         var val: Int32 = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<Int32>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberIntType, value)
@@ -348,7 +348,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var uint32Value: UInt32 {
+    open var uint32Value: UInt32 {
         var val: UInt32 = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<UInt32>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberIntType, value)
@@ -356,7 +356,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var int64Value: Int64 {
+    open var int64Value: Int64 {
         var val: Int64 = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<Int64>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberLongLongType, value)
@@ -364,7 +364,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var uint64Value: UInt64 {
+    open var uint64Value: UInt64 {
         var val: UInt64 = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<UInt64>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberLongLongType, value)
@@ -372,7 +372,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var floatValue: Float {
+    open var floatValue: Float {
         var val: Float = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<Float>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberFloatType, value)
@@ -380,7 +380,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var doubleValue: Double {
+    open var doubleValue: Double {
         var val: Double = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<Double>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberDoubleType, value)
@@ -388,11 +388,11 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var boolValue: Bool {
+    open var boolValue: Bool {
         return int64Value != 0
     }
     
-    public var intValue: Int {
+    open var intValue: Int {
         var val: Int = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<Int>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberLongType, value)
@@ -400,7 +400,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var uintValue: UInt {
+    open var uintValue: UInt {
         var val: UInt = 0
         withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<UInt>) -> Void in
             CFNumberGetValue(_cfObject, kCFNumberLongType, value)
@@ -408,7 +408,7 @@ public class NSNumber : NSValue {
         return val
     }
     
-    public var stringValue: String {
+    open var stringValue: String {
         return description(withLocale: nil)
     }
     
@@ -427,11 +427,11 @@ public class NSNumber : NSValue {
         self.init(value: value)
     }
 
-    public func compare(_ otherNumber: NSNumber) -> ComparisonResult {
+    open func compare(_ otherNumber: NSNumber) -> ComparisonResult {
         return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
     }
 
-    public func description(withLocale locale: AnyObject?) -> String {
+    open func description(withLocale locale: AnyObject?) -> String {
         let aLocale = locale
         let formatter: CFNumberFormatter
         if (aLocale == nil) {
@@ -444,11 +444,11 @@ public class NSNumber : NSValue {
         return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
     }
     
-    override public var _cfTypeID: CFTypeID {
+    override open var _cfTypeID: CFTypeID {
         return CFNumberGetTypeID()
     }
     
-    public override var description: String {
+    open override var description: String {
         return description(withLocale: nil)
     }
 }

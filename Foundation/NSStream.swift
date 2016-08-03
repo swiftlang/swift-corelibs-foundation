@@ -69,68 +69,68 @@ public func <(lhs: Stream.PropertyKey, rhs: Stream.PropertyKey) -> Bool {
 
 // NSStream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
 // Subclassers of NSInputStream and NSOutputStream must also implement these methods.
-public class Stream: NSObject {
+open class Stream: NSObject {
 
     public override init() {
 
     }
     
-    public func open() {
+    open func open() {
         NSRequiresConcreteImplementation()
     }
     
-    public func close() {
+    open func close() {
         NSRequiresConcreteImplementation()
     }
     
-    public weak var delegate: StreamDelegate?
+    open weak var delegate: StreamDelegate?
     // By default, a stream is its own delegate, and subclassers of NSInputStream and NSOutputStream must maintain this contract. [someStream setDelegate:nil] must restore this behavior. As usual, delegates are not retained.
     
-    public func propertyForKey(_ key: String) -> AnyObject? {
+    open func propertyForKey(_ key: String) -> AnyObject? {
         NSUnimplemented()
     }
     
-    public func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
+    open func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
         NSUnimplemented()
     }
 
 // Re-enable once run loop is compiled on all platforms
 
-    public func schedule(in aRunLoop: RunLoop, forMode mode: RunLoopMode) {
+    open func schedule(in aRunLoop: RunLoop, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
     
-    public func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
+    open func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
         NSUnimplemented()
     }
     
-    public var streamStatus: Status {
+    open var streamStatus: Status {
         NSRequiresConcreteImplementation()
     }
     
-    /*@NSCopying */public var streamError: NSError? {
+    /*@NSCopying */open var streamError: NSError? {
         NSUnimplemented()
     }
 }
 
 // NSInputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
-public class InputStream: Stream {
+open class InputStream: Stream {
 
     private var _stream: CFReadStream!
 
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
-    public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+    open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         return CFReadStreamRead(_stream, buffer, CFIndex(len._bridgeToObject()))
     }
     
     // returns in O(1) a pointer to the buffer in 'buffer' and by reference in 'len' how many bytes are available. This buffer is only valid until the next stream operation. Subclassers may return NO for this if it is not appropriate for the stream type. This may return NO if the buffer is not available.
-    public func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
+    open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
         NSUnimplemented()
     }
     
     // returns YES if the stream has bytes available or if it impossible to tell without actually doing the read.
-    public var hasBytesAvailable: Bool {
+    open var hasBytesAvailable: Bool {
         return CFReadStreamHasBytesAvailable(_stream)
     }
     
@@ -146,15 +146,15 @@ public class InputStream: Stream {
         self.init(url: URL(fileURLWithPath: path))
     }
 
-    public override func open() {
+    open override func open() {
         CFReadStreamOpen(_stream)
     }
     
-    public override func close() {
+    open override func close() {
         CFReadStreamClose(_stream)
     }
     
-    public override var streamStatus: Status {
+    open override var streamStatus: Status {
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
     }
 }
@@ -162,17 +162,17 @@ public class InputStream: Stream {
 // NSOutputStream is an abstract class representing the base functionality of a write stream.
 // Subclassers are required to implement these methods.
 // Currently this is left as named NSOutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
-public class NSOutputStream : Stream {
+open class NSOutputStream : Stream {
     
     private  var _stream: CFWriteStream!
     
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
-    public func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
+    open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         return  CFWriteStreamWrite(_stream, buffer, len)
     }
     
     // returns YES if the stream can be written to or if it is impossible to tell without actually doing the write.
-    public var hasSpaceAvailable: Bool {
+    open var hasSpaceAvailable: Bool {
         return CFWriteStreamCanAcceptBytes(_stream)
     }
     
@@ -193,27 +193,27 @@ public class NSOutputStream : Stream {
         self.init(url: URL(fileURLWithPath: path), append: shouldAppend)
     }
     
-    public override func open() {
+    open override func open() {
         CFWriteStreamOpen(_stream)
     }
     
-    public override func close() {
+    open override func close() {
         CFWriteStreamClose(_stream)
     }
     
-    public override var streamStatus: Status {
+    open override var streamStatus: Status {
         return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_stream)))!
     }
     
-    public class func outputStreamToMemory() -> Self {
+    open class func outputStreamToMemory() -> Self {
         return self.init(toMemory: ())
     }
     
-    public override func propertyForKey(_ key: String) -> AnyObject? {
+    open override func propertyForKey(_ key: String) -> AnyObject? {
         return CFWriteStreamCopyProperty(_stream, key._cfObject)
     }
     
-    public  override func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
+    open  override func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
         return CFWriteStreamSetProperty(_stream, key._cfObject, property)
     }
 }
@@ -221,13 +221,13 @@ public class NSOutputStream : Stream {
 // Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
 #if false
 extension Stream {
-    public class func getStreamsToHost(withName hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
+    open class func getStreamsToHost(withName hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
         NSUnimplemented()
     }
 }
 
 extension Stream {
-    public class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
+    open class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
         NSUnimplemented()
     }
 }

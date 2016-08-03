@@ -30,7 +30,7 @@ public let NSURLErrorKey: String = "NSURL"
 public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
 
 
-public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
+open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFError
     
     internal var _cfObject: CFType {
@@ -38,8 +38,8 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     // ErrorType forbids this being internal
-    public var _domain: String
-    public var _code: Int
+    open var _domain: String
+    open var _code: Int
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     private var _userInfo: [String : Any]?
@@ -59,9 +59,9 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
             if let info = aDecoder.decodeObjectOfClasses([NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
                 var filteredUserInfo = [String : Any]()
                 // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjects([]) { key, object, _ in
-                    if let key = key as? NSString {
-                        filteredUserInfo[key._swiftObject] = object
+                info.enumerateKeysAndObjects([]) {
+                    if let key = $0.0 as? NSString {
+                        filteredUserInfo[key._swiftObject] = $0.1
                     }
                 }
                 _userInfo = filteredUserInfo
@@ -74,9 +74,9 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
             if let info = aDecoder.decodeObject() as? NSDictionary {
                 var filteredUserInfo = [String : Any]()
                 // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjects([]) { key, object, _ in
-                    if let key = key as? NSString {
-                        filteredUserInfo[key._swiftObject] = object
+                info.enumerateKeysAndObjects([]) {
+                    if let key = $0.0 as? NSString {
+                        filteredUserInfo[key._swiftObject] = $0.1
                     }
                 }
                 _userInfo = filteredUserInfo
@@ -88,7 +88,7 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return true
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(_domain.bridge(), forKey: "NSDomain")
             aCoder.encode(Int32(_code), forKey: "NSCode")
@@ -101,25 +101,25 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
-    public var domain: String {
+    open var domain: String {
         return _domain
     }
     
-    public var code: Int {
+    open var code: Int {
         return _code
     }
 
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    public var userInfo: [String : Any] {
+    open var userInfo: [String : Any] {
         if let info = _userInfo {
             return info
         } else {
@@ -127,40 +127,40 @@ public class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public var localizedDescription: String {
+    open var localizedDescription: String {
         let desc = userInfo[NSLocalizedDescriptionKey] as? String
         
         return desc ?? "The operation could not be completed"
     }
     
-    public var localizedFailureReason: String? {
+    open var localizedFailureReason: String? {
         return userInfo[NSLocalizedFailureReasonErrorKey] as? String
     }
     
-    public var localizedRecoverySuggestion: String? {
+    open var localizedRecoverySuggestion: String? {
         return userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String
     }
 
-    public var localizedRecoveryOptions: [String]? {
+    open var localizedRecoveryOptions: [String]? {
         return userInfo[NSLocalizedRecoveryOptionsErrorKey] as? [String]
     }
     
-    public var recoveryAttempter: AnyObject? {
+    open var recoveryAttempter: AnyObject? {
         return userInfo[NSRecoveryAttempterErrorKey] as? AnyObject
     }
     
-    public var helpAnchor: String? {
+    open var helpAnchor: String? {
         return userInfo[NSHelpAnchorErrorKey] as? String
     }
     
     internal typealias NSErrorProvider = (_ error: NSError, _ key: String) -> AnyObject?
     internal static var userInfoProviders = [String: NSErrorProvider]()
     
-    public class func setUserInfoValueProviderForDomain(_ errorDomain: String, provider: ((NSError, String) -> AnyObject?)?) {
+    open class func setUserInfoValueProviderForDomain(_ errorDomain: String, provider: ((NSError, String) -> AnyObject?)?) {
         NSError.userInfoProviders[errorDomain] = provider
     }
 
-    public class func userInfoValueProviderForDomain(_ errorDomain: String) -> ((NSError, String) -> AnyObject?)? {
+    open class func userInfoValueProviderForDomain(_ errorDomain: String) -> ((NSError, String) -> AnyObject?)? {
         return NSError.userInfoProviders[errorDomain]
     }
 }

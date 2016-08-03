@@ -28,12 +28,12 @@ public func <(lhs: NSNotification.Name, rhs: NSNotification.Name) -> Bool {
     return lhs.rawValue < rhs.rawValue
 }
 
-public class NSNotification: NSObject, NSCopying, NSCoding {
-    private(set) public var name: Name
+open class NSNotification: NSObject, NSCopying, NSCoding {
+    private(set) open var name: Name
     
-    private(set) public var object: AnyObject?
+    private(set) open var object: AnyObject?
     
-    private(set) public var userInfo: [String : Any]?
+    private(set) open var userInfo: [String : Any]?
     
     public convenience override init() {
         /* do not invoke; not a valid initializer for this class */
@@ -64,7 +64,7 @@ public class NSNotification: NSObject, NSCopying, NSCoding {
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(self.name.rawValue.bridge(), forKey:"NS.name")
             aCoder.encode(self.object, forKey:"NS.object")
@@ -76,15 +76,15 @@ public class NSNotification: NSObject, NSCopying, NSCoding {
         }
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
-    public override var description: String {
+    open override var description: String {
         var str = "\(type(of: self)) \(Unmanaged.passUnretained(self).toOpaque()) {"
         
         str += "name = \(self.name.rawValue)"
@@ -156,7 +156,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
 
 private let _defaultCenter: NotificationCenter = NotificationCenter()
 
-public class NotificationCenter: NSObject {
+open class NotificationCenter: NSObject {
     
     private var _observers: [NSNotificationReceiver]
     private let _observersLock = Lock()
@@ -165,11 +165,11 @@ public class NotificationCenter: NSObject {
         _observers = [NSNotificationReceiver]()
     }
     
-    public class func defaultCenter() -> NotificationCenter {
+    open class func defaultCenter() -> NotificationCenter {
         return _defaultCenter
     }
     
-    public func postNotification(_ notification: Notification) {
+    open func postNotification(_ notification: Notification) {
 
         let sendTo = _observersLock.synchronized({
             return _observers.observersMatchingName(notification.name, sender: notification.object)
@@ -184,21 +184,21 @@ public class NotificationCenter: NSObject {
         }
     }
 
-    public func postNotificationName(_ aName: Notification.Name, object anObject: AnyObject?) {
+    open func postNotificationName(_ aName: Notification.Name, object anObject: AnyObject?) {
         let notification = Notification(name: aName, object: anObject)
         postNotification(notification)
     }
 
-    public func postNotificationName(_ aName: Notification.Name, object anObject: AnyObject?, userInfo aUserInfo: [String : Any]?) {
+    open func postNotificationName(_ aName: Notification.Name, object anObject: AnyObject?, userInfo aUserInfo: [String : Any]?) {
         let notification = Notification(name: aName, object: anObject, userInfo: aUserInfo)
         postNotification(notification)
     }
 
-    public func removeObserver(_ observer: AnyObject) {
+    open func removeObserver(_ observer: AnyObject) {
         removeObserver(observer, name: nil, object: nil)
     }
 
-    public func removeObserver(_ observer: AnyObject, name: Notification.Name?, object: AnyObject?) {
+    open func removeObserver(_ observer: AnyObject, name: Notification.Name?, object: AnyObject?) {
         guard let observer = observer as? NSObject else {
             return
         }
@@ -208,7 +208,7 @@ public class NotificationCenter: NSObject {
         })
     }
     
-    public func addObserverForName(_ name: Notification.Name?, object obj: AnyObject?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+    open func addObserverForName(_ name: Notification.Name?, object obj: AnyObject?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
         if queue != nil {
             NSUnimplemented()
         }

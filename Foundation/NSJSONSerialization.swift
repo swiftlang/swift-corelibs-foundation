@@ -42,7 +42,7 @@ extension JSONSerialization {
     - `NSNumber`s are not NaN or infinity
 */
 
-public class JSONSerialization : NSObject {
+open class JSONSerialization : NSObject {
     
     /* Determines whether the given object can be converted to JSON.
        Other rules may apply. Calling this method or attempting a conversion are the definitive ways
@@ -50,7 +50,7 @@ public class JSONSerialization : NSObject {
        - parameter obj: The object to test.
        - returns: `true` if `obj` can be converted to JSON, otherwise `false`.
      */
-    public class func isValidJSONObject(_ obj: Any) -> Bool {
+    open class func isValidJSONObject(_ obj: Any) -> Bool {
         // TODO: - revisit this once bridging story gets fully figured out
         func isValidJSONObjectInternal(_ obj: Any) -> Bool {
             // object is Swift.String or NSNull
@@ -98,7 +98,7 @@ public class JSONSerialization : NSObject {
     
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
-    public class func data(withJSONObject obj: AnyObject, options opt: WritingOptions = []) throws -> Data {
+    open class func data(withJSONObject obj: AnyObject, options opt: WritingOptions = []) throws -> Data {
         guard obj is NSArray || obj is NSDictionary else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                 "NSDebugDescription" : "Top-level object was not NSArray or NSDictionary"
@@ -126,7 +126,7 @@ public class JSONSerialization : NSObject {
        The data must be in one of the 5 supported encodings listed in the JSON specification: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE. The data may or may not have a BOM. The most efficient encoding to use for parsing is UTF-8, so if you have a choice in encoding the data passed to this method, use UTF-8.
      */
     /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
-    public class func jsonObject(with data: Data, options opt: ReadingOptions = []) throws -> Any {
+    open class func jsonObject(with data: Data, options opt: ReadingOptions = []) throws -> Any {
         return try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Any in
             let encoding: String.Encoding
             let buffer: UnsafeBufferPointer<UInt8>
@@ -159,7 +159,7 @@ public class JSONSerialization : NSObject {
     
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
      */
-    public class func writeJSONObject(_ obj: AnyObject, toStream stream: NSOutputStream, options opt: WritingOptions) throws -> Int {
+    open class func writeJSONObject(_ obj: AnyObject, toStream stream: NSOutputStream, options opt: WritingOptions) throws -> Int {
             let jsonData = try data(withJSONObject: obj, options: opt)
             let jsonNSData = jsonData.bridge()
             let bytePtr = jsonNSData.bytes.bindMemory(to: UInt8.self, capacity: jsonNSData.length)
@@ -168,7 +168,7 @@ public class JSONSerialization : NSObject {
     
     /* Create a JSON object from JSON data stream. The stream should be opened and configured. All other behavior of this method is the same as the JSONObjectWithData:options:error: method.
      */
-    public class func jsonObject(with stream: InputStream, options opt: ReadingOptions = []) throws -> AnyObject {
+    open class func jsonObject(with stream: InputStream, options opt: ReadingOptions = []) throws -> AnyObject {
         NSUnimplemented()
     }
 }
@@ -667,7 +667,7 @@ private struct JSONReader {
         
         if source.encoding == String.Encoding.utf8 {
             
-            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0, input + $1) }
+            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0.0, input + $0.1) }
         }
         else {
             var numberCharacters = [UInt8]()
@@ -681,7 +681,7 @@ private struct JSONReader {
             
             return numberCharacters.withUnsafeBufferPointer {
                 parseTypedNumber($0.baseAddress!, count: $0.count)
-            }.map { any, _ in return (any, index) }
+            }.map { return ($0.0, index) }
         }
     }
 

@@ -91,7 +91,7 @@ private func nstaskIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) -> 
     return true
 }
 
-public class Task: NSObject {
+open class Task: NSObject {
     private static func setup() {
         struct Once {
             static var done = false
@@ -148,26 +148,26 @@ public class Task: NSObject {
     }
     
     // these methods can only be set before a launch
-    public var launchPath: String?
-    public var arguments: [String]?
-    public var environment: [String : String]? // if not set, use current
+    open var launchPath: String?
+    open var arguments: [String]?
+    open var environment: [String : String]? // if not set, use current
     
-    public var currentDirectoryPath: String = FileManager.defaultInstance.currentDirectoryPath
+    open var currentDirectoryPath: String = FileManager.default.currentDirectoryPath
     
     // standard I/O channels; could be either an NSFileHandle or an NSPipe
-    public var standardInput: AnyObject? {
+    open var standardInput: AnyObject? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardInput must be either NSPipe or NSFileHandle")
         }
     }
-    public var standardOutput: AnyObject? {
+    open var standardOutput: AnyObject? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardOutput must be either NSPipe or NSFileHandle")
         }
     }
-    public var standardError: AnyObject? {
+    open var standardError: AnyObject? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardError must be either NSPipe or NSFileHandle")
@@ -182,7 +182,7 @@ public class Task: NSObject {
     private var processLaunchedCondition = Condition()
     
     // actions
-    public func launch() {
+    open func launch() {
         
         self.processLaunchedCondition.lock()
     
@@ -403,30 +403,30 @@ public class Task: NSObject {
         self.processLaunchedCondition.broadcast()
     }
     
-    public func interrupt() { NSUnimplemented() } // Not always possible. Sends SIGINT.
-    public func terminate()  { NSUnimplemented() }// Not always possible. Sends SIGTERM.
+    open func interrupt() { NSUnimplemented() } // Not always possible. Sends SIGINT.
+    open func terminate()  { NSUnimplemented() }// Not always possible. Sends SIGTERM.
     
-    public func suspend() -> Bool { NSUnimplemented() }
-    public func resume() -> Bool { NSUnimplemented() }
+    open func suspend() -> Bool { NSUnimplemented() }
+    open func resume() -> Bool { NSUnimplemented() }
     
     // status
-    public private(set) var processIdentifier: Int32 = -1
-    public private(set) var running: Bool = false
+    open private(set) var processIdentifier: Int32 = -1
+    open private(set) var running: Bool = false
     
-    public private(set) var terminationStatus: Int32 = 0
-    public var terminationReason: TerminationReason { NSUnimplemented() }
+    open private(set) var terminationStatus: Int32 = 0
+    open var terminationReason: TerminationReason { NSUnimplemented() }
     
     /*
     A block to be invoked when the process underlying the NSTask terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The NSTask is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the NSTask has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an NSTask, the NSTaskDidTerminateNotification notification is not posted for that task.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of NSTask which hasn't been updated to include an implementation of the storage and use of it.  
     */
-    public var terminationHandler: ((Task) -> Void)?
-    public var qualityOfService: NSQualityOfService = .default  // read-only after the task is launched
+    open var terminationHandler: ((Task) -> Void)?
+    open var qualityOfService: NSQualityOfService = .default  // read-only after the task is launched
 }
 
 extension Task {
     
     // convenience; create and launch
-    public class func launchedTaskWithLaunchPath(_ path: String, arguments: [String]) -> Task {
+    open class func launchedTaskWithLaunchPath(_ path: String, arguments: [String]) -> Task {
         let task = Task()
         task.launchPath = path
         task.arguments = arguments
@@ -436,7 +436,7 @@ extension Task {
     }
     
     // poll the runLoop in defaultMode until task completes
-    public func waitUntilExit() {
+    open func waitUntilExit() {
         
         repeat {
             

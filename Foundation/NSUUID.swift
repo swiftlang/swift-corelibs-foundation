@@ -16,7 +16,7 @@ import CoreFoundation
     import Glibc
 #endif
 
-public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
+open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     internal var buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
     
     public override init() {
@@ -35,21 +35,21 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         memcpy(unsafeBitCast(buffer, to: UnsafeMutableRawPointer.self), UnsafeRawPointer(bytes), 16)
     }
     
-    public func getUUIDBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
+    open func getUUIDBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
         _cf_uuid_copy(uuid, buffer)
     }
     
-    public var uuidString: String {
+    open var uuidString: String {
         let strPtr = UnsafeMutablePointer<Int8>.allocate(capacity: 37)
         _cf_uuid_unparse_upper(buffer, strPtr)
         return String(cString: strPtr)
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> AnyObject {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> AnyObject {
         return self
     }
     
@@ -78,11 +78,11 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         aCoder.encodeBytes(buffer, length: 16, forKey: "NS.uuidbytes")
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: AnyObject?) -> Bool {
         if object === self {
             return true
         } else if let other = object as? NSUUID {
@@ -92,11 +92,11 @@ public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public override var hash: Int {
+    open override var hash: Int {
         return Int(bitPattern: CFHashBytes(buffer, 16))
     }
     
-    public override var description: String {
+    open override var description: String {
         return uuidString
     }
 }

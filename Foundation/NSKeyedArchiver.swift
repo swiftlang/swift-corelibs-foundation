@@ -79,7 +79,7 @@ internal func ==(x : NSUniqueObject, y : NSUniqueObject) -> Bool {
     return x._equality(y._backing)
 }
 
-public class NSKeyedArchiver : NSCoder {
+open class NSKeyedArchiver : NSCoder {
     struct ArchiverFlags : OptionSet {
         let rawValue : UInt
         
@@ -112,8 +112,8 @@ public class NSKeyedArchiver : NSCoder {
     private var _classes : Dictionary<String, CFKeyedArchiverUID> = [:]
     private var _cache : Array<CFKeyedArchiverUID> = []
 
-    public weak var delegate: NSKeyedArchiverDelegate?
-    public var outputFormat = PropertyListSerialization.PropertyListFormat.binary {
+    open weak var delegate: NSKeyedArchiverDelegate?
+    open var outputFormat = PropertyListSerialization.PropertyListFormat.binary {
         willSet {
             if outputFormat != PropertyListSerialization.PropertyListFormat.xml &&
                 outputFormat != PropertyListSerialization.PropertyListFormat.binary {
@@ -122,7 +122,7 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
-    public class func archivedData(withRootObject rootObject: AnyObject) -> Data {
+    open class func archivedData(withRootObject rootObject: AnyObject) -> Data {
         let data = NSMutableData()
         let keyedArchiver = NSKeyedArchiver(forWritingWith: data)
         
@@ -132,7 +132,7 @@ public class NSKeyedArchiver : NSCoder {
         return data._swiftObject
     }
     
-    public class func archiveRootObject(_ rootObject: AnyObject, toFile path: String) -> Bool {
+    open class func archiveRootObject(_ rootObject: AnyObject, toFile path: String) -> Bool {
         var fd : Int32 = -1
         var auxFilePath : String
         var finishedEncoding : Bool = false
@@ -148,7 +148,7 @@ public class NSKeyedArchiver : NSCoder {
                 if finishedEncoding {
                     try _NSCleanupTemporaryFile(auxFilePath, path)
                 } else {
-                    try FileManager.default().removeItem(atPath: auxFilePath)
+                    try FileManager.default.removeItem(atPath: auxFilePath)
                 }
             } catch _ {
             }
@@ -203,7 +203,7 @@ public class NSKeyedArchiver : NSCoder {
         return __CFBinaryPlistWriteToStream(plist, self._stream) > 0
     }
 
-    public func finishEncoding() {
+    open func finishEncoding() {
         if _flags.contains(ArchiverFlags.finishedEncoding) {
             return
         }
@@ -237,23 +237,23 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
 
-    public class func setClassName(_ codedName: String?, for cls: AnyClass) {
+    open class func setClassName(_ codedName: String?, for cls: AnyClass) {
         let clsName = String(describing: type(of: cls))
         _classNameMapLock.synchronized {
             _classNameMap[clsName] = codedName
         }
     }
     
-    public func setClassName(_ codedName: String?, for cls: AnyClass) {
+    open func setClassName(_ codedName: String?, for cls: AnyClass) {
         let clsName = String(describing: type(of: cls))
         _classNameMap[clsName] = codedName
     }
     
-    public override var systemVersion: UInt32 {
+    open override var systemVersion: UInt32 {
         return NSKeyedArchiverSystemVersion
     }
 
-    public override var allowsKeyedCoding: Bool {
+    open override var allowsKeyedCoding: Bool {
         return true
     }
     
@@ -615,37 +615,37 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
-    public override func encode(_ object: AnyObject?) {
+    open override func encode(_ object: AnyObject?) {
         _encodeObject(object, forKey: nil)
     }
     
-    public override func encodeConditionalObject(_ object: AnyObject?) {
+    open override func encodeConditionalObject(_ object: AnyObject?) {
         _encodeObject(object, forKey: nil, conditional: true)
     }
 
-    public override func encode(_ objv: AnyObject?, forKey key: String) {
+    open override func encode(_ objv: AnyObject?, forKey key: String) {
         _encodeObject(objv, forKey: key, conditional: false)
     }
     
-    public override func encodeConditionalObject(_ objv: AnyObject?, forKey key: String) {
+    open override func encodeConditionalObject(_ objv: AnyObject?, forKey key: String) {
         _encodeObject(objv, forKey: key, conditional: true)
     }
     
-    public override func encodePropertyList(_ aPropertyList: AnyObject) {
+    open override func encodePropertyList(_ aPropertyList: AnyObject) {
         if !NSPropertyListClasses.contains(where: { $0 == type(of: aPropertyList) }) {
             fatalError("Cannot encode non-property list type \(type(of: aPropertyList)) as property list")
         }
         encode(aPropertyList)
     }
     
-    public func encodePropertyList(_ aPropertyList: AnyObject, forKey key: String) {
+    open func encodePropertyList(_ aPropertyList: AnyObject, forKey key: String) {
         if !NSPropertyListClasses.contains(where: { $0 == type(of: aPropertyList) }) {
             fatalError("Cannot encode non-property list type \(type(of: aPropertyList)) as property list")
         }
         encode(aPropertyList, forKey: key)
     }
 
-    public func _encodePropertyList(_ aPropertyList: AnyObject, forKey key: String? = nil) {
+    open func _encodePropertyList(_ aPropertyList: AnyObject, forKey key: String? = nil) {
         let _ = _validateStillEncoding()
         _setObjectInCurrentEncodingContext(aPropertyList, forKey: key)
     }
@@ -710,7 +710,7 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
     
-    public override func encodeValue(ofObjCType typep: UnsafePointer<Int8>, at addr: UnsafeRawPointer) {
+    open override func encodeValue(ofObjCType typep: UnsafePointer<Int8>, at addr: UnsafeRawPointer) {
         guard let type = _NSSimpleObjCType(UInt8(typep.pointee)) else {
             let spec = String(typep.pointee)
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unsupported type encoding spec '\(spec)'")
@@ -738,37 +738,37 @@ public class NSKeyedArchiver : NSCoder {
         }
     }
 
-    public override func encode(_ boolv: Bool, forKey key: String) {
+    open override func encode(_ boolv: Bool, forKey key: String) {
         _encodeValue(NSNumber(value: boolv), forKey: key)
     }
     
 
-    public override func encode(_ intv: Int32, forKey key: String) {
+    open override func encode(_ intv: Int32, forKey key: String) {
         _encodeValue(NSNumber(value: intv), forKey: key)
     }
     
-    public override func encode(_ intv: Int64, forKey key: String) {
+    open override func encode(_ intv: Int64, forKey key: String) {
         _encodeValue(NSNumber(value: intv), forKey: key)
     }
     
-    public override func encode(_ realv: Float, forKey key: String) {
+    open override func encode(_ realv: Float, forKey key: String) {
         _encodeValue(NSNumber(value: realv), forKey: key)
     }
     
-    public override func encode(_ realv: Double, forKey key: String) {
+    open override func encode(_ realv: Double, forKey key: String) {
         _encodeValue(NSNumber(value: realv), forKey: key)
     }
     
-    public override func encode(_ intv: Int, forKey key: String) {
+    open override func encode(_ intv: Int, forKey key: String) {
         _encodeValue(NSNumber(value: intv), forKey: key)
     }
 
-    public override func encodeDataObject(_ data: Data) {
+    open override func encodeDataObject(_ data: Data) {
         // this encodes as a reference to an NSData object rather than encoding inline
         encode(data._nsObject)
     }
     
-    public override func encodeBytes(_ bytesp: UnsafePointer<UInt8>?, length lenv: Int, forKey key: String) {
+    open override func encodeBytes(_ bytesp: UnsafePointer<UInt8>?, length lenv: Int, forKey key: String) {
         // this encodes the data inline
         let data = NSData(bytes: bytesp, length: lenv)
         _encodeValue(data, forKey: key)
@@ -800,7 +800,7 @@ public class NSKeyedArchiver : NSCoder {
         which does not NSSecureCoding is archived). Note that the getter is on the superclass,
         NSCoder. See NSCoder for more information about secure coding.
      */
-    public override var requiresSecureCoding: Bool {
+    open override var requiresSecureCoding: Bool {
         get {
             return _flags.contains(ArchiverFlags.requiresSecureCoding)
         }
@@ -815,7 +815,7 @@ public class NSKeyedArchiver : NSCoder {
     
     // During encoding, the coder first checks with the coder's
     // own table, then if there was no mapping there, the class's.
-    public class func classNameForClass(_ cls: AnyClass) -> String? {
+    open class func classNameForClass(_ cls: AnyClass) -> String? {
         let clsName = String(reflecting: cls)
         var mappedClass : String?
         
@@ -826,7 +826,7 @@ public class NSKeyedArchiver : NSCoder {
         return mappedClass
     }
     
-    public func classNameForClass(_ cls: AnyClass) -> String? {
+    open func classNameForClass(_ cls: AnyClass) -> String? {
         let clsName = String(reflecting: cls)
         return _classNameMap[clsName]
     }

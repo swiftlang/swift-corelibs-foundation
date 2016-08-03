@@ -12,14 +12,14 @@
     @class NSURLCredentialStorage
     @discussion NSURLCredentialStorage implements a singleton object (shared instance) which manages the shared credentials cache. Note: Whereas in Mac OS X any application can access any credential with a persistence of NSURLCredentialPersistencePermanent provided the user gives permission, in iPhone OS an application can access only its own credentials.
 */
-public class URLCredentialStorage: NSObject {
+open class URLCredentialStorage: NSObject {
     
     /*!
         @method sharedCredentialStorage
         @abstract Get the shared singleton authentication storage
         @result the shared authentication storage
     */
-    public class var shared: URLCredentialStorage { get { NSUnimplemented() } }
+    open class var shared: URLCredentialStorage { get { NSUnimplemented() } }
     
     /*!
         @method credentialsForProtectionSpace:
@@ -27,7 +27,7 @@ public class URLCredentialStorage: NSObject {
         @param protectionSpace An NSURLProtectionSpace indicating the protection space for which to get credentials
         @result A dictionary where the keys are usernames and the values are the corresponding NSURLCredentials.
     */
-    public func credentials(for space: URLProtectionSpace) -> [String : URLCredential]? { NSUnimplemented() }
+    open func credentials(for space: URLProtectionSpace) -> [String : URLCredential]? { NSUnimplemented() }
     
     /*!
         @method allCredentials
@@ -36,7 +36,7 @@ public class URLCredentialStorage: NSObject {
         and the values are dictionaries, in which the keys are usernames
         and the values are NSURLCredentials
     */
-    public var allCredentials: [URLProtectionSpace : [String : URLCredential]] { NSUnimplemented() }
+    open var allCredentials: [URLProtectionSpace : [String : URLCredential]] { NSUnimplemented() }
     
     /*!
         @method setCredential:forProtectionSpace:
@@ -47,7 +47,7 @@ public class URLCredentialStorage: NSObject {
         a distinct user. If a credential with the same user is already set for the protection space,
         the new one will replace it.
     */
-    public func set(_ credential: URLCredential, for space: URLProtectionSpace) { NSUnimplemented() }
+    open func set(_ credential: URLCredential, for space: URLProtectionSpace) { NSUnimplemented() }
     
     /*!
         @method removeCredential:forProtectionSpace:
@@ -58,7 +58,7 @@ public class URLCredentialStorage: NSObject {
         has a persistence policy of NSURLCredentialPersistenceSynchronizable will fail.  
         See removeCredential:forProtectionSpace:options.
     */
-    public func remove(_ credential: URLCredential, for space: URLProtectionSpace) { NSUnimplemented() }
+    open func remove(_ credential: URLCredential, for space: URLProtectionSpace) { NSUnimplemented() }
     
     /*!
      @method removeCredential:forProtectionSpace:options
@@ -71,14 +71,14 @@ public class URLCredentialStorage: NSObject {
      are removed, the credential will be removed on all devices that contain this credential.
      @discussion The credential is removed from both persistent and temporary storage.
      */
-    public func remove(_ credential: URLCredential, for space: URLProtectionSpace, options: [String : AnyObject]? = [:]) { NSUnimplemented() }
+    open func remove(_ credential: URLCredential, for space: URLProtectionSpace, options: [String : AnyObject]? = [:]) { NSUnimplemented() }
     
     /*!
         @method defaultCredentialForProtectionSpace:
         @abstract Get the default credential for the specified protection space.
         @param space The protection space for which to get the default credential.
     */
-    public func defaultCredential(for space: URLProtectionSpace) -> URLCredential? { NSUnimplemented() }
+    open func defaultCredential(for space: URLProtectionSpace) -> URLCredential? { NSUnimplemented() }
     
     /*!
         @method setDefaultCredential:forProtectionSpace:
@@ -87,7 +87,7 @@ public class URLCredentialStorage: NSObject {
         @param space The protection space for which the credential should be set as default.
         @discussion If the credential is not yet in the set for the protection space, it will be added to it.
     */
-    public func setDefaultCredential(_ credential: URLCredential, for space: URLProtectionSpace) { NSUnimplemented() }
+    open func setDefaultCredential(_ credential: URLCredential, for space: URLProtectionSpace) { NSUnimplemented() }
 }
 
 extension URLCredentialStorage {

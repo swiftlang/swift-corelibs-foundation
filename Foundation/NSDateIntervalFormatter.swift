@@ -22,7 +22,7 @@ extension DateIntervalFormatter {
 // NSDateIntervalFormatter is used to format the range between two NSDates in a locale-sensitive way.
 // NSDateIntervalFormatter returns nil and NO for all methods in NSFormatter.
 
-public class DateIntervalFormatter : Formatter {
+open class DateIntervalFormatter : Formatter {
     
     public override init() {
         NSUnimplemented()
@@ -32,12 +32,12 @@ public class DateIntervalFormatter : Formatter {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ public var locale: Locale! // default is [NSLocale currentLocale]
-    /*@NSCopying*/ public var calendar: Calendar! // default is the calendar of the locale
-    /*@NSCopying*/ public var timeZone: TimeZone! // default is [NSTimeZone defaultTimeZone]
-    public var dateTemplate: String! // default is an empty string
-    public var dateStyle: Style // default is NSDateIntervalFormatterNoStyle
-    public var timeStyle: Style // default is NSDateIntervalFormatterNoStyle
+    /*@NSCopying*/ open var locale: Locale! // default is [NSLocale currentLocale]
+    /*@NSCopying*/ open var calendar: Calendar! // default is the calendar of the locale
+    /*@NSCopying*/ open var timeZone: TimeZone! // default is [NSTimeZone defaultTimeZone]
+    open var dateTemplate: String! // default is an empty string
+    open var dateStyle: Style // default is NSDateIntervalFormatterNoStyle
+    open var timeStyle: Style // default is NSDateIntervalFormatterNoStyle
     
     /*
          If the range smaller than the resolution specified by the dateTemplate, a single date format will be produced. If the range is larger than the format specified by the dateTemplate, a locale-specific fallback will be used to format the items missing from the pattern.
@@ -57,7 +57,7 @@ public class DateIntervalFormatter : Formatter {
             for en_US, "Mar 4-8"
             for en_GB, "4-8 Mar"
     */
-    public func stringFromDate(_ fromDate: Date, toDate: Date) -> String { NSUnimplemented() }
+    open func stringFromDate(_ fromDate: Date, toDate: Date) -> String { NSUnimplemented() }
     
-    public func string(from dateInterval: NSDateInterval) -> String? { NSUnimplemented() }
+    open func string(from dateInterval: NSDateInterval) -> String? { NSUnimplemented() }
 }

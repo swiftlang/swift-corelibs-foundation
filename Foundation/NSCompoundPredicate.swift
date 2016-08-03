@@ -19,7 +19,7 @@ extension CompoundPredicate {
     }
 }
 
-public class CompoundPredicate : Predicate {
+open class CompoundPredicate : Predicate {
     
     public init(type: LogicalType, subpredicates: [Predicate]) {
         if type == .not && subpredicates.count == 0 {
@@ -45,7 +45,7 @@ public class CompoundPredicate : Predicate {
         self.init(type: .not, subpredicates: [predicate])
     }
 
-    override public func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
+    override open func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
         switch compoundPredicateType {
         case .and:
             return subpredicates.reduce(true, {
