@@ -67,13 +67,11 @@ public func <(lhs: Stream.PropertyKey, rhs: Stream.PropertyKey) -> Bool {
 }
 
 
-// NSStream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
+// Stream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
 // Subclassers of NSInputStream and NSOutputStream must also implement these methods.
 open class Stream: NSObject {
 
-    public override init() {
-
-    }
+    internal override init() {}
     
     open func open() {
         NSRequiresConcreteImplementation()
@@ -87,11 +85,11 @@ open class Stream: NSObject {
     // By default, a stream is its own delegate, and subclassers of NSInputStream and NSOutputStream must maintain this contract. [someStream setDelegate:nil] must restore this behavior. As usual, delegates are not retained.
     
     open func propertyForKey(_ key: String) -> AnyObject? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
 
 // Re-enable once run loop is compiled on all platforms
@@ -109,7 +107,7 @@ open class Stream: NSObject {
     }
     
     /*@NSCopying */open var streamError: NSError? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
 }
 
@@ -118,7 +116,7 @@ open class Stream: NSObject {
 open class InputStream: Stream {
 
     private var _stream: CFReadStream!
-
+    
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         return CFReadStreamRead(_stream, buffer, CFIndex(len._bridgeToObject()))
@@ -126,7 +124,9 @@ open class InputStream: Stream {
     
     // returns in O(1) a pointer to the buffer in 'buffer' and by reference in 'len' how many bytes are available. This buffer is only valid until the next stream operation. Subclassers may return NO for this if it is not appropriate for the stream type. This may return NO if the buffer is not available.
     open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
-        NSUnimplemented()
+        guard let bufPtr = CFReadStreamGetBuffer(_stream, 0, len) else { return false }
+        buffer.pointee = UnsafeMutablePointer<UInt8>(mutating: bufPtr)
+        return true
     }
     
     // returns YES if the stream has bytes available or if it impossible to tell without actually doing the read.
@@ -142,6 +142,10 @@ open class InputStream: Stream {
         _stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
     }
 
+    public static func initialize(url:URL) -> CFReadStream{
+        return CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
+    }
+    
     public convenience init?(fileAtPath path: String) {
         self.init(url: URL(fileURLWithPath: path))
     }
@@ -153,9 +157,27 @@ open class InputStream: Stream {
     open override func close() {
         CFReadStreamClose(_stream)
     }
+
+    open override var streamError: NSError?{
+        let error = CFReadStreamCopyError(_stream)
+        return error?._nsObject
+    }
     
     open override var streamStatus: Status {
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
+    }
+    
+    open override func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
+        guard let property = property else { return false }
+        return CFReadStreamSetProperty(_stream, key._cfObject, property)
+    }
+    
+    open override func propertyForKey(_ key: String) -> AnyObject? {
+        return CFReadStreamCopyProperty(_stream, key._cfObject)
+    }
+    
+    fileprivate init(cfStream stream:CFReadStream){
+        _stream = stream
     }
 }
 
@@ -164,8 +186,8 @@ open class InputStream: Stream {
 // Currently this is left as named NSOutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
 open class NSOutputStream : Stream {
     
-    private  var _stream: CFWriteStream!
-    
+    private var _stream: CFWriteStream!
+        
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         return  CFWriteStreamWrite(_stream, buffer, len)
@@ -212,26 +234,65 @@ open class NSOutputStream : Stream {
     open override func propertyForKey(_ key: String) -> AnyObject? {
         return CFWriteStreamCopyProperty(_stream, key._cfObject)
     }
+
+    open override var streamError: NSError?{
+        let error = CFWriteStreamCopyError(_stream)
+        return error?._nsObject
+    }
     
     open  override func setProperty(_ property: AnyObject?, forKey key: String) -> Bool {
+        guard let property = property else { return false }
         return CFWriteStreamSetProperty(_stream, key._cfObject, property)
     }
+
+    fileprivate init(cfStream stream:CFWriteStream){
+        _stream = stream
+    }
 }
 
+extension CFWriteStream {
+    func outputStream()-> NSOutputStream {
+        return NSOutputStream(cfStream: self)
+    }
+}
+extension CFReadStream {
+    func inputStream()-> InputStream {
+        return InputStream(cfStream: self)
+    }
+}
 // Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
-#if false
 extension Stream {
-    open class func getStreamsToHost(withName hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
-        NSUnimplemented()
+
+    open class func getStreamsToHost(withName hostName: String, port: Int, inputStream: inout InputStream?, outputStream: inout NSOutputStream?){
+        var read: Unmanaged<CFReadStream>?
+        var write: Unmanaged<CFWriteStream>?
+        CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, hostName._cfObject, UInt32(port), &read, &write)
+        inputStream = read?.takeRetainedValue().inputStream()
+        outputStream = write?.takeRetainedValue().outputStream()
+    }
+    
+    open class func getInputStreamToHost(withName hostName: String, port: Int, inputStream: inout InputStream?){
+        var read: Unmanaged<CFReadStream>?
+        CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, hostName._cfObject, UInt32(port), &read, nil)
+        inputStream = read?.takeRetainedValue().inputStream()
+    }
+    
+    open class func getOutPutStreamToHost(withName hostName: String, port: Int, outPutStream: inout NSOutputStream?){
+        var write: Unmanaged<CFWriteStream>?
+        CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, hostName._cfObject, UInt32(port), nil, &write)
+        outPutStream = write?.takeRetainedValue().outputStream()
     }
 }
 
 extension Stream {
-    open class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
-        NSUnimplemented()
+    open class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: inout InputStream?, outputStream: inout NSOutputStream?) {
+        var read: Unmanaged<CFReadStream>?
+        var write: Unmanaged<CFWriteStream>?
+        CFStreamCreateBoundPair(kCFAllocatorDefault, &read, &write, bufferSize)
+        inputStream = read?.takeRetainedValue().inputStream()
+        outputStream = write?.takeRetainedValue().outputStream()
     }
 }
-#endif
 
 extension StreamDelegate {
     func stream(_ aStream: Stream, handleEvent eventCode: Stream.Event) { }
@@ -293,4 +354,3 @@ public let NSStreamNetworkServiceTypeVoIP: String = "kCFStreamNetworkServiceType
 public let NSStreamNetworkServiceTypeVideo: String = "kCFStreamNetworkServiceTypeVideo"
 public let NSStreamNetworkServiceTypeBackground: String = "kCFStreamNetworkServiceTypeBackground"
 public let NSStreamNetworkServiceTypeVoice: String = "kCFStreamNetworkServiceTypeVoice"
-
