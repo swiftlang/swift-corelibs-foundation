@@ -58,7 +58,7 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_concrete_value", test_archive_concrete_value),
             ("test_archive_dictionary", test_archive_dictionary),
             ("test_archive_generic_objc", test_archive_generic_objc),
-            //("test_archive_locale", test_archive_locale), // not isEqual()
+//            ("test_archive_locale", test_archive_locale),
             ("test_archive_string", test_archive_string),
             ("test_archive_mutable_array", test_archive_mutable_array),
             ("test_archive_mutable_dictionary", test_archive_mutable_dictionary),
@@ -97,8 +97,8 @@ class TestNSKeyedArchiver : XCTestCase {
                 unarchiver.requiresSecureCoding = allowsSecureCoding
                 
                 do {
-                    guard let root = try unarchiver.decodeTopLevelObjectOfClasses(classes,
-                        forKey: NSKeyedArchiveRootObjectKey) as? NSObject else {
+                    let rootObj = try unarchiver.decodeTopLevelObjectOfClasses(classes, forKey: NSKeyedArchiveRootObjectKey)
+                    guard let root = rootObj as? NSObject else {
                         XCTFail("Unable to decode data")
                         return false
                     }
@@ -160,7 +160,7 @@ class TestNSKeyedArchiver : XCTestCase {
 
     func test_archive_locale() {
         let locale = Locale.current
-        test_archive(locale)
+        test_archive(locale._bridgeToObjectiveC())
     }
     
     func test_archive_string() {

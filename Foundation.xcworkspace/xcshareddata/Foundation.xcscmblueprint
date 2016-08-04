@@ -9,8 +9,8 @@
   },
   "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "FACB591C-AC03-4130-9483-C58CC76060A4",
   "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
-    "B149FC0F8DC8D91345007BE1CCBE6BA80D904376" : "XCTest\/",
-    "972770BA195CEE1F69E2331A99D177E57A3BAB6E" : "Foundation\/"
+    "B149FC0F8DC8D91345007BE1CCBE6BA80D904376" : "swift-corelibs-xctest\/",
+    "972770BA195CEE1F69E2331A99D177E57A3BAB6E" : "swift-corelibs-foundation\/"
   },
   "DVTSourceControlWorkspaceBlueprintNameKey" : "Foundation",
   "DVTSourceControlWorkspaceBlueprintVersion" : 204,

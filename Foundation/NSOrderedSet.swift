@@ -261,8 +261,8 @@ extension NSOrderedSet {
     public func sortedArrayUsingComparator(_ cmptr: Comparator) -> [AnyObject] { NSUnimplemented() }
     public func sortedArrayWithOptions(_ opts: SortOptions, usingComparator cmptr: Comparator) -> [AnyObject] { NSUnimplemented() }
     
-    public func descriptionWithLocale(_ locale: AnyObject?) -> String { NSUnimplemented() }
-    public func descriptionWithLocale(_ locale: AnyObject?, indent level: Int) -> String { NSUnimplemented() }
+    public func description(withLocale locale: Locale?) -> String { NSUnimplemented() }
+    public func description(withLocale locale: Locale?, indent level: Int) -> String { NSUnimplemented() }
 }
 
 extension NSOrderedSet {
@@ -301,7 +301,7 @@ extension NSOrderedSet {
     public convenience init(array set: [AnyObject], range: NSRange, copyItems flag: Bool) {
         var objects = set
 
-        if let range = range.toRange(), range.count != set.count || flag {
+        if let range = range.toCountableRange(), range.count != set.count || flag {
             objects = [AnyObject]()
             for index in range.indices {
                 let object = set[index] as! NSObject
@@ -442,7 +442,7 @@ extension NSMutableOrderedSet {
     }
     
     public func replaceObjectsInRange(_ range: NSRange, withObjects objects: UnsafePointer<AnyObject?>, count: Int) {
-        if let range = range.toRange() {
+        if let range = range.toCountableRange() {
             let buffer = UnsafeBufferPointer(start: objects, count: count)
             for (indexLocation, index) in range.indices.lazy.reversed().enumerated() {
                 if let object = buffer[indexLocation] as? NSObject {
@@ -461,7 +461,7 @@ extension NSMutableOrderedSet {
     }
     
     public func removeObjectsInRange(_ range: NSRange) {
-        if let range = range.toRange() {
+        if let range = range.toCountableRange() {
             for index in range.indices.lazy.reversed() {
                 removeObjectAtIndex(index)
             }

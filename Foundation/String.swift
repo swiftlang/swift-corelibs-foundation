@@ -315,7 +315,7 @@ extension String {
       range: _toNSRange(
         range ?? self.characters.startIndex..<self.characters.endIndex
       ),
-      locale: locale
+      locale: locale?._bridgeToObjectiveC()
     )
 
     : range != nil ? _ns.compare(
@@ -856,7 +856,7 @@ extension String {
       "Too many format specifiers (%<letter>) provided for the argument list"
     )
     self = withVaList(arguments) {
-      NSString(format: format, locale: locale, arguments: $0)._swiftObject
+      NSString(format: format, locale: locale?._bridgeToObjectiveC(), arguments: $0)._swiftObject
     }
   }
 

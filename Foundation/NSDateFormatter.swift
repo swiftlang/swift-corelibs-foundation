@@ -90,7 +90,11 @@ open class DateFormatter : Formatter {
     internal func _setFormatterAttributes(_ formatter: CFDateFormatter) {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: lenient._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: timeZone?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: _calendar?.calendarIdentifier._cfObject)
+        if let ident = _calendar?.identifier {
+            _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: Calendar._toNSCalendarIdentifier(ident).rawValue._cfObject)
+        } else {
+            _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: nil)
+        }
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTwoDigitStartDate, value: _twoDigitStartDate?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterDefaultDate, value: defaultDate?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendar, value: _calendar?._cfObject)
@@ -144,13 +148,13 @@ open class DateFormatter : Formatter {
 
     open var generatesCalendarDates = false { willSet { _reset() } }
 
-    /*@NSCopying*/ open var timeZone: TimeZone! = .systemTimeZone() { willSet { _reset() } }
+    /*@NSCopying*/ open var timeZone: TimeZone! = NSTimeZone.systemTimeZone() { willSet { _reset() } }
 
     /*@NSCopying*/ internal var _calendar: Calendar! { willSet { _reset() } }
     open var calendar: Calendar! {
         get {
             guard let calendar = _calendar else {
-                return CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterCalendar) as! Calendar
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterCalendar) as! NSCalendar)._swiftObject
             }
             return calendar
         }

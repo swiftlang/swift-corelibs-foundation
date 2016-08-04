@@ -532,7 +532,7 @@ extension NSData {
         guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
         guard let searchRange = searchRange.toRange() else {fatalError("invalid range")}
         
-        precondition(searchRange.endIndex <= self.length, "range outside the bounds of data")
+        precondition(searchRange.upperBound <= self.length, "range outside the bounds of data")
 
         let basePtr = self.bytes.bindMemory(to: UInt8.self, capacity: self.length)
         let baseData = UnsafeBufferPointer<UInt8>(start: basePtr, count: self.length)[searchRange]

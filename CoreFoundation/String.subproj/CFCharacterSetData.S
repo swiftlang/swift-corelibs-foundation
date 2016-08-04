@@ -11,7 +11,7 @@
 
     .global _C_LABEL(__CFCharacterSetBitmapData)
 _C_LABEL(__CFCharacterSetBitmapData):
-    .incbin "CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap"
+    .incbin CF_CHARACTERSET_BITMAP
 
     .global _C_LABEL(__CFCharacterSetBitmapDataEnd)
 _C_LABEL(__CFCharacterSetBitmapDataEnd):

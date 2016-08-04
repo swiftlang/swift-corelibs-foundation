@@ -182,7 +182,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         return true
     }
     
-    open func description(withLocale locale: AnyObject?) -> String { NSUnimplemented() }
+    open func description(withLocale locale: Locale?) -> String { NSUnimplemented() }
     
     override open var _cfTypeID: CFTypeID {
         return CFSetGetTypeID()

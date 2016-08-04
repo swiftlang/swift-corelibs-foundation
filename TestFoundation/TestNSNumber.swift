@@ -430,8 +430,8 @@ class TestNSNumber : XCTestCase {
     func test_descriptionWithLocale() {
         let nsnumber: NSNumber = 1000
         let values : Dictionary = [
-                Locale.init(localeIdentifier: "en_GB") : "1,000",
-                Locale.init(localeIdentifier: "de_DE") : "1.000",
+                Locale(identifier: "en_GB") : "1,000",
+                Locale(identifier: "de_DE") : "1.000",
         ]
         for (locale, expectedDesc) in values {
             let receivedDesc = nsnumber.description(withLocale: locale)

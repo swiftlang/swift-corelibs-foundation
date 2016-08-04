@@ -11,7 +11,7 @@
 
     .global _C_LABEL(__CFUniCharPropertyDatabase)
 _C_LABEL(__CFUniCharPropertyDatabase):
-    .incbin "CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data"
+    .incbin CF_CHARACTERSET_UNICHAR_DB
 
     .global _C_LABEL(__CFUniCharPropertyDatabaseEnd)
 _C_LABEL(__CFUniCharPropertyDatabaseEnd):
