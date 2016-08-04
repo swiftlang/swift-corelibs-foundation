@@ -384,11 +384,6 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
         return _handle.map { $0.range(of: Calendar._toCalendarUnit([smaller]), in: Calendar._toCalendarUnit([larger]), for: date).toRange() }
     }
     
-    @available(*, unavailable, message: "use range(of:in:for:) instead")
-    public func range(of unit: NSCalendar.Unit, start datep: AutoreleasingUnsafeMutablePointer<NSDate?>?, interval tip: UnsafeMutablePointer<TimeInterval>?, for date: Date) -> Bool {
-        fatalError()
-    }
-    
     /// Returns, via two inout parameters, the starting time and duration of a given calendar component that contains a given date.
     ///
     /// - seealso: `range(of:for:)`
@@ -650,9 +645,7 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
         return _handle.map { $0.isDateInWeekend(date) }
     }
     
-    @available(*, unavailable, message: "use dateIntervalOfWeekend(containing:start:interval:) instead")
-    public func range(ofWeekendStart datep: AutoreleasingUnsafeMutablePointer<NSDate?>?, interval tip: UnsafeMutablePointer<TimeInterval>?, containing date: Date) -> Bool { fatalError() }
-    
+
     /// Find the range of the weekend around the given date, returned via two by-reference parameters.
     ///
     /// Note that a given entire day within a calendar is not necessarily all in a weekend or not; weekends can start in the middle of a day in some calendars and locales.
@@ -677,10 +670,6 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     public func dateIntervalOfWeekend(containing date: Date) -> DateInterval? {
         return _handle.map({ $0.range(ofWeekendContaining: date) })
     }
-    
-    
-    @available(*, unavailable, message: "use nextWeekend(startingAfter:start:interval:direction:) instead")
-    public func nextWeekendStart(_ datep: AutoreleasingUnsafeMutablePointer<NSDate?>?, interval tip: UnsafeMutablePointer<TimeInterval>?, options: NSCalendar.Options = [], after date: Date) -> Bool { fatalError() }
     
     /// Returns the range of the next weekend via two inout parameters. The weekend starts strictly after the given date.
     ///
