@@ -26,7 +26,7 @@
 static void __CFNumberFormatterCustomize(CFNumberFormatterRef formatter);
 static CFStringRef __CFNumberFormatterCreateCompressedString(CFStringRef inString, Boolean isFormat, CFRange *rangep);
 static UErrorCode __CFNumberFormatterApplyPattern(CFNumberFormatterRef formatter, CFStringRef pattern);
-static CONST_STRING_DECL(kCFNumberFormatterFormattingContextKey, "kCFNumberFormatterFormattingContextKey");
+CONST_STRING_DECL(kCFNumberFormatterFormattingContextKey, "kCFNumberFormatterFormattingContextKey");
 
 #define BUFFER_SIZE 768
 

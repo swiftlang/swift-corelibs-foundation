@@ -41,7 +41,7 @@ typedef CF_ENUM(CFIndex, CFDateFormatterAmbiguousYearHandling) {
 
 extern UCalendar *__CFCalendarCreateUCalendar(CFStringRef calendarID, CFStringRef localeID, CFTimeZoneRef tz);
 
-static CONST_STRING_DECL(kCFDateFormatterFormattingContextKey, "kCFDateFormatterFormattingContextKey");
+PE_CONST_STRING_DECL(kCFDateFormatterFormattingContextKey, "kCFDateFormatterFormattingContextKey");
 
 CF_EXPORT const CFStringRef kCFDateFormatterCalendarIdentifierKey;
 
