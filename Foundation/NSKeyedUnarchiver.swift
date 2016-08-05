@@ -473,7 +473,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 var classReference: CFKeyedArchiverUID? = nil
                 
                 if let value = innerDecodingContext.dict["$class"] {
-                    classReference = value as CFKeyedArchiverUID
+                    classReference = value as? CFKeyedArchiverUID
                 }
                 if !NSKeyedUnarchiver._isReference(classReference) {
                     throw _decodingError(NSCocoaError.CoderReadCorruptError,
@@ -496,8 +496,12 @@ open class NSKeyedUnarchiver : NSCoder {
                 }
 
                 let _ = _validateClassSupportsSecureCoding(classToConstruct)
-
+#if os(OSX) || os(iOS)
+    // see https://bugs.swift.org/browse/SR-2287 for more details on why this #if block needs to be here (additionally there are a few conditional cast warnings that MUST remain for cross platform compatability
                 object = decodableClass.init(coder: self) as AnyObject?
+#else
+                object = decodableClass.init(coder: self) as? AnyObject
+#endif
                 guard object != nil else {
                     throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                          withDescription: "Class \(classToConstruct!) failed to decode. The data may be corrupt.")
@@ -511,7 +515,7 @@ open class NSKeyedUnarchiver : NSCoder {
             if let str = dereferencedObject as? String {
                 object = str.bridge()
             } else {
-                object = dereferencedObject as AnyObject?
+                object = dereferencedObject as? AnyObject
             }
         }
 
@@ -554,7 +558,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 return
             }
             
-            if let object = try _decodeObject(objectRef as CFKeyedArchiverUID) {
+            if let object = try _decodeObject(objectRef as! CFKeyedArchiverUID) {
                 block(object)
             }
         }
@@ -565,7 +569,7 @@ open class NSKeyedUnarchiver : NSCoder {
         
         do {
             try _decodeArrayOfObjectsForKey(key) { any in
-                if let object = any as AnyObject? {
+                if let object = any as? AnyObject {
                     array.append(object)
                 }
             }
