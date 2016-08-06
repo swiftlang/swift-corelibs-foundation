@@ -87,6 +87,7 @@ class TestNSString : XCTestCase {
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_PrefixSuffix", test_PrefixSuffix),
+            ("test_utf16StringRangeCount", test_utf16StringRangeCount),
             ("test_reflection", { _ in test_reflection }),
         ]
     }
@@ -935,6 +936,22 @@ class TestNSString : XCTestCase {
             let ISOLatin1Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, ISOLatin1Encoding, 0)
             XCTAssertNil(ISOLatin1Data)
         }
+    }
+    
+    //[SR-1988] Ranges of String.UTF16View.Index have negative count
+    func test_utf16StringRangeCount(){
+        let str = "How many elements do I contain?".utf16
+        let indices: Range = str.startIndex ..< str.endIndex
+        XCTAssertEqual(indices.count , 31, "Range should be 31")
+        
+        let blank = "".utf16
+        let blankindices: Range = blank.startIndex ..< blank.endIndex
+        XCTAssertTrue(blankindices.count == 0, "Range should be 0")
+        
+        let one = "1".utf16
+        let oneindices: Range = one.startIndex ..< one.endIndex
+        XCTAssertTrue(oneindices.count == 1, "Range should be 1")
+        
     }
     
     func test_mutableStringConstructor() {
