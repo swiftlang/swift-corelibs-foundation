@@ -87,7 +87,7 @@ class TestNSString : XCTestCase {
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_PrefixSuffix", test_PrefixSuffix),
-            ("test_utf16StringRangeCount", test_utf16StringRangeCount),
+            ("test_utf16StringRangeCount", test_StringUTF16ViewIndexStrideableRange),
             ("test_reflection", { _ in test_reflection }),
         ]
     }
@@ -939,19 +939,31 @@ class TestNSString : XCTestCase {
     }
     
     //[SR-1988] Ranges of String.UTF16View.Index have negative count
-    func test_utf16StringRangeCount(){
-        let str = "How many elements do I contain?".utf16
-        let indices: Range = str.startIndex ..< str.endIndex
-        XCTAssertEqual(indices.count , 31, "Range should be 31")
+    func test_StringUTF16ViewIndexStrideableRange(){
+        let testStrings = ["", "\u{0000}", "a", "aa", "ab", "\u{007f}", "\u{0430}", "\u{0430}\u{0431}\u{0432}","\u{1f425}"]
         
-        let blank = "".utf16
-        let blankindices: Range = blank.startIndex ..< blank.endIndex
-        XCTAssertTrue(blankindices.count == 0, "Range should be 0")
-        
-        let one = "1".utf16
-        let oneindices: Range = one.startIndex ..< one.endIndex
-        XCTAssertTrue(oneindices.count == 1, "Range should be 1")
-        
+        func checkStrideable<S : Strideable>(
+            instances: [S],
+            distances: [S.Stride],
+            distanceOracle: (Int, Int) -> S.Stride
+            ) {
+            for i in instances.indices {
+                let first = instances[i]
+                for j in instances.indices {
+                    let second = instances[j]
+                    XCTAssertTrue(distanceOracle(i, j) == first.distance(to: second))
+                    XCTAssertTrue(second == first.advanced(by: distanceOracle(i, j)))
+                }
+            }
+        }
+        testStrings.forEach{
+            let utf16 = $0.utf16
+            var indicies = Array(utf16.indices)
+            indicies.append(utf16.indices.endIndex)
+            checkStrideable(instances: indicies,
+                            distances: Array(0..<utf16.count),
+                       distanceOracle: {$1 - $0})
+        }
     }
     
     func test_mutableStringConstructor() {
