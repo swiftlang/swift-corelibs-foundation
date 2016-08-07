@@ -933,7 +933,7 @@ extension NSMutableData {
     }
     
     public func replaceBytes(in range: NSRange, withBytes replacementBytes: UnsafeRawPointer, length replacementLength: Int) {
-        let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: replacementLength)
+        let bytePtr = replacementBytes.bindMemory(to: UInt8.self, capacity: replacementLength)
         CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
     }
 }

@@ -40,7 +40,8 @@ class TestNSData: XCTestCase {
             ("test_base64DecodeWithPadding1", test_base64DecodeWithPadding1),
             ("test_base64DecodeWithPadding2", test_base64DecodeWithPadding2),
             ("test_rangeOfData",test_rangeOfData),
-            ("test_initMutableDataWithLength", test_initMutableDataWithLength)
+            ("test_initMutableDataWithLength", test_initMutableDataWithLength),
+            ("test_replaceBytes", test_replaceBytes),
         ]
     }
     
@@ -345,4 +346,35 @@ class TestNSData: XCTestCase {
         XCTAssertEqual(mData!.length, 30)
     }
 
+
+    func test_replaceBytes() {
+        var data = Data(bytes: [0, 0, 0, 0, 0])
+        let newData = Data(bytes: [1, 2, 3, 4, 5])
+
+        // test Data.replaceBytes(in:with:)
+        XCTAssertFalse(data == newData)
+        data.replaceBytes(in: data.startIndex..<data.endIndex, with: newData)
+        XCTAssertTrue(data == newData)
+
+        // subscript(index:) uses replaceBytes so use it to test edge conditions
+        data[0] = 0
+        data[4] = 0
+        XCTAssertTrue(data == Data(bytes: [0, 2, 3, 4, 0]))
+
+        // test NSMutableData.replaceBytes(in:withBytes:length:) directly
+        func makeData(_ data: [UInt8]) -> NSData {
+            return NSData(bytes: data, length: data.count)
+        }
+
+        guard let mData = NSMutableData(length: 5) else {
+            XCTFail("Cant create NSMutableData")
+            return
+        }
+
+        let replacement = makeData([8, 9, 10])
+        mData.replaceBytes(in: NSMakeRange(1, 3), withBytes: replacement.bytes,
+            length: 3)
+        let expected = makeData([0, 8, 9, 10, 0])
+        XCTAssertEqual(mData, expected)
+    }
 }
