@@ -294,11 +294,11 @@ extension NSSet {
         return result
     }
 
-    public func enumerateObjects(_ block: @noescape (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjects(_ block: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateObjects([], using: block)
     }
     
-    public func enumerateObjects(_ opts: EnumerationOptions = [], using block: @noescape (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjects(_ opts: EnumerationOptions = [], using block: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop : ObjCBool = false
         for obj in self {
             withUnsafeMutablePointer(to: &stop) { stop in
@@ -310,11 +310,11 @@ extension NSSet {
         }
     }
 
-    public func objects(passingTest predicate: @noescape (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    public func objects(passingTest predicate: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         return objects([], passingTest: predicate)
     }
     
-    public func objects(_ opts: EnumerationOptions = [], passingTest predicate: @noescape (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    public func objects(_ opts: EnumerationOptions = [], passingTest predicate: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         var result = Set<NSObject>()
         enumerateObjects(opts) { obj, stopp in
             if predicate(obj, stopp) {

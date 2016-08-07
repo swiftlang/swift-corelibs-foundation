@@ -250,7 +250,7 @@ open class NSCoder : NSObject {
     }
     */
     /// - experimental: This method does not exist in the Darwin Foundation.
-    open func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: @noescape (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
+    open func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
         NSRequiresConcreteImplementation()
     }
 

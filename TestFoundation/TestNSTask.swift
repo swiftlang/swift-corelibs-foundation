@@ -247,7 +247,7 @@ class TestNSTask : XCTestCase {
     }
 }
 
-private func mkstemp(template: String, body: @noescape (FileHandle) throws -> Void) rethrows {
+private func mkstemp(template: String, body: (FileHandle) throws -> Void) rethrows {
     let url = try! URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestNSTask.XXXXXX")
     var buffer = [Int8](repeating: 0, count: Int(PATH_MAX))
     try url.withUnsafeFileSystemRepresentation {

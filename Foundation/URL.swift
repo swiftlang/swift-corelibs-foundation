@@ -413,7 +413,7 @@ public struct URL : ReferenceConvertible, CustomStringConvertible, Equatable {
     ///
     /// File system representation is a null-terminated C string with canonical UTF-8 encoding.
     /// - note: The pointer is not valid outside the context of the block.
-    public func withUnsafeFileSystemRepresentation(_ block: @noescape (UnsafePointer<Int8>) throws -> Void) rethrows {
+    public func withUnsafeFileSystemRepresentation(_ block: (UnsafePointer<Int8>) throws -> Void) rethrows {
         try block(_url.fileSystemRepresentation)
     }
     

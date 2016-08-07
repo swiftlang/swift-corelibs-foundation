@@ -330,29 +330,29 @@ extension NSObject {
         _CFSwiftRelease(value)
     }
 
-    func withRetainedReference<T, R>(_ work: @noescape (UnsafePointer<T>) -> R) -> R {
+    func withRetainedReference<T, R>(_ work: (UnsafePointer<T>) -> R) -> R {
         let selfPtr = Unmanaged.passRetained(self).toOpaque().assumingMemoryBound(to: T.self)
         return work(selfPtr)
     }
     
-    func withRetainedReference<T, R>(_ work: @noescape (UnsafeMutablePointer<T>) -> R) -> R {
+    func withRetainedReference<T, R>(_ work: (UnsafeMutablePointer<T>) -> R) -> R {
         let selfPtr = Unmanaged.passRetained(self).toOpaque().assumingMemoryBound(to: T.self)
         return work(selfPtr)
     }
     
-    func withUnretainedReference<T, R>(_ work: @noescape (UnsafePointer<T>) -> R) -> R {
+    func withUnretainedReference<T, R>(_ work: (UnsafePointer<T>) -> R) -> R {
         let selfPtr = Unmanaged.passUnretained(self).toOpaque().assumingMemoryBound(to: T.self)
         return work(selfPtr)
     }
     
-    func withUnretainedReference<T, R>(_ work: @noescape (UnsafeMutablePointer<T>) -> R) -> R {
+    func withUnretainedReference<T, R>(_ work: (UnsafeMutablePointer<T>) -> R) -> R {
         let selfPtr = Unmanaged.passUnretained(self).toOpaque().assumingMemoryBound(to: T.self)
         return work(selfPtr)
     }
 }
 
 extension Array {
-    internal mutating func withUnsafeMutablePointerOrAllocation<R>(_ count: Int, fastpath: UnsafeMutablePointer<Element>? = nil, body: @noescape (UnsafeMutablePointer<Element>) -> R) -> R {
+    internal mutating func withUnsafeMutablePointerOrAllocation<R>(_ count: Int, fastpath: UnsafeMutablePointer<Element>? = nil, body: (UnsafeMutablePointer<Element>) -> R) -> R {
         if let fastpath = fastpath {
             return body(fastpath)
         } else if self.count > count {

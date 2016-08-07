@@ -21,7 +21,7 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
      */
     internal var _handle: _MutableHandle<NSMutableURLRequest>
     
-    internal mutating func _applyMutation<ReturnType>(_ whatToDo : @noescape (NSMutableURLRequest) -> ReturnType) -> ReturnType {
+    internal mutating func _applyMutation<ReturnType>(_ whatToDo : (NSMutableURLRequest) -> ReturnType) -> ReturnType {
         if !isKnownUniquelyReferenced(&_handle) {
             let ref = _handle._uncopiedReference()
             _handle = _MutableHandle(reference: ref)
