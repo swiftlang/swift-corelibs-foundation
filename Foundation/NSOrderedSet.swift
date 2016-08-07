@@ -58,7 +58,7 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                 guard let object = aDecoder.decodeObject(forKey: "NS.object.\(idx)") else {
                     return nil
                 }
-                objects.append(object)
+                objects.append(object as! NSObject)
                 idx += 1
             }
             self.init(array: objects)

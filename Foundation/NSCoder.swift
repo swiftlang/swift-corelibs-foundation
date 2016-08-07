@@ -61,15 +61,15 @@ open class NSCoder : NSObject {
         be casted to NSObject, nor is it Hashable.
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    open func decodeObjectOfClasses(_ classes: [AnyClass], forKey key: String) -> AnyObject? {
+    open func decodeObjectOfClasses(_ classes: [AnyClass], forKey key: String) -> Any? {
         NSUnimplemented()
     }
     
-    open func decodeTopLevelObject() throws -> AnyObject? {
+    open func decodeTopLevelObject() throws -> Any? {
         NSUnimplemented()
     }
     
-    open func decodeTopLevelObjectForKey(_ key: String) throws -> AnyObject? {
+    open func decodeTopLevelObjectForKey(_ key: String) throws -> Any? {
         NSUnimplemented()
     }
     
@@ -88,7 +88,7 @@ open class NSCoder : NSObject {
      be casted to NSObject, nor is it Hashable.
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    open func decodeTopLevelObjectOfClasses(_ classes: [AnyClass], forKey key: String) throws -> AnyObject? {
+    open func decodeTopLevelObjectOfClasses(_ classes: [AnyClass], forKey key: String) throws -> Any? {
         NSUnimplemented()
     }
     
@@ -97,26 +97,26 @@ open class NSCoder : NSObject {
     }
     
     
-    open func encode(_ object: AnyObject?) {
+    open func encode(_ object: Any?) {
         var object = object
-        withUnsafePointer(to: &object) { (ptr: UnsafePointer<AnyObject?>) -> Void in
+        withUnsafePointer(to: &object) { (ptr: UnsafePointer<Any?>) -> Void in
             encodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeRawPointer.self))
         }
     }
     
-    open func encodeRootObject(_ rootObject: AnyObject) {
+    open func encodeRootObject(_ rootObject: Any) {
         encode(rootObject)
     }
     
-    open func encodeBycopyObject(_ anObject: AnyObject?) {
+    open func encodeBycopyObject(_ anObject: Any?) {
         encode(anObject)
     }
     
-    open func encodeByrefObject(_ anObject: AnyObject?) {
+    open func encodeByrefObject(_ anObject: Any?) {
         encode(anObject)
     }
     
-    open func encodeConditionalObject(_ object: AnyObject?) {
+    open func encodeConditionalObject(_ object: Any?) {
         encode(object)
     }
     
@@ -135,13 +135,13 @@ open class NSCoder : NSObject {
         }
     }
     
-    open func decodeObject() -> AnyObject? {
+    open func decodeObject() -> Any? {
         if self.error != nil {
             return nil
         }
         
-        var obj: AnyObject? = nil
-        withUnsafeMutablePointer(to: &obj) { (ptr: UnsafeMutablePointer<AnyObject?>) -> Void in
+        var obj: Any? = nil
+        withUnsafeMutablePointer(to: &obj) { (ptr: UnsafeMutablePointer<Any?>) -> Void in
             decodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self))
         }
         return obj
@@ -167,11 +167,11 @@ open class NSCoder : NSObject {
     }
     */
     
-    open func encodePropertyList(_ aPropertyList: AnyObject) {
+    open func encodePropertyList(_ aPropertyList: Any) {
         NSUnimplemented()
     }
     
-    open func decodePropertyList() -> AnyObject? {
+    open func decodePropertyList() -> Any? {
         NSUnimplemented()
     }
     
@@ -183,11 +183,11 @@ open class NSCoder : NSObject {
         return false
     }
     
-    open func encode(_ objv: AnyObject?, forKey key: String) {
+    open func encode(_ objv: Any?, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
-    open func encodeConditionalObject(_ objv: AnyObject?, forKey key: String) {
+    open func encodeConditionalObject(_ objv: Any?, forKey key: String) {
         NSRequiresConcreteImplementation()
     }
     
@@ -219,7 +219,7 @@ open class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    open func decodeObject(forKey key: String) -> AnyObject? {
+    open func decodeObject(forKey key: String) -> Any? {
         NSRequiresConcreteImplementation()
     }
     
@@ -266,7 +266,7 @@ open class NSCoder : NSObject {
         return false
     }
     
-    open func decodePropertyListForKey(_ key: String) -> AnyObject? {
+    open func decodePropertyListForKey(_ key: String) -> Any? {
         NSUnimplemented()
     }
     
@@ -290,7 +290,7 @@ open class NSCoder : NSObject {
         }
     }
     
-    internal func _decodeArrayOfObjectsForKey(_ key: String) -> [AnyObject] {
+    internal func _decodeArrayOfObjectsForKey(_ key: String) -> [Any] {
         NSRequiresConcreteImplementation()
     }
     

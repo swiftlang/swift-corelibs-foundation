@@ -74,19 +74,20 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             }
             let objects = UnsafeMutablePointer<AnyObject?>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {
-                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject())
+                // If conversion to NSObject fails then we really can't hold it anyway
+                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject() as! NSObject)
             }
             self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
             objects.deinitialize(count: Int(cnt))
             objects.deallocate(capacity: Int(cnt))
         } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
-            self.init(array: objects)
+            self.init(array: objects as! [NSObject])
         } else {
             var objects = [AnyObject]()
             var count = 0
             while let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
-                objects.append(object)
+                objects.append(object as! NSObject)
                 count += 1
             }
             self.init(array: objects)

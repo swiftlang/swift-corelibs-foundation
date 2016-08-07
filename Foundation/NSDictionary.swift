@@ -132,7 +132,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             let objects = UnsafeMutablePointer<AnyObject>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {
                 keys.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()! as! NSObject)
-                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()!)
+                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()! as! NSObject)
             }
             self.init(objects: UnsafePointer<AnyObject>(objects), forKeys: UnsafePointer<NSObject>(keys), count: Int(cnt))
             keys.deinitialize(count: Int(cnt))
@@ -143,7 +143,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
-            self.init(objects: objects, forKeys: keys)
+            self.init(objects: objects as! [NSObject], forKeys: keys)
         } else {
             var objects = [AnyObject]()
             var keys = [NSObject]()
@@ -151,7 +151,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             while let key = aDecoder.decodeObject(forKey: "NS.key.\(count)"),
                 let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
                     keys.append(key as! NSObject)
-                    objects.append(object)
+                    objects.append(object as! NSObject)
                     count += 1
             }
             self.init(objects: objects, forKeys: keys)
