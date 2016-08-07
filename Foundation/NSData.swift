@@ -548,7 +548,7 @@ extension NSData {
         }
         return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
     }
-    private static func searchSubSequence<T : Collection, T2 : Sequence where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element, T.Indices.Iterator.Element == T.Index>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
+    private static func searchSubSequence<T : Collection, T2 : Sequence>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element, T.Indices.Iterator.Element == T.Index {
         for index in seq.indices {
             if seq.suffix(from: index).starts(with: subSequence) {
                 return index
