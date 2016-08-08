@@ -844,20 +844,18 @@ extension NSString {
         if convertedLen != len {
             return nil 	// Not able to do it all...
         }
-        
-        var data = Data(count: reqSize)
-        if data != nil {
-            if 0 < reqSize {
-                data!.count = data!.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<UInt8>) -> Int in
-                    if __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(mutableBytes), reqSize, &reqSize) == convertedLen {
-                        return reqSize
-                    } else {
-                        fatalError("didn't convert all characters")
-                    }
-                }
                 
-                return data
+        if 0 < reqSize {
+            var data = Data(count: reqSize)
+            data.count = data.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<UInt8>) -> Int in
+                if __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(mutableBytes), reqSize, &reqSize) == convertedLen {
+                    return reqSize
+                } else {
+                    fatalError("didn't convert all characters")
+                }
             }
+
+            return data
         }
         return nil
     }
@@ -1145,7 +1143,7 @@ extension NSString {
                 NSURLErrorKey: dest,
             ])
         }
-        var mData = Data(count: numBytes)!
+        var mData = Data(count: numBytes)
         // The getBytes:... call should hopefully not fail, given it succeeded above, but check anyway (mutable string changing behind our back?)
         var used = 0
         // This binds mData memory to UInt8 because Data.withUnsafeMutableBytes does not handle raw pointers.
