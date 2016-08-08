@@ -1472,8 +1472,8 @@ extension NSString : Bridgeable {
     public func bridge() -> String { return _swiftObject }
 }
 
-extension NSString : CustomPlaygroundQuickLookable {
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
+extension NSString : _CustomPlaygroundQuickLookable {
+    public var customPlaygroundQuickLook: _PlaygroundQuickLook {
         return .text(self.bridge())
     }
 }

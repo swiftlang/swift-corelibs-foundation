@@ -458,8 +458,8 @@ extension CFNumber : _NSBridgable {
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 
-extension NSNumber : CustomPlaygroundQuickLookable {
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
+extension NSNumber : _CustomPlaygroundQuickLookable {
+    public var customPlaygroundQuickLook: _PlaygroundQuickLook {
         let type = CFNumberGetType(_cfObject)
         switch type {
         case kCFNumberCharType:
