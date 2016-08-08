@@ -87,6 +87,7 @@ class TestNSString : XCTestCase {
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_PrefixSuffix", test_PrefixSuffix),
+            ("test_utf16StringRangeCount", test_StringUTF16ViewIndexStrideableRange),
             ("test_reflection", { _ in test_reflection }),
         ]
     }
@@ -934,6 +935,34 @@ class TestNSString : XCTestCase {
             
             let ISOLatin1Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, ISOLatin1Encoding, 0)
             XCTAssertNil(ISOLatin1Data)
+        }
+    }
+    
+    //[SR-1988] Ranges of String.UTF16View.Index have negative count
+    func test_StringUTF16ViewIndexStrideableRange(){
+        let testStrings = ["", "\u{0000}", "a", "aa", "ab", "\u{007f}", "\u{0430}", "\u{0430}\u{0431}\u{0432}","\u{1f425}"]
+        
+        func checkStrideable<S : Strideable>(
+            instances: [S],
+            distances: [S.Stride],
+            distanceOracle: (Int, Int) -> S.Stride
+            ) {
+            for i in instances.indices {
+                let first = instances[i]
+                for j in instances.indices {
+                    let second = instances[j]
+                    XCTAssertTrue(distanceOracle(i, j) == first.distance(to: second))
+                    XCTAssertTrue(second == first.advanced(by: distanceOracle(i, j)))
+                }
+            }
+        }
+        testStrings.forEach{
+            let utf16 = $0.utf16
+            var indicies = Array(utf16.indices)
+            indicies.append(utf16.indices.endIndex)
+            checkStrideable(instances: indicies,
+                            distances: Array(0..<utf16.count),
+                       distanceOracle: {$1 - $0})
         }
     }
     
