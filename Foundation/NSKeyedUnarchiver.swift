@@ -178,7 +178,10 @@ open class NSKeyedUnarchiver : NSCoder {
             unwrappedKey = _nextGenericKey()
         }
 
-        return _currentDecodingContext.dict[unwrappedKey!] as? T
+        if let v = _currentDecodingContext.dict[unwrappedKey!] {
+            return v as? T
+        }
+        return nil
     }
     
     /**
@@ -466,8 +469,12 @@ open class NSKeyedUnarchiver : NSCoder {
                 }
 
                 let innerDecodingContext = DecodingContext(dict)
-
-                let classReference = innerDecodingContext.dict["$class"] as? CFKeyedArchiverUID
+                
+                var classReference: CFKeyedArchiverUID? = nil
+                
+                if let value = innerDecodingContext.dict["$class"] {
+                    classReference = value as? CFKeyedArchiverUID
+                }
                 if !NSKeyedUnarchiver._isReference(classReference) {
                     throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                          withDescription: "Invalid class reference \(classReference). The data may be corrupt.")
@@ -489,8 +496,12 @@ open class NSKeyedUnarchiver : NSCoder {
                 }
 
                 let _ = _validateClassSupportsSecureCoding(classToConstruct)
-
+#if os(OSX) || os(iOS)
+    // see https://bugs.swift.org/browse/SR-2287 for more details on why this #if block needs to be here (additionally there are a few conditional cast warnings that MUST remain for cross platform compatability
+                object = decodableClass.init(coder: self) as AnyObject?
+#else
                 object = decodableClass.init(coder: self) as? AnyObject
+#endif
                 guard object != nil else {
                     throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                          withDescription: "Class \(classToConstruct!) failed to decode. The data may be corrupt.")

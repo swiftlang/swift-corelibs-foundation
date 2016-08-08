@@ -33,14 +33,14 @@ class TestNSTimeZone: XCTestCase {
     }
 
     func test_abbreviation() {
-        let tz = TimeZone.systemTimeZone()
-        let abbreviation1 = tz.abbreviation
+        let tz = NSTimeZone.systemTimeZone()
+        let abbreviation1 = tz.abbreviation()
         let abbreviation2 = tz.abbreviation(for: Date())
         XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1) should be equal to \(abbreviation2)")
     }
     
     func test_initializingTimeZoneWithOffset() {
-        let tz = TimeZone(name: "GMT-0400")
+        let tz = TimeZone(identifier: "GMT-0400")
         XCTAssertNotNil(tz)
         let seconds = tz?.secondsFromGMT(for: Date())
         XCTAssertEqual(seconds, -14400, "GMT-0400 should be -14400 seconds but got \(seconds) instead")
@@ -53,7 +53,7 @@ class TestNSTimeZone: XCTestCase {
         // Test valid timezone abbreviation of "AST" for "America/Halifax"
         tz = TimeZone(abbreviation: "AST")
         let expectedName = "America/Halifax"
-        XCTAssertEqual(tz?.name, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(tz?.name)\"")
+        XCTAssertEqual(tz?.identifier, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(tz?.identifier)\"")
     }
     
     func test_systemTimeZoneUsesSystemTime() {
@@ -61,7 +61,7 @@ class TestNSTimeZone: XCTestCase {
         var t = time(nil)
         var lt = tm()
         localtime_r(&t, &lt)
-        let zoneName = TimeZone.systemTimeZone().abbreviation ?? "Invalid Abbreviation"
+        let zoneName = NSTimeZone.systemTimeZone().abbreviation() ?? "Invalid Abbreviation"
         let expectedName = String(cString: lt.tm_zone, encoding: String.Encoding.ascii) ?? "Invalid Zone"
         XCTAssertEqual(zoneName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(zoneName)\"")
     }

@@ -396,6 +396,9 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSMeasurement.swift',
 	'Foundation/NSMeasurementFormatter.swift',
 	'Foundation/Unit.swift',
+	'Foundation/TimeZone.swift',
+	'Foundation/Calendar.swift',
+	'Foundation/Locale.swift',
 ])
 
 swift_sources.add_dependency(headers)

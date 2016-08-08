@@ -310,7 +310,7 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercased, "たちつてと")
 
         // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
-        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: Locale(localeIdentifier: "en")), "\u{0049}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: Locale(identifier: "en")), "\u{0049}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: NSLocale(localeIdentifier: "tr")), "\u{0130}")
         XCTAssertEqual(NSString(stringLiteral: "\u{00df}").uppercased, "\u{0053}\u{0053}")
@@ -324,10 +324,10 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercased, "たちつてと")
 
         // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
-        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: Locale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: Locale(identifier: "en")), "\u{0069}\u{0307}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: NSLocale(localeIdentifier: "tr")), "\u{0069}")
-        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercased(with: Locale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercased(with: Locale(identifier: "en")), "\u{0069}\u{0307}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
     }

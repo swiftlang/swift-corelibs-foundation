@@ -134,9 +134,9 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
        offset in hours and minutes from UTC (for example,
        "2001-03-24 10:45:32 +0600")
      */
-    open func descriptionWithLocale(_ locale: AnyObject?) -> String {
+    open func description(withLocale locale: Locale?) -> String {
         guard let aLocale = locale else { return description }
-        let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, (aLocale as! Locale)._cfObject, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
+        let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, aLocale._cfObject, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
         CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey, CFTimeZoneCopySystem())
 
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, dateFormatterRef, _cfObject)._swiftObject
