@@ -14,7 +14,7 @@ foundation = DynamicLibrary("Foundation")
 foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefix.h'
 
 if Configuration.current.target.sdk == OSType.Linux:
-	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE '
+	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -DCF_CHARACTERSET_DATA_DIR="CoreFoundation/CharacterSets"'
 	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `${PKG_CONFIG} icu-uc icu-i18n --libs` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString -Wl,-Bsymbolic '
 	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
@@ -26,6 +26,13 @@ elif Configuration.current.target.sdk == OSType.MacOSX:
 
 if Configuration.current.build_mode == Configuration.Debug:
         foundation.LDFLAGS += ' -lswiftSwiftOnoneSupport '
+
+foundation.ASFLAGS = " ".join([
+        '-DCF_CHARACTERSET_BITMAP=\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\"',
+        '-DCF_CHARACTERSET_UNICHAR_DB=\\"CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data\\"',
+        '-DCF_CHARACTERSET_UNICODE_DATA_B=\\"CoreFoundation/CharacterSets/CFUnicodeData-B.mapping\\"',
+        '-DCF_CHARACTERSET_UNICODE_DATA_L=\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\"',
+])
 
 # For now, we do not distinguish between public and private headers (they are all private to Foundation)
 # These are really part of CF, which should ultimately be a separate target
