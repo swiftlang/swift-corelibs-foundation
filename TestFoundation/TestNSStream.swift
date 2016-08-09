@@ -36,7 +36,6 @@ class TestNSStream : XCTestCase {
             ("test_ouputStreamWithInvalidPath", test_ouputStreamWithInvalidPath),
             ("test_outputStreamGetSetProperty", test_outputStreamGetSetProperty),
             ("test_getStreamsToHost", test_getStreamsToHost),
-            ("test_getBoundStreams", test_getBoundStreams),
 
         ]
     }
@@ -366,33 +365,8 @@ class TestNSStream : XCTestCase {
         XCTAssertEqual(Stream.Status.notOpen, input?.streamStatus)
         XCTAssertEqual(Stream.Status.notOpen, output?.streamStatus)
 
-        
-        input = nil
-        output = nil
-        XCTAssertNil(input)
-        XCTAssertNil(output)
-        Stream.getInputStreamToHost(withName: "def", port: 12, inputStream: &input)
-        XCTAssertNotNil(input)
-        XCTAssertNil(output)
-        
-        input = nil
-        output = nil
-        XCTAssertNil(input)
-        XCTAssertNil(output)
-        Stream.getOutPutStreamToHost(withName: "lmn", port: 12, outPutStream: &output)
-        XCTAssertNotNil(output)
-        XCTAssertNil(input)
     }
 
-    func test_getBoundStreams(){
-        var input:InputStream? = nil
-        var output:NSOutputStream? = nil
-        XCTAssertNil(input)
-        XCTAssertNil(output)
-        Stream.getBoundStreams(withBufferSize: 23, inputStream: &input, outputStream: &output)
-        XCTAssertNotNil(input)
-        XCTAssertNotNil(output)
-    }
     
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"

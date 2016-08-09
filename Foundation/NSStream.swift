@@ -141,10 +141,6 @@ open class InputStream: Stream {
     public init?(url: URL) {
         _stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
     }
-
-    public static func initialize(url:URL) -> CFReadStream{
-        return CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
-    }
     
     public convenience init?(fileAtPath path: String) {
         self.init(url: URL(fileURLWithPath: path))
@@ -179,6 +175,7 @@ open class InputStream: Stream {
     fileprivate init(cfStream stream:CFReadStream){
         _stream = stream
     }
+    
 }
 
 // NSOutputStream is an abstract class representing the base functionality of a write stream.
@@ -262,7 +259,8 @@ extension CFReadStream {
 }
 // Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
 extension Stream {
-
+    
+    /// - experimental: Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer .
     open class func getStreamsToHost(withName hostName: String, port: Int, inputStream: inout InputStream?, outputStream: inout NSOutputStream?){
         var read: Unmanaged<CFReadStream>?
         var write: Unmanaged<CFWriteStream>?
@@ -271,19 +269,9 @@ extension Stream {
         outputStream = write?.takeRetainedValue().outputStream()
     }
     
-    open class func getInputStreamToHost(withName hostName: String, port: Int, inputStream: inout InputStream?){
-        var read: Unmanaged<CFReadStream>?
-        CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, hostName._cfObject, UInt32(port), &read, nil)
-        inputStream = read?.takeRetainedValue().inputStream()
-    }
-    
-    open class func getOutPutStreamToHost(withName hostName: String, port: Int, outPutStream: inout NSOutputStream?){
-        var write: Unmanaged<CFWriteStream>?
-        CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, hostName._cfObject, UInt32(port), nil, &write)
-        outPutStream = write?.takeRetainedValue().outputStream()
-    }
 }
 
+#if false
 extension Stream {
     open class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: inout InputStream?, outputStream: inout NSOutputStream?) {
         var read: Unmanaged<CFReadStream>?
@@ -293,6 +281,7 @@ extension Stream {
         outputStream = write?.takeRetainedValue().outputStream()
     }
 }
+#endif
 
 extension StreamDelegate {
     func stream(_ aStream: Stream, handleEvent eventCode: Stream.Event) { }
