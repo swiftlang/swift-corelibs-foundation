@@ -89,7 +89,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         }
     }
     
-    static func supportsSecureCoding() -> Bool {
+    static var supportsSecureCoding: Bool {
         return true
     }
     

@@ -85,7 +85,7 @@ open class UnitConverterLinear : UnitConverter, NSSecureCoding {
         }
     }
     
-    public static func supportsSecureCoding() -> Bool { return true }
+    public static var supportsSecureCoding: Bool { return true }
 }
 
 private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
@@ -126,7 +126,7 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
         }
     }
     
-    fileprivate static func supportsSecureCoding() -> Bool { return true }
+    fileprivate static var supportsSecureCoding: Bool { return true }
 }
 
 /*
@@ -167,7 +167,7 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
         }
     }
 
-    public static func supportsSecureCoding() -> Bool { return true }
+    public static var supportsSecureCoding: Bool { return true }
 }
 
 open class Dimension : Unit {

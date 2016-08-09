@@ -217,7 +217,7 @@ open class NSKeyedUnarchiver : NSCoder {
     
     private static func _supportsSecureCoding(_ clsv : AnyClass) -> Bool {
         if let secureCodable = clsv as? NSSecureCoding.Type {
-            return secureCodable.supportsSecureCoding()
+            return secureCodable.supportsSecureCoding
         }
         
         return false
@@ -426,7 +426,7 @@ open class NSKeyedUnarchiver : NSCoder {
         var supportsSecureCoding : Bool = false
         
         if let secureDecodableClass = classToConstruct as? NSSecureCoding.Type {
-            supportsSecureCoding = secureDecodableClass.supportsSecureCoding()
+            supportsSecureCoding = secureDecodableClass.supportsSecureCoding
         }
         
         if self.requiresSecureCoding && !supportsSecureCoding {

@@ -30,7 +30,7 @@ extension NSExpression {
 
 open class NSExpression : NSObject, NSSecureCoding, NSCopying {
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     

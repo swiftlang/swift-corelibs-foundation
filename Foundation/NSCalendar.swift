@@ -181,7 +181,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    static public func supportsSecureCoding() -> Bool {
+    static public var supportsSecureCoding: Bool {
         return true
     }
     
@@ -1414,7 +1414,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    static public func supportsSecureCoding() -> Bool {
+    static public var supportsSecureCoding: Bool {
         return true
     }
     

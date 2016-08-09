@@ -68,7 +68,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
 }

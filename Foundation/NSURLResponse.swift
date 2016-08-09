@@ -18,7 +18,7 @@
 /// data for a URL load.
 open class URLResponse : NSObject, NSSecureCoding, NSCopying {
 
-    static public func supportsSecureCoding() -> Bool {
+    static public var supportsSecureCoding: Bool {
         return true
     }
     

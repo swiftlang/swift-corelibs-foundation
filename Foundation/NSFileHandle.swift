@@ -184,7 +184,7 @@ open class FileHandle: NSObject, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
 }

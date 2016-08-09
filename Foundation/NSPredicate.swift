@@ -21,7 +21,7 @@ open class Predicate : NSObject, NSSecureCoding, NSCopying {
 
     private let kind: PredicateKind
 
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     

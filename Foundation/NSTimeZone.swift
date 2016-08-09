@@ -101,7 +101,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     
