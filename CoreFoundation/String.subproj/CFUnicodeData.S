@@ -12,7 +12,7 @@
 #if defined(__BIG_ENDIAN__)
     .global _C_LABEL(__CFUnicodeDataB)
 _C_LABEL(__CFUnicodeDataB):
-    .incbin "CoreFoundation/CharacterSets/CFUnicodeData-B.mapping"
+    .incbin CF_CHARACTERSET_UNICODE_DATA_B
 
     .global _C_LABEL(__CFUnicodeDataBEnd)
 _C_LABEL(__CFUnicodeDataBEnd):
@@ -24,7 +24,7 @@ _C_LABEL(__CFUnicodeDataBSize):
 #else
     .global _C_LABEL(__CFUnicodeDataL)
 _C_LABEL(__CFUnicodeDataL):
-    .incbin "CoreFoundation/CharacterSets/CFUnicodeData-L.mapping"
+    .incbin CF_CHARACTERSET_UNICODE_DATA_L
 
     .global _C_LABEL(__CFUnicodeDataLEnd)
 _C_LABEL(__CFUnicodeDataLEnd):

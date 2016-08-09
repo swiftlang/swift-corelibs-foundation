@@ -431,7 +431,7 @@ open class NSNumber : NSValue {
         return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
     }
 
-    open func description(withLocale locale: AnyObject?) -> String {
+    open func description(withLocale locale: Locale?) -> String {
         let aLocale = locale
         let formatter: CFNumberFormatter
         if (aLocale == nil) {
@@ -439,7 +439,7 @@ open class NSNumber : NSValue {
             CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
 
         } else {
-            formatter = CFNumberFormatterCreate(nil, (aLocale as! Locale)._cfObject, kCFNumberFormatterDecimalStyle)
+            formatter = CFNumberFormatterCreate(nil, aLocale?._cfObject, kCFNumberFormatterDecimalStyle)
         }
         return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
     }
@@ -458,8 +458,8 @@ extension CFNumber : _NSBridgable {
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 
-extension NSNumber : CustomPlaygroundQuickLookable {
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
+extension NSNumber : _CustomPlaygroundQuickLookable {
+    public var customPlaygroundQuickLook: _PlaygroundQuickLook {
         let type = CFNumberGetType(_cfObject)
         switch type {
         case kCFNumberCharType:

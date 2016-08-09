@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-open class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
+open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFTimeZone
     private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())
     private var _name: UnsafeMutableRawPointer? = nil
@@ -64,8 +64,8 @@ open class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open override func isEqual(_ object: AnyObject?) -> Bool {
-        if let tz = object as? TimeZone {
-            return isEqual(to: tz)
+        if let tz = object as? NSTimeZone {
+            return isEqual(to: tz._swiftObject)
         } else {
             return false
         }
@@ -114,59 +114,59 @@ open class TimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open var name: String {
-        guard type(of: self) === TimeZone.self else {
+        guard type(of: self) === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneGetName(_cfObject)._swiftObject
     }
     
     open var data: Data {
-        guard type(of: self) === TimeZone.self else {
+        guard type(of: self) === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneGetData(_cfObject)._swiftObject
     }
     
     open func secondsFromGMT(for aDate: Date) -> Int {
-        guard type(of: self) === TimeZone.self else {
+        guard type(of: self) === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return Int(CFTimeZoneGetSecondsFromGMT(_cfObject, aDate.timeIntervalSinceReferenceDate))
     }
     
     open func abbreviation(for aDate: Date) -> String? {
-        guard type(of: self) === TimeZone.self else {
+        guard type(of: self) === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneCopyAbbreviation(_cfObject, aDate.timeIntervalSinceReferenceDate)._swiftObject
     }
     
     open func isDaylightSavingTime(for aDate: Date) -> Bool {
-        guard type(of: self) === TimeZone.self else {
+        guard type(of: self) === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneIsDaylightSavingTime(_cfObject, aDate.timeIntervalSinceReferenceDate)
     }
     
     open func daylightSavingTimeOffset(for aDate: Date) -> TimeInterval {
-        guard type(of: self) === TimeZone.self else {
+        guard type(of: self) === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
     }
     
     open func nextDaylightSavingTimeTransition(after aDate: Date) -> Date? {
-        guard type(of: self) === TimeZone.self else {
+        guard type(of: self) === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
         return Date(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
     }
 }
 
-extension TimeZone {
+extension NSTimeZone {
 
     open class func systemTimeZone() -> TimeZone {
-        return CFTimeZoneCopySystem()._nsObject
+        return CFTimeZoneCopySystem()._swiftObject
     }
 
     open class func resetSystemTimeZone() {
@@ -174,7 +174,7 @@ extension TimeZone {
     }
 
     open class func defaultTimeZone() -> TimeZone {
-        return CFTimeZoneCopyDefault()._nsObject
+        return CFTimeZoneCopyDefault()._swiftObject
     }
 
     open class func setDefaultTimeZone(_ aTimeZone: TimeZone) {
@@ -182,24 +182,39 @@ extension TimeZone {
     }
 }
 
-extension TimeZone: _CFBridgable { }
-
-extension CFTimeZone : _NSBridgable {
-    typealias NSType = TimeZone
-    internal var _nsObject : NSType {
-        return unsafeBitCast(self, to: NSType.self)
-    }
+extension NSTimeZone: _SwiftBridgable, _CFBridgable {
+    typealias SwiftType = TimeZone
+    var _swiftObject: TimeZone { return TimeZone(reference: self) }
 }
 
-extension TimeZone {
+extension CFTimeZone : _SwiftBridgable, _NSBridgable {
+    typealias NSType = NSTimeZone
+    var _nsObject : NSTimeZone { return unsafeBitCast(self, to: NSTimeZone.self) }
+    var _swiftObject: TimeZone { return _nsObject._swiftObject }
+}
+
+extension TimeZone : _NSBridgable, _CFBridgable {
+    typealias NSType = NSTimeZone
+    typealias CFType = CFTimeZone
+    var _nsObject : NSTimeZone { return _bridgeToObjectiveC() }
+    var _cfObject : CFTimeZone { return _nsObject._cfObject }
+}
+
+extension NSTimeZone {
     open class func localTimeZone() -> TimeZone { NSUnimplemented() }
     
-    open class func knownTimeZoneNames() -> [String] { NSUnimplemented() }
+    open class var knownTimeZoneNames: [String] { NSUnimplemented() }
     
-    open class func abbreviationDictionary() -> [String : String] { NSUnimplemented() }
-    open class func setAbbreviationDictionary(_ dict: [String : String]) { NSUnimplemented() }
+    open class var abbreviationDictionary: [String : String] {
+        get {
+            NSUnimplemented()
+        }
+        set {
+            NSUnimplemented()
+        }
+    }
     
-    open class func timeZoneDataVersion() -> String { NSUnimplemented() }
+    open class var timeZoneDataVersion: String { NSUnimplemented() }
     
     open var secondsFromGMT: Int { NSUnimplemented() }
 
@@ -219,14 +234,18 @@ extension TimeZone {
         return CFEqual(self._cfObject, aTimeZone._cfObject)
     }
     
-    open func localizedName(_ style: NSTimeZoneNameStyle, locale: Locale?) -> String? { NSUnimplemented() }
-}
-public enum NSTimeZoneNameStyle : Int {
-    case standard    // Central Standard Time
-    case shortStandard    // CST
-    case daylightSaving    // Central Daylight Time
-    case shortDaylightSaving    // CDT
-    case generic    // Central Time
-    case shortGeneric    // CT
+    open func localizedName(_ style: NameStyle, locale: Locale?) -> String? { NSUnimplemented() }
 }
 
+extension NSTimeZone {
+
+    public enum NameStyle : Int {
+        case standard    // Central Standard Time
+        case shortStandard    // CST
+        case daylightSaving    // Central Daylight Time
+        case shortDaylightSaving    // CDT
+        case generic    // Central Time
+        case shortGeneric    // CT
+    }
+
+}

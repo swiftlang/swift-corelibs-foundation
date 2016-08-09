@@ -61,7 +61,7 @@ class TestNSRange : XCTestCase {
     }
     
     func test_NSRangeBridging() {
-        let swiftRange = 1..<7
+        let swiftRange: Range<Int> = 1..<7
         let range = NSRange(swiftRange)
         let swiftRange2 = range.toRange()
         XCTAssertEqual(swiftRange, swiftRange2)

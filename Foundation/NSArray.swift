@@ -213,8 +213,8 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return false
     }
     
-    open func description(withLocale locale: AnyObject?) -> String { return description(withLocale: locale, indent: 0) }
-    open func description(withLocale locale: AnyObject?, indent level: Int) -> String {
+    open func description(withLocale locale: Locale?) -> String { return description(withLocale: locale, indent: 0) }
+    open func description(withLocale locale: Locale?, indent level: Int) -> String {
         var descriptions = [String]()
         let cnt = count
         for idx in 0..<cnt {
@@ -265,8 +265,10 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             objects += _storage[range.toRange()!]
             return
         }
-
-        objects += range.toRange()!.map { self[$0] }
+        
+        
+        
+        objects += range.toCountableRange()!.map { self[$0] }
     }
     
     open func index(of anObject: AnyObject) -> Int {
@@ -771,7 +773,7 @@ open class NSMutableArray : NSArray {
         if type(of: self) === NSMutableArray.self {
             _storage.removeSubrange(range.toRange()!)
         } else {
-            for idx in range.toRange()!.reversed() {
+            for idx in range.toCountableRange()!.reversed() {
                 removeObject(at: idx)
             }
         }

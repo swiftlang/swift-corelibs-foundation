@@ -412,7 +412,7 @@ extension NSString {
     public func compare(_ string: String, options mask: CompareOptions, range compareRange: NSRange, locale: AnyObject?) -> ComparisonResult {
         var res: CFComparisonResult
         if let loc = locale {
-            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! Locale)._cfObject)
+            res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! NSLocale)._cfObject)
         } else {
             res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), nil)
         }
@@ -424,15 +424,15 @@ extension NSString {
     }
     
     public func localizedCompare(_ string: String) -> ComparisonResult {
-        return compare(string, options: [], range: NSMakeRange(0, length), locale: Locale.current)
+        return compare(string, options: [], range: NSMakeRange(0, length), locale: Locale.current._bridgeToObjectiveC())
     }
     
     public func localizedCaseInsensitiveCompare(_ string: String) -> ComparisonResult {
-        return compare(string, options: .caseInsensitive, range: NSMakeRange(0, length), locale: Locale.current)
+        return compare(string, options: .caseInsensitive, range: NSMakeRange(0, length), locale: Locale.current._bridgeToObjectiveC())
     }
     
     public func localizedStandardCompare(_ string: String) -> ComparisonResult {
-        return compare(string, options: [.caseInsensitive, .numeric, .widthInsensitive, .forcedOrdering], range: NSMakeRange(0, length), locale: Locale.current)
+        return compare(string, options: [.caseInsensitive, .numeric, .widthInsensitive, .forcedOrdering], range: NSMakeRange(0, length), locale: Locale.current._bridgeToObjectiveC())
     }
     
     public func isEqual(to aString: String) -> Bool {
@@ -1202,7 +1202,7 @@ extension NSString {
     public convenience init(format: String, locale: AnyObject?, arguments argList: CVaListPointer) {
         let str: CFString
         if let loc = locale {
-            if type(of: loc) === Locale.self || type(of: loc) === NSDictionary.self {
+            if type(of: loc) === NSLocale.self || type(of: loc) === NSDictionary.self {
                 str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(loc, to: CFDictionary.self), format._cfObject, argList)
             } else {
                 fatalError("locale parameter must be a NSLocale or a NSDictionary")
@@ -1472,8 +1472,8 @@ extension NSString : Bridgeable {
     public func bridge() -> String { return _swiftObject }
 }
 
-extension NSString : CustomPlaygroundQuickLookable {
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
+extension NSString : _CustomPlaygroundQuickLookable {
+    public var customPlaygroundQuickLook: _PlaygroundQuickLook {
         return .text(self.bridge())
     }
 }

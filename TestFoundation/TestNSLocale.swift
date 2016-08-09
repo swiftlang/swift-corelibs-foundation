@@ -27,69 +27,69 @@ class TestNSLocale : XCTestCase {
         XCTAssertEqual(NSCurrentLocaleDidChangeNotification, "kCFLocaleCurrentLocaleDidChangeNotification",
                         "\(NSCurrentLocaleDidChangeNotification) is not equal to kCFLocaleCurrentLocaleDidChangeNotification")
         
-        XCTAssertEqual(NSLocaleIdentifier, "kCFLocaleIdentifierKey",
-                        "\(NSLocaleIdentifier) is not equal to kCFLocaleIdentifierKey")
+        XCTAssertEqual(NSLocale.Key.identifier.rawValue, "kCFLocaleIdentifierKey",
+                        "\(NSLocale.Key.identifier.rawValue) is not equal to kCFLocaleIdentifierKey")
 
-        XCTAssertEqual(NSLocaleLanguageCode, "kCFLocaleLanguageCodeKey",
-                        "\(NSLocaleLanguageCode) is not equal to kCFLocaleLanguageCodeKey")
+        XCTAssertEqual(NSLocale.Key.languageCode.rawValue, "kCFLocaleLanguageCodeKey",
+                        "\(NSLocale.Key.languageCode.rawValue) is not equal to kCFLocaleLanguageCodeKey")
 
-        XCTAssertEqual(NSLocaleCountryCode, "kCFLocaleCountryCodeKey", 
-                        "\(NSLocaleCountryCode) is not equal to kCFLocaleCountryCodeKey")
+        XCTAssertEqual(NSLocale.Key.countryCode.rawValue, "kCFLocaleCountryCodeKey",
+                        "\(NSLocale.Key.countryCode.rawValue) is not equal to kCFLocaleCountryCodeKey")
 
-        XCTAssertEqual(NSLocaleScriptCode, "kCFLocaleScriptCodeKey",
-                        "\(NSLocaleScriptCode) is not equal to kCFLocaleScriptCodeKey")
+        XCTAssertEqual(NSLocale.Key.scriptCode.rawValue, "kCFLocaleScriptCodeKey",
+                        "\(NSLocale.Key.scriptCode.rawValue) is not equal to kCFLocaleScriptCodeKey")
 
-        XCTAssertEqual(NSLocaleVariantCode, "kCFLocaleVariantCodeKey", 
-                        "\(NSLocaleVariantCode) is not equal to kCFLocaleVariantCodeKey")
+        XCTAssertEqual(NSLocale.Key.variantCode.rawValue, "kCFLocaleVariantCodeKey",
+                        "\(NSLocale.Key.variantCode.rawValue) is not equal to kCFLocaleVariantCodeKey")
 
-        XCTAssertEqual(NSLocaleExemplarCharacterSet, "kCFLocaleExemplarCharacterSetKey",
-                        "\(NSLocaleExemplarCharacterSet) is not equal to kCFLocaleExemplarCharacterSetKey")
+        XCTAssertEqual(NSLocale.Key.exemplarCharacterSet.rawValue, "kCFLocaleExemplarCharacterSetKey",
+                        "\(NSLocale.Key.exemplarCharacterSet.rawValue) is not equal to kCFLocaleExemplarCharacterSetKey")
 
-        XCTAssertEqual(NSLocaleCalendar, "kCFLocaleCalendarKey",
-                        "\(NSLocaleCalendar) is not equal to kCFLocaleCalendarKey")
+        XCTAssertEqual(NSLocale.Key.calendar.rawValue, "kCFLocaleCalendarKey",
+                        "\(NSLocale.Key.calendar.rawValue) is not equal to kCFLocaleCalendarKey")
 
-        XCTAssertEqual(NSLocaleCollationIdentifier, "collation",
-                        "\(NSLocaleCollationIdentifier) is not equal to collation")
+        XCTAssertEqual(NSLocale.Key.collationIdentifier.rawValue, "collation",
+                        "\(NSLocale.Key.collationIdentifier.rawValue) is not equal to collation")
 
-        XCTAssertEqual(NSLocaleUsesMetricSystem, "kCFLocaleUsesMetricSystemKey",
-                        "\(NSLocaleUsesMetricSystem) is not equal to kCFLocaleUsesMetricSystemKey")
+        XCTAssertEqual(NSLocale.Key.usesMetricSystem.rawValue, "kCFLocaleUsesMetricSystemKey",
+                        "\(NSLocale.Key.usesMetricSystem.rawValue) is not equal to kCFLocaleUsesMetricSystemKey")
 
-        XCTAssertEqual(NSLocaleMeasurementSystem, "kCFLocaleMeasurementSystemKey",
-                        "\(NSLocaleMeasurementSystem) is not equal to kCFLocaleMeasurementSystemKey")
+        XCTAssertEqual(NSLocale.Key.measurementSystem.rawValue, "kCFLocaleMeasurementSystemKey",
+                        "\(NSLocale.Key.measurementSystem.rawValue) is not equal to kCFLocaleMeasurementSystemKey")
 
-        XCTAssertEqual(NSLocaleDecimalSeparator, "kCFLocaleDecimalSeparatorKey",
-                        "\(NSLocaleDecimalSeparator) is not equal to kCFLocaleDecimalSeparatorKey")
+        XCTAssertEqual(NSLocale.Key.decimalSeparator.rawValue, "kCFLocaleDecimalSeparatorKey",
+                        "\(NSLocale.Key.decimalSeparator.rawValue) is not equal to kCFLocaleDecimalSeparatorKey")
 
-        XCTAssertEqual(NSLocaleGroupingSeparator, "kCFLocaleGroupingSeparatorKey",
-                        "\(NSLocaleGroupingSeparator) is not equal to kCFLocaleGroupingSeparatorKey")
+        XCTAssertEqual(NSLocale.Key.groupingSeparator.rawValue, "kCFLocaleGroupingSeparatorKey",
+                        "\(NSLocale.Key.groupingSeparator.rawValue) is not equal to kCFLocaleGroupingSeparatorKey")
 
-        XCTAssertEqual(NSLocaleCurrencySymbol, "kCFLocaleCurrencySymbolKey",
-                        "\(NSLocaleCurrencySymbol) is not equal to kCFLocaleCurrencySymbolKey")
+        XCTAssertEqual(NSLocale.Key.currencySymbol.rawValue, "kCFLocaleCurrencySymbolKey",
+                        "\(NSLocale.Key.currencySymbol.rawValue) is not equal to kCFLocaleCurrencySymbolKey")
 
-        XCTAssertEqual(NSLocaleCurrencyCode, "currency",
-                        "\(NSLocaleCurrencyCode) is not equal to currency")
+        XCTAssertEqual(NSLocale.Key.currencyCode.rawValue, "currency",
+                        "\(NSLocale.Key.currencyCode.rawValue) is not equal to currency")
 
-        XCTAssertEqual(NSLocaleCollatorIdentifier, "kCFLocaleCollatorIdentifierKey",
-                        "\(NSLocaleCollatorIdentifier) is not equal to kCFLocaleCollatorIdentifierKey")
+        XCTAssertEqual(NSLocale.Key.collatorIdentifier.rawValue, "kCFLocaleCollatorIdentifierKey",
+                        "\(NSLocale.Key.collatorIdentifier.rawValue) is not equal to kCFLocaleCollatorIdentifierKey")
 
-        XCTAssertEqual(NSLocaleQuotationBeginDelimiterKey, "kCFLocaleQuotationBeginDelimiterKey",
-                        "\(NSLocaleQuotationBeginDelimiterKey) is not equal to kCFLocaleQuotationBeginDelimiterKey")
+        XCTAssertEqual(NSLocale.Key.quotationBeginDelimiterKey.rawValue, "kCFLocaleQuotationBeginDelimiterKey",
+                        "\(NSLocale.Key.quotationBeginDelimiterKey.rawValue) is not equal to kCFLocaleQuotationBeginDelimiterKey")
 
-        XCTAssertEqual(NSLocaleQuotationEndDelimiterKey, "kCFLocaleQuotationEndDelimiterKey",
-                        "\(NSLocaleQuotationEndDelimiterKey) is not equal to kCFLocaleQuotationEndDelimiterKey")
+        XCTAssertEqual(NSLocale.Key.quotationEndDelimiterKey.rawValue, "kCFLocaleQuotationEndDelimiterKey",
+                        "\(NSLocale.Key.quotationEndDelimiterKey.rawValue) is not equal to kCFLocaleQuotationEndDelimiterKey")
 
-        XCTAssertEqual(NSLocaleAlternateQuotationBeginDelimiterKey, "kCFLocaleAlternateQuotationBeginDelimiterKey",
-                        "\(NSLocaleAlternateQuotationBeginDelimiterKey) is not equal to kCFLocaleAlternateQuotationBeginDelimiterKey")
+        XCTAssertEqual(NSLocale.Key.alternateQuotationBeginDelimiterKey.rawValue, "kCFLocaleAlternateQuotationBeginDelimiterKey",
+                        "\(NSLocale.Key.alternateQuotationBeginDelimiterKey.rawValue) is not equal to kCFLocaleAlternateQuotationBeginDelimiterKey")
 
-        XCTAssertEqual(NSLocaleAlternateQuotationEndDelimiterKey, "kCFLocaleAlternateQuotationEndDelimiterKey",
-                        "\(NSLocaleAlternateQuotationEndDelimiterKey) is not equal to kCFLocaleAlternateQuotationEndDelimiterKey")
+        XCTAssertEqual(NSLocale.Key.alternateQuotationEndDelimiterKey.rawValue, "kCFLocaleAlternateQuotationEndDelimiterKey",
+                        "\(NSLocale.Key.alternateQuotationEndDelimiterKey.rawValue) is not equal to kCFLocaleAlternateQuotationEndDelimiterKey")
 
     }
 
     func test_copy() {
-        let locale = Locale(localeIdentifier: "en_US")
-        let localeCopy = locale.copy()
+        let locale = Locale(identifier: "en_US")
+        let localeCopy = locale
 
-        XCTAssertTrue(locale === localeCopy)
+        XCTAssertTrue(locale == localeCopy)
     }
 }

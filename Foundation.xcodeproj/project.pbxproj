@@ -229,6 +229,9 @@
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
 		5BC46D541D05D6D900005853 /* DateInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC46D531D05D6D900005853 /* DateInterval.swift */; };
 		5BCCA8D91CE6697F0059B963 /* URLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCCA8D81CE6697F0059B963 /* URLComponents.swift */; };
+		5BCD03821D3EE35C00E3FF9B /* TimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCD03811D3EE35C00E3FF9B /* TimeZone.swift */; };
+		5BD70FB21D3D4CDC003B9BF8 /* Locale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD70FB11D3D4CDC003B9BF8 /* Locale.swift */; };
+		5BD70FB41D3D4F8B003B9BF8 /* Calendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD70FB31D3D4F8B003B9BF8 /* Calendar.swift */; };
 		5BDC3FCA1BCF176100ED97BB /* NSCFArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FC91BCF176100ED97BB /* NSCFArray.swift */; };
 		5BDC3FCC1BCF177E00ED97BB /* NSCFString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FCB1BCF177E00ED97BB /* NSCFString.swift */; };
 		5BDC3FCE1BCF17D300ED97BB /* NSCFDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3FCD1BCF17D300ED97BB /* NSCFDictionary.swift */; };
@@ -619,6 +622,9 @@
 		5BC2C00D1C07832E00CC214E /* CFStringTransform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringTransform.c; sourceTree = "<group>"; };
 		5BC46D531D05D6D900005853 /* DateInterval.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateInterval.swift; sourceTree = "<group>"; };
 		5BCCA8D81CE6697F0059B963 /* URLComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLComponents.swift; sourceTree = "<group>"; };
+		5BCD03811D3EE35C00E3FF9B /* TimeZone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeZone.swift; sourceTree = "<group>"; };
+		5BD70FB11D3D4CDC003B9BF8 /* Locale.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Locale.swift; sourceTree = "<group>"; };
+		5BD70FB31D3D4F8B003B9BF8 /* Calendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Calendar.swift; sourceTree = "<group>"; };
 		5BDC3F191BCC440100ED97BB /* CFICULogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFICULogging.h; sourceTree = "<group>"; };
 		5BDC3F1C1BCC447900ED97BB /* CFStringLocalizedFormattingInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFStringLocalizedFormattingInternal.h; sourceTree = "<group>"; };
 		5BDC3F2E1BCC5DCB00ED97BB /* NSArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSArray.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -1520,6 +1526,7 @@
 			children = (
 				EADE0B871BD15DFF00C49C64 /* NSUserDefaults.swift */,
 				5BDC3F3B1BCC5DCB00ED97BB /* NSLocale.swift */,
+				5BD70FB11D3D4CDC003B9BF8 /* Locale.swift */,
 			);
 			name = UserDefaults;
 			sourceTree = "<group>";
@@ -1545,11 +1552,13 @@
 			isa = PBXGroup;
 			children = (
 				5BDC3F301BCC5DCB00ED97BB /* NSCalendar.swift */,
+				5BD70FB31D3D4F8B003B9BF8 /* Calendar.swift */,
 				5B0163BA1D024EB7003CCD96 /* DateComponents.swift */,
 				5BDC3F341BCC5DCB00ED97BB /* NSDate.swift */,
 				5BC46D531D05D6D900005853 /* DateInterval.swift */,
 				5B5C5EEF1CE61FA4001346BD /* Date.swift */,
 				5BDC3F491BCC5DCB00ED97BB /* NSTimeZone.swift */,
+				5BCD03811D3EE35C00E3FF9B /* TimeZone.swift */,
 			);
 			name = DateTime;
 			sourceTree = "<group>";
@@ -1908,7 +1917,9 @@
 				5BF7AEAE1BCD51F9008F214A /* NSFormatter.swift in Sources */,
 				EADE0B9C1BD15DFF00C49C64 /* NSFileManager.swift in Sources */,
 				5BF7AEA61BCD51F9008F214A /* NSCharacterSet.swift in Sources */,
+				5BD70FB41D3D4F8B003B9BF8 /* Calendar.swift in Sources */,
 				5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */,
+				5BD70FB21D3D4CDC003B9BF8 /* Locale.swift in Sources */,
 				EADE0BB71BD15E0000C49C64 /* NSStream.swift in Sources */,
 				5BF7AEBF1BCD51F9008F214A /* NSURL.swift in Sources */,
 				5BF7AEBC1BCD51F9008F214A /* NSThread.swift in Sources */,
@@ -1960,6 +1971,7 @@
 				EADE0BCC1BD15E0000C49C64 /* NSXMLNodeOptions.swift in Sources */,
 				5BECBA3A1D1CAE9A00B39B1F /* NSMeasurement.swift in Sources */,
 				5BF7AEB21BCD51F9008F214A /* NSNumber.swift in Sources */,
+				5BCD03821D3EE35C00E3FF9B /* TimeZone.swift in Sources */,
 				EADE0BBC1BD15E0000C49C64 /* NSURLCache.swift in Sources */,
 				5B4092121D1B30B40022B067 /* ExtraStringAPIs.swift in Sources */,
 				5BC46D541D05D6D900005853 /* DateInterval.swift in Sources */,
@@ -2407,6 +2419,10 @@
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",
+					"-DCF_CHARACTERSET_UNICODE_DATA_B=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-B.mapping\\\\\"",
+					"-DCF_CHARACTERSET_UNICHAR_DB=\\\\\"CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data\\\\\"",
+					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2442,6 +2458,10 @@
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",
+					"-DCF_CHARACTERSET_UNICODE_DATA_B=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-B.mapping\\\\\"",
+					"-DCF_CHARACTERSET_UNICHAR_DB=\\\\\"CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data\\\\\"",
+					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";

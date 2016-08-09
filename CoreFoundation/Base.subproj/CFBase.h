@@ -302,15 +302,30 @@ CF_EXTERN_C_BEGIN
 
 
 #if !__has_feature(nullability)
+#ifndef _Nullable
+#define _Nullable
+#endif
+
 #ifndef __nullable
 #define __nullable
 #endif
+
 #ifndef __nonnull
 #define __nonnull
 #endif
+
+#ifndef _Nonnull
+#define _Nonnull
+#endif
+
 #ifndef __null_unspecified
 #define __null_unspecified
 #endif
+
+#ifndef _Null_unspecified
+#define _Null_unspecified
+#endif
+
 #endif
 
 

@@ -87,6 +87,7 @@ class TestNSString : XCTestCase {
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_PrefixSuffix", test_PrefixSuffix),
+            ("test_utf16StringRangeCount", test_StringUTF16ViewIndexStrideableRange),
             ("test_reflection", { _ in test_reflection }),
         ]
     }
@@ -310,7 +311,7 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").uppercased, "たちつてと")
 
         // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
-        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: Locale(localeIdentifier: "en")), "\u{0049}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: Locale(identifier: "en")), "\u{0049}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0069}").uppercased(with: NSLocale(localeIdentifier: "tr")), "\u{0130}")
         XCTAssertEqual(NSString(stringLiteral: "\u{00df}").uppercased, "\u{0053}\u{0053}")
@@ -324,10 +325,10 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(NSString(stringLiteral: "たちつてと").lowercased, "たちつてと")
 
         // Special casing (see swift/validation-tests/stdlib/NSStringAPI.swift)
-        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: Locale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: Locale(identifier: "en")), "\u{0069}\u{0307}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0130}").lowercased(with: NSLocale(localeIdentifier: "tr")), "\u{0069}")
-        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercased(with: Locale(localeIdentifier: "en")), "\u{0069}\u{0307}")
+        XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercased(with: Locale(identifier: "en")), "\u{0069}\u{0307}")
         // Currently fails; likely there are locale loading issues that are preventing this from functioning correctly
         // XCTAssertEqual(NSString(stringLiteral: "\u{0049}\u{0307}").lowercaseStringWithLocale(NSLocale(localeIdentifier: "tr")), "\u{0069}")
     }
@@ -937,6 +938,34 @@ class TestNSString : XCTestCase {
         }
     }
     
+    //[SR-1988] Ranges of String.UTF16View.Index have negative count
+    func test_StringUTF16ViewIndexStrideableRange(){
+        let testStrings = ["", "\u{0000}", "a", "aa", "ab", "\u{007f}", "\u{0430}", "\u{0430}\u{0431}\u{0432}","\u{1f425}"]
+        
+        func checkStrideable<S : Strideable>(
+            instances: [S],
+            distances: [S.Stride],
+            distanceOracle: (Int, Int) -> S.Stride
+            ) {
+            for i in instances.indices {
+                let first = instances[i]
+                for j in instances.indices {
+                    let second = instances[j]
+                    XCTAssertTrue(distanceOracle(i, j) == first.distance(to: second))
+                    XCTAssertTrue(second == first.advanced(by: distanceOracle(i, j)))
+                }
+            }
+        }
+        testStrings.forEach{
+            let utf16 = $0.utf16
+            var indicies = Array(utf16.indices)
+            indicies.append(utf16.indices.endIndex)
+            checkStrideable(instances: indicies,
+                            distances: Array(0..<utf16.count),
+                       distanceOracle: {$1 - $0})
+        }
+    }
+    
     func test_mutableStringConstructor() {
         let mutableString = NSMutableString(string: "Test")
         XCTAssertEqual(mutableString, "Test")
@@ -1141,7 +1170,7 @@ extension TestNSString {
 func test_reflection() {
     let testString: NSString = "some text here"
     
-    let ql = PlaygroundQuickLook(reflecting: testString)
+    let ql = _PlaygroundQuickLook(reflecting: testString)
 
     switch ql {
     case .text(let str): XCTAssertEqual(testString.bridge(), str)
