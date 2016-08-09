@@ -38,6 +38,10 @@ open class HTTPCookieStorage: NSObject {
     
     public override init() { NSUnimplemented() }
     
+    open var cookies: [HTTPCookie]? {
+        NSUnimplemented()
+    }
+    
     /*!
         @method sharedHTTPCookieStorage
         @abstract Get the shared cookie storage in the default location.
@@ -72,13 +76,13 @@ open class HTTPCookieStorage: NSObject {
         @method deleteCookie:
         @abstract Delete the specified cookie
     */
-    public func deleteCookie(_ cookie: HTTPCookie) { NSUnimplemented() }
+    open func deleteCookie(_ cookie: HTTPCookie) { NSUnimplemented() }
     
     /*!
      @method removeCookiesSince:
      @abstract Delete all cookies from the cookie storage since the provided date.
      */
-    open func removeCookiesSinceDate(_ date: Date) { NSUnimplemented() }
+    open func removeCookies(since date: Date) { NSUnimplemented() }
     
     /*!
         @method cookiesForURL:
@@ -90,7 +94,7 @@ open class HTTPCookieStorage: NSObject {
         <tt>+[NSCookie requestHeaderFieldsWithCookies:]</tt> to turn this array
         into a set of header fields to add to a request.
     */
-    open func cookiesForURL(_ url: URL) -> [HTTPCookie]? { NSUnimplemented() }
+    open func cookies(for url: URL) -> [HTTPCookie]? { NSUnimplemented() }
     
     /*!
         @method setCookies:forURL:mainDocumentURL:
@@ -109,7 +113,7 @@ open class HTTPCookieStorage: NSObject {
         dictionary and then use this method to store the resulting cookies
         in accordance with policy settings.
     */
-    open func setCookies(_ cookies: [HTTPCookie], forURL url: URL?, mainDocumentURL: URL?) { NSUnimplemented() }
+    open func setCookies(_ cookies: [HTTPCookie], for url: URL?, mainDocumentURL: URL?) { NSUnimplemented() }
     
     /*!
         @method cookieAcceptPolicy
@@ -124,7 +128,7 @@ open class HTTPCookieStorage: NSObject {
       @param sortOrder an array of NSSortDescriptors which represent the preferred sort order of the resulting array.
       @discussion proper sorting of cookies may require extensive string conversion, which can be avoided by allowing the system to perform the sorting.  This API is to be preferred over the more generic -[NSHTTPCookieStorage cookies] API, if sorting is going to be performed.
     */
-    open func sortedCookiesUsingDescriptors(_ sortOrder: [SortDescriptor]) -> [HTTPCookie] { NSUnimplemented() }
+    open func sortedCookies(using sortOrder: [SortDescriptor]) -> [HTTPCookie] { NSUnimplemented() }
 }
 
 /*!
