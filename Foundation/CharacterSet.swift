@@ -54,12 +54,19 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
         releaseWrappedObject()
     }
 
-// These for some reason cause a crash in the compiler
-    // Stubs
-    // -----
 
-    // Immutable
-
+   override func copy(with zone: NSZone? = nil) -> AnyObject {
+        return _mapUnmanaged { $0.copy(with: zone) }
+    }
+    
+    override func mutableCopy(with zone: NSZone? = nil) ->  AnyObject {
+        return _mapUnmanaged { $0.mutableCopy(with: zone) }
+    }
+    
+    public override var classForCoder: AnyClass {
+        return NSCharacterSet.self
+    }
+    
     override var bitmapRepresentation: Data {
         return _mapUnmanaged { $0.bitmapRepresentation }
     }
@@ -68,15 +75,15 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
         return _mapUnmanaged { $0.inverted }
     }
 
-    override func hasMember(inPlane plane: UInt8) -> Bool {
-        return _mapUnmanaged {$0.hasMember(inPlane: plane) }
+    override func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
+        return _mapUnmanaged {$0.hasMemberInPlane(thePlane) }
     }
 
     override func characterIsMember(_ member: unichar) -> Bool {
         return _mapUnmanaged { $0.characterIsMember(member) }
     }
 
-    override func longCharacterIsMember(_ member: UInt32) -> Bool {
+    override func longCharacterIsMember(_ member: UTF32Char) -> Bool {
         return _mapUnmanaged { $0.longCharacterIsMember(member) }
     }
 
@@ -173,109 +180,109 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns a character set containing the characters in Unicode General Category Cc and Cf.
     public static var controlCharacters : CharacterSet {
-        return NSCharacterSet.controlCharacters()
+        return CharacterSet(reference: NSCharacterSet.controlCharacters._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in Unicode General Category Zs and `CHARACTER TABULATION (U+0009)`.
     public static var whitespaces : CharacterSet {
-        return NSCharacterSet.whitespaces()
+        return CharacterSet(reference: NSCharacterSet.whitespaces._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing characters in Unicode General Category Z*, `U+000A ~ U+000D`, and `U+0085`.
     public static var whitespacesAndNewlines : CharacterSet {
-        return NSCharacterSet.whitespacesAndNewlines()
+        return CharacterSet(reference: NSCharacterSet.whitespacesAndNewlines._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in the category of Decimal Numbers.
     public static var decimalDigits : CharacterSet {
-        return NSCharacterSet.decimalDigits()
+        return CharacterSet(reference: NSCharacterSet.decimalDigits._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in Unicode General Category L* & M*.
     public static var letters : CharacterSet {
-        return NSCharacterSet.letters()
+        return CharacterSet(reference: NSCharacterSet.letters._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in Unicode General Category Ll.
     public static var lowercaseLetters : CharacterSet {
-        return NSCharacterSet.lowercaseLetters()
+        return CharacterSet(reference: NSCharacterSet.lowercaseLetters._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lu and Lt.
     public static var uppercaseLetters : CharacterSet {
-        return NSCharacterSet.uppercaseLetters()
+        return CharacterSet(reference: NSCharacterSet.uppercaseLetters._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in Unicode General Category M*.
     public static var nonBaseCharacters : CharacterSet {
-        return NSCharacterSet.nonBaseCharacters()
+        return CharacterSet(reference: NSCharacterSet.nonBaseCharacters._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in Unicode General Categories L*, M*, and N*.
     public static var alphanumerics : CharacterSet {
-        return NSCharacterSet.alphanumerics()
+        return CharacterSet(reference: NSCharacterSet.alphanumerics._bridgeToObjectiveC())
     }
     
-    /// Returns a character set containing individual Unicode characters that can also be represented as composed character sequences (such as for letters with accents), by the definition of “standard decomposition” in version 3.2 of the Unicode character encoding standard.
+    /// Returns a character set containing individual Unicode characters that can also be represented as composed character sequences (such as for letters with accents), by the definition of "standard decomposition" in version 3.2 of the Unicode character encoding standard.
     public static var decomposables : CharacterSet {
-        return NSCharacterSet.decomposables()
+        return CharacterSet(reference: NSCharacterSet.decomposables._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing values in the category of Non-Characters or that have not yet been defined in version 3.2 of the Unicode standard.
     public static var illegalCharacters : CharacterSet {
-        return NSCharacterSet.illegalCharacters()
+        return CharacterSet(reference: NSCharacterSet.illegalCharacters._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in Unicode General Category P*.
     public static var punctuation : CharacterSet {
-        return NSCharacterSet.punctuation()
+        return CharacterSet(reference: NSCharacterSet.punctuation._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lt.
     public static var capitalizedLetters : CharacterSet {
-        return NSCharacterSet.capitalizedLetters()
+        return CharacterSet(reference: NSCharacterSet.capitalizedLetters._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the characters in Unicode General Category S*.
     public static var symbols : CharacterSet {
-        return NSCharacterSet.symbols()
+        return CharacterSet(reference: NSCharacterSet.symbols._bridgeToObjectiveC())
     }
     
     /// Returns a character set containing the newline characters (`U+000A ~ U+000D`, `U+0085`, `U+2028`, and `U+2029`).
     public static var newlines : CharacterSet {
-        return NSCharacterSet.newlines()
+        return CharacterSet(reference: NSCharacterSet.newlines._bridgeToObjectiveC())
     }
     
     // MARK: Static functions, from NSURL
     
     /// Returns the character set for characters allowed in a user URL subcomponent.
     public static var urlUserAllowed : CharacterSet {
-        return NSCharacterSet.urlUserAllowed
+        return CharacterSet(reference: NSCharacterSet.urlUserAllowed._bridgeToObjectiveC())
     }
     
     /// Returns the character set for characters allowed in a password URL subcomponent.
     public static var urlPasswordAllowed : CharacterSet {
-        return NSCharacterSet.urlPasswordAllowed
+        return CharacterSet(reference: NSCharacterSet.urlPasswordAllowed._bridgeToObjectiveC())
     }
     
     /// Returns the character set for characters allowed in a host URL subcomponent.
     public static var urlHostAllowed : CharacterSet {
-        return NSCharacterSet.urlHostAllowed
+        return CharacterSet(reference: NSCharacterSet.urlHostAllowed._bridgeToObjectiveC())
     }
     
     /// Returns the character set for characters allowed in a path URL component.
     public static var urlPathAllowed : CharacterSet {
-        return NSCharacterSet.urlPathAllowed
+        return CharacterSet(reference: NSCharacterSet.urlPathAllowed._bridgeToObjectiveC())
     }
     
     /// Returns the character set for characters allowed in a query URL component.
     public static var urlQueryAllowed : CharacterSet {
-        return NSCharacterSet.urlQueryAllowed
+        return CharacterSet(reference: NSCharacterSet.urlQueryAllowed._bridgeToObjectiveC())
     }
     
     /// Returns the character set for characters allowed in a fragment URL component.
     public static var urlFragmentAllowed : CharacterSet {
-        return NSCharacterSet.urlFragmentAllowed
+        return CharacterSet(reference: NSCharacterSet.urlFragmentAllowed._bridgeToObjectiveC())
     }
     
     // MARK: Immutable functions
@@ -294,7 +301,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     ///
     /// This method makes it easier to find the plane containing the members of the current character set. The Basic Multilingual Plane (BMP) is plane 0.
     public func hasMember(inPlane plane: UInt8) -> Bool {
-        return _mapUnmanaged { $0.hasMember(inPlane: plane) }
+        return _mapUnmanaged { $0.hasMemberInPlane(plane) }
     }
     
     // MARK: Mutable functions
@@ -359,7 +366,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     // -----
     // MARK: -
     // MARK: SetAlgebraType
-    
+
     /// Insert a `UnicodeScalar` representation of a character into the `CharacterSet`.
     ///
     /// `UnicodeScalar` values are available on `Swift.String.UnicodeScalarView`.
@@ -448,11 +455,11 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     public func isSuperset(of other: CharacterSet) -> Bool {
         return _mapUnmanaged { $0.isSuperset(of: other) }
     }
-}
 
-/// Returns true if the two `CharacterSet`s are equal.
-public func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
-    return lhs._wrapped.isEqual(rhs._bridgeToObjectiveC())
+    /// Returns true if the two `CharacterSet`s are equal.
+    public static func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
+        return lhs._wrapped.isEqual(rhs._bridgeToObjectiveC()) // TODO: mlehew - as  NSCharacterSet
+    }
 }
 
 
@@ -484,10 +491,4 @@ extension CharacterSet {
         return CharacterSet(_bridged: source!)
     }
     
-}
-
-extension CharacterSet {
-    public func contains(_ member: unichar) -> Bool {
-        return contains(UnicodeScalar(member)!)
-    }
 }
