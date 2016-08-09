@@ -45,7 +45,7 @@ open class DateFormatter : Formatter {
 
     open func objectValue(_ string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
 
-    open override func string(for obj: AnyObject) -> String? {
+    open override func string(for obj: Any) -> String? {
         guard let date = obj as? Date else { return nil }
         return string(from: date)
     }

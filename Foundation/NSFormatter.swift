@@ -65,7 +65,7 @@ open class Formatter : NSObject, NSCopying, NSCoding {
         return self
     }
     
-    open func string(for obj: AnyObject) -> String? {
+    open func string(for obj: Any) -> String? {
         NSRequiresConcreteImplementation()
     }
     
@@ -75,7 +75,7 @@ open class Formatter : NSObject, NSCopying, NSCoding {
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open func objectValue(_ string: String) throws -> AnyObject? {
+    open func objectValue(_ string: String) throws -> Any? {
         NSRequiresConcreteImplementation()
     }
 }
