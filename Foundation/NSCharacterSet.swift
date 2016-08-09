@@ -190,11 +190,11 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(plane))
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
             return _CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
         } else if type(of: self) == _NSCFCharacterSet.self {
@@ -204,11 +204,11 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         }
     }
     
-    open override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
     
-    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> Any {
         if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
             return _CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
         } else if type(of: self) == _NSCFCharacterSet.self {

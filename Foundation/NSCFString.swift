@@ -171,11 +171,11 @@ internal func _CFSwiftStringCreateWithSubstring(_ str: AnyObject, range: CFRange
 
 
 internal func _CFSwiftStringCreateCopy(_ str: AnyObject) -> Unmanaged<AnyObject> {
-    return Unmanaged<AnyObject>.passRetained((str as! NSString).copy(with: nil))
+    return Unmanaged<AnyObject>.passRetained((str as! NSString).copy() as! NSObject)
 }
 
 internal func _CFSwiftStringCreateMutableCopy(_ str: AnyObject) -> Unmanaged<AnyObject> {
-    return Unmanaged<AnyObject>.passRetained((str as! NSString).mutableCopy(with: nil))
+    return Unmanaged<AnyObject>.passRetained((str as! NSString).mutableCopy() as! NSObject)
 }
 
 internal func _CFSwiftStringFastCStringContents(_ str: AnyObject) -> UnsafePointer<Int8>? {

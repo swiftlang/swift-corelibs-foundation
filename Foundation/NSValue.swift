@@ -144,11 +144,11 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return true
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         return self
     }
 }

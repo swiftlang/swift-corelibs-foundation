@@ -31,7 +31,7 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     
     open func subtracting(_ measurement: Measurement<Unit>) -> Measurement<Unit> { NSUnimplemented() }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
     
     open class func supportsSecureCoding() -> Bool { return true }
     

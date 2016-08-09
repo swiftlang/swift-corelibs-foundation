@@ -12,19 +12,19 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     internal var _storage: Set<NSObject>
     internal var _orderedStorage: [NSObject]
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         NSUnimplemented()
     }
 
-    open override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
 
-    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> Any {
         NSUnimplemented()
     }
     
@@ -305,7 +305,7 @@ extension NSOrderedSet {
             objects = [AnyObject]()
             for index in range.indices {
                 let object = set[index] as! NSObject
-                objects.append(flag ? object.copy() : object)
+                objects.append(flag ? object.copy() as! NSObject : object)
             }
         }
 

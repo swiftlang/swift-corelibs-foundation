@@ -101,11 +101,11 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         return self
     }
     

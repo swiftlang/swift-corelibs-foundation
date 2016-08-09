@@ -106,11 +106,11 @@ public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMe
 */
 open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
     public static func supportsSecureCoding() -> Bool { return true }
     open func encode(with aCoder: NSCoder) {
         NSUnimplemented()

@@ -260,19 +260,19 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         self.init(aString)
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         return self
     }
     
-    open override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
     
-    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSString.self || type(of: self) === NSMutableString.self {
             if let contents = _fastContents {
                 return NSMutableString(characters: contents, length: length)

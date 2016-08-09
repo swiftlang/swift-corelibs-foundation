@@ -288,7 +288,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     
     internal init(_bridged data: NSData) {
         // We must copy the input because it might be mutable; just like storing a value type in ObjC
-        _wrapped = _SwiftNSData(immutableObject: data.copy())
+        _wrapped = _SwiftNSData(immutableObject: data.copy() as! NSObject)
     }
     
     // -----------------------------------
