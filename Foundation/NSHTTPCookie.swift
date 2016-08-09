@@ -7,45 +7,70 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-/// Key for cookie name
-public let NSHTTPCookieName: String = "Name"
+public struct HTTPCookiePropertyKey : RawRepresentable, Equatable, Hashable, Comparable {
+    public private(set) var rawValue: String
+    
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
+    public var hashValue: Int {
+        return self.rawValue.hashValue
+    }
+    
+    public static func ==(_ lhs: HTTPCookiePropertyKey, _ rhs: HTTPCookiePropertyKey) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
+    
+    public static func <(_ lhs: HTTPCookiePropertyKey, _ rhs: HTTPCookiePropertyKey) -> Bool {
+        return rhs.rawValue == rhs.rawValue
+    }
+}
 
-/// Key for cookie value
-public let NSHTTPCookieValue: String = "Value"
+extension HTTPCookiePropertyKey {
+    /// Key for cookie name
+    public static let name = HTTPCookiePropertyKey(rawValue: "Name")
 
-/// Key for cookie origin URL
-public let NSHTTPCookieOriginURL: String = "OriginURL"
+    /// Key for cookie value
+    public static let value = HTTPCookiePropertyKey(rawValue: "Value")
+    
+    /// Key for cookie origin URL
+    public static let originURL = HTTPCookiePropertyKey(rawValue: "OriginURL")
 
-/// Key for cookie version
-public let NSHTTPCookieVersion: String = "Version"
+    /// Key for cookie version
+    public static let version = HTTPCookiePropertyKey(rawValue: "Version")
+    
+    /// Key for cookie domain
+    public static let domain = HTTPCookiePropertyKey(rawValue: "Domain")
+    
+    /// Key for cookie path
+    public static let path = HTTPCookiePropertyKey(rawValue: "Path")
+    
+    /// Key for cookie secure flag
+    public static let secure = HTTPCookiePropertyKey(rawValue: "Secure")
+    
+    /// Key for cookie expiration date
+    public static let expires = HTTPCookiePropertyKey(rawValue: "Expires")
 
-/// Key for cookie domain
-public let NSHTTPCookieDomain: String = "Domain"
+    /// Key for cookie comment text
+    public static let comment = HTTPCookiePropertyKey(rawValue: "Comment")
+    
+    /// Key for cookie comment URL
+    public static let commentURL = HTTPCookiePropertyKey(rawValue: "CommentURL")
+    
+    /// Key for cookie discard (session-only) flag
+    public static let discard = HTTPCookiePropertyKey(rawValue: "Discard")
+ 
+    /// Key for cookie maximum age (an alternate way of specifying the expiration)
+    public static let maximumAge = HTTPCookiePropertyKey(rawValue: "Max-Age")
 
-/// Key for cookie path
-public let NSHTTPCookiePath: String = "Path"
-
-/// Key for cookie secure flag
-public let NSHTTPCookieSecure: String = "Secure"
-
-/// Key for cookie expiration date
-public let NSHTTPCookieExpires: String = "Expires"
-
-/// Key for cookie comment text
-public let NSHTTPCookieComment: String = "Comment"
-
-/// Key for cookie comment URL
-public let NSHTTPCookieCommentURL: String = "CommentURL"
-
-/// Key for cookie discard (session-only) flag
-public let NSHTTPCookieDiscard: String = "Discard"
-
-/// Key for cookie maximum age (an alternate way of specifying the expiration)
-public let NSHTTPCookieMaximumAge: String = "Max-Age"
-
-/// Key for cookie ports
-public let NSHTTPCookiePort: String = "Port"
-
+    /// Key for cookie ports
+    public static let port = HTTPCookiePropertyKey(rawValue: "Port")
+}
 
 /// `NSHTTPCookie` represents an http cookie.
 ///
@@ -67,12 +92,12 @@ open class HTTPCookie : NSObject {
     let _portList: [NSNumber]?
     let _value: String
     let _version: Int
-    var _properties: [String : Any]
+    var _properties: [HTTPCookiePropertyKey : Any]
 
-    static let _attributes: [String] = [NSHTTPCookieName, NSHTTPCookieValue, NSHTTPCookieOriginURL, NSHTTPCookieVersion,
-                                        NSHTTPCookieDomain, NSHTTPCookiePath, NSHTTPCookieSecure, NSHTTPCookieExpires, 
-                                        NSHTTPCookieComment, NSHTTPCookieCommentURL, NSHTTPCookieDiscard, NSHTTPCookieMaximumAge,
-                                        NSHTTPCookiePort] 
+    static let _attributes: [HTTPCookiePropertyKey] = [.name, .value, .originURL, .version,
+                                                       .domain, .path, .secure, .expires,
+                                                       .comment, .commentURL, .discard, .maximumAge,
+                                                       .port]
 
     /// Initialize a NSHTTPCookie object with a dictionary of parameters
     ///
@@ -93,46 +118,46 @@ open class HTTPCookie : NSObject {
     ///     <th>Description</th>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieComment</td>
+    ///     <td>HTTPCookiePropertyKey.comment</td>
     ///     <td>NSString</td>
     ///     <td>NO</td>
     ///     <td>Comment for the cookie. Only valid for version 1 cookies and
     ///     later. Default is nil.</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieCommentURL</td>
+    ///     <td>HTTPCookiePropertyKey.commentURL</td>
     ///     <td>NSURL or NSString</td>
     ///     <td>NO</td>
     ///     <td>Comment URL for the cookie. Only valid for version 1 cookies
     ///     and later. Default is nil.</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieDomain</td>
+    ///     <td>HTTPCookiePropertyKey.domain</td>
     ///     <td>NSString</td>
-    ///     <td>Special, a value for either NSHTTPCookieOriginURL or
-    ///     NSHTTPCookieDomain must be specified.</td>
+    ///     <td>Special, a value for either .originURL or
+    ///     HTTPCookiePropertyKey.domain must be specified.</td>
     ///     <td>Domain for the cookie. Inferred from the value for
-    ///     NSHTTPCookieOriginURL if not provided.</td>
+    ///     HTTPCookiePropertyKey.originURL if not provided.</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieDiscard</td>
+    ///     <td>HTTPCookiePropertyKey.discard</td>
     ///     <td>NSString</td>
     ///     <td>NO</td>
     ///     <td>A string stating whether the cookie should be discarded at
     ///     the end of the session. String value must be either "TRUE" or
     ///     "FALSE". Default is "FALSE", unless this is cookie is version
-    ///     1 or greater and a value for NSHTTPCookieMaximumAge is not
+    ///     1 or greater and a value for HTTPCookiePropertyKey.maximumAge is not
     ///     specified, in which case it is assumed "TRUE".</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieExpires</td>
+    ///     <td>HTTPCookiePropertyKey.expires</td>
     ///     <td>NSDate or NSString</td>
     ///     <td>NO</td>
     ///     <td>Expiration date for the cookie. Used only for version 0
     ///     cookies. Ignored for version 1 or greater.</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieMaximumAge</td>
+    ///     <td>HTTPCookiePropertyKey.maximumAge</td>
     ///     <td>NSString</td>
     ///     <td>NO</td>
     ///     <td>A string containing an integer value stating how long in
@@ -140,28 +165,29 @@ open class HTTPCookie : NSObject {
     ///     version 1 cookies and later. Default is "0".</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieName</td>
+    ///     <td>HTTPCookiePropertyKey.name</td>
     ///     <td>NSString</td>
     ///     <td>YES</td>
     ///     <td>Name of the cookie</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieOriginURL</td>
+    ///     <td>HTTPCookiePropertyKey.originURL</td>
     ///     <td>NSURL or NSString</td>
-    ///     <td>Special, a value for either NSHTTPCookieOriginURL or
-    ///     NSHTTPCookieDomain must be specified.</td>
+    ///     <td>Special, a value for either HTTPCookiePropertyKey.originURL or
+    ///     HTTPCookiePropertyKey.domain must be specified.</td>
     ///     <td>URL that set this cookie. Used as default for other fields
     ///     as noted.</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookiePath</td>
+    ///     <td>HTTPCookiePropertyKey.path</td>
     ///     <td>NSString</td>
     ///     <td>NO</td>
     ///     <td>Path for the cookie. Inferred from the value for
-    ///     NSHTTPCookieOriginURL if not provided. Default is "/".</td>
+    ///     HTTPCookiePropertyKey.originURL if not provided. Default is "/".
+    ///     </td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookiePort</td>
+    ///     <td>HTTPCookiePropertyKey.port</td>
     ///     <td>NSString</td>
     ///     <td>NO</td>
     ///     <td>comma-separated integer values specifying the ports for the
@@ -169,7 +195,7 @@ open class HTTPCookie : NSObject {
     ///     empty string ("").</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieSecure</td>
+    ///     <td>HTTPCookiePropertyKey.secure</td>
     ///     <td>NSString</td>
     ///     <td>NO</td>
     ///     <td>A string stating whether the cookie should be transmitted
@@ -177,13 +203,13 @@ open class HTTPCookie : NSObject {
     ///     or "FALSE". Default is "FALSE".</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieValue</td>
+    ///     <td>HTTPCookiePropertyKey.value</td>
     ///     <td>NSString</td>
     ///     <td>YES</td>
     ///     <td>Value of the cookie</td>
     /// </tr>
     /// <tr>
-    ///     <td>NSHTTPCookieVersion</td>
+    ///     <td>HTTPCookiePropertyKey.version</td>
     ///     <td>NSString</td>
     ///     <td>NO</td>
     ///     <td>Specifies the version of the cookie. Must be either "0" or
@@ -199,20 +225,20 @@ open class HTTPCookie : NSObject {
     ///
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public init?(properties: [String : Any]) {
+    public init?(properties: [HTTPCookiePropertyKey : Any]) {
         guard
-            let path = properties[NSHTTPCookiePath] as? String,
-            let name = properties[NSHTTPCookieName] as? String,
-            let value = properties[NSHTTPCookieValue] as? String
+            let path = properties[.path] as? String,
+            let name = properties[.name] as? String,
+            let value = properties[.value] as? String
         else {
             return nil
         }
 
         let canonicalDomain: String
-        if let domain = properties[NSHTTPCookieDomain] as? String {
+        if let domain = properties[.domain] as? String {
             canonicalDomain = domain
         } else if
-            let originURL = properties[NSHTTPCookieOriginURL] as? URL,
+            let originURL = properties[.originURL] as? URL,
             let host = originURL.host
         {
             canonicalDomain = host
@@ -226,7 +252,7 @@ open class HTTPCookie : NSObject {
         _domain = canonicalDomain
 
         if let
-            secureString = properties[NSHTTPCookieSecure] as? String, secureString.characters.count > 0
+            secureString = properties[.secure] as? String, secureString.characters.count > 0
         {
             _secure = true
         } else {
@@ -235,7 +261,7 @@ open class HTTPCookie : NSObject {
 
         let version: Int
         if let
-            versionString = properties[NSHTTPCookieVersion] as? String, versionString == "1"
+            versionString = properties[.version] as? String, versionString == "1"
         {
             version = 1
         } else {
@@ -243,7 +269,7 @@ open class HTTPCookie : NSObject {
         }
         _version = version
         
-        if let portString = properties[NSHTTPCookiePort] as? String, _version == 1 {
+        if let portString = properties[.port] as? String, _version == 1 {
             _portList = portString.characters
                 .split(separator: ",")
                 .flatMap { Int(String($0)) }
@@ -254,7 +280,7 @@ open class HTTPCookie : NSObject {
 
         // TODO: factor into a utility function
         if version == 0 {
-            let expiresProperty = properties[NSHTTPCookieExpires]
+            let expiresProperty = properties[.expires]
             if let date = expiresProperty as? Date {
                 _expiresDate = date
             } else if let dateString = expiresProperty as? String {
@@ -268,7 +294,7 @@ open class HTTPCookie : NSObject {
                 _expiresDate = nil
             }
         } else if
-            let maximumAge = properties[NSHTTPCookieMaximumAge] as? String,
+            let maximumAge = properties[.maximumAge] as? String,
             let secondsFromNow = Int(maximumAge), _version == 1 {
             _expiresDate = Date(timeIntervalSinceNow: Double(secondsFromNow))
         } else {
@@ -276,39 +302,39 @@ open class HTTPCookie : NSObject {
         }
         
         
-        if let discardString = properties[NSHTTPCookieDiscard] as? String {
+        if let discardString = properties[.discard] as? String {
             _sessionOnly = discardString == "TRUE"
         } else {
-            _sessionOnly = properties[NSHTTPCookieMaximumAge] == nil && version >= 1
+            _sessionOnly = properties[.maximumAge] == nil && version >= 1
         }
         if version == 0 {
             _comment = nil
             _commentURL = nil
         } else {
-            _comment = properties[NSHTTPCookieComment] as? String
-            if let commentURL = properties[NSHTTPCookieCommentURL] as? URL {
+            _comment = properties[.comment] as? String
+            if let commentURL = properties[.commentURL] as? URL {
                 _commentURL = commentURL
-            } else if let commentURL = properties[NSHTTPCookieCommentURL] as? String {
+            } else if let commentURL = properties[.commentURL] as? String {
                 _commentURL = URL(string: commentURL)
             } else {
                 _commentURL = nil
             }
         }
         _HTTPOnly = false
-        _properties = [NSHTTPCookieComment : properties[NSHTTPCookieComment],
-                       NSHTTPCookieCommentURL : properties[NSHTTPCookieCommentURL],
-                       "Created" : Date().timeIntervalSinceReferenceDate, // Cocoa Compatibility
-                       NSHTTPCookieDiscard : _sessionOnly,
-                       NSHTTPCookieDomain : _domain,
-                       NSHTTPCookieExpires : _expiresDate,
-                       NSHTTPCookieMaximumAge : properties[NSHTTPCookieMaximumAge],
-                       NSHTTPCookieName : _name,
-                       NSHTTPCookieOriginURL : properties[NSHTTPCookieOriginURL],
-                       NSHTTPCookiePath : _path,
-                       NSHTTPCookiePort : _portList,
-                       NSHTTPCookieSecure : _secure,
-                       NSHTTPCookieValue : _value,
-                       NSHTTPCookieVersion : _version
+        _properties = [.comment : properties[.comment],
+                       .commentURL : properties[.commentURL],
+                       HTTPCookiePropertyKey(rawValue: "Created") : Date().timeIntervalSinceReferenceDate, // Cocoa Compatibility
+                       .discard : _sessionOnly,
+                       .domain : _domain,
+                       .expires : _expiresDate,
+                       .maximumAge : properties[.maximumAge],
+                       .name : _name,
+                       .originURL : properties[.originURL],
+                       .path : _path,
+                       .port : _portList,
+                       .secure : _secure,
+                       .value : _value,
+                       .version : _version
         ]
     }
     
@@ -372,24 +398,24 @@ open class HTTPCookie : NSObject {
 
     //Bake a cookie
     private class func createHttpCookie(url: URL, pairs: [String], start: Int, end: Int) -> HTTPCookie? {
-        var properties: [String:Any] = [:]
+        var properties: [HTTPCookiePropertyKey : Any] = [:]
         for index in start..<end {
             let name = pairs[index].components(separatedBy: "=")[0]
             var value = pairs[index].components(separatedBy: "\(name)=")[1]  //a value can have an "="
-            if canonicalize(name) == "Expires" {
+            if canonicalize(name) == .expires {
                 value = value.insertComma(at: 3)    //re-insert the comma   
             }
             properties[canonicalize(name)] = value
         }
  
         //if domain wasn't provided use the URL
-        if properties[NSHTTPCookieDomain] == nil {
-            properties[NSHTTPCookieDomain] = url.absoluteString
+        if properties[.domain] == nil {
+            properties[.domain] = url.absoluteString
         }
         
         //the default Path is "/"
-        if properties[NSHTTPCookiePath] == nil {
-            properties[NSHTTPCookiePath] = "/"
+        if properties[.path] == nil {
+            properties[.path] = "/"
         } 
 
         return HTTPCookie(properties: properties)
@@ -406,19 +432,19 @@ open class HTTPCookie : NSObject {
     //These cookie attributes are defined in RFC 6265 and 2965(which is obsolete)
     //HTTPCookie supports these
     private class func isCookieAttribute(_ string: String) -> Bool {
-        return _attributes.first(where: {$0.caseInsensitiveCompare(string) == .orderedSame}) != nil
+        return _attributes.first(where: {$0.rawValue.caseInsensitiveCompare(string) == .orderedSame}) != nil
     }
 
     //Cookie attribute names are case-insensitive as per RFC6265: https://tools.ietf.org/html/rfc6265
     //but HTTPCookie needs only the first letter of each attribute in uppercase
-    private class func canonicalize(_ name: String) -> String {
-        let idx = _attributes.index(where: {$0.caseInsensitiveCompare(name) == .orderedSame})!
+    private class func canonicalize(_ name: String) -> HTTPCookiePropertyKey {
+        let idx = _attributes.index(where: {$0.rawValue.caseInsensitiveCompare(name) == .orderedSame})!
         return _attributes[idx]
     }
 
     //A name=value pair should be translated to two properties, Name=name and Value=value
     private class func createNameValuePair(pair: String) -> [String] {
-        if pair.caseInsensitiveCompare(NSHTTPCookieSecure) == .orderedSame {
+        if pair.caseInsensitiveCompare(HTTPCookiePropertyKey.secure.rawValue) == .orderedSame {
             return ["Secure=TRUE"]
         }
         let name = pair.components(separatedBy: "=")[0]
@@ -441,7 +467,7 @@ open class HTTPCookie : NSObject {
     ///
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open var properties: [String : Any]? {
+    open var properties: [HTTPCookiePropertyKey : Any]? {
         return _properties
     }
     
