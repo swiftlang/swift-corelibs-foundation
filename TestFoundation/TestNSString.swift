@@ -272,7 +272,7 @@ class TestNSString : XCTestCase {
     }
 
     func test_FromContentsOfURL() {
-        guard let testFileURL = testBundle().urlForResource("NSStringTestData", withExtension: "txt") else {
+        guard let testFileURL = testBundle().url(forResource: "NSStringTestData", withExtension: "txt") else {
             XCTFail("URL for NSStringTestData.txt is nil")
             return
         }
@@ -292,7 +292,7 @@ class TestNSString : XCTestCase {
     }
 
     func test_FromContentOfFile() {
-        let testFilePath = testBundle().pathForResource("NSStringTestData", ofType: "txt")
+        let testFilePath = testBundle().path(forResource: "NSStringTestData", ofType: "txt")
         XCTAssertNotNil(testFilePath)
         
         do {

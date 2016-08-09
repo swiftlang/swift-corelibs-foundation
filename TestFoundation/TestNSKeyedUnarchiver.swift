@@ -34,7 +34,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
     
     private func test_unarchive_from_file(_ filename : String, _ expectedObject : NSObject) {
-        guard let testFilePath = testBundle().pathForResource(filename, ofType: "plist") else {
+        guard let testFilePath = testBundle().path(forResource: filename, ofType: "plist") else {
             XCTFail("Could not find \(filename)")
             return
         }
