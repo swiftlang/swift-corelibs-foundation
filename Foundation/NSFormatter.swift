@@ -69,7 +69,7 @@ open class Formatter : NSObject, NSCopying, NSCoding {
         NSRequiresConcreteImplementation()
     }
     
-    open func editingString(for obj: AnyObject) -> String? {
+    open func editingString(for obj: Any) -> String? {
         return string(for: obj)
     }
     
