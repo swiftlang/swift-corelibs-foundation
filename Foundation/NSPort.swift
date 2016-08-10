@@ -26,7 +26,7 @@ open class Port : NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         NSUnimplemented()
     }
     

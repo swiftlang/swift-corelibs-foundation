@@ -99,11 +99,11 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         }
     }
     
-    override func copy() -> AnyObject {
+    override func copy() -> Any {
         return copy(with: nil)
     }
     
-    func copy(with zone: NSZone? = nil) -> AnyObject {
+    func copy(with zone: NSZone? = nil) -> Any {
         return self
     }
 }

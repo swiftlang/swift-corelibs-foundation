@@ -171,11 +171,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return true
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
 
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSDictionary.self {
             // return self for immutable type
             return self
@@ -187,11 +187,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return NSDictionary(objects: self.allValues, forKeys: self.allKeys.map({ $0 as! NSObject}))
     }
 
-    open override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
 
-    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             // always create and return an NSMutableDictionary
             let mutableDictionary = NSMutableDictionary()

@@ -17,11 +17,11 @@ open class Scanner: NSObject, NSCopying {
     internal var _invertedSkipSet: CharacterSet?
     internal var _scanLocation: Int
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         return Scanner(string: string)
     }
     

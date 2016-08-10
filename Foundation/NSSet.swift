@@ -148,11 +148,11 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         self.allObjects._nsObject.encode(with: aCoder)
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSSet.self {
             // return self for immutable type
             return self
@@ -164,11 +164,11 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         return NSSet(array: self.allObjects)
     }
     
-    open override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
 
-    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
             // always create and return an NSMutableSet
             let mutableSet = NSMutableSet()
@@ -217,7 +217,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
     public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
         var array = set.bridge().allObjects
         if (flag) {
-            array = array.map() { ($0 as! NSObject).copy() }
+            array = array.map() { ($0 as! NSObject).copy() as! NSObject }
         }
         self.init(array: array)
     }
@@ -474,7 +474,7 @@ open class NSCountedSet : NSMutableSet {
 
     public required convenience init?(coder: NSCoder) { NSUnimplemented() }
 
-    open override func copy(with zone: NSZone? = nil) -> AnyObject {
+    open override func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSCountedSet.self {
             let countedSet = NSCountedSet()
             countedSet._storage = self._storage
@@ -484,7 +484,7 @@ open class NSCountedSet : NSMutableSet {
         return NSCountedSet(array: self.allObjects)
     }
 
-    open override func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open override func mutableCopy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSCountedSet.self {
             let countedSet = NSCountedSet()
             countedSet._storage = self._storage

@@ -89,7 +89,7 @@ class TestNSURLResponse : XCTestCase {
     func test_copyWithZone() {
         let url = URL(string: "a/test/path")!
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
-        XCTAssertTrue(res.isEqual(res.copy()))
+        XCTAssertTrue(res.isEqual(res.copy() as! NSObject))
     }
 }
 

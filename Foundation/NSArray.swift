@@ -109,11 +109,11 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return true
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSArray.self {
             // return self for immutable type
             return self
@@ -125,11 +125,11 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return NSArray(array: self.allObjects)
     }
     
-    open override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
     
-    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self {
             // always create and return an NSMutableArray
             let mutableArray = NSMutableArray()
@@ -150,7 +150,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     public convenience init(array: [AnyObject], copyItems: Bool) {
         let optionalArray : [AnyObject?] =
             copyItems ?
-                array.map { return Optional<AnyObject>(($0 as! NSObject).copy()) } :
+                array.map { return Optional<AnyObject>(($0 as! NSObject).copy() as! NSObject) } :
                 array.map { return Optional<AnyObject>($0) }
         
         // This would have been nice, but "initializer delegation cannot be nested in another expression"
