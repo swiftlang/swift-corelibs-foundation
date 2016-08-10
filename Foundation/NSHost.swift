@@ -33,10 +33,10 @@ open class Host: NSObject {
         _type = type
     }
     
-    static internal let current = Host(nil, .current)
+    static internal let _current = Host(nil, .current)
     
-    open class func currentHost() -> Host {
-        return Host.current
+    open class func current() -> Host {
+        return _current
     }
     
     public convenience init(name: String?) {
