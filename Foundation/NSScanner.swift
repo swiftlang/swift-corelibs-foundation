@@ -176,7 +176,7 @@ internal struct _NSStringBuffer {
     
     mutating func skip(_ skipSet: CharacterSet?) {
         if let set = skipSet {
-            while set.contains(currentCharacter) && !isAtEnd {
+            while set.contains(UnicodeScalar(currentCharacter)!) && !isAtEnd {
                 advance()
             }
         }
@@ -208,7 +208,7 @@ private func isADigit(_ ch: unichar) -> Bool {
     struct Local {
         static let set = CharacterSet.decimalDigits
     }
-    return Local.set.contains(ch)
+    return Local.set.contains(UnicodeScalar(ch)!)
 }
 
 // This is just here to allow just enough generic math to handle what is needed for scanning an abstract integer from a string, perhaps these should be on IntegerType?

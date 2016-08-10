@@ -34,8 +34,8 @@ internal class _NSCFCharacterSet : NSMutableCharacterSet {
         return CFCharacterSetIsSupersetOfSet(_cfObject, theOtherSet._cfObject)
     }
     
-    override func hasMember(inPlane plane: UInt8) -> Bool {
-        return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(plane))
+    override func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
+        return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(thePlane))
     }
     
     override func copy() -> Any {
@@ -101,7 +101,7 @@ internal  func _CFSwiftCharacterSetLongCharacterIsMember(_ cset: CFTypeRef, _ ch
 }
 
 internal  func _CFSwiftCharacterSetHasMemberInPlane(_ cset: CFTypeRef, _ plane: UInt8) -> Bool {
-    return (cset as! NSCharacterSet).hasMember(inPlane: plane)
+    return (cset as! NSCharacterSet).hasMemberInPlane(plane)
 }
 
 internal  func _CFSwiftCharacterSetInverted(_ cset: CFTypeRef) -> Unmanaged<CFCharacterSet> {

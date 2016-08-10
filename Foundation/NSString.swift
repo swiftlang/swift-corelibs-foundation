@@ -1050,7 +1050,7 @@ extension NSString {
     open func trimmingCharacters(in set: CharacterSet) -> String {
         let len = length
         var buf = _NSStringBuffer(string: self, start: 0, end: len)
-        while !buf.isAtEnd && set.contains(buf.currentCharacter) {
+        while !buf.isAtEnd && set.contains(UnicodeScalar(buf.currentCharacter)!) {
             buf.advance()
         }
         
@@ -1060,7 +1060,7 @@ extension NSString {
             return ""
         } else if startOfNonTrimmedRange < len - 1 {
             buf.location = len - 1
-            while set.contains(buf.currentCharacter) && buf.location >= startOfNonTrimmedRange {
+            while set.contains(UnicodeScalar(buf.currentCharacter)!) && buf.location >= startOfNonTrimmedRange {
                 buf.rewind()
             }
             let endOfNonTrimmedRange = buf.location
