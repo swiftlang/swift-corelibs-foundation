@@ -662,7 +662,7 @@ open class NSKeyedUnarchiver : NSCoder {
         return nil
     }
 
-    open override func decodeObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
+    open override func decodeObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? where DecodedObjectType : NSObject {
         return decodeObjectOfClasses([cls], forKey: key) as? DecodedObjectType
     }
     
@@ -674,7 +674,7 @@ open class NSKeyedUnarchiver : NSCoder {
         return try decodeTopLevelObjectOfClasses([NSArray.self], forKey: key)
     }
     
-    open override func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? {
+    open override func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? where DecodedObjectType : NSObject {
         return try self.decodeTopLevelObjectOfClasses([cls], forKey: key) as! DecodedObjectType?
     }
     
