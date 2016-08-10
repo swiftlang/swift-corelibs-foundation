@@ -9,14 +9,14 @@
 
 import CoreFoundation
 
-extension CFKeyedArchiverUIDRef : _NSBridgable {
+extension CFKeyedArchiverUID : _NSBridgable {
     typealias NSType = _NSKeyedArchiverUID
     
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 
 internal class _NSKeyedArchiverUID : NSObject {
-    typealias CFType = CFURL
+    typealias CFType = CFKeyedArchiverUID
     internal var _base = _CFInfo(typeID: _CFKeyedArchiverUIDGetTypeID())
     internal var value : UInt32 = 0
     
@@ -29,7 +29,7 @@ internal class _NSKeyedArchiverUID : NSObject {
     }
 
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        return Int(bitPattern: CFHash(_cfObject as CFTypeRef!))
     }
     
     open override func isEqual(_ object: AnyObject?) -> Bool {

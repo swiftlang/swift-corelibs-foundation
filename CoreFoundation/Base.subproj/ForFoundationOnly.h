@@ -372,7 +372,7 @@ _CF_EXPORT_SCOPE_END
 
 // ---- Binary plist material ----------------------------------------
 _CF_EXPORT_SCOPE_BEGIN
-typedef const struct __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
+typedef const struct CF_BRIDGED_TYPE(_NSKeyedArchiverUID) __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
 CF_EXPORT CFTypeID _CFKeyedArchiverUIDGetTypeID(void);
 CF_EXPORT CFKeyedArchiverUIDRef _CFKeyedArchiverUIDCreate(CFAllocatorRef allocator, uint32_t value);
 CF_EXPORT uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
