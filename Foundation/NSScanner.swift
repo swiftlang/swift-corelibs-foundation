@@ -214,8 +214,8 @@ private func isADigit(_ ch: unichar) -> Bool {
 // This is just here to allow just enough generic math to handle what is needed for scanning an abstract integer from a string, perhaps these should be on IntegerType?
 
 internal protocol _BitShiftable {
-    func >>(lhs: Self, rhs: Self) -> Self
-    func <<(lhs: Self, rhs: Self) -> Self
+    static func >>(lhs: Self, rhs: Self) -> Self
+    static func <<(lhs: Self, rhs: Self) -> Self
 }
 
 internal protocol _IntegerLike : Integer, _BitShiftable {
@@ -225,10 +225,10 @@ internal protocol _IntegerLike : Integer, _BitShiftable {
 }
 
 internal protocol _FloatArithmeticType {
-    func +(lhs: Self, rhs: Self) -> Self
-    func -(lhs: Self, rhs: Self) -> Self
-    func *(lhs: Self, rhs: Self) -> Self
-    func /(lhs: Self, rhs: Self) -> Self
+    static func +(lhs: Self, rhs: Self) -> Self
+    static func -(lhs: Self, rhs: Self) -> Self
+    static func *(lhs: Self, rhs: Self) -> Self
+    static func /(lhs: Self, rhs: Self) -> Self
 }
 
 internal protocol _FloatLike : FloatingPoint, _FloatArithmeticType {
