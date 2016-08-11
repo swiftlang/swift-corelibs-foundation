@@ -1106,29 +1106,9 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
             CFStringRef tzName = NULL;
             CFDataRef data = NULL;
             
-            CFIndex len = CFStringGetLength(name);
-            if (6 == len || 8 == len) {
-                UniChar buffer[8];
-                CFStringGetCharacters(name, CFRangeMake(0, len), buffer);
-                if ('G' == buffer[0] && 'M' == buffer[1] && 'T' == buffer[2] && ('+' == buffer[3] || '-' == buffer[3])) {
-                    if (('0' <= buffer[4] && buffer[4] <= '9') && ('0' <= buffer[5] && buffer[5] <= '9')) {
-                        int32_t hours = (buffer[4] - '0') * 10 + (buffer[5] - '0');
-                        if (-14 <= hours && hours <= 14) {
-                            CFTimeInterval ti = hours * 3600.0;
-                            if (6 == len) {
-                                return _CFTimeZoneInitWithTimeIntervalFromGMT(timeZone, ('-' == buffer[3] ? -1.0 : 1.0) * ti);
-                            } else {
-                                if (('0' <= buffer[6] && buffer[6] <= '9') && ('0' <= buffer[7] && buffer[7] <= '9')) {
-                                    int32_t minutes = (buffer[6] - '0') * 10 + (buffer[7] - '0');
-                                    if ((-14 == hours && 0 == minutes) || (14 == hours && 0 == minutes) || (0 <= minutes && minutes <= 59)) {
-                                        ti = ti + minutes * 60.0;
-                                        return _CFTimeZoneInitWithTimeIntervalFromGMT(timeZone, ('-' == buffer[3] ? -1.0 : 1.0) * ti);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            int32_t offsetFromGMT = __tryParseGMTName(name);
+            if (offsetFromGMT != -1) {
+                return _CFTimeZoneInitWithTimeIntervalFromGMT(timeZone, offsetFromGMT);
             }
             Boolean tryAbbrev = true;
             CFURLRef baseURL, tempURL;
