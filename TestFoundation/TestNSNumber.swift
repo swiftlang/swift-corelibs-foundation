@@ -401,25 +401,6 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Double(-37.5)).compare(NSNumber(value: Float(1234.5))), ComparisonResult.orderedAscending)
     }
 
-    func test_reflection() {
-       let ql1 = NSNumber(value: 1234).customPlaygroundQuickLook
-       switch ql1 {
-           case .int(let value): XCTAssertEqual(value, 1234)
-           default: XCTAssert(false, "NSNumber(value: Int) quicklook is not an Int")
-       }
-
-       let ql2 = NSNumber(value: Float(1.25)).customPlaygroundQuickLook
-       switch ql2 {
-           case .float(let value): XCTAssertEqual(value, 1.25)
-           default: XCTAssert(false, "NSNumber(value: Float) quicklook is not a Float")
-       }
-
-       let ql3 = NSNumber(value: Double(1.25)).customPlaygroundQuickLook
-       switch ql3 {
-           case .double(let value): XCTAssertEqual(value, 1.25)
-           default: XCTAssert(false, "NSNumber(value: Double) quicklook is not a Double")
-       }
-    }
     
     func test_description() {
         let nsnumber: NSNumber = 1000
