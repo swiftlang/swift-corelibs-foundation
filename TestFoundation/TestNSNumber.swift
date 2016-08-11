@@ -32,7 +32,6 @@ class TestNSNumber : XCTestCase {
             ("test_compareNumberWithShort", test_compareNumberWithShort ),
             ("test_compareNumberWithFloat", test_compareNumberWithFloat ),
             ("test_compareNumberWithDouble", test_compareNumberWithDouble ),
-            ("test_reflection", test_reflection ),
             ("test_description", test_description ),
             ("test_descriptionWithLocale", test_descriptionWithLocale ),
         ]
