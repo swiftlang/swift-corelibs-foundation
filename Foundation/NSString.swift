@@ -1472,12 +1472,6 @@ extension NSString : Bridgeable {
     public func bridge() -> String { return _swiftObject }
 }
 
-extension NSString : _CustomPlaygroundQuickLookable {
-    public var customPlaygroundQuickLook: _PlaygroundQuickLook {
-        return .text(self.bridge())
-    }
-}
-
 #if !(os(OSX) || os(iOS))
 extension String {
     public func hasPrefix(_ prefix: String) -> Bool {
