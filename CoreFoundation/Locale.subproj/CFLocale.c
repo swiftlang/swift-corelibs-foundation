@@ -13,6 +13,8 @@
     Responsibility: David Smith
 */
 
+// Note the header file is in the OpenSource set (stripped to almost nothing), but not the .c file
+
 #include <CoreFoundation/CFLocale.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFArray.h>
@@ -295,9 +297,6 @@ static CFLocaleRef _CFLocaleCopyCurrentGuts(CFStringRef name, Boolean useCache, 
     if (!name) {
 #if 0 // DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         name = (CFStringRef)CFPreferencesCopyAppValue(CFSTR("AppleLocale"), kCFPreferencesCurrentApplication);
-#else
-        // For swift-corelibs-foundation, we temporarily assume en_US as the current locale. CFPreferences does not appear to work yet.
-        name = CFSTR("en_US");
 #endif
     } else {
         CFRetain(name);
