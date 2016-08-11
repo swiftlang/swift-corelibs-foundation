@@ -298,7 +298,7 @@ extension NSSet {
         enumerateObjects([], using: block)
     }
     
-    public func enumerateObjects(_ opts: EnumerationOptions = [], using block: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjects(_ opts: NSEnumerationOptions = [], using block: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop : ObjCBool = false
         for obj in self {
             withUnsafeMutablePointer(to: &stop) { stop in
@@ -314,7 +314,7 @@ extension NSSet {
         return objects([], passingTest: predicate)
     }
     
-    public func objects(_ opts: EnumerationOptions = [], passingTest predicate: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    public func objects(_ opts: NSEnumerationOptions = [], passingTest predicate: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         var result = Set<NSObject>()
         enumerateObjects(opts) { obj, stopp in
             if predicate(obj, stopp) {
