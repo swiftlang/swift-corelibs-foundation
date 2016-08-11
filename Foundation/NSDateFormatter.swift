@@ -24,6 +24,9 @@ open class DateFormatter : Formatter {
             
             let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)!
             _setFormatterAttributes(obj)
+            if let dateFormat = _dateFormat {
+                CFDateFormatterSetFormat(obj, dateFormat._cfObject)
+            }
             __cfObject = obj
             return obj
         }
@@ -52,11 +55,14 @@ open class DateFormatter : Formatter {
     }
 
     open func date(from string: String) -> Date? {
-        // nil range means "use the entire string"
-        guard let res = CFDateFormatterCreateDateFromString(kCFAllocatorSystemDefault, _cfObject, string._cfObject, nil) else {
-            return nil
+        var range = CFRange(location: 0, length: string.length)
+        let date = withUnsafeMutablePointer(to: &range) { (rangep: UnsafeMutablePointer<CFRange>) -> Date? in
+            guard let res = CFDateFormatterCreateDateFromString(kCFAllocatorSystemDefault, _cfObject, string._cfObject, rangep) else {
+                return nil
+            }
+            return res._swiftObject
         }
-        return res._swiftObject
+        return date
     }
 
     open class func localizedString(from date: Date, dateStyle dstyle: Style, timeStyle tstyle: Style) -> String {
@@ -82,14 +88,16 @@ open class DateFormatter : Formatter {
     }
 
     internal func _setFormatterAttributes(_ formatter: CFDateFormatter) {
-        if let dateFormat = _dateFormat {
-            CFDateFormatterSetFormat(formatter, dateFormat._cfObject)
-        }
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: timeZone?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendar, value: _calendar?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: lenient._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: timeZone?._cfObject)
+        if let ident = _calendar?.identifier {
+            _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: Calendar._toNSCalendarIdentifier(ident).rawValue._cfObject)
+        } else {
+            _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: nil)
+        }
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTwoDigitStartDate, value: _twoDigitStartDate?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterDefaultDate, value: defaultDate?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendar, value: _calendar?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterEraSymbols, value: _eraSymbols?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterMonthSymbols, value: _monthSymbols?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortMonthSymbols, value: _shortMonthSymbols?._cfObject)
@@ -111,16 +119,6 @@ open class DateFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneQuarterSymbols, value: _standaloneQuarterSymbols?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneQuarterSymbols, value: _shortStandaloneQuarterSymbols?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterGregorianStartDate, value: _gregorianStartDate?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterDoesRelativeDateFormattingKey, value: doesRelativeDateFormatting._cfObject)
-        // TODO: formattingContext
-        /*
-         NSFormattingContextUnknown == UDISPCTX_CAPITALIZATION_NONE
-         NSFormattingContextDynamic == UDISPCTX_CAPITALIZATION_DYNAMIC
-         NSFormattingContextStandalone == UDISPCTX_CAPITALIZATION_FOR_STANDALONE
-         NSFormattingContextListItem == UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU
-         NSFormattingContextBeginningOfSentence == UDISPCTX_CAPITALIZATION_FOR_BEGINNING_OF_SENTENCE
-         NSFormattingContextMiddleOfSentence == UDISPCTX_CAPITALIZATION_FOR_MIDDLE_OF_SENTENCE
-        */
     }
 
     internal func _setFormatterAttribute(_ formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
