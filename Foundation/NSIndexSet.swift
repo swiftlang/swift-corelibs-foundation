@@ -70,7 +70,7 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         _ranges = _count == 0 ? [] : [range]
     }
     public init(indexSet: IndexSet) {
-        _ranges = indexSet.rangeView().map { NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound) }
+        _ranges = indexSet.rangeView.map { NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound) }
         _count = indexSet.count
     }
     
@@ -103,7 +103,7 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     open func isEqual(to indexSet: IndexSet) -> Bool {
         
-        let otherRanges = indexSet.rangeView().map { NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound) }
+        let otherRanges = indexSet.rangeView.map { NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound) }
         if _ranges.count != otherRanges.count {
             return false
         }
@@ -501,11 +501,11 @@ extension NSIndexSet : Sequence {
 open class NSMutableIndexSet : NSIndexSet {
     
     open func add(_ indexSet: IndexSet) {
-        indexSet.rangeView().forEach { add(in: NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound)) }
+        indexSet.rangeView.forEach { add(in: NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound)) }
     }
     
     open func remove(_ indexSet: IndexSet) {
-        indexSet.rangeView().forEach { remove(in: NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound)) }
+        indexSet.rangeView.forEach { remove(in: NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound)) }
     }
     
     open func removeAllIndexes() {
