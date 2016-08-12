@@ -23,7 +23,7 @@ open class AttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCodi
         NSUnimplemented()
     }
     
-    static public func supportsSecureCoding() -> Bool {
+    static public var supportsSecureCoding: Bool {
         return true
     }
     

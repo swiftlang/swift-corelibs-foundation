@@ -13,7 +13,7 @@ public protocol NSCoding {
 }
 
 public protocol NSSecureCoding : NSCoding {
-    static func supportsSecureCoding() -> Bool
+    static var supportsSecureCoding: Bool { get }
 }
 
 open class NSCoder : NSObject {

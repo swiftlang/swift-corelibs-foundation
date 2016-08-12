@@ -86,7 +86,7 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return self
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     
@@ -310,7 +310,7 @@ open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
         aCoder.encode(endDate._nsObject, forKey: "NS.endDate")
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     

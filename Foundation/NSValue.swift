@@ -140,7 +140,7 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    open class func supportsSecureCoding() -> Bool {
+    open class var supportsSecureCoding: Bool {
         return true
     }
     

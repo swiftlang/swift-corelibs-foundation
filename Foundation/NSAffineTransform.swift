@@ -46,7 +46,7 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     
