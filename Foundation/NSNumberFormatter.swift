@@ -52,7 +52,7 @@ open class NumberFormatter : Formatter {
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     open func objectValue(_ string: String, range: inout NSRange) throws -> AnyObject? { NSUnimplemented() }
     
-    open override func string(for obj: AnyObject) -> String? {
+    open override func string(for obj: Any) -> String? {
         guard let number = obj as? NSNumber else { return nil }
         return string(from: number)
     }
