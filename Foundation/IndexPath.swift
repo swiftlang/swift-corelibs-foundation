@@ -32,8 +32,9 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
     
     /// Initialize with a sequence of integers.
-    public init<ElementSequence : Sequence>(indexes: ElementSequence) where ElementSequence.Iterator.Element == Element {
-        _indexes = indexes.map { $0 }
+    public init<ElementSequence : Sequence>(indexes: ElementSequence)
+        where ElementSequence.Iterator.Element == Element {
+            _indexes = indexes.map { $0 }
     }
     
     /// Initialize with an array literal.
@@ -42,7 +43,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
     
     /// Initialize with an array of elements.
-    public init(indexes: Array<Element>) {
+    public init(indexes: [Element]) {
         _indexes = indexes
     }
     
@@ -67,7 +68,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
     
     /// Append an array of elements to `self`.
-    public mutating func append(_ other: Array<Element>) {
+    public mutating func append(_ other: [Element]) {
         _indexes.append(contentsOf: other)
     }
     
@@ -84,7 +85,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
     
     /// Return a new `IndexPath` containing the elements in self and the elements in `other`.
-    public func appending(_ other: Array<Element>) -> IndexPath {
+    public func appending(_ other: [Element]) -> IndexPath {
         return IndexPath(indexes: _indexes + other)
     }
     
@@ -131,24 +132,17 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
     
     /// Sorting an array of `IndexPath` using this comparison results in an array representing nodes in depth-first traversal order.
-    public func compare(_ other: IndexPath) -> ComparisonResult  {
+    public func compare(_ other: IndexPath) -> ComparisonResult {
         // This is temporary
         let me = self.makeReference()
-        return me.compare(other)
+        let other = other.makeReference()
+        return me.compare(other as IndexPath)
     }
     
     public var hashValue: Int {
         // This is temporary
         let me = self.makeReference()
         return me.hash
-    }
-    
-    public var description: String {
-        return _indexes.description
-    }
-    
-    public var debugDescription: String {
-        return _indexes.debugDescription
     }
     
     // MARK: - Bridging Helpers
@@ -158,59 +152,69 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
         if count == 0 {
             _indexes = []
         } else {
-            var ptr = malloc(count * MemoryLayout<Element>.size)?.bindMemory(to: Element.self, capacity: count * MemoryLayout<Element>.size)
+            var ptr = malloc(count * MemoryLayout<Element>.size)
             defer { free(ptr) }
             
-            nsIndexPath.getIndexes(ptr!, range: NSMakeRange(0, count))
+            let elementPtr = ptr!.bindMemory(to: Element.self, capacity: count)
+            nsIndexPath.getIndexes(elementPtr, range: NSMakeRange(0, count))
             
-            let buffer = UnsafeBufferPointer(start: ptr, count: count)
+            let buffer = UnsafeBufferPointer(start: elementPtr, count: count)
             _indexes = buffer.map { $0 }
         }
     }
     
     fileprivate func makeReference() -> ReferenceType {
         return _indexes.withUnsafeBufferPointer {
-            return ReferenceType(indexes: $0.baseAddress!, length: $0.count)
+            return ReferenceType(indexes: $0.baseAddress, length: $0.count)
         }
     }
     
+    public static func ==(lhs: IndexPath, rhs: IndexPath) -> Bool {
+        return lhs._indexes == rhs._indexes
+    }
+
+    public static func +(lhs: IndexPath, rhs: IndexPath) -> IndexPath {
+        return lhs.appending(rhs)
+    }
+
+    public static func +=(lhs: inout IndexPath, rhs: IndexPath) {
+        lhs.append(rhs)
+    }
+
+    public static func <(lhs: IndexPath, rhs: IndexPath) -> Bool {
+        return lhs.compare(rhs) == ComparisonResult.orderedAscending
+    }
+
+    public static func <=(lhs: IndexPath, rhs: IndexPath) -> Bool {
+        let order = lhs.compare(rhs)
+        return order == ComparisonResult.orderedAscending || order == ComparisonResult.orderedSame
+    }
+
+    public static func >(lhs: IndexPath, rhs: IndexPath) -> Bool {
+        return lhs.compare(rhs) == ComparisonResult.orderedDescending
+    }
+
+    public static func >=(lhs: IndexPath, rhs: IndexPath) -> Bool {
+        let order = lhs.compare(rhs)
+        return order == ComparisonResult.orderedDescending || order == ComparisonResult.orderedSame
+    }
 }
 
-public func ==(lhs: IndexPath, rhs: IndexPath) -> Bool {
-    return lhs._indexes == rhs._indexes
-}
+extension IndexPath : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var description: String {
+        return _indexes.description
+    }
 
-public func +(lhs: IndexPath, rhs: IndexPath) -> IndexPath {
-    return lhs.appending(rhs)
-}
-
-public func +=(lhs: inout IndexPath, rhs: IndexPath) {
-    lhs.append(rhs)
-}
-
-public func <(lhs: IndexPath, rhs: IndexPath) -> Bool {
-    return lhs.compare(rhs) == ComparisonResult.orderedAscending
-}
-
-public func <=(lhs: IndexPath, rhs: IndexPath) -> Bool {
-    let order = lhs.compare(rhs)
-    return order == ComparisonResult.orderedAscending || order == ComparisonResult.orderedSame
-}
-
-public func >(lhs: IndexPath, rhs: IndexPath) -> Bool {
-    return lhs.compare(rhs) == ComparisonResult.orderedDescending
-}
-
-public func >=(lhs: IndexPath, rhs: IndexPath) -> Bool {
-    let order = lhs.compare(rhs)
-    return order == ComparisonResult.orderedDescending || order == ComparisonResult.orderedSame
-}
-
-extension IndexPath {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
+    public var debugDescription: String {
+        return _indexes.debugDescription
     }
     
+    public var customMirror: Mirror {
+        return _indexes.customMirror
+    }
+}
+
+extension IndexPath : _ObjectiveCBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexPath.self
     }
@@ -231,5 +235,13 @@ extension IndexPath {
     
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSIndexPath?) -> IndexPath {
         return IndexPath(nsIndexPath: source!)
-    }    
+    }
+}
+
+extension NSIndexPath : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(self as IndexPath)
+    }
 }
