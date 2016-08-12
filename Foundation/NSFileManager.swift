@@ -60,21 +60,29 @@ public struct NSFileManagerItemReplacementOptions : OptionSet {
     public static let withoutDeletingBackupItem = NSFileManagerItemReplacementOptions(rawValue: 1 << 1)
 }
 
-public enum NSURLRelationship : Int {
-    case contains
-    case same
-    case other
+extension FileManager {
+    public enum URLRelationship : Int {
+        case contains
+        case same
+        case other
+    }
 }
 
 open class FileManager: NSObject {
+    public typealias FileAttributeKey = String
     
     /* Returns the default singleton instance.
     */
-    public static let `default` = FileManager()
+    private static let _default = FileManager()
+    open class var `default`: FileManager {
+        get {
+            return _default
+        }
+    }
     
     /* Returns an NSArray of NSURLs locating the mounted volumes available on the computer. The property keys that can be requested are available in NSURL.
      */
-    open func mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [String]?, options: VolumeEnumerationOptions = []) -> [URL]? {
+    open func mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {
         NSUnimplemented()
     }
     
@@ -86,8 +94,8 @@ open class FileManager: NSObject {
      
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
-    open func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [String]?, options mask: DirectoryEnumerationOptions = []) throws -> [URL] {
-        var error : NSError? = nil
+    open func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = []) throws -> [URL] {
+        var error : Error? = nil
         let e = self.enumerator(at: url, includingPropertiesForKeys: keys, options: mask.union(.skipsSubdirectoryDescendants)) { (url, err) -> Bool in
             error = err
             return false
@@ -106,7 +114,7 @@ open class FileManager: NSObject {
     
     /* -URLsForDirectory:inDomains: is analogous to NSSearchPathForDirectoriesInDomains(), but returns an array of NSURL instances for use with URL-taking APIs. This API is suitable when you need to search for a file or files which may live in one of a variety of locations in the domains specified.
      */
-    open func urlsForDirectory(_ directory: SearchPathDirectory, inDomains domainMask: SearchPathDomainMask) -> [URL] {
+    open func urls(forDirectory directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
         NSUnimplemented()
     }
     
@@ -114,25 +122,25 @@ open class FileManager: NSObject {
      
         You may pass only one of the values from the NSSearchPathDomainMask enumeration, and you may not pass NSAllDomainsMask.
      */
-    open func urlForDirectory(_ directory: SearchPathDirectory, in domain: SearchPathDomainMask, appropriateFor url: URL?, create shouldCreate: Bool) throws -> URL {
+    open func url(forDirectory directory: SearchPathDirectory, in domain: SearchPathDomainMask, appropriateFor url: URL?, create shouldCreate: Bool) throws -> URL {
         NSUnimplemented()
     }
     
     /* Sets 'outRelationship' to NSURLRelationshipContains if the directory at 'directoryURL' directly or indirectly contains the item at 'otherURL', meaning 'directoryURL' is found while enumerating parent URLs starting from 'otherURL'. Sets 'outRelationship' to NSURLRelationshipSame if 'directoryURL' and 'otherURL' locate the same item, meaning they have the same NSURLFileResourceIdentifierKey value. If 'directoryURL' is not a directory, or does not contain 'otherURL' and they do not locate the same file, then sets 'outRelationship' to NSURLRelationshipOther. If an error occurs, returns NO and sets 'error'.
      */
-    open func getRelationship(_ outRelationship: UnsafeMutablePointer<NSURLRelationship>, ofDirectoryAtURL directoryURL: URL, toItemAtURL otherURL: URL) throws {
+    open func getRelationship(_ outRelationship: UnsafeMutablePointer<URLRelationship>, ofDirectoryAtURL directoryURL: URL, toItemAtURL otherURL: URL) throws {
         NSUnimplemented()
     }
     
     /* Similar to -[NSFileManager getRelationship:ofDirectoryAtURL:toItemAtURL:error:], except that the directory is instead defined by an NSSearchPathDirectory and NSSearchPathDomainMask. Pass 0 for domainMask to instruct the method to automatically choose the domain appropriate for 'url'. For example, to discover if a file is contained by a Trash directory, call [fileManager getRelationship:&result ofDirectory:NSTrashDirectory inDomain:0 toItemAtURL:url error:&error].
      */
-    open func getRelationship(_ outRelationship: UnsafeMutablePointer<NSURLRelationship>, ofDirectory directory: SearchPathDirectory, in domainMask: SearchPathDomainMask, toItemAtURL url: URL) throws {
+    open func getRelationship(_ outRelationship: UnsafeMutablePointer<URLRelationship>, ofDirectory directory: SearchPathDirectory, in domainMask: SearchPathDomainMask, toItemAtURL url: URL) throws {
         NSUnimplemented()
     }
     
     /* createDirectoryAtURL:withIntermediateDirectories:attributes:error: creates a directory at the specified URL. If you pass 'NO' for withIntermediateDirectories, the directory must not exist at the time this call is made. Passing 'YES' for withIntermediateDirectories will create any necessary intermediate directories. This method returns YES if all directories specified in 'url' were created and attributes were set. Directories are created with attributes specified by the dictionary passed to 'attributes'. If no dictionary is supplied, directories are created according to the umask of the process. This method returns NO if a failure occurs at any stage of the operation. If an error parameter was provided, a presentable NSError will be returned by reference.
      */
-    open func createDirectory(at url: URL, withIntermediateDirectories createIntermediates: Bool, attributes: [String : AnyObject]? = [:]) throws {
+    open func createDirectory(at url: URL, withIntermediateDirectories createIntermediates: Bool, attributes: [String : Any]? = [:]) throws {
         guard url.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : url])
         }
@@ -162,7 +170,7 @@ open class FileManager: NSObject {
     
     /* Instances of NSFileManager may now have delegates. Each instance has one delegate, and the delegate is not retained. In versions of Mac OS X prior to 10.5, the behavior of calling [[NSFileManager alloc] init] was undefined. In Mac OS X 10.5 "Leopard" and later, calling [[NSFileManager alloc] init] returns a new instance of an NSFileManager.
      */
-    open weak var delegate: NSFileManagerDelegate? {
+    open weak var delegate: FileManagerDelegate? {
         NSUnimplemented()
     }
     
@@ -170,7 +178,7 @@ open class FileManager: NSObject {
      
         This method replaces changeFileAttributes:atPath:.
      */
-    open func setAttributes(_ attributes: [String : AnyObject], ofItemAtPath path: String) throws {
+    open func setAttributes(_ attributes: [FileAttributeKey : Any], ofItemAtPath path: String) throws {
         for attribute in attributes.keys {
             switch attribute {
             case NSFilePosixPermissions:
@@ -195,7 +203,7 @@ open class FileManager: NSObject {
      
         This method replaces createDirectoryAtPath:attributes:
      */
-    open func createDirectory(atPath path: String, withIntermediateDirectories createIntermediates: Bool, attributes: [String : AnyObject]? = [:]) throws {
+    open func createDirectory(atPath path: String, withIntermediateDirectories createIntermediates: Bool, attributes: [String : Any]? = [:]) throws {
         if createIntermediates {
             var isDir: ObjCBool = false
             if !fileExists(atPath: path, isDirectory: &isDir) {
@@ -325,7 +333,7 @@ open class FileManager: NSObject {
         This method replaces fileAttributesAtPath:traverseLink:.
      */
     /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
-    open func attributesOfItem(atPath path: String) throws -> [String : Any] {    
+    open func attributesOfItem(atPath path: String) throws -> [FileAttributeKey : Any] {
         var s = stat()
         guard lstat(path, &s) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
@@ -391,7 +399,7 @@ open class FileManager: NSObject {
      
         This method replaces fileSystemAttributesAtPath:.
      */
-    open func attributesOfFileSystem(forPath path: String) throws -> [String : AnyObject] {
+    open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
         NSUnimplemented()
     }
     
@@ -621,7 +629,7 @@ open class FileManager: NSObject {
         return access(path, X_OK) == 0
     }
     
-    public func isDeletableFile(atPath path: String) -> Bool {
+    open func isDeletableFile(atPath path: String) -> Bool {
         NSUnimplemented()
     }
     
@@ -645,7 +653,7 @@ open class FileManager: NSObject {
     
     /* enumeratorAtPath: returns an NSDirectoryEnumerator rooted at the provided path. If the enumerator cannot be created, this returns NULL. Because NSDirectoryEnumerator is a subclass of NSEnumerator, the returned object can be used in the for...in construct.
      */
-    public func enumerator(atPath path: String) -> DirectoryEnumerator? {
+    open func enumerator(atPath path: String) -> DirectoryEnumerator? {
         return NSPathDirectoryEnumerator(path: path)
     }
     
@@ -653,7 +661,7 @@ open class FileManager: NSObject {
     
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
-    public func enumerator(at url: URL, includingPropertiesForKeys keys: [String]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: ((URL, NSError) -> Bool)? = nil) -> DirectoryEnumerator? {
+    open func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: ((URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
         if mask.contains(.skipsPackageDescendants) || mask.contains(.skipsHiddenFiles) {
             NSUnimplemented("Enumeration options not yet implemented")
         }
@@ -676,7 +684,7 @@ open class FileManager: NSObject {
         }
     }
     
-    open func createFile(atPath path: String, contents data: Data?, attributes attr: [String : AnyObject]? = [:]) -> Bool {
+    open func createFile(atPath path: String, contents data: Data?, attributes attr: [String : Any]? = [:]) -> Bool {
         do {
             try (data ?? Data()).write(to: URL(fileURLWithPath: path), options: .dataWritingAtomic)
             return true
@@ -757,7 +765,7 @@ open class FileManager: NSObject {
     }
 }
 
-extension NSFileManagerDelegate {
+extension FileManagerDelegate {
     func fileManager(_ fileManager: FileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
     func fileManager(_ fileManager: FileManager, shouldCopyItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
     
@@ -783,7 +791,7 @@ extension NSFileManagerDelegate {
     func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: NSError, removingItemAtURL url: URL) -> Bool { return false }
 }
 
-public protocol NSFileManagerDelegate : class {
+public protocol FileManagerDelegate : class {
     
     /* fileManager:shouldCopyItemAtPath:toPath: gives the delegate an opportunity to filter the resulting copy. Returning YES from this method will allow the copy to happen. Returning NO from this method causes the item in question to be skipped. If the item skipped was a directory, no children of that directory will be copied, nor will the delegate be notified of those children.
      */
