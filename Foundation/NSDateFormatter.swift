@@ -10,6 +10,14 @@
 import CoreFoundation
 
 open class DateFormatter : Formatter {
+    public enum Behavior : UInt {
+        case `default` = 0
+#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE))
+        case behavior10_0 = 1000
+#endif
+        case behavior10_4 = 4000
+    }
+    
     typealias CFType = CFDateFormatter
     private var __cfObject: CFType?
     private var _cfObject: CFType {
@@ -39,6 +47,26 @@ open class DateFormatter : Formatter {
 
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
+    }
+    
+    open class var defaultFormatterBehavior: DateFormatter.Behavior {
+        get {
+            NSUnimplemented()
+        }
+        
+        set {
+            NSUnimplemented()
+        }
+    }
+    
+    open var formatterBehavior: DateFormatter.Behavior {
+        get {
+            NSUnimplemented()
+        }
+        
+        set {
+            NSUnimplemented()
+        }
     }
 
     open var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
@@ -88,7 +116,7 @@ open class DateFormatter : Formatter {
     }
 
     internal func _setFormatterAttributes(_ formatter: CFDateFormatter) {
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: lenient._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: isLenient._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: timeZone?._cfObject)
         if let ident = _calendar?.identifier {
             _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: Calendar._toNSCalendarIdentifier(ident).rawValue._cfObject)
@@ -103,8 +131,8 @@ open class DateFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortMonthSymbols, value: _shortMonthSymbols?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterWeekdaySymbols, value: _weekdaySymbols?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortWeekdaySymbols, value: _shortWeekdaySymbols?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterAMSymbol, value: _AMSymbol?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterPMSymbol, value: _PMSymbol?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterAMSymbol, value: _amSymbol?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterPMSymbol, value: _pmSymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterLongEraSymbols, value: _longEraSymbols?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterVeryShortMonthSymbols, value: _veryShortMonthSymbols?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterStandaloneMonthSymbols, value: _standaloneMonthSymbols?._cfObject)
@@ -163,7 +191,7 @@ open class DateFormatter : Formatter {
         }
     }
 
-    open var lenient = false { willSet { _reset() } }
+    open var isLenient = false { willSet { _reset() } }
 
     /*@NSCopying*/ internal var _twoDigitStartDate: Date? { willSet { _reset() } }
     open var twoDigitStartDate: Date? {
@@ -251,29 +279,29 @@ open class DateFormatter : Formatter {
         }
     }
 
-    internal var _AMSymbol: String! { willSet { _reset() } }
-    open var AMSymbol: String! {
+    internal var _amSymbol: String! { willSet { _reset() } }
+    open var amSymbol: String! {
         get {
-            guard let symbol = _AMSymbol else {
+            guard let symbol = _amSymbol else {
                 return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterAMSymbol) as! NSString)._swiftObject
             }
             return symbol
         }
         set {
-            _AMSymbol = newValue
+            _amSymbol = newValue
         }
     }
 
-    internal var _PMSymbol: String! { willSet { _reset() } }
-    open var PMSymbol: String! {
+    internal var _pmSymbol: String! { willSet { _reset() } }
+    open var pmSymbol: String! {
         get {
-            guard let symbol = _PMSymbol else {
+            guard let symbol = _pmSymbol else {
                 return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterPMSymbol) as! NSString)._swiftObject
             }
             return symbol
         }
         set {
-            _PMSymbol = newValue
+            _pmSymbol = newValue
         }
     }
 
