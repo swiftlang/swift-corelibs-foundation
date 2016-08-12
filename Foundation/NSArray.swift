@@ -441,7 +441,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         guard !opts.contains(.concurrent) else {
             NSUnimplemented()
         }
-        s._bridgeToObjectiveC().enumerate(opts) { (idx, stop) in
+        s._bridgeToObjectiveC().enumerate(options: opts) { (idx, stop) in
             block(self.object(at: idx), idx, stop)
         }
     }
