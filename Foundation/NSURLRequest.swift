@@ -167,7 +167,7 @@ open class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     }
     
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
-    public static func supportsSecureCoding() -> Bool { return true }
+    public static var supportsSecureCoding: Bool { return true }
     
     /// The URL of the receiver.
     /*@NSCopying */open fileprivate(set) var url: URL?

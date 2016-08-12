@@ -269,7 +269,7 @@ open class NSKeyedArchiver : NSCoder {
         var supportsSecureCoding : Bool = false
         
         if let secureCodable = objv as? NSSecureCoding {
-            supportsSecureCoding = type(of: secureCodable).supportsSecureCoding()
+            supportsSecureCoding = type(of: secureCodable).supportsSecureCoding
         }
         
         return supportsSecureCoding

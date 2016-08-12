@@ -296,7 +296,7 @@ class TestNSFileManager : XCTestCase {
         }
         
         var didGetError = false
-        let handler : (URL, NSError) -> Bool = { (URL, NSError) in
+        let handler : (URL, Error) -> Bool = { (URL, Error) in
             didGetError = true
             return true
         }

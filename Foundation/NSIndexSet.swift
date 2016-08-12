@@ -91,7 +91,7 @@ open class NSIndexSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         return set
     }
-    public static func supportsSecureCoding() -> Bool { return true }
+    public static var supportsSecureCoding: Bool { return true }
     public required init?(coder aDecoder: NSCoder)  { NSUnimplemented() }
     open func encode(with aCoder: NSCoder) {
         NSUnimplemented()

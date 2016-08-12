@@ -72,7 +72,7 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    static public func supportsSecureCoding() -> Bool {
+    static public var supportsSecureCoding: Bool {
         return true
     }
     

@@ -75,5 +75,5 @@ open class MeasurementFormatter : Formatter, NSSecureCoding {
     
     public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
     open override func encode(with aCoder: NSCoder) { NSUnimplemented() }
-    public static func supportsSecureCoding() -> Bool { return true }
+    public static var supportsSecureCoding: Bool { return true }
 }

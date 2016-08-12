@@ -39,7 +39,7 @@ open class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public static func supportsSecureCoding() -> Bool { return true }
+    public static var supportsSecureCoding: Bool { return true }
     
     open func adding(_ index: Int) -> IndexPath {
         return IndexPath(indexes: _indexes + [index])

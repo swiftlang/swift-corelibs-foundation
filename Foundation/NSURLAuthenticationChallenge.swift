@@ -48,7 +48,7 @@ public protocol URLAuthenticationChallengeSender : NSObjectProtocol {
 */
 open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
     
-    static public func supportsSecureCoding() -> Bool {
+    static public var supportsSecureCoding: Bool {
         return true
     }
     

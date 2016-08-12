@@ -33,7 +33,7 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     
     open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
     
-    open class func supportsSecureCoding() -> Bool { return true }
+    open class var supportsSecureCoding: Bool { return true }
     
     open func encode(with aCoder: NSCoder) { NSUnimplemented() }
     
