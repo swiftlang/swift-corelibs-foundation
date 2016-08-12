@@ -21,8 +21,11 @@ XCTMain([
     testCase(TestNSIndexSet.allTests),
     testCase(TestNSJSONSerialization.allTests),
     testCase(TestNSKeyedArchiver.allTests),
-/*    testCase(TestNSKeyedUnarchiver.allTests),
-    testCase(TestNSLocale.allTests),
+    testCase(TestNSKeyedUnarchiver.allTests),
+
+    // FIXME
+    // testCase(TestNSLocale.allTests),
+
     testCase(TestNSNotificationCenter.allTests),
     testCase(TestNSNotificationQueue.allTests),
     testCase(TestNSNull.allTests),
@@ -31,7 +34,7 @@ XCTMain([
     testCase(TestNSOperationQueue.allTests),
     testCase(TestNSOrderedSet.allTests),
     testCase(TestNSPipe.allTests),
-    testCase(TestNSPredicate.allTests),
+/*    testCase(TestNSPredicate.allTests),
     testCase(TestNSProcessInfo.allTests),
     testCase(TestNSPropertyList.allTests),
     testCase(TestNSRange.allTests),
