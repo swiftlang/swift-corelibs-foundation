@@ -264,7 +264,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssert(doc.childCount == 1)
         XCTAssertEqual(doc.rootElement()?.children?[0].stringValue, "Robert Thompson")
 
-        guard let testDataURL = testBundle().urlForResource("NSXMLDocumentTestData", withExtension: "xml") else {
+        guard let testDataURL = testBundle().url(forResource: "NSXMLDocumentTestData", withExtension: "xml") else {
             XCTFail("Could not find XML test data")
             return
         }
@@ -334,7 +334,7 @@ class TestNSXMLDocument : XCTestCase {
         let node = XMLNode.dtdNode(withXMLString:"<!ELEMENT foo (#PCDATA)>") as! XMLDTDNode
         XCTAssert(node.name == "foo")
 
-        let dtd = try XMLDTD(contentsOf: testBundle().urlForResource("PropertyList-1.0", withExtension: "dtd")!, options: 0)
+        let dtd = try XMLDTD(contentsOf: testBundle().url(forResource: "PropertyList-1.0", withExtension: "dtd")!, options: 0)
         //        dtd.systemID = testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")?.absoluteString
         dtd.name = "plist"
         //        dtd.publicID = "-//Apple//DTD PLIST 1.0//EN"
@@ -369,7 +369,7 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_documentWithDTD() throws {
-        let doc = try XMLDocument(contentsOf: testBundle().urlForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
+        let doc = try XMLDocument(contentsOf: testBundle().url(forResource: "NSXMLDTDTestData", withExtension: "xml")!, options: 0)
         let dtd = doc.dtd
         XCTAssert(dtd?.name == "root")
 
@@ -397,7 +397,7 @@ class TestNSXMLDocument : XCTestCase {
     }
     
     func test_dtd_attributes() throws {
-        let doc = try XMLDocument(contentsOf: testBundle().urlForResource("NSXMLDTDTestData", withExtension: "xml")!, options: 0)
+        let doc = try XMLDocument(contentsOf: testBundle().url(forResource: "NSXMLDTDTestData", withExtension: "xml")!, options: 0)
         let dtd = doc.dtd!
         let attrDecl = dtd.attributeDeclaration(forName: "print", elementName: "foo")!
         XCTAssert(attrDecl.dtdKind == .enumerationAttribute)
