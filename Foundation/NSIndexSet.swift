@@ -367,7 +367,7 @@ open class NSIndexSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return false
     }
     
-    internal func _enumerateWithOptions<P, R>(_ opts : EnumerationOptions, range: NSRange, paramType: P.Type, returnType: R.Type, block: (P, UnsafeMutablePointer<ObjCBool>) -> R) -> Int? {
+    internal func _enumerateWithOptions<P, R>(_ opts : NSEnumerationOptions, range: NSRange, paramType: P.Type, returnType: R.Type, block: (P, UnsafeMutablePointer<ObjCBool>) -> R) -> Int? {
         guard !opts.contains(.concurrent) else {
             NSUnimplemented()
         }
@@ -418,30 +418,30 @@ open class NSIndexSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public func enumerate(_ block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerate([], using: block)
     }
-    public func enumerate(_ opts: EnumerationOptions = [], using block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerate(_ opts: NSEnumerationOptions = [], using block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         let _ = _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: Int.self, returnType: Void.self, block: block)
     }
-    public func enumerate(in range: NSRange, options opts: EnumerationOptions = [], using block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerate(in range: NSRange, options opts: NSEnumerationOptions = [], using block: (Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
         let _ = _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Void.self, block: block)
     }
 
     open func index(passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return index([], passingTest: predicate)
     }
-    open func index(_ opts: EnumerationOptions = [], passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    open func index(_ opts: NSEnumerationOptions = [], passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: Int.self, returnType: Bool.self, block: predicate) ?? NSNotFound
     }
-    open func index(in range: NSRange, options opts: EnumerationOptions = [], passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+    open func index(in range: NSRange, options opts: NSEnumerationOptions = [], passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Bool.self, block: predicate) ?? NSNotFound
     }
     
     open func indexes(passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         return indexes(in: NSMakeRange(0, Int.max), options: [], passingTest: predicate)
     }
-    open func indexes(_ opts: EnumerationOptions = [], passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+    open func indexes(_ opts: NSEnumerationOptions = [], passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         return indexes(in: NSMakeRange(0, Int.max), options: opts, passingTest: predicate)
     }
-    open func indexes(in range: NSRange, options opts: EnumerationOptions = [], passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+    open func indexes(in range: NSRange, options opts: NSEnumerationOptions = [], passingTest predicate: (Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         var result = IndexSet()
         let _ = _enumerateWithOptions(opts, range: range, paramType: Int.self, returnType: Void.self) { idx, stop in
             if predicate(idx, stop) {
@@ -459,10 +459,10 @@ open class NSIndexSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public func enumerateRanges(_ block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateRanges([], using: block)
     }
-    public func enumerateRanges(_ opts: EnumerationOptions = [], using block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateRanges(_ opts: NSEnumerationOptions = [], using block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         let _ = _enumerateWithOptions(opts, range: NSMakeRange(0, Int.max), paramType: NSRange.self, returnType: Void.self, block: block)
     }
-    public func enumerateRanges(in range: NSRange, options opts: EnumerationOptions = [], using block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateRanges(in range: NSRange, options opts: NSEnumerationOptions = [], using block: (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
         let _ = _enumerateWithOptions(opts, range: range, paramType: NSRange.self, returnType: Void.self, block: block)
     }
 }
