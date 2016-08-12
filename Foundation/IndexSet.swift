@@ -865,7 +865,7 @@ private func _toNSRange(_ r : Range<IndexSet.Element>) -> NSRange {
     return NSMakeRange(r.lowerBound, r.upperBound - r.lowerBound)
 }
 
-extension IndexSet : _ObjectiveCBridgeable {
+extension IndexSet {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexSet.self
     }
@@ -894,7 +894,7 @@ extension NSIndexSet : _HasCustomAnyHashableRepresentation {
     // Must be @nonobjc to avoid infinite recursion during bridging.
     @nonobjc
     public func _toCustomAnyHashable() -> AnyHashable? {
-        return AnyHashable(self as IndexSet)
+        return AnyHashable(IndexSet._unconditionallyBridgeFromObjectiveC(self))
     }
 }
 

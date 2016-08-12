@@ -136,7 +136,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
         // This is temporary
         let me = self.makeReference()
         let other = other.makeReference()
-        return me.compare(other as IndexPath)
+        return me.compare(IndexPath._unconditionallyBridgeFromObjectiveC(other))
     }
     
     public var hashValue: Int {
@@ -214,7 +214,7 @@ extension IndexPath : CustomStringConvertible, CustomDebugStringConvertible, Cus
     }
 }
 
-extension IndexPath : _ObjectiveCBridgeable {
+extension IndexPath {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexPath.self
     }
@@ -242,6 +242,6 @@ extension NSIndexPath : _HasCustomAnyHashableRepresentation {
     // Must be @nonobjc to avoid infinite recursion during bridging.
     @nonobjc
     public func _toCustomAnyHashable() -> AnyHashable? {
-        return AnyHashable(self as IndexPath)
+        return AnyHashable(IndexPath._unconditionallyBridgeFromObjectiveC(self))
     }
 }
