@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0383A1751D2E558A0052E5D1 /* TestNSStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0383A1741D2E558A0052E5D1 /* TestNSStream.swift */; };
+		0C69564C1D518EF7001C2F74 /* Docs in Resources */ = {isa = PBXBuildFile; fileRef = 0C69564A1D518EF7001C2F74 /* Docs */; };
+		0C69564D1D518EF7001C2F74 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 0C69564B1D518EF7001C2F74 /* README.md */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
 		2EBE67A51C77BF0E006583D5 /* TestNSDateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EBE67A31C77BF05006583D5 /* TestNSDateFormatter.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
@@ -425,6 +427,8 @@
 
 /* Begin PBXFileReference section */
 		0383A1741D2E558A0052E5D1 /* TestNSStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSStream.swift; sourceTree = "<group>"; };
+		0C69564A1D518EF7001C2F74 /* Docs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Docs; sourceTree = "<group>"; };
+		0C69564B1D518EF7001C2F74 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDate.swift; sourceTree = "<group>"; };
 		294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAttributedString.swift; sourceTree = "<group>"; };
 		2EBE67A31C77BF05006583D5 /* TestNSDateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDateFormatter.swift; sourceTree = "<group>"; };
@@ -850,6 +854,8 @@
 		5B5D88531BBC938800234F36 = {
 			isa = PBXGroup;
 			children = (
+				0C69564A1D518EF7001C2F74 /* Docs */,
+				0C69564B1D518EF7001C2F74 /* README.md */,
 				5BDC3F2C1BCC5DB500ED97BB /* Foundation */,
 				EAB57B681BD1A255004AC5C5 /* CoreFoundation */,
 				EA66F65B1BF2DF3200136161 /* Bootstrap */,
@@ -1830,6 +1836,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C69564C1D518EF7001C2F74 /* Docs in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1931,6 +1938,7 @@
 				5BF7AEB51BCD51F9008F214A /* NSPathUtilities.swift in Sources */,
 				EADE0BC21BD15E0000C49C64 /* NSURLRequest.swift in Sources */,
 				EADE0B9D1BD15DFF00C49C64 /* NSGeometry.swift in Sources */,
+				0C69564D1D518EF7001C2F74 /* README.md in Sources */,
 				5BF7AEAA1BCD51F9008F214A /* NSDateFormatter.swift in Sources */,
 				5BECBA361D1CACC500B39B1F /* NSMeasurementFormatter.swift in Sources */,
 				5BF7AEB61BCD51F9008F214A /* NSProcessInfo.swift in Sources */,
