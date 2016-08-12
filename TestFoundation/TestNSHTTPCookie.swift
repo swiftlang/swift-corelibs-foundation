@@ -31,17 +31,17 @@ class TestNSHTTPCookie: XCTestCase {
 
     func test_BasicConstruction() {
         let invalidVersionZeroCookie = HTTPCookie(properties: [
-            NSHTTPCookieName: "TestCookie",
-            NSHTTPCookieValue: "Test value @#$%^$&*",
-            NSHTTPCookiePath: "/"
+            .name: "TestCookie",
+            .value: "Test value @#$%^$&*",
+            .path: "/"
         ])
         XCTAssertNil(invalidVersionZeroCookie)
 
         let minimalVersionZeroCookie = HTTPCookie(properties: [
-            NSHTTPCookieName: "TestCookie",
-            NSHTTPCookieValue: "Test value @#$%^$&*",
-            NSHTTPCookiePath: "/",
-            NSHTTPCookieDomain: "apple.com"
+            .name: "TestCookie",
+            .value: "Test value @#$%^$&*",
+            .path: "/",
+            .domain: "apple.com"
         ])
         XCTAssertNotNil(minimalVersionZeroCookie)
         XCTAssert(minimalVersionZeroCookie?.name == "TestCookie")
@@ -50,37 +50,37 @@ class TestNSHTTPCookie: XCTestCase {
         XCTAssert(minimalVersionZeroCookie?.domain == "apple.com")
 
         let versionZeroCookieWithOriginURL = HTTPCookie(properties: [
-            NSHTTPCookieName: "TestCookie",
-            NSHTTPCookieValue: "Test value @#$%^$&*",
-            NSHTTPCookiePath: "/",
-            NSHTTPCookieOriginURL: URL(string: "https://apple.com")!
+            .name: "TestCookie",
+            .value: "Test value @#$%^$&*",
+            .path: "/",
+            .originURL: URL(string: "https://apple.com")!
         ])
         XCTAssert(versionZeroCookieWithOriginURL?.domain == "apple.com")
 
         // Domain takes precedence over originURL inference
         let versionZeroCookieWithDomainAndOriginURL = HTTPCookie(properties: [
-            NSHTTPCookieName: "TestCookie",
-            NSHTTPCookieValue: "Test value @#$%^$&*",
-            NSHTTPCookiePath: "/",
-            NSHTTPCookieDomain: "apple.com",
-            NSHTTPCookieOriginURL: URL(string: "https://apple.com")!
+            .name: "TestCookie",
+            .value: "Test value @#$%^$&*",
+            .path: "/",
+            .domain: "apple.com",
+            .originURL: URL(string: "https://apple.com")!
         ])
         XCTAssert(versionZeroCookieWithDomainAndOriginURL?.domain == "apple.com")
 
         // This is implicitly a v0 cookie. Properties that aren't valid for v0 should fail.
         let versionZeroCookieWithInvalidVersionOneProps = HTTPCookie(properties: [
-            NSHTTPCookieName: "TestCookie",
-            NSHTTPCookieValue: "Test value @#$%^$&*",
-            NSHTTPCookiePath: "/",
-            NSHTTPCookieDomain: "apple.com",
-            NSHTTPCookieOriginURL: URL(string: "https://apple.com")!,
-            NSHTTPCookieComment: "This comment should be nil since this is a v0 cookie.",
-            NSHTTPCookieCommentURL: URL(string: "https://apple.com")!,
-            NSHTTPCookieDiscard: "TRUE",
-            NSHTTPCookieExpires: Date(timeIntervalSince1970: 1000),
-            NSHTTPCookieMaximumAge: "2000",
-            NSHTTPCookiePort: "443,8443",
-            NSHTTPCookieSecure: "YES"
+            .name: "TestCookie",
+            .value: "Test value @#$%^$&*",
+            .path: "/",
+            .domain: "apple.com",
+            .originURL: URL(string: "https://apple.com")!,
+            .comment: "This comment should be nil since this is a v0 cookie.",
+            .commentURL: URL(string: "https://apple.com")!,
+            .discard: "TRUE",
+            .expires: Date(timeIntervalSince1970: 1000),
+            .maximumAge: "2000",
+            .port: "443,8443",
+            .secure: "YES"
         ])
         XCTAssertNil(versionZeroCookieWithInvalidVersionOneProps?.comment)
         XCTAssertNil(versionZeroCookieWithInvalidVersionOneProps?.commentURL)
@@ -103,16 +103,16 @@ class TestNSHTTPCookie: XCTestCase {
         
         let basicCookies: [HTTPCookie] = [
             HTTPCookie(properties: [
-                NSHTTPCookieName: "TestCookie1",
-                NSHTTPCookieValue: "testValue1",
-                NSHTTPCookiePath: "/",
-                NSHTTPCookieOriginURL: URL(string: "https://apple.com")!
+                .name: "TestCookie1",
+                .value: "testValue1",
+                .path: "/",
+                .originURL: URL(string: "https://apple.com")!
                 ])!,
             HTTPCookie(properties: [
-                NSHTTPCookieName: "TestCookie2",
-                NSHTTPCookieValue: "testValue2",
-                NSHTTPCookiePath: "/",
-                NSHTTPCookieOriginURL: URL(string: "https://apple.com")!
+                .name: "TestCookie2",
+                .value: "testValue2",
+                .path: "/",
+                .originURL: URL(string: "https://apple.com")!
                 ])!,
         ]
         
