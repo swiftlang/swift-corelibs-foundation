@@ -2,7 +2,6 @@ import XCTest
 @testable import swift_corelibs_foundationTests
 
 XCTMain([
-     testCase(swift_corelibs_foundationTests.allTests),
     testCase(TestNSAffineTransform.allTests),
     testCase(TestNSArray.allTests),
     testCase(TestNSBundle.allTests),
@@ -13,9 +12,9 @@ XCTMain([
     testCase(TestNSCompoundPredicate.allTests),
     testCase(TestNSData.allTests),
     testCase(TestNSDate.allTests),
-/*    testCase(TestNSDateFormatter.allTests),
+    testCase(TestNSDateFormatter.allTests),
     testCase(TestNSDictionary.allTests),
-    testCase(TestNSFileManager.allTests),
+/*    testCase(TestNSFileManager.allTests),
     testCase(TestNSGeometry.allTests),
     testCase(TestNSHTTPCookie.allTests),
     testCase(TestNSIndexPath.allTests),
