@@ -8,8 +8,8 @@ XCTMain([
     testCase(TestNSBundle.allTests),
 
     testCase(TestNSByteCountFormatter.allTests),
-/*    testCase(TestNSCalendar.allTests),
-    testCase(TestNSCharacterSet.allTests),
+    testCase(TestNSCalendar.allTests),
+/*    testCase(TestNSCharacterSet.allTests),
     testCase(TestNSCompoundPredicate.allTests),
     testCase(TestNSData.allTests),
     testCase(TestNSDate.allTests),
