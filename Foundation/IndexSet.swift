@@ -629,7 +629,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     ///
     /// - parameter range: A range of integers. For each integer in the range that intersects the integers in the IndexSet, then the `includeInteger predicate will be invoked. Pass `nil` (the default) to use the entire range.
     /// - parameter includeInteger: The predicate which decides if an integer will be included in the result or not.
-    public func filteredIndexSet(in range : Range<Element>? = nil, includeInteger: @noescape (Element) throws -> Bool) rethrows -> IndexSet {
+    public func filteredIndexSet(in range : Range<Element>? = nil, includeInteger: (Element) throws -> Bool) rethrows -> IndexSet {
         let r : NSRange = range != nil ? _toNSRange(range!) : NSMakeRange(0, NSNotFound - 1)
         return try _handle.map {
             var error : Swift.Error? = nil
@@ -667,7 +667,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     // Temporary boxing function, until we can get a native Swift type for NSIndexSet
     /// TODO: making this inline causes the compiler to crash horrifically.
     // @inline(__always)
-    mutating func _applyMutation<ReturnType>(_ whatToDo : @noescape (NSMutableIndexSet) throws -> ReturnType) rethrows -> ReturnType {
+    mutating func _applyMutation<ReturnType>(_ whatToDo : (NSMutableIndexSet) throws -> ReturnType) rethrows -> ReturnType {
         switch _handle._pointer {
         case .Default(let i):
             // We need to become mutable; by creating a new box we also become unique
@@ -816,7 +816,7 @@ private enum _MutablePair<ImmutableType, MutableType> {
 /// A class type which acts as a handle (pointer-to-pointer) to a Foundation reference type which has both an immutable and mutable class (e.g., NSData, NSMutableData).
 ///
 /// a.k.a. Box
-private final class _MutablePairHandle<ImmutableType : NSObject, MutableType : NSObject where ImmutableType : NSMutableCopying, MutableType : NSMutableCopying> {
+private final class _MutablePairHandle<ImmutableType : NSObject, MutableType : NSObject> where ImmutableType : NSMutableCopying, MutableType : NSMutableCopying {
     fileprivate var _pointer: _MutablePair<ImmutableType, MutableType>
     
     /// Initialize with an immutable reference instance.
@@ -845,7 +845,7 @@ private final class _MutablePairHandle<ImmutableType : NSObject, MutableType : N
     
     /// Apply a closure to the reference type, regardless if it is mutable or immutable.
     @inline(__always)
-    func map<ReturnType>(_ whatToDo : @noescape (ImmutableType) throws -> ReturnType) rethrows -> ReturnType {
+    func map<ReturnType>(_ whatToDo : (ImmutableType) throws -> ReturnType) rethrows -> ReturnType {
         switch _pointer {
         case .Default(let i):
             return try whatToDo(i)

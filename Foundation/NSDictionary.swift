@@ -171,11 +171,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return true
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
 
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSDictionary.self {
             // return self for immutable type
             return self
@@ -187,11 +187,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return NSDictionary(objects: self.allValues, forKeys: self.allKeys.map({ $0 as! NSObject}))
     }
 
-    open override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
 
-    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             // always create and return an NSMutableDictionary
             let mutableDictionary = NSMutableDictionary()
@@ -475,11 +475,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
     open func write(to url: URL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
     
-    public func enumerateKeysAndObjects(_ block: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateKeysAndObjects(_ block: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateKeysAndObjects([], using: block)
     }
 
-    public func enumerateKeysAndObjects(_ opts: EnumerationOptions = [], using block: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    public func enumerateKeysAndObjects(_ opts: EnumerationOptions = [], using block: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         let count = self.count
         var keys = [AnyObject]()
         var objects = [AnyObject]()
@@ -496,22 +496,22 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         }
     }
     
-    open func keysSortedByValue(comparator cmptr: @noescape (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
+    open func keysSortedByValue(comparator cmptr: (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
         return keysSortedByValue([], usingComparator: cmptr)
     }
 
-    open func keysSortedByValue(_ opts: SortOptions = [], usingComparator cmptr: @noescape (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
+    open func keysSortedByValue(_ opts: SortOptions = [], usingComparator cmptr: (AnyObject, AnyObject) -> ComparisonResult) -> [AnyObject] {
         let sorted = allKeys.sorted { lhs, rhs in
             return cmptr(lhs, rhs) == .orderedSame
         }
         return sorted
     }
 
-    open func keysOfEntries(passingTest predicate: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    open func keysOfEntries(passingTest predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         return keysOfEntries([], passingTest: predicate)
     }
 
-    open func keysOfEntries(_ opts: EnumerationOptions = [], passingTest predicate: @noescape (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    open func keysOfEntries(_ opts: EnumerationOptions = [], passingTest predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         var matching = Set<NSObject>()
         enumerateKeysAndObjects(opts) { key, value, stop in
             if predicate(key, value, stop) {

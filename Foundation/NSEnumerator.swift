@@ -38,7 +38,7 @@ extension NSEnumerator {
 
 }
 
-internal class NSGeneratorEnumerator<Base : IteratorProtocol where Base.Element : AnyObject> : NSEnumerator {
+internal class NSGeneratorEnumerator<Base : IteratorProtocol> : NSEnumerator where Base.Element : AnyObject {
     var generator : Base
     init(_ generator: Base) {
         self.generator = generator

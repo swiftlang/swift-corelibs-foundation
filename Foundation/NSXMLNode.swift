@@ -49,13 +49,13 @@ open class XMLNode: NSObject, NSCopying {
         case notationDeclaration
     }
 
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
 
     internal let _xmlNode: _CFXMLNodePtr
 
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         let newNode = _CFXMLCopyNode(_xmlNode, true)
         return XMLNode._objectNodeForNode(newNode)
     }

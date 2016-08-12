@@ -22,11 +22,11 @@ open class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
         _indexes = indexes
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
     public convenience init(index: Int) {
         self.init(indexes: [index])
     }

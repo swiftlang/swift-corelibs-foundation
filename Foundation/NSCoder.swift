@@ -46,7 +46,7 @@ open class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
 
-    open func decodeObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
+    open func decodeObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? where DecodedObjectType : NSObject {
         NSUnimplemented()
     }
    
@@ -73,7 +73,7 @@ open class NSCoder : NSObject {
         NSUnimplemented()
     }
     
-    open func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? {
+    open func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? where DecodedObjectType : NSObject {
         NSUnimplemented()
     }
     
@@ -250,7 +250,7 @@ open class NSCoder : NSObject {
     }
     */
     /// - experimental: This method does not exist in the Darwin Foundation.
-    open func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: @noescape (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
+    open func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
         NSRequiresConcreteImplementation()
     }
 

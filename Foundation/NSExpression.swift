@@ -42,11 +42,11 @@ open class NSExpression : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         NSUnimplemented()
     }
 

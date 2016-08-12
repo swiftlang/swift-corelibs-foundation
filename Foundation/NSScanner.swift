@@ -17,11 +17,11 @@ open class Scanner: NSObject, NSCopying {
     internal var _invertedSkipSet: CharacterSet?
     internal var _scanLocation: Int
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         return Scanner(string: string)
     }
     
@@ -214,8 +214,8 @@ private func isADigit(_ ch: unichar) -> Bool {
 // This is just here to allow just enough generic math to handle what is needed for scanning an abstract integer from a string, perhaps these should be on IntegerType?
 
 internal protocol _BitShiftable {
-    func >>(lhs: Self, rhs: Self) -> Self
-    func <<(lhs: Self, rhs: Self) -> Self
+    static func >>(lhs: Self, rhs: Self) -> Self
+    static func <<(lhs: Self, rhs: Self) -> Self
 }
 
 internal protocol _IntegerLike : Integer, _BitShiftable {
@@ -225,10 +225,10 @@ internal protocol _IntegerLike : Integer, _BitShiftable {
 }
 
 internal protocol _FloatArithmeticType {
-    func +(lhs: Self, rhs: Self) -> Self
-    func -(lhs: Self, rhs: Self) -> Self
-    func *(lhs: Self, rhs: Self) -> Self
-    func /(lhs: Self, rhs: Self) -> Self
+    static func +(lhs: Self, rhs: Self) -> Self
+    static func -(lhs: Self, rhs: Self) -> Self
+    static func *(lhs: Self, rhs: Self) -> Self
+    static func /(lhs: Self, rhs: Self) -> Self
 }
 
 internal protocol _FloatLike : FloatingPoint, _FloatArithmeticType {

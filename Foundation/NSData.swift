@@ -142,19 +142,19 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return UnsafeRawPointer(CFDataGetBytePtr(_cfObject))
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         return self
     }
     
-    open override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
     
-    open func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    open func mutableCopy(with zone: NSZone? = nil) -> Any {
         return NSMutableData(bytes: UnsafeMutableRawPointer(mutating: bytes), length: length, copy: true, deallocator: nil)
     }
 
@@ -548,7 +548,7 @@ extension NSData {
         }
         return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
     }
-    private static func searchSubSequence<T : Collection, T2 : Sequence where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element, T.Indices.Iterator.Element == T.Index>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? {
+    private static func searchSubSequence<T : Collection, T2 : Sequence>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element, T.SubSequence.Iterator.Element == T.Iterator.Element, T.Indices.Iterator.Element == T.Index {
         for index in seq.indices {
             if seq.suffix(from: index).starts(with: subSequence) {
                 return index
@@ -558,7 +558,7 @@ extension NSData {
         return nil
     }
     
-    internal func enumerateByteRangesUsingBlockRethrows(_ block: @noescape (UnsafeRawPointer, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
+    internal func enumerateByteRangesUsingBlockRethrows(_ block: (UnsafeRawPointer, NSRange, UnsafeMutablePointer<Bool>) throws -> Void) throws {
         var err : Swift.Error? = nil
         self.enumerateBytes() { (buf, range, stop) -> Void in
             do {
@@ -572,7 +572,7 @@ extension NSData {
         }
     }
 
-    public func enumerateBytes(_ block: @noescape (UnsafeRawPointer, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
+    public func enumerateBytes(_ block: (UnsafeRawPointer, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
         var stop = false
         withUnsafeMutablePointer(to: &stop) { stopPointer in
             block(bytes, NSMakeRange(0, length), stopPointer)
@@ -634,7 +634,7 @@ open class NSMutableData : NSData {
         }
     }
     
-    open override func copy(with zone: NSZone? = nil) -> AnyObject {
+    open override func copy(with zone: NSZone? = nil) -> Any {
         return NSData(bytes: bytes, length: length)
     }
 }

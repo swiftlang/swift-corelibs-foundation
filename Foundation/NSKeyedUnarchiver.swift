@@ -546,7 +546,7 @@ open class NSKeyedUnarchiver : NSCoder {
         Helper for NSArray/NSDictionary to dereference and decode an array of objects
      */
     internal func _decodeArrayOfObjectsForKey(_ key: String,
-                                              withBlock block: @noescape (Any) -> Void) throws {
+                                              withBlock block: (Any) -> Void) throws {
         let objectRefs : Array<Any>? = _decodeValue(forKey: key)
         
         guard let unwrappedObjectRefs = objectRefs else {
@@ -662,7 +662,7 @@ open class NSKeyedUnarchiver : NSCoder {
         return nil
     }
 
-    open override func decodeObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? {
+    open override func decodeObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? where DecodedObjectType : NSObject {
         return decodeObjectOfClasses([cls], forKey: key) as? DecodedObjectType
     }
     
@@ -674,7 +674,7 @@ open class NSKeyedUnarchiver : NSCoder {
         return try decodeTopLevelObjectOfClasses([NSArray.self], forKey: key)
     }
     
-    open override func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding where DecodedObjectType : NSObject>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? {
+    open override func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? where DecodedObjectType : NSObject {
         return try self.decodeTopLevelObjectOfClasses([cls], forKey: key) as! DecodedObjectType?
     }
     
@@ -759,7 +759,7 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     /// - experimental: replaces decodeBytes(forKey:)
-    open override func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: @noescape (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
+    open override func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
         let ns : Data? = _decodeValue(forKey: key)
         if let value = ns {
             return try value.withUnsafeBytes {

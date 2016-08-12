@@ -1170,7 +1170,7 @@ extension TestNSString {
 func test_reflection() {
     let testString: NSString = "some text here"
     
-    let ql = _PlaygroundQuickLook(reflecting: testString)
+    let ql = PlaygroundQuickLook(reflecting: testString)
 
     switch ql {
     case .text(let str): XCTAssertEqual(testString.bridge(), str)

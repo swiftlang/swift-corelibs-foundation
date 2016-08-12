@@ -38,15 +38,15 @@ internal class _NSCFCharacterSet : NSMutableCharacterSet {
         return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(plane))
     }
     
-    override func copy() -> AnyObject {
+    override func copy() -> Any {
         return copy(with: nil)
     }
     
-    override func copy(with zone: NSZone? = nil) -> AnyObject {
+    override func copy(with zone: NSZone? = nil) -> Any {
         return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
     }
     
-    override func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
+    override func mutableCopy(with zone: NSZone? = nil) -> Any {
         return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
     }
     

@@ -56,11 +56,11 @@ open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         return true
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         NSUnimplemented()
     }
 
@@ -90,7 +90,7 @@ open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         @param storagePolicy an NSURLCacheStoragePolicy constant.
         @result an initialized NSCachedURLResponse.
     */
-    public init(response: URLResponse, data: Data, userInfo: [NSObject : AnyObject]? = [:], storagePolicy: URLCache.StoragePolicy) { NSUnimplemented() }
+    public init(response: URLResponse, data: Data, userInfo: [AnyHashable : Any]? = [:], storagePolicy: URLCache.StoragePolicy) { NSUnimplemented() }
     
     /*! 
         @method response
@@ -111,7 +111,7 @@ open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         @abstract Returns the userInfo dictionary of the receiver. 
         @result The userInfo dictionary of the receiver. 
     */
-    open var userInfo: [NSObject : AnyObject]? { NSUnimplemented() }
+    open var userInfo: [AnyHashable : Any]? { NSUnimplemented() }
     
     /*! 
         @method storagePolicy

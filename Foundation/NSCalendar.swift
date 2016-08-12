@@ -185,11 +185,11 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
         return true
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         let copy = NSCalendar(identifier: calendarIdentifier)!
         copy.locale = locale
         copy.timeZone = timeZone
@@ -1418,11 +1418,11 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         return true
     }
     
-    open override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         NSUnimplemented()
     }
     

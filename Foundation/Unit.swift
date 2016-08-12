@@ -143,7 +143,7 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
         self.symbol = symbol
     }
     
-    open func copy(with zone: NSZone?) -> AnyObject {
+    open func copy(with zone: NSZone?) -> Any {
         return self
     }
     

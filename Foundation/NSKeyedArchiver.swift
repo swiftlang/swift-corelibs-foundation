@@ -650,7 +650,7 @@ open class NSKeyedArchiver : NSCoder {
         _setObjectInCurrentEncodingContext(aPropertyList, forKey: key)
     }
 
-    internal func _encodeValue<T: NSObject where T: NSCoding>(_ objv: T, forKey key: String? = nil) {
+    internal func _encodeValue<T: NSObject>(_ objv: T, forKey key: String? = nil) where T: NSCoding {
         _encodePropertyList(objv, forKey: key)
     }
 

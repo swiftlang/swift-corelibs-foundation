@@ -42,22 +42,22 @@ public struct NSZone : ExpressibleByNilLiteral {
 
 public protocol NSCopying {
     
-    func copy(with zone: NSZone?) -> AnyObject
+    func copy(with zone: NSZone?) -> Any
 }
 
 extension NSCopying {
-    public func copy() -> AnyObject {
+    public func copy() -> Any {
         return copy(with: nil)
     }
 }
 
 public protocol NSMutableCopying {
     
-    func mutableCopy(with zone: NSZone?) -> AnyObject
+    func mutableCopy(with zone: NSZone?) -> Any
 }
 
 extension NSMutableCopying {
-    public func mutableCopy() -> AnyObject {
+    public func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
 }
@@ -69,14 +69,14 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         
     }
     
-    open func copy() -> AnyObject {
+    open func copy() -> Any {
         if let copyable = self as? NSCopying {
             return copyable.copy(with: nil)
         }
         return self
     }
     
-    open func mutableCopy() -> AnyObject {
+    open func mutableCopy() -> Any {
         if let copyable = self as? NSMutableCopying {
             return copyable.mutableCopy(with: nil)
         }
