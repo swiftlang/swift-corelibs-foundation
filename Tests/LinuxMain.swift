@@ -9,11 +9,11 @@ XCTMain([
 
     testCase(TestNSByteCountFormatter.allTests),
     testCase(TestNSCalendar.allTests),
-/*    testCase(TestNSCharacterSet.allTests),
+    testCase(TestNSCharacterSet.allTests),
     testCase(TestNSCompoundPredicate.allTests),
     testCase(TestNSData.allTests),
     testCase(TestNSDate.allTests),
-    testCase(TestNSDateFormatter.allTests),
+/*    testCase(TestNSDateFormatter.allTests),
     testCase(TestNSDictionary.allTests),
     testCase(TestNSFileManager.allTests),
     testCase(TestNSGeometry.allTests),
