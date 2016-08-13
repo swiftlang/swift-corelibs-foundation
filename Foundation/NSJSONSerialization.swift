@@ -318,7 +318,7 @@ private struct JSONWriter {
         // Cannot detect type information (e.g. bool) as there is no objCType property on NSNumber in Swift
         // So, just print the number
 
-        writer("\(num)")
+        writer(num.serializationString)
     }
 
     mutating func serializeArray(_ array: [Any]) throws {
