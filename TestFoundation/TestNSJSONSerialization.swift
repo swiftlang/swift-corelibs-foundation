@@ -114,6 +114,8 @@ extension TestNSJSONSerialization {
             ("test_deserialize_badlyFormedArray", test_deserialize_badlyFormedArray),
             ("test_deserialize_invalidEscapeSequence", test_deserialize_invalidEscapeSequence),
             ("test_deserialize_unicodeMissingTrailingSurrogate", test_deserialize_unicodeMissingTrailingSurrogate),
+            ("test_serialize_dictionaryWithDecimal", test_serialize_dictionaryWithDecimal),
+
         ]
     }
     
@@ -620,6 +622,78 @@ extension TestNSJSONSerialization {
 
         let array2 = [NSNumber]().bridge()
         XCTAssertEqual(try trySerialize(array2), "[]")
+    }
+    
+    //[SR-2151] https://bugs.swift.org/browse/SR-2151
+    //NSJSONSerialization.data(withJSONObject:options) produces illegal JSON code
+    func test_serialize_dictionaryWithDecimal() {
+        
+        //test serialize values less than 1 with maxFractionDigits = 15
+        func excecute_testSetLessThanOne() {
+            //expected : input to be serialized
+            let params = [
+                           ("0.1",0.1),
+                           ("0.2",0.2),
+                           ("0.3",0.3),
+                           ("0.4",0.4),
+                           ("0.5",0.5),
+                           ("0.6",0.6),
+                           ("0.7",0.7),
+                           ("0.8",0.8),
+                           ("0.9",0.9),
+                           ("0.23456789012345",0.23456789012345),
+
+                           ("-0.1",-0.1),
+                           ("-0.2",-0.2),
+                           ("-0.3",-0.3),
+                           ("-0.4",-0.4),
+                           ("-0.5",-0.5),
+                           ("-0.6",-0.6),
+                           ("-0.7",-0.7),
+                           ("-0.8",-0.8),
+                           ("-0.9",-0.9),
+                           ("-0.23456789012345",-0.23456789012345),
+                           ]
+            for param in params {
+                let testDict = [param.0 : param.1 as AnyObject] as [String : AnyObject]
+                let str = try? trySerialize(testDict.bridge())
+                XCTAssertEqual(str!, "{\"\(param.0)\":\(param.1)}", "serialized value should  have a decimal places and leading zero")
+            }
+        }
+        //test serialize values grater than 1 with maxFractionDigits = 15
+        func excecute_testSetGraterThanOne() {
+            let paramsBove1 = [
+                ("1.1",1.1),
+                ("1.2",1.2),
+                ("1.23456789012345",1.23456789012345),
+                ("-1.1",-1.1),
+                ("-1.2",-1.2),
+                ("-1.23456789012345",-1.23456789012345),
+                ]
+            for param in paramsBove1 {
+                let testDict = [param.0 : param.1 as AnyObject] as [String : AnyObject]
+                let str = try? trySerialize(testDict.bridge())
+                XCTAssertEqual(str!, "{\"\(param.0)\":\(param.1)}", "serialized Double should  have a decimal places and leading value")
+            }
+        }
+
+        //test serialize values for whole integer where the input is in Double format
+        func excecute_testWholeNumbersWithDoubleAsInput() {
+            
+            let paramsWholeNumbers = [
+                ("-1"  ,-1.0),
+                ("0"  ,0.0),
+                ("1"  ,1.0),
+                ]
+            for param in paramsWholeNumbers {
+                let testDict = [param.0 : param.1 as AnyObject] as [String : AnyObject]
+                let str = try? trySerialize(testDict.bridge())
+                XCTAssertEqual(str!, "{\"\(param.0)\":\(param.0._bridgeToObject().intValue)}", "expect that serialized value should not contain trailing zero or decimal as they are whole numbers ")
+            }
+        }
+        excecute_testSetLessThanOne()
+        excecute_testSetGraterThanOne()
+        excecute_testWholeNumbersWithDoubleAsInput()
     }
     
     func test_serialize_null() {
