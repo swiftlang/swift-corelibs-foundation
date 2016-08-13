@@ -46,7 +46,7 @@ class TestNSXMLDocument : XCTestCase {
             return [
                 ("test_basicCreation", test_basicCreation),
                 ("test_nextPreviousNode", test_nextPreviousNode),
-                //                ("test_xpath", test_xpath),
+                ("test_xpath", test_xpath),
                 ("test_elementCreation", test_elementCreation),
                 ("test_elementChildren", test_elementChildren),
                 ("test_stringValue", test_stringValue),
