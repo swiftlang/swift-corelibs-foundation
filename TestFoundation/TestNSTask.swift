@@ -145,7 +145,7 @@ class TestNSTask : XCTestCase {
             XCTFail("Could not read stdout")
             return
         }
-        XCTAssertEqual(string, "/usr/bin/which\n")
+        XCTAssertTrue(string.hasSuffix("/which\n"))
     }
 
     func test_pipe_stderr() {
@@ -211,7 +211,7 @@ class TestNSTask : XCTestCase {
                 XCTFail("Could not read stdout")
                 return
             }
-            XCTAssertEqual(string, "/usr/bin/which\n")
+            XCTAssertTrue(string.hasSuffix("/which\n"))
         }
     }
     
