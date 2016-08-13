@@ -84,7 +84,7 @@ extension Dictionary : _ObjectTypeBridgeable {
 
 open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
-    internal var _storage = [NSObject: AnyObject]()
+    internal var _storage: [NSObject: AnyObject]
     
     open var count: Int {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
@@ -112,6 +112,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     public required init(objects: UnsafePointer<AnyObject>, forKeys keys: UnsafePointer<NSObject>, count cnt: Int) {
+        _storage = [NSObject: AnyObject](minimumCapacity: cnt)
+        
         for idx in 0..<cnt {
             let key = keys[idx].copy()
             let value = objects[idx]
@@ -586,6 +588,9 @@ open class NSMutableDictionary : NSDictionary {
     
     public convenience init(capacity numItems: Int) {
         self.init(objects: [], forKeys: [], count: 0)
+        
+        // It is safe to reset the storage here because we know is empty
+        _storage = [NSObject: AnyObject](minimumCapacity: numItems)
     }
     
     public required init(objects: UnsafePointer<AnyObject>, forKeys keys: UnsafePointer<NSObject>, count cnt: Int) {
