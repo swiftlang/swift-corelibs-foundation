@@ -388,7 +388,7 @@ open class HTTPCookie : NSObject {
         //bake the cookies
         var httpCookies: [HTTPCookie] = []
         for i in 0..<cookieIndices.count-1 {
-            if let aCookie = createHttpCookie(url: url, pairs: nameValuePairs, start: cookieIndices[i], end: cookieIndices[i+1]) {
+            if let aCookie = createHttpCookie(url: url, pairs: nameValuePairs[cookieIndices[i]..<cookieIndices[i+1]]) {
                 httpCookies.append(aCookie)
             }
         }
@@ -397,11 +397,11 @@ open class HTTPCookie : NSObject {
     } 
 
     //Bake a cookie
-    private class func createHttpCookie(url: URL, pairs: [String], start: Int, end: Int) -> HTTPCookie? {
+    private class func createHttpCookie(url: URL, pairs: ArraySlice<String>) -> HTTPCookie? {
         var properties: [HTTPCookiePropertyKey : Any] = [:]
-        for index in start..<end {
-            let name = pairs[index].components(separatedBy: "=")[0]
-            var value = pairs[index].components(separatedBy: "\(name)=")[1]  //a value can have an "="
+        for pair in pairs {
+            let name = pair.components(separatedBy: "=")[0]
+            var value = pair.components(separatedBy: "\(name)=")[1]  //a value can have an "="
             if canonicalize(name) == .expires {
                 value = value.insertComma(at: 3)    //re-insert the comma   
             }
@@ -579,7 +579,7 @@ open class HTTPCookie : NSObject {
 }
 
 //utils for cookie parsing
-internal extension String {
+fileprivate extension String {
     func trim() -> String {
         return self.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines())
     }
