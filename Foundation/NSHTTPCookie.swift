@@ -581,7 +581,7 @@ open class HTTPCookie : NSObject {
 //utils for cookie parsing
 fileprivate extension String {
     func trim() -> String {
-        return self.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines())
+        return self.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines)
     }
 
     func removeCommas() -> String {
