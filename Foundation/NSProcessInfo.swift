@@ -35,10 +35,7 @@ public struct NSOperatingSystemVersion {
 
 open class ProcessInfo: NSObject {
     
-    internal static let _processInfo = ProcessInfo()
-    open class func processInfo() -> ProcessInfo {
-        return _processInfo
-    }
+    public static let processInfo = ProcessInfo()
     
     internal override init() {
         
