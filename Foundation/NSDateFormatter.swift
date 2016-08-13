@@ -10,14 +10,6 @@
 import CoreFoundation
 
 open class DateFormatter : Formatter {
-    public enum Behavior : UInt {
-        case `default` = 0
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE))
-        case behavior10_0 = 1000
-#endif
-        case behavior10_4 = 4000
-    }
-    
     typealias CFType = CFDateFormatter
     private var __cfObject: CFType?
     private var _cfObject: CFType {
@@ -47,26 +39,6 @@ open class DateFormatter : Formatter {
 
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
-    }
-    
-    open class var defaultFormatterBehavior: DateFormatter.Behavior {
-        get {
-            NSUnimplemented()
-        }
-        
-        set {
-            NSUnimplemented()
-        }
-    }
-    
-    open var formatterBehavior: DateFormatter.Behavior {
-        get {
-            NSUnimplemented()
-        }
-        
-        set {
-            NSUnimplemented()
-        }
     }
 
     open var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
