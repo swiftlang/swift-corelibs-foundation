@@ -278,8 +278,11 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         }
     }
 
+    /// Initialize a `Data` with the specified count of zeroed bytes.
+    ///
+    /// - parameter count: The number of bytes the data initially contains.
     public init?(count: Int) {
-        if let memory = malloc(count)?.bindMemory(to: UInt8.self, capacity: count) {
+        if let memory = calloc(1, count)?.bindMemory(to: UInt8.self, capacity: count) {
             self.init(bytesNoCopy: memory, count: count, deallocator: .free)
         } else {
             return nil
