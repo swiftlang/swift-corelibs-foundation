@@ -56,7 +56,7 @@ class TestNSURL : XCTestCase {
     static var allTests: [(String, (TestNSURL) -> () throws -> Void)] {
         return [
             ("test_URLStrings", test_URLStrings),
-            ("test_fileURLWithPath_relativeToURL", test_fileURLWithPath_relativeToURL ),
+            ("test_fileURLWithPath_relativeTo", test_fileURLWithPath_relativeTo ),
             // TODO: these tests fail on linux, more investigation is needed
             ("test_fileURLWithPath", test_fileURLWithPath),
             ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
@@ -65,7 +65,7 @@ class TestNSURL : XCTestCase {
         ]
     }
     
-    func test_fileURLWithPath_relativeToURL() {
+    func test_fileURLWithPath_relativeTo() {
         let homeDirectory = NSHomeDirectory()
         XCTAssertNotNil(homeDirectory, "Failed to find home directory")
         let homeURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
@@ -79,16 +79,16 @@ class TestNSURL : XCTestCase {
         let baseURL = URL(fileURLWithPath: "/usr", isDirectory: true)
         let relativePath = "include"
         #endif
-        // we're telling fileURLWithPath:isDirectory:relativeToURL: Documents is a directory
+        // we're telling fileURLWithPath:isDirectory:relativeTo: Documents is a directory
         let url1 = URL(fileURLWithFileSystemRepresentation: relativePath, isDirectory: true, relativeTo: baseURL)
-        XCTAssertNotNil(url1, "fileURLWithPath:isDirectory:relativeToURL: failed")
-        // we're letting fileURLWithPath:relativeToURL: determine Documents is a directory with I/O
+        XCTAssertNotNil(url1, "fileURLWithPath:isDirectory:relativeTo: failed")
+        // we're letting fileURLWithPath:relativeTo: determine Documents is a directory with I/O
         let url2 = URL(fileURLWithPath: relativePath, relativeTo: baseURL)
-        XCTAssertNotNil(url2, "fileURLWithPath:relativeToURL: failed")
+        XCTAssertNotNil(url2, "fileURLWithPath:relativeTo: failed")
         XCTAssertEqual(url1, url2, "\(url1) was not equal to \(url2)")
-        // we're telling fileURLWithPath:relativeToURL: Documents is a directory with a trailing slash
+        // we're telling fileURLWithPath:relativeTo: Documents is a directory with a trailing slash
         let url3 = URL(fileURLWithPath: relativePath + "/", relativeTo: baseURL)
-        XCTAssertNotNil(url3, "fileURLWithPath:relativeToURL: failed")
+        XCTAssertNotNil(url3, "fileURLWithPath:relativeTo: failed")
         XCTAssertEqual(url1, url3, "\(url1) was not equal to \(url3)")
     }
     
@@ -465,7 +465,7 @@ class TestNSURLComponents : XCTestCase {
         return [
             ("test_string", test_string),
             ("test_port", test_portSetter),
-            ("test_URLRelativeToURL", test_URLRelativeToURL),
+            ("test_url", test_url),
         ]
     }
     
@@ -489,7 +489,7 @@ class TestNSURLComponents : XCTestCase {
         XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(receivedString)")
     }
 
-    func test_URLRelativeToURL() {
+    func test_url() {
 
         let baseURL = URL(string: "https://www.example.com")
 
