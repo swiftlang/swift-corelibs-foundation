@@ -140,12 +140,12 @@ internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
         return data._swiftObject
     } else if let number = input as? NSNumber {
         return number
+    } else if let keyedArchiverUID = input as? _NSKeyedArchiverUID {
+        return keyedArchiverUID
     } else if input === kCFBooleanTrue {
         return true
     } else if input === kCFBooleanFalse {
         return false
-    } else if input is __NSCFType && CFGetTypeID(input) == _CFKeyedArchiverUIDGetTypeID() {
-        return input
     } else {
         fatalError("Attempt to convert a non-plist type \(type(of: input))")
     }
