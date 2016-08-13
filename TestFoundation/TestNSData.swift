@@ -44,6 +44,9 @@ class TestNSData: XCTestCase {
             ("test_replaceBytes", test_replaceBytes),
             ("test_initDataWithCapacity", test_initDataWithCapacity),
             ("test_initDataWithCount", test_initDataWithCount),
+            ("test_initDataWithUnsafeBuffer", test_initDataWithUnsafeBuffer),
+            ("test_initDataWithUnsafeMutableBuffer", test_initDataWithUnsafeMutableBuffer),
+            ("test_initDataWithReference", test_initDataWithReference),
         ]
     }
     
@@ -393,5 +396,42 @@ class TestNSData: XCTestCase {
             return
         }
     }
-}
 
+    func test_initDataWithUnsafeBuffer() {
+        var srcArray: [UInt8] = [0, 1, 2, 3, 4, 5]
+        let buffer = UnsafeBufferPointer<UInt8>(start: &srcArray,
+            count: srcArray.count)
+        let data = Data(buffer: buffer)
+
+        XCTAssertEqual(data.count, srcArray.count * MemoryLayout<UInt8>.stride)
+        XCTAssertTrue(Data(bytes: srcArray) == data)
+    }
+
+    func test_initDataWithUnsafeMutableBuffer() {
+        var srcArray: [UInt16] = [0, 1, 2, 3, 4, 5]
+        let buffer = UnsafeMutableBufferPointer<UInt16>(start: &srcArray,
+            count: srcArray.count)
+        let data = Data(buffer: buffer)
+
+        XCTAssertEqual(data.count, buffer.count * MemoryLayout<UInt16>.stride)
+
+        // Mutate the original array to test the new instance is a copy
+        srcArray[0] = 0xffff
+        XCTAssertEqual(buffer[0], srcArray[0])
+        XCTAssertNotEqual(data[0], 0xff)
+        XCTAssertEqual(data[0], 0x00)
+    }
+
+    func test_initDataWithReference() {
+        let srcArray: [UInt8] = [1, 2, 3, 4, 5]
+        let srcNSData = NSData(bytes: srcArray, length: srcArray.count)
+        var data = Data(referencing: srcNSData)
+
+        XCTAssertTrue(data == Data(bytes: srcArray))
+        XCTAssertEqual(srcNSData.length, srcArray.count)
+
+        // Mutate the original array to test the new instance is a copy
+        data.resetBytes(in: data.startIndex..<data.endIndex)
+        XCTAssertFalse(data == Data(referencing: srcNSData))
+    }
+}

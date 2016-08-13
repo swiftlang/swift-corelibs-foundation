@@ -196,6 +196,13 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     public init<SourceType>(buffer: UnsafeBufferPointer<SourceType>) {
         _wrapped = _SwiftNSData(immutableObject: NSData(bytes: buffer.baseAddress, length: MemoryLayout<SourceType>.stride * buffer.count))
     }
+
+    /// Initialize a `Data` with copied memory content.
+    ///
+    /// - parameter buffer: A buffer pointer to copy. The size is calculated from `SourceType` and `buffer.count`.
+    public init<SourceType>(buffer: UnsafeMutableBufferPointer<SourceType>) {
+        _wrapped = _SwiftNSData(immutableObject: NSData(bytes: UnsafePointer(buffer.baseAddress), length: MemoryLayout<SourceType>.stride * buffer.count))
+    }
     
     /// Initialize a `Data` with the contents of an Array.
     ///
@@ -295,11 +302,18 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         }
     }
     
-    internal init(_bridged data: NSData) {
+    /// Initialize a `Data` by adopting a reference type.
+    ///
+    /// You can use this initializer to create a `struct Data` that wraps a `class NSData`. `struct Data` will use the `class NSData` for all operations. Other initializers (including casting using `as Data`) may choose to hold a reference or not, based on a what is the most efficient representation.
+    ///
+    /// If the resulting value is mutated, then `Data` will invoke the `mutableCopy()` function on the reference to copy the contents. You may customize the behavior of that function if you wish to return a specialized mutable subclass.
+    ///
+    /// - parameter reference: The instance of `NSData` that you wish to wrap. This instance will be copied by `struct Data`.
+    public init(referencing reference: NSData) {
         // We must copy the input because it might be mutable; just like storing a value type in ObjC
-        _wrapped = _SwiftNSData(immutableObject: data.copy() as! NSObject)
+        _wrapped = _SwiftNSData(immutableObject: reference.copy() as! NSObject)
     }
-    
+
     // -----------------------------------
     // MARK: - Properties and Functions
     
@@ -639,11 +653,11 @@ extension Data {
     }
     
     public static func _forceBridgeFromObjectiveC(_ input: NSData, result: inout Data?) {
-        result = Data(_bridged: input)
+        result = Data(referencing: input)
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ input: NSData, result: inout Data?) -> Bool {
-        result = Data(_bridged: input)
+        result = Data(referencing: input)
         return true
     }
     
