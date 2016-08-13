@@ -63,11 +63,24 @@ internal final class _NSCFConstantString : _NSCFString {
         let ptr = Unmanaged.passUnretained(self).toOpaque()
         return ptr.load(fromByteOffset: offset, as: UnsafePointer<UInt8>.self)
     }
-    internal var _length : UInt32 {
-        let offset = MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size + MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size + MemoryLayout<UnsafePointer<UInt8>>.size
-        let ptr = Unmanaged.passUnretained(self).toOpaque()
-        return ptr.load(fromByteOffset: offset, as: UInt32.self)
+
+    private var _lenOffset : Int {
+        return MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size + MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size + MemoryLayout<UnsafePointer<UInt8>>.size
     }
+
+    private var _lenPtr :  UnsafeMutableRawPointer {
+        return Unmanaged.passUnretained(self).toOpaque()
+    }
+
+#if arch(s390x)
+    internal var _length : UInt64 {
+        return _lenPtr.load(fromByteOffset: _lenOffset, as: UInt64.self)
+    }
+#else
+    internal var _length : UInt32 {
+        return _lenPtr.load(fromByteOffset: _lenOffset, as: UInt32.self)
+    }
+#endif
     
     required init(characters: UnsafePointer<unichar>, length: Int) {
         fatalError()
