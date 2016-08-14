@@ -693,9 +693,19 @@ extension TestNSJSONSerialization {
                 XCTAssertEqual(str!, "{\"\(param.0)\":\(param.0._bridgeToObject().intValue)}", "expect that serialized value should not contain trailing zero or decimal as they are whole numbers ")
             }
         }
+        
+        func excecute_testWholeNumbersWithIntInput() {
+            for i  in -10..<10 {
+                let iStr = "\(i)"
+                let testDict = [iStr : i as AnyObject] as [String : AnyObject]
+                let str = try? trySerialize(testDict.bridge())
+                XCTAssertEqual(str!, "{\"\(iStr)\":\(i)}", "expect that serialized value should not contain trailing zero or decimal as they are whole numbers ")
+            }
+        }
         excecute_testSetLessThanOne()
         excecute_testSetGraterThanOne()
         excecute_testWholeNumbersWithDoubleAsInput()
+        excecute_testWholeNumbersWithIntInput()
     }
     
     func test_serialize_null() {

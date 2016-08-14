@@ -200,6 +200,7 @@ open class NSNumber : NSValue {
     // This layout MUST be the same as CFNumber so that they are bridgeable
     private var _base = _CFInfo(typeID: CFNumberGetTypeID())
     private var _pad: UInt64 = 0
+    
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
@@ -511,22 +512,7 @@ open class NSNumber : NSValue {
     open override var description: String {
         return description(withLocale: nil)
     }
-
-    //[SR-2151] https://bugs.swift.org/browse/SR-2151
-    internal var serializationString: String {
-        let formatter: CFNumberFormatter
-        formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
-        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
-        switch  CFNumberGetType(_cfObject as CFNumber){
-            case .floatType, .float32Type, .float64Type, .cgFloatType, .doubleType:
-                CFNumberFormatterSetFormat(formatter, "0.###############"._cfObject);
-            default:break
-        }
-        return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
-    }
 }
-
-
 
 extension CFNumber : _NSBridgable {
     typealias NSType = NSNumber

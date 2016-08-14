@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
 #if os(OSX) || os(iOS)
     import Darwin
 #elseif os(Linux)
@@ -253,6 +255,14 @@ private struct JSONWriter {
     let pretty: Bool
     let writer: (String?) -> Void
     
+    private lazy var _numberformatter: CFNumberFormatter = {
+        let formatter: CFNumberFormatter
+        formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
+        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
+        CFNumberFormatterSetFormat(formatter, "0.###############"._cfObject)
+        return formatter
+    }()
+
     init(pretty: Bool = false, writer: @escaping (String?) -> Void) {
         self.pretty = pretty
         self.writer = writer
@@ -310,7 +320,7 @@ private struct JSONWriter {
         writer("\"")
     }
 
-    func serializeNumber(_ num: NSNumber) throws {
+    mutating func serializeNumber(_ num: NSNumber) throws {
         if num.doubleValue.isInfinite || num.doubleValue.isNaN {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
         }
@@ -318,7 +328,7 @@ private struct JSONWriter {
         // Cannot detect type information (e.g. bool) as there is no objCType property on NSNumber in Swift
         // So, just print the number
 
-        writer(num.serializationString)
+        writer(_serializationString(for: num))
     }
 
     mutating func serializeArray(_ array: [Any]) throws {
@@ -401,6 +411,11 @@ private struct JSONWriter {
         for _ in 0..<indent {
             writer(" ")
         }
+    }
+    
+    //[SR-2151] https://bugs.swift.org/browse/SR-2151
+    private mutating func _serializationString(for number: NSNumber) -> String {
+        return CFNumberFormatterCreateStringWithNumber(nil, _numberformatter, number._cfObject)._swiftObject
     }
 }
 
