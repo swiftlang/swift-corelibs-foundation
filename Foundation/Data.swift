@@ -217,12 +217,18 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     
     /// Initialize a `Data` with the specified size.
     ///
+    /// This initializer doesn't necessarily allocate the requested memory right away. `Data` allocates additional memory as needed, so `capacity` simply establishes the initial capacity. When it does allocate the initial memory, though, it allocates the specified amount.
+    ///
+    /// This method sets the `count` of the data to 0.
+    ///
+    /// If the capacity specified in `capacity` is greater than four memory pages in size, this may round the amount of requested memory up to the nearest full page.
+    ///
     /// - parameter capacity: The size of the data.
-    public init?(capacity: Int) {
+    public init(capacity: Int) {
         if let d = NSMutableData(capacity: capacity) {
             _wrapped = _SwiftNSData(immutableObject: d)
         } else {
-            return nil
+            fatalError("Unable to allocate data of the requested capacity")
         }
     }
     
@@ -281,11 +287,11 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     /// Initialize a `Data` with the specified count of zeroed bytes.
     ///
     /// - parameter count: The number of bytes the data initially contains.
-    public init?(count: Int) {
+    public init(count: Int) {
         if let memory = calloc(1, count)?.bindMemory(to: UInt8.self, capacity: count) {
             self.init(bytesNoCopy: memory, count: count, deallocator: .free)
         } else {
-            return nil
+            fatalError("Unable to allocate data of the requested count")
         }
     }
     

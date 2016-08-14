@@ -42,7 +42,8 @@ class TestNSData: XCTestCase {
             ("test_rangeOfData",test_rangeOfData),
             ("test_initMutableDataWithLength", test_initMutableDataWithLength),
             ("test_replaceBytes", test_replaceBytes),
-            ("test_initDataWithCount", test_initDataWithCount)
+            ("test_initDataWithCapacity", test_initDataWithCapacity),
+            ("test_initDataWithCount", test_initDataWithCount),
         ]
     }
     
@@ -378,12 +379,14 @@ class TestNSData: XCTestCase {
         XCTAssertEqual(mData, expected)
     }
 
+    func test_initDataWithCapacity() {
+        let data = Data(capacity: 123)
+        XCTAssertEqual(data.count, 0)
+    }
+
     func test_initDataWithCount() {
         let dataSize = 1024
-        guard let data = Data(count: dataSize) else {
-            XCTFail("Could not create zeroed data")
-            return
-        }
+        let data = Data(count: dataSize)
         XCTAssertEqual(data.count, dataSize)
         if let index = (data.index { $0 != 0 }) {
             XCTFail("Byte at index: \(index) is not zero: \(data[index])")

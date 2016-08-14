@@ -125,7 +125,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_outputStreamCreationToFile() {
-        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
+        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256))
         if filePath != nil {
             let outputStream = NSOutputStream(toFileAtPath: filePath!, append: true)
             XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
@@ -159,7 +159,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_outputStreamCreationWithUrl() {
-        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
+        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256))
         if filePath != nil {
             let outputStream = NSOutputStream(url: URL(fileURLWithPath: filePath!), append: true)
             XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
