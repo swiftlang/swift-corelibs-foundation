@@ -28,7 +28,7 @@ private func WEXITSTATUS(_ status: CInt) -> CInt {
 
 private var managerThreadRunLoop : RunLoop? = nil
 private var managerThreadRunLoopIsRunning = false
-private var managerThreadRunLoopIsRunningCondition = Condition()
+private var managerThreadRunLoopIsRunningCondition = NSCondition()
 
 #if os(OSX) || os(iOS)
 internal let kCFSocketDataCallBack = CFSocketCallBackType.dataCallBack.rawValue
@@ -95,7 +95,7 @@ open class Task: NSObject {
     private static func setup() {
         struct Once {
             static var done = false
-            static let lock = Lock()
+            static let lock = NSLock()
         }
         Once.lock.synchronized {
             if !Once.done {
@@ -179,7 +179,7 @@ open class Task: NSObject {
     
     fileprivate weak var runLoop : RunLoop? = nil
     
-    private var processLaunchedCondition = Condition()
+    private var processLaunchedCondition = NSCondition()
     
     // actions
     open func launch() {

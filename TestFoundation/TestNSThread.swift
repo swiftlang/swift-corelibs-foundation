@@ -35,7 +35,7 @@ class TestNSThread : XCTestCase {
     
     func test_threadStart() {
         var started = false
-        let condition = Condition()
+        let condition = NSCondition()
         let thread = Thread() {
             condition.lock()
             started = true

@@ -18,7 +18,7 @@ private func pthread_main_np() -> Int32 {
 #endif
 
 open class Operation: NSObject {
-    let lock = Lock()
+    let lock = NSLock()
     internal weak var _queue: OperationQueue?
     internal var _cancelled = false
     internal var _executing = false
@@ -294,7 +294,7 @@ internal struct _OperationList {
 }
 
 open class OperationQueue: NSObject {
-    let lock = Lock()
+    let lock = NSLock()
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
     var __concurrencyGate: DispatchSemaphore?
     var __underlyingQueue: DispatchQueue?

@@ -23,7 +23,7 @@ open class Cache: NSObject {
     }
     
     private var _entries = Dictionary<UnsafeRawPointer, NSCacheEntry>()
-    private let _lock = Lock()
+    private let _lock = NSLock()
     private var _totalCost = 0
     private var _byCost: NSCacheEntry?
     
