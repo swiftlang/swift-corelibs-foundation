@@ -655,7 +655,7 @@ extension TestNSJSONSerialization {
                            ("-0.23456789012345",-0.23456789012345),
                            ]
             for param in params {
-                let testDict = [param.0 : param.1 as AnyObject] as [String : AnyObject]
+                let testDict = [param.0 : param.1]
                 let str = try? trySerialize(testDict.bridge())
                 XCTAssertEqual(str!, "{\"\(param.0)\":\(param.1)}", "serialized value should  have a decimal places and leading zero")
             }
@@ -671,7 +671,7 @@ extension TestNSJSONSerialization {
                 ("-1.23456789012345",-1.23456789012345),
                 ]
             for param in paramsBove1 {
-                let testDict = [param.0 : param.1 as AnyObject] as [String : AnyObject]
+                let testDict = [param.0 : param.1]
                 let str = try? trySerialize(testDict.bridge())
                 XCTAssertEqual(str!, "{\"\(param.0)\":\(param.1)}", "serialized Double should  have a decimal places and leading value")
             }
@@ -686,7 +686,7 @@ extension TestNSJSONSerialization {
                 ("1"  ,1.0),
                 ]
             for param in paramsWholeNumbers {
-                let testDict = [param.0 : param.1 as AnyObject] as [String : AnyObject]
+                let testDict = [param.0 : param.1]
                 let str = try? trySerialize(testDict.bridge())
                 XCTAssertEqual(str!, "{\"\(param.0)\":\(param.0._bridgeToObject().intValue)}", "expect that serialized value should not contain trailing zero or decimal as they are whole numbers ")
             }
@@ -695,7 +695,7 @@ extension TestNSJSONSerialization {
         func excecute_testWholeNumbersWithIntInput() {
             for i  in -10..<10 {
                 let iStr = "\(i)"
-                let testDict = [iStr : i as AnyObject] as [String : AnyObject]
+                let testDict = [iStr : i]
                 let str = try? trySerialize(testDict.bridge())
                 XCTAssertEqual(str!, "{\"\(iStr)\":\(i)}", "expect that serialized value should not contain trailing zero or decimal as they are whole numbers ")
             }
