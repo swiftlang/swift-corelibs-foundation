@@ -1,0 +1,1 @@
+../../TestFoundation/TestNSScanner.swift
