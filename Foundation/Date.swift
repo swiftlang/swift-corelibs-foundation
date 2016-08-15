@@ -138,11 +138,7 @@ public struct Date : ReferenceConvertible, Comparable, Equatable {
     public static let distantPast = Date(timeIntervalSinceReferenceDate: -63114076800.0)
     
     public var hashValue: Int {
-        if #available(OSX 10.12, iOS 10.0, *) {
-            return Int(bitPattern: __CFHashDouble(_time))
-        } else { // 10.11 and previous behavior fallback; this must allocate a date to reference the hash value and then throw away the reference
-            return NSDate(timeIntervalSinceReferenceDate: _time).hash
-        }
+        return Int(bitPattern: __CFHashDouble(_time))
     }
     
     /// Compare two `Date` values.
@@ -234,7 +230,7 @@ extension Date : CustomDebugStringConvertible, CustomStringConvertible, CustomRe
     }
 }
 
-extension Date : _ObjectiveCBridgeable {
+extension Date {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSDate {
         return NSDate(timeIntervalSinceReferenceDate: _time)
@@ -242,7 +238,7 @@ extension Date : _ObjectiveCBridgeable {
     
     public static func _forceBridgeFromObjectiveC(_ x: NSDate, result: inout Date?) {
         if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
-            fatalError("Unable to bridge \(_ObjectiveCType.self) to \(self)")
+            fatalError("Unable to bridge \(NSDate.self) to \(self)")
         }
     }
     
@@ -255,14 +251,6 @@ extension Date : _ObjectiveCBridgeable {
         var result: Date? = nil
         _forceBridgeFromObjectiveC(source!, result: &result)
         return result!
-    }
-}
-
-extension NSDate : _HasCustomAnyHashableRepresentation {
-    // Must be @nonobjc to avoid infinite recursion during bridging.
-    @nonobjc
-    public func _toCustomAnyHashable() -> AnyHashable? {
-        return AnyHashable(self as Date)
     }
 }
 
