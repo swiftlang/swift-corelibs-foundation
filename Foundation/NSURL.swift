@@ -852,8 +852,8 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public let name: String
-    public let value: String?
+    open let name: String
+    open let value: String?
 }
 
 open class NSURLComponents: NSObject, NSCopying {
