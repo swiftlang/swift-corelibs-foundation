@@ -13,10 +13,10 @@ elif Configuration.current.target.sdk == OSType.MacOSX:
 	cf.CFLAGS = '-DDEPLOYMENT_TARGET_MACOSX '
 
 cf.ASFLAGS = " ".join([
-	'-DCF_CHARACTERSET_BITMAP=\\"CharacterSets/CFCharacterSetBitmaps.bitmap\\"','
-        '-DCF_CHARACTERSET_UNICHAR_DB=\\"CharacterSets/CFUniCharPropertyDatabase.data\\"','
-        '-DCF_CHARACTERSET_UNICODE_DATA_B=\\"CharacterSets/CFUnicodeData-B.mapping\\"','
-        '-DCF_CHARACTERSET_UNICODE_DATA_L=\\"CharacterSets/CFUnicodeData-L.mapping\\"','
+	'-DCF_CHARACTERSET_BITMAP=\\"CharacterSets/CFCharacterSetBitmaps.bitmap\\"',
+        '-DCF_CHARACTERSET_UNICHAR_DB=\\"CharacterSets/CFUniCharPropertyDatabase.data\\"',
+        '-DCF_CHARACTERSET_UNICODE_DATA_B=\\"CharacterSets/CFUnicodeData-B.mapping\\"',
+        '-DCF_CHARACTERSET_UNICODE_DATA_L=\\"CharacterSets/CFUnicodeData-L.mapping\\"',
 ])
 
 cf.ROOT_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift"
@@ -90,6 +90,7 @@ public = [
 	'String.subproj/CFAttributedString.h',
 ],
 private = [
+	'Base.subproj/CFAsmMacros.h',
 	'Base.subproj/ForSwiftFoundationOnly.h',
 	'Base.subproj/ForFoundationOnly.h',
 	'String.subproj/CFBurstTrie.h',

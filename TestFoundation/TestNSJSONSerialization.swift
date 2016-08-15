@@ -787,7 +787,7 @@ extension TestNSJSONSerialization {
     func test_jsonObjectToOutputStreamFile() {
         let dict = ["a":["b":1]]
         do {
-            let filePath = createTestFile("TestFileOut.txt",_contents: Data(capacity: 128)!)
+            let filePath = createTestFile("TestFileOut.txt",_contents: Data(capacity: 128))
             if filePath != nil {
                 let outputStream = NSOutputStream(toFileAtPath: filePath!, append: true)
                 outputStream?.open()

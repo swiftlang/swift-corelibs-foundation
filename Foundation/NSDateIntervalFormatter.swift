@@ -57,7 +57,7 @@ open class DateIntervalFormatter : Formatter {
             for en_US, "Mar 4-8"
             for en_GB, "4-8 Mar"
     */
-    open func stringFromDate(_ fromDate: Date, toDate: Date) -> String { NSUnimplemented() }
+    open func string(from fromDate: Date, to toDate: Date) -> String { NSUnimplemented() }
     
-    open func string(from dateInterval: NSDateInterval) -> String? { NSUnimplemented() }
+    open func string(from dateInterval: DateInterval) -> String? { NSUnimplemented() }
 }

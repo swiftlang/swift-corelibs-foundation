@@ -42,7 +42,7 @@ class TestNSPropertyList : XCTestCase {
     func test_decode() {
         var decoded: Any?
         var fmt = PropertyListSerialization.PropertyListFormat.binary
-        let path = testBundle().urlForResource("Test", withExtension: "plist")
+        let path = testBundle().url(forResource: "Test", withExtension: "plist")
         let data = try! Data(contentsOf: path!)
         do {
             decoded = try withUnsafeMutablePointer(to: &fmt) { (format: UnsafeMutablePointer<PropertyListSerialization.PropertyListFormat>) -> Any in

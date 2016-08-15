@@ -73,7 +73,7 @@ open class PersonNameComponentsFormatter : Formatter {
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open override func objectValue(_ string: String) throws -> AnyObject? { return nil }
+    open override func objectValue(_ string: String) throws -> Any? { return nil }
 }
 
 // Attributed String identifier key string

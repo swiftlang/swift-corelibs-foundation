@@ -84,7 +84,7 @@ extension Dictionary : _ObjectTypeBridgeable {
 
 open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
-    internal var _storage = [NSObject: AnyObject]()
+    internal var _storage: [NSObject: AnyObject]
     
     open var count: Int {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
@@ -112,6 +112,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     public required init(objects: UnsafePointer<AnyObject>, forKeys keys: UnsafePointer<NSObject>, count cnt: Int) {
+        _storage = [NSObject: AnyObject](minimumCapacity: cnt)
+        
         for idx in 0..<cnt {
             let key = keys[idx].copy()
             let value = objects[idx]
@@ -132,7 +134,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             let objects = UnsafeMutablePointer<AnyObject>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {
                 keys.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()! as! NSObject)
-                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()!)
+                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject()! as! NSObject)
             }
             self.init(objects: UnsafePointer<AnyObject>(objects), forKeys: UnsafePointer<NSObject>(keys), count: Int(cnt))
             keys.deinitialize(count: Int(cnt))
@@ -143,7 +145,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
-            self.init(objects: objects, forKeys: keys)
+            self.init(objects: objects as! [NSObject], forKeys: keys)
         } else {
             var objects = [AnyObject]()
             var keys = [NSObject]()
@@ -151,7 +153,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             while let key = aDecoder.decodeObject(forKey: "NS.key.\(count)"),
                 let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
                     keys.append(key as! NSObject)
-                    objects.append(object)
+                    objects.append(object as! NSObject)
                     count += 1
             }
             self.init(objects: objects, forKeys: keys)
@@ -167,7 +169,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         }
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     
@@ -479,7 +481,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         enumerateKeysAndObjects([], using: block)
     }
 
-    public func enumerateKeysAndObjects(_ opts: EnumerationOptions = [], using block: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    public func enumerateKeysAndObjects(_ opts: NSEnumerationOptions = [], using block: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         let count = self.count
         var keys = [AnyObject]()
         var objects = [AnyObject]()
@@ -511,7 +513,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return keysOfEntries([], passingTest: predicate)
     }
 
-    open func keysOfEntries(_ opts: EnumerationOptions = [], passingTest predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    open func keysOfEntries(_ opts: NSEnumerationOptions = [], passingTest predicate: (AnyObject, AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
         var matching = Set<NSObject>()
         enumerateKeysAndObjects(opts) { key, value, stop in
             if predicate(key, value, stop) {
@@ -586,6 +588,9 @@ open class NSMutableDictionary : NSDictionary {
     
     public convenience init(capacity numItems: Int) {
         self.init(objects: [], forKeys: [], count: 0)
+        
+        // It is safe to reset the storage here because we know is empty
+        _storage = [NSObject: AnyObject](minimumCapacity: numItems)
     }
     
     public required init(objects: UnsafePointer<AnyObject>, forKeys keys: UnsafePointer<NSObject>, count cnt: Int) {

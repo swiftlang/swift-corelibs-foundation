@@ -110,7 +110,10 @@ extension Decimal {
 }
 
 extension Decimal : CustomStringConvertible {
-    public init?(string: String, locale: Locale? = nil) { NSUnimplemented() }
+    public init?(string: String, locale: Locale? = nil) {
+        // Avoid a compiler warning for now by not calling NSUnimplemented
+        return nil
+    }
     public var description: String { NSUnimplemented() }
 }
 

@@ -56,7 +56,7 @@ open class ByteCountFormatter : Formatter {
     
     /* Convenience method on string(for:):. Convert a byte count into a string without creating an NSNumber.
     */
-    open func stringFromByteCount(_ byteCount: Int64) -> String { NSUnimplemented() }
+    open func string(fromByteCount byteCount: Int64) -> String { NSUnimplemented() }
     
     /* Specify the units that can be used in the output. If NSByteCountFormatterUseDefault, uses platform-appropriate settings; otherwise will only use the specified units. This is the default value. Note that ZB and YB cannot be covered by the range of possible values, but you can still choose to use these units to get fractional display ("0.0035 ZB" for instance).
     */

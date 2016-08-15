@@ -19,7 +19,7 @@
 public class UserClass : NSObject, NSSecureCoding {
     var ivar : Int
     
-    public class func supportsSecureCoding() -> Bool {
+    public class var supportsSecureCoding: Bool {
         return true
     }
     

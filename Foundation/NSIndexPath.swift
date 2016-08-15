@@ -8,13 +8,13 @@
 //
 
 
-open class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
+open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     
     internal var _indexes : [Int]
     override public init() {
         _indexes = []
     }
-    public init(indexes: UnsafePointer<Int>, length: Int) {
+    public init(indexes: UnsafePointer<Int>!, length: Int) {
         _indexes = Array(UnsafeBufferPointer(start: indexes, count: length))
     }
     
@@ -39,7 +39,7 @@ open class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
         NSUnimplemented()
     }
     
-    public static func supportsSecureCoding() -> Bool { return true }
+    public static var supportsSecureCoding: Bool { return true }
     
     open func adding(_ index: Int) -> IndexPath {
         return IndexPath(indexes: _indexes + [index])
@@ -55,7 +55,7 @@ open class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
     open func index(atPosition position: Int) -> Int {
         return _indexes[position]
     }
-    open var length: Int  {
+    open var length: Int {
         return _indexes.count
     }
     
@@ -94,4 +94,8 @@ open class NSIndexPath: NSObject, NSCopying, NSSecureCoding {
         }
         return .orderedSame
     }
+}
+
+extension NSIndexPath {
+    open func getIndexes(_ indexes: UnsafeMutablePointer<Int>) { NSUnimplemented() }
 }

@@ -73,7 +73,7 @@ class TestNSIndexSet : XCTestCase {
         disjointSet.add(11)
         disjointSet.add(in: NSMakeRange(13, 2))
         result = Array<Int>()
-        disjointSet.enumerate([]) { (idx, _) in
+        disjointSet.enumerate(options: []) { (idx, _) in
             result.append(idx)
         }
         XCTAssertEqual(result, [2, 5, 7, 8, 9, 11, 13, 14])
@@ -118,7 +118,7 @@ class TestNSIndexSet : XCTestCase {
         var i = 0
         
         if testInputA1.count == testSetA.count {
-            testSetA.enumerate([]) { (idx, _) in
+            testSetA.enumerate(options: []) { (idx, _) in
                 XCTAssertEqual(idx, testInputA1[i])
                 i += 1
             }
@@ -131,7 +131,7 @@ class TestNSIndexSet : XCTestCase {
         let testInputA2 = [NSMakeRange(0, 1),NSMakeRange(5, 4),NSMakeRange(42, 1)]
         i = 0
         
-        testSetA.enumerateRanges([]) { (range, _) in
+        testSetA.enumerateRanges(options: []) { (range, _) in
             let testRange = testInputA2[i]
             XCTAssertEqual(range.location, testRange.location)
             XCTAssertEqual(range.length, testRange.length)
@@ -147,7 +147,7 @@ class TestNSIndexSet : XCTestCase {
         i = 0
         
         if testInputB1.count == testSetB.count {
-            testSetB.enumerate([]) { (idx, _) in
+            testSetB.enumerate(options: []) { (idx, _) in
                 XCTAssertEqual(idx, testInputB1[i])
                 i += 1
             }
@@ -160,7 +160,7 @@ class TestNSIndexSet : XCTestCase {
         let testInputB2 = [NSMakeRange(0, 5),NSMakeRange(18, 1),NSMakeRange(42, 3)]
         i = 0
         
-        testSetB.enumerateRanges([]) { (range, _) in
+        testSetB.enumerateRanges(options: []) { (range, _) in
             let testRange = testInputB2[i]
             XCTAssertEqual(range.location, testRange.location)
             XCTAssertEqual(range.length, testRange.length)

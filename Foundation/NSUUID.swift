@@ -53,7 +53,7 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return self
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     

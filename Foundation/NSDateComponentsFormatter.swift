@@ -49,7 +49,7 @@ open class DateComponentsFormatter : Formatter {
     
     /* 'obj' must be an instance of NSDateComponents.
      */
-    open override func string(for obj: AnyObject) -> String? { NSUnimplemented() }
+    open override func string(for obj: Any) -> String? { NSUnimplemented() }
     
     open func string(from components: DateComponents) -> String? { NSUnimplemented() }
     
@@ -133,6 +133,6 @@ open class DateComponentsFormatter : Formatter {
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open override func objectValue(_ string: String) throws -> AnyObject? { return nil }
+    open override func objectValue(_ string: String) throws -> Any? { return nil }
 }
 

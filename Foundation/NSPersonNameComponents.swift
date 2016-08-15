@@ -29,7 +29,7 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    static public func supportsSecureCoding() -> Bool { return true }
+    static public var supportsSecureCoding: Bool { return true }
     
     open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {

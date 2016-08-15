@@ -35,10 +35,7 @@ public struct NSOperatingSystemVersion {
 
 open class ProcessInfo: NSObject {
     
-    internal static let _processInfo = ProcessInfo()
-    open class func processInfo() -> ProcessInfo {
-        return _processInfo
-    }
+    public static let processInfo = ProcessInfo()
     
     internal override init() {
         
@@ -63,7 +60,7 @@ open class ProcessInfo: NSObject {
     }
     
     open var hostName: String {
-        if let name = Host.currentHost().name {
+        if let name = Host.current().name {
             return name
         } else {
             return "localhost"

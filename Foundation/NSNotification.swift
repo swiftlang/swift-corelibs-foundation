@@ -53,14 +53,14 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
             }
             let object = aDecoder.decodeObject(forKey: "NS.object")
 //            let userInfo = aDecoder.decodeObjectOfClass(NSDictionary.self, forKey: "NS.userinfo")
-            self.init(name: Name(rawValue: name.bridge()), object: object, userInfo: nil)
+            self.init(name: Name(rawValue: name.bridge()), object: object as! NSObject, userInfo: nil)
         } else {
             guard let name = aDecoder.decodeObject() as? NSString else {
                 return nil
             }
             let object = aDecoder.decodeObject()
 //            let userInfo = aDecoder.decodeObject() as? NSDictionary
-            self.init(name: Name(rawValue: name.bridge()), object: object, userInfo: nil)
+            self.init(name: Name(rawValue: name.bridge()), object: object as! NSObject, userInfo: nil)
         }
     }
     

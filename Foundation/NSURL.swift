@@ -216,7 +216,7 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
         return self
     }
     
-    public static func supportsSecureCoding() -> Bool { return true }
+    public static var supportsSecureCoding: Bool { return true }
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
@@ -254,6 +254,7 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
     }
     
     public convenience init(fileURLWithPath path: String, relativeTo baseURL: URL?) {
+
         let thePath = _standardizedPath(path)
         
         var isDir : Bool = false
@@ -294,6 +295,7 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
     }
     
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
+
         let pathString = String(cString: path)
         self.init(fileURLWithPath: pathString, isDirectory: isDir, relativeTo: baseURL)
     }
@@ -337,7 +339,7 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
         }
     }
     
-    /* Returns the data representation of the URL's relativeString. If the URL was initialized with -initWithData:relativeToURL:, the data representation returned are the same bytes as those used at initialization; otherwise, the data representation returned are the bytes of the relativeString encoded with NSUTF8StringEncoding.
+    /* Returns the data representation of the URL's relativeString. If the URL was initialized with -initWithData:relativeTo:, the data representation returned are the same bytes as those used at initialization; otherwise, the data representation returned are the bytes of the relativeString encoded with NSUTF8StringEncoding.
     */
     open var dataRepresentation: Data {
         let bytesNeeded = CFURLGetBytes(_cfObject, nil, 0)
@@ -838,7 +840,7 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
         return self
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     
@@ -1004,7 +1006,7 @@ open class NSURLComponents: NSObject, NSCopying {
     }
     
     
-    // Getting these properties retains any percent encoding these components may have. Setting these properties assumes the component string is already correctly percent encoded. Attempting to set an incorrectly percent encoded string will cause an exception. Although ';' is a legal path character, it is recommended that it be percent-encoded for best compatibility with NSURL (-stringByAddingPercentEncodingWithAllowedCharacters: will percent-encode any ';' characters if you pass the URLPathAllowedCharacterSet).
+    // Getting these properties retains any percent encoding these components may have. Setting these properties assumes the component string is already correctly percent encoded. Attempting to set an incorrectly percent encoded string will cause an exception. Although ';' is a legal path character, it is recommended that it be percent-encoded for best compatibility with NSURL (-stringByAddingPercentEncodingWithAllowedCharacters: will percent-encode any ';' characters if you pass the urlPathAllowed).
     open var percentEncodedUser: String? {
         get {
             return _CFURLComponentsCopyPercentEncodedUser(_components)?._swiftObject

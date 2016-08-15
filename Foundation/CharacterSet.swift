@@ -54,12 +54,19 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
         releaseWrappedObject()
     }
 
-// These for some reason cause a crash in the compiler
-    // Stubs
-    // -----
 
-    // Immutable
-
+   override func copy(with zone: NSZone? = nil) -> Any {
+        return _mapUnmanaged { $0.copy(with: zone) }
+    }
+    
+    override func mutableCopy(with zone: NSZone? = nil) -> Any {
+        return _mapUnmanaged { $0.mutableCopy(with: zone) }
+    }
+    
+    public override var classForCoder: AnyClass {
+        return NSCharacterSet.self
+    }
+    
     override var bitmapRepresentation: Data {
         return _mapUnmanaged { $0.bitmapRepresentation }
     }
@@ -68,8 +75,8 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
         return _mapUnmanaged { $0.inverted }
     }
 
-    override func hasMember(inPlane plane: UInt8) -> Bool {
-        return _mapUnmanaged {$0.hasMember(inPlane: plane) }
+    override func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
+        return _mapUnmanaged {$0.hasMemberInPlane(thePlane) }
     }
 
     override func characterIsMember(_ member: unichar) -> Bool {
@@ -173,77 +180,77 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns a character set containing the characters in Unicode General Category Cc and Cf.
     public static var controlCharacters : CharacterSet {
-        return NSCharacterSet.controlCharacters()
+        return NSCharacterSet.controlCharacters
     }
     
     /// Returns a character set containing the characters in Unicode General Category Zs and `CHARACTER TABULATION (U+0009)`.
     public static var whitespaces : CharacterSet {
-        return NSCharacterSet.whitespaces()
+        return NSCharacterSet.whitespaces
     }
     
     /// Returns a character set containing characters in Unicode General Category Z*, `U+000A ~ U+000D`, and `U+0085`.
     public static var whitespacesAndNewlines : CharacterSet {
-        return NSCharacterSet.whitespacesAndNewlines()
+        return NSCharacterSet.whitespacesAndNewlines
     }
     
     /// Returns a character set containing the characters in the category of Decimal Numbers.
     public static var decimalDigits : CharacterSet {
-        return NSCharacterSet.decimalDigits()
+        return NSCharacterSet.decimalDigits
     }
     
     /// Returns a character set containing the characters in Unicode General Category L* & M*.
     public static var letters : CharacterSet {
-        return NSCharacterSet.letters()
+        return NSCharacterSet.letters
     }
     
     /// Returns a character set containing the characters in Unicode General Category Ll.
     public static var lowercaseLetters : CharacterSet {
-        return NSCharacterSet.lowercaseLetters()
+        return NSCharacterSet.lowercaseLetters
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lu and Lt.
     public static var uppercaseLetters : CharacterSet {
-        return NSCharacterSet.uppercaseLetters()
+        return NSCharacterSet.uppercaseLetters
     }
     
     /// Returns a character set containing the characters in Unicode General Category M*.
     public static var nonBaseCharacters : CharacterSet {
-        return NSCharacterSet.nonBaseCharacters()
+        return NSCharacterSet.nonBaseCharacters
     }
     
     /// Returns a character set containing the characters in Unicode General Categories L*, M*, and N*.
     public static var alphanumerics : CharacterSet {
-        return NSCharacterSet.alphanumerics()
+        return NSCharacterSet.alphanumerics
     }
     
-    /// Returns a character set containing individual Unicode characters that can also be represented as composed character sequences (such as for letters with accents), by the definition of “standard decomposition” in version 3.2 of the Unicode character encoding standard.
+    /// Returns a character set containing individual Unicode characters that can also be represented as composed character sequences (such as for letters with accents), by the definition of "standard decomposition" in version 3.2 of the Unicode character encoding standard.
     public static var decomposables : CharacterSet {
-        return NSCharacterSet.decomposables()
+        return NSCharacterSet.decomposables
     }
     
     /// Returns a character set containing values in the category of Non-Characters or that have not yet been defined in version 3.2 of the Unicode standard.
     public static var illegalCharacters : CharacterSet {
-        return NSCharacterSet.illegalCharacters()
+        return NSCharacterSet.illegalCharacters
     }
     
     /// Returns a character set containing the characters in Unicode General Category P*.
     public static var punctuation : CharacterSet {
-        return NSCharacterSet.punctuation()
+        return NSCharacterSet.punctuation
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lt.
     public static var capitalizedLetters : CharacterSet {
-        return NSCharacterSet.capitalizedLetters()
+        return NSCharacterSet.capitalizedLetters
     }
     
     /// Returns a character set containing the characters in Unicode General Category S*.
     public static var symbols : CharacterSet {
-        return NSCharacterSet.symbols()
+        return NSCharacterSet.symbols
     }
     
     /// Returns a character set containing the newline characters (`U+000A ~ U+000D`, `U+0085`, `U+2028`, and `U+2029`).
     public static var newlines : CharacterSet {
-        return NSCharacterSet.newlines()
+        return NSCharacterSet.newlines
     }
     
     // MARK: Static functions, from NSURL
@@ -294,7 +301,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     ///
     /// This method makes it easier to find the plane containing the members of the current character set. The Basic Multilingual Plane (BMP) is plane 0.
     public func hasMember(inPlane plane: UInt8) -> Bool {
-        return _mapUnmanaged { $0.hasMember(inPlane: plane) }
+        return _mapUnmanaged { $0.hasMemberInPlane(plane) }
     }
     
     // MARK: Mutable functions
@@ -359,7 +366,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     // -----
     // MARK: -
     // MARK: SetAlgebraType
-    
+
     /// Insert a `UnicodeScalar` representation of a character into the `CharacterSet`.
     ///
     /// `UnicodeScalar` values are available on `Swift.String.UnicodeScalarView`.
@@ -448,11 +455,11 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     public func isSuperset(of other: CharacterSet) -> Bool {
         return _mapUnmanaged { $0.isSuperset(of: other) }
     }
-}
 
-/// Returns true if the two `CharacterSet`s are equal.
-public func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
-    return lhs._wrapped.isEqual(rhs._bridgeToObjectiveC())
+    /// Returns true if the two `CharacterSet`s are equal.
+    public static func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
+        return lhs._wrapped.isEqual(rhs._bridgeToObjectiveC()) // TODO: mlehew - as  NSCharacterSet
+    }
 }
 
 
@@ -484,10 +491,4 @@ extension CharacterSet {
         return CharacterSet(_bridged: source!)
     }
     
-}
-
-extension CharacterSet {
-    public func contains(_ member: unichar) -> Bool {
-        return contains(UnicodeScalar(member)!)
-    }
 }

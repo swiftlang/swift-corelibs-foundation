@@ -98,7 +98,7 @@ open class JSONSerialization : NSObject {
     
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
-    open class func data(withJSONObject obj: AnyObject, options opt: WritingOptions = []) throws -> Data {
+    open class func data(withJSONObject obj: Any, options opt: WritingOptions = []) throws -> Data {
         guard obj is NSArray || obj is NSDictionary else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                 "NSDebugDescription" : "Top-level object was not NSArray or NSDictionary"
@@ -159,7 +159,7 @@ open class JSONSerialization : NSObject {
     
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
      */
-    open class func writeJSONObject(_ obj: AnyObject, toStream stream: NSOutputStream, options opt: WritingOptions) throws -> Int {
+    open class func writeJSONObject(_ obj: Any, toStream stream: NSOutputStream, options opt: WritingOptions) throws -> Int {
             let jsonData = try data(withJSONObject: obj, options: opt)
             let jsonNSData = jsonData.bridge()
             let bytePtr = jsonNSData.bytes.bindMemory(to: UInt8.self, capacity: jsonNSData.length)
@@ -245,7 +245,7 @@ private struct JSONWriter {
         self.writer = writer
     }
     
-    mutating func serializeJSON(_ obj: AnyObject) throws {
+    mutating func serializeJSON(_ obj: Any) throws {
         if let str = obj as? NSString {
             try serializeString(str)
         }
