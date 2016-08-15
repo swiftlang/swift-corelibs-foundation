@@ -120,7 +120,7 @@ public func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Boo
     return lhs.rawValue < rhs.rawValue
 }
     
-open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
+open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
     private var _identifier: UnsafeMutableRawPointer? = nil
@@ -204,7 +204,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
         return CFCalendarCopyCurrent()._swiftObject
     }
     
-    open class func autoupdatingCurrentCalendar() -> Calendar { NSUnimplemented() }  // tracks changes to user's preferred calendar identifier
+    open class var autoupdatingCurrent: Calendar { NSUnimplemented() }  // tracks changes to user's preferred calendar identifier
     
     public /*not inherited*/ init?(identifier calendarIdentifierConstant: Identifier) {
         super.init()
@@ -1100,7 +1100,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     Result dates have an integer number of seconds (as if 0 was specified for the nanoseconds property of the NSDateComponents matching parameter), unless a value was set in the nanoseconds property, in which case the result date will have that number of nanoseconds (or as close as possible with floating point numbers).
     The enumeration is stopped by setting *stop = YES in the block and return.  It is not necessary to set *stop to NO to keep the enumeration going.
     */
-    public func enumerateDates(startingAfter start: Date, matching comps: DateComponents, options opts: NSCalendar.Options = [], using block: (Date?, Bool, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    open func enumerateDates(startingAfter start: Date, matching comps: DateComponents, options opts: NSCalendar.Options = [], using block: (Date?, Bool, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         NSUnimplemented()
     }
     
@@ -1123,7 +1123,7 @@ open class NSCalendar: NSObject, NSCopying, NSSecureCoding {
     The general semantics follow those of the -enumerateDatesStartingAfterDate:... method above.
     To compute a sequence of results, use the -enumerateDatesStartingAfterDate:... method above, rather than looping and calling this method with the previous loop iteration's result.
     */
-    open func nextDate(after date: Date, matchingUnit unit: Unit, value: Int, options: Options = []) -> Date? {
+    open func nextDate(after date: Date, matching unit: Unit, value: Int, options: Options = []) -> Date? {
         var comps = DateComponents()
         comps.setValue(value, for: Calendar._fromCalendarUnit(unit))
         return nextDate(after:date, matching: comps, options: options)
