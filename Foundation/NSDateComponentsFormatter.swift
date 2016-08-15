@@ -10,12 +10,12 @@
 
 extension DateComponentsFormatter {
     public enum UnitsStyle : Int {
-        
         case positional // "1:10; may fall back to abbreviated units in some cases, e.g. 3d"
         case abbreviated // "1h 10m"
-        case short // "1hr 10min"
+        case short // "1hr, 10min"
         case full // "1 hour, 10 minutes"
         case spellOut // "One hour, ten minutes"
+        case brief // "1hr 10min"
     }
 
     public struct ZeroFormattingBehavior : OptionSet {
@@ -49,7 +49,7 @@ open class DateComponentsFormatter : Formatter {
     
     /* 'obj' must be an instance of NSDateComponents.
      */
-    open override func string(for obj: Any) -> String? { NSUnimplemented() }
+    open override func string(for obj: Any?) -> String? { NSUnimplemented() }
     
     open func string(from components: DateComponents) -> String? { NSUnimplemented() }
     

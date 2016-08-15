@@ -108,8 +108,8 @@ class TestNSDateFormatter: XCTestCase {
         ]
         
         let f = DateFormatter()
-        f.dateStyle = .shortStyle
-        f.timeStyle = .shortStyle
+        f.dateStyle = .short
+        f.timeStyle = .short
         
         // ensure tests give consistent results by setting specific timeZone and locale
         f.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
@@ -141,8 +141,8 @@ class TestNSDateFormatter: XCTestCase {
         ]
         
         let f = DateFormatter()
-        f.dateStyle = .mediumStyle
-        f.timeStyle = .mediumStyle
+        f.dateStyle = .medium
+        f.timeStyle = .medium
         f.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
         f.locale = Locale(identifier: DEFAULT_LOCALE)
         
@@ -173,8 +173,8 @@ class TestNSDateFormatter: XCTestCase {
         ]
         
         let f = DateFormatter()
-        f.dateStyle = .longStyle
-        f.timeStyle = .longStyle
+        f.dateStyle = .long
+        f.timeStyle = .long
         f.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
         f.locale = Locale(identifier: DEFAULT_LOCALE)
         
@@ -207,8 +207,8 @@ class TestNSDateFormatter: XCTestCase {
         ]
         
         let f = DateFormatter()
-        f.dateStyle = .fullStyle
-        f.timeStyle = .fullStyle
+        f.dateStyle = .full
+        f.timeStyle = .full
         f.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
         f.locale = Locale(identifier: DEFAULT_LOCALE)
         
@@ -268,8 +268,8 @@ class TestNSDateFormatter: XCTestCase {
         
         // Check .dateFormat resets when style changes
         let testDate = Date(timeIntervalSince1970: 1457738454)
-        f.dateStyle = .mediumStyle
-        f.timeStyle = .mediumStyle
+        f.dateStyle = .medium
+        f.timeStyle = .medium
         XCTAssertEqual(f.string(from: testDate), "Mar 11, 2016, 11:20:54 PM")
         XCTAssertEqual(f.dateFormat, "MMM d, y, h:mm:ss a")
         

@@ -50,6 +50,8 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     open var timeIntervalSinceReferenceDate: TimeInterval {
         return _timeIntervalSinceReferenceDate
     }
+    
+    open class var timeIntervalSinceReferenceDate: TimeInterval { NSUnimplemented() }
 
     public convenience override init() {
         var tv = timeval()
@@ -91,11 +93,11 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open func encode(with aCoder: NSCoder) {
-	if aCoder.allowsKeyedCoding {
-	    aCoder.encode(_timeIntervalSinceReferenceDate, forKey: "NS.time")
-	} else {
-	    NSUnimplemented()
-	}
+        if aCoder.allowsKeyedCoding {
+            aCoder.encode(_timeIntervalSinceReferenceDate, forKey: "NS.time")
+        } else {
+            NSUnimplemented()
+        }
     }
 
     /**
@@ -134,7 +136,7 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
        offset in hours and minutes from UTC (for example,
        "2001-03-24 10:45:32 +0600")
      */
-    open func description(withLocale locale: Locale?) -> String {
+    open func description(with locale: Locale?) -> String {
         guard let aLocale = locale else { return description }
         let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, aLocale._cfObject, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
         CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey, CFTimeZoneCopySystem())
@@ -149,23 +151,23 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 extension NSDate {
     
-    public func timeIntervalSince(_ anotherDate: Date) -> TimeInterval {
+    open func timeIntervalSince(_ anotherDate: Date) -> TimeInterval {
         return self.timeIntervalSinceReferenceDate - anotherDate.timeIntervalSinceReferenceDate
     }
     
-    public var timeIntervalSinceNow: TimeInterval {
+    open var timeIntervalSinceNow: TimeInterval {
         return timeIntervalSince(Date())
     }
     
-    public var timeIntervalSince1970: TimeInterval {
+    open var timeIntervalSince1970: TimeInterval {
         return timeIntervalSinceReferenceDate + NSTimeIntervalSince1970
     }
     
-    public func addingTimeInterval(_ ti: TimeInterval) -> Date {
+    open func addingTimeInterval(_ ti: TimeInterval) -> Date {
         return Date(timeIntervalSinceReferenceDate:_timeIntervalSinceReferenceDate + ti)
     }
     
-    public func earlierDate(_ anotherDate: Date) -> Date {
+    open func earlierDate(_ anotherDate: Date) -> Date {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
             return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
         } else {
@@ -173,7 +175,7 @@ extension NSDate {
         }
     }
     
-    public func laterDate(_ anotherDate: Date) -> Date {
+    open func laterDate(_ anotherDate: Date) -> Date {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
             return anotherDate
         } else {
@@ -181,7 +183,7 @@ extension NSDate {
         }
     }
     
-    public func compare(_ other: Date) -> ComparisonResult {
+    open func compare(_ other: Date) -> ComparisonResult {
         let t1 = self.timeIntervalSinceReferenceDate
         let t2 = other.timeIntervalSinceReferenceDate
         if t1 < t2 {
@@ -193,19 +195,19 @@ extension NSDate {
         }
     }
     
-    public func isEqual(to otherDate: Date) -> Bool {
+    open func isEqual(to otherDate: Date) -> Bool {
         return timeIntervalSinceReferenceDate == otherDate.timeIntervalSinceReferenceDate
     }
 }
 
 extension NSDate {
     internal static let _distantFuture = Date(timeIntervalSinceReferenceDate: 63113904000.0)
-    public static func distantFuture() -> Date {
+    open class var distantFuture: Date {
         return _distantFuture
     }
     
     internal static let _distantPast = Date(timeIntervalSinceReferenceDate: -63113904000.0)
-    public static func distantPast() -> Date {
+    open class var distantPast: Date {
         return _distantPast
     }
     
@@ -217,7 +219,7 @@ extension NSDate {
         self.init(timeIntervalSinceReferenceDate: secs - NSTimeIntervalSince1970)
     }
     
-    public convenience init(timeInterval secsToBeAdded: TimeInterval, sinceDate date: Date) {
+    public convenience init(timeInterval secsToBeAdded: TimeInterval, since date: Date) {
         self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate + secsToBeAdded)
     }
 }
