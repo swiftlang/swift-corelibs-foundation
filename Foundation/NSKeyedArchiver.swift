@@ -93,7 +93,7 @@ open class NSKeyedArchiver : NSCoder {
     }
 
     private static var _classNameMap = Dictionary<String, String>()
-    private static var _classNameMapLock = Lock()
+    private static var _classNameMapLock = NSLock()
     
     private var _stream : AnyObject
     private var _flags = ArchiverFlags(rawValue: 0)

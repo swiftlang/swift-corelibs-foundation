@@ -68,7 +68,7 @@ internal class NSConcreteValue : NSValue {
     }
     
     private static var _cachedTypeInfo = Dictionary<String, TypeInfo>()
-    private static var _cachedTypeInfoLock = Lock()
+    private static var _cachedTypeInfoLock = NSLock()
     
     private var _typeInfo : TypeInfo
     private var _storage : UnsafeMutableRawPointer
