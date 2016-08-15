@@ -45,8 +45,8 @@ class TestNSDate : XCTestCase {
 
     func test_descriptionWithLocale() {
         let d = NSDate(timeIntervalSince1970: 0)
-        XCTAssertEqual(d.description(withLocale: nil), "1970-01-01 00:00:00 +0000")
-        XCTAssertNotNil(d.description(withLocale: Locale(identifier: "ja_JP")))
+        XCTAssertEqual(d.description(with: nil), "1970-01-01 00:00:00 +0000")
+        XCTAssertNotNil(d.description(with: Locale(identifier: "ja_JP")))
     }
     
     func test_InitTimeIntervalSince1970() {

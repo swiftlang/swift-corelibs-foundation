@@ -140,9 +140,9 @@ open class DateFormatter : Formatter {
         }
     }
 
-    open var dateStyle: Style = .noStyle { willSet { _dateFormat = nil; _reset() } }
+    open var dateStyle: Style = .none { willSet { _dateFormat = nil; _reset() } }
 
-    open var timeStyle: Style = .noStyle { willSet { _dateFormat = nil; _reset() } }
+    open var timeStyle: Style = .none { willSet { _dateFormat = nil; _reset() } }
 
     /*@NSCopying*/ open var locale: Locale! = .current { willSet { _reset() } }
 
@@ -477,10 +477,10 @@ open class DateFormatter : Formatter {
 
 extension DateFormatter {
     public enum Style : UInt {
-        case noStyle
-        case shortStyle
-        case mediumStyle
-        case longStyle
-        case fullStyle
+        case none
+        case short
+        case medium
+        case long
+        case full
     }
 }
