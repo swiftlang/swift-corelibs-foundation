@@ -258,7 +258,7 @@ private struct JSONWriter {
     private lazy var _numberformatter: CFNumberFormatter = {
         let formatter: CFNumberFormatter
         formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
-        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
+        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, NSNumber(value: 15))
         CFNumberFormatterSetFormat(formatter, "0.###############"._cfObject)
         return formatter
     }()
