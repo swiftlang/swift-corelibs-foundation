@@ -508,11 +508,11 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             NSInvalidArgument("range \(r) extends beyond bounds \(bounds)")
         }
         
-        if opts.contains(.FirstEqual) && opts.contains(.LastEqual) {
-            NSInvalidArgument("both NSBinarySearching.FirstEqual and NSBinarySearching.LastEqual options cannot be specified")
+        if opts.contains(.firstEqual) && opts.contains(.lastEqual) {
+            NSInvalidArgument("both NSBinarySearching.firstEqual and NSBinarySearching.lastEqual options cannot be specified")
         }
         
-        let searchForInsertionIndex = opts.contains(.InsertionIndex)
+        let searchForInsertionIndex = opts.contains(.insertionIndex)
         
         // fringe cases
         if r.length == 0 {
@@ -530,8 +530,8 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         }
         
         // common processing
-        let firstEqual = opts.contains(.FirstEqual)
-        let lastEqual = opts.contains(.LastEqual)
+        let firstEqual = opts.contains(.firstEqual)
+        let lastEqual = opts.contains(.lastEqual)
         let anyEqual = !(firstEqual || lastEqual)
         
         var result = NSNotFound
@@ -627,9 +627,9 @@ public struct NSBinarySearchingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let FirstEqual = NSBinarySearchingOptions(rawValue: 1 << 8)
-    public static let LastEqual = NSBinarySearchingOptions(rawValue: 1 << 9)
-    public static let InsertionIndex = NSBinarySearchingOptions(rawValue: 1 << 10)
+    public static let firstEqual = NSBinarySearchingOptions(rawValue: 1 << 8)
+    public static let lastEqual = NSBinarySearchingOptions(rawValue: 1 << 9)
+    public static let insertionIndex = NSBinarySearchingOptions(rawValue: 1 << 10)
 }
 
 open class NSMutableArray : NSArray {
