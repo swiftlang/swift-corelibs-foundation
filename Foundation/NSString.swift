@@ -103,8 +103,8 @@ extension NSString {
 
 internal func _createRegexForPattern(_ pattern: String, _ options: RegularExpression.Options) -> RegularExpression? {
     struct local {
-        static let __NSRegularExpressionCache: Cache = {
-            let cache = Cache()
+        static let __NSRegularExpressionCache: NSCache<NSString, RegularExpression> = {
+            let cache = NSCache<NSString, RegularExpression>()
             cache.name = "NSRegularExpressionCache"
             cache.countLimit = 10
             return cache
@@ -112,7 +112,7 @@ internal func _createRegexForPattern(_ pattern: String, _ options: RegularExpres
     }
     let key = "\(options):\(pattern)"
     if let regex = local.__NSRegularExpressionCache.object(forKey: key._nsObject) {
-        return (regex as! RegularExpression)
+        return regex
     }
     do {
         let regex = try RegularExpression(pattern: pattern, options: options)
