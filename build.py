@@ -471,7 +471,7 @@ build install: phony | ${BUILD_DIR}/.install
 """
 extra_script += """
 rule RunTestFoundation
-    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${LIBS_DIRS} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${LIBS_DIRS} lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
+    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${LIBS_DIRS} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${LIBS_DIRS} lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
     description = Building Tests
 
 build ${BUILD_DIR}/.test: RunTestFoundation | TestFoundation
