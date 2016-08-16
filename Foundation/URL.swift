@@ -15,7 +15,7 @@
  As a convenience, volume resource values can be requested from any file system URL. The value returned will reflect the property value for the volume on which the resource is located.
 */
 public struct URLResourceValues {
-    fileprivate var _values: [URLResourceKey: AnyObject]
+    fileprivate var _values: [URLResourceKey: Any]
     fileprivate var _keys: Set<URLResourceKey>
     
     public init() {
@@ -23,7 +23,7 @@ public struct URLResourceValues {
         _keys = []
     }
     
-    fileprivate init(keys: Set<URLResourceKey>, values: [URLResourceKey: AnyObject]) {
+    fileprivate init(keys: Set<URLResourceKey>, values: [URLResourceKey: Any]) {
         _values = values
         _keys = keys
     }
@@ -42,7 +42,7 @@ public struct URLResourceValues {
         return (_values[key] as? NSNumber)?.intValue
     }
     
-    private mutating func _set(_ key : URLResourceKey, newValue : AnyObject?) {
+    private mutating func _set(_ key : URLResourceKey, newValue : Any?) {
         _keys.insert(key)
         _values[key] = newValue
     }
@@ -82,7 +82,7 @@ public struct URLResourceValues {
     /// A loosely-typed dictionary containing all keys and values.
     ///
     /// If you have set temporary keys or non-standard keys, you can find them in here.
-    public var allValues : [URLResourceKey : AnyObject] {
+    public var allValues : [URLResourceKey : Any] {
         return _values
     }
     
@@ -579,7 +579,6 @@ public struct URL : ReferenceConvertible, CustomStringConvertible, Equatable {
     }
     
     // MARK: - Resource Values
-#if false // disabled for now...
     /// Sets the resource value identified by a given resource key.
     ///
     /// This method writes the new resource values out to the backing store. Attempts to set a read-only resource property or to set a resource property not supported by the resource are ignored and are not considered errors. This method is currently applicable only to URLs for file system resources.
@@ -622,7 +621,6 @@ public struct URL : ReferenceConvertible, CustomStringConvertible, Equatable {
     public mutating func removeCachedResourceValue(forKey key: URLResourceKey) {
         _url.removeCachedResourceValue(forKey: key)
     }
-#endif
     
     internal func _resolveSymlinksInPath(excludeSystemDirs: Bool) -> URL? {
         return _url._resolveSymlinksInPath(excludeSystemDirs: excludeSystemDirs)

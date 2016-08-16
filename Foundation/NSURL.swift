@@ -168,7 +168,7 @@ extension URLFileResourceType {
     public static let unknown = URLFileResourceType(rawValue: "NSURLFileResourceTypeUnknown")
 }
 
-open class NSURL: NSObject, NSSecureCoding, NSCopying {
+open class NSURL : NSObject, NSSecureCoding, NSCopying {
     typealias CFType = CFURL
     internal var _base = _CFInfo(typeID: CFURLGetTypeID())
     internal var _flags : UInt32 = 0
@@ -250,7 +250,7 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
         }
     }
     
-    internal init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
+    public init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
         super.init()
         let thePath = _standardizedPath(path)
         if thePath.length > 0 {
@@ -570,6 +570,13 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
     override open var _cfTypeID: CFTypeID {
         return CFURLGetTypeID()
     }
+
+    open func removeAllCachedResourceValues() { NSUnimplemented() }
+    open func removeCachedResourceValue(forKey key: URLResourceKey) { NSUnimplemented() }
+    open func resourceValues(forKeys keys: [URLResourceKey]) throws -> [URLResourceKey : Any] { NSUnimplemented() }
+    open func setResourceValue(_ value: Any?, forKey key: URLResourceKey) throws { NSUnimplemented() }
+    open func setResourceValues(_ keyedValues: [URLResourceKey : Any]) throws { NSUnimplemented() }
+    open func setTemporaryResourceValue(_ value: Any?, forKey key: URLResourceKey) { NSUnimplemented() }
 }
 
 extension NSCharacterSet {
@@ -577,32 +584,32 @@ extension NSCharacterSet {
     // Predefined character sets for the six URL components and subcomponents which allow percent encoding. These character sets are passed to -stringByAddingPercentEncodingWithAllowedCharacters:.
     
     // Returns a character set containing the characters allowed in an URL's user subcomponent.
-    public static var urlUserAllowed: CharacterSet {
+    open class var urlUserAllowed: CharacterSet {
         return _CFURLComponentsGetURLUserAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's password subcomponent.
-    public static var urlPasswordAllowed: CharacterSet {
+    open class var urlPasswordAllowed: CharacterSet {
         return _CFURLComponentsGetURLPasswordAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's host subcomponent.
-    public static var urlHostAllowed: CharacterSet {
+    open class var urlHostAllowed: CharacterSet {
         return _CFURLComponentsGetURLHostAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's path component. ';' is a legal path character, but it is recommended that it be percent-encoded for best compatibility with NSURL (-stringByAddingPercentEncodingWithAllowedCharacters: will percent-encode any ';' characters if you pass the URLPathAllowedCharacterSet).
-    public static var urlPathAllowed: CharacterSet {
+    open class var urlPathAllowed: CharacterSet {
         return _CFURLComponentsGetURLPathAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's query component.
-    public static var urlQueryAllowed: CharacterSet {
+    open class var urlQueryAllowed: CharacterSet {
         return _CFURLComponentsGetURLQueryAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's fragment component.
-    public static var urlFragmentAllowed: CharacterSet {
+    open class var urlFragmentAllowed: CharacterSet {
         return _CFURLComponentsGetURLFragmentAllowedCharacterSet()._swiftObject
     }
 }
@@ -624,7 +631,7 @@ extension NSURL {
     
     /* The following methods work on the path portion of a URL in the same manner that the NSPathUtilities methods on NSString do.
     */
-    open class func fileURLWithPathComponents(_ components: [String]) -> URL? {
+    open class func fileURL(withPathComponents components: [String]) -> URL? {
         let path = NSString.pathWithComponents(components)
         if components.last == "/" {
             return URL(fileURLWithPath: path, isDirectory: true)
@@ -720,7 +727,7 @@ extension NSURL {
         return CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, _cfObject, pathComponent._cfObject, isDirectory)?._swiftObject
     }
     
-    public var deletingLastPathComponent: URL? {
+    open var deletingLastPathComponent: URL? {
         return CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, _cfObject)?._swiftObject
     }
     
@@ -728,7 +735,7 @@ extension NSURL {
         return CFURLCreateCopyAppendingPathExtension(kCFAllocatorSystemDefault, _cfObject, pathExtension._cfObject)?._swiftObject
     }
     
-    public var deletingPathExtension: URL? {
+    open var deletingPathExtension: URL? {
         return CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, _cfObject)?._swiftObject
     }
     
