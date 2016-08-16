@@ -75,12 +75,12 @@ open class XMLDTDNode: XMLNode {
         @method initWithXMLString:
         @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
     */
-    public init?(XMLString string: String) {
+    public init?(xmlString string: String) {
         guard let ptr = _CFXMLParseDTDNode(string) else { return nil }
         super.init(ptr: ptr)
     } //primitive
     
-    public override init(kind: XMLNode.Kind, options: Int) {
+    public override init(kind: Kind, options: Options = []) {
         let ptr: _CFXMLNodePtr
 
         switch kind {
@@ -93,10 +93,10 @@ open class XMLDTDNode: XMLNode {
         }
 
         super.init(ptr: ptr)
-    } //primitive
+    }
     
     /*!
-        @method DTDKind
+        @method dtdKind
         @abstract Sets the DTD sub kind.
     */
     open var dtdKind: DTDKind {
@@ -184,13 +184,13 @@ open class XMLDTDNode: XMLNode {
         default:
             fatalError("This is not actually a DTD node!")
         }
-    }//primitive
+    }
     
     /*!
         @method isExternal
         @abstract True if the system id is set. Valid for entities and notations.
     */
-    open var external: Bool {
+    open var isExternal: Bool {
         return systemID != nil
     } //primitive
     

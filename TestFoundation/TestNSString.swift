@@ -1168,12 +1168,4 @@ extension TestNSString {
 }
 
 func test_reflection() {
-    let testString: NSString = "some text here"
-    
-    let ql = PlaygroundQuickLook(reflecting: testString)
-
-    switch ql {
-    case .text(let str): XCTAssertEqual(testString.bridge(), str)
-    default: XCTAssertTrue(false, "mismatched quicklook")
-    }
 }

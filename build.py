@@ -381,7 +381,6 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSXMLDTDNode.swift',
 	'Foundation/NSXMLElement.swift',
 	'Foundation/NSXMLNode.swift',
-	'Foundation/NSXMLNodeOptions.swift',
 	'Foundation/NSXMLParser.swift',
 	'Foundation/FoundationErrors.swift',
 	'Foundation/URL.swift',

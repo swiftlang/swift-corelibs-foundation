@@ -18,7 +18,11 @@ open class XMLDTD : XMLNode {
         return _CFXMLDTDPtr(_xmlNode)
     }
     
-    public convenience init(contentsOf url: URL, options mask: Int) throws {
+    public init() {
+        NSUnimplemented()
+    }
+    
+    public convenience init(contentsOf url: URL, options: Options = []) throws {
         let urlString = url.absoluteString
 
         guard let node = _CFXMLParseDTD(urlString!) else {
@@ -28,7 +32,7 @@ open class XMLDTD : XMLNode {
         self.init(ptr: node)
     }
 
-    public convenience init(data: Data, options mask: Int) throws {
+    public convenience init(data: Data, options: Options = []) throws {
         var unmanagedError: Unmanaged<CFError>? = nil
         
         guard let node = _CFXMLParseDTDFromData(data._cfObject, &unmanagedError) else {
@@ -40,7 +44,7 @@ open class XMLDTD : XMLNode {
         }
 
         self.init(ptr: node)
-    } //primitive
+    }
     
     /*!
         @method openID

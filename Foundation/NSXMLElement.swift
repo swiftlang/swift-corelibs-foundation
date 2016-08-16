@@ -28,10 +28,10 @@ open class XMLElement: XMLNode {
         @abstract Returns an element whose full QName is specified.
     */
     public init(name: String, uri: String?) {
-        super.init(kind: .element, options: 0)
-        self.URI = uri
+        super.init(kind: .element, options: [])
+        self.uri = uri
         self.name = name
-    } //primitive
+    }
 
     /*!
         @method initWithName:stringValue:
@@ -49,9 +49,11 @@ open class XMLElement: XMLNode {
         @method initWithXMLString:error:
         @abstract Returns an element created from a string. Parse errors are collected in <tt>error</tt>.
     */
-    public init(XMLString string: String) throws { NSUnimplemented() }
+    public init(xmlString string: String) throws {
+        NSUnimplemented()
+    }
 
-    public convenience override init(kind: Kind, options: Int) {
+    public convenience override init(kind: Kind, options: Options = []) {
         self.init(name: "", uri: nil)
     }
 
@@ -80,7 +82,7 @@ open class XMLElement: XMLNode {
             guard _CFXMLNodeHasProp(_xmlNode, $0) == nil else { return }
             addChild(attribute)
         }
-    } //primitive
+    }
 
     /*!
         @method removeAttributeForName:
@@ -93,7 +95,7 @@ open class XMLElement: XMLNode {
             // We can't use `xmlRemoveProp` because someone else may still have a reference to this attribute
             _CFXMLUnlinkNode(_CFXMLNodePtr(prop))
         }
-    } //primitive
+    }
 
     /*!
         @method setAttributes
@@ -150,7 +152,7 @@ open class XMLElement: XMLNode {
     open func setAttributesWith(_ attributes: [String : String]) {
         removeAttributes()
         for (name, value) in attributes {
-            addAttribute(XMLNode.attributeWithName(name, stringValue: value) as! XMLNode)
+            addAttribute(XMLNode.attribute(withName: name, stringValue: value) as! XMLNode)
         }
     }
 
@@ -167,43 +169,57 @@ open class XMLElement: XMLNode {
         @method attributeForLocalName:URI:
         @abstract Returns an attribute matching this localname URI pair.
     */
-    open func attribute(forLocalName localName: String, uri: String?) -> XMLNode? { NSUnimplemented() } //primitive
+    open func attribute(forLocalName localName: String, uri: String?) -> XMLNode? {
+        NSUnimplemented()
+    }
 
     /*!
         @method addNamespace:URI:
         @abstract Adds a namespace. Namespaces with duplicate names are not added.
     */
-    open func addNamespace(_ aNamespace: XMLNode) { NSUnimplemented() } //primitive
+    open func addNamespace(_ aNamespace: XMLNode) {
+        NSUnimplemented()
+    }
 
     /*!
         @method addNamespace:URI:
         @abstract Removes a namespace with a particular name.
     */
-    open func removeNamespaceForPrefix(_ name: String) { NSUnimplemented() } //primitive
+    open func removeNamespace(forPrefix name: String) {
+        NSUnimplemented()
+    }
 
     /*!
         @method namespaces
         @abstract Set the namespaces. In the case of duplicate names, the first namespace with the name is used.
     */
-    open var namespaces: [XMLNode]? { NSUnimplemented() } //primitive
+    open var namespaces: [XMLNode]? {
+        NSUnimplemented()
+    }
 
     /*!
         @method namespaceForPrefix:
         @abstract Returns the namespace matching this prefix.
     */
-    open func namespace(forPrefix name: String) -> XMLNode? { NSUnimplemented() }
+    open func namespace(forPrefix name: String) -> XMLNode? {
+        NSUnimplemented()
+    }
 
     /*!
         @method resolveNamespaceForName:
         @abstract Returns the namespace who matches the prefix of the name given. Looks in the entire namespace chain.
     */
-    open func resolveNamespace(forName name: String) -> XMLNode? { NSUnimplemented() }
+    open func resolveNamespace(forName name: String) -> XMLNode? {
+        NSUnimplemented()
+    }
 
     /*!
         @method resolvePrefixForNamespaceURI:
         @abstract Returns the URI of this prefix. Looks in the entire namespace chain.
     */
-    open func resolvePrefix(forNamespaceURI namespaceURI: String) -> String? { NSUnimplemented() }
+    open func resolvePrefix(forNamespaceURI namespaceURI: String) -> String? {
+        NSUnimplemented()
+    }
 
     /*!
         @method insertChild:atIndex:
@@ -211,7 +227,7 @@ open class XMLElement: XMLNode {
     */
     open func insertChild(_ child: XMLNode, at index: Int) {
         _insertChild(child, atIndex: index)
-    } //primitive
+    }
 
     /*!
         @method insertChildren:atIndex:
@@ -227,7 +243,7 @@ open class XMLElement: XMLNode {
     */
     open func removeChild(at index: Int) {
         _removeChildAtIndex(index)
-    } //primitive
+    }
 
     /*!
         @method setChildren:
@@ -235,7 +251,7 @@ open class XMLElement: XMLNode {
     */
     open func setChildren(_ children: [XMLNode]?) {
         _setChildren(children)
-    } //primitive
+    }
 
     /*!
         @method addChild:

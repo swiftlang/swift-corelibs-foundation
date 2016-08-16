@@ -369,7 +369,6 @@
 		EADE0BC91BD15E0000C49C64 /* NSXMLDTDNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8B1BD15DFF00C49C64 /* NSXMLDTDNode.swift */; };
 		EADE0BCA1BD15E0000C49C64 /* NSXMLElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8C1BD15DFF00C49C64 /* NSXMLElement.swift */; };
 		EADE0BCB1BD15E0000C49C64 /* NSXMLNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */; };
-		EADE0BCC1BD15E0000C49C64 /* NSXMLNodeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */; };
 		EADE0BCD1BD15E0000C49C64 /* NSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */; };
 		F03A43181D4877DD00A7791E /* CFAsmMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = F03A43161D48778200A7791E /* CFAsmMacros.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F9E0BB371CA70B8000F7FF3C /* TestNSURLCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E0BB361CA70B8000F7FF3C /* TestNSURLCredential.swift */; };
@@ -805,7 +804,6 @@
 		EADE0B8B1BD15DFF00C49C64 /* NSXMLDTDNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLDTDNode.swift; sourceTree = "<group>"; };
 		EADE0B8C1BD15DFF00C49C64 /* NSXMLElement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLElement.swift; sourceTree = "<group>"; };
 		EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNode.swift; sourceTree = "<group>"; };
-		EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLNodeOptions.swift; sourceTree = "<group>"; };
 		EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSXMLParser.swift; sourceTree = "<group>"; };
 		F03A43161D48778200A7791E /* CFAsmMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAsmMacros.h; sourceTree = "<group>"; };
 		F9E0BB361CA70B8000F7FF3C /* TestNSURLCredential.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLCredential.swift; sourceTree = "<group>"; };
@@ -1435,7 +1433,6 @@
 				EADE0B8B1BD15DFF00C49C64 /* NSXMLDTDNode.swift */,
 				EADE0B8C1BD15DFF00C49C64 /* NSXMLElement.swift */,
 				EADE0B8D1BD15DFF00C49C64 /* NSXMLNode.swift */,
-				EADE0B8E1BD15DFF00C49C64 /* NSXMLNodeOptions.swift */,
 				EADE0B8F1BD15DFF00C49C64 /* NSXMLParser.swift */,
 			);
 			name = XML;
@@ -1972,7 +1969,6 @@
 				EADE0BC81BD15E0000C49C64 /* NSXMLDTD.swift in Sources */,
 				5B23AB8B1CE62F9B000DB898 /* PersonNameComponents.swift in Sources */,
 				EADE0BA61BD15E0000C49C64 /* NSMassFormatter.swift in Sources */,
-				EADE0BCC1BD15E0000C49C64 /* NSXMLNodeOptions.swift in Sources */,
 				5BECBA3A1D1CAE9A00B39B1F /* NSMeasurement.swift in Sources */,
 				5BF7AEB21BCD51F9008F214A /* NSNumber.swift in Sources */,
 				5BCD03821D3EE35C00E3FF9B /* TimeZone.swift in Sources */,
