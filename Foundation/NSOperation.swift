@@ -65,7 +65,7 @@ open class Operation: NSObject {
         // The completion block property is a bit cagey and can not be executed locally on the queue due to thread exhaust potentials.
         // This sets up for some strange behavior of finishing operations since the handler will be executed on a different queue
         if let completion = completionBlock {
-            DispatchQueue.global(attributes: .qosBackground).async { () -> Void in
+            DispatchQueue.global(qos: .background).async { () -> Void in
                 completion()
             }
         }
@@ -326,9 +326,9 @@ open class OperationQueue: NSObject {
             } else {
                 effectiveName = "NSOperationQueue::\(Unmanaged.passUnretained(self).toOpaque())"
             }
-            let attr: DispatchQueueAttributes
+            let attr: DispatchQueue.Attributes
             if maxConcurrentOperationCount == 1 {
-                attr = .serial
+                attr = [] 
             } else {
                 attr = .concurrent
                 if maxConcurrentOperationCount != NSOperationQueueDefaultMaxConcurrentOperationCount {
@@ -408,7 +408,7 @@ open class OperationQueue: NSObject {
                 group.enter()
             }
 
-            let block = DispatchWorkItem(group: queueGroup, flags: .enforceQoS) { () -> Void in
+            let block = DispatchWorkItem(flags: .enforceQoS) { () -> Void in
                 if let sema = self._concurrencyGate {
                     sema.wait()
                     self._runOperation()
@@ -420,7 +420,7 @@ open class OperationQueue: NSObject {
                     group.leave()
                 }
             }
-            _underlyingQueue.async(execute: block)
+            _underlyingQueue.async(group: queueGroup, execute: block)
 #endif
         }
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
