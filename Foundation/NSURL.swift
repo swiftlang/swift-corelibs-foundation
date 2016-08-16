@@ -70,17 +70,21 @@ public struct URLResourceKey : RawRepresentable, Equatable, Hashable, Comparable
         self.rawValue = rawValue
     }
     
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
+
     public var hashValue: Int {
         return rawValue.hashValue
     }
-}
 
-public func ==(lhs: URLResourceKey, rhs: URLResourceKey) -> Bool {
-    return lhs.rawValue == rhs.rawValue
-}
+    public static func ==(lhs: URLResourceKey, rhs: URLResourceKey) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
 
-public func <(lhs: URLResourceKey, rhs: URLResourceKey) -> Bool {
-    return lhs.rawValue < rhs.rawValue
+    public static func <(lhs: URLResourceKey, rhs: URLResourceKey) -> Bool {
+        return lhs.rawValue < rhs.rawValue
+    }
 }
 
 extension URLResourceKey {
@@ -136,17 +140,21 @@ public struct URLFileResourceType : RawRepresentable, Equatable, Hashable, Compa
         self.rawValue = rawValue
     }
     
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
+
     public var hashValue: Int {
         return rawValue.hashValue
     }
-}
 
-public func ==(lhs: URLFileResourceType, rhs: URLFileResourceType) -> Bool {
-    return lhs.rawValue == rhs.rawValue
-}
+    public static func ==(lhs: URLFileResourceType, rhs: URLFileResourceType) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
 
-public func <(lhs: URLFileResourceType, rhs: URLFileResourceType) -> Bool {
-    return lhs.rawValue < rhs.rawValue
+    public static func <(lhs: URLFileResourceType, rhs: URLFileResourceType) -> Bool {
+        return lhs.rawValue < rhs.rawValue
+    }
 }
 
 extension URLFileResourceType {
@@ -602,12 +610,12 @@ extension NSCharacterSet {
 extension NSString {
     
     // Returns a new string made from the receiver by replacing all characters not in the allowedCharacters set with percent encoded characters. UTF-8 encoding is used to determine the correct percent encoded characters. Entire URL strings cannot be percent-encoded. This method is intended to percent-encode an URL component or subcomponent string, NOT the entire URL string. Any characters in allowedCharacters outside of the 7-bit ASCII range are ignored.
-    public func stringByAddingPercentEncodingWithAllowedCharacters(_ allowedCharacters: CharacterSet) -> String? {
+    open func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
         return _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, self._cfObject, allowedCharacters._cfObject)._swiftObject
     }
     
     // Returns a new string made from the receiver by replacing all percent encoded sequences with the matching UTF-8 characters.
-    public var stringByRemovingPercentEncoding: String? {
+    open var removingPercentEncoding: String? {
         return _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, self._cfObject)?._swiftObject
     }
 }

@@ -1295,7 +1295,7 @@ extension String {
   /// all percent encoded sequences with the matching UTF-8
   /// characters.
   public var removingPercentEncoding: String? {
-    return _ns.stringByRemovingPercentEncoding
+    return _ns.removingPercentEncoding
   }
 
   // - (NSString *)
