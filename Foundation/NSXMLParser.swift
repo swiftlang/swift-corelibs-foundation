@@ -623,18 +623,33 @@ open class XMLParser : NSObject {
         }
     }
     
-    internal var _parserError: NSError?
-    /*@NSCopying*/ open var parserError: NSError? { return _parserError } // can be called after a parse is over to determine parser state.
+    internal var _parserError: Error?
+
+    // can be called after a parse is over to determine parser state.
+    open var parserError: Error? {
+        return _parserError
+    }
     
     //Toggles between disabling external entities entirely, and the current setting of the 'externalEntityResolvingPolicy'.
     //The 'externalEntityResolvingPolicy' property should be used instead of this, unless targeting 10.9/7.0 or earlier
     open var shouldResolveExternalEntities: Bool = false
     
     // Once a parse has begun, the delegate may be interested in certain parser state. These methods will only return meaningful information during parsing, or after an error has occurred.
-    open var publicID: String? { return nil }
-    open var systemID: String? { return nil }
-    open var lineNumber: Int { return Int(_CFXMLInterfaceSAX2GetLineNumber(_parserContext)) }
-    open var columnNumber: Int { return Int(_CFXMLInterfaceSAX2GetColumnNumber(_parserContext)) }
+    open var publicID: String? {
+        return nil
+    }
+    
+    open var systemID: String? {
+        return nil
+    }
+    
+    open var lineNumber: Int {
+        return Int(_CFXMLInterfaceSAX2GetLineNumber(_parserContext))
+    }
+    
+    open var columnNumber: Int {
+        return Int(_CFXMLInterfaceSAX2GetColumnNumber(_parserContext))
+    }
     
     internal func _pushNamespaces(_ ns: [String:String]) {
         _namespaces.append(ns)

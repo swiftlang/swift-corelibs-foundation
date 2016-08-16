@@ -59,41 +59,46 @@ open class XMLDocument : XMLNode {
     private var _xmlDoc: _CFXMLDocPtr {
         return _CFXMLDocPtr(_xmlNode)
     }
+    
+    public init() {
+        NSUnimplemented()
+    }
+    
     /*!
         @method initWithXMLString:options:error:
         @abstract Returns a document created from either XML or HTML, if the HTMLTidy option is set. Parse errors are returned in <tt>error</tt>.
     */
-    public convenience init(xmlString string: String, options mask: Int) throws {
+    public convenience init(xmlString string: String, options: Options) throws {
         guard let data = string.data(using: .utf8) else {
             // TODO: Throw an error
             fatalError("String: '\(string)' could not be converted to NSData using UTF-8 encoding")
         }
 
-        try self.init(data: data, options: mask)
+        try self.init(data: data, options: options)
     }
 
     /*!
         @method initWithContentsOfURL:options:error:
         @abstract Returns a document created from the contents of an XML or HTML URL. Connection problems such as 404, parse errors are returned in <tt>error</tt>.
     */
-    public convenience init(contentsOf url: URL, options mask: Int) throws {
+    public convenience init(contentsOf url: URL, options: Options) throws {
         let data = try Data(contentsOf: url, options: .dataReadingMappedIfSafe)
 
-        try self.init(data: data, options: mask)
+        try self.init(data: data, options: options)
     }
 
     /*!
         @method initWithData:options:error:
         @abstract Returns a document created from data. Parse errors are returned in <tt>error</tt>.
     */
-    public init(data: Data, options mask: Int) throws {
-        let docPtr = _CFXMLDocPtrFromDataWithOptions(data._cfObject, Int32(mask))
+    public init(data: Data, options: Options) throws {
+        let docPtr = _CFXMLDocPtrFromDataWithOptions(data._cfObject, Int32(options.rawValue))
         super.init(ptr: _CFXMLNodePtr(docPtr))
 
-        if mask & NSXMLDocumentValidate != 0 {
+        if options.contains(.documentValidate) {
             try validate()
         }
-    } //primitive
+    }
 
     /*!
         @method initWithRootElement:
@@ -102,14 +107,16 @@ open class XMLDocument : XMLNode {
     public init(rootElement element: XMLElement?) {
         precondition(element?.parent == nil)
 
-        super.init(kind: .document, options: NSXMLNodeOptionsNone)
+        super.init(kind: .document, options: [])
         if let element = element {
             _CFXMLDocSetRootElement(_xmlDoc, element._xmlNode)
             _childNodes.insert(element)
         }
     }
 
-    open class func replacementClassForClass(_ cls: AnyClass) -> AnyClass { NSUnimplemented() }
+    open class func replacementClass(for cls: AnyClass) -> AnyClass {
+        NSUnimplemented()
+    }
 
     /*!
         @method characterEncoding
@@ -126,7 +133,7 @@ open class XMLDocument : XMLNode {
                 _CFXMLDocSetCharacterEncoding(_xmlDoc, nil)
             }
         }
-    } //primitive
+    }
 
     /*!
         @method version
@@ -144,13 +151,13 @@ open class XMLDocument : XMLNode {
                 _CFXMLDocSetVersion(_xmlDoc, nil)
             }
         }
-    } //primitive
+    }
 
     /*!
         @method standalone
         @abstract Set whether this document depends on an external DTD. If this option is set the standalone declaration will appear on output.
     */
-    open var standalone: Bool {
+    open var isStandalone: Bool {
         get {
             return _CFXMLDocStandalone(_xmlDoc)
         }
@@ -192,7 +199,7 @@ open class XMLDocument : XMLNode {
         @method MIMEType
         @abstract Set the MIME type, eg text/xml.
     */
-    open var mimeType: String? //primitive
+    open var mimeType: String?
 
     /*!
         @method DTD
@@ -250,7 +257,7 @@ open class XMLDocument : XMLNode {
         }
 
         return XMLNode._objectNodeForNode(rootPtr) as? XMLElement
-    } //primitive
+    }
 
     /*!
         @method insertChild:atIndex:
@@ -258,7 +265,7 @@ open class XMLDocument : XMLNode {
     */
     open func insertChild(_ child: XMLNode, at index: Int) {
         _insertChild(child, atIndex: index)
-    } //primitive
+    }
 
     /*!
         @method insertChildren:atIndex:
@@ -274,7 +281,7 @@ open class XMLDocument : XMLNode {
     */
     open func removeChild(at index: Int) {
         _removeChildAtIndex(index)
-    } //primitive
+    }
 
     /*!
         @method setChildren:
@@ -282,7 +289,7 @@ open class XMLDocument : XMLNode {
     */
     open func setChildren(_ children: [XMLNode]?) {
         _setChildren(children)
-    } //primitive
+    }
 
     /*!
         @method addChild:
@@ -304,13 +311,13 @@ open class XMLDocument : XMLNode {
         @method XMLData
         @abstract Invokes XMLDataWithOptions with NSXMLNodeOptionsNone.
     */
-    /*@NSCopying*/ open var xmlData: Data { return xmlData(withOptions: NSXMLNodeOptionsNone) }
+    /*@NSCopying*/ open var xmlData: Data { return xmlData(withOptions: []) }
 
     /*!
         @method XMLDataWithOptions:
         @abstract The representation of this node as it would appear in an XML document, encoded based on characterEncoding.
     */
-    open func xmlData(withOptions options: Int) -> Data {
+    open func xmlData(withOptions options: Options) -> Data {
         let string = xmlString(withOptions: options)
         // TODO: support encodings other than UTF-8
 
@@ -321,19 +328,25 @@ open class XMLDocument : XMLNode {
         @method objectByApplyingXSLT:arguments:error:
         @abstract Applies XSLT with arguments (NSString key/value pairs) to this document, returning a new document.
     */
-    open func object(byApplyingXSLT xslt: NSData, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    open func object(byApplyingXSLT xslt: Data, arguments: [String : String]?) throws -> Any {
+        NSUnimplemented()
+    }
 
     /*!
         @method objectByApplyingXSLTString:arguments:error:
         @abstract Applies XSLT as expressed by a string with arguments (NSString key/value pairs) to this document, returning a new document.
     */
-    open func object(byApplyingXSLTString xslt: String, arguments: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    open func object(byApplyingXSLTString xslt: String, arguments: [String : String]?) throws -> Any {
+        NSUnimplemented()
+    }
 
     /*!
         @method objectByApplyingXSLTAtURL:arguments:error:
         @abstract Applies the XSLT at a URL with arguments (NSString key/value pairs) to this document, returning a new document. Error may contain a connection error from the URL.
     */
-    open func objectByApplyingXSLT(at xsltURL: URL, arguments argument: [String : String]?) throws -> AnyObject { NSUnimplemented() }
+    open func objectByApplyingXSLT(at xsltURL: URL, arguments argument: [String : String]?) throws -> Any {
+        NSUnimplemented()
+    }
 
     open func validate() throws {
         var unmanagedError: Unmanaged<CFError>? = nil
