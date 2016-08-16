@@ -1272,6 +1272,7 @@
 				61E0117B1C1B554D000037DD /* TestNSRunLoop.swift */,
 				844DC3321C17584F005611F9 /* TestNSScanner.swift */,
 				EA66F6411BF1619600136161 /* TestNSSet.swift */,
+				0383A1741D2E558A0052E5D1 /* TestNSStream.swift */,
 				EA66F6421BF1619600136161 /* TestNSString.swift */,
 				5B6F17941C48631C00935030 /* TestNSTask.swift */,
 				5FE52C941D147D1C00F7D270 /* TestNSTextCheckingResult.swift */,
@@ -1289,7 +1290,6 @@
 				5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */,
 				CC5249BF1D341D23007CB54D /* TestUnitConverter.swift */,
 				5B6F17961C48631C00935030 /* TestUtils.swift */,
-				0383A1741D2E558A0052E5D1 /* TestNSStream.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";

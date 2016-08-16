@@ -86,19 +86,56 @@ extension String : _ObjectTypeBridgeable {
             result = x._storage
         } else if type(of: x) == _NSCFString.self {
             let cf = unsafeBitCast(x, to: CFString.self)
-            let str = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8))
-            if str != nil {
-                result = String(cString: str!)
-            } else {
-                let length = CFStringGetLength(cf)
-                let buffer = UnsafeMutablePointer<UniChar>.allocate(capacity: length)
-                CFStringGetCharacters(cf, CFRangeMake(0, length), buffer)
-                
-                let str = String._fromCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: buffer, count: length))
-                buffer.deinitialize(count: length)
-                buffer.deallocate(capacity: length)
-                result = str
-            }
+
+            // An ideal fast path would use the result of calling:
+            //
+            // ```
+            // CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8)
+            // ```
+            //
+            // ...but, subsequently calling `String(cString:)` blows away any
+            // text that comes after an internal null character (which is
+            // correct behavior on the part of the initializer but not what we
+            // want here).
+            //
+            // The next best thing for a fast path would be to call, instead of
+            // `String(cString:)`, `String._fromCodeUnitSequence(_:input:)`.
+            // But, to do so we would want an `UnsafeBufferPointer`, for which
+            // we'd need to know the length in bytes of our string.
+            //
+            // As it happens, `CFStringGetLength(_:)` seems to give the length
+            // *in bytes* if `CFStringGetCStringPtr(_:_:)` doesn't return nil.
+            // But what the documentation claims is that `CFStringGetLength(_:)`
+            // should return the length *in UTF-16 code pairs*. We shouldn't
+            // rely on buggy behavior.
+            //
+            // We're left with doing things the slow way, which involves first
+            // allocating a buffer to hold some data.
+            //
+            // One method (the original) uses `CFStringGetCharacters(_:_:_:)` to
+            // write Unicode character data to that buffer, but as it turns out,
+            // like `CFStringGetLength(_:)`, `CFStringGetCharacters(_:_:_:)`
+            // doesn't do what it should with a `CFString` created with bytes or
+            // a `CFString` created with a C string *if* multi-byte characters
+            // are involved.
+            //
+            // So even our slow path needs some work.
+
+            // FIXME: CF functions don't behave as documented; hijinx ensue.
+            //        If those issues (discussed above) are resolved, we can do
+            //        much better than this.
+
+            let length = CFStringGetLength(cf) // This value is utterly unreliable
+
+            // Retrieving Unicode characters is unreliable; instead retrieve UTF8-encoded bytes
+            let max = CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8)
+            let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: max)
+            var count: CFIndex = -1
+            CFStringGetBytes(cf, CFRangeMake(0, length), kCFStringEncodingUTF8, 0, false, buffer, max, &count)
+            let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: buffer, count: count))
+            buffer.deinitialize(count: length)
+            buffer.deallocate(capacity: length)
+            result = str
         } else if type(of: x) == _NSCFConstantString.self {
             let conststr = unsafeBitCast(x, to: _NSCFConstantString.self)
             let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)))
@@ -1221,9 +1258,7 @@ extension NSString {
     }
     
     public convenience init?(data: Data, encoding: UInt) {
-        guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
-            return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
-        }) else { return nil }
+        guard let cf = CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, data._cfObject, CFStringConvertNSStringEncodingToEncoding(encoding)) else { return nil }
         
         var str: String?
         if String._conditionallyBridgeFromObject(cf._nsObject, result: &str) {

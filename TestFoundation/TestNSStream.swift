@@ -33,7 +33,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_InputStreamWithData(){
-        let message: NSString = "Hello, playground"
+        let message: NSString = "Hello, playground\0\0\0"
         let messageData: Data = message.data(using: String.Encoding.utf8.rawValue)!
         let dataStream: InputStream = InputStream(data: messageData)
         XCTAssertEqual(Stream.Status.notOpen, dataStream.streamStatus)
@@ -52,7 +52,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_InputStreamWithUrl() {
-        let message: NSString = "Hello, playground"
+        let message: NSString = "Hello, playground\0\0\0"
         let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
         //Initialiser with url
         let testFile = createTestFile("testFile_in.txt", _contents: messageData)
@@ -80,7 +80,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_InputStreamWithFile() {
-        let message: NSString = "Hello, playground"
+        let message: NSString = "Hello, playground\0\0\0"
         let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
         //Initialiser with file
         let testFile = createTestFile("testFile_in.txt", _contents: messageData)
