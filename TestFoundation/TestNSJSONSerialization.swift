@@ -592,7 +592,7 @@ extension TestNSJSONSerialization {
             ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
             ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
             ("test_invalidJsonObjectToStreamBuffer", test_invalidJsonObjectToStreamBuffer),
-            ("test_jsonObjectToOutputStreamInsufficeintBuffer", test_jsonObjectToOutputStreamInsufficeintBuffer),
+            ("test_jsonObjectToOutputStreamInsufficientBuffer", test_jsonObjectToOutputStreamInsufficientBuffer),
         ]
     }
 
