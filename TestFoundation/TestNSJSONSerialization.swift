@@ -817,7 +817,7 @@ extension TestNSJSONSerialization {
     func test_jsonObjectToOutputStreamInsufficeintBuffer() {
         let dict = ["a":["b":1]]
         let buffer = Array<UInt8>(repeating: 0, count: 10)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 20)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: buffer.count)
         outputStream.open()
         do {
             let result = try JSONSerialization.writeJSONObject(dict.bridge(), toStream: outputStream, options: [])
@@ -833,7 +833,7 @@ extension TestNSJSONSerialization {
     func test_invalidJsonObjectToStreamBuffer() {
         let str = "Invalid JSON"
         let buffer = Array<UInt8>(repeating: 0, count: 10)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 20)
+        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: buffer.count)
         outputStream.open()
         XCTAssertThrowsError(try JSONSerialization.writeJSONObject(str.bridge(), toStream: outputStream, options: []))
     }
