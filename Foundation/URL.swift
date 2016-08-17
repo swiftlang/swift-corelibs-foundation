@@ -699,9 +699,8 @@ public struct URL : ReferenceConvertible, Equatable {
             return result
         } else {
             // Now we need to do something more expensive
-            if var c = URLComponents(url: self, resolvingAgainstBaseURL: true),
-               let path = c.path {
-                c.path = path._stringByAppendingPathComponent(pathComponent)
+            if var c = URLComponents(url: self, resolvingAgainstBaseURL: true) {
+                c.path = c.path._stringByAppendingPathComponent(pathComponent)
                 
                 if let result = c.url {
                     return result
@@ -725,9 +724,8 @@ public struct URL : ReferenceConvertible, Equatable {
             return result
         } else {
             // Now we need to do something more expensive
-            if var c = URLComponents(url: self, resolvingAgainstBaseURL: true),
-               let path = c.path {
-                c.path = path._stringByAppendingPathComponent(pathComponent)
+            if var c = URLComponents(url: self, resolvingAgainstBaseURL: true) {
+                c.path = c.path._stringByAppendingPathComponent(pathComponent)
                 
                 if let result = c.url {
                     return result
