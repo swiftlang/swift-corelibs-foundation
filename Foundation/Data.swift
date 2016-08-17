@@ -286,12 +286,8 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         }
     }
     
-    private func _getUnsafeBytesPointer() -> UnsafePointer<Void> {
-        
-        return _mapUnmanaged {
-            let boundBytes = $0.bytes.bindMemory(to: Void.self, capacity: $0.length)
-            return boundBytes
-        }
+    private func _getUnsafeBytesPointer() -> UnsafeRawPointer {
+        return _mapUnmanaged { return $0.bytes }
     }
     
     /// Access the bytes in the data.
@@ -300,15 +296,13 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     public func withUnsafeBytes<ResultType, ContentType>(_ body: (UnsafePointer<ContentType>) throws -> ResultType) rethrows -> ResultType {
         let bytes =  _getUnsafeBytesPointer()
         defer { _fixLifetime(self)}
-        let result = try bytes.withMemoryRebound(to: ContentType.self, capacity: count / MemoryLayout<ContentType>.stride) {
-            return try body($0)
-        }
-        return result
+        let contentPtr = bytes.bindMemory(to: ContentType.self, capacity: count / MemoryLayout<ContentType>.stride)
+        return try body(contentPtr)
     }
     
-    private mutating func _getUnsafeMutableBytesPointer() -> UnsafeMutablePointer<Void> {
+    private mutating func _getUnsafeMutableBytesPointer() -> UnsafeMutableRawPointer {
         return _applyUnmanagedMutation {
-            return $0.mutableBytes.bindMemory(to: Void.self, capacity: count)
+            return $0.mutableBytes
         }
     }
     
@@ -319,11 +313,8 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     public mutating func withUnsafeMutableBytes<ResultType, ContentType>(_ body: (UnsafeMutablePointer<ContentType>) throws -> ResultType) rethrows -> ResultType {
         let mutableBytes = _getUnsafeMutableBytesPointer()
         defer { _fixLifetime(self)}
-        
-        let result = try mutableBytes.withMemoryRebound(to: ContentType.self, capacity: count / MemoryLayout<ContentType>.stride) {
-            return try body($0)
-        }
-        return result
+        let contentPtr = mutableBytes.bindMemory(to: ContentType.self, capacity: count / MemoryLayout<ContentType>.stride)
+        return try body(contentPtr)
     }
     
     // MARK: -
