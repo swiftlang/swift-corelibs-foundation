@@ -11,7 +11,7 @@
 /// A structure designed to parse URLs based on RFC 3986 and to construct URLs from their constituent parts.
 ///
 /// Its behavior differs subtly from the `URL` struct, which conforms to older RFCs. However, you can easily obtain a `URL` based on the contents of a `URLComponents` or vice versa.
-public struct URLComponents : ReferenceConvertible, Hashable, CustomStringConvertible, Equatable, _MutableBoxing {
+public struct URLComponents : ReferenceConvertible, Hashable, Equatable, _MutableBoxing {
     public typealias ReferenceType = NSURLComponents
     
     internal var _handle: _MutableHandle<NSURLComponents>
@@ -37,12 +37,16 @@ public struct URLComponents : ReferenceConvertible, Hashable, CustomStringConver
         _handle = _MutableHandle(adoptingReference: result)
     }
     
-    /// Returns a URL created from the NSURLComponents. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
+    /// Returns a URL created from the NSURLComponents.
+    ///
+    /// If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
     public var url: URL? {
         return _handle.map { $0.url }
     }
     
-    // Returns a URL created from the NSURLComponents relative to a base URL. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
+    // Returns a URL created from the NSURLComponents relative to a base URL.
+    ///
+    /// If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
     public func url(relativeTo base: URL?) -> URL? {
         return _handle.map { $0.url(relativeTo: base) }
     }
@@ -95,23 +99,20 @@ public struct URLComponents : ReferenceConvertible, Hashable, CustomStringConver
     /// Attempting to set a negative port number will cause a fatal error.
     public var port: Int? {
         get { return _handle.map { $0.port?.intValue } }
-        set {
-            _applyMutation {
-                if let val = newValue {
-                    $0.port = NSNumber(integerLiteral: val)
-                } else {
-                    $0.port = nil
-                }
-            }
-        }
+        set { _applyMutation { $0.port = newValue != nil ? NSNumber(value: newValue!) : nil as NSNumber?} }
     }
     
     /// The path subcomponent.
     ///
     /// The getter for this property removes any percent encoding this component may have (if the component allows percent encoding). Setting this property assumes the subcomponent or component string is not percent encoded and will add percent encoding (if the component allows percent encoding).
-    public var path: String? {
-        get { return _handle.map { $0.path } }
-        set { _applyMutation { $0.path = newValue } }
+    public var path: String {
+        get {
+            guard let result = _handle.map({ $0.path }) else { return "" }
+            return result
+        }
+        set {
+            _applyMutation { $0.path = newValue }
+        }
     }
     
     /// The query subcomponent.
@@ -158,9 +159,14 @@ public struct URLComponents : ReferenceConvertible, Hashable, CustomStringConver
     /// The path subcomponent, percent-encoded.
     ///
     /// The getter for this property retains any percent encoding this component may have. Setting this properties assumes the component string is already correctly percent encoded. Attempting to set an incorrectly percent encoded string will cause a `fatalError`. Although ';' is a legal path character, it is recommended that it be percent-encoded for best compatibility with `URL` (`String.addingPercentEncoding(withAllowedCharacters:)` will percent-encode any ';' characters if you pass `CharacterSet.urlPathAllowed`).
-    public var percentEncodedPath: String? {
-        get { return _handle.map { $0.percentEncodedPath } }
-        set { _applyMutation { $0.percentEncodedPath = newValue } }
+    public var percentEncodedPath: String {
+        get {
+            guard let result = _handle.map({ $0.percentEncodedPath }) else { return "" }
+            return result
+        }
+        set {
+            _applyMutation { $0.percentEncodedPath = newValue }
+        }
     }
     
     /// The query subcomponent, percent-encoded.
@@ -184,7 +190,7 @@ public struct URLComponents : ReferenceConvertible, Hashable, CustomStringConver
         
         let utf16Start = String.UTF16View.Index(_offset: r.location)
         let utf16End = String.UTF16View.Index(_offset: r.location + r.length)
-
+        
         guard let s = self.string else { return nil }
         guard let start = String.Index(utf16Start, within: s) else { return nil }
         guard let end = String.Index(utf16End, within: s) else { return nil }
@@ -255,12 +261,12 @@ public struct URLComponents : ReferenceConvertible, Hashable, CustomStringConver
     public var rangeOfFragment: Range<String.Index>? {
         return _toStringRange(_handle.map { $0.rangeOfFragment})
     }
-
+    
     /// Returns an array of query items for this `URLComponents`, in the order in which they appear in the original query string.
     ///
     /// Each `URLQueryItem` represents a single key-value pair,
     ///
-    /// Note that a name may appear more than once in a single query string, so the name values are not guaranteed to be unique. If the `URLComponents` has an empty query component, returns an empty array. If the `URLComponents` has no query component, returns nil.
+    /// Note that a name may appear more than once in a single query string, so the name values are not guaranteed to be unique. If the `URLComponents` has an empty query component, returns an empty array. If the `URLComponents` has no query component, returns nil.
     ///
     /// The setter combines an array containing any number of `URLQueryItem`s, each of which represents a single key-value pair, into a query string and sets the `URLComponents` query property. Passing an empty array sets the query component of the `URLComponents` to an empty string. Passing nil removes the query component of the `URLComponents`.
     ///
@@ -270,14 +276,6 @@ public struct URLComponents : ReferenceConvertible, Hashable, CustomStringConver
         set { _applyMutation { $0.queryItems = newValue?.map { $0 } } }
     }
     
-    public var description: String {
-        return _handle.map { $0.description }
-    }
-    
-    public var debugDescription: String {
-        return _handle.map { $0.debugDescription }
-    }
-
     public var hashValue: Int {
         return _handle.map { $0.hash }
     }
@@ -288,16 +286,48 @@ public struct URLComponents : ReferenceConvertible, Hashable, CustomStringConver
         _handle = _MutableHandle(reference: reference)
     }
     
+    public static func ==(lhs: URLComponents, rhs: URLComponents) -> Bool {
+        // Don't copy references here; no one should be storing anything
+        return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
+    }
 }
 
-public func ==(lhs: URLComponents, rhs: URLComponents) -> Bool {
-    // Don't copy references here; no one should be storing anything
-    return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
+extension URLComponents : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var description: String {
+        if let u = url {
+            return u.description
+        } else {
+            return self.customMirror.children.reduce("") {
+                $0.appending("\($1.label ?? ""): \($1.value) ")
+            }
+        }
+    }
+    
+    public var debugDescription: String {
+        return self.description
+    }
+    
+    public var customMirror: Mirror {
+        var c: [(label: String?, value: Any)] = []
+        
+        if let s = self.scheme { c.append((label: "scheme", value: s)) }
+        if let u = self.user { c.append((label: "user", value: u)) }
+        if let pw = self.password { c.append((label: "password", value: pw)) }
+        if let h = self.host { c.append((label: "host", value: h)) }
+        if let p = self.port { c.append((label: "port", value: p)) }
+        
+        c.append((label: "path", value: self.path))
+        if #available(OSX 10.10, iOS 8.0, *) {
+            if let qi = self.queryItems { c.append((label: "queryItems", value: qi )) }
+        }
+        if let f = self.fragment { c.append((label: "fragment", value: f)) }
+        let m = Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return m
+    }
 }
-
 
 /// A single name-value pair, for use with `URLComponents`.
-public struct URLQueryItem : ReferenceConvertible, Hashable, Equatable, CustomStringConvertible {
+public struct URLQueryItem : ReferenceConvertible, Hashable, Equatable {
     public typealias ReferenceType = NSURLQueryItem
     
     fileprivate var _queryItem : NSURLQueryItem
@@ -307,27 +337,45 @@ public struct URLQueryItem : ReferenceConvertible, Hashable, Equatable, CustomSt
     }
     
     fileprivate init(reference: NSURLQueryItem) { _queryItem = reference.copy() as! NSURLQueryItem }
-    private var reference : NSURLQueryItem { return _queryItem }
+    fileprivate var reference : NSURLQueryItem { return _queryItem }
     
-    public var name : String {
+    public var name: String {
         get { return _queryItem.name }
         set { _queryItem = NSURLQueryItem(name: newValue, value: value) }
     }
     
-    public var value : String? {
+    public var value: String? {
         get { return _queryItem.value }
         set { _queryItem = NSURLQueryItem(name: name, value: newValue) }
     }
     
-    public var description: String { return _queryItem.description }
-    public var debugDescription: String { return _queryItem.debugDescription }
     public var hashValue: Int { return _queryItem.hash }
+    
+    public static func ==(lhs: URLQueryItem, rhs: URLQueryItem) -> Bool {
+        return lhs._queryItem.isEqual(rhs._queryItem)
+    }
 }
 
-public func ==(lhs: URLQueryItem, rhs: URLQueryItem) -> Bool {
-    return lhs._queryItem.isEqual(rhs._nsObject)
+extension URLQueryItem : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var description: String {
+        if let v = value {
+            return "\(name)=\(v)"
+        } else {
+            return name
+        }
+    }
+    
+    public var debugDescription: String {
+        return self.description
+    }
+    
+    public var customMirror: Mirror {
+        var c: [(label: String?, value: Any)] = []
+        c.append((label: "name", value: name))
+        c.append((label: "value", value: value))
+        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+    }
 }
-
 
 extension NSURLComponents : _SwiftBridgable {
     typealias SwiftType = URLComponents
@@ -347,4 +395,64 @@ extension NSURLQueryItem : _SwiftBridgable {
 extension URLQueryItem : _NSBridgable {
     typealias NSType = NSURLQueryItem
     internal var _nsObject: NSType { return _queryItem }
+}
+
+extension URLComponents : _ObjectTypeBridgeable {
+    public typealias _ObjectType = NSURLComponents
+    
+    public static func _getObjectiveCType() -> Any.Type {
+        return NSURLComponents.self
+    }
+    
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSURLComponents {
+        return _handle._copiedReference()
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ x: NSURLComponents, result: inout URLComponents?) {
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(_ObjectType.self) to \(self)")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSURLComponents, result: inout URLComponents?) -> Bool {
+        result = URLComponents(reference: x)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSURLComponents?) -> URLComponents {
+        var result: URLComponents? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
+}
+
+extension URLQueryItem : _ObjectTypeBridgeable {
+    public typealias _ObjectType = NSURLQueryItem
+    
+    public static func _getObjectiveCType() -> Any.Type {
+        return NSURLQueryItem.self
+    }
+    
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSURLQueryItem {
+        return _queryItem
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ x: NSURLQueryItem, result: inout URLQueryItem?) {
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(_ObjectType.self) to \(self)")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSURLQueryItem, result: inout URLQueryItem?) -> Bool {
+        result = URLQueryItem(reference: x)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSURLQueryItem?) -> URLQueryItem {
+        var result: URLQueryItem? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
 }

@@ -232,15 +232,12 @@ extension FileHandle {
     }
     
     internal static func _openFileDescriptorForURL(_ url : URL, flags: Int32, reading: Bool) throws -> Int32 {
-        if let path = url.path {
-            let fd = _CFOpenFile(path, flags)
-            if fd < 0 {
-                throw _NSErrorWithErrno(errno, reading: reading, url: url)
-            }
-            return fd
-        } else {
-            throw _NSErrorWithErrno(ENOENT, reading: reading, url: url)
+        let path = url.path
+        let fd = _CFOpenFile(path, flags)
+        if fd < 0 {
+            throw _NSErrorWithErrno(errno, reading: reading, url: url)
         }
+        return fd
     }
     
     public convenience init(forReadingFrom url: URL) throws {

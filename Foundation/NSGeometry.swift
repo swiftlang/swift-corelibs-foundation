@@ -914,20 +914,20 @@ extension NSCoder {
 extension NSCoder {
     
     public func encodePoint(_ point: NSPoint, forKey key: String) {
-        self.encode(NSStringFromPoint(point).bridge(), forKey: key)
+        self.encode(NSStringFromPoint(point)._bridgeToObjectiveC(), forKey: key)
     }
     
     public func encodeSize(_ size: NSSize, forKey key: String) {
-        self.encode(NSStringFromSize(size).bridge(), forKey: key)
+        self.encode(NSStringFromSize(size)._bridgeToObjectiveC(), forKey: key)
     }
     
     public func encodeRect(_ rect: NSRect, forKey key: String) {
-        self.encode(NSStringFromRect(rect).bridge(), forKey: key)
+        self.encode(NSStringFromRect(rect)._bridgeToObjectiveC(), forKey: key)
     }
     
     public func decodePointForKey(_ key: String) -> NSPoint {
         if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
-            return NSPointFromString(string.bridge())
+            return NSPointFromString(String._unconditionallyBridgeFromObjectiveC(string))
         } else {
             return NSPoint()
         }
@@ -935,7 +935,7 @@ extension NSCoder {
     
     public func decodeSizeForKey(_ key: String) -> NSSize {
         if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
-            return NSSizeFromString(string.bridge())
+            return NSSizeFromString(String._unconditionallyBridgeFromObjectiveC(string))
         } else {
             return NSSize()
         }
@@ -943,7 +943,7 @@ extension NSCoder {
     
     public func decodeRectForKey(_ key: String) -> NSRect {
         if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
-            return NSRectFromString(string.bridge())
+            return NSRectFromString(String._unconditionallyBridgeFromObjectiveC(string))
         } else {
             return NSRect()
         }

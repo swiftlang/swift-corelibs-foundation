@@ -865,7 +865,7 @@ private func _toNSRange(_ r : Range<IndexSet.Element>) -> NSRange {
     return NSMakeRange(r.lowerBound, r.upperBound - r.lowerBound)
 }
 
-extension IndexSet {
+extension IndexSet : _ObjectTypeBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexSet.self
     }

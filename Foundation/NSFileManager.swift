@@ -103,7 +103,7 @@ open class FileManager: NSObject {
         var result = [URL]()
         if let e = e {
             for url in e {
-                result.append((url as! NSURL)._swiftObject)
+                result.append(url as! URL)
             }
             if let error = error {
                 throw error
@@ -144,10 +144,7 @@ open class FileManager: NSObject {
         guard url.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : url])
         }
-        guard let path = url.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: nil)
-        }
-        try self.createDirectory(atPath: path, withIntermediateDirectories: createIntermediates, attributes: attributes)
+        try self.createDirectory(atPath: url.path, withIntermediateDirectories: createIntermediates, attributes: attributes)
     }
     
     /* createSymbolicLinkAtURL:withDestinationURL:error: returns YES if the symbolic link that point at 'destURL' was able to be created at the location specified by 'url'. 'destURL' is always resolved against its base URL, if it has one. If 'destURL' has no base URL and it's 'relativePath' is indeed a relative path, then a relative symlink will be created. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
@@ -159,13 +156,7 @@ open class FileManager: NSObject {
         guard destURL.scheme == nil || destURL.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : destURL])
         }
-        guard let path = url.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [NSURLErrorKey : url])
-        }
-        guard let destPath = destURL.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [NSURLErrorKey : destURL])
-        }
-        try self.createSymbolicLink(atPath: path, withDestinationPath: destPath)
+        try self.createSymbolicLink(atPath: url.path, withDestinationPath: destURL.path)
     }
     
     /* Instances of NSFileManager may now have delegates. Each instance has one delegate, and the delegate is not retained. In versions of Mac OS X prior to 10.5, the behavior of calling [[NSFileManager alloc] init] was undefined. In Mac OS X 10.5 "Leopard" and later, calling [[NSFileManager alloc] init] returns a new instance of an NSFileManager.
@@ -207,7 +198,7 @@ open class FileManager: NSObject {
         if createIntermediates {
             var isDir: ObjCBool = false
             if !fileExists(atPath: path, isDirectory: &isDir) {
-                let parent = path._nsObject.stringByDeletingLastPathComponent
+                let parent = path._nsObject.deletingLastPathComponent
                 if !fileExists(atPath: parent, isDirectory: &isDir) {
                     try createDirectory(atPath: parent, withIntermediateDirectories: true, attributes: attributes)
                 }
@@ -516,13 +507,7 @@ open class FileManager: NSObject {
         guard dstURL.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : dstURL])
         }
-        guard let srcPath = srcURL.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [NSURLErrorKey : srcURL])
-        }
-        guard let dstPath = dstURL.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [NSURLErrorKey : dstURL])
-        }
-        try copyItem(atPath: srcPath, toPath: dstPath)
+        try copyItem(atPath: srcURL.path, toPath: dstURL.path)
     }
     
     open func moveItem(at srcURL: URL, to dstURL: URL) throws {
@@ -532,13 +517,7 @@ open class FileManager: NSObject {
         guard dstURL.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : dstURL])
         }
-        guard let srcPath = srcURL.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [NSURLErrorKey : srcURL])
-        }
-        guard let dstPath = dstURL.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [NSURLErrorKey : dstURL])
-        }
-        try moveItem(atPath: srcPath, toPath: dstPath)
+        try moveItem(atPath: srcURL.path, toPath: dstURL.path)
     }
     
     open func linkItem(at srcURL: URL, to dstURL: URL) throws {
@@ -548,23 +527,14 @@ open class FileManager: NSObject {
         guard dstURL.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : dstURL])
         }
-        guard let srcPath = srcURL.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [NSURLErrorKey : srcURL])
-        }
-        guard let dstPath = dstURL.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [NSURLErrorKey : dstURL])
-        }
-        try linkItem(atPath: srcPath, toPath: dstPath)
+        try linkItem(atPath: srcURL.path, toPath: dstURL.path)
     }
     
     open func removeItem(at url: URL) throws {
         guard url.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : url])
         }
-        guard let path = url.path else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileNoSuchFileError.rawValue, userInfo: [NSURLErrorKey : url])
-        }
-        try self.removeItem(atPath: path)
+        try self.removeItem(atPath: url.path)
     }
     
     /* Process working directory management. Despite the fact that these are instance methods on NSFileManager, these methods report and change (respectively) the working directory for the entire process. Developers are cautioned that doing so is fraught with peril.
@@ -749,8 +719,8 @@ open class FileManager: NSObject {
         if dest.hasPrefix("/") {
             return dest
         } else {
-            let temp = toPath.bridge().stringByDeletingLastPathComponent
-            return temp.bridge().stringByAppendingPathComponent(dest)
+            let temp = toPath._bridgeToObjectiveC().deletingLastPathComponent
+            return temp._bridgeToObjectiveC().appendingPathComponent(dest)
         }
     }
     
@@ -885,13 +855,13 @@ extension FileManager {
             self.innerEnumerator = ie
         }
         
-        override func nextObject() -> AnyObject? {
+        override func nextObject() -> Any? {
             let o = innerEnumerator.nextObject()
-            guard let url = o as? NSURL else {
+            guard let url = o as? URL else {
                 return nil
             }
-            let path = url.path!.replacingOccurrences(of: baseURL.path!+"/", with: "")
-            return NSString(string: path)
+            let path = url.path.replacingOccurrences(of: baseURL.path+"/", with: "")
+            return path
         }
 
     }
@@ -910,22 +880,17 @@ extension FileManager {
             _options = options
             _errorHandler = errorHandler
             
-            if let path = _url.path {
-                if FileManager.default.fileExists(atPath: path) {
-                    let fsRep = FileManager.default.fileSystemRepresentation(withPath: path)
-                    let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
-                    ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
-                    ps.advanced(by: 1).initialize(to: nil)
-                    _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
-                    ps.deinitialize(count: 2)
-                    ps.deallocate(capacity: 2)
-                } else {
-                    _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
-                }
+            if FileManager.default.fileExists(atPath: _url.path) {
+                let fsRep = FileManager.default.fileSystemRepresentation(withPath: _url.path)
+                let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
+                ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
+                ps.advanced(by: 1).initialize(to: nil)
+                _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+                ps.deinitialize(count: 2)
+                ps.deallocate(capacity: 2)
             } else {
                 _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
             }
-
         }
         
         deinit {
@@ -934,7 +899,7 @@ extension FileManager {
             }
         }
         
-        override func nextObject() -> AnyObject? {
+        override func nextObject() -> Any? {
             if let stream = _stream {
                 
                 if !_gotRoot  {
@@ -955,7 +920,7 @@ extension FileManager {
                             fallthrough
                         case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
                             let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
-                            return NSURL(fileURLWithPath: str)
+                            return URL(fileURLWithPath: str)
                         case FTS_DNR, FTS_ERR, FTS_NS:
                             let keepGoing : Bool
                             if let handler = _errorHandler {

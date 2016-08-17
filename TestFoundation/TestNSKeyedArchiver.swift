@@ -121,8 +121,8 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_array() {
-        let array = ["one", "two", "three"]
-        test_archive(array.bridge())
+        let array = NSArray(array: ["one", "two", "three"])
+        test_archive(array)
     }
     
     func test_archive_concrete_value() {
@@ -135,8 +135,8 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_dictionary() {
-        let dictionary = ["one" : 1, "two" : 2, "three" : 3]
-        test_archive(dictionary.bridge())
+        let dictionary = NSDictionary(dictionary: ["one" : 1, "two" : 2, "three" : 3])
+        test_archive(dictionary)
     }
     
     func test_archive_generic_objc() {
@@ -164,18 +164,22 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_string() {
-        let string = "hello"
-        test_archive(string.bridge())
+        let string = NSString(string: "hello")
+        test_archive(string)
     }
     
     func test_archive_mutable_array() {
-        let array = ["one", "two", "three"]
-        test_archive(array.bridge().mutableCopy() as! NSObject)
+        let array = NSMutableArray(array: ["one", "two", "three"])
+        test_archive(array)
     }
 
     func test_archive_mutable_dictionary() {
-        let mdictionary = NSMutableDictionary(objects: [NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Int(3))],
-                                              forKeys: ["one".bridge(), "two".bridge(), "three".bridge()])
+        let mdictionary = NSMutableDictionary(dictionary: [
+            "one": NSNumber(value: Int(1)),
+            "two": NSNumber(value: Int(2)),
+            "three": NSNumber(value: Int(3)),
+        ])
+        
         test_archive(mdictionary)
     }
     
@@ -211,8 +215,8 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_url() {
-        let url = URL(string: "index.html", relativeTo: URL(string: "http://www.apple.com"))!
-        test_archive(url.bridge())
+        let url = NSURL(string: "index.html", relativeTo: URL(string: "http://www.apple.com"))!
+        test_archive(url)
     }
     
     func test_archive_charptr() {

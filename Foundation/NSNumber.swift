@@ -34,17 +34,29 @@ extension Int : _ObjectTypeBridgeable {
         self = number.intValue
     }
     
-    public func _bridgeToObject() -> NSNumber {
+    public typealias _ObjectType = NSNumber
+    public func _bridgeToObjectiveC() -> _ObjectType {
         return NSNumber(value: self)
     }
     
-    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Int?) {
-        result = x.intValue
+    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Int?) {
+        result = _unconditionallyBridgeFromObjectiveC(source)
     }
     
-    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Int?) -> Bool {
-        self._forceBridgeFromObject(x, result: &result)
+    @discardableResult
+    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout Int?) -> Bool {
+        result = source.intValue
         return true
+    }
+    
+    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Int {
+        if let object = source {
+            var value: Int?
+            _conditionallyBridgeFromObjectiveC(object, result: &value)
+            return value!
+        } else {
+            return 0
+        }
     }
 }
 
@@ -53,16 +65,29 @@ extension UInt : _ObjectTypeBridgeable {
         self = number.uintValue
     }
 
-    public func _bridgeToObject() -> NSNumber {
+    public typealias _ObjectType = NSNumber
+    public func _bridgeToObjectiveC() -> _ObjectType {
         return NSNumber(value: self)
     }
     
-    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout UInt?) {
-        result = x.uintValue
+    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout UInt?) {
+        result = _unconditionallyBridgeFromObjectiveC(source)
     }
-    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout UInt?) -> Bool {
-        _forceBridgeFromObject(x, result: &result)
+    
+    @discardableResult
+    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout UInt?) -> Bool {
+        result = source.uintValue
         return true
+    }
+    
+    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> UInt {
+        if let object = source {
+            var value: UInt?
+            _conditionallyBridgeFromObjectiveC(object, result: &value)
+            return value!
+        } else {
+            return 0
+        }
     }
 }
 
@@ -71,17 +96,29 @@ extension Float : _ObjectTypeBridgeable {
         self = number.floatValue
     }
     
-    public func _bridgeToObject() -> NSNumber {
+    public typealias _ObjectType = NSNumber
+    public func _bridgeToObjectiveC() -> _ObjectType {
         return NSNumber(value: self)
     }
     
-    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Float?) {
-        result = x.floatValue
+    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Float?) {
+        result = _unconditionallyBridgeFromObjectiveC(source)
     }
     
-    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Float?) -> Bool {
-        _forceBridgeFromObject(x, result: &result)
+    @discardableResult
+    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout Float?) -> Bool {
+        result = source.floatValue
         return true
+    }
+    
+    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Float {
+        if let object = source {
+            var value: Float?
+            _conditionallyBridgeFromObjectiveC(object, result: &value)
+            return value!
+        } else {
+            return 0.0
+        }
     }
 }
 
@@ -90,17 +127,29 @@ extension Double : _ObjectTypeBridgeable {
         self = number.doubleValue
     }
     
-    public func _bridgeToObject() -> NSNumber {
+    public typealias _ObjectType = NSNumber
+    public func _bridgeToObjectiveC() -> _ObjectType {
         return NSNumber(value: self)
     }
     
-    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Double?) {
-        result = x.doubleValue
+    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Double?) {
+        result = _unconditionallyBridgeFromObjectiveC(source)
     }
     
-    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Double?) -> Bool {
-        _forceBridgeFromObject(x, result: &result)
+    @discardableResult
+    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout Double?) -> Bool {
+        result = source.doubleValue
         return true
+    }
+    
+    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Double {
+        if let object = source {
+            var value: Double?
+            _conditionallyBridgeFromObjectiveC(object, result: &value)
+            return value!
+        } else {
+            return 0.0
+        }
     }
 }
 
@@ -109,17 +158,29 @@ extension Bool : _ObjectTypeBridgeable {
         self = number.boolValue
     }
     
-    public func _bridgeToObject() -> NSNumber {
+    public typealias _ObjectType = NSNumber
+    public func _bridgeToObjectiveC() -> _ObjectType {
         return NSNumber(value: self)
     }
     
-    public static func _forceBridgeFromObject(_ x: NSNumber, result: inout Bool?) {
-        result = x.boolValue
+    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Bool?) {
+        result = _unconditionallyBridgeFromObjectiveC(source)
     }
     
-    public static func _conditionallyBridgeFromObject(_ x: NSNumber, result: inout Bool?) -> Bool {
-        _forceBridgeFromObject(x, result: &result)
+    @discardableResult
+    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout Bool?) -> Bool {
+        result = source.boolValue
         return true
+    }
+    
+    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Bool {
+        if let object = source {
+            var value: Bool?
+            _conditionallyBridgeFromObjectiveC(object, result: &value)
+            return value!
+        } else {
+            return false
+        }
     }
 }
 
@@ -436,7 +497,7 @@ open class NSNumber : NSValue {
         let formatter: CFNumberFormatter
         if (aLocale == nil) {
             formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
-            CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObject())
+            CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObjectiveC())
 
         } else {
             formatter = CFNumberFormatterCreate(nil, aLocale?._cfObject, kCFNumberFormatterDecimalStyle)

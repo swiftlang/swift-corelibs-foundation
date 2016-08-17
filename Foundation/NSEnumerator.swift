@@ -9,7 +9,7 @@
 
 open class NSEnumerator : NSObject {
     
-    open func nextObject() -> AnyObject? {
+    open func nextObject() -> Any? {
         NSRequiresConcreteImplementation()
     }
 
@@ -19,7 +19,7 @@ extension NSEnumerator : Sequence {
 
     public struct Iterator : IteratorProtocol {
         let enumerator : NSEnumerator
-        public func next() -> AnyObject? {
+        public func next() -> Any? {
             return enumerator.nextObject()
         }
     }
@@ -32,19 +32,19 @@ extension NSEnumerator : Sequence {
 
 extension NSEnumerator {
 
-    public var allObjects: [AnyObject] {
+    public var allObjects: [Any] {
         return Array(self)
     }
 
 }
 
-internal class NSGeneratorEnumerator<Base : IteratorProtocol> : NSEnumerator where Base.Element : AnyObject {
+internal class NSGeneratorEnumerator<Base : IteratorProtocol> : NSEnumerator where Base.Element : Any {
     var generator : Base
     init(_ generator: Base) {
         self.generator = generator
     }
     
-    override func nextObject() -> AnyObject? {
+    override func nextObject() -> Any? {
         return generator.next()
     }
 }

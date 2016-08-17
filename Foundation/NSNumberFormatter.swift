@@ -103,19 +103,19 @@ open class NumberFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPlusSign, value: _plusSign?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: _currencySymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterExponentSymbol, value: _exponentSymbol?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinIntegerDigits, value: _minimumIntegerDigits._bridgeToObject()._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxIntegerDigits, value: _maximumIntegerDigits._bridgeToObject()._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinFractionDigits, value: _minimumFractionDigits._bridgeToObject()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinIntegerDigits, value: _minimumIntegerDigits._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxIntegerDigits, value: _maximumIntegerDigits._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinFractionDigits, value: _minimumFractionDigits._bridgeToObjectiveC()._cfObject)
         if _minimumFractionDigits <= 0 {
-            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxFractionDigits, value: _maximumFractionDigits._bridgeToObject()._cfObject)
+            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxFractionDigits, value: _maximumFractionDigits._bridgeToObjectiveC()._cfObject)
         }
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterGroupingSize, value: _groupingSize._bridgeToObject()._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterSecondaryGroupingSize, value: _secondaryGroupingSize._bridgeToObject()._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterRoundingMode, value: _roundingMode.rawValue._bridgeToObject()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterGroupingSize, value: _groupingSize._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterSecondaryGroupingSize, value: _secondaryGroupingSize._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterRoundingMode, value: _roundingMode.rawValue._bridgeToObjectiveC()._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterRoundingIncrement, value: _roundingIncrement?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterFormatWidth, value: _formatWidth._bridgeToObject()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterFormatWidth, value: _formatWidth._bridgeToObjectiveC()._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingCharacter, value: _paddingCharacter?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingPosition, value: _paddingPosition.rawValue._bridgeToObject()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingPosition, value: _paddingPosition.rawValue._bridgeToObjectiveC()._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMultiplier, value: _multiplier?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPositivePrefix, value: _positivePrefix?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPositiveSuffix, value: _positiveSuffix?._cfObject)
@@ -127,8 +127,8 @@ open class NumberFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterIsLenient, value: kCFBooleanTrue)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterUseSignificantDigits, value: _usesSignificantDigits._cfObject)
         if _usesSignificantDigits {
-            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinSignificantDigits, value: _minimumSignificantDigits._bridgeToObject()._cfObject)
-            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxSignificantDigits, value: _maximumSignificantDigits._bridgeToObject()._cfObject)
+            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinSignificantDigits, value: _minimumSignificantDigits._bridgeToObjectiveC()._cfObject)
+            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxSignificantDigits, value: _maximumSignificantDigits._bridgeToObjectiveC()._cfObject)
         }
     }
     

@@ -50,11 +50,7 @@ open class Bundle: NSObject {
     }
     
     public convenience init?(url: URL) {
-        if let path = url.path {
-            self.init(path: path)
-        } else {
-            return nil
-        }
+        self.init(path: url.path)
     }
     
     public init(for aClass: AnyClass) { NSUnimplemented() }
@@ -70,7 +66,7 @@ open class Bundle: NSObject {
     }
     
     override open var description: String {
-        return "\(String(describing: Bundle.self)) <\(bundleURL.path!)> (\(isLoaded  ? "loaded" : "not yet loaded"))"
+        return "\(String(describing: Bundle.self)) <\(bundleURL.path)> (\(isLoaded  ? "loaded" : "not yet loaded"))"
     }
 
     
@@ -144,7 +140,7 @@ open class Bundle: NSObject {
     }
     
     open var bundlePath: String {
-        return bundleURL.path!
+        return bundleURL.path
     }
     
     open var resourcePath: String? {
@@ -279,14 +275,14 @@ open class Bundle: NSObject {
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     open var infoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetInfoDictionary(_bundle)
-        return cfDict.map(_expensivePropertyListConversion) as? [String: Any]
+        return _SwiftValue.fetch(cfDict) as? [String : Any]
     }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     open var localizedInfoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetLocalInfoDictionary(_bundle)
-        return cfDict.map(_expensivePropertyListConversion) as? [String: Any]
+        return _SwiftValue.fetch(cfDict) as? [String : Any]
     }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
@@ -306,7 +302,7 @@ open class Bundle: NSObject {
     }
     open var localizations: [String] {
         let cfLocalizations: CFArray? = CFBundleCopyBundleLocalizations(_bundle)
-        let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
+        let nsLocalizations = _SwiftValue.fetch(cfLocalizations) as? [Any]
         return nsLocalizations?.map { $0 as! String } ?? []
     }
 
@@ -317,7 +313,7 @@ open class Bundle: NSObject {
 
     open class func preferredLocalizations(from localizationsArray: [String]) -> [String] {
         let cfLocalizations: CFArray? = CFBundleCopyPreferredLocalizationsFromArray(localizationsArray._cfObject)
-        let nsLocalizations = cfLocalizations.map(_expensivePropertyListConversion) as? [Any]
+        let nsLocalizations = _SwiftValue.fetch(cfLocalizations) as? [Any]
         return nsLocalizations?.map { $0 as! String } ?? []
     }
     

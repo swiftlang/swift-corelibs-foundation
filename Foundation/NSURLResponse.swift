@@ -52,7 +52,7 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
         self.expectedContentLength = Int64(length)
         self.textEncodingName = name
         let c = url.lastPathComponent
-        self.suggestedFilename = (c?.isEmpty ?? true) ? "Unknown" : c
+        self.suggestedFilename = c.isEmpty ? "Unknown" : c
     }
     
     /// The URL of the receiver.

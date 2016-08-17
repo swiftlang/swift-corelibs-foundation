@@ -355,7 +355,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSSpecialValue.swift',
 	'Foundation/NSStream.swift',
 	'Foundation/NSString.swift',
-	'Foundation/String.swift',
+	'Foundation/NSStringAPI.swift',
 	'Foundation/NSSwiftRuntime.swift',
 	'Foundation/NSTask.swift',
 	'Foundation/NSTextCheckingResult.swift',
@@ -406,6 +406,11 @@ swift_sources = CompileSwiftSources([
 	'Foundation/TimeZone.swift',
 	'Foundation/Calendar.swift',
 	'Foundation/Locale.swift',
+	'Foundation/String.swift',
+	'Foundation/Set.swift',
+	'Foundation/Dictionary.swift',
+	'Foundation/Array.swift',
+	'Foundation/Bridging.swift',
 ])
 
 swift_sources.add_dependency(headers)

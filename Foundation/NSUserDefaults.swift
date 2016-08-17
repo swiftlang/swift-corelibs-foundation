@@ -108,14 +108,14 @@ open class UserDefaults: NSObject {
         }
         return bVal._swiftObject
     }
-    open func arrayForKey(_ defaultName: String) -> [AnyObject]? {
+    open func arrayForKey(_ defaultName: String) -> [Any]? {
         guard let aVal = objectForKey(defaultName),
               let bVal = aVal as? NSArray else {
             return nil
         }
         return bVal._swiftObject
     }
-    open func dictionaryForKey(_ defaultName: String) -> [String : AnyObject]? {
+    open func dictionaryForKey(_ defaultName: String) -> [String : Any]? {
         guard let aVal = objectForKey(defaultName),
               let bVal = aVal as? NSDictionary else {
             return nil
@@ -126,14 +126,14 @@ open class UserDefaults: NSObject {
             case convErr
         }
         do {
-            let dVal = try cVal.map({ (key, val) -> (String, AnyObject) in
+            let dVal = try cVal.map({ (key, val) -> (String, Any) in
                 if let strKey = key as? NSString {
                     return (strKey._swiftObject, val)
                 } else {
                     throw convErr.convErr
                 }
             })
-            var eVal = [String : AnyObject]()
+            var eVal = [String : Any]()
             
             for (key, value) in dVal {
                 eVal[key] = value
@@ -155,7 +155,7 @@ open class UserDefaults: NSObject {
               let bVal = aVal as? NSArray else {
             return nil
         }
-        return _expensivePropertyListConversion(bVal) as? [String]
+        return _SwiftValue.fetch(bVal) as? [String]
     }
     open func integerForKey(_ defaultName: String) -> Int {
         guard let aVal = objectForKey(defaultName),
@@ -191,7 +191,7 @@ open class UserDefaults: NSObject {
         }
         
         if let bVal = aVal as? NSString {
-            let cVal = bVal.stringByExpandingTildeInPath
+            let cVal = bVal.expandingTildeInPath
             
             return URL(fileURLWithPath: cVal)
         } else if let bVal = aVal as? Data {
@@ -221,18 +221,16 @@ open class UserDefaults: NSObject {
                 if !CFURLIsFileReferenceURL(url._cfObject) {
                     //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
                     //TODO: use stringByAbbreviatingWithTildeInPath when it is
-                    let urlPath = url.path!
+                    let urlPath = url.path
                     
                     setObject(urlPath._nsObject, forKey: defaultName)
                     return
                 }
             #else
-                if let urlPath = url.path {
-                    //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
-                    //TODO: use stringByAbbreviatingWithTildeInPath when it is
-                    setObject(urlPath._nsObject, forKey: defaultName)
-                    return
-                }
+                //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
+                //TODO: use stringByAbbreviatingWithTildeInPath when it is
+                setObject(url.path._nsObject, forKey: defaultName)
+                return
             #endif
             let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
             setObject(data._nsObject, forKey: defaultName)

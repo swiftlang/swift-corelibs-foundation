@@ -155,7 +155,7 @@ class TestNSStream : XCTestCase {
         outputStream.close()
         XCTAssertEqual(Stream.Status.closed, outputStream.streamStatus)
         XCTAssertEqual(myString.characters.count, result)
-        XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue),myString._bridgeToObject())
+        XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), NSString(string: myString))
     }
     
     func test_outputStreamCreationWithUrl() {
@@ -191,7 +191,7 @@ class TestNSStream : XCTestCase {
         let dataWritten  = outputStream.propertyForKey(NSStreamDataWrittenToMemoryStreamKey)
         if let nsdataWritten = dataWritten as? NSData {
             nsdataWritten.getBytes(UnsafeMutablePointer(mutating: buffer), length: result!)
-            XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), myString._bridgeToObject())
+            XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), NSString(string: myString))
             outputStream.close()
         } else {
             XCTFail("Unable to get data from memeory.")

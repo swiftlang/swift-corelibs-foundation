@@ -347,3 +347,10 @@ extension NSCharacterSet : _SwiftBridgable {
         return CharacterSet(_bridged: self)
     }
 }
+
+extension NSCharacterSet : _StructTypeBridgeable {
+    public typealias _StructType = CharacterSet
+    public func _bridgeToSwift() -> CharacterSet {
+        return CharacterSet._unconditionallyBridgeFromObjectiveC(self)
+    }
+}

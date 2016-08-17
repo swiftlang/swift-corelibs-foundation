@@ -184,7 +184,7 @@ public extension NSString {
         return String(fixedSelf.characters.suffix(from: fixedSelf._startOfLastPathComponent))
     }
     
-    public var stringByDeletingLastPathComponent : String {
+    public var deletingLastPathComponent : String {
         let fixedSelf = _stringByFixingSlashes()
         if fixedSelf == "/" {
             return fixedSelf
@@ -254,7 +254,7 @@ public extension NSString {
         return _swiftObject + "/" + str
     }
     
-    public func stringByAppendingPathComponent(_ str: String) -> String {
+    public func appendingPathComponent(_ str: String) -> String {
         return _stringByAppendingPathComponent(str)
     }
     
@@ -271,7 +271,7 @@ public extension NSString {
         }
     }
     
-    public var stringByDeletingPathExtension: String {
+    public var deletingPathExtension: String {
         let fixedSelf = _stringByFixingSlashes()
         if fixedSelf.length <= 1 {
             return fixedSelf
@@ -283,7 +283,7 @@ public extension NSString {
         }
     }
     
-    public func stringByAppendingPathExtension(_ str: String) -> String? {
+    public func appendingPathExtension(_ str: String) -> String? {
         if str.hasPrefix("/") || self == "" || self == "/" {
             print("Cannot append extension \(str) to path \(self)")
             return nil
@@ -292,7 +292,7 @@ public extension NSString {
         return result._stringByFixingSlashes()
     }
 
-    public var stringByExpandingTildeInPath: String {
+    public var expandingTildeInPath: String {
         guard hasPrefix("~") else {
             return _swiftObject
         }
@@ -313,16 +313,16 @@ public extension NSString {
         return result
     }
     
-    public var stringByStandardizingPath: String {
-        let expanded = stringByExpandingTildeInPath
-        var resolved = expanded.bridge().stringByResolvingSymlinksInPath
+    public var standardizingPath: String {
+        let expanded = expandingTildeInPath
+        var resolved = expanded._bridgeToObjectiveC().resolvingSymlinksInPath
         
         let automount = "/var/automount"
         resolved = resolved._tryToRemovePathPrefix(automount) ?? resolved
         return resolved
     }
     
-    public var stringByResolvingSymlinksInPath: String {
+    public var resolvingSymlinksInPath: String {
         var components = pathComponents
         guard !components.isEmpty else {
             return _swiftObject
@@ -343,10 +343,10 @@ public extension NSString {
                 break
                 
             case ".." where isAbsolutePath:
-                resolvedPath = resolvedPath.bridge().stringByDeletingLastPathComponent
+                resolvedPath = resolvedPath._bridgeToObjectiveC().deletingLastPathComponent
                 
             default:
-                resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
+                resolvedPath = resolvedPath._bridgeToObjectiveC().appendingPathComponent(component)
                 if let destination = FileManager.default._tryToResolveTrailingSymlinkInPath(resolvedPath) {
                     resolvedPath = destination
                 }
@@ -363,12 +363,12 @@ public extension NSString {
         if self == "" {
             return paths
         }
-        return paths.map(stringByAppendingPathComponent)
+        return paths.map(appendingPathComponent)
     }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    public func completePathIntoString(_ outputName: inout NSString?, caseSensitive flag: Bool, matchesIntoArray outputArray: inout [NSString], filterTypes: [String]?) -> Int {
+    public func completePath(into outputName: inout String?, caseSensitive flag: Bool, matchesInto outputArray: inout [String], filterTypes: [String]?) -> Int {
         let path = _swiftObject
         guard !path.isEmpty else {
             return 0
@@ -377,26 +377,13 @@ public extension NSString {
         let url = URL(fileURLWithPath: path)
         
         let searchAllFilesInDirectory = _stringIsPathToDirectory(path)
-        let namePrefix = searchAllFilesInDirectory ? nil : url.lastPathComponent
-        let checkFileName = _getFileNamePredicate(namePrefix, caseSensetive: flag)
-        let checkExtension = _getExtensionPredicate(filterTypes, caseSensetive: flag)
+        let namePrefix = searchAllFilesInDirectory ? "" : url.lastPathComponent
+        let checkFileName = _getFileNamePredicate(namePrefix, caseSensitive: flag)
+        let checkExtension = _getExtensionPredicate(filterTypes, caseSensitive: flag)
         
-        let resolvedURL: URL
-        let urlWhereToSearch: URL
-        if let url = url._resolveSymlinksInPath(excludeSystemDirs: false) {
-            resolvedURL = url
-        } else {
-            return 0
-        }
+        let resolvedURL: URL = url.resolvingSymlinksInPath()
+        let urlWhereToSearch: URL = searchAllFilesInDirectory ? resolvedURL : resolvedURL.deletingLastPathComponent()
         
-        
-        do {
-            urlWhereToSearch = searchAllFilesInDirectory ? resolvedURL : try resolvedURL.deletingLastPathComponent()
-        } catch {
-            return 0
-        }
-        
-
         var matches = _getNamesAtURL(urlWhereToSearch, prependWith: "", namePredicate: checkFileName, typePredicate: checkExtension)
         
         if matches.count == 1 {
@@ -406,17 +393,17 @@ public extension NSString {
             }
         }
         
-        let commonPath = searchAllFilesInDirectory ? path : _ensureLastPathSeparator(stringByDeletingLastPathComponent)
+        let commonPath = searchAllFilesInDirectory ? path : _ensureLastPathSeparator(deletingLastPathComponent)
         
         if searchAllFilesInDirectory {
             outputName = "/"
         } else {            
             if let lcp = _longestCommonPrefix(matches, caseSensitive: flag) {
-                outputName = (commonPath + lcp).bridge()
+                outputName = (commonPath + lcp)
             }
         }
         
-        outputArray = matches.map({ (commonPath + $0).bridge() })
+        outputArray = matches.map({ (commonPath + $0) })
         
         return matches.count
     }
@@ -445,9 +432,9 @@ public extension NSString {
                 
                 if matchByName && matchByExtension {
                     if prependWith.isEmpty {
-                        result.append(itemName!)
+                        result.append(itemName)
                     } else {
-                        result.append(prependWith.bridge().stringByAppendingPathComponent(itemName!))
+                        result.append(prependWith._bridgeToObjectiveC().appendingPathComponent(itemName))
                     }
                 }
             }
@@ -456,12 +443,12 @@ public extension NSString {
         return result
     }
     
-    internal func _getExtensionPredicate(_ extensions: [String]?, caseSensetive: Bool) -> _FileNamePredicate {
+    fileprivate func _getExtensionPredicate(_ extensions: [String]?, caseSensitive: Bool) -> _FileNamePredicate {
         guard let exts = extensions else {
             return { _ in true }
         }
         
-        if caseSensetive {
+        if caseSensitive {
             let set = Set(exts)
             return { $0 != nil && set.contains($0!) }
         } else {
@@ -470,15 +457,15 @@ public extension NSString {
         }
     }
     
-    internal func _getFileNamePredicate(_ prefix: String?, caseSensetive: Bool) -> _FileNamePredicate {
-        guard let thePrefix = prefix else {
+    fileprivate func _getFileNamePredicate(_ prefix: String, caseSensitive: Bool) -> _FileNamePredicate {
+        guard !prefix.isEmpty else {
             return { _ in true }
         }
 
-        if caseSensetive {
-            return { $0 != nil && $0!.hasPrefix(thePrefix) }
+        if caseSensitive {
+            return { $0 != nil && $0!.hasPrefix(prefix) }
         } else {
-            return { $0 != nil && $0!.bridge().range(of: thePrefix, options: .caseInsensitive).location == 0 }
+            return { $0 != nil && $0!._bridgeToObjectiveC().range(of: prefix, options: .caseInsensitive).location == 0 }
         }
     }
     

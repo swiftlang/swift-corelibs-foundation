@@ -90,14 +90,14 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encode(_domain.bridge(), forKey: "NSDomain")
+            aCoder.encode(_domain._bridgeToObjectiveC(), forKey: "NSDomain")
             aCoder.encode(Int32(_code), forKey: "NSCode")
-            aCoder.encode(_userInfo?.bridge(), forKey: "NSUserInfo")
+            aCoder.encode(_userInfo?._bridgeToObjectiveC(), forKey: "NSUserInfo")
         } else {
             var codeValue: Int32 = Int32(self._code)
             aCoder.encodeValue(ofObjCType: "i", at: &codeValue)
-            aCoder.encode(self._domain.bridge())
-            aCoder.encode(self._userInfo?.bridge())
+            aCoder.encode(self._domain._bridgeToObjectiveC())
+            aCoder.encode(self._userInfo?._bridgeToObjectiveC())
         }
     }
     
@@ -163,6 +163,10 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     open class func userInfoValueProviderForDomain(_ errorDomain: String) -> ((NSError, String) -> AnyObject?)? {
         return NSError.userInfoProviders[errorDomain]
     }
+    
+    override open var description: String {
+        return localizedDescription
+    }
 }
 
 extension NSError : Swift.Error { }
@@ -174,8 +178,8 @@ extension CFError : _NSBridgable {
         let userInfo = CFErrorCopyUserInfo(self)._swiftObject
         var newUserInfo: [String: Any] = [:]
         for (key, value) in userInfo {
-            if let key = key as? NSString {
-                newUserInfo[key._swiftObject] = value
+            if let key = key as? String {
+                newUserInfo[key] = value
             }
         }
 

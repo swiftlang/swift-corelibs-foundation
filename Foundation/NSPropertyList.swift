@@ -39,13 +39,13 @@ extension PropertyListSerialization {
 
 open class PropertyListSerialization : NSObject {
 
-    open class func propertyList(_ plist: AnyObject, isValidFor format: PropertyListFormat) -> Bool {
+    open class func propertyList(_ plist: Any, isValidFor format: PropertyListFormat) -> Bool {
 #if os(OSX) || os(iOS)
         let fmt = CFPropertyListFormat(rawValue: CFIndex(format.rawValue))!
 #else
         let fmt = CFPropertyListFormat(format.rawValue)
 #endif
-        return CFPropertyListIsValid(unsafeBitCast(plist, to: CFPropertyList.self), fmt)
+        return CFPropertyListIsValid(unsafeBitCast(_SwiftValue.store(plist), to: CFPropertyList.self), fmt)
     }
     
     open class func data(fromPropertyList plist: AnyObject, format: PropertyListFormat, options opt: WriteOptions) throws -> Data {
@@ -83,7 +83,7 @@ open class PropertyListSerialization : NSObject {
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
-            return _expensivePropertyListConversion(decoded!)
+            return _SwiftValue.fetch(decoded!)
         }
     }
     
@@ -103,7 +103,7 @@ open class PropertyListSerialization : NSObject {
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
-            return _expensivePropertyListConversion(decoded!)
+            return _SwiftValue.fetch(decoded!)
         }
     }
     
@@ -111,43 +111,3 @@ open class PropertyListSerialization : NSObject {
         NSUnimplemented()
     }
 }
-
-// Until we have proper bridging support, we will have to recursively convert NS/CFTypes to Swift types when we return them to callers. Otherwise, they may expect to treat them as Swift types and it will fail. Obviously this will cause a problem if they treat them as NS types, but we'll live with that for now.
-internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
-    if let dict = input as? NSDictionary {
-        var result : [String : Any] = [:]
-        dict.enumerateKeysAndObjects([]) { key, value, _ in
-            guard let k = key as? NSString else {
-                fatalError("Non-string key in a property list")
-            }
-            
-            result[k._swiftObject] = _expensivePropertyListConversion(value)
-        }
-
-        return result
-    } else if let array = input as? NSArray {
-        var result : [Any] = []
-        array.enumerateObjects([]) { value, _, _ in
-            result.append(_expensivePropertyListConversion(value))
-        }
-
-        return result
-    } else if let str = input as? NSString {
-        return str._swiftObject
-    } else if let date = input as? NSDate {
-        return date._swiftObject
-    } else if let data = input as? NSData {
-        return data._swiftObject
-    } else if let number = input as? NSNumber {
-        return number
-    } else if let keyedArchiverUID = input as? _NSKeyedArchiverUID {
-        return keyedArchiverUID
-    } else if input === kCFBooleanTrue {
-        return true
-    } else if input === kCFBooleanFalse {
-        return false
-    } else {
-        fatalError("Attempt to convert a non-plist type \(type(of: input))")
-    }
-}
-

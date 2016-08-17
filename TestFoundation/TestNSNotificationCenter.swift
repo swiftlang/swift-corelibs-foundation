@@ -51,7 +51,7 @@ class TestNSNotificationCenter : XCTestCase {
         let dummyObject = NSObject()
         let observer = notificationCenter.addObserverForName(notificationName, object: dummyObject, queue: nil) { notification in
             XCTAssertEqual(notificationName, notification.name)
-            XCTAssertTrue(dummyObject === notification.object)
+            XCTAssertTrue(dummyObject === notification.object as? NSObject)
             
             flag = true
         }

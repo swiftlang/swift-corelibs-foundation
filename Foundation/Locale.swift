@@ -429,7 +429,7 @@ public func ==(lhs: Locale, rhs: Locale) -> Bool {
 }
 
 
-extension Locale {
+extension Locale : _ObjectTypeBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

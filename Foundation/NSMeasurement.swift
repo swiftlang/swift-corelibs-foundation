@@ -39,3 +39,11 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     
     public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
 }
+
+extension NSMeasurement : _StructTypeBridgeable {
+    public typealias _StructType = Measurement<Unit>
+    
+    public func _bridgeToSwift() -> Measurement<Unit> {
+        return _StructType._unconditionallyBridgeFromObjectiveC(self)
+    }
+}

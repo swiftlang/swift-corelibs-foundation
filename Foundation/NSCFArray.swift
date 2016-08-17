@@ -20,7 +20,11 @@ internal final class _NSCFArray : NSMutableArray {
         fatalError()
     }
     
-    required init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
+    required init(objects: UnsafePointer<AnyObject>!, count cnt: Int) {
+        fatalError()
+    }
+    
+    required public convenience init(arrayLiteral elements: Any...) {
         fatalError()
     }
     
@@ -28,12 +32,13 @@ internal final class _NSCFArray : NSMutableArray {
         return CFArrayGetCount(_cfObject)
     }
     
-    override func object(at index: Int) -> AnyObject {
+    override func object(at index: Int) -> Any {
         let value = CFArrayGetValueAtIndex(_cfObject, index)
-        return unsafeBitCast(value, to: AnyObject.self)
+        return _SwiftValue.fetch(unsafeBitCast(value, to: AnyObject.self))
     }
     
-    override func insert(_ anObject: AnyObject, at index: Int) {
+    override func insert(_ value: Any, at index: Int) {
+        let anObject = _SwiftValue.store(value)
         CFArrayInsertValueAtIndex(_cfMutableObject, index, unsafeBitCast(anObject, to: UnsafeRawPointer.self))
     }
     
@@ -51,13 +56,43 @@ internal func _CFSwiftArrayGetCount(_ array: AnyObject) -> CFIndex {
 }
 
 internal func _CFSwiftArrayGetValueAtIndex(_ array: AnyObject, _ index: CFIndex) -> Unmanaged<AnyObject> {
-    return Unmanaged.passUnretained((array as! NSArray).object(at: index))
+    let arr = array as! NSArray
+    if type(of: array) === NSArray.self || type(of: array) === NSMutableArray.self {
+        return Unmanaged.passUnretained(arr._storage[index])
+    } else {
+        let value = _SwiftValue.store(arr.object(at: index))
+        let container: NSMutableDictionary
+        if arr._storage.count == 0 {
+            container = NSMutableDictionary()
+            arr._storage.append(container)
+        } else {
+            container = arr._storage[0] as! NSMutableDictionary
+        }
+        container[NSNumber(value: index)] = value
+        return Unmanaged.passUnretained(value)
+    }
 }
 
 internal func _CFSwiftArrayGetValues(_ array: AnyObject, _ range: CFRange, _ values: UnsafeMutablePointer<Unmanaged<AnyObject>?>) {
-    for idx in 0..<range.length {
-        let obj = (array as! NSArray).object(at: idx + range.location)
-        values[idx] = Unmanaged.passUnretained(obj)
+    let arr = array as! NSArray
+    if type(of: array) === NSArray.self || type(of: array) === NSMutableArray.self {
+        for idx in 0..<range.length {
+            values[idx] = Unmanaged.passUnretained(arr._storage[idx + range.location])
+        }
+    } else {
+        for idx in 0..<range.length {
+            let index = idx + range.location
+            let value = _SwiftValue.store(arr.object(at: index))
+            let container: NSMutableDictionary
+            if arr._storage.count == 0 {
+                container = NSMutableDictionary()
+                arr._storage.append(container)
+            } else {
+                container = arr._storage[0] as! NSMutableDictionary
+            }
+            container[NSNumber(value: index)] = value
+            values[idx] = Unmanaged.passUnretained(value)
+        }
     }
 }
 
