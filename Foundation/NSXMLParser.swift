@@ -381,7 +381,7 @@ internal func _NSXMLParserProcessingInstruction(_ ctx: _CFXMLInterface, target: 
 internal func _NSXMLParserCdataBlock(_ ctx: _CFXMLInterface, value: UnsafePointer<UInt8>, len: Int32) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
-        delegate.parser(parser, foundCDATA: Data(bytes: UnsafeRawPointer(value), count: Int(len)))
+        delegate.parser(parser, foundCDATA: Data(bytes: value, count: Int(len)))
     }
 }
 
@@ -551,9 +551,9 @@ open class XMLParser : NSObject {
                 _bomChunk = nil
 
                 if (totalLength > 4) {
-                    let remainingData = allExistingData.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Data in
+                    let remainingData = allExistingData.withUnsafeMutableBytes { (bytes: UnsafeMutablePointer<UInt8>) -> Data in
                         let ptr = bytes.advanced(by: 4)
-                        return Data(bytesNoCopy: UnsafeMutablePointer(mutating: ptr), count: totalLength - 4, deallocator: .none)
+                        return Data(bytesNoCopy: ptr, count: totalLength - 4, deallocator: .none)
                     }
                     
                     let _ = parseData(remainingData)

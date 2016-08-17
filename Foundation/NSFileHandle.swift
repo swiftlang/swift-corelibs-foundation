@@ -118,7 +118,7 @@ open class FileHandle: NSObject, NSSecureCoding {
     open func write(_ data: Data) {
         data.enumerateBytes() { (bytes, range, stop) in
             do {
-                try NSData.writeToFileDescriptor(self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
+                try NSData.write(toFileDescriptor: self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
             } catch {
                 fatalError("Write failure")
             }
