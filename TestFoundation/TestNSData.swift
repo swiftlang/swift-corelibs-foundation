@@ -17,7 +17,109 @@
 
 class TestNSData: XCTestCase {
     
-
+    // This is a type of Data that starts off as a storage of all 0x01s, but it only creates that buffer when needed. When mutated it converts into a more traditional data storage backed by a buffer.
+    public class AllOnesData : NSMutableData {
+        
+        private var _length : Int = 0
+        var _pointer : UnsafeMutableBufferPointer<UInt8>? = nil {
+            willSet {
+                if let p = _pointer { free(p.baseAddress) }
+            }
+        }
+        public override init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (@escaping (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+            _length = length
+            _pointer = nil
+            super.init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)
+        }
+    
+        
+        public override init() {
+            _length = 0
+            _pointer = nil
+            super.init()
+        }
+        public convenience init?(length : Int) {
+            self.init()
+            _length = length
+            _pointer = nil
+        }
+        
+        public required init?(coder aDecoder: NSCoder) {
+            // Not tested
+            fatalError()
+        }
+        
+        deinit {
+            if let p = _pointer {
+                free(p.baseAddress)
+            }
+        }
+        
+        public override var length : Int {
+            get {
+                return _length
+            }
+            set {
+                if let ptr = _pointer {
+                    // Copy the data to our new length buffer
+                    let newBuffer = malloc(newValue)!
+                    if newValue <= _length {
+                        memmove(newBuffer, ptr.baseAddress!, newValue)
+                    } else if newValue > _length {
+                        memmove(newBuffer, ptr.baseAddress!, _length)
+                        memset(newBuffer + _length, 1, newValue - _length)
+                    }
+                    let bytePtr = newBuffer.bindMemory(to: UInt8.self, capacity: newValue)
+                    _pointer = UnsafeMutableBufferPointer(start: bytePtr, count: newValue)
+                } else {
+                    _length = newValue
+                }
+            }
+        }
+        
+        public override var bytes : UnsafeRawPointer {
+            if let d = _pointer {
+                return UnsafeRawPointer(d.baseAddress!)
+            } else {
+                // Need to allocate the buffer now.
+                // It doesn't matter if the buffer is uniquely referenced or not here.
+                let buffer = malloc(length)
+                memset(buffer!, 1, length)
+                let bytePtr = buffer!.bindMemory(to: UInt8.self, capacity: length)
+                let result = UnsafeMutableBufferPointer(start: bytePtr, count: length)
+                _pointer = result
+                return UnsafeRawPointer(result.baseAddress!)
+            }
+        }
+        
+        override public var mutableBytes: UnsafeMutableRawPointer {
+            let newBufferLength = _length
+            let newBuffer = malloc(newBufferLength)
+            if let ptr = _pointer {
+                // Copy the existing data to the new box, then return its pointer
+                memmove(newBuffer!, ptr.baseAddress!, newBufferLength)
+            } else {
+                // Set new data to 1s
+                memset(newBuffer!, 1, newBufferLength)
+            }
+            let bytePtr = newBuffer!.bindMemory(to: UInt8.self, capacity: newBufferLength)
+            let result = UnsafeMutableBufferPointer(start: bytePtr, count: newBufferLength)
+            _pointer = result
+            _length = newBufferLength
+            return UnsafeMutableRawPointer(result.baseAddress!)
+        }
+        
+        override public func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
+            if let d = _pointer {
+                // Get the real data from the buffer
+                memmove(buffer, d.baseAddress!, length)
+            } else {
+                // A more efficient implementation of getBytes in the case where no one has asked for our backing bytes
+                memset(buffer, 1, length)
+            }
+        }
+    }
+    
     // MARK: -
     
     // String of course has its own way to get data, but this way tests our own data struct
@@ -42,12 +144,14 @@ class TestNSData: XCTestCase {
             ("test_genericBuffers", test_genericBuffers),
             ("test_writeFailure", test_writeFailure),
             ("testBasicConstruction", testBasicConstruction),
+            ("testBridgingCustom", testBridgingCustom),
             ("testBridgingDefault", testBridgingDefault),
             ("testBridgingMutable", testBridgingMutable),
             ("testCopyBytes_oversized", testCopyBytes_oversized),
             ("testCopyBytes_ranges", testCopyBytes_ranges),
             ("testCopyBytes_undersized", testCopyBytes_undersized),
             // ("testCopyBytes", testCopyBytes),  Disabled to due failure, we want this passing - but API matching is more important right now
+            ("testCustomData", testCustomData),
             ("testCustomDeallocator", testCustomDeallocator),
             ("testDataInSet", testDataInSet),
             ("testEquality", testEquality),
@@ -497,7 +601,32 @@ extension TestNSData {
         }
     }
     
-
+    func testCustomData() {
+        let length = 5
+        let allOnesData = Data(referencing: AllOnesData(length: length)!)
+        XCTAssertEqual(1, allOnesData[0], "First byte of all 1s data should be 1")
+        
+        // Double the length
+        var allOnesCopyToMutate = allOnesData
+        allOnesCopyToMutate.count = allOnesData.count * 2
+        
+        XCTAssertEqual(allOnesData.count, length, "The length of the initial data should not have changed")
+        XCTAssertEqual(allOnesCopyToMutate.count, length * 2, "The length should have changed")
+        
+        // Force the second data to create its storage
+        allOnesCopyToMutate.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) in
+            XCTAssertEqual(bytes.pointee, 1, "First byte should be 1")
+            
+            // Mutate the second data
+            bytes.pointee = 0
+            XCTAssertEqual(bytes.pointee, 0, "First byte should be 0")
+            XCTAssertEqual(allOnesCopyToMutate[0], 0, "First byte accessed via other method should still be 0")
+            
+            // Verify that the first data is still 1
+            XCTAssertEqual(allOnesData[0], 1, "The first byte should still be 1")
+        }
+        
+    }
     
     func testBridgingDefault() {
         let hello = dataFrom("hello")
@@ -525,7 +654,36 @@ extension TestNSData {
         
     }
     
-  
+    func testBridgingCustom() {
+        // Let's use an AllOnesData with some Objective-C code
+        let allOnes = AllOnesData(length: 64)!
+        
+        // Type-erased
+        let data = Data(referencing: allOnes)
+        
+        // Create a home for our test data
+        let x = NSString()
+        let dirPath = (NSTemporaryDirectory().bridge()).stringByAppendingPathComponent(NSUUID().uuidString)
+        try! FileManager.default.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
+        let filePath = (dirPath.bridge()).stringByAppendingPathComponent("temp_file")
+        guard FileManager.default.createFile(atPath: filePath, contents: nil, attributes: nil) else { XCTAssertTrue(false, "Unable to create temporary file"); return}
+        guard let fh = FileHandle(forWritingAtPath: filePath) else { XCTAssertTrue(false, "Unable to open temporary file"); return }
+        defer { try! FileManager.default.removeItem(atPath: dirPath) }
+        
+        // Now use this data with some Objective-C code that takes NSData arguments
+        fh.write(data)
+        
+        // Get the data back
+        do {
+            let url = URL(fileURLWithPath: filePath)
+            let readData = try Data.init(contentsOf: url)
+            XCTAssertEqual(data.count, readData.count, "The length of the data is not the same")
+        } catch {
+            XCTAssertTrue(false, "Unable to read back data")
+            return
+        }
+    }
+    
     func testEquality() {
         let d1 = dataFrom("hello")
         let d2 = dataFrom("hello")
