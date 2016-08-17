@@ -243,7 +243,7 @@ class TestNSURL : XCTestCase {
         let cwdURL = URL(fileURLWithPath: cwd, isDirectory: true)
         // 1 for path separator
         cwdURL.withUnsafeFileSystemRepresentation {
-            gRelativeOffsetFromBaseCurrentWorkingDirectory = UInt(strlen($0) + 1)
+            gRelativeOffsetFromBaseCurrentWorkingDirectory = UInt(strlen($0!) + 1)
         }
         
         

@@ -249,12 +249,12 @@ class TestNSTask : XCTestCase {
 
 private func mkstemp(template: String, body: (FileHandle) throws -> Void) rethrows {
     let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestNSTask.XXXXXX")
-    var buffer = [Int8](repeating: 0, count: Int(PATH_MAX))
+    
     try url.withUnsafeFileSystemRepresentation {
-        switch mkstemp(UnsafeMutablePointer(mutating: $0)) {
+        switch mkstemp(UnsafeMutablePointer(mutating: $0!)) {
         case -1: XCTFail("Could not create temporary file")
         case let fd:
-            defer { unlink(&buffer) }
+            defer { url.withUnsafeFileSystemRepresentation { _ = unlink($0!) } }
             try body(FileHandle(fileDescriptor: fd, closeOnDealloc: true))
         }
     }
