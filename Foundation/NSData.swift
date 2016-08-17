@@ -233,7 +233,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return false
         }
         
-        return other.withUnsafeBytes { (bytes2: UnsafePointer<Void>) -> Bool in
+        return other.withUnsafeBytes { (bytes2: UnsafePointer<UInt8>) -> Bool in
             let bytes1 = bytes
             return memcmp(bytes1, bytes2, length) == 0
         }
