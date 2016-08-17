@@ -21,12 +21,12 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         }
         
         if aDecoder.allowsKeyedCoding {
-            self.namePrefix = bridgeOptionalString(aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.namePrefix") as NSString?)
-            self.givenName = bridgeOptionalString(aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.givenName") as NSString?)
-            self.middleName = bridgeOptionalString(aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.middleName") as NSString?)
-            self.familyName = bridgeOptionalString(aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.familyName") as NSString?)
-            self.nameSuffix = bridgeOptionalString(aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.nameSuffix") as NSString?)
-            self.nickname = bridgeOptionalString(aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.nickname") as NSString?)
+            self.namePrefix = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.namePrefix") as NSString?)
+            self.givenName = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.givenName") as NSString?)
+            self.middleName = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.middleName") as NSString?)
+            self.familyName = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.familyName") as NSString?)
+            self.nameSuffix = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.nameSuffix") as NSString?)
+            self.nickname = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.nickname") as NSString?)
         } else {
             self.namePrefix = bridgeOptionalString(aDecoder.decodeObject() as? NSString)
             self.givenName = bridgeOptionalString(aDecoder.decodeObject() as? NSString)

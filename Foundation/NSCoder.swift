@@ -7,6 +7,16 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+extension NSCoder {
+    /*!
+     Describes the action an NSCoder should take when it encounters decode failures (e.g. corrupt data) for non-TopLevel decodes. Darwin platfrom supports exceptions here, and there may be other approaches supported in the future, so its included for completeness.
+     */
+    public enum DecodingFailurePolicy : Int {
+        case setErrorAndReturn
+    }
+}
+
+
 public protocol NSCoding {
     func encode(with aCoder: NSCoder)
     init?(coder aDecoder: NSCoder)
@@ -30,7 +40,7 @@ open class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    open func encodeDataObject(_ data: Data) {
+    open func encode(_ data: Data) {
         NSRequiresConcreteImplementation()
     }
     
@@ -38,7 +48,7 @@ open class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    open func decodeDataObject() -> Data? {
+    open func decodeData() -> Data? {
         NSRequiresConcreteImplementation()
     }
     
@@ -46,7 +56,7 @@ open class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
 
-    open func decodeObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? where DecodedObjectType : NSObject {
+    open func decodeObject<DecodedObjectType: NSCoding>(of cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? where DecodedObjectType: NSObject {
         NSUnimplemented()
     }
    
@@ -60,8 +70,7 @@ open class NSCoder : NSObject {
         classes is an array of Classes, not a NSSet. This is because AnyClass cannot
         be casted to NSObject, nor is it Hashable.
      */
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    open func decodeObjectOfClasses(_ classes: [AnyClass], forKey key: String) -> Any? {
+    open func decodeObject(of classes: [AnyClass]?, forKey key: String) -> Any? {
         NSUnimplemented()
     }
     
@@ -69,11 +78,11 @@ open class NSCoder : NSObject {
         NSUnimplemented()
     }
     
-    open func decodeTopLevelObjectForKey(_ key: String) throws -> Any? {
+    open func decodeTopLevelObject(forKey key: String) throws -> Any? {
         NSUnimplemented()
     }
     
-    open func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? where DecodedObjectType : NSObject {
+    open func decodeTopLevelObject<DecodedObjectType: NSCoding>(of cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? where DecodedObjectType: NSObject {
         NSUnimplemented()
     }
     
@@ -87,15 +96,9 @@ open class NSCoder : NSObject {
      classes is an array of Classes, not a NSSet. This is because AnyClass cannot
      be casted to NSObject, nor is it Hashable.
      */
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    open func decodeTopLevelObjectOfClasses(_ classes: [AnyClass], forKey key: String) throws -> Any? {
+    open func decodeTopLevelObject(of classes: [AnyClass], forKey key: String) throws -> Any? {
         NSUnimplemented()
     }
-    
-    internal var error: NSError? {
-        return nil
-    }
-    
     
     open func encode(_ object: Any?) {
         var object = object
@@ -227,6 +230,12 @@ open class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
+    // NOTE: this equivalent to the decodeIntForKey: in Objective-C implementation
+    open func decodeCInt(forKey key: String) -> Int32 {
+        
+        NSRequiresConcreteImplementation()
+    }
+    
     open func decodeInt32(forKey key: String) -> Int32 {
         NSRequiresConcreteImplementation()
     }
@@ -282,12 +291,21 @@ open class NSCoder : NSObject {
         NSUnimplemented()
     }
     
-    open func failWithError(_ error: NSError) {
-        if let debugDescription = error.userInfo["NSDebugDescription"] {
-            NSLog("*** NSKeyedUnarchiver.init: \(debugDescription)")
-        } else {
-            NSLog("*** NSKeyedUnarchiver.init: decoding error")
-        }
+    open func failWithError(_ error: Error) {
+        NSUnimplemented()
+        // NOTE: disabled for now due to bridging uncertainty
+        // if let debugDescription = error.userInfo["NSDebugDescription"] {
+        //    NSLog("*** NSKeyedUnarchiver.init: \(debugDescription)")
+        // } else {
+        //    NSLog("*** NSKeyedUnarchiver.init: decoding error")
+        // }
+    }
+    
+    open var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
+        return .setErrorAndReturn
+    }
+    open var error: Error? {
+        NSRequiresConcreteImplementation()
     }
     
     internal func _decodeArrayOfObjectsForKey(_ key: String) -> [Any] {

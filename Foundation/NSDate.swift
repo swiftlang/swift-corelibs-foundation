@@ -278,11 +278,11 @@ open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     
     public required convenience init?(coder: NSCoder) {
         precondition(coder.allowsKeyedCoding)
-        guard let start = coder.decodeObjectOfClass(NSDate.self, forKey: "NS.startDate") else {
+        guard let start = coder.decodeObject(of: NSDate.self, forKey: "NS.startDate") else {
             coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderValueNotFoundError.rawValue, userInfo: nil))
             return nil
         }
-        guard let end = coder.decodeObjectOfClass(NSDate.self, forKey: "NS.startDate") else {
+        guard let end = coder.decodeObject(of: NSDate.self, forKey: "NS.startDate") else {
             coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderValueNotFoundError.rawValue, userInfo: nil))
             return nil
         }
