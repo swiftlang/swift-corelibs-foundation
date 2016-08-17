@@ -113,8 +113,7 @@ internal class NSConcreteValue : NSValue {
     }
     
     override var description : String {
-        let boundBytes = self.value.bindMemory(to: UInt8.self, capacity: self._size)
-        return Data(bytes: boundBytes, count: self._size).description
+        return Data(bytes: self.value, count: self._size).description
     }
     
     convenience required init?(coder aDecoder: NSCoder) {

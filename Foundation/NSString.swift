@@ -831,7 +831,7 @@ extension NSString {
         return String.Encoding.unicode.rawValue
     }
     
-    public func data(using encoding: UInt, allowLossyConversion lossy: Bool = false) -> Data? {
+    public func data(using encoding: UInt, allowLossyConversion lossy: Bool) -> Data? {
         let len = length
         var reqSize = 0
         
@@ -844,7 +844,7 @@ extension NSString {
         if convertedLen != len {
             return nil 	// Not able to do it all...
         }
-        
+                
         if 0 < reqSize {
             var data = Data(count: reqSize)
             data.count = data.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<UInt8>) -> Int in
@@ -1160,7 +1160,7 @@ extension NSString {
     internal func _writeTo(_ url: URL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
         var data = Data()
         try _getExternalRepresentation(&data, url, enc)
-        try data.write(to: url, options: useAuxiliaryFile ? .atomic : [])
+        try data.write(to: url, options: useAuxiliaryFile ? .dataWritingAtomic : [])
     }
     
     open func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
