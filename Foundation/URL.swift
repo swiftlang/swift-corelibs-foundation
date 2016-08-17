@@ -752,7 +752,7 @@ public struct URL : ReferenceConvertible, Equatable {
             return self
         }
         
-        if let result = _url.deletingLastPathComponent.map({ URL(reference: $0 as NSURL) }) {
+        if let result = _url.deletingLastPathComponent {
             return result
         } else {
             return self
@@ -785,7 +785,7 @@ public struct URL : ReferenceConvertible, Equatable {
             return self
         }
 
-        if let result = _url.deletingPathExtension.map({ URL(reference: $0 as NSURL) }) {
+        if let result = _url.deletingPathExtension {
             return result
         } else {
             return self
@@ -837,7 +837,7 @@ public struct URL : ReferenceConvertible, Equatable {
     /// Returns a `URL` with any instances of ".." or "." removed from its path.
     public var standardized : URL {
         // The NSURL API can only return nil in case of file reference URL, which we should not be
-        if let result = _url.standardized.map({ URL(reference: $0 as NSURL) }) {
+        if let result = _url.standardized {
             return result
         } else {
             return self
@@ -856,7 +856,7 @@ public struct URL : ReferenceConvertible, Equatable {
     /// If the `isFileURL` is false, this method returns `self`.
     public var standardizedFileURL : URL {
         // NSURL should not return nil here unless this is a file reference URL, which should be impossible
-        if let result = _url.standardizingPath.map({ URL(reference: $0 as NSURL) }) {
+        if let result = _url.standardizingPath {
             return result
         } else {
             return self
@@ -868,7 +868,7 @@ public struct URL : ReferenceConvertible, Equatable {
     /// If the `isFileURL` is false, this method returns `self`.
     public func resolvingSymlinksInPath() -> URL {
         // NSURL should not return nil here unless this is a file reference URL, which should be impossible
-        if let result = _url.resolvingSymlinksInPath.map({ URL(reference: $0 as NSURL) }) {
+        if let result = _url.resolvingSymlinksInPath {
             return result
         } else {
             return self
@@ -927,26 +927,6 @@ public struct URL : ReferenceConvertible, Equatable {
         _url.removeCachedResourceValue(forKey: key)
     }
     
-    @available(*, unavailable, message: "Use struct URLResourceValues and URL.setResourceValues(_:) instead")
-    public func setResourceValue(_ value: AnyObject?, forKey key: URLResourceKey) throws {
-        fatalError()
-    }
-    
-    @available(*, unavailable, message: "Use struct URLResourceValues and URL.setResourceValues(_:) instead")
-    public func setResourceValues(_ keyedValues: [URLResourceKey : AnyObject]) throws {
-        fatalError()
-    }
-    
-    @available(*, unavailable, message: "Use struct URLResourceValues and URL.resourceValues(forKeys:) instead")
-    public func resourceValues(forKeys keys: [URLResourceKey]) throws -> [URLResourceKey : AnyObject] {
-        fatalError()
-    }
-    
-    @available(*, unavailable, message: "Use struct URLResourceValues and URL.setResourceValues(_:) instead")
-    public func getResourceValue(_ value: AutoreleasingUnsafeMutablePointer<AnyObject?>, forKey key: URLResourceKey) throws {
-        fatalError()
-    }
-    
     // MARK: - Bridging Support
     
     /// We must not store an NSURL without running it through this function. This makes sure that we do not hold a file reference URL, which changes the nullability of many NSURL functions.
@@ -968,7 +948,7 @@ public struct URL : ReferenceConvertible, Equatable {
     }
 }
 
-extension URL : _ObjectiveCBridgeable {
+extension URL {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSURL {
         return _url
@@ -976,7 +956,7 @@ extension URL : _ObjectiveCBridgeable {
     
     public static func _forceBridgeFromObjectiveC(_ source: NSURL, result: inout URL?) {
         if !_conditionallyBridgeFromObjectiveC(source, result: &result) {
-            fatalError("Unable to bridge \(_ObjectiveCType.self) to \(self)")
+            fatalError("Unable to bridge \(NSURL.self) to \(self)")
         }
     }
     
@@ -999,14 +979,6 @@ extension URL : CustomStringConvertible, CustomDebugStringConvertible {
     
     public var debugDescription: String {
         return _url.debugDescription
-    }
-}
-
-extension NSURL : _HasCustomAnyHashableRepresentation {
-    // Must be @nonobjc to avoid infinite recursion during bridging.
-    @nonobjc
-    public func _toCustomAnyHashable() -> AnyHashable? {
-        return AnyHashable(self as URL)
     }
 }
 

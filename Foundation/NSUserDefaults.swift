@@ -227,12 +227,10 @@ open class UserDefaults: NSObject {
                     return
                 }
             #else
-                if let urlPath = url.path {
-                    //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
-                    //TODO: use stringByAbbreviatingWithTildeInPath when it is
-                    setObject(urlPath._nsObject, forKey: defaultName)
-                    return
-                }
+                //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
+                //TODO: use stringByAbbreviatingWithTildeInPath when it is
+                setObject(url.path._nsObject, forKey: defaultName)
+                return
             #endif
             let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
             setObject(data._nsObject, forKey: defaultName)
