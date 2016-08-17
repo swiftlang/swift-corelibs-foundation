@@ -213,7 +213,7 @@ open class NSKeyedArchiver : NSCoder {
             unwrappedDelegate.archiverWillFinish(self)
         }
 
-        let nsPlist = plist.bridge()
+        let nsPlist = plist._bridgeToObjectiveC()
         
         if self.outputFormat == PropertyListSerialization.PropertyListFormat.xml {
             success = _writeXMLData(nsPlist)
@@ -482,7 +482,7 @@ open class NSKeyedArchiver : NSCoder {
         
         if classRef == nil {
             let classDict = _classDictionary(clsv)
-            classRef = _addObject(classDict.bridge())
+            classRef = _addObject(classDict._bridgeToObjectiveC())
             
             if let unwrappedClassRef = classRef {
                 self._classes[className] = unwrappedClassRef
@@ -645,7 +645,7 @@ open class NSKeyedArchiver : NSCoder {
             break
         case .Class:
             let classp = unsafeBitCast(addr, to: UnsafePointer<AnyClass>.self)
-            encode(NSStringFromClass(classp.pointee).bridge())
+            encode(NSStringFromClass(classp.pointee)._bridgeToObjectiveC())
             break
         case .Char:
             let charp = unsafeBitCast(addr, to: UnsafePointer<CChar>.self)
@@ -685,7 +685,7 @@ open class NSKeyedArchiver : NSCoder {
             break
         case .CharPtr:
             let charpp = unsafeBitCast(addr, to: UnsafePointer<UnsafePointer<Int8>>.self)
-            encode(NSString(UTF8String: charpp.pointee))
+            encode(NSString(utf8String: charpp.pointee))
             break
         default:
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unknown type encoding ('\(type.rawValue)')")
@@ -767,12 +767,12 @@ open class NSKeyedArchiver : NSCoder {
         objectRefs.reserveCapacity(objects.count)
         
         for object in objects {
-            let objectRef = _encodeObject(object)!
+            let objectRef = _encodeObject(_SwiftValue.store(object))!
 
             objectRefs.append(objectRef)
         }
         
-        _encodeValue(objectRefs.bridge(), forKey: key)
+        _encodeValue(objectRefs._bridgeToObjectiveC(), forKey: key)
     }
     
     /**

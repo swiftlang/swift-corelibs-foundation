@@ -373,7 +373,7 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     open var transformStruct: AffineTransform
 }
 
-extension AffineTransform {
+extension AffineTransform : _ObjectTypeBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }
@@ -404,5 +404,13 @@ extension AffineTransform {
         var result: AffineTransform?
         _forceBridgeFromObjectiveC(x!, result: &result)
         return result!
+    }
+}
+
+extension NSAffineTransform : _StructTypeBridgeable {
+    public typealias _StructType = AffineTransform
+    
+    public func _bridgeToSwift() -> AffineTransform {
+        return AffineTransform._unconditionallyBridgeFromObjectiveC(self)
     }
 }

@@ -23,7 +23,7 @@ internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
 
 private func _standardizedPath(_ path: String) -> String {
     if !path.absolutePath {
-        return path._nsObject.stringByStandardizingPath
+        return path._nsObject.standardizingPath
     }
     return path
 }
@@ -227,7 +227,7 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
                 return nil
             }
             
-            self.init(string: relative!.bridge(), relativeTo: base)
+            self.init(string: String._unconditionallyBridgeFromObjectiveC(relative!), relativeTo: base)
         } else {
             NSUnimplemented()
         }
@@ -236,7 +236,7 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
     open func encode(with aCoder: NSCoder) {
 	if aCoder.allowsKeyedCoding {
             aCoder.encode(self.baseURL?._nsObject, forKey:"NS.base")
-            aCoder.encode(self.relativeString.bridge(), forKey:"NS.relative")
+            aCoder.encode(self.relativeString._bridgeToObjectiveC(), forKey:"NS.relative")
 	} else {
             NSUnimplemented()
         }
@@ -602,12 +602,12 @@ extension NSCharacterSet {
 extension NSString {
     
     // Returns a new string made from the receiver by replacing all characters not in the allowedCharacters set with percent encoded characters. UTF-8 encoding is used to determine the correct percent encoded characters. Entire URL strings cannot be percent-encoded. This method is intended to percent-encode an URL component or subcomponent string, NOT the entire URL string. Any characters in allowedCharacters outside of the 7-bit ASCII range are ignored.
-    public func stringByAddingPercentEncodingWithAllowedCharacters(_ allowedCharacters: CharacterSet) -> String? {
+    public func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
         return _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, self._cfObject, allowedCharacters._cfObject)._swiftObject
     }
     
     // Returns a new string made from the receiver by replacing all percent encoded sequences with the matching UTF-8 characters.
-    public var stringByRemovingPercentEncoding: String? {
+    public var removingPercentEncoding: String? {
         return _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, self._cfObject)?._swiftObject
     }
 }
@@ -750,7 +750,7 @@ extension NSURL {
             absolutePath = selfPath
         } else {
             let workingDir = FileManager.default.currentDirectoryPath
-            absolutePath = workingDir.bridge().stringByAppendingPathComponent(selfPath)
+            absolutePath = workingDir._bridgeToObjectiveC().appendingPathComponent(selfPath)
         }
 
         
@@ -767,10 +767,10 @@ extension NSURL {
                 break
 
             case "..":
-                resolvedPath = resolvedPath.bridge().stringByDeletingLastPathComponent
+                resolvedPath = resolvedPath._bridgeToObjectiveC().deletingLastPathComponent
 
             default:
-                resolvedPath = resolvedPath.bridge().stringByAppendingPathComponent(component)
+                resolvedPath = resolvedPath._bridgeToObjectiveC().appendingPathComponent(component)
                 if let destination = FileManager.default._tryToResolveTrailingSymlinkInPath(resolvedPath) {
                     resolvedPath = destination
                 }
@@ -811,9 +811,9 @@ extension NSURL {
                 case ".":
                     break
                 case ".." where isAbsolutePath:
-                    result = result.bridge().stringByDeletingLastPathComponent
+                    result = result._bridgeToObjectiveC().deletingLastPathComponent
                 default:
-                    result = result.bridge().stringByAppendingPathComponent(component)
+                    result = result._bridgeToObjectiveC().appendingPathComponent(component)
             }
         }
 
@@ -1119,8 +1119,8 @@ open class NSURLComponents: NSObject, NSCopying {
                 
                 return (0..<count).map { idx in
                     let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
-                    let entryName = oneEntry.objectForKey("name"._cfObject) as! String
-                    let entryValue = oneEntry.objectForKey("value"._cfObject) as? String
+                    let entryName = oneEntry.object(forKey: "name"._cfObject) as! String
+                    let entryValue = oneEntry.object(forKey: "value"._cfObject) as? String
                     return URLQueryItem(name: entryName, value: entryValue)
                 }
             } else {
@@ -1165,5 +1165,29 @@ extension URL : _NSBridgable, _CFBridgable {
     typealias CFType = CFURL
     internal var _nsObject: NSType { return self.reference }
     internal var _cfObject: CFType { return _nsObject._cfObject }
+}
+
+extension NSURL : _StructTypeBridgeable {
+    public typealias _StructType = URL
+    
+    public func _bridgeToSwift() -> _StructType {
+        return _StructType._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+extension NSURLComponents : _StructTypeBridgeable {
+    public typealias _StructType = URLComponents
+    
+    public func _bridgeToSwift() -> _StructType {
+        return _StructType._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+extension NSURLQueryItem : _StructTypeBridgeable {
+    public typealias _StructType = URLQueryItem
+    
+    public func _bridgeToSwift() -> _StructType {
+        return _StructType._unconditionallyBridgeFromObjectiveC(self)
+    }
 }
 

@@ -247,7 +247,7 @@ public func >=<UnitType : Dimension>(lhs: Measurement<UnitType>, rhs: Measuremen
 
 // Implementation note: similar to NSArray, NSDictionary, etc., NSMeasurement's import as an ObjC generic type is suppressed by the importer. Eventually we will need a more general purpose mechanism to correctly import generic types.
 
-extension Measurement {
+extension Measurement : _ObjectTypeBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

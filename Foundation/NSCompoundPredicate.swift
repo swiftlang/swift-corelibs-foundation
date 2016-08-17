@@ -45,7 +45,7 @@ open class CompoundPredicate : Predicate {
         self.init(type: .not, subpredicates: [predicate])
     }
 
-    override open func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
+    override open func evaluate(with object: Any?, substitutionVariables bindings: [String : Any]?) -> Bool {
         switch compoundPredicateType {
         case .and:
             return subpredicates.reduce(true, {

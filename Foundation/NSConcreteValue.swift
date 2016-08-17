@@ -136,7 +136,7 @@ internal class NSConcreteValue : NSValue {
         if !aCoder.allowsKeyedCoding {
             NSUnimplemented()
         } else {
-            aCoder.encode(String(cString: self.objCType).bridge())
+            aCoder.encode(String(cString: self.objCType)._bridgeToObjectiveC())
             aCoder.encodeValue(ofObjCType: self.objCType, at: self.value)
         }
     }

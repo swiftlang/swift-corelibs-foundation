@@ -23,15 +23,15 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     /// An object that the poster wishes to send to observers.
     ///
     /// Typically this is the object that posted the notification.
-    public var object: AnyObject?
+    public var object: Any?
     
     /// Storage for values or objects related to this notification.
-    public var userInfo: [String : Any]?
+    public var userInfo: [AnyHashable : Any]?
     
     /// Initialize a new `Notification`.
     ///
     /// The default value for `userInfo` is nil.
-    public init(name: Name, object: AnyObject? = nil, userInfo: [String : Any]? = nil) {
+    public init(name: Name, object: Any? = nil, userInfo: [AnyHashable : Any]? = nil) {
         self.name = name
         self.object = object
         self.userInfo = userInfo
@@ -59,7 +59,7 @@ public func ==(lhs: Notification, rhs: Notification) -> Bool {
     }
     if let lhsObj = lhs.object {
         if let rhsObj = rhs.object {
-            if lhsObj !== rhsObj {
+            if _SwiftValue.store(lhsObj) !== _SwiftValue.store(rhsObj) {
                 return false
             }
         } else {
@@ -69,4 +69,32 @@ public func ==(lhs: Notification, rhs: Notification) -> Bool {
         return false
     }
     return true
+}
+
+extension Notification : _ObjectTypeBridgeable {
+    public static func _getObjectiveCType() -> Any.Type {
+        return NSNotification.self
+    }
+    
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSNotification {
+        return NSNotification(name: name, object: object, userInfo: userInfo)
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ x: NSNotification, result: inout Notification?) {
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge type")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSNotification, result: inout Notification?) -> Bool {
+        result = Notification(name: x.name, object: x.object, userInfo: x.userInfo)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSNotification?) -> Notification {
+        var result: Notification? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
 }

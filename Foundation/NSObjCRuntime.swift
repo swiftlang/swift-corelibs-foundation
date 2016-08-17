@@ -187,7 +187,7 @@ public struct NSEnumerationOptions: OptionSet {
     public static let reverse = NSEnumerationOptions(rawValue: UInt(1 << 1))
 }
 
-public typealias Comparator = (AnyObject, AnyObject) -> ComparisonResult
+public typealias Comparator = (Any, Any) -> ComparisonResult
 
 public let NSNotFound: Int = Int.max
 
@@ -218,21 +218,6 @@ internal struct _CFInfo {
     }
 }
 
-internal protocol _CFBridgable {
-    associatedtype CFType
-    var _cfObject: CFType { get }
-}
-
-internal protocol  _SwiftBridgable {
-    associatedtype SwiftType
-    var _swiftObject: SwiftType { get }
-}
-
-internal protocol _NSBridgable {
-    associatedtype NSType
-    var _nsObject: NSType { get }
-}
-
 #if os(OSX) || os(iOS)
 private let _SwiftFoundationModuleName = "SwiftFoundation"
 #else
@@ -248,7 +233,7 @@ private let _SwiftFoundationModuleName = "Foundation"
     neither stable nor human-readable.
  */
 public func NSStringFromClass(_ aClass: AnyClass) -> String {
-    let aClassName = String(reflecting: aClass).bridge()
+    let aClassName = String(reflecting: aClass)._bridgeToObjectiveC()
     let components = aClassName.components(separatedBy: ".")
     
     guard components.count == 2 else {
@@ -272,7 +257,7 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
  */
 public func NSClassFromString(_ aClassName: String) -> AnyClass? {
     let aClassNameWithPrefix : String
-    let components = aClassName.bridge().components(separatedBy: ".")
+    let components = aClassName._bridgeToObjectiveC().components(separatedBy: ".")
     
     switch components.count {
     case 1:

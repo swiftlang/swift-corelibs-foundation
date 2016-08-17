@@ -161,9 +161,9 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
     
     open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.symbol.bridge(), forKey:"NS.symbol")
+            aCoder.encode(self.symbol._bridgeToObjectiveC(), forKey:"NS.symbol")
         } else {
-            aCoder.encode(self.symbol.bridge())
+            aCoder.encode(self.symbol._bridgeToObjectiveC())
         }
     }
 

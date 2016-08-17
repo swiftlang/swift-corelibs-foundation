@@ -74,16 +74,16 @@ class TestNSString : XCTestCase {
             ("test_initializeWithFormat", test_initializeWithFormat),
             ("test_initializeWithFormat2", test_initializeWithFormat2),
             ("test_initializeWithFormat3", test_initializeWithFormat3),
-            ("test_stringByDeletingLastPathComponent", test_stringByDeletingLastPathComponent),
+            ("test_deletingLastPathComponent", test_deletingLastPathComponent),
             ("test_getCString_simple", test_getCString_simple),
             ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
             ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser),
-            ("test_stringByResolvingSymlinksInPath", test_stringByResolvingSymlinksInPath),
-            ("test_stringByExpandingTildeInPath", test_stringByExpandingTildeInPath),
-            ("test_stringByStandardizingPath", test_stringByStandardizingPath),
-            ("test_stringByRemovingPercentEncoding", test_stringByRemovingPercentEncoding),
+            ("test_resolvingSymlinksInPath", test_resolvingSymlinksInPath),
+            ("test_expandingTildeInPath", test_expandingTildeInPath),
+            ("test_standardizingPath", test_standardizingPath),
+            ("test_removingPercentEncoding", test_removingPercentEncoding),
             ("test_stringByAppendingPathExtension", test_stringByAppendingPathExtension),
-            ("test_stringByDeletingPathExtension", test_stringByDeletingPathExtension),
+            ("test_deletingPathExtension", test_deletingPathExtension),
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_PrefixSuffix", test_PrefixSuffix),
@@ -107,14 +107,14 @@ class TestNSString : XCTestCase {
         let literalConversion: NSString = "literal"
         XCTAssertEqual(literalConversion.length, 7)
         
-        let nonLiteralConversion: NSString = "test\(self)".bridge()
+        let nonLiteralConversion = NSString(string: "test\(self)")
         XCTAssertTrue(nonLiteralConversion.length > 4)
         
-        let nonLiteral2: NSString = String(4).bridge()
+        let nonLiteral2 = NSString(string: String(4))
         let t = nonLiteral2.character(at: 0)
         XCTAssertTrue(t == 52)
         
-        let externalString: NSString = String.localizedName(of: String.defaultCStringEncoding()).bridge()
+        let externalString: NSString = NSString(string: String.localizedName(of: String.defaultCStringEncoding))
         XCTAssertTrue(externalString.length >= 4)
         
         let cluster: NSString = "✌🏾"
@@ -383,8 +383,8 @@ class TestNSString : XCTestCase {
     func test_CFStringCreateMutableCopy() {
         let nsstring: NSString = "абВГ"
         let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, to: CFString.self))
-        let str = unsafeBitCast(mCopy, to: NSString.self).bridge()
-        XCTAssertEqual(nsstring.bridge(), str)
+        let str = unsafeBitCast(mCopy, to: NSString.self)
+        XCTAssertEqual(nsstring, str)
     }
     
     // This test verifies that CFStringGetBytes with a UTF16 encoding works on an NSString backed by a Swift string
@@ -427,16 +427,16 @@ class TestNSString : XCTestCase {
             return
         }
 
-        let tmpPath = { (path: String) -> NSString in
-        	return "/tmp/\(path)".bridge()
+        let tmpPath = { (path: String) -> String in
+            return "/tmp/\(path)"
         }
 
         do {
-            let path: NSString = tmpPath("")
-            var outName: NSString?
-            var matches: [NSString] = []
-            _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            _ = try FileManager.default.contentsOfDirectory(at: URL(string: path.bridge())!, includingPropertiesForKeys: nil, options: [])
+            let path: String = tmpPath("")
+            var outName: String = ""
+            var matches: [String] = []
+            _ = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
+            _ = try FileManager.default.contentsOfDirectory(at: URL(string: path)!, includingPropertiesForKeys: nil, options: [])
             XCTAssert(outName == "/", "If NSString is valid path to directory which has '/' suffix then outName is '/'.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389
 //            XCTAssert(matches.count == content.count && matches.count == count, "If NSString is valid path to directory then matches contain all content of directory. expected \(content) but got \(matches)")
@@ -445,10 +445,10 @@ class TestNSString : XCTestCase {
         }
         
         do {
-            let path: NSString = "/tmp"
-            var outName: NSString?
-            var matches: [NSString] = []
-            _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            let path: String = "/tmp"
+            var outName: String = ""
+            var matches: [String] = []
+            _ = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
             let urlToTmp = try URL(fileURLWithPath: "/private/tmp/").standardizingPath()
             _ = try FileManager.default.contentsOfDirectory(at: urlToTmp, includingPropertiesForKeys: nil, options: [])
             XCTAssert(outName == "/tmp/", "If path could be completed to existing directory then outName is a string itself plus '/'.")
@@ -470,99 +470,99 @@ class TestNSString : XCTestCase {
         }
         
         do {
-            let path: NSString = tmpPath("ABC")
-            var outName: NSString?
-            var matches: [NSString] = []
-            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, path), "If NSString is valid path to directory then outName is string itself.")
+            let path: String = tmpPath("ABC")
+            var outName: String = ""
+            var matches: [String] = []
+            let count = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName, path), "If NSString is valid path to directory then outName is string itself.")
             XCTAssert(matches.count == count && count == fileNames2.count, "")
         }
         
         do {
-            let path: NSString = tmpPath("Test_completePathIntoString_01")
-            var outName: NSString?
-            var matches: [NSString] = []
-            let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: nil)
+            let path: String = tmpPath("Test_completePathIntoString_01")
+            var outName: String = ""
+            var matches: [String] = []
+            let count = path.completePath(into: &outName, caseSensitive: true, matchesInto: &matches, filterTypes: nil)
             XCTAssert(outName == path, "If NSString is valid path to file and search is case sensitive then outName is string itself.")
             XCTAssert(matches.count == 1 && count == 1 && stringsAreCaseInsensitivelyEqual(matches[0], path), "If NSString is valid path to file and search is case sensitive then matches contain that file path only")
         }
         
 		do {
-            let path: NSString = tmpPath("Test_completePathIntoString_01")
-            var outName: NSString?
-            var matches: [NSString] = []
-            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, path), "If NSString is valid path to file and search is case insensitive then outName is string equal to self.")
+            let path: String = tmpPath("Test_completePathIntoString_01")
+            var outName: String = ""
+            var matches: [String] = []
+            let count = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName, path), "If NSString is valid path to file and search is case insensitive then outName is string equal to self.")
             XCTAssert(matches.count == 3 && count == 3, "Matches contain all files with similar name.")
         }
 
         do {
             let path = tmpPath(NSUUID().uuidString)
-            var outName: NSString?
-            var matches: [NSString] = []
-            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(outName == nil, "If no matches found then outName is nil.")
+            var outName: String = ""
+            var matches: [String] = []
+            let count = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
+            XCTAssert(outName == "", "If no matches found then outName is nil.")
             XCTAssert(matches.count == 0 && count == 0, "If no matches found then return 0 and matches is empty.")
         }
 
         do {
-            let path: NSString = ""
-            var outName: NSString?
-            var matches: [NSString] = []
-            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(outName == nil, "If no matches found then outName is nil.")
+            let path: String = ""
+            var outName: String = ""
+            var matches: [String] = []
+            let count = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
+            XCTAssert(outName == "", "If no matches found then outName is nil.")
             XCTAssert(matches.count == 0 && count == 0, "If no matches found then return 0 and matches is empty.")
         }
 
         do {
-            let path: NSString = tmpPath("test_c")
-            var outName: NSString?
-            var matches: [NSString] = []
+            let path: String = tmpPath("test_c")
+            var outName: String = ""
+            var matches: [String] = []
             // case insensetive
-            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, tmpPath("Test_completePathIntoString_0")), "If there are matches then outName should be longest common prefix of all matches.")
+            let count = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName, tmpPath("Test_completePathIntoString_0")), "If there are matches then outName should be longest common prefix of all matches.")
             XCTAssert(matches.count == fileNames.count && count == fileNames.count, "If there are matches then matches array contains them.")
         }
         
         do {
-            let path: NSString = tmpPath("test_c")
-            var outName: NSString?
-            var matches: [NSString] = []
+            let path: String = tmpPath("test_c")
+            var outName: String = ""
+            var matches: [String] = []
             // case sensetive
-            let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: nil)
+            let count = path.completePath(into: &outName, caseSensitive: true, matchesInto: &matches, filterTypes: nil)
             XCTAssert(outName == tmpPath("test_completePathIntoString_0"), "If there are matches then outName should be longest common prefix of all matches.")
             XCTAssert(matches.count == 4 && count == 4, "Supports case sensetive search")
         }
         
         do {
-            let path: NSString = tmpPath("test_c")
-            var outName: NSString?
-            var matches: [NSString] = []
+            let path: String = tmpPath("test_c")
+            var outName: String = ""
+            var matches: [String] = []
             // case sensetive
-            let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: ["DAT"])
+            let count = path.completePath(into: &outName, caseSensitive: true, matchesInto: &matches, filterTypes: ["DAT"])
             XCTAssert(outName == tmpPath("test_completePathIntoString_03.DAT"), "If there are matches then outName should be longest common prefix of all matches.")
             XCTAssert(matches.count == 1 && count == 1, "Supports case sensetive search by extensions")
         }
         
         do {
-            let path: NSString = tmpPath("test_c")
-            var outName: NSString?
-            var matches: [NSString] = []
+            let path: String = tmpPath("test_c")
+            var outName: String = ""
+            var matches: [String] = []
             // type by filter
-            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: ["txt", "dat"])
-            XCTAssert(stringsAreCaseInsensitivelyEqual(outName!, tmpPath("test_completePathIntoString_0")), "If there are matches then outName should be longest common prefix of all matches.")
+            let count = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: ["txt", "dat"])
+            XCTAssert(stringsAreCaseInsensitivelyEqual(outName, tmpPath("test_completePathIntoString_0")), "If there are matches then outName should be longest common prefix of all matches.")
             XCTAssert(matches.count == 3 && count == 3, "Supports filtration by type")
         }
         
         do {
             // will be resolved against current working directory that is directory there results of build process are stored
-            let path: NSString = "TestFoundation"
-            var outName: NSString?
-            var matches: [NSString] = []
-            let count = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
+            let path: String = "TestFoundation"
+            var outName: String = ""
+            var matches: [String] = []
+            let count = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
             // Build directory at least contains executable itself and *.swiftmodule directory
             XCTAssert(matches.count == count && count >= 2, "Supports relative paths.")
-            XCTAssert(startWith(path.bridge(), strings: matches), "For relative paths matches are relative too.")
+            XCTAssert(startWith(path, strings: matches), "For relative paths matches are relative too.")
         }
         
         // Next check has no sense on Linux due to case sensitive file system.
@@ -573,18 +573,18 @@ class TestNSString : XCTestCase {
         }
         
         do {
-            let path: NSString = tmpPath("aBc/t")
-            var outName: NSString?
-            var matches: [NSString] = []
+            let path: String = tmpPath("aBc/t")
+            var outName: String = ""
+            var matches: [String] = []
             // type by filter
-            let count = path.completePathIntoString(&outName, caseSensitive: true, matchesIntoArray: &matches, filterTypes: ["txt", "dat"])
+            let count = path.completePath(into: &outName, caseSensitive: true, matchesInto: &matches, filterTypes: ["txt", "dat"])
             XCTAssert(outName == tmpPath("aBc/temp.txt"), "outName starts with receiver.")
             XCTAssert(matches.count >= 1 && count >= 1, "There are matches")
         }
         #endif
     }
     
-    private func startWith(_ prefix: String, strings: [NSString]) -> Bool {
+    private func startWith(_ prefix: String, strings: [String]) -> Bool {
         for item in strings {
             guard item.hasPrefix(prefix) else {
                 return false
@@ -594,8 +594,8 @@ class TestNSString : XCTestCase {
         return true
     }
     
-    private func stringsAreCaseInsensitivelyEqual(_ lhs: NSString, _ rhs: NSString) -> Bool {
-    	return lhs.compare(rhs.bridge(), options: .caseInsensitive) == .orderedSame
+    private func stringsAreCaseInsensitivelyEqual(_ lhs: String, _ rhs: String) -> Bool {
+        return lhs.compare(rhs, options: .caseInsensitive) == .orderedSame
     }
 
     func test_stringByTrimmingCharactersInSet() {
@@ -650,60 +650,60 @@ class TestNSString : XCTestCase {
         }
     }
     
-    func test_stringByDeletingLastPathComponent() {
+    func test_deletingLastPathComponent() {
         do {
             let path: NSString = "/tmp/scratch.tiff"
-            let result = path.stringByDeletingLastPathComponent
+            let result = path.deletingLastPathComponent
             XCTAssertEqual(result, "/tmp")
         }
         
         do {
             let path: NSString = "/tmp/lock/"
-            let result = path.stringByDeletingLastPathComponent
+            let result = path.deletingLastPathComponent
             XCTAssertEqual(result, "/tmp")
         }
         
         do {
             let path: NSString = "/tmp/"
-            let result = path.stringByDeletingLastPathComponent
+            let result = path.deletingLastPathComponent
             XCTAssertEqual(result, "/")
         }
         
         do {
             let path: NSString = "/tmp"
-            let result = path.stringByDeletingLastPathComponent
+            let result = path.deletingLastPathComponent
             XCTAssertEqual(result, "/")
         }
         
         do {
             let path: NSString = "/"
-            let result = path.stringByDeletingLastPathComponent
+            let result = path.deletingLastPathComponent
             XCTAssertEqual(result, "/")
         }
         
         do {
             let path: NSString = "scratch.tiff"
-            let result = path.stringByDeletingLastPathComponent
+            let result = path.deletingLastPathComponent
             XCTAssertEqual(result, "")
         }
         
         do {
             let path: NSString = "foo/bar"
-            let result = path.stringByDeletingLastPathComponent
+            let result = path.deletingLastPathComponent
             XCTAssertEqual(result, "foo", "Relative path stays relative.")
         }
     }
     
-    func test_stringByResolvingSymlinksInPath() {
+    func test_resolvingSymlinksInPath() {
         do {
             let path: NSString = "foo/bar"
-            let result = path.stringByResolvingSymlinksInPath
+            let result = path.resolvingSymlinksInPath
             XCTAssertEqual(result, "foo/bar", "For relative paths, symbolic links that can’t be resolved are left unresolved in the returned string.")
         }
         
         do {
             let path: NSString = "/tmp/.."
-            let result = path.stringByResolvingSymlinksInPath
+            let result = path.resolvingSymlinksInPath
             
             #if os(OSX)
             let expected = "/private"
@@ -716,26 +716,26 @@ class TestNSString : XCTestCase {
 
         do {
             let path: NSString = "tmp/.."
-            let result = path.stringByResolvingSymlinksInPath
+            let result = path.resolvingSymlinksInPath
             XCTAssertEqual(result, "tmp/..", "Parent links could be resolved for absolute paths only.")
         }
         
         do {
             let path: NSString = "/tmp/"
-            let result = path.stringByResolvingSymlinksInPath
+            let result = path.resolvingSymlinksInPath
             XCTAssertEqual(result, "/tmp", "Result doesn't contain trailing slash.")
         }
         
         do {
             let path: NSString = "http://google.com/search/.."
-            let result = path.stringByResolvingSymlinksInPath
-            XCTAssertEqual(result, "http:/google.com/search/..", "stringByResolvingSymlinksInPath treats receiver as file path always")
+            let result = path.resolvingSymlinksInPath
+            XCTAssertEqual(result, "http:/google.com/search/..", "resolvingSymlinksInPath treats receiver as file path always")
         }
         
         do {
             let path: NSString = "file:///tmp/.."
-            let result = path.stringByResolvingSymlinksInPath
-            XCTAssertEqual(result, "file:/tmp/..", "stringByResolvingSymlinksInPath treats receiver as file path always")
+            let result = path.resolvingSymlinksInPath
+            XCTAssertEqual(result, "file:/tmp/..", "resolvingSymlinksInPath treats receiver as file path always")
         }
     }
 
@@ -780,24 +780,24 @@ class TestNSString : XCTestCase {
         XCTAssert(homeDir != nil && homeDir == homeDir2 && homeDir == homeDir3, "Could get user' home directory")
     }
     
-    func test_stringByExpandingTildeInPath() {
+    func test_expandingTildeInPath() {
         do {
             let path: NSString = "~"
-            let result = path.stringByExpandingTildeInPath
+            let result = path.expandingTildeInPath
             XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
             XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
         }
         
         do {
             let path: NSString = "~/"
-            let result = path.stringByExpandingTildeInPath
+            let result = path.expandingTildeInPath
             XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
             XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
         }
         
         do {
             let path = NSString(string: "~\(NSUserName())")
-            let result = path.stringByExpandingTildeInPath
+            let result = path.expandingTildeInPath
             XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for specific user")
             XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
         }
@@ -805,66 +805,66 @@ class TestNSString : XCTestCase {
         do {
             let userName = NSUUID().uuidString
             let path = NSString(string: "~\(userName)/")
-            let result = path.stringByExpandingTildeInPath
+            let result = path.expandingTildeInPath
           	// next assert fails in VirtualBox because home directory for unknown user resolved to /var/run/vboxadd
             XCTAssert(result == "~\(userName)", "Return copy of reciver if home directory could no be resolved.")
         }
     }
     
-    func test_stringByStandardizingPath() {
+    func test_standardizingPath() {
         
         // tmp is special because it is symlinked to /private/tmp and this /private prefix should be dropped,
         // so tmp is tmp. On Linux tmp is not symlinked so it would be the same.
         do {
             let path: NSString = "/.//tmp/ABC/.."
-            let result = path.stringByStandardizingPath
-            XCTAssertEqual(result, "/tmp", "stringByStandardizingPath removes extraneous path components and resolve symlinks.")
+            let result = path.standardizingPath
+            XCTAssertEqual(result, "/tmp", "standardizingPath removes extraneous path components and resolve symlinks.")
         }
         
         do {
             let path: NSString =  "~"
-            let result = path.stringByStandardizingPath
+            let result = path.standardizingPath
             let expected = NSHomeDirectory()
-            XCTAssertEqual(result, expected, "stringByStandardizingPath expanding initial tilde.")
+            XCTAssertEqual(result, expected, "standardizingPath expanding initial tilde.")
         }
         
         do {
             let path: NSString =  "~/foo/bar/"
-            let result = path.stringByStandardizingPath
+            let result = path.standardizingPath
             let expected = NSHomeDirectory() + "/foo/bar"
-            XCTAssertEqual(result, expected, "stringByStandardizingPath expanding initial tilde.")
+            XCTAssertEqual(result, expected, "standardizingPath expanding initial tilde.")
         }
         
         // relative file paths depend on file path standardizing that is not yet implemented
         do {
             let path: NSString = "foo/bar"
-            let result = path.stringByStandardizingPath
-            XCTAssertEqual(result, path.bridge(), "stringByStandardizingPath doesn't resolve relative paths")
+            let result = path.standardizingPath
+            XCTAssertEqual(NSString(string: result), path, "standardizingPath doesn't resolve relative paths")
         }
         
         // tmp is symlinked on OS X only
         #if os(OSX)
         do {
             let path: NSString = "/tmp/.."
-            let result = path.stringByStandardizingPath
+            let result = path.standardizingPath
             XCTAssertEqual(result, "/private")
         }
         #endif
         
         do {
             let path: NSString = "/tmp/ABC/.."
-            let result = path.stringByStandardizingPath
+            let result = path.standardizingPath
             XCTAssertEqual(result, "/tmp", "parent links could be resolved for absolute paths")
         }
         
         do {
             let path: NSString = "tmp/ABC/.."
-            let result = path.stringByStandardizingPath
-            XCTAssertEqual(result, path.bridge(), "parent links could not be resolved for relative paths")
+            let result = path.standardizingPath
+            XCTAssertEqual(NSString(string: result), path, "parent links could not be resolved for relative paths")
         }
     }
 
-    func test_stringByRemovingPercentEncoding() {
+    func test_removingPercentEncoding() {
         let s1 = "a%20b".removingPercentEncoding
         XCTAssertEqual(s1, "a b")
         let s2 = "a%1 b".removingPercentEncoding
@@ -881,12 +881,12 @@ class TestNSString : XCTestCase {
             NSString(string: "scratch") : "scratch.tiff",
         ]
         for (fileName, expectedResult) in values {
-            let result = fileName.stringByAppendingPathExtension("tiff")
+            let result = fileName.appendingPathExtension("tiff")
             XCTAssertEqual(result, expectedResult, "expected \(expectedResult) for \(fileName) but got \(result)")
         }
     }
     
-    func test_stringByDeletingPathExtension() {
+    func test_deletingPathExtension() {
         let values : Dictionary = [
             NSString(string: "/tmp/scratch.tiff") : "/tmp/scratch",
             NSString(string: "/tmp/") : "/tmp",
@@ -896,7 +896,7 @@ class TestNSString : XCTestCase {
             NSString(string: "/") : "/",
         ]
         for (fileName, expectedResult) in values {
-            let result = fileName.stringByDeletingPathExtension
+            let result = fileName.deletingPathExtension
             XCTAssertEqual(result, expectedResult, "expected \(expectedResult) for \(fileName) but got \(result)")
         }
     }

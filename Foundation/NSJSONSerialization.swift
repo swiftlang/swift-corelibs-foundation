@@ -98,13 +98,7 @@ open class JSONSerialization : NSObject {
     
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
-    open class func data(withJSONObject obj: Any, options opt: WritingOptions = []) throws -> Data {
-        guard obj is NSArray || obj is NSDictionary else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
-                "NSDebugDescription" : "Top-level object was not NSArray or NSDictionary"
-                ])
-        }
-        
+    internal class func _data(withJSONObject value: Any, options opt: WritingOptions, stream: Bool) throws -> Data {
         var result = Data()
         
         var writer = JSONWriter(
@@ -116,10 +110,29 @@ open class JSONSerialization : NSObject {
                 }
             }
         )
-
-        try writer.serializeJSON(obj)
-
+        
+        if let container = value as? NSArray {
+            try writer.serializeJSON(container._bridgeToSwift())
+        } else if let container = value as? NSDictionary {
+            try writer.serializeJSON(container._bridgeToSwift())
+        } else if let container = value as? Array<Any> {
+            try writer.serializeJSON(container)
+        } else if let container = value as? Dictionary<AnyHashable, Any> {
+            try writer.serializeJSON(container)
+        } else {
+            if stream {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                    "NSDebugDescription" : "Top-level object was not NSArray or NSDictionary"
+                    ])
+            } else {
+                fatalError("Top-level object was not NSArray or NSDictionary") // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
+            }
+        }
+        
         return result
+    }
+    open class func data(withJSONObject value: Any, options opt: WritingOptions = []) throws -> Data {
+        return try _data(withJSONObject: value, options: opt, stream: false)
     }
     
     /* Create a Foundation object from JSON data. Set the NSJSONReadingAllowFragments option if the parser should allow top-level objects that are not an NSArray or NSDictionary. Setting the NSJSONReadingMutableContainers option will make the parser generate mutable NSArrays and NSDictionaries. Setting the NSJSONReadingMutableLeaves option will make the parser generate mutable NSString objects. If an error occurs during the parse, then the error parameter will be set and the result will be nil.
@@ -160,10 +173,10 @@ open class JSONSerialization : NSObject {
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
      */
     open class func writeJSONObject(_ obj: Any, toStream stream: NSOutputStream, options opt: WritingOptions) throws -> Int {
-            let jsonData = try data(withJSONObject: obj, options: opt)
-            let jsonNSData = jsonData.bridge()
-            let bytePtr = jsonNSData.bytes.bindMemory(to: UInt8.self, capacity: jsonNSData.length)
-            return stream.write(bytePtr, maxLength: jsonNSData.length)
+        let jsonData = try _data(withJSONObject: obj, options: opt, stream: true)
+        let jsonNSData = jsonData.bridge()
+        let bytePtr = jsonNSData.bytes.bindMemory(to: UInt8.self, capacity: jsonNSData.length)
+        return stream.write(bytePtr, maxLength: jsonNSData.length)
     }
     
     /* Create a JSON object from JSON data stream. The stream should be opened and configured. All other behavior of this method is the same as the JSONObjectWithData:options:error: method.
@@ -246,19 +259,20 @@ private struct JSONWriter {
     }
     
     mutating func serializeJSON(_ obj: Any) throws {
-        if let str = obj as? NSString {
+        
+        if let str = obj as? String {
             try serializeString(str)
-        }
-        else if let num = obj as? NSNumber {
+        } else if let num = obj as? Int {
+            try serializeNumber(NSNumber(value: num))
+        } else if let num = obj as? Double {
+            try serializeNumber(NSNumber(value: num))
+        } else if let num = obj as? NSNumber {
             try serializeNumber(num)
-        }
-        else if let array = obj as? NSArray {
+        } else if let array = obj as? Array<Any> {
             try serializeArray(array)
-        }
-        else if let dict = obj as? NSDictionary {
+        } else if let dict = obj as? Dictionary<AnyHashable, Any> {
             try serializeDictionary(dict)
-        }
-        else if let null = obj as? NSNull {
+        } else if let null = obj as? NSNull {
             try serializeNull(null)
         }
         else {
@@ -266,9 +280,7 @@ private struct JSONWriter {
         }
     }
 
-    func serializeString(_ str: NSString) throws {
-        let str = str.bridge()
-        
+    func serializeString(_ str: String) throws {
         writer("\"")
         for scalar in str.unicodeScalars {
             switch scalar {
@@ -309,7 +321,7 @@ private struct JSONWriter {
         writer("\(num)")
     }
 
-    mutating func serializeArray(_ array: NSArray) throws {
+    mutating func serializeArray(_ array: [Any]) throws {
         writer("[")
         if pretty {
             writer("\n")
@@ -317,7 +329,7 @@ private struct JSONWriter {
         }
         
         var first = true
-        for elem in array.bridge() {
+        for elem in array {
             if first {
                 first = false
             } else if pretty {
@@ -335,7 +347,7 @@ private struct JSONWriter {
         writer("]")
     }
 
-    mutating func serializeDictionary(_ dict: NSDictionary) throws {
+    mutating func serializeDictionary(_ dict: Dictionary<AnyHashable, Any>) throws {
         writer("{")
         if pretty {
             writer("\n")
@@ -343,7 +355,8 @@ private struct JSONWriter {
         }
         
         var first = true
-        for (key, value) in dict.bridge() {
+        
+        for (key, value) in dict {
             if first {
                 first = false
             } else if pretty {
@@ -353,8 +366,8 @@ private struct JSONWriter {
                 writer(",")
             }
             
-            if key is NSString {
-                try serializeString(key as! NSString)
+            if key is String {
+                try serializeString(key as! String)
             } else {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
             }

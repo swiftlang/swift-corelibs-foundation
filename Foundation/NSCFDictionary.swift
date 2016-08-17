@@ -24,22 +24,22 @@ internal final class _NSCFDictionary : NSMutableDictionary {
         fatalError()
     }
 
-    required init(objects: UnsafePointer<AnyObject>, forKeys keys: UnsafePointer<NSObject>, count cnt: Int) {
+    required init(objects: UnsafePointer<AnyObject>!, forKeys keys: UnsafePointer<NSObject>!, count cnt: Int) {
         fatalError()
     }
     
-    required convenience init(dictionaryLiteral elements: (NSObject, AnyObject)...) {
-        fatalError()
+    required public convenience init(dictionaryLiteral elements: (Any, Any)...) {
+        fatalError("init(dictionaryLiteral:) has not been implemented")
     }
-    
+
     override var count: Int {
         return CFDictionaryGetCount(unsafeBitCast(self, to: CFDictionary.self))
     }
     
-    override func objectForKey(_ aKey: AnyObject) -> AnyObject? {
-        let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(aKey, to: UnsafeRawPointer.self))
+    override func object(forKey aKey: Any) -> Any? {
+        let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(_SwiftValue.store(aKey), to: UnsafeRawPointer.self))
         if value != nil {
-            return unsafeBitCast(value, to: AnyObject.self)
+            return _SwiftValue.fetch(unsafeBitCast(value, to: AnyObject.self))
         } else {
             return nil
         }
@@ -80,12 +80,12 @@ internal final class _NSCFDictionary : NSMutableDictionary {
         return NSGeneratorEnumerator(_NSCFKeyGenerator(self))
     }
 
-    override func removeObject(forKey aKey: AnyObject) {
-        CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafeRawPointer.self))
+    override func removeObject(forKey aKey: Any) {
+        CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(_SwiftValue.store(aKey), to: UnsafeRawPointer.self))
     }
     
-    override func setObject(_ anObject: AnyObject, forKey aKey: NSObject) {
-        CFDictionarySetValue(_cfMutableObject, unsafeBitCast(aKey, to: UnsafeRawPointer.self), unsafeBitCast(anObject, to: UnsafeRawPointer.self))
+    override func setObject(_ anObject: Any, forKey aKey: AnyHashable) {
+        CFDictionarySetValue(_cfMutableObject, unsafeBitCast(_SwiftValue.store(aKey), to: UnsafeRawPointer.self), unsafeBitCast(_SwiftValue.store(anObject), to: UnsafeRawPointer.self))
     }
     
     override var classForCoder: AnyClass {
@@ -106,16 +106,26 @@ internal func _CFSwiftDictionaryGetCountOfKey(_ dictionary: AnyObject, key: AnyO
 }
 
 internal func _CFSwiftDictionaryContainsKey(_ dictionary: AnyObject, key: AnyObject) -> Bool {
-    return (dictionary as! NSDictionary).objectForKey(key) != nil
+    return (dictionary as! NSDictionary).object(forKey: key) != nil
 }
 
 //(AnyObject, AnyObject) -> Unmanaged<AnyObject>
 internal func _CFSwiftDictionaryGetValue(_ dictionary: AnyObject, key: AnyObject) -> Unmanaged<AnyObject>? {
-    if let obj = (dictionary as! NSDictionary).objectForKey(key) {
-        return Unmanaged<AnyObject>.passUnretained(obj)
+    let dict = dictionary as! NSDictionary
+    if type(of: dictionary) === NSDictionary.self || type(of: dictionary) === NSMutableDictionary.self {
+        if let obj = dict._storage[key as! NSObject] {
+            return Unmanaged<AnyObject>.passUnretained(obj)
+        }
     } else {
-        return nil
+        let k = _SwiftValue.fetch(key)
+        let value = dict.object(forKey: k)
+        let v = _SwiftValue.store(value)
+        dict._storage[key as! NSObject] = v
+        if let obj = v {
+            return Unmanaged<AnyObject>.passUnretained(obj)
+        }
     }
+    return nil
 }
 
 internal func _CFSwiftDictionaryGetValueIfPresent(_ dictionary: AnyObject, key: AnyObject, value: UnsafeMutablePointer<Unmanaged<AnyObject>?>?) -> Bool {
@@ -140,21 +150,47 @@ internal func _CFSwiftDictionaryContainsValue(_ dictionary: AnyObject, value: An
     NSUnimplemented()
 }
 
+// HAZARD! WARNING!
+// The contract of these CF APIs is that the elements in the buffers have a lifespan of the container dictionary.
+// Since the public facing elements of the dictionary may be a structure (which could not be retained) or the boxing
+// would potentially make a reference that is not the direct access of the element, this function must do a bit of
+// hoop jumping to deal with storage.
+// In the case of NSDictionary and NSMutableDictionary (NOT subclasses) we can directly reach into the storage and
+// grab the un-fetched items. This allows the same behavior to be maintained.
+// In the case of subclasses of either NSDictionary or NSMutableDictionary we cannot reconstruct boxes here since
+// they will fall out of scope and be consumed by automatic reference counting at the end of this function. But since
+// swift has a fragile layout we can reach into the super-class ivars (NSDictionary) and store boxed references to ensure lifespan
+// is similar to how it works on Darwin. Effectively this binds the acceess point of all values and keys for those objects
+// to have the same lifespan of the parent container object.
+
 internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valuebuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>?, keybuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>?) {
     var idx = 0
     if valuebuf == nil && keybuf == nil {
         return
     }
-    (dictionary as! NSDictionary).enumerateKeysAndObjects([]) { key, value, _ in
-        valuebuf?[idx] = Unmanaged<AnyObject>.passUnretained(value)
-        keybuf?[idx] = Unmanaged<AnyObject>.passUnretained(key)
-        idx += 1
+    
+    let dict = dictionary as! NSDictionary
+    if type(of: dictionary) === NSDictionary.self || type(of: dictionary) === NSMutableDictionary.self {
+        for (key, value) in dict._storage {
+            valuebuf?[idx] = Unmanaged<AnyObject>.passUnretained(value)
+            keybuf?[idx] = Unmanaged<AnyObject>.passUnretained(key)
+            idx += 1
+        }
+    } else {
+        dict.enumerateKeysAndObjects([]) { k, v, _ in
+            let key = _SwiftValue.store(k)
+            let value = _SwiftValue.store(v)
+            valuebuf?[idx] = Unmanaged<AnyObject>.passUnretained(value)
+            keybuf?[idx] = Unmanaged<AnyObject>.passUnretained(key)
+            dict._storage[key] = value
+            idx += 1
+        }
     }
 }
 
 internal func _CFSwiftDictionaryApplyFunction(_ dictionary: AnyObject, applier: @convention(c) (AnyObject, AnyObject, UnsafeMutableRawPointer) -> Void, context: UnsafeMutableRawPointer) {
     (dictionary as! NSDictionary).enumerateKeysAndObjects([]) { key, value, _ in
-        applier(key, value, context)
+        applier(_SwiftValue.store(key), _SwiftValue.store(value), context)
     }
 }
 

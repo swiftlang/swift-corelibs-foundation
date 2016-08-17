@@ -121,7 +121,7 @@ open class InputStream: Stream {
 
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-        return CFReadStreamRead(_stream, buffer, CFIndex(len._bridgeToObject()))
+        return CFReadStreamRead(_stream, buffer, CFIndex(len._bridgeToObjectiveC()))
     }
     
     // returns in O(1) a pointer to the buffer in 'buffer' and by reference in 'len' how many bytes are available. This buffer is only valid until the next stream operation. Subclassers may return NO for this if it is not appropriate for the stream type. This may return NO if the buffer is not available.

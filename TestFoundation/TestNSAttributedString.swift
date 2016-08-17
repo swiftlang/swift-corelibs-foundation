@@ -30,7 +30,7 @@ class TestNSAttributedString : XCTestCase {
     
     func test_initWithString() {
         let string = "Lorem 😀 ipsum dolor sit amet, consectetur adipiscing elit. ⌘ Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit. ಠ_ರೃ"
-        let attrString = AttributedString(string: string)
+        let attrString = NSAttributedString(string: string)
         XCTAssertEqual(attrString.string, string)
         XCTAssertEqual(attrString.length, string.utf16.count)
         
@@ -40,7 +40,7 @@ class TestNSAttributedString : XCTestCase {
         XCTAssertEqual(range.length, 0)
         XCTAssertEqual(attrs.count, 0)
 
-        let attribute = attrString.attribute("invalid", atIndex: 0, effectiveRange: &range)
+        let attribute = attrString.attribute("invalid", at: 0, effectiveRange: &range)
         XCTAssertNil(attribute)
         XCTAssertEqual(range.location, NSNotFound)
         XCTAssertEqual(range.length, 0)
@@ -50,13 +50,13 @@ class TestNSAttributedString : XCTestCase {
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
         let attributes: [String : AnyObject] = ["attribute.placeholder.key" : "attribute.placeholder.value" as NSString]
         
-        let attrString = AttributedString(string: string, attributes: attributes)
+        let attrString = NSAttributedString(string: string, attributes: attributes)
         XCTAssertEqual(attrString.string, string)
         XCTAssertEqual(attrString.length, string.utf16.count)
         
         var range = NSRange()
         let attrs = attrString.attributesAtIndex(0, effectiveRange: &range)
-        guard let value = attrs["attribute.placeholder.key"] as? NSString else {
+        guard let value = attrs["attribute.placeholder.key"] as? String else {
             XCTAssert(false, "attribute value not found")
             return
         }
@@ -64,12 +64,12 @@ class TestNSAttributedString : XCTestCase {
         XCTAssertEqual(range.length, attrString.length)
         XCTAssertEqual(value, "attribute.placeholder.value")
 
-        let invalidAttribute = attrString.attribute("invalid", atIndex: 0, effectiveRange: &range)
+        let invalidAttribute = attrString.attribute("invalid", at: 0, effectiveRange: &range)
         XCTAssertNil(invalidAttribute)
         XCTAssertEqual(range.location, NSNotFound)
         XCTAssertEqual(range.length, 0)
 
-        let attribute = attrString.attribute("attribute.placeholder.key", atIndex: 0, effectiveRange: &range)
+        let attribute = attrString.attribute("attribute.placeholder.key", at: 0, effectiveRange: &range)
         XCTAssertEqual(range.location, 0)
         XCTAssertEqual(range.length, attrString.length)
         guard let validAttribute = attribute as? NSString else {
@@ -95,11 +95,11 @@ class TestNSAttributedString : XCTestCase {
         let searchRange = NSRange(location: 0, length: attrString.length)
         var range = NSRange()
         
-        _ = attrString.attribute(attrKey, atIndex: 0, longestEffectiveRange: &range, inRange: searchRange)
+        _ = attrString.attribute(attrKey, at: 0, longestEffectiveRange: &range, in: searchRange)
         XCTAssertEqual(range.location, 0)
         XCTAssertEqual(range.length, 29)
         
-        _ = attrString.attributesAtIndex(0, longestEffectiveRange: &range, inRange: searchRange)
+        _ = attrString.attributes(at: 0, longestEffectiveRange: &range, in: searchRange)
         XCTAssertEqual(range.location, 0)
         XCTAssertEqual(range.length, 29)
     }

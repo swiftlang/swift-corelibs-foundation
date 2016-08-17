@@ -45,7 +45,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
             guard let identifier = aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.identifier") else {
                 return nil
             }
-            self.init(localeIdentifier: identifier.bridge())
+            self.init(localeIdentifier: String._unconditionallyBridgeFromObjectiveC(identifier))
         } else {
             NSUnimplemented()
         }
@@ -265,5 +265,13 @@ extension Locale : _CFBridgable {
     typealias CFType = CFLocale
     internal var _cfObject: CFLocale {
         return _bridgeToObjectiveC()._cfObject
+    }
+}
+
+extension NSLocale : _StructTypeBridgeable {
+    public typealias _StructType = Locale
+    
+    public func _bridgeToSwift() -> Locale {
+        return Locale._unconditionallyBridgeFromObjectiveC(self)
     }
 }

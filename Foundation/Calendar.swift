@@ -1127,7 +1127,7 @@ public func ==(lhs: Calendar, rhs: Calendar) -> Bool {
     }
 }
 
-extension Calendar {
+extension Calendar : _ObjectTypeBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

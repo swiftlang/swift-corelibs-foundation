@@ -259,7 +259,7 @@ public struct URLResourceValues {
 
 public struct URL : ReferenceConvertible, CustomStringConvertible, Equatable {
     public typealias ReferenceType = NSURL
-    private var _url : NSURL
+    internal var _url : NSURL
 
     /// Initialize with string.
     ///
@@ -643,16 +643,27 @@ public func ==(lhs: URL, rhs: URL) -> Bool {
     return lhs.reference.isEqual(rhs.reference)
 }
 
-extension URL : Bridgeable {
-    public typealias BridgeType = NSURL
-    public func bridge() -> BridgeType {
-        return _nsObject
+extension URL : _ObjectTypeBridgeable {
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSURL {
+        return _url
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ source: NSURL, result: inout URL?) {
+        if !_conditionallyBridgeFromObjectiveC(source, result: &result) {
+            fatalError("Unable to bridge \(_ObjectType.self) to \(self)")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSURL, result: inout URL?) -> Bool {
+        result = URL(reference: source)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSURL?) -> URL {
+        var result: URL? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
     }
 }
 
-extension NSURL : Bridgeable {
-    public typealias BridgeType = URL
-    public func bridge() -> BridgeType {
-        return _swiftObject
-    }
-}

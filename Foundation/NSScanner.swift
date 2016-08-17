@@ -86,7 +86,7 @@ internal struct _NSStringBuffer {
     static let EndCharacter = unichar(0xffff)
     
     init(string: String, start: Int, end: Int) {
-        self.string = string._bridgeToObject()
+        self.string = string._bridgeToObjectiveC()
         _stringLoc = start
         stringLen = end
     
@@ -624,7 +624,7 @@ extension Scanner {
     // These methods avoid calling the private API for _invertedSkipSet and manually re-construct them so that it is only usage of public API usage
     // Future implementations on Darwin of these methods will likely be more optimized to take advantage of the cached values.
     public func scanString(string searchString: String) -> String? {
-        let str = self.string._bridgeToObject()
+        let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSString.CompareOptions = [caseSensitive ? [] : NSString.CompareOptions.caseInsensitive, NSString.CompareOptions.anchored]
@@ -645,7 +645,7 @@ extension Scanner {
     }
     
     public func scanCharactersFromSet(_ set: CharacterSet) -> String? {
-        let str = self.string._bridgeToObject()
+        let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSString.CompareOptions = caseSensitive ? [] : NSString.CompareOptions.caseInsensitive
@@ -666,7 +666,7 @@ extension Scanner {
     }
     
     public func scanUpToString(_ string: String) -> String? {
-        let str = self.string._bridgeToObject()
+        let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSString.CompareOptions = caseSensitive ? [] : NSString.CompareOptions.caseInsensitive
@@ -687,7 +687,7 @@ extension Scanner {
     }
     
     public func scanUpToCharactersFromSet(_ set: CharacterSet) -> String? {
-        let str = self.string._bridgeToObject()
+        let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
         let stringLen = str.length
         let options: NSString.CompareOptions = caseSensitive ? [] : NSString.CompareOptions.caseInsensitive
