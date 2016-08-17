@@ -62,12 +62,12 @@ extension NSRange: NSSpecialValueCoding {
     
     init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
-            if let location = aDecoder.decodeObjectOfClass(NSNumber.self, forKey: "NS.rangeval.location") {
+            if let location = aDecoder.decodeObject(of: NSNumber.self, forKey: "NS.rangeval.location") {
                 self.location = location.intValue
             } else {
                 self.location = 0
             }
-            if let length = aDecoder.decodeObjectOfClass(NSNumber.self, forKey: "NS.rangeval.length") {
+            if let length = aDecoder.decodeObject(of: NSNumber.self, forKey: "NS.rangeval.length") {
                 self.length = length.intValue
             } else {
                 self.length = 0

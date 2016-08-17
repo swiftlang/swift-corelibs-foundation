@@ -284,8 +284,8 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
-            let base = aDecoder.decodeObjectOfClass(NSURL.self, forKey:"NS.base")?._swiftObject
-            let relative = aDecoder.decodeObjectOfClass(NSString.self, forKey:"NS.relative")
+            let base = aDecoder.decodeObject(of: NSURL.self, forKey:"NS.base")?._swiftObject
+            let relative = aDecoder.decodeObject(of: NSString.self, forKey:"NS.relative")
 
             if relative == nil {
                 return nil
