@@ -70,17 +70,21 @@ public struct URLResourceKey : RawRepresentable, Equatable, Hashable, Comparable
         self.rawValue = rawValue
     }
     
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
+
     public var hashValue: Int {
         return rawValue.hashValue
     }
-}
 
-public func ==(lhs: URLResourceKey, rhs: URLResourceKey) -> Bool {
-    return lhs.rawValue == rhs.rawValue
-}
+    public static func ==(lhs: URLResourceKey, rhs: URLResourceKey) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
 
-public func <(lhs: URLResourceKey, rhs: URLResourceKey) -> Bool {
-    return lhs.rawValue < rhs.rawValue
+    public static func <(lhs: URLResourceKey, rhs: URLResourceKey) -> Bool {
+        return lhs.rawValue < rhs.rawValue
+    }
 }
 
 extension URLResourceKey {
@@ -92,7 +96,7 @@ extension URLResourceKey {
     public static let isSymbolicLinkKey = URLResourceKey(rawValue: "NSURLIsSymbolicLinkKey")
     public static let isVolumeKey = URLResourceKey(rawValue: "NSURLIsVolumeKey")
     public static let isPackageKey = URLResourceKey(rawValue: "NSURLIsPackageKey")
-    public static let isApplicationKey = URLResourceKey(rawValue: "_NSURLIsApplicationKey")
+    public static let isApplicationKey = URLResourceKey(rawValue: "NSURLIsApplicationKey")
     public static let applicationIsScriptableKey = URLResourceKey(rawValue: "NSURLApplicationIsScriptableKey")
     public static let isSystemImmutableKey = URLResourceKey(rawValue: "NSURLIsSystemImmutableKey")
     public static let isUserImmutableKey = URLResourceKey(rawValue: "NSURLIsUserImmutableKey")
@@ -118,15 +122,71 @@ extension URLResourceKey {
     public static let isReadableKey = URLResourceKey(rawValue: "NSURLIsReadableKey")
     public static let isWritableKey = URLResourceKey(rawValue: "NSURLIsWritableKey")
     public static let isExecutableKey = URLResourceKey(rawValue: "NSURLIsExecutableKey")
-    public static let pathKey = URLResourceKey(rawValue: "_NSURLPathKey")
+    public static let fileSecurityKey = URLResourceKey(rawValue: "NSURLFileSecurityKey")
+    public static let isExcludedFromBackupKey = URLResourceKey(rawValue: "NSURLIsExcludedFromBackupKey")
+    public static let tagNamesKey = URLResourceKey(rawValue: "NSURLTagNamesKey")
+    public static let pathKey = URLResourceKey(rawValue: "NSURLPathKey")
+    public static let canonicalPathKey = URLResourceKey(rawValue: "NSURLCanonicalPathKey")
+    public static let isMountTriggerKey = URLResourceKey(rawValue: "NSURLIsMountTriggerKey")
+    public static let generationIdentifierKey = URLResourceKey(rawValue: "NSURLGenerationIdentifierKey")
     public static let documentIdentifierKey = URLResourceKey(rawValue: "NSURLDocumentIdentifierKey")
     public static let addedToDirectoryDateKey = URLResourceKey(rawValue: "NSURLAddedToDirectoryDateKey")
+    public static let quarantinePropertiesKey = URLResourceKey(rawValue: "NSURLQuarantinePropertiesKey")
     public static let fileResourceTypeKey = URLResourceKey(rawValue: "NSURLFileResourceTypeKey")
+    public static let thumbnailDictionaryKey = URLResourceKey(rawValue: "NSURLThumbnailDictionaryKey")
+    public static let thumbnailKey = URLResourceKey(rawValue: "NSURLThumbnailKey")
     public static let fileSizeKey = URLResourceKey(rawValue: "NSURLFileSizeKey")
     public static let fileAllocatedSizeKey = URLResourceKey(rawValue: "NSURLFileAllocatedSizeKey")
     public static let totalFileSizeKey = URLResourceKey(rawValue: "NSURLTotalFileSizeKey")
     public static let totalFileAllocatedSizeKey = URLResourceKey(rawValue: "NSURLTotalFileAllocatedSizeKey")
     public static let isAliasFileKey = URLResourceKey(rawValue: "NSURLIsAliasFileKey")
+    public static let volumeLocalizedFormatDescriptionKey = URLResourceKey(rawValue: "NSURLVolumeLocalizedFormatDescriptionKey")
+    public static let volumeTotalCapacityKey = URLResourceKey(rawValue: "NSURLVolumeTotalCapacityKey")
+    public static let volumeAvailableCapacityKey = URLResourceKey(rawValue: "NSURLVolumeAvailableCapacityKey")
+    public static let volumeResourceCountKey = URLResourceKey(rawValue: "NSURLVolumeResourceCountKey")
+    public static let volumeSupportsPersistentIDsKey = URLResourceKey(rawValue: "NSURLVolumeSupportsPersistentIDsKey")
+    public static let volumeSupportsSymbolicLinksKey = URLResourceKey(rawValue: "NSURLVolumeSupportsSymbolicLinksKey")
+    public static let volumeSupportsHardLinksKey = URLResourceKey(rawValue: "NSURLVolumeSupportsHardLinksKey")
+    public static let volumeSupportsJournalingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsJournalingKey")
+    public static let volumeIsJournalingKey = URLResourceKey(rawValue: "NSURLVolumeIsJournalingKey")
+    public static let volumeSupportsSparseFilesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsSparseFilesKey")
+    public static let volumeSupportsZeroRunsKey = URLResourceKey(rawValue: "NSURLVolumeSupportsZeroRunsKey")
+    public static let volumeSupportsCaseSensitiveNamesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsCaseSensitiveNamesKey")
+    public static let volumeSupportsCasePreservedNamesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsCasePreservedNamesKey")
+    public static let volumeSupportsRootDirectoryDatesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsRootDirectoryDatesKey")
+    public static let volumeSupportsVolumeSizesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsVolumeSizesKey")
+    public static let volumeSupportsRenamingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsRenamingKey")
+    public static let volumeSupportsAdvisoryFileLockingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsAdvisoryFileLockingKey")
+    public static let volumeSupportsExtendedSecurityKey = URLResourceKey(rawValue: "NSURLVolumeSupportsExtendedSecurityKey")
+    public static let volumeIsBrowsableKey = URLResourceKey(rawValue: "NSURLVolumeIsBrowsableKey")
+    public static let volumeMaximumFileSizeKey = URLResourceKey(rawValue: "NSURLVolumeMaximumFileSizeKey")
+    public static let volumeIsEjectableKey = URLResourceKey(rawValue: "NSURLVolumeIsEjectableKey")
+    public static let volumeIsRemovableKey = URLResourceKey(rawValue: "NSURLVolumeIsRemovableKey")
+    public static let volumeIsInternalKey = URLResourceKey(rawValue: "NSURLVolumeIsInternalKey")
+    public static let volumeIsAutomountedKey = URLResourceKey(rawValue: "NSURLVolumeIsAutomountedKey")
+    public static let volumeIsLocalKey = URLResourceKey(rawValue: "NSURLVolumeIsLocalKey")
+    public static let volumeIsReadOnlyKey = URLResourceKey(rawValue: "NSURLVolumeIsReadOnlyKey")
+    public static let volumeCreationDateKey = URLResourceKey(rawValue: "NSURLVolumeCreationDateKey")
+    public static let volumeURLForRemountingKey = URLResourceKey(rawValue: "NSURLVolumeURLForRemountingKey")
+    public static let volumeUUIDStringKey = URLResourceKey(rawValue: "NSURLVolumeUUIDStringKey")
+    public static let volumeNameKey = URLResourceKey(rawValue: "NSURLVolumeNameKey")
+    public static let volumeLocalizedNameKey = URLResourceKey(rawValue: "NSURLVolumeLocalizedNameKey")
+    public static let volumeIsEncryptedKey = URLResourceKey(rawValue: "NSURLVolumeIsEncryptedKey")
+    public static let volumeIsRootFileSystemKey = URLResourceKey(rawValue: "NSURLVolumeIsRootFileSystemKey")
+    public static let volumeSupportsCompressionKey = URLResourceKey(rawValue: "NSURLVolumeSupportsCompressionKey")
+    public static let volumeSupportsFileCloningKey = URLResourceKey(rawValue: "NSURLVolumeSupportsFileCloningKey")
+    public static let volumeSupportsSwapRenamingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsSwapRenamingKey")
+    public static let volumeSupportsExclusiveRenamingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsExclusiveRenamingKey")
+    public static let isUbiquitousItemKey = URLResourceKey(rawValue: "NSURLIsUbiquitousItemKey")
+    public static let ubiquitousItemHasUnresolvedConflictsKey = URLResourceKey(rawValue: "NSURLUbiquitousItemHasUnresolvedConflictsKey")
+    public static let ubiquitousItemIsDownloadingKey = URLResourceKey(rawValue: "NSURLUbiquitousItemIsDownloadingKey")
+    public static let ubiquitousItemIsUploadedKey = URLResourceKey(rawValue: "NSURLUbiquitousItemIsUploadedKey")
+    public static let ubiquitousItemIsUploadingKey = URLResourceKey(rawValue: "NSURLUbiquitousItemIsUploadingKey")
+    public static let ubiquitousItemDownloadingStatusKey = URLResourceKey(rawValue: "NSURLUbiquitousItemDownloadingStatusKey")
+    public static let ubiquitousItemDownloadingErrorKey = URLResourceKey(rawValue: "NSURLUbiquitousItemDownloadingErrorKey")
+    public static let ubiquitousItemUploadingErrorKey = URLResourceKey(rawValue: "NSURLUbiquitousItemUploadingErrorKey")
+    public static let ubiquitousItemDownloadRequestedKey = URLResourceKey(rawValue: "NSURLUbiquitousItemDownloadRequestedKey")
+    public static let ubiquitousItemContainerDisplayNameKey = URLResourceKey(rawValue: "NSURLUbiquitousItemContainerDisplayNameKey")
 }
 
 
@@ -136,17 +196,21 @@ public struct URLFileResourceType : RawRepresentable, Equatable, Hashable, Compa
         self.rawValue = rawValue
     }
     
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
+
     public var hashValue: Int {
         return rawValue.hashValue
     }
-}
 
-public func ==(lhs: URLFileResourceType, rhs: URLFileResourceType) -> Bool {
-    return lhs.rawValue == rhs.rawValue
-}
+    public static func ==(lhs: URLFileResourceType, rhs: URLFileResourceType) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
 
-public func <(lhs: URLFileResourceType, rhs: URLFileResourceType) -> Bool {
-    return lhs.rawValue < rhs.rawValue
+    public static func <(lhs: URLFileResourceType, rhs: URLFileResourceType) -> Bool {
+        return lhs.rawValue < rhs.rawValue
+    }
 }
 
 extension URLFileResourceType {
@@ -160,7 +224,7 @@ extension URLFileResourceType {
     public static let unknown = URLFileResourceType(rawValue: "NSURLFileResourceTypeUnknown")
 }
 
-open class NSURL: NSObject, NSSecureCoding, NSCopying {
+open class NSURL : NSObject, NSSecureCoding, NSCopying {
     typealias CFType = CFURL
     internal var _base = _CFInfo(typeID: CFURLGetTypeID())
     internal var _flags : UInt32 = 0
@@ -242,14 +306,14 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
         }
     }
     
-    internal init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
+    public init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
         super.init()
         let thePath = _standardizedPath(path)
         if thePath.length > 0 {
             
             _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPOSIXPathStyle, isDir, baseURL?._cfObject)
-        } else if let baseURL = baseURL, let path = baseURL.path {
-            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, path._cfObject, kCFURLPOSIXPathStyle, baseURL.hasDirectoryPath, nil)
+        } else if let baseURL = baseURL {
+            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, baseURL.path._cfObject, kCFURLPOSIXPathStyle, baseURL.hasDirectoryPath, nil)
         }
     }
     
@@ -262,16 +326,13 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
             isDir = true
         } else {
             let absolutePath: String
-            do {
-                if let absPath = try baseURL?.appendingPathComponent(path).path {
-                    absolutePath = absPath
-                } else {
-                    absolutePath = path
-                }
-                let _ = FileManager.default.fileExists(atPath: absolutePath, isDirectory: &isDir)
-            } catch {
-                // ignored
+            if let absPath = baseURL?.appendingPathComponent(path).path {
+                absolutePath = absPath
+            } else {
+                absolutePath = path
             }
+            
+            let _ = FileManager.default.fileExists(atPath: absolutePath, isDirectory: &isDir)
         }
 
         self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeTo: baseURL)
@@ -545,7 +606,7 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open func resourceIsReachable() throws -> Bool {
+    open func checkResourceIsReachable() throws -> Bool {
         NSUnimplemented()
     }
 
@@ -562,6 +623,13 @@ open class NSURL: NSObject, NSSecureCoding, NSCopying {
     override open var _cfTypeID: CFTypeID {
         return CFURLGetTypeID()
     }
+
+    open func removeAllCachedResourceValues() { NSUnimplemented() }
+    open func removeCachedResourceValue(forKey key: URLResourceKey) { NSUnimplemented() }
+    open func resourceValues(forKeys keys: [URLResourceKey]) throws -> [URLResourceKey : Any] { NSUnimplemented() }
+    open func setResourceValue(_ value: Any?, forKey key: URLResourceKey) throws { NSUnimplemented() }
+    open func setResourceValues(_ keyedValues: [URLResourceKey : Any]) throws { NSUnimplemented() }
+    open func setTemporaryResourceValue(_ value: Any?, forKey key: URLResourceKey) { NSUnimplemented() }
 }
 
 extension NSCharacterSet {
@@ -569,32 +637,32 @@ extension NSCharacterSet {
     // Predefined character sets for the six URL components and subcomponents which allow percent encoding. These character sets are passed to -stringByAddingPercentEncodingWithAllowedCharacters:.
     
     // Returns a character set containing the characters allowed in an URL's user subcomponent.
-    public static var urlUserAllowed: CharacterSet {
+    open class var urlUserAllowed: CharacterSet {
         return _CFURLComponentsGetURLUserAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's password subcomponent.
-    public static var urlPasswordAllowed: CharacterSet {
+    open class var urlPasswordAllowed: CharacterSet {
         return _CFURLComponentsGetURLPasswordAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's host subcomponent.
-    public static var urlHostAllowed: CharacterSet {
+    open class var urlHostAllowed: CharacterSet {
         return _CFURLComponentsGetURLHostAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's path component. ';' is a legal path character, but it is recommended that it be percent-encoded for best compatibility with NSURL (-stringByAddingPercentEncodingWithAllowedCharacters: will percent-encode any ';' characters if you pass the URLPathAllowedCharacterSet).
-    public static var urlPathAllowed: CharacterSet {
+    open class var urlPathAllowed: CharacterSet {
         return _CFURLComponentsGetURLPathAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's query component.
-    public static var urlQueryAllowed: CharacterSet {
+    open class var urlQueryAllowed: CharacterSet {
         return _CFURLComponentsGetURLQueryAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's fragment component.
-    public static var urlFragmentAllowed: CharacterSet {
+    open class var urlFragmentAllowed: CharacterSet {
         return _CFURLComponentsGetURLFragmentAllowedCharacterSet()._swiftObject
     }
 }
@@ -602,12 +670,12 @@ extension NSCharacterSet {
 extension NSString {
     
     // Returns a new string made from the receiver by replacing all characters not in the allowedCharacters set with percent encoded characters. UTF-8 encoding is used to determine the correct percent encoded characters. Entire URL strings cannot be percent-encoded. This method is intended to percent-encode an URL component or subcomponent string, NOT the entire URL string. Any characters in allowedCharacters outside of the 7-bit ASCII range are ignored.
-    public func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
+    open func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
         return _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, self._cfObject, allowedCharacters._cfObject)._swiftObject
     }
     
     // Returns a new string made from the receiver by replacing all percent encoded sequences with the matching UTF-8 characters.
-    public var removingPercentEncoding: String? {
+    open var removingPercentEncoding: String? {
         return _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, self._cfObject)?._swiftObject
     }
 }
@@ -616,7 +684,7 @@ extension NSURL {
     
     /* The following methods work on the path portion of a URL in the same manner that the NSPathUtilities methods on NSString do.
     */
-    open class func fileURLWithPathComponents(_ components: [String]) -> URL? {
+    open class func fileURL(withPathComponents components: [String]) -> URL? {
         let path = NSString.pathWithComponents(components)
         if components.last == "/" {
             return URL(fileURLWithPath: path, isDirectory: true)
@@ -696,10 +764,9 @@ extension NSURL {
     open func appendingPathComponent(_ pathComponent: String) -> URL? {
         var result : URL? = appendingPathComponent(pathComponent, isDirectory: false)
         if !pathComponent.hasSuffix("/") && isFileURL {
-            if let urlWithoutDirectory = result,
-               let path = urlWithoutDirectory.path {
+            if let urlWithoutDirectory = result {
                 var isDir : Bool = false
-                if FileManager.default.fileExists(atPath: path, isDirectory: &isDir) && isDir {
+                if FileManager.default.fileExists(atPath: urlWithoutDirectory.path, isDirectory: &isDir) && isDir {
                     result = self.appendingPathComponent(pathComponent, isDirectory: true)
                 }
             }
@@ -712,7 +779,7 @@ extension NSURL {
         return CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, _cfObject, pathComponent._cfObject, isDirectory)?._swiftObject
     }
     
-    public var deletingLastPathComponent: URL? {
+    open var deletingLastPathComponent: URL? {
         return CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, _cfObject)?._swiftObject
     }
     
@@ -720,7 +787,7 @@ extension NSURL {
         return CFURLCreateCopyAppendingPathExtension(kCFAllocatorSystemDefault, _cfObject, pathExtension._cfObject)?._swiftObject
     }
     
-    public var deletingPathExtension: URL? {
+    open var deletingPathExtension: URL? {
         return CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, _cfObject)?._swiftObject
     }
     
@@ -754,7 +821,7 @@ extension NSURL {
         }
 
         
-        var components = URL(fileURLWithPath: absolutePath).pathComponents!
+        var components = URL(fileURLWithPath: absolutePath).pathComponents
         guard !components.isEmpty else {
             return URL(string: absoluteString)
         }
@@ -852,8 +919,8 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
-    public let name: String
-    public let value: String?
+    open let name: String
+    open let value: String?
 }
 
 open class NSURLComponents: NSObject, NSCopying {

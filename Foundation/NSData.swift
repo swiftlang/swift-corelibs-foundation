@@ -336,7 +336,7 @@ extension NSData {
     
     public convenience init(contentsOf url: URL, options readOptionsMask: ReadingOptions) throws {
         if url.isFileURL {
-            try self.init(contentsOfFile: url.path!, options: readOptionsMask)
+            try self.init(contentsOfFile: url.path, options: readOptionsMask)
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.defaultSessionConfiguration())
             let cond = NSCondition()
@@ -503,9 +503,7 @@ extension NSData {
     
     public func write(to url: URL, atomically: Bool) -> Bool {
         if url.isFileURL {
-            if let path = url.path {
-                return write(toFile: path, atomically: atomically)
-            }
+            return write(toFile: url.path, atomically: atomically)
         }
         return false
     }
@@ -519,12 +517,12 @@ extension NSData {
     ///
     ///      This method is invoked in a `try` expression and the caller is responsible for handling any errors in the `catch` clauses of a `do` statement, as described in [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/ErrorHandling.html#//apple_ref/doc/uid/TP40014097-CH42) in [The Swift Programming Language](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/Swift_Programming_Language/index.html#//apple_ref/doc/uid/TP40014097) and [Error Handling](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/AdoptingCocoaDesignPatterns.html#//apple_ref/doc/uid/TP40014216-CH7-ID10) in [Using Swift with Cocoa and Objective-C](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/index.html#//apple_ref/doc/uid/TP40014216).
     public func write(to url: URL, options writeOptionsMask: WritingOptions = []) throws {
-        guard let path = url.path, url.isFileURL == true else {
+        guard url.isFileURL else {
             let userInfo = [NSLocalizedDescriptionKey : "The folder at “\(url)” does not exist or is not a file URL.", // NSLocalizedString() not yet available
-                            NSURLErrorKey             : url.absoluteString ?? ""] as Dictionary<String, Any>
+                            NSURLErrorKey             : url.absoluteString] as Dictionary<String, Any>
             throw NSError(domain: NSCocoaErrorDomain, code: 4, userInfo: userInfo)
         }
-        try write(toFile: path, options: writeOptionsMask)
+        try write(toFile: url.path, options: writeOptionsMask)
     }
     
     public func range(of searchData: Data, options mask: SearchOptions = [], in searchRange: NSRange) -> NSRange {

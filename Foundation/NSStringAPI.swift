@@ -146,7 +146,7 @@ extension String {
   /// by concatenating them with a path separator between each pair.
   @available(*, unavailable, message: "Use fileURL(withPathComponents:) on URL instead.")
   public static func path(withComponents components: [String]) -> String {
-    return (NSURL.fileURLWithPathComponents(components)?.path)!
+    return (NSURL.fileURL(withPathComponents: components)?.path)!
   }
 
   //===--------------------------------------------------------------------===//

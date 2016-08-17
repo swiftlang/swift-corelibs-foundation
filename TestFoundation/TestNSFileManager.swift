@@ -237,9 +237,7 @@ class TestNSFileManager : XCTestCase {
         if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
             while let item = e.nextObject() as? URL {
-                if let p = item.path {
-                    foundItems[p] = e.level
-                }
+                foundItems[item.path] = e.level
             }
             XCTAssertEqual(foundItems[itemPath], 1)
         } else {
@@ -258,9 +256,7 @@ class TestNSFileManager : XCTestCase {
         if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
             while let item = e.nextObject() as? URL {
-                if let p = item.path {
-                    foundItems[p] = e.level
-                }
+                foundItems[item.path] = e.level
             }
             XCTAssertEqual(foundItems[itemPath], 1)
             XCTAssertEqual(foundItems[subDirPath], 1)
@@ -272,9 +268,7 @@ class TestNSFileManager : XCTestCase {
         if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants], errorHandler: nil) {
             var foundItems = [String:Int]()
             while let item = e.nextObject() as? URL {
-                if let p = item.path {
-                    foundItems[p] = e.level
-                }
+                foundItems[item.path] = e.level
             }
             XCTAssertEqual(foundItems[itemPath], 1)
             XCTAssertEqual(foundItems[subDirPath], 1)
@@ -285,9 +279,7 @@ class TestNSFileManager : XCTestCase {
         if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
             while let item = e.nextObject() as? URL {
-                if let p = item.path {
-                    foundItems[p] = e.level
-                }
+                foundItems[item.path] = e.level
             }
             XCTAssertEqual(foundItems[itemPath], 1)
             XCTAssertEqual(foundItems[subDirPath], 1)
@@ -309,7 +301,7 @@ class TestNSFileManager : XCTestCase {
         
         do {
             let contents = try FileManager.default.contentsOfDirectory(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: []).map {
-                return $0.path!
+                return $0.path
             }
             XCTAssertEqual(contents.count, 2)
             XCTAssertTrue(contents.contains(itemPath))

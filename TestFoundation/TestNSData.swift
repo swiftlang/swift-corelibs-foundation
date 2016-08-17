@@ -53,8 +53,8 @@ class TestNSData: XCTestCase {
         do {
             try saveData.write(to: savePath, options: .dataWritingAtomic)
             let fileManager = FileManager.default
-            XCTAssertTrue(fileManager.fileExists(atPath: savePath.path!))
-            try! fileManager.removeItem(atPath: savePath.path!)
+            XCTAssertTrue(fileManager.fileExists(atPath: savePath.path))
+            try! fileManager.removeItem(atPath: savePath.path)
         } catch _ {
             XCTFail()
         }

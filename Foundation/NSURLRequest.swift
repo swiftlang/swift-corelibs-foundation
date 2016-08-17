@@ -82,15 +82,12 @@ extension NSURLRequest {
     }
     
     public enum NetworkServiceType : UInt {
-        case networkServiceTypeDefault // Standard internet traffic
-        
-        case networkServiceTypeVoIP // Voice over IP control traffic
-        
-        case networkServiceTypeVideo // Video traffic
-        
-        case networkServiceTypeBackground // Background traffic
-        
-        case networkServiceTypeVoice // Voice data
+        case `default` // Standard internet traffic
+        case voip // Voice over IP control traffic
+        case video // Video traffic
+        case background // Background traffic
+        case voice // Voice data
+        case networkServiceTypeCallSignaling // Call Signaling
     }
 }
 
@@ -115,7 +112,7 @@ extension NSURLRequest {
 ///
 /// Objects of this class are used with the `NSURLSession` API to perform the
 /// load of a URL.
-open class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
+open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
     open override func copy() -> Any {
         return copy(with: nil)
@@ -167,7 +164,7 @@ open class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     }
     
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
-    public static var supportsSecureCoding: Bool { return true }
+    open class  var supportsSecureCoding: Bool { return true }
     
     /// The URL of the receiver.
     /*@NSCopying */open fileprivate(set) var url: URL?
@@ -193,8 +190,8 @@ open class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
     /// A dictionary containing all the HTTP header fields
     /// of the receiver.
-    internal var _allHTTPHeaderFields: [String: String]? = nil
-    open var allHTTPHeaderFields: [String: String]? {
+    internal var _allHTTPHeaderFields: [String : String]? = nil
+    open var allHTTPHeaderFields: [String : String]? {
         get {
             return _allHTTPHeaderFields
         }
@@ -243,7 +240,7 @@ open class NSURLRequest: NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
         return nil
     }
     
-    internal var _networkServiceType: NetworkServiceType = .networkServiceTypeDefault
+    internal var _networkServiceType: NetworkServiceType = .`default`
     open var networkServiceType: NetworkServiceType {
         return _networkServiceType
     }
@@ -348,7 +345,7 @@ open class NSMutableURLRequest : NSURLRequest {
         }
     }
     
-    open override var allHTTPHeaderFields: [String: String]? {
+    open override var allHTTPHeaderFields: [String : String]? {
         get {
             return _allHTTPHeaderFields
         }
@@ -366,7 +363,7 @@ open class NSMutableURLRequest : NSURLRequest {
     /// - Parameter value: the header field value.
     /// - Parameter field: the header field name (case-insensitive).
     open func setValue(_ value: String?, forHTTPHeaderField field: String) {
-        var f: [String: String] = allHTTPHeaderFields ?? [:]
+        var f: [String : String] = allHTTPHeaderFields ?? [:]
         if let old = existingHeaderField(field, inHeaderFields: f) {
             f.removeValue(forKey: old.0)
         }
@@ -386,7 +383,7 @@ open class NSMutableURLRequest : NSURLRequest {
     /// - Parameter value: the header field value.
     /// - Parameter field: the header field name (case-insensitive).
     open func addValue(_ value: String, forHTTPHeaderField field: String) {
-        var f: [String: String] = allHTTPHeaderFields ?? [:]
+        var f: [String : String] = allHTTPHeaderFields ?? [:]
         if let old = existingHeaderField(field, inHeaderFields: f) {
             f[old.0] = old.1 + "," + value
         } else {
@@ -475,7 +472,7 @@ open class NSMutableURLRequest : NSURLRequest {
 }
 
 /// Returns an existing key-value pair inside the header fields if it exists.
-private func existingHeaderField(_ key: String, inHeaderFields fields: [String: String]) -> (String, String)? {
+private func existingHeaderField(_ key: String, inHeaderFields fields: [String : String]) -> (String, String)? {
     for (k, v) in fields {
         if k.lowercased() == key.lowercased() {
             return (k, v)

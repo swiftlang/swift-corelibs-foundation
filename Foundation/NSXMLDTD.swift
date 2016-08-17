@@ -25,7 +25,7 @@ open class XMLDTD : XMLNode {
     public convenience init(contentsOf url: URL, options: Options = []) throws {
         let urlString = url.absoluteString
 
-        guard let node = _CFXMLParseDTD(urlString!) else {
+        guard let node = _CFXMLParseDTD(urlString) else {
             //TODO: throw error
             fatalError("parsing dtd string failed")
         }
