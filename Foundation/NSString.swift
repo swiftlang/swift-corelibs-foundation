@@ -1046,7 +1046,7 @@ extension NSString {
         return mStr._swiftObject
     }
     
-    open func folding(options options: CompareOptions = [], locale: Locale?) -> String {
+    open func folding(options: CompareOptions = [], locale: Locale?) -> String {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringFold(string, options._cfValue(), locale?._cfObject)
