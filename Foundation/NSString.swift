@@ -271,7 +271,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     public convenience init?(cString nullTerminatedCString: UnsafePointer<Int8>, encoding: UInt) {
-        self.init(string: CFStringCreateWithCString(kCFAllocatorSystemDefault, nullTerminatedCString, CFStringEncoding(encoding))._swiftObject)
+        self.init(string: CFStringCreateWithCString(kCFAllocatorSystemDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding))._swiftObject)
     }
     
     internal var _fastCStringContents: UnsafePointer<Int8>? {

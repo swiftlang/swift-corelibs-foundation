@@ -163,6 +163,10 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     open class func userInfoValueProviderForDomain(_ errorDomain: String) -> ((NSError, String) -> AnyObject?)? {
         return NSError.userInfoProviders[errorDomain]
     }
+    
+    override open var description: String {
+        return localizedDescription
+    }
 }
 
 extension NSError : Swift.Error { }
@@ -174,8 +178,8 @@ extension CFError : _NSBridgable {
         let userInfo = CFErrorCopyUserInfo(self)._swiftObject
         var newUserInfo: [String: Any] = [:]
         for (key, value) in userInfo {
-            if let key = key as? NSString {
-                newUserInfo[key._swiftObject] = value
+            if let key = key as? String {
+                newUserInfo[key] = value
             }
         }
 

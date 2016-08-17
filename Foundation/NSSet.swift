@@ -128,10 +128,9 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
     }
 
     open override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let otherObject = object, otherObject is NSSet else {
+        guard let otherSet = object as? NSSet else {
             return false
         }
-        let otherSet = otherObject as! NSSet
         return self.isEqual(to: Set._unconditionallyBridgeFromObjectiveC(otherSet))
     }
 
@@ -200,7 +199,12 @@ extension NSSet {
     
     public func intersects(_ otherSet: Set<AnyHashable>) -> Bool {
         if count < otherSet.count {
-            return contains { obj in otherSet.contains(obj) }
+            for item in self {
+                if otherSet.contains(item as! AnyHashable) {
+                    return true
+                }
+            }
+            return false
         } else {
             return otherSet.contains { obj in contains(obj) }
         }
@@ -212,7 +216,12 @@ extension NSSet {
     
     public func isSubset(of otherSet: Set<AnyHashable>) -> Bool {
         // `true` if we don't contain any object that `otherSet` doesn't contain.
-        return !self.contains { obj in !otherSet.contains(obj) }
+        for item in self {
+            if !otherSet.contains(item as! AnyHashable) {
+                return false
+            }
+        }
+        return true
     }
 
     public func adding(_ anObject: Any) -> Set<AnyHashable> {

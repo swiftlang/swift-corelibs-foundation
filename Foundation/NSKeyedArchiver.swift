@@ -767,7 +767,7 @@ open class NSKeyedArchiver : NSCoder {
         objectRefs.reserveCapacity(objects.count)
         
         for object in objects {
-            let objectRef = _encodeObject(object as! NSObject)!
+            let objectRef = _encodeObject(_SwiftValue.store(object))!
 
             objectRefs.append(objectRef)
         }

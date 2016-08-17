@@ -36,7 +36,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
-        return NSGeneratorEnumerator(_storage.keys.makeIterator())
+        
+        return NSGeneratorEnumerator(_storage.keys.map { _SwiftValue.fetch($0) }.makeIterator())
     }
     
     public override convenience init() {
@@ -221,8 +222,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     open func getObjects(_ objects: inout [Any], andKeys keys: inout [Any], count: Int) {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             for (key, value) in _storage {
-                keys.append(key)
-                objects.append(value)
+                keys.append(_SwiftValue.fetch(key))
+                objects.append(_SwiftValue.fetch(value))
             }
         } else {
             
@@ -352,12 +353,14 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         }
         
         for key in keyEnumerator() {
-            if let otherValue = otherDictionary[key as! AnyHashable] as? AnyHashable {
-                if let value = object(forKey: key)! as? AnyHashable {
-                    if otherValue != value {
-                        return false
-                    }
-                } else {
+            if let otherValue = otherDictionary[key as! AnyHashable] as? AnyHashable,
+               let value = object(forKey: key)! as? AnyHashable {
+                if otherValue != value {
+                    return false
+                }
+            } else if let otherBridgeable = otherDictionary[key as! AnyHashable] as? _ObjectBridgeable,
+                      let bridgeable = object(forKey: key)! as? _ObjectBridgeable {
+                if !(otherBridgeable._bridgeToAnyObject() as! NSObject).isEqual(bridgeable._bridgeToAnyObject()) {
                     return false
                 }
             } else {
@@ -431,7 +434,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         var stop = ObjCBool(false)
         for idx in 0..<count {
             withUnsafeMutablePointer(to: &stop, { stop in
-                block(keys[idx] as! NSObject, objects[idx], stop)
+                block(keys[idx], objects[idx], stop)
             })
 
             if stop {
@@ -484,7 +487,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
 
 extension NSDictionary : _CFBridgable, _SwiftBridgable {
     internal var _cfObject: CFDictionary { return unsafeBitCast(self, to: CFDictionary.self) }
-    internal var _swiftObject: Dictionary<NSObject, AnyObject> { return Dictionary._unconditionallyBridgeFromObjectiveC(self) }
+    internal var _swiftObject: Dictionary<AnyHashable, Any> { return Dictionary._unconditionallyBridgeFromObjectiveC(self) }
 }
 
 extension NSMutableDictionary {

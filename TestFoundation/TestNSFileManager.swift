@@ -208,11 +208,11 @@ class TestNSFileManager : XCTestCase {
         }
         
         if let e = FileManager.default.enumerator(atPath: basePath) {
-            let foundItems = NSMutableSet()
-            while let item = e.nextObject() as? NSString {
-                foundItems.add(item)
+            var foundItems = Set<String>()
+            while let item = e.nextObject() as? String {
+                foundItems.insert(item)
             }
-            XCTAssertEqual(foundItems, NSMutableSet(array: ["item", "path2", "path2/item"]))
+            XCTAssertEqual(foundItems, Set(["item", "path2", "path2/item"]))
         } else {
             XCTFail()
         }
@@ -236,7 +236,7 @@ class TestNSFileManager : XCTestCase {
         
         if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? NSURL {
+            while let item = e.nextObject() as? URL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -257,7 +257,7 @@ class TestNSFileManager : XCTestCase {
         
         if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? NSURL {
+            while let item = e.nextObject() as? URL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -271,7 +271,7 @@ class TestNSFileManager : XCTestCase {
         
         if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? NSURL {
+            while let item = e.nextObject() as? URL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }
@@ -284,7 +284,7 @@ class TestNSFileManager : XCTestCase {
         
         if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
-            while let item = e.nextObject() as? NSURL {
+            while let item = e.nextObject() as? URL {
                 if let p = item.path {
                     foundItems[p] = e.level
                 }

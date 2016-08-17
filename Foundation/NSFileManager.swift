@@ -103,7 +103,7 @@ open class FileManager: NSObject {
         var result = [URL]()
         if let e = e {
             for url in e {
-                result.append((url as! NSURL)._swiftObject)
+                result.append(url as! URL)
             }
             if let error = error {
                 throw error
@@ -887,7 +887,7 @@ extension FileManager {
         
         override func nextObject() -> Any? {
             let o = innerEnumerator.nextObject()
-            guard let url = o as? NSURL else {
+            guard let url = o as? URL else {
                 return nil
             }
             let path = url.path!.replacingOccurrences(of: baseURL.path!+"/", with: "")

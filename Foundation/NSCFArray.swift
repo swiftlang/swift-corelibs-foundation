@@ -34,10 +34,11 @@ internal final class _NSCFArray : NSMutableArray {
     
     override func object(at index: Int) -> Any {
         let value = CFArrayGetValueAtIndex(_cfObject, index)
-        return unsafeBitCast(value, to: AnyObject.self)
+        return _SwiftValue.fetch(unsafeBitCast(value, to: AnyObject.self))
     }
     
-    override func insert(_ anObject: Any, at index: Int) {
+    override func insert(_ value: Any, at index: Int) {
+        let anObject = _SwiftValue.store(value)
         CFArrayInsertValueAtIndex(_cfMutableObject, index, unsafeBitCast(anObject, to: UnsafeRawPointer.self))
     }
     

@@ -65,8 +65,8 @@ extension Dictionary : _ObjectTypeBridgeable {
             CFDictionaryGetKeysAndValues(cf, keys, values)
 
             for idx in 0..<cnt {
-                let key = unsafeBitCast(keys.advanced(by: idx).pointee!, to: AnyObject.self)
-                let value = unsafeBitCast(values.advanced(by: idx).pointee!, to: AnyObject.self)
+                let key = _SwiftValue.fetch(unsafeBitCast(keys.advanced(by: idx).pointee!, to: AnyObject.self))
+                let value = _SwiftValue.fetch(unsafeBitCast(values.advanced(by: idx).pointee!, to: AnyObject.self))
                 guard let k = key as? Key, let v = value as? Value else {
                     failedConversion = true
                     break

@@ -587,7 +587,6 @@ extension TestNSJSONSerialization {
             ("test_nested_dictionary", test_nested_dictionary),
             ("test_serialize_number", test_serialize_number),
             ("test_serialize_stringEscaping", test_serialize_stringEscaping),
-            ("test_serialize_invalid_json", test_serialize_invalid_json),
             ("test_jsonReadingOffTheEndOfBuffers", test_jsonReadingOffTheEndOfBuffers),
             ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
             ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
@@ -725,6 +724,9 @@ extension TestNSJSONSerialization {
         XCTAssertEqual(try trySerialize(json), "[\"i\\u001f\"]")
     }
 
+    /* These are a programming error and should not be done
+       Ideally the interface for JSONSerialization should at compile time prevent this type of thing
+       by overloading the interface such that it can only accept dictionaries and arrays.
     func test_serialize_invalid_json() {
         let str = "Invalid JSON"
         do {
@@ -750,6 +752,7 @@ extension TestNSJSONSerialization {
             // should get here
         }
     }
+ */
     
     func test_jsonReadingOffTheEndOfBuffers() {
         let data = "12345679".data(using: .utf8)!

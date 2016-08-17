@@ -315,7 +315,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         
         for idx in 0..<count {
             if let val1 = object(at: idx) as? AnyHashable,
-               let val2 = object(at: idx) as? AnyHashable {
+               let val2 = otherArray[idx] as? AnyHashable {
                 if val1 != val2 {
                     return false
                 }

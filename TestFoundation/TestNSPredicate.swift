@@ -49,7 +49,7 @@ class TestNSPredicate: XCTestCase {
     }
 
     let lengthLessThanThreePredicate = Predicate { (obj, bindings) -> Bool in
-        return (obj as? NSString).map({ $0.length < 3 }) == true
+        return (obj as! String).utf16.count < 3
     }
 
     let startArray = ["1", "12", "123", "1234"]

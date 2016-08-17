@@ -121,7 +121,7 @@ class TestNSSet : XCTestCase {
         XCTAssertTrue(type(of: setCopy2) === NSSet.self)
         XCTAssertFalse(setMutableCopy === setCopy2)
         for entry in setCopy2 {
-            XCTAssertTrue(NSArray(array: setMutableCopy.allObjects).indexOfObjectIdentical(to: entry) != NSNotFound)
+            XCTAssertTrue(NSArray(array: setMutableCopy.allObjects).index(of: entry) != NSNotFound)
         }
     }
 
@@ -133,14 +133,14 @@ class TestNSSet : XCTestCase {
         XCTAssertTrue(type(of: setMutableCopy1) === NSMutableSet.self)
         XCTAssertFalse(set === setMutableCopy1)
         for entry in setMutableCopy1 {
-            XCTAssertTrue(NSArray(array: set.allObjects).indexOfObjectIdentical(to: entry) != NSNotFound)
+            XCTAssertTrue(NSArray(array: set.allObjects).index(of: entry) != NSNotFound)
         }
 
         let setMutableCopy2 = setMutableCopy1.mutableCopy() as! NSMutableSet
         XCTAssertTrue(type(of: setMutableCopy2) === NSMutableSet.self)
         XCTAssertFalse(setMutableCopy2 === setMutableCopy1)
         for entry in setMutableCopy2 {
-            XCTAssertTrue(NSArray(array: setMutableCopy1.allObjects).indexOfObjectIdentical(to: entry) != NSNotFound)
+            XCTAssertTrue(NSArray(array: setMutableCopy1.allObjects).index(of: entry) != NSNotFound)
         }
     }
 
@@ -223,7 +223,7 @@ class TestNSSet : XCTestCase {
         XCTAssertTrue(type(of: setCopy) === NSCountedSet.self)
         XCTAssertTrue(type(of: setMutableCopy) === NSCountedSet.self)
         for entry in setCopy {
-            XCTAssertTrue(NSArray(array: setMutableCopy.allObjects).indexOfObjectIdentical(to: entry) != NSNotFound)
+            XCTAssertTrue(NSArray(array: setMutableCopy.allObjects).index(of: entry) != NSNotFound)
         }
     }
 

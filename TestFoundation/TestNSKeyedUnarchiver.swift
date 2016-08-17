@@ -39,9 +39,12 @@ class TestNSKeyedUnarchiver : XCTestCase {
             return
         }
         let object = NSKeyedUnarchiver.unarchiveObjectWithFile(testFilePath) as? NSObject
-        if expectedObject != object {
-            print("\(expectedObject) != \(object)")
+        if let obj = object {
+            if expectedObject != obj {
+                print("\(expectedObject) != \(obj)")
+            }
         }
+        
         XCTAssertEqual(expectedObject, object)
     }
 

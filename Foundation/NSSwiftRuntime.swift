@@ -260,6 +260,13 @@ extension Array {
 internal final class _SwiftValue : NSObject, NSCopying {
     internal private(set) var value: Any
     
+    static func fetch(_ object: AnyObject?) -> Any? {
+        if let obj = object {
+            return fetch(obj)
+        }
+        return nil
+    }
+    
     static func fetch(_ object: AnyObject) -> Any {
         if let container = object as? _SwiftValue {
             return container.value
@@ -268,6 +275,13 @@ internal final class _SwiftValue : NSObject, NSCopying {
         } else {
             return object
         }
+    }
+    
+    static func store(_ value: Any?) -> NSObject? {
+        if let val = value {
+            return store(val)
+        }
+        return nil
     }
     
     static func store(_ value: Any) -> NSObject {

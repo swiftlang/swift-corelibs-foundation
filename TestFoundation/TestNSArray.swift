@@ -421,6 +421,7 @@ class TestNSArray : XCTestCase {
         XCTAssertFalse(array1.isEqual(NSObject()))
     }
 
+    /// - Note: value type conversion will destroy identity. So use index(of:) instead of indexOfObjectIdentical(to:)
     func test_copying() {
         let array = NSArray(array: ["this", "is", "a", "test", "of", "copy", "with", "strings"])
 
@@ -432,7 +433,7 @@ class TestNSArray : XCTestCase {
         XCTAssertTrue(type(of: arrayCopy2) === NSArray.self)
         XCTAssertFalse(arrayMutableCopy === arrayCopy2)
         for entry in arrayCopy2 {
-            XCTAssertTrue(array.indexOfObjectIdentical(to: entry) != NSNotFound)
+            XCTAssertTrue(array.index(of: entry) != NSNotFound)
         }
 
     }
@@ -444,14 +445,14 @@ class TestNSArray : XCTestCase {
         XCTAssertTrue(type(of: arrayMutableCopy1) === NSMutableArray.self)
         XCTAssertFalse(array === arrayMutableCopy1)
         for entry in arrayMutableCopy1 {
-            XCTAssertTrue(array.indexOfObjectIdentical(to: entry) != NSNotFound)
+            XCTAssertTrue(array.index(of: entry) != NSNotFound)
         }
 
         let arrayMutableCopy2 = arrayMutableCopy1.mutableCopy() as! NSMutableArray
         XCTAssertTrue(type(of: arrayMutableCopy2) === NSMutableArray.self)
         XCTAssertFalse(arrayMutableCopy2 === arrayMutableCopy1)
         for entry in arrayMutableCopy2 {
-            XCTAssertTrue(arrayMutableCopy1.indexOfObjectIdentical(to: entry) != NSNotFound)
+            XCTAssertTrue(arrayMutableCopy1.index(of: entry) != NSNotFound)
         }
     }
 

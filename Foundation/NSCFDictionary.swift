@@ -121,7 +121,9 @@ internal func _CFSwiftDictionaryGetValue(_ dictionary: AnyObject, key: AnyObject
         let value = dict.object(forKey: k)
         let v = _SwiftValue.store(value)
         dict._storage[key as! NSObject] = v
-        return Unmanaged<AnyObject>.passUnretained(v)
+        if let obj = v {
+            return Unmanaged<AnyObject>.passUnretained(obj)
+        }
     }
     return nil
 }

@@ -205,15 +205,21 @@ extension NSOrderedSet {
     }
     
     open func isSubset(of other: NSOrderedSet) -> Bool {
-        return !self.contains { obj in
-            !other.contains(obj)
+        for item in self {
+            if !other.contains(item) {
+                return false
+            }
         }
+        return true
     }
 
     open func isSubset(of set: Set<AnyHashable>) -> Bool {
-        return !self.contains { obj in
-            !set.contains(obj)
+        for item in self {
+            if !set.contains(item as! AnyHashable) {
+                return false
+            }
         }
+        return true
     }
     
     public func objectEnumerator() -> NSEnumerator {
@@ -475,11 +481,11 @@ extension NSMutableOrderedSet {
         _orderedStorage.removeAll()
     }
     
-    open func remove(_ object: Any) {
-        if let object = object as? NSObject {
-            _storage.remove(object)
-            _orderedStorage.remove(at: index(of: object))
-        }
+    open func remove(_ val: Any) {
+        let object = _SwiftValue.store(val)
+        
+        _storage.remove(object)
+        _orderedStorage.remove(at: index(of: val))
     }
 
     open func removeObjects(in array: [Any]) {
@@ -503,7 +509,7 @@ extension NSMutableOrderedSet {
     }
     
     open func intersectSet(_ other: Set<AnyHashable>) {
-        for case let item as NSObject in self where !other.contains(item) {
+        for case let item as AnyHashable in self where !other.contains(item) {
             remove(item)
         }
     }

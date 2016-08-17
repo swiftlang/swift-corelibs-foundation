@@ -56,7 +56,7 @@ class TestNSAttributedString : XCTestCase {
         
         var range = NSRange()
         let attrs = attrString.attributesAtIndex(0, effectiveRange: &range)
-        guard let value = attrs["attribute.placeholder.key"] as? NSString else {
+        guard let value = attrs["attribute.placeholder.key"] as? String else {
             XCTAssert(false, "attribute value not found")
             return
         }

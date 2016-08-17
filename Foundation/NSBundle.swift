@@ -279,14 +279,14 @@ open class Bundle: NSObject {
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     open var infoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetInfoDictionary(_bundle)
-        return cfDict.map(_expensivePropertyListConversion) as? [String: Any]
+        return cfDict.map(_expensivePropertyListConversion) as? [String : Any]
     }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     open var localizedInfoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetLocalInfoDictionary(_bundle)
-        return cfDict.map(_expensivePropertyListConversion) as? [String: Any]
+        return cfDict.map(_expensivePropertyListConversion) as? [String : Any]
     }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
