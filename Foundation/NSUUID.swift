@@ -11,7 +11,7 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-    import Darwin
+    import Darwin.uuid
 #elseif os(Linux)
     import Glibc
 #endif
@@ -28,7 +28,7 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         if _cf_uuid_parse(string, buffer) != 0 {
             return nil
         }
-        self.init(UUIDBytes: buffer)
+        self.init(uuidBytes: buffer)
     }
     
     public init(UUIDBytes bytes: UnsafePointer<UInt8>) {
@@ -68,7 +68,7 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
             guard data.count == 16 else { return nil }
             let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
             data.copyBytes(to: buffer, count: 16)
-            self.init(UUIDBytes: buffer)
+            self.init(uuidBytes: buffer)
         } else {
             // NSUUIDs cannot be decoded by non-keyed coders
             coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
