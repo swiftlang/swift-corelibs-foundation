@@ -83,7 +83,7 @@ open class PropertyListSerialization : NSObject {
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
-            return _expensivePropertyListConversion(decoded!)
+            return _SwiftValue.fetch(decoded!)
         }
     }
     
@@ -103,7 +103,7 @@ open class PropertyListSerialization : NSObject {
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
-            return _expensivePropertyListConversion(decoded!)
+            return _SwiftValue.fetch(decoded!)
         }
     }
     
@@ -111,9 +111,3 @@ open class PropertyListSerialization : NSObject {
         NSUnimplemented()
     }
 }
-
-// Until we have proper bridging support, we will have to recursively convert NS/CFTypes to Swift types when we return them to callers. Otherwise, they may expect to treat them as Swift types and it will fail. Obviously this will cause a problem if they treat them as NS types, but we'll live with that for now.
-internal func _expensivePropertyListConversion(_ input : AnyObject) -> Any {
-    return _SwiftValue.fetch(input)
-}
-

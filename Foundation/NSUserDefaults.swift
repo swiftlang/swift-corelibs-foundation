@@ -155,7 +155,7 @@ open class UserDefaults: NSObject {
               let bVal = aVal as? NSArray else {
             return nil
         }
-        return _expensivePropertyListConversion(bVal) as? [String]
+        return _SwiftValue.fetch(bVal) as? [String]
     }
     open func integerForKey(_ defaultName: String) -> Int {
         guard let aVal = objectForKey(defaultName),
