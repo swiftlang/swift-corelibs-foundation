@@ -10,7 +10,7 @@
 
 // Predicates wrap some combination of expressions and operators and when evaluated return a BOOL.
 
-open class Predicate : NSObject, NSSecureCoding, NSCopying {
+open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
 
     private enum PredicateKind {
         case boolean(Bool)
@@ -44,6 +44,8 @@ open class Predicate : NSObject, NSSecureCoding, NSCopying {
     // Parse predicateFormat and return an appropriate predicate
     public init(format predicateFormat: String, argumentArray arguments: [Any]?) { NSUnimplemented() }
     
+    public init(format predicateFormat: String, arguments argList: CVaListPointer) { NSUnimplemented() }
+
     public init?(fromMetadataQueryString queryString: String) { NSUnimplemented() }
     
     public init(value: Bool) {
@@ -80,10 +82,12 @@ open class Predicate : NSObject, NSSecureCoding, NSCopying {
     open func allowEvaluation() { NSUnimplemented() } // Force a predicate which was securely decoded to allow evaluation
 }
 
+extension NSPredicate {
+    public convenience init(format predicateFormat: String, _ args: CVarArg...) { NSUnimplemented() }
+}
 
 extension NSArray {
-     // evaluate a predicate against an array of objects and return a filtered array
-    open func filtered(using predicate: Predicate) -> [Any] {
+    open func filtered(using predicate: NSPredicate) -> [Any] {
         return allObjects.filter({ object in
             return predicate.evaluate(with: object)
         })
@@ -91,8 +95,7 @@ extension NSArray {
 }
 
 extension NSMutableArray {
-    // evaluate a predicate against an array of objects and filter the mutable array directly
-    open func filter(using predicate: Predicate) {
+    open func filter(using predicate: NSPredicate) {
         var indexesToRemove = IndexSet()
         for (index, object) in self.enumerated() {
             if !predicate.evaluate(with: object) {
@@ -104,8 +107,7 @@ extension NSMutableArray {
 }
 
 extension NSSet {
-    // evaluate a predicate against a set of objects and return a filtered set
-    open func filtered(using predicate: Predicate) -> Set<AnyHashable> {
+    open func filtered(using predicate: NSPredicate) -> Set<AnyHashable> {
         let objs = allObjects.filter { (object) -> Bool in
             return predicate.evaluate(with: object)
         }
@@ -114,8 +116,7 @@ extension NSSet {
 }
 
 extension NSMutableSet {
-    // evaluate a predicate against a set of objects and filter the mutable set directly
-    open func filter(using predicate: Predicate) {
+    open func filter(using predicate: NSPredicate) {
         for object in self {
             if !predicate.evaluate(with: object) {
                 self.remove(object)
@@ -125,20 +126,18 @@ extension NSMutableSet {
 }
 
 extension NSOrderedSet {
-    // evaluate a predicate against an ordered set of objects and return a filtered ordered set
-    open func filtered(using p: Predicate) -> NSOrderedSet {
+    open func filtered(using predicate: NSPredicate) -> NSOrderedSet {
         return NSOrderedSet(array: self._orderedStorage.filter({ object in
-            return p.evaluate(with: object)
+            return predicate.evaluate(with: object)
         }))
     }
 }
 
 extension NSMutableOrderedSet {
-    // evaluate a predicate against an ordered set of objects and filter the mutable ordered set directly
-    open func filter(using p: Predicate) {
+    open func filter(using predicate: NSPredicate) {
         var indexesToRemove = IndexSet()
         for (index, object) in self.enumerated() {
-            if !p.evaluate(with: object) {
+            if !predicate.evaluate(with: object) {
                 indexesToRemove.insert(index)
             }
         }
