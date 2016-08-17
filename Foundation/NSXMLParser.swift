@@ -68,7 +68,7 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
             a = url
             if let scheme = url.scheme {
                 if scheme == "file" {
-                    a = URL(fileURLWithPath: url.path!)
+                    a = URL(fileURLWithPath: url.path)
                 }
             }
         }

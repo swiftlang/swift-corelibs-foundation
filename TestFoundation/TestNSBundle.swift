@@ -68,7 +68,7 @@ class TestNSBundle : XCTestCase {
         let testPlist = bundle.url(forResource: "Test", withExtension: "plist")
         XCTAssertNotNil(testPlist)
         XCTAssertEqual("Test.plist", testPlist!.lastPathComponent)
-        XCTAssert(FileManager.default.fileExists(atPath: testPlist!.path!))
+        XCTAssert(FileManager.default.fileExists(atPath: testPlist!.path))
         
         // aliases, paths
         XCTAssertEqual(testPlist!.path, bundle.url(forResource: "Test", withExtension: "plist", subdirectory: nil)!.path)

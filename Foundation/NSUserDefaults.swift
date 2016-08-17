@@ -221,18 +221,16 @@ open class UserDefaults: NSObject {
                 if !CFURLIsFileReferenceURL(url._cfObject) {
                     //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
                     //TODO: use stringByAbbreviatingWithTildeInPath when it is
-                    let urlPath = url.path!
+                    let urlPath = url.path
                     
                     setObject(urlPath._nsObject, forKey: defaultName)
                     return
                 }
             #else
-                if let urlPath = url.path {
-                    //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
-                    //TODO: use stringByAbbreviatingWithTildeInPath when it is
-                    setObject(urlPath._nsObject, forKey: defaultName)
-                    return
-                }
+                //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
+                //TODO: use stringByAbbreviatingWithTildeInPath when it is
+                setObject(url.path._nsObject, forKey: defaultName)
+                return
             #endif
             let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
             setObject(data._nsObject, forKey: defaultName)
