@@ -385,13 +385,13 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         }))
     }
     
-    open func sortedArray(_ comparator: @convention(c) (Any, Any, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?) -> [Any] {
+    open func sortedArray(_ comparator: (Any, Any, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?) -> [Any] {
         return sortedArray([]) { lhs, rhs in
             return ComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
     }
     
-    open func sortedArray(_ comparator: @convention(c) (Any, Any, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?, hint: Data?) -> [Any] {
+    open func sortedArray(_ comparator: (Any, Any, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?, hint: Data?) -> [Any] {
         return sortedArray([]) { lhs, rhs in
             return ComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
@@ -829,7 +829,7 @@ open class NSMutableArray : NSArray {
         }
     }
 
-    open func sortUsingFunction(_ compare: @convention(c) (Any, Any, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?) {
+    open func sortUsingFunction(_ compare: (Any, Any, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?) {
         self.setArray(self.sortedArray(compare, context: context))
     }
 
