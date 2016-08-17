@@ -234,8 +234,8 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     }
     
     /// Returns a character set containing the characters in Unicode General Category P*.
-    public static var punctuation : CharacterSet {
-        return NSCharacterSet.punctuation
+    public static var punctuationCharacters : CharacterSet {
+        return NSCharacterSet.punctuationCharacters
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lt.

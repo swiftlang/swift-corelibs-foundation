@@ -114,7 +114,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetGetPredefined(kCFCharacterSetIllegal)._swiftObject
     }
     
-    open class var punctuation: CharacterSet {
+    open class var punctuationCharacters: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetPunctuation)._swiftObject
     }
     
@@ -156,6 +156,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     
     public convenience required init(coder aDecoder: NSCoder) {
         self.init(charactersIn: "")
+        NSUnimplemented()
     }
     
     open func characterIsMember(_ aCharacter: unichar) -> Bool {
@@ -219,7 +220,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     open func encode(with aCoder: NSCoder) {
-        
+        NSUnimplemented()
     }
 }
 
