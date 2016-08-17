@@ -18,7 +18,7 @@
 class TestNSData: XCTestCase {
     
     // This is a type of Data that starts off as a storage of all 0x01s, but it only creates that buffer when needed. When mutated it converts into a more traditional data storage backed by a buffer.
-    public class AllOnesData : NSMutableData {
+    class AllOnesData : NSMutableData {
         
         private var _length : Int = 0
         var _pointer : UnsafeMutableBufferPointer<UInt8>? = nil {
@@ -38,13 +38,13 @@ class TestNSData: XCTestCase {
             _pointer = nil
             super.init()
         }
-        public convenience init?(length : Int) {
+        convenience init?(length : Int) {
             self.init()
             _length = length
             _pointer = nil
         }
         
-        public required init?(coder aDecoder: NSCoder) {
+        required init?(coder aDecoder: NSCoder) {
             // Not tested
             fatalError()
         }
@@ -55,7 +55,7 @@ class TestNSData: XCTestCase {
             }
         }
         
-        public override var length : Int {
+        override var length : Int {
             get {
                 return _length
             }
@@ -77,7 +77,7 @@ class TestNSData: XCTestCase {
             }
         }
         
-        public override var bytes : UnsafeRawPointer {
+        override var bytes : UnsafeRawPointer {
             if let d = _pointer {
                 return UnsafeRawPointer(d.baseAddress!)
             } else {
@@ -92,12 +92,12 @@ class TestNSData: XCTestCase {
             }
         }
         
-        override public var mutableBytes: UnsafeMutableRawPointer {
+        override var mutableBytes: UnsafeMutableRawPointer {
             let newBufferLength = _length
             let newBuffer = malloc(newBufferLength)
             if let ptr = _pointer {
                 // Copy the existing data to the new box, then return its pointer
-                memmove(newBuffer!, ptr.baseAddress!, newBufferLength)
+                memmove(newBuffer!, ptr.baseAddress, newBufferLength)
             } else {
                 // Set new data to 1s
                 memset(newBuffer!, 1, newBufferLength)
@@ -109,7 +109,7 @@ class TestNSData: XCTestCase {
             return UnsafeMutableRawPointer(result.baseAddress!)
         }
         
-        override public func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
+        override func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
             if let d = _pointer {
                 // Get the real data from the buffer
                 memmove(buffer, d.baseAddress!, length)
