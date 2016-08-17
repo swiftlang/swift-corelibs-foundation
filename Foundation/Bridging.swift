@@ -70,3 +70,71 @@ internal protocol _NSBridgable {
     var _nsObject: NSType { get }
 }
 
+
+/// - Note: This is an internal boxing value for containing abstract structures
+internal final class _SwiftValue : NSObject, NSCopying {
+    internal private(set) var value: Any
+    
+    static func fetch(_ object: AnyObject?) -> Any? {
+        if let obj = object {
+            return fetch(obj)
+        }
+        return nil
+    }
+    
+    static func fetch(_ object: AnyObject) -> Any {
+        if let container = object as? _SwiftValue {
+            return container.value
+        } else if let val = object as? _StructBridgeable {
+            return val._bridgeToAny()
+        } else {
+            return object
+        }
+    }
+    
+    static func store(_ value: Any?) -> NSObject? {
+        if let val = value {
+            return store(val)
+        }
+        return nil
+    }
+    
+    static func store(_ value: Any) -> NSObject {
+        if let val = value as? NSObject {
+            return val
+        } else if let val = value as? _ObjectBridgeable {
+            return val._bridgeToAnyObject() as! NSObject
+        } else {
+            return _SwiftValue(value)
+        }
+    }
+    
+    init(_ value: Any) {
+        self.value = value
+    }
+    
+    override var hash: Int {
+        if let hashable = value as? AnyHashable {
+            return hashable.hashValue
+        }
+        return ObjectIdentifier(self).hashValue
+    }
+    
+    override func isEqual(_ object: AnyObject?) -> Bool {
+        guard let other = object else {
+            return false
+        }
+        if let box = other as? _SwiftValue {
+            return isEqual(box.value as AnyObject?)
+        }
+        if let otherHashable = other as? AnyHashable,
+            let hashable = value as? AnyHashable {
+            return hashable == otherHashable
+        }
+        return false
+    }
+    
+    public func copy(with zone: NSZone?) -> Any {
+        return _SwiftValue(value)
+    }
+}
