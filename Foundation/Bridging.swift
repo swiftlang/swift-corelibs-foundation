@@ -125,7 +125,10 @@ internal final class _SwiftValue : NSObject, NSCopying {
             return false
         }
         if let box = other as? _SwiftValue {
-            return isEqual(box.value as AnyObject?)
+            if let otherHashable = box.value as? AnyHashable,
+                let hashable = value as? AnyHashable {
+                return hashable == otherHashable
+            }
         }
         if let otherHashable = other as? AnyHashable,
             let hashable = value as? AnyHashable {
