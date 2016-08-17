@@ -31,7 +31,7 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     /// Initialize a new `Notification`.
     ///
     /// The default value for `userInfo` is nil.
-    public init(name: Name, object: AnyObject? = nil, userInfo: [AnyHashable : Any]? = nil) {
+    public init(name: Name, object: Any? = nil, userInfo: [AnyHashable : Any]? = nil) {
         self.name = name
         self.object = object
         self.userInfo = userInfo
@@ -88,7 +88,7 @@ extension Notification : _ObjectTypeBridgeable {
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNotification, result: inout Notification?) -> Bool {
-        result = Notification(name: x.name, object: x.object as AnyObject?, userInfo: x.userInfo)
+        result = Notification(name: x.name, object: x.object, userInfo: x.userInfo)
         return true
     }
     
