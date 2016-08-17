@@ -45,7 +45,10 @@ extension TestNSJSONSerialization {
     }
     
     func test_JSONObjectWithData_emptyObject() {
-        let subject = Data(bytes: UnsafeRawPointer([UInt8]([0x7B, 0x7D])), count: 2)
+        var bytes: [UInt8] = [0x7B, 0x7D]
+        let subject = bytes.withUnsafeMutableBufferPointer {
+            return Data(buffer: $0)
+        }
         
         let object = try! JSONSerialization.jsonObject(with: subject, options: []) as? [String:Any]
         XCTAssertEqual(object?.count, 0)
@@ -75,7 +78,7 @@ extension TestNSJSONSerialization {
         ]
         
         for (description, encoded) in subjects {
-            let result = try? JSONSerialization.jsonObject(with: Data(bytes:UnsafeRawPointer(encoded), count: encoded.count), options: [])
+            let result = try? JSONSerialization.jsonObject(with: Data(bytes:encoded, count: encoded.count), options: [])
             XCTAssertNotNil(result, description)
         }
     }
