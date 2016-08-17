@@ -585,7 +585,7 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
     const _CFEncodingConverter **commonConverterSlot = NULL;
     static _CFEncodingConverter *commonConverters[3] = {NULL, NULL, NULL}; // UTF8, MacRoman/WinLatin1, and the default encoding*
     static CFMutableDictionaryRef mappingTable = NULL;
-    static OSSpinLock lock = OS_SPINLOCK_INIT;
+    static pthread_rwlock_t rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
     switch (encoding) {
 	case kCFStringEncodingUTF8: commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[0]); break;
@@ -603,15 +603,15 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
 	default: if (CFStringGetSystemEncoding() == encoding) commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[2]); break;
     }
 
-    OSSpinLockLock(&lock);
+    pthread_rwlock_rdlock(&rwlock);
     converter = ((NULL == commonConverterSlot) ? ((NULL == mappingTable) ? NULL : (const _CFEncodingConverter *)CFDictionaryGetValue(mappingTable, (const void *)(uintptr_t)encoding)) : *commonConverterSlot);
-    OSSpinLockUnlock(&lock);
+    pthread_rwlock_unlock(&rwlock);
 
     if (NULL == converter) {
         const CFStringEncodingConverter *definition = __CFStringEncodingConverterGetDefinition(encoding);
 
         if (NULL != definition) {
-            OSSpinLockLock(&lock);
+            pthread_rwlock_wrlock(&rwlock);
             converter = ((NULL == commonConverterSlot) ? ((NULL == mappingTable) ? NULL : (const _CFEncodingConverter *)CFDictionaryGetValue(mappingTable, (const void *)(uintptr_t)encoding)) : *commonConverterSlot);
 
             if (NULL == converter) {
@@ -625,7 +625,7 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
 		    *commonConverterSlot = converter;
 		}
             }
-            OSSpinLockUnlock(&lock);
+            pthread_rwlock_unlock(&rwlock);
         }
     }
 
