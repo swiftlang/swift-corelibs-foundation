@@ -449,7 +449,7 @@ class TestNSString : XCTestCase {
             var outName: NSString?
             var matches: [NSString] = []
             _ = path.completePathIntoString(&outName, caseSensitive: false, matchesIntoArray: &matches, filterTypes: nil)
-            let urlToTmp = try URL(fileURLWithPath: "/private/tmp/").standardizingPath()
+            let urlToTmp = URL(fileURLWithPath: "/private/tmp/").standardized
             _ = try FileManager.default.contentsOfDirectory(at: urlToTmp, includingPropertiesForKeys: nil, options: [])
             XCTAssert(outName == "/tmp/", "If path could be completed to existing directory then outName is a string itself plus '/'.")
             // This assert fails on CI; https://bugs.swift.org/browse/SR-389

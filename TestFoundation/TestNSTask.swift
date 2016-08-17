@@ -248,7 +248,7 @@ class TestNSTask : XCTestCase {
 }
 
 private func mkstemp(template: String, body: (FileHandle) throws -> Void) rethrows {
-    let url = try! URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestNSTask.XXXXXX")
+    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestNSTask.XXXXXX")
     var buffer = [Int8](repeating: 0, count: Int(PATH_MAX))
     try url.withUnsafeFileSystemRepresentation {
         switch mkstemp(UnsafeMutablePointer(mutating: $0)) {

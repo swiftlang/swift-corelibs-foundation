@@ -377,26 +377,13 @@ public extension NSString {
         let url = URL(fileURLWithPath: path)
         
         let searchAllFilesInDirectory = _stringIsPathToDirectory(path)
-        let namePrefix = searchAllFilesInDirectory ? nil : url.lastPathComponent
-        let checkFileName = _getFileNamePredicate(namePrefix, caseSensetive: flag)
-        let checkExtension = _getExtensionPredicate(filterTypes, caseSensetive: flag)
+        let namePrefix = searchAllFilesInDirectory ? "" : url.lastPathComponent
+        let checkFileName = _getFileNamePredicate(namePrefix, caseSensitive: flag)
+        let checkExtension = _getExtensionPredicate(filterTypes, caseSensitive: flag)
         
-        let resolvedURL: URL
-        let urlWhereToSearch: URL
-        if let url = url._resolveSymlinksInPath(excludeSystemDirs: false) {
-            resolvedURL = url
-        } else {
-            return 0
-        }
+        let resolvedURL: URL = url.resolvingSymlinksInPath()
+        let urlWhereToSearch: URL = searchAllFilesInDirectory ? resolvedURL : resolvedURL.deletingLastPathComponent()
         
-        
-        do {
-            urlWhereToSearch = searchAllFilesInDirectory ? resolvedURL : try resolvedURL.deletingLastPathComponent()
-        } catch {
-            return 0
-        }
-        
-
         var matches = _getNamesAtURL(urlWhereToSearch, prependWith: "", namePredicate: checkFileName, typePredicate: checkExtension)
         
         if matches.count == 1 {
@@ -445,9 +432,9 @@ public extension NSString {
                 
                 if matchByName && matchByExtension {
                     if prependWith.isEmpty {
-                        result.append(itemName!)
+                        result.append(itemName)
                     } else {
-                        result.append(prependWith.bridge().stringByAppendingPathComponent(itemName!))
+                        result.append(prependWith.bridge().stringByAppendingPathComponent(itemName))
                     }
                 }
             }
@@ -456,12 +443,12 @@ public extension NSString {
         return result
     }
     
-    internal func _getExtensionPredicate(_ extensions: [String]?, caseSensetive: Bool) -> _FileNamePredicate {
+    fileprivate func _getExtensionPredicate(_ extensions: [String]?, caseSensitive: Bool) -> _FileNamePredicate {
         guard let exts = extensions else {
             return { _ in true }
         }
         
-        if caseSensetive {
+        if caseSensitive {
             let set = Set(exts)
             return { $0 != nil && set.contains($0!) }
         } else {
@@ -470,15 +457,15 @@ public extension NSString {
         }
     }
     
-    internal func _getFileNamePredicate(_ prefix: String?, caseSensetive: Bool) -> _FileNamePredicate {
-        guard let thePrefix = prefix else {
+    fileprivate func _getFileNamePredicate(_ prefix: String, caseSensitive: Bool) -> _FileNamePredicate {
+        guard !prefix.isEmpty else {
             return { _ in true }
         }
 
-        if caseSensetive {
-            return { $0 != nil && $0!.hasPrefix(thePrefix) }
+        if caseSensitive {
+            return { $0 != nil && $0!.hasPrefix(prefix) }
         } else {
-            return { $0 != nil && $0!.bridge().range(of: thePrefix, options: .caseInsensitive).location == 0 }
+            return { $0 != nil && $0!.bridge().range(of: prefix, options: .caseInsensitive).location == 0 }
         }
     }
     

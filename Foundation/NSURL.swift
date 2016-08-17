@@ -96,7 +96,7 @@ extension URLResourceKey {
     public static let isSymbolicLinkKey = URLResourceKey(rawValue: "NSURLIsSymbolicLinkKey")
     public static let isVolumeKey = URLResourceKey(rawValue: "NSURLIsVolumeKey")
     public static let isPackageKey = URLResourceKey(rawValue: "NSURLIsPackageKey")
-    public static let isApplicationKey = URLResourceKey(rawValue: "_NSURLIsApplicationKey")
+    public static let isApplicationKey = URLResourceKey(rawValue: "NSURLIsApplicationKey")
     public static let applicationIsScriptableKey = URLResourceKey(rawValue: "NSURLApplicationIsScriptableKey")
     public static let isSystemImmutableKey = URLResourceKey(rawValue: "NSURLIsSystemImmutableKey")
     public static let isUserImmutableKey = URLResourceKey(rawValue: "NSURLIsUserImmutableKey")
@@ -122,15 +122,71 @@ extension URLResourceKey {
     public static let isReadableKey = URLResourceKey(rawValue: "NSURLIsReadableKey")
     public static let isWritableKey = URLResourceKey(rawValue: "NSURLIsWritableKey")
     public static let isExecutableKey = URLResourceKey(rawValue: "NSURLIsExecutableKey")
-    public static let pathKey = URLResourceKey(rawValue: "_NSURLPathKey")
+    public static let fileSecurityKey = URLResourceKey(rawValue: "NSURLFileSecurityKey")
+    public static let isExcludedFromBackupKey = URLResourceKey(rawValue: "NSURLIsExcludedFromBackupKey")
+    public static let tagNamesKey = URLResourceKey(rawValue: "NSURLTagNamesKey")
+    public static let pathKey = URLResourceKey(rawValue: "NSURLPathKey")
+    public static let canonicalPathKey = URLResourceKey(rawValue: "NSURLCanonicalPathKey")
+    public static let isMountTriggerKey = URLResourceKey(rawValue: "NSURLIsMountTriggerKey")
+    public static let generationIdentifierKey = URLResourceKey(rawValue: "NSURLGenerationIdentifierKey")
     public static let documentIdentifierKey = URLResourceKey(rawValue: "NSURLDocumentIdentifierKey")
     public static let addedToDirectoryDateKey = URLResourceKey(rawValue: "NSURLAddedToDirectoryDateKey")
+    public static let quarantinePropertiesKey = URLResourceKey(rawValue: "NSURLQuarantinePropertiesKey")
     public static let fileResourceTypeKey = URLResourceKey(rawValue: "NSURLFileResourceTypeKey")
+    public static let thumbnailDictionaryKey = URLResourceKey(rawValue: "NSURLThumbnailDictionaryKey")
+    public static let thumbnailKey = URLResourceKey(rawValue: "NSURLThumbnailKey")
     public static let fileSizeKey = URLResourceKey(rawValue: "NSURLFileSizeKey")
     public static let fileAllocatedSizeKey = URLResourceKey(rawValue: "NSURLFileAllocatedSizeKey")
     public static let totalFileSizeKey = URLResourceKey(rawValue: "NSURLTotalFileSizeKey")
     public static let totalFileAllocatedSizeKey = URLResourceKey(rawValue: "NSURLTotalFileAllocatedSizeKey")
     public static let isAliasFileKey = URLResourceKey(rawValue: "NSURLIsAliasFileKey")
+    public static let volumeLocalizedFormatDescriptionKey = URLResourceKey(rawValue: "NSURLVolumeLocalizedFormatDescriptionKey")
+    public static let volumeTotalCapacityKey = URLResourceKey(rawValue: "NSURLVolumeTotalCapacityKey")
+    public static let volumeAvailableCapacityKey = URLResourceKey(rawValue: "NSURLVolumeAvailableCapacityKey")
+    public static let volumeResourceCountKey = URLResourceKey(rawValue: "NSURLVolumeResourceCountKey")
+    public static let volumeSupportsPersistentIDsKey = URLResourceKey(rawValue: "NSURLVolumeSupportsPersistentIDsKey")
+    public static let volumeSupportsSymbolicLinksKey = URLResourceKey(rawValue: "NSURLVolumeSupportsSymbolicLinksKey")
+    public static let volumeSupportsHardLinksKey = URLResourceKey(rawValue: "NSURLVolumeSupportsHardLinksKey")
+    public static let volumeSupportsJournalingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsJournalingKey")
+    public static let volumeIsJournalingKey = URLResourceKey(rawValue: "NSURLVolumeIsJournalingKey")
+    public static let volumeSupportsSparseFilesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsSparseFilesKey")
+    public static let volumeSupportsZeroRunsKey = URLResourceKey(rawValue: "NSURLVolumeSupportsZeroRunsKey")
+    public static let volumeSupportsCaseSensitiveNamesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsCaseSensitiveNamesKey")
+    public static let volumeSupportsCasePreservedNamesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsCasePreservedNamesKey")
+    public static let volumeSupportsRootDirectoryDatesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsRootDirectoryDatesKey")
+    public static let volumeSupportsVolumeSizesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsVolumeSizesKey")
+    public static let volumeSupportsRenamingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsRenamingKey")
+    public static let volumeSupportsAdvisoryFileLockingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsAdvisoryFileLockingKey")
+    public static let volumeSupportsExtendedSecurityKey = URLResourceKey(rawValue: "NSURLVolumeSupportsExtendedSecurityKey")
+    public static let volumeIsBrowsableKey = URLResourceKey(rawValue: "NSURLVolumeIsBrowsableKey")
+    public static let volumeMaximumFileSizeKey = URLResourceKey(rawValue: "NSURLVolumeMaximumFileSizeKey")
+    public static let volumeIsEjectableKey = URLResourceKey(rawValue: "NSURLVolumeIsEjectableKey")
+    public static let volumeIsRemovableKey = URLResourceKey(rawValue: "NSURLVolumeIsRemovableKey")
+    public static let volumeIsInternalKey = URLResourceKey(rawValue: "NSURLVolumeIsInternalKey")
+    public static let volumeIsAutomountedKey = URLResourceKey(rawValue: "NSURLVolumeIsAutomountedKey")
+    public static let volumeIsLocalKey = URLResourceKey(rawValue: "NSURLVolumeIsLocalKey")
+    public static let volumeIsReadOnlyKey = URLResourceKey(rawValue: "NSURLVolumeIsReadOnlyKey")
+    public static let volumeCreationDateKey = URLResourceKey(rawValue: "NSURLVolumeCreationDateKey")
+    public static let volumeURLForRemountingKey = URLResourceKey(rawValue: "NSURLVolumeURLForRemountingKey")
+    public static let volumeUUIDStringKey = URLResourceKey(rawValue: "NSURLVolumeUUIDStringKey")
+    public static let volumeNameKey = URLResourceKey(rawValue: "NSURLVolumeNameKey")
+    public static let volumeLocalizedNameKey = URLResourceKey(rawValue: "NSURLVolumeLocalizedNameKey")
+    public static let volumeIsEncryptedKey = URLResourceKey(rawValue: "NSURLVolumeIsEncryptedKey")
+    public static let volumeIsRootFileSystemKey = URLResourceKey(rawValue: "NSURLVolumeIsRootFileSystemKey")
+    public static let volumeSupportsCompressionKey = URLResourceKey(rawValue: "NSURLVolumeSupportsCompressionKey")
+    public static let volumeSupportsFileCloningKey = URLResourceKey(rawValue: "NSURLVolumeSupportsFileCloningKey")
+    public static let volumeSupportsSwapRenamingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsSwapRenamingKey")
+    public static let volumeSupportsExclusiveRenamingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsExclusiveRenamingKey")
+    public static let isUbiquitousItemKey = URLResourceKey(rawValue: "NSURLIsUbiquitousItemKey")
+    public static let ubiquitousItemHasUnresolvedConflictsKey = URLResourceKey(rawValue: "NSURLUbiquitousItemHasUnresolvedConflictsKey")
+    public static let ubiquitousItemIsDownloadingKey = URLResourceKey(rawValue: "NSURLUbiquitousItemIsDownloadingKey")
+    public static let ubiquitousItemIsUploadedKey = URLResourceKey(rawValue: "NSURLUbiquitousItemIsUploadedKey")
+    public static let ubiquitousItemIsUploadingKey = URLResourceKey(rawValue: "NSURLUbiquitousItemIsUploadingKey")
+    public static let ubiquitousItemDownloadingStatusKey = URLResourceKey(rawValue: "NSURLUbiquitousItemDownloadingStatusKey")
+    public static let ubiquitousItemDownloadingErrorKey = URLResourceKey(rawValue: "NSURLUbiquitousItemDownloadingErrorKey")
+    public static let ubiquitousItemUploadingErrorKey = URLResourceKey(rawValue: "NSURLUbiquitousItemUploadingErrorKey")
+    public static let ubiquitousItemDownloadRequestedKey = URLResourceKey(rawValue: "NSURLUbiquitousItemDownloadRequestedKey")
+    public static let ubiquitousItemContainerDisplayNameKey = URLResourceKey(rawValue: "NSURLUbiquitousItemContainerDisplayNameKey")
 }
 
 
@@ -256,8 +312,8 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         if thePath.length > 0 {
             
             _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPOSIXPathStyle, isDir, baseURL?._cfObject)
-        } else if let baseURL = baseURL, let path = baseURL.path {
-            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, path._cfObject, kCFURLPOSIXPathStyle, baseURL.hasDirectoryPath, nil)
+        } else if let baseURL = baseURL {
+            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, baseURL.path._cfObject, kCFURLPOSIXPathStyle, baseURL.hasDirectoryPath, nil)
         }
     }
     
@@ -270,16 +326,13 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             isDir = true
         } else {
             let absolutePath: String
-            do {
-                if let absPath = try baseURL?.appendingPathComponent(path).path {
-                    absolutePath = absPath
-                } else {
-                    absolutePath = path
-                }
-                let _ = FileManager.default.fileExists(atPath: absolutePath, isDirectory: &isDir)
-            } catch {
-                // ignored
+            if let absPath = baseURL?.appendingPathComponent(path).path {
+                absolutePath = absPath
+            } else {
+                absolutePath = path
             }
+            
+            let _ = FileManager.default.fileExists(atPath: absolutePath, isDirectory: &isDir)
         }
 
         self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeTo: baseURL)
@@ -553,7 +606,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open func resourceIsReachable() throws -> Bool {
+    open func checkResourceIsReachable() throws -> Bool {
         NSUnimplemented()
     }
 
@@ -711,10 +764,9 @@ extension NSURL {
     open func appendingPathComponent(_ pathComponent: String) -> URL? {
         var result : URL? = appendingPathComponent(pathComponent, isDirectory: false)
         if !pathComponent.hasSuffix("/") && isFileURL {
-            if let urlWithoutDirectory = result,
-               let path = urlWithoutDirectory.path {
+            if let urlWithoutDirectory = result {
                 var isDir : Bool = false
-                if FileManager.default.fileExists(atPath: path, isDirectory: &isDir) && isDir {
+                if FileManager.default.fileExists(atPath: urlWithoutDirectory.path, isDirectory: &isDir) && isDir {
                     result = self.appendingPathComponent(pathComponent, isDirectory: true)
                 }
             }
@@ -769,7 +821,7 @@ extension NSURL {
         }
 
         
-        var components = URL(fileURLWithPath: absolutePath).pathComponents!
+        var components = URL(fileURLWithPath: absolutePath).pathComponents
         guard !components.isEmpty else {
             return URL(string: absoluteString)
         }

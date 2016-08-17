@@ -309,7 +309,7 @@ class TestNSFileManager : XCTestCase {
         
         do {
             let contents = try FileManager.default.contentsOfDirectory(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: []).map {
-                return $0.path!
+                return $0.path
             }
             XCTAssertEqual(contents.count, 2)
             XCTAssertTrue(contents.contains(itemPath))

@@ -50,11 +50,7 @@ open class Bundle: NSObject {
     }
     
     public convenience init?(url: URL) {
-        if let path = url.path {
-            self.init(path: path)
-        } else {
-            return nil
-        }
+        self.init(path: url.path)
     }
     
     public init(for aClass: AnyClass) { NSUnimplemented() }
@@ -70,7 +66,7 @@ open class Bundle: NSObject {
     }
     
     override open var description: String {
-        return "\(String(describing: Bundle.self)) <\(bundleURL.path!)> (\(isLoaded  ? "loaded" : "not yet loaded"))"
+        return "\(String(describing: Bundle.self)) <\(bundleURL.path)> (\(isLoaded  ? "loaded" : "not yet loaded"))"
     }
 
     
@@ -144,7 +140,7 @@ open class Bundle: NSObject {
     }
     
     open var bundlePath: String {
-        return bundleURL.path!
+        return bundleURL.path
     }
     
     open var resourcePath: String? {

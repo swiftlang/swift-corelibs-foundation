@@ -211,8 +211,8 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_url() {
-        let url = URL(string: "index.html", relativeTo: URL(string: "http://www.apple.com"))!
-        test_archive(url.bridge())
+        let url = NSURL(string: "index.html", relativeTo: URL(string: "http://www.apple.com"))!
+        test_archive(url)
     }
     
     func test_archive_charptr() {
