@@ -493,7 +493,7 @@ open class NSKeyedUnarchiver : NSCoder {
             // reference to a non-container object
             // FIXME remove these special cases
             if let str = dereferencedObject as? String {
-                object = str.bridge()
+                object = str._bridgeToObjectiveC()
             } else {
                 object = dereferencedObject
             }
@@ -762,7 +762,7 @@ open class NSKeyedUnarchiver : NSCoder {
             break
         case .Class:
             if let ns = decodeObject() as? NSString {
-                if let nsClass = NSClassFromString(ns.bridge()) {
+                if let nsClass = NSClassFromString(String._unconditionallyBridgeFromObjectiveC(ns)) {
                     unsafeBitCast(addr, to: UnsafeMutablePointer<AnyClass>.self).pointee = nsClass
                 }
             }

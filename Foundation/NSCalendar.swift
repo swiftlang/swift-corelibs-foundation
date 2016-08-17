@@ -170,7 +170,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.calendarIdentifier.rawValue.bridge(), forKey: "NS.identifier")
+            aCoder.encode(self.calendarIdentifier.rawValue._bridgeToObjectiveC(), forKey: "NS.identifier")
             aCoder.encode(self.timeZone._nsObject, forKey: "NS.timezone")
             aCoder.encode(self.locale?._bridgeToObjectiveC(), forKey: "NS.locale")
             aCoder.encode(self.firstWeekday, forKey: "NS.firstwkdy")
@@ -1843,4 +1843,20 @@ extension CFCalendar : _NSBridgable, _SwiftBridgable {
     typealias NSType = NSCalendar
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
     internal var _swiftObject: Calendar { return _nsObject._swiftObject }
+}
+
+extension NSCalendar : _StructTypeBridgeable {
+    public typealias _StructType = Calendar
+    
+    public func _bridgeToSwift() -> Calendar {
+        return Calendar._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+extension NSDateComponents : _StructTypeBridgeable {
+    public typealias _StructType = DateComponents
+    
+    public func _bridgeToSwift() -> DateComponents {
+        return DateComponents._unconditionallyBridgeFromObjectiveC(self)
+    }
 }

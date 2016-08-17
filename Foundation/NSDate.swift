@@ -400,3 +400,19 @@ open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
         return false
     }
 }
+
+extension NSDate : _StructTypeBridgeable {
+    public typealias _StructType = Date
+    
+    public func _bridgeToSwift() -> Date {
+        return Date._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+extension NSDateInterval : _StructTypeBridgeable {
+    public typealias _StructType = DateInterval
+    
+    public func _bridgeToSwift() -> DateInterval {
+        return DateInterval._unconditionallyBridgeFromObjectiveC(self)
+    }
+}

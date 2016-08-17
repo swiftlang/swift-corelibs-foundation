@@ -214,7 +214,7 @@ extension IndexPath : CustomStringConvertible, CustomDebugStringConvertible, Cus
     }
 }
 
-extension IndexPath {
+extension IndexPath : _ObjectTypeBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexPath.self
     }

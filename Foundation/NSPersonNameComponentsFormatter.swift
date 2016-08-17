@@ -65,7 +65,7 @@ open class PersonNameComponentsFormatter : Formatter {
     /* Returns attributed string with annotations for each component. For each range, attributes can be obtained by querying
         dictionary key NSPersonNameComponentKey , using NSPersonNameComponent constant values.
      */
-    open func annotatedString(from components: PersonNameComponents) -> AttributedString { NSUnimplemented() }
+    open func annotatedString(from components: PersonNameComponents) -> NSAttributedString { NSUnimplemented() }
     
     open func personNameComponents(from string: String) -> PersonNameComponents? { NSUnimplemented() }
     

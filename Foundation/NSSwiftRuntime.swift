@@ -186,127 +186,6 @@ internal func __CFInitializeSwift() {
     __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
 
-public protocol _ObjectTypeBridgeable {
-    associatedtype _ObjectType : AnyObject
-    
-    /// Convert `self` to an Object type
-    func _bridgeToObject() -> _ObjectType
-    
-    /// Bridge from an object of the bridged class type to a value of 
-    /// the Self type.
-    ///
-    /// This bridging operation is used for forced downcasting (e.g.,
-    /// via as), and may defer complete checking until later. For
-    /// example, when bridging from `NSArray` to `Array<Element>`, we can defer
-    /// the checking for the individual elements of the array.
-    ///
-    /// - parameter result: The location where the result is written. The optional
-    ///   will always contain a value.
-    static func _forceBridgeFromObject(
-        _ source: _ObjectType,
-        result: inout Self?
-    )
-    
-    /// Try to bridge from an object of the bridged class type to a value of 
-    /// the Self type.
-    ///
-    /// This conditional bridging operation is used for conditional
-    /// downcasting (e.g., via as?) and therefore must perform a
-    /// complete conversion to the value type; it cannot defer checking
-    /// to a later time.
-    ///
-    /// - parameter result: The location where the result is written.
-    ///
-    /// - Returns: `true` if bridging succeeded, `false` otherwise. This redundant
-    ///   information is provided for the convenience of the runtime's `dynamic_cast`
-    ///   implementation, so that it need not look into the optional representation
-    ///   to determine success.
-    static func _conditionallyBridgeFromObject(
-        _ source: _ObjectType,
-        result: inout Self?
-    ) -> Bool
-}
-
-protocol _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject
-}
-
-internal func _NSObjectRepresentableBridge(_ value: Any) -> NSObject {
-    if let obj = value as? _NSObjectRepresentable {
-        return obj._nsObjectRepresentation()
-    } else if let str = value as? String {
-        return str._nsObjectRepresentation()
-    } else if let obj = value as? NSObject {
-        return obj
-    } else if let obj = value as? Int {
-        return obj._bridgeToObject()
-    } else if let obj = value as? UInt {
-        return obj._bridgeToObject()
-    } else if let obj = value as? Float {
-        return obj._bridgeToObject()
-    } else if let obj = value as? Double {
-        return obj._bridgeToObject()
-    } else if let obj = value as? Bool {
-        return obj._bridgeToObject()
-    }
-    fatalError("Unable to convert value of type \(type(of: value))")
-}
-
-extension Array : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Dictionary : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-
-extension String : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Set : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Int : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension UInt : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Float : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Double : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Bool : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
     return unsafeBitCast(lhs, to: UnsafeRawPointer.self) == unsafeBitCast(rhs, to: UnsafeRawPointer.self)
 }
@@ -370,13 +249,63 @@ extension Array {
     }
 }
 
-public protocol Bridgeable {
-    associatedtype BridgeType
-    func bridge() -> BridgeType
-}
 
 #if os(OSX) || os(iOS)
     internal typealias _DarwinCompatibleBoolean = DarwinBoolean
 #else
     internal typealias _DarwinCompatibleBoolean = Bool
 #endif
+
+/// - Note: This is an internal boxing value for containing abstract structures
+internal final class _SwiftValue : NSObject, NSCopying {
+    internal private(set) var value: Any
+    
+    static func fetch(_ object: AnyObject) -> Any {
+        if let container = object as? _SwiftValue {
+            return container.value
+        } else if let val = object as? _StructBridgeable {
+            return val._bridgeToAny()
+        } else {
+            return object
+        }
+    }
+    
+    static func store(_ value: Any) -> NSObject {
+        if let val = value as? NSObject {
+            return val
+        } else if let val = value as? _ObjectBridgeable {
+            return val._bridgeToAnyObject() as! NSObject
+        } else {
+            return _SwiftValue(value)
+        }
+    }
+    
+    init(_ value: Any) {
+        self.value = value
+    }
+    
+    override var hash: Int {
+        if let hashable = value as? AnyHashable {
+            return hashable.hashValue
+        }
+        return ObjectIdentifier(self).hashValue
+    }
+    
+    override func isEqual(_ object: AnyObject?) -> Bool {
+        guard let other = object else {
+            return false
+        }
+        if let box = other as? _SwiftValue {
+            return isEqual(box.value as AnyObject?)
+        }
+        if let otherHashable = other as? AnyHashable,
+            let hashable = value as? AnyHashable {
+            return hashable == otherHashable
+        }
+        return false
+    }
+    
+    public func copy(with zone: NSZone?) -> Any {
+        return _SwiftValue(value)
+    }
+}

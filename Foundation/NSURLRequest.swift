@@ -483,3 +483,11 @@ private func existingHeaderField(_ key: String, inHeaderFields fields: [String: 
     }
     return nil
 }
+
+extension NSURLRequest : _StructTypeBridgeable {
+    public typealias _StructType = URLRequest
+    
+    public func _bridgeToSwift() -> URLRequest {
+        return URLRequest._unconditionallyBridgeFromObjectiveC(self)
+    }
+}

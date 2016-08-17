@@ -348,3 +348,63 @@ extension URLQueryItem : _NSBridgable {
     typealias NSType = NSURLQueryItem
     internal var _nsObject: NSType { return _queryItem }
 }
+
+extension URLComponents : _ObjectTypeBridgeable {
+    public typealias _ObjectType = NSURLComponents
+    
+    public static func _getObjectiveCType() -> Any.Type {
+        return NSURLComponents.self
+    }
+    
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSURLComponents {
+        return _handle._copiedReference()
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ x: NSURLComponents, result: inout URLComponents?) {
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(_ObjectType.self) to \(self)")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSURLComponents, result: inout URLComponents?) -> Bool {
+        result = URLComponents(reference: x)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSURLComponents?) -> URLComponents {
+        var result: URLComponents? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
+}
+
+extension URLQueryItem : _ObjectTypeBridgeable {
+    public typealias _ObjectType = NSURLQueryItem
+    
+    public static func _getObjectiveCType() -> Any.Type {
+        return NSURLQueryItem.self
+    }
+    
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSURLQueryItem {
+        return _queryItem
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ x: NSURLQueryItem, result: inout URLQueryItem?) {
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(_ObjectType.self) to \(self)")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSURLQueryItem, result: inout URLQueryItem?) -> Bool {
+        result = URLQueryItem(reference: x)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSURLQueryItem?) -> URLQueryItem {
+        var result: URLQueryItem? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
+}

@@ -10,101 +10,40 @@
 
 import CoreFoundation
 
-extension Set : _ObjectTypeBridgeable {
-    public func _bridgeToObject() -> NSSet {
-        let buffer = UnsafeMutablePointer<AnyObject?>.allocate(capacity: count)
-        
-        for (idx, obj) in enumerated() {
-            buffer.advanced(by: idx).initialize(to: _NSObjectRepresentableBridge(obj))
-        }
-        
-        let set = NSSet(objects: buffer, count: count)
-        
-        buffer.deinitialize(count: count)
-        buffer.deallocate(capacity: count)
-        
-        return set
-    }
-    
-    public static func _forceBridgeFromObject(_ x: NSSet, result: inout Set?) {
-        var set = Set<Element>()
-        var failedConversion = false
-        
-        if type(of: x) == NSSet.self || type(of: x) == NSMutableSet.self {
-            x.enumerateObjects([]) { obj, stop in
-                if let o = obj as? Element {
-                    set.insert(o)
-                } else {
-                    failedConversion = true
-                    stop.pointee = true
-                }
-            }
-        } else if type(of: x) == _NSCFSet.self {
-            let cf = x._cfObject
-            let cnt = CFSetGetCount(cf)
-            
-            let objs = UnsafeMutablePointer<UnsafeRawPointer?>.allocate(capacity: cnt)
-            
-            CFSetGetValues(cf, objs)
-            
-            for idx in 0..<cnt {
-                let obj = unsafeBitCast(objs.advanced(by: idx), to: AnyObject.self)
-                if let o = obj as? Element {
-                    set.insert(o)
-                } else {
-                    failedConversion = true
-                    break
-                }
-            }
-            objs.deinitialize(count: cnt)
-            objs.deallocate(capacity: cnt)
-        }
-        if !failedConversion {
-            result = set
-        }
-    }
-    
-    public static func _conditionallyBridgeFromObject(_ x: NSSet, result: inout Set?) -> Bool {
-        self._forceBridgeFromObject(x, result: &result)
-        return true
-    }
-}
-
 open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
     internal var _storage: Set<NSObject>
     
     open var count: Int {
         guard type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self || type(of: self) === NSCountedSet.self else {
-                NSRequiresConcreteImplementation()
+            NSRequiresConcreteImplementation()
         }
         return _storage.count
     }
     
-    open func member(_ object: AnyObject) -> AnyObject? {
+    open func member(_ object: Any) -> Any? {
         guard type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self || type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        
-        guard let obj = object as? NSObject, _storage.contains(obj) else {
-            return nil
+        let value = _SwiftValue.store(object)
+        if _storage.contains(value) {
+            return object // this is not exactly the same behavior, but it is reasonably close
         }
-        
-        return obj // this is not exactly the same behavior, but it is reasonably close
+        return nil
     }
     
     open func objectEnumerator() -> NSEnumerator {
         guard type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self || type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        return NSGeneratorEnumerator(_storage.makeIterator())
+        return NSGeneratorEnumerator(_storage.map { _SwiftValue.fetch($0) }.makeIterator())
     }
 
     public convenience override init() {
         self.init(objects: [], count: 0)
     }
     
-    public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
+    public init(objects: UnsafePointer<AnyObject>!, count cnt: Int) {
         _storage = Set(minimumCapacity: cnt)
         super.init()
         let buffer = UnsafeBufferPointer(start: objects, count: cnt)
@@ -122,11 +61,11 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
             withUnsafeMutablePointer(to: &cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
                 aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
             }
-            let objects = UnsafeMutablePointer<AnyObject?>.allocate(capacity: Int(cnt))
+            let objects = UnsafeMutablePointer<AnyObject>.allocate(capacity: Int(cnt))
             for idx in 0..<cnt {
                 objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject() as! NSObject)
             }
-            self.init(objects: UnsafePointer<AnyObject?>(objects), count: Int(cnt))
+            self.init(objects: objects, count: Int(cnt))
             objects.deinitialize(count: Int(cnt))
             objects.deallocate(capacity: Int(cnt))
         } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
@@ -193,112 +132,125 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
             return false
         }
         let otherSet = otherObject as! NSSet
-        return self.isEqual(to: otherSet.bridge())
+        return self.isEqual(to: Set._unconditionallyBridgeFromObjectiveC(otherSet))
     }
 
     open override var hash: Int {
         return self.count
     }
 
-    public convenience init(array: [AnyObject]) {
-        let buffer = UnsafeMutablePointer<AnyObject?>.allocate(capacity: array.count)
+    public convenience init(array: [Any]) {
+        let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: array.count)
         for (idx, element) in array.enumerated() {
-            buffer.advanced(by: idx).initialize(to: element)
+            buffer.advanced(by: idx).initialize(to: _SwiftValue.store(element))
         }
         self.init(objects: buffer, count: array.count)
         buffer.deinitialize(count: array.count)
         buffer.deallocate(capacity: array.count)
     }
 
-    public convenience init(set: Set<NSObject>) {
+    public convenience init(set: Set<AnyHashable>) {
         self.init(set: set, copyItems: false)
     }
 
-    public convenience init(set: Set<NSObject>, copyItems flag: Bool) {
-        var array = set.bridge().allObjects
-        if (flag) {
-            array = array.map() { ($0 as! NSObject).copy() as! NSObject }
+    public convenience init(set: Set<AnyHashable>, copyItems flag: Bool) {
+        if flag {
+            self.init(array: set.map {
+                if let item = $0 as? NSObject {
+                    return item.copy()
+                } else {
+                    return $0
+                }
+            })
+        } else {
+            self.init(array: set.map { $0 })
         }
-        self.init(array: array)
     }
 }
 
 extension NSSet {
     
-    public convenience init(object: AnyObject) {
+    public convenience init(object: Any) {
         self.init(array: [object])
     }
 }
 
 extension NSSet {
     
-    public var allObjects: [AnyObject] {
-        // Would be nice to use `Array(self)` here but compiler
-        // crashes on Linux @ swift 6e3e83c
-        return map { $0 }
+    public var allObjects: [Any] {
+        if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
+            return _storage.map { _SwiftValue.fetch($0) }
+        } else {
+            let enumerator = objectEnumerator()
+            var items = [Any]()
+            while let val = enumerator.nextObject() {
+                items.append(val)
+            }
+            return items
+        }
     }
     
-    public func anyObject() -> AnyObject? {
+    public func anyObject() -> Any? {
         return objectEnumerator().nextObject()
     }
     
-    public func contains(_ anObject: AnyObject) -> Bool {
+    public func contains(_ anObject: Any) -> Bool {
         return member(anObject) != nil
     }
     
-    public func intersects(_ otherSet: Set<NSObject>) -> Bool {
+    public func intersects(_ otherSet: Set<AnyHashable>) -> Bool {
         if count < otherSet.count {
-            return contains { obj in otherSet.contains(obj as! NSObject) }
+            return contains { obj in otherSet.contains(obj) }
         } else {
             return otherSet.contains { obj in contains(obj) }
         }
     }
     
-    public func isEqual(to otherSet: Set<NSObject>) -> Bool {
+    public func isEqual(to otherSet: Set<AnyHashable>) -> Bool {
         return count == otherSet.count && isSubset(of: otherSet)
     }
     
-    public func isSubset(of otherSet: Set<NSObject>) -> Bool {
+    public func isSubset(of otherSet: Set<AnyHashable>) -> Bool {
         // `true` if we don't contain any object that `otherSet` doesn't contain.
-        return !self.contains { obj in !otherSet.contains(obj as! NSObject) }
+        return !self.contains { obj in !otherSet.contains(obj) }
     }
 
-    public func adding(_ anObject: AnyObject) -> Set<NSObject> {
+    public func adding(_ anObject: Any) -> Set<AnyHashable> {
         return self.addingObjects(from: [anObject])
     }
     
-    public func addingObjects(from other: Set<NSObject>) -> Set<NSObject> {
-        var result = Set<NSObject>(minimumCapacity: Swift.max(count, other.count))
+    public func addingObjects(from other: Set<AnyHashable>) -> Set<AnyHashable> {
+        var result = Set<AnyHashable>(minimumCapacity: Swift.max(count, other.count))
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
-            result.formUnion(_storage)
+            result.formUnion(_storage.map { _SwiftValue.fetch($0) as! AnyHashable })
         } else {
             for case let obj as NSObject in self {
-                result.insert(obj)
+                _ = result.insert(obj)
             }
         }
         return result.union(other)
     }
     
-    public func addingObjects(from other: [AnyObject]) -> Set<NSObject> {
-        var result = Set<NSObject>(minimumCapacity: count)
+    public func addingObjects(from other: [Any]) -> Set<AnyHashable> {
+        var result = Set<AnyHashable>(minimumCapacity: count)
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
-            result.formUnion(_storage)
+            result.formUnion(_storage.map { _SwiftValue.fetch($0) as! AnyHashable })
         } else {
-            for case let obj as NSObject in self {
+            for case let obj as AnyHashable in self {
                 result.insert(obj)
             }
         }
-        for case let obj as NSObject in other {
+        for case let obj as AnyHashable in other {
             result.insert(obj)
         }
         return result
     }
 
-    public func enumerateObjects(_ block: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjects(_ block: (Any, UnsafeMutablePointer<ObjCBool>) -> Void) {
         enumerateObjects([], using: block)
     }
     
-    public func enumerateObjects(_ opts: NSEnumerationOptions = [], using block: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateObjects(_ opts: NSEnumerationOptions = [], using block: (Any, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop : ObjCBool = false
         for obj in self {
             withUnsafeMutablePointer(to: &stop) { stop in
@@ -310,15 +262,15 @@ extension NSSet {
         }
     }
 
-    public func objects(passingTest predicate: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
+    public func objects(passingTest predicate: (Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<AnyHashable> {
         return objects([], passingTest: predicate)
     }
     
-    public func objects(_ opts: NSEnumerationOptions = [], passingTest predicate: (AnyObject, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
-        var result = Set<NSObject>()
+    public func objects(_ opts: NSEnumerationOptions = [], passingTest predicate: (Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<AnyHashable> {
+        var result = Set<AnyHashable>()
         enumerateObjects(opts) { obj, stopp in
             if predicate(obj, stopp) {
-                result.insert(obj as! NSObject)
+                result.insert(obj as! AnyHashable)
             }
         }
         return result
@@ -327,11 +279,7 @@ extension NSSet {
 
 extension NSSet : _CFBridgable, _SwiftBridgable {
     internal var _cfObject: CFSet { return unsafeBitCast(self, to: CFSet.self) }
-    internal var _swiftObject: Set<NSObject> {
-        var set: Set<NSObject>?
-        Set._forceBridgeFromObject(self, result: &set)
-        return set!
-    }
+    internal var _swiftObject: Set<NSObject> { return Set._unconditionallyBridgeFromObjectiveC(self) }
 }
 
 extension CFSet : _NSBridgable, _SwiftBridgable {
@@ -340,7 +288,7 @@ extension CFSet : _NSBridgable, _SwiftBridgable {
 }
 
 extension Set : _NSBridgable, _CFBridgable {
-    internal var _nsObject: NSSet { return _bridgeToObject() }
+    internal var _nsObject: NSSet { return _bridgeToObjectiveC() }
     internal var _cfObject: CFSet { return _nsObject._cfObject }
 }
 
@@ -353,24 +301,22 @@ extension NSSet : Sequence {
 
 open class NSMutableSet : NSSet {
     
-    open func add(_ object: AnyObject) {
+    open func add(_ object: Any) {
         guard type(of: self) === NSMutableSet.self else {
             NSRequiresConcreteImplementation()
         }
-        _storage.insert(object as! NSObject)
+        _storage.insert(_SwiftValue.store(object))
     }
     
-    open func remove(_ object: AnyObject) {
+    open func remove(_ object: Any) {
         guard type(of: self) === NSMutableSet.self else {
             NSRequiresConcreteImplementation()
         }
 
-        if let obj = object as? NSObject {
-            _storage.remove(obj)
-        }
+        _storage.remove(_SwiftValue.store(object))
     }
     
-    override public init(objects: UnsafePointer<AnyObject?>, count cnt: Int) {
+    override public init(objects: UnsafePointer<AnyObject>!, count cnt: Int) {
         super.init(objects: objects, count: cnt)
     }
 
@@ -386,29 +332,31 @@ open class NSMutableSet : NSSet {
         NSUnimplemented()
     }
     
-    open func addObjects(from array: [AnyObject]) {
+    open func addObjects(from array: [Any]) {
         if type(of: self) === NSMutableSet.self {
-            for case let obj as NSObject in array {
-                _storage.insert(obj)
+            for case let obj in array {
+                _storage.insert(_SwiftValue.store(obj))
             }
         } else {
             array.forEach(add)
         }
     }
     
-    open func intersect(_ otherSet: Set<NSObject>) {
+    open func intersect(_ otherSet: Set<AnyHashable>) {
         if type(of: self) === NSMutableSet.self {
-            _storage.formIntersection(otherSet)
+            _storage.formIntersection(otherSet.map { _SwiftValue.store($0) })
         } else {
-            for case let obj as NSObject in self where !otherSet.contains(obj) {
-                remove(obj)
+            for obj in self {
+                if !otherSet.contains(obj as! AnyHashable) {
+                    remove(obj)
+                }
             }
         }
     }
     
-    open func minus(_ otherSet: Set<NSObject>) {
+    open func minus(_ otherSet: Set<AnyHashable>) {
         if type(of: self) === NSMutableSet.self {
-            _storage.subtract(otherSet)
+            _storage.subtract(otherSet.map { _SwiftValue.store($0) })
         } else {
             otherSet.forEach(remove)
         }
@@ -422,17 +370,17 @@ open class NSMutableSet : NSSet {
         }
     }
     
-    open func union(_ otherSet: Set<NSObject>) {
+    open func union(_ otherSet: Set<AnyHashable>) {
         if type(of: self) === NSMutableSet.self {
-            _storage.formUnion(otherSet)
+            _storage.formUnion(otherSet.map { _SwiftValue.store($0) })
         } else {
             otherSet.forEach(add)
         }
     }
     
-    open func setSet(_ otherSet: Set<NSObject>) {
+    open func setSet(_ otherSet: Set<AnyHashable>) {
         if type(of: self) === NSMutableSet.self {
-            _storage = otherSet
+            _storage = Set(otherSet.map { _SwiftValue.store($0) })
         } else {
             removeAllObjects()
             union(otherSet)
@@ -454,21 +402,20 @@ open class NSCountedSet : NSMutableSet {
         self.init(capacity: 0)
     }
 
-    public convenience init(array: [AnyObject]) {
+    public convenience init(array: [Any]) {
         self.init(capacity: array.count)
         for object in array {
-            if let object = object as? NSObject {
-                if let count = _table[object] {
-                    _table[object] = count + 1
-                } else {
-                    _table[object] = 1
-                    _storage.insert(object)
-                }
+            let value = _SwiftValue.store(object)
+            if let count = _table[value] {
+                _table[value] = count + 1
+            } else {
+                _table[value] = 1
+                _storage.insert(value)
             }
         }
     }
 
-    public convenience init(set: Set<NSObject>) {
+    public convenience init(set: Set<AnyHashable>) {
         self.init(array: set.map { $0 })
     }
 
@@ -494,42 +441,44 @@ open class NSCountedSet : NSMutableSet {
         return NSCountedSet(array: self.allObjects)
     }
 
-    open func countForObject(_ object: AnyObject) -> Int {
+    open func count(for object: Any) -> Int {
         guard type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        guard let count = _table[object as! NSObject] else {
+        let value = _SwiftValue.store(object)
+        guard let count = _table[value] else {
             return 0
         }
         return count
     }
 
-    open override func add(_ object: AnyObject) {
+    open override func add(_ object: Any) {
         guard type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-
-        if let count = _table[object as! NSObject] {
-            _table[object as! NSObject] = count + 1
+        let value = _SwiftValue.store(object)
+        if let count = _table[value] {
+            _table[value] = count + 1
         } else {
-            _table[object as! NSObject] = 1
-            _storage.insert(object as! NSObject)
+            _table[value] = 1
+            _storage.insert(value)
         }
     }
 
-    open override func remove(_ object: AnyObject) {
+    open override func remove(_ object: Any) {
         guard type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        guard let count = _table[object as! NSObject] else {
+        let value = _SwiftValue.store(object)
+        guard let count = _table[value] else {
             return
         }
 
         if count > 1 {
-            _table[object as! NSObject] = count - 1
+            _table[value] = count - 1
         } else {
-            _table[object as! NSObject] = nil
-            _storage.remove(object as! NSObject)
+            _table[value] = nil
+            _storage.remove(value)
         }
     }
 
@@ -543,10 +492,10 @@ open class NSCountedSet : NSMutableSet {
     }
 }
 
-extension Set : Bridgeable {
-    public func bridge() -> NSSet { return _nsObject }
-}
-
-extension NSSet : Bridgeable {
-    public func bridge() -> Set<NSObject> { return _swiftObject }
+extension NSSet : _StructTypeBridgeable {
+    public typealias _StructType = Set<AnyHashable>
+    
+    public func _bridgeToSwift() -> _StructType {
+        return _StructType._unconditionallyBridgeFromObjectiveC(self)
+    }
 }

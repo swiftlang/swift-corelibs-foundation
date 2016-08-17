@@ -464,7 +464,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
 
 
 // MARK: Objective-C Bridging
-extension CharacterSet {
+ extension CharacterSet : _ObjectTypeBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

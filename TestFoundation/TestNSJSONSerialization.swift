@@ -596,7 +596,7 @@ extension TestNSJSONSerialization {
         ]
     }
 
-    func trySerialize(_ obj: AnyObject) throws -> String {
+    func trySerialize(_ obj: Any) throws -> String {
         let data = try JSONSerialization.data(withJSONObject: obj, options: [])
         guard let string = String(data: data, encoding: .utf8) else {
             XCTFail("Unable to create string")
@@ -606,127 +606,127 @@ extension TestNSJSONSerialization {
     }
 
     func test_serialize_emptyObject() {
-        let dict1 = [String: Any]().bridge()
+        let dict1 = [String: Any]()
         XCTAssertEqual(try trySerialize(dict1), "{}")
             
-        let dict2 = [String: NSNumber]().bridge()
+        let dict2 = [String: NSNumber]()
         XCTAssertEqual(try trySerialize(dict2), "{}")
 
-        let dict3 = [String: String]().bridge()
+        let dict3 = [String: String]()
         XCTAssertEqual(try trySerialize(dict3), "{}")
 
-        let array1 = [String]().bridge()
+        let array1 = [String]()
         XCTAssertEqual(try trySerialize(array1), "[]")
 
-        let array2 = [NSNumber]().bridge()
+        let array2 = [NSNumber]()
         XCTAssertEqual(try trySerialize(array2), "[]")
     }
     
     func test_serialize_null() {
-        let arr = [NSNull()].bridge()
+        let arr = [NSNull()]
         XCTAssertEqual(try trySerialize(arr), "[null]")
         
-        let dict = ["a":NSNull()].bridge()
+        let dict = ["a":NSNull()]
         XCTAssertEqual(try trySerialize(dict), "{\"a\":null}")
         
-        let arr2 = [NSNull(), NSNull(), NSNull()].bridge()
+        let arr2 = [NSNull(), NSNull(), NSNull()]
         XCTAssertEqual(try trySerialize(arr2), "[null,null,null]")
         
-        let dict2 = [["a":NSNull()], ["b":NSNull()], ["c":NSNull()]].bridge()
+        let dict2 = [["a":NSNull()], ["b":NSNull()], ["c":NSNull()]]
         XCTAssertEqual(try trySerialize(dict2), "[{\"a\":null},{\"b\":null},{\"c\":null}]")
     }
 
     func test_serialize_complexObject() {
-        let jsonDict = ["a": 4].bridge()
+        let jsonDict = ["a": 4]
         XCTAssertEqual(try trySerialize(jsonDict), "{\"a\":4}")
 
-        let jsonArr = [1, 2, 3, 4].bridge()
+        let jsonArr = [1, 2, 3, 4]
         XCTAssertEqual(try trySerialize(jsonArr), "[1,2,3,4]")
 
-        let jsonDict2 = ["a": [1,2]].bridge()
+        let jsonDict2 = ["a": [1,2]]
         XCTAssertEqual(try trySerialize(jsonDict2), "{\"a\":[1,2]}")
 
-        let jsonArr2 = ["a", "b", "c"].bridge()
+        let jsonArr2 = ["a", "b", "c"]
         XCTAssertEqual(try trySerialize(jsonArr2), "[\"a\",\"b\",\"c\"]")
         
-        let jsonArr3 = [["a":1],["b":2]].bridge()
+        let jsonArr3 = [["a":1],["b":2]]
         XCTAssertEqual(try trySerialize(jsonArr3), "[{\"a\":1},{\"b\":2}]")
         
-        let jsonArr4 = [["a":NSNull()],["b":NSNull()]].bridge()
+        let jsonArr4 = [["a":NSNull()],["b":NSNull()]]
         XCTAssertEqual(try trySerialize(jsonArr4), "[{\"a\":null},{\"b\":null}]")
     }
     
     func test_nested_array() {
-        var arr = ["a"].bridge()
+        var arr: [Any] = ["a"]
         XCTAssertEqual(try trySerialize(arr), "[\"a\"]")
         
-        arr = [["b"]].bridge()
+        arr = [["b"]]
         XCTAssertEqual(try trySerialize(arr), "[[\"b\"]]")
         
-        arr = [[["c"]]].bridge()
+        arr = [[["c"]]]
         XCTAssertEqual(try trySerialize(arr), "[[[\"c\"]]]")
         
-        arr = [[[["d"]]]].bridge()
+        arr = [[[["d"]]]]
         XCTAssertEqual(try trySerialize(arr), "[[[[\"d\"]]]]")
     }
     
     func test_nested_dictionary() {
-        var dict = ["a":1].bridge()
+        var dict: [AnyHashable : Any] = ["a":1]
         XCTAssertEqual(try trySerialize(dict), "{\"a\":1}")
         
-        dict = ["a":["b":1]].bridge()
+        dict = ["a":["b":1]]
         XCTAssertEqual(try trySerialize(dict), "{\"a\":{\"b\":1}}")
         
-        dict = ["a":["b":["c":1]]].bridge()
+        dict = ["a":["b":["c":1]]]
         XCTAssertEqual(try trySerialize(dict), "{\"a\":{\"b\":{\"c\":1}}}")
         
-        dict = ["a":["b":["c":["d":1]]]].bridge()
+        dict = ["a":["b":["c":["d":1]]]]
         XCTAssertEqual(try trySerialize(dict), "{\"a\":{\"b\":{\"c\":{\"d\":1}}}}")
     }
     
     func test_serialize_number() {
-        var json = [1, 1.1, 0, -2].bridge()
+        var json: [Any] = [1, 1.1, 0, -2]
         XCTAssertEqual(try trySerialize(json), "[1,1.1,0,-2]")
         
         // Cannot generate "true"/"false" currently
-        json = [NSNumber(value:false),NSNumber(value:true)].bridge()
+        json = [NSNumber(value:false),NSNumber(value:true)]
         XCTAssertEqual(try trySerialize(json), "[0,1]")
     }
     
     func test_serialize_stringEscaping() {
-        var json = ["foo"].bridge()
+        var json = ["foo"]
         XCTAssertEqual(try trySerialize(json), "[\"foo\"]")
 
-        json = ["a\0"].bridge()
+        json = ["a\0"]
         XCTAssertEqual(try trySerialize(json), "[\"a\\u0000\"]")
             
-        json = ["b\\"].bridge()
+        json = ["b\\"]
         XCTAssertEqual(try trySerialize(json), "[\"b\\\\\"]")
         
-        json = ["c\t"].bridge()
+        json = ["c\t"]
         XCTAssertEqual(try trySerialize(json), "[\"c\\t\"]")
         
-        json = ["d\n"].bridge()
+        json = ["d\n"]
         XCTAssertEqual(try trySerialize(json), "[\"d\\n\"]")
         
-        json = ["e\r"].bridge()
+        json = ["e\r"]
         XCTAssertEqual(try trySerialize(json), "[\"e\\r\"]")
         
-        json = ["f\""].bridge()
+        json = ["f\""]
         XCTAssertEqual(try trySerialize(json), "[\"f\\\"\"]")
         
-        json = ["g\'"].bridge()
+        json = ["g\'"]
         XCTAssertEqual(try trySerialize(json), "[\"g\'\"]")
         
-        json = ["h\u{7}"].bridge()
+        json = ["h\u{7}"]
         XCTAssertEqual(try trySerialize(json), "[\"h\\u0007\"]")
         
-        json = ["i\u{1f}"].bridge()
+        json = ["i\u{1f}"]
         XCTAssertEqual(try trySerialize(json), "[\"i\\u001f\"]")
     }
 
     func test_serialize_invalid_json() {
-        let str = "Invalid JSON".bridge()
+        let str = "Invalid JSON"
         do {
             let _ = try trySerialize(str)
             XCTFail("Top-level JSON object cannot be string")
@@ -742,7 +742,7 @@ extension TestNSJSONSerialization {
             // should get here
         }
         
-        let dict = [NSNumber(value: Double(1.2)):"a"].bridge()
+        let dict = [NSNumber(value: Double(1.2)):"a"]
         do {
             let _ = try trySerialize(dict)
             XCTFail("Dictionary keys must be strings")
@@ -774,7 +774,7 @@ extension TestNSJSONSerialization {
             let buffer = Array<UInt8>(repeating: 0, count: 20)
             let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 20)
             outputStream.open()
-            let result = try JSONSerialization.writeJSONObject(dict.bridge(), toStream: outputStream, options: [])
+            let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream, options: [])
             outputStream.close()
             if(result > -1) {
                 XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
@@ -791,7 +791,7 @@ extension TestNSJSONSerialization {
             if filePath != nil {
                 let outputStream = NSOutputStream(toFileAtPath: filePath!, append: true)
                 outputStream?.open()
-                let result = try JSONSerialization.writeJSONObject(dict.bridge(), toStream: outputStream!, options: [])
+                let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream!, options: [])
                 outputStream?.close()
                 if(result > -1) {
                     let fileStream: InputStream = InputStream(fileAtPath: filePath!)!
@@ -820,7 +820,7 @@ extension TestNSJSONSerialization {
         let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: buffer.count)
         outputStream.open()
         do {
-            let result = try JSONSerialization.writeJSONObject(dict.bridge(), toStream: outputStream, options: [])
+            let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream, options: [])
             outputStream.close()
             if(result > -1) {
                 XCTAssertNotEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
@@ -835,7 +835,7 @@ extension TestNSJSONSerialization {
         let buffer = Array<UInt8>(repeating: 0, count: 10)
         let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: buffer.count)
         outputStream.open()
-        XCTAssertThrowsError(try JSONSerialization.writeJSONObject(str.bridge(), toStream: outputStream, options: []))
+        XCTAssertThrowsError(try JSONSerialization.writeJSONObject(str, toStream: outputStream, options: []))
     }
     
     private func createTestFile(_ path: String,_contents: Data) -> String? {

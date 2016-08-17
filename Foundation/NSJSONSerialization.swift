@@ -98,7 +98,9 @@ open class JSONSerialization : NSObject {
     
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
-    open class func data(withJSONObject obj: Any, options opt: WritingOptions = []) throws -> Data {
+    open class func data(withJSONObject value: Any, options opt: WritingOptions = []) throws -> Data {
+        let obj = _SwiftValue.store(value)
+        
         guard obj is NSArray || obj is NSDictionary else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
                 "NSDebugDescription" : "Top-level object was not NSArray or NSDictionary"
@@ -267,7 +269,7 @@ private struct JSONWriter {
     }
 
     func serializeString(_ str: NSString) throws {
-        let str = str.bridge()
+        let str = String._unconditionallyBridgeFromObjectiveC(str)
         
         writer("\"")
         for scalar in str.unicodeScalars {
@@ -317,7 +319,7 @@ private struct JSONWriter {
         }
         
         var first = true
-        for elem in array.bridge() {
+        for elem in array.allObjects {
             if first {
                 first = false
             } else if pretty {
@@ -326,7 +328,7 @@ private struct JSONWriter {
             } else {
                 writer(",")
             }
-            try serializeJSON(elem)
+            try serializeJSON(_SwiftValue.store(elem))
         }
         if pretty {
             writer("\n")
@@ -343,7 +345,8 @@ private struct JSONWriter {
         }
         
         var first = true
-        for (key, value) in dict.bridge() {
+        
+        for (key, value) in Dictionary<NSObject, AnyObject>._unconditionallyBridgeFromObjectiveC(dict) {
             if first {
                 first = false
             } else if pretty {

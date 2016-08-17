@@ -212,7 +212,7 @@ class TestNSFileManager : XCTestCase {
             while let item = e.nextObject() as? NSString {
                 foundItems.add(item)
             }
-            XCTAssertEqual(foundItems, NSMutableSet(array: ["item".bridge(),"path2".bridge(),"path2/item".bridge()]))
+            XCTAssertEqual(foundItems, NSMutableSet(array: ["item", "path2", "path2/item"]))
         } else {
             XCTFail()
         }

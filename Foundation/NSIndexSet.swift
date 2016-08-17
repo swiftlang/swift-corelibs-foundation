@@ -91,7 +91,9 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         return set
     }
-    static public var supportsSecureCoding: Bool { return true }
+
+    public static var supportsSecureCoding: Bool { return true }
+
     public required init?(coder aDecoder: NSCoder)  { NSUnimplemented() }
     open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
@@ -642,3 +644,10 @@ open class NSMutableIndexSet : NSIndexSet {
     open func shiftIndexesStarting(at index: Int, by delta: Int) { NSUnimplemented() }
 }
 
+extension NSIndexSet : _StructTypeBridgeable {
+    public typealias _StructType = IndexSet
+    
+    public func _bridgeToSwift() -> IndexSet {
+        return IndexSet._unconditionallyBridgeFromObjectiveC(self)
+    }
+}

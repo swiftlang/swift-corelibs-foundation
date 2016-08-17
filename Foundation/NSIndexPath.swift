@@ -99,3 +99,12 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
 extension NSIndexPath {
     open func getIndexes(_ indexes: UnsafeMutablePointer<Int>) { NSUnimplemented() }
 }
+
+
+extension NSIndexPath : _StructTypeBridgeable {
+    public typealias _StructType = IndexPath
+    
+    public func _bridgeToSwift() -> IndexPath {
+        return IndexPath._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
