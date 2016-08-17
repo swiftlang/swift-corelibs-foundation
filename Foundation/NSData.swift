@@ -394,7 +394,7 @@ extension NSData {
             return Data()
         }
         if range.location == 0 && range.length == self.length {
-            return Data(_bridged: self)
+            return Data(referencing: self)
         }
         return Data(bytes: bytes.advanced(by: range.location), count: range.length)
     }
@@ -582,7 +582,7 @@ extension NSData {
 
 extension NSData : _CFBridgable, _SwiftBridgable {
     typealias SwiftType = Data
-    internal var _swiftObject: SwiftType { return Data(_bridged: self) }
+    internal var _swiftObject: SwiftType { return Data(referencing: self) }
     
     public func bridge() -> Data {
         return _swiftObject
@@ -604,7 +604,7 @@ extension CFData : _NSBridgable, _SwiftBridgable {
     typealias NSType = NSData
     typealias SwiftType = Data
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
-    internal var _swiftObject: SwiftType { return Data(_bridged: self._nsObject) }
+    internal var _swiftObject: SwiftType { return Data(referencing: self._nsObject) }
 }
 
 extension NSMutableData {
