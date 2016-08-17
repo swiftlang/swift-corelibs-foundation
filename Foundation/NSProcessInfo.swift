@@ -16,7 +16,7 @@ import Glibc
 
 import CoreFoundation
 
-public struct NSOperatingSystemVersion {
+public struct OperatingSystemVersion {
     public var majorVersion: Int
     public var minorVersion: Int
     public var patchVersion: Int
@@ -82,26 +82,26 @@ open class ProcessInfo: NSObject {
         return CFCopySystemVersionString()?._swiftObject ?? "Unknown"
     }
     
-    open var operatingSystemVersion: NSOperatingSystemVersion {
+    open var operatingSystemVersion: OperatingSystemVersion {
         // The following fallback values match Darwin Foundation
         let fallbackMajor = -1
         let fallbackMinor = 0
         let fallbackPatch = 0
         
         guard let systemVersionDictionary = _CFCopySystemVersionDictionary() else {
-            return NSOperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+            return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
         
         let productVersionKey = unsafeBitCast(_kCFSystemVersionProductVersionKey, to: UnsafeRawPointer.self)
         guard let productVersion = unsafeBitCast(CFDictionaryGetValue(systemVersionDictionary, productVersionKey), to: NSString!.self) else {
-            return NSOperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+            return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
         
         let versionComponents = productVersion._swiftObject.characters.split(separator: ".").flatMap(String.init).flatMap({ Int($0) })
         let majorVersion = versionComponents.dropFirst(0).first ?? fallbackMajor
         let minorVersion = versionComponents.dropFirst(1).first ?? fallbackMinor
         let patchVersion = versionComponents.dropFirst(2).first ?? fallbackPatch
-        return NSOperatingSystemVersion(majorVersion: majorVersion, minorVersion: minorVersion, patchVersion: patchVersion)
+        return OperatingSystemVersion(majorVersion: majorVersion, minorVersion: minorVersion, patchVersion: patchVersion)
     }
     
     internal let _processorCount = __CFProcessorCount()
@@ -119,7 +119,7 @@ open class ProcessInfo: NSObject {
         return _physicalMemory
     }
     
-    open func isOperatingSystemAtLeastVersion(_ version: NSOperatingSystemVersion) -> Bool {
+    open func isOperatingSystemAtLeast(_ version: OperatingSystemVersion) -> Bool {
         let ourVersion = operatingSystemVersion
         if ourVersion.majorVersion < version.majorVersion {
             return false
