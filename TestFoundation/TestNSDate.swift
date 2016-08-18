@@ -35,6 +35,7 @@ class TestNSDate : XCTestCase {
             ("test_LaterDate", test_LaterDate),
             ("test_Compare", test_Compare),
             ("test_IsEqualToDate", test_IsEqualToDate),
+            ("test_descriptionTimeZone", test_descriptionTimeZone)
         ]
     }
     
@@ -113,5 +114,12 @@ class TestNSDate : XCTestCase {
         let d2 = d1 + ti
         let d3 = d1 + ti
         XCTAssertEqual(d2, d3)
+    }
+
+    func test_descriptionTimeZone() {
+        // Regression test for TimeZone being double released, causing a use after free
+        for _ in 0...1000 {
+            _ = NSDate().description
+        }
     }
 }

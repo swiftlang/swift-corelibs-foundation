@@ -115,8 +115,8 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
      */
     open override var description: String {
         let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, nil, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
-        let timeZone = CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0)
-        CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey, timeZone)
+        CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey,
+            CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0))
         CFDateFormatterSetFormat(dateFormatterRef, "uuuu-MM-dd HH:mm:ss '+0000'"._cfObject)
 
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, dateFormatterRef, _cfObject)._swiftObject
