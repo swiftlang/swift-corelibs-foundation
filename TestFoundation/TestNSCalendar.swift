@@ -90,3 +90,34 @@ class TestNSCalendar: XCTestCase {
         XCTAssertEqual(copy.minimumDaysInFirstWeek, 2)
     }
 }
+
+class TestNSDateComponents: XCTestCase {
+
+    static var allTests: [(String, (TestNSDateComponents) -> () throws -> Void)] {
+        return [
+            ("test_copyNSDateComponents", test_copyNSDateComponents),
+        ]
+    }
+
+    func test_copyNSDateComponents() {
+        let components = NSDateComponents()
+        components.year = 1987
+        components.month = 3
+        components.day = 17
+        components.hour = 14
+        components.minute = 20
+        components.second = 0
+        let copy = components.copy(with: nil) as! NSDateComponents
+        XCTAssertTrue(components.isEqual(copy))
+        XCTAssertTrue(components == copy)
+        XCTAssertFalse(components === copy)
+        XCTAssertEqual(copy.year, 1987)
+        XCTAssertEqual(copy.month, 3)
+        XCTAssertEqual(copy.day, 17)
+        XCTAssertEqual(copy.isLeapMonth, false)
+        //Mutate NSDateComponents and verify that it does not reflect in the copy
+        components.hour = 12
+        XCTAssertEqual(components.hour, 12)
+        XCTAssertEqual(copy.hour, 14)
+    }
+}
