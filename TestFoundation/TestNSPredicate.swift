@@ -31,8 +31,8 @@ class TestNSPredicate: XCTestCase {
     }
 
     func test_BooleanPredicate() {
-        let truePredicate = Predicate(value: true)
-        let falsePredicate = Predicate(value: false)
+        let truePredicate = NSPredicate(value: true)
+        let falsePredicate = NSPredicate(value: false)
 
         XCTAssertTrue(truePredicate.evaluate(with: NSObject()))
         XCTAssertFalse(falsePredicate.evaluate(with: NSObject()))
@@ -40,7 +40,7 @@ class TestNSPredicate: XCTestCase {
 
 
     func test_BlockPredicateWithoutVariableBindings() {
-        let isNSStringPredicate = Predicate { (object, bindings) -> Bool in
+        let isNSStringPredicate = NSPredicate { (object, bindings) -> Bool in
             return object is NSString
         }
 
@@ -48,7 +48,7 @@ class TestNSPredicate: XCTestCase {
         XCTAssertFalse(isNSStringPredicate.evaluate(with: NSArray()))
     }
 
-    let lengthLessThanThreePredicate = Predicate { (obj, bindings) -> Bool in
+    let lengthLessThanThreePredicate = NSPredicate { (obj, bindings) -> Bool in
         return (obj as! String).utf16.count < 3
     }
 
@@ -56,25 +56,20 @@ class TestNSPredicate: XCTestCase {
     let expectedArray = ["1", "12"]
 
     func test_filterNSArray() {
-        
         let filteredArray = NSArray(array: startArray).filtered(using: lengthLessThanThreePredicate).map { $0 as! String }
-        // .filteredArrayUsingPredicate(lengthLessThanThreePredicate).map { $0 as! String }
 
         XCTAssertEqual(expectedArray, filteredArray)
     }
 
     func test_filterNSMutableArray() {
         let array = NSMutableArray(array: startArray)
-        
         array.filter(using: lengthLessThanThreePredicate)
-
         XCTAssertEqual(NSArray(array: expectedArray), array)
     }
 
     func test_filterNSSet() {
         let set = NSSet(array: startArray)
         let filteredSet = set.filtered(using: lengthLessThanThreePredicate)
-
         XCTAssertEqual(Set(expectedArray), filteredSet)
     }
 
