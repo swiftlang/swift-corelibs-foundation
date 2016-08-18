@@ -50,13 +50,14 @@ open class NSExpression : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
 
-    public /*not inherited*/ init(format expressionFormat: String, argumentArray arguments: [AnyObject]) { NSUnimplemented() }
+    public /*not inherited*/ init(format expressionFormat: String, argumentArray arguments: [Any]) { NSUnimplemented() }
+    public /*not inherited*/ init(format expressionFormat: String, arguments argList: CVaListPointer) { NSUnimplemented() }
     
-    public /*not inherited*/ init(forConstantValue obj: AnyObject?) { NSUnimplemented() } // Expression that returns a constant value
+    public /*not inherited*/ init(forConstantValue obj: Any?) { NSUnimplemented() } // Expression that returns a constant value
     open class func expressionForEvaluatedObject() -> NSExpression { NSUnimplemented() } // Expression that returns the object being evaluated
     public /*not inherited*/ init(forVariable string: String) { NSUnimplemented() } // Expression that pulls a value from the variable bindings dictionary
     public /*not inherited*/ init(forKeyPath keyPath: String) { NSUnimplemented() } // Expression that invokes valueForKeyPath with keyPath
-    public /*not inherited*/ init(forFunction name: String, arguments parameters: [AnyObject]) { NSUnimplemented() } // Expression that invokes one of the predefined functions. Will throw immediately if the selector is bad; will throw at runtime if the parameters are incorrect.
+    public /*not inherited*/ init(forFunction name: String, arguments parameters: [Any]) { NSUnimplemented() } // Expression that invokes one of the predefined functions. Will throw immediately if the selector is bad; will throw at runtime if the parameters are incorrect.
     // Predefined functions are:
     // name              parameter array contents				returns
     //-------------------------------------------------------------------------------------------------------------------------------------
@@ -98,40 +99,43 @@ open class NSExpression : NSObject, NSSecureCoding, NSCopying {
     //                   two NSExpression instances representing CLLocations    NSNumber
     // length:           an NSExpression instance representing a string         NSNumber
     
-    public /*not inherited*/ init(forAggregate subexpressions: [AnyObject]) { NSUnimplemented() } // Expression that returns a collection containing the results of other expressions
+    public /*not inherited*/ init(forAggregate subexpressions: [Any]) { NSUnimplemented() } // Expression that returns a collection containing the results of other expressions
     public /*not inherited*/ init(forUnionSet left: NSExpression, with right: NSExpression) { NSUnimplemented() } // return an expression that will return the union of the collections expressed by left and right
     public /*not inherited*/ init(forIntersectSet left: NSExpression, with right: NSExpression) { NSUnimplemented() } // return an expression that will return the intersection of the collections expressed by left and right
     public /*not inherited*/ init(forMinusSet left: NSExpression, with right: NSExpression) { NSUnimplemented() } // return an expression that will return the disjunction of the collections expressed by left and right
-    public /*not inherited*/ init(forSubquery expression: NSExpression, usingIteratorVariable variable: String, predicate: AnyObject) { NSUnimplemented() } // Expression that filters a collection by storing elements in the collection in the variable variable and keeping the elements for which qualifer returns true; variable is used as a local variable, and will shadow any instances of variable in the bindings dictionary, the variable is removed or the old value replaced once evaluation completes
-    public /*not inherited*/ init(forFunction target: NSExpression, selectorName name: String, arguments parameters: [AnyObject]?) { NSUnimplemented() } // Expression that invokes the selector on target with parameters. Will throw at runtime if target does not implement selector or if parameters are wrong.
+    public /*not inherited*/ init(forSubquery expression: NSExpression, usingIteratorVariable variable: String, predicate: Any) { NSUnimplemented() } // Expression that filters a collection by storing elements in the collection in the variable variable and keeping the elements for which qualifer returns true; variable is used as a local variable, and will shadow any instances of variable in the bindings dictionary, the variable is removed or the old value replaced once evaluation completes
+    public /*not inherited*/ init(forFunction target: NSExpression, selectorName name: String, arguments parameters: [Any]?) { NSUnimplemented() } // Expression that invokes the selector on target with parameters. Will throw at runtime if target does not implement selector or if parameters are wrong.
     open class func expressionForAnyKey() -> NSExpression { NSUnimplemented() }
-    public /*not inherited*/ init(forBlock block: (AnyObject?, [AnyObject], NSMutableDictionary?) -> AnyObject, arguments: [NSExpression]?) { NSUnimplemented() } // Expression that invokes the block with the parameters; note that block expressions are not encodable or representable as parseable strings.
-    public /*not inherited*/ init(forConditional predicate: Predicate, trueExpression: NSExpression, falseExpression: NSExpression) { NSUnimplemented() } // Expression that will return the result of trueExpression or falseExpression depending on the value of predicate
+    public /*not inherited*/ init(block: @escaping (Any?, [Any], NSMutableDictionary?) -> Any, arguments: [NSExpression]?) { NSUnimplemented() } // Expression that invokes the block with the parameters; note that block expressions are not encodable or representable as parseable strings.
+    public /*not inherited*/ init(forConditional predicate: Any, trueExpression: NSExpression, falseExpression: NSExpression) { NSUnimplemented() } // Expression that will return the result of trueExpression or falseExpression depending on the value of predicate
     
     public init(expressionType type: ExpressionType) { NSUnimplemented() }
     
     // accessors for individual parameters - raise if not applicable
     open var expressionType: ExpressionType { NSUnimplemented() }
-    open var constantValue: AnyObject { NSUnimplemented() }
+    open var constantValue: Any { NSUnimplemented() }
     open var keyPath: String { NSUnimplemented() }
     open var function: String { NSUnimplemented() }
     open var variable: String { NSUnimplemented() }
     /*@NSCopying*/ open var operand: NSExpression { NSUnimplemented() } // the object on which the selector will be invoked (the result of evaluating a key path or one of the defined functions)
     open var arguments: [NSExpression]? { NSUnimplemented() } // array of expressions which will be passed as parameters during invocation of the selector on the operand of a function expression
     
-    open var collection: AnyObject { NSUnimplemented() }
-    /*@NSCopying*/ open var predicate: Predicate { NSUnimplemented() }
+    open var collection: Any { NSUnimplemented() }
+    /*@NSCopying*/ open var predicate: NSPredicate { NSUnimplemented() }
     /*@NSCopying*/ open var left: NSExpression { NSUnimplemented() } // expression which represents the left side of a set expression
     /*@NSCopying*/ open var right: NSExpression { NSUnimplemented() } // expression which represents the right side of a set expression
     
     /*@NSCopying*/ open var `true`: NSExpression { NSUnimplemented() } // expression which will be evaluated if a conditional expression's predicate evaluates to true
     /*@NSCopying*/ open var `false`: NSExpression { NSUnimplemented() } // expression which will be evaluated if a conditional expression's predicate evaluates to false
     
-    open var expressionBlock: (AnyObject?, [AnyObject], NSMutableDictionary?) -> AnyObject { NSUnimplemented() }
+    open var expressionBlock: (Any?, [Any], NSMutableDictionary?) -> Any { NSUnimplemented() }
     
     // evaluate the expression using the object and bindings- note that context is mutable here and can be used by expressions to store temporary state for one predicate evaluation
-    open func expressionValueWithObject(_ object: AnyObject?, context: NSMutableDictionary?) -> AnyObject { NSUnimplemented() }
+    open func expressionValue(with object: Any?, context: NSMutableDictionary?) -> Any? { NSUnimplemented() }
     
     open func allowEvaluation() { NSUnimplemented() } // Force an expression which was securely decoded to allow evaluation
 }
 
+extension NSExpression {
+    public convenience init(format expressionFormat: String, _ args: CVarArg...) { NSUnimplemented() }
+}

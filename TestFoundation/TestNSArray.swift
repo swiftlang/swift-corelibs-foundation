@@ -119,10 +119,10 @@ class TestNSArray : XCTestCase {
         
 //        NSArray throws NSInvalidArgument if range exceeds bounds of the array.
 //        let rangeOutOfArray = NSRange(location: 5, length: 15)
-//        let _ = array.indexOfObject(NSNumber(value: 9 as Int), inSortedRange: rangeOutOfArray, options: [.InsertionIndex, .FirstEqual], usingComparator: compareIntNSNumber)
+//        let _ = array.indexOfObject(NSNumber(value: 9 as Int), inSortedRange: rangeOutOfArray, options: [.insertionIndex, .firstEqual], usingComparator: compareIntNSNumber)
         
-//        NSArray throws NSInvalidArgument if both .FirstEqual and .LastEqaul are specified
-//        let searchForBoth: NSBinarySearchingOptions = [.FirstEqual, .LastEqual]
+//        NSArray throws NSInvalidArgument if both .firstEqual and .lastEqual are specified
+//        let searchForBoth: NSBinarySearchingOptions = [.firstEqual, .lastEqual]
 //        let _ = objectIndexInArray(array, value: 9, startingFrom: 0, length: 13, options: searchForBoth)
 
         let notFound = objectIndexInArray(array, value: 11, startingFrom: 0, length: 13)
@@ -134,35 +134,35 @@ class TestNSArray : XCTestCase {
         let indexOfAnySeven = objectIndexInArray(array, value: 7, startingFrom: 0, length: 13)
         XCTAssertTrue(Set([8, 9, 10]).contains(indexOfAnySeven), "If no options provided NSArray returns an arbitrary matching object's index.")
         
-        let indexOfFirstNine = objectIndexInArray(array, value: 9, startingFrom: 7, length: 6, options: [.FirstEqual])
+        let indexOfFirstNine = objectIndexInArray(array, value: 9, startingFrom: 7, length: 6, options: [.firstEqual])
         XCTAssertTrue(indexOfFirstNine == 12, "If .FirstEqual is set NSArray returns the lowest index of equal objects.")
         
-        let indexOfLastTwo = objectIndexInArray(array, value: 2, startingFrom: 1, length: 7, options: [.LastEqual])
+        let indexOfLastTwo = objectIndexInArray(array, value: 2, startingFrom: 1, length: 7, options: [.lastEqual])
         XCTAssertTrue(indexOfLastTwo == 3, "If .LastEqual is set NSArray returns the highest index of equal objects.")
         
-        let anyIndexToInsertNine = objectIndexInArray(array, value: 9, startingFrom: 0, length: 13, options: [.InsertionIndex])
+        let anyIndexToInsertNine = objectIndexInArray(array, value: 9, startingFrom: 0, length: 13, options: [.insertionIndex])
         XCTAssertTrue(Set([12, 13, 14]).contains(anyIndexToInsertNine), "If .InsertionIndex is specified and no other options provided NSArray returns any equal or one larger index than any matching object’s index.")
         
-        let lowestIndexToInsertTwo = objectIndexInArray(array, value: 2, startingFrom: 0, length: 5, options: [.InsertionIndex, .FirstEqual])
+        let lowestIndexToInsertTwo = objectIndexInArray(array, value: 2, startingFrom: 0, length: 5, options: [.insertionIndex, .firstEqual])
         XCTAssertTrue(lowestIndexToInsertTwo == 2, "If both .InsertionIndex and .FirstEqual are specified NSArray returns the lowest index of equal objects.")
         
-        let highestIndexToInsertNine = objectIndexInArray(array, value: 9, startingFrom: 7, length: 6, options: [.InsertionIndex, .LastEqual])
+        let highestIndexToInsertNine = objectIndexInArray(array, value: 9, startingFrom: 7, length: 6, options: [.insertionIndex, .lastEqual])
         XCTAssertTrue(highestIndexToInsertNine == 13, "If both .InsertionIndex and .LastEqual are specified NSArray returns the index of the least greater object...")
         
-        let indexOfLeastGreaterObjectThanFive = objectIndexInArray(array, value: 5, startingFrom: 0, length: 10, options: [.InsertionIndex, .LastEqual])
+        let indexOfLeastGreaterObjectThanFive = objectIndexInArray(array, value: 5, startingFrom: 0, length: 10, options: [.insertionIndex, .lastEqual])
         XCTAssertTrue(indexOfLeastGreaterObjectThanFive == 7, "If both .InsertionIndex and .LastEqual are specified NSArray returns the index of the least greater object...")
         
         let rangeStart = 0
         let rangeLength = 13
-        let endOfArray = objectIndexInArray(array, value: 10, startingFrom: rangeStart, length: rangeLength, options: [.InsertionIndex, .LastEqual])
+        let endOfArray = objectIndexInArray(array, value: 10, startingFrom: rangeStart, length: rangeLength, options: [.insertionIndex, .lastEqual])
         XCTAssertTrue(endOfArray == (rangeStart + rangeLength), "...or the index at the end of the array if the object is larger than all other elements.")
         
         let arrayOfTwo = NSArray(array: [NSNumber(value: 0 as Int), NSNumber(value: 2 as Int)])
-        let indexInMiddle = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.InsertionIndex, .FirstEqual])
+        let indexInMiddle = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.insertionIndex, .firstEqual])
         XCTAssertEqual(indexInMiddle, 1, "If no match found item should be inserted before least greater object")
-        let indexInMiddle2 = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.InsertionIndex, .LastEqual])
+        let indexInMiddle2 = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.insertionIndex, .lastEqual])
         XCTAssertEqual(indexInMiddle2, 1, "If no match found item should be inserted before least greater object")
-        let indexInMiddle3 = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.InsertionIndex])
+        let indexInMiddle3 = objectIndexInArray(arrayOfTwo, value: 1, startingFrom: 0, length: 2, options: [.insertionIndex])
         XCTAssertEqual(indexInMiddle3, 1, "If no match found item should be inserted before least greater object")
     }
 
@@ -240,7 +240,7 @@ class TestNSArray : XCTestCase {
         let notFoundInEmptyArray = objectIndexInArray(emptyArray, value: 9, startingFrom: 0, length: 0)
         XCTAssertEqual(notFoundInEmptyArray, NSNotFound, "Empty NSArray return NSNotFound for any valid arguments.")
         
-        let startIndex = objectIndexInArray(emptyArray, value: 7, startingFrom: 0, length: 0, options: [.InsertionIndex])
+        let startIndex = objectIndexInArray(emptyArray, value: 7, startingFrom: 0, length: 0, options: [.insertionIndex])
         XCTAssertTrue(startIndex == 0, "For Empty NSArray any objects should be inserted at start.")
         
         let rangeStart = 0
@@ -252,10 +252,10 @@ class TestNSArray : XCTestCase {
         let greatestSearch = objectIndexInArray(array, value: 15, startingFrom: rangeStart, length: rangeLength)
         XCTAssertTrue(greatestSearch == NSNotFound, "If object is greater than greatest object in the range then there is no change it could be found.")
         
-        let leastInsert = objectIndexInArray(array, value: -1, startingFrom: rangeStart, length: rangeLength, options: .InsertionIndex)
+        let leastInsert = objectIndexInArray(array, value: -1, startingFrom: rangeStart, length: rangeLength, options: .insertionIndex)
         XCTAssertTrue(leastInsert == rangeStart, "If object is less than least object in the range it should be inserted at range' location.")
         
-        let greatestInsert = objectIndexInArray(array, value: 15, startingFrom: rangeStart, length: rangeLength, options: .InsertionIndex)
+        let greatestInsert = objectIndexInArray(array, value: 15, startingFrom: rangeStart, length: rangeLength, options: .insertionIndex)
         XCTAssertTrue(greatestInsert == (rangeStart + rangeLength), "If object is greater than greatest object in the range it should be inserted at range' end.")
     }
     

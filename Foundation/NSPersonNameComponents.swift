@@ -86,3 +86,10 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     /*@NSCopying*/ open var phoneticRepresentation: PersonNameComponents?
 }
 
+extension NSPersonNameComponents : _StructTypeBridgeable {
+    public typealias _StructType = PersonNameComponents
+
+    public func _bridgeToSwift() -> _StructType {
+        return PersonNameComponents._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
