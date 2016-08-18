@@ -576,7 +576,7 @@ open class FileManager : NSObject {
     
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
-    open func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: (@escaping (URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
+    open func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: ((URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
         if mask.contains(.skipsPackageDescendants) || mask.contains(.skipsHiddenFiles) {
             NSUnimplemented("Enumeration options not yet implemented")
         }
