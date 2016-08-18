@@ -56,25 +56,20 @@ private func NSThreadStart(_ context: UnsafeMutableRawPointer?) -> UnsafeMutable
     return nil
 }
 
-open class Thread : NSObject {
+open class Thread: NSObject {
     
     static internal var _currentThread = NSThreadSpecific<Thread>()
-    open class var current: Thread {
+    public static var current: Thread {
         return Thread._currentThread.get() {
             return Thread(thread: pthread_self())
         }
     }
-    
-    open class var isMainThread: Bool { NSUnimplemented() }
-    
-    // !!! NSThread's mainThread property is incorrectly exported as "main", which conflicts with its "main" method.
-    open class var mainThread: Thread { NSUnimplemented() }
 
     /// Alternative API for detached thread creation
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open class func detachNewThread(_ block: @escaping () -> Swift.Void) {
-        let t = Thread(block: block)
+    open class func detachNewThread(_ main: @escaping (Void) -> Void) {
+        let t = Thread(main)
         t.start()
     }
     
@@ -82,7 +77,7 @@ open class Thread : NSObject {
         return true
     }
     
-    open class func sleep(until date: Date) {
+    open class func sleepUntilDate(_ date: Date) {
         let start_ut = CFGetSystemUptime()
         let start_at = CFAbsoluteTimeGetCurrent()
         let end_at = date.timeIntervalSinceReferenceDate
@@ -105,7 +100,7 @@ open class Thread : NSObject {
         }
     }
 
-    open class func sleep(forTimeInterval interval: TimeInterval) {
+    open class func sleepForTimeInterval(_ interval: TimeInterval) {
         var ti = interval
         let start_ut = CFGetSystemUptime()
         let end_ut = start_ut + ti
@@ -140,24 +135,20 @@ open class Thread : NSObject {
     internal var _status = _NSThreadStatus.initialized
     internal var _cancelled = false
     /// - Note: this differs from the Darwin implementation in that the keys must be Strings
-    open var threadDictionary = [String : AnyObject]()
+    open var threadDictionary = [String:AnyObject]()
     
     internal init(thread: pthread_t) {
         // Note: even on Darwin this is a non-optional pthread_t; this is only used for valid threads, which are never null pointers.
         _thread = thread
     }
-    
-    public override init() {
+
+    public init(_ main: @escaping (Void) -> Void) {
+        _main = main
         let _ = withUnsafeMutablePointer(to: &_attr) { attr in
             pthread_attr_init(attr)
             pthread_attr_setscope(attr, Int32(PTHREAD_SCOPE_SYSTEM))
             pthread_attr_setdetachstate(attr, Int32(PTHREAD_CREATE_DETACHED))
         }
-    }
-    
-    public convenience init(block: @escaping () -> Swift.Void) {
-        self.init()
-        _main = block
     }
 
     open func start() {
@@ -174,10 +165,6 @@ open class Thread : NSObject {
     
     open func main() {
         _main()
-    }
-    
-    open var name: String? {
-        NSUnimplemented()
     }
 
     open var stackSize: Int {
@@ -202,37 +189,27 @@ open class Thread : NSObject {
         }
     }
 
-    open var isExecuting: Bool {
+    open var executing: Bool {
         return _status == .executing
     }
 
-    open var isFinished: Bool {
+    open var finished: Bool {
         return _status == .finished
     }
     
-    open var isCancelled: Bool {
+    open var cancelled: Bool {
         return _cancelled
-    }
-    
-    open var isMainThread: Bool {
-        NSUnimplemented()
     }
     
     open func cancel() {
         _cancelled = true
     }
 
-    open class var callStackReturnAddresses: [NSNumber] {
+    open class func callStackReturnAddresses() -> [NSNumber] {
         NSUnimplemented()
     }
     
-    open class var callStackSymbols: [String] {
+    open class func callStackSymbols() -> [String] {
         NSUnimplemented()
     }
-}
-
-extension NSNotification.Name {
-    public static let NSWillBecomeMultiThreaded = NSNotification.Name(rawValue: "") // NSUnimplemented
-    public static let NSDidBecomeSingleThreaded = NSNotification.Name(rawValue: "") // NSUnimplemented
-    public static let NSThreadWillExit = NSNotification.Name(rawValue: "") // NSUnimplemented
 }

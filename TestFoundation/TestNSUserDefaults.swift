@@ -25,19 +25,19 @@ class TestNSUserDefaults : XCTestCase {
 	}
 
 	func test_createUserDefaults() {
-		let defaults = UserDefaults.standard
+		let defaults = UserDefaults.standardUserDefaults()
 		
-		defaults.set(4, forKey: "ourKey")
+		defaults.setInteger(4, forKey: "ourKey")
 	}
 	
 	func test_getRegisteredDefaultItem() {
-		let defaults = UserDefaults.standard
+		let defaults = UserDefaults.standardUserDefaults()
 		
-		defaults.register(defaults: ["key1": NSNumber(value: Int(5))])
+		defaults.registerDefaults(["key1": NSNumber(value: Int(5))])
 		
 		//make sure we don't have anything in the saved plist.
-		defaults.removeObject(forKey: "key1")
+		defaults.removeObjectForKey("key1")
 		
-		XCTAssertEqual(defaults.integer(forKey: "key1"), 5)
+		XCTAssertEqual(defaults.integerForKey("key1"), 5)
 	}
 }

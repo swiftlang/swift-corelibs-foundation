@@ -22,38 +22,6 @@ internal let kCFNumberFormatterCurrencyPluralStyle = CFNumberFormatterStyle.curr
 internal let kCFNumberFormatterCurrencyAccountingStyle = CFNumberFormatterStyle.currencyAccountingStyle
 #endif
 
-extension NumberFormatter {
-    public enum Style : UInt {
-        case none
-        case decimal
-        case currency
-        case percent
-        case scientific
-        case spellOut
-        case ordinal
-        case currencyISOCode
-        case currencyPlural
-        case currencyAccounting
-    }
-
-    public enum PadPosition : UInt {
-        case beforePrefix
-        case afterPrefix
-        case beforeSuffix
-        case afterSuffix
-    }
-
-    public enum RoundingMode : UInt {
-        case ceiling
-        case floor
-        case down
-        case up
-        case halfEven
-        case halfDown
-        case halfUp
-    }
-}
-
 open class NumberFormatter : Formatter {
     
     typealias CFType = CFNumberFormatter
@@ -82,7 +50,7 @@ open class NumberFormatter : Formatter {
     // Report the used range of the string and an NSError, in addition to the usual stuff from NSFormatter
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open func objectValue(_ string: String, range: inout NSRange) throws -> Any? { NSUnimplemented() }
+    open func objectValue(_ string: String, range: inout NSRange) throws -> AnyObject? { NSUnimplemented() }
     
     open override func string(for obj: Any) -> String? {
         guard let number = obj as? NSNumber else { return nil }
@@ -171,7 +139,7 @@ open class NumberFormatter : Formatter {
     }
     
     // Attributes of an NSNumberFormatter
-    internal var _numberStyle: Style = .none
+    internal var _numberStyle: Style = .noStyle
     open var numberStyle: Style {
         get {
             return _numberStyle
@@ -179,10 +147,10 @@ open class NumberFormatter : Formatter {
         
         set {
             switch newValue {
-            case .none, .ordinal, .spellOut:
+            case .noStyle, .ordinalStyle, .spellOutStyle:
                 _usesSignificantDigits = false
                 
-            case .currency, .currencyPlural, .currencyISOCode, .currencyAccounting:
+            case .currencyStyle, .currencyPluralStyle, .currencyISOCodeStyle, .currencyAccountingStyle:
                 _usesSignificantDigits = false
                 _usesGroupingSeparator = true
                 _minimumFractionDigits = 2
@@ -229,8 +197,8 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    internal var _textAttributesForNegativeValues: [String : Any]?
-    open var textAttributesForNegativeValues: [String : Any]? {
+    internal var _textAttributesForNegativeValues: [String : AnyObject]?
+    open var textAttributesForNegativeValues: [String : AnyObject]? {
         get {
             return _textAttributesForNegativeValues
         }
@@ -251,8 +219,8 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    internal var _textAttributesForPositiveValues: [String : Any]?
-    open var textAttributesForPositiveValues: [String : Any]? {
+    internal var _textAttributesForPositiveValues: [String : AnyObject]?
+    open var textAttributesForPositiveValues: [String : AnyObject]? {
         get {
             return _textAttributesForPositiveValues
         }
@@ -341,8 +309,8 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    internal var _textAttributesForZero: [String : Any]?
-    open var textAttributesForZero: [String : Any]? {
+    internal var _textAttributesForZero: [String : AnyObject]?
+    open var textAttributesForZero: [String : AnyObject]? {
         get {
             return _textAttributesForZero
         }
@@ -363,8 +331,8 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    internal var _textAttributesForNil: [String : Any]?
-    open var textAttributesForNil: [String : Any]? {
+    internal var _textAttributesForNil: [String : AnyObject]?
+    open var textAttributesForNil: [String : AnyObject]? {
         get {
             return _textAttributesForNil
         }
@@ -385,8 +353,8 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    internal var _textAttributesForNotANumber: [String : Any]?
-    open var textAttributesForNotANumber: [String : Any]? {
+    internal var _textAttributesForNotANumber: [String : AnyObject]?
+    open var textAttributesForNotANumber: [String : AnyObject]? {
         get {
             return _textAttributesForNotANumber
         }
@@ -397,7 +365,7 @@ open class NumberFormatter : Formatter {
     }
     
     internal var _positiveInfinitySymbol: String = "+∞"
-    open var positiveInfinitySymbol: String {
+    public var positiveInfinitySymbol: String {
         get {
             return _positiveInfinitySymbol
         }
@@ -407,8 +375,8 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    internal var _textAttributesForPositiveInfinity: [String : Any]?
-    open var textAttributesForPositiveInfinity: [String : Any]? {
+    internal var _textAttributesForPositiveInfinity: [String : AnyObject]?
+    public var textAttributesForPositiveInfinity: [String : AnyObject]? {
         get {
             return _textAttributesForPositiveInfinity
         }
@@ -419,7 +387,7 @@ open class NumberFormatter : Formatter {
     }
     
     internal var _negativeInfinitySymbol: String = "-∞"
-    open var negativeInfinitySymbol: String {
+    public var negativeInfinitySymbol: String {
         get {
             return _negativeInfinitySymbol
         }
@@ -429,8 +397,8 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    internal var _textAttributesForNegativeInfinity: [String : Any]?
-    open var textAttributesForNegativeInfinity: [String : Any]? {
+    internal var _textAttributesForNegativeInfinity: [String : AnyObject]?
+    public var textAttributesForNegativeInfinity: [String : AnyObject]? {
         get {
             return _textAttributesForNegativeInfinity
         }
@@ -563,7 +531,7 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    internal var _exponentSymbol: String!
+    open var _exponentSymbol: String!
     open var exponentSymbol: String! {
         get {
             return _exponentSymbol
@@ -644,7 +612,7 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    internal var _roundingMode: RoundingMode = .halfEven
+    internal var _roundingMode: RoundingMode = .roundHalfEven
     open var roundingMode: RoundingMode {
         get {
             return _roundingMode
@@ -744,7 +712,7 @@ open class NumberFormatter : Formatter {
     }
     
     internal var _lenient: Bool = false
-    open var isLenient: Bool {
+    open var lenient: Bool {
         get {
             return _lenient
         }
@@ -788,7 +756,7 @@ open class NumberFormatter : Formatter {
     }
     
     internal var _partialStringValidationEnabled: Bool = false
-    open var isPartialStringValidationEnabled: Bool {
+    open var partialStringValidationEnabled: Bool {
         get {
             return _partialStringValidationEnabled
         }
@@ -850,42 +818,45 @@ open class NumberFormatter : Formatter {
     
     //
     
-    internal var _attributedStringForZero: NSAttributedString = NSAttributedString(string: "0")
-    /*@NSCopying*/ open var attributedStringForZero: NSAttributedString {
-        get {
-            return _attributedStringForZero
-        }
-        set {
-            _reset()
-            _attributedStringForZero = newValue
-        }
-    }
+    //FIXME: Uncomment these when NSAttributedString get rid of NSUnimplementend(), 
+    // this is currently commented out so that NSNumberFormatter instances can be tested
     
-    internal var _attributedStringForNil: NSAttributedString = NSAttributedString(string: "")
-    /*@NSCopying*/ open var attributedStringForNil: NSAttributedString {
-        get {
-            return _attributedStringForNil
-        }
-        set {
-            _reset()
-            _attributedStringForNil = newValue
-        }
-    }
+//    internal var _attributedStringForZero: NSAttributedString = NSAttributedString(string: "0")
+//    /*@NSCopying*/ open var attributedStringForZero: NSAttributedString {
+//        get {
+//            return _attributedStringForZero
+//        }
+//        set {
+//            _reset()
+//            _attributedStringForZero = newValue
+//        }
+//    }
+//    
+//    internal var _attributedStringForNil: NSAttributedString = NSAttributedString(string: "")
+//    /*@NSCopying*/ open var attributedStringForNil: NSAttributedString {
+//        get {
+//            return _attributedStringForNil
+//        }
+//        set {
+//            _reset()
+//            _attributedStringForNil = newValue
+//        }
+//    }
+//    
+//    internal var _attributedStringForNotANumber: NSAttributedString = NSAttributedString(string: "NaN")
+//    /*@NSCopying*/ open var attributedStringForNotANumber: NSAttributedString {
+//        get {
+//            return _attributedStringForNotANumber
+//        }
+//        set {
+//            _reset()
+//            _attributedStringForNotANumber = newValue
+//        }
+//    }
     
-    internal var _attributedStringForNotANumber: NSAttributedString = NSAttributedString(string: "NaN")
-    /*@NSCopying*/ open var attributedStringForNotANumber: NSAttributedString {
-        get {
-            return _attributedStringForNotANumber
-        }
-        set {
-            _reset()
-            _attributedStringForNotANumber = newValue
-        }
-    }
+    //
     
-    // FIXME: Uncomment this when NSDecimalNumberHandler.default() gets rid of NSUnimplementend()
-    // This is currently commented out so that NSNumberFormatter instances can be tested
-//    internal var _roundingBehavior: NSDecimalNumberHandler = NSDecimalNumberHandler.default()
+//    internal var _roundingBehavior: NSDecimalNumberHandler = .defaultDecimalNumberHandler()
 //    /*@NSCopying*/ open var roundingBehavior: NSDecimalNumberHandler {
 //        get {
 //            return _roundingBehavior
@@ -895,4 +866,36 @@ open class NumberFormatter : Formatter {
 //            _roundingBehavior = newValue
 //        }
 //    }
+}
+
+extension NumberFormatter {
+    public enum Style : UInt {
+        case noStyle
+        case decimalStyle
+        case currencyStyle
+        case percentStyle
+        case scientificStyle
+        case spellOutStyle
+        case ordinalStyle
+        case currencyISOCodeStyle
+        case currencyPluralStyle
+        case currencyAccountingStyle
+    }
+
+    public enum PadPosition : UInt {
+        case beforePrefix
+        case afterPrefix
+        case beforeSuffix
+        case afterSuffix
+    }
+
+    public enum RoundingMode : UInt {
+        case roundCeiling
+        case roundFloor
+        case roundDown
+        case roundUp
+        case roundHalfEven
+        case roundHalfDown
+        case roundHalfUp
+    }
 }

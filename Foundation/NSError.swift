@@ -145,8 +145,8 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return userInfo[NSLocalizedRecoveryOptionsErrorKey] as? [String]
     }
     
-    open var recoveryAttempter: Any? {
-        return userInfo[NSRecoveryAttempterErrorKey]
+    open var recoveryAttempter: AnyObject? {
+        return userInfo[NSRecoveryAttempterErrorKey] as? AnyObject
     }
     
     open var helpAnchor: String? {
