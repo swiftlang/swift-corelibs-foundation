@@ -169,9 +169,7 @@
 
 
 import CoreFoundation
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
-#endif
 
 
 fileprivate var sessionCounter = Int32(0)
@@ -187,12 +185,10 @@ open class URLSession : NSObject {
     fileprivate let _configuration: _Configuration
     fileprivate let multiHandle: _MultiHandle
     fileprivate var nextTaskIdentifier = 1
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
-    internal let workQueue: DispatchQueue
+    internal let workQueue: DispatchQueue 
     /// This queue is used to make public attributes on `URLSessionTask` instances thread safe.
     /// - Note: It's a **concurrent** queue.
-    internal let taskAttributesIsolation: DispatchQueue
-#endif
+    internal let taskAttributesIsolation: DispatchQueue 
     fileprivate let taskRegistry = URLSession._TaskRegistry()
     fileprivate let identifier: Int32
     
@@ -212,10 +208,8 @@ open class URLSession : NSObject {
     public /*not inherited*/ init(configuration: URLSessionConfiguration) {
         initializeLibcurl()
         identifier = nextSessionIdentifier()
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>")
         self.taskAttributesIsolation = DispatchQueue(label: "URLSession<\(identifier)>.taskAttributes", attributes: DispatchQueue.Attributes.concurrent)
-#endif
         self.delegateQueue = OperationQueue()
         self.delegate = nil
         //TODO: Make sure this one can't be written to?
@@ -224,19 +218,13 @@ open class URLSession : NSObject {
         self.configuration = configuration.copy() as! URLSessionConfiguration
         let c = URLSession._Configuration(URLSessionConfiguration: configuration)
         self._configuration = c
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         self.multiHandle = _MultiHandle(configuration: c, workQueue: workQueue)
-#else
-        self.multiHandle = _MultiHandle()
-#endif
     }
     public /*not inherited*/ init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue queue: OperationQueue?) {
         initializeLibcurl()
         identifier = nextSessionIdentifier()
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>")
         self.taskAttributesIsolation = DispatchQueue(label: "URLSession<\(identifier)>.taskAttributes", attributes: DispatchQueue.Attributes.concurrent)
-#endif
         self.delegateQueue = queue ?? OperationQueue()
         self.delegate = delegate
         //TODO: Make sure this one can't be written to?
@@ -245,11 +233,7 @@ open class URLSession : NSObject {
         self.configuration = configuration.copy() as! URLSessionConfiguration
         let c = URLSession._Configuration(URLSessionConfiguration: configuration)
         self._configuration = c
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         self.multiHandle = _MultiHandle(configuration: c, workQueue: workQueue)
-#else
-        self.multiHandle = _MultiHandle()
-#endif
     }
     
     open let delegateQueue: OperationQueue
@@ -315,11 +299,7 @@ open class URLSession : NSObject {
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
     open func uploadTask(with request: NSURLRequest, fromData bodyData: Data) -> URLSessionUploadTask {
         let r = URLSession._Request(request)
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         return uploadTask(with: r, body: .data(createDispatchData(bodyData)), behaviour: .callDelegate)
-#else
-        fatalError("NSURLSession requires libdispatch")
-#endif
     }
     
     /* Creates an upload task with the given request.  The previously set body stream of the request (if any) is ignored and the URLSession:task:needNewBodyStream: delegate will be called when the body payload is required. */
@@ -390,11 +370,9 @@ fileprivate extension URLSession {
         let r = createConfiguredRequest(from: request)
         let i = createNextTaskIdentifier()
         let task = URLSessionDataTask(session: self, request: r, taskIdentifier: i)
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         workQueue.async {
             self.taskRegistry.add(task, behaviour: behaviour)
         }
-#endif
         return task
     }
     
@@ -405,11 +383,9 @@ fileprivate extension URLSession {
         let r = createConfiguredRequest(from: request)
         let i = createNextTaskIdentifier()
         let task = URLSessionUploadTask(session: self, request: r, taskIdentifier: i, body: body)
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         workQueue.async {
             self.taskRegistry.add(task, behaviour: behaviour)
         }
-#endif
         return task
     }
     
@@ -418,11 +394,9 @@ fileprivate extension URLSession {
         let r = createConfiguredRequest(from: request)
         let i = createNextTaskIdentifier()
         let task = URLSessionDownloadTask(session: self, request: r, taskIdentifier: i)
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         workQueue.async {
             self.taskRegistry.add(task, behaviour: behavior)
         }
-#endif
         return task
     }
 }
@@ -462,13 +436,8 @@ extension URLSession {
         return uploadTask(with: request, fromData: fileData, completionHandler: completionHandler)
     }
 
-    open func uploadTask(with request: NSURLRequest, fromData bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
+    open func uploadTask(with request: NSURLRequest, fromData bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask { 
         return uploadTask(with: _Request(request), body: .data(createDispatchData(bodyData!)), behaviour: .dataCompletionHandler(completionHandler))
-#else
-        fatalError("NSURLSession requires libdispatch")
-#endif
-        
     }
     
     /*

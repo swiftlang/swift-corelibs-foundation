@@ -19,7 +19,6 @@ import SwiftXCTest
 class TestURLSession : XCTestCase {
 
     static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         return [
             ("test_dataTaskWithURL", test_dataTaskWithURL),
             ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
@@ -29,10 +28,8 @@ class TestURLSession : XCTestCase {
             ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
             ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
+            
         ]
-#else
-        return []
-#endif
     }
 
     func test_dataTaskWithURL() {

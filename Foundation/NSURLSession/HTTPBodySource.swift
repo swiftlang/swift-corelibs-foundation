@@ -17,8 +17,9 @@
 // -----------------------------------------------------------------------------
 
 import CoreFoundation
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
+
+
 
 internal extension Data {
     /// Turn `dispatch_data_t` into `NSData`
@@ -54,8 +55,7 @@ internal func split(dispatchData data: DispatchData, atPosition position: Int) -
     return (head, tail)*/
     return (data.subdata(in: 0..<position), data.subdata(in: position..<data.count))
 }
-#endif
-    
+
 /// A (non-blocking) source for HTTP body data.
 internal protocol _HTTPBodySource: class {
     /// Get the next chunck of data.
@@ -66,9 +66,7 @@ internal protocol _HTTPBodySource: class {
     func getNextChunk(withLength length: Int) -> _HTTPBodySourceDataChunk
 }
 internal enum _HTTPBodySourceDataChunk {
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
     case data(DispatchData)
-#endif
     /// The source is depleted.
     case done
     /// Retry later to get more data.
@@ -78,12 +76,10 @@ internal enum _HTTPBodySourceDataChunk {
 
 /// A HTTP body data source backed by `dispatch_data_t`.
 internal final class _HTTPBodyDataSource {
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
-    var data: DispatchData!
+    var data: DispatchData! 
     init(data: DispatchData) {
         self.data = data
     }
-#endif
 }
 
 extension _HTTPBodyDataSource : _HTTPBodySource {
@@ -92,7 +88,6 @@ extension _HTTPBodyDataSource : _HTTPBodySource {
     }
 
     func getNextChunk(withLength length: Int) -> _HTTPBodySourceDataChunk {
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         let remaining = data.count
         if remaining == 0 {
             return .done
@@ -105,9 +100,6 @@ extension _HTTPBodyDataSource : _HTTPBodySource {
             data = remainder
             return .data(chunk)
         }
-#else
-        fatalError("NSURLSession requires libdispatch")
-#endif
     }
 }
 
@@ -125,10 +117,8 @@ extension _HTTPBodyDataSource : _HTTPBodySource {
 /// have to be thread safe.
 internal final class _HTTPBodyFileSource {
     fileprivate let fileURL: URL
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
-    fileprivate let channel: DispatchIO
-    fileprivate let workQueue: DispatchQueue
-#endif
+    fileprivate let channel: DispatchIO 
+    fileprivate let workQueue: DispatchQueue 
     fileprivate let dataAvailableHandler: () -> ()
     fileprivate var hasActiveReadHandler = false
     fileprivate var availableChunk: _Chunk = .empty
@@ -143,7 +133,6 @@ internal final class _HTTPBodyFileSource {
     ///     no data may be available even if there's more data in the file.
     ///     if `getNextChunk(withLength:)` returns `.retryLater`, this handler
     ///     will be called once data becomes available.
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
     init(fileURL: URL, workQueue: DispatchQueue, dataAvailableHandler: @escaping () -> ()) {
         guard fileURL.isFileURL else { fatalError("The body data URL must be a file URL.") }
         self.fileURL = fileURL
@@ -156,12 +145,6 @@ internal final class _HTTPBodyFileSource {
         self.channel = DispatchIO(type: .stream, path: fileSystemRepresentation, oflag: O_RDONLY, mode: 0, queue: workQueue, cleanupHandler: {_ in })
         self.channel.setLimit(highWater: CFURLSessionMaxWriteSize)
     }
-#else
-    init(fileURL: URL, dataAvailableHandler: @escaping () -> ()) {
-        self.fileURL = fileURL
-        self.dataAvailableHandler = dataAvailableHandler
-    }
-#endif
 
     fileprivate enum _Chunk {
         /// Nothing has been read, yet
@@ -169,11 +152,9 @@ internal final class _HTTPBodyFileSource {
         /// An error has occured while reading
         case errorDetected(Int)
         /// Data has been read
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         case data(DispatchData)
         /// All data has been read from the file (EOF).
         case done(DispatchData?)
-#endif
     }
 }
 
@@ -191,7 +172,6 @@ fileprivate extension _HTTPBodyFileSource {
         hasActiveReadHandler = true
         
         let lengthToRead = desiredBufferLength - availableByteCount
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         channel.read(offset: 0, length: lengthToRead, queue: workQueue) { (done: Bool, data: DispatchData?, errno: Int32) in
             let wasEmpty = self.availableByteCount == 0
             self.hasActiveReadHandler = !done
@@ -213,9 +193,8 @@ fileprivate extension _HTTPBodyFileSource {
                 self.dataAvailableHandler()
             }
         }
-#endif
     }
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
+
     fileprivate func append(data: DispatchData, endOfFile: Bool) {
         switch availableChunk {
         case .empty:
@@ -229,10 +208,8 @@ fileprivate extension _HTTPBodyFileSource {
             fatalError("Trying to append data, but end-of-file was already detected.")
         }
     }
-#endif
-    
+
     fileprivate var availableByteCount: Int {
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
         switch availableChunk {
         case .empty: return 0
         case .errorDetected: return 0
@@ -240,15 +217,11 @@ fileprivate extension _HTTPBodyFileSource {
         case .done(.some(let d)): return d.count
         case .done(.none): return 0
         }
-#else
-        return 0
-#endif
     }
 }
 
 extension _HTTPBodyFileSource : _HTTPBodySource {
-    func getNextChunk(withLength length: Int) -> _HTTPBodySourceDataChunk {
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
+    func getNextChunk(withLength length: Int) -> _HTTPBodySourceDataChunk {    
         switch availableChunk {
         case .empty:
             readNextChunk()
@@ -279,8 +252,5 @@ extension _HTTPBodyFileSource : _HTTPBodySource {
         case .done(.none):
             return .done
         }
-#else
-        fatalError("NSURLSession requires libdispatch")
-#endif
     }
 }
