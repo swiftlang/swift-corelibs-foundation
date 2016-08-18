@@ -867,44 +867,32 @@ extension TestNSData {
     }
     
     func test_basicReadWrite() {
-        var url: URL? = nil
-        do {
-            url = try URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("testfile")
-        } catch {
-            XCTFail("unexpected error")
-        }
-        
+        let url = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("testfile")
         let count = 1 << 24
         let randomMemory = malloc(count)!
         let ptr = randomMemory.bindMemory(to: UInt8.self, capacity: count)
         let data = Data(bytesNoCopy: ptr, count: count, deallocator: .free)
         do {
-            try data.write(to: url!)
-            let readData = try Data(contentsOf: url!)
+            try data.write(to: url)
+            let readData = try Data(contentsOf: url)
             XCTAssertEqual(data, readData)
         } catch {
             XCTFail("Should not have thrown")
         }
         
         do {
-            try FileManager.default.removeItem(at: url!)
+            try FileManager.default.removeItem(at: url)
         } catch {
             // ignore
         }
     }
     
     func test_writeFailure() {
-        var url: URL?
-        do {
-            url = try URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("testfile")
-        } catch {
-            XCTFail("unexpected error")
-        }
-        
+        let url = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("testfile")
         
         let data = Data()
         do {
-            try data.write(to: url!)
+            try data.write(to: url)
         } catch let error as NSError {
             print(error)
             XCTAssertTrue(false, "Should not have thrown")
@@ -913,7 +901,7 @@ extension TestNSData {
         }
         
         do {
-            try data.write(to: url!, options: [.withoutOverwriting])
+            try data.write(to: url, options: [.withoutOverwriting])
             XCTAssertTrue(false, "Should have thrown")
         } catch let error as NSError {
             XCTAssertEqual(error.code, NSCocoaError.FileWriteFileExistsError.rawValue)
@@ -923,20 +911,20 @@ extension TestNSData {
         
         
         do {
-            try FileManager.default.removeItem(at: url!)
+            try FileManager.default.removeItem(at: url)
         } catch {
             // ignore
         }
         
         // Make sure clearing the error condition allows the write to succeed
         do {
-            try data.write(to: url!, options: [.withoutOverwriting])
+            try data.write(to: url, options: [.withoutOverwriting])
         } catch {
             XCTAssertTrue(false, "Should not have thrown")
         }
         
         do {
-            try FileManager.default.removeItem(at: url!)
+            try FileManager.default.removeItem(at: url)
         } catch {
             // ignore
         }

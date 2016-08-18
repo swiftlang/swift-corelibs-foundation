@@ -300,7 +300,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     public required convenience init?(coder aDecoder: NSCoder) {
         if !aDecoder.allowsKeyedCoding {
-            if let data = aDecoder.decodeDataObject() {
+            if let data = aDecoder.decodeData() {
                 self.init(data: data)
             } else {
                 return nil
