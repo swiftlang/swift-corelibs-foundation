@@ -447,7 +447,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return keysSortedByValue(options: [], usingComparator: cmptr)
     }
 
-    open func keysSortedByValue(options opts: SortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
+    open func keysSortedByValue(options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
         let sorted = allKeys.sorted { lhs, rhs in
             return cmptr(lhs, rhs) == .orderedSame
         }

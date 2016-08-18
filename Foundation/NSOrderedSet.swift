@@ -265,7 +265,7 @@ extension NSOrderedSet {
     open func index(of object: Any, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions = [], usingComparator cmp: (Any, Any) -> ComparisonResult) -> Int { NSUnimplemented() } // binary search
     
     open func sortedArray(comparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] { NSUnimplemented() }
-    open func sortedArray(options opts: SortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] { NSUnimplemented() }
+    open func sortedArray(options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] { NSUnimplemented() }
     
     public func description(withLocale locale: Locale?) -> String { NSUnimplemented() }
     public func description(withLocale locale: Locale?, indent level: Int) -> String { NSUnimplemented() }
@@ -528,11 +528,11 @@ extension NSMutableOrderedSet {
         sortRange(NSMakeRange(0, count), options: [], usingComparator: cmptr)
     }
 
-    open func sort(options opts: SortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) {
+    open func sort(options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) {
         sortRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
     }
 
-    open func sortRange(_ range: NSRange, options opts: SortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) {
+    open func sortRange(_ range: NSRange, options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) {
         // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
         guard opts.isEmpty else {
             NSUnimplemented()
