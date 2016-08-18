@@ -42,7 +42,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     
     public required convenience init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
-            guard let identifier = aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.identifier") else {
+            guard let identifier = aDecoder.decodeObject(of: NSString.self, forKey: "NS.identifier") else {
                 return nil
             }
             self.init(localeIdentifier: String._unconditionallyBridgeFromObjectiveC(identifier))
