@@ -176,7 +176,7 @@ extension NSSet {
 
 extension NSSet {
     
-    public var allObjects: [Any] {
+    open var allObjects: [Any] {
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
             return _storage.map { _SwiftValue.fetch($0) }
         } else {
@@ -189,15 +189,15 @@ extension NSSet {
         }
     }
     
-    public func anyObject() -> Any? {
+    open func anyObject() -> Any? {
         return objectEnumerator().nextObject()
     }
     
-    public func contains(_ anObject: Any) -> Bool {
+    open func contains(_ anObject: Any) -> Bool {
         return member(anObject) != nil
     }
     
-    public func intersects(_ otherSet: Set<AnyHashable>) -> Bool {
+    open func intersects(_ otherSet: Set<AnyHashable>) -> Bool {
         if count < otherSet.count {
             for item in self {
                 if otherSet.contains(item as! AnyHashable) {
@@ -210,11 +210,11 @@ extension NSSet {
         }
     }
     
-    public func isEqual(to otherSet: Set<AnyHashable>) -> Bool {
+    open func isEqual(to otherSet: Set<AnyHashable>) -> Bool {
         return count == otherSet.count && isSubset(of: otherSet)
     }
     
-    public func isSubset(of otherSet: Set<AnyHashable>) -> Bool {
+    open func isSubset(of otherSet: Set<AnyHashable>) -> Bool {
         // `true` if we don't contain any object that `otherSet` doesn't contain.
         for item in self {
             if !otherSet.contains(item as! AnyHashable) {
@@ -224,11 +224,11 @@ extension NSSet {
         return true
     }
 
-    public func adding(_ anObject: Any) -> Set<AnyHashable> {
+    open func adding(_ anObject: Any) -> Set<AnyHashable> {
         return self.addingObjects(from: [anObject])
     }
     
-    public func addingObjects(from other: Set<AnyHashable>) -> Set<AnyHashable> {
+    open func addingObjects(from other: Set<AnyHashable>) -> Set<AnyHashable> {
         var result = Set<AnyHashable>(minimumCapacity: Swift.max(count, other.count))
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
             result.formUnion(_storage.map { _SwiftValue.fetch($0) as! AnyHashable })
@@ -240,7 +240,7 @@ extension NSSet {
         return result.union(other)
     }
     
-    public func addingObjects(from other: [Any]) -> Set<AnyHashable> {
+    open func addingObjects(from other: [Any]) -> Set<AnyHashable> {
         var result = Set<AnyHashable>(minimumCapacity: count)
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
             result.formUnion(_storage.map { _SwiftValue.fetch($0) as! AnyHashable })
@@ -255,11 +255,11 @@ extension NSSet {
         return result
     }
 
-    public func enumerateObjects(_ block: (Any, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        enumerateObjects([], using: block)
+    open func enumerateObjects(_ block: (Any, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+        enumerateObjects(options: [], using: block)
     }
     
-    public func enumerateObjects(_ opts: NSEnumerationOptions = [], using block: (Any, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    open func enumerateObjects(options opts: NSEnumerationOptions = [], using block: (Any, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         var stop : ObjCBool = false
         for obj in self {
             withUnsafeMutablePointer(to: &stop) { stop in
@@ -271,13 +271,13 @@ extension NSSet {
         }
     }
 
-    public func objects(passingTest predicate: (Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<AnyHashable> {
-        return objects([], passingTest: predicate)
+    open func objects(passingTest predicate: (Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<AnyHashable> {
+        return objects(options: [], passingTest: predicate)
     }
     
-    public func objects(_ opts: NSEnumerationOptions = [], passingTest predicate: (Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<AnyHashable> {
+    open func objects(options opts: NSEnumerationOptions = [], passingTest predicate: (Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<AnyHashable> {
         var result = Set<AnyHashable>()
-        enumerateObjects(opts) { obj, stopp in
+        enumerateObjects(options: opts) { obj, stopp in
             if predicate(obj, stopp) {
                 result.insert(obj as! AnyHashable)
             }

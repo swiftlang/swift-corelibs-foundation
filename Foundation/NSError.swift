@@ -59,7 +59,7 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
             if let info = aDecoder.decodeObject(of: [NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
                 var filteredUserInfo = [String : Any]()
                 // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjects([]) {
+                info.enumerateKeysAndObjects(options: []) {
                     if let key = $0.0 as? NSString {
                         filteredUserInfo[key._swiftObject] = $0.1
                     }
@@ -74,7 +74,7 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
             if let info = aDecoder.decodeObject() as? NSDictionary {
                 var filteredUserInfo = [String : Any]()
                 // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjects([]) {
+                info.enumerateKeysAndObjects(options: []) {
                     if let key = $0.0 as? NSString {
                         filteredUserInfo[key._swiftObject] = $0.1
                     }

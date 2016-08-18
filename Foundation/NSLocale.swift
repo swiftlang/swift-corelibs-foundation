@@ -139,7 +139,7 @@ extension NSLocale {
     open class func components(fromLocaleIdentifier string: String) -> [String : String] {
         var comps = Dictionary<String, String>()
         let values = CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._nsObject
-        values.enumerateKeysAndObjects([]) { (k, v, stop) in
+        values.enumerateKeysAndObjects(options: []) { (k, v, stop) in
             let key = (k as! NSString)._swiftObject
             let value = (v as! NSString)._swiftObject
             comps[key] = value

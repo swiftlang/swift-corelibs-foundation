@@ -36,7 +36,7 @@ extension Set : _ObjectTypeBridgeable {
         var failedConversion = false
         
         if type(of: source) == NSSet.self || type(of: source) == NSMutableSet.self {
-            source.enumerateObjects([]) { obj, stop in
+            source.enumerateObjects(options: []) { obj, stop in
                 if let o = obj as? Element {
                     set.insert(o)
                 } else {

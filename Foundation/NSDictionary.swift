@@ -243,7 +243,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     
     open func allKeys(for anObject: Any) -> [Any] {
         var matching = Array<Any>()
-        enumerateKeysAndObjects([]) { key, value, _ in
+        enumerateKeysAndObjects(options: []) { key, value, _ in
             if let val = value as? AnyHashable,
                let obj = anObject as? AnyHashable {
                 if val == obj {
@@ -422,11 +422,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
     open func write(to url: URL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
     
-    public func enumerateKeysAndObjects(_ block: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        enumerateKeysAndObjects([], using: block)
+    open func enumerateKeysAndObjects(_ block: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+        enumerateKeysAndObjects(options: [], using: block)
     }
 
-    public func enumerateKeysAndObjects(_ opts: NSEnumerationOptions = [], using block: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    open func enumerateKeysAndObjects(options opts: NSEnumerationOptions = [], using block: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         let count = self.count
         var keys = [Any]()
         var objects = [Any]()
@@ -444,25 +444,25 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     open func keysSortedByValue(comparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
-        return keysSortedByValue([], usingComparator: cmptr)
+        return keysSortedByValue(options: [], usingComparator: cmptr)
     }
 
-    open func keysSortedByValue(_ opts: SortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
+    open func keysSortedByValue(options opts: SortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
         let sorted = allKeys.sorted { lhs, rhs in
             return cmptr(lhs, rhs) == .orderedSame
         }
         return sorted
     }
 
-    open func keysOfEntries(passingTest predicate: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
-        return keysOfEntries([], passingTest: predicate)
+    open func keysOfEntries(passingTest predicate: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<AnyHashable> {
+        return keysOfEntries(options: [], passingTest: predicate)
     }
 
-    open func keysOfEntries(_ opts: NSEnumerationOptions = [], passingTest predicate: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<NSObject> {
-        var matching = Set<NSObject>()
-        enumerateKeysAndObjects(opts) { key, value, stop in
+    open func keysOfEntries(options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<AnyHashable> {
+        var matching = Set<AnyHashable>()
+        enumerateKeysAndObjects(options: opts) { key, value, stop in
             if predicate(key, value, stop) {
-                matching.insert(key as! NSObject)
+                matching.insert(key as! AnyHashable)
             }
         }
         return matching

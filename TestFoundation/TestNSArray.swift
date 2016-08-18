@@ -349,12 +349,12 @@ class TestNSArray : XCTestCase {
             return l.localizedCaseInsensitiveCompare(r)
         }
         let result1 = NSArray(array: input.sortedArray(comparator: comparator))
-        let result2 = input.sortedArray([], usingComparator: comparator)
+        let result2 = input.sortedArray(options: [], usingComparator: comparator)
 
         XCTAssertTrue(result1.isEqual(to: result2))
 
         // sort empty array
-        let emptyArray = NSArray().sortedArray([]) { _,_ in .orderedSame }
+        let emptyArray = NSArray().sortedArray(options: []) { _,_ in .orderedSame }
         XCTAssertTrue(emptyArray.isEmpty)
     }
 
@@ -397,7 +397,7 @@ class TestNSArray : XCTestCase {
             return l.localizedCaseInsensitiveCompare(r)
         }
         mutableStringsInput1.sortUsingComparator(comparator)
-        mutableStringsInput2.sortWithOptions([], usingComparator: comparator)
+        mutableStringsInput2.sortWithOptions(options: [], usingComparator: comparator)
         XCTAssertTrue(mutableStringsInput1.isEqual(to: mutableStringsInput2.map { $0 }))
     }
 

@@ -177,7 +177,7 @@ internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valueb
             idx += 1
         }
     } else {
-        dict.enumerateKeysAndObjects([]) { k, v, _ in
+        dict.enumerateKeysAndObjects(options: []) { k, v, _ in
             let key = _SwiftValue.store(k)
             let value = _SwiftValue.store(v)
             valuebuf?[idx] = Unmanaged<AnyObject>.passUnretained(value)
@@ -189,7 +189,7 @@ internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valueb
 }
 
 internal func _CFSwiftDictionaryApplyFunction(_ dictionary: AnyObject, applier: @convention(c) (AnyObject, AnyObject, UnsafeMutableRawPointer) -> Void, context: UnsafeMutableRawPointer) {
-    (dictionary as! NSDictionary).enumerateKeysAndObjects([]) { key, value, _ in
+    (dictionary as! NSDictionary).enumerateKeysAndObjects(options: []) { key, value, _ in
         applier(_SwiftValue.store(key), _SwiftValue.store(value), context)
     }
 }
