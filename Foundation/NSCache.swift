@@ -7,39 +7,36 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-open class Cache: NSObject {
-    private class NSCacheEntry {
-        var key: AnyObject
-        var value: AnyObject
-        var cost: Int
-        var prevByCost: NSCacheEntry?
-        var nextByCost: NSCacheEntry?
-        init(key: AnyObject, value: AnyObject, cost: Int) {
-            self.key = key
-            self.value = value
-            self.cost = cost
-        }
+private class NSCacheEntry<KeyType : AnyObject, ObjectType : AnyObject> {
+    var key: KeyType
+    var value: ObjectType
+    var cost: Int
+    var prevByCost: NSCacheEntry?
+    var nextByCost: NSCacheEntry?
+    init(key: KeyType, value: ObjectType, cost: Int) {
+        self.key = key
+        self.value = value
+        self.cost = cost
     }
-    
-    private var _entries = Dictionary<UnsafeRawPointer, NSCacheEntry>()
+}
+
+open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
+    private var _entries = Dictionary<UnsafeRawPointer, NSCacheEntry<KeyType, ObjectType>>()
     private let _lock = NSLock()
     private var _totalCost = 0
-    private var _byCost: NSCacheEntry?
+    private var _byCost: NSCacheEntry<KeyType, ObjectType>?
     
     open var name: String = ""
     open var totalCostLimit: Int = -1 // limits are imprecise/not strict
     open var countLimit: Int = -1 // limits are imprecise/not strict
     open var evictsObjectsWithDiscardedContent: Bool = false
 
-    public override init() {
-        
-    }
+    public override init() {}
     
     open weak var delegate: NSCacheDelegate?
     
-    open func object(forKey key: AnyObject) -> AnyObject? {
-        var object: AnyObject?
+    open func object(forKey key: KeyType) -> ObjectType? {
+        var object: ObjectType?
         
         let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
         
@@ -52,11 +49,11 @@ open class Cache: NSObject {
         return object
     }
     
-    open func setObject(_ obj: AnyObject, forKey key: AnyObject) {
+    open func setObject(_ obj: ObjectType, forKey key: KeyType) {
         setObject(obj, forKey: key, cost: 0)
     }
     
-    private func remove(_ entry: NSCacheEntry) {
+    private func remove(_ entry: NSCacheEntry<KeyType, ObjectType>) {
         let oldPrev = entry.prevByCost
         let oldNext = entry.nextByCost
         oldPrev?.nextByCost = oldNext
@@ -66,7 +63,7 @@ open class Cache: NSObject {
         }
     }
    
-    private func insert(_ entry: NSCacheEntry) {
+    private func insert(_ entry: NSCacheEntry<KeyType, ObjectType>) {
         if _byCost == nil {
             _byCost = entry
         } else {
@@ -83,7 +80,7 @@ open class Cache: NSObject {
         }
     }
     
-    open func setObject(_ obj: AnyObject, forKey key: AnyObject, cost g: Int) {
+    open func setObject(_ obj: ObjectType, forKey key: KeyType, cost g: Int) {
         let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
         
         _lock.lock()
@@ -111,7 +108,7 @@ open class Cache: NSObject {
         }
         _lock.unlock()
         
-        var toRemove = [NSCacheEntry]()
+        var toRemove = [NSCacheEntry<KeyType, ObjectType>]()
         
         if purgeAmount > 0 {
             _lock.lock()
@@ -146,7 +143,7 @@ open class Cache: NSObject {
         
         if let del = delegate {
             for entry in toRemove {
-                del.cache(self, willEvictObject: entry.value)
+                del.cache(unsafeBitCast(self, to:NSCache<AnyObject, AnyObject>.self), willEvictObject: entry.value)
             }
         }
         
@@ -177,12 +174,12 @@ open class Cache: NSObject {
     }    
 }
 
-public protocol NSCacheDelegate : class {
-    func cache(_ cache: Cache, willEvictObject obj: AnyObject)
+public protocol NSCacheDelegate : NSObjectProtocol {
+    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: AnyObject)
 }
 
 extension NSCacheDelegate {
-    func cache(_ cache: Cache, willEvictObject obj: AnyObject) {
+    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: AnyObject) {
         // Default implementation does nothing
     }
 }

@@ -7,9 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
 // Flags(s) that can be passed to the factory to indicate that a operator operating on strings should do so in a case insensitive fashion.
-extension ComparisonPredicate {
+extension NSComparisonPredicate {
     public struct Options : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
@@ -21,7 +20,6 @@ extension ComparisonPredicate {
 
     // Describes how the operator is modified: can be direct, ALL, or ANY
     public enum Modifier : UInt {
-        
         case direct // Do a direct comparison
         case all // ALL toMany.x = y
         case any // ANY toMany.x = y
@@ -29,7 +27,6 @@ extension ComparisonPredicate {
 
     // Type basic set of operators defined. Most are obvious
     public enum Operator : UInt {
-        
         case lessThan // compare: returns NSOrderedAscending
         case lessThanOrEqualTo // compare: returns NSOrderedAscending || NSOrderedSame
         case greaterThan // compare: returns NSOrderedDescending
@@ -45,9 +42,9 @@ extension ComparisonPredicate {
         case between
     }
 }
-// Comparison predicates are predicates which do some form of comparison between the results of two expressions and return a BOOL. They take an operator, a left expression, and a right expression, and return the result of invoking the operator with the results of evaluating the expressions.
 
-open class ComparisonPredicate : Predicate {
+// Comparison predicates are predicates which do some form of comparison between the results of two expressions and return a BOOL. They take an operator, a left expression, and a right expression, and return the result of invoking the operator with the results of evaluating the expressions.
+open class NSComparisonPredicate : NSPredicate {
     
     public init(leftExpression lhs: NSExpression, rightExpression rhs: NSExpression, modifier: Modifier, type: Operator, options: Options) { NSUnimplemented() }
     public required init?(coder: NSCoder) { NSUnimplemented() }

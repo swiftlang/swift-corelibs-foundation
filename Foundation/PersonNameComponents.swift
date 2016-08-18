@@ -1,3 +1,5 @@
+//===----------------------------------------------------------------------===//
+//
 // This source file is part of the Swift.org open source project
 //
 // Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
@@ -6,6 +8,7 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+//===----------------------------------------------------------------------===//
 
 public struct PersonNameComponents : ReferenceConvertible, Hashable, Equatable, _MutableBoxing {
     public typealias ReferenceType = NSPersonNameComponents
@@ -15,7 +18,7 @@ public struct PersonNameComponents : ReferenceConvertible, Hashable, Equatable, 
         _handle = _MutableHandle(adoptingReference: NSPersonNameComponents())
     }
     
-    private init(reference: NSPersonNameComponents) {
+    fileprivate init(reference: NSPersonNameComponents) {
         _handle = _MutableHandle(reference: reference)
     }
 
@@ -69,11 +72,68 @@ public struct PersonNameComponents : ReferenceConvertible, Hashable, Equatable, 
         return _handle.map { $0.hash }
     }
     
-    public var description: String { return _handle.map { $0.description } }
-    public var debugDescription: String { return _handle.map { $0.debugDescription } }
+    public static func ==(lhs : PersonNameComponents, rhs: PersonNameComponents) -> Bool {
+        // Don't copy references here; no one should be storing anything
+        return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
+    }
 }
 
-public func ==(lhs : PersonNameComponents, rhs: PersonNameComponents) -> Bool {
-    // Don't copy references here; no one should be storing anything
-    return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
+extension PersonNameComponents : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var description: String {
+        return self.customMirror.children.reduce("") {
+            $0.appending("\($1.label ?? ""): \($1.value) ")
+        }
+    }
+
+    public var debugDescription: String {
+        return self.description
+    }
+
+    public var customMirror: Mirror {
+        var c: [(label: String?, value: Any)] = []
+        if let r = namePrefix { c.append((label: "namePrefix", value: r)) }
+        if let r = givenName { c.append((label: "givenName", value: r)) }
+        if let r = middleName { c.append((label: "middleName", value: r)) }
+        if let r = familyName { c.append((label: "familyName", value: r)) }
+        if let r = nameSuffix { c.append((label: "nameSuffix", value: r)) }
+        if let r = nickname { c.append((label: "nickname", value: r)) }
+        if let r = phoneticRepresentation { c.append((label: "phoneticRepresentation", value: r)) }
+        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+    }
+}
+
+extension PersonNameComponents : _ObjectTypeBridgeable {
+    public static func _getObjectiveCType() -> Any.Type {
+        return NSPersonNameComponents.self
+    }
+
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSPersonNameComponents {
+        return _handle._copiedReference()
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ personNameComponents: NSPersonNameComponents, result: inout PersonNameComponents?) {
+        if !_conditionallyBridgeFromObjectiveC(personNameComponents, result: &result) {
+            fatalError("Unable to bridge \(NSPersonNameComponents.self) to \(self)")
+        }
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ personNameComponents: NSPersonNameComponents, result: inout PersonNameComponents?) -> Bool {
+        result = PersonNameComponents(reference: personNameComponents)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSPersonNameComponents?) -> PersonNameComponents {
+        var result: PersonNameComponents? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
+}
+
+extension NSPersonNameComponents : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(self._bridgeToSwift())
+    }
 }

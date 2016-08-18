@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-extension NSNotification {
+open class NSNotification: NSObject, NSCopying, NSCoding {
     public struct Name : RawRepresentable, Equatable, Hashable, Comparable {
         public private(set) var rawValue: String
         public init(rawValue: String) {
@@ -18,19 +18,15 @@ extension NSNotification {
             return self.rawValue.hashValue
         }
         
-        public static func ==(lhs: NSNotification.Name, rhs: NSNotification.Name) -> Bool {
+        public static func ==(lhs: Name, rhs: Name) -> Bool {
             return lhs.rawValue == rhs.rawValue
         }
         
-        public static func <(lhs: NSNotification.Name, rhs: NSNotification.Name) -> Bool {
+        public static func <(lhs: Name, rhs: Name) -> Bool {
             return lhs.rawValue < rhs.rawValue
         }
     }
-}
 
-
-
-open class NSNotification: NSObject, NSCopying, NSCoding {
     private(set) open var name: Name
     
     private(set) open var object: Any?

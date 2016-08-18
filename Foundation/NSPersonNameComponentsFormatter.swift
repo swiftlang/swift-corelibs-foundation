@@ -51,7 +51,7 @@ open class PersonNameComponentsFormatter : Formatter {
     
     /* Specify that the formatter should only format the components object's phoneticRepresentation
      */
-    open var phonetic: Bool
+    open var isPhonetic: Bool
     
     /* Shortcut for converting an NSPersonNameComponents object into a string without explicitly creating an instance.
         Create an instance for greater customizability.

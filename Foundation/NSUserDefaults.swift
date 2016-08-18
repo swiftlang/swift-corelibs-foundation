@@ -9,17 +9,13 @@
 
 import CoreFoundation
 
-public let NSGlobalDomain: String = "NSGlobalDomain"
-public let NSArgumentDomain: String = "NSArgumentDomain"
-public let NSRegistrationDomain: String = "NSRegistrationDomain"
-
-private var registeredDefaults = [String: AnyObject]()
+private var registeredDefaults = [String: Any]()
 private var sharedDefaults = UserDefaults()
 
 open class UserDefaults: NSObject {
     private let suite: String?
     
-    open class func standardUserDefaults() -> UserDefaults {
+    open class var standard: UserDefaults {
         return sharedDefaults
     }
     
@@ -37,8 +33,8 @@ open class UserDefaults: NSObject {
         suite = suitename
     }
     
-    open func objectForKey(_ defaultName: String) -> AnyObject? {
-        func getFromRegistered() -> AnyObject? {
+    open func object(forKey defaultName: String) -> Any? {
+        func getFromRegistered() -> Any? {
             return registeredDefaults[defaultName]
         }
         
@@ -70,7 +66,7 @@ open class UserDefaults: NSObject {
             return getFromRegistered()
         }
     }
-    open func setObject(_ value: AnyObject?, forKey defaultName: String) {
+    open func set(_ value: Any?, forKey defaultName: String) {
         guard let value = value else {
             CFPreferencesSetAppValue(defaultName._cfObject, nil, suite?._cfObject ?? kCFPreferencesCurrentApplication)
             return
@@ -89,7 +85,7 @@ open class UserDefaults: NSObject {
         } else if let bType = value as? NSDictionary {
             cfType = bType._cfObject
         } else if let bType = value as? URL {
-			setURL(bType, forKey: defaultName)
+			set(bType, forKey: defaultName)
 			return
         } else if let bType = value as? Data {
             cfType = bType._cfObject
@@ -97,26 +93,25 @@ open class UserDefaults: NSObject {
         
         CFPreferencesSetAppValue(defaultName._cfObject, cfType, suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
-    open func removeObjectForKey(_ defaultName: String) {
+    open func removeObject(forKey defaultName: String) {
         CFPreferencesSetAppValue(defaultName._cfObject, nil, suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
-    
-    open func stringForKey(_ defaultName: String) -> String? {
-        guard let aVal = objectForKey(defaultName),
+    open func string(forKey defaultName: String) -> String? {
+        guard let aVal = object(forKey: defaultName),
               let bVal = aVal as? NSString else {
             return nil
         }
         return bVal._swiftObject
     }
-    open func arrayForKey(_ defaultName: String) -> [Any]? {
-        guard let aVal = objectForKey(defaultName),
+    open func array(forKey defaultName: String) -> [Any]? {
+        guard let aVal = object(forKey: defaultName),
               let bVal = aVal as? NSArray else {
             return nil
         }
         return bVal._swiftObject
     }
-    open func dictionaryForKey(_ defaultName: String) -> [String : Any]? {
-        guard let aVal = objectForKey(defaultName),
+    open func dictionary(forKey defaultName: String) -> [String : Any]? {
+        guard let aVal = object(forKey: defaultName),
               let bVal = aVal as? NSDictionary else {
             return nil
         }
@@ -143,50 +138,50 @@ open class UserDefaults: NSObject {
         } catch _ { }
         return nil
     }
-    open func dataForKey(_ defaultName: String) -> Data? {
-        guard let aVal = objectForKey(defaultName),
+    open func data(forKey defaultName: String) -> Data? {
+        guard let aVal = object(forKey: defaultName),
               let bVal = aVal as? Data else {
             return nil
         }
         return bVal
     }
-    open func stringArrayForKey(_ defaultName: String) -> [String]? {
-        guard let aVal = objectForKey(defaultName),
+    open func stringArray(forKey defaultName: String) -> [String]? {
+        guard let aVal = object(forKey: defaultName),
               let bVal = aVal as? NSArray else {
             return nil
         }
         return _SwiftValue.fetch(bVal) as? [String]
     }
-    open func integerForKey(_ defaultName: String) -> Int {
-        guard let aVal = objectForKey(defaultName),
+    open func integer(forKey defaultName: String) -> Int {
+        guard let aVal = object(forKey: defaultName),
               let bVal = aVal as? NSNumber else {
             return 0
         }
         return bVal.intValue
     }
-    open func floatForKey(_ defaultName: String) -> Float {
-        guard let aVal = objectForKey(defaultName),
+    open func float(forKey defaultName: String) -> Float {
+        guard let aVal = object(forKey: defaultName),
               let bVal = aVal as? NSNumber else {
             return 0
         }
         return bVal.floatValue
     }
-    open func doubleForKey(_ defaultName: String) -> Double {
-        guard let aVal = objectForKey(defaultName),
+    open func double(forKey defaultName: String) -> Double {
+        guard let aVal = object(forKey: defaultName),
               let bVal = aVal as? NSNumber else {
             return 0
         }
         return bVal.doubleValue
     }
-    open func boolForKey(_ defaultName: String) -> Bool {
-        guard let aVal = objectForKey(defaultName),
+    open func bool(forKey defaultName: String) -> Bool {
+        guard let aVal = object(forKey: defaultName),
               let bVal = aVal as? NSNumber else {
             return false
         }
         return bVal.boolValue
     }
-    open func URLForKey(_ defaultName: String) -> URL? {
-        guard let aVal = objectForKey(defaultName) else {
+    open func url(forKey defaultName: String) -> URL? {
+        guard let aVal = object(forKey: defaultName) else {
             return nil
         }
         
@@ -200,59 +195,55 @@ open class UserDefaults: NSObject {
         return nil
     }
     
-    open func setInteger(_ value: Int, forKey defaultName: String) {
-        setObject(NSNumber(value: value), forKey: defaultName)
+    open func set(_ value: Int, forKey defaultName: String) {
+        set(NSNumber(value: value), forKey: defaultName)
     }
-    open func setFloat(_ value: Float, forKey defaultName: String) {
-        setObject(NSNumber(value: value), forKey: defaultName)
+    open func set(_ value: Float, forKey defaultName: String) {
+        set(NSNumber(value: value), forKey: defaultName)
     }
-    open func setDouble(_ value: Double, forKey defaultName: String) {
-        setObject(NSNumber(value: value), forKey: defaultName)
+    open func set(_ value: Double, forKey defaultName: String) {
+        set(NSNumber(value: value), forKey: defaultName)
     }
-    open func setBool(_ value: Bool, forKey defaultName: String) {
-        setObject(NSNumber(value: value), forKey: defaultName)
+    open func set(_ value: Bool, forKey defaultName: String) {
+        set(NSNumber(value: value), forKey: defaultName)
     }
-    open func setURL(_ url: URL?, forKey defaultName: String) {
+    open func set(_ url: URL?, forKey defaultName: String) {
 		if let url = url {
             //FIXME: CFURLIsFileReferenceURL is limited to OS X/iOS
             #if os(OSX) || os(iOS)
                 //FIXME: no SwiftFoundation version of CFURLIsFileReferenceURL at time of writing!
-                if !CFURLIsFileReferenceURL(url._cfObject) {
-                    //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
-                    //TODO: use stringByAbbreviatingWithTildeInPath when it is
-                    let urlPath = url.path
-                    
-                    setObject(urlPath._nsObject, forKey: defaultName)
+                if CFURLIsFileReferenceURL(url._cfObject) {
+                    let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
+                    set(data._nsObject, forKey: defaultName)
+                    return
                 }
-            #else
-                //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
-                //TODO: use stringByAbbreviatingWithTildeInPath when it is
-                setObject(url.path._nsObject, forKey: defaultName)
             #endif
+            
+            set(url.path._nsObject, forKey: defaultName)
         } else {
-            setObject(nil, forKey: defaultName)
+            set(nil, forKey: defaultName)
         }
     }
     
-    open func registerDefaults(_ registrationDictionary: [String : AnyObject]) {
+    open func register(defaults registrationDictionary: [String : Any]) {
         for (key, value) in registrationDictionary {
             registeredDefaults[key] = value
         }
     }
     
-    open func addSuiteNamed(_ suiteName: String) {
+    open func addSuite(named suiteName: String) {
         CFPreferencesAddSuitePreferencesToApp(kCFPreferencesCurrentApplication, suiteName._cfObject)
     }
-    open func removeSuiteNamed(_ suiteName: String) {
+    open func removeSuite(named suiteName: String) {
         CFPreferencesRemoveSuitePreferencesFromApp(kCFPreferencesCurrentApplication, suiteName._cfObject)
     }
     
-    open func dictionaryRepresentation() -> [String : AnyObject] {
+    open func dictionaryRepresentation() -> [String : Any] {
         NSUnimplemented()
         /*
         Currently crashes the compiler.
         guard let aPref = CFPreferencesCopyMultiple(nil, kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost),
-            bPref = (aPref._swiftObject) as? [NSString: AnyObject] else {
+            bPref = (aPref._swiftObject) as? [NSString: Any] else {
                 return registeredDefaults
         }
         var allDefaults = registeredDefaults
@@ -266,21 +257,25 @@ open class UserDefaults: NSObject {
     }
     
     open var volatileDomainNames: [String] { NSUnimplemented() }
-    open func volatileDomainForName(_ domainName: String) -> [String : AnyObject] { NSUnimplemented() }
-    open func setVolatileDomain(_ domain: [String : AnyObject], forName domainName: String) { NSUnimplemented() }
-    open func removeVolatileDomainForName(_ domainName: String) { NSUnimplemented() }
+    open func volatileDomain(forName domainName: String) -> [String : Any] { NSUnimplemented() }
+    open func setVolatileDomain(_ domain: [String : Any], forName domainName: String) { NSUnimplemented() }
+    open func removeVolatileDomain(forName domainName: String) { NSUnimplemented() }
     
-    open func persistentDomainForName(_ domainName: String) -> [String : AnyObject]? { NSUnimplemented() }
-    open func setPersistentDomain(_ domain: [String : AnyObject], forName domainName: String) { NSUnimplemented() }
-    open func removePersistentDomainForName(_ domainName: String) { NSUnimplemented() }
+    open func persistentDomain(forName domainName: String) -> [String : Any]? { NSUnimplemented() }
+    open func setPersistentDomain(_ domain: [String : Any], forName domainName: String) { NSUnimplemented() }
+    open func removePersistentDomain(forName domainName: String) { NSUnimplemented() }
     
     open func synchronize() -> Bool {
         return CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
     }
     
-    open func objectIsForcedForKey(_ key: String) -> Bool { NSUnimplemented() }
-    open func objectIsForcedForKey(_ key: String, inDomain domain: String) -> Bool { NSUnimplemented() }
+    open func objectIsForced(forKey key: String) -> Bool { NSUnimplemented() }
+    open func objectIsForced(forKey key: String, inDomain domain: String) -> Bool { NSUnimplemented() }
 }
 
-public let NSUserDefaultsDidChangeNotification: String = "NSUserDefaultsDidChangeNotification"
-
+extension UserDefaults {
+    public static let didChangeNotification = NSNotification.Name(rawValue: "NSUserDefaultsDidChangeNotification")
+    public static let globalDomain: String = "NSGlobalDomain"
+    public static let argumentDomain: String = "NSArgumentDomain"
+    public static let registrationDomain: String = "NSRegistrationDomain"
+}
