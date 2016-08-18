@@ -338,11 +338,11 @@ extension NSData {
         if url.isFileURL {
             try self.init(contentsOfFile: url.path, options: readOptionsMask)
         } else {
-            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let session = URLSession(configuration: URLSessionConfiguration.defaultSessionConfiguration())
             let cond = NSCondition()
             var resError: NSError?
             var resData: Data?
-            let task = session.dataTask(with: url, completionHandler: { (data: Data?, response: URLResponse?, error: NSError?) -> Void in
+            let task = session.dataTaskWithURL(url, completionHandler: { (data: Data?, response: URLResponse?, error: NSError?) -> Void in
                 resData = data
                 resError = error
                 cond.broadcast()

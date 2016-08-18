@@ -23,7 +23,6 @@
 #include <CoreFoundation/CFXMLInterface.h>
 #include <CoreFoundation/CFRegularExpression.h>
 #include <CoreFoundation/CFLogUtilities.h>
-#include <CoreFoundation/CFURLSessionInterface.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
 #include <pthread.h>
