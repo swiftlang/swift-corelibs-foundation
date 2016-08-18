@@ -64,11 +64,11 @@ open class RunLoop: NSObject {
         _cfRunLoop = cfObject
     }
 
-    open class func current() -> RunLoop {
+    open class var current: RunLoop {
         return _CFRunLoopGet2(CFRunLoopGetCurrent()) as! RunLoop
     }
 
-    open class func main() -> RunLoop {
+    open class var main: RunLoop {
         return _CFRunLoopGet2(CFRunLoopGetMain()) as! RunLoop
     }
 
@@ -116,7 +116,7 @@ open class RunLoop: NSObject {
         return Date(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
     }
 
-    open func acceptInputForMode(_ mode: String, before limitDate: Date) {
+    open func acceptInput(forMode mode: String, before limitDate: Date) {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return
         }
