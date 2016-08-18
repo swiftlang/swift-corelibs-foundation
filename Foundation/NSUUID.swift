@@ -17,14 +17,14 @@ import CoreFoundation
 #endif
 
 open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    internal var buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
+    internal var buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
     
     public override init() {
         _cf_uuid_generate_random(buffer)
     }
     
     public convenience init?(uuidString string: String) {
-        let buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         if _cf_uuid_parse(string, buffer) != 0 {
             return nil
         }
@@ -32,7 +32,7 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public init(uuidBytes bytes: UnsafePointer<UInt8>) {
-        memcpy(unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
+        memcpy(unsafeBitCast(buffer, to: UnsafeMutableRawPointer.self), UnsafeRawPointer(bytes), 16)
     }
     
     open func getBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
@@ -40,7 +40,7 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open var uuidString: String {
-        let strPtr = UnsafeMutablePointer<Int8>(allocatingCapacity: 37)
+        let strPtr = UnsafeMutablePointer<Int8>.allocate(capacity: 37)
         _cf_uuid_unparse_upper(buffer, strPtr)
         return String(cString: strPtr)
     }
@@ -98,5 +98,13 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     open override var description: String {
         return uuidString
+    }
+}
+
+extension NSUUID : _StructTypeBridgeable {
+    public typealias _StructType = UUID
+    
+    public func _bridgeToSwift() -> UUID {
+        return UUID._unconditionallyBridgeFromObjectiveC(self)
     }
 }
