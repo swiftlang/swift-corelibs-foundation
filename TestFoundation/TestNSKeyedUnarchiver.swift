@@ -38,7 +38,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
             XCTFail("Could not find \(filename)")
             return
         }
-        let object = NSKeyedUnarchiver.unarchiveObjectWithFile(testFilePath) as? NSObject
+        let object = NSKeyedUnarchiver.unarchiveObject(withFile: testFilePath) as? NSObject
         if let obj = object {
             if expectedObject != obj {
                 print("\(expectedObject) != \(obj)")

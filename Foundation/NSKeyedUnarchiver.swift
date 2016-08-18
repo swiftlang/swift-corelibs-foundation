@@ -53,11 +53,11 @@ open class NSKeyedUnarchiver : NSCoder {
     private var _allowedClasses : Array<[AnyClass]> = []
     private var _error : NSError? = nil
     
-    internal override var error: NSError? {
+    override open var error: Error? {
         return _error
     }
     
-    open class func unarchiveObjectWithData(_ data: Data) -> Any? {
+    open class func unarchiveObject(with data: Data) -> Any? {
         do {
             return try unarchiveTopLevelObjectWithData(data)
         } catch {
@@ -65,7 +65,7 @@ open class NSKeyedUnarchiver : NSCoder {
         return nil
     }
     
-    open class func unarchiveObjectWithFile(_ path: String) -> Any? {
+    open class func unarchiveObject(withFile path: String) -> Any? {
         let url = URL(fileURLWithPath: path)
         let readStream = CFReadStreamCreateWithFile(kCFAllocatorSystemDefault, url._cfObject)!
         var root : Any? = nil
@@ -76,7 +76,7 @@ open class NSKeyedUnarchiver : NSCoder {
         
         let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(unsafeBitCast(readStream, to: InputStream.self)))
         do {
-            try root = keyedUnarchiver.decodeTopLevelObjectForKey(NSKeyedArchiveRootObjectKey)
+            try root = keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
             keyedUnarchiver.finishDecoding()
         } catch {
         }
@@ -267,9 +267,9 @@ open class NSKeyedUnarchiver : NSCoder {
         func _classForClassName(_ codedName: String) -> AnyClass? {
             var aClass : AnyClass?
             
-            aClass = classForClassName(codedName)
+            aClass = `class`(forClassName: codedName)
             if aClass == nil {
-                aClass = NSKeyedUnarchiver.classForClassName(codedName)
+                aClass = NSKeyedUnarchiver.class(forClassName: codedName)
             }
             if aClass == nil {
                 aClass = NSClassFromString(codedName)
@@ -594,7 +594,7 @@ open class NSKeyedUnarchiver : NSCoder {
     // During decoding, the coder first checks with the coder's
     // own table, then if there was no mapping there, the class's.
     
-    open class func classForClassName(_ codedName: String) -> AnyClass? {
+    open class func `class`(forClassName codedName: String) -> AnyClass? {
         var mappedClass : AnyClass?
         
         _classNameMapLock.synchronized {
@@ -604,7 +604,7 @@ open class NSKeyedUnarchiver : NSCoder {
         return mappedClass
     }
     
-    open func classForClassName(_ codedName: String) -> AnyClass? {
+    open func `class`(forClassName codedName: String) -> AnyClass? {
         return _classNameMap[codedName]
     }
     
@@ -624,45 +624,46 @@ open class NSKeyedUnarchiver : NSCoder {
         return nil
     }
     
-    // private variant of decodeObjectOfClasses() that supports generic (unkeyed) objects
-    private func _decodeObjectOfClasses(_ classes: [AnyClass], forKey key: String? = nil) -> Any? {
-        do {
-            self._allowedClasses.append(classes)
-            defer { self._allowedClasses.removeLast() }
-            
-            return try _decodeObject(forKey: key)
-        } catch let error as NSError {
-            failWithError(error)
-            self._error = error
-        } catch {
-        }
-        
+    // private variant of decodeObject(of: ) that supports generic (unkeyed) objects
+    private func _decodeObject(of classes: [AnyClass]?, forKey key: String? = nil) -> Any? {
+        if let classes = classes {
+            do {
+                self._allowedClasses.append(classes)
+                defer { self._allowedClasses.removeLast() }
+                
+                return try _decodeObject(forKey: key)
+            } catch let error as NSError {
+                failWithError(error)
+                self._error = error
+            } catch {
+            }
+        }        
         return nil
     }
 
-    open override func decodeObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? where DecodedObjectType : NSObject {
-        return decodeObjectOfClasses([cls], forKey: key) as? DecodedObjectType
+    open override func decodeObject<DecodedObjectType : NSCoding>(of cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? where DecodedObjectType : NSObject {
+        return decodeObject(of: [cls], forKey: key) as? DecodedObjectType
     }
     
-    open override func decodeObjectOfClasses(_ classes: [AnyClass], forKey key: String) -> Any? {
-        return _decodeObjectOfClasses(classes, forKey: key)
+    open override func decodeObject(of classes: [AnyClass]?, forKey key: String) -> Any? {
+        return _decodeObject(of: classes, forKey: key)
     }
     
-    open override func decodeTopLevelObjectForKey(_ key: String) throws -> Any? {
-        return try decodeTopLevelObjectOfClasses([NSArray.self], forKey: key)
+    open override func decodeTopLevelObject(forKey key: String) throws -> Any? {
+        return try decodeTopLevelObject(of: [NSArray.self], forKey: key)
     }
     
-    open override func decodeTopLevelObjectOfClass<DecodedObjectType : NSCoding>(_ cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? where DecodedObjectType : NSObject {
-        return try self.decodeTopLevelObjectOfClasses([cls], forKey: key) as! DecodedObjectType?
+    open override func decodeTopLevelObject<DecodedObjectType : NSCoding>(of cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? where DecodedObjectType : NSObject {
+        return try self.decodeTopLevelObject(of: [cls], forKey: key) as! DecodedObjectType?
     }
     
-    open override func decodeTopLevelObjectOfClasses(_ classes: [AnyClass], forKey key: String) throws -> Any? {
+    open override func decodeTopLevelObject(of classes: [AnyClass], forKey key: String) throws -> Any? {
         guard self._containers?.count == 1 else {
             throw _decodingError(NSCocoaError.CoderReadCorruptError,
                                  withDescription: "Can only call decodeTopLevelObjectOfClasses when decoding top level objects.")
         }
         
-        return decodeObjectOfClasses(classes, forKey: key)
+        return decodeObject(of: classes, forKey: key)
     }
     
     open override func decodeObject() -> Any? {
@@ -678,11 +679,11 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     open override func decodePropertyList() -> Any? {
-        return _decodeObjectOfClasses(NSPropertyListClasses)
+        return _decodeObject(of: NSPropertyListClasses)
     }
     
     open override func decodePropertyListForKey(_ key: String) -> Any? {
-        return decodeObjectOfClasses(NSPropertyListClasses, forKey:key)
+        return decodeObject(of: NSPropertyListClasses, forKey:key)
     }
     
     /**
@@ -748,7 +749,7 @@ open class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    open override func decodeDataObject() -> Data? {
+    open override func decodeData() -> Data? {
         return decodeObject() as? Data
     }
     
@@ -846,7 +847,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: array type is missing")
             }
             
-            if let oldStyleArray = _decodeObjectOfClasses([_NSKeyedCoderOldStyleArray.self]) as? _NSKeyedCoderOldStyleArray {
+            if let oldStyleArray = _decodeObject(of: [_NSKeyedCoderOldStyleArray.self]) as? _NSKeyedCoderOldStyleArray {
                 oldStyleArray.fillObjCType(elementType, count: count, at: addr)
             }
         } else {
@@ -877,15 +878,22 @@ open class NSKeyedUnarchiver : NSCoder {
             }
         }
     }
-}
+    
+    open override var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
+        get {
+            return .setErrorAndReturn
+        }
+        set {
+            NSUnimplemented();
+        }
+    }
 
-extension NSKeyedUnarchiver {
     open class func unarchiveTopLevelObjectWithData(_ data: Data) throws -> Any? {
         var root : Any? = nil
         
         let keyedUnarchiver = NSKeyedUnarchiver(forReadingWithData: data)
         do {
-            try root = keyedUnarchiver.decodeTopLevelObjectForKey(NSKeyedArchiveRootObjectKey)
+            try root = keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
             keyedUnarchiver.finishDecoding()
         } catch {
         }

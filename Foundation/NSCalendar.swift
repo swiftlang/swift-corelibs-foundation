@@ -135,21 +135,21 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
-            guard let calendarIdentifier = aDecoder.decodeObjectOfClass(NSString.self, forKey: "NS.identifier") else {
+            guard let calendarIdentifier = aDecoder.decodeObject(of: NSString.self, forKey: "NS.identifier") else {
                 return nil
             }
             
             self.init(identifier: NSCalendar.Identifier.init(rawValue: calendarIdentifier._swiftObject))
             
-            if let timeZone = aDecoder.decodeObjectOfClass(NSTimeZone.self, forKey: "NS.timezone") {
+            if let timeZone = aDecoder.decodeObject(of: NSTimeZone.self, forKey: "NS.timezone") {
                 self.timeZone = timeZone._swiftObject
             }
-            if let locale = aDecoder.decodeObjectOfClass(NSLocale.self, forKey: "NS.locale") {
+            if let locale = aDecoder.decodeObject(of: NSLocale.self, forKey: "NS.locale") {
                 self.locale = locale._swiftObject
             }
             self.firstWeekday = aDecoder.decodeInteger(forKey: "NS.firstwkdy")
             self.minimumDaysInFirstWeek = aDecoder.decodeInteger(forKey: "NS.mindays")
-            if let startDate = aDecoder.decodeObjectOfClass(NSDate.self, forKey: "NS.gstartdate") {
+            if let startDate = aDecoder.decodeObject(of: NSDate.self, forKey: "NS.gstartdate") {
                 self._startDate = startDate._swiftObject
             }
         } else {
@@ -1385,8 +1385,8 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
             self.weekday = aDecoder.decodeInteger(forKey: "NS.weekday")
             self.weekdayOrdinal = aDecoder.decodeInteger(forKey: "NS.weekdayOrdinal")
             self.isLeapMonth = aDecoder.decodeBool(forKey: "NS.isLeapMonth")
-            self.calendar = aDecoder.decodeObjectOfClass(NSCalendar.self, forKey: "NS.calendar")?._swiftObject
-            self.timeZone = aDecoder.decodeObjectOfClass(NSTimeZone.self, forKey: "NS.timezone")?._swiftObject
+            self.calendar = aDecoder.decodeObject(of: NSCalendar.self, forKey: "NS.calendar")?._swiftObject
+            self.timeZone = aDecoder.decodeObject(of: NSTimeZone.self, forKey: "NS.timezone")?._swiftObject
         } else {
             NSUnimplemented()
         }

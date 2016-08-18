@@ -48,12 +48,13 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
-            guard let name = aDecoder.decodeObjectOfClass(NSString.self, forKey:"NS.name") else {
+            guard let name = aDecoder.decodeObject(of: NSString.self, forKey:"NS.name") else {
                 return nil
             }
             let object = aDecoder.decodeObject(forKey: "NS.object")
-//            let userInfo = aDecoder.decodeObjectOfClass(NSDictionary.self, forKey: "NS.userinfo")
+//            let userInfo = aDecoder.decodeObject(of: NSDictionary.self, forKey: "NS.userinfo")
             self.init(name: Name(rawValue: String._unconditionallyBridgeFromObjectiveC(name)), object: object as! NSObject, userInfo: nil)
+
         } else {
             guard let name = aDecoder.decodeObject() as? NSString else {
                 return nil

@@ -55,8 +55,8 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public required init?(coder aDecoder: NSCoder) {
         if aDecoder.allowsKeyedCoding {
             _code = aDecoder.decodeInteger(forKey: "NSCode")
-            _domain = aDecoder.decodeObjectOfClass(NSString.self, forKey: "NSDomain")!._swiftObject
-            if let info = aDecoder.decodeObjectOfClasses([NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
+            _domain = aDecoder.decodeObject(of: NSString.self, forKey: "NSDomain")!._swiftObject
+            if let info = aDecoder.decodeObject(of: [NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
                 var filteredUserInfo = [String : Any]()
                 // user info must be filtered so that the keys are all strings
                 info.enumerateKeysAndObjects([]) {
