@@ -576,7 +576,8 @@ open class FileManager : NSObject {
     
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
-    open func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: ((URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
+    // Note: Because the error handler is an optional block, the compiler treats it as @escaping by default. If that behavior changes, the @escaping will need to be added back.
+    open func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: (/* @escaping */ (URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
         if mask.contains(.skipsPackageDescendants) || mask.contains(.skipsHiddenFiles) {
             NSUnimplemented("Enumeration options not yet implemented")
         }
@@ -963,7 +964,8 @@ extension FileManager {
         var _rootError : NSError? = nil
         var _gotRoot : Bool = false
         
-        init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: ((URL, NSError) -> Bool)?) {
+        // See @escaping comments above.
+        init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: (/* @escaping */ (URL, NSError) -> Bool)?) {
             _url = url
             _options = options
             _errorHandler = errorHandler
