@@ -82,7 +82,7 @@ open class XMLDocument : XMLNode {
         @abstract Returns a document created from the contents of an XML or HTML URL. Connection problems such as 404, parse errors are returned in <tt>error</tt>.
     */
     public convenience init(contentsOf url: URL, options: Options) throws {
-        let data = try Data(contentsOf: url, options: .dataReadingMappedIfSafe)
+        let data = try Data(contentsOf: url, options: .mappedIfSafe)
 
         try self.init(data: data, options: options)
     }
