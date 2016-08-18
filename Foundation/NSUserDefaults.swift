@@ -212,20 +212,14 @@ open class UserDefaults: NSObject {
             //FIXME: CFURLIsFileReferenceURL is limited to OS X/iOS
             #if os(OSX) || os(iOS)
                 //FIXME: no SwiftFoundation version of CFURLIsFileReferenceURL at time of writing!
-                if !CFURLIsFileReferenceURL(url._cfObject) {
-                    //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
-                    //TODO: use stringByAbbreviatingWithTildeInPath when it is
-                    let urlPath = url.path
-                    
-                    set(urlPath._nsObject, forKey: defaultName)
+                if CFURLIsFileReferenceURL(url._cfObject) {
+                    let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
+                    set(data._nsObject, forKey: defaultName)
+                    return
                 }
-            #else
-                //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
-                //TODO: use stringByAbbreviatingWithTildeInPath when it is
-                setObject(url.path._nsObject, forKey: defaultName)
             #endif
-            let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
-            set(data._nsObject, forKey: defaultName)
+            
+            set(url.path._nsObject, forKey: defaultName)
         } else {
             set(nil, forKey: defaultName)
         }
