@@ -36,16 +36,16 @@ class TestNSRunLoop : XCTestCase {
     }
     
     func test_runLoopInit() {
-        let mainRunLoop = RunLoop.main()
+        let mainRunLoop = RunLoop.main
         XCTAssertNotNil(mainRunLoop)
-        let currentRunLoop = RunLoop.current()
+        let currentRunLoop = RunLoop.current
         XCTAssertNotNil(currentRunLoop)
 
-        let secondAccessOfMainLoop = RunLoop.main()
+        let secondAccessOfMainLoop = RunLoop.main
         XCTAssertEqual(mainRunLoop, secondAccessOfMainLoop, "fetching the main loop a second time should be equal")
         XCTAssertTrue(mainRunLoop === secondAccessOfMainLoop, "fetching the main loop a second time should be identical")
         
-        let secondAccessOfCurrentLoop = RunLoop.current()
+        let secondAccessOfCurrentLoop = RunLoop.current
         XCTAssertEqual(currentRunLoop, secondAccessOfCurrentLoop, "fetching the current loop a second time should be equal")
         XCTAssertTrue(currentRunLoop === secondAccessOfCurrentLoop, "fetching the current loop a second time should be identical")
         
@@ -55,7 +55,7 @@ class TestNSRunLoop : XCTestCase {
     }
     
     func test_runLoopRunMode() {
-        let runLoop = RunLoop.current()
+        let runLoop = RunLoop.current
         let timeInterval = TimeInterval(0.05)
         let endDate = Date(timeInterval: timeInterval, since: Date())
         var flag = false
@@ -77,7 +77,7 @@ class TestNSRunLoop : XCTestCase {
     }
     
     func test_runLoopLimitDate() {
-        let runLoop = RunLoop.current()
+        let runLoop = RunLoop.current
         let timeInterval = TimeInterval(1)
         let expectedTimeInterval = Date(timeInterval: timeInterval, since: Date()).timeIntervalSince1970
 

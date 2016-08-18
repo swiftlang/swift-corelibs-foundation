@@ -51,25 +51,32 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     
     // FIXME: Handle directly via API Notes
     public typealias Name = NSNotification.Name
-}
-
-public func ==(lhs: Notification, rhs: Notification) -> Bool {
-    if lhs.name.rawValue != rhs.name.rawValue {
-        return false
-    }
-    if let lhsObj = lhs.object {
-        if let rhsObj = rhs.object {
-            if _SwiftValue.store(lhsObj) !== _SwiftValue.store(rhsObj) {
-                return false
-            }
-        } else {
+    
+    public static func ==(lhs: Notification, rhs: Notification) -> Bool {
+        if lhs.name.rawValue != rhs.name.rawValue {
             return false
         }
-    } else if rhs.object != nil {
-        return false
+        if let lhsObj = lhs.object {
+            if let rhsObj = rhs.object {
+                if _SwiftValue.store(lhsObj) !== _SwiftValue.store(rhsObj) {
+                    return false
+                }
+            } else {
+                return false
+            }
+        } else if rhs.object != nil {
+            return false
+        }
+        return true
     }
-    return true
 }
+
+extension Notification : CustomReflectable {
+    public var customMirror: Mirror {
+        NSUnimplemented()
+    }
+}
+
 
 extension Notification : _ObjectTypeBridgeable {
     public static func _getObjectiveCType() -> Any.Type {

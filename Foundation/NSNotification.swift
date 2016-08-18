@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public func ==(lhs: NSNotification.Name, rhs: NSNotification.Name) -> Bool {
-    return lhs.rawValue == rhs.rawValue
-}
-
-public func <(lhs: NSNotification.Name, rhs: NSNotification.Name) -> Bool {
-    return lhs.rawValue < rhs.rawValue
-}
-
 open class NSNotification: NSObject, NSCopying, NSCoding {
     public struct Name : RawRepresentable, Equatable, Hashable, Comparable {
         public private(set) var rawValue: String
@@ -24,6 +16,14 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
         
         public var hashValue: Int {
             return self.rawValue.hashValue
+        }
+        
+        public static func ==(lhs: Name, rhs: Name) -> Bool {
+            return lhs.rawValue == rhs.rawValue
+        }
+        
+        public static func <(lhs: Name, rhs: Name) -> Bool {
+            return lhs.rawValue < rhs.rawValue
         }
     }
 
@@ -38,7 +38,7 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
         fatalError()
     }
     
-    public init(name: Name, object: Any?, userInfo: [AnyHashable : Any]?) {
+    public init(name: Name, object: Any?, userInfo: [AnyHashable : Any]? = nil) {
         self.name = name
         self.object = object
         self.userInfo = userInfo
@@ -96,12 +96,6 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
         str += "}"
         
         return str
-    }
-}
-
-extension NSNotification {
-    public convenience init(name aName: Name, object anObject: Any?) {
-        self.init(name: aName, object: anObject, userInfo: nil)
     }
 }
 
@@ -164,11 +158,11 @@ open class NotificationCenter: NSObject {
         _observers = [NSNotificationReceiver]()
     }
     
-    open class func defaultCenter() -> NotificationCenter {
+    open class var `default`: NotificationCenter {
         return _defaultCenter
     }
     
-    open func postNotification(_ notification: Notification) {
+    open func post(_ notification: Notification) {
 
         let sendTo = _observersLock.synchronized({
             return _observers.observersMatchingName(notification.name, sender: notification.object)
@@ -183,31 +177,26 @@ open class NotificationCenter: NSObject {
         }
     }
 
-    open func postNotificationName(_ aName: Notification.Name, object anObject: AnyObject?) {
-        let notification = Notification(name: aName, object: anObject)
-        postNotification(notification)
-    }
-
-    open func postNotificationName(_ aName: Notification.Name, object anObject: AnyObject?, userInfo aUserInfo: [AnyHashable : Any]?) {
+    open func post(name aName: Notification.Name, object anObject: AnyObject?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
         let notification = Notification(name: aName, object: anObject, userInfo: aUserInfo)
-        postNotification(notification)
+        post(notification)
     }
 
     open func removeObserver(_ observer: AnyObject) {
         removeObserver(observer, name: nil, object: nil)
     }
 
-    open func removeObserver(_ observer: Any, name: Notification.Name?, object: Any?) {
+    open func removeObserver(_ observer: Any, name aName: NSNotification.Name?, object: Any?) {
         guard let observer = observer as? NSObject else {
             return
         }
 
         _observersLock.synchronized({
-            self._observers = _observers.filterOutObserver(observer, name: name, object: object)
+            self._observers = _observers.filterOutObserver(observer, name: aName, object: object)
         })
     }
     
-    open func addObserverForName(_ name: Notification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+    open func addObserver(forName name: Notification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
         if queue != nil {
             NSUnimplemented()
         }

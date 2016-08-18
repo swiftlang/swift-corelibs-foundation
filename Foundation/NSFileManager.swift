@@ -602,7 +602,7 @@ open class FileManager : NSObject {
     
     open func createFile(atPath path: String, contents data: Data?, attributes attr: [String : Any]? = [:]) -> Bool {
         do {
-            try (data ?? Data()).write(to: URL(fileURLWithPath: path), options: .dataWritingAtomic)
+            try (data ?? Data()).write(to: URL(fileURLWithPath: path), options: .atomic)
             return true
         } catch _ {
             return false

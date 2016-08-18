@@ -60,7 +60,7 @@ open class NotificationQueue: NSObject {
     private static var _defaultQueue = NSThreadSpecific<NotificationQueue>()
     open class func defaultQueue() -> NotificationQueue {
         return _defaultQueue.get() {
-            return NotificationQueue(notificationCenter: NotificationCenter.defaultCenter())
+            return NotificationQueue(notificationCenter: NotificationCenter.default)
         }
     }
     
@@ -92,9 +92,9 @@ open class NotificationQueue: NSObject {
 
         switch postingStyle {
         case .postNow:
-            let currentMode = RunLoop.current().currentMode
+            let currentMode = RunLoop.current.currentMode
             if currentMode == nil || runloopModes.contains(currentMode!) {
-                self.notificationCenter.postNotification(notification)
+                self.notificationCenter.post(notification)
             }
         case .postASAP: // post at the end of the current notification callout or timer
             addRunloopObserver(self.asapRunloopObserver)
@@ -131,19 +131,19 @@ open class NotificationQueue: NSObject {
     // MARK: Private
 
     private func addRunloopObserver(_ observer: CFRunLoopObserver) {
-        CFRunLoopAddObserver(RunLoop.current()._cfRunLoop, observer, kCFRunLoopDefaultMode)
-        CFRunLoopAddObserver(RunLoop.current()._cfRunLoop, observer, kCFRunLoopCommonModes)
+        CFRunLoopAddObserver(RunLoop.current._cfRunLoop, observer, kCFRunLoopDefaultMode)
+        CFRunLoopAddObserver(RunLoop.current._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
     private func removeRunloopObserver(_ observer: CFRunLoopObserver) {
-        CFRunLoopRemoveObserver(RunLoop.current()._cfRunLoop, observer, kCFRunLoopDefaultMode)
-        CFRunLoopRemoveObserver(RunLoop.current()._cfRunLoop, observer, kCFRunLoopCommonModes)
+        CFRunLoopRemoveObserver(RunLoop.current._cfRunLoop, observer, kCFRunLoopDefaultMode)
+        CFRunLoopRemoveObserver(RunLoop.current._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
     private func notify(_ currentMode: RunLoopMode?, notificationList: inout NSNotificationList) {
         for (idx, (notification, modes)) in notificationList.enumerated().reversed() {
             if currentMode == nil || modes.contains(currentMode!) {
-                self.notificationCenter.postNotification(notification)
+                self.notificationCenter.post(notification)
                 notificationList.remove(at: idx)
             }
         }
@@ -153,7 +153,7 @@ open class NotificationQueue: NSObject {
      Gets queues from the notificationQueueList and posts all notification from the list related to the postingStyle parameter.
      */
     private func notifyQueues(_ postingStyle: PostingStyle) {
-        let currentMode = RunLoop.current().currentMode
+        let currentMode = RunLoop.current.currentMode
         for queue in NotificationQueue.notificationQueueList {
             let notificationQueue = queue as! NotificationQueue
             if postingStyle == .postWhenIdle {

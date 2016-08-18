@@ -73,56 +73,15 @@ internal final class _SwiftNSData : NSData, _SwiftNativeFoundationType {
         releaseWrappedObject()
     }
     
-    // Stubs
-    // -----
-    
+    // MARK: - Funnel overrides
     override var length : Int {
         get {
             return _mapUnmanaged { $0.length }
         }
     }
-    
     override var bytes : UnsafeRawPointer {
         return _mapUnmanaged { $0.bytes }
     }
-    
-//    override func subdata(with range: NSRange) -> Data {
-//        return _mapUnmanaged { $0.subdata(with: range) }
-//    }
-//    
-//    override func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
-//        return _mapUnmanaged { $0.getBytes(buffer, length: length) }
-//    }
-//    
-//    override func getBytes(_ buffer: UnsafeMutableRawPointer, range: NSRange) {
-//        return _mapUnmanaged { $0.getBytes(buffer, range: range) }
-//    }
-//    
-//    override func isEqual(to other: Data) -> Bool {
-//        return _mapUnmanaged { return $0.isEqual(to: other) }
-//    }
-//    
-//    override func write(to url: URL, options: Data.WritingOptions) throws {
-//        return try _mapUnmanaged { try $0.write(to: url, options: options) }
-//    }
-//    
-//    override func range(of data: Data, options: Data.SearchOptions, range: NSRange) -> NSRange {
-//        return _mapUnmanaged {
-//            $0.range(of: data, options: options, in: range)
-//        }
-//    }
-//    
-//    override func enumerateByteRanges(using block: (UnsafeRawPointer, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
-//        return _mapUnmanaged { $0.enumerateBytes(block) }
-//    }
-//    
-//    override func base64EncodedString(options: Data.Base64EncodingOptions) -> String {
-//        return _mapUnmanaged { $0.base64EncodedString(options) }
-//    }
-//    
-//    override func base64EncodedData(options: Data.Base64EncodingOptions) -> Data {
-//        return _mapUnmanaged { $0.base64EncodedData(options) }
-//    }
 }
 
 /**
@@ -197,10 +156,17 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         _wrapped = _SwiftNSData(immutableObject: NSData(bytes: buffer.baseAddress, length: MemoryLayout<SourceType>.stride * buffer.count))
     }
     
+    /// Initialize a `Data` with copied memory content.
+    ///
+    /// - parameter buffer: A buffer pointer to copy. The size is calculated from `SourceType` and `buffer.count`.
+    public init<SourceType>(buffer: UnsafeMutableBufferPointer<SourceType>) {
+        _wrapped = _SwiftNSData(immutableObject: NSData(bytes: UnsafePointer(buffer.baseAddress), length: MemoryLayout<SourceType>.stride * buffer.count))
+    }
+    
     /// Initialize a `Data` with the contents of an Array.
     ///
     /// - parameter bytes: An array of bytes to copy.
-    public init(bytes: Array<UInt8>) {
+    public init(bytes: [UInt8]) {
         _wrapped = bytes.withUnsafeBufferPointer {
             return _SwiftNSData(immutableObject: NSData(bytes: $0.baseAddress, length: $0.count))
         }
@@ -226,7 +192,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     /// - parameter capacity: The size of the data.
     public init(capacity: Int) {
         if let d = NSMutableData(capacity: capacity) {
-            _wrapped = _SwiftNSData(immutableObject: d)
+            _wrapped = _SwiftNSData(mutableObject: d)
         } else {
             fatalError("Unable to allocate data of the requested capacity")
         }
@@ -261,7 +227,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// Returns nil when the input is not recognized as valid Base-64.
     /// - parameter base64String: The string to parse.
-    /// - parameter options: Decoding options. Default value is `[]`.
+    /// - parameter options: Encoding options. Default value is `[]`.
     public init?(base64Encoded base64String: String, options: Data.Base64DecodingOptions = []) {
         if let d = NSData(base64Encoded: base64String, options: Base64DecodingOptions(rawValue: options.rawValue)) {
             _wrapped = _SwiftNSData(immutableObject: d)
@@ -288,16 +254,24 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// - parameter count: The number of bytes the data initially contains.
     public init(count: Int) {
-        if let memory = calloc(1, count)?.bindMemory(to: UInt8.self, capacity: count) {
-            self.init(bytesNoCopy: memory, count: count, deallocator: .free)
+        if let d = NSMutableData(length: count) {
+            _wrapped = _SwiftNSData(mutableObject: d)
         } else {
             fatalError("Unable to allocate data of the requested count")
         }
     }
+
     
-    internal init(_bridged data: NSData) {
-        // We must copy the input because it might be mutable; just like storing a value type in ObjC
-        _wrapped = _SwiftNSData(immutableObject: data.copy() as! NSObject)
+    /// Initialize a `Data` by adopting a reference type.
+    ///
+    /// You can use this initializer to create a `struct Data` that wraps a `class NSData`. `struct Data` will use the `class NSData` for all operations. Other initializers (including casting using `as Data`) may choose to hold a reference or not, based on a what is the most efficient representation.
+    ///
+    /// If the resulting value is mutated, then `Data` will invoke the `mutableCopy()` function on the reference to copy the contents. You may customize the behavior of that function if you wish to return a specialized mutable subclass.
+    ///
+    /// - parameter reference: The instance of `NSData` that you wish to wrap. This instance will be copied by `struct Data`.
+    public init(referencing reference: NSData) {
+        // NOTE: don't fix this warning on Darwin -- linux will complain
+        _wrapped = _SwiftNSData(immutableObject: reference.copy() as! AnyObject)
     }
     
     // -----------------------------------
@@ -356,7 +330,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         _mapUnmanaged { $0.getBytes(pointer, length: count) }
     }
     
-    private func _copyBytesHelper(to pointer: UnsafeMutableRawPointer, from range: NSRange) {
+    private func _copyBytesHelper(to pointer: UnsafeMutablePointer<UInt8>, from range: NSRange) {
         _mapUnmanaged { $0.getBytes(pointer, range: range) }
     }
     
@@ -366,7 +340,7 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     /// - parameter range: The range in the `Data` to copy.
     /// - warning: This method does not verify that the contents at pointer have enough space to hold the required number of bytes.
     public func copyBytes(to pointer: UnsafeMutablePointer<UInt8>, from range: Range<Index>) {
-        _copyBytesHelper(to: pointer, from: NSRange(location: range.lowerBound, length: range.upperBound - range.lowerBound))
+        _copyBytesHelper(to: pointer, from: NSRange(range))
     }
     
     /// Copy the contents of the data into a buffer.
@@ -397,8 +371,10 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         guard !copyRange.isEmpty else { return 0 }
         
         let nsRange = NSMakeRange(copyRange.lowerBound, copyRange.upperBound - copyRange.lowerBound)
-        let pointer = UnsafeMutableRawPointer(buffer.baseAddress!)
-        _copyBytesHelper(to: pointer, from: nsRange)
+        let ptr = buffer.baseAddress!
+        ptr.withMemoryRebound(to: UInt8.self, capacity: buffer.count) {
+            _copyBytesHelper(to: $0, from: nsRange)
+        }
         return copyRange.count
     }
     
@@ -499,15 +475,80 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     
     /// Replace a region of bytes in the data with new data.
     ///
-    /// - parameter range: The range in the data to replace.
+    /// This will resize the data if required, to fit the entire contents of `data`.
+    ///
+    /// - precondition: The bounds of `subrange` must be valid indices of the collection.
+    /// - parameter subrange: The range in the data to replace. If `subrange.lowerBound == data.count && subrange.count == 0` then this operation is an append.
     /// - parameter data: The replacement data.
-    public mutating func replaceBytes(in range: Range<Index>, with data: Data) {
-        let nsRange = NSMakeRange(range.lowerBound, range.upperBound - range.lowerBound)
+    public mutating func replaceSubrange(_ subrange: Range<Index>, with data: Data) {
+        let nsRange = NSMakeRange(subrange.lowerBound, subrange.upperBound - subrange.lowerBound)
         let cnt = data.count
         let bytes = data._getUnsafeBytesPointer()
         
         _applyUnmanagedMutation {
             $0.replaceBytes(in: nsRange, withBytes: bytes, length: cnt)
+        }
+    }
+    
+    /// Replace a region of bytes in the data with new bytes from a buffer.
+    ///
+    /// This will resize the data if required, to fit the entire contents of `buffer`.
+    ///
+    /// - precondition: The bounds of `subrange` must be valid indices of the collection.
+    /// - parameter subrange: The range in the data to replace.
+    /// - parameter buffer: The replacement bytes.
+    public mutating func replaceSubrange<SourceType>(_ subrange: Range<Index>, with buffer: UnsafeBufferPointer<SourceType>) {
+        let nsRange = NSMakeRange(subrange.lowerBound, subrange.upperBound - subrange.lowerBound)
+        let bufferCount = buffer.count * MemoryLayout<SourceType>.stride
+        
+        _applyUnmanagedMutation {
+            $0.replaceBytes(in: nsRange, withBytes: buffer.baseAddress!, length: bufferCount)
+        }
+        
+    }
+    
+    /// Replace a region of bytes in the data with new bytes from a collection.
+    ///
+    /// This will resize the data if required, to fit the entire contents of `newElements`.
+    ///
+    /// - precondition: The bounds of `subrange` must be valid indices of the collection.
+    /// - parameter subrange: The range in the data to replace.
+    /// - parameter newElements: The replacement bytes.
+    public mutating func replaceSubrange<ByteCollection : Collection>(_ subrange: Range<Index>, with newElements: ByteCollection) where ByteCollection.Iterator.Element == Data.Iterator.Element  {
+        
+        // Calculate this once, it may not be O(1)
+        let replacementCount : Int = numericCast(newElements.count)
+        let currentCount = self.count
+        let subrangeCount = subrange.count
+        
+        if currentCount < subrange.lowerBound + subrangeCount {
+            if subrangeCount == 0 {
+                preconditionFailure("location \(subrange.lowerBound) exceeds data count \(currentCount)")
+            } else {
+                preconditionFailure("range \(subrange) exceeds data count \(currentCount)")
+            }
+        }
+        
+        let resultCount = currentCount - subrangeCount + replacementCount
+        if resultCount != currentCount {
+            // This may realloc.
+            // In the future, if we keep the malloced pointer and count inside this struct/ref instead of deferring to NSData, we may be able to do this more efficiently.
+            self.count = resultCount
+        }
+        
+        let shift = resultCount - currentCount
+        let start = subrange.lowerBound
+        
+        self.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) -> () in
+            if shift != 0 {
+                let destination = bytes + start + replacementCount
+                let source = bytes + start + subrangeCount
+                memmove(destination, source, currentCount - start - subrangeCount)
+            }
+            
+            if replacementCount != 0 {
+                newElements._copyContents(initializing: bytes + start)
+            }
         }
     }
     
@@ -526,16 +567,16 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     ///
     /// - parameter options: The options to use for the encoding. Default value is `[]`.
     /// - returns: The Base-64 encoded string.
-    public func base64EncodedString(_ options: Data.Base64EncodingOptions = []) -> String {
-        return _mapUnmanaged { $0.base64EncodedString(options) }
+    public func base64EncodedString(options: Data.Base64EncodingOptions = []) -> String {
+        return _mapUnmanaged { $0.base64EncodedString(options: options) }
     }
     
     /// Returns a Base-64 encoded `Data`.
     ///
     /// - parameter options: The options to use for the encoding. Default value is `[]`.
     /// - returns: The Base-64 encoded data.
-    public func base64EncodedData(_ options: Data.Base64EncodingOptions = []) -> Data {
-        return _mapUnmanaged { $0.base64EncodedData(options) }
+    public func base64EncodedData(options: Data.Base64EncodingOptions = []) -> Data {
+        return _mapUnmanaged { $0.base64EncodedData(options: options) }
     }
     
     // MARK: -
@@ -556,7 +597,6 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         return _mapUnmanaged { $0.debugDescription }
     }
     
-    // MARK: -
     
     // MARK: -
     // MARK: Index and Subscript
@@ -577,20 +617,12 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
         }
     }
     
-    public subscript(bounds: Range<Int>) -> MutableRandomAccessSlice<Data> {
+    public subscript(bounds: Range<Index>) -> MutableRandomAccessSlice<Data> {
         get {
             return MutableRandomAccessSlice(base: self, bounds: bounds)
         }
         set {
-            // Ideally this would be:
-            //   replaceBytes(in: bounds, with: newValue._base)
-            // but we do not have access to _base due to 'internal' protection
-            // TODO: Use a custom Slice type so we have access to the underlying data
-            let arrayOfBytes = newValue.map { $0 }
-            arrayOfBytes.withUnsafeBufferPointer {
-                let otherData = Data(buffer: $0)
-                replaceBytes(in: bounds, with: otherData)
-            }
+            replaceSubrange(bounds, with: newValue.base)
         }
     }
     
@@ -620,12 +652,14 @@ public struct Data : ReferenceConvertible, CustomStringConvertible, Equatable, H
     public func makeIterator() -> Data.Iterator {
         return IndexingIterator(_elements: self)
     }
+    
+    /// Returns `true` if the two `Data` arguments are equal.
+    public static func ==(d1 : Data, d2 : Data) -> Bool {
+        return d1._wrapped.isEqual(to: d2)
+    }
 }
 
-/// Returns `true` if the two `Data` arguments are equal.
-public func ==(d1 : Data, d2 : Data) -> Bool {
-    return d1._wrapped.isEqual(to: d2)
-}
+
 
 /// Provides bridging functionality for struct Data to class NSData and vice-versa.
 extension Data : _ObjectTypeBridgeable {
@@ -639,11 +673,11 @@ extension Data : _ObjectTypeBridgeable {
     }
     
     public static func _forceBridgeFromObjectiveC(_ input: NSData, result: inout Data?) {
-        result = Data(_bridged: input)
+        result = Data(referencing: input)
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ input: NSData, result: inout Data?) -> Bool {
-        result = Data(_bridged: input)
+        result = Data(referencing: input)
         return true
     }
     

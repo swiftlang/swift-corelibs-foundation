@@ -42,7 +42,7 @@ class TestNSTimer : XCTestCase {
             timer.invalidate()
         }
 
-        let runLoop = RunLoop.current()
+        let runLoop = RunLoop.current
         runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
         runLoop.run(until: Date(timeIntervalSinceNow: 0.05))
         
@@ -68,7 +68,7 @@ class TestNSTimer : XCTestCase {
             }
         }
         
-        let runLoop = RunLoop.current()
+        let runLoop = RunLoop.current
         runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
         runLoop.run(until: Date(timeIntervalSinceNow: interval * Double(numberOfRepeats + 1)))
         
@@ -88,7 +88,7 @@ class TestNSTimer : XCTestCase {
             XCTAssertFalse(timer.isValid)
         }
         
-        let runLoop = RunLoop.current()
+        let runLoop = RunLoop.current
         runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
         runLoop.run(until: Date(timeIntervalSinceNow: 0.05))
         

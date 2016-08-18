@@ -188,7 +188,7 @@ class TestNSStream : XCTestCase {
         let result: Int? = outputStream.write(encodedData, maxLength: encodedData.count)
         XCTAssertEqual(myString.characters.count, result)
         //verify the data written
-        let dataWritten  = outputStream.propertyForKey(NSStreamDataWrittenToMemoryStreamKey)
+        let dataWritten  = outputStream.property(forKey: Stream.PropertyKey.dataWrittenToMemoryStreamKey)
         if let nsdataWritten = dataWritten as? NSData {
             nsdataWritten.getBytes(UnsafeMutablePointer(mutating: buffer), length: result!)
             XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), NSString(string: myString))

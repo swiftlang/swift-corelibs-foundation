@@ -10,9 +10,12 @@
 
 public typealias SocketNativeHandle = Int32
 
-public let NSPortDidBecomeInvalidNotification: String = "NSPortDidBecomeInvalidNotification"
+extension Port {
+    public static let didBecomeInvalidNotification  = NSNotification.Name(rawValue:  "NSPortDidBecomeInvalidNotification")
+}
 
 open class Port : NSObject, NSCopying, NSCoding {
+    
     
     public override init() {
         
@@ -34,7 +37,7 @@ open class Port : NSObject, NSCopying, NSCoding {
         NSUnimplemented()
     }
 
-    open var valid: Bool {
+    open var isValid: Bool {
         NSUnimplemented()
     }
     
@@ -70,7 +73,7 @@ open class Port : NSObject, NSCopying, NSCoding {
 }
 
 extension PortDelegate {
-    func handlePortMessage(_ message: PortMessage) { }
+    func handle(_ message: PortMessage) { }
 }
 
 public protocol PortDelegate : class {
@@ -128,7 +131,7 @@ open class SocketPort : Port {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ open var address: Data {
+    open var address: Data {
         NSUnimplemented()
     }
     
