@@ -93,8 +93,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     override open var _cfTypeID: CFTypeID {
         return CFDataGetTypeID()
     }
-    
-    public init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (@escaping (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+
+    // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional     
+    public init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
         super.init()
         let options : CFOptionFlags = (type(of: self) == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
         let bytePtr = bytes?.bindMemory(to: UInt8.self, capacity: length)
@@ -132,8 +133,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
         }
     }
-    
-    public convenience init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, deallocator: (@escaping (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+
+    // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional         
+    public convenience init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
         self.init(bytes: bytes, length: length, copy: false, deallocator: deallocator)
     }
     public convenience init(contentsOfFile path: String, options readOptionsMask: ReadingOptions = []) throws {
