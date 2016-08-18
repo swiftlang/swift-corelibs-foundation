@@ -70,7 +70,7 @@ class TestNSNumberFormatter: XCTestCase {
     
     func test_decimalSeparator() {
         let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .decimal
+        numberFormatter.numberStyle = .decimalStyle
         numberFormatter.decimalSeparator = "-"
         let formattedString = numberFormatter.string(from: 42.42)
         XCTAssertEqual(formattedString, "42-42")
@@ -106,7 +106,7 @@ class TestNSNumberFormatter: XCTestCase {
     
     func test_percentSymbol() {
         let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .percent
+        numberFormatter.numberStyle = .percentStyle
         numberFormatter.percentSymbol = "💯"
         let formattedString = numberFormatter.string(from: 0.42)
         XCTAssertEqual(formattedString, "42💯")
@@ -168,7 +168,7 @@ class TestNSNumberFormatter: XCTestCase {
     
     func test_exponentSymbol() {
         let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .scientific
+        numberFormatter.numberStyle = .scientificStyle
         numberFormatter.exponentSymbol = "⬆️"
         let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "4.2⬆️1")
@@ -225,14 +225,14 @@ class TestNSNumberFormatter: XCTestCase {
     func test_roundingMode() {
         let numberFormatter = NumberFormatter()
         numberFormatter.maximumFractionDigits = 0
-        numberFormatter.roundingMode = .ceiling
+        numberFormatter.roundingMode = .roundCeiling
         let formattedString = numberFormatter.string(from: 41.0001)
         XCTAssertEqual(formattedString, "42")
     }
     
     func test_roundingIncrement() {
         let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .decimal
+        numberFormatter.numberStyle = .decimalStyle
         numberFormatter.roundingIncrement = 0.2
         let formattedString = numberFormatter.string(from: 4.25)
         XCTAssertEqual(formattedString, "4.2")

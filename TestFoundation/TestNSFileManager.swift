@@ -125,28 +125,28 @@ class TestNSFileManager : XCTestCase {
             
             XCTAssertTrue(attrs.count > 0)
             
-            let fileSize = attrs[.size] as? NSNumber
+            let fileSize = attrs[NSFileSize] as? NSNumber
             XCTAssertEqual(fileSize!.int64Value, 0)
             
-            let fileModificationDate = attrs[.modificationDate] as? Date
+            let fileModificationDate = attrs[NSFileModificationDate] as? Date
             XCTAssertGreaterThan(Date().timeIntervalSince1970, fileModificationDate!.timeIntervalSince1970)
             
-            let filePosixPermissions = attrs[.posixPermissions] as? NSNumber
+            let filePosixPermissions = attrs[NSFilePosixPermissions] as? NSNumber
             XCTAssertNotEqual(filePosixPermissions!.int64Value, 0)
             
-            let fileReferenceCount = attrs[.referenceCount] as? NSNumber
+            let fileReferenceCount = attrs[NSFileReferenceCount] as? NSNumber
             XCTAssertEqual(fileReferenceCount!.int64Value, 1)
             
-            let fileSystemNumber = attrs[.systemNumber] as? NSNumber
+            let fileSystemNumber = attrs[NSFileSystemNumber] as? NSNumber
             XCTAssertNotEqual(fileSystemNumber!.int64Value, 0)
             
-            let fileSystemFileNumber = attrs[.systemFileNumber] as? NSNumber
+            let fileSystemFileNumber = attrs[NSFileSystemFileNumber] as? NSNumber
             XCTAssertNotEqual(fileSystemFileNumber!.int64Value, 0)
             
-            let fileType = attrs[.type] as? FileAttributeType
-            XCTAssertEqual(fileType!, .typeRegular)
+            let fileType = attrs[NSFileType] as? String
+            XCTAssertEqual(fileType!, NSFileTypeRegular)
             
-            let fileOwnerAccountID = attrs[.ownerAccountID] as? NSNumber
+            let fileOwnerAccountID = attrs[NSFileOwnerAccountID] as? NSNumber
             XCTAssertNotNil(fileOwnerAccountID)
             
         } catch let err {
@@ -168,14 +168,14 @@ class TestNSFileManager : XCTestCase {
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         
         do {
-            try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0600))], ofItemAtPath: path)
+            try fm.setAttributes([NSFilePosixPermissions:NSNumber(value: Int16(0o0600))], ofItemAtPath: path)
         }
         catch { XCTFail("\(error)") }
         
         //read back the attributes
         do {
             let attributes = try fm.attributesOfItem(atPath: path)
-            XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0600)
+            XCTAssert((attributes[NSFilePosixPermissions] as? NSNumber)?.int16Value == 0o0600)
         }
         catch { XCTFail("\(error)") }
 

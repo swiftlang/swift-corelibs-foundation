@@ -15,7 +15,7 @@ import Darwin
 import Glibc
 #endif
 
-open class FileHandle : NSObject, NSSecureCoding {
+open class FileHandle: NSObject, NSSecureCoding {
     internal var _fd: Int32
     internal var _closeOnDealloc: Bool
     internal var _closed: Bool = false
@@ -195,7 +195,7 @@ extension FileHandle {
         return FileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
     }()
 
-    open class var standardInput: FileHandle {
+    open class func standardInput() -> FileHandle {
         return _stdinFileHandle
     }
     
@@ -203,7 +203,7 @@ extension FileHandle {
         return FileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
     }()
 
-    open class var standardOutput: FileHandle {
+    open class func standardOutput() -> FileHandle {
         return _stdoutFileHandle
     }
     
@@ -211,11 +211,11 @@ extension FileHandle {
         return FileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
     }()
     
-    open class var standardError: FileHandle {
+    open class func standardError() -> FileHandle {
         return _stderrFileHandle
     }
     
-    open class var nullDevice: FileHandle {
+    open class func nullDevice() -> FileHandle {
         NSUnimplemented()
     }
     
@@ -256,73 +256,76 @@ extension FileHandle {
     }
 }
 
-extension NSExceptionName {
-    public static let fileHandleOperationException = "" // NSUnimplemented
-}
+public let NSFileHandleOperationException: String = "" // NSUnimplemented
 
-extension Notification.Name {
-    public static let NSFileHandleReadToEndOfFileCompletion = Notification.Name(rawValue: "") // NSUnimplemented
-    public static let NSFileHandleConnectionAccepted = Notification.Name(rawValue: "") // NSUnimplemented
-    public static let NSFileHandleDataAvailable = Notification.Name(rawValue: "") // NSUnimplemented
-    public static let NSFileHandleReadCompletion = Notification.Name(rawValue: "") // NSUnimplemented
-}
+public let NSFileHandleReadCompletionNotification: String = "" // NSUnimplemented
+public let NSFileHandleReadToEndOfFileCompletionNotification: String = "" // NSUnimplemented
+public let NSFileHandleConnectionAcceptedNotification: String = "" // NSUnimplemented
+public let NSFileHandleDataAvailableNotification: String = "" // NSUnimplemented
 
 public let NSFileHandleNotificationDataItem: String = "" // NSUnimplemented
 public let NSFileHandleNotificationFileHandleItem: String = "" // NSUnimplemented
 
 extension FileHandle {
-    open func readInBackgroundAndNotify(forModes modes: [RunLoopMode]?) {
+    
+    public func readInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
-    open func readInBackgroundAndNotify() {
+    public func readInBackgroundAndNotify() {
         NSUnimplemented()
     }
 
-    open func readToEndOfFileInBackgroundAndNotify(forModes modes: [RunLoopMode]?) {
+    
+    public func readToEndOfFileInBackgroundAndNotify(forModes modes: [String]?) {
         NSUnimplemented()
     }
 
-    open func readToEndOfFileInBackgroundAndNotify() {
+    public func readToEndOfFileInBackgroundAndNotify() {
+        NSUnimplemented()
+    }
+
+    
+    public func acceptConnectionInBackgroundAndNotify(forModes modes: [String]?) {
+        NSUnimplemented()
+    }
+
+    public func acceptConnectionInBackgroundAndNotify() {
+        NSUnimplemented()
+    }
+
+    
+    public func waitForDataInBackgroundAndNotify(forModes modes: [String]?) {
+        NSUnimplemented()
+    }
+
+    public func waitForDataInBackgroundAndNotify() {
         NSUnimplemented()
     }
     
-    open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoopMode]?) {
+    public var readabilityHandler: ((FileHandle) -> Void)? {
         NSUnimplemented()
     }
 
-    open func acceptConnectionInBackgroundAndNotify() {
-        NSUnimplemented()
-    }
-    
-    open func waitForDataInBackgroundAndNotify(forModes modes: [RunLoopMode]?) {
+    public var writeabilityHandler: ((FileHandle) -> Void)? {
         NSUnimplemented()
     }
 
-    open func waitForDataInBackgroundAndNotify() {
-        NSUnimplemented()
-    }
-    
-    open var readabilityHandler: ((FileHandle) -> Void)? {
-        NSUnimplemented()
-    }
-
-    open var writeabilityHandler: ((FileHandle) -> Void)? {
-        NSUnimplemented()
-    }
 }
 
 extension FileHandle {
+    
     public convenience init(fileDescriptor fd: Int32) {
         self.init(fileDescriptor: fd, closeOnDealloc: false)
     }
     
-    open var fileDescriptor: Int32 {
+    public var fileDescriptor: Int32 {
         return _fd
     }
 }
 
 open class Pipe: NSObject {
+    
     private let readHandle: FileHandle
     private let writeHandle: FileHandle
     

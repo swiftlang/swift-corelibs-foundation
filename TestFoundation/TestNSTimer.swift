@@ -79,13 +79,13 @@ class TestNSTimer : XCTestCase {
         var flag = false
         
         let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { timer in
-            XCTAssertTrue(timer.isValid)
+            XCTAssertTrue(timer.valid)
             XCTAssertFalse(flag) // timer should tick only once
             
             flag = true
             
             timer.invalidate()
-            XCTAssertFalse(timer.isValid)
+            XCTAssertFalse(timer.valid)
         }
         
         let runLoop = RunLoop.current()
