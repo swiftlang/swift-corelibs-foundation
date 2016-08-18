@@ -60,7 +60,7 @@ open class NotificationQueue: NSObject {
     private static var _defaultQueue = NSThreadSpecific<NotificationQueue>()
     open class func defaultQueue() -> NotificationQueue {
         return _defaultQueue.get() {
-            return NotificationQueue(notificationCenter: NotificationCenter.defaultCenter())
+            return NotificationQueue(notificationCenter: NotificationCenter.default)
         }
     }
     
@@ -94,7 +94,7 @@ open class NotificationQueue: NSObject {
         case .postNow:
             let currentMode = RunLoop.current().currentMode
             if currentMode == nil || runloopModes.contains(currentMode!) {
-                self.notificationCenter.postNotification(notification)
+                self.notificationCenter.post(notification)
             }
         case .postASAP: // post at the end of the current notification callout or timer
             addRunloopObserver(self.asapRunloopObserver)
@@ -143,7 +143,7 @@ open class NotificationQueue: NSObject {
     private func notify(_ currentMode: RunLoopMode?, notificationList: inout NSNotificationList) {
         for (idx, (notification, modes)) in notificationList.enumerated().reversed() {
             if currentMode == nil || modes.contains(currentMode!) {
-                self.notificationCenter.postNotification(notification)
+                self.notificationCenter.post(notification)
                 notificationList.remove(at: idx)
             }
         }
