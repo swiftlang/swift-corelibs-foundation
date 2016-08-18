@@ -46,7 +46,7 @@ open class NSKeyedUnarchiver : NSCoder {
     private var _containers : Array<DecodingContext>? = nil
     private var _objects : Array<Any> = []
     private var _objRefMap : Dictionary<UInt32, Any> = [:]
-    private var _replacementMap : Dictionary<NSUniqueObject, Any> = [:]
+    private var _replacementMap : Dictionary<AnyHashable, Any> = [:]
     private var _classNameMap : Dictionary<String, AnyClass> = [:]
     private var _classes : Dictionary<UInt32, AnyClass> = [:]
     private var _cache : Array<_NSKeyedArchiverUID> = []
@@ -371,13 +371,11 @@ open class NSKeyedUnarchiver : NSCoder {
         Replace object with another one
      */
     private func replaceObject(_ object: Any, withObject replacement: Any) {
-        let oid = NSUniqueObject(object)
-        
         if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.unarchiver(self, willReplace: object, with: replacement)
         }
         
-        self._replacementMap[oid] = replacement
+        self._replacementMap[object as! AnyHashable] = replacement
     }
     
     private func _decodingError(_ code: NSCocoaError, withDescription description: String) -> NSError {
@@ -394,7 +392,7 @@ open class NSKeyedUnarchiver : NSCoder {
         }
         
         // check replacement cache
-        object = self._replacementMap[NSUniqueObject(decodedObject!)]
+        object = self._replacementMap[decodedObject as! AnyHashable]
         if object != nil {
             return object
         }
