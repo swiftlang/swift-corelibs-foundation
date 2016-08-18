@@ -47,7 +47,7 @@ extension Dictionary : _ObjectTypeBridgeable {
         var failedConversion = false
 
         if type(of: source) == NSDictionary.self || type(of: source) == NSMutableDictionary.self {
-            source.enumerateKeysAndObjects([]) { key, value, stop in
+            source.enumerateKeysAndObjects(options: []) { key, value, stop in
                 guard let key = key as? Key, let value = value as? Value else {
                     failedConversion = true
                     stop.pointee = true

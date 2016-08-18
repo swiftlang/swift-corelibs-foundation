@@ -386,13 +386,13 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     open func sortedArray(_ comparator: (Any, Any, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?) -> [Any] {
-        return sortedArray([]) { lhs, rhs in
+        return sortedArray(options: []) { lhs, rhs in
             return ComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
     }
     
     open func sortedArray(_ comparator: (Any, Any, UnsafeMutableRawPointer?) -> Int, context: UnsafeMutableRawPointer?, hint: Data?) -> [Any] {
-        return sortedArray([]) { lhs, rhs in
+        return sortedArray(options: []) { lhs, rhs in
             return ComparisonResult(rawValue: comparator(lhs, rhs, context))!
         }
     }
@@ -426,13 +426,13 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return object(at: idx)
     }
     
-    public func enumerateObjects(_ block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        self.enumerateObjects([], using: block)
+    open func enumerateObjects(_ block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+        self.enumerateObjects(options: [], using: block)
     }
-    public func enumerateObjects(_ opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    open func enumerateObjects(options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         self.enumerateObjects(at: IndexSet(integersIn: 0..<count), options: opts, using: block)
     }
-    public func enumerateObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    open func enumerateObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         guard !opts.contains(.concurrent) else {
             NSUnimplemented()
         }
@@ -459,9 +459,9 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     open func indexesOfObjects(passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
-        return indexesOfObjects([], passingTest: predicate)
+        return indexesOfObjects(options: [], passingTest: predicate)
     }
-    open func indexesOfObjects(_ opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+    open func indexesOfObjects(options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         return indexesOfObjects(at: IndexSet(integersIn: 0..<count), options: opts, passingTest: predicate)
     }
     open func indexesOfObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
@@ -474,7 +474,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return result
     }
 
-    internal func sortedArrayFromRange(_ range: NSRange, options: SortOptions, usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
+    internal func sortedArrayFromRange(_ range: NSRange, options: NSSortOptions, usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
         // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
         guard options.isEmpty else {
             NSUnimplemented()
@@ -495,7 +495,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return sortedArrayFromRange(NSMakeRange(0, count), options: [], usingComparator: cmptr)
     }
 
-    open func sortedArray(_ opts: SortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
+    open func sortedArray(options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
         return sortedArrayFromRange(NSMakeRange(0, count), options: opts, usingComparator: cmptr)
     }
 
@@ -834,11 +834,11 @@ open class NSMutableArray : NSArray {
     }
 
     open func sortUsingComparator(_ cmptr: Comparator) {
-        self.sortWithOptions([], usingComparator: cmptr)
+        self.sortWithOptions(options: [], usingComparator: cmptr)
     }
 
-    open func sortWithOptions(_ opts: SortOptions, usingComparator cmptr: Comparator) {
-        self.setArray(self.sortedArray(opts, usingComparator: cmptr))
+    open func sortWithOptions(options opts: NSSortOptions, usingComparator cmptr: Comparator) {
+        self.setArray(self.sortedArray(options: opts, usingComparator: cmptr))
     }
     
     public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
