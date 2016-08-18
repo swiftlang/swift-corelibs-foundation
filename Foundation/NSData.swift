@@ -862,7 +862,8 @@ extension CFData : _NSBridgable, _SwiftBridgable {
 open class NSMutableData : NSData {
     internal var _cfMutableObject: CFMutableData { return unsafeBitCast(self, to: CFMutableData.self) }
     
-    public override init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (@escaping (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+    // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional
+    public override init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (/*@escaping*/ (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
         super.init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)
     }
     public init() {
