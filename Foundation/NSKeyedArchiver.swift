@@ -34,44 +34,6 @@ internal let NSPropertyListClasses : [AnyClass] = [
         NSNumber.self
 ]
 
-// NSUniqueObject is a wrapper that allows both hashable and non-hashable objects
-// to be used as keys in a dictionary
-internal struct NSUniqueObject : Hashable {
-    var _backing : Any
-    var _hashValue : () -> Int
-    var _equality : (Any) -> Bool
-    
-    init<T: Hashable>(hashableObject: T) {
-        self._backing = hashableObject
-        self._hashValue = { hashableObject.hashValue }
-        self._equality = {
-            if let other = $0 as? T {
-                return hashableObject == other
-            }
-            return false
-        }
-    }
-    
-    init(_ object: Any) {
-        // FIXME can't we check for Hashable directly?
-        if let ns = object as? NSObject {
-            self.init(hashableObject: ns)
-        } else if let ah = object as? AnyHashable {
-            self.init(hashableObject: ah)
-        } else {
-            fatalError("Non-object, non-hashable type used as key")
-        }
-    }
-    
-    var hashValue: Int {
-        return _hashValue()
-    }
-}
-
-internal func ==(x : NSUniqueObject, y : NSUniqueObject) -> Bool {
-    return x._equality(y._backing)
-}
-
 open class NSKeyedArchiver : NSCoder {
     struct ArchiverFlags : OptionSet {
         let rawValue : UInt
@@ -99,8 +61,8 @@ open class NSKeyedArchiver : NSCoder {
     private var _flags = ArchiverFlags(rawValue: 0)
     private var _containers : Array<EncodingContext> = [EncodingContext()]
     private var _objects : Array<Any> = [NSKeyedArchiveNullObjectReferenceName]
-    private var _objRefMap : Dictionary<NSUniqueObject, UInt32> = [:]
-    private var _replacementMap : Dictionary<NSUniqueObject, Any> = [:]
+    private var _objRefMap : Dictionary<AnyHashable, UInt32> = [:]
+    private var _replacementMap : Dictionary<AnyHashable, Any> = [:]
     private var _classNameMap : Dictionary<String, String> = [:]
     private var _classes : Dictionary<String, _NSKeyedArchiverUID> = [:]
     private var _cache : Array<_NSKeyedArchiverUID> = []
@@ -309,9 +271,7 @@ open class NSKeyedArchiver : NSCoder {
             return NSKeyedArchiveNullObjectReference
         }
         
-        let oid = NSUniqueObject(objv!)
-
-        uid = self._objRefMap[oid]
+        uid = self._objRefMap[objv as! AnyHashable]
         if uid == nil {
             if conditional {
                 return nil // object has not been unconditionally encoded
@@ -319,7 +279,7 @@ open class NSKeyedArchiver : NSCoder {
             
             uid = UInt32(self._objects.count)
             
-            self._objRefMap[oid] = uid
+            self._objRefMap[objv as! AnyHashable] = uid
             self._objects.insert(NSKeyedArchiveNullObjectReferenceName, at: Int(uid!))
         }
 
@@ -333,9 +293,7 @@ open class NSKeyedArchiver : NSCoder {
         if objv == nil {
             return true // always have a null reference
         } else {
-            let oid = NSUniqueObject(objv!)
-
-            return self._objRefMap[oid] != nil
+            return self._objRefMap[objv as! AnyHashable] != nil
         }
     }
     
@@ -403,13 +361,11 @@ open class NSKeyedArchiver : NSCoder {
         Update replacement object mapping
      */
     private func replaceObject(_ object: Any, withObject replacement: Any?) {
-        let oid = NSUniqueObject(object)
-        
         if let unwrappedDelegate = self.delegate {
-            unwrappedDelegate.archiver(self, willReplace: object, with: replacement)
+            unwrappedDelegate.archiver(self, willReplace: object as! AnyHashable, with: replacement)
         }
         
-        self._replacementMap[oid] = replacement
+        self._replacementMap[object as! AnyHashable] = replacement
     }
    
     /**
@@ -514,7 +470,7 @@ open class NSKeyedArchiver : NSCoder {
         }
         
         // check replacement cache
-        objectToEncode = self._replacementMap[NSUniqueObject(object!)]
+        objectToEncode = self._replacementMap[object as! AnyHashable]
         if objectToEncode != nil {
             return objectToEncode
         }
