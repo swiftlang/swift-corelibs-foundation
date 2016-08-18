@@ -16,6 +16,8 @@ import CoreFoundation
     import Darwin.uuid
 #elseif os(Linux)
     import CUUID
+    // CUUID does not export uuid_string_t
+    public typealias uuid_string_t = (Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8)
 #endif
 
 /// Represents UUID strings, which can be used to uniquely identify types, interfaces, and other items.
