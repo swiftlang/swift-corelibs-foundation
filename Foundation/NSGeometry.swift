@@ -926,7 +926,7 @@ extension NSCoder {
     }
     
     public func decodePointForKey(_ key: String) -> NSPoint {
-        if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
+        if let string = self.decodeObject(of: NSString.self, forKey: key) {
             return NSPointFromString(String._unconditionallyBridgeFromObjectiveC(string))
         } else {
             return NSPoint()
@@ -934,7 +934,7 @@ extension NSCoder {
     }
     
     public func decodeSizeForKey(_ key: String) -> NSSize {
-        if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
+        if let string = self.decodeObject(of: NSString.self, forKey: key) {
             return NSSizeFromString(String._unconditionallyBridgeFromObjectiveC(string))
         } else {
             return NSSize()
@@ -942,7 +942,7 @@ extension NSCoder {
     }
     
     public func decodeRectForKey(_ key: String) -> NSRect {
-        if let string = self.decodeObjectOfClass(NSString.self, forKey: key) {
+        if let string = self.decodeObject(of: NSString.self, forKey: key) {
             return NSRectFromString(String._unconditionallyBridgeFromObjectiveC(string))
         } else {
             return NSRect()

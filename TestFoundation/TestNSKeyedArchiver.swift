@@ -97,7 +97,7 @@ class TestNSKeyedArchiver : XCTestCase {
                 unarchiver.requiresSecureCoding = allowsSecureCoding
                 
                 do {
-                    let rootObj = try unarchiver.decodeTopLevelObjectOfClasses(classes, forKey: NSKeyedArchiveRootObjectKey)
+                    let rootObj = try unarchiver.decodeTopLevelObject(of: classes, forKey: NSKeyedArchiveRootObjectKey)
                     guard let root = rootObj as? NSObject else {
                         XCTFail("Unable to decode data")
                         return false
@@ -230,7 +230,7 @@ class TestNSKeyedArchiver : XCTestCase {
                 return true
             },
              decode: {unarchiver -> Bool in
-                guard let value = unarchiver.decodeObjectOfClass(NSValue.self, forKey: "root") else {
+                guard let value = unarchiver.decodeObject(of: NSValue.self, forKey: "root") else {
                     return false
                 }
                 var expectedCharPtr: UnsafeMutablePointer<CChar>? = nil

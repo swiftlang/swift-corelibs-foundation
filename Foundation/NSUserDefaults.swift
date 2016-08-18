@@ -195,9 +195,8 @@ open class UserDefaults: NSObject {
             
             return URL(fileURLWithPath: cVal)
         } else if let bVal = aVal as? Data {
-            return NSKeyedUnarchiver.unarchiveObjectWithData(bVal) as? URL
+            return NSKeyedUnarchiver.unarchiveObject(with: bVal) as? URL
         }
-        
         return nil
     }
     
@@ -224,16 +223,12 @@ open class UserDefaults: NSObject {
                     let urlPath = url.path
                     
                     setObject(urlPath._nsObject, forKey: defaultName)
-                    return
                 }
             #else
                 //FIXME: stringByAbbreviatingWithTildeInPath isn't implemented in SwiftFoundation
                 //TODO: use stringByAbbreviatingWithTildeInPath when it is
                 setObject(url.path._nsObject, forKey: defaultName)
-                return
             #endif
-            let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
-            setObject(data._nsObject, forKey: defaultName)
         } else {
             setObject(nil, forKey: defaultName)
         }

@@ -164,6 +164,10 @@ open class NSKeyedArchiver : NSCoder {
         return finishedEncoding
     }
     
+    public override init() {
+        NSUnimplemented()
+    }
+    
     private init(output: AnyObject) {
         self._stream = output
         super.init()
@@ -194,6 +198,12 @@ open class NSKeyedArchiver : NSCoder {
     
     private func _writeBinaryData(_ plist : NSDictionary) -> Bool {
         return __CFBinaryPlistWriteToStream(plist, self._stream) > 0
+    }
+    
+    
+    /// If encoding has not yet finished, then invoking this property will call finishEncoding and return the data. If you initialized the keyed archiver with a specific mutable data instance, then it will be returned from this property after finishEncoding is called.
+    open var encodedData: Data {
+        NSUnimplemented()
     }
 
     open func finishEncoding() {
@@ -746,7 +756,7 @@ open class NSKeyedArchiver : NSCoder {
         _encodeValue(NSNumber(value: intv), forKey: key)
     }
 
-    open override func encodeDataObject(_ data: Data) {
+    open override func encode(_ data: Data) {
         // this encodes as a reference to an NSData object rather than encoding inline
         encode(data._nsObject)
     }
