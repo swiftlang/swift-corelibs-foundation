@@ -19,7 +19,9 @@
 
 
 import CoreFoundation
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
+#endif
 
 
 /// A cancelable object that refers to the lifetime
@@ -65,12 +67,14 @@ open class URLSessionTask : NSObject, NSCopying {
             }
         }
     }
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
     /// All operations must run on this queue.
     fileprivate let workQueue: DispatchQueue 
     /// This queue is used to make public attributes thread safe. It's a
     /// **concurrent** queue and must be used with a barries when writing. This
     /// allows multiple concurrent readers or a single writer.
-    fileprivate let taskAttributesIsolation: DispatchQueue 
+    fileprivate let taskAttributesIsolation: DispatchQueue
+#endif
     
     public override init() {
         // Darwin Foundation oddly allows calling this initializer, even though
@@ -83,8 +87,10 @@ open class URLSessionTask : NSObject, NSCopying {
         taskIdentifier = 0
         originalRequest = nil
         body = .none
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         workQueue = DispatchQueue(label: "URLSessionTask.notused.0")
         taskAttributesIsolation = DispatchQueue(label: "URLSessionTask.notused.1")
+#endif
         let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
         _ = FileManager.default.createFile(atPath: fileName, contents: nil)
         self.tempFileURL = URL(fileURLWithPath: fileName)
@@ -96,8 +102,10 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     internal init(session: URLSession, request: NSURLRequest, taskIdentifier: Int, body: _Body) {
         self.session = session
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         self.workQueue = session.workQueue
         self.taskAttributesIsolation = session.taskAttributesIsolation
+#endif
         self.taskIdentifier = taskIdentifier
         self.originalRequest = (request.copy() as! NSURLRequest)
         self.body = body
@@ -133,20 +141,32 @@ open class URLSessionTask : NSObject, NSCopying {
     /*@NSCopying*/ open fileprivate(set) var currentRequest: NSURLRequest? {
         get {
             var r: NSURLRequest? = nil
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
             taskAttributesIsolation.sync { r = self._currentRequest }
+#endif
             return r
         }
         //TODO: dispatch_barrier_async
-        set { taskAttributesIsolation.async { self._currentRequest = newValue } }
+        set {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+            taskAttributesIsolation.async { self._currentRequest = newValue }
+#endif
+        }
     }
     fileprivate var _currentRequest: NSURLRequest? = nil
     /*@NSCopying*/ open fileprivate(set) var response: URLResponse? {
         get {
             var r: URLResponse? = nil
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
             taskAttributesIsolation.sync { r = self._response }
+#endif
             return r
         }
-        set { taskAttributesIsolation.async { self._response = newValue } }
+        set {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+            taskAttributesIsolation.async { self._response = newValue }
+#endif
+        }
     }
     fileprivate var _response: URLResponse? = nil
     
@@ -159,10 +179,16 @@ open class URLSessionTask : NSObject, NSCopying {
    open fileprivate(set) var countOfBytesReceived: Int64 {
         get {
             var r: Int64 = 0
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
             taskAttributesIsolation.sync { r = self._countOfBytesReceived }
+#endif
             return r
         }
-        set { taskAttributesIsolation.async { self._countOfBytesReceived = newValue } }
+        set {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+            taskAttributesIsolation.async { self._countOfBytesReceived = newValue }
+#endif
+        }
     }
     fileprivate var _countOfBytesReceived: Int64 = 0
     
@@ -170,10 +196,16 @@ open class URLSessionTask : NSObject, NSCopying {
     open fileprivate(set) var countOfBytesSent: Int64 {
         get {
             var r: Int64 = 0
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
             taskAttributesIsolation.sync { r = self._countOfBytesSent }
+#endif
             return r
         }
-        set { taskAttributesIsolation.async { self._countOfBytesSent = newValue } }
+        set {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+            taskAttributesIsolation.async { self._countOfBytesSent = newValue }
+#endif
+        }
     }
 
     fileprivate var _countOfBytesSent: Int64 = 0
@@ -202,10 +234,16 @@ open class URLSessionTask : NSObject, NSCopying {
     open var state: URLSessionTask.State {
         get {
             var r: URLSessionTask.State = .suspended
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
             taskAttributesIsolation.sync { r = self._state }
+#endif
             return r
         }
-        set { taskAttributesIsolation.async { self._state = newValue } }
+        set {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+            taskAttributesIsolation.async { self._state = newValue }
+#endif
+        }
     }
     fileprivate var _state: URLSessionTask.State = .suspended
     
@@ -240,6 +278,7 @@ open class URLSessionTask : NSObject, NSCopying {
         // synchronous, to make sure the `state` is updated when this method
         // returns, but the actual suspend will be done asynchronous to avoid
         // dead-locks.
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         workQueue.sync {
             self.suspendCount += 1
             guard self.suspendCount < Int.max else { fatalError("Task suspended too many times \(Int.max).") }
@@ -251,11 +290,13 @@ open class URLSessionTask : NSObject, NSCopying {
                 }
             }
         }
+#endif
     }
     /// Resume the task.
     ///
     /// - SeeAlso: `suspend()`
     open func resume() {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         workQueue.sync {
             self.suspendCount -= 1
             guard 0 <= self.suspendCount else { fatalError("Resuming a task that's not suspended. Calls to resume() / suspend() need to be matched.") }
@@ -266,6 +307,7 @@ open class URLSessionTask : NSObject, NSCopying {
                 }
             }
         }
+#endif
     }
     
     /// The priority of the task.
@@ -286,11 +328,15 @@ open class URLSessionTask : NSObject, NSCopying {
     open var priority: Float {
         get {
             var r: Float = 0
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
             taskAttributesIsolation.sync { r = self._priority }
+#endif
             return r
         }
         set {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
             taskAttributesIsolation.async { self._priority = newValue }
+#endif
         }
     }
     fileprivate var _priority: Float = URLSessionTaskPriorityDefault
@@ -418,7 +464,9 @@ internal extension URLSessionTask {
 internal extension URLSessionTask {
     enum _Body {
         case none
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         case data(DispatchData)
+#endif
         /// Body data is read from the given file URL
         case file(URL)
         case stream(InputStream)
@@ -430,6 +478,7 @@ fileprivate extension URLSessionTask._Body {
     }
     /// - Returns: The body length, or `nil` for no body (e.g. `GET` request).
     func getBodyLength() throws -> UInt64? {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         switch self {
         case .none:
             return 0
@@ -444,6 +493,9 @@ fileprivate extension URLSessionTask._Body {
         case .stream:
             return nil
         }
+#else
+        return nil
+#endif
     }
 }
 
@@ -461,6 +513,7 @@ fileprivate extension URLSessionTask {
     }
     /// Creates a new transfer state with the given behaviour:
     func createTransferState(url: URL) -> URLSessionTask._TransferState {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         let drain = createTransferBodyDataDrain()
         switch body {
         case .none:
@@ -477,7 +530,9 @@ fileprivate extension URLSessionTask {
         case .stream:
             NSUnimplemented()
         }
-        
+#else
+        fatalError("NSURLSession requires libdispatch")
+#endif
     }
     /// The data drain.
     ///
@@ -707,7 +762,7 @@ extension URLSessionTask: _EasyHandleDelegate {
             let task = self as? URLSessionDataTask {
             // Forward to the delegate:
             guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperationWithBlock {
+            s.delegateQueue.addOperation {
                 dataDelegate.urlSession(s, dataTask: task, didReceive: data)
             }
         } else if case .taskDelegate(let delegate) = session.behaviour(for: self),
@@ -719,13 +774,13 @@ extension URLSessionTask: _EasyHandleDelegate {
                 fileHandle.write(data)
                 self.totalDownloaded += data.count
             
-                s.delegateQueue.addOperationWithBlock {
+                s.delegateQueue.addOperation {
                     downloadDelegate.urlSession(s, downloadTask: task, didWriteData: Int64(data.count), totalBytesWritten: Int64(self.totalDownloaded),
                         totalBytesExpectedToWrite: Int64(self.easyHandle.fileLength))
                 }
                 if Int(self.easyHandle.fileLength) == totalDownloaded {
                     fileHandle.closeFile()
-                    s.delegateQueue.addOperationWithBlock {
+                    s.delegateQueue.addOperation {
                         downloadDelegate.urlSession(s, downloadTask: task, didFinishDownloadingTo: self.tempFileURL)
                     }
                 }
@@ -752,6 +807,7 @@ extension URLSessionTask: _EasyHandleDelegate {
     func fill(writeBuffer buffer: UnsafeMutableBufferPointer<Int8>) -> URLSessionTask._EasyHandle._WriteBufferResult {
         guard case .transferInProgress(let ts) = internalState else { fatalError("Requested to fill write buffer, but transfer isn't in progress.") }
         guard let source = ts.requestBodySource else { fatalError("Requested to fill write buffer, but transfer state has no body source.") }
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         switch source.getNextChunk(withLength: buffer.count) {
         case .data(let data):
             copyDispatchData(data, infoBuffer: buffer)
@@ -768,6 +824,9 @@ extension URLSessionTask: _EasyHandleDelegate {
         case .error:
             return .abort
         }
+#else
+    fatalError("NSURLSession requires libdispatch")
+#endif
     }
 
     func transferCompleted(withErrorCode errorCode: Int?) {
@@ -819,7 +878,7 @@ extension URLSessionTask {
         switch session.behaviour(for: self) {
         case .taskDelegate(let delegate):
             guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperationWithBlock {
+            s.delegateQueue.addOperation {
                 delegate.urlSession(s, task: self, didCompleteWithError: nil)
             }
         case .noDelegate:
@@ -833,7 +892,7 @@ extension URLSessionTask {
             var data = Data(capacity: bodyData!.length)
             data.append(Data(bytes: bodyData!.bytes, count: bodyData!.length)) 
 
-            s.delegateQueue.addOperationWithBlock {
+            s.delegateQueue.addOperation {
                 completion(data, response, nil)
             }
         case .downloadCompletionHandler(let completion):
@@ -845,7 +904,7 @@ extension URLSessionTask {
             //The contents are already written, just close the file handle and call the handler
             fileHandle.closeFile()
             
-            s.delegateQueue.addOperationWithBlock {
+            s.delegateQueue.addOperation {
                 completion(url, response, nil) 
             }
             
@@ -859,19 +918,19 @@ extension URLSessionTask {
         switch session.behaviour(for: self) {
         case .taskDelegate(let delegate):
             guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperationWithBlock {
+            s.delegateQueue.addOperation {
                 delegate.urlSession(s, task: self, didCompleteWithError: error)
             }
         case .noDelegate:
             break
         case .dataCompletionHandler(let completion):
             guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperationWithBlock {
+            s.delegateQueue.addOperation {
                 completion(nil, nil, error)
             }
         case .downloadCompletionHandler(let completion): 
             guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperationWithBlock {
+            s.delegateQueue.addOperation {
                 completion(nil, nil, error)
             }
         }
@@ -912,12 +971,14 @@ extension URLSessionTask {
             internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`
             guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperationWithBlock {
+            s.delegateQueue.addOperation {
                 delegate.urlSession(s, task: self, willPerformHTTPRedirection: response, newRequest: request) { [weak self] (request: NSURLRequest?) in
                     guard let task = self else { return }
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
                     task.workQueue.async {
                         task.didCompleteRedirectCallback(request)
                     }
+#endif
                 }
             }
         case .noDelegate, .dataCompletionHandler, .downloadCompletionHandler:
@@ -961,7 +1022,7 @@ fileprivate extension URLSessionTask {
             // For now, we'll notify the delegate, but won't pause the transfer,
             // and we'll disregard the completion handler:
             guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperationWithBlock {
+            s.delegateQueue.addOperation {
                 delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { _ in
                     print("warning: Ignoring dispotion from completion handler.")
                 })
@@ -990,12 +1051,14 @@ fileprivate extension URLSessionTask {
         
         // We need this ugly cast in order to be able to support `URLSessionTask.init()`
         guard let s = session as? URLSession else { fatalError() }
-        s.delegateQueue.addOperationWithBlock {
+        s.delegateQueue.addOperation {
             delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { [weak self] disposition in
                 guard let task = self else { return }
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
                 task.workQueue.async {
                     task.didCompleteResponseCallback(disposition: disposition)
                 }
+#endif
                 })
         }
     }

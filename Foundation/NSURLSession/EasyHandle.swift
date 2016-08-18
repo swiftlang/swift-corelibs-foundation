@@ -18,9 +18,6 @@
 // -----------------------------------------------------------------------------
 
 import CoreFoundation
-import Dispatch
-
-
 
 extension URLSessionTask {
     /// Minimal wrapper around the [curl easy interface](https://curl.haxx.se/libcurl/c/)

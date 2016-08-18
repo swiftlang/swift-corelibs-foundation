@@ -18,7 +18,9 @@
 // -----------------------------------------------------------------------------
 
 import CoreFoundation
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
+#endif
 
 
 
@@ -36,18 +38,21 @@ extension URLSession {
     /// - SeeAlso: URLSessionTask._EasyHandle
     internal final class _MultiHandle {
         let rawHandle = CFURLSessionMultiHandleInit()
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         let queue: DispatchQueue
         //let queue = DispatchQueue(label: "MultiHandle.isolation", attributes: .serial)
         let group = DispatchGroup()
+#endif
         fileprivate var easyHandles: [URLSessionTask._EasyHandle] = []
         fileprivate var timeoutSource: _TimeoutSource? = nil
-        
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         init(configuration: URLSession._Configuration, workQueue: DispatchQueue) {
             //queue.setTarget(queue: workQueue)
             queue = DispatchQueue(label: "MultiHandle.isolation", target: workQueue)
             setupCallbacks()
             configure(with: configuration)
         }
+#endif
         deinit {
             // C.f.: <https://curl.haxx.se/libcurl/c/curl_multi_cleanup.html>
             easyHandles.forEach {
@@ -117,10 +122,12 @@ fileprivate extension URLSession._MultiHandle {
             socketSources = nil
         }
         if let ss = socketSources {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
             let handler = DispatchWorkItem { [weak self] in
                 self?.performAction(for: socket)
             }
             ss.createSources(with: action, fileDescriptor: Int(socket), queue: queue, handler: handler)
+#endif
         }
         return 0
     }
@@ -301,8 +308,11 @@ fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
 ///
 /// Used to implement the timeout of `URLSession.MultiHandle`.
 fileprivate class _TimeoutSource {
-    let rawSource: DispatchSource 
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+    let rawSource: DispatchSource
+#endif
     let milliseconds: Int
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
     init(queue: DispatchQueue, milliseconds: Int, handler: DispatchWorkItem) {
         self.milliseconds = milliseconds
         self.rawSource = DispatchSource.makeTimerSource(queue: queue) as! DispatchSource
@@ -318,6 +328,9 @@ fileprivate class _TimeoutSource {
     deinit {
         rawSource.cancel()
     }
+#else
+    init() { milliseconds = 0 }
+#endif
 }
 fileprivate extension URLSession._MultiHandle {
     /// <https://curl.haxx.se/libcurl/c/CURLMOPT_TIMERFUNCTION.html>
@@ -325,6 +338,7 @@ fileprivate extension URLSession._MultiHandle {
         updateTimeoutTimer(to: _Timeout(timeout: value))
     }
     func updateTimeoutTimer(to timeout: _Timeout) {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         // Set up a timeout timer based on the given value:
         switch timeout {
         case .none:
@@ -342,6 +356,7 @@ fileprivate extension URLSession._MultiHandle {
                 timeoutSource = _TimeoutSource(queue: queue, milliseconds: milliseconds, handler: block)
             }
         }
+#endif
     }
     enum _Timeout {
         case milliseconds(Int)
@@ -372,6 +387,7 @@ fileprivate extension URLSession._MultiHandle._Timeout {
 ///
 /// - SeeAlso: URLSession.MultiHandle.SocketRegisterAction
 fileprivate class _SocketSources {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
     var readSource: DispatchSource?
     var writeSource: DispatchSource?
 
@@ -401,8 +417,10 @@ fileprivate class _SocketSources {
         }
         writeSource = nil
     }
+#endif
 }
 extension _SocketSources {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
     /// Create a read and/or write source as specified by the action.
     func createSources(with action: URLSession._MultiHandle._SocketRegisterAction, fileDescriptor fd: Int, queue: DispatchQueue, handler: DispatchWorkItem) {
         if action.needsReadSource {
@@ -412,6 +430,7 @@ extension _SocketSources {
             createWriteSource(fileDescriptor: fd, queue: queue, handler: handler)
         }
     }
+#endif
 }
 extension _SocketSources {
     /// Unwraps the `SocketSources`
