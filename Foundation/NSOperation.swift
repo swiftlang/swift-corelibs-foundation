@@ -543,7 +543,7 @@ open class OperationQueue: NSObject {
         let specific = DispatchQueue.getSpecific(key: OperationQueue.OperationQueueKey)
         if specific == nil {
             if pthread_main_np() == 1 {
-                return OperationQueue.mainQueue()
+                return OperationQueue.main
             } else {
                 return nil
             }
