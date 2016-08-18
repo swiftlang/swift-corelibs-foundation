@@ -21,7 +21,6 @@ import CoreFoundation
 #endif
 
 /// Represents UUID strings, which can be used to uniquely identify types, interfaces, and other items.
-@available(OSX 10.8, iOS 6.0, *)
 public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConvertible {
     public typealias ReferenceType = NSUUID
     
