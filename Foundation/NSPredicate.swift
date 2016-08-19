@@ -102,7 +102,7 @@ extension NSMutableArray {
                 indexesToRemove.insert(index)
             }
         }
-        self.removeObjectsAtIndexes(indexesToRemove)
+        self.removeObjects(at: indexesToRemove)
     }
 }
 

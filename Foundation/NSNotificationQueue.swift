@@ -172,7 +172,7 @@ open class NotificationQueue: NSObject {
         guard self.notificationQueueList.index(of: notificationQueue) != NSNotFound else {
             return
         }
-        self.notificationQueueList.removeObject(notificationQueue)
+        self.notificationQueueList.remove(notificationQueue)
     }
 
 }

@@ -172,7 +172,7 @@ class TestNSArray : XCTestCase {
             NSNumber(value: 0 as Int), NSNumber(value: 1 as Int), NSNumber(value: 2 as Int), NSNumber(value: 3 as Int),
             NSNumber(value: 4 as Int), NSNumber(value: 5 as Int), NSNumber(value: 7 as Int)]
         let array = NSMutableArray(array: numbers)
-        array.replaceObjectsInRange(NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(value: 8 as Int), NSNumber(value: 9 as Int)])
+        array.replaceObjects(in: NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(value: 8 as Int), NSNumber(value: 9 as Int)])
         XCTAssertTrue((array[0] as! NSNumber).intValue == 8)
         XCTAssertTrue((array[1] as! NSNumber).intValue == 9)
         XCTAssertTrue((array[2] as! NSNumber).intValue == 2)
@@ -287,7 +287,7 @@ class TestNSArray : XCTestCase {
             "bar2",
             "baz2"]
         
-        array1.replaceObjectsInRange(NSMakeRange(0, 2), withObjectsFromArray: array2)
+        array1.replaceObjects(in: NSMakeRange(0, 2), withObjectsFromArray: array2)
         
         XCTAssertEqual(array1[0] as? String, "foo2", "Expected foo2 but was \(array1[0])")
         XCTAssertEqual(array1[1] as? String, "bar2", "Expected bar2 but was \(array1[1])")
@@ -368,7 +368,7 @@ class TestNSArray : XCTestCase {
             let r = (right as! NSNumber).intValue
             return l < r ? -1 : (l > r ? 0 : 1)
         }
-        mutableInput.sortUsingFunction(compare, context: UnsafeMutableRawPointer(bitPattern: 0))
+        mutableInput.sort(compare, context: UnsafeMutableRawPointer(bitPattern: 0))
 
         XCTAssertEqual(mutableInput.map { ($0 as! NSNumber).intValue}, expectedNumbers)
     }
@@ -379,7 +379,7 @@ class TestNSArray : XCTestCase {
         let mutableInput = NSMutableArray(array: inputNumbers)
         let expectedNumbers = inputNumbers.sorted()
 
-        mutableInput.sortUsingComparator { left, right -> ComparisonResult in
+        mutableInput.sort { left, right -> ComparisonResult in
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
             return l < r ? .orderedAscending : (l > r ? .orderedSame : .orderedDescending)
@@ -396,8 +396,8 @@ class TestNSArray : XCTestCase {
             let r = right as! String
             return l.localizedCaseInsensitiveCompare(r)
         }
-        mutableStringsInput1.sortUsingComparator(comparator)
-        mutableStringsInput2.sortWithOptions(options: [], usingComparator: comparator)
+        mutableStringsInput1.sort(comparator)
+        mutableStringsInput2.sort(options: [], usingComparator: comparator)
         XCTAssertTrue(mutableStringsInput1.isEqual(to: mutableStringsInput2.map { $0 }))
     }
 
