@@ -112,12 +112,12 @@ open class NSKeyedUnarchiver : NSCoder {
         
         switch self._stream {
         case .data(let data):
-            try plist = PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions.immutable, format: &format)
+            try plist = PropertyListSerialization.propertyList(from: data, options: [], format: &format)
             break
         case .stream(let inputStream):
-            try plist = PropertyListSerialization.propertyListWithStream(unsafeBitCast(inputStream, to: CFReadStream.self),
+            try plist = PropertyListSerialization.propertyList(with: unsafeBitCast(inputStream, to: CFReadStream.self),
                                                                            length: 0,
-                                                                           options: PropertyListSerialization.MutabilityOptions.immutable,
+                                                                           options: [],
                                                                            format: &format)
             break
         }

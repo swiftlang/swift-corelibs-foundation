@@ -20,8 +20,7 @@ extension PropertyListSerialization {
     public struct MutabilityOptions : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        static let immutable = MutabilityOptions(rawValue: 0)
+
         static let mutableContainers = MutabilityOptions(rawValue: 1)
         static let mutableContainersAndLeaves = MutabilityOptions(rawValue: 2)
     }
@@ -87,7 +86,7 @@ open class PropertyListSerialization : NSObject {
         }
     }
     
-    internal class func propertyListWithStream(_ stream: CFReadStream, length streamLength: Int, options opt: ReadOptions, format: UnsafeMutablePointer <PropertyListFormat>?) throws -> Any {
+    internal class func propertyList(with stream: CFReadStream, length streamLength: Int, options opt: ReadOptions, format: UnsafeMutablePointer <PropertyListFormat>?) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0
         var error: Unmanaged<CFError>? = nil
         let decoded = withUnsafeMutablePointer(to: &fmt) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>) -> NSObject? in
