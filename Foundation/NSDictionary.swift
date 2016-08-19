@@ -139,26 +139,6 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         self.init(objects: [object], forKeys: [key as! NSObject])
     }
     
-//    public convenience init(dictionary otherDictionary: [NSObject : AnyObject]) {
-//        self.init(dictionary: otherDictionary, copyItems: false)
-//    }
-    
-//    public convenience init(dictionary otherDictionary: [NSObject : AnyObject], copyItems flag: Bool) {
-//        var keys = Array<KeyType>()
-//        var values = Array<AnyObject>()
-//        for key in otherDictionary.keys {
-//            keys.append(key)
-//            var value = otherDictionary[key]
-//            if flag {
-//                if let val = value as? NSObject {
-//                    value = val.copy()
-//                }
-//            }
-//            values.append(value!)
-//        }
-//        self.init(objects: values, forKeys: keys)
-//    }
-    
     public convenience init(objects: [Any], forKeys keys: [NSObject]) {
         let keyBuffer = UnsafeMutablePointer<NSObject>.allocate(capacity: keys.count)
         keyBuffer.initialize(from: keys)
@@ -621,6 +601,11 @@ extension NSMutableDictionary {
 }
 
 extension NSDictionary : ExpressibleByDictionaryLiteral { }
+
+extension NSDictionary : CustomReflectable {
+    public var customMirror: Mirror { NSUnimplemented() }
+}
+
 
 extension NSDictionary : _StructTypeBridgeable {
     public typealias _StructType = Dictionary<AnyHashable,Any>
