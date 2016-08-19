@@ -32,7 +32,7 @@ internal class _NSKeyedArchiverUID : NSObject {
         return Int(bitPattern: CFHash(_cfObject as CFTypeRef!))
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: Any?) -> Bool {
         // no need to compare these?
         return false
     }

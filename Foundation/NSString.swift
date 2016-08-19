@@ -303,7 +303,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         return CFStringGetTypeID()
     }
   
-    open override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: Any?) -> Bool {
         guard let string = (object as? NSString)?._swiftObject else { return false }
         return self.isEqual(to: string)
     }

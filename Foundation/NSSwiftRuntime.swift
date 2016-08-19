@@ -32,12 +32,11 @@ internal class __NSCFType : NSObject {
         return Int(bitPattern: CFHash(self))
     }
     
-    override func isEqual(_ object: AnyObject?) -> Bool {
-        if let obj = object {
-            return CFEqual(self, obj)
-        } else {
-            return false
+    override func isEqual(_ value: Any?) -> Bool {
+        if let other = value as? NSObject {
+            return CFEqual(self, other)
         }
+        return false
     }
     
     override var description: String {

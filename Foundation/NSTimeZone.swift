@@ -63,7 +63,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: Any?) -> Bool {
         if let tz = object as? NSTimeZone {
             return isEqual(to: tz._swiftObject)
         } else {

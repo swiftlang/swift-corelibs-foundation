@@ -28,12 +28,13 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        if let date = object as? Date {
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let date = value as? Date {
             return isEqual(to: date)
-        } else {
-            return false
+        } else if let date = value as? NSDate {
+            return isEqual(to: Date(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate))
         }
+        return false
     }
     
     deinit {

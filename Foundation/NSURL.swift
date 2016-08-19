@@ -256,7 +256,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: Any?) -> Bool {
         if let url = object as? NSURL {
             return CFEqual(_cfObject, url._cfObject)
         } else {

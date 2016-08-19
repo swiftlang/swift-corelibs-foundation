@@ -51,19 +51,20 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        if self === object {
-            return true
-        } else if let o = object, type(of: self) == NSValue.self && type(of: o) == NSValue.self {
-            // bypass _concreteValue accessor in order to avoid acquiring lock twice
-            let (lhs, rhs) = NSValue.SideTableLock.synchronized {
-                return (NSValue.SideTable[ObjectIdentifier(self)]!,
-                        NSValue.SideTable[ObjectIdentifier(object!)]!)
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let object = value as? NSValue {
+            if self === object {
+                return true
+            } else {
+                // bypass _concreteValue accessor in order to avoid acquiring lock twice
+                let (lhs, rhs) = NSValue.SideTableLock.synchronized {
+                    return (NSValue.SideTable[ObjectIdentifier(self)]!,
+                            NSValue.SideTable[ObjectIdentifier(object)]!)
+                }
+                return lhs.isEqual(rhs)
             }
-            return lhs.isEqual(rhs)
-        } else {
-            return super.isEqual(object)
         }
+        return false
     }
     
     open override var description : String {

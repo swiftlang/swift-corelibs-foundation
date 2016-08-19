@@ -15,6 +15,10 @@ import Darwin
 import Glibc
 #endif
 
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+import Dispatch
+#endif
+
 extension NSData {
     public struct ReadingOptions : OptionSet {
         public let rawValue : UInt
@@ -223,12 +227,24 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        if let data = object as? NSData {
-            return self.isEqual(to: data._swiftObject)
-        } else {
-            return false
+    open override func isEqual(_ value: Any?) -> Bool {
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+        if let data = value as? DispatchData {
+            if data.count != length {
+                return false
+            }
+            return data.withUnsafeBytes { (bytes2: UnsafePointer<UInt8>) -> Bool in
+                let bytes1 = bytes
+                return memcmp(bytes1, bytes2, length) == 0
+            }
         }
+#endif
+        if let data = value as? Data {
+            return isEqual(to: data)
+        } else if let data = value as? NSData {
+            return isEqual(to: data._swiftObject)
+        }
+        return false
     }
     open func isEqual(to other: Data) -> Bool {
         if length != other.count {

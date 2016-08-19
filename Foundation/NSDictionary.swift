@@ -158,12 +158,13 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         self.init(objects: otherDictionary.values.map { $0 }, forKeys: otherDictionary.keys.map { _SwiftValue.store($0) })
     }
 
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let otherDictionary = object as? NSDictionary else {
-            return false
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let other = value as? Dictionary<AnyHashable, Any> {
+            return isEqual(to: other)
+        } else if let other = value as? NSDictionary {
+            return isEqual(to: Dictionary._unconditionallyBridgeFromObjectiveC(other))
         }
-        
-        return self.isEqual(to: Dictionary._unconditionallyBridgeFromObjectiveC(otherDictionary))
+        return false
     }
 
     open override var hash: Int {

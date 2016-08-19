@@ -49,12 +49,13 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        if let cs = object as? NSCharacterSet {
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let cs = value as? CharacterSet {
             return CFEqual(_cfObject, cs._cfObject)
-        } else {
-            return false
+        } else if let cs = value as? NSCharacterSet {
+            return CFEqual(_cfObject, cs._cfObject)
         }
+        return false
     }
     
     open override var description: String {

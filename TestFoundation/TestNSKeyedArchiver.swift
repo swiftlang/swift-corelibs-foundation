@@ -41,7 +41,7 @@ public class UserClass : NSObject, NSSecureCoding {
         }
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let custom = object as? UserClass {
             return self.ivar == custom.ivar
         } else {
