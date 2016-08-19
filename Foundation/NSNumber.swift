@@ -209,12 +209,17 @@ open class NSNumber : NSValue {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        if let number = object as? NSNumber {
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let number = value as? Int {
+            return intValue == number
+        } else if let number = value as? Double {
+            return doubleValue == number
+        } else if let number = value as? Bool {
+            return boolValue == number
+        } else if let number = value as? NSNumber {
             return CFEqual(_cfObject, number._cfObject)
-        } else {
-            return false
         }
+        return false
     }
     
     deinit {

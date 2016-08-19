@@ -224,12 +224,16 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        if let cal = object as? Calendar {
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let cal = value as? Calendar {
             return CFEqual(_cfObject, cal._cfObject)
-        } else {
-            return false
+        } else if let cal = value as? NSCalendar {
+            if cal === self {
+                return true
+            }
+            return CFEqual(_cfObject, cal._cfObject)
         }
+        return false
     }
     
     open override var description: String {
@@ -1308,7 +1312,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         return calHash + (32832013 * (y + yy) + 2678437 * m + 86413 * d + 3607 * h + 61 * mm + s) + (41 * weekOfYear + 11 * weekOfMonth + 7 * weekday + 3 * weekdayOrdinal + quarter) * (1 << 5)
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: Any?) -> Bool {
         if let other = object as? NSDateComponents {
             if era != other.era {
                 return false

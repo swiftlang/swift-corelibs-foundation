@@ -82,14 +82,31 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         aCoder.encodeBytes(buffer, length: 16, forKey: "NS.uuidbytes")
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        if object === self {
-            return true
-        } else if let other = object as? NSUUID {
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let other = value as? UUID {
+            return other.uuid.0 == buffer[0] &&
+                other.uuid.1 == buffer[1] &&
+                other.uuid.2 == buffer[2] &&
+                other.uuid.3 == buffer[3] &&
+                other.uuid.4 == buffer[4] &&
+                other.uuid.5 == buffer[5] &&
+                other.uuid.6 == buffer[6] &&
+                other.uuid.7 == buffer[7] &&
+                other.uuid.8 == buffer[8] &&
+                other.uuid.9 == buffer[9] &&
+                other.uuid.10 == buffer[10] &&
+                other.uuid.11 == buffer[11] &&
+                other.uuid.12 == buffer[12] &&
+                other.uuid.13 == buffer[13] &&
+                other.uuid.14 == buffer[14] &&
+                other.uuid.15 == buffer[15]
+        } else if let other = value as? NSUUID {
+            if other === self {
+                return true
+            }
             return _cf_uuid_compare(buffer, other.buffer) == 0
-        } else {
-            return false
         }
+        return false
     }
     
     open override var hash: Int {

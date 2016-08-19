@@ -168,8 +168,8 @@ internal class NSConcreteValue : NSValue {
         return memcmp(bytes1, bytes2, self._size) == 0
     }
     
-    override func isEqual(_ object: AnyObject?) -> Bool {
-        if let other = object as? NSConcreteValue {
+    override func isEqual(_ value: Any?) -> Bool {
+        if let other = value as? NSConcreteValue {
             return self._typeInfo == other._typeInfo &&
                    self._isEqualToValue(other)
         } else {

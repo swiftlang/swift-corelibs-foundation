@@ -32,7 +32,7 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return true
     }
     
-    open override func isEqual(_ object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: Any?) -> Bool {
         if let orderedSet = object as? NSOrderedSet {
             return isEqual(to: orderedSet)
         } else {

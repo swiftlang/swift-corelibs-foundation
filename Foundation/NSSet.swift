@@ -127,11 +127,13 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         return CFSetGetTypeID()
     }
 
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let otherSet = object as? NSSet else {
-            return false
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let other = value as? Set<AnyHashable> {
+            return isEqual(to: other)
+        } else if let other = value as? NSSet {
+            return isEqual(to: Set._unconditionallyBridgeFromObjectiveC(other))
         }
-        return self.isEqual(to: Set._unconditionallyBridgeFromObjectiveC(otherSet))
+        return false
     }
 
     open override var hash: Int {

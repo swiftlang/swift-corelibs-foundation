@@ -146,12 +146,13 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         buffer.deallocate(capacity: cnt)
     }
 
-    open override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let otherObject = object, otherObject is NSArray else {
-            return false
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let other = value as? [Any] {
+            return self.isEqual(to: other)
+        } else if let other = value as? NSArray {
+            return self.isEqual(to: other.allObjects)
         }
-        let otherArray = otherObject as! NSArray
-        return self.isEqual(to: otherArray.allObjects)
+        return false
     }
 
     open override var hash: Int {

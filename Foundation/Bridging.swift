@@ -120,8 +120,8 @@ internal final class _SwiftValue : NSObject, NSCopying {
         return ObjectIdentifier(self).hashValue
     }
     
-    override func isEqual(_ object: AnyObject?) -> Bool {
-        guard let other = object else {
+    override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSObject else {
             return false
         }
         if let box = other as? _SwiftValue {

@@ -12,7 +12,7 @@ import CoreFoundation
 
 public protocol NSObjectProtocol: class {
     
-    func isEqual(_ object: AnyObject?) -> Bool
+    func isEqual(_ object: Any?) -> Bool
     var hash: Int { get }
     
     func `self`() -> Self
@@ -83,8 +83,11 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         return self
     }
     
-    open func isEqual(_ object: AnyObject?) -> Bool {
-        return object === self
+    open func isEqual(_ object: Any?) -> Bool {
+        if let obj = object as? NSObject {
+            return obj === self
+        }
+        return false
     }
     
     open var hash: Int {
