@@ -123,7 +123,7 @@ open class JSONSerialization : NSObject {
             try writer.serializeJSON(container)
         } else {
             if stream {
-                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                     "NSDebugDescription" : "Top-level object was not NSArray or NSDictionary"
                     ])
             } else {
@@ -165,7 +165,7 @@ open class JSONSerialization : NSObject {
             else if opt.contains(.allowFragments), let (value, _) = try reader.parseValue(0) {
                 return value
             }
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 "NSDebugDescription" : "JSON text did not start with array or object and option to allow fragments not set."
             ])
         }
@@ -286,7 +286,7 @@ private struct JSONWriter {
             try serializeNull(null)
         }
         else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
         }
     }
 
@@ -322,7 +322,7 @@ private struct JSONWriter {
 
     mutating func serializeNumber(_ num: NSNumber) throws {
         if num.doubleValue.isInfinite || num.doubleValue.isNaN {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
         }
         
         // Cannot detect type information (e.g. bool) as there is no objCType property on NSNumber in Swift
@@ -379,7 +379,7 @@ private struct JSONWriter {
             if key is String {
                 try serializeString(key as! String)
             } else {
-                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
             }
             pretty ? writer(": ") : writer(":")
             try serializeJSON(value)
@@ -493,7 +493,7 @@ private struct JSONReader {
             let byteLength = begin.distance(to: end)
             
             guard let chunk = String(data: Data(bytes: buffer.baseAddress!.advanced(by: begin), count: byteLength), encoding: encoding) else {
-                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                     "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
                     ])
             }
@@ -527,7 +527,7 @@ private struct JSONReader {
         return { (input: Index) throws -> Index? in
             switch self.source.takeASCII(input) {
             case .none:
-                throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                     "NSDebugDescription" : "Unexpected end of file during JSON parse."
                     ])
             case let (taken, index)? where taken == ascii:
@@ -586,7 +586,7 @@ private struct JSONReader {
                     continue
                 }
                 else {
-                    throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                         "NSDebugDescription" : "Invalid escape sequence at position \(source.distanceFromStart(currentIndex))"
                     ])
                 }
@@ -594,14 +594,14 @@ private struct JSONReader {
                 currentIndex = index
             }
         }
-        throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
             "NSDebugDescription" : "Unexpected end of file during string parse."
         ])
     }
 
     func parseEscapeSequence(_ input: Index) throws -> (String, Index)? {
         guard let (byte, index) = source.takeASCII(input) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 "NSDebugDescription" : "Early end of unicode escape sequence around character"
             ])
         }
@@ -632,7 +632,7 @@ private struct JSONReader {
         }
 
         guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit) , UTF16.isTrailSurrogate(trailCodeUnit) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to convert unicode escape sequence (no low-surrogate code point) to UTF8-encoded character at position \(source.distanceFromStart(input))"
             ])
         }
@@ -771,17 +771,17 @@ private struct JSONReader {
     
     func parseObjectMember(_ input: Index) throws -> (String, Any, Index)? {
         guard let (name, index) = try parseString(input) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 "NSDebugDescription" : "Missing object key at location \(source.distanceFromStart(input))"
             ])
         }
         guard let separatorIndex = try consumeStructure(Structure.NameSeparator, input: index) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 "NSDebugDescription" : "Invalid separator at location \(source.distanceFromStart(index))"
             ])
         }
         guard let (value, finalIndex) = try parseValue(separatorIndex) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 "NSDebugDescription" : "Invalid value at location \(source.distanceFromStart(separatorIndex))"
             ])
         }
@@ -812,7 +812,7 @@ private struct JSONReader {
                     continue
                 }
             }
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.PropertyListReadCorruptError.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 "NSDebugDescription" : "Badly formed array at location \(source.distanceFromStart(index))"
             ])
         }

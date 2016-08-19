@@ -904,7 +904,7 @@ extension TestNSData {
             try data.write(to: url, options: [.withoutOverwriting])
             XCTAssertTrue(false, "Should have thrown")
         } catch let error as NSError {
-            XCTAssertEqual(error.code, NSCocoaError.FileWriteFileExistsError.rawValue)
+            XCTAssertEqual(error.code, CocoaError.fileWriteFileExists.rawValue)
         } catch {
             XCTFail("unexpected error")
         }

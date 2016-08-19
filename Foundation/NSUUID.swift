@@ -71,7 +71,7 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
             self.init(uuidBytes: buffer)
         } else {
             // NSUUIDs cannot be decoded by non-keyed coders
-            coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
+            coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue, userInfo: [
                                 "NSDebugDescription": "NSUUID cannot be decoded by non-keyed coders"
                                 ]))
             return nil

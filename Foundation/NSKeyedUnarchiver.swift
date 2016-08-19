@@ -123,19 +123,19 @@ open class NSKeyedUnarchiver : NSCoder {
         }
         
         guard let unwrappedPlist = plist as? Dictionary<String, Any> else {
-            throw _decodingError(NSCocoaError.PropertyListReadCorruptError,
+            throw _decodingError(CocoaError.propertyListReadCorrupt,
                                  withDescription: "Unable to read archive. The data may be corrupt.")
         }
         
         let archiver = unwrappedPlist["$archiver"] as? String
         if archiver != NSStringFromClass(NSKeyedArchiver.self) {
-            throw _decodingError(NSCocoaError.PropertyListReadCorruptError,
+            throw _decodingError(CocoaError.propertyListReadCorrupt,
                                  withDescription: "Unknown archiver. The data may be corrupt.")
         }
         
         let version = unwrappedPlist["$version"] as? NSNumber
         if version?.int32Value != Int32(NSKeyedArchivePlistVersion) {
-            throw _decodingError(NSCocoaError.PropertyListReadCorruptError,
+            throw _decodingError(CocoaError.propertyListReadCorrupt,
                                  withDescription: "Unknown archive version. The data may be corrupt.")
         }
         
@@ -143,7 +143,7 @@ open class NSKeyedUnarchiver : NSCoder {
         let objects = unwrappedPlist["$objects"] as? Array<Any>
         
         if top == nil || objects == nil {
-            throw _decodingError(NSCocoaError.PropertyListReadCorruptError,
+            throw _decodingError(CocoaError.propertyListReadCorrupt,
                                  withDescription: "Unable to read archive contents. The data may be corrupt.")
         }
         
@@ -336,7 +336,7 @@ open class NSKeyedUnarchiver : NSCoder {
             if !_validateAndMapClassDictionary(classDict,
                                                allowedClasses: allowedClasses,
                                                classToConstruct: &classToConstruct) {
-                throw _decodingError(NSCocoaError.CoderReadCorruptError, withDescription: "Invalid class \(classDict). The data may be corrupt.")
+                throw _decodingError(CocoaError.coderReadCorrupt, withDescription: "Invalid class \(classDict). The data may be corrupt.")
             }
             
             _classes[classUid] = classToConstruct
@@ -378,7 +378,7 @@ open class NSKeyedUnarchiver : NSCoder {
         self._replacementMap[object as! AnyHashable] = replacement
     }
     
-    private func _decodingError(_ code: NSCocoaError, withDescription description: String) -> NSError {
+    private func _decodingError(_ code: CocoaError.Code, withDescription description: String) -> NSError {
         return NSError(domain: NSCocoaErrorDomain,
                                code: code.rawValue, userInfo: [ "NSDebugDescription" : description ])
     }
@@ -433,12 +433,12 @@ open class NSKeyedUnarchiver : NSCoder {
         let _ = _validateStillDecoding()
 
         if !(objectRef is _NSKeyedArchiverUID) {
-            throw _decodingError(NSCocoaError.CoderReadCorruptError,
+            throw _decodingError(CocoaError.coderReadCorrupt,
                                  withDescription: "Object \(objectRef) is not a reference. The data may be corrupt.")
         }
 
         guard let dereferencedObject = _dereferenceObjectReference(objectRef as! _NSKeyedArchiverUID) else {
-            throw _decodingError(NSCocoaError.CoderReadCorruptError,
+            throw _decodingError(CocoaError.coderReadCorrupt,
                                  withDescription: "Invalid object reference \(objectRef). The data may be corrupt.")
         }
 
@@ -451,14 +451,14 @@ open class NSKeyedUnarchiver : NSCoder {
             object = _cachedObjectForReference(objectRef as! _NSKeyedArchiverUID)
             if object == nil {
                 guard let dict = dereferencedObject as? Dictionary<String, Any> else {
-                    throw _decodingError(NSCocoaError.CoderReadCorruptError,
+                    throw _decodingError(CocoaError.coderReadCorrupt,
                                          withDescription: "Invalid object encoding \(objectRef). The data may be corrupt.")
                 }
 
                 let innerDecodingContext = DecodingContext(dict)
 
                 guard let classReference = innerDecodingContext.dict["$class"] as? _NSKeyedArchiverUID else {
-                    throw _decodingError(NSCocoaError.CoderReadCorruptError,
+                    throw _decodingError(CocoaError.coderReadCorrupt,
                                          withDescription: "Invalid class reference \(innerDecodingContext.dict["$class"]). The data may be corrupt.")
                 }
 
@@ -473,7 +473,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 }
 
                 guard let decodableClass = classToConstruct as? NSCoding.Type else {
-                    throw _decodingError(NSCocoaError.CoderReadCorruptError,
+                    throw _decodingError(CocoaError.coderReadCorrupt,
                                          withDescription: "Class \(classToConstruct!) is not decodable. The data may be corrupt.")
                 }
 
@@ -481,7 +481,7 @@ open class NSKeyedUnarchiver : NSCoder {
 
                 object = decodableClass.init(coder: self)
                 guard object != nil else {
-                    throw _decodingError(NSCocoaError.CoderReadCorruptError,
+                    throw _decodingError(CocoaError.coderReadCorrupt,
                                          withDescription: "Class \(classToConstruct!) failed to decode. The data may be corrupt.")
                 }
 
@@ -505,7 +505,7 @@ open class NSKeyedUnarchiver : NSCoder {
      */
     private func _decodeObject(forKey key: String?) throws -> Any? {
         guard let objectRef : Any? = _objectInCurrentDecodingContext(forKey: key) else {
-            throw _decodingError(NSCocoaError.CoderValueNotFoundError,
+            throw _decodingError(CocoaError.coderValueNotFound,
                                  withDescription: "No value found for key \(key). The data may be corrupt.")
         }
         
@@ -657,7 +657,7 @@ open class NSKeyedUnarchiver : NSCoder {
     
     open override func decodeTopLevelObject(of classes: [AnyClass], forKey key: String) throws -> Any? {
         guard self._containers?.count == 1 else {
-            throw _decodingError(NSCocoaError.CoderReadCorruptError,
+            throw _decodingError(CocoaError.coderReadCorrupt,
                                  withDescription: "Can only call decodeTopLevelObjectOfClasses when decoding top level objects.")
         }
         
