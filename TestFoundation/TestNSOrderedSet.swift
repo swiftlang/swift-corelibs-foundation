@@ -95,7 +95,7 @@ class TestNSOrderedSet : XCTestCase {
     func test_reversedOrderedSet() {
         let days = ["monday", "tuesday", "wednesday", "thursday", "friday"]
         let work = NSOrderedSet(array: days)
-        let krow = work.reversedOrderedSet
+        let krow = work.reversed
         var index = work.count - 1
         for item in krow {
             XCTAssertEqual(work.object(at: index) as? String, item as? String)
@@ -107,7 +107,7 @@ class TestNSOrderedSet : XCTestCase {
         let set = NSOrderedSet(array: [])
         let reversedEnum = set.reverseObjectEnumerator()
         XCTAssertNil(reversedEnum.nextObject())
-        let reversedSet = set.reversedOrderedSet
+        let reversedSet = set.reversed
         XCTAssertNil(reversedSet.firstObject)
     }
 
@@ -394,12 +394,12 @@ class TestNSOrderedSet : XCTestCase {
         let days = ["monday", "tuesday", "wednesday", "thursday", "friday"]
         let work =  NSMutableOrderedSet()
         work.addObjects(from: days)
-        var krow = work.reversedOrderedSet
+        var krow = work.reversed
         XCTAssertEqual(work.firstObject as? String, krow.lastObject as? String)
         XCTAssertEqual(work.lastObject as? String, krow.firstObject as? String)
 
         work.add("saturday")
-        krow = work.reversedOrderedSet
+        krow = work.reversed
         XCTAssertEqual(work.firstObject as? String, krow.lastObject as? String)
         XCTAssertEqual(work.lastObject as? String, krow.firstObject as? String)
     }

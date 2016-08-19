@@ -308,6 +308,10 @@ extension NSSet : Sequence {
     }
 }
 
+extension NSSet : CustomReflectable {
+    public var customMirror: Mirror { NSUnimplemented() }
+}
+
 open class NSMutableSet : NSSet {
     
     open func add(_ object: Any) {

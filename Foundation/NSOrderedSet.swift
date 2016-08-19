@@ -237,7 +237,7 @@ extension NSOrderedSet {
     }
     
     /*@NSCopying*/ 
-    public var reversedOrderedSet: NSOrderedSet { 
+    public var reversed: NSOrderedSet {
         return NSOrderedSet(array: _orderedStorage.map { _SwiftValue.fetch($0) }.reversed())
     }
     
