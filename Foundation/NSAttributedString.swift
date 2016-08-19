@@ -47,12 +47,12 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         return _string._swiftObject
     }
     
-    open func attributesAtIndex(_ location: Int, effectiveRange range: NSRangePointer) -> [String : Any] {
+    open func attributes(at location: Int, effectiveRange range: NSRangePointer) -> [String : Any] {
         let rangeInfo = RangeInfo(
             rangePointer: range,
             shouldFetchLongestEffectiveRange: false,
             longestEffectiveRangeSearchRange: nil)
-        return _attributesAtIndex(location, rangeInfo: rangeInfo)
+        return _attributes(at: location, rangeInfo: rangeInfo)
     }
 
     open var length: Int {
@@ -74,7 +74,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
             rangePointer: range,
             shouldFetchLongestEffectiveRange: true,
             longestEffectiveRangeSearchRange: rangeLimit)
-        return _attributesAtIndex(location, rangeInfo: rangeInfo)
+        return _attributes(at: location, rangeInfo: rangeInfo)
     }
     
     open func attribute(_ attrName: String, at location: Int, longestEffectiveRange range: NSRangePointer?, in rangeLimit: NSRange) -> Any? {
@@ -117,7 +117,7 @@ private extension NSAttributedString {
         let longestEffectiveRangeSearchRange: NSRange?
     }
     
-    func _attributesAtIndex(_ location: Int, rangeInfo: RangeInfo) -> [String : Any] {
+    func _attributes(at location: Int, rangeInfo: RangeInfo) -> [String : Any] {
         var cfRange = CFRange()
         return withUnsafeMutablePointer(to: &cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> [String : Any] in
             // Get attributes value using CoreFoundation function
