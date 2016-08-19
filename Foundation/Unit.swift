@@ -98,11 +98,11 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
         self.reciprocal = reciprocal
     }
     
-    private override func baseUnitValue(fromValue value: Double) -> Double {
+    fileprivate override func baseUnitValue(fromValue value: Double) -> Double {
         return reciprocal / value
     }
     
-    private override func value(fromBaseUnitValue baseUnitValue: Double) -> Double {
+    fileprivate override func value(fromBaseUnitValue baseUnitValue: Double) -> Double {
         return reciprocal / baseUnitValue
     }
     
