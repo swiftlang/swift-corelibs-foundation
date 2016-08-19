@@ -375,7 +375,7 @@ open class NSKeyedUnarchiver : NSCoder {
             unwrappedDelegate.unarchiver(self, willReplace: object, with: replacement)
         }
         
-        self._replacementMap[object as! AnyHashable] = replacement
+        self._replacementMap[_SwiftValue.store(object)] = replacement
     }
     
     private func _decodingError(_ code: CocoaError.Code, withDescription description: String) -> NSError {
@@ -392,7 +392,7 @@ open class NSKeyedUnarchiver : NSCoder {
         }
         
         // check replacement cache
-        object = self._replacementMap[decodedObject as! AnyHashable]
+        object = self._replacementMap[_SwiftValue.store(decodedObject)]
         if object != nil {
             return object
         }
@@ -489,9 +489,8 @@ open class NSKeyedUnarchiver : NSCoder {
             }
         } else {
             // reference to a non-container object
-            // FIXME remove these special cases
-            if let str = dereferencedObject as? String {
-                object = str._bridgeToObjectiveC()
+            if let bridgedObject = dereferencedObject as? _ObjectBridgeable {
+                object = bridgedObject._bridgeToAnyObject()
             } else {
                 object = dereferencedObject
             }
