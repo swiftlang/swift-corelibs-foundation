@@ -20,8 +20,7 @@ import SwiftXCTest
 class TestNSOperationQueue : XCTestCase {
     static var allTests: [(String, (TestNSOperationQueue) -> () throws -> Void)] {
         return [
-           /* uncomment below lines once Dispatch is enabled in Foundation */
-           // ("test_OperationPriorities", test_OperationPriorities),
+            ("test_OperationPriorities", test_OperationPriorities),
             ("test_OperationCount", test_OperationCount)
         ]
     }
@@ -31,9 +30,8 @@ class TestNSOperationQueue : XCTestCase {
         let op1 = BlockOperation(block: { sleep(2) })
         queue.addOperation(op1)
         XCTAssertTrue(queue.operationCount == 1)
-        /* uncomment below lines once Dispatch is enabled in Foundation */
-        //queue.waitUntilAllOperationsAreFinished()
-        //XCTAssertTrue(queue.operationCount == 0)
+        queue.waitUntilAllOperationsAreFinished()
+        XCTAssertTrue(queue.operationCount == 0)
     }
 
     func test_OperationPriorities() {
