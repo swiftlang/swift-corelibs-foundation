@@ -176,6 +176,23 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     override open var description: String {
         return localizedDescription
     }
+    
+    // -- NSObject Overrides --
+    // The compiler has special paths for attempting to do some bridging on NSError (and equivalent Error instances) -- in particular, in the lookup of NSError objects' superclass.
+    // On platforms where we don't have bridging (i.e. Linux), this causes a silgen failure. We can avoid the issue by overriding methods inherited by NSObject ourselves.
+    override open var hashValue: Int {
+        // CFHash does the appropriate casting/bridging on platforms where we support it.
+        return Int(bitPattern: CFHash(self))
+    }
+    
+    override open func isEqual(_ object: Any?) -> Bool {
+        // Pulled from NSObject itself; this works on all platforms.
+        if let obj = object as? NSError {
+            return obj === self
+        }
+        
+        return false
+    }
 }
 
 extension NSError : Swift.Error { }
@@ -344,14 +361,6 @@ public func _swift_Foundation_getErrorDefaultUserInfo(_ error: Error) -> Any? {
 // NSError and CFError conform to the standard Error protocol. Compiler
 // magic allows this to be done as a "toll-free" conversion when an NSError
 // or CFError is used as an Error existential.
-
-extension NSError {
-    /// The "embedded" NSError is itself.
-    public func _getEmbeddedNSError() -> AnyObject? {
-        return self
-    }
-}
-
 extension CFError : Error {
     public var _domain: String {
         return CFErrorGetDomain(self)._swiftObject
@@ -364,17 +373,6 @@ extension CFError : Error {
     public var _userInfo: Any? {
         return CFErrorCopyUserInfo(self) as Any
     }
-
-    /// The "embedded" NSError is itself.
-    public func _getEmbeddedNSError() -> AnyObject? {
-        return self
-    }
-}
-
-// An error value to use when an Objective-C API indicates error
-// but produces a nil error object.
-public enum _GenericObjCError : Error {
-    case nilError
 }
 
 /// An internal protocol to represent Swift error enums that map to standard
@@ -526,9 +524,6 @@ public extension _BridgedStoredNSError {
 
 /// Implementation of CustomNSError for all _BridgedStoredNSErrors.
 public extension _BridgedStoredNSError {
-    // FIXME: Would prefer to have a clear "extract an NSError
-    // directly" operation.
-
     static var errorDomain: String { return _nsErrorDomain }
 
     var errorCode: Int { return _nsError.code }
@@ -566,11 +561,6 @@ extension _ErrorCodeProtocol where Self._ErrorType: _BridgedStoredNSError {
 }
 
 extension _BridgedStoredNSError {
-    /// Retrieve the embedded NSError from a bridged, stored NSError.
-    public func _getEmbeddedNSError() -> AnyObject? {
-        return _nsError
-    }
-
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return lhs._nsError.isEqual(rhs._nsError)
     }
