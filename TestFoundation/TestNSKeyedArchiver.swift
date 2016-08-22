@@ -81,7 +81,7 @@ class TestNSKeyedArchiver : XCTestCase {
         XCTAssertTrue(encode(archiver))
         archiver.finishEncoding()
         
-        let unarchiver = NSKeyedUnarchiver(forReadingWithData: data.bridge())
+        let unarchiver = NSKeyedUnarchiver(forReadingWithData: Data._unconditionallyBridgeFromObjectiveC(data))
         XCTAssertTrue(decode(unarchiver))
     }
     
