@@ -81,7 +81,7 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        return self 
     }
     
     /*!
