@@ -13,74 +13,6 @@
     import Glibc
 #endif
 
-// TODO: It's not clear who is responsibile for defining these CGTypes, but we'll do it here.
-
-public struct CGFloat {
-    /// The native type used to store the CGFloat, which is Float on
-    /// 32-bit architectures and Double on 64-bit architectures.
-    /// We assume 64 bit for now
-    public typealias NativeType = Double
-    public init() {
-        self.native = 0.0
-    }
-    public init(_ value: Float) {
-        self.native = NativeType(value)
-    }
-    public init(_ value: Double) {
-        self.native = NativeType(value)
-    }
-    /// The native value.
-    public var native: NativeType
-    
-    fileprivate var hash: Int {
-#if arch(i386) || arch(arm)
-        return Int(Float(self.native).bitPattern)
-#else
-        return Int(self.native.bitPattern)
-#endif
-    }
-}
-
-extension CGFloat: Comparable { }
-
-public func ==(lhs: CGFloat, rhs: CGFloat) -> Bool {
-    return lhs.native == rhs.native
-}
-
-public func <(lhs: CGFloat, rhs: CGFloat) -> Bool {
-    return lhs.native < rhs.native
-}
-
-public func *(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
-    return CGFloat(lhs.native * rhs.native)
-}
-
-public func +(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
-    return CGFloat(lhs.native + rhs.native)
-}
-
-public func -(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
-    return CGFloat(lhs.native - rhs.native)
-}
-
-public func /(lhs: CGFloat, rhs: CGFloat) -> CGFloat {
-    return CGFloat(lhs.native / rhs.native)
-}
-
-prefix public func -(x: CGFloat) -> CGFloat {
-    return CGFloat(-x.native)
-}
-
-public func +=(lhs: inout CGFloat, rhs: CGFloat) {
-    lhs.native = lhs.native + rhs.native
-}
-
-extension Double {
-    public init(_ value: CGFloat) {
-        self = Double(value.native)
-    }
-}
-
 public struct CGPoint {
     public var x: CGFloat
     public var y: CGFloat
@@ -138,7 +70,7 @@ extension CGPoint: NSSpecialValueCoding {
     }
     
     var hash: Int {
-        return self.x.hash &+ self.y.hash
+        return self.x.hashValue &+ self.y.hashValue
     }
     
      var description: String? {
@@ -203,7 +135,7 @@ extension CGSize: NSSpecialValueCoding {
     }
     
     var hash: Int {
-        return self.width.hash &+ self.height.hash
+        return self.width.hashValue &+ self.height.hashValue
     }
     
     var description: String? {
@@ -389,7 +321,7 @@ extension NSEdgeInsets: NSSpecialValueCoding {
     }
     
     var hash: Int {
-        return self.top.hash &+ self.left.hash &+ self.bottom.hash &+ self.right.hash
+        return self.top.hashValue &+ self.left.hashValue &+ self.bottom.hashValue &+ self.right.hashValue
     }
     
     var description: String? {

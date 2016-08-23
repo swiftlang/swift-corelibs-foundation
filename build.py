@@ -412,6 +412,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/Dictionary.swift',
 	'Foundation/Array.swift',
 	'Foundation/Bridging.swift',
+	'Foundation/CGFloat.swift',
 ])
 
 swift_sources.add_dependency(headers)
