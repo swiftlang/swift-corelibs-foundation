@@ -2306,6 +2306,8 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_TARGET_MACOSX",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
+					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DHAVE_STRUCT_TIMESPEC",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -2320,7 +2322,6 @@
 					"-Wno-unused-variable",
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
-					"-DHAVE_STRUCT_TIMESPEC",
 				);
 				OTHER_LDFLAGS = (
 					"-twolevel_namespace",
@@ -2342,6 +2343,7 @@
 					r,
 					r,
 				);
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2376,6 +2378,8 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_TARGET_MACOSX",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
+					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DHAVE_STRUCT_TIMESPEC",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -2390,7 +2394,6 @@
 					"-Wno-unused-variable",
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
-					"-DHAVE_STRUCT_TIMESPEC",
 				);
 				OTHER_LDFLAGS = (
 					"-twolevel_namespace",
@@ -2412,6 +2415,7 @@
 					r,
 					r,
 				);
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2513,6 +2517,7 @@
 				INFOPLIST_FILE = TestFoundation/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACH_O_TYPE = mh_execute;
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2536,6 +2541,7 @@
 				INFOPLIST_FILE = TestFoundation/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACH_O_TYPE = mh_execute;
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
