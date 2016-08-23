@@ -81,6 +81,7 @@
 		5B6228BD1C179049009587FE /* CFRunArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6228BC1C179049009587FE /* CFRunArray.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B6228BF1C179052009587FE /* CFAttributedString.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B6228BE1C179052009587FE /* CFAttributedString.c */; };
 		5B6228C11C17905B009587FE /* CFAttributedString.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6228C01C17905B009587FE /* CFAttributedString.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5B78185B1D6CB5D2004A01F2 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818591D6CB5CD004A01F2 /* CGFloat.swift */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
 		5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D897B1BBDAE0800234F36 /* CFPlatform.c */; };
@@ -617,6 +618,7 @@
 		5B6F17941C48631C00935030 /* TestNSTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTask.swift; sourceTree = "<group>"; };
 		5B6F17951C48631C00935030 /* TestNSXMLDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLDocument.swift; sourceTree = "<group>"; };
 		5B6F17961C48631C00935030 /* TestUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
+		5B7818591D6CB5CD004A01F2 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B8BA1611D0B773A00938C27 /* IndexSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexSet.swift; sourceTree = "<group>"; };
 		5B94E8811C430DE70055C035 /* NSStringAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSStringAPI.swift; sourceTree = "<group>"; };
@@ -1526,6 +1528,7 @@
 				EADE0B591BD15DFF00C49C64 /* NSDecimal.swift */,
 				EADE0B5A1BD15DFF00C49C64 /* NSDecimalNumber.swift */,
 				EADE0B5F1BD15DFF00C49C64 /* NSGeometry.swift */,
+				5B7818591D6CB5CD004A01F2 /* CGFloat.swift */,
 				EADE0B4D1BD09E0800C49C64 /* NSAffineTransform.swift */,
 				5BDC3F3D1BCC5DCB00ED97BB /* NSNumber.swift */,
 				D31302001C30CEA900295652 /* NSConcreteValue.swift */,
@@ -2009,6 +2012,7 @@
 				EADE0BC31BD15E0000C49C64 /* NSURLResponse.swift in Sources */,
 				EADE0B971BD15DFF00C49C64 /* NSDecimal.swift in Sources */,
 				EADE0B9F1BD15DFF00C49C64 /* NSHTTPCookieStorage.swift in Sources */,
+				5B78185B1D6CB5D2004A01F2 /* CGFloat.swift in Sources */,
 				EADE0BBE1BD15E0000C49C64 /* NSURLCredentialStorage.swift in Sources */,
 				5BA9BEA41CF380E8009DBD6C /* URLRequest.swift in Sources */,
 				5BF7AEB71BCD51F9008F214A /* NSPropertyList.swift in Sources */,
