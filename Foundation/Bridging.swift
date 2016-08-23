@@ -120,19 +120,19 @@ internal final class _SwiftValue : NSObject, NSCopying {
         return ObjectIdentifier(self).hashValue
     }
     
-    override func isEqual(_ object: Any?) -> Bool {
-        guard let other = object as? NSObject else {
-            return false
-        }
-        if let box = other as? _SwiftValue {
-            if let otherHashable = box.value as? AnyHashable,
-                let hashable = value as? AnyHashable {
-                return hashable == otherHashable
+    override func isEqual(_ value: Any?) -> Bool {
+        if let other = value as? _SwiftValue {
+            if self === other {
+                return true
             }
-        }
-        if let otherHashable = other as? AnyHashable,
-            let hashable = value as? AnyHashable {
-            return hashable == otherHashable
+            if let otherHashable = other.value as? AnyHashable,
+               let hashable = self.value as? AnyHashable {
+                return otherHashable == hashable
+            }
+            
+        } else if let otherHashable = value as? AnyHashable,
+                  let hashable = self.value as? AnyHashable {
+            return otherHashable == hashable
         }
         return false
     }
