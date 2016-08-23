@@ -655,9 +655,9 @@ fileprivate var userAgentString: String = {
 fileprivate func errorCode(fileSystemError error: Error) -> Int {
     func fromCocoaErrorCode(_ code: Int) -> Int {
         switch code {
-        case NSCocoaError.FileReadNoSuchFileError.rawValue:
+        case CocoaError.fileReadNoSuchFile.rawValue:
             return NSURLErrorFileDoesNotExist
-        case NSCocoaError.FileReadNoPermissionError.rawValue:
+        case CocoaError.fileReadNoPermission.rawValue:
             return NSURLErrorNoPermissionsToReadFile
         default:
             return NSURLErrorUnknown
