@@ -754,7 +754,7 @@ extension URLSessionTask: _EasyHandleDelegate {
         }
     }
 
-    func fill(writeBuffer buffer: UnsafeMutableBufferPointer<Int8>) -> URLSessionTask._EasyHandle._WriteBufferResult {
+    func fill(writeBuffer buffer: UnsafeMutableBufferPointer<Int8>) -> _EasyHandle._WriteBufferResult {
         guard case .transferInProgress(let ts) = internalState else { fatalError("Requested to fill write buffer, but transfer isn't in progress.") }
         guard let source = ts.requestBodySource else { fatalError("Requested to fill write buffer, but transfer state has no body source.") }
         switch source.getNextChunk(withLength: buffer.count) {
@@ -806,7 +806,7 @@ extension URLSessionTask: _EasyHandleDelegate {
         // We will reset the body sourse and seek forward.
         NSUnimplemented()
     }
-    func updateProgressMeter(with propgress: URLSessionTask._EasyHandle._Progress) {
+    func updateProgressMeter(with propgress: _EasyHandle._Progress) {
         //TODO: Update progress. Note that a single URLSessionTask might
         // perform multiple transfers. The values in `progress` are only for
         // the current transfer.

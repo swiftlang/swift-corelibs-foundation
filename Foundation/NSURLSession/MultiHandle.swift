@@ -25,20 +25,20 @@ extension URLSession {
     /// Minimal wrapper around [curl multi interface](https://curl.haxx.se/libcurl/c/libcurl-multi.html).
     ///
     /// The the *multi handle* manages the sockets for easy handles
-    /// (`URLSessionTask._EasyHandle`), and this implementation uses
+    /// (`_EasyHandle`), and this implementation uses
     /// libdispatch to listen for sockets being read / write ready.
     ///
     /// Using `DispatchSource` allows this implementation to be
     /// non-blocking and all code to run on the same thread /
     /// `DispatchQueue` -- thus keeping is simple.
     ///
-    /// - SeeAlso: URLSessionTask._EasyHandle
+    /// - SeeAlso: _EasyHandle
     internal final class _MultiHandle {
         let rawHandle = CFURLSessionMultiHandleInit()
         let queue: DispatchQueue
         //let queue = DispatchQueue(label: "MultiHandle.isolation", attributes: .serial)
         let group = DispatchGroup()
-        fileprivate var easyHandles: [URLSessionTask._EasyHandle] = []
+        fileprivate var easyHandles: [_EasyHandle] = []
         fileprivate var timeoutSource: _TimeoutSource? = nil
         
         init(configuration: URLSession._Configuration, workQueue: DispatchQueue) {
@@ -138,7 +138,7 @@ fileprivate extension URLSession._MultiHandle {
 
 internal extension URLSession._MultiHandle {
     /// Add an easy handle -- start its transfer.
-    func add(_ handle: URLSessionTask._EasyHandle) {
+    func add(_ handle: _EasyHandle) {
         // If this is the first handle being added, we need to `kick` the
         // underlying multi handle by calling `timeoutTimerFired` as
         // described in
@@ -153,7 +153,7 @@ internal extension URLSession._MultiHandle {
         }
     }
     /// Remove an easy handle -- stop its transfer.
-    func remove(_ handle: URLSessionTask._EasyHandle) {
+    func remove(_ handle: _EasyHandle) {
         guard let idx = self.easyHandles.index(of: handle) else {
             fatalError("Handle not in list.")
         }
@@ -208,12 +208,12 @@ fileprivate extension URLSession._MultiHandle {
         completedTransfer(forEasyHandle: easyHandle, errorCode: errorCode)
     }
     /// Transfer completed.
-    func completedTransfer(forEasyHandle handle: URLSessionTask._EasyHandle, errorCode: Int?) {
+    func completedTransfer(forEasyHandle handle: _EasyHandle, errorCode: Int?) {
         handle.completedTransfer(withErrorCode: errorCode)
     }
 }
 
-fileprivate extension URLSessionTask._EasyHandle {
+fileprivate extension _EasyHandle {
     /// An error code within the `NSURLErrorDomain` based on the error of the
     /// easy handle.
     /// - Note: The error value is set only on failure. You can't use it to
