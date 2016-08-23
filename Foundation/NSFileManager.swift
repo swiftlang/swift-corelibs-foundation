@@ -88,7 +88,7 @@ open class FileManager : NSObject {
      */
     open func createDirectory(at url: URL, withIntermediateDirectories createIntermediates: Bool, attributes: [FileAttributeKey : Any]? = [:]) throws {
         guard url.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : url])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : url])
         }
         try self.createDirectory(atPath: url.path, withIntermediateDirectories: createIntermediates, attributes: attributes)
     }
@@ -97,10 +97,10 @@ open class FileManager : NSObject {
      */
     open func createSymbolicLink(at url: URL, withDestinationURL destURL: URL) throws {
         guard url.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : url])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : url])
         }
         guard destURL.scheme == nil || destURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : destURL])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : destURL])
         }
         try self.createSymbolicLink(atPath: url.path, withDestinationPath: destURL.path)
     }
@@ -185,7 +185,7 @@ open class FileManager : NSObject {
         let dir = opendir(path)
         
         if dir == nil {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadNoSuchFileError.rawValue, userInfo: [NSFilePathErrorKey: path])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue, userInfo: [NSFilePathErrorKey: path])
         }
         
         defer {
@@ -224,7 +224,7 @@ open class FileManager : NSObject {
         let dir = opendir(path)
         
         if dir == nil {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileReadNoSuchFileError.rawValue, userInfo: [NSFilePathErrorKey: path])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue, userInfo: [NSFilePathErrorKey: path])
         }
         
         defer {
@@ -370,7 +370,7 @@ open class FileManager : NSObject {
     
     open func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
         guard !self.fileExists(atPath: dstPath) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteFileExistsError.rawValue, userInfo: [NSFilePathErrorKey : NSString(dstPath)])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteFileExists.rawValue, userInfo: [NSFilePathErrorKey : NSString(dstPath)])
         }
         if rename(srcPath, dstPath) != 0 {
             if errno == EXDEV {
@@ -447,37 +447,37 @@ open class FileManager : NSObject {
     
     open func copyItem(at srcURL: URL, to dstURL: URL) throws {
         guard srcURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : srcURL])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : srcURL])
         }
         guard dstURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : dstURL])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : dstURL])
         }
         try copyItem(atPath: srcURL.path, toPath: dstURL.path)
     }
     
     open func moveItem(at srcURL: URL, to dstURL: URL) throws {
         guard srcURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : srcURL])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : srcURL])
         }
         guard dstURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : dstURL])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : dstURL])
         }
         try moveItem(atPath: srcURL.path, toPath: dstURL.path)
     }
     
     open func linkItem(at srcURL: URL, to dstURL: URL) throws {
         guard srcURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : srcURL])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : srcURL])
         }
         guard dstURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : dstURL])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : dstURL])
         }
         try linkItem(atPath: srcURL.path, toPath: dstURL.path)
     }
     
     open func removeItem(at url: URL) throws {
         guard url.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.FileWriteUnsupportedSchemeError.rawValue, userInfo: [NSURLErrorKey : url])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : url])
         }
         try self.removeItem(atPath: url.path)
     }

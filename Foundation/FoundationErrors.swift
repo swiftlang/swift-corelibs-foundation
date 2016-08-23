@@ -7,241 +7,53 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public struct NSCocoaError : RawRepresentable, Swift.Error, __BridgedNSError {
-    public let rawValue: Int
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-    public static var __NSErrorDomain: String { return NSCocoaErrorDomain }
-}
-
-/// Enumeration that describes the error codes within the Cocoa error
-/// domain.
-public extension NSCocoaError {
-    
-    public static var FileNoSuchFileError: NSCocoaError {
-        return NSCocoaError(rawValue: 4)
-    }
-    
-    public static var FileLockingError: NSCocoaError {
-        return NSCocoaError(rawValue: 255)
-    }
-    
-    public static var FileReadUnknownError: NSCocoaError {
-        return NSCocoaError(rawValue: 256)
-    }
-    
-    public static var FileReadNoPermissionError: NSCocoaError {
-        return NSCocoaError(rawValue: 257)
-    }
-    
-    public static var FileReadInvalidFileNameError: NSCocoaError {
-        return NSCocoaError(rawValue: 258)
-    }
-    
-    public static var FileReadCorruptFileError: NSCocoaError {
-        return NSCocoaError(rawValue: 259)
-    }
-    
-    public static var FileReadNoSuchFileError: NSCocoaError {
-        return NSCocoaError(rawValue: 260)
-    }
-    
-    public static var FileReadInapplicableStringEncodingError: NSCocoaError {
-        return NSCocoaError(rawValue: 261)
-    }
-    public static var FileReadUnsupportedSchemeError: NSCocoaError {
-        return NSCocoaError(rawValue: 262)
-    }
-    
-    public static var FileReadTooLargeError: NSCocoaError {
-        return NSCocoaError(rawValue: 263)
-    }
-    
-    public static var FileReadUnknownStringEncodingError: NSCocoaError {
-        return NSCocoaError(rawValue: 264)
-    }
-    
-    public static var FileWriteUnknownError: NSCocoaError {
-        return NSCocoaError(rawValue: 512)
-    }
-    
-    public static var FileWriteNoPermissionError: NSCocoaError {
-        return NSCocoaError(rawValue: 513)
-    }
-    
-    public static var FileWriteInvalidFileNameError: NSCocoaError {
-        return NSCocoaError(rawValue: 514)
-    }
-    
-    public static var FileWriteFileExistsError: NSCocoaError {
-        return NSCocoaError(rawValue: 516)
-    }
-    
-    public static var FileWriteInapplicableStringEncodingError: NSCocoaError {
-        return NSCocoaError(rawValue: 517)
-    }
-    
-    public static var FileWriteUnsupportedSchemeError: NSCocoaError {
-        return NSCocoaError(rawValue: 518)
-    }
-    
-    public static var FileWriteOutOfSpaceError: NSCocoaError {
-        return NSCocoaError(rawValue: 640)
-    }
-    
-    public static var FileWriteVolumeReadOnlyError: NSCocoaError {
-        return NSCocoaError(rawValue: 642)
-    }
-    
-    public static var FileManagerUnmountUnknownError: NSCocoaError {
-        return NSCocoaError(rawValue: 768)
-    }
-    
-    public static var FileManagerUnmountBusyError: NSCocoaError {
-        return NSCocoaError(rawValue: 769)
-    }
-    
-    public static var KeyValueValidationError: NSCocoaError {
-        return NSCocoaError(rawValue: 1024)
-    }
-    
-    public static var FormattingError: NSCocoaError {
-        return NSCocoaError(rawValue: 2048)
-    }
-    
-    public static var UserCancelledError: NSCocoaError {
-        return NSCocoaError(rawValue: 3072)
-    }
-    
-    public static var FeatureUnsupportedError: NSCocoaError {
-        return NSCocoaError(rawValue: 3328)
-    }
-    
-    public static var ExecutableNotLoadableError: NSCocoaError {
-        return NSCocoaError(rawValue: 3584)
-    }
-    
-    public static var ExecutableArchitectureMismatchError: NSCocoaError {
-        return NSCocoaError(rawValue: 3585)
-    }
-    
-    public static var ExecutableRuntimeMismatchError: NSCocoaError {
-        return NSCocoaError(rawValue: 3586)
-    }
-    
-    public static var ExecutableLoadError: NSCocoaError {
-        return NSCocoaError(rawValue: 3587)
-    }
-    
-    public static var ExecutableLinkError: NSCocoaError {
-        return NSCocoaError(rawValue: 3588)
-    }
-    
-    public static var PropertyListReadCorruptError: NSCocoaError {
-        return NSCocoaError(rawValue: 3840)
-    }
-
-    public static var PropertyListReadUnknownVersionError: NSCocoaError {
-        return NSCocoaError(rawValue: 3841)
-    }
-    
-    public static var PropertyListReadStreamError: NSCocoaError {
-        return NSCocoaError(rawValue: 3842)
-    }
-    
-    public static var PropertyListWriteStreamError: NSCocoaError {
-        return NSCocoaError(rawValue: 3851)
-    }
-    
-    public static var PropertyListWriteInvalidError: NSCocoaError {
-        return NSCocoaError(rawValue: 3852)
-    }
-    
-    public static var XPCConnectionInterrupted: NSCocoaError {
-        return NSCocoaError(rawValue: 4097)
-    }
-    
-    public static var XPCConnectionInvalid: NSCocoaError {
-        return NSCocoaError(rawValue: 4099)
-    }
-    
-    public static var XPCConnectionReplyInvalid: NSCocoaError {
-        return NSCocoaError(rawValue: 4101)
-    }
-    
-    public static var UbiquitousFileUnavailableError: NSCocoaError {
-        return NSCocoaError(rawValue: 4353)
-    }
-    
-    public static var UbiquitousFileNotUploadedDueToQuotaError: NSCocoaError {
-        return NSCocoaError(rawValue: 4354)
-    }
-
-    public static var UbiquitousFileUbiquityServerNotAvailable: NSCocoaError {
-        return NSCocoaError(rawValue: 4355)
-    }
-    
-    public static var UserActivityHandoffFailedError: NSCocoaError {
-        return NSCocoaError(rawValue: 4608)
-    }
-    
-    public static var UserActivityConnectionUnavailableError: NSCocoaError {
-        return NSCocoaError(rawValue: 4609)
-    }
-    
-    public static var UserActivityRemoteApplicationTimedOutError: NSCocoaError {
-        return NSCocoaError(rawValue: 4610)
-    }
-    
-    public static var UserActivityHandoffUserInfoTooLargeError: NSCocoaError {
-        return NSCocoaError(rawValue: 4611)
-    }
-    
-    public static var CoderReadCorruptError: NSCocoaError {
-        return NSCocoaError(rawValue: 4864)
-    }
-    
-    public static var CoderValueNotFoundError: NSCocoaError {
-        return NSCocoaError(rawValue: 4865)
-    }
-    
-    public var isCoderError: Bool {
-        return rawValue >= 4864 && rawValue <= 4991
-    }
-    
-    public var isExecutableError: Bool {
-        return rawValue >= 3584 && rawValue <= 3839
-    }
-    
-    public var isFileError: Bool {
-        return rawValue >= 0 && rawValue <= 1023
-    }
-    
-    public var isFormattingError: Bool {
-        return rawValue >= 2048 && rawValue <= 2559
-    }
-    
-    public var isPropertyListError: Bool {
-        return rawValue >= 3840 && rawValue <= 4095
-    }
-    
-    public var isUbiquitousFileError: Bool {
-        return rawValue >= 4352 && rawValue <= 4607
-    }
-    
-    public var isUserActivityError: Bool {
-        return rawValue >= 4608 && rawValue <= 4863
-    }
-    
-    public var isValidationError: Bool {
-        return rawValue >= 1024 && rawValue <= 2047
-    }
-    
-    public var isXPCConnectionError: Bool {
-        return rawValue >= 4096 && rawValue <= 4224
-    }
-}
+public var NSFileNoSuchFileError: Int                        { return CocoaError.Code.fileNoSuchFile.rawValue }
+public var NSFileLockingError: Int                           { return CocoaError.Code.fileLocking.rawValue }
+public var NSFileReadUnknownError: Int                       { return CocoaError.Code.fileReadUnknown.rawValue }
+public var NSFileReadNoPermissionError: Int                  { return CocoaError.Code.fileReadNoPermission.rawValue }
+public var NSFileReadInvalidFileNameError: Int               { return CocoaError.Code.fileReadInvalidFileName.rawValue }
+public var NSFileReadCorruptFileError: Int                   { return CocoaError.Code.fileReadCorruptFile.rawValue }
+public var NSFileReadNoSuchFileError: Int                    { return CocoaError.Code.fileReadNoSuchFile.rawValue }
+public var NSFileReadInapplicableStringEncodingError: Int    { return CocoaError.Code.fileReadInapplicableStringEncoding.rawValue }
+public var NSFileReadUnsupportedSchemeError: Int             { return CocoaError.Code.fileReadUnsupportedScheme.rawValue }
+public var NSFileReadTooLargeError: Int                      { return CocoaError.Code.fileReadTooLarge.rawValue }
+public var NSFileReadUnknownStringEncodingError: Int         { return CocoaError.Code.fileReadUnknownStringEncoding.rawValue }
+public var NSFileWriteUnknownError: Int                      { return CocoaError.Code.fileWriteUnknown.rawValue }
+public var NSFileWriteNoPermissionError: Int                 { return CocoaError.Code.fileWriteNoPermission.rawValue }
+public var NSFileWriteInvalidFileNameError: Int              { return CocoaError.Code.fileWriteInvalidFileName.rawValue }
+public var NSFileWriteFileExistsError: Int                   { return CocoaError.Code.fileWriteFileExists.rawValue }
+public var NSFileWriteInapplicableStringEncodingError: Int   { return CocoaError.Code.fileWriteInapplicableStringEncoding.rawValue }
+public var NSFileWriteUnsupportedSchemeError: Int            { return CocoaError.Code.fileWriteUnsupportedScheme.rawValue }
+public var NSFileWriteOutOfSpaceError: Int                   { return CocoaError.Code.fileWriteOutOfSpace.rawValue }
+public var NSFileWriteVolumeReadOnlyError: Int               { return CocoaError.Code.fileWriteVolumeReadOnly.rawValue }
+public var NSFileManagerUnmountUnknownError: Int             { return CocoaError.Code.fileManagerUnmountUnknown.rawValue }
+public var NSFileManagerUnmountBusyError: Int                { return CocoaError.Code.fileManagerUnmountBusy.rawValue }
+public var NSKeyValueValidationError: Int                    { return CocoaError.Code.keyValueValidation.rawValue }
+public var NSFormattingError: Int                            { return CocoaError.Code.formatting.rawValue }
+public var NSUserCancelledError: Int                         { return CocoaError.Code.userCancelled.rawValue }
+public var NSFeatureUnsupportedError: Int                    { return CocoaError.Code.featureUnsupported.rawValue }
+public var NSExecutableNotLoadableError: Int                 { return CocoaError.Code.executableNotLoadable.rawValue }
+public var NSExecutableArchitectureMismatchError: Int        { return CocoaError.Code.executableArchitectureMismatch.rawValue }
+public var NSExecutableRuntimeMismatchError: Int             { return CocoaError.Code.executableRuntimeMismatch.rawValue }
+public var NSExecutableLoadError: Int                        { return CocoaError.Code.executableLoad.rawValue }
+public var NSExecutableLinkError: Int                        { return CocoaError.Code.executableLink.rawValue }
+public var NSPropertyListReadCorruptError: Int               { return CocoaError.Code.propertyListReadCorrupt.rawValue }
+public var NSPropertyListReadUnknownVersionError: Int        { return CocoaError.Code.propertyListReadUnknownVersion.rawValue }
+public var NSPropertyListReadStreamError: Int                { return CocoaError.Code.propertyListReadStream.rawValue }
+public var NSPropertyListWriteStreamError: Int               { return CocoaError.Code.propertyListWriteStream.rawValue }
+public var NSPropertyListWriteInvalidError: Int              { return CocoaError.Code.propertyListWriteInvalid.rawValue }
+public var NSXPCConnectionInterrupted: Int                   { return CocoaError.Code.xpcConnectionInterrupted.rawValue }
+public var NSXPCConnectionInvalid: Int                       { return CocoaError.Code.xpcConnectionInvalid.rawValue }
+public var NSXPCConnectionReplyInvalid: Int                  { return CocoaError.Code.xpcConnectionReplyInvalid.rawValue }
+public var NSUbiquitousFileUnavailableError: Int             { return CocoaError.Code.ubiquitousFileUnavailable.rawValue }
+public var NSUbiquitousFileNotUploadedDueToQuotaError: Int   { return CocoaError.Code.ubiquitousFileNotUploadedDueToQuota.rawValue }
+public var NSUbiquitousFileUbiquityServerNotAvailable: Int   { return CocoaError.Code.ubiquitousFileUbiquityServerNotAvailable.rawValue }
+public var NSUserActivityHandoffFailedError: Int             { return CocoaError.Code.userActivityHandoffFailed.rawValue }
+public var NSUserActivityConnectionUnavailableError: Int     { return CocoaError.Code.userActivityConnectionUnavailable.rawValue }
+public var NSUserActivityRemoteApplicationTimedOutError: Int { return CocoaError.Code.userActivityRemoteApplicationTimedOut.rawValue }
+public var NSUserActivityHandoffUserInfoTooLargeError: Int   { return CocoaError.Code.userActivityHandoffUserInfoTooLarge.rawValue }
+public var NSCoderReadCorruptError: Int                      { return CocoaError.Code.coderReadCorrupt.rawValue }
+public var NSCoderValueNotFoundError: Int                    { return CocoaError.Code.coderValueNotFound.rawValue }
 
 #if os(OSX) || os(iOS)
     import Darwin
@@ -250,24 +62,24 @@ public extension NSCocoaError {
 #endif
 
 internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : String? = nil, url : URL? = nil, extraUserInfo : [String : Any]? = nil) -> NSError {
-    var cocoaError : NSCocoaError
+    var cocoaError : CocoaError.Code
     if reading {
         switch posixErrno {
-            case EFBIG: cocoaError = NSCocoaError.FileReadTooLargeError
-            case ENOENT: cocoaError = NSCocoaError.FileReadNoSuchFileError
-            case EPERM, EACCES: cocoaError = NSCocoaError.FileReadNoPermissionError
-            case ENAMETOOLONG: cocoaError = NSCocoaError.FileReadUnknownError
-            default: cocoaError = NSCocoaError.FileReadUnknownError
+            case EFBIG: cocoaError = CocoaError.fileReadTooLarge
+            case ENOENT: cocoaError = CocoaError.fileReadNoSuchFile
+            case EPERM, EACCES: cocoaError = CocoaError.fileReadNoPermission
+            case ENAMETOOLONG: cocoaError = CocoaError.fileReadUnknown
+            default: cocoaError = CocoaError.fileReadUnknown
         }
     } else {
         switch posixErrno {
-            case ENOENT: cocoaError = NSCocoaError.FileNoSuchFileError
-            case EPERM, EACCES: cocoaError = NSCocoaError.FileWriteNoPermissionError
-            case ENAMETOOLONG: cocoaError = NSCocoaError.FileWriteInvalidFileNameError
-            case EDQUOT, ENOSPC: cocoaError = NSCocoaError.FileWriteOutOfSpaceError
-            case EROFS: cocoaError = NSCocoaError.FileWriteVolumeReadOnlyError
-            case EEXIST: cocoaError = NSCocoaError.FileWriteFileExistsError
-            default: cocoaError = NSCocoaError.FileWriteUnknownError
+            case ENOENT: cocoaError = CocoaError.fileNoSuchFile
+            case EPERM, EACCES: cocoaError = CocoaError.fileWriteNoPermission
+            case ENAMETOOLONG: cocoaError = CocoaError.fileWriteInvalidFileName
+            case EDQUOT, ENOSPC: cocoaError = CocoaError.fileWriteOutOfSpace
+            case EROFS: cocoaError = CocoaError.fileWriteVolumeReadOnly
+            case EEXIST: cocoaError = CocoaError.fileWriteFileExists
+            default: cocoaError = CocoaError.fileWriteUnknown
         }
     }
     
@@ -277,6 +89,6 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
     } else if let url = url {
         userInfo[NSURLErrorKey] = url
     }
-    return NSError(domain: NSCocoaErrorDomain, code: cocoaError.rawValue, userInfo: userInfo)
     
+    return NSError(domain: NSCocoaErrorDomain, code: cocoaError.rawValue, userInfo: userInfo)
 }
