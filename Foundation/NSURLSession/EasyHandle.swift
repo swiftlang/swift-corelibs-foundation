@@ -311,7 +311,6 @@ extension _EasyHandle {
     ///
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/curl_easy_pause.html
     func pauseReceive() {
-        URLSession.printDebug("[EasyHandle] pause receive (\(pauseState))")
         guard !pauseState.contains(.receivePaused) else { return }
         pauseState.insert(.receivePaused)
         pauseState.setState(on: self)
@@ -322,7 +321,6 @@ extension _EasyHandle {
     /// will be called before this method returns.
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/curl_easy_pause.html
     func unpauseReceive() {
-        URLSession.printDebug("[EasyHandle] unpause receive (\(pauseState))")
         guard pauseState.contains(.receivePaused) else { return }
         pauseState.remove(.receivePaused)
         pauseState.setState(on: self)
@@ -331,7 +329,6 @@ extension _EasyHandle {
     ///
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/curl_easy_pause.html
     func pauseSend() {
-        URLSession.printDebug("[EasyHandle] pause send (\(pauseState))")
         guard !pauseState.contains(.sendPaused) else { return }
         pauseState.insert(.sendPaused)
         pauseState.setState(on: self)
@@ -342,7 +339,6 @@ extension _EasyHandle {
     /// will be called before this method returns.
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/curl_easy_pause.html
     func unpauseSend() {
-        URLSession.printDebug("[EasyHandle] unpause send (\(pauseState))")
         guard pauseState.contains(.sendPaused) else { return }
         pauseState.remove(.sendPaused)
         pauseState.setState(on: self)
@@ -461,19 +457,16 @@ fileprivate extension _EasyHandle {
     ///
     /// - SeeAlso: <https://curl.haxx.se/libcurl/c/CURLOPT_WRITEFUNCTION.html>
     func didReceive(data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int) -> Int {
-        URLSession.printDebug("[EasyHandle] -> write callback \(size * nmemb)")
         let d: Int = {
             let buffer = Data(bytes: data, count: size*nmemb)
             switch delegate.didReceive(data: buffer) {
             case .proceed: return size * nmemb
             case .abort: return 0
             case .pause:
-                URLSession.printDebug("[EasyHandle] pausing receive from callback (\(pauseState))")
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
             }
         }()
-        URLSession.printDebug("[EasyHandle] <- write callback \(d)")
         return d
     }
     /// This callback function gets called by libcurl when it receives header
@@ -481,7 +474,6 @@ fileprivate extension _EasyHandle {
     ///
     /// - SeeAlso: <https://curl.haxx.se/libcurl/c/CURLOPT_HEADERFUNCTION.html>
     func didReceive(headerData data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, fileLength: Double) -> Int {
-        URLSession.printDebug("[EasyHandle] -> header callback \(size * nmemb)")
         self.fileLength = Int64(fileLength)
         let d: Int = {
             let buffer = Data(bytes: data, count: size*nmemb)
@@ -489,12 +481,10 @@ fileprivate extension _EasyHandle {
             case .proceed: return size * nmemb
             case .abort: return 0
             case .pause:
-                URLSession.printDebug("[EasyHandle] pausing receive from callback (\(pauseState))")
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
             }
         }()
-        URLSession.printDebug("[EasyHandle] <- header callback \(d)")
         return d
     }
     /// This callback function gets called by libcurl when it wants to send data
@@ -502,12 +492,10 @@ fileprivate extension _EasyHandle {
     ///
     /// - SeeAlso: <https://curl.haxx.se/libcurl/c/CURLOPT_READFUNCTION.html>
     func fill(writeBuffer data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int) -> Int {
-        URLSession.printDebug("[EasyHandle] -> read callback \(size * nmemb)")
         let d: Int = {
             let buffer = UnsafeMutableBufferPointer(start: data, count: size * nmemb)
             switch delegate.fill(writeBuffer: buffer) {
             case .pause:
-                URLSession.printDebug("[EasyHandle] pausing send from callback (\(pauseState))")
                 pauseState.insert(.sendPaused)
                 return Int(CFURLSessionReadFuncPause)
             case .abort:
@@ -516,12 +504,10 @@ fileprivate extension _EasyHandle {
                 return length 
             }
         }()
-        URLSession.printDebug("[EasyHandle] <- read callback \(d)")
         return d
     }
     
     func setSocketOptions(for fd: CInt) throws {
-        URLSession.printDebug("[EasyHandle] -- socket options callback \(fd)")
         //TODO: At this point we should call setsockopt(2) to set the QoS on
         // the socket based on the QoS of the request.
         //
@@ -539,7 +525,6 @@ fileprivate extension _EasyHandle {
     }
     
     func seekInputStream(offset: Int64, origin: CInt) -> CInt {
-        URLSession.printDebug("[EasyHandle] -> seek callback \(offset) \(origin)")
         let d: Int32 = {
             /// libcurl should only use SEEK_SET
             guard origin == SEEK_SET else { fatalError("Unexpected 'origin' in seek.") }
@@ -550,7 +535,6 @@ fileprivate extension _EasyHandle {
                 return CFURLSessionSeekCantSeek
             }
         }()
-        URLSession.printDebug("[EasyHandle] <- seek callback \(d)")
         return d
     }
 }

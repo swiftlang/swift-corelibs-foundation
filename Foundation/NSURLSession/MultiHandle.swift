@@ -245,7 +245,7 @@ fileprivate extension _EasyHandle {
             return NSURLErrorTimedOut
         default:
             //TODO: Need to map to one of the NSURLError... constants
-            NSUnimplemented()
+            return NSURLErrorUnknown
         }
     }
 }
