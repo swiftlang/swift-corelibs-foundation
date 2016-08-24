@@ -29,6 +29,7 @@ class TestNSStream : XCTestCase {
             ("test_outputStreamCreationToMemory", test_outputStreamCreationToMemory),
             ("test_outputStreamHasSpaceAvailable", test_outputStreamHasSpaceAvailable),
             ("test_ouputStreamWithInvalidPath", test_ouputStreamWithInvalidPath),
+            ("test_getStreamsToHost", test_getStreamsToHost),
         ]
     }
     
@@ -214,6 +215,18 @@ class TestNSStream : XCTestCase {
         XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
         outputStream?.open()
         XCTAssertEqual(Stream.Status.error, outputStream!.streamStatus)
+    }
+    
+    func test_getStreamsToHost(){
+        var input:InputStream? = nil
+        var output:NSOutputStream? = nil
+        XCTAssertNil(input)
+        XCTAssertNil(output)
+        Stream.getStreamsToHost(withName: "abc", port: 12, inputStream: &input, outputStream: &output)
+        XCTAssertNotNil(input)
+        XCTAssertNotNil(output)
+        XCTAssertEqual(Stream.Status.notOpen, input?.streamStatus)
+        XCTAssertEqual(Stream.Status.notOpen, output?.streamStatus)
     }
     
     private func createTestFile(_ path: String, _contents: Data) -> String? {
