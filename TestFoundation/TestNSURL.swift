@@ -421,6 +421,7 @@ class TestNSURLComponents : XCTestCase {
             ("test_string", test_string),
             ("test_port", test_portSetter),
             ("test_url", test_url),
+            ("test_copy", test_copy)
         ]
     }
     
@@ -485,5 +486,17 @@ class TestNSURLComponents : XCTestCase {
 
         aURL = compWithoutAuthority.url(relativeTo: baseURL)
         XCTAssertNil(aURL) //must be nil
+    }
+
+    func test_copy() {
+        let urlString = "https://www.swift.org/path/to/file.html?id=name"
+        let urlComponent = NSURLComponents(string: urlString)!
+        let copy = urlComponent.copy() as! NSURLComponents
+
+        /* Assert that NSURLComponents.copy did not return self */
+        XCTAssertFalse(copy === urlComponent)
+
+        /* Assert that NSURLComponents.copy is actually a copy of NSURLComponents */ 
+        XCTAssertTrue(copy.isEqual(urlComponent))
     }
 }

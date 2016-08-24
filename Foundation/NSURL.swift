@@ -929,9 +929,49 @@ open class NSURLComponents: NSObject, NSCopying {
     open override func copy() -> Any {
         return copy(with: nil)
     }
-    
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? NSURLComponents {
+            if scheme != other.scheme {
+                return false
+            }
+            if user != other.user {
+                return false
+            }
+            if password != other.password {
+                return false
+            }
+            if host != other.host {
+                return false
+            }
+            if port != other.port {
+                return false
+            }
+            if path != other.path {
+                return false
+            }
+            if query != other.query {
+                return false
+            }
+            if fragment != other.fragment {
+                return false
+            }
+            return true
+        }
+        return false
+    }
+
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        let copy = NSURLComponents()
+        copy.scheme = self.scheme
+        copy.user = self.user
+        copy.password = self.password
+        copy.host = self.host
+        copy.port = self.port
+        copy.path = self.path
+        copy.query = self.query
+        copy.fragment = self.fragment
+        return copy
     }
     
     // Initialize a NSURLComponents with the components of a URL. If resolvingAgainstBaseURL is YES and url is a relative URL, the components of [url absoluteURL] are used. If the url string from the NSURL is malformed, nil is returned.
