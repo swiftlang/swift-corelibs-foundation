@@ -491,15 +491,15 @@ internal extension URLSession {
 
 
 internal protocol URLSessionProtocol: class {
-    func add(handle: URLSessionTask._EasyHandle)
-    func remove(handle: URLSessionTask._EasyHandle)
+    func add(handle: _EasyHandle)
+    func remove(handle: _EasyHandle)
     func behaviour(for: URLSessionTask) -> URLSession._TaskBehaviour
 }
 extension URLSession: URLSessionProtocol {
-    func add(handle: URLSessionTask._EasyHandle) {
+    func add(handle: _EasyHandle) {
         multiHandle.add(handle)
     }
-    func remove(handle: URLSessionTask._EasyHandle) {
+    func remove(handle: _EasyHandle) {
         multiHandle.remove(handle)
     }
 }
@@ -507,10 +507,10 @@ extension URLSession: URLSessionProtocol {
 ///
 /// - SeeAlso: URLSessionTask.init()
 final internal class _MissingURLSession: URLSessionProtocol {
-    func add(handle: URLSessionTask._EasyHandle) {
+    func add(handle: _EasyHandle) {
         fatalError()
     }
-    func remove(handle: URLSessionTask._EasyHandle) {
+    func remove(handle: _EasyHandle) {
         fatalError()
     }
     func behaviour(for: URLSessionTask) -> URLSession._TaskBehaviour {

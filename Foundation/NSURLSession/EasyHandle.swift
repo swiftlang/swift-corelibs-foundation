@@ -22,56 +22,55 @@ import Dispatch
 
 
 
-extension URLSessionTask {
-    /// Minimal wrapper around the [curl easy interface](https://curl.haxx.se/libcurl/c/)
-    ///
-    /// An *easy handle* manages the state of a transfer inside libcurl.
-    ///
-    /// As such the easy handle's responsibility is implementing the HTTP
-    /// protocol while the *multi handle* is in charge of managing sockets and
-    /// reading from / writing to these sockets.
-    ///
-    /// An easy handle is added to a multi handle in order to associate it with
-    /// an actual socket. The multi handle will then feed bytes into the easy
-    /// handle and read bytes from the easy handle. But this process is opaque
-    /// to use. It is further worth noting, that with HTTP/1.1 persistent
-    /// connections and with HTTP/2 there's a 1-to-many relationship between
-    /// TCP streams and HTTP transfers / easy handles. A single TCP stream and
-    /// its socket may be shared by multiple easy handles.
-    ///
-    /// A single HTTP request-response exchange (refered to here as a
-    /// *transfer*) corresponds directly to an easy handle. Hence anything that
-    /// needs to be configured for a specific transfer (e.g. the URL) will be
-    /// configured on an easy handle.
-    ///
-    /// A single `URLSessionTask` may do multiple, sonecutive transfers, and
-    /// as a result it will have to reconfigure it's easy handle between
-    /// transfers. An easy handle can be re-used once its transfer has
-    /// completed.
-    ///
-    /// - Note: All code assumes that it is being called on a single thread /
-    /// `Dispatch` only -- it is intentionally **not** thread safe.
-    internal final class _EasyHandle {
-        let rawHandle = CFURLSessionEasyHandleInit()
-        unowned let delegate: _EasyHandleDelegate
-        fileprivate var headerList: _CurlStringList?
-        fileprivate var pauseState: _PauseState = []
-        internal var fileLength: Int64 = 0
-        init(delegate: _EasyHandleDelegate) {
-            self.delegate = delegate
-            setupCallbacks()
-        }
-        deinit {
-            CFURLSessionEasyHandleDeinit(rawHandle)
-        }
+/// Minimal wrapper around the [curl easy interface](https://curl.haxx.se/libcurl/c/)
+///
+/// An *easy handle* manages the state of a transfer inside libcurl.
+///
+/// As such the easy handle's responsibility is implementing the HTTP
+/// protocol while the *multi handle* is in charge of managing sockets and
+/// reading from / writing to these sockets.
+///
+/// An easy handle is added to a multi handle in order to associate it with
+/// an actual socket. The multi handle will then feed bytes into the easy
+/// handle and read bytes from the easy handle. But this process is opaque
+/// to use. It is further worth noting, that with HTTP/1.1 persistent
+/// connections and with HTTP/2 there's a 1-to-many relationship between
+/// TCP streams and HTTP transfers / easy handles. A single TCP stream and
+/// its socket may be shared by multiple easy handles.
+///
+/// A single HTTP request-response exchange (refered to here as a
+/// *transfer*) corresponds directly to an easy handle. Hence anything that
+/// needs to be configured for a specific transfer (e.g. the URL) will be
+/// configured on an easy handle.
+///
+/// A single `URLSessionTask` may do multiple, sonecutive transfers, and
+/// as a result it will have to reconfigure it's easy handle between
+/// transfers. An easy handle can be re-used once its transfer has
+/// completed.
+///
+/// - Note: All code assumes that it is being called on a single thread /
+/// `Dispatch` only -- it is intentionally **not** thread safe.
+internal final class _EasyHandle {
+    let rawHandle = CFURLSessionEasyHandleInit()
+    unowned let delegate: _EasyHandleDelegate
+    fileprivate var headerList: _CurlStringList?
+    fileprivate var pauseState: _PauseState = []
+    internal var fileLength: Int64 = 0
+    init(delegate: _EasyHandleDelegate) {
+        self.delegate = delegate
+        setupCallbacks()
+    }
+    deinit {
+        CFURLSessionEasyHandleDeinit(rawHandle)
     }
 }
-extension URLSessionTask._EasyHandle: Equatable {}
-    internal func ==(lhs: URLSessionTask._EasyHandle, rhs: URLSessionTask._EasyHandle) -> Bool {
+
+extension _EasyHandle: Equatable {}
+    internal func ==(lhs: _EasyHandle, rhs: _EasyHandle) -> Bool {
         return lhs.rawHandle == rhs.rawHandle
 }
 
-extension URLSessionTask._EasyHandle {
+extension _EasyHandle {
     enum _Action {
         case abort
         case proceed
@@ -85,7 +84,7 @@ extension URLSessionTask._EasyHandle {
     }
 }
 
-internal extension URLSessionTask._EasyHandle {
+internal extension _EasyHandle {
     func completedTransfer(withErrorCode errorCode: Int?) {
         delegate.transferCompleted(withErrorCode: errorCode)
     }
@@ -93,24 +92,24 @@ internal extension URLSessionTask._EasyHandle {
 internal protocol _EasyHandleDelegate: class {
     /// Handle data read from the network.
     /// - returns: the action to be taken: abort, proceed, or pause.
-    func didReceive(data: Data) -> URLSessionTask._EasyHandle._Action
+    func didReceive(data: Data) -> _EasyHandle._Action
     /// Handle header data read from the network.
     /// - returns: the action to be taken: abort, proceed, or pause.
-    func didReceive(headerData data: Data) -> URLSessionTask._EasyHandle._Action
+    func didReceive(headerData data: Data) -> _EasyHandle._Action
     /// Fill a buffer with data to be sent.
     ///
     /// - parameter data: The buffer to fill
     /// - returns: the number of bytes written to the `data` buffer, or `nil` to stop the current transfer immediately.
-    func fill(writeBuffer buffer: UnsafeMutableBufferPointer<Int8>) -> URLSessionTask._EasyHandle._WriteBufferResult
+    func fill(writeBuffer buffer: UnsafeMutableBufferPointer<Int8>) -> _EasyHandle._WriteBufferResult
     /// The transfer for this handle completed.
     /// - parameter errorCode: An NSURLError code, or `nil` if no error occured.
     func transferCompleted(withErrorCode errorCode: Int?)
     /// Seek the input stream to the given position
     func seekInputStream(to position: UInt64) throws
     /// Gets called during the transfer to update progress.
-    func updateProgressMeter(with propgress: URLSessionTask._EasyHandle._Progress)
+    func updateProgressMeter(with propgress: _EasyHandle._Progress)
 }
-extension URLSessionTask._EasyHandle {
+extension _EasyHandle {
     func set(verboseModeOn flag: Bool) {
         try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionVERBOSE, flag ? 1 : 0).asError()
     }
@@ -283,7 +282,7 @@ fileprivate extension String {
     }
 }
 
-extension URLSessionTask._EasyHandle {
+extension _EasyHandle {
     /// Send and/or receive pause state for an `EasyHandle`
     struct _PauseState : OptionSet {
         let rawValue: Int8
@@ -292,12 +291,12 @@ extension URLSessionTask._EasyHandle {
         static let sendPaused = _PauseState(rawValue: 1 << 1)
     }
 }
-extension URLSessionTask._EasyHandle._PauseState {
-    func setState(on handle: URLSessionTask._EasyHandle) {
+extension _EasyHandle._PauseState {
+    func setState(on handle: _EasyHandle) {
         try! CFURLSessionEasyHandleSetPauseState(handle.rawHandle, contains(.sendPaused) ? 1 : 0, contains(.receivePaused) ? 1 : 0).asError()
     }
 }
-extension URLSessionTask._EasyHandle._PauseState : TextOutputStreamable {
+extension _EasyHandle._PauseState : TextOutputStreamable {
     func write<Target : TextOutputStream>(to target: inout Target) {
         switch (self.contains(.receivePaused), self.contains(.sendPaused)) {
         case (false, false): target.write("unpaused")
@@ -307,7 +306,7 @@ extension URLSessionTask._EasyHandle._PauseState : TextOutputStreamable {
         }
     }
 }
-extension URLSessionTask._EasyHandle {
+extension _EasyHandle {
     /// Pause receiving data.
     ///
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/curl_easy_pause.html
@@ -350,7 +349,7 @@ extension URLSessionTask._EasyHandle {
     }
 }
 
-internal extension URLSessionTask._EasyHandle {
+internal extension _EasyHandle {
     /// errno number from last connect failure
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLINFO_OS_ERRNO.html
     var connectFailureErrno: Int {
@@ -379,7 +378,7 @@ extension CFURLSessionInfo {
         }
     }
 }
-extension URLSessionTask._EasyHandle {
+extension _EasyHandle {
     /// the URL a redirect would go to
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLINFO_REDIRECT_URL.html
     var redirectURL: URL? {
@@ -391,35 +390,35 @@ extension URLSessionTask._EasyHandle {
     }
 }
 
-fileprivate extension URLSessionTask._EasyHandle {
-    static func from(callbackUserData userdata: UnsafeMutableRawPointer?) -> URLSessionTask._EasyHandle? {
+fileprivate extension _EasyHandle {
+    static func from(callbackUserData userdata: UnsafeMutableRawPointer?) -> _EasyHandle? {
         guard let userdata = userdata else { return nil }
-        return Unmanaged<URLSessionTask._EasyHandle>.fromOpaque(userdata).takeUnretainedValue()
+        return Unmanaged<_EasyHandle>.fromOpaque(userdata).takeUnretainedValue()
     }
 }
 
-fileprivate extension URLSessionTask._EasyHandle {
+fileprivate extension _EasyHandle {
     /// Forward the libcurl callbacks into Swift methods
     func setupCallbacks() {
         // write
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionWRITEDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         
         try! CFURLSession_easy_setopt_wc(rawHandle, CFURLSessionOptionWRITEFUNCTION) { (data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, userdata: UnsafeMutableRawPointer?) -> Int in
-            guard let handle = URLSessionTask._EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
             return handle.didReceive(data: data, size: size, nmemb: nmemb)
             }.asError()
         
         // read
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionREADDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_wc(rawHandle, CFURLSessionOptionREADFUNCTION) { (data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, userdata: UnsafeMutableRawPointer?) -> Int in
-            guard let handle = URLSessionTask._EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
             return handle.fill(writeBuffer: data, size: size, nmemb: nmemb)
             }.asError()
          
         // header
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionHEADERDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_wc(rawHandle, CFURLSessionOptionHEADERFUNCTION) { (data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, userdata: UnsafeMutableRawPointer?) -> Int in
-            guard let handle = URLSessionTask._EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
             var length = Double()
             try! CFURLSession_easy_getinfo_double(handle.rawHandle, CFURLSessionInfoCONTENT_LENGTH_DOWNLOAD, &length).asError()
             return handle.didReceive(headerData: data, size: size, nmemb: nmemb, fileLength: length)
@@ -428,7 +427,7 @@ fileprivate extension URLSessionTask._EasyHandle {
         // socket options
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionSOCKOPTDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_sc(rawHandle, CFURLSessionOptionSOCKOPTFUNCTION) { (userdata: UnsafeMutableRawPointer?, fd: CInt, type: CFURLSessionSocketType) -> CInt in
-            guard let handle = URLSessionTask._EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
             guard type == CFURLSessionSocketTypeIPCXN else { return 0 }
             do {
                 try handle.setSocketOptions(for: fd)
@@ -440,7 +439,7 @@ fileprivate extension URLSessionTask._EasyHandle {
         // seeking in input stream
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionSEEKDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_seek(rawHandle, CFURLSessionOptionSEEKFUNCTION, { (userdata, offset, origin) -> Int32 in
-            guard let handle = URLSessionTask._EasyHandle.from(callbackUserData: userdata) else { return CFURLSessionSeekFail }
+            guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return CFURLSessionSeekFail }
             return handle.seekInputStream(offset: offset, origin: origin)
         }).asError()
         
@@ -451,7 +450,7 @@ fileprivate extension URLSessionTask._EasyHandle {
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionPROGRESSDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         
         try! CFURLSession_easy_setopt_tc(rawHandle, CFURLSessionOptionXFERINFOFUNCTION, { (userdata: UnsafeMutableRawPointer?, dltotal :Int64, dlnow: Int64, ultotal: Int64, ulnow: Int64) -> Int32 in
-            guard let handle = URLSessionTask._EasyHandle.from(callbackUserData: userdata) else { return -1 }
+            guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return -1 }
             handle.updateProgressMeter(with: _Progress(totalBytesSent: ulnow, totalBytesExpectedToSend: ultotal, totalBytesReceived: dlnow, totalBytesExpectedToReceive: dltotal))
             return 0
         }).asError()
@@ -556,7 +555,7 @@ fileprivate extension URLSessionTask._EasyHandle {
     }
 }
 
-extension URLSessionTask._EasyHandle {
+extension _EasyHandle {
     /// The progress of a transfer.
     ///
     /// The number of bytes that we expect to download and upload, and the
@@ -573,7 +572,7 @@ extension URLSessionTask._EasyHandle {
     }
 }
 
-extension URLSessionTask._EasyHandle {
+extension _EasyHandle {
     /// A simple wrapper / helper for libcurl’s `slist`.
     ///
     /// It's libcurl's way to represent an array of strings.
@@ -588,7 +587,7 @@ extension URLSessionTask._EasyHandle {
         }
     }
 }
-extension URLSessionTask._EasyHandle._CurlStringList {
+extension _EasyHandle._CurlStringList {
     func append(_ string: String) {
         string.withCString {
             rawList = CFURLSessionSListAppend(rawList, $0)
