@@ -67,7 +67,7 @@ class TestURLSession : XCTestCase {
                 let result = first as? [String : Any]
                 expectedResult = result!["capital"] as! String
             } catch { }
-            XCTAssertEqual("Washington D.C.", expectedResult, "Did not receive expected value")
+            XCTAssertEqual("Washington, D.C.", expectedResult, "Did not receive expected value")
             expect.fulfill()
         }
         task.resume()
