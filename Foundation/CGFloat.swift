@@ -13,7 +13,7 @@ public struct CGFloat {
     /// The native type used to store the CGFloat, which is Float on
     /// 32-bit architectures and Double on 64-bit architectures.
     public typealias NativeType = Float
-#elseif arch(x86_64) || arch(arm64)
+#elseif arch(x86_64) || arch(arm64) || arch(s390x)
     /// The native type used to store the CGFloat, which is Float on
     /// 32-bit architectures and Double on 64-bit architectures.
     public typealias NativeType = Double
@@ -168,7 +168,7 @@ public struct CGFloat {
     public init(bitPattern: UInt) {
 #if arch(i386) || arch(arm)
         native = NativeType(bitPattern: UInt32(bitPattern))
-#elseif arch(x86_64) || arch(arm64)
+#elseif arch(x86_64) || arch(arm64) || arch(s390x)
         native = NativeType(bitPattern: UInt64(bitPattern))
 #endif
     }
