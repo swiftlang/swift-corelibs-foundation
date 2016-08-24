@@ -28,6 +28,7 @@ class TestNSStream : XCTestCase {
             ("test_InputStreamGetBufferSuccessFromBlessedList", test_InputStreamGetBufferSuccessFromBlessedList),
             ("test_InputStreamGetBufferFailedExcludedFromBlessedList", test_InputStreamGetBufferFailedExcludedFromBlessedList),
             ("test_inputStreamGetSetProperty", test_inputStreamGetSetProperty),
+            ("test_InputStreamScheduleRunloop", test_InputStreamScheduleRunloop),
             ("test_outputStreamCreationToFile", test_outputStreamCreationToFile),
             ("test_outputStreamCreationToBuffer", test_outputStreamCreationToBuffer),
             ("test_outputStreamCreationWithUrl", test_outputStreamCreationWithUrl),
@@ -35,17 +36,52 @@ class TestNSStream : XCTestCase {
             ("test_outputStreamHasSpaceAvailable", test_outputStreamHasSpaceAvailable),
             ("test_ouputStreamWithInvalidPath", test_ouputStreamWithInvalidPath),
             ("test_outputStreamGetSetProperty", test_outputStreamGetSetProperty),
-            ("test_getStreamsToHost", test_getStreamsToHost),
-
+            ("test_OutputStreamScheduleRunloop", test_OutputStreamScheduleRunloop),
         ]
     }
     
+    fileprivate class Delegate: StreamDelegate {    
+        let callBack: (Stream) -> ()
+        init (_ cb:@escaping (Stream) -> ()){ callBack = cb }
+        func stream(_ aStream: Stream, handleEvent eventCode: Stream.Event){
+            callBack( aStream )
+        }
+    }
+    
+    func test_InputStreamScheduleRunloop(){
+        let message: NSString = "Hello, playground"
+        let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
+        let testFile = createTestFile("testFile_in.txt", _contents: messageData)
+        if testFile != nil {
+            let url = URL(fileURLWithPath: testFile!)
+            let dataStream: InputStream? = InputStream(url: url)!
+            XCTAssertEqual(Stream.Status.notOpen, dataStream?.streamStatus)
+            let e = expectation(description: "outputStream schedule runloop")
+            let delegate = Delegate({  s in
+                XCTAssertEqual(Stream.Status.open, s.streamStatus)
+                e.fulfill()
+                dataStream?.remove(from: RunLoop.current, forMode: .defaultRunLoopMode)
+                dataStream?.delegate = nil
+            })
+            dataStream?.delegate = delegate
+            dataStream?.schedule(in: RunLoop.current, forMode: .defaultRunLoopMode)
+            
+            dataStream?.open()
+            
+            waitForExpectations(timeout: 0.1)
+
+            removeTestFile(testFile!)
+        } else {
+            XCTFail("Unable to create temp file")
+        }
+    }
     
     func test_InputStreamWithData(){
         let message: NSString = "Hello, playground"
         let messageData: Data = message.data(using: String.Encoding.utf8.rawValue)!
         let dataStream: InputStream = InputStream(data: messageData)
         XCTAssertEqual(Stream.Status.notOpen, dataStream.streamStatus)
+        
         dataStream.open()
         XCTAssertEqual(Stream.Status.open, dataStream.streamStatus)
         var buffer = [UInt8](repeating: 0, count: 20)
@@ -214,24 +250,27 @@ class TestNSStream : XCTestCase {
         
         //Set: failure case
         let value = NSString(string:"value")
-        let inputStreamSetProperty_invalidKey = "inputStreamSetProperty_invalidKey"
+        let inputStreamSetProperty_invalidKey = Stream.PropertyKey(rawValue: "inputStreamSetProperty_invalidKey")
         let didSetShouldFail = fileStream.setProperty(value, forKey: inputStreamSetProperty_invalidKey)
         XCTAssertFalse(didSetShouldFail)
         
         //Get: failure case
-        let didGetShouldBeNil = fileStream.propertyForKey(inputStreamSetProperty_invalidKey)
+        let didGetShouldBeNil = fileStream.property(forKey: inputStreamSetProperty_invalidKey)
         XCTAssertNil(didGetShouldBeNil)
         
         //Set: success case
-        let inputStreamSetProperty_validKey = "kCFStreamPropertyFileCurrentOffset"
+        
+        let inputStreamSetProperty_validKey = Stream.PropertyKey.fileCurrentOffsetKey
+
         let didSetShouldSucceed = fileStream.setProperty(1 as NSNumber, forKey:inputStreamSetProperty_validKey)
         XCTAssertTrue(didSetShouldSucceed)
         
         
         //Get: Success case
-        let didGetShouldNotBeNil = fileStream.propertyForKey(inputStreamSetProperty_validKey)
+        let didGetShouldNotBeNil = fileStream.property(forKey: inputStreamSetProperty_validKey)
         XCTAssertNotNil(didGetShouldNotBeNil)
-        XCTAssertTrue(1 as! NSNumber == didGetShouldNotBeNil as! NSNumber)
+        XCTAssertTrue(1 == didGetShouldNotBeNil as! NSNumber)
+
     }
     
     func test_outputStreamCreationToFile() {
@@ -327,46 +366,65 @@ class TestNSStream : XCTestCase {
     }
     
     func test_outputStreamGetSetProperty(){
-        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)!)
+        
+        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256))
+
         let outputStream = NSOutputStream(url: URL(fileURLWithPath: filePath!), append: false)
         XCTAssertEqual(Stream.Status.notOpen, outputStream?.streamStatus)
         
         //Set: failure case
         let value = NSString(string:"value")
-        let inputStreamSetProperty_invalidKey = "inputStreamSetProperty_invalidKey"
+        let inputStreamSetProperty_invalidKey = Stream.PropertyKey(rawValue: "inputStreamSetProperty_invalidKey")
+
         let didSetShouldFail = outputStream?.setProperty(value, forKey: inputStreamSetProperty_invalidKey)
         XCTAssertFalse(didSetShouldFail!)
         
         //Get: failure case
-        let didGetShouldBeNil = outputStream?.propertyForKey(inputStreamSetProperty_invalidKey)
+        let didGetShouldBeNil = outputStream?.property(forKey: inputStreamSetProperty_invalidKey)
         XCTAssertNil(didGetShouldBeNil)
         
-        //Set: success case
-        let inputStreamSetProperty_validKey = "kCFStreamPropertyFileCurrentOffset"
-        let didSetShouldSucceed = outputStream?.setProperty(1._bridgeToObject(), forKey:inputStreamSetProperty_validKey)
+        //Set fileCurrentOffsetKey: success case
+        let inputStreamSetProperty_validKey = Stream.PropertyKey.fileCurrentOffsetKey
+        let didSetShouldSucceed = outputStream?.setProperty(NSNumber(value: 1), forKey:inputStreamSetProperty_validKey)
         XCTAssertTrue(didSetShouldSucceed!)
         
         
-        //Get: Success case
-        let didGetShouldNotBeNil = outputStream?.propertyForKey(inputStreamSetProperty_validKey)
+        //Get fileCurrentOffsetKey : Success case
+        let didGetShouldNotBeNil = outputStream?.property(forKey: inputStreamSetProperty_validKey)
         XCTAssertNotNil(didGetShouldNotBeNil)
-        XCTAssertTrue(1._bridgeToObject() == didGetShouldNotBeNil as! NSNumber)
+        XCTAssertTrue(1 == didGetShouldNotBeNil as! NSNumber)
+        
     }
     
-    // Class functions
-    func test_getStreamsToHost(){
-        var input:InputStream? = nil
-        var output:NSOutputStream? = nil
-        XCTAssertNil(input)
-        XCTAssertNil(output)
-        Stream.getStreamsToHost(withName: "abc", port: 12, inputStream: &input, outputStream: &output)
-        XCTAssertNotNil(input)
-        XCTAssertNotNil(output)
-        XCTAssertEqual(Stream.Status.notOpen, input?.streamStatus)
-        XCTAssertEqual(Stream.Status.notOpen, output?.streamStatus)
-
+    
+    func test_OutputStreamScheduleRunloop(){
+        let message: NSString = "Hello, playground"
+        let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
+        let testFile = createTestFile("testFile_in.txt", _contents: messageData)
+        if testFile != nil {
+            let url = URL(fileURLWithPath: testFile!)
+            let dataStream: NSOutputStream? = NSOutputStream(url: url, append: true)!
+            XCTAssertEqual(Stream.Status.notOpen, dataStream?.streamStatus)
+            let e = expectation(description: "outputStream schedule runloop")
+            let delegate = Delegate({  s in
+                XCTAssertEqual(Stream.Status.open, s.streamStatus)
+                e.fulfill()
+                dataStream?.remove(from: RunLoop.current, forMode: .defaultRunLoopMode)
+                dataStream?.delegate = nil
+            })
+            dataStream?.delegate = delegate
+            dataStream?.schedule(in: RunLoop.current, forMode: .defaultRunLoopMode)
+            
+            dataStream?.open()
+            
+            waitForExpectations(timeout: 0.1)
+            
+            removeTestFile(testFile!)
+        } else {
+            XCTFail("Unable to create temp file")
+        }
     }
-
+    
     
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"
