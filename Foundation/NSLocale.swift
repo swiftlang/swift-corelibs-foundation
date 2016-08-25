@@ -61,7 +61,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     
     open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
-            let identifier = CFLocaleGetIdentifier(self._cfObject)
+            let identifier = CFLocaleGetIdentifier(self._cfObject)._nsObject
             aCoder.encode(identifier, forKey: "NS.identifier")
         } else {
             NSUnimplemented()
