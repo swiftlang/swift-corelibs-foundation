@@ -12,13 +12,8 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
-    import Darwin.uuid
-#elseif os(Linux)
-    import CUUID
-    // CUUID does not export uuid_string_t
-    public typealias uuid_string_t = (Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8)
-#endif
+public typealias uuid_t = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
+public typealias uuid_string_t = (Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8)
 
 /// Represents UUID strings, which can be used to uniquely identify types, interfaces, and other items.
 public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConvertible {
@@ -29,7 +24,7 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
     /* Create a new UUID with RFC 4122 version 4 random bytes */
     public init() {
         withUnsafeMutablePointer(to: &uuid) {
-            uuid_generate_random(unsafeBitCast($0, to: UnsafeMutablePointer<UInt8>.self))
+            _cf_uuid_generate_random(unsafeBitCast($0, to: UnsafeMutablePointer<UInt8>.self))
         }
     }
     
@@ -46,7 +41,7 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
     /// Returns nil for invalid strings.
     public init?(uuidString string: String) {
         let res = withUnsafeMutablePointer(to: &uuid) {
-            return uuid_parse(string, unsafeBitCast($0, to: UnsafeMutablePointer<UInt8>.self))
+            return _cf_uuid_parse(string, unsafeBitCast($0, to: UnsafeMutablePointer<UInt8>.self))
         }
         if res != 0 {
             return nil
@@ -64,7 +59,7 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
         var localValue = uuid
         return withUnsafeMutablePointer(to: &localValue) { val in
             withUnsafeMutablePointer(to: &bytes) { str in
-                uuid_unparse(unsafeBitCast(val, to: UnsafePointer<UInt8>.self), unsafeBitCast(str, to: UnsafeMutablePointer<Int8>.self))
+                _cf_uuid_unparse(unsafeBitCast(val, to: UnsafePointer<UInt8>.self), unsafeBitCast(str, to: UnsafeMutablePointer<Int8>.self))
                 return String(cString: unsafeBitCast(str, to: UnsafePointer<CChar>.self), encoding: .utf8)!
             }
         }
