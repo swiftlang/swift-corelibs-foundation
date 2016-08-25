@@ -58,7 +58,7 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_concrete_value", test_archive_concrete_value),
             ("test_archive_dictionary", test_archive_dictionary),
             ("test_archive_generic_objc", test_archive_generic_objc),
-//            ("test_archive_locale", test_archive_locale),
+            ("test_archive_locale", test_archive_locale),
             ("test_archive_string", test_archive_string),
             ("test_archive_mutable_array", test_archive_mutable_array),
             ("test_archive_mutable_dictionary", test_archive_mutable_dictionary),
