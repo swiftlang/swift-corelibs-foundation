@@ -344,7 +344,7 @@ internal extension URLSessionTask {
         /// The easy handle has been removed from the multi handle. This does
         /// not (necessarily mean the task completed. A task that gets
         /// redirected will do multiple transfers.
-        case transferCompleted(response: NSHTTPURLResponse, bodyDataDrain: _TransferState._DataDrain)
+        case transferCompleted(response: HTTPURLResponse, bodyDataDrain: _TransferState._DataDrain)
         /// The transfer failed.
         ///
         /// Same as `.transferCompleted`, but without response / body data
@@ -354,7 +354,7 @@ internal extension URLSessionTask {
         /// When we tell the delegate that we're about to perform an HTTP
         /// redirect, we need to wait for the delegate to let us know what
         /// action to take.
-        case waitingForRedirectCompletionHandler(response: NSHTTPURLResponse, bodyDataDrain: _TransferState._DataDrain)
+        case waitingForRedirectCompletionHandler(response: HTTPURLResponse, bodyDataDrain: _TransferState._DataDrain)
         /// Waiting for the completion handler of the 'did receive response' callback.
         ///
         /// When we tell the delegate that we received a response (i.e. when
@@ -983,7 +983,7 @@ fileprivate extension URLSessionTask {
     /// response / complete header.
     ///
     /// This will pause the transfer.
-    func askDelegateHowToProceedAfterCompleteResponse(_ response: NSHTTPURLResponse, delegate: URLSessionDataDelegate) {
+    func askDelegateHowToProceedAfterCompleteResponse(_ response: HTTPURLResponse, delegate: URLSessionDataDelegate) {
         // Ask the delegate how to proceed.
         
         // This will pause the easy handle. We need to wait for the
@@ -1032,7 +1032,7 @@ fileprivate extension URLSessionTask {
     }
     
     /// What action to take
-    func completionAction(forCompletedRequest request: NSURLRequest, response: NSHTTPURLResponse) -> _CompletionAction {
+    func completionAction(forCompletedRequest request: NSURLRequest, response: HTTPURLResponse) -> _CompletionAction {
         // Redirect:
         if let request = redirectRequest(for: response, fromRequest: request) {
             return .redirectWithRequest(request)
@@ -1044,7 +1044,7 @@ fileprivate extension URLSessionTask {
     /// RFC 7231 section 6.4 defines redirection behavior for HTTP/1.1
     ///
     /// - SeeAlso: <https://tools.ietf.org/html/rfc7231#section-6.4>
-    func redirectRequest(for response: NSHTTPURLResponse, fromRequest: NSURLRequest) -> NSURLRequest? {
+    func redirectRequest(for response: HTTPURLResponse, fromRequest: NSURLRequest) -> NSURLRequest? {
         //TODO: Do we ever want to redirect for HEAD requests?
         func methodAndURL() -> (String, URL)? {
             guard
@@ -1077,7 +1077,7 @@ fileprivate extension URLSessionTask {
 }
 
 
-fileprivate extension NSHTTPURLResponse {
+fileprivate extension HTTPURLResponse {
     /// Type safe HTTP header field name(s)
     enum _Field: String {
         /// `Location`
