@@ -101,6 +101,7 @@
 		5B78185B1D6CB5D2004A01F2 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818591D6CB5CD004A01F2 /* CGFloat.swift */; };
 		5B78185D1D6CC05D004A01F2 /* TestAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B78185C1D6CC05D004A01F2 /* TestAffineTransform.swift */; };
 		5B7818631D6FA66A004A01F2 /* TestCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818621D6FA66A004A01F2 /* TestCalendar.swift */; };
+		5B7818651D6FA74D004A01F2 /* TestData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818641D6FA74D004A01F2 /* TestData.swift */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
 		5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D897B1BBDAE0800234F36 /* CFPlatform.c */; };
@@ -661,6 +662,7 @@
 		5B7818591D6CB5CD004A01F2 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
 		5B78185C1D6CC05D004A01F2 /* TestAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestAffineTransform.swift; sourceTree = "<group>"; };
 		5B7818621D6FA66A004A01F2 /* TestCalendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestCalendar.swift; sourceTree = "<group>"; };
+		5B7818641D6FA74D004A01F2 /* TestData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestData.swift; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B8BA1611D0B773A00938C27 /* IndexSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexSet.swift; sourceTree = "<group>"; };
 		5B94E8811C430DE70055C035 /* NSStringAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSStringAPI.swift; sourceTree = "<group>"; };
@@ -1328,6 +1330,7 @@
 				5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */,
 				790043391CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift */,
 				DCDBB8321C1768AC00313299 /* TestNSData.swift */,
+				5B7818641D6FA74D004A01F2 /* TestData.swift */,
 				22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */,
 				2EBE67A31C77BF05006583D5 /* TestNSDateFormatter.swift */,
 				EA66F63D1BF1619600136161 /* TestNSDictionary.swift */,
@@ -2205,6 +2208,7 @@
 				5B78185D1D6CC05D004A01F2 /* TestAffineTransform.swift in Sources */,
 				5B13B3451C582D4C00651CE2 /* TestNSString.swift in Sources */,
 				1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */,
+				5B7818651D6FA74D004A01F2 /* TestData.swift in Sources */,
 				5B7818631D6FA66A004A01F2 /* TestCalendar.swift in Sources */,
 				5B13B3471C582D4C00651CE2 /* TestNSThread.swift in Sources */,
 				5B13B32E1C582D4C00651CE2 /* TestNSFileManager.swift in Sources */,
