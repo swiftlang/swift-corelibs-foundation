@@ -242,11 +242,11 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
 * **UserDefaults**: A mechanism for storing values to persist as user settings and local.
 
-    | Entity Name    | Statues         | Test Coverage | Notes                                                                                 |
-    |----------------|-----------------|---------------|---------------------------------------------------------------------------------------|
-    | `UserDefaults` | Incomplete      | ?             | `dictionaryRepresentation()`, domain support, and forced objects remain unimplemented |
-    | `NSLocale`     | Mostly Complete | ?             | `NSCoding` from non-keyed-coding archivers remains unimplemented                      |
-    | `Locale`       | Complete        | ?             |                                                                                       |
+    | Entity Name    | Statues         | Test Coverage | Notes                                                                                                                         |
+    |----------------|-----------------|---------------|-------------------------------------------------------------------------------------------------------------------------------|
+    | `UserDefaults` | Incomplete      | None          | `dictionaryRepresentation()`, domain support, and forced objects remain unimplemented. Unit tests are currently commented out |
+    | `NSLocale`     | Mostly Complete | Incomplete    | `NSCoding` from non-keyed-coding archivers remains unimplemented. Only unit test asserts locale key constant names            |
+    | `Locale`       | Complete        | Incomplete    | Only unit test asserts value copying                                                                                          |
 
 * **OS**: Mechanisms for interacting with the operating system on a file system level as well as process and thread level
 
