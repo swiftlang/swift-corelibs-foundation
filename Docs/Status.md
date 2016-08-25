@@ -286,10 +286,10 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name          | Status          | Test Coverage | Notes                                                      |
     |----------------------|-----------------|---------------|------------------------------------------------------------|
-    | `NSNotification`     | Complete        | ?             |                                                            |
-    | `NotificationCenter` | Mostly Complete | ?             | Adding observers to non-`nil` queues remains unimplemented |
-    | `Notification`       | Complete        | ?             |                                                            |
-    | `NotificationQueue`  | Complete        | ?             |                                                            |
+    | `NSNotification`     | Complete        | N/A           |                                                            |
+    | `NotificationCenter` | Mostly Complete | Substantial   | Adding observers to non-`nil` queues remains unimplemented |
+    | `Notification`       | Complete        | N/A           |                                                            |
+    | `NotificationQueue`  | Complete        | Substantial   |                                                            |
 
 * **Model**: Representations for abstract model elements like null, data, and errors.
 
