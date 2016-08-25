@@ -120,6 +120,16 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             _insertObject(obj)
         }
     }
+    
+    internal var allObjects: [Any] {
+        if type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self {
+            return _orderedStorage.map { _SwiftValue.fetch($0) }
+        } else {
+            return (0..<count).map { idx in
+                return self[idx]
+            }
+        }
+    }
 }
 
 extension NSOrderedSet : Sequence {
