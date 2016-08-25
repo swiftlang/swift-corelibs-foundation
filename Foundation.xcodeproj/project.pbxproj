@@ -102,6 +102,7 @@
 		5B78185D1D6CC05D004A01F2 /* TestAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B78185C1D6CC05D004A01F2 /* TestAffineTransform.swift */; };
 		5B7818631D6FA66A004A01F2 /* TestCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818621D6FA66A004A01F2 /* TestCalendar.swift */; };
 		5B7818651D6FA74D004A01F2 /* TestData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818641D6FA74D004A01F2 /* TestData.swift */; };
+		5B7818801D6FB8DE004A01F2 /* TestDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B78187F1D6FB8DE004A01F2 /* TestDate.swift */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
 		5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D897B1BBDAE0800234F36 /* CFPlatform.c */; };
@@ -663,6 +664,7 @@
 		5B78185C1D6CC05D004A01F2 /* TestAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestAffineTransform.swift; sourceTree = "<group>"; };
 		5B7818621D6FA66A004A01F2 /* TestCalendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestCalendar.swift; sourceTree = "<group>"; };
 		5B7818641D6FA74D004A01F2 /* TestData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestData.swift; sourceTree = "<group>"; };
+		5B78187F1D6FB8DE004A01F2 /* TestDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDate.swift; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B8BA1611D0B773A00938C27 /* IndexSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexSet.swift; sourceTree = "<group>"; };
 		5B94E8811C430DE70055C035 /* NSStringAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSStringAPI.swift; sourceTree = "<group>"; };
@@ -1332,6 +1334,7 @@
 				DCDBB8321C1768AC00313299 /* TestNSData.swift */,
 				5B7818641D6FA74D004A01F2 /* TestData.swift */,
 				22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */,
+				5B78187F1D6FB8DE004A01F2 /* TestDate.swift */,
 				2EBE67A31C77BF05006583D5 /* TestNSDateFormatter.swift */,
 				EA66F63D1BF1619600136161 /* TestNSDictionary.swift */,
 				D512D17B1CD883F00032E6A5 /* TestNSFileHandle.swift */,
@@ -2240,6 +2243,7 @@
 				0383A1751D2E558A0052E5D1 /* TestNSStream.swift in Sources */,
 				5B13B3481C582D4C00651CE2 /* TestNSTimer.swift in Sources */,
 				5B13B32D1C582D4C00651CE2 /* TestNSDictionary.swift in Sources */,
+				5B7818801D6FB8DE004A01F2 /* TestDate.swift in Sources */,
 				5B13B3261C582D4C00651CE2 /* TestNSAffineTransform.swift in Sources */,
 				2EBE67A51C77BF0E006583D5 /* TestNSDateFormatter.swift in Sources */,
 				5B13B3291C582D4C00651CE2 /* TestNSCalendar.swift in Sources */,
