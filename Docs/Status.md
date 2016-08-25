@@ -103,13 +103,13 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name                 | Status          | Test Coverage | Notes                                                                         |
     |-----------------------------|-----------------|---------------|-------------------------------------------------------------------------------|
-    | `NSJSONSerialization`       | Mostly Complete | ?             | `jsonObject(with:options:)` remains unimplemented                             |
-    | `NSKeyedArchiver`           | Mostly Complete | ?             | `init()` and `encodedData` remain unimplemented                               |
-    | `NSKeyedCoderOldStyleArray` | N/A             | ?             | For internal use only                                                         |
-    | `NSKeyedUnarchiver`         | Mostly Complete | ?             | `decodingFailurePolicy.set` remains unimplemented                             |
+    | `NSJSONSerialization`       | Mostly Complete | Substantial   | `jsonObject(with:options:)` remains unimplemented                             |
+    | `NSKeyedArchiver`           | Mostly Complete | Substantial   | `init()` and `encodedData` remain unimplemented                               |
+    | `NSKeyedCoderOldStyleArray` | N/A             | N/A           | For internal use only                                                         |
+    | `NSKeyedUnarchiver`         | Mostly Complete | Substantial   | `decodingFailurePolicy.set` remains unimplemented                             |
     | `NSKeyedArchiverHelpers`    | N/A             | N/A           | For internal use only                                                         |
-    | `NSCoder`                   | Incomplete      | ?             | Decoding methods which require a concrete implementation remain unimplemented |
-    | `PropertyListSerialization` | Mostly Complete | ?             | `propertyList(with:options:format:)` remains unimplemented                    |
+    | `NSCoder`                   | Incomplete      | N/A           | Decoding methods which require a concrete implementation remain unimplemented |
+    | `PropertyListSerialization` | Mostly Complete | Incomplete    | `propertyList(with:options:format:)` remains unimplemented                    |
 
 * **XML**: A group of classes for parsing and representing XML documents and elements.
 
