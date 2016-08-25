@@ -101,15 +101,15 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     The classes in this group perform tasks like parsing and writing JSON, property lists and binary archives.
 
-    | Entity Name                 | Status          | Test Coverage | Notes                                                                               |
-    |-----------------------------|-----------------|---------------|-------------------------------------------------------------------------------------|
-    | `NSJSONSerialization`       | Mostly Complete | ?             | `jsonObject(with:options:)` remains unimplemented                                   |
-    | `NSKeyedArchiver`           | Mostly Complete | ?             | `init()` and `encodedData` remain unimplemented                                     |
-    | `NSKeyedCoderOldStyleArray` | N/A             | ?             | For internal use only                                                               |
-    | `NSKeyedUnarchiver`         | Mostly Complete | ?             | `decodingFailurePolicy.set` remains unimplemented                                   |
-    | `NSKeyedArchiverHelpers`    | N/A             | N/A           | For internal use only                                                               |
-    | `NSCoder`                   | Incomplete      | ?             | Decoding methods which don't require a concrete implementation remain unimplemented |
-    | `PropertyListSerialization` | Mostly Complete | ?             | `propertyList(with:options:format:)` remains unimplemented                          |
+    | Entity Name                 | Status          | Test Coverage | Notes                                                                         |
+    |-----------------------------|-----------------|---------------|-------------------------------------------------------------------------------|
+    | `NSJSONSerialization`       | Mostly Complete | ?             | `jsonObject(with:options:)` remains unimplemented                             |
+    | `NSKeyedArchiver`           | Mostly Complete | ?             | `init()` and `encodedData` remain unimplemented                               |
+    | `NSKeyedCoderOldStyleArray` | N/A             | ?             | For internal use only                                                         |
+    | `NSKeyedUnarchiver`         | Mostly Complete | ?             | `decodingFailurePolicy.set` remains unimplemented                             |
+    | `NSKeyedArchiverHelpers`    | N/A             | N/A           | For internal use only                                                         |
+    | `NSCoder`                   | Incomplete      | ?             | Decoding methods which require a concrete implementation remain unimplemented |
+    | `PropertyListSerialization` | Mostly Complete | ?             | `propertyList(with:options:format:)` remains unimplemented                    |
 
 * **XML**: A group of classes for parsing and representing XML documents and elements.
 
@@ -164,7 +164,7 @@ As Foundation is a work in progress, not all methods and functionality are prese
     | `PortMessage`    | Unimplemented   | ?             |                                                                               |
     | `RunLoop`        | Mostly Complete | ?             | `add(_: Port, forMode:)` and `remove(_: Port, forMode:)` remain unimplemented |
     | `NSStream`       | Mostly Complete | ?             |                                                                               |
-    | `Stream`         | Unimplemented   | ?             | Methods which do not require a concrete implementation remain unimplemented   |
+    | `Stream`         | Unimplemented   | ?             | Methods which require a concrete implementation remain unimplemented          |
     | `InputStream`    | Mostly Complete | ?             | `getBuffer(_:length:)` remains unimplemented                                  |
     | `NSOutputStream` | Complete        | ?             |                                                                               |
     | `Timer`          | Complete        | ?             |                                                                               |
