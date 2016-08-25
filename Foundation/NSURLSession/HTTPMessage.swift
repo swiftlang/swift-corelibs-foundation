@@ -101,9 +101,9 @@ internal extension URLSessionTask._ResponseHeaderLines {
     ///
     /// This will parse the header lines.
     /// - Returns: `nil` if an error occured while parsing the header lines.
-    func createHTTPURLResponse(for URL: URL) -> NSHTTPURLResponse? {
+    func createHTTPURLResponse(for URL: URL) -> HTTPURLResponse? {
         guard let message = createHTTPMessage() else { return nil }
-        return NSHTTPURLResponse(message: message, URL: URL)
+        return HTTPURLResponse(message: message, URL: URL)
     }
     /// Parse the lines into a `URLSessionTask.HTTPMessage`.
     func createHTTPMessage() -> URLSessionTask._HTTPMessage? {
@@ -114,7 +114,7 @@ internal extension URLSessionTask._ResponseHeaderLines {
     }
 }
 
-extension NSHTTPURLResponse {
+extension HTTPURLResponse {
     fileprivate convenience init?(message: URLSessionTask._HTTPMessage, URL: URL) {
         /// This needs to be a request, i.e. it needs to have a status line.
         guard case .statusLine(let statusLine) = message.startLine else { return nil }

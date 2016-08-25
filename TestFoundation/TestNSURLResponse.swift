@@ -133,28 +133,28 @@ class TestNSHTTPURLResponse : XCTestCase {
     let url = URL(string: "https://www.swift.org")!
     
     func test_URL_and_status_1() {
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: ["Content-Length": "5299"])
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: ["Content-Length": "5299"])
         XCTAssertEqual(sut?.url, url)
         XCTAssertEqual(sut?.statusCode, 200)
     }
     func test_URL_and_status_2() {
         let url = URL(string: "http://www.apple.com")!
-        let sut = NSHTTPURLResponse(url: url, statusCode: 302, httpVersion: "HTTP/1.1", headerFields: ["Content-Length": "5299"])
+        let sut = HTTPURLResponse(url: url, statusCode: 302, httpVersion: "HTTP/1.1", headerFields: ["Content-Length": "5299"])
         XCTAssertEqual(sut?.url, url)
         XCTAssertEqual(sut?.statusCode, 302)
     }
 
     func test_headerFields_1() {
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)
         XCTAssertEqual(sut?.allHeaderFields.count, 0)
     }
     func test_headerFields_2() {
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: [:])
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: [:])
         XCTAssertEqual(sut?.allHeaderFields.count, 0)
     }
     func test_headerFields_3() {
         let f = ["A": "1", "B": "2"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.allHeaderFields.count, 2)
         XCTAssertEqual(sut?.allHeaderFields["A"], "1")
         XCTAssertEqual(sut?.allHeaderFields["B"], "2")
@@ -170,48 +170,48 @@ class TestNSHTTPURLResponse : XCTestCase {
     
     func test_contentLength_available_1() {
         let f = ["Content-Length": "997"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.expectedContentLength, 997)
     }
     func test_contentLength_available_2() {
         let f = ["Content-Length": "997", "Transfer-Encoding": "identity"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.expectedContentLength, 997)
     }
     func test_contentLength_available_3() {
         let f = ["Content-Length": "997", "Content-Encoding": "identity"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.expectedContentLength, 997)
     }
     func test_contentLength_available_4() {
         let f = ["Content-Length": "997", "Content-Encoding": "identity", "Transfer-Encoding": "identity"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.expectedContentLength, 997)
     }
     
     func test_contentLength_notAvailable() {
         let f = ["Server": "Apache"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.expectedContentLength, -1)
     }
     func test_contentLength_withTransferEncoding() {
         let f = ["Content-Length": "997", "Transfer-Encoding": "chunked"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.expectedContentLength, 997)
     }
     func test_contentLength_withContentEncoding() {
         let f = ["Content-Length": "997", "Content-Encoding": "deflate"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.expectedContentLength, 997)
     }
     func test_contentLength_withContentEncodingAndTransferEncoding() {
         let f = ["Content-Length": "997", "Content-Encoding": "deflate", "Transfer-Encoding": "identity"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.expectedContentLength, 997)
     }
     func test_contentLength_withContentEncodingAndTransferEncoding_2() {
         let f = ["Content-Length": "997", "Content-Encoding": "identity", "Transfer-Encoding": "chunked"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.expectedContentLength, 997)
     }
     
@@ -230,45 +230,45 @@ class TestNSHTTPURLResponse : XCTestCase {
     
     func test_suggestedFilename_notAvailable_1() {
         let f: [String: String] = [:]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.suggestedFilename, "Unknown")
     }
     func test_suggestedFilename_notAvailable_2() {
         let f = ["Content-Disposition": "inline"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.suggestedFilename, "Unknown")
     }
     
     func test_suggestedFilename_1() {
         let f = ["Content-Disposition": "attachment; filename=\"fname.ext\""]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.suggestedFilename, "fname.ext")
     }
 
     func test_suggestedFilename_2() {
         let f = ["Content-Disposition": "attachment; filename=genome.jpeg; modification-date=\"Wed, 12 Feb 1997 16:29:51 -0500\";"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.suggestedFilename, "genome.jpeg")
     }
     func test_suggestedFilename_3() {
         let f = ["Content-Disposition": "attachment; filename=\";.ext\""]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.suggestedFilename, ";.ext")
     }
     func test_suggestedFilename_4() {
         let f = ["Content-Disposition": "attachment; aa=bb\\; filename=\"wrong.ext\"; filename=\"fname.ext\"; cc=dd"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.suggestedFilename, "fname.ext")
     }
 
     func test_suggestedFilename_removeSlashes_1() {
         let f = ["Content-Disposition": "attachment; filename=\"/a/b/name\""]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.suggestedFilename, "_a_b_name")
     }
     func test_suggestedFilename_removeSlashes_2() {
         let f = ["Content-Disposition": "attachment; filename=\"a/../b/name\""]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.suggestedFilename, "a_.._b_name")
     }
     
@@ -276,19 +276,19 @@ class TestNSHTTPURLResponse : XCTestCase {
     
     func test_MIMETypeAndCharacterEncoding_1() {
         let f = ["Server": "Apache"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertNil(sut?.mimeType)
         XCTAssertNil(sut?.textEncodingName)
     }
     func test_MIMETypeAndCharacterEncoding_2() {
         let f = ["Content-Type": "text/html"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.mimeType, "text/html")
         XCTAssertNil(sut?.textEncodingName)
     }
     func test_MIMETypeAndCharacterEncoding_3() {
         let f = ["Content-Type": "text/HTML; charset=ISO-8859-4"]
-        let sut = NSHTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
+        let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.mimeType, "text/html")
         XCTAssertEqual(sut?.textEncodingName, "iso-8859-4")
     }

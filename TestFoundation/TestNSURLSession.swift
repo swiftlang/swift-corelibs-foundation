@@ -58,7 +58,7 @@ class TestURLSession : XCTestCase {
                 return
             }
 
-            let httpResponse = response as! NSHTTPURLResponse?
+            let httpResponse = response as! HTTPURLResponse?
             XCTAssertEqual(200, httpResponse!.statusCode, "HTTP response code is not 200") 
             do {
                 let json = try JSONSerialization.jsonObject(with: data!, options: [])
@@ -99,7 +99,7 @@ class TestURLSession : XCTestCase {
                 expect.fulfill()
                 return
             }
-            let httpResponse = response as! NSHTTPURLResponse?
+            let httpResponse = response as! HTTPURLResponse?
             XCTAssertEqual(200, httpResponse!.statusCode, "HTTP response code is not 200")
             do {
                 let json = try JSONSerialization.jsonObject(with: data!, options: [])

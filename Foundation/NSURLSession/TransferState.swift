@@ -37,7 +37,7 @@ extension URLSessionTask {
         /// Raw headers received.
         let parsedResponseHeader: _ParsedResponseHeader
         /// Once the headers is complete, this will contain the response
-        let response: NSHTTPURLResponse?
+        let response: HTTPURLResponse?
         /// The body data to be sent in the request
         let requestBodySource: _HTTPBodySource?
         /// Body data received
