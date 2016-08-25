@@ -21,8 +21,7 @@ class TestNSPipe : XCTestCase {
     
     static var allTests: [(String, (TestNSPipe) -> () throws -> Void)] {
         return [
-            // Currently disabled until NSString implements dataUsingEncoding
-            // ("test_NSPipe", test_NSPipe)
+             ("test_NSPipe", test_NSPipe)
         ]
     }
     
