@@ -158,16 +158,16 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name      | Status          | Test Coverage | Notes                                                                         |
     |------------------|-----------------|---------------|-------------------------------------------------------------------------------|
-    | `Port`           | Unimplemented   | ?             |                                                                               |
-    | `MessagePort`    | Unimplemented   | ?             |                                                                               |
-    | `SocketPort`     | Unimplemented   | ?             |                                                                               |
-    | `PortMessage`    | Unimplemented   | ?             |                                                                               |
-    | `RunLoop`        | Mostly Complete | ?             | `add(_: Port, forMode:)` and `remove(_: Port, forMode:)` remain unimplemented |
-    | `NSStream`       | Mostly Complete | ?             |                                                                               |
-    | `Stream`         | Unimplemented   | ?             | Methods which require a concrete implementation remain unimplemented          |
-    | `InputStream`    | Mostly Complete | ?             | `getBuffer(_:length:)` remains unimplemented                                  |
-    | `NSOutputStream` | Complete        | ?             |                                                                               |
-    | `Timer`          | Complete        | ?             |                                                                               |
+    | `Port`           | Unimplemented   | None          |                                                                               |
+    | `MessagePort`    | Unimplemented   | None          |                                                                               |
+    | `SocketPort`     | Unimplemented   | None          |                                                                               |
+    | `PortMessage`    | Unimplemented   | None          |                                                                               |
+    | `RunLoop`        | Mostly Complete | Incomplete    | `add(_: Port, forMode:)` and `remove(_: Port, forMode:)` remain unimplemented |
+    | `NSStream`       | Mostly Complete | Substantial   |                                                                               |
+    | `Stream`         | Unimplemented   | Substantial   | Methods which require a concrete implementation remain unimplemented          |
+    | `InputStream`    | Mostly Complete | Substantial   | `getBuffer(_:length:)` remains unimplemented                                  |
+    | `NSOutputStream` | Complete        | Substantial   |                                                                               |
+    | `Timer`          | Complete        | Substantial   |                                                                               |
 
 * **String**: A set of classes for scanning, manipulating and storing string values.
 
