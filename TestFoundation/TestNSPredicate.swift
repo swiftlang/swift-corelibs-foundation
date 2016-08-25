@@ -21,7 +21,7 @@ class TestNSPredicate: XCTestCase {
         return [
             ("test_BooleanPredicate", test_BooleanPredicate),
             ("test_BlockPredicateWithoutVariableBindings", test_BlockPredicateWithoutVariableBindings),
-//            ("test_filterNSArray", test_filterNSArray),
+            ("test_filterNSArray", test_filterNSArray),
             ("test_filterNSMutableArray", test_filterNSMutableArray),
             ("test_filterNSSet", test_filterNSSet),
             ("test_filterNSMutableSet", test_filterNSMutableSet),
@@ -57,7 +57,6 @@ class TestNSPredicate: XCTestCase {
 
     func test_filterNSArray() {
         let filteredArray = NSArray(array: startArray).filtered(using: lengthLessThanThreePredicate).map { $0 as! String }
-
         XCTAssertEqual(expectedArray, filteredArray)
     }
 
@@ -81,28 +80,18 @@ class TestNSPredicate: XCTestCase {
     }
 
     func test_filterNSOrderedSet() {
-        // TODO
-        // This test is temporarily disabled due to a compile crash when calling the initializer of NSOrderedSet with an array
-        /*
         let orderedSet = NSOrderedSet(array: startArray)
-        let filteredOrderedSet = orderedSet.filteredOrderedSetUsingPredicate(lengthLessThanThreePredicate)
-
+        let filteredOrderedSet = orderedSet.filtered(using: lengthLessThanThreePredicate)
         XCTAssertEqual(NSOrderedSet(array: expectedArray), filteredOrderedSet)
-        */
     }
 
     func test_filterNSMutableOrderedSet() {
-        // TODO
-        // This test is temporarily disabled due to a compile crash when calling the initializer of NSOrderedSet with an array
-        /*
         let orderedSet = NSMutableOrderedSet()
-        orderedSet.addObjectsFromArray(startArray)
-
-        orderedSet.filterUsingPredicate(lengthLessThanThreePredicate)
+        orderedSet.addObjects(from: startArray)
+        orderedSet.filter(using: lengthLessThanThreePredicate)
 
         let expectedOrderedSet = NSMutableOrderedSet()
-        expectedOrderedSet.addObjectsFromArray(expectedArray)
+        expectedOrderedSet.addObjects(from: expectedArray)
         XCTAssertEqual(expectedOrderedSet, orderedSet)
-        */
     }
 }
