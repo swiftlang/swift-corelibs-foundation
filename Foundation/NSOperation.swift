@@ -328,7 +328,8 @@ open class OperationQueue: NSObject {
             }
             let attr: DispatchQueue.Attributes
             if maxConcurrentOperationCount == 1 {
-                attr = [] 
+                attr = []
+                __concurrencyGate = DispatchSemaphore(value: 1)
             } else {
                 attr = .concurrent
                 if maxConcurrentOperationCount != NSOperationQueueDefaultMaxConcurrentOperationCount {
