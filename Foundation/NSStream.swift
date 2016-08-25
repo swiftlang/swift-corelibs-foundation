@@ -69,8 +69,8 @@ extension Stream {
 
 
 
-// NSStream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
-// Subclassers of NSInputStream and NSOutputStream must also implement these methods.
+// NSStream is an abstract class encapsulating the common API to InputStream and OutputStream.
+// Subclassers of InputStream and OutputStream must also implement these methods.
 open class Stream: NSObject {
 
     public override init() {
@@ -86,7 +86,7 @@ open class Stream: NSObject {
     }
     
     open weak var delegate: StreamDelegate?
-    // By default, a stream is its own delegate, and subclassers of NSInputStream and NSOutputStream must maintain this contract. [someStream setDelegate:nil] must restore this behavior. As usual, delegates are not retained.
+    // By default, a stream is its own delegate, and subclassers of InputStream and OutputStream must maintain this contract. [someStream setDelegate:nil] must restore this behavior. As usual, delegates are not retained.
     
     open func property(forKey key: PropertyKey) -> AnyObject? {
         NSUnimplemented()
@@ -115,7 +115,7 @@ open class Stream: NSObject {
     }
 }
 
-// NSInputStream is an abstract class representing the base functionality of a read stream.
+// InputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
 open class InputStream: Stream {
 
@@ -161,10 +161,10 @@ open class InputStream: Stream {
     }
 }
 
-// NSOutputStream is an abstract class representing the base functionality of a write stream.
+// OutputStream is an abstract class representing the base functionality of a write stream.
 // Subclassers are required to implement these methods.
-// Currently this is left as named NSOutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
-open class NSOutputStream : Stream {
+// Currently this is left as named OutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
+open class OutputStream : Stream {
     
     private  var _stream: CFWriteStream!
     
@@ -224,13 +224,13 @@ open class NSOutputStream : Stream {
 // Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
 #if false
 extension Stream {
-    open class func getStreamsToHost(withName hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
+    open class func getStreamsToHost(withName hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<OutputStream?>?) {
         NSUnimplemented()
     }
 }
 
 extension Stream {
-    open class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
+    open class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<OutputStream?>?) {
         NSUnimplemented()
     }
 }

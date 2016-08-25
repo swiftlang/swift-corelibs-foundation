@@ -264,13 +264,13 @@ public protocol URLSessionStreamDelegate : URLSessionTaskDelegate {
      * reads and writes over any new interface. */
      func urlSession(_ session: URLSession, betterRouteDiscoveredFor streamTask: URLSessionStreamTask)
     
-    /* The given task has been completed, and unopened NSInputStream and
-     * NSOutputStream objects are created from the underlying network
+    /* The given task has been completed, and unopened InputStream and
+     * OutputStream objects are created from the underlying network
      * connection.  This will only be invoked after all enqueued IO has
      * completed (including any necessary handshakes.)  The streamTask
      * will not receive any further delegate messages.
      */
-     func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecome inputStream: InputStream, outputStream: NSOutputStream)
+     func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecome inputStream: InputStream, outputStream: OutputStream)
 }
 
 extension URLSessionStreamDelegate {
@@ -280,5 +280,5 @@ extension URLSessionStreamDelegate {
     
     public func urlSession(_ session: URLSession, betterRouteDiscoveredFor streamTask: URLSessionStreamTask) { }
     
-    public func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecome inputStream: InputStream, outputStream: NSOutputStream) { }
+    public func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecome inputStream: InputStream, outputStream: OutputStream) { }
 }

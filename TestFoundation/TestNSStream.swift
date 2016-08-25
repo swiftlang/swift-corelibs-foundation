@@ -127,7 +127,7 @@ class TestNSStream : XCTestCase {
     func test_outputStreamCreationToFile() {
         let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256))
         if filePath != nil {
-            let outputStream = NSOutputStream(toFileAtPath: filePath!, append: true)
+            let outputStream = OutputStream(toFileAtPath: filePath!, append: true)
             XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
             var myString = "Hello world!"
             let encodedData = [UInt8](myString.utf8)
@@ -147,7 +147,7 @@ class TestNSStream : XCTestCase {
         var buffer = Array<UInt8>(repeating: 0, count: 12)
         var myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
+        let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
         XCTAssertEqual(Stream.Status.notOpen, outputStream.streamStatus)
         outputStream.open()
         XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)
@@ -161,7 +161,7 @@ class TestNSStream : XCTestCase {
     func test_outputStreamCreationWithUrl() {
         let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256))
         if filePath != nil {
-            let outputStream = NSOutputStream(url: URL(fileURLWithPath: filePath!), append: true)
+            let outputStream = OutputStream(url: URL(fileURLWithPath: filePath!), append: true)
             XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
             var myString = "Hello world!"
             let encodedData = [UInt8](myString.utf8)
@@ -181,7 +181,7 @@ class TestNSStream : XCTestCase {
         var buffer = Array<UInt8>(repeating: 0, count: 12)
         var myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = NSOutputStream.outputStreamToMemory()
+        let outputStream = OutputStream.outputStreamToMemory()
         XCTAssertEqual(Stream.Status.notOpen, outputStream.streamStatus)
         outputStream.open()
         XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)
@@ -202,7 +202,7 @@ class TestNSStream : XCTestCase {
         let buffer = Array<UInt8>(repeating: 0, count: 12)
         var myString = "Welcome To Hello world  !"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = NSOutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
+        let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
         outputStream.open()
         XCTAssertTrue(outputStream.hasSpaceAvailable)
         _ = outputStream.write(encodedData, maxLength: encodedData.count)
@@ -210,7 +210,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_ouputStreamWithInvalidPath(){
-        let outputStream = NSOutputStream(toFileAtPath: "http:///home/sdsfsdfd", append: true)
+        let outputStream = OutputStream(toFileAtPath: "http:///home/sdsfsdfd", append: true)
         XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
         outputStream?.open()
         XCTAssertEqual(Stream.Status.error, outputStream!.streamStatus)

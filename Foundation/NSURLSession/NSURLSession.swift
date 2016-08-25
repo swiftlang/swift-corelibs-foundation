@@ -68,7 +68,7 @@
 /* DataTask objects receive the payload through zero or more delegate messages */
 /* UploadTask objects receive periodic progress updates but do not return a body */
 /* DownloadTask objects represent an active download to disk.  They can provide resume data when canceled. */
-/* StreamTask objects may be used to create NSInput and NSOutputStreams, or used directly in reading and writing. */
+/* StreamTask objects may be used to create NSInput and OutputStreams, or used directly in reading and writing. */
 
 /*
  
