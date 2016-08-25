@@ -90,12 +90,12 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     This is the base class and subclasses for `NSPredicate` and `NSExpression`.
 
-    | Entity Name             | Status        | Test Coverage | Notes |
-    |-------------------------|---------------|---------------|-------|
-    | `NSExpression`          | Unimplemented | ?             |       |
-    | `NSComparisonPredicate` | Unimplemented | ?             |       |
-    | `NSCompoundPredicate`   | Complete      | ?             |       |
-    | `NSPredicate`           | Unimplemented | ?             |       |
+    | Entity Name             | Status        | Test Coverage | Notes                                                                              |
+    |-------------------------|---------------|---------------|------------------------------------------------------------------------------------|
+    | `NSExpression`          | Unimplemented | N/A           |                                                                                    |
+    | `NSComparisonPredicate` | Unimplemented | N/A           |                                                                                    |
+    | `NSCompoundPredicate`   | Complete      | N/A           |                                                                                    |
+    | `NSPredicate`           | Incomplete    | Incomplete    | Only boolean and block evaluations are implemented; all else remains unimplemented |
 
 * **Serialization**: Serialization and deserialization functionality.
 
