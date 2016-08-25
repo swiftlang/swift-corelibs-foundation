@@ -279,6 +279,8 @@ extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef al
 extern _Nullable CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
 extern void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date);
 
+CF_EXPORT CFArrayRef _CFTimeZoneCreateKnownTimeZoneNames(void);
+
 CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);

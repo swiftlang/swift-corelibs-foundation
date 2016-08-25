@@ -1559,3 +1559,205 @@ static CFDictionaryRef __CFTimeZoneCopyCompatibilityDictionary(void) {
 #undef TZZONEINFO
 #undef TZZONELINK
 
+static Boolean __eqUnA(const UChar *u, int32_t nu, const char *a, size_t max) {
+    while (0 < nu && 0 < max && *a && *u) {
+        if (*a != *u) return false;
+        u++;
+        nu--;
+        a++;
+        max--;
+    }
+    if (0 == max) return true;
+    if (0 == nu && 0 == *a) return true;
+    if (0 == *u && 0 == *a) return true;
+    return false;
+}
+
+static Boolean __nameOK(const UChar *chars, int32_t nmlen) {
+    // filter anachronistic names not in zone.tab, except GMT
+    if (nmlen < 1 || 0 == chars[0]) return false;
+    if (__eqUnA(chars, nmlen, "US/", 3)) return false;
+    if (__eqUnA(chars, nmlen, "Etc/", 4)) return false;
+    if (__eqUnA(chars, nmlen, "Canada/", 7)) return false;
+    if (__eqUnA(chars, nmlen, "SystemV/", 8)) return false;
+    if (__eqUnA(chars, nmlen, "Mideast/", 8)) return false;
+    if (__eqUnA(chars, nmlen, "ACT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "AET", 999)) return false;
+    if (__eqUnA(chars, nmlen, "AGT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "ART", 999)) return false;
+    if (__eqUnA(chars, nmlen, "AST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Africa/Asmera", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Africa/Timbuktu", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Argentina/ComodRivadavia", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Atka", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Buenos_Aires", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Catamarca", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Coral_Harbour", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Cordoba", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Ensenada", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Fort_Wayne", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Indianapolis", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Jujuy", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Knox_IN", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Louisville", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Mendoza", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Porto_Acre", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Rosario", 999)) return false;
+    if (__eqUnA(chars, nmlen, "America/Virgin", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Ashkhabad", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Calcutta", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Chungking", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Dacca", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Istanbul", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Macao", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Riyadh87", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Riyadh88", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Riyadh89", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Saigon", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Tel_Aviv", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Thimbu", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Ujung_Pandang", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Asia/Ulan_Bator", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Atlantic/Faeroe", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Atlantic/Jan_Mayen", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/ACT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/Canberra", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/LHI", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/NSW", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/North", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/Queensland", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/South", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/Tasmania", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/Victoria", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/West", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Australia/Yancowinna", 999)) return false;
+    if (__eqUnA(chars, nmlen, "BET", 999)) return false;
+    if (__eqUnA(chars, nmlen, "BST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Brazil/Acre", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Brazil/DeNoronha", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Brazil/East", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Brazil/West", 999)) return false;
+    if (__eqUnA(chars, nmlen, "CAT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "CET", 999)) return false;
+    if (__eqUnA(chars, nmlen, "CNT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "CST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "CST6CDT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "CTT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Chile/Continental", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Chile/EasterIsland", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Cuba", 999)) return false;
+    if (__eqUnA(chars, nmlen, "EAT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "ECT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "EET", 999)) return false;
+    if (__eqUnA(chars, nmlen, "EST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "EST5EDT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Egypt", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Eire", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Europe/Belfast", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Europe/Nicosia", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Europe/Tiraspol", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Factory", 999)) return false;
+    if (__eqUnA(chars, nmlen, "GB", 999)) return false;
+    if (__eqUnA(chars, nmlen, "GB-Eire", 999)) return false;
+//        if (__eqUnA(chars, nmlen, "GMT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "GMT+0", 999)) return false;
+    if (__eqUnA(chars, nmlen, "GMT-0", 999)) return false;
+    if (__eqUnA(chars, nmlen, "GMT0", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Greenwich", 999)) return false;
+    if (__eqUnA(chars, nmlen, "HST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Hongkong", 999)) return false;
+    if (__eqUnA(chars, nmlen, "IET", 999)) return false;
+    if (__eqUnA(chars, nmlen, "IST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Iceland", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Iran", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Israel", 999)) return false;
+    if (__eqUnA(chars, nmlen, "JST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Jamaica", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Japan", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Kwajalein", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Libya", 999)) return false;
+    if (__eqUnA(chars, nmlen, "MET", 999)) return false;
+    if (__eqUnA(chars, nmlen, "MIT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "MST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "MST7MDT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Mexico/BajaNorte", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Mexico/BajaSur", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Mexico/General", 999)) return false;
+    if (__eqUnA(chars, nmlen, "NET", 999)) return false;
+    if (__eqUnA(chars, nmlen, "NST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "NZ", 999)) return false;
+    if (__eqUnA(chars, nmlen, "NZ-CHAT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Navajo", 999)) return false;
+    if (__eqUnA(chars, nmlen, "PLT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "PNT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "PRC", 999)) return false;
+    if (__eqUnA(chars, nmlen, "PRT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "PST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "PST8PDT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Pacific/Samoa", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Pacific/Yap", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Poland", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Portugal", 999)) return false;
+    if (__eqUnA(chars, nmlen, "ROC", 999)) return false;
+    if (__eqUnA(chars, nmlen, "ROK", 999)) return false;
+    if (__eqUnA(chars, nmlen, "SST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Singapore", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Turkey", 999)) return false;
+    if (__eqUnA(chars, nmlen, "UCT", 999)) return false;
+    if (__eqUnA(chars, nmlen, "UTC", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Universal", 999)) return false;
+    if (__eqUnA(chars, nmlen, "VST", 999)) return false;
+    if (__eqUnA(chars, nmlen, "W-SU", 999)) return false;
+    if (__eqUnA(chars, nmlen, "WET", 999)) return false;
+    if (__eqUnA(chars, nmlen, "Zulu", 999)) return false;
+    return true;
+}
+
+CF_SWIFT_EXPORT CFArrayRef _CFTimeZoneCreateKnownTimeZoneNames(void) {
+    CFIndex listcnt = 0, listsz = 512;
+    CFTypeRef *list = (CFTypeRef *)calloc(listsz, sizeof(CFTypeRef));
+    UErrorCode err = U_ZERO_ERROR;
+    UEnumeration* e = ucal_openTimeZones(&err);
+    const UChar *chars = NULL;
+    int32_t nmlen = 0;
+    while ((chars = uenum_unext(e, &nmlen, &err)) && U_SUCCESS(err)) {
+        if (!__nameOK(chars, nmlen)) continue;
+        if (listsz <= listcnt) {
+            listsz *= 2;
+            list = (CFTypeRef *)realloc(list, listsz * sizeof(CFTypeRef));
+        }
+        CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (UInt8 *)chars, nmlen * sizeof(UniChar), kCFStringEncodingUTF16, false);
+        list[listcnt++] = (CFTypeRef)string;
+    }
+    uenum_close(e);
+    CFArrayRef result = CFArrayCreate(kCFAllocatorSystemDefault, (const void **)list, listcnt, &kCFTypeArrayCallBacks);
+    while (listcnt--) {
+        CFRelease(list[listcnt]);
+    }
+    free(list);
+    return result;
+}
+
+
+#define MIN_TIMEZONE_UDATE -2177452800000.0  // 1901-01-01 00:00:00 +0000
+#define MAX_TIMEZONE_UDATE  4133980800000.0  // 2101-01-01 00:00:00 +0000
+
+CF_PRIVATE Boolean __calcNextDaylightSavingTimeTransition(UCalendar *ucal, UDate start_udate, UDate limit, UDate *answer) {
+    if (start_udate < MIN_TIMEZONE_UDATE) start_udate = MIN_TIMEZONE_UDATE; // answer question as if this date for anything earlier
+    if (MAX_TIMEZONE_UDATE < limit) limit = MAX_TIMEZONE_UDATE; // limit gets the smaller
+    if (limit < start_udate) { // no transitions searched for after the limit arg, or the max time (for performance)
+        return false;
+    }
+    UErrorCode status = U_ZERO_ERROR;
+    ucal_setMillis(ucal, start_udate, &status);
+#if DEPLOYMENT_TARGET_WINDOWS
+    UBool b = false;
+#else
+    UBool b = ucal_getTimeZoneTransitionDate(ucal, UCAL_TZ_TRANSITION_NEXT, answer, &status);
+#endif
+    if (!U_SUCCESS(status) || limit < *answer) {
+        b = false;
+    }
+    return b ? true : false;
+}
+
