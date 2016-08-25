@@ -128,7 +128,7 @@ extension NSMutableSet {
 extension NSOrderedSet {
     open func filtered(using predicate: NSPredicate) -> NSOrderedSet {
         return NSOrderedSet(array: self._orderedStorage.filter({ object in
-            return predicate.evaluate(with: object)
+            return predicate.evaluate(with: _SwiftValue.fetch(object))
         }))
     }
 }
