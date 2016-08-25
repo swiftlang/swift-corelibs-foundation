@@ -121,6 +121,11 @@ open class InputStream: Stream {
 
     private var _stream: CFReadStream!
 
+    fileprivate init?(_ cfStream:CFReadStream?) {
+      guard let cfStream = cfStream else { return nil }
+      _stream = cfStream
+    }
+  
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         return CFReadStreamRead(_stream, buffer, CFIndex(len._bridgeToObjectiveC()))
@@ -167,7 +172,11 @@ open class InputStream: Stream {
 open class NSOutputStream : Stream {
     
     private  var _stream: CFWriteStream!
-    
+  
+    fileprivate init?(_ cfStream:CFWriteStream?) {
+      guard let cfStream = cfStream else { return nil }
+      _stream = cfStream
+    }
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         return  CFWriteStreamWrite(_stream, buffer, len)
@@ -221,14 +230,18 @@ open class NSOutputStream : Stream {
     }
 }
 
+
 // Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
-#if false
 extension Stream {
-    open class func getStreamsToHost(withName hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
-        NSUnimplemented()
+    open class func getStreamsToHost(withName hostName: String, port: Int, inputStream: inout InputStream?, outputStream: inout NSOutputStream?){
+        var read: Unmanaged<CFReadStream>?
+        var write: Unmanaged<CFWriteStream>?
+        CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, hostName._cfObject, UInt32(port), &read, &write)
+        inputStream = InputStream(read?.takeRetainedValue())
+        outputStream = NSOutputStream(write?.takeRetainedValue())
     }
 }
-
+#if false
 extension Stream {
     open class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
         NSUnimplemented()
