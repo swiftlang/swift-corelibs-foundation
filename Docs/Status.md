@@ -117,12 +117,12 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name   | Status          | Test Coverage | Notes                                                                                                                                 |
     |---------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------------------|
-    | `XMLDocument` | Mostly Complete | ?             | `init()`, `replacementClass(for:)`, and `object(byApplyingXSLT...)` remain unimplemented                                              |
-    | `XMLDTD`      | Mostly Complete | ?             | `init()` remains unimplemented                                                                                                        |
-    | `XMLDTDNode`  | Complete        | ?             |                                                                                                                                       |
-    | `XMLElement`  | Incomplete      | ?             | `init(xmlString:)`, `elements(forLocalName:uri:)`, `attribute(forLocalName:uri:)`, namespace support, and others remain unimplemented |
-    | `XMLNode`     | Incomplete      | ?             | `localName(forName:)`, `prefix(forName:)`, `predefinedNamespace(forPrefix:)`, and others remain unimplemented                         |
-    | `XMLParser`   | Complete        | ?             |                                                                                                                                       |
+    | `XMLDocument` | Mostly Complete | Substantial   | `init()`, `replacementClass(for:)`, and `object(byApplyingXSLT...)` remain unimplemented                                              |
+    | `XMLDTD`      | Mostly Complete | Substantial   | `init()` remains unimplemented                                                                                                        |
+    | `XMLDTDNode`  | Complete        | Incomplete    |                                                                                                                                       |
+    | `XMLElement`  | Incomplete      | Incomplete    | `init(xmlString:)`, `elements(forLocalName:uri:)`, `attribute(forLocalName:uri:)`, namespace support, and others remain unimplemented |
+    | `XMLNode`     | Incomplete      | Incomplete    | `localName(forName:)`, `prefix(forName:)`, `predefinedNamespace(forPrefix:)`, and others remain unimplemented                         |
+    | `XMLParser`   | Complete        | Incomplete    |                                                                                                                                       |
 
 * **Collections**: A group of classes to contain objects.
 
