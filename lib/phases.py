@@ -114,7 +114,12 @@ class CompileCxx(CompileSource):
         generated = """
 build """ + self.output.relative() + """: CompileCxx """ + self.path.relative() + self.generate_dependencies() + """
     flags = """
-        generated += "-I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " -I" + Configuration.current.build_directory.relative()
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative()
+        generated += " -I" + Configuration.current.build_directory.relative()
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PUBLIC_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PRIVATE_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PROJECT_HEADERS_FOLDER_PATH
         cflags = TargetConditional.value(self.product.CFLAGS)
         if cflags is not None:
             generated += " " + cflags

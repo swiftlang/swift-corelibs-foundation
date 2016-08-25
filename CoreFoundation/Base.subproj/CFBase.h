@@ -159,10 +159,9 @@
 #if defined(__cplusplus)
 #define CF_EXPORT extern "C" __attribute__ (( __visibility__("default") ))
 #else
-#endif
 #define CF_EXPORT extern __attribute__ (( __visibility__("default") ))
 #endif
-
+#endif
 #else
 #define CF_EXPORT extern
 #endif
