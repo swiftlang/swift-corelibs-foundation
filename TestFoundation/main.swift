@@ -89,6 +89,7 @@ XCTMain([
     testCase(TestNSTextCheckingResult.allTests),
     testCase(TestNSTimer.allTests),
     testCase(TestNSTimeZone.allTests),
+    testCase(TestTimeZone.allTests),
     testCase(TestNSURL.allTests),
     testCase(TestNSURLComponents.allTests),
     testCase(TestNSURLCredential.allTests),
