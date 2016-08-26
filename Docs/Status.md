@@ -113,7 +113,7 @@ There is no _Complete_ status for test coverage because there are always additio
     |-------------------------|---------------|---------------|------------------------------------------------------------------------------------|
     | `NSExpression`          | Unimplemented | N/A           |                                                                                    |
     | `NSComparisonPredicate` | Unimplemented | N/A           |                                                                                    |
-    | `NSCompoundPredicate`   | Complete      | N/A           |                                                                                    |
+    | `NSCompoundPredicate`   | Complete      | Substantial   |                                                                                    |
     | `NSPredicate`           | Incomplete    | Incomplete    | Only boolean and block evaluations are implemented; all else remains unimplemented |
 
 * **Serialization**: Serialization and deserialization functionality.
