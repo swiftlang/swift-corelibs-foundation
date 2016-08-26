@@ -27,8 +27,8 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    open func object(forKey key: NSLocale.Key) -> AnyObject? {
-        return CFLocaleGetValue(_cfObject, key.rawValue._cfObject)
+    open func object(forKey key: NSLocale.Key) -> Any? {
+        return _SwiftValue.fetch(CFLocaleGetValue(_cfObject, key.rawValue._cfObject))
     }
     
     open func displayName(forKey key: Key, value: String) -> String? {
@@ -58,12 +58,13 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         return self 
     }
     
-    override open func isEqual(_ object: Any?) -> Bool {
-        guard let locale = object as? NSLocale else {
-            return false
+    override open func isEqual(_ value: Any?) -> Bool {
+        if let locale = value as? Locale {
+            return locale.identifier == localeIdentifier
+        } else if let locale = value as? NSLocale {
+            return locale.localeIdentifier == localeIdentifier
         }
-        
-        return locale.localeIdentifier == localeIdentifier
+        return false
     }
     
     open func encode(with aCoder: NSCoder) {
@@ -91,66 +92,35 @@ extension NSLocale {
 
 extension NSLocale {
     public var localeIdentifier: String {
-        return (object(forKey: .identifier) as! NSString)._swiftObject
+        return object(forKey: .identifier) as! String
     }
     
     open class var availableLocaleIdentifiers: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyAvailableLocaleIdentifiers()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return CFLocaleCopyAvailableLocaleIdentifiers()._swiftObject as! [String]
     }
     
     open class var isoLanguageCodes: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyISOLanguageCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return CFLocaleCopyISOLanguageCodes()._swiftObject as! [String]
     }
     
     open class var isoCountryCodes: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyISOCountryCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return CFLocaleCopyISOCountryCodes()._swiftObject as! [String]
     }
     
     open class var isoCurrencyCodes: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyISOCurrencyCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return CFLocaleCopyISOCurrencyCodes()._swiftObject as! [String]
     }
     
     open class var commonISOCurrencyCodes: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyCommonISOCurrencyCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return CFLocaleCopyCommonISOCurrencyCodes()._swiftObject as! [String]
     }
     
     open class var preferredLanguages: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyPreferredLanguages()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return CFLocaleCopyPreferredLanguages()._swiftObject as! [String]
     }
     
     open class func components(fromLocaleIdentifier string: String) -> [String : String] {
-        var comps = Dictionary<String, String>()
-        let values = CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._nsObject
-        values.enumerateKeysAndObjects(options: []) { (k, v, stop) in
-            let key = (k as! NSString)._swiftObject
-            let value = (v as! NSString)._swiftObject
-            comps[key] = value
-        }
-        return comps
+        return CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._swiftObject as! [String : String]
     }
     
     open class func localeIdentifier(fromComponents dict: [String : String]) -> String {
