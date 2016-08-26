@@ -67,15 +67,35 @@ extension Stream {
     }
 }
 
+extension Stream {
+    internal func _handleStreamEvent(_ event:CFStreamEventType){
+        switch event {
+        case CFStreamEventType.errorOccurred:
+            delegate?.stream(self, handleEvent: Stream.Event.errorOccurred)
+        case CFStreamEventType.endEncountered:
+            delegate?.stream(self, handleEvent: Stream.Event.endEncountered)
+        case CFStreamEventType.hasBytesAvailable:
+            delegate?.stream(self, handleEvent: Stream.Event.hasBytesAvailable)
+        case CFStreamEventType.openCompleted:
+            delegate?.stream(self, handleEvent: Stream.Event.openCompleted)
+        case CFStreamEventType.canAcceptBytes:
+            delegate?.stream(self, handleEvent: Stream.Event.hasSpaceAvailable)
+        default: break
+        }
+    }
+}
 
-
-// NSStream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
+// Stream is an abstract class encapsulating the common API to NSInputStream and NSOutputStream.
 // Subclassers of NSInputStream and NSOutputStream must also implement these methods.
 open class Stream: NSObject {
 
-    public override init() {
-
-    }
+    internal override init() {}
+    
+    internal lazy var _defaultEventOptions = CFStreamEventType.canAcceptBytes.rawValue    |
+                                             CFStreamEventType.hasBytesAvailable.rawValue |
+                                             CFStreamEventType.errorOccurred.rawValue     |
+                                             CFStreamEventType.endEncountered.rawValue    |
+                                             CFStreamEventType.openCompleted.rawValue
     
     open func open() {
         NSRequiresConcreteImplementation()
@@ -89,21 +109,19 @@ open class Stream: NSObject {
     // By default, a stream is its own delegate, and subclassers of NSInputStream and NSOutputStream must maintain this contract. [someStream setDelegate:nil] must restore this behavior. As usual, delegates are not retained.
     
     open func property(forKey key: PropertyKey) -> AnyObject? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
-
-// Re-enable once run loop is compiled on all platforms
-
+    
     open func schedule(in aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open var streamStatus: Status {
@@ -111,7 +129,7 @@ open class Stream: NSObject {
     }
     
     open var streamError: NSError? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
 }
 
@@ -120,7 +138,38 @@ open class Stream: NSObject {
 open class InputStream: Stream {
 
     private var _stream: CFReadStream!
-
+    
+    private lazy var _cb : CFReadStreamClientCallBack =  { (stream, event, data) in
+        let inStream = unsafeBitCast(data, to: InputStream.self)
+        inStream._handleStreamEvent(event)
+    }
+   
+    open override var delegate: StreamDelegate?{
+        didSet{
+            switch  (delegate, oldValue) {
+                case (.none , .some): _removeReadStreamClient()
+                case (.some , .none): _setReadStreamClient()
+                default: break 
+            }
+        }
+    }
+    
+    private func _setReadStreamClient(){
+        
+        var ctx = CFStreamClientContext(version: CFIndex(0),
+                                           info: Unmanaged.passUnretained(self).toOpaque(),
+                                         retain: nil,
+                                        release: nil,
+                                copyDescription: nil)
+        
+        CFReadStreamSetClient(_stream, _defaultEventOptions, _cb, &ctx)
+    }
+    
+    private func _removeReadStreamClient(){
+                                      //should be .none per docs but cant find it on CFStreamEventType
+        CFReadStreamSetClient(_stream, 0, nil, nil)
+    }
+    
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         return CFReadStreamRead(_stream, buffer, CFIndex(len._bridgeToObjectiveC()))
@@ -128,7 +177,9 @@ open class InputStream: Stream {
     
     // returns in O(1) a pointer to the buffer in 'buffer' and by reference in 'len' how many bytes are available. This buffer is only valid until the next stream operation. Subclassers may return NO for this if it is not appropriate for the stream type. This may return NO if the buffer is not available.
     open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
-        NSUnimplemented()
+        guard let bufPtr = CFReadStreamGetBuffer(_stream, 0, len) else { return false }
+        buffer.pointee = UnsafeMutablePointer<UInt8>(mutating: bufPtr)
+        return true
     }
     
     // returns YES if the stream has bytes available or if it impossible to tell without actually doing the read.
@@ -143,7 +194,7 @@ open class InputStream: Stream {
     public init?(url: URL) {
         _stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
     }
-
+    
     public convenience init?(fileAtPath path: String) {
         self.init(url: URL(fileURLWithPath: path))
     }
@@ -155,9 +206,35 @@ open class InputStream: Stream {
     open override func close() {
         CFReadStreamClose(_stream)
     }
+
+    open override var streamError: NSError?{
+        let error = CFReadStreamCopyError(_stream)
+        return error?._nsObject
+    }
     
     open override var streamStatus: Status {
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
+    }
+
+    open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoopMode) {
+        CFReadStreamScheduleWithRunLoop(_stream, aRunLoop._cfRunLoop, mode.rawValue._cfObject)
+    }
+    
+    open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
+        CFReadStreamUnscheduleFromRunLoop(_stream, aRunLoop._cfRunLoop, mode.rawValue._cfObject)
+    }
+    
+    open override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
+        guard let property = property else { return false }
+        return CFReadStreamSetProperty(_stream, key.rawValue._cfObject, property)
+    }
+    
+    open override func property(forKey key: PropertyKey) -> AnyObject? {
+        return CFReadStreamCopyProperty(_stream, key.rawValue._cfObject)
+    }
+    
+    deinit {
+        _removeReadStreamClient()
     }
 }
 
@@ -166,8 +243,39 @@ open class InputStream: Stream {
 // Currently this is left as named NSOutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
 open class NSOutputStream : Stream {
     
-    private  var _stream: CFWriteStream!
+    private var _stream: CFWriteStream!
     
+    open override var delegate: StreamDelegate?{
+        didSet{
+            switch (delegate, oldValue) {
+            case (.none , .some): _removeWriteStreamClient()
+            case (.some , .none): _setWriteStreamClient()
+            default: break
+            }
+        }
+    }
+    
+    private lazy var _cb : CFWriteStreamClientCallBack =  { (stream, event, data) in
+        let outStream = unsafeBitCast(data, to: NSOutputStream.self)
+        outStream._handleStreamEvent(event)
+    }
+
+    private func _setWriteStreamClient(){
+        var ctx = CFStreamClientContext(version: CFIndex(0),
+                                           info: Unmanaged.passUnretained(self).toOpaque(),
+                                         retain: nil,
+                                        release: nil,
+                                copyDescription: nil)
+
+        CFWriteStreamSetClient(_stream, _defaultEventOptions, _cb, &ctx)
+    }
+    
+    
+    private func _removeWriteStreamClient(){
+                                       //should be .none per docs but cant find it on CFStreamEventType
+        CFWriteStreamSetClient(_stream, 0, nil, nil)
+    }
+
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         return  CFWriteStreamWrite(_stream, buffer, len)
@@ -215,14 +323,33 @@ open class NSOutputStream : Stream {
     open override func property(forKey key: PropertyKey) -> AnyObject? {
         return CFWriteStreamCopyProperty(_stream, key.rawValue._cfObject)
     }
+
+    open override var streamError: NSError?{
+        let error = CFWriteStreamCopyError(_stream)
+        return error?._nsObject
+    }
     
-    open  override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
+    open override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
+        guard let property = property else { return false }
         return CFWriteStreamSetProperty(_stream, key.rawValue._cfObject, property)
     }
+    
+    open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoopMode) {
+        CFWriteStreamScheduleWithRunLoop(_stream, aRunLoop._cfRunLoop, mode.rawValue._cfObject)
+    }
+    
+    open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
+        CFWriteStreamUnscheduleFromRunLoop(_stream, aRunLoop._cfRunLoop, mode.rawValue._cfObject)
+    }
+    
+    deinit {
+        _removeWriteStreamClient()
+    }
+
 }
 
-// Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
 #if false
+// Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
 extension Stream {
     open class func getStreamsToHost(withName hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<NSOutputStream?>?) {
         NSUnimplemented()
@@ -248,7 +375,8 @@ public protocol StreamDelegate : class {
 extension Stream.PropertyKey {
     public static let socketSecurityLevelKey = Stream.PropertyKey(rawValue: "kCFStreamPropertySocketSecurityLevel")
     public static let socksProxyConfigurationKey = Stream.PropertyKey(rawValue: "kCFStreamPropertySOCKSProxy")
-    public static let dataWrittenToMemoryStreamKey = Stream.PropertyKey(rawValue: "kCFStreamPropertyDataWritten")    public static let fileCurrentOffsetKey = Stream.PropertyKey(rawValue: "kCFStreamPropertyFileCurrentOffset")
+    public static let dataWrittenToMemoryStreamKey = Stream.PropertyKey(rawValue: "kCFStreamPropertyDataWritten")
+    public static let fileCurrentOffsetKey = Stream.PropertyKey(rawValue: "kCFStreamPropertyFileCurrentOffset")
     public static let networkServiceType = Stream.PropertyKey(rawValue: "kCFStreamNetworkServiceType")
 }
 
@@ -270,8 +398,8 @@ public struct StreamSocketSecurityLevel : RawRepresentable, Equatable, Hashable,
 }
 extension StreamSocketSecurityLevel {
     public static let none = StreamSocketSecurityLevel(rawValue: "kCFStreamSocketSecurityLevelNone")
-    public static let ssLv2 = StreamSocketSecurityLevel(rawValue: "NSStreamSocketSecurityLevelSSLv2")
-    public static let ssLv3 = StreamSocketSecurityLevel(rawValue: "NSStreamSocketSecurityLevelSSLv3")
+    public static let ssLv2 = StreamSocketSecurityLevel(rawValue: "kCFStreamSocketSecurityLevelSSLv2")
+    public static let ssLv3 = StreamSocketSecurityLevel(rawValue: "kCFStreamSocketSecurityLevelSSLv3")
     public static let tlSv1 = StreamSocketSecurityLevel(rawValue: "kCFStreamSocketSecurityLevelTLSv1")
     public static let negotiatedSSL = StreamSocketSecurityLevel(rawValue: "kCFStreamSocketSecurityLevelNegotiatedSSL")
 }
@@ -294,13 +422,12 @@ public struct StreamSOCKSProxyConfiguration : RawRepresentable, Equatable, Hasha
     }
 }
 extension StreamSOCKSProxyConfiguration {
-    public static let hostKey = StreamSOCKSProxyConfiguration(rawValue: "NSStreamSOCKSProxyKey")
-    public static let portKey = StreamSOCKSProxyConfiguration(rawValue: "NSStreamSOCKSPortKey")
+    public static let hostKey = StreamSOCKSProxyConfiguration(rawValue: "kCFStreamPropertySOCKSProxyHost")
+    public static let portKey = StreamSOCKSProxyConfiguration(rawValue: "kCFStreamPropertySOCKSProxyPort")
     public static let versionKey = StreamSOCKSProxyConfiguration(rawValue: "kCFStreamPropertySOCKSVersion")
     public static let userKey = StreamSOCKSProxyConfiguration(rawValue: "kCFStreamPropertySOCKSUser")
     public static let passwordKey = StreamSOCKSProxyConfiguration(rawValue: "kCFStreamPropertySOCKSPassword")
 }
-
 
 // MARK: -
 public struct StreamSOCKSProxyVersion : RawRepresentable, Equatable, Hashable, Comparable {
@@ -318,11 +445,11 @@ public struct StreamSOCKSProxyVersion : RawRepresentable, Equatable, Hashable, C
         return lhs.rawValue < rhs.rawValue
     }
 }
+
 extension StreamSOCKSProxyVersion {
     public static let version4 = StreamSOCKSProxyVersion(rawValue: "kCFStreamSocketSOCKSVersion4")
     public static let version5 = StreamSOCKSProxyVersion(rawValue: "kCFStreamSocketSOCKSVersion5")
 }
-
 
 // MARK: - Supported network service types
 public struct StreamNetworkServiceTypeValue : RawRepresentable, Equatable, Hashable, Comparable {
@@ -340,6 +467,7 @@ public struct StreamNetworkServiceTypeValue : RawRepresentable, Equatable, Hasha
         return lhs.rawValue < rhs.rawValue
     }
 }
+
 extension StreamNetworkServiceTypeValue {
     public static let voIP = StreamNetworkServiceTypeValue(rawValue: "kCFStreamNetworkServiceTypeVoIP")
     public static let video = StreamNetworkServiceTypeValue(rawValue: "kCFStreamNetworkServiceTypeVideo")
@@ -353,7 +481,7 @@ extension StreamNetworkServiceTypeValue {
 
 // MARK: - Error Domains
 // NSString constants for error domains.
-public let NSStreamSocketSSLErrorDomain: String = "NSStreamSocketSSLErrorDomain"
+public let NSStreamSocketSSLErrorDomain: String = "kCFStreamErrorDomainSSL"
 // SSL errors are to be interpreted via <Security/SecureTransport.h>
-public let NSStreamSOCKSErrorDomain: String = "NSStreamSOCKSErrorDomain"
+public let NSStreamSOCKSErrorDomain: String = "kCFStreamErrorDomainSOCKS"
 
