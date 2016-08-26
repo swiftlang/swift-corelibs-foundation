@@ -196,49 +196,49 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name                       | Status          | Test Coverage | Notes                                                                         |
     |-----------------------------------|-----------------|---------------|-------------------------------------------------------------------------------|
-    | `NSRange`                         | Mostly Complete | ?             | `NSCoding` from non-keyed-coding archivers remains unimplemented              |
-    | `Decimal`                         | Unimplemented   | ?             |                                                                               |
-    | `NSDecimalNumber`                 | Unimplemented   | ?             |                                                                               |
-    | `NSDecimalNumberHandler`          | Unimplemented   | ?             |                                                                               |
-    | `CGPoint`                         | Complete        | ?             |                                                                               |
-    | `CGSize`                          | Complete        | ?             |                                                                               |
-    | `CGRect`                          | Complete        | ?             |                                                                               |
-    | `NSEdgeInsets`                    | Mostly Complete | ?             | `NSCoding` from non-keyed-coding archivers remains unimplemented              |
-    | `NSGeometry`                      | Mostly Complete | ?             | `NSIntegralRectWithOptions` `.AlignRectFlipped` support remains unimplemented |
-    | `CGFloat`                         | Complete        | ?             |                                                                               |
-    | `AffineTransform`                 | Complete        | ?             |                                                                               |
-    | `NSAffineTransform`               | Mostly Complete | ?             | `NSCoding` remains unimplemented                                              |
-    | `NSNumber`                        | Complete        | ?             |                                                                               |
+    | `NSRange`                         | Mostly Complete | Incomplete    | `NSCoding` from non-keyed-coding archivers remains unimplemented              |
+    | `Decimal`                         | Unimplemented   | None          |                                                                               |
+    | `NSDecimalNumber`                 | Unimplemented   | None          |                                                                               |
+    | `NSDecimalNumberHandler`          | Unimplemented   | None          |                                                                               |
+    | `CGPoint`                         | Complete        | Substantial   |                                                                               |
+    | `CGSize`                          | Complete        | Substantial   |                                                                               |
+    | `CGRect`                          | Complete        | Substantial   |                                                                               |
+    | `NSEdgeInsets`                    | Mostly Complete | None          | `NSCoding` from non-keyed-coding archivers remains unimplemented              |
+    | `NSGeometry`                      | Mostly Complete | Substantial   | `NSIntegralRectWithOptions` `.AlignRectFlipped` support remains unimplemented |
+    | `CGFloat`                         | Complete        | Substantial   |                                                                               |
+    | `AffineTransform`                 | Complete        | None          |                                                                               |
+    | `NSAffineTransform`               | Mostly Complete | Substnatial   | `NSCoding` remains unimplemented                                              |
+    | `NSNumber`                        | Complete        | Incomplete    |                                                                               |
     | `NSConcreteValue`                 | N/A             | N/A           | For internal use only                                                         |
     | `NSSpecialValue`                  | N/A             | N/A           | For internal use only                                                         |
-    | `NSValue`                         | Complete        | ?             |                                                                               |
-    | `NSMeasurement`                   | Unimplemented   | ?             |                                                                               |
-    | `Measurement`                     | Complete        | ?             |                                                                               |
-    | `UnitConverter`                   | Complete        | ?             |                                                                               |
-    | `UnitConverterLinear`             | Complete        | ?             |                                                                               |
-    | `Unit`                            | Complete        | ?             |                                                                               |
-    | `Dimension`                       | Complete        | ?             |                                                                               |
-    | `UnitAcceleration`                | Complete        | ?             |                                                                               |
-    | `UnitAngle`                       | Complete        | ?             |                                                                               |
-    | `UnitArea`                        | Complete        | ?             |                                                                               |
-    | `UnitConcentrationMass`           | Complete        | ?             |                                                                               |
-    | `UnitDispersion`                  | Complete        | ?             |                                                                               |
-    | `UnitDuration`                    | Complete        | ?             |                                                                               |
-    | `UnitElectricCharge`              | Complete        | ?             |                                                                               |
-    | `UnitElectricCurrent`             | Complete        | ?             |                                                                               |
-    | `UnitElectricPotentialDifference` | Complete        | ?             |                                                                               |
-    | `UnitElectricResistance`          | Complete        | ?             |                                                                               |
-    | `UnitEnergy`                      | Complete        | ?             |                                                                               |
-    | `UnitFrequency`                   | Complete        | ?             |                                                                               |
-    | `UnitFuelEfficiency`              | Complete        | ?             |                                                                               |
-    | `UnitLength`                      | Complete        | ?             |                                                                               |
-    | `UnitIlluminance`                 | Complete        | ?             |                                                                               |
-    | `UnitMass`                        | Complete        | ?             |                                                                               |
-    | `UnitPower`                       | Complete        | ?             |                                                                               |
-    | `UnitPressure`                    | Complete        | ?             |                                                                               |
-    | `UnitSpeed`                       | Complete        | ?             |                                                                               |
-    | `UnitTemperature`                 | Complete        | ?             |                                                                               |
-    | `UnitVolume`                      | Complete        | ?             |                                                                               |
+    | `NSValue`                         | Complete        | Substantial   |                                                                               |
+    | `NSMeasurement`                   | Unimplemented   | None          |                                                                               |
+    | `Measurement`                     | Complete        | None          |                                                                               |
+    | `UnitConverter`                   | Complete        | Incomplete    |                                                                               |
+    | `UnitConverterLinear`             | Complete        | Incomplete    |                                                                               |
+    | `Unit`                            | Complete        | None          |                                                                               |
+    | `Dimension`                       | Complete        | None          |                                                                               |
+    | `UnitAcceleration`                | Complete        | None          |                                                                               |
+    | `UnitAngle`                       | Complete        | None          |                                                                               |
+    | `UnitArea`                        | Complete        | None          |                                                                               |
+    | `UnitConcentrationMass`           | Complete        | None          |                                                                               |
+    | `UnitDispersion`                  | Complete        | None          |                                                                               |
+    | `UnitDuration`                    | Complete        | None          |                                                                               |
+    | `UnitElectricCharge`              | Complete        | None          |                                                                               |
+    | `UnitElectricCurrent`             | Complete        | None          |                                                                               |
+    | `UnitElectricPotentialDifference` | Complete        | None          |                                                                               |
+    | `UnitElectricResistance`          | Complete        | None          |                                                                               |
+    | `UnitEnergy`                      | Complete        | None          |                                                                               |
+    | `UnitFrequency`                   | Complete        | None          |                                                                               |
+    | `UnitFuelEfficiency`              | Complete        | None          |                                                                               |
+    | `UnitLength`                      | Complete        | None          |                                                                               |
+    | `UnitIlluminance`                 | Complete        | None          |                                                                               |
+    | `UnitMass`                        | Complete        | None          |                                                                               |
+    | `UnitPower`                       | Complete        | None          |                                                                               |
+    | `UnitPressure`                    | Complete        | None          |                                                                               |
+    | `UnitSpeed`                       | Complete        | None          |                                                                               |
+    | `UnitTemperature`                 | Complete        | None          |                                                                               |
+    | `UnitVolume`                      | Complete        | None          |                                                                               |
 
 * **UserDefaults**: A mechanism for storing values to persist as user settings and local.
 
