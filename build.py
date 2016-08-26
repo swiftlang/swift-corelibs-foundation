@@ -69,7 +69,8 @@ foundation.CFLAGS += " ".join([
 swift_cflags += [
 	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
 	'-I${SYSROOT}/usr/include/libxml2',
-	'-I${SYSROOT}/usr/include/curl'
+	'-I${SYSROOT}/usr/include/curl',
+	'-DDEPLOYMENT_RUNTIME_SWIFT',
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
