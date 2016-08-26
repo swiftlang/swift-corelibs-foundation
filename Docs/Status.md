@@ -81,7 +81,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLSessionTask`             | Mostly Complete | Incomplete    | `NSCopying`, `cancel()`, `error`, `createTransferState(url:)` with streams, and others remain unimplemented        |
     | `URLSessionDataTask`         | Complete        | Incomplete    |                                                                                                                    |
     | `URLSessionUploadTask`       | Complete        | None          |                                                                                                                    |
-    | `URLSessionDownloadTask`     | Incomplete      | Incomplete    | `cancel(byProducingResumeData:) remains unimplemented                                                              |
+    | `URLSessionDownloadTask`     | Incomplete      | Incomplete    | `cancel(byProducingResumeData:)` remains unimplemented                                                             |
     | `URLSessionStreamTask`       | Unimplemented   | None          |                                                                                                                    |
     | `TaskRegistry`               | N/A             | N/A           | For internal use only                                                                                              |
     | `TransferState`              | N/A             | N/A           | For internal use only                                                                                              |
