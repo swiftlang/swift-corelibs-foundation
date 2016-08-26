@@ -300,6 +300,10 @@ open class NSMutableURLRequest : NSURLRequest {
         super.init(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
     }
     
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        return mutableCopy(with: zone)
+    }
+    
     /*@NSCopying */ open override var url: URL? {
         get { return super.url }
         //TODO: set { super.URL = newValue.map{ $0.copy() as! NSURL } }

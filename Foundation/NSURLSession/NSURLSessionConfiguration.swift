@@ -33,7 +33,7 @@
 /// on behalf of a suspended application, within certain constraints.
 open class URLSessionConfiguration : NSObject, NSCopying {
     public override init() {
-        self.requestCachePolicy = NSURLRequest.CachePolicy.useProtocolCachePolicy
+        self.requestCachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
         self.timeoutIntervalForRequest = 60
         self.timeoutIntervalForResource = 604800
         self.networkServiceType = .default
@@ -51,10 +51,10 @@ open class URLSessionConfiguration : NSObject, NSCopying {
     }
     
     private init(identifier: String?,
-                 requestCachePolicy: NSURLRequest.CachePolicy,
+                 requestCachePolicy: URLRequest.CachePolicy,
                  timeoutIntervalForRequest: TimeInterval,
                  timeoutIntervalForResource: TimeInterval,
-                 networkServiceType: NSURLRequest.NetworkServiceType,
+                 networkServiceType: URLRequest.NetworkServiceType,
                  allowsCellularAccess: Bool,
                  discretionary: Bool,
                  connectionProxyDictionary: [AnyHashable:Any]?,
@@ -126,7 +126,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
     open var identifier: String?
     
     /* default cache policy for requests */
-    open var requestCachePolicy: NSURLRequest.CachePolicy
+    open var requestCachePolicy: URLRequest.CachePolicy
     
     /* default timeout for requests.  This will cause a timeout if no data is transmitted for the given timeout value, and is reset whenever data is transmitted. */
     open var timeoutIntervalForRequest: TimeInterval
@@ -135,7 +135,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
     open var timeoutIntervalForResource: TimeInterval
     
     /* type of service for requests. */
-    open var networkServiceType: NSURLRequest.NetworkServiceType
+    open var networkServiceType: URLRequest.NetworkServiceType
     
     /* allow request to route over cellular. */
     open var allowsCellularAccess: Bool

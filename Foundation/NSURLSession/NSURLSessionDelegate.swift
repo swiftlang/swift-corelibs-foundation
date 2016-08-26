@@ -95,7 +95,7 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
      *
      * For tasks in background sessions, redirections will always be followed and this method will not be called.
      */
-    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: NSURLRequest, completionHandler: @escaping (NSURLRequest?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void)
     
     /* The task has received a request specific authentication challenge.
      * If this delegate is not implemented, the session specific authentication challenge
@@ -122,7 +122,7 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
 }
 
 extension URLSessionTaskDelegate {
-    public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: NSURLRequest, completionHandler: @escaping (NSURLRequest?) -> Void) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         completionHandler(request)
     }
     

@@ -76,7 +76,7 @@ class TestURLSession : XCTestCase {
 
     func test_dataTaskWithURLRequest() {
         let urlString = "https://restcountries.eu/rest/v1/name/Peru?fullText=true"
-        let urlRequest = NSURLRequest(url: URL(string: urlString)!)
+        let urlRequest = URLRequest(url: URL(string: urlString)!)
         let d = DataTask(with: expectation(description: "data task"))     
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
@@ -87,7 +87,7 @@ class TestURLSession : XCTestCase {
 
     func test_dataTaskWithURLRequestCompletionHandler() {
         let urlString = "https://restcountries.eu/rest/v1/name/Italy?fullText=true"
-        let urlRequest = NSURLRequest(url: URL(string: urlString)!)
+        let urlRequest = URLRequest(url: URL(string: urlString)!)
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
@@ -125,7 +125,7 @@ class TestURLSession : XCTestCase {
 
     func test_downloadTaskWithURLRequest() {
        let urlString = "https://swift.org/LICENSE.txt"
-       let urlRequest = NSURLRequest(url: URL(string: urlString)!)  
+       let urlRequest = URLRequest(url: URL(string: urlString)!)
        let d = DownloadTask(with: expectation(description: "download task with delegate"))
        d.run(with: urlRequest)
        waitForExpectations(timeout: 12)
@@ -136,7 +136,7 @@ class TestURLSession : XCTestCase {
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let expect = expectation(description: "download task with handler")
-        let req = NSMutableURLRequest(url: URL(string: "https://swift.org/LICENSE.txt")!)
+        let req = URLRequest(url: URL(string: "https://swift.org/LICENSE.txt")!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
             if let e = error {
                 XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
@@ -152,7 +152,7 @@ class TestURLSession : XCTestCase {
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let expect = expectation(description: "download task with handler")
-        let req = NSMutableURLRequest(url: URL(string: "https://swift.org/LICENSE.txt")!)
+        let req = URLRequest(url: URL(string: "https://swift.org/LICENSE.txt")!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
             if let e = error {
                 XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
@@ -175,7 +175,7 @@ class DataTask: NSObject {
        dataTaskExpectation = expectation 
     }
 
-    func run(with request: NSURLRequest) {
+    func run(with request: URLRequest) {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
@@ -233,7 +233,7 @@ class DownloadTask : NSObject {
         task.resume()
     }
 
-    func run(with urlRequest: NSURLRequest) {
+    func run(with urlRequest: URLRequest) {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         session = URLSession(configuration: config, delegate: self, delegateQueue: nil)

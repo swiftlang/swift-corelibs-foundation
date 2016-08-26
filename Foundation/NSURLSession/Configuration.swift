@@ -24,7 +24,7 @@ internal extension URLSession {
         let identifier: String?
         
         /// default cache policy for requests
-        let requestCachePolicy: NSURLRequest.CachePolicy
+        let requestCachePolicy: URLRequest.CachePolicy
         
         /// default timeout for requests.  This will cause a timeout if no data is transmitted for the given timeout value, and is reset whenever data is transmitted.
         let timeoutIntervalForRequest: TimeInterval
@@ -33,7 +33,7 @@ internal extension URLSession {
         let timeoutIntervalForResource: TimeInterval
         
         /// type of service for requests.
-        let networkServiceType: NSURLRequest.NetworkServiceType
+        let networkServiceType: URLRequest.NetworkServiceType
         
         /// allow request to route over cellular.
         let allowsCellularAccess: Bool
@@ -100,13 +100,14 @@ internal extension URLSession._Configuration {
 
 // Configure NSURLRequests
 internal extension URLSession._Configuration {
-    func configure(request: NSMutableURLRequest) {
+    func configure(request: URLRequest) {
+        var request = request
         httpAdditionalHeaders?.forEach {
             guard request.value(forHTTPHeaderField: $0.0) == nil else { return }
             request.setValue($0.1, forHTTPHeaderField: $0.0)
         }
     }
-    func setCookies(on request: NSMutableURLRequest) {
+    func setCookies(on request: URLRequest) {
         if httpShouldSetCookies {
             //TODO: Ask the cookie storage what cookie to set.
         }
@@ -114,7 +115,7 @@ internal extension URLSession._Configuration {
 }
 // Cache Management
 private extension URLSession._Configuration {
-    func cachedResponse(forRequest request: NSURLRequest) -> CachedURLResponse? {
+    func cachedResponse(forRequest request: URLRequest) -> CachedURLResponse? {
         //TODO: Check the policy & consult the cache.
         // There's more detail on how this should work here:
         // <https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSURLRequest_Class/index.html#//apple_ref/swift/enum/c:@E@URLRequestCachePolicy>

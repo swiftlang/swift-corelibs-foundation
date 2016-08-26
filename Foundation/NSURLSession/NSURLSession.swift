@@ -281,7 +281,7 @@ open class URLSession : NSObject {
      */
     
     /* Creates a data task with the given request.  The request may have a body stream. */
-    open func dataTask(with request: NSURLRequest) -> URLSessionDataTask {
+    open func dataTask(with request: URLRequest) -> URLSessionDataTask {
         return dataTask(with: _Request(request), behaviour: .callDelegate)
     }
     
@@ -291,22 +291,22 @@ open class URLSession : NSObject {
     }
     
     /* Creates an upload task with the given request.  The body of the request will be created from the file referenced by fileURL */
-    open func uploadTask(with request: NSURLRequest, fromFile fileURL: URL) -> URLSessionUploadTask {
+    open func uploadTask(with request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask {
         let r = URLSession._Request(request)
         return uploadTask(with: r, body: .file(fileURL), behaviour: .callDelegate)
     }
     
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
-    open func uploadTask(with request: NSURLRequest, fromData bodyData: Data) -> URLSessionUploadTask {
+    open func uploadTask(with request: URLRequest, fromData bodyData: Data) -> URLSessionUploadTask {
         let r = URLSession._Request(request)
         return uploadTask(with: r, body: .data(createDispatchData(bodyData)), behaviour: .callDelegate)
     }
     
     /* Creates an upload task with the given request.  The previously set body stream of the request (if any) is ignored and the URLSession:task:needNewBodyStream: delegate will be called when the body payload is required. */
-    open func uploadTask(withStreamedRequest request: NSURLRequest) -> URLSessionUploadTask { NSUnimplemented() }
+    open func uploadTask(withStreamedRequest request: URLRequest) -> URLSessionUploadTask { NSUnimplemented() }
     
     /* Creates a download task with the given request. */
-    open func downloadTask(with request: NSURLRequest) -> URLSessionDownloadTask {
+    open func downloadTask(with request: URLRequest) -> URLSessionDownloadTask {
         let r = URLSession._Request(request)
         return downloadTask(with: r, behavior: .callDelegate)
     }
@@ -328,10 +328,10 @@ open class URLSession : NSObject {
 // Helpers
 fileprivate extension URLSession {
     enum _Request {
-        case request(NSURLRequest)
+        case request(URLRequest)
         case url(URL)
     }
-    func createConfiguredRequest(from request: URLSession._Request) -> NSURLRequest {
+    func createConfiguredRequest(from request: URLSession._Request) -> URLRequest {
         let r = request.createMutableURLRequest()
         _configuration.configure(request: r)
         return r
@@ -341,15 +341,15 @@ extension URLSession._Request {
     init(_ url: URL) {
         self = .url(url)
     }
-    init(_ request: NSURLRequest) {
+    init(_ request: URLRequest) {
         self = .request(request)
     }
 }
 extension URLSession._Request {
-    func createMutableURLRequest() -> NSMutableURLRequest {
+    func createMutableURLRequest() -> URLRequest {
         switch self {
-        case .url(let url): return NSMutableURLRequest(url: url)
-        case .request(let r): return r.mutableCopy() as! NSMutableURLRequest
+        case .url(let url): return URLRequest(url: url)
+        case .request(let r): return r
         }
     }
 }
@@ -420,7 +420,7 @@ extension URLSession {
      * see <Foundation/NSURLError.h>.  The delegate, if any, will still be
      * called for authentication challenges.
      */
-    open func dataTask(with request: NSURLRequest, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask {
+    open func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask {
         return dataTask(with: _Request(request), behaviour: .dataCompletionHandler(completionHandler))
     }
 
@@ -431,12 +431,12 @@ extension URLSession {
     /*
      * upload convenience method.
      */
-    open func uploadTask(with request: NSURLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
+    open func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
         let fileData = try! Data(contentsOf: fileURL) 
         return uploadTask(with: request, fromData: fileData, completionHandler: completionHandler)
     }
 
-    open func uploadTask(with request: NSURLRequest, fromData bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask { 
+    open func uploadTask(with request: URLRequest, fromData bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
         return uploadTask(with: _Request(request), body: .data(createDispatchData(bodyData!)), behaviour: .dataCompletionHandler(completionHandler))
     }
     
@@ -446,7 +446,7 @@ extension URLSession {
      * copied during the invocation of the completion routine.  The file
      * will be removed automatically.
      */
-    open func downloadTask(with request: NSURLRequest, completionHandler: @escaping (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { 
+    open func downloadTask(with request: URLRequest, completionHandler: @escaping (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask {
         return downloadTask(with: _Request(request), behavior: .downloadCompletionHandler(completionHandler))
     }
 
