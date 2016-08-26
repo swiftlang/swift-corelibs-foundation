@@ -26,46 +26,46 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name                  | Status          | Test Coverage | Notes                                                                                                              |
     |------------------------------|-----------------|---------------|--------------------------------------------------------------------------------------------------------------------|
-    | `URLAuthenticationChallenge` | Unimplemented   | ?             |                                                                                                                    |
-    | `URLCache`                   | Unimplemented   | ?             |                                                                                                                    |
-    | `URLCredential`              | Mostly Complete | ?             | `NSCoding` and `NSCopying` remain unimplemented                                                                    |
-    | `URLCredentialStorage`       | Unimplemented   | ?             |                                                                                                                    |
+    | `URLAuthenticationChallenge` | Unimplemented   | None          |                                                                                                                    |
+    | `URLCache`                   | Unimplemented   | None          |                                                                                                                    |
+    | `URLCredential`              | Mostly Complete | Incomplete    | `NSCoding` and `NSCopying` remain unimplemented                                                                    |
+    | `URLCredentialStorage`       | Unimplemented   | None          |                                                                                                                    |
     | `NSURLError*`                | Complete        | N/A           |                                                                                                                    |
-    | `URLProtectionSpace`         | Unimplemented   | ?             |                                                                                                                    |
-    | `URLProtocol`                | Unimplemented   | ?             |                                                                                                                    |
-    | `URLProtocolClient`          | Unimplemented   | ?             |                                                                                                                    |
-    | `NSURLRequest`               | Mostly Complete | ?             | `NSCoding` remains unimplemented                                                                                   |
-    | `NSMutableURLRequest`        | Mostly Complete | ?             | `NSCoding` remains unimplemented                                                                                   |
-    | `URLResponse`                | Mostly Complete | ?             | `NSCoding` remains unimplemented                                                                                   |
-    | `NSHTTPURLResponse`          | Mostly Complete | ?             | `NSCoding` remains unimplemented                                                                                   |
-    | `NSURL`                      | Mostly Complete | ?             | `NSCoding` with non-keyed-coding archivers, `checkResourceIsReachable()`, and resource values remain unimplemented |
-    | `NSURLQueryItem`             | Mostly Complete | ?             | `NSCoding` remains unimplemented                                                                                   |
+    | `URLProtectionSpace`         | Unimplemented   | None          |                                                                                                                    |
+    | `URLProtocol`                | Unimplemented   | None          |                                                                                                                    |
+    | `URLProtocolClient`          | Unimplemented   | None          |                                                                                                                    |
+    | `NSURLRequest`               | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
+    | `NSMutableURLRequest`        | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
+    | `URLResponse`                | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
+    | `NSHTTPURLResponse`          | Mostly Complete | Substantial   | `NSCoding` remains unimplemented                                                                                   |
+    | `NSURL`                      | Mostly Complete | Substantial   | `NSCoding` with non-keyed-coding archivers, `checkResourceIsReachable()`, and resource values remain unimplemented |
+    | `NSURLQueryItem`             | Mostly Complete | N/A           | `NSCoding` remains unimplemented                                                                                   |
     | `URLResourceKey`             | Complete        | N/A           |                                                                                                                    |
     | `URLFileResourceType`        | Complete        | N/A           |                                                                                                                    |
-    | `URL`                        | Complete        | ?             |                                                                                                                    |
+    | `URL`                        | Complete        | Incomplete    |                                                                                                                    |
     | `URLResourceValues`          | Complete        | N/A           |                                                                                                                    |
-    | `URLComponents`              | Complete        | ?             |                                                                                                                    |
-    | `URLRequest`                 | Complete        | ?             |                                                                                                                    |
-    | `HTTPCookie`                 | Complete        | ?             |                                                                                                                    |
-    | `HTTPCookiePropertyKey`      | Complete        | ?             |                                                                                                                    |
-    | `HTTPCookieStorage`          | Unimplemented   | ?             |                                                                                                                    |
-    | `Host`                       | Complete        | ?             |                                                                                                                    |
-    | `Configuration`              | N/A             | ?             | For internal use only                                                                                              |
-    | `EasyHandle`                 | N/A             | ?             | For internal use only                                                                                              |
-    | `HTTPBodySource`             | N/A             | ?             | For internal use only                                                                                              |
-    | `HTTPMessage`                | N/A             | ?             | For internal use only                                                                                              |
-    | `libcurlHelpers`             | N/A             | ?             | For internal use only                                                                                              |
-    | `MultiHandle`                | N/A             | ?             | For internal use only                                                                                              |
-    | `URLSession`                 | Mostly Complete | ?             | `shared`, invalidation, resetting, flushing, getting tasks, and others remain unimplemented                        |
-    | `URLSessionConfiguration`    | Mostly Complete | ?             | `ephemeral` and `background(withIdentifier:)` remain unimplemented                                                 |
+    | `URLComponents`              | Complete        | Incomplete    |                                                                                                                    |
+    | `URLRequest`                 | Complete        | None          |                                                                                                                    |
+    | `HTTPCookie`                 | Complete        | Incomplete    |                                                                                                                    |
+    | `HTTPCookiePropertyKey`      | Complete        | N/A           |                                                                                                                    |
+    | `HTTPCookieStorage`          | Unimplemented   | None          |                                                                                                                    |
+    | `Host`                       | Complete        | None          |                                                                                                                    |
+    | `Configuration`              | N/A             | N/A           | For internal use only                                                                                              |
+    | `EasyHandle`                 | N/A             | N/A           | For internal use only                                                                                              |
+    | `HTTPBodySource`             | N/A             | N/A           | For internal use only                                                                                              |
+    | `HTTPMessage`                | N/A             | N/A           | For internal use only                                                                                              |
+    | `libcurlHelpers`             | N/A             | N/A           | For internal use only                                                                                              |
+    | `MultiHandle`                | N/A             | N/A           | For internal use only                                                                                              |
+    | `URLSession`                 | Mostly Complete | Incomplete    | `shared`, invalidation, resetting, flushing, getting tasks, and others remain unimplemented                        |
+    | `URLSessionConfiguration`    | Mostly Complete | Incomplete    | `ephemeral` and `background(withIdentifier:)` remain unimplemented                                                 |
     | `URLSessionDelegate`         | Complete        | N/A           |                                                                                                                    |
-    | `URLSessionTask`             | Mostly Complete | ?             | `NSCopying`, `cancel()`, `error`, `createTransferState(url:)` with streams, and others remain unimplemented        |
-    | `URLSessionDataTask`         | Complete        | ?             |                                                                                                                    |
-    | `URLSessionUploadTask`       | Complete        | ?             |                                                                                                                    |
-    | `URLSessionDownloadTask`     | Unimplemented   | ?             |                                                                                                                    |
-    | `URLSessionStreamTask`       | Unimplemented   | ?             |                                                                                                                    |
-    | `TaskRegistry`               | N/A             | ?             | For internal use only                                                                                              |
-    | `TransferState`              | N/A             | ?             | For internal use only                                                                                              |
+    | `URLSessionTask`             | Mostly Complete | Incomplete    | `NSCopying`, `cancel()`, `error`, `createTransferState(url:)` with streams, and others remain unimplemented        |
+    | `URLSessionDataTask`         | Complete        | Incomplete    |                                                                                                                    |
+    | `URLSessionUploadTask`       | Complete        | None          |                                                                                                                    |
+    | `URLSessionDownloadTask`     | Incomplete      | Incomplete    | `cancel(byProducingResumeData:) remains unimplemented                                                              |
+    | `URLSessionStreamTask`       | Unimplemented   | None          |                                                                                                                    |
+    | `TaskRegistry`               | N/A             | N/A           | For internal use only                                                                                              |
+    | `TransferState`              | N/A             | N/A           | For internal use only                                                                                              |
 
 
 * **Formatters**: Locale and language-correct formatted values.
