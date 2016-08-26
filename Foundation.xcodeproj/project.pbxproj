@@ -104,6 +104,7 @@
 		5B7818651D6FA74D004A01F2 /* TestData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818641D6FA74D004A01F2 /* TestData.swift */; };
 		5B7818801D6FB8DE004A01F2 /* TestDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B78187F1D6FB8DE004A01F2 /* TestDate.swift */; };
 		5B7818821D70A27B004A01F2 /* TestDateInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818811D70A27B004A01F2 /* TestDateInterval.swift */; };
+		5B7818841D70D123004A01F2 /* TestIndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818831D70D123004A01F2 /* TestIndexPath.swift */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
 		5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D897B1BBDAE0800234F36 /* CFPlatform.c */; };
@@ -667,6 +668,7 @@
 		5B7818641D6FA74D004A01F2 /* TestData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestData.swift; sourceTree = "<group>"; };
 		5B78187F1D6FB8DE004A01F2 /* TestDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDate.swift; sourceTree = "<group>"; };
 		5B7818811D70A27B004A01F2 /* TestDateInterval.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDateInterval.swift; sourceTree = "<group>"; };
+		5B7818831D70D123004A01F2 /* TestIndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestIndexPath.swift; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B8BA1611D0B773A00938C27 /* IndexSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexSet.swift; sourceTree = "<group>"; };
 		5B94E8811C430DE70055C035 /* NSStringAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSStringAPI.swift; sourceTree = "<group>"; };
@@ -1345,6 +1347,7 @@
 				88D28DE61C13AE9000494606 /* TestNSGeometry.swift */,
 				848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */,
 				4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */,
+				5B7818831D70D123004A01F2 /* TestIndexPath.swift */,
 				EA66F63E1BF1619600136161 /* TestNSIndexSet.swift */,
 				5EB6A15C1C188FC40037DCB8 /* TestNSJSONSerialization.swift */,
 				D3A597F11C33C68E00295652 /* TestNSKeyedArchiver.swift */,
@@ -2232,6 +2235,7 @@
 				5B13B3491C582D4C00651CE2 /* TestNSTimeZone.swift in Sources */,
 				5B13B34B1C582D4C00651CE2 /* TestNSURLRequest.swift in Sources */,
 				EA08126B1DA80C3600651B70 /* TestNSProgressFraction.swift in Sources */,
+				5B7818841D70D123004A01F2 /* TestIndexPath.swift in Sources */,
 				5B13B33E1C582D4C00651CE2 /* TestNSProcessInfo.swift in Sources */,
 				5B13B33F1C582D4C00651CE2 /* TestNSPropertyList.swift in Sources */,
 				5B13B32C1C582D4C00651CE2 /* TestNSDate.swift in Sources */,
