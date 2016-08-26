@@ -107,6 +107,7 @@
 		5B7818841D70D123004A01F2 /* TestIndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818831D70D123004A01F2 /* TestIndexPath.swift */; };
 		5B7818861D70D205004A01F2 /* TestIndexSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818851D70D205004A01F2 /* TestIndexSet.swift */; };
 		5B7818881D70D7A0004A01F2 /* TestLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818871D70D7A0004A01F2 /* TestLocale.swift */; };
+		5B78188A1D70E236004A01F2 /* TestMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818891D70E236004A01F2 /* TestMeasurement.swift */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
 		5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D897B1BBDAE0800234F36 /* CFPlatform.c */; };
@@ -673,6 +674,7 @@
 		5B7818831D70D123004A01F2 /* TestIndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestIndexPath.swift; sourceTree = "<group>"; };
 		5B7818851D70D205004A01F2 /* TestIndexSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestIndexSet.swift; sourceTree = "<group>"; };
 		5B7818871D70D7A0004A01F2 /* TestLocale.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestLocale.swift; sourceTree = "<group>"; };
+		5B7818891D70E236004A01F2 /* TestMeasurement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestMeasurement.swift; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B8BA1611D0B773A00938C27 /* IndexSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexSet.swift; sourceTree = "<group>"; };
 		5B94E8811C430DE70055C035 /* NSStringAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSStringAPI.swift; sourceTree = "<group>"; };
@@ -1359,6 +1361,7 @@
 				D3A597EF1C33A9E500295652 /* TestNSKeyedUnarchiver.swift */,
 				61A395F91C2484490029B337 /* TestNSLocale.swift */,
 				5B7818871D70D7A0004A01F2 /* TestLocale.swift */,
+				5B7818891D70E236004A01F2 /* TestMeasurement.swift */,
 				61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */,
 				5EF673AB1C28B527006212A3 /* TestNSNotificationQueue.swift */,
 				5B6F17921C48631C00935030 /* TestNSNull.swift */,
@@ -2285,6 +2288,7 @@
 				D4FE895B1D703D1100DA7986 /* TestURLRequest.swift in Sources */,
 				5B13B33A1C582D4C00651CE2 /* TestNSNumber.swift in Sources */,
 				5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */,
+				5B78188A1D70E236004A01F2 /* TestMeasurement.swift in Sources */,
 				5B13B3311C582D4C00651CE2 /* TestNSIndexPath.swift in Sources */,
 				5B13B3271C582D4C00651CE2 /* TestNSArray.swift in Sources */,
 				5B13B3461C582D4C00651CE2 /* TestNSTask.swift in Sources */,

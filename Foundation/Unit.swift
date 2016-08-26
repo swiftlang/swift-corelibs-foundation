@@ -79,6 +79,16 @@ open class UnitConverterLinear : UnitConverter, NSSecureCoding {
     }
     
     public static var supportsSecureCoding: Bool { return true }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? UnitConverterLinear {
+            if other === self {
+                return true
+            }
+            return other.constant == constant && other.coefficient == coefficient
+        }
+        return false
+    }
 }
 
 private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
@@ -115,6 +125,16 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
     }
     
     fileprivate static var supportsSecureCoding: Bool { return true }
+    
+    fileprivate override func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? UnitConverterReciprocal {
+            if other === self {
+                return true
+            }
+            return other.reciprocal == reciprocal
+        }
+        return false
+    }
 }
 
 /*
@@ -125,7 +145,9 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
     
     
     open private(set) var symbol: String
-    
+    public override init() {
+        self.symbol = ""
+    }
     
     public init(symbol: String) {
         self.symbol = symbol
@@ -133,6 +155,19 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
     
     open func copy(with zone: NSZone?) -> Any {
         return self
+    }
+    
+    override open func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? Unit {
+            if other === self {
+                return true
+            }
+            if other.symbol != symbol {
+                return false
+            }
+            return true
+        }
+        return false
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -163,6 +198,16 @@ open class Dimension : Unit {
     public init(symbol: String, converter: UnitConverter) {
         self.converter = converter
         super.init(symbol: symbol)
+    }
+    
+    override open func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? Dimension {
+            if !super.isEqual(other) {
+                return false
+            }
+            return other.converter == converter
+        }
+        return false
     }
     
     /*

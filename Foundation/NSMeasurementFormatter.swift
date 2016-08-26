@@ -78,6 +78,3 @@ open class MeasurementFormatter : Formatter, NSSecureCoding {
     public static var supportsSecureCoding: Bool { return true }
 }
 
-extension MeasurementFormatter {
-    public func string<UnitType : Unit>(from measurement: Measurement<UnitType>) -> String { NSUnimplemented() }
-}
