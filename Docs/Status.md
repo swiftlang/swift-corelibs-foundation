@@ -271,16 +271,16 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name        | Status          | Test Coverage | Notes                                                                                                                           |
     |--------------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------------|
-    | `NSCalendar`       | Mostly Complete | ?             | `NSCoding` from non-keyed-coding archivers, `autoupdatingCurrent`, and `enumerateDates` remain unimplemented                    |
-    | `NSDateComponents` | Mostly Complete | ?             | `NSCoding` from non-keyed-coding archivers remains unimplemented                                                                |
-    | `Calendar`         | Complete        | ?             |                                                                                                                                 |
-    | `DateComponents`   | Complete        | ?             |                                                                                                                                 |
-    | `NSDate`           | Mostly Complete | ?             | Encoding to non-keyed-coding archivers and `timeIntervalSinceReferenceDate` remain unimplemented                                |
-    | `NSDateInterval`   | Complete        | ?             |                                                                                                                                 |
-    | `DateInterval`     | Complete        | ?             |                                                                                                                                 |
-    | `Date`             | Complete        | ?             |                                                                                                                                 |
-    | `NSTimeZone`       | Incomplete      | ?             | `init(forSecondsFromGMT:)`, `localTimeZones()`, `knownTimeZoneNames`, `abbreviationDictionary`, and others remain unimplemented |
-    | `TimeZone`         | Complete        | ?             |                                                                                                                                 |
+    | `NSCalendar`       | Mostly Complete | None          | `NSCoding` from non-keyed-coding archivers, `autoupdatingCurrent`, and `enumerateDates` remain unimplemented                    |
+    | `NSDateComponents` | Mostly Complete | None          | `NSCoding` from non-keyed-coding archivers remains unimplemented                                                                |
+    | `Calendar`         | Complete        | Incomplete    |                                                                                                                                 |
+    | `DateComponents`   | Complete        | Incomplete    |                                                                                                                                 |
+    | `NSDate`           | Mostly Complete | Incomplete    | Encoding to non-keyed-coding archivers and `timeIntervalSinceReferenceDate` remain unimplemented                                |
+    | `NSDateInterval`   | Complete        | None          |                                                                                                                                 |
+    | `DateInterval`     | Complete        | None          |                                                                                                                                 |
+    | `Date`             | Complete        | Incomplete    |                                                                                                                                 |
+    | `NSTimeZone`       | Incomplete      | Incomplete    | `init(forSecondsFromGMT:)`, `localTimeZones()`, `knownTimeZoneNames`, `abbreviationDictionary`, and others remain unimplemented |
+    | `TimeZone`         | Complete        | Incomplete    |                                                                                                                                 |
 
 * **Notifications**: Classes for loosely coupling events from a set of many observers.
 
