@@ -295,13 +295,13 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name              | Status          | Test Coverage | Notes                             |
     |--------------------------|-----------------|---------------|-----------------------------------|
-    | `NSNull`                 | Complete        | ?             |                                   |
-    | `NSData`                 | Complete        | ?             |                                   |
-    | `NSMutableData`          | Complete        | ?             |                                   |
-    | `Data`                   | Complete        | ?             |                                   |
-    | `NSProgress`             | Unimplemented   | ?             |                                   |
-    | `NSError`                | Complete        | ?             |                                   |
-    | `NSUUID`                 | Complete        | ?             |                                   |
-    | `UUID`                   | Complete        | ?             |                                   |
-    | `NSPersonNameComponents` | Mostly Complete | ?             | `NSCopying` remains unimplemented |
-    | `PersonNameComponents`   | Complete        | ?             |                                   |
+    | `NSNull`                 | Complete        | Substantial   |                                   |
+    | `NSData`                 | Complete        | Substantial   |                                   |
+    | `NSMutableData`          | Complete        | Substantial   |                                   |
+    | `Data`                   | Complete        | Substantial   |                                   |
+    | `NSProgress`             | Unimplemented   | None          |                                   |
+    | `NSError`                | Complete        | None          |                                   |
+    | `NSUUID`                 | Complete        | Substantial   |                                   |
+    | `UUID`                   | Complete        | None          |                                   |
+    | `NSPersonNameComponents` | Mostly Complete | None          | `NSCopying` remains unimplemented |
+    | `PersonNameComponents`   | Complete        | None          |                                   |
