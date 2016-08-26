@@ -358,11 +358,9 @@ class TestAffineTransform : XCTestCase {
             AffineTransform(m11: -55.66, m12: 22.7, m21: 1.5, m22: 0.0, tX: -22, tY: -33)
         ]
         let anyHashables = values.map(AnyHashable.init)
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        XCTAssertEqual(AffineTransform.self, type(of: anyHashables[0].base))
-        XCTAssertEqual(AffineTransform.self, type(of: anyHashables[1].base))
-        XCTAssertEqual(AffineTransform.self, type(of: anyHashables[2].base))
-#endif
+        XCTAssertSameType(AffineTransform.self, type(of: anyHashables[0].base))
+        XCTAssertSameType(AffineTransform.self, type(of: anyHashables[1].base))
+        XCTAssertSameType(AffineTransform.self, type(of: anyHashables[2].base))
         XCTAssertNotEqual(anyHashables[0], anyHashables[1])
         XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
@@ -379,11 +377,9 @@ class TestAffineTransform : XCTestCase {
             makeNSAffineTransform(rotatedByDegrees: 10),
             ]
         let anyHashables = values.map(AnyHashable.init)
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        XCTAssertEqual(AffineTransform.self, type(of: anyHashables[0].base))
-        XCTAssertEqual(AffineTransform.self, type(of: anyHashables[1].base))
-        XCTAssertEqual(AffineTransform.self, type(of: anyHashables[2].base))
-#endif
+        XCTAssertSameType(AffineTransform.self, type(of: anyHashables[0].base))
+        XCTAssertSameType(AffineTransform.self, type(of: anyHashables[1].base))
+        XCTAssertSameType(AffineTransform.self, type(of: anyHashables[2].base))
         XCTAssertNotEqual(anyHashables[0], anyHashables[1])
         XCTAssertEqual(anyHashables[1], anyHashables[2])
     }

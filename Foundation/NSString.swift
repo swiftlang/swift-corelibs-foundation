@@ -1448,3 +1448,13 @@ extension NSString : _StructTypeBridgeable {
         return _StructType._unconditionallyBridgeFromObjectiveC(self)
     }
 }
+
+extension NSString : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to prevent infinite recursion trying to bridge
+    // AnyHashable to NSObject.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        // Consistently use Swift equality and hashing semantics for all strings.
+        return AnyHashable(String._unconditionallyBridgeFromObjectiveC(self))
+    }
+}

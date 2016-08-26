@@ -19,6 +19,20 @@ internal func testBundle() -> Bundle {
     return Bundle.main
 }
 
+internal func XCTAssertSameType(_ expression1: @autoclosure () throws -> Any.Type, _ expression2: @autoclosure () throws -> Any.Type, _ message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line) {
+    do {
+        let lhs = try expression1()
+        let rhs = try expression2()
+        if lhs != rhs {
+            let msg = message()
+            fatalError("Expected \(lhs) == \(rhs) : \(msg) in \(file):\(line)")
+        }
+    } catch {
+        let msg = message()
+        fatalError("An error was thrown while evaluating type comparison: \(msg) in \(file):\(line)")
+    }
+}
+
 // For the Swift version of the Foundation tests, we must manually list all test cases here.
 XCTMain([
     testCase(TestNSAffineTransform.allTests),
@@ -35,6 +49,7 @@ XCTMain([
     testCase(TestNSDate.allTests),
     testCase(TestDate.allTests),
     testCase(TestNSDateComponents.allTests),
+    testCase(TestDateInterval.allTests),
     testCase(TestNSDateFormatter.allTests),
     testCase(TestNSDictionary.allTests),
     testCase(TestNSFileManager.allTests),

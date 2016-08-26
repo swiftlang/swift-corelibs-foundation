@@ -930,11 +930,9 @@ class TestData : XCTestCase {
             Data(base64Encoded: "AAAB")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        XCTAssertEqual(Data.self, type(of: anyHashables[0].base))
-        XCTAssertEqual(Data.self, type(of: anyHashables[1].base))
-        XCTAssertEqual(Data.self, type(of: anyHashables[2].base))
-#endif
+        XCTAssertSameType(Data.self, type(of: anyHashables[0].base))
+        XCTAssertSameType(Data.self, type(of: anyHashables[1].base))
+        XCTAssertSameType(Data.self, type(of: anyHashables[2].base))
         XCTAssertNotEqual(anyHashables[0], anyHashables[1])
         XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
@@ -946,11 +944,9 @@ class TestData : XCTestCase {
             NSData(base64Encoded: "AAAB")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        XCTAssertEqual(Data.self, type(of: anyHashables[0].base))
-        XCTAssertEqual(Data.self, type(of: anyHashables[1].base))
-        XCTAssertEqual(Data.self, type(of: anyHashables[2].base))
-#endif
+        XCTAssertSameType(Data.self, type(of: anyHashables[0].base))
+        XCTAssertSameType(Data.self, type(of: anyHashables[1].base))
+        XCTAssertSameType(Data.self, type(of: anyHashables[2].base))
         XCTAssertNotEqual(anyHashables[0], anyHashables[1])
         XCTAssertEqual(anyHashables[1], anyHashables[2])
     }

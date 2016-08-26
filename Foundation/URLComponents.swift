@@ -427,6 +427,14 @@ extension URLComponents : _ObjectTypeBridgeable {
     }
 }
 
+extension NSURLComponents : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(URLComponents._unconditionallyBridgeFromObjectiveC(self))
+    }
+}
+
 extension URLQueryItem : _ObjectTypeBridgeable {
     public typealias _ObjectType = NSURLQueryItem
     
@@ -456,3 +464,12 @@ extension URLQueryItem : _ObjectTypeBridgeable {
         return result!
     }
 }
+
+extension NSURLQueryItem : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(URLQueryItem._unconditionallyBridgeFromObjectiveC(self))
+    }
+}
+

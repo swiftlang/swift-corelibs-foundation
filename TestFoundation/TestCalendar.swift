@@ -276,11 +276,9 @@ class TestCalendar : XCTestCase {
             Calendar(identifier: .japanese)
         ]
         let anyHashables = values.map(AnyHashable.init)
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        XCTAssertEqual(Calendar.self, type(of: anyHashables[0].base))
-        XCTAssertEqual(Calendar.self, type(of: anyHashables[1].base))
-        XCTAssertEqual(Calendar.self, type(of: anyHashables[2].base))
-#endif
+        XCTAssertSameType(Calendar.self, type(of: anyHashables[0].base))
+        XCTAssertSameType(Calendar.self, type(of: anyHashables[1].base))
+        XCTAssertSameType(Calendar.self, type(of: anyHashables[2].base))
         XCTAssertNotEqual(anyHashables[0], anyHashables[1])
         XCTAssertEqual(anyHashables[1], anyHashables[2])
     }

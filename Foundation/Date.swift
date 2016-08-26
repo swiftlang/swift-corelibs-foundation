@@ -254,6 +254,15 @@ extension Date : _ObjectTypeBridgeable {
     }
 }
 
+extension NSDate : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        
+        return AnyHashable(Date._unconditionallyBridgeFromObjectiveC(self))
+    }
+}
+
 extension Date : CustomPlaygroundQuickLookable {
     var summary: String {
         let df = DateFormatter()

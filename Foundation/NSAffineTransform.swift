@@ -427,3 +427,11 @@ extension NSAffineTransform : _StructTypeBridgeable {
         return AffineTransform._unconditionallyBridgeFromObjectiveC(self)
     }
 }
+
+extension NSAffineTransform : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(AffineTransform._unconditionallyBridgeFromObjectiveC(self))
+    }
+}

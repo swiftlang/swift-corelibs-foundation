@@ -158,11 +158,9 @@ class TestDate : XCTestCase {
             dateWithString("2010-05-17 14:49:47 -0700"),
             ]
         let anyHashables = values.map(AnyHashable.init)
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        XCTAssertEqual(Date.self, type(of: anyHashables[0].base))
-        XCTAssertEqual(Date.self, type(of: anyHashables[1].base))
-        XCTAssertEqual(Date.self, type(of: anyHashables[2].base))
-#endif
+        XCTAssertSameType(Date.self, type(of: anyHashables[0].base))
+        XCTAssertSameType(Date.self, type(of: anyHashables[1].base))
+        XCTAssertSameType(Date.self, type(of: anyHashables[2].base))
         XCTAssertNotEqual(anyHashables[0], anyHashables[1])
         XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
@@ -174,11 +172,9 @@ class TestDate : XCTestCase {
             NSDate(timeIntervalSince1970: 1000000001),
             ]
         let anyHashables = values.map(AnyHashable.init)
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        XCTAssertEqual(Date.self, type(of: anyHashables[0].base))
-        XCTAssertEqual(Date.self, type(of: anyHashables[1].base))
-        XCTAssertEqual(Date.self, type(of: anyHashables[2].base))
-#endif
+        XCTAssertSameType(Date.self, type(of: anyHashables[0].base))
+        XCTAssertSameType(Date.self, type(of: anyHashables[1].base))
+        XCTAssertSameType(Date.self, type(of: anyHashables[2].base))
         XCTAssertNotEqual(anyHashables[0], anyHashables[1])
         XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
@@ -190,11 +186,9 @@ class TestDate : XCTestCase {
             DateComponents(year: 1995),
             ]
         let anyHashables = values.map(AnyHashable.init)
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        XCTAssertEqual(DateComponents.self, type(of: anyHashables[0].base))
-        XCTAssertEqual(DateComponents.self, type(of: anyHashables[1].base))
-        XCTAssertEqual(DateComponents.self, type(of: anyHashables[2].base))
-#endif
+        XCTAssertSameType(DateComponents.self, type(of: anyHashables[0].base))
+        XCTAssertSameType(DateComponents.self, type(of: anyHashables[1].base))
+        XCTAssertSameType(DateComponents.self, type(of: anyHashables[2].base))
         XCTAssertNotEqual(anyHashables[0], anyHashables[1])
         XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
@@ -211,11 +205,9 @@ class TestDate : XCTestCase {
             makeNSDateComponents(year: 1995),
             ]
         let anyHashables = values.map(AnyHashable.init)
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        XCTAssertEqual(DateComponents.self, type(of: anyHashables[0].base))
-        XCTAssertEqual(DateComponents.self, type(of: anyHashables[1].base))
-        XCTAssertEqual(DateComponents.self, type(of: anyHashables[2].base))
-#endif
+        XCTAssertSameType(DateComponents.self, type(of: anyHashables[0].base))
+        XCTAssertSameType(DateComponents.self, type(of: anyHashables[1].base))
+        XCTAssertSameType(DateComponents.self, type(of: anyHashables[2].base))
         XCTAssertNotEqual(anyHashables[0], anyHashables[1])
         XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
