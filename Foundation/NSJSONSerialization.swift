@@ -174,7 +174,7 @@ open class JSONSerialization : NSObject {
     
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
      */
-    open class func writeJSONObject(_ obj: Any, toStream stream: NSOutputStream, options opt: WritingOptions) throws -> Int {
+    open class func writeJSONObject(_ obj: Any, toStream stream: OutputStream, options opt: WritingOptions) throws -> Int {
         let jsonData = try _data(withJSONObject: obj, options: opt, stream: true)
         let count = jsonData.count
         return jsonData.withUnsafeBytes { (bytePtr) -> Int in

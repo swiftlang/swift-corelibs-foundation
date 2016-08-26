@@ -1142,7 +1142,7 @@ open class URLSessionDownloadTask : URLSessionTask {
  * outstanding read and write calls will have their completion
  * handlers invoked with an appropriate error.
  *
- * It is also possible to create NSInputStream and NSOutputStream
+ * It is also possible to create InputStream and OutputStream
  * instances from an URLSessionTask by sending
  * -captureStreams to the task.  All outstanding read and writess are
  * completed before the streams are created.  Once the streams are
