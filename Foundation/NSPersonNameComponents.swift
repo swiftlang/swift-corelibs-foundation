@@ -44,7 +44,16 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         aCoder.encode(self.nickname?._bridgeToObjectiveC(), forKey: "NS.nickname")
     }
     
-    open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> Any {
+        let comps = NSPersonNameComponents()
+        comps.namePrefix = namePrefix
+        comps.givenName = givenName
+        comps.middleName = middleName
+        comps.familyName = familyName
+        comps.nameSuffix = nameSuffix
+        comps.nickname = nickname
+        return comps
+    }
     
     /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
     
@@ -70,6 +79,37 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
        The phoneticRepresentation of the phoneticRepresentation object itself will be ignored. nil by default, must be instantiated.
     */
     /*@NSCopying*/ open var phoneticRepresentation: PersonNameComponents?
+    
+    internal func isEqualToComponents(_ other: PersonNameComponents) -> Bool {
+        if other.namePrefix != namePrefix {
+            return false
+        }
+        if other.givenName != givenName {
+            return false
+        }
+        if other.middleName != middleName {
+            return false
+        }
+        if other.familyName != familyName {
+            return false
+        }
+        if other.nameSuffix != nameSuffix {
+            return false
+        }
+        if other.nickname != nickname {
+            return false
+        }
+        return true
+    }
+    
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let other = value as? PersonNameComponents {
+            return isEqualToComponents(other)
+        } else if let other = value as? NSPersonNameComponents {
+            return isEqualToComponents(PersonNameComponents._unconditionallyBridgeFromObjectiveC(other))
+        }
+        return false
+    }
 }
 
 extension NSPersonNameComponents : _StructTypeBridgeable {
