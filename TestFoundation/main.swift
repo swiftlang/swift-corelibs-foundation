@@ -58,6 +58,7 @@ XCTMain([
     testCase(TestNSIndexPath.allTests),
     testCase(TestIndexPath.allTests),
     testCase(TestNSIndexSet.allTests),
+    testCase(TestIndexSet.allTests),
     testCase(TestNSJSONSerialization.allTests),
     testCase(TestNSKeyedArchiver.allTests),
     testCase(TestNSKeyedUnarchiver.allTests),
