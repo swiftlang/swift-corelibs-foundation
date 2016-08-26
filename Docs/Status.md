@@ -6,6 +6,25 @@ Foundation is divided into groups of related functionality. These groups are cur
 
 As Foundation is a work in progress, not all methods and functionality are present. When implementations are completed, this list should be updated to reflect the current state of the library.
 
+#### Table Key
+
+##### Implementation Status
+* _N/A_: This entity is internal or private and implemented ad hoc; there are no guidelines in place to suggest what completion might look like
+* _Unimplemented_: This entity exists, but all functions and methods are `NSUnimplemented()`
+* _Incomplete_: Implementation of this entity has begun, but critical sections have been left `NSUnimplemented()`
+* _Mostly Complete_: All critical sections of this entity have been implemented, but some methods might remain `NSUnimplemented()`
+* _Complete_: All functionality is implemented
+
+##### Test Coverage
+* _N/A_: This entity is internal and public tests are inappropriate, or it is an entity for which testing does not make sense
+* _None_: There are no unit tests specific to this entity; even if it is used indirectly in other unit tests, we should have tests targeting this entity in isolation
+* _Incomplete_: Unit tests exist for this entity, but there are critical paths that are not being tested
+* _Substantial_: Most, if not all, of this entity's critical paths are being tested
+
+There is no _Complete_ status for test coverage because there are always additional tests to be implemented. Even entities with _Substantial_ coverage are missing tests (e.g. `NSCoding` conformance, `NSCopying` conformance, `description`s, etc.)
+
+### Entities
+
 * **Runtime**: The basis for interoperability.
     The classes and methods in this group provide an interface for interoperability between C code and Swift. They also provide common layers used throughout the framework such as the root class `NSObject`.
 
