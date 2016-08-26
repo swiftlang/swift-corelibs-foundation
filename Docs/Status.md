@@ -11,11 +11,11 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name             | Status          | Test Coverage | Notes                                                                       |
     |-------------------------|-----------------|---------------|-----------------------------------------------------------------------------|
-    | `NSEnumerator`          | Complete        | ?             |                                                                             |
-    | `NSGetSizeAndAlignment` | Complete        | ?             |                                                                             |
-    | `NSStringFromClass`     | Mostly Complete | ?             | Only top-level Swift classes are supported                                  |
-    | `NSClassFromString`     | Mostly Complete | ?             | Only top-level Swift classes are supported; mangled names are not supported |
-    | `NSObject`              | Complete        | ?             |                                                                             |
+    | `NSEnumerator`          | Complete        | None          |                                                                             |
+    | `NSGetSizeAndAlignment` | Complete        | None          |                                                                             |
+    | `NSStringFromClass`     | Mostly Complete | None          | Only top-level Swift classes are supported                                  |
+    | `NSClassFromString`     | Mostly Complete | None          | Only top-level Swift classes are supported; mangled names are not supported |
+    | `NSObject`              | Complete        | None          |                                                                             |
     | `NSSwiftRuntime`        | N/A             | N/A           | For internal use only                                                       |
     | `Boxing`                | N/A             | N/A           | For internal use only                                                       |
 
