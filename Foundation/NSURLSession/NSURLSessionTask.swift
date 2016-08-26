@@ -91,15 +91,15 @@ open class URLSessionTask : NSObject, NSCopying {
         super.init()
     }
     /// Create a data task, i.e. with no body
-    internal convenience init(session: URLSession, request: NSURLRequest, taskIdentifier: Int) {
+    internal convenience init(session: URLSession, request: URLRequest, taskIdentifier: Int) {
         self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
     }
-    internal init(session: URLSession, request: NSURLRequest, taskIdentifier: Int, body: _Body) {
+    internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body) {
         self.session = session
         self.workQueue = session.workQueue
         self.taskAttributesIsolation = session.taskAttributesIsolation
         self.taskIdentifier = taskIdentifier
-        self.originalRequest = (request.copy() as! NSURLRequest)
+        self.originalRequest = request
         self.body = body
         let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
         _ = FileManager.default.createFile(atPath: fileName, contents: nil)
@@ -127,19 +127,19 @@ open class URLSessionTask : NSObject, NSCopying {
     open let taskIdentifier: Int
     
     /// May be nil if this is a stream task
-    /*@NSCopying*/ open let originalRequest: NSURLRequest?
+    /*@NSCopying*/ open let originalRequest: URLRequest?
     
     /// May differ from originalRequest due to http server redirection
-    /*@NSCopying*/ open fileprivate(set) var currentRequest: NSURLRequest? {
+    /*@NSCopying*/ open fileprivate(set) var currentRequest: URLRequest? {
         get {
-            var r: NSURLRequest? = nil
+            var r: URLRequest? = nil
             taskAttributesIsolation.sync { r = self._currentRequest }
             return r
         }
         //TODO: dispatch_barrier_async
         set { taskAttributesIsolation.async { self._currentRequest = newValue } }
     }
-    fileprivate var _currentRequest: NSURLRequest? = nil
+    fileprivate var _currentRequest: URLRequest? = nil
     /*@NSCopying*/ open fileprivate(set) var response: URLResponse? {
         get {
             var r: URLResponse? = nil
@@ -450,7 +450,7 @@ fileprivate extension URLSessionTask._Body {
 /// Easy handle related
 fileprivate extension URLSessionTask {
     /// Start a new transfer
-    func startNewTransfer(with request: NSURLRequest) {
+    func startNewTransfer(with request: URLRequest) {
         currentRequest = request
         guard let url = request.url else { fatalError("No URL in request.") }
         internalState = .transferReady(createTransferState(url: url))
@@ -503,7 +503,7 @@ fileprivate extension URLSessionTask {
     /// Set options on the easy handle to match the given request.
     ///
     /// This performs a series of `curl_easy_setopt()` calls.
-    fileprivate func configureEasyHandle(for request: NSURLRequest) {
+    fileprivate func configureEasyHandle(for request: URLRequest) {
         // At this point we will call the equivalent of curl_easy_setopt()
         // to configure everything on the handle. Since we might be re-using
         // a handle, we must be sure to set everything and not rely on defaul
@@ -581,7 +581,7 @@ fileprivate extension URLSessionTask {
     /// expects.
     ///
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
-    func curlHeaders(for request: NSURLRequest) -> [String] {
+    func curlHeaders(for request: URLRequest) -> [String] {
         var result: [String] = []
         var names = Set<String>()
         if let hh = currentRequest?.allHTTPHeaderFields {
@@ -881,7 +881,7 @@ extension URLSessionTask {
             }
         }
     }
-    func failWith(errorCode: Int, request: NSURLRequest) {
+    func failWith(errorCode: Int, request: URLRequest) {
         //TODO: Error handling
         let userInfo: [String : Any]? = request.url.map {
             [
@@ -892,7 +892,7 @@ extension URLSessionTask {
         let error = NSError(domain: NSURLErrorDomain, code: errorCode, userInfo: userInfo)
         completeTask(withError: error)
     }
-    func redirectFor(request: NSURLRequest) {
+    func redirectFor(request: URLRequest) {
         //TODO: Should keep track of the number of redirects that this
         // request has gone through and err out once it's too large, i.e.
         // call into `failWith(errorCode: )` with NSURLErrorHTTPTooManyRedirects
@@ -918,7 +918,7 @@ extension URLSessionTask {
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
-                delegate.urlSession(s, task: self, willPerformHTTPRedirection: response, newRequest: request) { [weak self] (request: NSURLRequest?) in
+                delegate.urlSession(s, task: self, willPerformHTTPRedirection: response, newRequest: request) { [weak self] (request: URLRequest?) in
                     guard let task = self else { return }
                     task.workQueue.async {
                         task.didCompleteRedirectCallback(request)
@@ -930,7 +930,7 @@ extension URLSessionTask {
             startNewTransfer(with: request)
         }
     }
-    fileprivate func didCompleteRedirectCallback(_ request: NSURLRequest?) {
+    fileprivate func didCompleteRedirectCallback(_ request: URLRequest?) {
         guard case .waitingForRedirectCompletionHandler(response: let response, bodyDataDrain: let bodyDataDrain) = internalState else {
             fatalError("Received callback for HTTP redirection, but we're not waiting for it. Was it called multiple times?")
         }
@@ -1028,11 +1028,11 @@ fileprivate extension URLSessionTask {
     enum _CompletionAction {
         case completeTask
         case failWithError(Int)
-        case redirectWithRequest(NSURLRequest)
+        case redirectWithRequest(URLRequest)
     }
     
     /// What action to take
-    func completionAction(forCompletedRequest request: NSURLRequest, response: HTTPURLResponse) -> _CompletionAction {
+    func completionAction(forCompletedRequest request: URLRequest, response: HTTPURLResponse) -> _CompletionAction {
         // Redirect:
         if let request = redirectRequest(for: response, fromRequest: request) {
             return .redirectWithRequest(request)
@@ -1044,7 +1044,7 @@ fileprivate extension URLSessionTask {
     /// RFC 7231 section 6.4 defines redirection behavior for HTTP/1.1
     ///
     /// - SeeAlso: <https://tools.ietf.org/html/rfc7231#section-6.4>
-    func redirectRequest(for response: HTTPURLResponse, fromRequest: NSURLRequest) -> NSURLRequest? {
+    func redirectRequest(for response: HTTPURLResponse, fromRequest: URLRequest) -> URLRequest? {
         //TODO: Do we ever want to redirect for HEAD requests?
         func methodAndURL() -> (String, URL)? {
             guard
@@ -1069,7 +1069,7 @@ fileprivate extension URLSessionTask {
             }
         }
         guard let (method, targetURL) = methodAndURL() else { return nil }
-        let request = fromRequest.mutableCopy() as! NSMutableURLRequest
+        var request = fromRequest
         request.httpMethod = method
         request.url = targetURL
         return request
