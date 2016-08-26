@@ -13,7 +13,7 @@ As Foundation is a work in progress, not all methods and functionality are prese
 * _Unimplemented_: This entity exists, but all functions and methods are `NSUnimplemented()`
 * _Incomplete_: Implementation of this entity has begun, but critical sections have been left `NSUnimplemented()`
 * _Mostly Complete_: All critical sections of this entity have been implemented, but some methods might remain `NSUnimplemented()`
-* _Complete_: All functionality is implemented
+* _Complete_: No methods are left `NSUnimplemented()` (though this is not a guarantee that work is complete -- there may be methods that need overriding or extra work)
 
 ##### Test Coverage
 * _N/A_: This entity is internal and public tests are inappropriate, or it is an entity for which testing does not make sense
