@@ -250,22 +250,22 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
 * **OS**: Mechanisms for interacting with the operating system on a file system level as well as process and thread level
 
-    | Entity Name       | Status          | Test Coverage | Notes                                                                                                                     |
-    |-------------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------|
-    | `FileHandle`      | Mostly Complete | ?             | `NSCoding`, `nullDevice`, and background operations remain unimplemented                                                  |
-    | `Pipe`            | Complete        | ?             |                                                                                                                           |
-    | `FileManager`     | Incomplete      | ?             | URL searches, relationship lookups, item copying, cross-device moving, recursive linking, and others remain unimplemented |
-    | `Task`            | Mostly Complete | ?             | `interrupt()`, `terminate()`, `suspend()`, `resume()`, and `terminationReason` remain unimplemented                       |
-    | `Bundle`          | Mostly Complete | ?             | `allBundles`, `init(for:)`, `unload()`, `classNamed()`, and `principalClass` remain unimplemented                         |
-    | `ProcessInfo`     | Complete        | ?             |                                                                                                                           |
-    | `NSThread`        | Incomplete      | ?             | `isMainThread`, `mainThread`, `name`, `callStackReturnAddresses`, and `callStackSymbols` remain unimplemented             |
-    | `Operation`       | Complete        | ?             |                                                                                                                           |
-    | `BlockOperation`  | Complete        | ?             |                                                                                                                           |
-    | `OperationQueue`  | Complete        | ?             |                                                                                                                           |
-    | `NSLock`          | Mostly Complete | ?             | `lock(before:)` remains unimplemented                                                                                     |
-    | `NSConditionLock` | Complete        | ?             |                                                                                                                           |
-    | `NSRecursiveLock` | Mostly Complete | ?             | `lock(before:)` remains unimplemented                                                                                     |
-    | `NSCondition`     | Complete        | ?             |                                                                                                                           |
+    | Entity Name      | Status          | Test Coverage | Notes                                                                                                                     |
+    |------------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------|
+    | `FileHandle`     | Mostly Complete | Incomplete    | `NSCoding`, `nullDevice`, and background operations remain unimplemented                                                  |
+    | `Pipe`           | Complete        | Incomplete    |                                                                                                                           |
+    | `FileManager`    | Incomplete      | Incomplete    | URL searches, relationship lookups, item copying, cross-device moving, recursive linking, and others remain unimplemented |
+    | `Task`           | Mostly Complete | Substantial   | `interrupt()`, `terminate()`, `suspend()`, `resume()`, and `terminationReason` remain unimplemented                       |
+    | `Bundle`         | Mostly Complete | Incomplete    | `allBundles`, `init(for:)`, `unload()`, `classNamed()`, and `principalClass` remain unimplemented                         |
+    | `ProcessInfo`    | Complete        | Substantial   |                                                                                                                           |
+    | `Thread`         | Incomplete      | Incomplete    | `isMainThread`, `mainThread`, `name`, `callStackReturnAddresses`, and `callStackSymbols` remain unimplemented             |
+    | `Operation`      | Complete        | Incomplete    |                                                                                                                           |
+    | `BlockOperation` | Complete        | Incomplete    |                                                                                                                           |
+    | `OperationQueue` | Complete        | Incomplete    |                                                                                                                           |
+    | `Lock`           | Mostly Complete | None          | `lock(before:)` remains unimplemented                                                                                     |
+    | `ConditionLock`  | Complete        | None          |                                                                                                                           |
+    | `RecursiveLock`  | Mostly Complete | None          | `lock(before:)` remains unimplemented                                                                                     |
+    | `Condition`      | Complete        | None          |                                                                                                                           |
 
 * **DateTime**: Classes for representing dates, timezones, and calendars.
 
