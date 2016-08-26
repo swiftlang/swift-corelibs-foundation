@@ -24,10 +24,10 @@ class TestURLSession : XCTestCase {
             ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
             ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
             ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
-            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
-            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
-            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
-            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
+//            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
+//            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
+//            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
+//            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
             
         ]
     }
