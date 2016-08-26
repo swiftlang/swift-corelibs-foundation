@@ -74,17 +74,17 @@ As Foundation is a work in progress, not all methods and functionality are prese
 
     | Entity Name                     | Status          | Test Coverage | Notes                                                                                     |
     |---------------------------------|-----------------|---------------|-------------------------------------------------------------------------------------------|
-    | `DateComponentFormatter`        | Unimplemented   | ?             |                                                                                           |
-    | `DateIntervalFormatter`         | Unimplemented   | ?             |                                                                                           |
-    | `EnergyFormatter`               | Unimplemented   | ?             |                                                                                           |
-    | `LengthFormatter`               | Unimplemented   | ?             |                                                                                           |
-    | `MassFormatter`                 | Unimplemented   | ?             |                                                                                           |
-    | `NumberFormatter`               | Mostly Complete | ?             | `objectValue(_:range:)` remains unimplemented                                             |
-    | `PersonNameComponentsFormatter` | Unimplemented   | ?             |                                                                                           |
-    | `ByteCountFormatter`            | Unimplemented   | ?             |                                                                                           |
-    | `DateFormatter`                 | Mostly Complete | ?             | `objectValue(_:range:)` and `setLocalizedDateFormatFromTemplate(_:)` remain unimplemented |
-    | `Formatter`                     | Complete        | ?             |                                                                                           |
-    | `MeasurementFormatter`          | Unimplemented   | ?             |                                                                                           |
+    | `DateComponentFormatter`        | Unimplemented   | None          |                                                                                           |
+    | `DateIntervalFormatter`         | Unimplemented   | None          |                                                                                           |
+    | `EnergyFormatter`               | Unimplemented   | None          |                                                                                           |
+    | `LengthFormatter`               | Unimplemented   | None          |                                                                                           |
+    | `MassFormatter`                 | Unimplemented   | None          |                                                                                           |
+    | `NumberFormatter`               | Mostly Complete | Substantial   | `objectValue(_:range:)` remains unimplemented                                             |
+    | `PersonNameComponentsFormatter` | Unimplemented   | None          |                                                                                           |
+    | `ByteCountFormatter`            | Unimplemented   | Incomplete    |                                                                                           |
+    | `DateFormatter`                 | Mostly Complete | Incomplete    | `objectValue(_:range:)` and `setLocalizedDateFormatFromTemplate(_:)` remain unimplemented |
+    | `Formatter`                     | Complete        | N/A           |                                                                                           |
+    | `MeasurementFormatter`          | Unimplemented   | None          |                                                                                           |
 
 * **Predicates**: Base functionality for building queries.
 
