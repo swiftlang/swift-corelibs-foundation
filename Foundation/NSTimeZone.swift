@@ -174,7 +174,7 @@ extension NSTimeZone {
 
     open class func resetSystemTimeZone() {
         CFTimeZoneResetSystem()
-        NotificationCenter.default.post(name: NSNotification.Name.NSSystemTimeZoneDidChange, object: nil)
+        // NotificationCenter.default.post(name: NSNotification.Name.NSSystemTimeZoneDidChange, object: nil)
     }
 
     open class var `default`: TimeZone {
@@ -183,7 +183,7 @@ extension NSTimeZone {
         }
         set {
             CFTimeZoneSetDefault(newValue._cfObject)
-            NotificationCenter.default.post(name: NSNotification.Name.NSSystemTimeZoneDidChange, object: nil)
+            // NotificationCenter.default.post(name: NSNotification.Name.NSSystemTimeZoneDidChange, object: nil)
         }
     }
 
