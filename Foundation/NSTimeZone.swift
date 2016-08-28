@@ -79,12 +79,26 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         _CFDeinit(self)
     }
 
+    // `init(forSecondsFromGMT:)` is not a failable initializer, so we need a designated initializer that isn't failable.
+    internal init(_name tzName: String) {
+        super.init()
+        _CFTimeZoneInit(_cfObject, tzName._cfObject, nil)
+    }
+
     // Time zones created with this never have daylight savings and the
     // offset is constant no matter the date; the name and abbreviation
     // do NOT follow the POSIX convention (of minutes-west).
-    public init(forSecondsFromGMT seconds: Int) {
-        super.init()
-        _CFTimeZoneInitWithTimeIntervalFromGMT(_cfObject, CFTimeInterval(seconds))
+    public convenience init(forSecondsFromGMT seconds: Int) {
+        let sign = seconds < 0 ? "-" : "+"
+        let absoluteValue = abs(seconds)
+        var minutes = absoluteValue / 60
+        if (absoluteValue % 60) >= 30 { minutes += 1 }
+        var hours = minutes / 60
+        minutes %= 60
+        hours = min(hours, 99) // Two digits only; leave CF to enforce actual max offset.
+        let mm = minutes < 10 ? "0\(minutes)" : "\(minutes)"
+        let hh = hours < 10 ? "0\(hours)" : "\(hours)"
+        self.init(_name: "GMT" + sign + hh + mm)
     }
     
     public convenience init?(abbreviation: String) {
@@ -98,7 +112,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     open func encode(with aCoder: NSCoder) {
         if aCoder.allowsKeyedCoding {
             aCoder.encode(self.name._bridgeToObjectiveC(), forKey:"NS.name")
-            // darwin versions of this method can and will encode mutable data, however it is not required for compatability
+            // Darwin versions of this method can and will encode mutable data, however it is not required for compatibility
             aCoder.encode(self.data._bridgeToObjectiveC(), forKey:"NS.data")
         } else {
         }
@@ -174,7 +188,6 @@ extension NSTimeZone {
 
     open class func resetSystemTimeZone() {
         CFTimeZoneResetSystem()
-        // NotificationCenter.default.post(name: NSNotification.Name.NSSystemTimeZoneDidChange, object: nil)
     }
 
     open class var `default`: TimeZone {
@@ -183,7 +196,6 @@ extension NSTimeZone {
         }
         set {
             CFTimeZoneSetDefault(newValue._cfObject)
-            // NotificationCenter.default.post(name: NSNotification.Name.NSSystemTimeZoneDidChange, object: nil)
         }
     }
 
@@ -191,20 +203,17 @@ extension NSTimeZone {
 
     open class var knownTimeZoneNames: [String] {
         guard let knownNames = CFTimeZoneCopyKnownNames() else { return [] }
-        return knownNames._swiftObject.map { ($0 as! NSString)._swiftObject }
+        return knownNames._nsObject._bridgeToSwift() as! [String]
     }
 
     open class var abbreviationDictionary: [String : String] {
         get {
             guard let dictionary = CFTimeZoneCopyAbbreviationDictionary() else { return [:] }
-            var result = [String : String]()
-            dictionary._swiftObject.forEach {
-                result[($0 as! NSString)._swiftObject] = ($1 as! NSString)._swiftObject
-            }
-            return result
+            return dictionary._nsObject._bridgeToSwift() as! [String : String]
         }
         set {
-            CFTimeZoneSetAbbreviationDictionary(newValue._cfObject)
+            // CFTimeZoneSetAbbreviationDictionary(newValue._cfObject)
+            NSUnimplemented()
         }
     }
 
@@ -248,7 +257,7 @@ extension NSTimeZone {
         #else
             let cfStyle = CFTimeZoneNameStyle(style.rawValue)
         #endif
-        return CFTimeZoneCopyLocalizedName(self._cfObject, cfStyle, locale?._cfObject)._swiftObject
+        return CFTimeZoneCopyLocalizedName(self._cfObject, cfStyle, locale?._cfObject ?? CFLocaleCopyCurrent())._swiftObject
     }
 
 }
@@ -285,5 +294,5 @@ extension NSTimeZone {
 }
 
 extension NSNotification.Name {
-    public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: "NSSystemTimeZoneDidChangeNotification")
+    public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: "NSSystemTimeZoneDidChangeNotification") // NSUnimplemented
 }
