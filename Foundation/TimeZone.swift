@@ -16,10 +16,6 @@ internal func __NSTimeZoneIsAutoupdating(_ timezone: NSTimeZone) -> Bool {
     return false
 }
 
-internal func __NSTimeZoneCurrent() -> NSTimeZone {
-    fatalError()
-}
-
 /**
  `TimeZone` defines the behavior of a time zone. Time zone values represent geopolitical regions. Consequently, these values have names for these regions. Time zone values also represent a temporal offset, either plus or minus, from Greenwich Mean Time (GMT) and an abbreviation (such as PST for Pacific Standard Time).
  
@@ -37,7 +33,12 @@ public struct TimeZone : CustomStringConvertible, CustomDebugStringConvertible, 
     
     /// The time zone currently used by the system.
     public static var current : TimeZone {
-        return TimeZone(adoptingReference: __NSTimeZoneCurrent(), autoupdating: false)
+        return NSTimeZone.system
+    }
+
+    /// The time zone currently used by the system, automatically updating to the user’s current preference.
+    public static var autoupdatingCurrent : TimeZone {
+        return NSTimeZone.local
     }
     
     // MARK: -

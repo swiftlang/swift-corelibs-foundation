@@ -33,7 +33,7 @@ class TestNSTimeZone: XCTestCase {
     }
 
     func test_abbreviation() {
-        let tz = NSTimeZone.systemTimeZone()
+        let tz = NSTimeZone.system
         let abbreviation1 = tz.abbreviation()
         let abbreviation2 = tz.abbreviation(for: Date())
         XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1) should be equal to \(abbreviation2)")
@@ -61,7 +61,7 @@ class TestNSTimeZone: XCTestCase {
         var t = time(nil)
         var lt = tm()
         localtime_r(&t, &lt)
-        let zoneName = NSTimeZone.systemTimeZone().abbreviation() ?? "Invalid Abbreviation"
+        let zoneName = NSTimeZone.system.abbreviation() ?? "Invalid Abbreviation"
         let expectedName = String(cString: lt.tm_zone, encoding: String.Encoding.ascii) ?? "Invalid Zone"
         XCTAssertEqual(zoneName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(zoneName)\"")
     }
