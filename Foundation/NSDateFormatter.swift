@@ -148,7 +148,7 @@ open class DateFormatter : Formatter {
 
     open var generatesCalendarDates = false { willSet { _reset() } }
 
-    /*@NSCopying*/ open var timeZone: TimeZone! = NSTimeZone.systemTimeZone() { willSet { _reset() } }
+    /*@NSCopying*/ open var timeZone: TimeZone! = NSTimeZone.system { willSet { _reset() } }
 
     /*@NSCopying*/ internal var _calendar: Calendar! { willSet { _reset() } }
     open var calendar: Calendar! {

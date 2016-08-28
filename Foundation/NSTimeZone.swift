@@ -82,7 +82,10 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     // Time zones created with this never have daylight savings and the
     // offset is constant no matter the date; the name and abbreviation
     // do NOT follow the POSIX convention (of minutes-west).
-    public convenience init(forSecondsFromGMT seconds: Int) { NSUnimplemented() }
+    public init(forSecondsFromGMT seconds: Int) {
+        super.init()
+        _CFTimeZoneInitWithTimeIntervalFromGMT(_cfObject, CFTimeInterval(seconds))
+    }
     
     public convenience init?(abbreviation: String) {
         let abbr = abbreviation._cfObject
@@ -165,21 +168,89 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 extension NSTimeZone {
 
-    open class func systemTimeZone() -> TimeZone {
+    open class var system: TimeZone {
         return CFTimeZoneCopySystem()._swiftObject
     }
 
     open class func resetSystemTimeZone() {
         CFTimeZoneResetSystem()
+        NotificationCenter.default.post(name: NSNotification.Name.NSSystemTimeZoneDidChange, object: nil)
     }
 
-    open class func defaultTimeZone() -> TimeZone {
-        return CFTimeZoneCopyDefault()._swiftObject
+    open class var `default`: TimeZone {
+        get {
+            return CFTimeZoneCopyDefault()._swiftObject
+        }
+        set {
+            CFTimeZoneSetDefault(newValue._cfObject)
+            NotificationCenter.default.post(name: NSNotification.Name.NSSystemTimeZoneDidChange, object: nil)
+        }
     }
 
-    open class func setDefaultTimeZone(_ aTimeZone: TimeZone) {
-        CFTimeZoneSetDefault(aTimeZone._cfObject)
+    open class var local: TimeZone { NSUnimplemented() }
+
+    open class var knownTimeZoneNames: [String] {
+        guard let knownNames = CFTimeZoneCopyKnownNames() else { return [] }
+        return knownNames._swiftObject.map { ($0 as! NSString)._swiftObject }
     }
+
+    open class var abbreviationDictionary: [String : String] {
+        get {
+            guard let dictionary = CFTimeZoneCopyAbbreviationDictionary() else { return [:] }
+            var result = [String : String]()
+            dictionary._swiftObject.forEach {
+                result[($0 as! NSString)._swiftObject] = ($1 as! NSString)._swiftObject
+            }
+            return result
+        }
+        set {
+            CFTimeZoneSetAbbreviationDictionary(newValue._cfObject)
+        }
+    }
+
+    open class var timeZoneDataVersion: String { NSUnimplemented() }
+
+    open var secondsFromGMT: Int {
+        let currentDate = Date()
+        return secondsFromGMT(for: currentDate)
+    }
+
+    /// The abbreviation for the receiver, such as "EDT" (Eastern Daylight Time). (read-only)
+    ///
+    /// This invokes `abbreviationForDate:` with the current date as the argument.
+    open var abbreviation: String? {
+        let currentDate = Date()
+        return abbreviation(for: currentDate)
+    }
+
+    open var isDaylightSavingTime: Bool {
+        let currentDate = Date()
+        return isDaylightSavingTime(for: currentDate)
+    }
+
+    open var daylightSavingTimeOffset: TimeInterval {
+        let currentDate = Date()
+        return daylightSavingTimeOffset(for: currentDate)
+    }
+
+    /*@NSCopying*/ open var nextDaylightSavingTimeTransition: Date?  {
+        let currentDate = Date()
+        return nextDaylightSavingTimeTransition(after: currentDate)
+    }
+
+    open func isEqual(to aTimeZone: TimeZone) -> Bool {
+        return CFEqual(self._cfObject, aTimeZone._cfObject)
+    }
+
+    open func localizedName(_ style: NameStyle, locale: Locale?) -> String? {
+        #if os(OSX) || os(iOS)
+            let cfStyle = CFTimeZoneNameStyle(rawValue: style.rawValue)!
+        #else
+            let cfStyle = CFTimeZoneNameStyle(style.rawValue)
+        #endif
+        return CFTimeZoneCopyLocalizedName(self._cfObject, cfStyle, locale?._cfObject)._swiftObject
+    }
+
 }
 
 extension NSTimeZone: _SwiftBridgable, _CFBridgable {
@@ -201,43 +272,6 @@ extension TimeZone : _NSBridgable, _CFBridgable {
 }
 
 extension NSTimeZone {
-    open class func localTimeZone() -> TimeZone { NSUnimplemented() }
-    
-    open class var knownTimeZoneNames: [String] { NSUnimplemented() }
-    
-    open class var abbreviationDictionary: [String : String] {
-        get {
-            NSUnimplemented()
-        }
-        set {
-            NSUnimplemented()
-        }
-    }
-    
-    open class var timeZoneDataVersion: String { NSUnimplemented() }
-    
-    open var secondsFromGMT: Int { NSUnimplemented() }
-
-    /// The abbreviation for the receiver, such as "EDT" (Eastern Daylight Time). (read-only)
-    ///
-    /// This invokes `abbreviationForDate:` with the current date as the argument.
-    open var abbreviation: String? {
-        let currentDate = Date()
-        return abbreviation(for: currentDate)
-    }
-
-    open var daylightSavingTime: Bool { NSUnimplemented() }
-    open var daylightSavingTimeOffset: TimeInterval { NSUnimplemented() }
-    /*@NSCopying*/ open var nextDaylightSavingTimeTransition: Date?  { NSUnimplemented() }
-    
-    open func isEqual(to aTimeZone: TimeZone) -> Bool {
-        return CFEqual(self._cfObject, aTimeZone._cfObject)
-    }
-    
-    open func localizedName(_ style: NameStyle, locale: Locale?) -> String? { NSUnimplemented() }
-}
-
-extension NSTimeZone {
 
     public enum NameStyle : Int {
         case standard    // Central Standard Time
@@ -248,4 +282,8 @@ extension NSTimeZone {
         case shortGeneric    // CT
     }
 
+}
+
+extension NSNotification.Name {
+    public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: "NSSystemTimeZoneDidChangeNotification")
 }
