@@ -1179,9 +1179,7 @@ extension NSString {
     }
     
     public convenience init?(data: Data, encoding: UInt) {
-        guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
-            return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
-        }) else { return nil }
+        guard let cf = CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, data._cfObject, CFStringConvertNSStringEncodingToEncoding(encoding)) else { return nil }
         
         var str: String?
         if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
