@@ -166,6 +166,47 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
     open class  var supportsSecureCoding: Bool { return true }
     
+    internal func isEqual(to other: URLRequest) -> Bool {
+        if cachePolicy != other.cachePolicy {
+            return false
+        }
+        if httpShouldHandleCookies != other.httpShouldHandleCookies {
+            return false
+        }
+        if url != other.url {
+            return false
+        }
+        if mainDocumentURL != other.mainDocumentURL {
+            return false
+        }
+        if httpMethod != other.httpMethod {
+            return false
+        }
+        if allowsCellularAccess != other.allowsCellularAccess {
+            return false
+        }
+        if timeoutInterval != other.timeoutInterval {
+            return false
+        }
+        if networkServiceType != other.networkServiceType {
+            return false
+        }
+        // TODO: verify the comparison of header fields and body
+        return true
+    }
+    
+    open override func isEqual(_ value: Any?) -> Bool {
+        if let other = value as? URLRequest {
+            return isEqual(to: other)
+        } else if let other = value as? NSURLRequest {
+            if other === self {
+                return true
+            }
+            return isEqual(to: URLRequest._unconditionallyBridgeFromObjectiveC(other))
+        }
+        return false
+    }
+    
     /// The URL of the receiver.
     /*@NSCopying */open fileprivate(set) var url: URL?
     

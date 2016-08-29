@@ -91,6 +91,7 @@ XCTMain([
     testCase(TestNSTimeZone.allTests),
     testCase(TestTimeZone.allTests),
     testCase(TestNSURL.allTests),
+    testCase(TestURL.allTests),
     testCase(TestNSURLComponents.allTests),
     testCase(TestNSURLCredential.allTests),
     testCase(TestNSURLRequest.allTests),

@@ -110,6 +110,7 @@
 		5B78188A1D70E236004A01F2 /* TestMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818891D70E236004A01F2 /* TestMeasurement.swift */; };
 		5B7818A81D71012B004A01F2 /* TestPersonNameComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818A71D71012B004A01F2 /* TestPersonNameComponents.swift */; };
 		5B7818AA1D7103C9004A01F2 /* TestTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818A91D7103C9004A01F2 /* TestTimeZone.swift */; };
+		5B7818AC1D7104F4004A01F2 /* TestURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818AB1D7104F4004A01F2 /* TestURL.swift */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
 		5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D897B1BBDAE0800234F36 /* CFPlatform.c */; };
@@ -679,6 +680,7 @@
 		5B7818891D70E236004A01F2 /* TestMeasurement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestMeasurement.swift; sourceTree = "<group>"; };
 		5B7818A71D71012B004A01F2 /* TestPersonNameComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPersonNameComponents.swift; sourceTree = "<group>"; };
 		5B7818A91D7103C9004A01F2 /* TestTimeZone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestTimeZone.swift; sourceTree = "<group>"; };
+		5B7818AB1D7104F4004A01F2 /* TestURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestURL.swift; sourceTree = "<group>"; };
 		5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCoreFoundation.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B8BA1611D0B773A00938C27 /* IndexSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexSet.swift; sourceTree = "<group>"; };
 		5B94E8811C430DE70055C035 /* NSStringAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSStringAPI.swift; sourceTree = "<group>"; };
@@ -1393,6 +1395,7 @@
 				84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */,
 				5B7818A91D7103C9004A01F2 /* TestTimeZone.swift */,
 				EA66F6431BF1619600136161 /* TestNSURL.swift */,
+				5B7818AB1D7104F4004A01F2 /* TestURL.swift */,
 				F9E0BB361CA70B8000F7FF3C /* TestNSURLCredential.swift */,
 				83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */,
 				7A7D6FBA1C16439400957E2E /* TestNSURLResponse.swift */,
@@ -2233,6 +2236,7 @@
 				5B13B3451C582D4C00651CE2 /* TestNSString.swift in Sources */,
 				1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */,
 				5B7818651D6FA74D004A01F2 /* TestData.swift in Sources */,
+				5B7818AC1D7104F4004A01F2 /* TestURL.swift in Sources */,
 				5B7818631D6FA66A004A01F2 /* TestCalendar.swift in Sources */,
 				5B13B3471C582D4C00651CE2 /* TestNSThread.swift in Sources */,
 				5B13B32E1C582D4C00651CE2 /* TestNSFileManager.swift in Sources */,
