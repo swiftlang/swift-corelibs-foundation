@@ -262,18 +262,18 @@ extension NSTimeZone {
 
 }
 
-extension NSTimeZone: _SwiftBridgable, _CFBridgable {
+extension NSTimeZone: _SwiftBridgeable, _CFBridgeable {
     typealias SwiftType = TimeZone
     var _swiftObject: TimeZone { return TimeZone(reference: self) }
 }
 
-extension CFTimeZone : _SwiftBridgable, _NSBridgable {
+extension CFTimeZone : _SwiftBridgeable, _NSBridgeable {
     typealias NSType = NSTimeZone
     var _nsObject : NSTimeZone { return unsafeBitCast(self, to: NSTimeZone.self) }
     var _swiftObject: TimeZone { return _nsObject._swiftObject }
 }
 
-extension TimeZone : _NSBridgable, _CFBridgable {
+extension TimeZone : _NSBridgeable, _CFBridgeable {
     typealias NSType = NSTimeZone
     typealias CFType = CFTimeZone
     var _nsObject : NSTimeZone { return _bridgeToObjectiveC() }

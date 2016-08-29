@@ -251,7 +251,7 @@ public func <(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
 public let NSCurrentLocaleDidChangeNotification: String = "kCFLocaleCurrentLocaleDidChangeNotification"
 
 
-extension CFLocale : _NSBridgable, _SwiftBridgable {
+extension CFLocale : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSLocale
     typealias SwiftType = Locale
     internal var _nsObject: NSLocale {
@@ -262,14 +262,14 @@ extension CFLocale : _NSBridgable, _SwiftBridgable {
     }
 }
 
-extension NSLocale : _SwiftBridgable {
+extension NSLocale : _SwiftBridgeable {
     typealias SwiftType = Locale
     internal var _swiftObject: Locale {
         return Locale(reference: self)
     }
 }
 
-extension Locale : _CFBridgable {
+extension Locale : _CFBridgeable {
     typealias CFType = CFLocale
     internal var _cfObject: CFLocale {
         return _bridgeToObjectiveC()._cfObject

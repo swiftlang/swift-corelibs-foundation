@@ -288,17 +288,17 @@ extension NSSet {
     }
 }
 
-extension NSSet : _CFBridgable, _SwiftBridgable {
+extension NSSet : _CFBridgeable, _SwiftBridgeable {
     internal var _cfObject: CFSet { return unsafeBitCast(self, to: CFSet.self) }
     internal var _swiftObject: Set<NSObject> { return Set._unconditionallyBridgeFromObjectiveC(self) }
 }
 
-extension CFSet : _NSBridgable, _SwiftBridgable {
+extension CFSet : _NSBridgeable, _SwiftBridgeable {
     internal var _nsObject: NSSet { return unsafeBitCast(self, to: NSSet.self) }
     internal var _swiftObject: Set<NSObject> { return _nsObject._swiftObject }
 }
 
-extension Set : _NSBridgable, _CFBridgable {
+extension Set : _NSBridgeable, _CFBridgeable {
     internal var _nsObject: NSSet { return _bridgeToObjectiveC() }
     internal var _cfObject: CFSet { return _nsObject._cfObject }
 }

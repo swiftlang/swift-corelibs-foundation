@@ -847,19 +847,19 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 }
 
 // MARK: -
-extension NSData : _CFBridgable, _SwiftBridgable {
+extension NSData : _CFBridgeable, _SwiftBridgeable {
     typealias SwiftType = Data
     internal var _swiftObject: SwiftType { return Data(referencing: self) }
 }
 
-extension Data : _NSBridgable, _CFBridgable {
+extension Data : _NSBridgeable, _CFBridgeable {
     typealias CFType = CFData
     typealias NSType = NSData
     internal var _cfObject: CFType { return _nsObject._cfObject }
     internal var _nsObject: NSType { return _bridgeToObjectiveC() }
 }
 
-extension CFData : _NSBridgable, _SwiftBridgable {
+extension CFData : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSData
     typealias SwiftType = Data
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }

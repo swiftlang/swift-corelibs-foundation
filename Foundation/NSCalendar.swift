@@ -1822,28 +1822,28 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-extension NSDateComponents : _SwiftBridgable {
+extension NSDateComponents : _SwiftBridgeable {
     typealias SwiftType = DateComponents
     var _swiftObject: SwiftType { return DateComponents(reference: self) }
 }
 
-extension DateComponents : _NSBridgable {
+extension DateComponents : _NSBridgeable {
     typealias NSType = NSDateComponents
     var _nsObject: NSType { return _bridgeToObjectiveC() }
 }
 
-extension NSCalendar: _SwiftBridgable, _CFBridgable {
+extension NSCalendar: _SwiftBridgeable, _CFBridgeable {
     typealias SwiftType = Calendar
     var _swiftObject: SwiftType { return Calendar(reference: self) }
 }
-extension Calendar: _NSBridgable, _CFBridgable {
+extension Calendar: _NSBridgeable, _CFBridgeable {
     typealias NSType = NSCalendar
     typealias CFType = CFCalendar
     var _nsObject: NSCalendar { return _bridgeToObjectiveC() }
     var _cfObject: CFCalendar { return _nsObject._cfObject }
 }
 
-extension CFCalendar : _NSBridgable, _SwiftBridgable {
+extension CFCalendar : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSCalendar
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
     internal var _swiftObject: Calendar { return _nsObject._swiftObject }

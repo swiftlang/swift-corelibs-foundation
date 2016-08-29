@@ -1394,7 +1394,7 @@ extension String {
     }
 }
 
-extension NSString : _CFBridgable, _SwiftBridgable {
+extension NSString : _CFBridgeable, _SwiftBridgeable {
     typealias SwiftType = String
     internal var _cfObject: CFString { return unsafeBitCast(self, to: CFString.self) }
     internal var _swiftObject: String { return String._unconditionallyBridgeFromObjectiveC(self) }
@@ -1404,14 +1404,14 @@ extension NSMutableString {
     internal var _cfMutableObject: CFMutableString { return unsafeBitCast(self, to: CFMutableString.self) }
 }
 
-extension CFString : _NSBridgable, _SwiftBridgable {
+extension CFString : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSString
     typealias SwiftType = String
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSString.self) }
     internal var _swiftObject: String { return _nsObject._swiftObject }
 }
 
-extension String : _NSBridgable, _CFBridgable {
+extension String : _NSBridgeable, _CFBridgeable {
     typealias NSType = NSString
     typealias CFType = CFString
     internal var _nsObject: NSType { return _bridgeToObjectiveC() }

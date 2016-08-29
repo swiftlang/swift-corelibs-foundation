@@ -225,14 +225,14 @@ extension NSDate {
     }
 }
 
-extension NSDate: _CFBridgable, _SwiftBridgable {
+extension NSDate: _CFBridgeable, _SwiftBridgeable {
     typealias SwiftType = Date
     var _swiftObject: Date {
         return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
     }
 }
 
-extension CFDate : _NSBridgable, _SwiftBridgable {
+extension CFDate : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSDate
     typealias SwiftType = Date
     
@@ -240,7 +240,7 @@ extension CFDate : _NSBridgable, _SwiftBridgable {
     internal var _swiftObject: Date { return _nsObject._swiftObject }
 }
 
-extension Date : _NSBridgable, _CFBridgable {
+extension Date : _NSBridgeable, _CFBridgeable {
     typealias NSType = NSDate
     typealias CFType = CFDate
     

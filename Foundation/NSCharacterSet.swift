@@ -320,7 +320,7 @@ open class NSMutableCharacterSet : NSCharacterSet {
     }
 }
 
-extension CharacterSet : _CFBridgable, _NSBridgable {
+extension CharacterSet : _CFBridgeable, _NSBridgeable {
     typealias CFType = CFCharacterSet
     typealias NSType = NSCharacterSet
     internal var _cfObject: CFType {
@@ -331,7 +331,7 @@ extension CharacterSet : _CFBridgable, _NSBridgable {
     }
 }
 
-extension CFCharacterSet : _NSBridgable, _SwiftBridgable {
+extension CFCharacterSet : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSCharacterSet
     typealias SwiftType = CharacterSet
     internal var _nsObject: NSType {
@@ -342,7 +342,7 @@ extension CFCharacterSet : _NSBridgable, _SwiftBridgable {
     }
 }
 
-extension NSCharacterSet : _SwiftBridgable {
+extension NSCharacterSet : _SwiftBridgeable {
     typealias SwiftType = CharacterSet
     internal var _swiftObject: SwiftType {
         return CharacterSet(_bridged: self)
