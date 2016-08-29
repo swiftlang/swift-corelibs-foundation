@@ -119,7 +119,7 @@ public func ==(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bo
 public func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
     return lhs.rawValue < rhs.rawValue
 }
-    
+
 open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
@@ -213,7 +213,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public init?(calendar ident: Identifier) {
+    public init?(calendarIdentifier ident: Identifier) {
         super.init()
         if !_CFCalendarInitWithIdentifier(_cfObject, ident.rawValue._cfObject) {
             return nil
@@ -1243,7 +1243,9 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
 // notification is received by observers in a "timely" manner, same as
 // with distributed notifications.
 
-public let NSCalendarDayChangedNotification: String = "" // NSUnimplemented
+extension NSNotification.Name {
+    public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "") // NSUnimplemented
+}
 
 // This is a just used as an extensible struct, basically;
 // note that there are two uses: one for specifying a date
@@ -1445,8 +1447,6 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     /*@NSCopying*/ open var timeZone: TimeZone?
-    
-    // these all should probably be optionals
     
     open var era: Int {
         get {
