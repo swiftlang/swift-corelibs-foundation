@@ -101,6 +101,7 @@ XCTMain([
     testCase(TestURLSession.allTests),
     testCase(TestNSNull.allTests),
     testCase(TestNSUUID.allTests),
+    testCase(TestUUID.allTests),
     testCase(TestNSValue.allTests),
     testCase(TestNSUserDefaults.allTests),
     testCase(TestNSXMLParser.allTests),
