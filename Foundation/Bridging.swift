@@ -33,7 +33,7 @@ public protocol _ObjectTypeBridgeable : _ObjectBridgeable {
     static func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Self
 }
 
-/// - Note: This does not exist currently on Darwin but it is the inverse corrilation to the bridge types such that a 
+/// - Note: This does not exist currently on Darwin but it is the inverse correlation to the bridge types such that a 
 /// reference type can be converted via a callout to a conversion method.
 public protocol _StructTypeBridgeable : _StructBridgeable {
     associatedtype _StructType
