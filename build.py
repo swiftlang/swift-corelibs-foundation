@@ -467,7 +467,10 @@ foundation_tests_resources = CopyResources('TestFoundation', [
 # TODO: Probably this should be another 'product', but for now it's simply a phase
 foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/main.swift',
+        'TestFoundation/HTTPServer.swift',
 ] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
+
+Configuration.current.extra_ld_flags = '-L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs'
 
 foundation_tests.add_dependency(foundation_tests_resources)
 foundation.add_phase(foundation_tests_resources)
