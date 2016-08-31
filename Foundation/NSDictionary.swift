@@ -466,7 +466,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
 }
 
-extension NSDictionary : _CFBridgable, _SwiftBridgable {
+extension NSDictionary : _CFBridgeable, _SwiftBridgeable {
     internal var _cfObject: CFDictionary { return unsafeBitCast(self, to: CFDictionary.self) }
     internal var _swiftObject: Dictionary<AnyHashable, Any> { return Dictionary._unconditionallyBridgeFromObjectiveC(self) }
 }
@@ -475,12 +475,12 @@ extension NSMutableDictionary {
     internal var _cfMutableObject: CFMutableDictionary { return unsafeBitCast(self, to: CFMutableDictionary.self) }
 }
 
-extension CFDictionary : _NSBridgable, _SwiftBridgable {
+extension CFDictionary : _NSBridgeable, _SwiftBridgeable {
     internal var _nsObject: NSDictionary { return unsafeBitCast(self, to: NSDictionary.self) }
     internal var _swiftObject: [AnyHashable: Any] { return _nsObject._swiftObject }
 }
 
-extension Dictionary : _NSBridgable, _CFBridgable {
+extension Dictionary : _NSBridgeable, _CFBridgeable {
     internal var _nsObject: NSDictionary { return _bridgeToObjectiveC() }
     internal var _cfObject: CFDictionary { return _nsObject._cfObject }
 }

@@ -184,7 +184,7 @@ extension Bool : _ObjectTypeBridgeable {
     }
 }
 
-extension Bool : _CFBridgable {
+extension Bool : _CFBridgeable {
     typealias CFType = CFBoolean
     var _cfObject: CFType {
         return self ? kCFBooleanTrue : kCFBooleanFalse
@@ -519,7 +519,7 @@ open class NSNumber : NSValue {
     }
 }
 
-extension CFNumber : _NSBridgable {
+extension CFNumber : _NSBridgeable {
     typealias NSType = NSNumber
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
