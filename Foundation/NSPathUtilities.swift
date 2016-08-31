@@ -574,6 +574,7 @@ extension FileManager {
 }
 
 public func NSSearchPathForDirectoriesInDomains(_ directory: FileManager.SearchPathDirectory, _ domainMask: FileManager.SearchPathDomainMask, _ expandTilde: Bool) -> [String] {
+    #if os(iOS)
     let bundle = Bundle.main
     let bundlePath = bundle.bundlePath
     if domainMask == .userDomainMask {
@@ -586,6 +587,7 @@ public func NSSearchPathForDirectoriesInDomains(_ directory: FileManager.SearchP
             break
         }
     }
+    #endif
     NSUnimplemented()
 }
 
