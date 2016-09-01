@@ -298,7 +298,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSDateInterval`   | Complete        | None          |                                                                                                                                 |
     | `DateInterval`     | Complete        | None          |                                                                                                                                 |
     | `Date`             | Complete        | Incomplete    |                                                                                                                                 |
-    | `NSTimeZone`       | Incomplete      | Incomplete    | `init(forSecondsFromGMT:)`, `localTimeZones()`, `knownTimeZoneNames`, `abbreviationDictionary`, and others remain unimplemented |
+    | `NSTimeZone`       | Mostly Complete | Incomplete    | `local` and setting `abbreviationDictionary` remain unimplemented |
     | `TimeZone`         | Complete        | Incomplete    |                                                                                                                                 |
 
 * **Notifications**: Classes for loosely coupling events from a set of many observers.
