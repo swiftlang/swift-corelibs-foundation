@@ -277,11 +277,11 @@ open class UnitAngle : Dimension {
     
     private struct Coefficient {
         static let degrees      = 1.0
-        static let arcMinutes   = 0.016667
-        static let arcSeconds   = 0.00027778
-        static let radians      = 57.2958
+        static let arcMinutes   = 1.0 / 60.0
+        static let arcSeconds   = 1.0 / 3600.0
+        static let radians      = 180.0 / .pi
         static let gradians     = 0.9
-        static let revolutions  = 6.28319
+        static let revolutions  = 360.0
     }
     
     private init(symbol: String, coefficient: Double) {
@@ -816,11 +816,11 @@ open class UnitElectricResistance : Dimension {
      */
     
     private struct Symbol {
-        static let megaohms  = "MΩ"
-        static let kiloohms  = "kΩ"
-        static let ohms      = "Ω"
-        static let milliohms = "mΩ"
-        static let microohms = "µΩ"
+        static let megaohms  = "MΩ"
+        static let kiloohms  = "kΩ"
+        static let ohms      = "Ω"
+        static let milliohms = "mΩ"
+        static let microohms = "µΩ"
     }
     
     private struct Coefficient {
