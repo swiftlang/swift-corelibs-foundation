@@ -1255,19 +1255,19 @@ open class NSURLComponents: NSObject, NSCopying {
     }
 }
 
-extension NSURL: _CFBridgable, _SwiftBridgable {
+extension NSURL: _CFBridgeable, _SwiftBridgeable {
     typealias SwiftType = URL
     internal var _swiftObject: SwiftType { return URL(reference: self) }
 }
 
-extension CFURL : _NSBridgable, _SwiftBridgable {
+extension CFURL : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSURL
     typealias SwiftType = URL
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
     internal var _swiftObject: SwiftType { return _nsObject._swiftObject }
 }
 
-extension URL : _NSBridgable, _CFBridgable {
+extension URL : _NSBridgeable, _CFBridgeable {
     typealias NSType = NSURL
     typealias CFType = CFURL
     internal var _nsObject: NSType { return self.reference }

@@ -58,10 +58,12 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
             } else {
                 // bypass _concreteValue accessor in order to avoid acquiring lock twice
                 let (lhs, rhs) = NSValue.SideTableLock.synchronized {
-                    return (NSValue.SideTable[ObjectIdentifier(self)]!,
-                            NSValue.SideTable[ObjectIdentifier(object)]!)
+                    return (NSValue.SideTable[ObjectIdentifier(self)],
+                            NSValue.SideTable[ObjectIdentifier(object)])
                 }
-                return lhs.isEqual(rhs)
+                if let lhs = lhs, let rhs = rhs {
+                    return lhs.isEqual(rhs)
+                }
             }
         }
         return false

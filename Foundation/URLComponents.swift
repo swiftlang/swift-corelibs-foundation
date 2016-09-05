@@ -377,22 +377,22 @@ extension URLQueryItem : CustomStringConvertible, CustomDebugStringConvertible, 
     }
 }
 
-extension NSURLComponents : _SwiftBridgable {
+extension NSURLComponents : _SwiftBridgeable {
     typealias SwiftType = URLComponents
     internal var _swiftObject: SwiftType { return URLComponents(reference: self) }
 }
 
-extension URLComponents : _NSBridgable {
+extension URLComponents : _NSBridgeable {
     typealias NSType = NSURLComponents
     internal var _nsObject: NSType { return _handle._copiedReference() }
 }
 
-extension NSURLQueryItem : _SwiftBridgable {
+extension NSURLQueryItem : _SwiftBridgeable {
     typealias SwiftType = URLQueryItem
     internal var _swiftObject: SwiftType { return URLQueryItem(reference: self) }
 }
 
-extension URLQueryItem : _NSBridgable {
+extension URLQueryItem : _NSBridgeable {
     typealias NSType = NSURLQueryItem
     internal var _nsObject: NSType { return _queryItem }
 }

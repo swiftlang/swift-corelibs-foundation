@@ -11,13 +11,16 @@
 //===----------------------------------------------------------------------===//
 
 
-
 internal func __NSTimeZoneIsAutoupdating(_ timezone: NSTimeZone) -> Bool {
     return false
 }
 
+internal func __NSTimeZoneAutoupdating() -> NSTimeZone {
+    return NSTimeZone.local._nsObject
+}
+
 internal func __NSTimeZoneCurrent() -> NSTimeZone {
-    fatalError()
+    return NSTimeZone.system._nsObject
 }
 
 /**
@@ -29,7 +32,7 @@ internal func __NSTimeZoneCurrent() -> NSTimeZone {
  
  Cocoa does not provide any API to change the time zone of the computer, or of other applications.
  */
-public struct TimeZone : CustomStringConvertible, CustomDebugStringConvertible, Hashable, Equatable, ReferenceConvertible {
+public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
     public typealias ReferenceType = NSTimeZone
     
     internal var _wrapped : NSTimeZone
@@ -38,6 +41,15 @@ public struct TimeZone : CustomStringConvertible, CustomDebugStringConvertible, 
     /// The time zone currently used by the system.
     public static var current : TimeZone {
         return TimeZone(adoptingReference: __NSTimeZoneCurrent(), autoupdating: false)
+    }
+
+    /// The time zone currently used by the system, automatically updating to the user's current preference.
+    ///
+    /// If this time zone is mutated, then it no longer tracks the application time zone.
+    ///
+    /// The autoupdating time zone only compares equal to itself.
+    public static var autoupdatingCurrent : TimeZone {
+        return TimeZone(adoptingReference: __NSTimeZoneAutoupdating(), autoupdating: true)
     }
     
     // MARK: -
@@ -194,14 +206,6 @@ public struct TimeZone : CustomStringConvertible, CustomDebugStringConvertible, 
     
     // MARK: -
     
-    public var description: String {
-        return _wrapped.description
-    }
-    
-    public var debugDescription : String {
-        return _wrapped.debugDescription
-    }
-    
     public var hashValue : Int {
         if _autoupdating {
             return 1
@@ -209,13 +213,41 @@ public struct TimeZone : CustomStringConvertible, CustomDebugStringConvertible, 
             return _wrapped.hash
         }
     }
+
+    public static func ==(lhs: TimeZone, rhs: TimeZone) -> Bool {
+        if lhs._autoupdating || rhs._autoupdating {
+            return lhs._autoupdating == rhs._autoupdating
+        } else {
+            return lhs._wrapped.isEqual(rhs._wrapped)
+        }
+    }
 }
 
-public func ==(_ lhs: TimeZone, _ rhs: TimeZone) -> Bool {
-    if lhs._autoupdating || rhs._autoupdating {
-        return lhs._autoupdating == rhs._autoupdating
-    } else {
-        return lhs._wrapped.isEqual(rhs._wrapped)
+extension TimeZone : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    private var _kindDescription : String {
+        if (self == TimeZone.current) {
+            return "current"
+        } else {
+            return "fixed"
+        }
+    }
+
+    public var customMirror : Mirror {
+        var c: [(label: String?, value: Any)] = []
+        c.append((label: "identifier", value: identifier))
+        c.append((label: "kind", value: _kindDescription))
+        c.append((label: "abbreviation", value: abbreviation()))
+        c.append((label: "secondsFromGMT", value: secondsFromGMT()))
+        c.append((label: "isDaylightSavingTime", value: isDaylightSavingTime()))
+        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+    }
+
+    public var description: String {
+        return "\(identifier) (\(_kindDescription))"
+    }
+
+    public var debugDescription : String {
+        return "\(identifier) (\(_kindDescription))"
     }
 }
 
@@ -247,4 +279,3 @@ extension TimeZone {
         return result!
     }
 }
-

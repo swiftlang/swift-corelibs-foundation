@@ -119,7 +119,7 @@ public func ==(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bo
 public func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
     return lhs.rawValue < rhs.rawValue
 }
-    
+
 open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
@@ -213,7 +213,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public init?(calendar ident: Identifier) {
+    public init?(calendarIdentifier ident: Identifier) {
         super.init()
         if !_CFCalendarInitWithIdentifier(_cfObject, ident.rawValue._cfObject) {
             return nil
@@ -1243,7 +1243,9 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
 // notification is received by observers in a "timely" manner, same as
 // with distributed notifications.
 
-public let NSCalendarDayChangedNotification: String = "" // NSUnimplemented
+extension NSNotification.Name {
+    public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "") // NSUnimplemented
+}
 
 // This is a just used as an extensible struct, basically;
 // note that there are two uses: one for specifying a date
@@ -1445,8 +1447,6 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     /*@NSCopying*/ open var timeZone: TimeZone?
-    
-    // these all should probably be optionals
     
     open var era: Int {
         get {
@@ -1822,28 +1822,28 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-extension NSDateComponents : _SwiftBridgable {
+extension NSDateComponents : _SwiftBridgeable {
     typealias SwiftType = DateComponents
     var _swiftObject: SwiftType { return DateComponents(reference: self) }
 }
 
-extension DateComponents : _NSBridgable {
+extension DateComponents : _NSBridgeable {
     typealias NSType = NSDateComponents
     var _nsObject: NSType { return _bridgeToObjectiveC() }
 }
 
-extension NSCalendar: _SwiftBridgable, _CFBridgable {
+extension NSCalendar: _SwiftBridgeable, _CFBridgeable {
     typealias SwiftType = Calendar
     var _swiftObject: SwiftType { return Calendar(reference: self) }
 }
-extension Calendar: _NSBridgable, _CFBridgable {
+extension Calendar: _NSBridgeable, _CFBridgeable {
     typealias NSType = NSCalendar
     typealias CFType = CFCalendar
     var _nsObject: NSCalendar { return _bridgeToObjectiveC() }
     var _cfObject: CFCalendar { return _nsObject._cfObject }
 }
 
-extension CFCalendar : _NSBridgable, _SwiftBridgable {
+extension CFCalendar : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSCalendar
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
     internal var _swiftObject: Calendar { return _nsObject._swiftObject }

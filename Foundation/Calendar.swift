@@ -20,14 +20,14 @@ internal func __NSCalendarCurrent() -> NSCalendar {
     return CFCalendarCopyCurrent()._nsObject
 }
 
-internal func __NSCalendarInit(_ identifier : String) -> NSCalendar? {
+internal func __NSCalendarInit(_ identifier: String) -> NSCalendar? {
     return NSCalendar(identifier: NSCalendar.Identifier(rawValue: identifier))
 }
 
 /**
  `Calendar` encapsulates information about systems of reckoning time in which the beginning, length, and divisions of a year are defined. It provides information about the calendar and support for calendrical computations such as determining the range of a given calendrical unit and adding units to a given absolute time.
  */
-public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, Hashable, Equatable, ReferenceConvertible, _MutableBoxing {
+public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxing {
     public typealias ReferenceType = NSCalendar
     
     internal var _autoupdating: Bool
@@ -84,8 +84,12 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     }
     
     /// Returns the user's current calendar. This calendar does not track changes that the user makes to their preferences.
-    public static var current : Calendar {
+    public static var current: Calendar {
         return Calendar(adoptingReference: __NSCalendarCurrent(), autoupdating: false)
+    }
+    
+    public static var autoupdatingCurrent: Calendar {
+        return Calendar(adoptingReference: __NSCalendarCurrent(), autoupdating: true)
     }
 
     
@@ -104,7 +108,7 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     // MARK: -
     // MARK: Bridging
     
-    internal init(reference : NSCalendar) {
+    internal init(reference: NSCalendar) {
         _handle = _MutableHandle(reference: reference)
         if __NSCalendarIsAutoupdating(reference) {
             _autoupdating = true
@@ -122,12 +126,12 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     //
     
     /// The identifier of the calendar.
-    public var identifier : Identifier {
+    public var identifier: Identifier {
         return Calendar._fromNSCalendarIdentifier(_handle.map({ $0.calendarIdentifier }))
     }
     
     /// The locale of the calendar.
-    public var locale : Locale? {
+    public var locale: Locale? {
         get {
             return _handle.map { $0.locale }
         }
@@ -137,7 +141,7 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     }
     
     /// The time zone of the calendar.
-    public var timeZone : TimeZone {
+    public var timeZone: TimeZone {
         get {
             return _handle.map { $0.timeZone }
         }
@@ -147,7 +151,7 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     }
     
     /// The first weekday of the calendar.
-    public var firstWeekday : Int {
+    public var firstWeekday: Int {
         get {
             return _handle.map { $0.firstWeekday }
         }
@@ -157,7 +161,7 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     }
     
     /// The number of minimum days in the first week.
-    public var minimumDaysInFirstWeek : Int {
+    public var minimumDaysInFirstWeek: Int {
         get {
             return _handle.map { $0.minimumDaysInFirstWeek }
         }
@@ -409,8 +413,8 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     /// - parameter date: The specified date.
     /// - returns: A new `DateInterval` if the starting time and duration of a component could be calculated, otherwise `nil`.
     public func dateInterval(of component: Component, for date: Date) -> DateInterval? {
-        var start : Date = Date(timeIntervalSinceReferenceDate: 0)
-        var interval : TimeInterval = 0
+        var start: Date = Date(timeIntervalSinceReferenceDate: 0)
+        var interval: TimeInterval = 0
         if self.dateInterval(of: component, start: &start, interval: &interval, for: date) {
             return DateInterval(start: start, duration: interval)
         } else {
@@ -847,15 +851,7 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
     
     // MARK: -
     
-    public var description: String {
-        return _handle.map { $0.description }
-    }
-    
-    public var debugDescription : String {
-        return _handle.map { $0.debugDescription }
-    }
-    
-    public var hashValue : Int {
+    public var hashValue: Int {
         // We implement hash ourselves, because we need to make sure autoupdating calendars have the same hash
         if _autoupdating {
             return 1
@@ -864,12 +860,25 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
         }
     }
     
+    public static func ==(lhs: Calendar, rhs: Calendar) -> Bool {
+        if lhs._autoupdating || rhs._autoupdating {
+            return lhs._autoupdating == rhs._autoupdating
+        } else {
+            // NSCalendar's isEqual is broken (27019864) so we must implement this ourselves
+            return lhs.identifier == rhs.identifier &&
+                lhs.locale == rhs.locale &&
+                lhs.timeZone == rhs.timeZone &&
+                lhs.firstWeekday == rhs.firstWeekday &&
+                lhs.minimumDaysInFirstWeek == rhs.minimumDaysInFirstWeek
+        }
+    }
+    
     // MARK: -
     // MARK: Conversion Functions
     
     /// Turn our more-specific options into the big bucket option set of NSCalendar
     internal static func _toCalendarOptions(matchingPolicy: MatchingPolicy, repeatedTimePolicy: RepeatedTimePolicy, direction: SearchDirection) -> NSCalendar.Options {
-        var result : NSCalendar.Options = []
+        var result: NSCalendar.Options = []
         
         switch matchingPolicy {
         case .nextTime:
@@ -899,24 +908,24 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
         return result
     }
     
-    internal static func _toCalendarUnit(_ units : Set<Component>) -> NSCalendar.Unit {
-        let unitMap : [Component : NSCalendar.Unit] =
-            [.era : .era,
-             .year : .year,
-             .month : .month,
-             .day : .day,
-             .hour : .hour,
-             .minute : .minute,
-             .second : .second,
-             .weekday : .weekday,
-             .weekdayOrdinal : .weekdayOrdinal,
-             .quarter : .quarter,
-             .weekOfMonth : .weekOfMonth,
-             .weekOfYear : .weekOfYear,
-             .yearForWeekOfYear : .yearForWeekOfYear,
-             .nanosecond : .nanosecond,
-             .calendar : .calendar,
-             .timeZone : .timeZone]
+    internal static func _toCalendarUnit(_ units: Set<Component>) -> NSCalendar.Unit {
+        let unitMap: [Component : NSCalendar.Unit] =
+            [.era: .era,
+             .year: .year,
+             .month: .month,
+             .day: .day,
+             .hour: .hour,
+             .minute: .minute,
+             .second: .second,
+             .weekday: .weekday,
+             .weekdayOrdinal: .weekdayOrdinal,
+             .quarter: .quarter,
+             .weekOfMonth: .weekOfMonth,
+             .weekOfYear: .weekOfYear,
+             .yearForWeekOfYear: .yearForWeekOfYear,
+             .nanosecond: .nanosecond,
+             .calendar: .calendar,
+             .timeZone: .timeZone]
         
         var result = NSCalendar.Unit()
         for u in units {
@@ -925,7 +934,7 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
         return result
     }
     
-    internal static func _fromCalendarUnit(_ unit : NSCalendar.Unit) -> Component {
+    internal static func _fromCalendarUnit(_ unit: NSCalendar.Unit) -> Component {
         switch unit {
         case NSCalendar.Unit.era:
             return Component.era
@@ -964,7 +973,7 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
         }
     }
     
-    internal static func _fromCalendarUnits(_ units : NSCalendar.Unit) -> Set<Component> {
+    internal static func _fromCalendarUnits(_ units: NSCalendar.Unit) -> Set<Component> {
         var result = Set<Component>()
         if units.contains(.era) {
             result.insert(.era)
@@ -1033,104 +1042,101 @@ public struct Calendar : CustomStringConvertible, CustomDebugStringConvertible, 
         return result
     }
     
-    internal static func _toNSCalendarIdentifier(_ identifier : Identifier) -> NSCalendar.Identifier {
+    internal static func _toNSCalendarIdentifier(_ identifier: Identifier) -> NSCalendar.Identifier {
         if #available(OSX 10.10, iOS 8.0, *) {
-            let identifierMap : [Identifier : NSCalendar.Identifier] =
-                [.gregorian : .gregorian,
-                 .buddhist : .buddhist,
-                 .chinese : .chinese,
-                 .coptic : .coptic,
-                 .ethiopicAmeteMihret : .ethiopicAmeteMihret,
-                 .ethiopicAmeteAlem : .ethiopicAmeteAlem,
-                 .hebrew : .hebrew,
-                 .iso8601 : .ISO8601,
-                 .indian : .indian,
-                 .islamic : .islamic,
-                 .islamicCivil : .islamicCivil,
-                 .japanese : .japanese,
-                 .persian : .persian,
-                 .republicOfChina : .republicOfChina,
-                 .islamicTabular : .islamicTabular,
-                 .islamicUmmAlQura : .islamicUmmAlQura]
+            let identifierMap: [Identifier : NSCalendar.Identifier] =
+                [.gregorian: .gregorian,
+                 .buddhist: .buddhist,
+                 .chinese: .chinese,
+                 .coptic: .coptic,
+                 .ethiopicAmeteMihret: .ethiopicAmeteMihret,
+                 .ethiopicAmeteAlem: .ethiopicAmeteAlem,
+                 .hebrew: .hebrew,
+                 .iso8601: .ISO8601,
+                 .indian: .indian,
+                 .islamic: .islamic,
+                 .islamicCivil: .islamicCivil,
+                 .japanese: .japanese,
+                 .persian: .persian,
+                 .republicOfChina: .republicOfChina,
+                 .islamicTabular: .islamicTabular,
+                 .islamicUmmAlQura: .islamicUmmAlQura]
             return identifierMap[identifier]!
         } else {
-            let identifierMap : [Identifier : NSCalendar.Identifier] =
-                [.gregorian : .gregorian,
-                 .buddhist : .buddhist,
-                 .chinese : .chinese,
-                 .coptic : .coptic,
-                 .ethiopicAmeteMihret : .ethiopicAmeteMihret,
-                 .ethiopicAmeteAlem : .ethiopicAmeteAlem,
-                 .hebrew : .hebrew,
-                 .iso8601 : .ISO8601,
-                 .indian : .indian,
-                 .islamic : .islamic,
-                 .islamicCivil : .islamicCivil,
-                 .japanese : .japanese,
-                 .persian : .persian,
-                 .republicOfChina : .republicOfChina]
+            let identifierMap: [Identifier : NSCalendar.Identifier] =
+                [.gregorian: .gregorian,
+                 .buddhist: .buddhist,
+                 .chinese: .chinese,
+                 .coptic: .coptic,
+                 .ethiopicAmeteMihret: .ethiopicAmeteMihret,
+                 .ethiopicAmeteAlem: .ethiopicAmeteAlem,
+                 .hebrew: .hebrew,
+                 .iso8601: .ISO8601,
+                 .indian: .indian,
+                 .islamic: .islamic,
+                 .islamicCivil: .islamicCivil,
+                 .japanese: .japanese,
+                 .persian: .persian,
+                 .republicOfChina: .republicOfChina]
             return identifierMap[identifier]!
         }
     }
     
-    internal static func _fromNSCalendarIdentifier(_ identifier : NSCalendar.Identifier) -> Identifier {
+    internal static func _fromNSCalendarIdentifier(_ identifier: NSCalendar.Identifier) -> Identifier {
         if #available(OSX 10.10, iOS 8.0, *) {
-            let identifierMap : [NSCalendar.Identifier : Identifier] =
-                [.gregorian : .gregorian,
-                 .buddhist : .buddhist,
-                 .chinese : .chinese,
-                 .coptic : .coptic,
-                 .ethiopicAmeteMihret : .ethiopicAmeteMihret,
-                 .ethiopicAmeteAlem : .ethiopicAmeteAlem,
-                 .hebrew : .hebrew,
-                 .ISO8601 : .iso8601,
-                 .indian : .indian,
-                 .islamic : .islamic,
-                 .islamicCivil : .islamicCivil,
-                 .japanese : .japanese,
-                 .persian : .persian,
-                 .republicOfChina : .republicOfChina,
-                 .islamicTabular : .islamicTabular,
-                 .islamicUmmAlQura : .islamicUmmAlQura]
+            let identifierMap: [NSCalendar.Identifier : Identifier] =
+                [.gregorian: .gregorian,
+                 .buddhist: .buddhist,
+                 .chinese: .chinese,
+                 .coptic: .coptic,
+                 .ethiopicAmeteMihret: .ethiopicAmeteMihret,
+                 .ethiopicAmeteAlem: .ethiopicAmeteAlem,
+                 .hebrew: .hebrew,
+                 .ISO8601: .iso8601,
+                 .indian: .indian,
+                 .islamic: .islamic,
+                 .islamicCivil: .islamicCivil,
+                 .japanese: .japanese,
+                 .persian: .persian,
+                 .republicOfChina: .republicOfChina,
+                 .islamicTabular: .islamicTabular,
+                 .islamicUmmAlQura: .islamicUmmAlQura]
             return identifierMap[identifier]!
         } else {
-            let identifierMap : [NSCalendar.Identifier : Identifier] =
-                [.gregorian : .gregorian,
-                 .buddhist : .buddhist,
-                 .chinese : .chinese,
-                 .coptic : .coptic,
-                 .ethiopicAmeteMihret : .ethiopicAmeteMihret,
-                 .ethiopicAmeteAlem : .ethiopicAmeteAlem,
-                 .hebrew : .hebrew,
-                 .ISO8601 : .iso8601,
-                 .indian : .indian,
-                 .islamic : .islamic,
-                 .islamicCivil : .islamicCivil,
-                 .japanese : .japanese,
-                 .persian : .persian,
-                 .republicOfChina : .republicOfChina]
+            let identifierMap: [NSCalendar.Identifier : Identifier] =
+                [.gregorian: .gregorian,
+                 .buddhist: .buddhist,
+                 .chinese: .chinese,
+                 .coptic: .coptic,
+                 .ethiopicAmeteMihret: .ethiopicAmeteMihret,
+                 .ethiopicAmeteAlem: .ethiopicAmeteAlem,
+                 .hebrew: .hebrew,
+                 .ISO8601: .iso8601,
+                 .indian: .indian,
+                 .islamic: .islamic,
+                 .islamicCivil: .islamicCivil,
+                 .japanese: .japanese,
+                 .persian: .persian,
+                 .republicOfChina: .republicOfChina]
             return identifierMap[identifier]!
         }
     }
 }
 
-public func ==(lhs: Calendar, rhs: Calendar) -> Bool {
-    if lhs._autoupdating || rhs._autoupdating {
-        return lhs._autoupdating == rhs._autoupdating
-    } else {
-        // NSCalendar's isEqual is broken (27019864) so we must implement this ourselves
-        return lhs.identifier == rhs.identifier &&
-            lhs.locale == rhs.locale &&
-            lhs.timeZone == rhs.timeZone &&
-            lhs.firstWeekday == rhs.firstWeekday &&
-            lhs.minimumDaysInFirstWeek == rhs.minimumDaysInFirstWeek
+extension Calendar : CustomDebugStringConvertible, CustomStringConvertible, CustomReflectable {
+    public var description: String {
+        return _handle.map { $0.description }
     }
+    
+    public var debugDescription: String {
+        return _handle.map { $0.debugDescription }
+    }
+    
+    public var customMirror: Mirror { NSUnimplemented() }
 }
 
-extension Calendar : _ObjectTypeBridgeable {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
+extension Calendar: _ObjectTypeBridgeable {
+    public typealias _ObjectType = NSCalendar
     
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSCalendar {
@@ -1143,6 +1149,7 @@ extension Calendar : _ObjectTypeBridgeable {
         }
     }
     
+    @discardableResult
     public static func _conditionallyBridgeFromObjectiveC(_ input: NSCalendar, result: inout Calendar?) -> Bool {
         result = Calendar(reference: input)
         return true
@@ -1154,4 +1161,3 @@ extension Calendar : _ObjectTypeBridgeable {
         return result!
     }
 }
-
