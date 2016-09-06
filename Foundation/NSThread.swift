@@ -10,7 +10,7 @@
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
 import Glibc
 #endif
 
@@ -133,7 +133,7 @@ open class Thread : NSObject {
     internal var _main: (Void) -> Void = {}
 #if os(OSX) || os(iOS)
     private var _thread: pthread_t? = nil
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
     private var _thread = pthread_t()
 #endif
     internal var _attr = pthread_attr_t()

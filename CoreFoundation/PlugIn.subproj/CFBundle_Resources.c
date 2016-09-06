@@ -33,7 +33,9 @@
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
 #include <unistd.h>
+#if __has_include(<sys/sysctl.h>)
 #include <sys/sysctl.h>
+#endif
 #include <sys/stat.h>
 #include <dirent.h>
 #endif

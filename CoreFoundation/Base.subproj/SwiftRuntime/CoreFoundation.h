@@ -14,6 +14,8 @@
  
 */
 
+#include <stdarg.h>
+
 #if !defined(__COREFOUNDATION_COREFOUNDATION__)
 #define __COREFOUNDATION_COREFOUNDATION__ 1
 #define __COREFOUNDATION__ 1
@@ -37,6 +39,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netdb.h>
 #include <time.h>
 
 #if defined(__STDC_VERSION__) && (199901L <= __STDC_VERSION__)

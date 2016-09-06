@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !os(Android)
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
@@ -455,3 +456,4 @@ private func posix(_ code: Int32) {
     default: fatalError("POSIX command failed with error: \(code)")
     }
 }
+#endif

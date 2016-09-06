@@ -1265,7 +1265,7 @@ CFDictionaryRef __CFGetEnvironment() {
         extern char **environ;
         char **envp = environ;
 #elif DEPLOYMENT_TARGET_LINUX
-#ifndef environ
+#if !defined(environ) && !defined(DEPLOYMENT_TARGET_ANDROID)
 #define environ __environ
 #endif
         char **envp = environ;

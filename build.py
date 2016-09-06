@@ -75,7 +75,10 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 		'-I${SYSROOT}/usr/include/curl'
 	]
 
-foundation.LDFLAGS += '-lpthread -ldl -lm -lswiftCore -lxml2 -lcurl '
+if Configuration.current.target.triple != "armv7-none-linux-androideabi":
+	foundation.LDFLAGS += '-lpthread '
+
+foundation.LDFLAGS += '-ldl -lm -lswiftCore -lxml2 '
 
 # Configure use of Dispatch in CoreFoundation and Foundation if libdispatch is being built
 if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:

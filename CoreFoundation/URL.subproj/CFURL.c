@@ -30,7 +30,11 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#if __has_include(<sys/syslog.h>)
 #include <sys/syslog.h>
+#else
+#include <syslog.h>
+#endif
 #include <CoreFoundation/CFURLPriv.h>
 #endif
 

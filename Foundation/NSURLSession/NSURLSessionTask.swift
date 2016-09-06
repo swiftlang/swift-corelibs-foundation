@@ -630,9 +630,12 @@ fileprivate extension URLSessionTask {
         var result = [("Connection", "keep-alive"),
                       ("User-Agent", userAgentString),
                       ]
+        #if !os(Android)
+        // Crashes on Android
         if let language = NSLocale.current.languageCode {
             result.append(("Accept-Language", language))
         }
+        #endif
         return result
     }
     /// Any header values that should be removed from the ones set by libcurl
@@ -847,9 +850,14 @@ extension URLSessionTask {
                 data = Data(bytes: body.bytes, count: body.length)
             }
 
+            #if !os(Android)
             s.delegateQueue.addOperation {
                 completion(data, response, nil)
             }
+            #else
+            // HACK: Operation Queues not working on Android
+            completion(data, response, nil)
+            #endif
         case .downloadCompletionHandler(let completion):
             guard case .toFile(let url, let fileHandle?) = bodyDataDrain else {
                 fatalError("Task has data completion handler, but data drain is not a file handle.")

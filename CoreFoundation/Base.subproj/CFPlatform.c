@@ -157,7 +157,11 @@ const char *_CFProcessPath(void) {
 
 #if DEPLOYMENT_TARGET_LINUX
 #include <unistd.h>
+#if __has_include(<syscall.h>)
 #include <syscall.h>
+#else
+#include <sys/syscall.h>
+#endif
 
 Boolean _CFIsMainThread(void) {
     return syscall(SYS_gettid) == getpid();

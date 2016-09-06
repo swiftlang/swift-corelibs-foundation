@@ -18,7 +18,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     private var _prefs: UnsafeMutableRawPointer? = nil
 #if os(OSX) || os(iOS)
     private var _lock = pthread_mutex_t()
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
     private var _lock = Int32(0)
 #endif
     private var _nullLocale = false

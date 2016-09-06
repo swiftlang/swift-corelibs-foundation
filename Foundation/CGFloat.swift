@@ -611,6 +611,7 @@ public func %=(lhs: inout CGFloat, rhs: CGFloat) {
     fatalError("%= is not available.")
 }
 
+#if !os(Android)
 //===----------------------------------------------------------------------===//
 // tgmath
 //===----------------------------------------------------------------------===//
@@ -879,6 +880,7 @@ public func y1(_ x: CGFloat) -> CGFloat {
 public func yn(_ n: Int, _ x: CGFloat) -> CGFloat {
     return CGFloat(yn(n, Double(x.native)))
 }
+#endif
 
 @_transparent
 extension CGFloat : _CVarArgPassedAsDouble, _CVarArgAligned {

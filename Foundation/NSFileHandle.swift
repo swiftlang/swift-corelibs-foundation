@@ -11,8 +11,14 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
 import Glibc
+#endif
+
+#if os(Android)
+let L_SET  = SEEK_SET
+let L_INCR = SEEK_CUR
+let L_XTND = SEEK_END
 #endif
 
 open class FileHandle : NSObject, NSSecureCoding {
@@ -75,7 +81,7 @@ open class FileHandle : NSObject, NSSecureCoding {
             if offset < 0 {
                 fatalError("Unable to fetch current file offset")
             }
-            if statbuf.st_size > offset {
+            if off_t(statbuf.st_size) > offset {
                 var remaining = size_t(statbuf.st_size - offset)
                 remaining = min(remaining, size_t(length))
                 

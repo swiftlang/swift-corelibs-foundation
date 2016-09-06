@@ -11,7 +11,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
 import Glibc
 #endif
 
@@ -423,7 +423,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             repeat {
                 #if os(OSX) || os(iOS)
                     bytesWritten = Darwin.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
-                #elseif os(Linux)
+                #elseif os(Linux) || os(Android)
                     bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
                 #endif
             } while (bytesWritten < 0 && errno == EINTR)
@@ -444,7 +444,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             // Preserve permissions.
             var info = stat()
             if lstat(path, &info) == 0 {
-                mode = info.st_mode
+                mode = mode_t(info.st_mode)
             } else if errno != ENOENT && errno != ENAMETOOLONG {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
@@ -927,7 +927,11 @@ open class NSMutableData : NSData {
     }
     
     open func resetBytes(in range: NSRange) {
+        #if os(Android)
+        memset(mutableBytes.advanced(by: range.location), 0, range.length)
+        #else
         bzero(mutableBytes.advanced(by: range.location), range.length)
+        #endif
     }
     
     open func setData(_ data: Data) {
