@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Simple script to move android foundation into toolchain
-# To build it again after this use install.sh -u to reset
+# Simple script to move Android Foundation into toolchain
+# To build it again after this, use install.sh -u to reset
 #
 # libxml2.so built from the android platform port:
 # https://github.com/android/platform_external_libxml2
