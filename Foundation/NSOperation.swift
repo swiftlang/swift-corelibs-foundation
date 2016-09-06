@@ -399,11 +399,13 @@ open class OperationQueue: NSObject {
          execution. The only differential is that the block enqueued to dispatch_async
          is balanced with the number of Operations enqueued to the NSOperationQueue.
          */
+        lock.lock()
         ops.forEach { (operation: Operation) -> Void in
-            lock.lock()
             operation._queue = self
             _operations.insert(operation)
-            lock.unlock()
+        }
+        lock.unlock()
+        ops.forEach { (operation: Operation) -> Void in
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
             if let group = waitGroup {
                 group.enter()
