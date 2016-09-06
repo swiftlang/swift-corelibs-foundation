@@ -75,7 +75,11 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 		'-I${SYSROOT}/usr/include/curl'
 	]
 
-if Configuration.current.target.triple != "armv7-none-linux-androideabi":
+triple = Configuration.current.target.triple
+if triple == "x86_64-linux-gnu" or triple == "armv7-none-linux-androideabi":
+	foundation.LDFLAGS += '-lcurl '
+
+if triple != "armv7-none-linux-androideabi":
 	foundation.LDFLAGS += '-lpthread '
 
 foundation.LDFLAGS += '-ldl -lm -lswiftCore -lxml2 '
