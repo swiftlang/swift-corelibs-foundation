@@ -611,179 +611,182 @@ public func %=(lhs: inout CGFloat, rhs: CGFloat) {
     fatalError("%= is not available.")
 }
 
-#if !os(Android)
 //===----------------------------------------------------------------------===//
 // tgmath
 //===----------------------------------------------------------------------===//
 
+#if os(Android)
+import Glibc
+#endif
+
 @_transparent
 public func acos(_ x: CGFloat) -> CGFloat {
-    return CGFloat(acos(x.native))
+    return CGFloat(acos(Double(x.native)))
 }
 
 @_transparent
 public func cos(_ x: CGFloat) -> CGFloat {
-    return CGFloat(cos(x.native))
+    return CGFloat(cos(Double(x.native)))
 }
 
 @_transparent
 public func sin(_ x: CGFloat) -> CGFloat {
-    return CGFloat(sin(x.native))
+    return CGFloat(sin(Double(x.native)))
 }
 
 @_transparent
 public func asin(_ x: CGFloat) -> CGFloat {
-    return CGFloat(asin(x.native))
+    return CGFloat(asin(Double(x.native)))
 }
 
 @_transparent
 public func atan(_ x: CGFloat) -> CGFloat {
-    return CGFloat(atan(x.native))
+    return CGFloat(atan(Double(x.native)))
 }
 
 @_transparent
 public func tan(_ x: CGFloat) -> CGFloat {
-    return CGFloat(tan(x.native))
+    return CGFloat(tan(Double(x.native)))
 }
 
 @_transparent
 public func acosh(_ x: CGFloat) -> CGFloat {
-    return CGFloat(acosh(x.native))
+    return CGFloat(acosh(Double(x.native)))
 }
 
 @_transparent
 public func asinh(_ x: CGFloat) -> CGFloat {
-    return CGFloat(asinh(x.native))
+    return CGFloat(asinh(Double(x.native)))
 }
 
 @_transparent
 public func atanh(_ x: CGFloat) -> CGFloat {
-    return CGFloat(atanh(x.native))
+    return CGFloat(atanh(Double(x.native)))
 }
 
 @_transparent
 public func cosh(_ x: CGFloat) -> CGFloat {
-    return CGFloat(cosh(x.native))
+    return CGFloat(cosh(Double(x.native)))
 }
 
 @_transparent
 public func sinh(_ x: CGFloat) -> CGFloat {
-    return CGFloat(sinh(x.native))
+    return CGFloat(sinh(Double(x.native)))
 }
 
 @_transparent
 public func tanh(_ x: CGFloat) -> CGFloat {
-    return CGFloat(tanh(x.native))
+    return CGFloat(tanh(Double(x.native)))
 }
 
 @_transparent
 public func exp(_ x: CGFloat) -> CGFloat {
-    return CGFloat(exp(x.native))
+    return CGFloat(exp(Double(x.native)))
 }
 
 @_transparent
 public func exp2(_ x: CGFloat) -> CGFloat {
-    return CGFloat(exp2(x.native))
+    return CGFloat(exp2(Double(x.native)))
 }
 
 @_transparent
 public func expm1(_ x: CGFloat) -> CGFloat {
-    return CGFloat(expm1(x.native))
+    return CGFloat(expm1(Double(x.native)))
 }
 
 @_transparent
 public func log(_ x: CGFloat) -> CGFloat {
-    return CGFloat(log(x.native))
+    return CGFloat(log(Double(x.native)))
 }
 
 @_transparent
 public func log10(_ x: CGFloat) -> CGFloat {
-    return CGFloat(log10(x.native))
+    return CGFloat(log10(Double(x.native)))
 }
 
 @_transparent
 public func log2(_ x: CGFloat) -> CGFloat {
-    return CGFloat(log2(x.native))
+    return CGFloat(log2(Double(x.native)))
 }
 
 @_transparent
 public func log1p(_ x: CGFloat) -> CGFloat {
-    return CGFloat(log1p(x.native))
+    return CGFloat(log1p(Double(x.native)))
 }
 
 @_transparent
 public func logb(_ x: CGFloat) -> CGFloat {
-    return CGFloat(logb(x.native))
+    return CGFloat(logb(Double(x.native)))
 }
 
 @_transparent
 public func cbrt(_ x: CGFloat) -> CGFloat {
-    return CGFloat(cbrt(x.native))
+    return CGFloat(cbrt(Double(x.native)))
 }
 
 @_transparent
 public func erf(_ x: CGFloat) -> CGFloat {
-    return CGFloat(erf(x.native))
+    return CGFloat(erf(Double(x.native)))
 }
 
 @_transparent
 public func erfc(_ x: CGFloat) -> CGFloat {
-    return CGFloat(erfc(x.native))
+    return CGFloat(erfc(Double(x.native)))
 }
 
 @_transparent
 public func tgamma(_ x: CGFloat) -> CGFloat {
-    return CGFloat(tgamma(x.native))
+    return CGFloat(tgamma(Double(x.native)))
 }
 
 @_transparent
 public func nearbyint(_ x: CGFloat) -> CGFloat {
-    return CGFloat(nearbyint(x.native))
+    return CGFloat(nearbyint(Double(x.native)))
 }
 
 @_transparent
 public func rint(_ x: CGFloat) -> CGFloat {
-    return CGFloat(rint(x.native))
+    return CGFloat(rint(Double(x.native)))
 }
 
 @_transparent
 public func atan2(_ lhs: CGFloat, _ rhs: CGFloat) -> CGFloat {
-    return CGFloat(atan2(lhs.native, rhs.native))
+    return CGFloat(atan2(Double(lhs.native), Double(rhs.native)))
 }
 
 @_transparent
 public func hypot(_ lhs: CGFloat, _ rhs: CGFloat) -> CGFloat {
-    return CGFloat(hypot(lhs.native, rhs.native))
+    return CGFloat(hypot(Double(lhs.native), Double(rhs.native)))
 }
 
 @_transparent
 public func pow(_ lhs: CGFloat, _ rhs: CGFloat) -> CGFloat {
-    return CGFloat(pow(lhs.native, rhs.native))
+    return CGFloat(pow(Double(lhs.native), Double(rhs.native)))
 }
 
 @_transparent
 public func copysign(_ lhs: CGFloat, _ rhs: CGFloat) -> CGFloat {
-    return CGFloat(copysign(lhs.native, rhs.native))
+    return CGFloat(copysign(Double(lhs.native), Double(rhs.native)))
 }
 
 @_transparent
 public func nextafter(_ lhs: CGFloat, _ rhs: CGFloat) -> CGFloat {
-    return CGFloat(nextafter(lhs.native, rhs.native))
+    return CGFloat(nextafter(Double(lhs.native), Double(rhs.native)))
 }
 
 @_transparent
 public func fdim(_ lhs: CGFloat, _ rhs: CGFloat) -> CGFloat {
-    return CGFloat(fdim(lhs.native, rhs.native))
+    return CGFloat(fdim(Double(lhs.native), Double(rhs.native)))
 }
 
 @_transparent
 public func fmax(_ lhs: CGFloat, _ rhs: CGFloat) -> CGFloat {
-    return CGFloat(fmax(lhs.native, rhs.native))
+    return CGFloat(fmax(Double(lhs.native), Double(rhs.native)))
 }
 
 @_transparent
 public func fmin(_ lhs: CGFloat, _ rhs: CGFloat) -> CGFloat {
-    return CGFloat(fmin(lhs.native, rhs.native))
+    return CGFloat(fmin(Double(lhs.native), Double(rhs.native)))
 }
 
 @_transparent
@@ -807,42 +810,43 @@ public func isnan(_ value: CGFloat) -> Bool { return value.isNaN }
 @available(*, unavailable, message: "use the sign property.")
 public func signbit(_ value: CGFloat) -> Int { return value.sign.rawValue }
 
+#if !os(Android)
 @_transparent
 public func modf(_ x: CGFloat) -> (CGFloat, CGFloat) {
-    let (ipart, fpart) = modf(x.native)
+    let (ipart, fpart) = modf(Double(x.native))
     return (CGFloat(ipart), CGFloat(fpart))
 }
 
 @_transparent
 public func ldexp(_ x: CGFloat, _ n: Int) -> CGFloat {
-    return CGFloat(ldexp(x.native, n))
+    return CGFloat(ldexp(Double(x.native), n))
 }
 
 @_transparent
 public func frexp(_ x: CGFloat) -> (CGFloat, Int) {
-    let (frac, exp) = frexp(x.native)
+    let (frac, exp) = frexp(Double(x.native))
     return (CGFloat(frac), exp)
 }
 
 @_transparent
 public func ilogb(_ x: CGFloat) -> Int {
-    return ilogb(x.native)
+    return ilogb(Double(x.native))
 }
 
 @_transparent
 public func scalbn(_ x: CGFloat, _ n: Int) -> CGFloat {
-    return CGFloat(scalbn(x.native, n))
+    return CGFloat(scalbn(Double(x.native), n))
 }
 
 @_transparent
 public func lgamma(_ x: CGFloat) -> (CGFloat, Int) {
-    let (value, sign) = lgamma(x.native)
+    let (value, sign) = lgamma(Double(x.native))
     return (CGFloat(value), sign)
 }
 
 @_transparent
 public func remquo(_ x: CGFloat, _ y: CGFloat) -> (CGFloat, Int) {
-    let (rem, quo) = remquo(x.native, y.native)
+    let (rem, quo) = remquo(Double(x.native), Double(y.native))
     return (CGFloat(rem), quo)
 }
 

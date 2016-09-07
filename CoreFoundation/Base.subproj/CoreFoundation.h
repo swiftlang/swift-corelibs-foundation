@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netdb.h>
 #include <time.h>
 
 #if defined(__STDC_VERSION__) && (199901L <= __STDC_VERSION__)

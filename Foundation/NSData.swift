@@ -927,11 +927,7 @@ open class NSMutableData : NSData {
     }
     
     open func resetBytes(in range: NSRange) {
-        #if os(Android)
         memset(mutableBytes.advanced(by: range.location), 0, range.length)
-        #else
-        bzero(mutableBytes.advanced(by: range.location), range.length)
-        #endif
     }
     
     open func setData(_ data: Data) {
