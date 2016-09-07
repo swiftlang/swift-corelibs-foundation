@@ -77,7 +77,7 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         let ti = aDecoder.decodeDouble(forKey: "NS.time")
         self.init(timeIntervalSinceReferenceDate: ti)
     }
-    
+
     open override func copy() -> Any {
         return copy(with: nil)
     }

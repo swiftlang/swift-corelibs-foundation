@@ -283,27 +283,25 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     public static var supportsSecureCoding: Bool { return true }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            let base = aDecoder.decodeObject(of: NSURL.self, forKey:"NS.base")?._swiftObject
-            let relative = aDecoder.decodeObject(of: NSString.self, forKey:"NS.relative")
-
-            if relative == nil {
-                return nil
-            }
-            
-            self.init(string: String._unconditionallyBridgeFromObjectiveC(relative!), relativeTo: base)
-        } else {
-            NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let base = aDecoder.decodeObject(of: NSURL.self, forKey:"NS.base")?._swiftObject
+        let relative = aDecoder.decodeObject(of: NSString.self, forKey:"NS.relative")
+
+        if relative == nil {
+            return nil
+        }
+
+        self.init(string: String._unconditionallyBridgeFromObjectiveC(relative!), relativeTo: base)
     }
     
     open func encode(with aCoder: NSCoder) {
-	if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.baseURL?._nsObject, forKey:"NS.base")
-            aCoder.encode(self.relativeString._bridgeToObjectiveC(), forKey:"NS.relative")
-	} else {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.baseURL?._nsObject, forKey:"NS.base")
+        aCoder.encode(self.relativeString._bridgeToObjectiveC(), forKey:"NS.relative")
     }
     
     public init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
