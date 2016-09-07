@@ -44,9 +44,8 @@ class TestNSDictionary : XCTestCase {
     func test_description() {
         let d1: NSDictionary = [ "foo": "bar", "baz": "qux"]
         XCTAssertEqual(d1.description, "{\n    baz = qux;\n    foo = bar;\n}")
-        let _: NSDictionary = ["1" : ["1" : ["1" : "1"]]]
-        // Disabled since it emits AnyHashable in the description for now...
-        // XCTAssertEqual(d2.description, "{\n    1 =     {\n        1 =         {\n            1 = 1;\n        };\n    };\n}")
+        let d2: NSDictionary = ["1" : ["1" : ["1" : "1"]]]
+        XCTAssertEqual(d2.description, "{\n    1 =     {\n        1 =         {\n            1 = 1;\n        };\n    };\n}")
     }
 
     func test_HeterogeneousConstruction() {

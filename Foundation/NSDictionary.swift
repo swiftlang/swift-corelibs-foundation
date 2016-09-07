@@ -248,8 +248,55 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     open override var description: String {
         return description(withLocale: nil)
     }
+    
+    private func getDescription(of object: Any) -> String? {
+        switch object {
+        case is NSArray.Type:
+            return (object as! NSArray).description(withLocale: nil, indent: 1)
+        case is NSDecimalNumber.Type:
+            return (object as! NSDecimalNumber).description(withLocale: nil)
+        case is NSDate.Type:
+            return (object as! NSDate).description(with: nil)
+        case is NSOrderedSet.Type:
+            return (object as! NSOrderedSet).description(withLocale: nil)
+        case is NSSet.Type:
+            return (object as! NSSet).description(withLocale: nil)
+        case is NSDictionary.Type:
+            return (object as! NSDictionary).description(withLocale: nil)
+        default:
+            if let hashableObject = object as? Dictionary<AnyHashable, Any> {
+                return hashableObject._nsObject.description(withLocale: nil, indent: 1)
+            } else {
+                return nil
+            }
+        }
+    }
 
-    open var descriptionInStringsFileFormat: String { NSUnimplemented() }
+    open var descriptionInStringsFileFormat: String {
+        var lines = [String]()
+        for key in self.allKeys {
+            let line = NSMutableString(capacity: 0)
+            line.append("\"")
+            if let descriptionByType = getDescription(of: key) {
+                line.append(descriptionByType)
+            } else {
+                line.append("\(key)")
+            }
+            line.append("\"")
+            line.append(" = ")
+            line.append("\"")
+            let value = self.object(forKey: key)!
+            if let descriptionByTypeValue = getDescription(of: value) {
+                line.append(descriptionByTypeValue)
+            } else {
+                line.append("\(value)")
+            }
+            line.append("\"")
+            line.append(";")
+            lines.append(line._bridgeToSwift())
+        }
+        return lines.joined(separator: "\n")
+    }
 
     /// Returns a string object that represents the contents of the dictionary,
     /// formatted as a property list.
@@ -315,11 +362,14 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             } else if object is NSSet {
                 line += (object as! NSSet).description(withLocale: locale)
             } else {
-                line += "\(object)"
+                if let hashableObject = object as? Dictionary<AnyHashable, Any> {
+                    line += hashableObject._nsObject.description(withLocale: nil, indent: level+1)
+                } else {
+                    line += "\(object)"
+                }
             }
 
             line += ";"
-
             lines.append(line)
         }
 
