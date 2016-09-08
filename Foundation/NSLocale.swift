@@ -41,14 +41,13 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            guard let identifier = aDecoder.decodeObject(of: NSString.self, forKey: "NS.identifier") else {
-                return nil
-            }
-            self.init(localeIdentifier: String._unconditionallyBridgeFromObjectiveC(identifier))
-        } else {
-            NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        guard let identifier = aDecoder.decodeObject(of: NSString.self, forKey: "NS.identifier") else {
+            return nil
+        }
+        self.init(localeIdentifier: String._unconditionallyBridgeFromObjectiveC(identifier))
     }
     
     open override func copy() -> Any {
@@ -68,12 +67,11 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            let identifier = CFLocaleGetIdentifier(self._cfObject)._nsObject
-            aCoder.encode(identifier, forKey: "NS.identifier")
-        } else {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let identifier = CFLocaleGetIdentifier(self._cfObject)._nsObject
+        aCoder.encode(identifier, forKey: "NS.identifier")
     }
     
     public static var supportsSecureCoding: Bool {

@@ -52,7 +52,9 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return _timeIntervalSinceReferenceDate
     }
     
-    open class var timeIntervalSinceReferenceDate: TimeInterval { NSUnimplemented() }
+    open class var timeIntervalSinceReferenceDate: TimeInterval {
+        return Date().timeIntervalSinceReferenceDate
+    }
 
     public convenience override init() {
         var tv = timeval()
@@ -69,18 +71,13 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            let ti = aDecoder.decodeDouble(forKey: "NS.time")
-            self.init(timeIntervalSinceReferenceDate: ti)
-        } else {
-            var ti: TimeInterval = 0.0
-            withUnsafeMutablePointer(to: &ti) { (ptr: UnsafeMutablePointer<Double>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "d", at: UnsafeMutableRawPointer(ptr))
-            }
-            self.init(timeIntervalSinceReferenceDate: ti)
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let ti = aDecoder.decodeDouble(forKey: "NS.time")
+        self.init(timeIntervalSinceReferenceDate: ti)
     }
-    
+
     open override func copy() -> Any {
         return copy(with: nil)
     }
@@ -94,11 +91,10 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(_timeIntervalSinceReferenceDate, forKey: "NS.time")
-        } else {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(_timeIntervalSinceReferenceDate, forKey: "NS.time")
     }
 
     /**

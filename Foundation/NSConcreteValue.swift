@@ -118,28 +118,26 @@ internal class NSConcreteValue : NSValue {
     }
     
     convenience required init?(coder aDecoder: NSCoder) {
-        if !aDecoder.allowsKeyedCoding {
-            NSUnimplemented()
-        } else {
-            guard let type = aDecoder.decodeObject() as? NSString else {
-                return nil
-            }
-            
-            let typep = type._swiftObject
-
-            // FIXME: This will result in reading garbage memory.
-            self.init(bytes: [], objCType: typep)
-            aDecoder.decodeValue(ofObjCType: typep, at: self.value)
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        guard let type = aDecoder.decodeObject() as? NSString else {
+            return nil
+        }
+
+        let typep = type._swiftObject
+
+        // FIXME: This will result in reading garbage memory.
+        self.init(bytes: [], objCType: typep)
+        aDecoder.decodeValue(ofObjCType: typep, at: self.value)
     }
     
     override func encode(with aCoder: NSCoder) {
-        if !aCoder.allowsKeyedCoding {
-            NSUnimplemented()
-        } else {
-            aCoder.encode(String(cString: self.objCType)._bridgeToObjectiveC())
-            aCoder.encodeValue(ofObjCType: self.objCType, at: self.value)
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(String(cString: self.objCType)._bridgeToObjectiveC())
+        aCoder.encodeValue(ofObjCType: self.objCType, at: self.value)
     }
     
     private var _size : Int {
