@@ -13,7 +13,7 @@
     import Glibc
 #endif
 
-#if os(Android)
+#if os(Android) // struct stat.st_mode is UInt32
 func &( left: UInt32, right: mode_t ) -> mode_t {
     return mode_t(left) & right
 }
@@ -285,10 +285,10 @@ open class FileManager : NSObject {
 
 #if os(OSX) || os(iOS)
         let ti = (TimeInterval(s.st_mtimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtimespec.tv_nsec))
-#elseif !os(Android)
-        let ti = (TimeInterval(s.st_mtim.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtim.tv_nsec))
-#else
+#elseif os(Android)
         let ti = (TimeInterval(s.st_mtime) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtime_nsec))
+#else
+        let ti = (TimeInterval(s.st_mtim.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtim.tv_nsec))
 #endif
         result[.modificationDate] = Date(timeIntervalSinceReferenceDate: ti)
         

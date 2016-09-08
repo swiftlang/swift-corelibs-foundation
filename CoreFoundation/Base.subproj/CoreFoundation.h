@@ -12,8 +12,6 @@
 	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
 */
 
-#include <stdarg.h>
-
 #if !defined(__COREFOUNDATION_COREFOUNDATION__)
 #define __COREFOUNDATION_COREFOUNDATION__ 1
 #define __COREFOUNDATION__ 1

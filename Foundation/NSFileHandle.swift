@@ -15,7 +15,7 @@ import Darwin
 import Glibc
 #endif
 
-#if os(Android)
+#if os(Android) // legacy constants
 let L_SET  = SEEK_SET
 let L_INCR = SEEK_CUR
 let L_XTND = SEEK_END

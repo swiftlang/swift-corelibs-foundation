@@ -180,7 +180,9 @@ typedef int		boolean_t;
 
 #ifdef DEPLOYMENT_TARGET_ANDROID
 typedef unsigned long fd_mask;
-#else
+#endif
+
+#ifndef DEPLOYMENT_TARGET_ANDROID
 CF_INLINE size_t
 strlcpy(char * dst, const char * src, size_t maxlen) {
     const size_t srclen = strlen(src);

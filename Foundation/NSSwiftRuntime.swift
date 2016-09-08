@@ -14,8 +14,14 @@ import CoreFoundation
 // This mimics the behavior of the swift sdk overlay on Darwin
 #if os(OSX) || os(iOS)
 @_exported import Darwin
-#elseif os(Linux)
+#elseif os(Linux) //// || os(Android) // Causes ambiguity in NSScanner.swift
 @_exported import Glibc
+#endif
+
+#if os(Android) // shim required for bzero
+func bzero( _ ptr: UnsafeMutableRawPointer, _ size: size_t ) {
+    memset( ptr, 0, size )
+}
 #endif
 
 public typealias ObjCBool = Bool
@@ -66,7 +72,7 @@ internal func _CFSwiftIsEqual(_ cf1: AnyObject, cf2: AnyObject) -> Bool {
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
 internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
     withUnsafeMutablePointer(to: &arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
-        memset(unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self), 0, MemoryLayout<T>.size)
+        bzero(unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self), MemoryLayout<T>.size)
     }
 }
 

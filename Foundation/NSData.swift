@@ -927,7 +927,7 @@ open class NSMutableData : NSData {
     }
     
     open func resetBytes(in range: NSRange) {
-        memset(mutableBytes.advanced(by: range.location), 0, range.length)
+        bzero(mutableBytes.advanced(by: range.location), range.length)
     }
     
     open func setData(_ data: Data) {

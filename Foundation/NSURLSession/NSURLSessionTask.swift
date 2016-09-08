@@ -850,14 +850,9 @@ extension URLSessionTask {
                 data = Data(bytes: body.bytes, count: body.length)
             }
 
-            #if !os(Android)
-            s.delegateQueue.addOperation {
+	    s.delegateQueue.addOperation {
                 completion(data, response, nil)
             }
-            #else
-            // HACK: Operation Queues not working on Android
-            completion(data, response, nil)
-            #endif
         case .downloadCompletionHandler(let completion):
             guard case .toFile(let url, let fileHandle?) = bodyDataDrain else {
                 fatalError("Task has data completion handler, but data drain is not a file handle.")

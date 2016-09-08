@@ -13,26 +13,6 @@
     import Glibc
 #endif
 
-<<<<<<< 21457d1dea8cd6ad1316d07de3902d66625bdc0c
-=======
-#if os(Android)
-private func floor( value: CGFloat.NativeType ) -> Double {
-    return floor( Double(value) )
-}
-private func ceil( value: CGFloat.NativeType ) -> Double {
-    return ceil( Double(value) )
-}
-private func round( value: CGFloat.NativeType ) -> Double {
-    return round( Double(value) )
-}
-#if false
-private func +( left: CGFloat.NativeType, right: CGFloat.NativeType ) -> Double {
-    return Double(left) + Double(right)
-}
-#endif
-#endif
-
->>>>>>> Response to comments
 public struct CGPoint {
     public var x: CGFloat
     public var y: CGFloat
@@ -471,12 +451,8 @@ public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: NSAlignmentOption
     if aRect.size.width.native < 0 {
         width = 0
     }
-<<<<<<< 21457d1dea8cd6ad1316d07de3902d66625bdc0c
     
 
-=======
-#if !os(Android) // FIXME!!!
->>>>>>> Response to comments
     if opts.contains(.AlignWidthInward) && width != 0 {
         guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         width = floor(aRect.size.width.native)

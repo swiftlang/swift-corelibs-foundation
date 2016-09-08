@@ -14,7 +14,7 @@
  
 */
 
-#include <stdarg.h>
+#include <stdarg.h> // required here to avoid an ambiguity on Android compile
 
 #if !defined(__COREFOUNDATION_COREFOUNDATION__)
 #define __COREFOUNDATION_COREFOUNDATION__ 1
