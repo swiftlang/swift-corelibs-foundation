@@ -88,7 +88,7 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
         
         var purgeAmount = 0
         if totalCostLimit > 0 {
-            purgeAmount = (_totalCost + g) - totalCostLimit
+            purgeAmount = _totalCost - totalCostLimit
         }
         
         var purgeCount = 0
