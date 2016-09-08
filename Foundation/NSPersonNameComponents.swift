@@ -12,6 +12,9 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
     public convenience required init?(coder aDecoder: NSCoder) {
         self.init()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
         func bridgeOptionalString(_ value: NSString?) -> String? {
             if let obj = value {
                 return String._unconditionallyBridgeFromObjectiveC(obj)
@@ -19,43 +22,26 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
                 return nil
             }
         }
-        
-        if aDecoder.allowsKeyedCoding {
-            self.namePrefix = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.namePrefix") as NSString?)
-            self.givenName = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.givenName") as NSString?)
-            self.middleName = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.middleName") as NSString?)
-            self.familyName = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.familyName") as NSString?)
-            self.nameSuffix = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.nameSuffix") as NSString?)
-            self.nickname = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.nickname") as NSString?)
-        } else {
-            self.namePrefix = bridgeOptionalString(aDecoder.decodeObject() as? NSString)
-            self.givenName = bridgeOptionalString(aDecoder.decodeObject() as? NSString)
-            self.middleName = bridgeOptionalString(aDecoder.decodeObject() as? NSString)
-            self.familyName = bridgeOptionalString(aDecoder.decodeObject() as? NSString)
-            self.nameSuffix = bridgeOptionalString(aDecoder.decodeObject() as? NSString)
-            self.nickname = bridgeOptionalString(aDecoder.decodeObject() as? NSString)
-        }
+        self.namePrefix = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.namePrefix") as NSString?)
+        self.givenName = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.givenName") as NSString?)
+        self.middleName = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.middleName") as NSString?)
+        self.familyName = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.familyName") as NSString?)
+        self.nameSuffix = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.nameSuffix") as NSString?)
+        self.nickname = bridgeOptionalString(aDecoder.decodeObject(of: NSString.self, forKey: "NS.nickname") as NSString?)
     }
     
     static public var supportsSecureCoding: Bool { return true }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.namePrefix?._bridgeToObjectiveC(), forKey: "NS.namePrefix")
-            aCoder.encode(self.givenName?._bridgeToObjectiveC(), forKey: "NS.givenName")
-            aCoder.encode(self.middleName?._bridgeToObjectiveC(), forKey: "NS.middleName")
-            aCoder.encode(self.familyName?._bridgeToObjectiveC(), forKey: "NS.familyName")
-            aCoder.encode(self.nameSuffix?._bridgeToObjectiveC(), forKey: "NS.nameSuffix")
-            aCoder.encode(self.nickname?._bridgeToObjectiveC(), forKey: "NS.nickname")
-        } else {
-            // FIXME check order
-            aCoder.encode(self.namePrefix?._bridgeToObjectiveC())
-            aCoder.encode(self.givenName?._bridgeToObjectiveC())
-            aCoder.encode(self.middleName?._bridgeToObjectiveC())
-            aCoder.encode(self.familyName?._bridgeToObjectiveC())
-            aCoder.encode(self.nameSuffix?._bridgeToObjectiveC())
-            aCoder.encode(self.nickname?._bridgeToObjectiveC())
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.namePrefix?._bridgeToObjectiveC(), forKey: "NS.namePrefix")
+        aCoder.encode(self.givenName?._bridgeToObjectiveC(), forKey: "NS.givenName")
+        aCoder.encode(self.middleName?._bridgeToObjectiveC(), forKey: "NS.middleName")
+        aCoder.encode(self.familyName?._bridgeToObjectiveC(), forKey: "NS.familyName")
+        aCoder.encode(self.nameSuffix?._bridgeToObjectiveC(), forKey: "NS.nameSuffix")
+        aCoder.encode(self.nickname?._bridgeToObjectiveC(), forKey: "NS.nickname")
     }
     
     open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }

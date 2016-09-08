@@ -43,23 +43,10 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        if !aDecoder.allowsKeyedCoding {
-            var cnt: UInt32 = 0
-            // We're stuck with (int) here (rather than unsigned int)
-            // because that's the way the code was originally written, unless
-            // we go to a new version of the class, which has its own problems.
-            withUnsafeMutablePointer(to: &cnt) { (ptr: UnsafeMutablePointer<UInt32>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "i", at: UnsafeMutableRawPointer(ptr))
-            }
-            let objects = UnsafeMutablePointer<AnyObject>.allocate(capacity: Int(cnt))
-            for idx in 0..<cnt {
-                // If conversion to NSObject fails then we really can't hold it anyway
-                objects.advanced(by: Int(idx)).initialize(to: aDecoder.decodeObject() as! NSObject)
-            }
-            self.init(objects: UnsafePointer<AnyObject>(objects), count: Int(cnt))
-            objects.deinitialize(count: Int(cnt))
-            objects.deallocate(capacity: Int(cnt))
-        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
             self.init(array: objects as! [NSObject])
         } else {
@@ -74,6 +61,9 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     open func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
         if let keyedArchiver = aCoder as? NSKeyedArchiver {
             keyedArchiver._encodeArrayOfObjects(self, forKey:"NS.objects")
         } else {

@@ -62,27 +62,20 @@ open class UnitConverterLinear : UnitConverter, NSSecureCoding {
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            let coefficient = aDecoder.decodeDouble(forKey: "NS.coefficient")
-            let constant = aDecoder.decodeDouble(forKey: "NS.constant")
-            self.init(coefficient: coefficient, constant: constant)
-        } else {
-            guard
-                let coefficient = aDecoder.decodeObject() as? Double,
-                let constant = aDecoder.decodeObject() as? Double
-                else { return nil }
-            self.init(coefficient: coefficient, constant: constant)
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let coefficient = aDecoder.decodeDouble(forKey: "NS.coefficient")
+        let constant = aDecoder.decodeDouble(forKey: "NS.constant")
+        self.init(coefficient: coefficient, constant: constant)
     }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.coefficient, forKey:"NS.coefficient")
-            aCoder.encode(self.constant, forKey:"NS.constant")
-        } else {
-            aCoder.encode(NSNumber(value: self.coefficient))
-            aCoder.encode(NSNumber(value: self.constant))
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.coefficient, forKey:"NS.coefficient")
+        aCoder.encode(self.constant, forKey:"NS.constant")
     }
     
     public static var supportsSecureCoding: Bool { return true }
@@ -107,23 +100,18 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
     }
     
     fileprivate required convenience init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            let reciprocal = aDecoder.decodeDouble(forKey: "NS.reciprocal")
-            self.init(reciprocal: reciprocal)
-        } else {
-            guard
-                let reciprocal = aDecoder.decodeObject() as? Double
-                else { return nil }
-            self.init(reciprocal: reciprocal)
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let reciprocal = aDecoder.decodeDouble(forKey: "NS.reciprocal")
+        self.init(reciprocal: reciprocal)
     }
     
     fileprivate func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.reciprocal, forKey:"NS.reciprocal")
-        } else {
-            aCoder.encode(NSNumber(value: self.reciprocal))
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.reciprocal, forKey:"NS.reciprocal")
     }
     
     fileprivate static var supportsSecureCoding: Bool { return true }
@@ -148,23 +136,19 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            guard let symbol = aDecoder.decodeObject(forKey: "NS.symbol") as? String
-                else { return nil }
-            self.symbol = symbol
-        } else {
-            guard let symbol = aDecoder.decodeObject() as? String
-                else { return nil }
-            self.symbol = symbol
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        guard let symbol = aDecoder.decodeObject(forKey: "NS.symbol") as? String
+            else { return nil }
+        self.symbol = symbol
     }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.symbol._bridgeToObjectiveC(), forKey:"NS.symbol")
-        } else {
-            aCoder.encode(self.symbol._bridgeToObjectiveC())
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.symbol._bridgeToObjectiveC(), forKey:"NS.symbol")
     }
 
     public static var supportsSecureCoding: Bool { return true }
@@ -191,31 +175,23 @@ open class Dimension : Unit {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            guard
-                let symbol = aDecoder.decodeObject(forKey: "NS.symbol") as? String,
-                let converter = aDecoder.decodeObject(forKey: "NS.converter") as? UnitConverter
-                else { return nil }
-            self.converter = converter
-            super.init(symbol: symbol)
-        } else {
-            guard
-                let symbol = aDecoder.decodeObject() as? String,
-                let converter = aDecoder.decodeObject() as? UnitConverter
-                else { return nil }
-            self.converter = converter
-            super.init(symbol: symbol)
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        guard
+            let symbol = aDecoder.decodeObject(forKey: "NS.symbol") as? String,
+            let converter = aDecoder.decodeObject(forKey: "NS.converter") as? UnitConverter
+            else { return nil }
+        self.converter = converter
+        super.init(symbol: symbol)
     }
     
     open override func encode(with aCoder: NSCoder) {
         super.encode(with: aCoder)
-        
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.converter, forKey:"converter")
-        } else {
-            aCoder.encode(self.converter)
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.converter, forKey:"converter")
     }
 }
 

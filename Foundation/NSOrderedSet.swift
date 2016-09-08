@@ -41,30 +41,28 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            for idx in 0..<self.count {
-                aCoder.encode(_SwiftValue.store(self.object(at: idx)), forKey:"NS.object.\(idx)")
-            }
-        } else {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        for idx in 0..<self.count {
+            aCoder.encode(_SwiftValue.store(self.object(at: idx)), forKey:"NS.object.\(idx)")
         }
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            var idx = 0
-            var objects : [AnyObject] = []
-            while aDecoder.containsValue(forKey: ("NS.object.\(idx)")) {
-                guard let object = aDecoder.decodeObject(forKey: "NS.object.\(idx)") else {
-                    return nil
-                }
-                objects.append(object as! NSObject)
-                idx += 1
-            }
-            self.init(array: objects)
-        } else {
-            NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        var idx = 0
+        var objects : [AnyObject] = []
+        while aDecoder.containsValue(forKey: ("NS.object.\(idx)")) {
+            guard let object = aDecoder.decodeObject(forKey: "NS.object.\(idx)") else {
+                return nil
+            }
+            objects.append(object as! NSObject)
+            idx += 1
+        }
+        self.init(array: objects)
     }
     
     open var count: Int {

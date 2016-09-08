@@ -38,19 +38,17 @@ extension CGPoint: NSSpecialValueCoding {
     }
     
     init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            self = aDecoder.decodePointForKey("NS.pointval")
-        } else {
-            self = aDecoder.decodePoint()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        self = aDecoder.decodePointForKey("NS.pointval")
     }
     
     func encodeWithCoder(_ aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encodePoint(self, forKey: "NS.pointval")
-        } else {
-            aCoder.encodePoint(self)
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encodePoint(self, forKey: "NS.pointval")
     }
     
     static func objCType() -> String {
@@ -103,19 +101,17 @@ extension CGSize: NSSpecialValueCoding {
     }
     
     init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            self = aDecoder.decodeSizeForKey("NS.sizeval")
-        } else {
-            self = aDecoder.decodeSize()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        self = aDecoder.decodeSizeForKey("NS.sizeval")
     }
     
     func encodeWithCoder(_ aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encodeSize(self, forKey: "NS.sizeval")
-        } else {
-            aCoder.encodeSize(self)
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encodeSize(self, forKey: "NS.sizeval")
     }
     
     static func objCType() -> String {
@@ -187,19 +183,17 @@ extension CGRect: NSSpecialValueCoding {
     }
 
     init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            self = aDecoder.decodeRectForKey("NS.rectval")
-        } else {
-            self = aDecoder.decodeRect()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        self = aDecoder.decodeRectForKey("NS.rectval")
     }
     
     func encodeWithCoder(_ aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encodeRect(self, forKey: "NS.rectval")
-        } else {
-            aCoder.encodeRect(self)
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encodeRect(self, forKey: "NS.rectval")
     }
     
     static func objCType() -> String {

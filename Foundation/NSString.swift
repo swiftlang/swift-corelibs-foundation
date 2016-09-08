@@ -196,10 +196,10 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if !aDecoder.allowsKeyedCoding {
-            aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue, userInfo: ["NSDebugDescription": "NSUUID cannot be decoded by non-keyed coders"]))
-            return nil
-        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.string") {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.string") {
             let str = aDecoder._decodePropertyListForKey("NS.string") as! String
             self.init(string: str)
         } else {

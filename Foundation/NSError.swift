@@ -62,34 +62,20 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            _code = aDecoder.decodeInteger(forKey: "NSCode")
-            _domain = aDecoder.decodeObject(of: NSString.self, forKey: "NSDomain")!._swiftObject
-            if let info = aDecoder.decodeObject(of: [NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
-                var filteredUserInfo = [String : Any]()
-                // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjects(options: []) {
-                    if let key = $0.0 as? NSString {
-                        filteredUserInfo[key._swiftObject] = $0.1
-                    }
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        _code = aDecoder.decodeInteger(forKey: "NSCode")
+        _domain = aDecoder.decodeObject(of: NSString.self, forKey: "NSDomain")!._swiftObject
+        if let info = aDecoder.decodeObject(of: [NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
+            var filteredUserInfo = [String : Any]()
+            // user info must be filtered so that the keys are all strings
+            info.enumerateKeysAndObjects(options: []) {
+                if let key = $0.0 as? NSString {
+                    filteredUserInfo[key._swiftObject] = $0.1
                 }
-                _userInfo = filteredUserInfo
             }
-        } else {
-            var codeValue: Int32 = 0
-            aDecoder.decodeValue(ofObjCType: "i", at: &codeValue)
-            _code = Int(codeValue)
-            _domain = (aDecoder.decodeObject() as? NSString)!._swiftObject
-            if let info = aDecoder.decodeObject() as? NSDictionary {
-                var filteredUserInfo = [String : Any]()
-                // user info must be filtered so that the keys are all strings
-                info.enumerateKeysAndObjects(options: []) {
-                    if let key = $0.0 as? NSString {
-                        filteredUserInfo[key._swiftObject] = $0.1
-                    }
-                }
-                _userInfo = filteredUserInfo
-            }
+            _userInfo = filteredUserInfo
         }
     }
     
@@ -98,16 +84,12 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(_domain._bridgeToObjectiveC(), forKey: "NSDomain")
-            aCoder.encode(Int32(_code), forKey: "NSCode")
-            aCoder.encode(_userInfo?._bridgeToObjectiveC(), forKey: "NSUserInfo")
-        } else {
-            var codeValue: Int32 = Int32(self._code)
-            aCoder.encodeValue(ofObjCType: "i", at: &codeValue)
-            aCoder.encode(self._domain._bridgeToObjectiveC())
-            aCoder.encode(self._userInfo?._bridgeToObjectiveC())
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(_domain._bridgeToObjectiveC(), forKey: "NSDomain")
+        aCoder.encode(Int32(_code), forKey: "NSCode")
+        aCoder.encode(_userInfo?._bridgeToObjectiveC(), forKey: "NSUserInfo")
     }
     
     open override func copy() -> Any {
