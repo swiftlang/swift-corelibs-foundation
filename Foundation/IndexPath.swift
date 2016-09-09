@@ -10,7 +10,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CoreFoundation
+#if os(Android)
+import Glibc // for free()
+#endif
 
 // Implementation note: NSIndexPath is an efficient array of integers for Objective-C.
 // For Swift, we bridge to this wrapper of Array<Int>. This gives us great Swift performance and interop with Objective-C.

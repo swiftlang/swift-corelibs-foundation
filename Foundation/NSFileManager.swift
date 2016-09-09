@@ -14,7 +14,7 @@
 #endif
 
 #if os(Android) // struct stat.st_mode is UInt32
-func &( left: UInt32, right: mode_t ) -> mode_t {
+internal func &(left: UInt32, right: mode_t) -> mode_t {
     return mode_t(left) & right
 }
 #endif

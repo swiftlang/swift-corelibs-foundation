@@ -19,8 +19,8 @@ import CoreFoundation
 #endif
 
 #if os(Android) // shim required for bzero
-func bzero( _ ptr: UnsafeMutableRawPointer, _ size: size_t ) {
-    memset( ptr, 0, size )
+@_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
+    memset(ptr, 0, size)
 }
 #endif
 
