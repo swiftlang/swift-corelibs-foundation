@@ -130,9 +130,17 @@ private func convertToStringString(dictionary: [AnyHashable:Any]) -> [String: St
     // C.f. <https://github.com/apple/swift-corelibs-foundation/pull/287>
     var r: [String: String] = [:]
     dictionary.forEach {
-        let k = String(describing: $0.key as! NSString)
-        let v = String(describing: $0.value as! NSString)
+        let k = getString(from: $0.key)
+        let v = getString(from: $0.value)
         r[k] = v
     }
     return r
+}
+
+private func getString(from obj: Any) -> String {
+    if let string = obj as? String {
+        return string
+    } else {
+        return String(describing: obj as! NSString)
+    }
 }
