@@ -144,7 +144,7 @@ public struct CGFloat {
     /// The native value.
     public var native: NativeType
 
-    public var double: Double {
+    @_transparent public var double: Double {
         return Double(native)
     }
 }

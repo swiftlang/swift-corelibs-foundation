@@ -41,11 +41,3 @@ public func NSLog(_ format: String, _ args: CVarArg...) {
         NSLogv(format, $0) 
     }
 }
-
-// hook for System.out.println()
-#if os(Android)
-public var ANLog = {
-    (msg: String) in
-    NSLog(msg)
-}
-#endif

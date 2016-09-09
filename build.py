@@ -79,7 +79,9 @@ triple = Configuration.current.target.triple
 if triple == "x86_64-linux-gnu" or triple == "armv7-none-linux-androideabi":
 	foundation.LDFLAGS += '-lcurl '
 
-if triple != "armv7-none-linux-androideabi":
+if triple == "armv7-none-linux-androideabi":
+	foundation.LDFLAGS += '-llog '
+else:
 	foundation.LDFLAGS += '-lpthread '
 
 foundation.LDFLAGS += '-ldl -lm -lswiftCore -lxml2 '

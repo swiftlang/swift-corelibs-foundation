@@ -25,6 +25,9 @@
 #if DEPLOYMENT_TARGET_WINDOWS
 #include <process.h>
 #endif
+#ifdef DEPLOYMENT_TARGET_ANDROID
+#include <android/log.h>
+#endif
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
@@ -764,7 +767,16 @@ void CFLog(CFLogLevel lev, CFStringRef format, ...) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 // Temporary as Swift cannot import varag C functions
 void CFLog1(CFLogLevel lev, CFStringRef message) {
+#ifdef DEPLOYMENT_TARGET_ANDROID
+    UInt8 buffer[4096];
+    CFIndex usedBufLen = sizeof buffer-1;
+    CFStringGetBytes(message, CFRangeMake(0, CFStringGetLength(message)),
+		     kCFStringEncodingUTF8, ' ', FALSE, buffer, usedBufLen, &usedBufLen);
+    buffer[usedBufLen] = '\000';
+    __android_log_print(ANDROID_LOG_INFO, "Swift", "%s", buffer);
+#else
     CFLog(lev, CFSTR("%@"), message);
+#endif
 }
 #endif
 
