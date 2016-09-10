@@ -298,6 +298,10 @@ extension CFSet : _NSBridgeable, _SwiftBridgeable {
     internal var _swiftObject: Set<NSObject> { return _nsObject._swiftObject }
 }
 
+extension NSMutableSet {
+    internal var _cfMutableObject: CFMutableSet { return unsafeBitCast(self, to: CFMutableSet.self) }
+}
+
 extension Set : _NSBridgeable, _CFBridgeable {
     internal var _nsObject: NSSet { return _bridgeToObjectiveC() }
     internal var _cfObject: CFSet { return _nsObject._cfObject }
