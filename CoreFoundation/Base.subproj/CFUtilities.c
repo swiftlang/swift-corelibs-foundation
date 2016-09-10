@@ -25,7 +25,7 @@
 #if DEPLOYMENT_TARGET_WINDOWS
 #include <process.h>
 #endif
-#ifdef DEPLOYMENT_TARGET_ANDROID
+#ifdef __ANDROID__
 #include <android/log.h>
 #endif
 #include <math.h>
@@ -767,7 +767,7 @@ void CFLog(CFLogLevel lev, CFStringRef format, ...) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 // Temporary as Swift cannot import varag C functions
 void CFLog1(CFLogLevel lev, CFStringRef message) {
-#ifdef DEPLOYMENT_TARGET_ANDROID
+#ifdef __ANDROID__
     UInt8 buffer[4096];
     CFIndex usedBufLen = sizeof buffer-1;
     CFStringGetBytes(message, CFRangeMake(0, CFStringGetLength(message)),
@@ -1277,7 +1277,7 @@ CFDictionaryRef __CFGetEnvironment() {
         extern char **environ;
         char **envp = environ;
 #elif DEPLOYMENT_TARGET_LINUX
-#if !defined(environ) && !defined(DEPLOYMENT_TARGET_ANDROID)
+#if !defined(environ) && !defined(__ANDROID__)
 #define environ __environ
 #endif
         char **envp = environ;

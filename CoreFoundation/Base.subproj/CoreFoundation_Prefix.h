@@ -178,11 +178,11 @@ typedef int		boolean_t;
 
 #include <pthread.h>
 
-#ifdef DEPLOYMENT_TARGET_ANDROID
+#ifdef __ANDROID__
 typedef unsigned long fd_mask;
 #endif
 
-#ifndef DEPLOYMENT_TARGET_ANDROID
+#ifndef __ANDROID__
 CF_INLINE size_t
 strlcpy(char * dst, const char * src, size_t maxlen) {
     const size_t srclen = strlen(src);

@@ -13,6 +13,6 @@ BUILD_DIR="$(dirname $SWIFT_ROOT)" &&
 
 \cp -v "${BUILD_DIR}/libdispatch-linux-x86_64/src/swift/Dispatch.swift"* "${SWIFT_ROOT}/lib/swift/android/armv7" &&
 
-rsync -arv "../../swift-corelibs-libdispatch/dispatch" "${SWIFT_ROOT}/lib/swift/"
+rsync -arv "../../swift-corelibs-libdispatch/dispatch" "${SWIFT_ROOT}/lib/swift/" &&
 
 \cp -v "../../swift-corelibs-libdispatch/private/"*.h "${SWIFT_ROOT}/lib/swift/dispatch"

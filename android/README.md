@@ -25,9 +25,12 @@ The pre-built binaries were built from the following repos:
 
 There is a known issue when libdispatch background tasks exit
 they will cause an exception as DetachCurrentThread has not
-been called. Keep calling tasks on the queue to keep the
-thread pool alive and this can be avoided until a solution
-can be found.
+been called. To avoid this your app should include the line:
+
+   DispatchGroup.threadCleanupCallback = JNI_DetachCurrentThread
+
+JNI_DetachCurrentThread is available in the package java_swift
+available here: https://github.com/SwiftJava/java_swift
 
 ### Other resources
 
