@@ -136,6 +136,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSDictionary.countForObject = _CFSwiftDictionaryGetCountOfValue
     __CFSwiftBridge.NSDictionary.getObjects = _CFSwiftDictionaryGetValuesAndKeys
     __CFSwiftBridge.NSDictionary.__apply = _CFSwiftDictionaryApplyFunction
+    __CFSwiftBridge.NSDictionary.copy = _CFSwiftDictionaryCreateCopy
     
     __CFSwiftBridge.NSMutableDictionary.__addObject = _CFSwiftDictionaryAddValue
     __CFSwiftBridge.NSMutableDictionary.replaceObject = _CFSwiftDictionaryReplaceValue
