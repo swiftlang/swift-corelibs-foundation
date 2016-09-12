@@ -35,6 +35,7 @@ class TestNSDate : XCTestCase {
             ("test_LaterDate", test_LaterDate),
             ("test_Compare", test_Compare),
             ("test_IsEqualToDate", test_IsEqualToDate),
+            ("test_timeIntervalSinceReferenceDate", test_timeIntervalSinceReferenceDate),
         ]
     }
     
@@ -113,5 +114,13 @@ class TestNSDate : XCTestCase {
         let d2 = d1 + ti
         let d3 = d1 + ti
         XCTAssertEqual(d2, d3)
+    }
+
+    func test_timeIntervalSinceReferenceDate() {
+        let d1 = Date().timeIntervalSinceReferenceDate
+        let sinceReferenceDate = Date.timeIntervalSinceReferenceDate
+        let d2 = Date().timeIntervalSinceReferenceDate
+        XCTAssertTrue(d1 <= sinceReferenceDate)
+        XCTAssertTrue(d2 >= sinceReferenceDate)
     }
 }

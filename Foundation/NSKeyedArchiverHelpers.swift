@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-extension CFKeyedArchiverUID : _NSBridgable {
+extension CFKeyedArchiverUID : _NSBridgeable {
     typealias NSType = _NSKeyedArchiverUID
     
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }

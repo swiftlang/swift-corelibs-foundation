@@ -282,25 +282,23 @@ extension NSEdgeInsets: NSSpecialValueCoding {
     }
 
     init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            self.top = aDecoder._decodeCGFloatForKey("NS.edgeval.top")
-            self.left = aDecoder._decodeCGFloatForKey("NS.edgeval.left")
-            self.bottom = aDecoder._decodeCGFloatForKey("NS.edgeval.bottom")
-            self.right = aDecoder._decodeCGFloatForKey("NS.edgeval.right")
-        } else {
-            NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        self.top = aDecoder._decodeCGFloatForKey("NS.edgeval.top")
+        self.left = aDecoder._decodeCGFloatForKey("NS.edgeval.left")
+        self.bottom = aDecoder._decodeCGFloatForKey("NS.edgeval.bottom")
+        self.right = aDecoder._decodeCGFloatForKey("NS.edgeval.right")
     }
     
     func encodeWithCoder(_ aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder._encodeCGFloat(self.top, forKey: "NS.edgeval.top")
-            aCoder._encodeCGFloat(self.left, forKey: "NS.edgeval.left")
-            aCoder._encodeCGFloat(self.bottom, forKey: "NS.edgeval.bottom")
-            aCoder._encodeCGFloat(self.right, forKey: "NS.edgeval.right")
-        } else {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder._encodeCGFloat(self.top, forKey: "NS.edgeval.top")
+        aCoder._encodeCGFloat(self.left, forKey: "NS.edgeval.left")
+        aCoder._encodeCGFloat(self.bottom, forKey: "NS.edgeval.bottom")
+        aCoder._encodeCGFloat(self.right, forKey: "NS.edgeval.right")
     }
     
     static func objCType() -> String {
@@ -884,22 +882,20 @@ extension NSCoder {
 
 private extension NSCoder {
     func _encodeCGFloat(_ value: CGFloat) {
-        if let keyedArchiver = self as? NSKeyedArchiver {
-            keyedArchiver._encodeValue(NSNumber(value: value.native))
-        } else {
-            NSUnimplemented()
+        guard let keyedArchiver = self as? NSKeyedArchiver else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        keyedArchiver._encodeValue(NSNumber(value: value.native))
     }
     
     func _decodeCGFloat() -> CGFloat {
-        if let keyedUnarchiver = self as? NSKeyedUnarchiver {
-            guard let result : NSNumber = keyedUnarchiver._decodeValue() else {
-                return CGFloat(0.0)
-            }
-            return CGFloat(result.doubleValue)
-        } else {
-            NSUnimplemented()
+        guard let keyedUnarchiver = self as? NSKeyedUnarchiver else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        guard let result : NSNumber = keyedUnarchiver._decodeValue() else {
+            return CGFloat(0.0)
+        }
+        return CGFloat(result.doubleValue)
     }
     
     func _encodeCGFloat(_ value: CGFloat, forKey key: String) {

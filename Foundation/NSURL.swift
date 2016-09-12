@@ -283,27 +283,25 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     public static var supportsSecureCoding: Bool { return true }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            let base = aDecoder.decodeObject(of: NSURL.self, forKey:"NS.base")?._swiftObject
-            let relative = aDecoder.decodeObject(of: NSString.self, forKey:"NS.relative")
-
-            if relative == nil {
-                return nil
-            }
-            
-            self.init(string: String._unconditionallyBridgeFromObjectiveC(relative!), relativeTo: base)
-        } else {
-            NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let base = aDecoder.decodeObject(of: NSURL.self, forKey:"NS.base")?._swiftObject
+        let relative = aDecoder.decodeObject(of: NSString.self, forKey:"NS.relative")
+
+        if relative == nil {
+            return nil
+        }
+
+        self.init(string: String._unconditionallyBridgeFromObjectiveC(relative!), relativeTo: base)
     }
     
     open func encode(with aCoder: NSCoder) {
-	if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.baseURL?._nsObject, forKey:"NS.base")
-            aCoder.encode(self.relativeString._bridgeToObjectiveC(), forKey:"NS.relative")
-	} else {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.baseURL?._nsObject, forKey:"NS.base")
+        aCoder.encode(self.relativeString._bridgeToObjectiveC(), forKey:"NS.relative")
     }
     
     public init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
@@ -1255,19 +1253,19 @@ open class NSURLComponents: NSObject, NSCopying {
     }
 }
 
-extension NSURL: _CFBridgable, _SwiftBridgable {
+extension NSURL: _CFBridgeable, _SwiftBridgeable {
     typealias SwiftType = URL
     internal var _swiftObject: SwiftType { return URL(reference: self) }
 }
 
-extension CFURL : _NSBridgable, _SwiftBridgable {
+extension CFURL : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSURL
     typealias SwiftType = URL
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
     internal var _swiftObject: SwiftType { return _nsObject._swiftObject }
 }
 
-extension URL : _NSBridgable, _CFBridgable {
+extension URL : _NSBridgeable, _CFBridgeable {
     typealias NSType = NSURL
     typealias CFType = CFURL
     internal var _nsObject: NSType { return self.reference }

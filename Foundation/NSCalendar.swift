@@ -119,7 +119,7 @@ public func ==(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bo
 public func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
     return lhs.rawValue < rhs.rawValue
 }
-    
+
 open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFCalendar
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
@@ -134,26 +134,25 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            guard let calendarIdentifier = aDecoder.decodeObject(of: NSString.self, forKey: "NS.identifier") else {
-                return nil
-            }
-            
-            self.init(identifier: NSCalendar.Identifier.init(rawValue: calendarIdentifier._swiftObject))
-            
-            if let timeZone = aDecoder.decodeObject(of: NSTimeZone.self, forKey: "NS.timezone") {
-                self.timeZone = timeZone._swiftObject
-            }
-            if let locale = aDecoder.decodeObject(of: NSLocale.self, forKey: "NS.locale") {
-                self.locale = locale._swiftObject
-            }
-            self.firstWeekday = aDecoder.decodeInteger(forKey: "NS.firstwkdy")
-            self.minimumDaysInFirstWeek = aDecoder.decodeInteger(forKey: "NS.mindays")
-            if let startDate = aDecoder.decodeObject(of: NSDate.self, forKey: "NS.gstartdate") {
-                self._startDate = startDate._swiftObject
-            }
-        } else {
-            NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        guard let calendarIdentifier = aDecoder.decodeObject(of: NSString.self, forKey: "NS.identifier") else {
+            return nil
+        }
+
+        self.init(identifier: NSCalendar.Identifier.init(rawValue: calendarIdentifier._swiftObject))
+
+        if let timeZone = aDecoder.decodeObject(of: NSTimeZone.self, forKey: "NS.timezone") {
+            self.timeZone = timeZone._swiftObject
+        }
+        if let locale = aDecoder.decodeObject(of: NSLocale.self, forKey: "NS.locale") {
+            self.locale = locale._swiftObject
+        }
+        self.firstWeekday = aDecoder.decodeInteger(forKey: "NS.firstwkdy")
+        self.minimumDaysInFirstWeek = aDecoder.decodeInteger(forKey: "NS.mindays")
+        if let startDate = aDecoder.decodeObject(of: NSDate.self, forKey: "NS.gstartdate") {
+            self._startDate = startDate._swiftObject
         }
     }
     
@@ -169,16 +168,15 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.calendarIdentifier.rawValue._bridgeToObjectiveC(), forKey: "NS.identifier")
-            aCoder.encode(self.timeZone._nsObject, forKey: "NS.timezone")
-            aCoder.encode(self.locale?._bridgeToObjectiveC(), forKey: "NS.locale")
-            aCoder.encode(self.firstWeekday, forKey: "NS.firstwkdy")
-            aCoder.encode(self.minimumDaysInFirstWeek, forKey: "NS.mindays")
-            aCoder.encode(self._startDate?._nsObject, forKey: "NS.gstartdate")
-        } else {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.calendarIdentifier.rawValue._bridgeToObjectiveC(), forKey: "NS.identifier")
+        aCoder.encode(self.timeZone._nsObject, forKey: "NS.timezone")
+        aCoder.encode(self.locale?._bridgeToObjectiveC(), forKey: "NS.locale")
+        aCoder.encode(self.firstWeekday, forKey: "NS.firstwkdy")
+        aCoder.encode(self.minimumDaysInFirstWeek, forKey: "NS.mindays")
+        aCoder.encode(self._startDate?._nsObject, forKey: "NS.gstartdate")
     }
     
     static public var supportsSecureCoding: Bool {
@@ -213,7 +211,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public init?(calendar ident: Identifier) {
+    public init?(calendarIdentifier ident: Identifier) {
         super.init()
         if !_CFCalendarInitWithIdentifier(_cfObject, ident.rawValue._cfObject) {
             return nil
@@ -1243,7 +1241,9 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
 // notification is received by observers in a "timely" manner, same as
 // with distributed notifications.
 
-public let NSCalendarDayChangedNotification: String = "" // NSUnimplemented
+extension NSNotification.Name {
+    public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "") // NSUnimplemented
+}
 
 // This is a just used as an extensible struct, basically;
 // note that there are two uses: one for specifying a date
@@ -1371,53 +1371,52 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            self.init()
-            
-            self.era = aDecoder.decodeInteger(forKey: "NS.era")
-            self.year = aDecoder.decodeInteger(forKey: "NS.year")
-            self.quarter = aDecoder.decodeInteger(forKey: "NS.quarter")
-            self.month = aDecoder.decodeInteger(forKey: "NS.month")
-            self.day = aDecoder.decodeInteger(forKey: "NS.day")
-            self.hour = aDecoder.decodeInteger(forKey: "NS.hour")
-            self.minute = aDecoder.decodeInteger(forKey: "NS.minute")
-            self.second = aDecoder.decodeInteger(forKey: "NS.second")
-            self.nanosecond = aDecoder.decodeInteger(forKey: "NS.nanosec")
-            self.weekOfYear = aDecoder.decodeInteger(forKey: "NS.weekOfYear")
-            self.weekOfMonth = aDecoder.decodeInteger(forKey: "NS.weekOfMonth")
-            self.yearForWeekOfYear = aDecoder.decodeInteger(forKey: "NS.yearForWOY")
-            self.weekday = aDecoder.decodeInteger(forKey: "NS.weekday")
-            self.weekdayOrdinal = aDecoder.decodeInteger(forKey: "NS.weekdayOrdinal")
-            self.isLeapMonth = aDecoder.decodeBool(forKey: "NS.isLeapMonth")
-            self.calendar = aDecoder.decodeObject(of: NSCalendar.self, forKey: "NS.calendar")?._swiftObject
-            self.timeZone = aDecoder.decodeObject(of: NSTimeZone.self, forKey: "NS.timezone")?._swiftObject
-        } else {
-            NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+
+        self.init()
+
+        self.era = aDecoder.decodeInteger(forKey: "NS.era")
+        self.year = aDecoder.decodeInteger(forKey: "NS.year")
+        self.quarter = aDecoder.decodeInteger(forKey: "NS.quarter")
+        self.month = aDecoder.decodeInteger(forKey: "NS.month")
+        self.day = aDecoder.decodeInteger(forKey: "NS.day")
+        self.hour = aDecoder.decodeInteger(forKey: "NS.hour")
+        self.minute = aDecoder.decodeInteger(forKey: "NS.minute")
+        self.second = aDecoder.decodeInteger(forKey: "NS.second")
+        self.nanosecond = aDecoder.decodeInteger(forKey: "NS.nanosec")
+        self.weekOfYear = aDecoder.decodeInteger(forKey: "NS.weekOfYear")
+        self.weekOfMonth = aDecoder.decodeInteger(forKey: "NS.weekOfMonth")
+        self.yearForWeekOfYear = aDecoder.decodeInteger(forKey: "NS.yearForWOY")
+        self.weekday = aDecoder.decodeInteger(forKey: "NS.weekday")
+        self.weekdayOrdinal = aDecoder.decodeInteger(forKey: "NS.weekdayOrdinal")
+        self.isLeapMonth = aDecoder.decodeBool(forKey: "NS.isLeapMonth")
+        self.calendar = aDecoder.decodeObject(of: NSCalendar.self, forKey: "NS.calendar")?._swiftObject
+        self.timeZone = aDecoder.decodeObject(of: NSTimeZone.self, forKey: "NS.timezone")?._swiftObject
     }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.era, forKey: "NS.era")
-            aCoder.encode(self.year, forKey: "NS.year")
-            aCoder.encode(self.quarter, forKey: "NS.quarter")
-            aCoder.encode(self.month, forKey: "NS.month")
-            aCoder.encode(self.day, forKey: "NS.day")
-            aCoder.encode(self.hour, forKey: "NS.hour")
-            aCoder.encode(self.minute, forKey: "NS.minute")
-            aCoder.encode(self.second, forKey: "NS.second")
-            aCoder.encode(self.nanosecond, forKey: "NS.nanosec")
-            aCoder.encode(self.weekOfYear, forKey: "NS.weekOfYear")
-            aCoder.encode(self.weekOfMonth, forKey: "NS.weekOfMonth")
-            aCoder.encode(self.yearForWeekOfYear, forKey: "NS.yearForWOY")
-            aCoder.encode(self.weekday, forKey: "NS.weekday")
-            aCoder.encode(self.weekdayOrdinal, forKey: "NS.weekdayOrdinal")
-            aCoder.encode(self.isLeapMonth, forKey: "NS.isLeapMonth")
-            aCoder.encode(self.calendar?._nsObject, forKey: "NS.calendar")
-            aCoder.encode(self.timeZone?._nsObject, forKey: "NS.timezone")
-        } else {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.era, forKey: "NS.era")
+        aCoder.encode(self.year, forKey: "NS.year")
+        aCoder.encode(self.quarter, forKey: "NS.quarter")
+        aCoder.encode(self.month, forKey: "NS.month")
+        aCoder.encode(self.day, forKey: "NS.day")
+        aCoder.encode(self.hour, forKey: "NS.hour")
+        aCoder.encode(self.minute, forKey: "NS.minute")
+        aCoder.encode(self.second, forKey: "NS.second")
+        aCoder.encode(self.nanosecond, forKey: "NS.nanosec")
+        aCoder.encode(self.weekOfYear, forKey: "NS.weekOfYear")
+        aCoder.encode(self.weekOfMonth, forKey: "NS.weekOfMonth")
+        aCoder.encode(self.yearForWeekOfYear, forKey: "NS.yearForWOY")
+        aCoder.encode(self.weekday, forKey: "NS.weekday")
+        aCoder.encode(self.weekdayOrdinal, forKey: "NS.weekdayOrdinal")
+        aCoder.encode(self.isLeapMonth, forKey: "NS.isLeapMonth")
+        aCoder.encode(self.calendar?._nsObject, forKey: "NS.calendar")
+        aCoder.encode(self.timeZone?._nsObject, forKey: "NS.timezone")
     }
     
     static public var supportsSecureCoding: Bool {
@@ -1429,7 +1428,27 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        let newObj = NSDateComponents()
+        newObj.calendar = calendar
+        newObj.timeZone = timeZone
+        newObj.era = era
+        newObj.year = year
+        newObj.month = month
+        newObj.day = day
+        newObj.hour = hour
+        newObj.minute = minute
+        newObj.second = second
+        newObj.nanosecond = nanosecond
+        newObj.weekOfYear = weekOfYear
+        newObj.weekOfMonth = weekOfMonth
+        newObj.yearForWeekOfYear = yearForWeekOfYear
+        newObj.weekday = weekday
+        newObj.weekdayOrdinal = weekdayOrdinal
+        newObj.quarter = quarter
+        if leapMonthSet {
+            newObj.isLeapMonth = isLeapMonth
+        }
+        return newObj
     }
     
     /*@NSCopying*/ open var calendar: Calendar? {
@@ -1445,8 +1464,6 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
     }
     /*@NSCopying*/ open var timeZone: TimeZone?
-    
-    // these all should probably be optionals
     
     open var era: Int {
         get {
@@ -1822,28 +1839,28 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-extension NSDateComponents : _SwiftBridgable {
+extension NSDateComponents : _SwiftBridgeable {
     typealias SwiftType = DateComponents
     var _swiftObject: SwiftType { return DateComponents(reference: self) }
 }
 
-extension DateComponents : _NSBridgable {
+extension DateComponents : _NSBridgeable {
     typealias NSType = NSDateComponents
     var _nsObject: NSType { return _bridgeToObjectiveC() }
 }
 
-extension NSCalendar: _SwiftBridgable, _CFBridgable {
+extension NSCalendar: _SwiftBridgeable, _CFBridgeable {
     typealias SwiftType = Calendar
     var _swiftObject: SwiftType { return Calendar(reference: self) }
 }
-extension Calendar: _NSBridgable, _CFBridgable {
+extension Calendar: _NSBridgeable, _CFBridgeable {
     typealias NSType = NSCalendar
     typealias CFType = CFCalendar
     var _nsObject: NSCalendar { return _bridgeToObjectiveC() }
     var _cfObject: CFCalendar { return _nsObject._cfObject }
 }
 
-extension CFCalendar : _NSBridgable, _SwiftBridgable {
+extension CFCalendar : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSCalendar
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
     internal var _swiftObject: Calendar { return _nsObject._swiftObject }

@@ -94,29 +94,25 @@ internal class NSSpecialValue : NSValue {
     }
 
     convenience required init?(coder aDecoder: NSCoder) {
-        if !aDecoder.allowsKeyedCoding {
-            NSUnimplemented()
-        } else {
-            let specialFlags = aDecoder.decodeInteger(forKey: "NS.special")
-            guard let specialType = NSSpecialValue._typeFromFlags(specialFlags) else {
-                return nil
-            }
-            
-            guard let specialValue = specialType.init(coder: aDecoder) else {
-                return nil
-            }
-            
-            self.init(specialValue)
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let specialFlags = aDecoder.decodeInteger(forKey: "NS.special")
+        guard let specialType = NSSpecialValue._typeFromFlags(specialFlags) else {
+            return nil
+        }
+        guard let specialValue = specialType.init(coder: aDecoder) else {
+            return nil
+        }
+        self.init(specialValue)
     }
     
     override func encode(with aCoder: NSCoder) {
-        if !aCoder.allowsKeyedCoding {
-            NSUnimplemented()
-        } else {
-            aCoder.encode(NSSpecialValue._flagsFromType(type(of: _value)), forKey: "NS.special")
-            _value.encodeWithCoder(aCoder)
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(NSSpecialValue._flagsFromType(type(of: _value)), forKey: "NS.special")
+        _value.encodeWithCoder(aCoder)
     }
     
     override var objCType : UnsafePointer<Int8> {

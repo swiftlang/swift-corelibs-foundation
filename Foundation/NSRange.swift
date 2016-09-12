@@ -61,29 +61,27 @@ extension NSRange: NSSpecialValueCoding {
     }
     
     init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            if let location = aDecoder.decodeObject(of: NSNumber.self, forKey: "NS.rangeval.location") {
-                self.location = location.intValue
-            } else {
-                self.location = 0
-            }
-            if let length = aDecoder.decodeObject(of: NSNumber.self, forKey: "NS.rangeval.length") {
-                self.length = length.intValue
-            } else {
-                self.length = 0
-            }
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        if let location = aDecoder.decodeObject(of: NSNumber.self, forKey: "NS.rangeval.location") {
+            self.location = location.intValue
         } else {
-            NSUnimplemented()
+            self.location = 0
+        }
+        if let length = aDecoder.decodeObject(of: NSNumber.self, forKey: "NS.rangeval.length") {
+            self.length = length.intValue
+        } else {
+            self.length = 0
         }
     }
-    
+
     func encodeWithCoder(_ aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(NSNumber(value: self.location), forKey: "NS.rangeval.location")
-            aCoder.encode(NSNumber(value: self.length), forKey: "NS.rangeval.length")
-        } else {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(NSNumber(value: self.location), forKey: "NS.rangeval.location")
+        aCoder.encode(NSNumber(value: self.length), forKey: "NS.rangeval.length")
     }
     
     static func objCType() -> String {

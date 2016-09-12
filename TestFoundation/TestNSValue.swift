@@ -29,6 +29,7 @@ class TestNSValue : XCTestCase {
             ( "test_valueWithShortArray", test_valueWithShortArray ),
             ( "test_valueWithULongLongArray", test_valueWithULongLongArray ),
             ( "test_valueWithCharPtr", test_valueWithULongLongArray ),
+            ( "test_isEqual", test_isEqual ),
         ]
     }
     
@@ -125,5 +126,12 @@ class TestNSValue : XCTestCase {
         
         NSValue(bytes: &charPtr, objCType: "*").getValue(&expectedPtr)
         XCTAssertEqual(charPtr, expectedPtr)
+    }
+
+    func test_isEqual() {
+        let number = NSNumber(value: Int(123))
+        var long: Int32 = 123456
+        let value = NSValue(bytes: &long, objCType: "l")
+        XCTAssertFalse(value.isEqual(number))
     }
 }
