@@ -563,8 +563,20 @@ open class NSMutableDictionary : NSDictionary {
         super.init(objects: objects, forKeys: keys, count: cnt)
     }
     
-    public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
-    public convenience init?(contentsOfURL url: URL) { NSUnimplemented() }
+    public convenience init?(contentsOfFile path: String) {
+        self.init(contentsOfURL: URL(fileURLWithPath: path))
+    }
+    
+    public convenience init?(contentsOfURL url: URL) {
+        do {
+            guard let plistDoc = try? Data(contentsOf: url) else { return nil }
+            let plistDict = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Dictionary<AnyHashable,Any>
+            guard let plistDictionary = plistDict else { return nil }
+            self.init(dictionary: plistDictionary)
+        } catch {
+            return nil
+        }
+    }
 }
 
 extension NSMutableDictionary {
