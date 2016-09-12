@@ -1428,7 +1428,27 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        let newObj = NSDateComponents()
+        newObj.calendar = calendar
+        newObj.timeZone = timeZone
+        newObj.era = era
+        newObj.year = year
+        newObj.month = month
+        newObj.day = day
+        newObj.hour = hour
+        newObj.minute = minute
+        newObj.second = second
+        newObj.nanosecond = nanosecond
+        newObj.weekOfYear = weekOfYear
+        newObj.weekOfMonth = weekOfMonth
+        newObj.yearForWeekOfYear = yearForWeekOfYear
+        newObj.weekday = weekday
+        newObj.weekdayOrdinal = weekdayOrdinal
+        newObj.quarter = quarter
+        if leapMonthSet {
+            newObj.isLeapMonth = isLeapMonth
+        }
+        return newObj
     }
     
     /*@NSCopying*/ open var calendar: Calendar? {
