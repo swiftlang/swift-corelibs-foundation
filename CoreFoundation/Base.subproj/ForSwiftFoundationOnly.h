@@ -81,6 +81,7 @@ struct _NSDictionaryBridge {
     CFIndex (*countForObject)(CFTypeRef dictionary, CFTypeRef value);
     void (*getObjects)(CFTypeRef dictionary, CFTypeRef _Nullable *_Nullable valuebuf, CFTypeRef _Nullable *_Nullable keybuf);
     void (*__apply)(CFTypeRef dictionary, void (*applier)(CFTypeRef key, CFTypeRef value, void *context), void *context);
+    _Nonnull CFTypeRef (*_Nonnull copy)(CFTypeRef obj);
 };
 
 struct _NSMutableDictionaryBridge {
@@ -92,11 +93,22 @@ struct _NSMutableDictionaryBridge {
 };
 
 struct _NSSetBridge {
-    
+    CFIndex (*_Nonnull count)(CFTypeRef obj);
+    CFIndex (*countForValue)(CFTypeRef set, CFTypeRef value);
+    bool (*containsValue)(CFTypeRef set, CFTypeRef value);
+    _Nullable CFTypeRef (*_Nonnull getValue)(CFTypeRef set, CFTypeRef value);
+    bool (*getValueIfPresent)(CFTypeRef set, CFTypeRef object, CFTypeRef _Nullable *_Nullable value);
+    void (*getValues)(CFTypeRef set, CFTypeRef _Nullable *_Nullable values);
+    void (*apply)(CFTypeRef set, void (*applier)(CFTypeRef value, void *context), void *context);
+    _Nonnull CFTypeRef (*_Nonnull copy)(CFTypeRef obj);
 };
 
 struct _NSMutableSetBridge {
-    
+    void (*addValue)(CFTypeRef set, CFTypeRef value);
+    void (*replaceValue)(CFTypeRef set, CFTypeRef value);
+    void (*setValue)(CFTypeRef set, CFTypeRef value);
+    void (*removeValue)(CFTypeRef set, CFTypeRef value);
+    void (*removeAllValues)(CFTypeRef set);
 };
 
 struct _NSStringBridge {
