@@ -88,7 +88,7 @@ internal func _CFSwiftSetGetCountOfValue(_ set: AnyObject, value: AnyObject) -> 
 }
 
 internal func _CFSwiftSetContainsValue(_ set: AnyObject, value: AnyObject) -> Bool {
-    return _CFSwiftSetGetValue((set as! NSSet)._cfObject, value: value) != nil
+    return _CFSwiftSetGetValue(set, value: value) != nil
 }
 
 internal func _CFSwiftSetGetValues(_ set: AnyObject, _ values: UnsafeMutablePointer<Unmanaged<AnyObject>?>?) {
@@ -105,18 +105,28 @@ internal func _CFSwiftSetGetValues(_ set: AnyObject, _ values: UnsafeMutablePoin
             idx += 1
         }
     } else {
-        //hmmm...
+        set.enumerateObjects( { v, _ in
+            let value = _SwiftValue.store(v)
+            values?[idx] = Unmanaged<AnyObject>.passUnretained(value)
+            set._storage.update(with: value)
+            idx += 1
+        })
     }
 }
 
 internal func _CFSwiftSetGetValue(_ set: AnyObject, value: AnyObject) -> Unmanaged<AnyObject>? {
     let set = set as! NSSet
     if type(of: set) === NSSet.self || type(of: set) === NSMutableSet.self {
-        if let obj = set.member(value) {
-            return Unmanaged<AnyObject>.passUnretained(obj as AnyObject)
+        if let idx = set._storage.index(of: value as! NSObject){
+            return Unmanaged<AnyObject>.passUnretained(set._storage[idx])
         }
+        
     } else {
-        //hmmm...
+        let v = _SwiftValue.store(set.member(value))
+        if let obj = v {
+            set._storage.update(with: obj)
+            return Unmanaged<AnyObject>.passUnretained(obj)
+        }
     }
     return nil
 }

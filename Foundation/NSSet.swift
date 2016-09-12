@@ -26,10 +26,8 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
             NSRequiresConcreteImplementation()
         }
         let value = _SwiftValue.store(object)
-        if _storage.contains(value) {
-            return object // this is not exactly the same behavior, but it is reasonably close
-        }
-        return nil
+        guard let idx = _storage.index(of: value) else { return nil }
+        return _storage[idx]
     }
     
     open func objectEnumerator() -> NSEnumerator {
