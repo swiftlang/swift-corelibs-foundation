@@ -872,7 +872,7 @@ extension URLSessionTask {
         case .taskDelegate(let delegate):
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
-                delegate.urlSession(s, task: self, didCompleteWithError: error)
+                delegate.urlSession(s, task: self, didCompleteWithError: error as Error)
             }
         case .noDelegate:
             break
