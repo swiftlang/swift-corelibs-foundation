@@ -190,7 +190,7 @@ class TestNSGeometry : XCTestCase {
         let r2 = NSOffsetRect(r1, CGFloat(2.0), CGFloat(-5.0))
         let expectedRect = NSMakeRect(CGFloat(3.2), CGFloat(-1.9), CGFloat(10.0), CGFloat(10.0))
         
-        XCTAssertTrue(NSEqualRects(r2, expectedRect))
+        XCTAssertTrue(_NSRect(expectedRect, equalsToRect: r2))
     }
 
     func test_NSPointInRect() {
@@ -608,23 +608,23 @@ class TestNSGeometry : XCTestCase {
     
     // MARK: Private
     
-    func _NSRect(_ rect: NSRect, equalsToRect rect2: NSRect, withPrecision precision: Double = DBL_EPSILON) -> Bool {
+    func _NSRect(_ rect: NSRect, equalsToRect rect2: NSRect, withPrecision precision: CGFloat.NativeType = .ulpOfOne) -> Bool {
         return _NSPoint(rect.origin, equalsToPoint: rect2.origin, withPrecision: precision)
             && _NSSize(rect.size, equalsToSize: rect2.size, withPrecision: precision)
     }
 
-    func _NSSize(_ size: NSSize, equalsToSize size2: NSSize, withPrecision precision: Double = DBL_EPSILON) -> Bool {
+    func _NSSize(_ size: NSSize, equalsToSize size2: NSSize, withPrecision precision: CGFloat.NativeType = .ulpOfOne) -> Bool {
         return _CGFloat(size.width, equalsToCGFloat: size2.width, withPrecision: precision)
             && _CGFloat(size.height, equalsToCGFloat: size2.height, withPrecision: precision)
     }
 
-    func _NSPoint(_ point: NSPoint, equalsToPoint point2: NSPoint, withPrecision precision: Double = DBL_EPSILON) -> Bool {
+    func _NSPoint(_ point: NSPoint, equalsToPoint point2: NSPoint, withPrecision precision: CGFloat.NativeType = .ulpOfOne) -> Bool {
         return _CGFloat(point.x, equalsToCGFloat: point2.x, withPrecision: precision)
             && _CGFloat(point.y, equalsToCGFloat: point2.y, withPrecision: precision)
     }
 
-    func _CGFloat(_ float: CGFloat, equalsToCGFloat float2: CGFloat, withPrecision precision: Double = DBL_EPSILON) -> Bool {
-        return fabs(float.native - float2.native) < precision
+    func _CGFloat(_ float: CGFloat, equalsToCGFloat float2: CGFloat, withPrecision precision: CGFloat.NativeType = .ulpOfOne) -> Bool {
+        return fabs(float.native - float2.native) <= precision
     }
 
 }

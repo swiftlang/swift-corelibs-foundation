@@ -438,12 +438,12 @@ public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: NSAlignmentOption
         NSUnimplemented()
     }
 
-    var width = Double.nan
-    var height = Double.nan
-    var minX = Double.nan
-    var minY = Double.nan
-    var maxX = Double.nan
-    var maxY = Double.nan
+    var width = CGFloat.NativeType.nan
+    var height = CGFloat.NativeType.nan
+    var minX = CGFloat.NativeType.nan
+    var minY = CGFloat.NativeType.nan
+    var maxX = CGFloat.NativeType.nan
+    var maxY = CGFloat.NativeType.nan
 
     if aRect.size.height.native < 0 {
         height = 0
@@ -532,10 +532,10 @@ public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: NSAlignmentOption
         maxY = round(aRect.origin.y.native + aRect.size.height.native)
     }
     
-    var resultOriginX = Double.nan
-    var resultOriginY = Double.nan
-    var resultWidth = Double.nan
-    var resultHeight = Double.nan
+    var resultOriginX = CGFloat.NativeType.nan
+    var resultOriginY = CGFloat.NativeType.nan
+    var resultWidth = CGFloat.NativeType.nan
+    var resultHeight = CGFloat.NativeType.nan
     
     if !minX.isNaN {
         resultOriginX = minX
