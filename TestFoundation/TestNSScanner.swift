@@ -39,6 +39,6 @@ class TestNSScanner : XCTestCase {
         let scanner = Scanner(string: "-350000000000000000000000000000000000000000")
         var value: Float = 0
         XCTAssert(scanner.scanFloat(&value), "A Float should be found in the string `-350000000000000000000000000000000000000000`.")
-        XCTAssert(value.isInfinite, "Scanner Float value of the string `-350000000000000000000000000000000000000000` should be infinite`")
+        XCTAssert(value.isInfinite, "Scanned Float value of the string `-350000000000000000000000000000000000000000` should be infinite`.")
     }
 }
