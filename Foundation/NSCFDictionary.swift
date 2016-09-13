@@ -213,3 +213,7 @@ internal func _CFSwiftDictionaryRemoveValue(_ dictionary:  AnyObject, key: AnyOb
 internal func _CFSwiftDictionaryRemoveAllValues(_ dictionary: AnyObject) {
     (dictionary as! NSMutableDictionary).removeAllObjects()
 }
+
+internal func _CFSwiftDictionaryCreateCopy(_ dictionary: AnyObject) -> Unmanaged<AnyObject> {
+    return Unmanaged<AnyObject>.passRetained((dictionary as! NSDictionary).copy() as! NSObject)
+}

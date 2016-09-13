@@ -290,7 +290,7 @@ CFHashRef CFDictionaryCreateCopy(CFAllocatorRef allocator, CFHashRef other) {
     __CFGenericValidateType(other, typeID);
     Boolean markImmutable = false;
     CFBasicHashRef ht = NULL;
-    if (CF_IS_OBJC(typeID, other)) {
+    if (CF_IS_OBJC(typeID, other) || CF_IS_SWIFT(typeID, other)) {
         if (objc_collectingEnabled()) {
             CFIndex numValues = CFDictionaryGetCount(other);
             const_any_pointer_t vbuffer[256], kbuffer[256];
@@ -314,7 +314,11 @@ CFHashRef CFDictionaryCreateCopy(CFAllocatorRef allocator, CFHashRef other) {
         }
         else { // non-GC
 #if CFDictionary || CFSet
+#if DEPLOYMENT_RUNTIME_SWIFT
+            ht = (CFBasicHashRef)CF_SWIFT_CALLV(other, NSDictionary.copy);
+#else
             ht = (CFBasicHashRef)CF_OBJC_CALLV((id)other, copyWithZone:NULL);
+#endif
 #elif CFBag
             CFIndex numValues = CFDictionaryGetCount(other);
             const_any_pointer_t vbuffer[256];
@@ -350,7 +354,7 @@ CFMutableHashRef CFDictionaryCreateMutableCopy(CFAllocatorRef allocator, CFIndex
     __CFGenericValidateType(other, typeID);
     CFAssert(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
     CFBasicHashRef ht = NULL;
-    if (CF_IS_OBJC(typeID, other)) {
+    if (CF_IS_OBJC(typeID, other) || CF_IS_SWIFT(typeID, other)) {
         CFIndex numValues = CFDictionaryGetCount(other);
         const_any_pointer_t vbuffer[256], kbuffer[256];
         const_any_pointer_t *vlist = (numValues <= 256) ? vbuffer : (const_any_pointer_t *)CFAllocatorAllocate(kCFAllocatorSystemDefault, numValues * sizeof(const_any_pointer_t), 0);
