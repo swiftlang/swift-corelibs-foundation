@@ -317,13 +317,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        if !aDecoder.allowsKeyedCoding {
-            if let data = aDecoder.decodeData() {
-                self.init(data: data)
-            } else {
-                return nil
-            }
-        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.data") {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.data") {
             guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }

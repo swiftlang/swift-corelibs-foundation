@@ -58,24 +58,19 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public convenience required init?(coder: NSCoder) {
-        if coder.allowsKeyedCoding {
-            let decodedData : Data? = coder.withDecodedUnsafeBufferPointer(forKey: "NS.uuidbytes") {
-                guard let buffer = $0 else { return nil }
-                return Data(buffer: buffer)
-            }
-
-            guard let data = decodedData else { return nil }
-            guard data.count == 16 else { return nil }
-            let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
-            data.copyBytes(to: buffer, count: 16)
-            self.init(uuidBytes: buffer)
-        } else {
-            // NSUUIDs cannot be decoded by non-keyed coders
-            coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue, userInfo: [
-                                "NSDebugDescription": "NSUUID cannot be decoded by non-keyed coders"
-                                ]))
-            return nil
+        guard coder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let decodedData : Data? = coder.withDecodedUnsafeBufferPointer(forKey: "NS.uuidbytes") {
+            guard let buffer = $0 else { return nil }
+            return Data(buffer: buffer)
+        }
+
+        guard let data = decodedData else { return nil }
+        guard data.count == 16 else { return nil }
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
+        data.copyBytes(to: buffer, count: 16)
+        self.init(uuidBytes: buffer)
     }
     
     open func encode(with aCoder: NSCoder) {

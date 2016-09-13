@@ -45,34 +45,24 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            guard let name = aDecoder.decodeObject(of: NSString.self, forKey:"NS.name") else {
-                return nil
-            }
-            let object = aDecoder.decodeObject(forKey: "NS.object")
-//            let userInfo = aDecoder.decodeObject(of: NSDictionary.self, forKey: "NS.userinfo")
-            self.init(name: Name(rawValue: String._unconditionallyBridgeFromObjectiveC(name)), object: object as! NSObject, userInfo: nil)
-
-        } else {
-            guard let name = aDecoder.decodeObject() as? NSString else {
-                return nil
-            }
-            let object = aDecoder.decodeObject()
-//            let userInfo = aDecoder.decodeObject() as? NSDictionary
-            self.init(name: Name(rawValue: String._unconditionallyBridgeFromObjectiveC(name)), object: object, userInfo: nil)
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        guard let name = aDecoder.decodeObject(of: NSString.self, forKey:"NS.name") else {
+            return nil
+        }
+        let object = aDecoder.decodeObject(forKey: "NS.object")
+        //            let userInfo = aDecoder.decodeObject(of: NSDictionary.self, forKey: "NS.userinfo")
+        self.init(name: Name(rawValue: String._unconditionallyBridgeFromObjectiveC(name)), object: object as! NSObject, userInfo: nil)
     }
     
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.name.rawValue._bridgeToObjectiveC(), forKey:"NS.name")
-            aCoder.encode(self.object, forKey:"NS.object")
-            aCoder.encode(self.userInfo?._bridgeToObjectiveC(), forKey:"NS.userinfo")
-        } else {
-            aCoder.encode(self.name.rawValue._bridgeToObjectiveC())
-            aCoder.encode(self.object)
-            aCoder.encode(self.userInfo?._bridgeToObjectiveC())
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.name.rawValue._bridgeToObjectiveC(), forKey:"NS.name")
+        aCoder.encode(self.object, forKey:"NS.object")
+        aCoder.encode(self.userInfo?._bridgeToObjectiveC(), forKey:"NS.userinfo")
     }
     
     open override func copy() -> Any {

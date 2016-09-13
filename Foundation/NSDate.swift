@@ -274,7 +274,9 @@ open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     
     
     public required convenience init?(coder: NSCoder) {
-        precondition(coder.allowsKeyedCoding)
+        guard coder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
         guard let start = coder.decodeObject(of: NSDate.self, forKey: "NS.startDate") else {
             coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderValueNotFound.rawValue, userInfo: nil))
             return nil
@@ -304,7 +306,9 @@ open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func encode(with aCoder: NSCoder) {
-        precondition(aCoder.allowsKeyedCoding)
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
         aCoder.encode(startDate._nsObject, forKey: "NS.startDate")
         aCoder.encode(endDate._nsObject, forKey: "NS.endDate")
     }

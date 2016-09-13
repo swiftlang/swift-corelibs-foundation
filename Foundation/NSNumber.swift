@@ -336,21 +336,10 @@ open class NSNumber : NSValue {
     }
 
     public required convenience init?(coder aDecoder: NSCoder) {
-        if !aDecoder.allowsKeyedCoding {
-            var objCType: UnsafeMutablePointer<Int8>? = nil
-            withUnsafeMutablePointer(to: &objCType, { (ptr: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>) -> Void in
-                aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.CharPtr), at: UnsafeMutableRawPointer(ptr))
-            })
-            if objCType == nil {
-                return nil
-            }
-            var size: Int = 0
-            let _ = NSGetSizeAndAlignment(objCType!, &size, nil)
-            let buffer = malloc(size)!
-            aDecoder.decodeValue(ofObjCType: objCType!, at: buffer)
-            self.init(bytes: buffer, objCType: objCType!)
-            free(buffer)
-        } else if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.number") {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.number") {
             let number = aDecoder._decodePropertyListForKey("NS.number")
             if let val = number as? Double {
                 self.init(value:val)

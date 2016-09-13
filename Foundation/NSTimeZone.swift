@@ -36,27 +36,17 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            let name = aDecoder.decodeObject(of: NSString.self, forKey: "NS.name")
-            let data = aDecoder.decodeObject(of: NSData.self, forKey: "NS.data")
-            
-            if name == nil {
-                return nil
-            }
-            
-            self.init(name: String._unconditionallyBridgeFromObjectiveC(name), data: data?._swiftObject)
-        } else {
-            if let name = aDecoder.decodeObject() as? NSString {
-                if aDecoder.version(forClassName: "NSTimeZone") == 0 {
-                    self.init(name: name._swiftObject)
-                } else {
-                    let data = aDecoder.decodeObject() as? NSData
-                    self.init(name: name._swiftObject, data: data?._swiftObject)
-                }
-            } else {
-                return nil
-            }
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let name = aDecoder.decodeObject(of: NSString.self, forKey: "NS.name")
+        let data = aDecoder.decodeObject(of: NSData.self, forKey: "NS.data")
+
+        if name == nil {
+            return nil
+        }
+
+        self.init(name: String._unconditionallyBridgeFromObjectiveC(name), data: data?._swiftObject)
     }
     
     open override var hash: Int {
@@ -110,12 +100,12 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
 
     open func encode(with aCoder: NSCoder) {
-        if aCoder.allowsKeyedCoding {
-            aCoder.encode(self.name._bridgeToObjectiveC(), forKey:"NS.name")
-            // Darwin versions of this method can and will encode mutable data, however it is not required for compatibility
-            aCoder.encode(self.data._bridgeToObjectiveC(), forKey:"NS.data")
-        } else {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        aCoder.encode(self.name._bridgeToObjectiveC(), forKey:"NS.name")
+        // Darwin versions of this method can and will encode mutable data, however it is not required for compatibility
+        aCoder.encode(self.data._bridgeToObjectiveC(), forKey:"NS.data")
     }
     
     public static var supportsSecureCoding: Bool {
