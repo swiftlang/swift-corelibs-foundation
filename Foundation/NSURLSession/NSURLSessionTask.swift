@@ -90,9 +90,13 @@ open class URLSessionTask : NSObject, NSCopying {
         self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init()
     }
-    /// Create a data task, i.e. with no body
+    /// Create a data task. If there is a httpBody in the URLRequest, use that as a parameter
     internal convenience init(session: URLSession, request: URLRequest, taskIdentifier: Int) {
-        self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
+        if let bodyData = request.httpBody {
+            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.data(createDispatchData(bodyData)))
+        } else {
+            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
+        }
     }
     internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body) {
         self.session = session
