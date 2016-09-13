@@ -100,6 +100,19 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSObject.hash = _CFSwiftGetHash
     __CFSwiftBridge.NSObject._cfTypeID = _CFSwiftGetTypeID
     
+    __CFSwiftBridge.NSSet.count = _CFSwiftSetGetCount
+    __CFSwiftBridge.NSSet.countForValue = _CFSwiftSetGetCountOfValue
+    __CFSwiftBridge.NSSet.containsValue = _CFSwiftSetContainsValue
+    __CFSwiftBridge.NSSet.getValue = _CFSwiftSetGetValue
+    __CFSwiftBridge.NSSet.getValueIfPresent = _CFSwiftSetGetValueIfPresent
+    __CFSwiftBridge.NSSet.getValues = _CFSwiftSetGetValues
+    __CFSwiftBridge.NSSet.copy = _CFSwiftSetCreateCopy
+    
+    __CFSwiftBridge.NSMutableSet.addValue = _CFSwiftSetAddValue
+    __CFSwiftBridge.NSMutableSet.replaceValue = _CFSwiftSetReplaceValue
+    __CFSwiftBridge.NSMutableSet.setValue = _CFSwiftSetSetValue
+    __CFSwiftBridge.NSMutableSet.removeValue = _CFSwiftSetRemoveValue
+    __CFSwiftBridge.NSMutableSet.removeAllValues = _CFSwiftSetRemoveAllValues
     
     __CFSwiftBridge.NSArray.count = _CFSwiftArrayGetCount
     __CFSwiftBridge.NSArray.objectAtIndex = _CFSwiftArrayGetValueAtIndex

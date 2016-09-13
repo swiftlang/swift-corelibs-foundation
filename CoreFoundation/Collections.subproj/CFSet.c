@@ -289,7 +289,7 @@ CFHashRef CFSetCreateCopy(CFAllocatorRef allocator, CFHashRef other) {
     __CFGenericValidateType(other, typeID);
     Boolean markImmutable = false;
     CFBasicHashRef ht = NULL;
-    if (CF_IS_OBJC(typeID, other)) {
+    if (CF_IS_OBJC(typeID, other) || CF_IS_SWIFT(typeID, other)) {
         if (objc_collectingEnabled()) {
             CFIndex numValues = CFSetGetCount(other);
             const_any_pointer_t vbuffer[256], kbuffer[256];
@@ -313,7 +313,11 @@ CFHashRef CFSetCreateCopy(CFAllocatorRef allocator, CFHashRef other) {
         }
         else { // non-GC
 #if CFDictionary || CFSet
+#if DEPLOYMENT_RUNTIME_SWIFT
+            ht = (CFBasicHashRef)CF_SWIFT_CALLV(other, NSSet.copy);
+#else
             ht = (CFBasicHashRef)CF_OBJC_CALLV((id)other, copyWithZone:NULL);
+#endif
 #elif CFBag
             CFIndex numValues = CFSetGetCount(other);
             const_any_pointer_t vbuffer[256];
@@ -349,7 +353,7 @@ CFMutableHashRef CFSetCreateMutableCopy(CFAllocatorRef allocator, CFIndex capaci
     __CFGenericValidateType(other, typeID);
     CFAssert(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
     CFBasicHashRef ht = NULL;
-    if (CF_IS_OBJC(typeID, other)) {
+    if (CF_IS_OBJC(typeID, other) || CF_IS_SWIFT(typeID, other)) {
         CFIndex numValues = CFSetGetCount(other);
         const_any_pointer_t vbuffer[256], kbuffer[256];
         const_any_pointer_t *vlist = (numValues <= 256) ? vbuffer : (const_any_pointer_t *)CFAllocatorAllocate(kCFAllocatorSystemDefault, numValues * sizeof(const_any_pointer_t), 0);
@@ -382,6 +386,7 @@ CFIndex CFSetGetCount(CFHashRef hc) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), CFIndex, (NSDictionary *)hc, count);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), CFIndex, (CFSwiftRef)hc, NSSet.count);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), CFIndex, (NSSet *)hc, count);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -398,6 +403,7 @@ CFIndex CFSetGetCountOfValue(CFHashRef hc, const_any_pointer_t key) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), CFIndex, (NSDictionary *)hc, countForKey:(id)key);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), CFIndex, (CFSwiftRef)hc, NSSet.countForValue, key);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), CFIndex, (NSSet *)hc, countForObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -414,6 +420,7 @@ Boolean CFSetContainsValue(CFHashRef hc, const_any_pointer_t key) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), char, (NSDictionary *)hc, containsKey:(id)key);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), char, (CFSwiftRef)hc, NSSet.containsValue, key);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), char, (NSSet *)hc, containsObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -425,6 +432,7 @@ const_any_pointer_t CFSetGetValue(CFHashRef hc, const_any_pointer_t key) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), const_any_pointer_t, (NSDictionary *)hc, objectForKey:(id)key);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), CFTypeRef, (CFSwiftRef)hc, NSSet.getValue, key);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), const_any_pointer_t, (NSSet *)hc, member:(id)key);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -437,6 +445,7 @@ Boolean CFSetGetValueIfPresent(CFHashRef hc, const_any_pointer_t key, const_any_
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), Boolean, (NSDictionary *)hc, __getValue:(id *)value forKey:(id)key);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), Boolean, (CFSwiftRef)hc, NSSet.getValueIfPresent, key, value);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), Boolean, (NSSet *)hc, __getValue:(id *)value forObj:(id)key);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -495,6 +504,7 @@ void CFSetGetValues(CFHashRef hc, const_any_pointer_t *keybuf) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSDictionary *)hc, getObjects:(id *)valuebuf andKeys:(id *)keybuf);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), void, (CFSwiftRef)hc, NSSet.getValues, keybuf);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSSet *)hc, getObjects:(id *)keybuf);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -522,6 +532,7 @@ void CFSetApplyFunction(CFHashRef hc, CFSetApplierFunction applier, any_pointer_
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSDictionary *)hc, __apply:(void (*)(const void *, const void *, void *))applier context:(void *)context);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), void, (CFSwiftRef)hc, NSSet.apply, applier, context);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSSet *)hc, __applyValues:(void (*)(const void *, void *))applier context:(void *)context);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -601,6 +612,7 @@ void CFSetAddValue(CFMutableHashRef hc, const_any_pointer_t key) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableDictionary *)hc, __addObject:(id)value forKey:(id)key);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), void, (CFSwiftRef)hc, NSMutableSet.addValue, key);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableSet *)hc, addObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -624,6 +636,7 @@ void CFSetReplaceValue(CFMutableHashRef hc, const_any_pointer_t key) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableDictionary *)hc, replaceObject:(id)value forKey:(id)key);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), void, (CFSwiftRef)hc, NSMutableSet.replaceValue, key);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableSet *)hc, replaceObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -647,6 +660,7 @@ void CFSetSetValue(CFMutableHashRef hc, const_any_pointer_t key) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableDictionary *)hc, __setObject:(id)value forKey:(id)key);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), void, (CFSwiftRef)hc, NSMutableSet.setValue, key);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableSet *)hc, setObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -665,6 +679,7 @@ void CFSetRemoveValue(CFMutableHashRef hc, const_any_pointer_t key) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableDictionary *)hc, removeObjectForKey:(id)key);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), void, (CFSwiftRef)hc, NSMutableSet.removeValue, key);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableSet *)hc, removeObject:(id)key);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());
@@ -682,6 +697,7 @@ void CFSetRemoveAllValues(CFMutableHashRef hc) {
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableDictionary *)hc, removeAllObjects);
 #endif
 #if CFSet
+    if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), void, (CFSwiftRef)hc, NSMutableSet.removeAllValues);
     if (CFSet) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSMutableSet *)hc, removeAllObjects);
 #endif
     __CFGenericValidateType(hc, CFSetGetTypeID());

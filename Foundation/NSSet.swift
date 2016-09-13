@@ -26,10 +26,8 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
             NSRequiresConcreteImplementation()
         }
         let value = _SwiftValue.store(object)
-        if _storage.contains(value) {
-            return object // this is not exactly the same behavior, but it is reasonably close
-        }
-        return nil
+        guard let idx = _storage.index(of: value) else { return nil }
+        return _storage[idx]
     }
     
     open func objectEnumerator() -> NSEnumerator {
@@ -296,6 +294,10 @@ extension NSSet : _CFBridgeable, _SwiftBridgeable {
 extension CFSet : _NSBridgeable, _SwiftBridgeable {
     internal var _nsObject: NSSet { return unsafeBitCast(self, to: NSSet.self) }
     internal var _swiftObject: Set<NSObject> { return _nsObject._swiftObject }
+}
+
+extension NSMutableSet {
+    internal var _cfMutableObject: CFMutableSet { return unsafeBitCast(self, to: CFMutableSet.self) }
 }
 
 extension Set : _NSBridgeable, _CFBridgeable {
