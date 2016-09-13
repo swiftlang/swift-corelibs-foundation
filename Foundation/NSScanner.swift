@@ -369,7 +369,7 @@ extension String {
             let limit3 = T(numeral - (neg ? 1 : 0)) >= T.greatestFiniteMagnitude - localResult * T(10)
             if (limit1) && (limit2 || limit3) {
                 // apply the clamps and advance past the ending of the buffer where there are still digits
-                localResult = neg ? -T.greatestFiniteMagnitude : T.greatestFiniteMagnitude
+                localResult = neg ? -T.infinity : T.infinity
                 neg = false
                 repeat {
                     buf.advance()
