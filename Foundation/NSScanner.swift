@@ -224,36 +224,11 @@ internal protocol _IntegerLike : Integer, _BitShiftable {
     static var min: Self { get }
 }
 
-internal protocol _FloatArithmeticType {
-    static func +(lhs: Self, rhs: Self) -> Self
-    static func -(lhs: Self, rhs: Self) -> Self
-    static func *(lhs: Self, rhs: Self) -> Self
-    static func /(lhs: Self, rhs: Self) -> Self
-}
-
-internal protocol _FloatLike : FloatingPoint, _FloatArithmeticType {
-    init(_ value: Int)
-    init(_ value: Double)
-    static var max: Self { get }
-    static var min: Self { get }
-}
-
 extension Int : _IntegerLike { }
 extension Int32 : _IntegerLike { }
 extension Int64 : _IntegerLike { }
 extension UInt32 : _IntegerLike { }
 extension UInt64 : _IntegerLike { }
-
-// these might be good to have in the stdlib
-extension Float : _FloatLike {
-    static var max: Float { return FLT_MAX }
-    static var min: Float { return FLT_MIN }
-}
-
-extension Double : _FloatLike {
-    static var max: Double { return DBL_MAX }
-    static var min: Double { return DBL_MIN }
-}
 
 private func numericValue(_ ch: unichar) -> Int {
     if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
@@ -366,7 +341,7 @@ extension String {
         return true
     }
     
-    internal func scan<T: _FloatLike>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: BinaryFloatingPoint>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         let ds_chars = decimalSep(locale).utf16
         let ds = ds_chars[ds_chars.startIndex]
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
@@ -388,13 +363,13 @@ extension String {
             if numeral == -1 {
                 break
             }
-            // if (localResult >= T.max / T(10)) && ((localResult > T.max / T(10)) || T(numericValue(buf.currentCharacter) - (neg ? 1 : 0)) >= T.max - localResult * T(10))  is evidently too complex; so break it down to more "edible chunks"
-            let limit1 = localResult >= T.max / T(10)
-            let limit2 = localResult > T.max / T(10)
-            let limit3 = T(numeral - (neg ? 1 : 0)) >= T.max - localResult * T(10)
+            // if (localResult >= T.greatestFiniteMagnitude / T(10)) && ((localResult > T.greatestFiniteMagnitude / T(10)) || T(numericValue(buf.currentCharacter) - (neg ? 1 : 0)) >= T.greatestFiniteMagnitude - localResult * T(10))  is evidently too complex; so break it down to more "edible chunks"
+            let limit1 = localResult >= T.greatestFiniteMagnitude / T(10)
+            let limit2 = localResult > T.greatestFiniteMagnitude / T(10)
+            let limit3 = T(numeral - (neg ? 1 : 0)) >= T.greatestFiniteMagnitude - localResult * T(10)
             if (limit1) && (limit2 || limit3) {
                 // apply the clamps and advance past the ending of the buffer where there are still digits
-                localResult = neg ? T.min : T.max
+                localResult = neg ? -T.infinity : T.infinity
                 neg = false
                 repeat {
                     buf.advance()
@@ -425,7 +400,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _FloatLike>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: BinaryFloatingPoint>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         NSUnimplemented()
     }
 }

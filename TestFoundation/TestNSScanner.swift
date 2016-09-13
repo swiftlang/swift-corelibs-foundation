@@ -24,6 +24,7 @@ class TestNSScanner : XCTestCase {
     static var allTests: [(String, (TestNSScanner) -> () throws -> Void)] {
         return [
             ("test_scanInteger", test_scanInteger),
+            ("test_scanFloat", test_scanFloat),
         ]
     }
 
@@ -32,5 +33,12 @@ class TestNSScanner : XCTestCase {
         var value: Int = 0
         XCTAssert(scanner.scanInteger(&value), "An Integer should be found in the string `123`.")
         XCTAssertEqual(value, 123, "Scanned Integer value of the string `123` should be `123`.")
+    }
+
+    func test_scanFloat() {
+        let scanner = Scanner(string: "-350000000000000000000000000000000000000000")
+        var value: Float = 0
+        XCTAssert(scanner.scanFloat(&value), "A Float should be found in the string `-350000000000000000000000000000000000000000`.")
+        XCTAssert(value.isInfinite, "Scanned Float value of the string `-350000000000000000000000000000000000000000` should be infinite`.")
     }
 }
