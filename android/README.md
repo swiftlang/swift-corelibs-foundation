@@ -32,12 +32,17 @@ for Linux then alter their Makefiles to have CFLAGS = include: --target=armv7-no
 
 There is a known issue when libdispatch background tasks exit
 they will cause an exception as DetachCurrentThread has not
-been called. To avoid this your app should include the line:
+been called. To avoid this your app must include the line:
 
    DispatchGroup.threadCleanupCallback = JNI_DetachCurrentThread
 
 JNI_DetachCurrentThread is available in the package java_swift
 available here: https://github.com/SwiftJava/java_swift
+
+Pre-built binaries of an Swift compiler with support for Android
+including Foundation available here:
+
+http://johnholdsworth.com/android_toolchain.tgz
 
 ### Other resources
 

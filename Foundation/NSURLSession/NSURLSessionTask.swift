@@ -631,7 +631,7 @@ fileprivate extension URLSessionTask {
                       ("User-Agent", userAgentString),
                       ]
         #if !os(Android)
-        // Crashes on Android
+        // Crashes on Android https://bugs.swift.org/browse/SR-2588
         if let language = NSLocale.current.languageCode {
             result.append(("Accept-Language", language))
         }

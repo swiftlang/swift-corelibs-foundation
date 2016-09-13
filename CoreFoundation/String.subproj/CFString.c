@@ -1265,6 +1265,7 @@ CF_PRIVATE CFStringRef __CFStringCreateImmutableFunnel3(
     }
 
     #ifndef __ANDROID__
+    // https://bugs.swift.org/browse/SR-2587
     // crashes String.swift, line 51 when creating String from zero length Data
     if ((NULL != kCFEmptyString) && (numBytes == 0) && _CFAllocatorIsSystemDefault(alloc)) {	// If we are using the system default allocator, and the string is empty, then use the empty string!
 	if (noCopy && (contentsDeallocator != kCFAllocatorNull)) {	// See 2365208... This change was done after Sonata; before we didn't free the bytes at all (leak).
