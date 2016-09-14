@@ -12,7 +12,7 @@
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux) || os(Android)
+#elseif os(Linux)
 import Glibc
 #endif
 
