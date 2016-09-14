@@ -572,6 +572,8 @@ fileprivate extension URLSessionTask {
         easyHandle.set(requestMethod: request.httpMethod ?? "GET")
         if request.httpMethod == "HEAD" {
             easyHandle.set(noBody: true)
+        } else if ((request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
+            easyHandle.set(customHeaders: ["Content-Type:application/x-www-form-urlencoded"])
         }
     }
 }
