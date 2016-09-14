@@ -433,8 +433,20 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return objects
     }
     
-    open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
-    open func write(to url: URL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
+    open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
+        return write(to: URL(fileURLWithPath: path), atomically: useAuxiliaryFile)
+    }
+    
+    // the atomically flag is ignored if url of a type that cannot be written atomically.
+    open func write(to url: URL, atomically: Bool) -> Bool {
+        do {
+            let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: PropertyListSerialization.PropertyListFormat.xml, options: 0)
+            try pListData.write(to: url, options: atomically ? .atomic : [])
+            return true
+        } catch {
+            return false
+        }
+    }
     
     open func enumerateKeysAndObjects(_ block: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         enumerateKeysAndObjects(options: [], using: block)
