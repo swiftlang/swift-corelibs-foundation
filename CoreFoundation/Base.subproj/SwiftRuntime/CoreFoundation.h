@@ -14,8 +14,6 @@
  
 */
 
-#include <stdarg.h> // required here to avoid an ambiguity on Android compile
-
 #if !defined(__COREFOUNDATION_COREFOUNDATION__)
 #define __COREFOUNDATION_COREFOUNDATION__ 1
 #define __COREFOUNDATION__ 1
@@ -39,10 +37,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if __has_include(<netdb.h>)
-#include <netdb.h>
-#endif
 #include <time.h>
+
+#if __has_include(<netdb.h>)
+#include <netdb.h> // for NSHost.swift
+#endif
 
 #if defined(__STDC_VERSION__) && (199901L <= __STDC_VERSION__)
 
