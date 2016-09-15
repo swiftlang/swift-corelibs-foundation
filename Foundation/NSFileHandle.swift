@@ -15,12 +15,6 @@ import Darwin
 import Glibc
 #endif
 
-#if os(Android) // legacy constants
-let L_SET  = SEEK_SET
-let L_INCR = SEEK_CUR
-let L_XTND = SEEK_END
-#endif
-
 open class FileHandle : NSObject, NSSecureCoding {
     internal var _fd: Int32
     internal var _closeOnDealloc: Bool
@@ -77,7 +71,7 @@ open class FileHandle : NSObject, NSSecureCoding {
                 }
             }
         } else {
-            let offset = lseek(_fd, 0, L_INCR)
+            let offset = lseek(_fd, 0, SEEK_CUR)
             if offset < 0 {
                 fatalError("Unable to fetch current file offset")
             }
@@ -134,19 +128,19 @@ open class FileHandle : NSObject, NSSecureCoding {
     // TODO: Error handling.
     
     open var offsetInFile: UInt64 {
-        return UInt64(lseek(_fd, 0, L_INCR))
+        return UInt64(lseek(_fd, 0, SEEK_CUR))
     }
     
     open func seekToEndOfFile() -> UInt64 {
-        return UInt64(lseek(_fd, 0, L_XTND))
+        return UInt64(lseek(_fd, 0, SEEK_END))
     }
     
     open func seek(toFileOffset offset: UInt64) {
-        lseek(_fd, off_t(offset), L_SET)
+        lseek(_fd, off_t(offset), SEEK_SET)
     }
     
     open func truncateFile(atOffset offset: UInt64) {
-        if lseek(_fd, off_t(offset), L_SET) == 0 {
+        if lseek(_fd, off_t(offset), SEEK_SET) == 0 {
             ftruncate(_fd, off_t(offset))
         }
     }
