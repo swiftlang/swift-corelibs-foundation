@@ -39,15 +39,14 @@ VERBOSE_FLAGS = """
         if Configuration.current.verbose:
             verbose_flags += "-v"
         verbose_flags += "\n"
-        triple = Configuration.current.target.triple
+        swift_triple = Configuration.current.target.swift_triple
         base_flags = """
-TARGET                = """ + triple + """
+TARGET                = """ + Configuration.current.target.triple + """
 DSTROOT               = """ + Configuration.current.install_directory.absolute() + """
 """
-        swift_triple = triple if triple == "armv7-none-linux-androideabi" else Configuration.current.target.swift_triple
         if swift_triple is not None:
             base_flags += """
-SWIFT_TARGET          = """ + swift_triple + """
+SWIFT_TARGET          = """ + Configuration.current.target.swift_triple + """
 SWIFT_ARCH            = """ + Configuration.current.target.swift_arch + """
 """
         base_flags += """
@@ -131,10 +130,10 @@ TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.targe
 
 
         ld_flags = """
-EXTRA_LD_FLAGS        = """ + Configuration.current.extra_ld_flags
+EXTRA_LD_FLAGS       = """ + Configuration.current.extra_ld_flags
 
         ld_flags += """
-TARGET_LDFLAGS        = --target=${TARGET} ${EXTRA_LD_FLAGS} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
+TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
         if Configuration.current.system_root is not None:
             ld_flags += "--sysroot=${SYSROOT}"
 

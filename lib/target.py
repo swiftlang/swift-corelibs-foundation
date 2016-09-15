@@ -380,7 +380,10 @@ class Target:
         elif self.sdk == OSType.Linux:
             # FIXME: It would be nice to detect the host ABI here
             if (self.arch == ArchType.armv6) or (self.arch == ArchType.armv7):
-                triple += "-unknown-linux-gnueabihf"
+                if Configuration.current.target.triple == "armv7-none-linux-androideabi":
+                    triple = Configuration.current.target.triple
+                else:
+                    triple += "-unknown-linux-gnueabihf"
             else:
                 triple += "-unknown-linux"
         elif self.sdk == OSType.FreeBSD:

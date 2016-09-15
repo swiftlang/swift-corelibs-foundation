@@ -768,12 +768,24 @@ void CFLog(CFLogLevel lev, CFStringRef format, ...) {
 // Temporary as Swift cannot import varag C functions
 void CFLog1(CFLogLevel lev, CFStringRef message) {
 #ifdef __ANDROID__
-    UInt8 buffer[4096];
-    CFIndex usedBufLen = sizeof buffer-1;
-    CFStringGetBytes(message, CFRangeMake(0, CFStringGetLength(message)),
-		     kCFStringEncodingUTF8, ' ', FALSE, buffer, usedBufLen, &usedBufLen);
-    buffer[usedBufLen] = '\000';
-    __android_log_print(ANDROID_LOG_INFO, "Swift", "%s", buffer);
+    android_LogPriority priority = ANDROID_LOG_UNKNOWN;
+    switch ( lev ) {
+        case kCFLogLevelEmergency: priority = ANDROID_LOG_FATAL; break;
+        case kCFLogLevelAlert: priority = ANDROID_LOG_ERROR; break;
+        case kCFLogLevelCritical: priority = ANDROID_LOG_ERROR; break;
+        case kCFLogLevelError: priority = ANDROID_LOG_ERROR; break;
+        case kCFLogLevelWarning: priority = ANDROID_LOG_WARN; break;
+        case kCFLogLevelNotice: priority = ANDROID_LOG_WARN; break;
+        case kCFLogLevelInfo: priority = ANDROID_LOG_INFO; break;
+        case kCFLogLevelDebug: priority = ANDROID_LOG_DEBUG; break;
+    }
+    CFIndex blen = message ? CFStringGetMaximumSizeForEncoding(CFStringGetLength(message), kCFStringEncodingUTF8) + 1 : 0;
+    char *buf = message ? (char *)malloc(blen) : 0;
+    if ( buf ) {
+        CFStringGetCString(message, buf, blen, kCFStringEncodingUTF8);
+        __android_log_print(priority, "Swift", "%s", buf);
+        free( buf );
+    }
 #else
     CFLog(lev, CFSTR("%@"), message);
 #endif
