@@ -14,7 +14,18 @@ import Darwin
 import Glibc
 #endif
 
+import Foundation
 import CoreFoundation
+
+extension String {
+    public static func fromCString(_ cString: UnsafeMutablePointer<Int8>) -> String {
+        if let result = NSString(bytes: cString, length: Int(strlen(cString)), encoding: String.Encoding.utf8.rawValue)?._bridgeToSwift() {
+            return result
+        } else {
+            return ""
+        }
+    }
+}
 
 open class Host: NSObject {
     enum ResolveType {
@@ -33,7 +44,21 @@ open class Host: NSObject {
         _type = type
     }
     
-    static internal let _current = Host(nil, .current)
+    static func currentHostName() -> String {
+        let hname = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
+        defer {
+            hname.deinitialize()
+            hname.deallocate(capacity: Int(NI_MAXHOST))
+        }
+        let r = gethostname(hname, Int(NI_MAXHOST))
+        if r < 0 || hname[0] == 0 {
+            print("gethostname returned empty string. Will use localhost")
+            return "localhost"
+        }
+        return String.fromCString(hname)
+    }
+    
+    static internal let _current = Host(currentHostName(), .current)
     
     open class func current() -> Host {
         return _current
@@ -52,7 +77,34 @@ open class Host: NSObject {
     }
     
     internal func _resolveCurrent() {
-        // TODO: cannot access getifaddrs here...
+        var ifaddr: UnsafeMutablePointer<ifaddrs>? = nil
+        if getifaddrs(&ifaddr) != 0 {
+            print("getifaddrs error")
+            return
+        }
+        var ifa: UnsafeMutablePointer<ifaddrs>? = ifaddr
+        while ifa != nil {
+            let ifaValue = ifa!.pointee
+            if let ifa_addr = ifaValue.ifa_addr {
+                let family = ifa_addr.pointee.sa_family
+                if (family == UInt16(AF_INET) || family == UInt16(AF_INET6)) {
+                    let host = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
+                    let sa_len: socklen_t = socklen_t((family == UInt16(AF_INET6)) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
+                    if (getnameinfo(ifa_addr, sa_len, host, socklen_t(NI_MAXHOST), nil, 0, NI_NUMERICHOST) == 0) {
+                        let hostAddress = String.fromCString(host)
+                        let ifa_name = String.fromCString(ifaValue.ifa_name)
+                        if ifa_name.hasSuffix("0") {
+                       	    _addresses.append(hostAddress)
+                            break
+                        }
+                    }
+                    host.deinitialize()
+                    host.deallocate(capacity: Int(NI_MAXHOST))
+                }
+            }
+            ifa = ifaValue.ifa_next
+        }
+        freeifaddrs(ifaddr)
     }
     
     internal func _resolve() {
@@ -94,7 +146,8 @@ open class Host: NSObject {
                 let lookupInfo = { (content: inout [String], flags: Int32) in
                     let hname = UnsafeMutablePointer<Int8>.allocate(capacity: 1024)
                     if (getnameinfo(info.ai_addr, sa_len, hname, 1024, nil, 0, flags) == 0) {
-                        content.append(String(describing: hname))
+                        let nameInfo = String.fromCString(hname)
+                        content.append(nameInfo)
                     }
                     hname.deinitialize()
                     hname.deallocate(capacity: 1024)
@@ -104,7 +157,6 @@ open class Host: NSObject {
                 lookupInfo(&_names, NI_NOFQDN|NI_NAMEREQD)
                 res = info.ai_next
             }
-            
             freeaddrinfo(res0)
         }
 
