@@ -297,7 +297,7 @@ open class URLSession : NSObject {
     }
     
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
-    open func uploadTask(with request: URLRequest, fromData bodyData: Data) -> URLSessionUploadTask {
+    open func uploadTask(with request: URLRequest, from bodyData: Data) -> URLSessionUploadTask {
         let r = URLSession._Request(request)
         return uploadTask(with: r, body: .data(createDispatchData(bodyData)), behaviour: .callDelegate)
     }
@@ -433,10 +433,10 @@ extension URLSession {
      */
     open func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
         let fileData = try! Data(contentsOf: fileURL) 
-        return uploadTask(with: request, fromData: fileData, completionHandler: completionHandler)
+        return uploadTask(with: request, from: fileData, completionHandler: completionHandler)
     }
 
-    open func uploadTask(with request: URLRequest, fromData bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
+    open func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
         return uploadTask(with: _Request(request), body: .data(createDispatchData(bodyData!)), behaviour: .dataCompletionHandler(completionHandler))
     }
     
