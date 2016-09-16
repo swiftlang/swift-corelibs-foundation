@@ -85,7 +85,8 @@ open class NumberFormatter : Formatter {
     open func objectValue(_ string: String, range: inout NSRange) throws -> Any? { NSUnimplemented() }
     
     open override func string(for obj: Any) -> String? {
-        guard let number = obj as? NSNumber else { return nil }
+        //we need to allow Swift's numeric types here - Int, Double et al.
+        guard let number = _SwiftValue.store(obj) as? NSNumber else { return nil }
         return string(from: number)
     }
     
