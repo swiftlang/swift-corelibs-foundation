@@ -779,18 +779,18 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
         case kCFLogLevelInfo: priority = ANDROID_LOG_INFO; break;
         case kCFLogLevelDebug: priority = ANDROID_LOG_DEBUG; break;
     }
-    CFIndex blen = message ? CFStringGetMaximumSizeForEncoding(CFStringGetLength(message), kCFStringEncodingUTF8) + 1 : 0;
-    char *buf = message ? (char *)malloc(blen) : 0;
-    if (buf) {
-        if (blen == 1)
-            // was crashing with zero length strings
-            // https://bugs.swift.org/browse/SR-2666
-            buf[0] = '\000';
-        else
-            CFStringGetCString(message, buf, blen, kCFStringEncodingUTF8);
-        __android_log_print(priority, "Swift", "%s", buf);
-        free(buf);
+    char stack_buffer[1024] = { 0 };
+    char *buffer = &stack_buffer[0];
+    CFStringEncoding encoding = kCFStringEncodingUTF8;
+    CFIndex maxLength = CFStringGetMaximumSizeForEncoding(CFStringGetLength(message), encoding) + 1;
+
+    if (maxLength > sizeof(stack_buffer) / sizeof(stack_buffer[0])) {
+        buffer = calloc(sizeof(char), maxLength);
     }
+    CFStringGetCString(message, buffer, maxLength, encoding);
+    __android_log_print(priority, "Swift", "%s", buffer);
+
+    if (buffer != &stack_buffer[0]) free(buffer);
 #else
     CFLog(lev, CFSTR("%@"), message);
 #endif
