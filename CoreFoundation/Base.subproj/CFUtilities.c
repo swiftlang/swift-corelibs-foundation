@@ -783,6 +783,8 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     char *buf = message ? (char *)malloc(blen) : 0;
     if (buf) {
         if (blen == 1)
+            // was crashing with zero length strings
+            // https://bugs.swift.org/browse/SR-2666
             buf[0] = '\000';
         else
             CFStringGetCString(message, buf, blen, kCFStringEncodingUTF8);
