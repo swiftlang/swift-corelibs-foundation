@@ -69,23 +69,23 @@ open class Host: NSObject {
         if getifaddrs(&ifaddr) != 0 {
             return
         }
+        let address = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
         var ifa: UnsafeMutablePointer<ifaddrs>? = ifaddr
         while ifa != nil {
             let ifaValue = ifa!.pointee
             if let ifa_addr = ifaValue.ifa_addr, ifaValue.ifa_flags & UInt32(IFF_LOOPBACK) == 0 {
                 let family = ifa_addr.pointee.sa_family
                 if family == UInt16(AF_INET) || family == UInt16(AF_INET6) {
-                    let address = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
                     let sa_len: socklen_t = socklen_t((family == UInt16(AF_INET6)) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
                     if getnameinfo(ifa_addr, sa_len, address, socklen_t(NI_MAXHOST), nil, 0, NI_NUMERICHOST) == 0 {
                         _addresses.append(String(cString: address))
                     }
-                    address.deinitialize()
-                    address.deallocate(capacity: Int(NI_MAXHOST))
                 }
             }
             ifa = ifaValue.ifa_next
         }
+        address.deinitialize()
+        address.deallocate(capacity: Int(NI_MAXHOST))
         freeifaddrs(ifaddr)
     }
     
