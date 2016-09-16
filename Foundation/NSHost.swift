@@ -69,8 +69,8 @@ open class Host: NSObject {
         if getifaddrs(&ifaddr) != 0 {
             return
         }
-        let address = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
         var ifa: UnsafeMutablePointer<ifaddrs>? = ifaddr
+        let address = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
         while let ifaValue = ifa?.pointee {
             if let ifa_addr = ifaValue.ifa_addr, ifaValue.ifa_flags & UInt32(IFF_LOOPBACK) == 0 {
                 let family = ifa_addr.pointee.sa_family
@@ -83,9 +83,9 @@ open class Host: NSObject {
             }
             ifa = ifaValue.ifa_next
         }
+        freeifaddrs(ifaddr)
         address.deinitialize()
         address.deallocate(capacity: Int(NI_MAXHOST))
-        freeifaddrs(ifaddr)
     }
     
     internal func _resolve() {
@@ -116,6 +116,7 @@ open class Host: NSObject {
                 return
             }
             var res: UnsafeMutablePointer<addrinfo>? = res0
+            let host = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
             while res != nil {
                 let info = res!.pointee
                 let family = info.ai_family
@@ -125,12 +126,9 @@ open class Host: NSObject {
                 }
                 let sa_len: socklen_t = socklen_t((family == AF_INET6) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
                 let lookupInfo = { (content: inout [String], flags: Int32) in
-                    let host = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
                     if getnameinfo(info.ai_addr, sa_len, host, socklen_t(NI_MAXHOST), nil, 0, flags) == 0 {
                         content.append(String(cString: host))
                     }
-                    host.deinitialize()
-                    host.deallocate(capacity: Int(NI_MAXHOST))
                 }
                 lookupInfo(&_addresses, NI_NUMERICHOST)
                 lookupInfo(&_names, NI_NAMEREQD)
@@ -138,6 +136,8 @@ open class Host: NSObject {
                 res = info.ai_next
             }
             freeaddrinfo(res0)
+            host.deinitialize()
+            host.deallocate(capacity: Int(NI_MAXHOST))
         }
         
     }
