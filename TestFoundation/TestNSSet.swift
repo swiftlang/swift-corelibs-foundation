@@ -35,7 +35,8 @@ class TestNSSet : XCTestCase {
             ("test_CountedSetObjectCount", test_CountedSetObjectCount),
             ("test_CountedSetAddObject", test_CountedSetAddObject),
             ("test_CountedSetRemoveObject", test_CountedSetRemoveObject),
-            ("test_CountedSetCopying", test_CountedSetCopying)
+            ("test_CountedSetCopying", test_CountedSetCopying),
+            ("test_mutablesetWithDictionary", test_mutablesetWithDictionary),
         ]
     }
     
@@ -226,5 +227,13 @@ class TestNSSet : XCTestCase {
             XCTAssertTrue(NSArray(array: setMutableCopy.allObjects).index(of: entry) != NSNotFound)
         }
     }
-
+    
+    func test_mutablesetWithDictionary() {
+        let aSet = NSMutableSet()
+        let dictionary = NSMutableDictionary()
+        let key = NSString(string: "Hello")
+        aSet.add(["world": "again"])
+        dictionary.setObject(aSet, forKey: key)
+        XCTAssertNotNil(dictionary.description) //should not crash
+    }
 }
