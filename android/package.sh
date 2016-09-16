@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# prepare binay package used to build Foundtion for Android
+# Prepare binary package used to build Foundation for Android
 #
 
 cd "$(dirname $0)" &&

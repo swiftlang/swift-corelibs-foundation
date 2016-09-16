@@ -630,12 +630,9 @@ fileprivate extension URLSessionTask {
         var result = [("Connection", "keep-alive"),
                       ("User-Agent", userAgentString),
                       ]
-        #if !os(Android)
-        // Crashes on Android https://bugs.swift.org/browse/SR-2588
         if let language = NSLocale.current.languageCode {
             result.append(("Accept-Language", language))
         }
-        #endif
         return result
     }
     /// Any header values that should be removed from the ones set by libcurl

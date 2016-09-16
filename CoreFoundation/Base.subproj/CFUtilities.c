@@ -769,7 +769,7 @@ void CFLog(CFLogLevel lev, CFStringRef format, ...) {
 void CFLog1(CFLogLevel lev, CFStringRef message) {
 #ifdef __ANDROID__
     android_LogPriority priority = ANDROID_LOG_UNKNOWN;
-    switch ( lev ) {
+    switch (lev) {
         case kCFLogLevelEmergency: priority = ANDROID_LOG_FATAL; break;
         case kCFLogLevelAlert: priority = ANDROID_LOG_ERROR; break;
         case kCFLogLevelCritical: priority = ANDROID_LOG_ERROR; break;
@@ -781,10 +781,13 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     }
     CFIndex blen = message ? CFStringGetMaximumSizeForEncoding(CFStringGetLength(message), kCFStringEncodingUTF8) + 1 : 0;
     char *buf = message ? (char *)malloc(blen) : 0;
-    if ( buf ) {
-        CFStringGetCString(message, buf, blen, kCFStringEncodingUTF8);
+    if (buf) {
+        if (blen == 1)
+            buf[0] = '\000';
+        else
+            CFStringGetCString(message, buf, blen, kCFStringEncodingUTF8);
         __android_log_print(priority, "Swift", "%s", buf);
-        free( buf );
+        free(buf);
     }
 #else
     CFLog(lev, CFSTR("%@"), message);
