@@ -790,7 +790,7 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     if ( maxLength == 1 )
         // was crashing with zero length strings
         // https://bugs.swift.org/browse/SR-2666
-        buffer = " ";
+        strcpy(buffer, " ");
     else
         CFStringGetCString(message, buffer, maxLength, encoding);
 
