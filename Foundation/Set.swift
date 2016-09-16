@@ -40,8 +40,13 @@ extension Set : _ObjectTypeBridgeable {
                 if let o = obj as? Element {
                     set.insert(o)
                 } else {
-                    failedConversion = true
-                    stop.pointee = true
+                    // here obj must be a swift type
+                    if let nsObject = _SwiftValue.store(obj) as? Element {
+                        set.insert(nsObject)
+                    } else {
+                        failedConversion = true
+                        stop.pointee = true
+                    }
                 }
             }
         } else if type(of: source) == _NSCFSet.self {
