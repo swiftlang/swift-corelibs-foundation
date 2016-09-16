@@ -71,8 +71,7 @@ open class Host: NSObject {
         }
         let address = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
         var ifa: UnsafeMutablePointer<ifaddrs>? = ifaddr
-        while ifa != nil {
-            let ifaValue = ifa!.pointee
+        while let ifaValue = ifa?.pointee {
             if let ifa_addr = ifaValue.ifa_addr, ifaValue.ifa_flags & UInt32(IFF_LOOPBACK) == 0 {
                 let family = ifa_addr.pointee.sa_family
                 if family == UInt16(AF_INET) || family == UInt16(AF_INET6) {
