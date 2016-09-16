@@ -787,7 +787,13 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     if (maxLength > sizeof(stack_buffer) / sizeof(stack_buffer[0])) {
         buffer = calloc(sizeof(char), maxLength);
     }
-    CFStringGetCString(message, buffer, maxLength, encoding);
+    if ( maxLength == 1 )
+        // was crashing with zero length strings
+        // https://bugs.swift.org/browse/SR-2666
+        buffer = " ";
+    else
+        CFStringGetCString(message, buffer, maxLength, encoding);
+
     __android_log_print(priority, "Swift", "%s", buffer);
 
     if (buffer != &stack_buffer[0]) free(buffer);
