@@ -787,7 +787,7 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     if (maxLength > sizeof(stack_buffer) / sizeof(stack_buffer[0])) {
         buffer = calloc(sizeof(char), maxLength);
     }
-    if ( maxLength == 1 )
+    if (maxLength == 1)
         // was crashing with zero length strings
         // https://bugs.swift.org/browse/SR-2666
         strcpy(buffer, " ");
