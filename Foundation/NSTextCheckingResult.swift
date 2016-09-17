@@ -25,7 +25,7 @@ open class TextCheckingResult: NSObject, NSCopying, NSCoding {
         super.init()
     }
     
-    open class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: RegularExpression) -> TextCheckingResult {
+    open class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) -> TextCheckingResult {
         return _NSRegularExpressionTextCheckingResultResult(ranges: ranges, count: count, regularExpression: regularExpression)
     }
 
@@ -50,14 +50,14 @@ open class TextCheckingResult: NSObject, NSCopying, NSCoding {
     open var range: NSRange { return range(at: 0) }
     /* A result must have at least one range, but may optionally have more (for example, to represent regular expression capture groups).  The range at index 0 always matches the range property.  Additional ranges, if any, will have indexes from 1 to numberOfRanges-1. */
     open func range(at idx: Int) -> NSRange { NSUnimplemented() }
-    open var regularExpression: RegularExpression? { return nil }
+    open var regularExpression: NSRegularExpression? { return nil }
     open var numberOfRanges: Int { return 1 }
 }
 
 internal class _NSRegularExpressionTextCheckingResultResult : TextCheckingResult {
     var _ranges = [NSRange]()
-    let _regularExpression: RegularExpression
-    init(ranges: NSRangePointer, count: Int, regularExpression: RegularExpression) {
+    let _regularExpression: NSRegularExpression
+    init(ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) {
         _regularExpression = regularExpression
         super.init()
         let notFound = NSRange(location: NSNotFound,length: 0)
@@ -73,7 +73,7 @@ internal class _NSRegularExpressionTextCheckingResultResult : TextCheckingResult
     override var resultType: CheckingType { return .RegularExpression }
     override func range(at idx: Int) -> NSRange { return _ranges[idx] }
     override var numberOfRanges: Int { return _ranges.count }
-    override var regularExpression: RegularExpression? { return _regularExpression }
+    override var regularExpression: NSRegularExpression? { return _regularExpression }
 }
 
 extension TextCheckingResult {
