@@ -61,7 +61,7 @@ open class JSONSerialization : NSObject {
             }
 
             // object is NSNumber and is not NaN or infinity
-            if let number = obj as? NSNumber {
+            if let number = _SwiftValue.store(obj) as? NSNumber {
                 let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
                 return !invalid
             }
@@ -285,6 +285,8 @@ private struct JSONWriter {
             try serializeDictionary(dict)
         } else if let null = obj as? NSNull {
             try serializeNull(null)
+        } else if let boolVal = obj as? Bool {
+            try serializeNumber(NSNumber(value: boolVal))
         }
         else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
