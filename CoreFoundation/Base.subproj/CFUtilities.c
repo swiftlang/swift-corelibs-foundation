@@ -771,14 +771,17 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     android_LogPriority priority = ANDROID_LOG_UNKNOWN;
     switch (lev) {
         case kCFLogLevelEmergency: priority = ANDROID_LOG_FATAL; break;
-        case kCFLogLevelAlert: priority = ANDROID_LOG_ERROR; break;
-        case kCFLogLevelCritical: priority = ANDROID_LOG_ERROR; break;
-        case kCFLogLevelError: priority = ANDROID_LOG_ERROR; break;
-        case kCFLogLevelWarning: priority = ANDROID_LOG_WARN; break;
-        case kCFLogLevelNotice: priority = ANDROID_LOG_WARN; break;
-        case kCFLogLevelInfo: priority = ANDROID_LOG_INFO; break;
-        case kCFLogLevelDebug: priority = ANDROID_LOG_DEBUG; break;
+        case kCFLogLevelAlert:     priority = ANDROID_LOG_ERROR; break;
+        case kCFLogLevelCritical:  priority = ANDROID_LOG_ERROR; break;
+        case kCFLogLevelError:     priority = ANDROID_LOG_ERROR; break;
+        case kCFLogLevelWarning:   priority = ANDROID_LOG_WARN;  break;
+        case kCFLogLevelNotice:    priority = ANDROID_LOG_WARN;  break;
+        case kCFLogLevelInfo:      priority = ANDROID_LOG_INFO;  break;
+        case kCFLogLevelDebug:     priority = ANDROID_LOG_DEBUG; break;
     }
+
+    if (message == NULL) message = CFSTR("NULL");
+
     char stack_buffer[1024] = { 0 };
     char *buffer = &stack_buffer[0];
     CFStringEncoding encoding = kCFStringEncodingUTF8;
@@ -787,14 +790,17 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     if (maxLength > sizeof(stack_buffer) / sizeof(stack_buffer[0])) {
         buffer = calloc(sizeof(char), maxLength);
     }
-    if (maxLength == 1)
+
+    if (maxLength == 1) {
         // was crashing with zero length strings
         // https://bugs.swift.org/browse/SR-2666
-        strcpy(buffer, " ");
+        strcpy(buffer, " "); // log empty string
+    }
     else
         CFStringGetCString(message, buffer, maxLength, encoding);
 
-    __android_log_print(priority, "Swift", "%s", buffer);
+    const char *tag = "Swift"; // process name not available from NDK
+    __android_log_print(priority, tag, "%s", buffer);
 
     if (buffer != &stack_buffer[0]) free(buffer);
 #else

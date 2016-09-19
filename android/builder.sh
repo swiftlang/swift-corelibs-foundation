@@ -3,8 +3,6 @@
 # Build Android toolchain including Foundation
 #
 
-ANDROID_ICU_UC="${ANDROID_ICU_UC:-~/libiconv-libicu-android}"
-
 cd "$(dirname $0)" &&
 #./prepare.sh &&
 ./install.sh -u &&
