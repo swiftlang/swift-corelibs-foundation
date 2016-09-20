@@ -20,3 +20,6 @@ _C_LABEL(__CFUniCharPropertyDatabaseEnd):
     .global _C_LABEL(__CFUniCharPropertyDatabaseSize)
 _C_LABEL(__CFUniCharPropertyDatabaseSize):
     .int _C_LABEL(__CFUniCharPropertyDatabaseEnd) - _C_LABEL(__CFUniCharPropertyDatabase)
+
+NO_EXEC_STACK_DIRECTIVE
+
