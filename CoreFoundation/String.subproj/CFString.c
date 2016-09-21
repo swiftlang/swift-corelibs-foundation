@@ -518,7 +518,17 @@ CFStringEncoding __CFStringComputeEightBitStringEncoding(void) {
 /* Returns whether the provided bytes can be stored in ASCII
 */
 CF_INLINE Boolean __CFBytesInASCII(const uint8_t *bytes, CFIndex len) {
+    uintptr_t offset, process;
+
 #if __LP64__
+    /* align up to the boundary to perform efficient unrolling */
+    offset = (uintptr_t)bytes % __alignof(uint64_t);
+    process = offset ? __alignof(uint64_t) - offset : 0;
+    for (; len && process; --len, --process) {
+      if (*bytes++ & 0x80)
+        return false;
+    }
+
     /* A bit of unrolling; go by 32s, 16s, and 8s first */
     while (len >= 32) {
         uint64_t val = *(const uint64_t *)bytes;
@@ -553,6 +563,15 @@ CF_INLINE Boolean __CFBytesInASCII(const uint8_t *bytes, CFIndex len) {
         len -= 8;
     }
 #endif
+
+    /* align up to the boundary to perform efficient unrolling */
+    offset = (uintptr_t)bytes % __alignof(uint32_t);
+    process = offset ? __alignof(uint32_t) - offset : 0;
+    for (; len && process; --len, --process) {
+      if (*bytes++ & 0x80)
+        return false;
+    }
+
     /* Go by 4s */
     while (len >= 4) {
         uint32_t val = *(const uint32_t *)bytes;
