@@ -388,17 +388,17 @@ class TestData : TestDataSuper {
 
         do {
             let found = helloWorld.range(of: goodbye)
-            expectEmpty(found)
+            expectNil(found)
         }
 
         do {
             let found = helloWorld.range(of: goodbye, options: .anchored)
-            expectEmpty(found)
+            expectNil(found)
         }
 
         do {
             let found = helloWorld.range(of: hello, in: 7..<helloWorld.count)
-            expectEmpty(found)
+            expectNil(found)
         }
     }
     
@@ -875,9 +875,9 @@ class TestData : TestDataSuper {
             Data(base64Encoded: "AAAB")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
-        expectEqual("Data", String(describing: anyHashables[0].base.dynamicType))
-        expectEqual("Data", String(describing: anyHashables[1].base.dynamicType))
-        expectEqual("Data", String(describing: anyHashables[2].base.dynamicType))
+        expectEqual(Data.self, type(of: anyHashables[0].base))
+        expectEqual(Data.self, type(of: anyHashables[1].base))
+        expectEqual(Data.self, type(of: anyHashables[2].base))
         expectNotEqual(anyHashables[0], anyHashables[1])
         expectEqual(anyHashables[1], anyHashables[2])
     }
@@ -889,9 +889,9 @@ class TestData : TestDataSuper {
             NSData(base64Encoded: "AAAB")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
-        expectEqual("Data", String(describing: anyHashables[0].base.dynamicType))
-        expectEqual("Data", String(describing: anyHashables[1].base.dynamicType))
-        expectEqual("Data", String(describing: anyHashables[2].base.dynamicType))
+        expectEqual(Data.self, type(of: anyHashables[0].base))
+        expectEqual(Data.self, type(of: anyHashables[1].base))
+        expectEqual(Data.self, type(of: anyHashables[2].base))
         expectNotEqual(anyHashables[0], anyHashables[1])
         expectEqual(anyHashables[1], anyHashables[2])
     }

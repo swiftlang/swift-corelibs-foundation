@@ -126,6 +126,55 @@ class TestMeasurement : TestMeasurementSuper {
         // Just make sure we get a result at all here
         expectFalse(result.isEmpty)
     }
+
+    func testEquality() {
+        let fiveKM = Measurement(value: 5, unit: UnitLength.kilometers)
+        let fiveSeconds = Measurement(value: 5, unit: UnitDuration.seconds)
+        let fiveThousandM = Measurement(value: 5000, unit: UnitLength.meters)
+
+        expectTrue(fiveKM == fiveThousandM)
+        expectEqual(fiveKM, fiveThousandM)
+        expectFalse(fiveKM == fiveSeconds)
+    }
+
+    func testComparison() {
+        let fiveKM = Measurement(value: 5, unit: UnitLength.kilometers)
+        let fiveThousandM = Measurement(value: 5000, unit: UnitLength.meters)
+        let sixKM = Measurement(value: 6, unit: UnitLength.kilometers)
+        let sevenThousandM = Measurement(value: 7000, unit: UnitLength.meters)
+
+        expectTrue(fiveKM < sixKM)
+        expectTrue(fiveKM < sevenThousandM)
+        expectTrue(fiveKM <= fiveThousandM)
+    }
+
+    func test_AnyHashableContainingMeasurement() {
+        let values: [Measurement<UnitLength>] = [
+          Measurement(value: 100, unit: UnitLength.meters),
+          Measurement(value: 100, unit: UnitLength.kilometers),
+          Measurement(value: 100, unit: UnitLength.kilometers),
+        ]
+        let anyHashables = values.map(AnyHashable.init)
+        expectEqual(Measurement<UnitLength>.self, type(of: anyHashables[0].base))
+        expectEqual(Measurement<UnitLength>.self, type(of: anyHashables[1].base))
+        expectEqual(Measurement<UnitLength>.self, type(of: anyHashables[2].base))
+        expectNotEqual(anyHashables[0], anyHashables[1])
+        expectEqual(anyHashables[1], anyHashables[2])
+    }
+
+    func test_AnyHashableCreatedFromNSMeasurement() {
+        let values: [NSMeasurement] = [
+            NSMeasurement(doubleValue: 100, unit: UnitLength.meters),
+            NSMeasurement(doubleValue: 100, unit: UnitLength.kilometers),
+            NSMeasurement(doubleValue: 100, unit: UnitLength.kilometers),
+        ]
+        let anyHashables = values.map(AnyHashable.init)
+        expectEqual(Measurement<Unit>.self, type(of: anyHashables[0].base))
+        expectEqual(Measurement<Unit>.self, type(of: anyHashables[1].base))
+        expectEqual(Measurement<Unit>.self, type(of: anyHashables[2].base))
+        expectNotEqual(anyHashables[0], anyHashables[1])
+        expectEqual(anyHashables[1], anyHashables[2])
+    }
 }
 
 #if !FOUNDATION_XCTEST
@@ -136,6 +185,10 @@ if #available(OSX 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
     MeasurementTests.test("testOperators") { TestMeasurement().testOperators() }
     MeasurementTests.test("testUnits") { TestMeasurement().testUnits() }
     MeasurementTests.test("testMeasurementFormatter") { TestMeasurement().testMeasurementFormatter() }
+    MeasurementTests.test("testEquality") { TestMeasurement().testEquality() }
+    MeasurementTests.test("testComparison") { TestMeasurement().testComparison() }
+    MeasurementTests.test("test_AnyHashableContainingMeasurement") { TestMeasurement().test_AnyHashableContainingMeasurement() }
+  MeasurementTests.test("test_AnyHashableCreatedFromNSMeasurement") { TestMeasurement().test_AnyHashableCreatedFromNSMeasurement() }
     runAllTests()
 }
 #endif

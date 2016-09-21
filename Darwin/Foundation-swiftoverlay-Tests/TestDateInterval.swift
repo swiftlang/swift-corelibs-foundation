@@ -106,11 +106,11 @@ class TestDateInterval : TestDateIntervalSuper {
             let testInterval3 = DateInterval(start: start3, end: end3)
             
             let intersection1 = testInterval2.intersection(with: testInterval1)
-            expectNotEmpty(intersection1)
+            expectNotNil(intersection1)
             expectEqual(testInterval3, intersection1)
             
             let intersection2 = testInterval1.intersection(with: testInterval2)
-            expectNotEmpty(intersection2)
+            expectNotNil(intersection2)
             expectEqual(intersection1, intersection2)
         }
     }
@@ -140,9 +140,9 @@ class TestDateInterval : TestDateIntervalSuper {
                 DateInterval(start: start, duration: duration / 2),
             ]
             let anyHashables = values.map(AnyHashable.init)
-            expectEqual("DateInterval", String(describing: anyHashables[0].base.dynamicType))
-            expectEqual("DateInterval", String(describing: anyHashables[1].base.dynamicType))
-            expectEqual("DateInterval", String(describing: anyHashables[2].base.dynamicType))
+            expectEqual(DateInterval.self, type(of: anyHashables[0].base))
+            expectEqual(DateInterval.self, type(of: anyHashables[1].base))
+            expectEqual(DateInterval.self, type(of: anyHashables[2].base))
             expectNotEqual(anyHashables[0], anyHashables[1])
             expectEqual(anyHashables[1], anyHashables[2])
         }
@@ -158,9 +158,9 @@ class TestDateInterval : TestDateIntervalSuper {
                 NSDateInterval(start: start, duration: duration / 2),
             ]
             let anyHashables = values.map(AnyHashable.init)
-            expectEqual("DateInterval", String(describing: anyHashables[0].base.dynamicType))
-            expectEqual("DateInterval", String(describing: anyHashables[1].base.dynamicType))
-            expectEqual("DateInterval", String(describing: anyHashables[2].base.dynamicType))
+            expectEqual(DateInterval.self, type(of: anyHashables[0].base))
+            expectEqual(DateInterval.self, type(of: anyHashables[1].base))
+            expectEqual(DateInterval.self, type(of: anyHashables[2].base))
             expectNotEqual(anyHashables[0], anyHashables[1])
             expectEqual(anyHashables[1], anyHashables[2])
         }

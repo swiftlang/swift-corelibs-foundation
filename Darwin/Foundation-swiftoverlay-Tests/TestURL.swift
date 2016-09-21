@@ -35,7 +35,7 @@ class TestURL : TestURLSuper {
             if let isVolume = resourceValues.isVolume {
                 expectTrue(isVolume)
             }
-            expectNotEmpty(resourceValues.name)
+            expectNotNil(resourceValues.name)
         } catch {
             expectTrue(false, "Should not have thrown")
         }
@@ -56,7 +56,7 @@ class TestURL : TestURLSuper {
         // Modify an existing resource values
         do {
             var resourceValues = try file.resourceValues(forKeys: [.nameKey])
-            expectNotEmpty(resourceValues.name)
+            expectNotNil(resourceValues.name)
             expectEqual(resourceValues.name!, name)
             
             let newName = "goodbye cruel " + UUID().uuidString
@@ -81,7 +81,7 @@ class TestURL : TestURLSuper {
 
         do {
             var resourceValues = try file.resourceValues(forKeys: [.labelNumberKey])
-            expectNotEmpty(resourceValues.labelNumber)
+            expectNotNil(resourceValues.labelNumber)
             
             // set label number
             resourceValues.labelNumber = 1
@@ -89,7 +89,7 @@ class TestURL : TestURLSuper {
             
             // get label number
             let _ = try file.resourceValues(forKeys: [.labelNumberKey])
-            expectNotEmpty(resourceValues.labelNumber)
+            expectNotNil(resourceValues.labelNumber)
             expectEqual(resourceValues.labelNumber!, 1)
         } catch (let e as NSError) {
             expectTrue(false, "Unable to load or set resources \(e)")
@@ -104,7 +104,7 @@ class TestURL : TestURLSuper {
             
             try file.setResourceValues(resourceValues)
             let resourceValues2 = try file.resourceValues(forKeys: [.labelNumberKey])
-            expectNotEmpty(resourceValues2.labelNumber)
+            expectNotNil(resourceValues2.labelNumber)
             expectEqual(resourceValues2.labelNumber!, 2)
         } catch (let e as NSError) {
             expectTrue(false, "Unable to load or set resources \(e)")
@@ -124,27 +124,27 @@ class TestURL : TestURLSuper {
         // Not meant to be a test of all URL components functionality, just some basic bridging stuff
         let s = "http://www.apple.com/us/search/ipad?src=globalnav"
         let components = URLComponents(string: s)!
-        expectNotEmpty(components)
+        expectNotNil(components)
         
-        expectNotEmpty(components.host)
+        expectNotNil(components.host)
         expectEqual("www.apple.com", components.host)
         
         
         if #available(OSX 10.11, iOS 9.0, *) {
             let rangeOfHost = components.rangeOfHost!
-            expectNotEmpty(rangeOfHost)
+            expectNotNil(rangeOfHost)
             expectEqual(s[rangeOfHost], "www.apple.com")
         }
         
         if #available(OSX 10.10, iOS 8.0, *) {
             let qi = components.queryItems!
-            expectNotEmpty(qi)
+            expectNotNil(qi)
             
             expectEqual(1, qi.count)
             let first = qi[0]
             
             expectEqual("src", first.name)
-            expectNotEmpty(first.value)
+            expectNotNil(first.value)
             expectEqual("globalnav", first.value)
         }
     }
@@ -212,9 +212,9 @@ class TestURL : TestURLSuper {
             URL(string: "https://example.org/")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
-        expectEqual("URL", String(describing: anyHashables[0].base.dynamicType))
-        expectEqual("URL", String(describing: anyHashables[1].base.dynamicType))
-        expectEqual("URL", String(describing: anyHashables[2].base.dynamicType))
+        expectEqual(URL.self, type(of: anyHashables[0].base))
+        expectEqual(URL.self, type(of: anyHashables[1].base))
+        expectEqual(URL.self, type(of: anyHashables[2].base))
         expectNotEqual(anyHashables[0], anyHashables[1])
         expectEqual(anyHashables[1], anyHashables[2])
     }
@@ -226,9 +226,9 @@ class TestURL : TestURLSuper {
             NSURL(string: "https://example.org/")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
-        expectEqual("URL", String(describing: anyHashables[0].base.dynamicType))
-        expectEqual("URL", String(describing: anyHashables[1].base.dynamicType))
-        expectEqual("URL", String(describing: anyHashables[2].base.dynamicType))
+        expectEqual(URL.self, type(of: anyHashables[0].base))
+        expectEqual(URL.self, type(of: anyHashables[1].base))
+        expectEqual(URL.self, type(of: anyHashables[2].base))
         expectNotEqual(anyHashables[0], anyHashables[1])
         expectEqual(anyHashables[1], anyHashables[2])
     }
@@ -240,9 +240,9 @@ class TestURL : TestURLSuper {
             URLComponents(string: "https://example.org/")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
-        expectEqual("URLComponents", String(describing: anyHashables[0].base.dynamicType))
-        expectEqual("URLComponents", String(describing: anyHashables[1].base.dynamicType))
-        expectEqual("URLComponents", String(describing: anyHashables[2].base.dynamicType))
+        expectEqual(URLComponents.self, type(of: anyHashables[0].base))
+        expectEqual(URLComponents.self, type(of: anyHashables[1].base))
+        expectEqual(URLComponents.self, type(of: anyHashables[2].base))
         expectNotEqual(anyHashables[0], anyHashables[1])
         expectEqual(anyHashables[1], anyHashables[2])
     }
@@ -254,9 +254,9 @@ class TestURL : TestURLSuper {
             NSURLComponents(string: "https://example.org/")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
-        expectEqual("URLComponents", String(describing: anyHashables[0].base.dynamicType))
-        expectEqual("URLComponents", String(describing: anyHashables[1].base.dynamicType))
-        expectEqual("URLComponents", String(describing: anyHashables[2].base.dynamicType))
+        expectEqual(URLComponents.self, type(of: anyHashables[0].base))
+        expectEqual(URLComponents.self, type(of: anyHashables[1].base))
+        expectEqual(URLComponents.self, type(of: anyHashables[2].base))
         expectNotEqual(anyHashables[0], anyHashables[1])
         expectEqual(anyHashables[1], anyHashables[2])
     }
@@ -269,9 +269,9 @@ class TestURL : TestURLSuper {
                 URLQueryItem(name: "bar", value: nil),
             ]
             let anyHashables = values.map(AnyHashable.init)
-            expectEqual("URLQueryItem", String(describing: anyHashables[0].base.dynamicType))
-            expectEqual("URLQueryItem", String(describing: anyHashables[1].base.dynamicType))
-            expectEqual("URLQueryItem", String(describing: anyHashables[2].base.dynamicType))
+            expectEqual(URLQueryItem.self, type(of: anyHashables[0].base))
+            expectEqual(URLQueryItem.self, type(of: anyHashables[1].base))
+            expectEqual(URLQueryItem.self, type(of: anyHashables[2].base))
             expectNotEqual(anyHashables[0], anyHashables[1])
             expectEqual(anyHashables[1], anyHashables[2])
         }
@@ -285,9 +285,9 @@ class TestURL : TestURLSuper {
                 NSURLQueryItem(name: "bar", value: nil),
             ]
             let anyHashables = values.map(AnyHashable.init)
-            expectEqual("URLQueryItem", String(describing: anyHashables[0].base.dynamicType))
-            expectEqual("URLQueryItem", String(describing: anyHashables[1].base.dynamicType))
-            expectEqual("URLQueryItem", String(describing: anyHashables[2].base.dynamicType))
+            expectEqual(URLQueryItem.self, type(of: anyHashables[0].base))
+            expectEqual(URLQueryItem.self, type(of: anyHashables[1].base))
+            expectEqual(URLQueryItem.self, type(of: anyHashables[2].base))
             expectNotEqual(anyHashables[0], anyHashables[1])
             expectEqual(anyHashables[1], anyHashables[2])
         }
@@ -300,9 +300,9 @@ class TestURL : TestURLSuper {
             URLRequest(url: URL(string: "https://example.org/")!),
         ]
         let anyHashables = values.map(AnyHashable.init)
-        expectEqual("URLRequest", String(describing: anyHashables[0].base.dynamicType))
-        expectEqual("URLRequest", String(describing: anyHashables[1].base.dynamicType))
-        expectEqual("URLRequest", String(describing: anyHashables[2].base.dynamicType))
+        expectEqual(URLRequest.self, type(of: anyHashables[0].base))
+        expectEqual(URLRequest.self, type(of: anyHashables[1].base))
+        expectEqual(URLRequest.self, type(of: anyHashables[2].base))
         expectNotEqual(anyHashables[0], anyHashables[1])
         expectEqual(anyHashables[1], anyHashables[2])
     }
@@ -314,9 +314,9 @@ class TestURL : TestURLSuper {
             NSURLRequest(url: URL(string: "https://example.org/")!),
         ]
         let anyHashables = values.map(AnyHashable.init)
-        expectEqual("URLRequest", String(describing: anyHashables[0].base.dynamicType))
-        expectEqual("URLRequest", String(describing: anyHashables[1].base.dynamicType))
-        expectEqual("URLRequest", String(describing: anyHashables[2].base.dynamicType))
+        expectEqual(URLRequest.self, type(of: anyHashables[0].base))
+        expectEqual(URLRequest.self, type(of: anyHashables[1].base))
+        expectEqual(URLRequest.self, type(of: anyHashables[2].base))
         expectNotEqual(anyHashables[0], anyHashables[1])
         expectEqual(anyHashables[1], anyHashables[2])
     }
