@@ -156,8 +156,8 @@ class TestNSHTTPURLResponse : XCTestCase {
         let f = ["A": "1", "B": "2"]
         let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.allHeaderFields.count, 2)
-        XCTAssertEqual(sut?.allHeaderFields["A"], "1")
-        XCTAssertEqual(sut?.allHeaderFields["B"], "2")
+        XCTAssertEqual(sut?.allHeaderFields["A"] as! String, "1")
+        XCTAssertEqual(sut?.allHeaderFields["B"] as! String, "2")
     }
     
     // Note that the message content length is different from the message

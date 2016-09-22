@@ -154,7 +154,7 @@ open class HTTPURLResponse : URLResponse {
     ///
     /// - Important: This is an *experimental* change from the
     /// `[NSObject: AnyObject]` type that Darwin Foundation uses.
-    public let allHeaderFields: [String: String]
+    public let allHeaderFields: [AnyHashable : Any]
     
     /// Convenience method which returns a localized string
     /// corresponding to the status code for this response.
@@ -233,7 +233,8 @@ open class HTTPURLResponse : URLResponse {
     /// This property is intended to produce readable output.
     override open var description: String {
         var result = "<\(type(of: self)) \(Unmanaged.passUnretained(self).toOpaque())> { URL: \(url!.absoluteString) }{ status: \(statusCode), headers {\n"
-        for(key, value) in allHeaderFields {
+        for(aKey, aValue) in allHeaderFields {
+            guard let key = aKey as? String, let value = aValue as? String else { continue } //shouldn't typically fail here 
             if((key.lowercased() == "content-disposition" && suggestedFilename != "Unknown") || key.lowercased() == "content-type") {
                 result += "   \"\(key)\" = \"\(value)\";\n"
             } else {
