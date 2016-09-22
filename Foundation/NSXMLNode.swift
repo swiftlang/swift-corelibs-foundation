@@ -83,7 +83,7 @@ open class XMLNode: NSObject, NSCopying {
         public static let nodePromoteSignificantWhitespace = Options(rawValue: 1 << 28)
         public static let nodePreserveEmptyElements = Options([.nodeExpandEmptyElement, .nodeCompactEmptyElement])
         public static let nodePreserveQuotes = Options([.nodeUseSingleQuotes, .nodeUseDoubleQuotes])
-        public static let nodePreserveAll = Options(rawValue: Options([.nodePreserveNamespaceOrder, .nodePreserveAttributeOrder, .nodePreserveEntities, .nodePreservePrefixes, .nodePreserveCDATA, .nodePreserveEmptyElements, .nodePreserveQuotes, .nodePreserveWhitespace, .nodePreserveDTD, .nodePreserveCharacterReferences]).rawValue | UInt(bitPattern: 0xFFF00000))
+        public static let nodePreserveAll = Options([.nodePreserveNamespaceOrder, .nodePreserveAttributeOrder, .nodePreserveEntities, .nodePreservePrefixes, .nodePreserveCDATA, .nodePreserveEmptyElements, .nodePreserveQuotes, .nodePreserveWhitespace, .nodePreserveDTD, .nodePreserveCharacterReferences])
     }
 
     open override func copy() -> Any {

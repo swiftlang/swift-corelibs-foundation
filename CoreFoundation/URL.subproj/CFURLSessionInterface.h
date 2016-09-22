@@ -27,7 +27,9 @@
 #if !defined(__COREFOUNDATION_URLSESSIONINTERFACE__)
 #define __COREFOUNDATION_URLSESSIONINTERFACE__ 1
 
+#if !defined(__arm__)
 #include <stdio.h>
+#endif
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN

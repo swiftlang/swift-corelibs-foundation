@@ -34,7 +34,9 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <stddef.h>
+#if !defined(__arm__)
 #include <stdio.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
