@@ -423,7 +423,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             repeat {
                 #if os(OSX) || os(iOS)
                     bytesWritten = Darwin.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
-                #elseif os(Linux)
+                #elseif os(Linux) || os(Android)
                     bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
                 #endif
             } while (bytesWritten < 0 && errno == EINTR)
@@ -444,7 +444,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             // Preserve permissions.
             var info = stat()
             if lstat(path, &info) == 0 {
-                mode = info.st_mode
+                mode = mode_t(info.st_mode)
             } else if errno != ENOENT && errno != ENAMETOOLONG {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }

@@ -32,7 +32,11 @@
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #include <dirent.h>
 #include <unistd.h>
+#if __has_include(<sys/fcntl.h>)
 #include <sys/fcntl.h>
+#else
+#include <fcntl.h>
+#endif
 #endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <tzfile.h>

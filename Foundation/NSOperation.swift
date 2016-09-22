@@ -9,7 +9,7 @@
 
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
-#if os(Linux)
+#if os(Linux) || os(Android)
 import CoreFoundation
 private func pthread_main_np() -> Int32 {
     return _CFIsMainThread() ? 1 : 0

@@ -14,8 +14,14 @@ import CoreFoundation
 // This mimics the behavior of the swift sdk overlay on Darwin
 #if os(OSX) || os(iOS)
 @_exported import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
 @_exported import Glibc
+#endif
+
+#if os(Android) // shim required for bzero
+@_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
+    memset(ptr, 0, size)
+}
 #endif
 
 public typealias ObjCBool = Bool

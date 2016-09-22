@@ -13,6 +13,12 @@
     import Glibc
 #endif
 
+#if os(Android) // struct stat.st_mode is UInt32
+internal func &(left: UInt32, right: mode_t) -> mode_t {
+    return mode_t(left) & right
+}
+#endif
+
 import CoreFoundation
 
 open class FileManager : NSObject {
@@ -123,10 +129,10 @@ open class FileManager : NSObject {
                 }
                 #if os(OSX) || os(iOS)
                     let modeT = number.uint16Value
-                #elseif os(Linux)
+                #elseif os(Linux) || os(Android)
                     let modeT = number.uint32Value
                 #endif
-                if chmod(path, modeT) != 0 {
+                if chmod(path, mode_t(modeT)) != 0 {
                     fatalError("errno \(errno)")
                 }
             } else {
@@ -246,11 +252,11 @@ open class FileManager : NSObject {
                 }
                 #if os(OSX) || os(iOS)
                     let tempEntryType = entryType
-                #elseif os(Linux)
+                #elseif os(Linux) || os(Android)
                     let tempEntryType = Int(entryType)
                 #endif
                         
-                if tempEntryType == DT_DIR {
+                if tempEntryType == Int(DT_DIR) {
                     let subPath: String = path + "/" + entryName
                             
                     let entries =  try subpathsOfDirectory(atPath: subPath)
@@ -279,6 +285,8 @@ open class FileManager : NSObject {
 
 #if os(OSX) || os(iOS)
         let ti = (TimeInterval(s.st_mtimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtimespec.tv_nsec))
+#elseif os(Android)
+        let ti = (TimeInterval(s.st_mtime) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtime_nsec))
 #else
         let ti = (TimeInterval(s.st_mtim.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtim.tv_nsec))
 #endif
@@ -361,7 +369,7 @@ open class FileManager : NSObject {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
         
-        return self.string(withFileSystemRepresentation: buf, length: len)
+        return self.string(withFileSystemRepresentation: buf, length: Int(len))
     }
     
     open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {

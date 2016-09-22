@@ -39,6 +39,10 @@
 #include <string.h>
 #include <time.h>
 
+#if __has_include(<netdb.h>)
+#include <netdb.h> // for NSHost.swift
+#endif
+
 #if defined(__STDC_VERSION__) && (199901L <= __STDC_VERSION__)
 
 #include <inttypes.h>
