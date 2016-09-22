@@ -24,7 +24,8 @@ class TestNSAttributedString : XCTestCase {
     static var allTests: [(String, (TestNSAttributedString) -> () throws -> Void)] {
         return [
             ("test_initWithString", test_initWithString),
-            ("test_initWithStringAndAttributes", test_initWithStringAndAttributes)
+            ("test_initWithStringAndAttributes", test_initWithStringAndAttributes),
+            ("test_longestEffectiveRange", test_longestEffectiveRange),
         ]
     }
     
@@ -97,11 +98,11 @@ class TestNSAttributedString : XCTestCase {
         
         _ = attrString.attribute(attrKey, at: 0, longestEffectiveRange: &range, in: searchRange)
         XCTAssertEqual(range.location, 0)
-        XCTAssertEqual(range.length, 29)
+        XCTAssertEqual(range.length, 28)
         
         _ = attrString.attributes(at: 0, longestEffectiveRange: &range, in: searchRange)
         XCTAssertEqual(range.location, 0)
-        XCTAssertEqual(range.length, 29)
+        XCTAssertEqual(range.length, 28)
     }
     
 }
