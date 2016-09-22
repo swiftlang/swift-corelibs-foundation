@@ -101,10 +101,10 @@ extension NSString {
     }
 }
 
-internal func _createRegexForPattern(_ pattern: String, _ options: RegularExpression.Options) -> RegularExpression? {
+internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpression.Options) -> NSRegularExpression? {
     struct local {
-        static let __NSRegularExpressionCache: NSCache<NSString, RegularExpression> = {
-            let cache = NSCache<NSString, RegularExpression>()
+        static let __NSRegularExpressionCache: NSCache<NSString, NSRegularExpression> = {
+            let cache = NSCache<NSString, NSRegularExpression>()
             cache.name = "NSRegularExpressionCache"
             cache.countLimit = 10
             return cache
@@ -115,7 +115,7 @@ internal func _createRegexForPattern(_ pattern: String, _ options: RegularExpres
         return regex
     }
     do {
-        let regex = try RegularExpression(pattern: pattern, options: options)
+        let regex = try NSRegularExpression(pattern: pattern, options: options)
         local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
         return regex
     } catch {
@@ -487,7 +487,7 @@ extension NSString {
     
     internal func _rangeOfRegularExpressionPattern(regex pattern: String, options mask: CompareOptions, range searchRange: NSRange, locale: Locale?) -> NSRange {
         var matchedRange = NSMakeRange(NSNotFound, 0)
-        let regexOptions: RegularExpression.Options = mask.contains(.caseInsensitive) ? .caseInsensitive : []
+        let regexOptions: NSRegularExpression.Options = mask.contains(.caseInsensitive) ? .caseInsensitive : []
         let matchingOptions: NSMatchingOptions = mask.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             matchedRange = regex.rangeOfFirstMatch(in: _swiftObject, options: matchingOptions, range: searchRange)
@@ -1054,7 +1054,7 @@ extension NSString {
     }
     
     internal func _stringByReplacingOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: CompareOptions, range: NSRange) -> String {
-        let regexOptions: RegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
+        let regexOptions: NSRegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
         let matchingOptions: NSMatchingOptions = options.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             return regex.stringByReplacingMatches(in: _swiftObject, options: matchingOptions, range: range, withTemplate: replacement)
@@ -1341,7 +1341,7 @@ extension NSMutableString {
     }
     
     internal func _replaceOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: CompareOptions, range searchRange: NSRange) -> Int {
-        let regexOptions: RegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
+        let regexOptions: NSRegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
         let matchingOptions: NSMatchingOptions = options.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             return regex.replaceMatches(in: self, options: matchingOptions, range: searchRange, withTemplate: replacement)

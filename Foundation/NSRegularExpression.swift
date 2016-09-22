@@ -12,7 +12,7 @@
 
 import CoreFoundation
 
-extension RegularExpression {
+extension NSRegularExpression {
     public struct Options : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
@@ -27,7 +27,7 @@ extension RegularExpression {
     }
 }
 
-open class RegularExpression: NSObject, NSCopying, NSCoding {
+open class NSRegularExpression: NSObject, NSCopying, NSCoding {
     internal var _internal: _CFRegularExpression
     
     open override func copy() -> Any {
@@ -112,9 +112,9 @@ public struct NSMatchingFlags : OptionSet {
 }
 
 internal class _NSRegularExpressionMatcher {
-    var regex: RegularExpression
+    var regex: NSRegularExpression
     var block: (TextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void
-    init(regex: RegularExpression, block: @escaping (TextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    init(regex: NSRegularExpression, block: @escaping (TextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.regex = regex
         self.block = block
     }
@@ -146,7 +146,7 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ran
     }
 }
 
-extension RegularExpression {
+extension NSRegularExpression {
     
     /* The fundamental matching method on NSRegularExpression is a block iterator.  There are several additional convenience methods, for returning all matches at once, the number of matches, the first match, or the range of the first match.  Each match is specified by an instance of NSTextCheckingResult (of type NSTextCheckingTypeRegularExpression) in which the overall match range is given by the range property (equivalent to range at:0) and any capture group ranges are given by range at: for indexes from 1 to numberOfCaptureGroups.  {NSNotFound, 0} is used if a particular capture group does not participate in the match.
     */
@@ -214,7 +214,7 @@ NSMatchingAnchored, NSMatchingWithTransparentBounds, and NSMatchingWithoutAnchor
 NSRegularExpression is designed to be immutable and threadsafe, so that a single instance can be used in matching operations on multiple threads at once.  However, the string on which it is operating should not be mutated during the course of a matching operation (whether from another thread or from within the block used in the iteration).
 */
 
-extension RegularExpression {
+extension NSRegularExpression {
     
     /* NSRegularExpression also provides find-and-replace methods for both immutable and mutable strings.  The replacement is treated as a template, with $0 being replaced by the contents of the matched range, $1 by the contents of the first capture group, and so on.  Additional digits beyond the maximum required to represent the number of capture groups will be treated as ordinary characters, as will a $ not followed by digits.  Backslash will escape both $ and itself.
     */
