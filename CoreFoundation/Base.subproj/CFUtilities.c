@@ -786,9 +786,15 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     char *buffer = &stack_buffer[0];
     CFStringEncoding encoding = kCFStringEncodingUTF8;
     CFIndex maxLength = CFStringGetMaximumSizeForEncoding(CFStringGetLength(message), encoding) + 1;
+    const char *tag = "Swift"; // process name not available from NDK
 
     if (maxLength > sizeof(stack_buffer) / sizeof(stack_buffer[0])) {
         buffer = calloc(sizeof(char), maxLength);
+	if (!buffer) {
+	    __android_log_print(ANDROID_LOG_ERROR, tag, "Unable to allocate %d bytes for log message - truncating.", (int)maxLength);
+	    maxLength = sizeof(stack_buffer) / sizeof(stack_buffer[0]);
+	    buffer = &stack_buffer[0];
+	}
     }
 
     if (maxLength == 1) {
@@ -799,7 +805,6 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     else
         CFStringGetCString(message, buffer, maxLength, encoding);
 
-    const char *tag = "Swift"; // process name not available from NDK
     __android_log_print(priority, tag, "%s", buffer);
 
     if (buffer != &stack_buffer[0]) free(buffer);
