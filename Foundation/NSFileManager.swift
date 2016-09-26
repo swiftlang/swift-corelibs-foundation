@@ -253,12 +253,12 @@ open class FileManager : NSObject {
                 #if os(OSX) || os(iOS)
                     let tempEntryType = entryType
                 #elseif os(Linux) || os(Android)
-                    let tempEntryType = Int(entryType)
+                    let tempEntryType = Int32(entryType)
                 #endif
-                        
-                if tempEntryType == Int(DT_DIR) {
+
+                if tempEntryType == Int32(DT_DIR) {
                     let subPath: String = path + "/" + entryName
-                            
+
                     let entries =  try subpathsOfDirectory(atPath: subPath)
                     contents.append(contentsOf: entries.map({file in "\(entryName)/\(file)"}))
                 }
