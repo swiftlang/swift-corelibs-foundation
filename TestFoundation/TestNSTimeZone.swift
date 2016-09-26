@@ -35,7 +35,7 @@ class TestNSTimeZone: XCTestCase {
             ("test_computedPropertiesMatchMethodReturnValues", test_computedPropertiesMatchMethodReturnValues),
             ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
             ("test_initializingTimeZoneWithAbbreviation", test_initializingTimeZoneWithAbbreviation),
-
+            ("test_localizedName", test_localizedName),
             // Also disabled due to https://bugs.swift.org/browse/SR-300
             // ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
         ]
@@ -116,6 +116,20 @@ class TestNSTimeZone: XCTestCase {
     func test_knownTimeZoneNames() {
         let known = NSTimeZone.knownTimeZoneNames
         XCTAssertNotEqual([], known, "known time zone names not expected to be empty")
+    }
+    
+    func test_localizedName() {
+        let initialTimeZone = NSTimeZone.default
+        NSTimeZone.default = TimeZone(identifier: "America/New_York")!
+        let defaultTimeZone = NSTimeZone.default
+        let locale = Locale(identifier: "en_US")
+        XCTAssertEqual(defaultTimeZone.localizedName(for: .standard, locale: locale), "Eastern Standard Time")
+        XCTAssertEqual(defaultTimeZone.localizedName(for: .shortStandard, locale: locale), "EST")
+        XCTAssertEqual(defaultTimeZone.localizedName(for: .generic, locale: locale), "Eastern Time")
+        XCTAssertEqual(defaultTimeZone.localizedName(for: .daylightSaving, locale: locale), "Eastern Daylight Time")
+        XCTAssertEqual(defaultTimeZone.localizedName(for: .shortDaylightSaving, locale: locale), "EDT")
+        XCTAssertEqual(defaultTimeZone.localizedName(for: .shortGeneric, locale: locale), "ET")
+        NSTimeZone.default = initialTimeZone //reset the TimeZone
     }
 
     func test_initializingTimeZoneWithOffset() {

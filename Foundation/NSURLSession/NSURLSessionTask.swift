@@ -29,7 +29,7 @@ open class URLSessionTask : NSObject, NSCopying {
     fileprivate var suspendCount = 1
     fileprivate var easyHandle: _EasyHandle!
     fileprivate var totalDownloaded = 0
-    fileprivate unowned let session: URLSessionProtocol
+    fileprivate var session: URLSessionProtocol! //change to nil when task completes
     fileprivate let body: _Body
     fileprivate let tempFileURL: URL
     
@@ -62,6 +62,10 @@ open class URLSessionTask : NSObject, NSCopying {
             }
             if case .taskCompleted = internalState {
                 updateTaskState()
+                guard let s = session as? URLSession else { fatalError() }
+                s.workQueue.async {
+                    s.taskRegistry.remove(self)
+                }
             }
         }
     }
@@ -90,9 +94,13 @@ open class URLSessionTask : NSObject, NSCopying {
         self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init()
     }
-    /// Create a data task, i.e. with no body
+    /// Create a data task. If there is a httpBody in the URLRequest, use that as a parameter
     internal convenience init(session: URLSession, request: URLRequest, taskIdentifier: Int) {
-        self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
+        if let bodyData = request.httpBody {
+            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.data(createDispatchData(bodyData)))
+        } else {
+            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
+        }
     }
     internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body) {
         self.session = session
@@ -568,6 +576,8 @@ fileprivate extension URLSessionTask {
         easyHandle.set(requestMethod: request.httpMethod ?? "GET")
         if request.httpMethod == "HEAD" {
             easyHandle.set(noBody: true)
+        } else if ((request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
+            easyHandle.set(customHeaders: ["Content-Type:application/x-www-form-urlencoded"])
         }
     }
 }
@@ -819,27 +829,35 @@ extension URLSessionTask {
         guard case .transferCompleted(response: let response, bodyDataDrain: let bodyDataDrain) = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete.")
         }
-        internalState = .taskCompleted
         self.response = response
+
+        //because we deregister the task with the session on internalState being set to taskCompleted
+        //we need to do the latter after the delegate/handler was notified/invoked
         switch session.behaviour(for: self) {
         case .taskDelegate(let delegate):
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
                 delegate.urlSession(s, task: self, didCompleteWithError: nil)
+                self.internalState = .taskCompleted
             }
         case .noDelegate:
-            break
+            internalState = .taskCompleted
         case .dataCompletionHandler(let completion):
             guard case .inMemory(let bodyData) = bodyDataDrain else {
                 fatalError("Task has data completion handler, but data drain is not in-memory.")
             }
+
             guard let s = session as? URLSession else { fatalError() }
-           
-            var data = Data(capacity: bodyData!.length)
-            data.append(Data(bytes: bodyData!.bytes, count: bodyData!.length)) 
+
+            var data = Data()
+            if let body = bodyData {
+                data = Data(bytes: body.bytes, count: body.length)
+            }
 
             s.delegateQueue.addOperation {
                 completion(data, response, nil)
+                self.internalState = .taskCompleted
+                self.session = nil
             }
         case .downloadCompletionHandler(let completion):
             guard case .toFile(let url, let fileHandle?) = bodyDataDrain else {
@@ -852,6 +870,8 @@ extension URLSessionTask {
             
             s.delegateQueue.addOperation {
                 completion(url, response, nil) 
+                self.internalState = .taskCompleted
+                self.session = nil
             }
             
         }
@@ -860,24 +880,26 @@ extension URLSessionTask {
         guard case .transferFailed = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete / failed.")
         }
-        internalState = .taskCompleted
         switch session.behaviour(for: self) {
         case .taskDelegate(let delegate):
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
-                delegate.urlSession(s, task: self, didCompleteWithError: error)
+                delegate.urlSession(s, task: self, didCompleteWithError: error as Error)
+                self.internalState = .taskCompleted
             }
         case .noDelegate:
-            break
+            internalState = .taskCompleted
         case .dataCompletionHandler(let completion):
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
                 completion(nil, nil, error)
+                self.internalState = .taskCompleted
             }
         case .downloadCompletionHandler(let completion): 
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
                 completion(nil, nil, error)
+                self.internalState = .taskCompleted
             }
         }
     }

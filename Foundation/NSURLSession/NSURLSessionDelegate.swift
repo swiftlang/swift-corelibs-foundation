@@ -53,7 +53,7 @@ public protocol URLSessionDelegate : NSObjectProtocol {
      * invalid because of a systemic error or when it has been
      * explicitly invalidated, in which case the error parameter will be nil.
      */
-    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: NSError?)
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
     
     /* If implemented, when a connection level authentication challenge
      * has occurred, this delegate will be given the opportunity to
@@ -68,7 +68,7 @@ public protocol URLSessionDelegate : NSObjectProtocol {
 }
 
 extension URLSessionDelegate {
-    public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: NSError?) { }
+    public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) { }
     public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) { }
 }
 
@@ -118,7 +118,7 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
     /* Sent as the last message related to a specific task.  Error may be
      * nil, which implies that no error occurred and this task is complete.
      */
-     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: NSError?)
+     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
 }
 
 extension URLSessionTaskDelegate {
@@ -136,7 +136,7 @@ extension URLSessionTaskDelegate {
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) { }
     
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: NSError?) { }
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) { }
 }
 
 /*

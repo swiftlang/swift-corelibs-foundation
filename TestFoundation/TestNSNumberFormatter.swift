@@ -52,7 +52,8 @@ class TestNSNumberFormatter: XCTestCase {
             ("test_currencyGroupingSeparator", test_currencyGroupingSeparator),
             ("test_lenient", test_lenient),
             ("test_minimumSignificantDigits", test_minimumSignificantDigits),
-            ("test_maximumSignificantDigits", test_maximumSignificantDigits)
+            ("test_maximumSignificantDigits", test_maximumSignificantDigits),
+            ("test_stringFor", test_stringFor)
         ]
     }
     
@@ -341,5 +342,18 @@ class TestNSNumberFormatter: XCTestCase {
         let formattedString = numberFormatter.string(from: 42.42424242)
         XCTAssertEqual(formattedString, "42.4")
     }
+
+    func test_stringFor() {
+        let numberFormatter = NumberFormatter()
+        XCTAssertEqual(numberFormatter.string(for: 10)!, "10")
+        XCTAssertEqual(numberFormatter.string(for: 3.14285714285714)!, "3")
+        XCTAssertEqual(numberFormatter.string(for: true)!, "1")
+        XCTAssertEqual(numberFormatter.string(for: false)!, "0")
+        XCTAssertNil(numberFormatter.string(for: [1,2]))
+        XCTAssertEqual(numberFormatter.string(for: NSNumber(value: 99.1))!, "99")
+        XCTAssertNil(numberFormatter.string(for: "NaN"))
+        XCTAssertNil(numberFormatter.string(for: NSString(string: "NaN")))
+    }
+  
 }
 
