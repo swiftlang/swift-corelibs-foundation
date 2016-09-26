@@ -1,26 +1,89 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2016 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public var NSDecimalMaxSize: Int32 { NSUnimplemented() }
+public var NSDecimalMaxSize: Int32 { return 8 }
 // Give a precision of at least 38 decimal digits, 128 binary positions.
 
-public var NSDecimalNoScale: Int32 { NSUnimplemented() }
+public var NSDecimalNoScale: Int32 { return Int32(Int16.max) }
 
 public struct Decimal {
-    public var _exponent: Int32
-    public var _length: UInt32 // length == 0 && isNegative -> NaN
-    public var _isNegative: UInt32
-    public var _isCompact: UInt32
-    public var _reserved: UInt32
+    fileprivate var __exponent: Int8
+    fileprivate var __lengthAndFlags: UInt8
+    fileprivate var __reserved: UInt16
+    public var _exponent: Int32 {
+        get {
+            return Int32(__exponent)
+        }
+        set {
+            __exponent = Int8(truncatingBitPattern: newValue)
+        }
+    }
+    // length == 0 && isNegative -> NaN
+    public var _length: UInt32 {
+        get {
+            return UInt32((__lengthAndFlags & 0b0000_1111))
+        }
+        set {
+            __lengthAndFlags =
+                (__lengthAndFlags & 0b1111_0000) |
+                UInt8(newValue & 0b0000_1111)
+        }
+    }
+    public var _isNegative: UInt32 {
+        get {
+            return UInt32(((__lengthAndFlags) & 0b0001_0000) >> 4)
+        }
+        set {
+            __lengthAndFlags =
+                (__lengthAndFlags & 0b1110_1111) |
+                (UInt8(newValue & 0b0000_0001 ) << 4)
+        }
+    }
+    public var _isCompact: UInt32 {
+        get {
+            return UInt32(((__lengthAndFlags) & 0b0010_0000) >> 5)
+        }
+        set {
+            __lengthAndFlags =
+                (__lengthAndFlags & 0b1101_1111) |
+                (UInt8(newValue & 0b0000_00001 ) << 5)
+        }
+    }
+    public var _reserved: UInt32 {
+        get {
+            return UInt32(UInt32(__lengthAndFlags & 0b1100_0000) << 10 | UInt32(__reserved))
+        }
+        set {
+            __lengthAndFlags =
+                (__lengthAndFlags & 0b0011_1111) |
+                UInt8(UInt32(newValue & (0b11 << 16)) >> 10)
+            __reserved = UInt16(newValue & 0b1111_1111_1111_1111)
+        }
+    }
     public var _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)
-    public init() { NSUnimplemented() }
-    public init(_exponent: Int32, _length: UInt32, _isNegative: UInt32, _isCompact: UInt32, _reserved: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)){ NSUnimplemented() }
+    public init() {
+        self._mantissa = (0,0,0,0,0,0,0,0)
+        self.__exponent = 0
+        self.__lengthAndFlags = 0
+        self.__reserved = 0
+    }
+
+    public init(_exponent: Int32, _length: UInt32, _isNegative: UInt32, _isCompact: UInt32, _reserved: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)){
+        self._mantissa = _mantissa
+        self.__exponent = Int8(truncatingBitPattern: _exponent)
+        self.__lengthAndFlags = 0
+        self.__reserved = 0
+        self._length = _length
+        self._isNegative = _isNegative
+        self._isCompact = _isCompact
+        self._reserved = _reserved
+    }
 }
 
 extension Decimal {
