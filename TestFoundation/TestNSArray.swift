@@ -42,6 +42,8 @@ class TestNSArray : XCTestCase {
             ("test_equality", test_equality),
             ("test_copying", test_copying),
             ("test_mutableCopying", test_mutableCopying),
+            ("test_writeToFile", test_writeToFile),
+            ("test_initWithContentsOfFile", test_initWithContentsOfFile)
         ]
     }
     
@@ -456,4 +458,67 @@ class TestNSArray : XCTestCase {
         }
     }
 
+        func test_initWithContentsOfFile() {
+        let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234))
+        if let _ = testFilePath {
+            let a1: NSArray = ["foo", "bar"]
+            let isWritten = a1.write(toFile: testFilePath!, atomically: true)
+            if isWritten {
+                let array = NSArray.init(contentsOfFile: testFilePath!)
+                XCTAssert(array == a1)
+            } else {
+                XCTFail("Write to file failed")
+            }
+            removeTestFile(testFilePath!)
+        } else {
+            XCTFail("Temporary file creation failed")
+        }
+    }
+    
+    func test_writeToFile() {
+        let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234))
+        if let _ = testFilePath {
+            let d1: NSArray = ["foo", "bar"]
+            let isWritten = d1.write(toFile: testFilePath!, atomically: true)
+            if isWritten {
+                do {
+                    let plistDoc = try XMLDocument(contentsOf: URL(fileURLWithPath: testFilePath!, isDirectory: false), options: [])
+                    try plistDoc.validate()
+                    XCTAssert(plistDoc.rootElement()?.name == "plist")
+                    let plist = try PropertyListSerialization.propertyList(from: plistDoc.xmlData, options: [], format: nil) as! [Any]
+                    XCTAssert((plist[0] as? String) == d1[0] as? String)
+                    XCTAssert((plist[1] as? String) == d1[1] as? String)
+                } catch {
+                    XCTFail("XMLDocument failes to read / validate contenets")
+                }
+            } else {
+                XCTFail("Write to file failed")
+            }
+            removeTestFile(testFilePath!)
+        } else {
+            XCTFail("Temporary file creation failed")
+        }
+    }
+    
+    private func createTestFile(_ path: String, _contents: Data) -> String? {
+        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"
+        do {
+            try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
+            if FileManager.default.createFile(atPath: tempDir + "/" + path, contents: _contents, attributes: nil) {
+                return tempDir + path
+            } else {
+                return nil
+            }
+        } catch _ {
+            return nil
+        }
+    }
+    
+    private func removeTestFile(_ location: String) {
+        do {
+            try FileManager.default.removeItem(atPath: location)
+        } catch _ {
+            
+        }
+    }
 }
