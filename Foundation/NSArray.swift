@@ -397,8 +397,20 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return objects
     }
     
-    open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
-    open func write(to url: URL, atomically: Bool) -> Bool { NSUnimplemented() }
+    open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
+        return write(to: URL(fileURLWithPath: path), atomically: useAuxiliaryFile)
+    }
+    
+    // the atomically flag is ignored if url of a type that cannot be written atomically.
+    open func write(to url: URL, atomically: Bool) -> Bool {
+        do {
+            let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: .xml, options: 0)
+            try pListData.write(to: url, options: atomically ? .atomic : [])
+            return true
+        } catch {
+            return false
+        }
+    }
     
     open func objects(at indexes: IndexSet) -> [Any] {
         var objs = [Any]()
@@ -571,8 +583,20 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return lastEqual ? result + 1 : result
     }
     
-    public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
-    public convenience init?(contentsOfURL url: URL) { NSUnimplemented() }
+    public convenience init?(contentsOfFile path: String) {
+        self.init(contentsOfURL: URL(fileURLWithPath: path))
+    }
+    
+    public convenience init?(contentsOfURL url: URL) {
+        do {
+            guard let plistDoc = try? Data(contentsOf: url),
+            let plistArray = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Array<Any>
+             else { return nil }
+            self.init(array: plistArray)
+        } catch {
+            return nil
+        }
+    }
     
     override open var _cfTypeID: CFTypeID {
         return CFArrayGetTypeID()
