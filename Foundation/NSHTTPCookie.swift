@@ -37,39 +37,42 @@ extension HTTPCookiePropertyKey {
 
     /// Key for cookie value
     public static let value = HTTPCookiePropertyKey(rawValue: "Value")
-    
+
     /// Key for cookie origin URL
     public static let originURL = HTTPCookiePropertyKey(rawValue: "OriginURL")
 
     /// Key for cookie version
     public static let version = HTTPCookiePropertyKey(rawValue: "Version")
-    
+
     /// Key for cookie domain
     public static let domain = HTTPCookiePropertyKey(rawValue: "Domain")
-    
+
     /// Key for cookie path
     public static let path = HTTPCookiePropertyKey(rawValue: "Path")
-    
+
     /// Key for cookie secure flag
     public static let secure = HTTPCookiePropertyKey(rawValue: "Secure")
-    
+
     /// Key for cookie expiration date
     public static let expires = HTTPCookiePropertyKey(rawValue: "Expires")
 
     /// Key for cookie comment text
     public static let comment = HTTPCookiePropertyKey(rawValue: "Comment")
-    
+
     /// Key for cookie comment URL
     public static let commentURL = HTTPCookiePropertyKey(rawValue: "CommentURL")
-    
+
     /// Key for cookie discard (session-only) flag
     public static let discard = HTTPCookiePropertyKey(rawValue: "Discard")
- 
+
     /// Key for cookie maximum age (an alternate way of specifying the expiration)
     public static let maximumAge = HTTPCookiePropertyKey(rawValue: "Max-Age")
 
     /// Key for cookie ports
     public static let port = HTTPCookiePropertyKey(rawValue: "Port")
+
+    // For Cocoa compatibility
+    internal static let created = HTTPCookiePropertyKey(rawValue: "Created")
 }
 
 /// `NSHTTPCookie` represents an http cookie.
@@ -94,10 +97,10 @@ open class HTTPCookie : NSObject {
     let _version: Int
     var _properties: [HTTPCookiePropertyKey : Any]
 
-    static let _attributes: [HTTPCookiePropertyKey] = [.name, .value, .originURL, .version,
-                                                       .domain, .path, .secure, .expires,
-                                                       .comment, .commentURL, .discard, .maximumAge,
-                                                       .port]
+    static let _attributes: [HTTPCookiePropertyKey]
+        = [.name, .value, .originURL, .version, .domain,
+           .path, .secure, .expires, .comment, .commentURL,
+           .discard, .maximumAge, .port]
 
     /// Initialize a NSHTTPCookie object with a dictionary of parameters
     ///
@@ -268,7 +271,7 @@ open class HTTPCookie : NSObject {
             version = 0
         }
         _version = version
-        
+
         if let portString = properties[.port] as? String, _version == 1 {
             _portList = portString.characters
                 .split(separator: ",")
@@ -300,8 +303,7 @@ open class HTTPCookie : NSObject {
         } else {
             _expiresDate = nil
         }
-        
-        
+
         if let discardString = properties[.discard] as? String {
             _sessionOnly = discardString == "TRUE"
         } else {
@@ -321,23 +323,38 @@ open class HTTPCookie : NSObject {
             }
         }
         _HTTPOnly = false
-        _properties = [.comment : properties[.comment],
-                       .commentURL : properties[.commentURL],
-                       HTTPCookiePropertyKey(rawValue: "Created") : Date().timeIntervalSinceReferenceDate, // Cocoa Compatibility
-                       .discard : _sessionOnly,
-                       .domain : _domain,
-                       .expires : _expiresDate,
-                       .maximumAge : properties[.maximumAge],
-                       .name : _name,
-                       .originURL : properties[.originURL],
-                       .path : _path,
-                       .port : _portList,
-                       .secure : _secure,
-                       .value : _value,
-                       .version : _version
+
+
+        _properties = [
+            .created : Date().timeIntervalSinceReferenceDate, // Cocoa Compatibility
+            .discard : _sessionOnly,
+            .domain : _domain,
+            .name : _name,
+            .path : _path,
+            .secure : _secure,
+            .value : _value,
+            .version : _version
         ]
+        if let comment = properties[.comment] {
+            _properties[.comment] = comment
+        }
+        if let commentURL = properties[.commentURL] {
+            _properties[.commentURL] = commentURL
+        }
+        if let expires = properties[.expires] {
+            _properties[.expires] = expires
+        }
+        if let maximumAge = properties[.maximumAge] {
+            _properties[.maximumAge] = maximumAge
+        }
+        if let originURL = properties[.originURL] {
+            _properties[.originURL] = originURL
+        }
+        if let _portList = _portList {
+            _properties[.port] = _portList
+        }
     }
-    
+
     /// Return a dictionary of header fields that can be used to add the
     /// specified cookies to the request.
     ///
@@ -355,7 +372,7 @@ open class HTTPCookie : NSObject {
         }
         return ["Cookie": cookieString]
     }
-   
+
     /// Return an array of cookies parsed from the specified response header fields and URL.
     ///
     /// This method will ignore irrelevant header fields so
@@ -371,7 +388,7 @@ open class HTTPCookie : NSObject {
         // names and values. This implementation takes care of multiple cookies in the same field, however it doesn't   
         //support commas and semicolons in names and values(except for dates)
 
-        guard let cookies: String = headerFields["Set-Cookie"]  else { return [] }  
+        guard let cookies: String = headerFields["Set-Cookie"]  else { return [] }
 
         let nameValuePairs = cookies.components(separatedBy: ";")          //split the name/value and attribute/value pairs
                                 .map({$0.trim()})                           //trim whitespaces
@@ -383,7 +400,7 @@ open class HTTPCookie : NSObject {
 
         //mark cookie boundaries in the name-value array
         var cookieIndices = (0..<nameValuePairs.count).filter({nameValuePairs[$0].hasPrefix("Name")})
-        cookieIndices.append(nameValuePairs.count)  
+        cookieIndices.append(nameValuePairs.count)
 
         //bake the cookies
         var httpCookies: [HTTPCookie] = []
@@ -392,9 +409,9 @@ open class HTTPCookie : NSObject {
                 httpCookies.append(aCookie)
             }
         }
-    
+
         return httpCookies
-    } 
+    }
 
     //Bake a cookie
     private class func createHttpCookie(url: URL, pairs: ArraySlice<String>) -> HTTPCookie? {
@@ -403,20 +420,20 @@ open class HTTPCookie : NSObject {
             let name = pair.components(separatedBy: "=")[0]
             var value = pair.components(separatedBy: "\(name)=")[1]  //a value can have an "="
             if canonicalize(name) == .expires {
-                value = value.insertComma(at: 3)    //re-insert the comma   
+                value = value.insertComma(at: 3)    //re-insert the comma
             }
             properties[canonicalize(name)] = value
         }
- 
+
         //if domain wasn't provided use the URL
         if properties[.domain] == nil {
             properties[.domain] = url.absoluteString
         }
-        
+
         //the default Path is "/"
         if properties[.path] == nil {
             properties[.path] = "/"
-        } 
+        }
 
         return HTTPCookie(properties: properties)
     }
@@ -470,7 +487,7 @@ open class HTTPCookie : NSObject {
     open var properties: [HTTPCookiePropertyKey : Any]? {
         return _properties
     }
-    
+
     /// The version of the receiver.
     ///
     /// Version 0 maps to "old-style" Netscape cookies.
@@ -478,17 +495,17 @@ open class HTTPCookie : NSObject {
     open var version: Int {
         return _version
     }
-    
+
     /// The name of the receiver.
     open var name: String {
         return _name
     }
-    
+
     /// The value of the receiver.
     open var value: String {
         return _value
     }
-    
+
     /// Returns The expires date of the receiver.
     ///
     /// The expires date is the date when the cookie should be
@@ -497,7 +514,7 @@ open class HTTPCookie : NSObject {
     /*@NSCopying*/ open var expiresDate: Date? {
         return _expiresDate
     }
-   
+
     /// Whether the receiver is session-only.
     ///
     /// `true` if this receiver should be discarded at the end of the
@@ -506,7 +523,7 @@ open class HTTPCookie : NSObject {
     open var isSessionOnly: Bool {
         return _sessionOnly
     }
-    
+
     /// The domain of the receiver.
     ///
     /// This value specifies URL domain to which the cookie
@@ -535,7 +552,7 @@ open class HTTPCookie : NSObject {
     open var isSecure: Bool {
         return _secure
     }
-    
+
     /// Whether the receiver should only be sent to HTTP servers per RFC 2965
     ///
     /// Cookies may be marked as HTTPOnly by a server (or by a javascript).
@@ -546,7 +563,7 @@ open class HTTPCookie : NSObject {
     open var isHTTPOnly: Bool {
         return _HTTPOnly
     }
-    
+
     /// The comment of the receiver.
     ///
     /// This value specifies a string which is suitable for
@@ -555,7 +572,7 @@ open class HTTPCookie : NSObject {
     open var comment: String? {
         return _comment
     }
-    
+
     /// The comment URL of the receiver.
     ///
     /// This value specifies a URL which is suitable for
@@ -564,7 +581,7 @@ open class HTTPCookie : NSObject {
     /*@NSCopying*/ open var commentURL: URL? {
         return _commentURL
     }
-    
+
     /// The list ports to which the receiver should be sent.
     ///
     /// This value specifies an NSArray of NSNumbers

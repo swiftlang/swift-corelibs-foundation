@@ -38,6 +38,8 @@ class TestNSTimeZone: XCTestCase {
             ("test_localizedName", test_localizedName),
             // Also disabled due to https://bugs.swift.org/browse/SR-300
             // ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
+
+            ("test_customMirror", test_tz_customMirror),
         ]
     }
 
@@ -152,7 +154,7 @@ class TestNSTimeZone: XCTestCase {
         let tz3 = TimeZone(identifier: "GMT-9999")
         XCTAssertNil(tz3)
     }
-    
+
     func test_initializingTimeZoneWithAbbreviation() {
         // Test invalid timezone abbreviation
         var tz = TimeZone(abbreviation: "XXX")
@@ -162,7 +164,7 @@ class TestNSTimeZone: XCTestCase {
         let expectedName = "America/Halifax"
         XCTAssertEqual(tz?.identifier, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(tz?.identifier)\"")
     }
-    
+
     func test_systemTimeZoneUsesSystemTime() {
         tzset()
         var t = time(nil)
@@ -171,5 +173,21 @@ class TestNSTimeZone: XCTestCase {
         let zoneName = NSTimeZone.system.abbreviation() ?? "Invalid Abbreviation"
         let expectedName = String(cString: lt.tm_zone, encoding: String.Encoding.ascii) ?? "Invalid Zone"
         XCTAssertEqual(zoneName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(zoneName)\"")
+    }
+
+    func test_tz_customMirror() {
+        let tz = TimeZone.current
+        let mirror = Mirror(reflecting: tz as TimeZone)
+        var children = [String : Any](minimumCapacity: Int(mirror.children.count))
+        mirror.children.forEach {
+            if let label = $0.label {
+                children[label] = $0.value
+            }
+        }
+
+        XCTAssertNotNil(children["identifier"])
+        XCTAssertNotNil(children["kind"])
+        XCTAssertNotNil(children["secondsFromGMT"])
+        XCTAssertNotNil(children["isDaylightSavingTime"])
     }
 }
