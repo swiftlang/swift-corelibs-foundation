@@ -387,7 +387,7 @@ open class FileManager : NSObject {
             }
         } else {
             if createFile(atPath: dstPath, contents: contents(atPath: srcPath), attributes: nil) == false {
-                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [NSFilePathErrorKey : NSString(dstPath)])
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [NSFilePathErrorKey : NSString(string: dstPath)])
             }
         }
     }
