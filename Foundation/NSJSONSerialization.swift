@@ -273,11 +273,7 @@ private struct JSONWriter {
         
         if let str = obj as? String {
             try serializeString(str)
-        } else if let num = obj as? Int {
-            try serializeNumber(NSNumber(value: num))
-        } else if let num = obj as? Double {
-            try serializeNumber(NSNumber(value: num))
-        } else if let num = obj as? NSNumber {
+        } else if let num = _SwiftValue.store(obj) as? NSNumber {
             try serializeNumber(num)
         } else if let array = obj as? Array<Any> {
             try serializeArray(array)
