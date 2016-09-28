@@ -373,7 +373,23 @@ open class FileManager : NSObject {
     }
     
     open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
-        NSUnimplemented()
+        guard
+            let attrs = try? attributesOfItem(atPath: srcPath),
+            let fileType = attrs[.type] as? FileAttributeType
+            else {
+                return
+        }
+        if fileType == .typeDirectory {
+            try createDirectory(atPath: dstPath, withIntermediateDirectories: false, attributes: nil)
+            let subpaths = try subpathsOfDirectory(atPath: srcPath)
+            for subpath in subpaths {
+                try copyItem(atPath: srcPath + "/" + subpath, toPath: dstPath + "/" + subpath)
+            }
+        } else {
+            if createFile(atPath: dstPath, contents: contents(atPath: srcPath), attributes: nil) == false {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [NSFilePathErrorKey : NSString(dstPath)])
+            }
+        }
     }
     
     open func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
