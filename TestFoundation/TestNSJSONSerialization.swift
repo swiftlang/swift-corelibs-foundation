@@ -597,6 +597,7 @@ extension TestNSJSONSerialization {
             ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
             ("test_invalidJsonObjectToStreamBuffer", test_invalidJsonObjectToStreamBuffer),
             ("test_jsonObjectToOutputStreamInsufficeintBuffer", test_jsonObjectToOutputStreamInsufficeintBuffer),
+            ("test_booleanJSONObject", test_booleanJSONObject),
         ]
     }
 
@@ -928,6 +929,16 @@ extension TestNSJSONSerialization {
         XCTAssertThrowsError(try JSONSerialization.writeJSONObject(str, toStream: outputStream, options: []))
     }
     
+    func test_booleanJSONObject() {
+        do {
+            let mydata = try JSONSerialization.data(withJSONObject: [true])
+            XCTAssertEqual(String(data: mydata, encoding: String.Encoding.utf8), "[1]")
+        } catch {
+            XCTFail("Failed during serialization")
+        }
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([1]))
+    }
+
     private func createTestFile(_ path: String,_contents: Data) -> String? {
         let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {
