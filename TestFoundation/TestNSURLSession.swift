@@ -29,7 +29,7 @@ class TestURLSession : XCTestCase {
             ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
             ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
-            
+            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate)
         ]
     }
 
@@ -246,6 +246,31 @@ class TestURLSession : XCTestCase {
         }
         task.resume()
         waitForExpectations(timeout: 12)
+    }
+    
+    func test_finishTasksAndInvalidate() {
+        let invalidateExpectation = expectation(description: "URLSession wasn't invalidated")
+        let delegate = SessionDelegate(invalidateExpectation: invalidateExpectation)
+        let url = URL(string: "http://127.0.0.1:\(serverPort)/Nepal")!
+        let session = URLSession(configuration: URLSessionConfiguration.default,
+                                 delegate: delegate, delegateQueue: nil)
+        let completionExpectation = expectation(description: "dataTask completion block wasn't called")
+        let task = session.dataTask(with: url) { _ in
+            completionExpectation.fulfill()
+        }
+        task.resume()
+        session.finishTasksAndInvalidate()
+        waitForExpectations(timeout: 12)
+    }
+}
+
+class SessionDelegate: NSObject, URLSessionDelegate {
+    let invalidateExpectation: XCTestExpectation
+    init(invalidateExpectation: XCTestExpectation){
+        self.invalidateExpectation = invalidateExpectation
+    }
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+        invalidateExpectation.fulfill()
     }
 }
 

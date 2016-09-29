@@ -265,18 +265,20 @@ open class URLSession : NSObject {
            //don't allow creation of new tasks from this point onwards
            self.invalidated = true
 
-           //wait for running tasks to finish
-           if !self.taskRegistry.isEmpty {
-               let tasksCompletion = DispatchSemaphore(value: 0)
-               self.taskRegistry.notify(on: tasksCompletion)
-               tasksCompletion.wait()
+           let invalidateSessionCallback = { [weak self] in
+               //invoke the delegate method and break the delegate link
+               guard let `self` = self, let sessionDelegate = self.delegate else { return }
+               self.delegateQueue.addOperation {
+                   sessionDelegate.urlSession(self, didBecomeInvalidWithError: nil)
+                   self.delegate = nil
+               }
            }
 
-           //invoke the delegate method and break the delegate link
-           guard let sessionDelegate = self.delegate else { return }
-           self.delegateQueue.addOperation {
-               sessionDelegate.urlSession(self, didBecomeInvalidWithError: nil)
-               self.delegate = nil
+           //wait for running tasks to finish
+           if !self.taskRegistry.isEmpty {
+               self.taskRegistry.notify(on: invalidateSessionCallback)
+           } else {
+               invalidateSessionCallback()
            }
        }
     }

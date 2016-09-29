@@ -45,7 +45,7 @@ extension URLSession {
         
         fileprivate var tasks: [Int: URLSessionTask] = [:]
         fileprivate var behaviours: [Int: _Behaviour] = [:]
-        fileprivate var tasksFinished: DispatchSemaphore?
+        fileprivate var tasksFinishedCallback: (() -> ())?
     }
 }
 
@@ -81,14 +81,14 @@ extension URLSession._TaskRegistry {
         }
         behaviours.remove(at: behaviourIdx)
 
-        guard let allTasksFinished = tasksFinished else { return }
+        guard let allTasksFinished = tasksFinishedCallback else { return }
         if self.isEmpty {
-            allTasksFinished.signal()
+            allTasksFinished()
         }
     }
 
-    func notify(on semaphore: DispatchSemaphore) {
-        tasksFinished = semaphore
+    func notify(on tasksCompetion: @escaping () -> ()) {
+        tasksFinishedCallback = tasksCompetion
     }
 
     var isEmpty: Bool {
