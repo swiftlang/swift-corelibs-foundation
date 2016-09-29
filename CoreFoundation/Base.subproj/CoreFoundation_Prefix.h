@@ -73,8 +73,8 @@ typedef char * Class;
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-#import <libkern/OSAtomic.h>
-#import <pthread.h>
+#include <libkern/OSAtomic.h>
+#include <pthread.h>
 #endif
 
 /* This macro creates some helper functions which are useful in dealing with libdispatch:
