@@ -483,13 +483,12 @@ class TestNSArray : XCTestCase {
             if isWritten {
                 do {
                     let plistDoc = try XMLDocument(contentsOf: URL(fileURLWithPath: testFilePath!, isDirectory: false), options: [])
-                    try plistDoc.validate()
                     XCTAssert(plistDoc.rootElement()?.name == "plist")
                     let plist = try PropertyListSerialization.propertyList(from: plistDoc.xmlData, options: [], format: nil) as! [Any]
                     XCTAssert((plist[0] as? String) == d1[0] as? String)
                     XCTAssert((plist[1] as? String) == d1[1] as? String)
                 } catch {
-                    XCTFail("XMLDocument failes to read / validate contenets")
+                    XCTFail("Failed to read and parse XMLDocument")
                 }
             } else {
                 XCTFail("Write to file failed")
