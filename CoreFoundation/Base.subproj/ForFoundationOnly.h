@@ -61,10 +61,10 @@ CF_IMPLICIT_BRIDGING_DISABLED
 
 
 #if INCLUDE_OBJC
-#import <objc/message.h>
+#include <objc/message.h>
 #endif
 #if DEPLOYMENT_TARGET_MACOSX && !LIBAUTO_STUB
-#import <objc/objc-auto.h>
+#include <objc/objc-auto.h>
 #endif
 
 // ---- CFBundle material ----------------------------------------
