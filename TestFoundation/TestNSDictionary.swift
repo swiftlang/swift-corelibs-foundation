@@ -168,16 +168,15 @@ class TestNSDictionary : XCTestCase {
         if let _ = testFilePath {
             let d1: NSDictionary = [ "foo": "bar", "baz": "qux"]
             let isWritten = d1.write(toFile: testFilePath!, atomically: true)
-            if(isWritten){
-                do{
+            if isWritten {
+                do {
                     let plistDoc = try XMLDocument(contentsOf: URL(fileURLWithPath: testFilePath!, isDirectory: false), options: [])
-                    try plistDoc.validate()
                     XCTAssert(plistDoc.rootElement()?.name == "plist")
                     let plist = try PropertyListSerialization.propertyList(from: plistDoc.xmlData, options: [], format: nil) as! [String: Any]
                     XCTAssert((plist["foo"] as? String) == d1["foo"] as? String)
                     XCTAssert((plist["baz"] as? String) == d1["baz"] as? String)
                 } catch {
-                    XCTFail("XMLDocument failes to read / validate contenets")
+                    XCTFail("Failed to read and parse XMLDocument")
                 }
             } else {
                 XCTFail("Write to file failed")
