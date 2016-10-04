@@ -23,7 +23,9 @@ class TestNSDecimal: XCTestCase {
             ("test_Constants", test_Constants),
             ("test_Description", test_Description),
             ("test_ExplicitConstruction", test_ExplicitConstruction),
+            ("test_Maths", test_Maths),
             ("test_Misc", test_Misc),
+            ("test_Normalise", test_Normalise),
             ("test_Round", test_Round),
             ("test_NSDecimal", test_NSDecimal),
         ]
@@ -167,6 +169,18 @@ class TestNSDecimal: XCTestCase {
         XCTAssertEqual(0, ulp._mantissa.7)
     }
 
+    func test_Maths() {
+        for i in -2...10 {
+            for j in 0...5 {
+                XCTAssertEqual(Decimal(i*j), Decimal(i) * Decimal(j), "\(Decimal(i*j)) == \(i) * \(j)")
+                XCTAssertEqual(Decimal(i+j), Decimal(i) + Decimal(j), "\(Decimal(i+j)) == \(i)+\(j)")
+                XCTAssertEqual(Decimal(i-j), Decimal(i) - Decimal(j), "\(Decimal(i-j)) == \(i)-\(j)")
+                //XCTAssertEqual(Decimal(i/j), Decimal(i) / Decimal(j), "\(Decimal(i/j)) == \(i)/\(j)")
+            }
+        }
+        XCTAssertEqual(Decimal(186243*15673), Decimal(186243) * Decimal(15673))
+    }
+
     func test_Misc() {
         XCTAssertEqual(.minus,Decimal(-5.2).sign)
         XCTAssertEqual(.plus,Decimal(5.2).sign)
@@ -176,33 +190,60 @@ class TestNSDecimal: XCTestCase {
         XCTAssertEqual(.minus,d.sign)
         d.negate()
         XCTAssertEqual(.plus,d.sign)
-        /* Needs NSDecimalNormalize
         XCTAssertTrue(Decimal(3.5).isEqual(to: Decimal(3.5)))
         XCTAssertTrue(Decimal.nan.isEqual(to: Decimal.nan))
         XCTAssertTrue(Decimal(1.28).isLess(than: Decimal(2.24)))
         XCTAssertFalse(Decimal(2.28).isLess(than: Decimal(2.24)))
         XCTAssertTrue(Decimal(1.28).isTotallyOrdered(belowOrEqualTo: Decimal(2.24)))
         XCTAssertFalse(Decimal(2.28).isTotallyOrdered(belowOrEqualTo: Decimal(2.24)))
-        XCTAssertFalse(Decimal(1.2).isTotallyOrdered(belowOrEqualTo: Decimal(1.2)))
+        XCTAssertTrue(Decimal(1.2).isTotallyOrdered(belowOrEqualTo: Decimal(1.2)))
         XCTAssertTrue(Decimal.nan.isEqual(to: Decimal.nan))
         XCTAssertTrue(Decimal.nan.isLess(than: Decimal(0)))
-        XCTAssertTrue(Decimal.nan.isLess(than: Decimal.nan))
+        XCTAssertFalse(Decimal.nan.isLess(than: Decimal.nan))
         XCTAssertTrue(Decimal.nan.isLessThanOrEqualTo(Decimal(0)))
         XCTAssertTrue(Decimal.nan.isLessThanOrEqualTo(Decimal.nan))
         XCTAssertFalse(Decimal.nan.isTotallyOrdered(belowOrEqualTo: Decimal.nan))
         XCTAssertFalse(Decimal.nan.isTotallyOrdered(belowOrEqualTo: Decimal(2.3)))
         XCTAssertTrue(Decimal(2) < Decimal(3))
         XCTAssertTrue(Decimal(3) > Decimal(2))
-        */
         XCTAssertEqual(3275573729074,Decimal(1234).hashValue)
-        /* Needs + and -
+        XCTAssertEqual(Decimal(-9), Decimal(1) - Decimal(10))
         XCTAssertEqual(Decimal(3),Decimal(2).nextUp)
         XCTAssertEqual(Decimal(2),Decimal(3).nextDown)
-        XCTAssertEqual(Decimal(476),Decimal(1024).distance(to: Decimal(1500)))
+        XCTAssertEqual(Decimal(-476),Decimal(1024).distance(to: Decimal(1500)))
         XCTAssertEqual(Decimal(68040),Decimal(386).advanced(by: Decimal(67654)))
-        */
         XCTAssertEqual(Decimal(1.234),abs(Decimal(1.234)))
         XCTAssertEqual(Decimal(1.234),abs(Decimal(-1.234)))
+        var a = Decimal(1234)
+        XCTAssertEqual(.noError,NSDecimalMultiplyByPowerOf10(&a,&a,1,.plain))
+        XCTAssertEqual(Decimal(12340),a)
+        a = Decimal(1234)
+        XCTAssertEqual(.noError,NSDecimalMultiplyByPowerOf10(&a,&a,2,.plain))
+        XCTAssertEqual(Decimal(123400),a)
+        XCTAssertEqual(.overflow,NSDecimalMultiplyByPowerOf10(&a,&a,128,.plain))
+        XCTAssertTrue(a.isNaN)
+        a = Decimal(1234)
+        XCTAssertEqual(.noError,NSDecimalMultiplyByPowerOf10(&a,&a,-2,.plain))
+        XCTAssertEqual(Decimal(12.34),a)
+        XCTAssertEqual(.underflow,NSDecimalMultiplyByPowerOf10(&a,&a,-128,.plain))
+        XCTAssertTrue(a.isNaN)
+        a = Decimal(1234)
+        XCTAssertEqual(.noError,NSDecimalPower(&a,&a,0,.plain))
+        XCTAssertEqual(Decimal(1),a)
+        a = Decimal(8)
+        XCTAssertEqual(.noError,NSDecimalPower(&a,&a,2,.plain))
+        XCTAssertEqual(Decimal(64),a)
+        a = Decimal(-2)
+        XCTAssertEqual(.noError,NSDecimalPower(&a,&a,3,.plain))
+        XCTAssertEqual(Decimal(-8),a)
+        for i in -2...10 {
+            for j in 0...5 {
+                var actual = Decimal(i)
+                XCTAssertEqual(.noError,NSDecimalPower(&actual,&actual,j,.plain))
+                let expected = Decimal(pow(Double(i),Double(j)))
+                XCTAssertEqual(expected, actual, "\(actual) == \(i)^\(j)")
+            }
+        }
     }
 
     func test_Round() {
@@ -235,7 +276,24 @@ class TestNSDecimal: XCTestCase {
             XCTAssertEqual(Decimal(expected), num)
         }
     }
-    
+
+    func test_Normalise() {
+        var one = Decimal(1)
+        var ten = Decimal(-10)
+        XCTAssertEqual(.noError,NSDecimalNormalize(&one,&ten,.plain))
+        XCTAssertEqual(Decimal(1),one)
+        XCTAssertEqual(Decimal(-10),ten)
+        XCTAssertEqual(1,one._length)
+        XCTAssertEqual(1,ten._length)
+        one = Decimal(1)
+        ten = Decimal(10)
+        XCTAssertEqual(.noError,NSDecimalNormalize(&one,&ten,.plain))
+        XCTAssertEqual(Decimal(1),one)
+        XCTAssertEqual(Decimal(10),ten)
+        XCTAssertEqual(1,one._length)
+        XCTAssertEqual(1,ten._length)
+    }
+
     func test_NSDecimal() {
         var nan = Decimal.nan
         XCTAssertTrue(NSDecimalIsNotANumber(&nan))
