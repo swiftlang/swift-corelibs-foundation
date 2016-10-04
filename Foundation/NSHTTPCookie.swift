@@ -593,6 +593,30 @@ open class HTTPCookie : NSObject {
     open var portList: [NSNumber]? {
         return _portList
     }
+
+    open override var description: String {
+        var str = "<\(type(of: self)) "
+        str += "version:\(self._version) name:\"\(self._name)\" value:\"\(self._value)\" expiresDate:"
+        if let expires = self._expiresDate {
+            str += "\(expires)"
+        } else {
+            str += "nil"
+        }
+        str += " sessionOnly:\(self._sessionOnly) domain:\"\(self._domain)\" path:\"\(self._path)\" isSecure:\(self._secure) comment:"
+        if let comments = self._comment {
+            str += "\(comments)"
+        } else {
+            str += "nil"
+        }
+        str += " ports:{ "
+        if let ports = self._portList {
+            str += "\(NSArray(array: (ports)).componentsJoined(by: ","))"
+        } else {
+            str += "0"
+        }
+        str += " }>"
+        return str
+    }
 }
 
 //utils for cookie parsing
