@@ -20,15 +20,41 @@ class TestNSCalendar: XCTestCase {
     
     static var allTests: [(String, (TestNSCalendar) -> () throws -> Void)] {
         return [
+            ("test_allCalendars", test_allCalendars),
             ("test_gettingDatesOnGregorianCalendar", test_gettingDatesOnGregorianCalendar ),
             ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),
             ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
+            ("test_gettingDatesOnISO8601Calendar", test_gettingDatesOnISO8601Calendar),
             ("test_copy",test_copy),
             // Disabled because this fails on linux https://bugs.swift.org/browse/SR-320
             // ("test_currentCalendarRRstability", test_currentCalendarRRstability),
         ]
     }
     
+    func test_allCalendars() {
+        for identifier in [
+            Calendar.Identifier.buddhist,
+            Calendar.Identifier.chinese,
+            Calendar.Identifier.coptic,
+            Calendar.Identifier.ethiopicAmeteAlem,
+            Calendar.Identifier.ethiopicAmeteMihret,
+            Calendar.Identifier.gregorian,
+            Calendar.Identifier.hebrew,
+            Calendar.Identifier.indian,
+            Calendar.Identifier.islamic,
+            Calendar.Identifier.islamicCivil,
+            Calendar.Identifier.islamicTabular,
+            Calendar.Identifier.islamicUmmAlQura,
+            Calendar.Identifier.iso8601,
+            Calendar.Identifier.japanese,
+            Calendar.Identifier.persian,
+            Calendar.Identifier.republicOfChina
+            ] {
+                let calendar = Calendar(identifier: identifier)
+                XCTAssertEqual(identifier,calendar.identifier)
+        }
+    }
+
     func test_gettingDatesOnGregorianCalendar() {
         let date = Date(timeIntervalSince1970: 1449332351)
         
@@ -40,6 +66,19 @@ class TestNSCalendar: XCTestCase {
         XCTAssertEqual(components.month, 12)
         XCTAssertEqual(components.day, 5)
     }
+
+    func test_gettingDatesOnISO8601Calendar() {
+        let date = Date(timeIntervalSince1970: 1449332351)
+
+        var calendar = Calendar(identifier: .iso8601)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+
+        XCTAssertEqual(components.year, 2015)
+        XCTAssertEqual(components.month, 12)
+        XCTAssertEqual(components.day, 5)
+    }
+
     
     func test_gettingDatesOnHebrewCalendar() {
         let date = Date(timeIntervalSince1970: 1552580351)

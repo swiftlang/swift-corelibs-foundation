@@ -126,7 +126,7 @@ CONST_STRING_DECL(kCFCalendarIdentifierChinese, "chinese");
 CONST_STRING_DECL(kCFCalendarIdentifierRepublicOfChina, "roc");
 CONST_STRING_DECL(kCFCalendarIdentifierPersian, "persian");
 CONST_STRING_DECL(kCFCalendarIdentifierIndian, "indian");
-CONST_STRING_DECL(kCFCalendarIdentifierISO8601, "");
+CONST_STRING_DECL(kCFCalendarIdentifierISO8601, "iso8601");
 CONST_STRING_DECL(kCFCalendarIdentifierCoptic, "coptic");
 CONST_STRING_DECL(kCFCalendarIdentifierEthiopicAmeteMihret, "ethiopic");
 CONST_STRING_DECL(kCFCalendarIdentifierEthiopicAmeteAlem, "ethiopic-amete-alem");
