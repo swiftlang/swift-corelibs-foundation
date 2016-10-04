@@ -24,6 +24,7 @@ class TestNSCalendar: XCTestCase {
             ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),
             ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
             ("test_copy",test_copy),
+            ("test_addingDates", test_addingDates)
             // Disabled because this fails on linux https://bugs.swift.org/browse/SR-320
             // ("test_currentCalendarRRstability", test_currentCalendarRRstability),
         ]
@@ -88,6 +89,17 @@ class TestNSCalendar: XCTestCase {
         //verify firstWeekday and minimumDaysInFirstWeek of 'copy'. 
         XCTAssertEqual(copy.firstWeekday, 2)
         XCTAssertEqual(copy.minimumDaysInFirstWeek, 2)
+    }
+    
+    func test_addingDates() {
+        var calendar = Calendar.current
+        let today = calendar.current.date(from: DateComponents(year: 2016, month: 10, day: 4))
+        let diffComponents = DateComponents(day: 1)
+        let tomorrow = calendar.date(byAdding: diffComponents, to: today)
+        
+        XCTAssertEqual(tomorrow.year, 2016)
+        XCTAssertEqual(tomorrow.month, 10)
+        XCTAssertEqual(tomorrow.day, 5)
     }
 }
 

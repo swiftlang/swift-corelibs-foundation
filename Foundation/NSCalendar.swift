@@ -579,7 +579,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     open func date(byAdding comps: DateComponents, to date: Date, options opts: Options = []) -> Date? {
         var (vector, compDesc) = _convert(comps)
-        var at: CFAbsoluteTime = 0.0
+        var at: CFAbsoluteTime = date.timeIntervalSinceReferenceDate
         
         let res: Bool = withUnsafeMutablePointer(to: &at) { t in
             return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
