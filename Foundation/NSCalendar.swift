@@ -53,7 +53,7 @@ extension NSCalendar {
         public static let ethiopicAmeteMihret = NSCalendar.Identifier("ethiopic")
         public static let ethiopicAmeteAlem = NSCalendar.Identifier("ethiopic-amete-alem")
         public static let hebrew = NSCalendar.Identifier("hebrew")
-        public static let ISO8601 = NSCalendar.Identifier("")
+        public static let ISO8601 = NSCalendar.Identifier("iso8601")
         public static let indian = NSCalendar.Identifier("indian")
         public static let islamic = NSCalendar.Identifier("islamic")
         public static let islamicCivil = NSCalendar.Identifier("islamic-civil")
