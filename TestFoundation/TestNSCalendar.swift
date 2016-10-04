@@ -92,7 +92,7 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_addingDates() {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let thisDay = calendar.date(from: DateComponents(year: 2016, month: 10, day: 4))!
         let diffComponents = DateComponents(day: 1)
         let dayAfter = calendar.date(byAdding: diffComponents, to: thisDay)
