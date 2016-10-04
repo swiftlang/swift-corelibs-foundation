@@ -92,14 +92,15 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_addingDates() {
-        var calendar = Calendar.current
-        let today = calendar.current.date(from: DateComponents(year: 2016, month: 10, day: 4))
+        let calendar = Calendar.current
+        let today = Date()
         let diffComponents = DateComponents(day: 1)
         let tomorrow = calendar.date(byAdding: diffComponents, to: today)
         
-        XCTAssertEqual(tomorrow.year, 2016)
-        XCTAssertEqual(tomorrow.month, 10)
-        XCTAssertEqual(tomorrow.day, 5)
+        let tomorrowComponents = calendar.dateComponents([.year, .month, .day], from: tomorrow!)
+        XCTAssertEqual(tomorrowComponents.year, 2016)
+        XCTAssertEqual(tomorrowComponents.month, 10)
+        XCTAssertEqual(tomorrowComponents.day, 5)
     }
 }
 

@@ -189,7 +189,7 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     
     /// Set to true if these components represent a leap month.
     public var isLeapMonth: Bool? {
-        get { return _handle.map { $0.isLeapMonth } }
+        get { return _handle.map { $0.leapMonthSet ? $0.isLeapMonth : nil } }
         set {
             _applyMutation {
                 // Technically, the underlying class does not support setting isLeapMonth to nil, but it could - so we leave the API consistent.

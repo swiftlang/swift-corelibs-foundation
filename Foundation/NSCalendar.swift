@@ -461,7 +461,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         _convert(comps.weekday, type: "E", vector: &vector, compDesc: &compDesc)
         _convert(comps.weekdayOrdinal, type: "F", vector: &vector, compDesc: &compDesc)
         _convert(comps.month, type: "M", vector: &vector, compDesc: &compDesc)
-        _convert(comps.isLeapMonth, type: "L", vector: &vector, compDesc: &compDesc)
+        _convert(comps.isLeapMonth, type: "l", vector: &vector, compDesc: &compDesc)
         _convert(comps.day, type: "d", vector: &vector, compDesc: &compDesc)
         _convert(comps.hour, type: "H", vector: &vector, compDesc: &compDesc)
         _convert(comps.minute, type: "m", vector: &vector, compDesc: &compDesc)
