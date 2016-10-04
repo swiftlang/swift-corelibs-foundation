@@ -233,6 +233,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
+        if let data = value as? Data {
+            return isEqual(to: data)
+        } else if let data = value as? NSData {
+            return isEqual(to: data._swiftObject)
+        }
+        
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         if let data = value as? DispatchData {
             if data.count != length {
@@ -244,11 +250,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
         }
 #endif
-        if let data = value as? Data {
-            return isEqual(to: data)
-        } else if let data = value as? NSData {
-            return isEqual(to: data._swiftObject)
-        }
+        
         return false
     }
     open func isEqual(to other: Data) -> Bool {

@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFUniChar.c
-	Copyright (c) 2001 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2001-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Foundation Team
 */
 
@@ -241,6 +236,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 
 #endif // USE_MACHO_SEGMENT
 
+    
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #if !defined(CF_UNICHAR_BITMAP_FILE)
 #if USE_MACHO_SEGMENT
@@ -563,7 +559,7 @@ const uint8_t *CFUniCharGetBitmapPtrForPlane(uint32_t charset, uint32_t plane) {
     return NULL;
 }
 
-CF_EXPORT uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, void *bitmap, bool isInverted) {
+CF_PRIVATE uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, void *bitmap, bool isInverted) {
     const uint8_t *src = CFUniCharGetBitmapPtrForPlane(charset, plane);
     int numBytes = (8 * 1024);
 
@@ -691,7 +687,7 @@ CF_EXPORT uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, v
     return (isInverted ? kCFUniCharBitmapAll : kCFUniCharBitmapEmpty);
 }
 
-CF_EXPORT uint32_t CFUniCharGetNumberOfPlanes(uint32_t charset) {
+CF_PRIVATE uint32_t CFUniCharGetNumberOfPlanes(uint32_t charset) {
     if ((charset == kCFUniCharControlCharacterSet) || (charset == kCFUniCharControlAndFormatterCharacterSet)) {
         return 15; // 0 to 14
     } else if (charset < kCFUniCharDecimalDigitCharacterSet) {
@@ -714,7 +710,7 @@ static const void **__CFUniCharMappingTables = NULL;
 
 static CFLock_t __CFUniCharMappingTableLock = CFLockInit;
 
-CF_EXPORT const void *CFUniCharGetMappingData(uint32_t type) {
+CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
 
     __CFLock(&__CFUniCharMappingTableLock);
 
@@ -1128,7 +1124,7 @@ CF_INLINE bool __CFUniCharIsAfter_i(UTF16Char *buffer, CFIndex length) {
     return true;
 }
 
-CF_EXPORT uint32_t CFUniCharGetConditionalCaseMappingFlags(UTF32Char theChar, UTF16Char *buffer, CFIndex currentIndex, CFIndex length, uint32_t type, const uint8_t *langCode, uint32_t lastFlags) {
+CF_PRIVATE uint32_t CFUniCharGetConditionalCaseMappingFlags(UTF32Char theChar, UTF16Char *buffer, CFIndex currentIndex, CFIndex length, uint32_t type, const uint8_t *langCode, uint32_t lastFlags) {
     if (theChar == 0x03A3) { // GREEK CAPITAL LETTER SIGMA
         if ((type == kCFUniCharToLowercase) && (currentIndex > 0)) {
             UTF16Char *start = buffer;
@@ -1210,7 +1206,7 @@ static __CFUniCharBitmapData *__CFUniCharUnicodePropertyTable = NULL;
 static int __CFUniCharUnicodePropertyTableCount = 0;
 
 const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint32_t plane) {
-    static dispatch_once_t once = 0;
+    static dispatch_once_t once = 0L;
     dispatch_once(&once, ^{
         __CFUniCharBitmapData *table;
         const void *bytes;
@@ -1275,12 +1271,12 @@ const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint3
     return (plane < __CFUniCharUnicodePropertyTable[propertyType]._numPlanes ? __CFUniCharUnicodePropertyTable[propertyType]._planes[plane] : NULL);
 }
 
-CF_EXPORT uint32_t CFUniCharGetNumberOfPlanesForUnicodePropertyData(uint32_t propertyType) {
+CF_PRIVATE uint32_t CFUniCharGetNumberOfPlanesForUnicodePropertyData(uint32_t propertyType) {
     (void)CFUniCharGetUnicodePropertyDataForPlane(propertyType, 0);
     return __CFUniCharUnicodePropertyTable[propertyType]._numPlanes;
 }
 
-CF_EXPORT uint32_t CFUniCharGetUnicodeProperty(UTF32Char character, uint32_t propertyType) {
+CF_PRIVATE uint32_t CFUniCharGetUnicodeProperty(UTF32Char character, uint32_t propertyType) {
     if (propertyType == kCFUniCharCombiningProperty) {
         return CFUniCharGetCombiningPropertyForCharacter(character, (const uint8_t *)CFUniCharGetUnicodePropertyDataForPlane(propertyType, (character >> 16) & 0xFF));
     } else if (propertyType == kCFUniCharBidiProperty) {

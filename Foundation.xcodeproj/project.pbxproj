@@ -99,6 +99,8 @@
 		5B6228BD1C179049009587FE /* CFRunArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6228BC1C179049009587FE /* CFRunArray.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B6228BF1C179052009587FE /* CFAttributedString.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B6228BE1C179052009587FE /* CFAttributedString.c */; };
 		5B6228C11C17905B009587FE /* CFAttributedString.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6228C01C17905B009587FE /* CFAttributedString.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5B6E11A71DA451E7009B48A3 /* CFLocale_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6E11A61DA451E7009B48A3 /* CFLocale_Private.h */; };
+		5B6E11A91DA45EB5009B48A3 /* CFDateFormatter_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */; };
 		5B78185B1D6CB5D2004A01F2 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818591D6CB5CD004A01F2 /* CGFloat.swift */; };
 		5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D895D1BBDABBF00234F36 /* CFBase.c */; };
 		5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89851BBDB18D00234F36 /* CFFileUtilities.c */; };
@@ -655,6 +657,8 @@
 		5B6228BE1C179052009587FE /* CFAttributedString.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFAttributedString.c; sourceTree = "<group>"; };
 		5B6228C01C17905B009587FE /* CFAttributedString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAttributedString.h; sourceTree = "<group>"; };
 		5B628EDE1D1C995C00CA9570 /* NSMeasurementFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSMeasurementFormatter.swift; sourceTree = "<group>"; };
+		5B6E11A61DA451E7009B48A3 /* CFLocale_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFLocale_Private.h; sourceTree = "<group>"; };
+		5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateFormatter_Private.h; sourceTree = "<group>"; };
 		5B6F17921C48631C00935030 /* TestNSNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNull.swift; sourceTree = "<group>"; };
 		5B6F17931C48631C00935030 /* TestNSNumberFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNumberFormatter.swift; sourceTree = "<group>"; };
 		5B6F17941C48631C00935030 /* TestProcess.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = TestProcess.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -1093,6 +1097,7 @@
 				5B5D891B1BBDA50800234F36 /* CFCalendar.h */,
 				5B5D890B1BBC9BEF00234F36 /* CFDateFormatter.c */,
 				5B5D89091BBC9BEF00234F36 /* CFDateFormatter.h */,
+				5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */,
 				5B5D88AC1BBC974700234F36 /* CFLocale.c */,
 				5B5D88AB1BBC974700234F36 /* CFLocale.h */,
 				5B5D88AD1BBC974700234F36 /* CFLocaleIdentifier.c */,
@@ -1101,6 +1106,7 @@
 				5B5D89111BBC9C3400234F36 /* CFNumberFormatter.h */,
 				5B5D89A91BBDC11100234F36 /* CFLocaleKeys.c */,
 				5BDC3F191BCC440100ED97BB /* CFICULogging.h */,
+				5B6E11A61DA451E7009B48A3 /* CFLocale_Private.h */,
 			);
 			name = Locale;
 			path = CoreFoundation/Locale.subproj;
@@ -1750,6 +1756,7 @@
 				5B7C8AF11BEA81AC00C5B690 /* CFStreamAbstract.h in Headers */,
 				5B7C8AFE1BEA81AC00C5B690 /* CFURLComponents.h in Headers */,
 				5B7C8ABC1BEA805C00C5B690 /* CFAvailability.h in Headers */,
+				5B6E11A91DA45EB5009B48A3 /* CFDateFormatter_Private.h in Headers */,
 				5B7C8AF51BEA81AC00C5B690 /* CFStringDefaultEncoding.h in Headers */,
 				5B7C8AD21BEA80FC00C5B690 /* CFPropertyList.h in Headers */,
 				5B7C8AE51BEA81AC00C5B690 /* ForFoundationOnly.h in Headers */,
@@ -1773,6 +1780,7 @@
 				5B7C8AF31BEA81AC00C5B690 /* CFStreamPriv.h in Headers */,
 				5B7C8AF21BEA81AC00C5B690 /* CFStreamInternal.h in Headers */,
 				5B7C8AEB1BEA81AC00C5B690 /* CFBigNumber.h in Headers */,
+				5B6E11A71DA451E7009B48A3 /* CFLocale_Private.h in Headers */,
 				EA66F6671BF2F2F100136161 /* CoreFoundation.h in Headers */,
 				5B7C8AFF1BEA81AC00C5B690 /* CFURLPriv.h in Headers */,
 				5B7C8AEE1BEA81AC00C5B690 /* CFBundle_Internal.h in Headers */,
@@ -2544,6 +2552,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_TARGET_MACOSX",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
+					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -2583,6 +2592,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_TARGET_MACOSX",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
+					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",

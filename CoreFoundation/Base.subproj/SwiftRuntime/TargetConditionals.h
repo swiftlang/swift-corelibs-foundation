@@ -77,31 +77,41 @@
 #define TARGET_OS_LINUX        0
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          0
+#define TARGET_OS_ANDROID      0
+#define TARGET_OS_CYGWIN       0
+#elif __ANDROID__
+#define TARGET_OS_DARWIN       0
+#define TARGET_OS_LINUX        1
+#define TARGET_OS_WINDOWS      0
+#define TARGET_OS_BSD          0
+#define TARGET_OS_ANDROID      1
 #define TARGET_OS_CYGWIN       0
 #elif __linux__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        1
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          0
+#define TARGET_OS_ANDROID      0
 #define TARGET_OS_CYGWIN       0
 #elif __CYGWIN__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        1
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          0
+#define TARGET_OS_ANDROID      0
 #define TARGET_OS_CYGWIN       1
 #elif _WIN32 || _WIN64
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        0
 #define TARGET_OS_WINDOWS      1
 #define TARGET_OS_BSD          0
-#define TARGET_OS_CYGWIN       0
+#define TARGET_OS_ANDROID      0
 #elif __unix__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        0
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          1
-#define TARGET_OS_CYGWIN       0
+#define TARGET_OS_ANDROID      0
 #else
 #error unknown operating system
 #endif

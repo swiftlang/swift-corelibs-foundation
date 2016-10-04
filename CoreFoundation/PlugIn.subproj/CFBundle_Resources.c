@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*      CFBundle_Resources.c
-        Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
         Responsibility: Tony Parker
 */
 
@@ -30,12 +25,9 @@
 #include <errno.h>
 #include <sys/types.h>
 
-
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
 #include <unistd.h>
-#if __has_include(<sys/sysctl.h>)
 #include <sys/sysctl.h>
-#endif
 #include <sys/stat.h>
 #include <dirent.h>
 #endif
@@ -1112,7 +1104,45 @@ static CFTypeRef _copyResourceURLsFromBundle(CFBundleRef bundle, CFURLRef bundle
 // Another idea: if you want caching, you should create a bundle object. Otherwise we'll happily readdir each time.
 CF_EXPORT CFTypeRef _CFBundleCopyFindResources(CFBundleRef bundle, CFURLRef bundleURL, CFArrayRef _unused_pass_null_, CFStringRef resourceName, CFStringRef resourceType, CFStringRef subPath, CFStringRef lproj, Boolean returnArray, Boolean localized, Boolean (^predicate)(CFStringRef filename, Boolean *stop))
 {
-    
+    CFTypeRef returnValue = NULL;
+
+    if (
+        subPath) {
+        int depthLevel = 0;
+        CFArrayRef subPathComponents = CFStringCreateArrayBySeparatingStrings(kCFAllocatorSystemDefault, subPath, CFSTR("/"));
+        CFIndex subPathComponentsCount = CFArrayGetCount(subPathComponents);
+
+        for (int i = 0; i < subPathComponentsCount; i++) {
+            CFStringRef comp = CFArrayGetValueAtIndex(subPathComponents, i);
+
+            if (i == 0 && (CFStringCompare(comp, CFSTR(""), 0) == kCFCompareEqualTo)) {
+                continue;
+            }
+
+            if (CFStringCompare(comp, CFSTR("."), 0) == kCFCompareEqualTo) {
+                continue;
+            }
+
+            if (CFStringCompare(comp, CFSTR(".."), 0) == kCFCompareEqualTo) {
+                depthLevel--;
+            } else {
+                depthLevel++;
+            }
+
+            if(depthLevel < 0) {
+                break;
+            }
+        }
+        CFRelease(subPathComponents);
+
+        if (depthLevel < 0) {
+            if (returnArray) {
+                returnValue = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
+            }
+            return returnValue;
+        }
+    }
+
     // Don't use any path info passed into the resource name
     CFStringRef realResourceName = NULL;
     CFStringRef subPathFromResourceName = NULL;
@@ -1185,7 +1215,7 @@ CF_EXPORT CFTypeRef _CFBundleCopyFindResources(CFBundleRef bundle, CFURLRef bund
     CFStringRef resDir = _CFBundleGetResourceDirForVersion(bundleVersion);
     
     // if returnArray is true then this function will always return a CFArrayRef, even if it's empty
-    CFTypeRef returnValue = _copyResourceURLsFromBundle(bundle, bundleURL, bundleURLLanguages, resDir, realSubdirectory, key, lproj, returnArray, localized, bundleVersion, predicate);
+    returnValue = _copyResourceURLsFromBundle(bundle, bundleURL, bundleURLLanguages, resDir, realSubdirectory, key, lproj, returnArray, localized, bundleVersion, predicate);
     
     if ((!returnValue || (CFGetTypeID(returnValue) == CFArrayGetTypeID() && CFArrayGetCount((CFArrayRef)returnValue) == 0)) && (0 == bundleVersion || 2 == bundleVersion)) {
         CFStringRef bundlePath = NULL;
@@ -1258,7 +1288,7 @@ CF_EXPORT CFTypeRef _CFBundleCopyFindResources(CFBundleRef bundle, CFURLRef bund
                 
                 // If we were building up a newResult array, replace the returnValue with it
                 if (combinedResultFromOtherBundles) {
-                    CFRelease(returnValue);
+                    if (returnValue) { CFRelease(returnValue); }
                     returnValue = combinedResultFromOtherBundles;
                 }
                 

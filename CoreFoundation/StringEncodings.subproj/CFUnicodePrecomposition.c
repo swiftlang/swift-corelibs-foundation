@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFUnicodePrecomposition.c
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Foundation Team
 */
 
@@ -108,8 +103,8 @@ static uint32_t __CFUniCharGetMappedValue_P(const __CFUniCharPrecomposeMappings 
     return 0;
 }
 
-CF_EXPORT UTF32Char CFUniCharPrecomposeCharacter(UTF32Char base,
-                                                 UTF32Char combining) {
+CF_PRIVATE
+UTF32Char CFUniCharPrecomposeCharacter(UTF32Char base, UTF32Char combining) {
     uint32_t value;
 
     if (NULL == __CFUniCharPrecompSourceTable) __CFUniCharLoadPrecompositionTable();

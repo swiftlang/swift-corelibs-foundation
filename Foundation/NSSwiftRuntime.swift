@@ -60,6 +60,12 @@ internal func _CFSwiftGetTypeID(_ cf: AnyObject) -> CFTypeID {
 }
 
 
+
+internal func _CFSwiftCopyWithZone(_ cf: CFTypeRef, _ zone: CFTypeRef?) -> Unmanaged<CFTypeRef> {
+    return Unmanaged<CFTypeRef>.passRetained((cf as! NSObject).copy() as! NSObject)
+}
+
+
 internal func _CFSwiftGetHash(_ cf: AnyObject) -> CFHashCode {
     return CFHashCode(bitPattern: (cf as! NSObject).hash)
 }
@@ -105,20 +111,23 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSObject.isEqual = _CFSwiftIsEqual
     __CFSwiftBridge.NSObject.hash = _CFSwiftGetHash
     __CFSwiftBridge.NSObject._cfTypeID = _CFSwiftGetTypeID
+    __CFSwiftBridge.NSObject.copyWithZone = _CFSwiftCopyWithZone
     
     __CFSwiftBridge.NSSet.count = _CFSwiftSetGetCount
-    __CFSwiftBridge.NSSet.countForValue = _CFSwiftSetGetCountOfValue
-    __CFSwiftBridge.NSSet.containsValue = _CFSwiftSetContainsValue
-    __CFSwiftBridge.NSSet.getValue = _CFSwiftSetGetValue
+    __CFSwiftBridge.NSSet.countForKey = _CFSwiftSetGetCountOfValue
+    __CFSwiftBridge.NSSet.containsObject = _CFSwiftSetContainsValue
+    __CFSwiftBridge.NSSet.__getValue = _CFSwiftSetGetValue
     __CFSwiftBridge.NSSet.getValueIfPresent = _CFSwiftSetGetValueIfPresent
-    __CFSwiftBridge.NSSet.getValues = _CFSwiftSetGetValues
+    __CFSwiftBridge.NSSet.getObjects = _CFSwiftSetGetValues
     __CFSwiftBridge.NSSet.copy = _CFSwiftSetCreateCopy
+    __CFSwiftBridge.NSSet.__apply = _CFSwiftSetApplyFunction
+    __CFSwiftBridge.NSSet.member = _CFSwiftSetMember
     
-    __CFSwiftBridge.NSMutableSet.addValue = _CFSwiftSetAddValue
-    __CFSwiftBridge.NSMutableSet.replaceValue = _CFSwiftSetReplaceValue
-    __CFSwiftBridge.NSMutableSet.setValue = _CFSwiftSetSetValue
-    __CFSwiftBridge.NSMutableSet.removeValue = _CFSwiftSetRemoveValue
-    __CFSwiftBridge.NSMutableSet.removeAllValues = _CFSwiftSetRemoveAllValues
+    __CFSwiftBridge.NSMutableSet.addObject = _CFSwiftSetAddValue
+    __CFSwiftBridge.NSMutableSet.replaceObject = _CFSwiftSetReplaceValue
+    __CFSwiftBridge.NSMutableSet.setObject = _CFSwiftSetSetValue
+    __CFSwiftBridge.NSMutableSet.removeObject = _CFSwiftSetRemoveValue
+    __CFSwiftBridge.NSMutableSet.removeAllObjects = _CFSwiftSetRemoveAllValues
     
     __CFSwiftBridge.NSArray.count = _CFSwiftArrayGetCount
     __CFSwiftBridge.NSArray.objectAtIndex = _CFSwiftArrayGetValueAtIndex
@@ -202,7 +211,15 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSCharacterSet.hasMemberInPlane = _CFSwiftCharacterSetHasMemberInPlane
     __CFSwiftBridge.NSCharacterSet.invertedSet = _CFSwiftCharacterSetInverted
     
-    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
+    __CFSwiftBridge.NSMutableCharacterSet.addCharactersInRange = _CFSwiftMutableSetAddCharactersInRange
+    __CFSwiftBridge.NSMutableCharacterSet.removeCharactersInRange = _CFSwiftMutableSetRemoveCharactersInRange
+    __CFSwiftBridge.NSMutableCharacterSet.addCharactersInString = _CFSwiftMutableSetAddCharactersInString
+    __CFSwiftBridge.NSMutableCharacterSet.removeCharactersInString = _CFSwiftMutableSetRemoveCharactersInString
+    __CFSwiftBridge.NSMutableCharacterSet.formUnionWithCharacterSet = _CFSwiftMutableSetFormUnionWithCharacterSet
+    __CFSwiftBridge.NSMutableCharacterSet.formIntersectionWithCharacterSet = _CFSwiftMutableSetFormIntersectionWithCharacterSet
+    __CFSwiftBridge.NSMutableCharacterSet.invert = _CFSwiftMutableSetInvert
+    
+//    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
 
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {

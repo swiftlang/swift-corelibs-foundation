@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFBase.h
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFBASE__)
@@ -54,17 +49,6 @@
 #error Both __BIG_ENDIAN__ and __LITTLE_ENDIAN__ cannot be true
 #endif
 
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS)
-#if DEPLOYMENT_RUNTIME_SWIFT
-#define __HAS_DISPATCH__ 0
-#else
-#define __HAS_DISPATCH__ 1
-#endif
-#endif
-#if DEPLOYMENT_TARGET_LINUX && DEPLOYMENT_RUNTIME_SWIFT && DEPLOYMENT_ENABLE_LIBDISPATCH
-#define __HAS_DISPATCH__ 1
-#endif
-
 // Some compilers provide the capability to test if certain features are available. This macro provides a compatibility path for other compilers.
 #ifndef __has_feature
 #define __has_feature(x) 0
@@ -82,6 +66,10 @@
 #if defined(__GNUC__) || TARGET_OS_WIN32
 #include <stdint.h>
 #include <stdbool.h>
+#endif
+
+#if __BLOCKS__
+#include <Block.h>
 #endif
 
   #if ((TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) && !DEPLOYMENT_RUNTIME_SWIFT
@@ -128,7 +116,6 @@
     typedef UInt8                   UTF8Char;
 #endif
 
-
 #if !defined(CF_EXTERN_C_BEGIN)
 #if defined(__cplusplus)
 #define CF_EXTERN_C_BEGIN extern "C" {
@@ -140,30 +127,23 @@
 #endif
 
 #if TARGET_OS_WIN32
-
-#if !defined(CF_EXPORT)
-#if defined(CF_BUILDING_CF) && defined(__cplusplus)
-#define CF_EXPORT extern "C" __declspec(dllexport) 
-#elif defined(CF_BUILDING_CF) && !defined(__cplusplus)
-#define CF_EXPORT extern __declspec(dllexport) 
-#elif defined(__cplusplus)
-#define CF_EXPORT extern "C" __declspec(dllimport) 
+    #if !defined(CF_EXPORT)
+        #if defined(CF_BUILDING_CF) && defined(__cplusplus)
+            #define CF_EXPORT extern "C" __declspec(dllexport)
+        #elif defined(CF_BUILDING_CF) && !defined(__cplusplus)
+            #define CF_EXPORT extern __declspec(dllexport)
+        #elif defined(__cplusplus)
+            #define CF_EXPORT extern "C" __declspec(dllimport)
+        #else
+            #define CF_EXPORT extern __declspec(dllimport)
+        #endif
+    #endif
 #else
-#define CF_EXPORT extern __declspec(dllimport) 
-#endif
-#endif
-
-#elif TARGET_OS_LINUX
-
-#if !defined(CF_EXPORT)
-#if defined(__cplusplus)
-#define CF_EXPORT extern "C" __attribute__ (( __visibility__("default") ))
-#else
-#define CF_EXPORT extern __attribute__ (( __visibility__("default") ))
-#endif
-#endif
-#else
-#define CF_EXPORT extern
+    #if defined(__cplusplus)
+        #define CF_EXPORT extern "C"
+    #else
+        #define CF_EXPORT extern
+    #endif
 #endif
 
 CF_EXTERN_C_BEGIN
@@ -245,7 +225,6 @@ CF_EXTERN_C_BEGIN
 #define CF_AUTOMATED_REFCOUNT_UNAVAILABLE
 #endif
 
-
 #ifndef CF_IMPLICIT_BRIDGING_ENABLED
 #if __has_feature(arc_cf_code_audited)
 #define CF_IMPLICIT_BRIDGING_ENABLED _Pragma("clang arc_cf_code_audited begin")
@@ -304,27 +283,12 @@ CF_EXTERN_C_BEGIN
 #ifndef _Nullable
 #define _Nullable
 #endif
-
-#ifndef __nullable
-#define __nullable
-#endif
-
-#ifndef __nonnull
-#define __nonnull
-#endif
-
 #ifndef _Nonnull
 #define _Nonnull
 #endif
-
-#ifndef __null_unspecified
-#define __null_unspecified
-#endif
-
 #ifndef _Null_unspecified
 #define _Null_unspecified
 #endif
-
 #endif
 
 
@@ -341,6 +305,17 @@ CF_EXTERN_C_BEGIN
 # define CF_SWIFT_NAME(_name)
 #endif
 
+#if __has_attribute(noescape)
+#define CF_NOESCAPE __attribute__((noescape))
+#else
+#define CF_NOESCAPE
+#endif
+
+#if __has_attribute(not_tail_called)
+#define CF_NO_TAIL_CALL __attribute__((not_tail_called))
+#else
+#define CF_NO_TAIL_CALL
+#endif
 
 #if !__has_feature(objc_generics_variance)
 #ifndef __covariant
@@ -433,6 +408,15 @@ CF_EXPORT double kCFCoreFoundationVersionNumber;
 #define kCFCoreFoundationVersionNumber10_10_1   1151.16
 #define kCFCoreFoundationVersionNumber10_10_2   1152
 #define kCFCoreFoundationVersionNumber10_10_3   1153.18
+#define kCFCoreFoundationVersionNumber10_10_4   1153.18
+#define kCFCoreFoundationVersionNumber10_10_5   1153.18
+#define kCFCoreFoundationVersionNumber10_10_Max 1199
+#define kCFCoreFoundationVersionNumber10_11     1253
+#define kCFCoreFoundationVersionNumber10_11_1   1255.1
+#define kCFCoreFoundationVersionNumber10_11_2   1256.14
+#define kCFCoreFoundationVersionNumber10_11_3   1256.14
+#define kCFCoreFoundationVersionNumber10_11_4   1258.1
+#define kCFCoreFoundationVersionNumber10_11_Max 1299
 #endif
 
 #if TARGET_OS_IPHONE
@@ -457,6 +441,13 @@ CF_EXPORT double kCFCoreFoundationVersionNumber;
 #define kCFCoreFoundationVersionNumber_iOS_8_2 1142.16
 #define kCFCoreFoundationVersionNumber_iOS_8_3 1144.17
 #define kCFCoreFoundationVersionNumber_iOS_8_4 1145.15
+#define kCFCoreFoundationVersionNumber_iOS_8_x_Max 1199
+#define kCFCoreFoundationVersionNumber_iOS_9_0 1240.1
+#define kCFCoreFoundationVersionNumber_iOS_9_1 1241.11
+#define kCFCoreFoundationVersionNumber_iOS_9_2 1242.13
+#define kCFCoreFoundationVersionNumber_iOS_9_3 1242.13
+#define kCFCoreFoundationVersionNumber_iOS_9_4 1280.38
+#define kCFCoreFoundationVersionNumber_iOS_9_x_Max 1299
 #endif
 
 #if __LLP64__
@@ -668,6 +659,7 @@ void CFRelease(CFTypeRef cf);
 #else
 CF_EXPORT
 CFTypeRef CFAutorelease(CFTypeRef CF_RELEASES_ARGUMENT arg) CF_AVAILABLE(10_9, 7_0);
+
 CF_EXPORT
 CFIndex CFGetRetainCount(CFTypeRef cf);
 #endif
@@ -686,7 +678,7 @@ CFAllocatorRef CFGetAllocator(CFTypeRef cf);
 
 CF_IMPLICIT_BRIDGING_DISABLED
 
-// This function is unavailable in ARC mode.
+// This function is unavailable in ARC mode. On OS X 10.12 and later, this function simply returns the argument.
 CF_EXPORT
 CFTypeRef CFMakeCollectable(CFTypeRef cf) CF_AUTOMATED_REFCOUNT_UNAVAILABLE;
 

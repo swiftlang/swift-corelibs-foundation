@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFXMLTree.c
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: David Smith
 */
 
@@ -225,7 +220,7 @@ static void _CFAppendXMLProlog(CFMutableStringRef str, const CFXMLTreeRef tree) 
             break;
         }
         default:
-            CFAssert(false, __kCFLogAssertion, "Encountered unexpected XMLDataTypeID %d", CFXMLNodeGetTypeCode(CFXMLTreeGetNode(tree)));
+            CFAssert1(false, __kCFLogAssertion, "Encountered unexpected XMLDataTypeID %ld", CFXMLNodeGetTypeCode(CFXMLTreeGetNode(tree)));
     }
 }
 

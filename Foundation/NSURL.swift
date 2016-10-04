@@ -306,6 +306,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     public init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
         super.init()
+        
         let thePath = _standardizedPath(path)
         if thePath.length > 0 {
             
@@ -340,17 +341,25 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         self.init(fileURLWithPath: path, isDirectory: isDir, relativeTo: nil)
     }
 
-    public convenience init(fileURLWithPath path: String) {
-        let thePath = _standardizedPath(path)
+    public init(fileURLWithPath path: String) {
+        let thePath: String
+        let pathString = NSString(string: path)
+        if !pathString.isAbsolutePath {
+            thePath = pathString.standardizingPath
+        } else {
+            thePath = path
+        }
 
         var isDir : Bool = false
         if thePath.hasSuffix("/") {
             isDir = true
         } else {
-            let _ = FileManager.default.fileExists(atPath: path, isDirectory: &isDir)
+            if !FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {
+                isDir = false
+            }
         }
-
-        self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeTo: nil)
+        super.init()
+        _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPOSIXPathStyle, isDir, nil)
     }
     
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeTo baseURL: URL?) {

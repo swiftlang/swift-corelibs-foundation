@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*      CFBundle.c
-        Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
         Responsibility: Tony Parker
 */
 
@@ -28,10 +23,6 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-#else
-#error Unknown deployment target
-#endif
 
 #if defined(BINARY_SUPPORT_DYLD)
 #include <unistd.h>
@@ -116,6 +107,8 @@ CONST_STRING_DECL(_kCFBundleOldTypeExtensions2Key, "NSDOSExtensions")
 CONST_STRING_DECL(_kCFBundleOldTypeOSTypesKey, "NSMacOSType")
 
 // Internally used keys for loaded Info plists.
+CONST_STRING_DECL(_kCFBundleInfoPlistURLKey, "CFBundleInfoPlistURL")
+CONST_STRING_DECL(_kCFBundleRawInfoPlistURLKey, "CFBundleRawInfoPlistURL")
 CONST_STRING_DECL(_kCFBundleNumericVersionKey, "CFBundleNumericVersion")
 CONST_STRING_DECL(_kCFBundleExecutablePathKey, "CFBundleExecutablePath")
 CONST_STRING_DECL(_kCFBundleResourcesFileMappedKey, "CSResourcesFileMapped")
@@ -149,9 +142,35 @@ static void _CFBundleEnsureBundlesExistForImagePaths(CFArrayRef imagePaths);
 
 #pragma mark -
 
+
+CF_PRIVATE os_log_t _CFBundleResourceLogger(void) {
+    static os_log_t _log;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _log = os_log_create("com.apple.CFBundle", "resources");
+    });
+    return _log;
+}
+
+CF_PRIVATE os_log_t _CFBundleLocalizedStringLogger(void) {
+    static os_log_t _log;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _log = os_log_create("com.apple.CFBundle", "strings");
+    });
+    return _log;
+}
+
+#pragma mark -
+
+#if DEPLOYMENT_TARGET_MACOSX
+// Some apps may rely on the fact that CFBundle used to allow bundle objects to be deallocated (despite handing out unretained pointers via CFBundleGetBundleWithIdentifier or CFBundleGetAllBundles). To remain compatible even in the face of unsafe behavior, we can optionally use unsafe-unretained memory management for holding on to bundles.
 static Boolean _useUnsafeUnretainedTables(void) {
     return false;
 }
+#endif
+
+
 
 
 
@@ -576,7 +595,7 @@ static void _CFBundleInitializeMainBundleInfoDictionaryAlreadyLocked(CFStringRef
         }
 #if defined(BINARY_SUPPORT_DYLD)
         if (_mainBundle->_binaryType == __CFBundleDYLDExecutableBinary) {
-            if (_mainBundle->_infoDict && !(0)) CFRelease(_mainBundle->_infoDict);
+            if (_mainBundle->_infoDict) CFRelease(_mainBundle->_infoDict);
             _mainBundle->_infoDict = (CFDictionaryRef)_CFBundleCreateInfoDictFromMainExecutable();
         }
 #endif /* BINARY_SUPPORT_DYLD */
@@ -616,6 +635,10 @@ static void _CFBundleFlushBundleCachesAlreadyLocked(CFBundleRef bundle, Boolean 
     if (bundle->_localInfoDict) {
         CFRelease(bundle->_localInfoDict);
         bundle->_localInfoDict = NULL;
+    }
+    if (bundle->_infoPlistUrl) {
+        CFRelease(bundle->_infoPlistUrl);
+        bundle->_infoPlistUrl = NULL;
     }
     if (bundle->_developmentRegion) {
         CFRelease(bundle->_developmentRegion);
@@ -751,11 +774,14 @@ CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
             _CFBundleEnsureBundlesUpToDateWithHintAlreadyLocked(bundleID);
             result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
         }
-        if (!result) {
-            // Make sure all bundles have been created and try again.
-            _CFBundleEnsureAllBundlesUpToDateAlreadyLocked();
-            result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
-        }
+        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    }
+    
+    if (!result) {
+        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        // Make sure all bundles have been created and try again.
+        _CFBundleEnsureAllBundlesUpToDateAlreadyLocked();
+        result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
         pthread_mutex_unlock(&CFBundleGlobalDataLock);
     }
 
@@ -818,9 +844,9 @@ static void __CFBundleDeallocate(CFTypeRef cf) {
     if (bundleURL) {
         CFRelease(bundleURL);
     }
-    if (bundle->_infoDict && !(0)) CFRelease(bundle->_infoDict);
+    if (bundle->_infoDict) CFRelease(bundle->_infoDict);
     if (bundle->_modDate) CFRelease(bundle->_modDate);
-    if (bundle->_localInfoDict && !(0)) CFRelease(bundle->_localInfoDict);
+    if (bundle->_localInfoDict) CFRelease(bundle->_localInfoDict);
     if (bundle->_searchLanguages) CFRelease(bundle->_searchLanguages);
     if (bundle->_executablePath) CFRelease(bundle->_executablePath);
     if (bundle->_developmentRegion) CFRelease(bundle->_developmentRegion);
@@ -859,7 +885,7 @@ static const CFRuntimeClass __CFBundleClass = {
 CF_PRIVATE void _CFBundleResourcesInitialize();
 
 CFTypeID CFBundleGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{ __kCFBundleTypeID = _CFRuntimeRegisterClass(&__CFBundleClass); _CFBundleResourcesInitialize(); });
     return __kCFBundleTypeID;
 }
@@ -944,6 +970,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     bundle->_searchLanguages = NULL;
     bundle->_executablePath = NULL;
     bundle->_developmentRegion = NULL;
+    bundle->_infoPlistUrl = NULL;
     bundle->_developmentRegionCalculated = 0;
 #if defined(BINARY_SUPPORT_DYLD)
     /* We'll have to figure it out later */
@@ -1623,7 +1650,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             if (lookupMainExe) CFRelease(executableName);
         }
     }
-    if (!bundle && infoDict && !(0)) CFRelease(infoDict);
+    if (!bundle && infoDict) CFRelease(infoDict);
     return executableURL;
 }
 
@@ -2375,7 +2402,7 @@ CF_EXPORT CFURLRef CFBundleCopySharedSupportURL(CFBundleRef bundle) {
     return result;
 }
 
-CF_EXPORT CFURLRef _CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle) {
+CF_PRIVATE CFURLRef _CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle) {
     return CFBundleCopyBuiltInPlugInsURL(bundle);
 }
 

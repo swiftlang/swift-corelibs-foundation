@@ -88,7 +88,7 @@ internal func _CFSwiftSetGetCountOfValue(_ set: AnyObject, value: AnyObject) -> 
 }
 
 internal func _CFSwiftSetContainsValue(_ set: AnyObject, value: AnyObject) -> Bool {
-    return _CFSwiftSetGetValue(set, value: value) != nil
+    return _CFSwiftSetGetValue(set, value: value, key: value) != nil
 }
 
 internal func _CFSwiftSetGetValues(_ set: AnyObject, _ values: UnsafeMutablePointer<Unmanaged<AnyObject>?>?) {
@@ -114,7 +114,7 @@ internal func _CFSwiftSetGetValues(_ set: AnyObject, _ values: UnsafeMutablePoin
     }
 }
 
-internal func _CFSwiftSetGetValue(_ set: AnyObject, value: AnyObject) -> Unmanaged<AnyObject>? {
+internal func _CFSwiftSetGetValue(_ set: AnyObject, value: AnyObject, key: AnyObject) -> Unmanaged<AnyObject>? {
     let set = set as! NSSet
     if type(of: set) === NSSet.self || type(of: set) === NSMutableSet.self {
         if let idx = set._storage.index(of: value as! NSObject){
@@ -132,7 +132,7 @@ internal func _CFSwiftSetGetValue(_ set: AnyObject, value: AnyObject) -> Unmanag
 }
 
 internal func _CFSwiftSetGetValueIfPresent(_ set: AnyObject, object: AnyObject, value: UnsafeMutablePointer<Unmanaged<AnyObject>?>?) -> Bool {
-    if let val = _CFSwiftSetGetValue(set, value: object) {
+    if let val = _CFSwiftSetGetValue(set, value: object, key: object) {
         value?.pointee = val
         return true
     } else {
@@ -145,6 +145,10 @@ internal func _CFSwiftSetApplyFunction(_ set: AnyObject, applier: @convention(c)
     (set as! NSSet).enumerateObjects({ value, _ in
         applier(_SwiftValue.store(value), context)
     })
+}
+
+internal func _CFSwiftSetMember(_ set: CFTypeRef, _ object: CFTypeRef) -> Unmanaged<CFTypeRef>? {
+    return _CFSwiftSetGetValue(set, value: object, key: object)
 }
 
 internal func _CFSwiftSetAddValue(_ set: AnyObject, value: AnyObject) {

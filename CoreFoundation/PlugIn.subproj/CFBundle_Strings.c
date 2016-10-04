@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*      CFBundle_Strings.c
-        Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
         Responsibility: Tony Parker
 */
 
@@ -77,11 +72,11 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
             CFRelease(tableData);
             
             if (stringsTable && CFDictionaryGetTypeID() != CFGetTypeID(stringsTable)) {
-                CFLog(kCFLogLevelError, CFSTR("Unable to load .strings file: %@ / %@: Top-level object was not a dictionary"), bundle, tableName);
+                os_log_error(_CFBundleLocalizedStringLogger(), "Unable to load .strings file: %@ / %@: Top-level object was not a dictionary", bundle, tableName);
                 CFRelease(stringsTable);
                 stringsTable = NULL;
             } else if (!stringsTable && error) {
-                CFLog(kCFLogLevelError, CFSTR("Unable to load .strings file: %@ / %@: %@"), bundle, tableName, error);
+                os_log_error(_CFBundleLocalizedStringLogger(), "Unable to load .strings file: %@ / %@: %@", bundle, tableName, error);
                 CFRelease(error);
                 error = NULL;
             }
@@ -98,11 +93,11 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
             CFRelease(tableData);
             
             if (stringsDictTable && CFDictionaryGetTypeID() != CFGetTypeID(stringsDictTable)) {
-                CFLog(kCFLogLevelError, CFSTR("Unable to load .stringsdict file: %@ / %@: Top-level object was not a dictionary"), bundle, tableName);
+                os_log_error(_CFBundleLocalizedStringLogger(), "Unable to load .stringsdict file: %@ / %@: Top-level object was not a dictionary", bundle, tableName);
                 CFRelease(stringsDictTable);
                 stringsDictTable = NULL;
             } else if (!stringsDictTable && error) {
-                CFLog(kCFLogLevelError, CFSTR("Unable to load .stringsdict file: %@ / %@: %@"), bundle, tableName, error);
+                os_log_error(_CFBundleLocalizedStringLogger(), "Unable to load .stringsdict file: %@ / %@: %@", bundle, tableName, error);
                 CFRelease(error);
                 error = NULL;
             }
@@ -117,6 +112,8 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
                     // Start from scratch with the stringsdict
                     mutableStringsDictTable = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
                 }
+                
+                
                 CFRelease(stringsDictTable);
                 if (stringsTable) CFRelease(stringsTable);
                 stringsTable = mutableStringsDictTable;
@@ -129,6 +126,7 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
     
     // Last resort: create an empty table
     if (!stringsTable) {
+        os_log_debug(_CFBundleLocalizedStringLogger(), "Hit last resort and creating empty strings table");
         stringsTable = CFDictionaryCreate(CFGetAllocator(bundle), NULL, NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     }
     
@@ -158,7 +156,7 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
 }
 
 CF_EXPORT CFStringRef CFBundleCopyLocalizedStringForLocalization(CFBundleRef bundle, CFStringRef key, CFStringRef value, CFStringRef tableName, CFStringRef localizationName) {
-    if (!key) return (value ? (CFStringRef)CFRetain(value) : (CFStringRef)CFRetain(CFSTR("")));
+    if (!key) { return (value ? (CFStringRef)CFRetain(value) : (CFStringRef)CFRetain(CFSTR(""))); }
     
     // Make sure to check the mixed localizations key early -- if the main bundle has not yet been cached, then we need to create the cache of the Info.plist before we start asking for resources (11172381)
     (void)CFBundleAllowMixedLocalizations();
@@ -178,13 +176,13 @@ CF_EXPORT CFStringRef CFBundleCopyLocalizedStringForLocalization(CFBundleRef bun
         static Boolean capitalize = false;
         if (capitalize) {
             CFMutableStringRef capitalizedResult = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, result);
-            CFLog(__kCFLogBundle, CFSTR("Localizable string \"%@\" not found in strings table \"%@\" of bundle %@."), key, tableName, bundle);
+            os_log_error(_CFBundleLocalizedStringLogger(), "ERROR: %@ not found in table %@ of bundle %@", key, tableName, bundle);
             CFStringUppercase(capitalizedResult, NULL);
             CFRelease(result);
             result = capitalizedResult;
         }
     }
-    
+    os_log_debug(_CFBundleLocalizedStringLogger(), "Bundle: %{private}@, key: %{public}@, value: %{public}@, table: %{public}@, localizationName: %{public}@, result: %{public}@", bundle, key, value, tableName, localizationName, result);
     return result;
 }
 

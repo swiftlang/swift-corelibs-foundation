@@ -274,7 +274,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         self.init(string: CFStringCreateWithCString(kCFAllocatorSystemDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding))._swiftObject)
     }
     
-    internal var _fastCStringContents: UnsafePointer<Int8>? {
+    internal func _fastCStringContents(_ nullTerminated: Bool) -> UnsafePointer<Int8>? {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._core.isASCII {
                 return unsafeBitCast(_storage._core.startASCII, to: UnsafePointer<Int8>.self)

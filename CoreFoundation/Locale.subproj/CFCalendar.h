@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFCalendar.h
-	Copyright (c) 2004 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2004-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFCALENDAR__)
@@ -32,12 +27,12 @@ CF_EXPORT
 CFCalendarRef CFCalendarCopyCurrent(void);
 
 CF_EXPORT
-CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringRef identifier);
+CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFCalendarIdentifier identifier);
 	// Create a calendar.  The identifiers are the kCF*Calendar
 	// constants in CFLocale.h.
 
 CF_EXPORT
-CFStringRef CFCalendarGetIdentifier(CFCalendarRef calendar);
+CFCalendarIdentifier CFCalendarGetIdentifier(CFCalendarRef calendar);
 	// Returns the calendar's identifier.
 
 CF_EXPORT

@@ -1,21 +1,16 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*      CFBundle_Binary.c
-        Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
         Responsibility: Tony Parker
 */
 
 #include "CFBundle_Internal.h"
 
-#if defined(BINARY_SUPPORT_DYLD)
+#if BINARY_SUPPORT_DYLD
 // Import the mach-o headers that define the macho magic numbers
 #include <mach-o/loader.h>
 #include <mach-o/fat.h>
@@ -31,22 +26,22 @@
 #endif /* USE_DYLD_PRIV */
 #endif /* BINARY_SUPPORT_DYLD */
 
-#if defined(BINARY_SUPPORT_DLFCN)
+#if BINARY_SUPPORT_DLFCN
 #include <dlfcn.h>
 #ifndef RTLD_FIRST
 #define RTLD_FIRST 0
 #endif
 #endif /* BINARY_SUPPORT_DLFCN */
 
-#if defined(BINARY_SUPPORT_DYLD)
+#if BINARY_SUPPORT_DYLD
 static CFStringRef _CFBundleDYLDCopyLoadedImagePathForPointer(void *p);
-#if !defined(BINARY_SUPPORT_DLFCN)
+#if !BINARY_SUPPORT_DLFCN
 static void *_CFBundleDYLDGetSymbolByNameWithSearch(CFBundleRef bundle, CFStringRef symbolName, Boolean globalSearch);
 #endif /* !BINARY_SUPPORT_DLFCN */
 #endif /* BINARY_SUPPORT_DYLD */
-#if defined(BINARY_SUPPORT_DLFCN)
+#if BINARY_SUPPORT_DLFCN
 static void *_CFBundleDlfcnGetSymbolByNameWithSearch(CFBundleRef bundle, CFStringRef symbolName, Boolean globalSearch);
-#if !defined(BINARY_SUPPORT_DYLD)
+#if !BINARY_SUPPORT_DYLD
 static CFStringRef _CFBundleDlfcnCopyLoadedImagePathForPointer(void *p);
 #endif /* !BINARY_SUPPORT_DYLD */
 #endif /* BINARY_SUPPORT_DLFCN */
@@ -69,7 +64,7 @@ CF_PRIVATE SInt32 _CFBundleCurrentArchitecture(void) {
     return arch;
 }
 
-#if defined(BINARY_SUPPORT_DYLD)
+#if BINARY_SUPPORT_DYLD
 
 CF_PRIVATE CFArrayRef _CFBundleDYLDCopyLoadedImagePathsForHint(CFStringRef hint) {
     uint32_t i, numImages = _dyld_image_count();

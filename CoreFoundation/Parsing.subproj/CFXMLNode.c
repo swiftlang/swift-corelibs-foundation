@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFXMLNode.c
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: David Smith
 */
 
@@ -119,7 +114,7 @@ static CFHashCode __CFXMLNodeHash(CFTypeRef  cf) {
         CFURLRef url = ((CFXMLDocumentInfo *)node->additionalData)->sourceURL;
         return url ? CFHash(url) : (CFHashCode)cf;
     } else {
-        CFAssert(false, __kCFLogAssertion, "%s(): Saw unexpected XML type code %d", __PRETTY_FUNCTION__, node->dataTypeID);
+        CFAssert2(false, __kCFLogAssertion, "%s(): Saw unexpected XML type code %ld", __PRETTY_FUNCTION__, node->dataTypeID);
         return CFHash(cf);
     }
 }
@@ -191,7 +186,7 @@ static void __CFXMLNodeDeallocate(CFTypeRef  cf) {
                 break;
             }
             default:
-                CFAssert(false, __kCFLogAssertion, "%s(): Encountered unexpected typeID %d (additionalData should be empty)", node->dataTypeID);
+                CFAssert2(false, __kCFLogAssertion, "%s(): Encountered unexpected typeID %ld (additionalData should be empty)", __PRETTY_FUNCTION__, node->dataTypeID);
         }
     }
 }
@@ -211,7 +206,7 @@ static const CFRuntimeClass __CFXMLNodeClass = {
 };
 
 CFTypeID CFXMLNodeGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{ __kCFXMLNodeTypeID = _CFRuntimeRegisterClass(&__CFXMLNodeClass); });
     return __kCFXMLNodeTypeID;
 }
@@ -299,7 +294,7 @@ static void _copyAddlDataForType(CFAllocatorRef alloc, CFXMLNodeTypeCode xmlType
             break;
         }
         default:
-            CFAssert(false, __kCFLogAssertion, "%s(): Encountered unexpected typeID %d (additionalData should be empty)", __PRETTY_FUNCTION__, xmlType);
+            CFAssert2(false, __kCFLogAssertion, "%s(): Encountered unexpected typeID %ld (additionalData should be empty)", __PRETTY_FUNCTION__, xmlType);
     }
 }
 

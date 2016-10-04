@@ -1,21 +1,17 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*      CFBundle_Locale.c
-        Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
         Responsibility: Tony Parker
 */
 
 #include "CFBundle_Internal.h"
 
 #include <CoreFoundation/CFPreferences.h>
+
 #if __HAS_APPLE_ICU__
 #include <unicode/ualoc.h>
 #else
@@ -663,6 +659,7 @@ static CFStringRef _CFBundleCopyLanguageFoundInLocalizations(CFArrayRef localiza
 
 // Given a list of localizations (e.g., provided as argument to API, or present as .lproj directories), return a mutable array of localizations in preferred order. Returns NULL if nothing is found.
 static CFMutableArrayRef _CFBundleCreateMutableArrayOfFallbackLanguages(CFArrayRef availableLocalizations, CFArrayRef preferredLocalizations) {
+    
     // stringPointers must be the length of list
     char * (^makeBuffer)(CFArrayRef, char **) = ^(CFArrayRef list, char *stringPointers[]) {
 #if !__HAS_APPLE_ICU__

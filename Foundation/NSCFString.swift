@@ -190,8 +190,8 @@ internal func _CFSwiftStringCreateMutableCopy(_ str: AnyObject) -> Unmanaged<Any
     return Unmanaged<AnyObject>.passRetained((str as! NSString).mutableCopy() as! NSObject)
 }
 
-internal func _CFSwiftStringFastCStringContents(_ str: AnyObject) -> UnsafePointer<Int8>? {
-    return (str as! NSString)._fastCStringContents
+internal func _CFSwiftStringFastCStringContents(_ str: AnyObject, _ nullTerminated: Bool) -> UnsafePointer<Int8>? {
+    return (str as! NSString)._fastCStringContents(nullTerminated)
 }
 
 internal func _CFSwiftStringFastContents(_ str: AnyObject) -> UnsafePointer<UniChar>? {
