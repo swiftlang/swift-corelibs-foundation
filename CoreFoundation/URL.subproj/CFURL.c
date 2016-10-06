@@ -59,25 +59,12 @@ CF_EXPORT CFURLRef _CFURLCreateCurrentDirectoryURL(CFAllocatorRef allocator) CF_
 static Boolean _CFURLHasFileURLScheme(CFURLRef url, Boolean *hasScheme);
 #endif
 
-
-
-// When __CONSTANT_CFSTRINGS__ is not defined, we have separate macros for static and exported constant strings, but
-// when it is defined, we must prefix with static to prevent the string from being exported
-#ifdef __CONSTANT_CFSTRINGS__
-static CONST_STRING_DECL(kCFURLHTTPScheme, "http")
-static CONST_STRING_DECL(kCFURLHTTPSScheme, "https")
-static CONST_STRING_DECL(kCFURLFileScheme, "file")
-static CONST_STRING_DECL(kCFURLDataScheme, "data")
-static CONST_STRING_DECL(kCFURLFTPScheme, "ftp")
-static CONST_STRING_DECL(kCFURLLocalhost, "localhost")
-#else
-CONST_STRING_DECL(kCFURLHTTPScheme, "http")
-CONST_STRING_DECL(kCFURLHTTPSScheme, "https")
-CONST_STRING_DECL(kCFURLFileScheme, "file")
-CONST_STRING_DECL(kCFURLDataScheme, "data")
-CONST_STRING_DECL(kCFURLFTPScheme, "ftp")
-CONST_STRING_DECL(kCFURLLocalhost, "localhost")
-#endif
+PE_CONST_STRING_DECL(kCFURLHTTPScheme, "http")
+PE_CONST_STRING_DECL(kCFURLHTTPSScheme, "https")
+PE_CONST_STRING_DECL(kCFURLFileScheme, "file")
+PE_CONST_STRING_DECL(kCFURLDataScheme, "data")
+PE_CONST_STRING_DECL(kCFURLFTPScheme, "ftp")
+PE_CONST_STRING_DECL(kCFURLLocalhost, "localhost")
 
 #if DEBUG_URL_MEMORY_USAGE
 static uint numURLs = 0;                    // number of URLs allocated
