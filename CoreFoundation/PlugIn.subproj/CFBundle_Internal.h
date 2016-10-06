@@ -346,6 +346,7 @@ extern void _CFPlugInRemoveFactory(CFPlugInRef plugIn, _CFPFactoryRef factory);
 #define _CFBundleSolarisPlatformName CFSTR("solaris")
 #define _CFBundleLinuxPlatformName CFSTR("linux")
 #define _CFBundleFreeBSDPlatformName CFSTR("freebsd")
+#define _CFBundleCygwinPlatformName CFSTR("cygwin")
 
 #define _CFBundleDefaultStringTableName CFSTR("Localizable")
 #define _CFBundleStringTableType CFSTR("strings")

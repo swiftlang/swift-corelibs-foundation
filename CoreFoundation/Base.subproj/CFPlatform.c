@@ -156,6 +156,8 @@ const char *_CFProcessPath(void) {
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_CYGWIN
+#else
 #include <unistd.h>
 #if __has_include(<syscall.h>)
 #include <syscall.h>
@@ -166,6 +168,7 @@ const char *_CFProcessPath(void) {
 Boolean _CFIsMainThread(void) {
     return syscall(SYS_gettid) == getpid();
 }
+#endif
 
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;

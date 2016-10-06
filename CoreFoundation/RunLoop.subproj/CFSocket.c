@@ -948,6 +948,9 @@
 #include <libc.h>
 #include <dlfcn.h>
 #endif
+#if TARGET_OS_CYGWIN
+#include <sys/socket.h>
+#endif
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -2064,8 +2067,9 @@ manageSelectError()
 
 static void *__CFSocketManager(void * arg)
 {
-#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN) || DEPLOYMENT_TARGET_FREEBSD
     pthread_setname_np(pthread_self(), "com.apple.CFSocket.private");
+#elif TARGET_OS_CYGWIN
 #else
     pthread_setname_np("com.apple.CFSocket.private");
 #endif

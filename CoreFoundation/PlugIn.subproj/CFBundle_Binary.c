@@ -684,6 +684,12 @@ static void *_CFBundleDlfcnGetSymbolByNameWithSearch(CFBundleRef bundle, CFStrin
 
 #if !defined(BINARY_SUPPORT_DYLD)
 
+#if TARGET_OS_CYGWIN
+static CFStringRef _CFBundleDlfcnCopyLoadedImagePathForPointer(void *p) {
+// Cygwin does not support dladdr()
+    return NULL;
+}
+#else
 static CFStringRef _CFBundleDlfcnCopyLoadedImagePathForPointer(void *p) {
     CFStringRef result = NULL;
     Dl_info info;
@@ -693,6 +699,7 @@ static CFStringRef _CFBundleDlfcnCopyLoadedImagePathForPointer(void *p) {
 #endif /* LOG_BUNDLE_LOAD */
     return result;
 }
+#endif
 
 #endif /* !BINARY_SUPPORT_DYLD */
 #endif /* BINARY_SUPPORT_DLFCN */

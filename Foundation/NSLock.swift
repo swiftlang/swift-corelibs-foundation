@@ -10,7 +10,7 @@
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
@@ -22,7 +22,11 @@ public protocol NSLocking {
 }
 
 open class NSLock: NSObject, NSLocking {
+#if CYGWIN
+    internal var mutex = UnsafeMutablePointer<pthread_mutex_t?>.allocate(capacity: 1)
+#else
     internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
+#endif
     
     public override init() {
         pthread_mutex_init(mutex, nil)
@@ -139,11 +143,19 @@ open class NSConditionLock : NSObject, NSLocking {
 }
 
 open class NSRecursiveLock: NSObject, NSLocking {
+#if CYGWIN
+    internal var mutex = UnsafeMutablePointer<pthread_mutex_t?>.allocate(capacity: 1)
+#else
     internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
+#endif
     
     public override init() {
         super.init()
+#if CYGWIN
+        var attrib : pthread_mutexattr_t? = nil
+#else
         var attrib = pthread_mutexattr_t()
+#endif
         withUnsafeMutablePointer(to: &attrib) { attrs in
             pthread_mutexattr_settype(attrs, Int32(PTHREAD_MUTEX_RECURSIVE))
             pthread_mutex_init(mutex, attrs)
@@ -176,8 +188,13 @@ open class NSRecursiveLock: NSObject, NSLocking {
 }
 
 open class NSCondition: NSObject, NSLocking {
+#if CYGWIN
+    internal var mutex = UnsafeMutablePointer<pthread_mutex_t?>.allocate(capacity: 1)
+    internal var cond = UnsafeMutablePointer<pthread_cond_t?>.allocate(capacity: 1)
+#else
     internal var mutex = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
     internal var cond = UnsafeMutablePointer<pthread_cond_t>.allocate(capacity: 1)
+#endif
     
     public override init() {
         pthread_mutex_init(mutex, nil)

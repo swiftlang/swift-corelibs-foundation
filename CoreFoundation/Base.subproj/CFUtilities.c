@@ -1308,7 +1308,7 @@ CFDictionaryRef __CFGetEnvironment() {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
         extern char ***_NSGetEnviron();
         char **envp = *_NSGetEnviron();
-#elif DEPLOYMENT_TARGET_FREEBSD
+#elif DEPLOYMENT_TARGET_FREEBSD || TARGET_OS_CYGWIN
         extern char **environ;
         char **envp = environ;
 #elif DEPLOYMENT_TARGET_LINUX
