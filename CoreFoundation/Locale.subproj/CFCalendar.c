@@ -249,7 +249,7 @@ Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identi
     
     calendar->_identifier = (CFStringRef)CFRetain(identifier);
     calendar->_locale = NULL;
-    calendar->_localeID = CFLocaleGetIdentifier(CFLocaleGetSystem());
+    calendar->_localeID = CFRetain(CFLocaleGetIdentifier(CFLocaleGetSystem()));
     calendar->_tz = CFTimeZoneCopyDefault();
     calendar->_cal = NULL;
     return true;
@@ -278,7 +278,7 @@ CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringR
     }
     calendar->_identifier = (CFStringRef)CFRetain(identifier);
     calendar->_locale = NULL;
-    calendar->_localeID = CFLocaleGetIdentifier(CFLocaleGetSystem());
+    calendar->_localeID = CFRetain(CFLocaleGetIdentifier(CFLocaleGetSystem()));
     calendar->_tz = CFTimeZoneCopyDefault();
     calendar->_cal = NULL;
     return (CFCalendarRef)calendar;
