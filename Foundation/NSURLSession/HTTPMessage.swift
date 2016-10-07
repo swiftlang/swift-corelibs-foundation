@@ -141,17 +141,17 @@ extension URLSessionTask {
 
 extension URLSessionTask._HTTPMessage {
     var headersAsDictionary: [String: String] {
-		var result: [String: String] = [:]
-		headers.forEach {
-			if result[$0.name] == nil {
-				result[$0.name] = $0.value
-			}
-			else {
-				result[$0.name]! += (", " + $0.value)
-			}
-		}
-		return result
-	}
+        var result: [String: String] = [:]
+        headers.forEach {
+            if result[$0.name] == nil {
+                result[$0.name] = $0.value
+            }
+            else {
+                result[$0.name]! += (", " + $0.value)
+            }
+        }
+        return result
+    }
 }
 extension URLSessionTask._HTTPMessage {
     /// A single HTTP message header field
