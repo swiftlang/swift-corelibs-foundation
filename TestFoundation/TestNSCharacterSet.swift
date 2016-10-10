@@ -36,7 +36,8 @@ class TestNSCharacterSet : XCTestCase {
             ("test_AnnexPlanes", test_AnnexPlanes),
             ("test_Planes", test_Planes),
             ("test_InlineBuffer", test_InlineBuffer),
-            ("test_SubtractAndFormSymmetricDifference", test_SubtractAndFormSymmetricDifference),
+            // Test must remain disabled until SR-2509 is resolved.
+            // ("test_SubtractAndFormSymmetricDifference", test_SubtractAndFormSymmetricDifference),
         ]
     }
     
@@ -247,6 +248,13 @@ class TestNSCharacterSet : XCTestCase {
         XCTAssertFalse(set1.contains("b"))
         set1.formSymmetricDifference(set2)
         XCTAssertTrue(set1.contains("b"))
+
+        let expected = set1
+        var set3 = CharacterSet()
+        set1.subtract(set3)
+        XCTAssertEqual(expected, set1)
+        set3.subtract(set1)
+        XCTAssertTrue(set3.isEmpty)
     }
 }
 
