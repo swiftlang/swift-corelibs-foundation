@@ -36,6 +36,7 @@ class TestNSCharacterSet : XCTestCase {
             ("test_AnnexPlanes", test_AnnexPlanes),
             ("test_Planes", test_Planes),
             ("test_InlineBuffer", test_InlineBuffer),
+            ("test_SubtractAndFormSymmetricDifference", test_SubtractAndFormSymmetricDifference),
         ]
     }
     
@@ -237,6 +238,15 @@ class TestNSCharacterSet : XCTestCase {
     
     func test_InlineBuffer() {
         
+    }
+
+    func test_SubtractAndFormSymmetricDifference() {
+        var set1 = CharacterSet(charactersIn: "abc")
+        let set2 = CharacterSet(charactersIn: "b")
+        set1.subtract(set2)
+        XCTAssertFalse(set1.contains("b"))
+        set1.formSymmetricDifference(set2)
+        XCTAssertTrue(set1.contains("b"))
     }
 }
 
