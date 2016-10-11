@@ -175,7 +175,29 @@ class TestNSDecimal: XCTestCase {
                 XCTAssertEqual(Decimal(i*j), Decimal(i) * Decimal(j), "\(Decimal(i*j)) == \(i) * \(j)")
                 XCTAssertEqual(Decimal(i+j), Decimal(i) + Decimal(j), "\(Decimal(i+j)) == \(i)+\(j)")
                 XCTAssertEqual(Decimal(i-j), Decimal(i) - Decimal(j), "\(Decimal(i-j)) == \(i)-\(j)")
-                //XCTAssertEqual(Decimal(i/j), Decimal(i) / Decimal(j), "\(Decimal(i/j)) == \(i)/\(j)")
+                if j != 0 {
+                    let approximation = Decimal(Double(i)/Double(j))
+                    let answer = Decimal(i) / Decimal(j)
+                    let answerDescription = answer.description
+                    let approximationDescription = approximation.description
+                    var failed: Bool = false
+                    var count = 0
+                    let SIG_FIG = 14
+                    for (a, b) in zip(answerDescription.characters, approximationDescription.characters) {
+                        if a != b {
+                            failed = true
+                            break
+                        }
+                        if count == 0 && (a == "-" || a == "0" || a == ".") {
+                            continue // don't count these as significant figures
+                        }
+                        if count >= SIG_FIG {
+                            break
+                        }
+                        count += 1
+                    }
+                    XCTAssertFalse(failed, "\(Decimal(i/j)) == \(i)/\(j)")
+                }
             }
         }
         XCTAssertEqual(Decimal(186243*15673), Decimal(186243) * Decimal(15673))
