@@ -241,8 +241,7 @@ open class NSKeyedArchiver : NSCoder {
     }
     
     private func _validateObjectSupportsSecureCoding(_ objv : Any?) {
-        if objv != nil &&
-            self.requiresSecureCoding &&
+        if let objv = objv, self.requiresSecureCoding &&
             !NSKeyedArchiver._supportsSecureCoding(objv) {
             fatalError("Secure coding required when encoding \(objv)")
         }

@@ -161,7 +161,7 @@ class TestNSXMLDocument : XCTestCase {
         element.insertChildren([foo, bar], at: 1)
         XCTAssertEqual(element.children?[1], foo)
         XCTAssertEqual(element.children?[2], bar)
-        XCTAssertEqual(element.children?[0], baz, "\(element.children?[0])")
+        XCTAssertEqual(element.children?[0], baz)
 
         let faz = XMLElement(name: "faz")
         element.replaceChild(at: 2, with: faz)
@@ -239,7 +239,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(element.attributes?.last, bazAttribute)
 
         element.setAttributesWith(["hello": "world", "foobar": "buzbaz"])
-        XCTAssertEqual(element.attribute(forName:"hello")?.stringValue, "world", "\(element.attribute(forName:"hello")?.stringValue)")
+        XCTAssertEqual(element.attribute(forName:"hello")?.stringValue, "world", "\(element.attribute(forName:"hello")?.stringValue as Optional)")
         XCTAssertEqual(element.attribute(forName:"foobar")?.stringValue, "buzbaz", "\(element.attributes ?? [])")
     }
 

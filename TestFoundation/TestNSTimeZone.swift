@@ -47,7 +47,7 @@ class TestNSTimeZone: XCTestCase {
         let tz = NSTimeZone.system
         let abbreviation1 = tz.abbreviation()
         let abbreviation2 = tz.abbreviation(for: Date())
-        XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1) should be equal to \(abbreviation2)")
+        XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1 as Optional) should be equal to \(abbreviation2 as Optional)")
     }
 
     func test_abbreviationDictionary() {
@@ -98,7 +98,7 @@ class TestNSTimeZone: XCTestCase {
 
         let abbreviation1 = tz.abbreviation()
         let abbreviation2 = obj.abbreviation
-        XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1) should be equal to \(abbreviation2)")
+        XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1 as Optional) should be equal to \(abbreviation2 as Optional)")
 
         let isDaylightSavingTime1 = tz.isDaylightSavingTime()
         let isDaylightSavingTime2 = obj.isDaylightSavingTime
@@ -112,7 +112,7 @@ class TestNSTimeZone: XCTestCase {
         let nextDaylightSavingTimeTransition1 = tz.nextDaylightSavingTimeTransition
         let nextDaylightSavingTimeTransition2 = obj.nextDaylightSavingTimeTransition
         let nextDaylightSavingTimeTransition3 = tz.nextDaylightSavingTimeTransition(after: Date())
-        XCTAssert(nextDaylightSavingTimeTransition1 == nextDaylightSavingTimeTransition2 || nextDaylightSavingTimeTransition2 == nextDaylightSavingTimeTransition3, "\(nextDaylightSavingTimeTransition1) should be equal to \(nextDaylightSavingTimeTransition2), or in the rare circumstance where a daylight saving time transition has just occurred, \(nextDaylightSavingTimeTransition2) should be equal to \(nextDaylightSavingTimeTransition3)")
+        XCTAssert(nextDaylightSavingTimeTransition1 == nextDaylightSavingTimeTransition2 || nextDaylightSavingTimeTransition2 == nextDaylightSavingTimeTransition3, "\(nextDaylightSavingTimeTransition1 as Optional) should be equal to \(nextDaylightSavingTimeTransition2 as Optional), or in the rare circumstance where a daylight saving time transition has just occurred, \(nextDaylightSavingTimeTransition2 as Optional) should be equal to \(nextDaylightSavingTimeTransition3 as Optional)")
     }
 
     func test_knownTimeZoneNames() {
@@ -137,18 +137,18 @@ class TestNSTimeZone: XCTestCase {
     func test_initializingTimeZoneWithOffset() {
         let tz = TimeZone(identifier: "GMT-0400")
         XCTAssertNotNil(tz)
-        let seconds = tz?.secondsFromGMT(for: Date())
+        let seconds = tz?.secondsFromGMT(for: Date()) ?? 0
         XCTAssertEqual(seconds, -14400, "GMT-0400 should be -14400 seconds but got \(seconds) instead")
 
         let tz2 = TimeZone(secondsFromGMT: -14400)
         XCTAssertNotNil(tz2)
         let expectedName = "GMT-0400"
         let actualName = tz2?.identifier
-        XCTAssertEqual(actualName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(actualName)\"")
+        XCTAssertEqual(actualName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(actualName as Optional)\"")
         let expectedLocalizedName = "GMT-04:00"
         let actualLocalizedName = tz2?.localizedName(for: .generic, locale: Locale(identifier: "en_US"))
-        XCTAssertEqual(actualLocalizedName, expectedLocalizedName, "expected name \"\(expectedLocalizedName)\" is not equal to \"\(actualLocalizedName)\"")
-        let seconds2 = tz2?.secondsFromGMT()
+        XCTAssertEqual(actualLocalizedName, expectedLocalizedName, "expected name \"\(expectedLocalizedName)\" is not equal to \"\(actualLocalizedName as Optional)\"")
+        let seconds2 = tz2?.secondsFromGMT() ?? 0
         XCTAssertEqual(seconds2, -14400, "GMT-0400 should be -14400 seconds but got \(seconds2) instead")
 
         let tz3 = TimeZone(identifier: "GMT-9999")
@@ -161,8 +161,9 @@ class TestNSTimeZone: XCTestCase {
         XCTAssertNil(tz)
         // Test valid timezone abbreviation of "AST" for "America/Halifax"
         tz = TimeZone(abbreviation: "AST")
-        let expectedName = "America/Halifax"
-        XCTAssertEqual(tz?.identifier, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(tz?.identifier)\"")
+        let expectedIdentifier = "America/Halifax"
+        let actualIdentifier = tz?.identifier
+        XCTAssertEqual(actualIdentifier, expectedIdentifier, "expected identifier \"\(expectedIdentifier)\" is not equal to \"\(actualIdentifier as Optional)\"")
     }
 
     func test_systemTimeZoneUsesSystemTime() {

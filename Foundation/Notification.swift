@@ -40,9 +40,12 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     public var hashValue: Int {
         return name.rawValue.hash
     }
-    
+
     public var description: String {
-        return "name = \(name.rawValue),  object = \(object), userInfo = \(userInfo)"
+        var description = "name = \(name.rawValue)"
+        if let obj = object { description += ", object = \(obj)" }
+        if let info = userInfo { description += ", userInfo = \(info)" }
+        return description
     }
     
     public var debugDescription: String {

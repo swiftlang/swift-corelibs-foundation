@@ -872,7 +872,7 @@ class TestNSString : XCTestCase {
     }
     
     func test_stringByAppendingPathExtension() {
-        let values : Dictionary = [
+        let values = [
             NSString(string: "/tmp/scratch.old") : "/tmp/scratch.old.tiff",
             NSString(string: "/tmp/scratch.") : "/tmp/scratch..tiff",
             NSString(string: "/tmp/") : "/tmp.tiff",
@@ -882,7 +882,7 @@ class TestNSString : XCTestCase {
         ]
         for (fileName, expectedResult) in values {
             let result = fileName.appendingPathExtension("tiff")
-            XCTAssertEqual(result, expectedResult, "expected \(expectedResult) for \(fileName) but got \(result)")
+            XCTAssertEqual(result, expectedResult, "expected \(expectedResult) for \(fileName) but got \(result as Optional)")
         }
     }
     
