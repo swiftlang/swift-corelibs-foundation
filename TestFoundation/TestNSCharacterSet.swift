@@ -36,8 +36,11 @@ class TestNSCharacterSet : XCTestCase {
             ("test_AnnexPlanes", test_AnnexPlanes),
             ("test_Planes", test_Planes),
             ("test_InlineBuffer", test_InlineBuffer),
-            // Test must remain disabled until SR-2509 is resolved.
-            // ("test_SubtractAndFormSymmetricDifference", test_SubtractAndFormSymmetricDifference),
+            // The following tests must remain disabled until SR-2509 is resolved.
+            // ("test_Subtracting", test_Subtracting),
+            // ("test_SubtractEmptySet", test_SubtractEmptySet),
+            // ("test_SubtractNonEmptySet", test_SubtractNonEmptySet),
+            // ("test_SymmetricDifference", test_SymmetricDifference),
         ]
     }
     
@@ -241,20 +244,31 @@ class TestNSCharacterSet : XCTestCase {
         
     }
 
-    func test_SubtractAndFormSymmetricDifference() {
-        var set1 = CharacterSet(charactersIn: "abc")
-        let set2 = CharacterSet(charactersIn: "b")
-        set1.subtract(set2)
-        XCTAssertFalse(set1.contains("b"))
-        set1.formSymmetricDifference(set2)
-        XCTAssertTrue(set1.contains("b"))
+    func test_Subtracting() {
+        let difference = CharacterSet(charactersIn: "abc").subtracting(CharacterSet(charactersIn: "b"))
+        let expected = CharacterSet(charactersIn: "ac")
+        XCTAssertEqual(expected, difference)
+    }
 
-        let expected = set1
-        var set3 = CharacterSet()
-        set1.subtract(set3)
-        XCTAssertEqual(expected, set1)
-        set3.subtract(set1)
-        XCTAssertTrue(set3.isEmpty)
+    func test_SubtractEmptySet() {
+        var mutableSet = CharacterSet(charactersIn: "abc")
+        let emptySet = CharacterSet()
+        mutableSet.subtract(emptySet)
+        let expected = CharacterSet(charactersIn: "abc")
+        XCTAssertEqual(expected, mutableSet)
+    }
+
+    func test_SubtractNonEmptySet() {
+        var mutableSet = CharacterSet()
+        let nonEmptySet = CharacterSet(charactersIn: "abc")
+        mutableSet.subtract(nonEmptySet)
+        XCTAssertTrue(mutableSet.isEmpty)
+    }
+
+    func test_SymmetricDifference() {
+        let symmetricDifference = CharacterSet(charactersIn: "ac").symmetricDifference(CharacterSet(charactersIn: "b"))
+        let expected = CharacterSet(charactersIn: "abc")
+        XCTAssertEqual(expected, symmetricDifference)
     }
 }
 
