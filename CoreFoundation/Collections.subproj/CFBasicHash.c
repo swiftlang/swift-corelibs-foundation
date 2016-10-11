@@ -13,13 +13,13 @@
 	Responsibility: Christopher Kane
 */
 
-#import "CFBasicHash.h"
-#import <CoreFoundation/CFRuntime.h>
-#import <CoreFoundation/CFSet.h>
-#import <math.h>
+#include "CFBasicHash.h"
+#include <CoreFoundation/CFRuntime.h>
+#include <CoreFoundation/CFSet.h>
+#include <math.h>
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #if __HAS_DISPATCH__
-#import <dispatch/dispatch.h>
+#include <dispatch/dispatch.h>
 #endif
 #endif
 

@@ -1308,7 +1308,7 @@ CF_EXPORT int32_t _CF_SOCK_STREAM() { return SOCK_STREAM; }
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-#import <fcntl.h>
+#include <fcntl.h>
 int _CFOpenFileWithMode(const char *path, int opts, mode_t mode) {
     return open(path, opts, mode);
 }

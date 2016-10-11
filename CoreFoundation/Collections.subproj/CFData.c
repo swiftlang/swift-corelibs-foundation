@@ -27,7 +27,7 @@
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-#import <mach/mach.h>
+#include <mach/mach.h>
 CF_INLINE unsigned long __CFPageSize() { return vm_page_size; }
 #elif DEPLOYMENT_TARGET_WINDOWS
 CF_INLINE unsigned long __CFPageSize() {
