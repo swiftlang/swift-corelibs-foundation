@@ -83,4 +83,6 @@ XCTMain([
     testCase(TestNSMutableAttributedString.allTests),
     testCase(TestNSFileHandle.allTests),
     testCase(TestUnitConverter.allTests),
+    testCase(TestProgressFraction.allTests),
+    testCase(TestProgress.allTests),
 ])
