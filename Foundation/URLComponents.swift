@@ -368,11 +368,11 @@ extension URLQueryItem : CustomStringConvertible, CustomDebugStringConvertible, 
     public var debugDescription: String {
         return self.description
     }
-    
+
     public var customMirror: Mirror {
         var c: [(label: String?, value: Any)] = []
         c.append((label: "name", value: name))
-        c.append((label: "value", value: value))
+        c.append((label: "value", value: value as Any))
         return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
     }
 }
