@@ -71,6 +71,11 @@ open class Host: NSObject {
         }
         var ifa: UnsafeMutablePointer<ifaddrs>? = ifaddr
         let address = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
+        defer {
+            freeifaddrs(ifaddr)
+            address.deinitialize()
+            address.deallocate(capacity: Int(NI_MAXHOST))
+        }
         while let ifaValue = ifa?.pointee {
             if let ifa_addr = ifaValue.ifa_addr, ifaValue.ifa_flags & UInt32(IFF_LOOPBACK) == 0 {
                 let family = ifa_addr.pointee.sa_family
@@ -83,9 +88,6 @@ open class Host: NSObject {
             }
             ifa = ifaValue.ifa_next
         }
-        freeifaddrs(ifaddr)
-        address.deinitialize()
-        address.deallocate(capacity: Int(NI_MAXHOST))
     }
     
     internal func _resolve() {
@@ -111,12 +113,19 @@ open class Host: NSObject {
             hints.ai_flags = flags
             
             var res0: UnsafeMutablePointer<addrinfo>? = nil
+            defer {
+                freeaddrinfo(res0)
+            }
             let r = getaddrinfo(info, nil, &hints, &res0)
             if r != 0 {
                 return
             }
             var res: UnsafeMutablePointer<addrinfo>? = res0
             let host = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
+            defer {
+                host.deinitialize()
+                host.deallocate(capacity: Int(NI_MAXHOST))
+            }
             while res != nil {
                 let info = res!.pointee
                 let family = info.ai_family
@@ -135,9 +144,6 @@ open class Host: NSObject {
                 lookupInfo(&_names, NI_NOFQDN|NI_NAMEREQD)
                 res = info.ai_next
             }
-            freeaddrinfo(res0)
-            host.deinitialize()
-            host.deallocate(capacity: Int(NI_MAXHOST))
         }
         
     }
