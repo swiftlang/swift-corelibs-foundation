@@ -70,6 +70,9 @@ open class NumberFormatter : Formatter {
             
             let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)!
             _setFormatterAttributes(obj)
+            if let format = _format {
+                CFNumberFormatterSetFormat(obj, format._cfObject)
+            }
             _currentCfFormatter = obj
             return obj
         }
@@ -99,12 +102,13 @@ open class NumberFormatter : Formatter {
     open func number(from string: String) -> NSNumber? {
         var range = CFRange(location: 0, length: string.length)
         let number = withUnsafeMutablePointer(to: &range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
-            
+
             #if os(OSX) || os(iOS)
-                let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, CFNumberFormatterOptionFlags.parseIntegersOnly.rawValue)
+                let parseOption = allowsFloats ? 0 : CFNumberFormatterOptionFlags.parseIntegersOnly.rawValue
             #else
-                let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, CFOptionFlags(kCFNumberFormatterParseIntegersOnly))
+                let parseOption = allowsFloats ? 0 : CFOptionFlags(kCFNumberFormatterParseIntegersOnly)
             #endif
+            let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, parseOption)
 
             return result?._nsObject
         }
@@ -157,7 +161,7 @@ open class NumberFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPerMillSymbol, value: _percentSymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterInternationalCurrencySymbol, value: _internationalCurrencySymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyGroupingSeparator, value: _currencyGroupingSeparator?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterIsLenient, value: kCFBooleanTrue)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterIsLenient, value: _lenient._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterUseSignificantDigits, value: _usesSignificantDigits._cfObject)
         if _usesSignificantDigits {
             _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinSignificantDigits, value: _minimumSignificantDigits._bridgeToObjectiveC()._cfObject)
@@ -182,7 +186,7 @@ open class NumberFormatter : Formatter {
             switch newValue {
             case .none, .ordinal, .spellOut:
                 _usesSignificantDigits = false
-                
+
             case .currency, .currencyPlural, .currencyISOCode, .currencyAccounting:
                 _usesSignificantDigits = false
                 _usesGroupingSeparator = true
@@ -838,10 +842,10 @@ open class NumberFormatter : Formatter {
     
     //
     
-    internal var _format: String = "#;0;#"
+    internal var _format: String?
     open var format: String {
         get {
-            return _format
+            return _format ?? "#;0;#"
         }
         set {
             _reset()
