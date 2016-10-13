@@ -33,6 +33,9 @@ public struct Decimal {
             return UInt32((__lengthAndFlags & 0b0000_1111))
         }
         set {
+            guard newValue <= maxMantissaLength else {
+                fatalError("Attempt to set a length greater than capacity \(newValue) > \(maxMantissaLength)")
+            }
             __lengthAndFlags =
                 (__lengthAndFlags & 0b1111_0000) |
                 UInt8(newValue & 0b0000_1111)
@@ -88,9 +91,8 @@ public struct Decimal {
     public init(_exponent: Int32, _length: UInt32, _isNegative: UInt32, _isCompact: UInt32, _reserved: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)){
         self._mantissa = _mantissa
         self.__exponent = Int8(truncatingBitPattern: _exponent)
-        self.__lengthAndFlags = 0
+        self.__lengthAndFlags = UInt8(_length & 0b1111)
         self.__reserved = 0
-        self._length = _length
         self._isNegative = _isNegative
         self._isCompact = _isCompact
         self._reserved = _reserved
@@ -564,9 +566,7 @@ fileprivate func divideByShort<T:VariableLengthNumber>(_ d: inout T, _ divisor:U
         d[i] = UInt16(accumulator / UInt32(divisor))
         carry = accumulator % UInt32(divisor)
     }
-    while d._length != 0 && d[d._length - 1] == 0 {
-        d._length -= 1
-    }
+    d.trimTrailingZeros()
     return (UInt16(carry),.noError)
 }
 
@@ -674,7 +674,7 @@ fileprivate func fitMantissa(_ big: inout WideDecimal, _ exponent: inout Int32, 
     var previousRemainder: Bool = false
 
     // Divide by 10 as much as possible
-    while big._length >= Decimal.maxSize {
+    while big._length > Decimal.maxSize + 1 {
         if remainder != 0 {
             previousRemainder = true
         }
@@ -727,21 +727,19 @@ fileprivate func fitMantissa(_ big: inout WideDecimal, _ exponent: inout Int32, 
     return .lossOfPrecision;
 }
 
-fileprivate func integerMultiply(_ big: inout WideDecimal,
-                                 _ left: WideDecimal,
-                                 _ right: WideDecimal) -> NSDecimalNumber.CalculationError {
+fileprivate func integerMultiply<T:VariableLengthNumber>(_ big: inout T,
+                                 _ left: T,
+                                 _ right: Decimal) -> NSDecimalNumber.CalculationError {
     if left._length == 0 || right._length == 0 {
         big._length = 0
         return .noError
     }
 
-    if big._length > left._length + right._length {
-        big._length = left._length + right._length
+    if big._length == 0 || big._length > left._length + right._length {
+        big._length = min(big.maxMantissaLength,left._length + right._length)
     }
 
-    for i in 0..<big._length {
-        big[i] = 0
-    }
+    big.zeroMantissa()
 
     var carry: UInt16 = 0
 
@@ -769,16 +767,14 @@ fileprivate func integerMultiply(_ big: inout WideDecimal,
         }
     }
 
-    while big._length != 0 && big[big._length - 1] == 0 {
-        big._length -= 1
-    }
+    big.trimTrailingZeros()
 
     return .noError
 }
 
-fileprivate func integerDivide(_ r: inout WideDecimal,
-                               _ cu: WideDecimal,
-                               _ cv: WideDecimal) -> NSDecimalNumber.CalculationError {
+fileprivate func integerDivide<T:VariableLengthNumber>(_ r: inout T,
+                               _ cu: T,
+                               _ cv: Decimal) -> NSDecimalNumber.CalculationError {
     // Calculate result = a / b.
     // Result could NOT be a pointer to same space as a or b.
     // resultLen must be >= aLen - bLen.
@@ -792,17 +788,19 @@ fileprivate func integerDivide(_ r: inout WideDecimal,
     var u = WideDecimal(true)
     var v = WideDecimal(true) // divisor
 
-    var v1:UInt16, v2:UInt16
-
     // Simple case
     if cv.isZero {
         return .divideByZero;
     }
 
     // If u < v, the result is approximately 0...
-    if cu < cv {
-        r._length = 0
-        return .noError;
+    if cu._length < cv._length {
+        for i in 0..<cv._length {
+            if cu[i] < cv[i] {
+                r._length = 0
+                return .noError;
+            }
+        }
     }
 
     // Fast algorithm
@@ -811,6 +809,9 @@ fileprivate func integerDivide(_ r: inout WideDecimal,
         let (_,error) = divideByShort(&r, cv[0])
         return error
     }
+
+    u.copyMantissa(from: cu)
+    v.copyMantissa(from: cv)
 
     u._length = cu._length + 1
     v._length = cv._length + 1
@@ -826,9 +827,12 @@ fileprivate func integerDivide(_ r: inout WideDecimal,
     _ = multiplyByShort(&u, UInt16(d))
     _ = multiplyByShort(&v, UInt16(d))
 
+    u.trimTrailingZeros()
+    v.trimTrailingZeros()
+
     // Set a zero at the leftmost u position if the multiplication
-    // do not have a carry.
-    if(u._length == cu._length) {
+    // does not have a carry.
+    if u._length == cu._length {
         u[u._length] = 0
         u._length += 1
     }
@@ -845,22 +849,20 @@ fileprivate func integerDivide(_ r: inout WideDecimal,
     // It's used to determine the quotient digit as fast as possible
     // The test vl > 1 is probably useless, since optimizations
     // up there are taking over this case. I'll keep it, just in case.
-    v1 = v[v._length-1]
-    v2 = v._length > 1 ? v[v._length-2] : 0
+    let v1:UInt16 = v[v._length-1]
+    let v2:UInt16 = v._length > 1 ? v[v._length-2] : 0
 
     // D2: initialize j
     // On each pass, build a single value for the quotient.
     for j in 0..<ql {
-        var q: UInt32 // Quotient digit. could be a short.
 
         // D3: calculate q^
         // This formula and test for q gives at most q+1; See Knuth for proof.
 
         let ul = u._length
-        let uu = u // work around compiler bug
-        let tmp: UInt32 = UInt32(uu[ul - UInt32(j) - UInt32(1)] << 16 + uu[ul - UInt32(j) - UInt32(2)])
-        q = tmp / UInt32(v1)
-        var rtmp: UInt32 = tmp % UInt32(v1)
+        let tmp:UInt32 = UInt32(u[ul - UInt32(j) - UInt32(1)]) << 16 + UInt32(u[ul - UInt32(j) - UInt32(2)])
+        var q:UInt32 = tmp / UInt32(v1) // Quotient digit. could be a short.
+        var rtmp:UInt32 = tmp % UInt32(v1)
 
         // This test catches all cases where q is really q+2 and
         // most where it is q+1
@@ -888,8 +890,7 @@ fileprivate func integerDivide(_ r: inout WideDecimal,
             acc = q * UInt32(v[i]) + mk     // multiply
             mk = acc >> 16                  // multiplication carry
             acc = acc & 0xffff;
-            let uu = u // work around compiler bug
-            acc = 0xffff + UInt32(uu[ul - vl + i - UInt32(j) - UInt32(1)]) - acc + sk; // subtract
+            acc = 0xffff + UInt32(u[ul - vl + i - UInt32(j) - UInt32(1)]) - acc + sk; // subtract
             sk = acc >> 16;
             u[ul - vl + i - UInt32(j) - UInt32(1)] = UInt16(truncatingBitPattern:acc)
         }
@@ -905,9 +906,7 @@ fileprivate func integerDivide(_ r: inout WideDecimal,
             for i in 0...v._length {
                 let ul = u._length
                 let vl = v._length
-                let vv = v // work around compiler bug
-                let uu = u // work around compiler bug
-                acc = UInt32(vv[i]) + UInt32(uu[UInt32(ul) - UInt32(vl) + UInt32(i) - UInt32(j) - UInt32(1)]) + k
+                acc = UInt32(v[i]) + UInt32(u[UInt32(ul) - UInt32(vl) + UInt32(i) - UInt32(j) - UInt32(1)]) + k
                 k = acc >> 16;
                 u[UInt32(ul) - UInt32(vl) + UInt32(i) - UInt32(j) - UInt32(1)] = UInt16(truncatingBitPattern:acc)
             }
@@ -920,14 +919,12 @@ fileprivate func integerDivide(_ r: inout WideDecimal,
 
     r._length = UInt32(ql);
 
-    while r._length != 0 && r[r._length - 1] == 0 {
-        r._length -= 1
-    }
+    r.trimTrailingZeros()
 
     return .noError;
 }
 
-fileprivate func integerMultiplyByPowerOf10(_ result: inout WideDecimal, _ left: WideDecimal, _ p: Int) -> NSDecimalNumber.CalculationError {
+fileprivate func integerMultiplyByPowerOf10<T:VariableLengthNumber>(_ result: inout T, _ left: T, _ p: Int) -> NSDecimalNumber.CalculationError {
     var power = p
     if power == 0 {
         result = left
@@ -943,10 +940,10 @@ fileprivate func integerMultiplyByPowerOf10(_ result: inout WideDecimal, _ left:
     var error:NSDecimalNumber.CalculationError = .noError
 
     while power > maxpow10 {
-        var big = WideDecimal()
+        var big = T()
 
         power -= maxpow10
-        let p10 = WideDecimal(pow10[maxpow10])
+        let p10 = pow10[maxpow10]
 
         if !isNegative {
             error = integerMultiply(&big,result,p10)
@@ -965,9 +962,10 @@ fileprivate func integerMultiplyByPowerOf10(_ result: inout WideDecimal, _ left:
         result._length = big._length
     }
 
-    var big = WideDecimal()
+    var big = T()
+
     // Handle the rest of the power (<= maxpow10)
-    let p10 = WideDecimal(pow10[Int(power)])
+    let p10 = pow10[Int(power)]
 
     if !isNegative {
         error = integerMultiply(&big, result, p10)
@@ -994,7 +992,7 @@ public func NSDecimalRound(_ result: UnsafeMutablePointer<Decimal>, _ number: Un
 
 public func NSDecimalNormalize(_ a: UnsafeMutablePointer<Decimal>, _ b: UnsafeMutablePointer<Decimal>, _ roundingMode: NSDecimalNumber.RoundingMode) -> NSDecimalNumber.CalculationError {
     var diffexp = a.pointee.__exponent - b.pointee.__exponent
-    var result = WideDecimal()
+    var result = Decimal()
 
     //
     // If the two numbers share the same exponents,
@@ -1030,19 +1028,49 @@ public func NSDecimalNormalize(_ a: UnsafeMutablePointer<Decimal>, _ b: UnsafeMu
     // Try to multiply aa to reach the same exponent level than bb
     //
 
-    if integerMultiplyByPowerOf10(&result, WideDecimal(aa.pointee), Int(diffexp)) == .noError {
+    if integerMultiplyByPowerOf10(&result, aa.pointee, Int(diffexp)) == .noError {
         // Succeed. Adjust the length/exponent info
         // and return no errorNSDecimalNormalize
-        aa.pointee._length = result._length
-        for i in 0..<result._length {
-            aa.pointee[i] = result[i]
-        }
-        aa.pointee._isCompact = 0
+        aa.pointee.copyMantissa(from: result)
         aa.pointee._exponent = bb.pointee._exponent
         return .noError;
     }
 
-    NSUnimplemented() // work in progress
+    //
+    // Failed, restart from scratch
+    //
+    NSDecimalCopy(aa, &backup);
+
+    //
+    // What is the maximum pow10 we can apply to aa ?
+    //
+    let logBase10of2to16 = 4.81647993
+    let aaLength = aa.pointee._length
+    let maxpow10 = Int8(floor(Double(Decimal.maxSize - aaLength) * logBase10of2to16))
+
+    //
+    // Divide bb by this value
+    //
+    _ = integerMultiplyByPowerOf10(&result, bb.pointee, maxpow10 - diffexp)
+
+    bb.pointee.copyMantissa(from: result)
+    bb.pointee._exponent -= maxpow10 - diffexp;
+
+    //
+    // If bb > 0 multiply aa by the same value
+    //
+    if !bb.pointee.isZero {
+        _ = integerMultiplyByPowerOf10(&result, aa.pointee, Int(maxpow10))
+        aa.pointee.copyMantissa(from: result)
+        aa.pointee._exponent -= Int32(maxpow10)
+    } else {
+        bb.pointee._exponent = aa.pointee._exponent;
+    }
+
+    //
+    // the two exponents are now identical, but we've lost some digits in the operation.
+    //
+    return .lossOfPrecision;
 }
 
 public func NSDecimalAdd(_ result: UnsafeMutablePointer<Decimal>, _ leftOperand: UnsafePointer<Decimal>, _ rightOperand: UnsafePointer<Decimal>, _ roundingMode: NSDecimalNumber.RoundingMode) -> NSDecimalNumber.CalculationError {
@@ -1233,9 +1261,7 @@ fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal,
     }
     result._length = i;
 
-    while result._length != 0 && result[result._length - 1] == 0 {
-        result._length -= 1
-    }
+    result.trimTrailingZeros()
 
     return .noError;
 }
@@ -1265,7 +1291,7 @@ public func NSDecimalMultiply(_ result: UnsafeMutablePointer<Decimal>, _ leftOpe
     var big = WideDecimal()
     var calculationError:NSDecimalNumber.CalculationError = .noError
 
-    calculationError = integerMultiply(&big,WideDecimal(leftOperand.pointee),WideDecimal(rightOperand.pointee))
+    calculationError = integerMultiply(&big,WideDecimal(leftOperand.pointee),rightOperand.pointee)
 
     result.pointee._isNegative = (leftOperand.pointee._isNegative + rightOperand.pointee._isNegative) % 2
 
@@ -1340,7 +1366,7 @@ public func NSDecimalDivide(_ result: UnsafeMutablePointer<Decimal>, _ leftOpera
     }
 
     _ = integerMultiplyByPowerOf10(&big, WideDecimal(a), 38) // Trust me, it's 38 !
-    _ = integerDivide(&big, big, WideDecimal(b))
+    _ = integerDivide(&big, big, b)
     _ = fitMantissa(&big, &exponent, .down)
 
     let length = min(big._length,Decimal.maxSize)
@@ -1393,16 +1419,77 @@ public func NSDecimalString(_ dcm: UnsafePointer<Decimal>, _ locale: AnyObject?)
 
 fileprivate protocol VariableLengthNumber {
     var _length: UInt32 { get set }
+    init()
     subscript(index:UInt32) -> UInt16 { get set }
     var isZero:Bool { get }
+    mutating func copyMantissa<T:VariableLengthNumber>(from other:T)
+    mutating func zeroMantissa()
+    mutating func trimTrailingZeros()
+    var maxMantissaLength: UInt32 { get }
 }
 
 extension Decimal: VariableLengthNumber {
-
+    var maxMantissaLength:UInt32 {
+        return Decimal.maxSize
+    }
+    fileprivate mutating func zeroMantissa() {
+        for i in 0..<Decimal.maxSize {
+            self[i] = 0
+        }
+    }
+    fileprivate mutating func trimTrailingZeros() {
+        if _length > Decimal.maxSize {
+            _length = Decimal.maxSize
+        }
+        while _length != 0 && self[_length - 1] == 0 {
+            _length -= 1
+        }
+    }
+    fileprivate mutating func copyMantissa<T : VariableLengthNumber>(from other: T) {
+        if other._length > maxMantissaLength {
+            for i in maxMantissaLength..<other._length {
+                guard other[i] == 0 else {
+                    fatalError("Loss of precision during copy other[\(i)] \(other[i]) != 0")
+                }
+            }
+        }
+        let length = min(other._length, maxMantissaLength)
+        for i in 0..<length {
+            self[i] = other[i]
+        }
+        self._length = length
+        self._isCompact = 0
+    }
 }
 
 // Provides a way with dealing with extra-length decimals, used for calculations
 fileprivate struct WideDecimal : VariableLengthNumber {
+    var maxMantissaLength:UInt32 {
+        return _extraWide ? 17 : 16
+    }
+
+    fileprivate mutating func zeroMantissa() {
+        for i in 0..<maxMantissaLength {
+            self[i] = 0
+        }
+    }
+    fileprivate mutating func trimTrailingZeros() {
+        while _length != 0 && self[_length - 1] == 0 {
+            _length -= 1
+        }
+    }
+    init() {
+        self.init(false)
+    }
+
+    fileprivate mutating func copyMantissa<T : VariableLengthNumber>(from other: T) {
+        let length = other is Decimal ? min(other._length,Decimal.maxSize) : other._length
+        for i in 0..<length {
+            self[i] = other[i]
+        }
+        self._length = length
+    }
+
     var isZero: Bool {
         return _length == 0
     }
@@ -1417,14 +1504,14 @@ fileprivate struct WideDecimal : VariableLengthNumber {
             return UInt32(__length)
         }
         set {
-            guard newValue <= Decimal.maxSize * 2 + 1 else {
-                fatalError("Cannot set size to \(newValue)")
+            guard newValue <= maxMantissaLength else {
+                fatalError("Attempt to set a length greater than capacity \(newValue) > \(maxMantissaLength)")
             }
             __length = UInt16(newValue)
         }
     }
     init(_ extraWide:Bool = false) {
-        __length = UInt16(Decimal.maxSize * 2)
+        __length = 0
         _mantissa = (UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0),UInt16(0))
         _extraWide = extraWide
     }
@@ -1478,26 +1565,6 @@ fileprivate struct WideDecimal : VariableLengthNumber {
             default: fatalError("Invalid index \(index) for _mantissa")
             }
         }
-    }
-    public func compare(to rhs: WideDecimal) -> ComparisonResult {
-        if self._length > rhs._length {
-            return .orderedDescending
-        }
-        if self._length < rhs._length {
-            return .orderedAscending
-        }
-        for i in (0..<self._length).reversed() {
-            if self[i] > rhs[i] {
-                return .orderedDescending
-            }
-            if self[i] < rhs[i] {
-                return .orderedAscending
-            }
-        }
-        return .orderedSame
-    }
-    public static func <(lhs: WideDecimal, rhs: WideDecimal) -> Bool {
-        return lhs.compare(to:rhs) == .orderedAscending
     }
     func toDecimal() -> Decimal {
         var result = Decimal()
