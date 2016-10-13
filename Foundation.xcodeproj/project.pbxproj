@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0383A1751D2E558A0052E5D1 /* TestNSStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0383A1741D2E558A0052E5D1 /* TestNSStream.swift */; };
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
+		231503DB1D8AEE5D0061694D /* TestNSDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestNSDecimal.swift */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
 		2EBE67A51C77BF0E006583D5 /* TestNSDateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EBE67A31C77BF05006583D5 /* TestNSDateFormatter.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
@@ -455,6 +456,7 @@
 		0383A1741D2E558A0052E5D1 /* TestNSStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSStream.swift; sourceTree = "<group>"; };
 		1520469A1D8AEABE00D02E36 /* HTTPServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDate.swift; sourceTree = "<group>"; };
+		231503DA1D8AEE5D0061694D /* TestNSDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDecimal.swift; sourceTree = "<group>"; };
 		294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAttributedString.swift; sourceTree = "<group>"; };
 		2EBE67A31C77BF05006583D5 /* TestNSDateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDateFormatter.swift; sourceTree = "<group>"; };
 		400E22641C1A4E58007C5933 /* TestNSProcessInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSProcessInfo.swift; sourceTree = "<group>"; };
@@ -1324,6 +1326,7 @@
 				DCDBB8321C1768AC00313299 /* TestNSData.swift */,
 				22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */,
 				2EBE67A31C77BF05006583D5 /* TestNSDateFormatter.swift */,
+				231503DA1D8AEE5D0061694D /* TestNSDecimal.swift */,
 				EA66F63D1BF1619600136161 /* TestNSDictionary.swift */,
 				D512D17B1CD883F00032E6A5 /* TestNSFileHandle.swift */,
 				525AECEB1BF2C96400D15BB0 /* TestNSFileManager.swift */,
@@ -2216,6 +2219,7 @@
 				5B13B33E1C582D4C00651CE2 /* TestNSProcessInfo.swift in Sources */,
 				5B13B33F1C582D4C00651CE2 /* TestNSPropertyList.swift in Sources */,
 				5B13B32C1C582D4C00651CE2 /* TestNSDate.swift in Sources */,
+				231503DB1D8AEE5D0061694D /* TestNSDecimal.swift in Sources */,
 				7900433C1CACD33E00ECCBF1 /* TestNSPredicate.swift in Sources */,
 				5B13B33B1C582D4C00651CE2 /* TestNSNumberFormatter.swift in Sources */,
 				5B13B3301C582D4C00651CE2 /* TestNSHTTPCookie.swift in Sources */,
