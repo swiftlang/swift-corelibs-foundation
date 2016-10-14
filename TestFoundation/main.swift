@@ -86,4 +86,5 @@ XCTMain([
     testCase(TestUnitConverter.allTests),
     testCase(TestProgressFraction.allTests),
     testCase(TestProgress.allTests),
+    testCase(TestObjCRuntime.allTests),
 ])
