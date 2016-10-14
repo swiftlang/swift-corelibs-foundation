@@ -31,12 +31,12 @@ class TestNSDecimal: XCTestCase {
             ("test_NegativeAndZeroMultiplication", test_NegativeAndZeroMultiplication),
             ("test_Normalise", test_Normalise),
             ("test_NSDecimal", test_NSDecimal),
-            // ("test_PositivePowers", test_PositivePowers), // needs NSDecimalNumber implementaiton
+            ("test_PositivePowers", test_PositivePowers),
             ("test_RepeatingDivision", test_RepeatingDivision),
             ("test_Round", test_Round),
             ("test_SimpleMultiplication", test_SimpleMultiplication),
-            // ("test_SmallerNumbers", test_SmallerNumbers), // needs NSDecimalImplementation
-            // ("test_ZeroPower", test_ZeroPower), // needs NSDecimalImplementation
+            ("test_SmallerNumbers", test_SmallerNumbers),
+            ("test_ZeroPower", test_ZeroPower),
         ]
     }
 

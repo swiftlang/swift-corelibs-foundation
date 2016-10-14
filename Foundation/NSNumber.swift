@@ -290,7 +290,11 @@ open class NSNumber : NSValue {
         super.init()
         _CFNumberInitBool(_cfObject, value)
     }
-    
+
+    override internal init() {
+        super.init()
+    }
+
     public required convenience init(bytes buffer: UnsafeRawPointer, objCType: UnsafePointer<Int8>) {
         guard let type = _NSSimpleObjCType(UInt8(objCType.pointee)) else {
             fatalError("NSNumber.init: unsupported type encoding spec '\(String(cString: objCType))'")

@@ -1437,7 +1437,7 @@ extension Decimal: VariableLengthNumber {
             self[i] = 0
         }
     }
-    fileprivate mutating func trimTrailingZeros() {
+    internal mutating func trimTrailingZeros() {
         if _length > Decimal.maxSize {
             _length = Decimal.maxSize
         }
@@ -1697,7 +1697,7 @@ extension Decimal {
         _exponent = newExponent;
         self.compact();
     }
-    fileprivate func compare(to other:Decimal) -> ComparisonResult {
+    internal func compare(to other:Decimal) -> ComparisonResult {
         // NaN is a special case and is arbitrary ordered before everything else
         // Conceptually comparing with NaN is bogus anyway but raising or
         // always returning the same answer will confuse the sorting algorithms
