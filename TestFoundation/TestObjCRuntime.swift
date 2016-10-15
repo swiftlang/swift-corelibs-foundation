@@ -34,7 +34,11 @@ class TestObjCRuntime: XCTestCase {
     func testStringFromClass() {
         XCTAssertEqual(NSStringFromClass(NSObject.self), "NSObject")
         XCTAssertEqual(NSStringFromClass(SwiftClass.self), "TestFoundation.SwiftClass")
+#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
+        XCTAssertEqual(NSStringFromClass(XCTestCase.self), "XCTest.XCTestCase");
+#else
         XCTAssertEqual(NSStringFromClass(XCTestCase.self), "SwiftXCTest.XCTestCase");
+#endif
     }
 
     func testClassFromString() {
