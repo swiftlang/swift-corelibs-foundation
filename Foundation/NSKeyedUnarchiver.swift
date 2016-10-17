@@ -418,7 +418,7 @@ open class NSKeyedUnarchiver : NSCoder {
         
         if self.requiresSecureCoding && !supportsSecureCoding {
             // FIXME should this be a fatal error?
-            fatalError("Archiver \(self) requires secure coding but class \(classToConstruct) does not support it")
+            fatalError("Archiver \(self) requires secure coding but class \(classToConstruct as Optional) does not support it")
         }
         
         return supportsSecureCoding
@@ -505,8 +505,7 @@ open class NSKeyedUnarchiver : NSCoder {
      */
     private func _decodeObject(forKey key: String?) throws -> Any? {
         guard let objectRef : Any? = _objectInCurrentDecodingContext(forKey: key) else {
-            throw _decodingError(CocoaError.coderValueNotFound,
-                                 withDescription: "No value found for key \(key). The data may be corrupt.")
+            throw _decodingError(CocoaError.coderValueNotFound, withDescription: "No value found for key \(key as Optional). The data may be corrupt.")
         }
         
         return try _decodeObject(objectRef!)

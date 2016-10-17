@@ -125,7 +125,7 @@ open class FileManager : NSObject {
         for attribute in attributes.keys {
             if attribute == .posixPermissions {
                 guard let number = attributes[attribute] as? NSNumber else {
-                    fatalError("Can't set file permissions to \(attributes[attribute])")
+                    fatalError("Can't set file permissions to \(attributes[attribute] as Any?)")
                 }
                 #if os(OSX) || os(iOS)
                     let modeT = number.uint16Value

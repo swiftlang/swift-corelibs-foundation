@@ -153,7 +153,7 @@ class TestNSURL : XCTestCase {
             }
             if let stringObj = obj as? String {
                 if stringObj != got[key] {
-                    differences.append(" \(key)  Expected = '\(stringObj)',  Got = '\(got[key])'")
+                    differences.append(" \(key)  Expected = '\(stringObj)',  Got = '\(got[key] as Optional)'")
                 }
             }
         }
@@ -442,7 +442,7 @@ class TestNSURLComponents : XCTestCase {
         var url = URLComponents(string: urlString)
         url!.port = port
         let receivedString = url!.string
-        XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(receivedString)")
+        XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(receivedString as Optional)")
     }
 
     func test_url() {
@@ -454,7 +454,7 @@ class TestNSURLComponents : XCTestCase {
         compWithAuthority!.path = "/path/to/file with space.html"
         compWithAuthority!.query = "id=23&search=Foo Bar"
         var expectedString = "https://www.swift.org/path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(compWithAuthority!.string, expectedString, "expected \(expectedString) but received \(compWithAuthority!.string)")
+        XCTAssertEqual(compWithAuthority!.string, expectedString, "expected \(expectedString) but received \(compWithAuthority!.string as Optional)")
 
         var aURL = compWithAuthority!.url(relativeTo: baseURL)
         XCTAssertNotNil(aURL)
@@ -474,7 +474,7 @@ class TestNSURLComponents : XCTestCase {
         compWithoutAuthority.path = "path/to/file with space.html"
         compWithoutAuthority.query = "id=23&search=Foo Bar"
         expectedString = "path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(compWithoutAuthority.string, expectedString, "expected \(expectedString) but received \(compWithoutAuthority.string)")
+        XCTAssertEqual(compWithoutAuthority.string, expectedString, "expected \(expectedString) but received \(compWithoutAuthority.string as Optional)")
 
         aURL = compWithoutAuthority.url(relativeTo: baseURL)
         XCTAssertNotNil(aURL)
