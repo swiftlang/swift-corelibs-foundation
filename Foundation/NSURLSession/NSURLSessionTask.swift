@@ -194,8 +194,18 @@ open class URLSessionTask : NSObject, NSCopying {
      * cases, the task may signal other work before it acknowledges the
      * cancelation.  -cancel may be sent to a task that has been suspended.
      */
-    open func cancel() { NSUnimplemented() }
-    
+    open func cancel() {
+        workQueue.sync {
+            guard self.state == .running || self.state == .suspended else { return }
+            self.state = .canceling
+            self.workQueue.async {
+                self.internalState = .transferFailed
+                let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: nil))
+                self.completeTask(withError: urlError)
+            }
+        }
+    }
+
     /*
      * The current state of the task within the session.
      */
@@ -866,7 +876,7 @@ extension URLSessionTask {
     }
     func completeTask(withError error: Error) {
         self.error = error
-        
+
         guard case .transferFailed = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete / failed.")
         }
