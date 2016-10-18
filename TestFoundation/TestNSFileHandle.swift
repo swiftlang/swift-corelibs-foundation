@@ -19,6 +19,7 @@ class TestNSFileHandle : XCTestCase {
     static var allTests : [(String, (TestNSFileHandle) -> () throws -> ())] {
         return [
                    ("test_pipe", test_pipe),
+                   ("test_nullDevice", test_nullDevice),
         ]
     }
 
@@ -37,5 +38,14 @@ class TestNSFileHandle : XCTestCase {
 
             XCTAssertEqual(output, input)
         }
+    }
+
+    func test_nullDevice() {
+        let fh = FileHandle.nullDevice
+
+        fh.write(Data(bytes: [1,2]))
+        XCTAssertEqual(fh.availableData.count, 0)
+        fh.seek(toFileOffset: 0)
+        XCTAssertEqual(fh.readDataToEndOfFile().count, 0)
     }
 }

@@ -214,11 +214,15 @@ extension FileHandle {
     open class var standardError: FileHandle {
         return _stderrFileHandle
     }
-    
+
+    internal static var _nulldeviceFileHandle: FileHandle = {
+        return FileHandle(forUpdatingAtPath: "/dev/null")!
+    }()
+
     open class var nullDevice: FileHandle {
-        NSUnimplemented()
+        return _nulldeviceFileHandle
     }
-    
+
     public convenience init?(forReadingAtPath path: String) {
         self.init(path: path, flags: O_RDONLY, createMode: 0)
     }
