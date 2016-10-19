@@ -21,8 +21,7 @@ class TestNSRange : XCTestCase {
     
     static var allTests: [(String, (TestNSRange) -> () throws -> Void)] {
         return [
-            // currently disabled due to pending requirements for NSString
-            // ("test_NSRangeFromString", test_NSRangeFromString ),
+            ("test_NSRangeFromString", test_NSRangeFromString ),
             ("test_NSRangeBridging", test_NSRangeBridging),
             ("test_NSMaxRange", test_NSMaxRange),
             ("test_NSLocationInRange", test_NSLocationInRange),
