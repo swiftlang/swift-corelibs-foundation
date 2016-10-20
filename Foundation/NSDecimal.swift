@@ -1412,7 +1412,7 @@ public func NSDecimalMultiplyByPowerOf10(_ result: UnsafeMutablePointer<Decimal>
 
 public func NSDecimalString(_ dcm: UnsafePointer<Decimal>, _ locale: AnyObject?) -> String {
     guard locale == nil else {
-        fatalError("Locale not supported: \(locale)")
+        fatalError("Locale not supported: \(locale!)")
     }
     return dcm.pointee.description
 }
