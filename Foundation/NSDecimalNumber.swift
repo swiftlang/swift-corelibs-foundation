@@ -104,11 +104,41 @@ open class NSDecimalNumber : NSNumber {
         self.decimal = dcm
         super.init()
     }
-    public convenience init(string numberValue: String?) { NSUnimplemented() }
-    public convenience init(string numberValue: String?, locale: AnyObject?) { NSUnimplemented() }
+    public convenience init(string numberValue: String?) {
+        self.init(decimal: Decimal(string: numberValue ?? "") ?? Decimal.nan)
+    }
+    public convenience init(string numberValue: String?, locale: AnyObject?) {
+        self.init(decimal: Decimal(string: numberValue ?? "", locale: locale as? Locale) ?? Decimal.nan)
+    }
 
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    public required init?(coder: NSCoder) {
+        guard coder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        let exponent:Int32 = coder.decodeInt32(forKey: "NS.exponent")
+        let length:UInt32 = UInt32(coder.decodeInt32(forKey: "NS.length"))
+        let isNegative:UInt32 = UInt32(coder.decodeBool(forKey: "NS.negative") ? 1 : 0)
+        let isCompact:UInt32 = UInt32(coder.decodeBool(forKey: "NS.compact") ? 1 : 0)
+        // let byteOrder:UInt32 = UInt32(coder.decodeInt32(forKey: "NS.bo"))
+        guard let mantissaData: Data = coder.decodeObject(forKey: "NS.mantissa") as? Data else {
+            return nil // raise "Critical NSDecimalNumber archived data is missing"
+        }
+        guard mantissaData.count == Int(NSDecimalMaxSize * 2) else {
+            return nil  // raise "Critical NSDecimalNumber archived data is wrong size"
+        }
+        // Byte order?
+        let mantissa:(UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16) = (
+            UInt16(mantissaData[0]) << 8 & UInt16(mantissaData[1]),
+            UInt16(mantissaData[2]) << 8 & UInt16(mantissaData[3]),
+            UInt16(mantissaData[4]) << 8 & UInt16(mantissaData[5]),
+            UInt16(mantissaData[6]) << 8 & UInt16(mantissaData[7]),
+            UInt16(mantissaData[8]) << 8 & UInt16(mantissaData[9]),
+            UInt16(mantissaData[10]) << 8 & UInt16(mantissaData[11]),
+            UInt16(mantissaData[12]) << 8 & UInt16(mantissaData[13]),
+            UInt16(mantissaData[14]) << 8 & UInt16(mantissaData[15])
+        )
+        self.decimal = Decimal(_exponent: exponent, _length: length, _isNegative: isNegative, _isCompact: isCompact, _reserved: 0, _mantissa: mantissa)
+        super.init()
     }
 
     public required convenience init(floatLiteral value: Double) {
@@ -251,8 +281,11 @@ open class NSDecimalNumber : NSNumber {
     //   scale: No defined scale (full precision)
     //   ignore exactnessException
     //   raise on overflow, underflow and divide by zero.
-    
-    open override var objCType: UnsafePointer<Int8> { NSUnimplemented() }
+    static let OBJC_TYPE = "d".utf8CString
+
+    open override var objCType: UnsafePointer<Int8> {
+        return NSDecimalNumber.OBJC_TYPE.withUnsafeBufferPointer{ $0.baseAddress! }
+    }
     // return 'd' for double
     
     open override var int8Value: Int8 {
@@ -330,12 +363,44 @@ open class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCoding
         _raiseOnUnderflow = true
         _raiseOnDivideByZero = true
     }
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    public required init?(coder: NSCoder) {
+        guard coder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        _roundingMode = NSDecimalNumber.RoundingMode(rawValue: UInt(coder.decodeInteger(forKey: "NS.roundingMode")))!
+        if coder.containsValue(forKey: "NS.scale") {
+            _scale = Int16(coder.decodeInteger(forKey: "NS.scale"))
+        } else {
+            _scale = Int16(NSDecimalNoScale)
+        }
+        _raiseOnExactness = coder.decodeBool(forKey: "NS.raise.exactness")
+        _raiseOnOverflow = coder.decodeBool(forKey: "NS.raise.overflow")
+        _raiseOnUnderflow = coder.decodeBool(forKey: "NS.raise.underflow")
+        _raiseOnDivideByZero = coder.decodeBool(forKey: "NS.raise.dividebyzero")
     }
     
-    open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+    open func encode(with coder: NSCoder) {
+        guard coder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        if _roundingMode != .plain {
+            coder.encode(Int(_roundingMode.rawValue), forKey: "NS.roundingmode")
+        }
+        if _scale != Int16(NSDecimalNoScale) {
+            coder.encode(_scale, forKey:"NS.scale")
+        }
+        if _raiseOnExactness {
+            coder.encode(_raiseOnExactness, forKey:"NS.raise.exactness")
+        }
+        if _raiseOnOverflow {
+            coder.encode(_raiseOnOverflow, forKey:"NS.raise.overflow")
+        }
+        if _raiseOnUnderflow {
+            coder.encode(_raiseOnUnderflow, forKey:"NS.raise.underflow")
+        }
+        if _raiseOnDivideByZero {
+            coder.encode(_raiseOnDivideByZero, forKey:"NS.raise.dividebyzero")
+        }
     }
     
     open class func `default`() -> NSDecimalNumberHandler {

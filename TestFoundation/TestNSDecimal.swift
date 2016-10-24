@@ -593,6 +593,8 @@ class TestNSDecimal: XCTestCase {
 
         number = NSDecimalNumber(mantissa:1, exponent:0, isNegative:false)
         XCTAssertTrue(number.boolValue, "Should have received true")
+
+        XCTAssertEqual(100,number.objCType.pointee, "ObjC type for NSDecimalNumber is 'd'")
     }
 
     func test_ZeroPower() {
