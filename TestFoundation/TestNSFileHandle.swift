@@ -43,8 +43,18 @@ class TestNSFileHandle : XCTestCase {
     func test_nullDevice() {
         let fh = FileHandle.nullDevice
 
+        XCTAssertEqual(fh.fileDescriptor, -1)
+        fh.closeFile()
+        fh.seek(toFileOffset: 10)
+        XCTAssertEqual(fh.offsetInFile, 0)
+        XCTAssertEqual(fh.seekToEndOfFile(), 0)
+        XCTAssertEqual(fh.readData(ofLength: 15).count, 0)
+        fh.synchronizeFile()
+
         fh.write(Data(bytes: [1,2]))
+        fh.seek(toFileOffset: 0)
         XCTAssertEqual(fh.availableData.count, 0)
+        fh.write(Data(bytes: [1,2]))
         fh.seek(toFileOffset: 0)
         XCTAssertEqual(fh.readDataToEndOfFile().count, 0)
     }

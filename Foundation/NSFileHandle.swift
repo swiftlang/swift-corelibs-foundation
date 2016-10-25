@@ -216,7 +216,41 @@ extension FileHandle {
     }
 
     internal static var _nulldeviceFileHandle: FileHandle = {
-        return FileHandle(forUpdatingAtPath: "/dev/null")!
+        class NullDevice: FileHandle {
+            override var availableData: Data {
+                return Data()
+            }
+
+            override func readDataToEndOfFile() -> Data {
+                return Data()
+            }
+
+            override func readData(ofLength length: Int) -> Data {
+                return Data()
+            }
+
+            override func write(_ data: Data) {}
+
+            override var offsetInFile: UInt64 {
+                return 0
+            }
+
+            override func seekToEndOfFile() -> UInt64 {
+                return 0
+            }
+
+            override func seek(toFileOffset offset: UInt64) {}
+
+            override func truncateFile(atOffset offset: UInt64) {}
+
+            override func synchronizeFile() {}
+
+            override func closeFile() {}
+
+            deinit {}
+        }
+
+        return NullDevice(fileDescriptor: -1, closeOnDealloc: false)
     }()
 
     open class var nullDevice: FileHandle {
