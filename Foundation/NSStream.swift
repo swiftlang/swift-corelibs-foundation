@@ -349,12 +349,153 @@ extension StreamNetworkServiceTypeValue {
     public static let callSignaling = StreamNetworkServiceTypeValue(rawValue: "kCFStreamNetworkServiceTypeVoice")
 }
 
-
-
-
 // MARK: - Error Domains
 // NSString constants for error domains.
 public let NSStreamSocketSSLErrorDomain: String = "NSStreamSocketSSLErrorDomain"
 // SSL errors are to be interpreted via <Security/SecureTransport.h>
 public let NSStreamSOCKSErrorDomain: String = "NSStreamSOCKSErrorDomain"
 
+func socketRead(from s: CFSocketNativeHandle, buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+    return read(s, buffer, len)
+}
+
+func socketWrite(from s: CFSocketNativeHandle, buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
+    return write(s, buffer, len)
+}
+
+func closeSocket(_ socket: CFSocketNativeHandle) {
+    close(socket)
+}
+
+extension Stream {
+    open class func getStreamsToHost(withName hostname: String, port: Int, inputStream: UnsafeMutablePointer<InputStream?>?, outputStream: UnsafeMutablePointer<OutputStream?>?) {
+        
+        let myipv4cfsock = CFSocketCreate(kCFAllocatorDefault, PF_INET, Int32(SOCK_STREAM.rawValue), Int32(IPPROTO_TCP), CFOptionFlags(kCFSocketNoCallBack), nil, nil)
+        
+        
+        let sinSize = MemoryLayout<sockaddr_in>.size
+        let sin = UnsafeMutablePointer<sockaddr_in>.allocate(capacity: sinSize)
+        defer {
+            sin.deinitialize()
+            sin.deallocate(capacity: sinSize)
+        }
+        memset(sin, 0, sinSize)
+        sin.pointee.sin_family = sa_family_t(UInt16(AF_INET))
+        sin.pointee.sin_port = htons(UInt16(port))
+        sin.pointee.sin_addr.s_addr = inet_addr(hostname)
+        
+        sin.withMemoryRebound(to: UInt8.self, capacity: sinSize, {
+            let sincfd = CFDataCreate(kCFAllocatorDefault, $0, sinSize)
+            let socketError = CFSocketConnectToAddress(myipv4cfsock, sincfd, 0.0)
+            if socketError != 0 {
+                print("socketError: \(socketError)")
+                return
+            }
+        })
+        let sock = CFSocketGetNative(myipv4cfsock)
+        getStreamsTo(socket: sock, inputStream: inputStream, outputStream: outputStream)
+    }
+    
+    open class func getStreamsTo(socket: CFSocketNativeHandle, inputStream: UnsafeMutablePointer<InputStream?>?, outputStream: UnsafeMutablePointer<OutputStream?>?) {
+        inputStream?.pointee = SocketInputStream(withSocket: socket)
+        outputStream?.pointee = SocketOutputStream(withSocket: socket)
+    }
+}
+
+open class SocketInputStream: InputStream {
+    var nativeSocket: CFSocketNativeHandle!
+    var socket: CFSocket?
+    var status: Status?
+    
+    public init(withSocket s: CFSocketNativeHandle) {
+        super.init(data: Data(count: 0))
+        nativeSocket = s
+        status = .opening
+        
+        let handleRead : CFSocketCallBack = {s, type, address, data, info in
+            print("handleRead")
+            let inputStream = unsafeBitCast(info, to: SocketInputStream.self)
+            if let delegate = inputStream.delegate {
+                delegate.stream(inputStream, handleEvent: Stream.Event.hasBytesAvailable)
+            }
+        }
+        
+        var context = CFSocketContext(version: CFIndex(0), info: unsafeBitCast(self, to: UnsafeMutableRawPointer.self), retain: nil, release: nil, copyDescription: nil)
+        socket = CFSocketCreateWithNative(kCFAllocatorDefault, nativeSocket, CFOptionFlags(kCFSocketReadCallBack), handleRead, &context)
+    }
+    
+    open override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
+        //print("SocketInputStream schedule")
+        let socketSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), socketSource, kCFRunLoopDefaultMode)
+    }
+    
+    open override func open() {
+        
+        self.status = .open
+        if let delegate = self.delegate {
+            delegate.stream(self, handleEvent: Stream.Event.openCompleted)
+        }
+    }
+    
+    // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
+    open override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+        return socketRead(from: nativeSocket, buffer: buffer, maxLength: len)
+    }
+    
+    open override func close() {
+        closeSocket(nativeSocket)
+    }
+}
+
+open class SocketOutputStream: OutputStream {
+    var nativeSocket: CFSocketNativeHandle!
+    var socket: CFSocket?
+    var status: Status?
+    
+    required public init(toMemory: ()) {
+        super.init(toMemory: ())
+    }
+    
+    public init(withSocket s: CFSocketNativeHandle) {
+        super.init(toMemory: ())
+        nativeSocket = s
+        status = .opening
+        
+        let handleWrite : CFSocketCallBack = {s, type, address, data, info in
+            print("handleWrite")
+            let outputStream = unsafeBitCast(info, to: SocketOutputStream.self)
+            if let delegate = outputStream.delegate {
+                delegate.stream(outputStream, handleEvent: Stream.Event.hasSpaceAvailable)
+            }
+        }
+        var context = CFSocketContext(version: CFIndex(0), info: unsafeBitCast(self, to: UnsafeMutableRawPointer.self), retain: nil, release: nil, copyDescription: nil)
+        socket = CFSocketCreateWithNative(kCFAllocatorDefault, nativeSocket, CFOptionFlags(kCFSocketWriteCallBack), handleWrite, &context)
+        //print("SocketOutputStream socket: \(socket)")
+    }
+    
+    open override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
+        //print("SocketOutputStream schedule")
+        let socketSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), socketSource, kCFRunLoopDefaultMode)
+    }
+    
+    open override func open() {
+        //print("SocketOutputStream open")
+        
+        self.status = .open
+        if let delegate = self.delegate {
+            delegate.stream(self, handleEvent: Stream.Event.openCompleted)
+            delegate.stream(self, handleEvent: Stream.Event.hasSpaceAvailable)
+        }
+    }
+    
+    open override func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
+        //return write(nativeSocket, buffer, len)
+        return socketWrite(from: nativeSocket, buffer: buffer, maxLength: len)
+    }
+    
+    open override func close() {
+        closeSocket(nativeSocket)
+    }
+}
