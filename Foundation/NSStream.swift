@@ -355,15 +355,15 @@ public let NSStreamSocketSSLErrorDomain: String = "NSStreamSocketSSLErrorDomain"
 // SSL errors are to be interpreted via <Security/SecureTransport.h>
 public let NSStreamSOCKSErrorDomain: String = "NSStreamSOCKSErrorDomain"
 
-func socketRead(from s: CFSocketNativeHandle, buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+private func socketRead(from s: CFSocketNativeHandle, buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
     return read(s, buffer, len)
 }
 
-func socketWrite(from s: CFSocketNativeHandle, buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
+private func socketWrite(from s: CFSocketNativeHandle, buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
     return write(s, buffer, len)
 }
 
-func closeSocket(_ socket: CFSocketNativeHandle) {
+private func closeSocket(_ socket: CFSocketNativeHandle) {
     close(socket)
 }
 
@@ -402,12 +402,12 @@ extension Stream {
     }
 }
 
-class SocketInputStream: InputStream {
+private class SocketInputStream: InputStream {
     var nativeSocket: CFSocketNativeHandle!
     var socket: CFSocket?
     var status: Status?
     
-    init(withSocket s: CFSocketNativeHandle) {
+    public init(withSocket s: CFSocketNativeHandle) {
         super.init(data: Data(count: 0))
         nativeSocket = s
         status = .opening
@@ -424,13 +424,13 @@ class SocketInputStream: InputStream {
         socket = CFSocketCreateWithNative(kCFAllocatorDefault, nativeSocket, CFOptionFlags(kCFSocketReadCallBack), handleRead, &context)
     }
     
-    override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
+    open override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
         //print("SocketInputStream schedule")
         let socketSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), socketSource, kCFRunLoopDefaultMode)
     }
     
-    override func open() {
+    open override func open() {
         
         self.status = .open
         if let delegate = self.delegate {
@@ -439,25 +439,25 @@ class SocketInputStream: InputStream {
     }
     
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
-    override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+    open override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         return socketRead(from: nativeSocket, buffer: buffer, maxLength: len)
     }
     
-    override func close() {
+    open override func close() {
         closeSocket(nativeSocket)
     }
 }
 
-class SocketOutputStream: OutputStream {
+private class SocketOutputStream: OutputStream {
     var nativeSocket: CFSocketNativeHandle!
     var socket: CFSocket?
     var status: Status?
     
-    required init(toMemory: ()) {
+    required public init(toMemory: ()) {
         super.init(toMemory: ())
     }
     
-    init(withSocket s: CFSocketNativeHandle) {
+    public init(withSocket s: CFSocketNativeHandle) {
         super.init(toMemory: ())
         nativeSocket = s
         status = .opening
@@ -474,13 +474,13 @@ class SocketOutputStream: OutputStream {
         //print("SocketOutputStream socket: \(socket)")
     }
     
-    override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
+    open override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
         //print("SocketOutputStream schedule")
         let socketSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), socketSource, kCFRunLoopDefaultMode)
     }
     
-    override func open() {
+    open override func open() {
         //print("SocketOutputStream open")
         
         self.status = .open
@@ -490,12 +490,12 @@ class SocketOutputStream: OutputStream {
         }
     }
     
-    override func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
+    open override func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         //return write(nativeSocket, buffer, len)
         return socketWrite(from: nativeSocket, buffer: buffer, maxLength: len)
     }
     
-    override func close() {
+    open override func close() {
         closeSocket(nativeSocket)
     }
 }
