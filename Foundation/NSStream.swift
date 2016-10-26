@@ -413,7 +413,6 @@ private class SocketInputStream: InputStream {
         status = .opening
         
         let handleRead : CFSocketCallBack = {s, type, address, data, info in
-            print("handleRead")
             let inputStream = unsafeBitCast(info, to: SocketInputStream.self)
             if let delegate = inputStream.delegate {
                 delegate.stream(inputStream, handleEvent: Stream.Event.hasBytesAvailable)
@@ -425,7 +424,6 @@ private class SocketInputStream: InputStream {
     }
     
     open override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
-        //print("SocketInputStream schedule")
         let socketSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), socketSource, kCFRunLoopDefaultMode)
     }
@@ -471,17 +469,14 @@ private class SocketOutputStream: OutputStream {
         }
         var context = CFSocketContext(version: CFIndex(0), info: unsafeBitCast(self, to: UnsafeMutableRawPointer.self), retain: nil, release: nil, copyDescription: nil)
         socket = CFSocketCreateWithNative(kCFAllocatorDefault, nativeSocket, CFOptionFlags(kCFSocketWriteCallBack), handleWrite, &context)
-        //print("SocketOutputStream socket: \(socket)")
     }
     
     open override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
-        //print("SocketOutputStream schedule")
         let socketSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), socketSource, kCFRunLoopDefaultMode)
     }
     
     open override func open() {
-        //print("SocketOutputStream open")
         
         self.status = .open
         if let delegate = self.delegate {
@@ -491,7 +486,6 @@ private class SocketOutputStream: OutputStream {
     }
     
     open override func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
-        //return write(nativeSocket, buffer, len)
         return socketWrite(from: nativeSocket, buffer: buffer, maxLength: len)
     }
     
