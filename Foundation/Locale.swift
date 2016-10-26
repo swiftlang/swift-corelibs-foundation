@@ -69,7 +69,7 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
     
     /// Returns a localized string for a specified identifier.
     ///
-    /// For example, in the "en" locale, the result for `"en"` is `"Spanish"`.
+    /// For example, in the "en" locale, the result for `"es"` is `"Spanish"`.
     public func localizedString(forIdentifier identifier: String) -> String? {
         return _wrapped.displayName(forKey: .identifier, value: identifier)
     }
@@ -83,7 +83,7 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
     
     /// Returns a localized string for a specified region code.
     ///
-    /// For example, in the "en" locale, the result for `"fr"` is `"French"`.
+    /// For example, in the "en" locale, the result for `"fr"` is `"France"`.
     public func localizedString(forRegionCode regionCode: String) -> String? {
         return _wrapped.displayName(forKey: .countryCode, value: regionCode)
     }
