@@ -425,7 +425,7 @@ private class SocketInputStream: InputStream {
     
     open override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
         let socketSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
-        CFRunLoopAddSource(CFRunLoopGetCurrent(), socketSource, kCFRunLoopDefaultMode)
+        CFRunLoopAddSource(runLoop.getCFRunLoop(), socketSource, kCFRunLoopDefaultMode)
     }
     
     open override func open() {
@@ -473,7 +473,7 @@ private class SocketOutputStream: OutputStream {
     
     open override func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
         let socketSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
-        CFRunLoopAddSource(CFRunLoopGetCurrent(), socketSource, kCFRunLoopDefaultMode)
+        CFRunLoopAddSource(runLoop.getCFRunLoop(), socketSource, kCFRunLoopDefaultMode)
     }
     
     open override func open() {
