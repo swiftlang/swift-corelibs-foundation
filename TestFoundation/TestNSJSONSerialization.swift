@@ -932,11 +932,11 @@ extension TestNSJSONSerialization {
     func test_booleanJSONObject() {
         do {
             let mydata = try JSONSerialization.data(withJSONObject: [true])
-            XCTAssertEqual(String(data: mydata, encoding: String.Encoding.utf8), "[1]")
+            XCTAssertEqual(String(data: mydata, encoding: String.Encoding.utf8), "[true]")
         } catch {
             XCTFail("Failed during serialization")
         }
-        XCTAssertTrue(JSONSerialization.isValidJSONObject([1]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([true]))
     }
 
     private func createTestFile(_ path: String,_contents: Data) -> String? {
