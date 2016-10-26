@@ -270,21 +270,21 @@ private struct JSONWriter {
     }
     
     mutating func serializeJSON(_ obj: Any) throws {
-        
-        if let str = obj as? String {
+
+        switch (obj) {
+        case let str as String:
             try serializeString(str)
-        } else if let num = _SwiftValue.store(obj) as? NSNumber {
-            try serializeNumber(num)
-        } else if let array = obj as? Array<Any> {
+        case _ where _SwiftValue.store(obj) is NSNumber:
+            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
+        case let array as Array<Any>:
             try serializeArray(array)
-        } else if let dict = obj as? Dictionary<AnyHashable, Any> {
+        case let dict as Dictionary<AnyHashable, Any>:
             try serializeDictionary(dict)
-        } else if let null = obj as? NSNull {
+        case let null as NSNull:
             try serializeNull(null)
-        } else if let boolVal = obj as? Bool {
-            try serializeNumber(NSNumber(value: boolVal))
-        }
-        else {
+        case let bool as Bool:
+            try serializeNumber(NSNumber(value: bool))
+        default:
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
         }
     }
