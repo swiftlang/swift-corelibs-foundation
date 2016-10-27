@@ -270,7 +270,9 @@ open class NSKeyedArchiver : NSCoder {
             return NSKeyedArchiveNullObjectReference
         }
         
-        uid = self._objRefMap[objv as! AnyHashable]
+        let value = _SwiftValue.store(objv)!
+        
+        uid = self._objRefMap[value]
         if uid == nil {
             if conditional {
                 return nil // object has not been unconditionally encoded
@@ -278,7 +280,7 @@ open class NSKeyedArchiver : NSCoder {
             
             uid = UInt32(self._objects.count)
             
-            self._objRefMap[objv as! AnyHashable] = uid
+            self._objRefMap[value] = uid
             self._objects.insert(NSKeyedArchiveNullObjectReferenceName, at: Int(uid!))
         }
 
@@ -292,7 +294,7 @@ open class NSKeyedArchiver : NSCoder {
         if objv == nil {
             return true // always have a null reference
         } else {
-            return self._objRefMap[objv as! AnyHashable] != nil
+            return self._objRefMap[_SwiftValue.store(objv)] != nil
         }
     }
     
@@ -361,10 +363,10 @@ open class NSKeyedArchiver : NSCoder {
      */
     private func replaceObject(_ object: Any, withObject replacement: Any?) {
         if let unwrappedDelegate = self.delegate {
-            unwrappedDelegate.archiver(self, willReplace: object as! AnyHashable, with: replacement)
+            unwrappedDelegate.archiver(self, willReplace: object, with: replacement)
         }
         
-        self._replacementMap[object as! AnyHashable] = replacement
+        self._replacementMap[_SwiftValue.store(object)] = replacement
     }
    
     /**
@@ -476,9 +478,8 @@ open class NSKeyedArchiver : NSCoder {
         
         // object replaced by NSObject.replacementObjectForKeyedArchiver
         // if it is replaced with nil, it cannot be further replaced
-        if objectToEncode == nil {
-            let ns = object as? NSObject
-            objectToEncode = ns?.replacementObjectForKeyedArchiver(self)
+        if let ns = objectToEncode as? NSObject {
+            objectToEncode = ns.replacementObjectForKeyedArchiver(self)
             if objectToEncode == nil {
                 replaceObject(object!, withObject: nil)
                 return nil
@@ -510,7 +511,12 @@ open class NSKeyedArchiver : NSCoder {
 
         haveVisited = _haveVisited(objv)
         object = _replacementObject(objv)
-
+        
+        // bridge value types
+        if let bridgedObject = object as? _ObjectBridgeable {
+            object = bridgedObject._bridgeToAnyObject()
+        }
+        
         objectRef = _referenceObject(object, conditional: conditional)
         guard let unwrappedObjectRef = objectRef else {
             // we can return nil if the object is being conditionally encoded
@@ -531,12 +537,9 @@ open class NSKeyedArchiver : NSCoder {
                 _pushEncodingContext(innerEncodingContext)
                 codable.encode(with: self)
 
-                guard let ns = object as? NSObject else {
-                    fatalError("Attempt to encode non-NSObject");
-                }
-
-                let cls : AnyClass = ns.classForKeyedArchiver ?? type(of: object) as! AnyClass
-
+                let ns = object as? NSObject
+                let cls : AnyClass = ns?.classForKeyedArchiver ?? type(of: object!) as! AnyClass
+                
                 _setObjectInCurrentEncodingContext(_classReference(cls), forKey: "$class", escape: false)
                 _popEncodingContext()
                 encodedObject = innerEncodingContext.dict
