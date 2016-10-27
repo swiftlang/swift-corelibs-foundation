@@ -233,37 +233,37 @@ open class NSNumber : NSValue {
     }
     
     public init(value: Int8) {
-        _objCType = .Int
+        _objCType = .Char
         super.init()
         _CFNumberInitInt8(_cfObject, value)
     }
     
     public init(value: UInt8) {
-        _objCType = .UInt
+        _objCType = .UChar
         super.init()
         _CFNumberInitUInt8(_cfObject, value)
     }
     
     public init(value: Int16) {
-        _objCType = .Int
+        _objCType = .Short
         super.init()
         _CFNumberInitInt16(_cfObject, value)
     }
     
     public init(value: UInt16) {
-        _objCType = .UInt
+        _objCType = .UShort
         super.init()
         _CFNumberInitUInt16(_cfObject, value)
     }
     
     public init(value: Int32) {
-        _objCType = .Int
+        _objCType = .Long
         super.init()
         _CFNumberInitInt32(_cfObject, value)
     }
     
     public init(value: UInt32) {
-        _objCType = .UInt
+        _objCType = .ULong
         super.init()
         _CFNumberInitUInt32(_cfObject, value)
     }
@@ -281,13 +281,13 @@ open class NSNumber : NSValue {
     }
     
     public init(value: Int64) {
-        _objCType = .Int
+        _objCType = .LongLong
         super.init()
         _CFNumberInitInt64(_cfObject, value)
     }
     
     public init(value: UInt64) {
-        _objCType = .UInt
+        _objCType = .ULongLong
         super.init()
         _CFNumberInitUInt64(_cfObject, value)
     }
