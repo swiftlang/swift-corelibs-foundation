@@ -777,7 +777,7 @@ extension TestNSJSONSerialization {
         
         // Cannot generate "true"/"false" currently
         json = [NSNumber(value:false),NSNumber(value:true)]
-        XCTAssertEqual(try trySerialize(json), "[0,1]")
+        XCTAssertEqual(try trySerialize(json), "[false,true]")
     }
     
     func test_serialize_stringEscaping() {

@@ -333,10 +333,12 @@ private struct JSONWriter {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
         }
         
-        // Cannot detect type information (e.g. bool) as there is no objCType property on NSNumber in Swift
-        // So, just print the number
-
-        writer(_serializationString(for: num))
+        switch num._objCType {
+        case .Bool:
+            serializeBool(num.boolValue)
+        default:
+            writer(_serializationString(for: num))
+        }
     }
 
     mutating func serializeArray(_ array: [Any]) throws {
