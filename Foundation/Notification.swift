@@ -76,7 +76,17 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
 
 extension Notification : CustomReflectable {
     public var customMirror: Mirror {
-        NSUnimplemented()
+        var children: [(label: String?, value: Any)] = [(label: "name", self.name.rawValue)]
+
+        if let object = self.object {
+            children.append((label: "object", object))
+        }
+
+        if let info = self.userInfo {
+            children.append((label: "userInfo", info))
+        }
+
+        return Mirror(self, children: children, displayStyle: .class)
     }
 }
 
