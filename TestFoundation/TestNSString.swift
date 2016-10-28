@@ -886,8 +886,12 @@ class TestNSString : XCTestCase {
     func test_removingPercentEncodingInNonLatin() {
         let s1 = "\u{043C}\u{043E}\u{0439}%20\u{0434}\u{043E}\u{043C}".removingPercentEncoding
         XCTAssertEqual(s1, "\u{043C}\u{043E}\u{0439} \u{0434}\u{043E}\u{043C}")
-        let s2 = "\u{00E0}a%1 b".removingPercentEncoding
-        XCTAssertNil(s2, "returns nil for a string with an invalid percent encoding")
+        
+        let s2 = "%D0%B4%D0%BE%D0%BC".removingPercentEncoding
+        XCTAssertEqual(s2, "\u{0434}\u{043E}\u{043C}")
+        
+        let s3 = "\u{00E0}a%1 b".removingPercentEncoding
+        XCTAssertNil(s3, "returns nil for a string with an invalid percent encoding")
     }
     
     func test_removingPersentEncodingWithoutEncoding() {
