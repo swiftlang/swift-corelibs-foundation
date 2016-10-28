@@ -75,13 +75,16 @@ class TestNSXMLParser : XCTestCase {
         return [
             ("test_withData", test_withData),
             ("test_withDataEncodings", test_withDataEncodings),
+            ("test_withDataOptions", test_withDataOptions),
         ]
     }
-    static let xmlUnderTest = "<test attribute='value'><foo>bar</foo></test>"
 
     // Helper method to embed the correct encoding in the XML header
-    static func xmlUnderTestEmbedded(encoding: String.Encoding) -> String {
-        var encoding = encoding.description
+    static func xmlUnderTest(encoding: String.Encoding? = nil) -> String {
+        let xmlUnderTest = "<test attribute='value'><foo>bar</foo></test>"
+        guard var encoding = encoding?.description else {
+            return xmlUnderTest
+        }
         if let open = encoding.range(of: "(") {
             encoding = encoding.substring(from: open.upperBound)
         }
@@ -91,18 +94,21 @@ class TestNSXMLParser : XCTestCase {
         return "<?xml version='1.0' encoding='\(encoding.uppercased())' standalone='no'?>\n\(xmlUnderTest)\n"
     }
 
-    static let xmlUnderTestExpectedEvents: [XMLParserDelegateEvent] = [
-        .startDocument,
-        .didStartElement("test", nil, nil, ["attribute": "value"]),
-        .didStartElement("foo", nil, nil, [:]),
-        .foundCharacters("bar"),
-        .didEndElement("foo", nil, nil),
-        .didEndElement("test", nil, nil),
-    ]
+    static func xmlUnderTestExpectedEvents(namespaces: Bool = false) -> [XMLParserDelegateEvent] {
+        let uri: String? = namespaces ? "" : nil
+        return [
+            .startDocument,
+            .didStartElement("test", uri, namespaces ? "test" : nil, ["attribute": "value"]),
+            .didStartElement("foo", uri, namespaces ? "foo" : nil, [:]),
+            .foundCharacters("bar"),
+            .didEndElement("foo", uri, namespaces ? "foo" : nil),
+            .didEndElement("test", uri, namespaces ? "test" : nil),
+        ]
+    }
 
 
     func test_withData() {
-        let xml = Array(TestNSXMLParser.xmlUnderTest.utf8CString)
+        let xml = Array(TestNSXMLParser.xmlUnderTest().utf8CString)
         let data = xml.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<CChar>) -> Data in
             return buffer.baseAddress!.withMemoryRebound(to: UInt8.self, capacity: buffer.count * MemoryLayout<CChar>.stride) {
                 return Data(bytes: $0, count: buffer.count)
@@ -112,23 +118,37 @@ class TestNSXMLParser : XCTestCase {
         let stream = XMLParserDelegateEventStream()
         parser.delegate = stream
         let res = parser.parse()
-        XCTAssertEqual(stream.events, TestNSXMLParser.xmlUnderTestExpectedEvents)
+        XCTAssertEqual(stream.events, TestNSXMLParser.xmlUnderTestExpectedEvents())
         XCTAssertTrue(res)
     }
 
     func test_withDataEncodings() {
-        // These do not work, not sure why. If th ?xml header isn't present, they all fail. This appears to be libxml2 issue.
-        // .nextstep, .utf32LittleEndian
+        // If th <?xml header isn't present, any non-UTF8 encodings fail. This appears to be libxml2 behavior.
+        // These don't work, it may just be an issue with the `encoding=xxx`.
+        //   - .nextstep, .utf32LittleEndian
         let encodings: [String.Encoding] = [.utf16LittleEndian, .utf16BigEndian, .utf32BigEndian, .ascii]
         for encoding in encodings {
-            let xml = TestNSXMLParser.xmlUnderTestEmbedded(encoding: encoding)
+            let xml = TestNSXMLParser.xmlUnderTest(encoding: encoding)
             let parser = XMLParser(data: xml.data(using: encoding)!)
             let stream = XMLParserDelegateEventStream()
             parser.delegate = stream
             let res = parser.parse()
-            let expected = TestNSXMLParser.xmlUnderTestExpectedEvents
-            XCTAssertEqual(stream.events, expected)
+            XCTAssertEqual(stream.events, TestNSXMLParser.xmlUnderTestExpectedEvents())
             XCTAssertTrue(res)
         }
     }
+
+    func test_withDataOptions() {
+        let xml = TestNSXMLParser.xmlUnderTest()
+        let parser = XMLParser(data: xml.data(using: String.Encoding.utf8)!)
+        parser.shouldProcessNamespaces = true
+        parser.shouldReportNamespacePrefixes = true
+        parser.shouldResolveExternalEntities = true
+        let stream = XMLParserDelegateEventStream()
+        parser.delegate = stream
+        let res = parser.parse()
+        XCTAssertEqual(stream.events, TestNSXMLParser.xmlUnderTestExpectedEvents(namespaces: true)  )
+        XCTAssertTrue(res)
+    }
+
 }

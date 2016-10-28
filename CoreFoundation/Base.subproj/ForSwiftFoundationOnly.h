@@ -171,7 +171,7 @@ struct _NSXMLParserBridge {
     void (*startElementNs)(_CFXMLInterface ctx,
                            const unsigned char *localname,
                            const unsigned char *_Nullable prefix,
-                           const unsigned char *URI,
+                           const unsigned char *_Nullable URI,
                            int nb_namespaces,
                            const unsigned char *_Nullable *_Nonnull namespaces,
                            int nb_attributes,
@@ -180,7 +180,7 @@ struct _NSXMLParserBridge {
     void (*endElementNs)(_CFXMLInterface ctx,
                          const unsigned char *localname,
                          const unsigned char *_Nullable prefix,
-                         const unsigned char *URI);
+                         const unsigned char *_Nullable URI);
     void (*characters)(_CFXMLInterface ctx,
                        const unsigned char *ch,
                        int len);
