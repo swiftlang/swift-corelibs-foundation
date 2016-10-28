@@ -16,7 +16,7 @@
     import SwiftXCTest
 #endif
 
-public class UserClass : NSObject, NSSecureCoding {
+public class NSUserClass : NSObject, NSSecureCoding {
     var ivar : Int
     
     public class var supportsSecureCoding: Bool {
@@ -37,16 +37,50 @@ public class UserClass : NSObject, NSSecureCoding {
     
     public override var description: String {
         get {
-            return "UserClass \(ivar)"
+            return "NSUserClass \(ivar)"
         }
     }
     
     public override func isEqual(_ object: Any?) -> Bool {
-        if let custom = object as? UserClass {
+        if let custom = object as? NSUserClass {
             return self.ivar == custom.ivar
         } else {
             return false
         }
+    }
+}
+
+public class UserClass : CustomStringConvertible, Equatable, Hashable, NSSecureCoding {
+    var ivar : Int
+    
+    public class var supportsSecureCoding: Bool {
+        return true
+    }
+    
+    public func encode(with aCoder : NSCoder) {
+        aCoder.encode(ivar, forKey:"$ivar") // also test escaping
+    }
+    
+    init(_ value: Int) {
+        self.ivar = value
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        self.ivar = aDecoder.decodeInteger(forKey: "$ivar")
+    }
+    
+    public var description: String {
+        get {
+            return "UserClass \(ivar)"
+        }
+    }
+    
+    public static func ==(lhs: UserClass, rhs: UserClass) -> Bool {
+        return lhs.ivar == rhs.ivar
+    }
+    
+    public var hashValue: Int {
+        return ivar
     }
 }
 
@@ -62,6 +96,7 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_string", test_archive_string),
             ("test_archive_mutable_array", test_archive_mutable_array),
             ("test_archive_mutable_dictionary", test_archive_mutable_dictionary),
+            ("test_archive_ns_user_class", test_archive_ns_user_class),
             ("test_archive_nspoint", test_archive_nspoint),
             ("test_archive_nsrange", test_archive_nsrange),
             ("test_archive_nsrect", test_archive_nsrect),
@@ -69,7 +104,8 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_set", test_archive_set),
             ("test_archive_url", test_archive_url),
             ("test_archive_user_class", test_archive_user_class),
-            ("test_archive_uuid", test_archive_uuid),
+            ("test_archive_uuid_bvref", test_archive_uuid_byref),
+            ("test_archive_uuid_byvalue", test_archive_uuid_byvalue),
         ]
     }
 
@@ -85,7 +121,7 @@ class TestNSKeyedArchiver : XCTestCase {
         XCTAssertTrue(decode(unarchiver))
     }
     
-    private func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: PropertyListSerialization.PropertyListFormat) {
+    private func test_archive(_ object: Any, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: PropertyListSerialization.PropertyListFormat) {
         test_archive({ archiver -> Bool in
                 archiver.requiresSecureCoding = allowsSecureCoding
                 archiver.outputFormat = outputFormat
@@ -97,12 +133,12 @@ class TestNSKeyedArchiver : XCTestCase {
                 unarchiver.requiresSecureCoding = allowsSecureCoding
                 
                 do {
-                    let rootObj = try unarchiver.decodeTopLevelObject(of: classes, forKey: NSKeyedArchiveRootObjectKey)
-                    guard let root = rootObj as? NSObject else {
+                    guard let rootObj = try unarchiver.decodeTopLevelObject(of: classes, forKey: NSKeyedArchiveRootObjectKey) else {
                         XCTFail("Unable to decode data")
                         return false
                     }
-                    XCTAssertEqual(object, root, "unarchived object \(root) does not match \(object)")
+                
+                    XCTAssertEqual(object as? AnyHashable, rootObj as? AnyHashable, "unarchived object \(rootObj) does not match \(object)")
                 } catch {
                     XCTFail("Error thrown: \(error)")
                 }
@@ -110,13 +146,13 @@ class TestNSKeyedArchiver : XCTestCase {
         })
     }
     
-    private func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true) {
+    private func test_archive(_ object: Any, classes: [AnyClass], allowsSecureCoding: Bool = true) {
         // test both XML and binary encodings
         test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.xml)
         test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.binary)
     }
     
-    private func test_archive(_ object: NSObject, allowsSecureCoding: Bool = true) {
+    private func test_archive(_ object: AnyObject, allowsSecureCoding: Bool = true) {
         return test_archive(object, classes: [type(of: object)], allowsSecureCoding: allowsSecureCoding)
     }
     
@@ -252,8 +288,18 @@ class TestNSKeyedArchiver : XCTestCase {
         test_archive(userClass)
     }
     
-    func test_archive_uuid() {
+    func test_archive_ns_user_class() {
+        let nsUserClass = NSUserClass(5678)
+        test_archive(nsUserClass)
+    }
+    
+    func test_archive_uuid_byref() {
         let uuid = NSUUID()
         test_archive(uuid)
+    }
+    
+    func test_archive_uuid_byvalue() {
+        let uuid = UUID()
+        return test_archive(uuid, classes: [NSUUID.self])
     }
 }
