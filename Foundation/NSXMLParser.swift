@@ -745,13 +745,13 @@ public protocol XMLParserDelegate: class {
     func parser(_ parser: XMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data?
     // this gives the delegate an opportunity to resolve an external entity itself and reply with the resulting data.
     
-    func parser(_ parser: XMLParser, parseErrorOccurred parseError: NSError)
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error)
     // ...and this reports a fatal error to the delegate. The parser will stop parsing.
     
-    func parser(_ parser: XMLParser, validationErrorOccurred validationError: NSError)
+    func parser(_ parser: XMLParser, validationErrorOccurred validationError: Error)
 }
 
-extension XMLParserDelegate {
+public extension XMLParserDelegate {
     
     func parserDidStartDocument(_ parser: XMLParser) { }
     func parserDidEndDocument(_ parser: XMLParser) { }
@@ -788,9 +788,9 @@ extension XMLParserDelegate {
     
     func parser(_ parser: XMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data? { return nil }
     
-    func parser(_ parser: XMLParser, parseErrorOccurred parseError: NSError) { }
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) { }
     
-    func parser(_ parser: XMLParser, validationErrorOccurred validationError: NSError) { }
+    func parser(_ parser: XMLParser, validationErrorOccurred validationError: Error) { }
 }
 
 extension XMLParser {

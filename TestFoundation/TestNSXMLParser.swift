@@ -9,31 +9,126 @@
 
 
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
+    import Foundation
+    import XCTest
 #else
-import SwiftFoundation
-import SwiftXCTest
+    import SwiftFoundation
+    import SwiftXCTest
 #endif
 
+class OptionalParserConformance: XMLParserDelegate {}
+
+enum XMLParserDelegateEvent {
+    case startDocument
+    case endDocument
+    case didStartElement(String, String?, String?, [String: String])
+    case didEndElement(String, String?, String?)
+    case foundCharacters(String)
+}
+
+extension XMLParserDelegateEvent: Equatable {
+
+    public static func ==(lhs: XMLParserDelegateEvent, rhs: XMLParserDelegateEvent) -> Bool {
+        switch (lhs, rhs) {
+        case (.startDocument, startDocument):
+            return true
+        case (.endDocument, endDocument):
+            return true
+        case let (.didStartElement(lhsElement, lhsNamespace, lhsQname, lhsAttr),
+                  didStartElement(rhsElement, rhsNamespace, rhsQname, rhsAttr)):
+            return lhsElement == rhsElement && lhsNamespace == rhsNamespace && lhsQname == rhsQname && lhsAttr == rhsAttr
+        case let (.didEndElement(lhsElement, lhsNamespace, lhsQname),
+                  .didEndElement(rhsElement, rhsNamespace, rhsQname)):
+            return lhsElement == rhsElement && lhsNamespace == rhsNamespace && lhsQname == rhsQname
+        case let (.foundCharacters(lhsChar), .foundCharacters(rhsChar)):
+            return lhsChar == rhsChar
+        default:
+            return false
+        }
+    }
+
+}
+
+class XMLParserDelegateEventStream: XMLParserDelegate {
+    var events: [XMLParserDelegateEvent] = []
+
+    func parserDidStartDocument(_ parser: XMLParser) {
+        events.append(.startDocument)
+    }
+    func parserDidEndDocument(_ parser: XMLParser) {
+        events.append(.endDocument)
+    }
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String]) {
+        events.append(.didStartElement(elementName, namespaceURI, qName, attributeDict))
+    }
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+        events.append(.didEndElement(elementName, namespaceURI, qName))
+    }
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
+        events.append(.foundCharacters(string))
+    }
+}
 
 class TestNSXMLParser : XCTestCase {
-    
+
     static var allTests: [(String, (TestNSXMLParser) -> () throws -> Void)] {
         return [
-            ("test_data", test_data),
+            ("test_withData", test_withData),
+            ("test_withDataEncodings", test_withDataEncodings),
         ]
     }
-    
-    func test_data() {
-        let xml = Array("<test><foo>bar</foo></test>".utf8CString)
+    static let xmlUnderTest = "<test attribute='value'><foo>bar</foo></test>"
+
+    // Helper method to embed the correct encoding in the XML header
+    static func xmlUnderTestEmbedded(encoding: String.Encoding) -> String {
+        var encoding = encoding.description
+        if let open = encoding.range(of: "(") {
+            encoding = encoding.substring(from: open.upperBound)
+        }
+        if let close = encoding.range(of: ")") {
+            encoding = encoding.substring(to: close.lowerBound)
+        }
+        return "<?xml version='1.0' encoding='\(encoding.uppercased())' standalone='no'?>\n\(xmlUnderTest)\n"
+    }
+
+    static let xmlUnderTestExpectedEvents: [XMLParserDelegateEvent] = [
+        .startDocument,
+        .didStartElement("test", nil, nil, ["attribute": "value"]),
+        .didStartElement("foo", nil, nil, [:]),
+        .foundCharacters("bar"),
+        .didEndElement("foo", nil, nil),
+        .didEndElement("test", nil, nil),
+    ]
+
+
+    func test_withData() {
+        let xml = Array(TestNSXMLParser.xmlUnderTest.utf8CString)
         let data = xml.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<CChar>) -> Data in
             return buffer.baseAddress!.withMemoryRebound(to: UInt8.self, capacity: buffer.count * MemoryLayout<CChar>.stride) {
                 return Data(bytes: $0, count: buffer.count)
             }
         }
         let parser = XMLParser(data: data)
+        let stream = XMLParserDelegateEventStream()
+        parser.delegate = stream
         let res = parser.parse()
+        XCTAssertEqual(stream.events, TestNSXMLParser.xmlUnderTestExpectedEvents)
         XCTAssertTrue(res)
+    }
+
+    func test_withDataEncodings() {
+        // These do not work, not sure why. If th ?xml header isn't present, they all fail. This appears to be libxml2 issue.
+        // .nextstep, .utf32LittleEndian
+        let encodings: [String.Encoding] = [.utf16LittleEndian, .utf16BigEndian, .utf32BigEndian, .ascii]
+        for encoding in encodings {
+            let xml = TestNSXMLParser.xmlUnderTestEmbedded(encoding: encoding)
+            let parser = XMLParser(data: xml.data(using: encoding)!)
+            let stream = XMLParserDelegateEventStream()
+            parser.delegate = stream
+            let res = parser.parse()
+            let expected = TestNSXMLParser.xmlUnderTestExpectedEvents
+            XCTAssertEqual(stream.events, expected)
+            XCTAssertTrue(res)
+        }
     }
 }

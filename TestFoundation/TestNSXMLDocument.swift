@@ -13,7 +13,7 @@
     import Foundation
     import XCTest
 #else
-    @testable import SwiftFoundation
+    import SwiftFoundation
     import SwiftXCTest
 #endif
 
