@@ -93,6 +93,7 @@ private class NSNotificationReceiver : NSObject {
     fileprivate weak var object: NSObject?
     fileprivate var name: Notification.Name?
     fileprivate var block: ((Notification) -> Void)?
+    fileprivate weak var queue: OperationQueue?
     fileprivate var sender: AnyObject?
 }
 
@@ -162,8 +163,13 @@ open class NotificationCenter: NSObject {
             guard let block = observer.block else {
                 continue
             }
-            
-            block(notification)
+            if let queue = observer.queue {
+                queue.addOperation {
+                    block(notification)
+                }
+            } else {
+                block(notification)
+            }
         }
     }
 
@@ -187,10 +193,6 @@ open class NotificationCenter: NSObject {
     }
     
     open func addObserver(forName name: Notification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
-        if queue != nil {
-            NSUnimplemented()
-        }
-
         let object = NSObject()
         
         let newObserver = NSNotificationReceiver()
@@ -198,6 +200,7 @@ open class NotificationCenter: NSObject {
         newObserver.name = name
         newObserver.block = block
         newObserver.sender = _SwiftValue.store(obj)
+        newObserver.queue = queue
 
         _observersLock.synchronized({
             _observers.append(newObserver)
