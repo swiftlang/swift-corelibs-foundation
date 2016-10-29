@@ -33,13 +33,13 @@ class TestNSStream : XCTestCase {
     }
     
     func test_InputStreamWithData(){
-        let message: NSString = "Hello, playground\0\0\0"
+        let message: NSString = "Hello, playground"
         let messageData: Data = message.data(using: String.Encoding.utf8.rawValue)!
         let dataStream: InputStream = InputStream(data: messageData)
         XCTAssertEqual(Stream.Status.notOpen, dataStream.streamStatus)
         dataStream.open()
         XCTAssertEqual(Stream.Status.open, dataStream.streamStatus)
-        var buffer = [UInt8](repeating: 0, count: 20)
+        var buffer = [UInt8](repeating: 0, count: 17)
         if dataStream.hasBytesAvailable {
             let result: Int = dataStream.read(&buffer, maxLength: buffer.count)
             dataStream.close()
@@ -52,7 +52,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_InputStreamWithUrl() {
-        let message: NSString = "Hello, playground\0\0\0"
+        let message: NSString = "Hello, playground"
         let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
         //Initialiser with url
         let testFile = createTestFile("testFile_in.txt", _contents: messageData)
@@ -62,7 +62,7 @@ class TestNSStream : XCTestCase {
             XCTAssertEqual(Stream.Status.notOpen, urlStream.streamStatus)
             urlStream.open()
             XCTAssertEqual(Stream.Status.open, urlStream.streamStatus)
-            var buffer = [UInt8](repeating: 0, count: 20)
+            var buffer = [UInt8](repeating: 0, count: 17)
             if urlStream.hasBytesAvailable {
                 let result :Int = urlStream.read(&buffer, maxLength: buffer.count)
                 urlStream.close()
@@ -80,7 +80,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_InputStreamWithFile() {
-        let message: NSString = "Hello, playground\0\0\0"
+        let message: NSString = "Hello, playground"
         let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
         //Initialiser with file
         let testFile = createTestFile("testFile_in.txt", _contents: messageData)
@@ -89,7 +89,7 @@ class TestNSStream : XCTestCase {
             XCTAssertEqual(Stream.Status.notOpen, fileStream.streamStatus)
             fileStream.open()
             XCTAssertEqual(Stream.Status.open, fileStream.streamStatus)
-            var buffer = [UInt8](repeating: 0, count: 20)
+            var buffer = [UInt8](repeating: 0, count: 17)
             if fileStream.hasBytesAvailable {
                 let result: Int = fileStream.read(&buffer, maxLength: buffer.count)
                 fileStream.close()
