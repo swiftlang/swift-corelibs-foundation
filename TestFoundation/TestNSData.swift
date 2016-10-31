@@ -89,6 +89,7 @@ class TestNSData: XCTestCase {
             ("test_replaceBytes", test_replaceBytes),
             ("test_initDataWithCapacity", test_initDataWithCapacity),
             ("test_initDataWithCount", test_initDataWithCount),
+            ("test_emptyStringToData", test_emptyStringToData),
         ]
     }
     
@@ -437,6 +438,11 @@ class TestNSData: XCTestCase {
             XCTFail("Byte at index: \(index) is not zero: \(data[index])")
             return
         }
+    }
+
+    func test_emptyStringToData() {
+        let data = "".data(using: .utf8)!
+        XCTAssertEqual(0, data.count, "data from empty string is empty")
     }
 }
 

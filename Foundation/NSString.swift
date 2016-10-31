@@ -817,7 +817,7 @@ extension NSString {
 
             return data
         }
-        return nil
+        return Data()
     }
     
     public func data(using encoding: UInt) -> Data? {
