@@ -115,7 +115,7 @@ open class NSConditionLock : NSObject, NSLocking {
 
     open func lock(before limit: Date) -> Bool {
         _cond.lock()
-        while _thread == nil {
+        while _thread != nil {
             if !_cond.wait(until: limit) {
                 _cond.unlock()
                 return false
