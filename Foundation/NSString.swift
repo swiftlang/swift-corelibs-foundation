@@ -1008,8 +1008,10 @@ extension NSString {
     open func trimmingCharacters(in set: CharacterSet) -> String {
         let len = length
         var buf = _NSStringBuffer(string: self, start: 0, end: len)
-        while !buf.isAtEnd && set.contains(UnicodeScalar(buf.currentCharacter)!) {
-            buf.advance()
+        while !buf.isAtEnd,
+            let character = UnicodeScalar(buf.currentCharacter),
+            set.contains(character) {
+                buf.advance()
         }
         
         let startOfNonTrimmedRange = buf.location // This points at the first char not in the set
@@ -1018,8 +1020,10 @@ extension NSString {
             return ""
         } else if startOfNonTrimmedRange < len - 1 {
             buf.location = len - 1
-            while set.contains(UnicodeScalar(buf.currentCharacter)!) && buf.location >= startOfNonTrimmedRange {
-                buf.rewind()
+            while let character = UnicodeScalar(buf.currentCharacter),
+                set.contains(character),
+                buf.location >= startOfNonTrimmedRange {
+                    buf.rewind()
             }
             let endOfNonTrimmedRange = buf.location
             return substring(with: NSMakeRange(startOfNonTrimmedRange, endOfNonTrimmedRange + 1 - startOfNonTrimmedRange))
