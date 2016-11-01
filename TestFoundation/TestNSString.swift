@@ -602,6 +602,9 @@ class TestNSString : XCTestCase {
         let characterSet = CharacterSet.whitespaces
         let string: NSString = " abc   "
         XCTAssertEqual(string.trimmingCharacters(in: characterSet), "abc")
+        
+        let emojiString: NSString = " \u{1F62C}  "
+        XCTAssertEqual(emojiString.trimmingCharacters(in: characterSet), "\u{1F62C}")
     }
     
     func test_initializeWithFormat() {
