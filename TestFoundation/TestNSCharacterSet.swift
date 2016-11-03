@@ -28,7 +28,7 @@ class TestNSCharacterSet : XCTestCase {
             ("testRanges", testRanges),
             ("testInsertAndRemove", testInsertAndRemove),
             ("testBasics", testBasics),
-            
+            ("testClosedRanges_SR_2988", testClosedRanges_SR_2988),
             ("test_Predefines", test_Predefines),
             ("test_Range", test_Range),
             ("test_String", test_String),
@@ -221,6 +221,18 @@ class TestNSCharacterSet : XCTestCase {
                 XCTAssertEqual(cset.contains(UnicodeScalar(idx)!), (idx >= unichar(unicodeScalarLiteral: "a") && idx <= unichar(unicodeScalarLiteral: "c")) || (idx >= unichar(unicodeScalarLiteral: "A") && idx <= unichar(unicodeScalarLiteral: "C")) ? true : false)
             }
         }
+    }
+    
+    func testClosedRanges_SR_2988() {
+        // "CharacterSet.insert(charactersIn: ClosedRange) crashes on a closed ClosedRange<UnicodeScalar> containing U+D7FF"
+        let problematicChar = UnicodeScalar(0xD7FF)!
+        let range = capitalA...problematicChar
+        var characters = CharacterSet(charactersIn: range) // this should not crash
+        XCTAssertTrue(characters.contains(problematicChar))
+        characters.remove(charactersIn: range) // this should not crash
+        XCTAssertTrue(!characters.contains(problematicChar))
+        characters.insert(charactersIn: range) // this should not crash
+        XCTAssertTrue(characters.contains(problematicChar))
     }
     
     func test_Bitmap() {
