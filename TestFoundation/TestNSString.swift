@@ -81,7 +81,11 @@ class TestNSString : XCTestCase {
             ("test_resolvingSymlinksInPath", test_resolvingSymlinksInPath),
             ("test_expandingTildeInPath", test_expandingTildeInPath),
             ("test_standardizingPath", test_standardizingPath),
-            ("test_removingPercentEncoding", test_removingPercentEncoding),
+            ("test_addingPercentEncoding", test_addingPercentEncoding),
+            ("test_removingPercentEncodingInLatin", test_removingPercentEncodingInLatin),
+            ("test_removingPercentEncodingInNonLatin", test_removingPercentEncodingInNonLatin),
+            ("test_removingPersentEncodingWithoutEncoding", test_removingPersentEncodingWithoutEncoding),
+            ("test_addingPercentEncodingAndBack", test_addingPercentEncodingAndBack),
             ("test_stringByAppendingPathExtension", test_stringByAppendingPathExtension),
             ("test_deletingPathExtension", test_deletingPathExtension),
             ("test_ExternalRepresentation", test_ExternalRepresentation),
@@ -867,11 +871,64 @@ class TestNSString : XCTestCase {
         }
     }
 
-    func test_removingPercentEncoding() {
+    func test_addingPercentEncoding() {
+        let s1 = "a b".addingPercentEncoding(withAllowedCharacters: .alphanumerics)
+        XCTAssertEqual(s1, "a%20b")
+        
+        let s2 = "\u{0434}\u{043E}\u{043C}".addingPercentEncoding(withAllowedCharacters: .alphanumerics)
+        XCTAssertEqual(s2, "%D0%B4%D0%BE%D0%BC")
+    }
+    
+    func test_removingPercentEncodingInLatin() {
         let s1 = "a%20b".removingPercentEncoding
         XCTAssertEqual(s1, "a b")
         let s2 = "a%1 b".removingPercentEncoding
         XCTAssertNil(s2, "returns nil for a string with an invalid percent encoding")
+    }
+    
+    func test_removingPercentEncodingInNonLatin() {
+        let s1 = "\u{043C}\u{043E}\u{0439}%20\u{0434}\u{043E}\u{043C}".removingPercentEncoding
+        XCTAssertEqual(s1, "\u{043C}\u{043E}\u{0439} \u{0434}\u{043E}\u{043C}")
+        
+        let s2 = "%D0%B4%D0%BE%D0%BC".removingPercentEncoding
+        XCTAssertEqual(s2, "\u{0434}\u{043E}\u{043C}")
+        
+        let s3 = "\u{00E0}a%1 b".removingPercentEncoding
+        XCTAssertNil(s3, "returns nil for a string with an invalid percent encoding")
+    }
+    
+    func test_removingPersentEncodingWithoutEncoding() {
+        let cyrillicString = "\u{0434}\u{043E}\u{043C}"
+        let cyrillicEscapedString = cyrillicString.removingPercentEncoding
+        XCTAssertEqual(cyrillicString, cyrillicEscapedString)
+        
+        let chineseString = "\u{623F}\u{5B50}"
+        let chineseEscapedString = chineseString.removingPercentEncoding
+        XCTAssertEqual(chineseString, chineseEscapedString)
+        
+        let arabicString = "\u{0645}\u{0646}\u{0632}\u{0644}"
+        let arabicEscapedString = arabicString.removingPercentEncoding
+        XCTAssertEqual(arabicString, arabicEscapedString)
+        
+        let randomString = "\u{00E0}\u{00E6}"
+        let randomEscapedString = randomString.removingPercentEncoding
+        XCTAssertEqual(randomString, randomEscapedString)
+        
+        let latinString = "home"
+        let latinEscapedString = latinString.removingPercentEncoding
+        XCTAssertEqual(latinString, latinEscapedString)
+    }
+    
+    func test_addingPercentEncodingAndBack() {
+        let latingString = "a b"
+        let escapedLatingString = latingString.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
+        let returnedLatingString = escapedLatingString?.removingPercentEncoding
+        XCTAssertEqual(returnedLatingString, latingString)
+        
+        let cyrillicString = "\u{0434}\u{043E}\u{043C}"
+        let escapedCyrillicString = cyrillicString.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
+        let returnedCyrillicString = escapedCyrillicString?.removingPercentEncoding
+        XCTAssertEqual(returnedCyrillicString, cyrillicString)
     }
     
     func test_stringByAppendingPathExtension() {
