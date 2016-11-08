@@ -30,7 +30,7 @@
 #include <unicode/umsg.h>           // ICU message formatting
 #include <unicode/ucol.h>
 #include <unicode/uvernum.h>
-#if U_ICU_VERSION_MAJOR_NUM > 53
+#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<unicode/uameasureformat.h>)
 #include <unicode/uameasureformat.h>
 #endif
 #endif
@@ -1269,6 +1269,7 @@ static bool __CFLocaleCopyTemperatureUnit(CFLocaleRef locale, bool user, CFTypeR
     if (!done) {
         char localeID[ULOC_FULLNAME_CAPACITY+ULOC_KEYWORD_AND_VALUES_CAPACITY];
         if (CFStringGetCString(locale->_identifier, localeID, sizeof(localeID)/sizeof(char), kCFStringEncodingASCII)) {
+#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<unicode/uameasureformat.h>)
             UErrorCode icuStatus = U_ZERO_ERROR;
             UAMeasureUnit unit;
             int32_t unitCount = uameasfmt_getUnitsForUsage(localeID, "temperature", "weather", &unit, 1, &icuStatus);
@@ -1278,6 +1279,7 @@ static bool __CFLocaleCopyTemperatureUnit(CFLocaleRef locale, bool user, CFTypeR
                 }
                 done = true;
             }
+#endif
         }
     }
     if (!done) {
