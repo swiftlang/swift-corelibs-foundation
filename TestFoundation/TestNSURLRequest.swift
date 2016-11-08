@@ -27,6 +27,7 @@ class TestNSURLRequest : XCTestCase {
             ("test_mutableCopy_1", test_mutableCopy_1),
             ("test_mutableCopy_2", test_mutableCopy_2),
             ("test_mutableCopy_3", test_mutableCopy_3),
+            ("test_NSCoding", test_NSCoding),
         ]
     }
     
@@ -202,5 +203,14 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertEqual(originalRequest.httpMethod, "GET")
         XCTAssertEqual(originalRequest.url, urlA)
         XCTAssertNil(originalRequest.allHTTPHeaderFields)
+    }
+    
+    func test_NSCoding() {
+        let url = URL(string: "https://apple.com")!
+        
+        let requestA = NSURLRequest(url: url)
+        XCTAssertEqual(requestA.url, url)
+        let requestB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: requestA)) as! NSURLRequest
+        XCTAssertEqual(requestA, requestB, "Archived then unarchived url request must be equal.")
     }
 }
