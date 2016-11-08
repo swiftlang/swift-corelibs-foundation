@@ -106,17 +106,14 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        guard let other = object as? URLCredential else {
-            return false
+        if let other = object as? URLCredential {
+            return other === self
+                || (other._user == self._user
+                    && other._password == self._password
+                    && other._persistence == self._persistence)
         }
         
-        guard other !== self else {
-            return true
-        }
-        
-        return other._user == self._user
-            && other._password == self._password
-            && other._persistence == self._persistence
+        return false
     }
     
     /*!
