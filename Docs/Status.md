@@ -47,7 +47,7 @@ There is no _Complete_ status for test coverage because there are always additio
     |------------------------------|-----------------|---------------|--------------------------------------------------------------------------------------------------------------------|
     | `URLAuthenticationChallenge` | Unimplemented   | None          |                                                                                                                    |
     | `URLCache`                   | Unimplemented   | None          |                                                                                                                    |
-    | `URLCredential`              | Mostly Complete | Incomplete    | `NSCoding` and `NSCopying` remain unimplemented                                                                    |
+    | `URLCredential`              | Mostly Complete | Incomplete    | `NSCopying` remains unimplemented                                                                                  |
     | `URLCredentialStorage`       | Unimplemented   | None          |                                                                                                                    |
     | `NSURLError*`                | Complete        | N/A           |                                                                                                                    |
     | `URLProtectionSpace`         | Unimplemented   | None          |                                                                                                                    |

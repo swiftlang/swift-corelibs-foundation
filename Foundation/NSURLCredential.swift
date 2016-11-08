@@ -65,11 +65,32 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
      */
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        func bridgeString(_ value: NSString) -> String? {
+            return String._unconditionallyBridgeFromObjectiveC(value)
+        }
+        
+        let encodedUser = aDecoder.decodeObject(forKey: "NS._user") as! NSString
+        self._user = bridgeString(encodedUser)!
+        
+        let encodedPassword = aDecoder.decodeObject(forKey: "NS._password") as! NSString
+        self._password = bridgeString(encodedPassword)!
+        
+        let encodedPersistence = aDecoder.decodeObject(forKey: "NS._persistence") as! NSNumber
+        self._persistence = Persistence(rawValue: encodedPersistence.uintValue)!
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(self._user._bridgeToObjectiveC(), forKey: "NS._user")
+        aCoder.encode(self._password._bridgeToObjectiveC(), forKey: "NS._password")
+        aCoder.encode(self._persistence.rawValue._bridgeToObjectiveC(), forKey: "NS._persistence")
     }
     
     static public var supportsSecureCoding: Bool {
@@ -82,6 +103,17 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
     
     open func copy(with zone: NSZone? = nil) -> Any {
         return self 
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? URLCredential {
+            return other === self
+                || (other._user == self._user
+                    && other._password == self._password
+                    && other._persistence == self._persistence)
+        }
+        
+        return false
     }
     
     /*!
