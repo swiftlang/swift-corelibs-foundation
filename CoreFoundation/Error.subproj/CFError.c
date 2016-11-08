@@ -559,7 +559,13 @@ CFErrorUserInfoKeyCallBackBlock CFErrorGetCallBackBlockForDomain(CFStringRef dom
 
 void CFErrorSetCallBackForDomain(CFStringRef domainName, CFErrorUserInfoKeyCallBack callBack) {
     // Since we have replaced the callback functionality with a callback block functionality, we now register (legacy) callback functions embedded in a block which autoreleases the result
-    CFErrorUserInfoKeyCallBackBlock block = (!callBack) ? NULL : ^(CFErrorRef err, CFStringRef key){CFTypeRef result = callBack(err, key); if (result) CFAutorelease(result); return result;};
+    CFErrorUserInfoKeyCallBackBlock block = (!callBack) ? NULL : ^(CFErrorRef err, CFStringRef key){
+        CFTypeRef result = callBack(err, key);
+#if !DEPLOYMENT_RUNTIME_SWIFT
+        if (result) CFAutorelease(result);
+#endif
+        return result;
+    };
     CFErrorSetCallBackBlockForDomain(domainName, block);
 }
 
