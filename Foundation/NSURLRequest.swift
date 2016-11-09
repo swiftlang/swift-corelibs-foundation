@@ -216,8 +216,6 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        self._body = .data(Data())
-        
         aCoder.encode(self.url?._bridgeToObjectiveC(), forKey: "NS.url")
         aCoder.encode(self._allHTTPHeaderFields?._bridgeToObjectiveC(), forKey: "NS._allHTTPHeaderFields")
         aCoder.encode(self.mainDocumentURL?._bridgeToObjectiveC(), forKey: "NS.mainDocumentURL")
