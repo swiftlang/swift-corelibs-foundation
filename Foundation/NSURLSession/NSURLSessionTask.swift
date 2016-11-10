@@ -88,7 +88,7 @@ open class URLSessionTask : NSObject, NSCopying {
         originalRequest = nil
         body = .none
         workQueue = DispatchQueue(label: "URLSessionTask.notused.0")
-        taskAttributesIsolation = DispatchQueue(label: "URLSessionTask.notused.1")
+        taskAttributesIsolation = DispatchQueue(label: "URLSessionTask.notused.1", attributes: DispatchQueue.Attributes.concurrent)
         let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
         _ = FileManager.default.createFile(atPath: fileName, contents: nil)
         self.tempFileURL = URL(fileURLWithPath: fileName)
@@ -145,7 +145,7 @@ open class URLSessionTask : NSObject, NSCopying {
             return r
         }
         //TODO: dispatch_barrier_async
-        set { taskAttributesIsolation.async { self._currentRequest = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._currentRequest = newValue } }
     }
     fileprivate var _currentRequest: URLRequest? = nil
     /*@NSCopying*/ open fileprivate(set) var response: URLResponse? {
@@ -154,7 +154,7 @@ open class URLSessionTask : NSObject, NSCopying {
             taskAttributesIsolation.sync { r = self._response }
             return r
         }
-        set { taskAttributesIsolation.async { self._response = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._response = newValue } }
     }
     fileprivate var _response: URLResponse? = nil
     
@@ -170,7 +170,7 @@ open class URLSessionTask : NSObject, NSCopying {
             taskAttributesIsolation.sync { r = self._countOfBytesReceived }
             return r
         }
-        set { taskAttributesIsolation.async { self._countOfBytesReceived = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesReceived = newValue } }
     }
     fileprivate var _countOfBytesReceived: Int64 = 0
     
@@ -181,7 +181,7 @@ open class URLSessionTask : NSObject, NSCopying {
             taskAttributesIsolation.sync { r = self._countOfBytesSent }
             return r
         }
-        set { taskAttributesIsolation.async { self._countOfBytesSent = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesSent = newValue } }
     }
 
     fileprivate var _countOfBytesSent: Int64 = 0
@@ -213,7 +213,7 @@ open class URLSessionTask : NSObject, NSCopying {
             taskAttributesIsolation.sync { r = self._state }
             return r
         }
-        set { taskAttributesIsolation.async { self._state = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._state = newValue } }
     }
     fileprivate var _state: URLSessionTask.State = .suspended
     
@@ -298,7 +298,7 @@ open class URLSessionTask : NSObject, NSCopying {
             return r
         }
         set {
-            taskAttributesIsolation.async { self._priority = newValue }
+            taskAttributesIsolation.async(flags: .barrier) { self._priority = newValue }
         }
     }
     fileprivate var _priority: Float = URLSessionTaskPriorityDefault
@@ -791,7 +791,7 @@ extension URLSessionTask: _EasyHandleDelegate {
         // to the delegate. But in case of redirects etc. we might send another
         // request.
         guard case .transferInProgress(let ts) = internalState else { fatalError("Transfer completed, but it wasn't in progress.") }
-        guard let request = currentRequest else { fatalError("Transfer completed, but there's no currect request.") }
+        guard let request = currentRequest else { fatalError("Transfer completed, but there's no current request.") }
         guard errorCode == nil else {
             internalState = .transferFailed
             failWith(errorCode: errorCode!, request: request)
