@@ -292,8 +292,13 @@ private extension URLSessionTask._HTTPMessage._Header {
         var value: String?
         let line = headView[headView.index(after: nameRange.upperBound)..<headView.endIndex]
         if !line.isEmpty {
-            guard let v = line.trimSPHTPrefix else { return nil }
-            value = String(v)
+            if line.hasSPHTPrefix && line.count == 1 {
+                // to handle empty headers i.e header without value
+                value = String("")
+            } else {
+                guard let v = line.trimSPHTPrefix else { return nil }
+                value = String(v)
+            }
         }
         do {
             var t = tail
