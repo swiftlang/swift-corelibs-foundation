@@ -1034,8 +1034,8 @@ fileprivate extension URLSessionTask {
         guard case .waitingForResponseCompletionHandler(let ts) = internalState else { fatalError("Received response disposition, but we're not waiting for it.") }
         switch disposition {
         case .cancel:
-            //TODO: Fail the task with NSURLErrorCancelled
-            NSUnimplemented()
+            let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)
+            self.completeTask(withError: error)
         case .allow:
             // Continue the transfer. This will unpause the easy handle.
             internalState = .transferInProgress(ts)
