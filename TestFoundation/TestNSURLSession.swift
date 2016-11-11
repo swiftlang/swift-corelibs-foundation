@@ -286,6 +286,16 @@ class TestURLSession : XCTestCase {
             XCTAssertEqual(task.error?.code, NSURLErrorBadURL)
         }
     }
+    
+    func test_taskCopy() {
+        let url = URL(string: "http://127.0.0.1:\(serverPort)/Nepal")!
+        let session = URLSession(configuration: URLSessionConfiguration.default,
+                                 delegate: nil,
+                                 delegateQueue: nil)
+        let task = session.dataTask(with: url)
+        
+        XCTAssert(task.isEqual(task.copy()))
+    }
 }
 
 class SessionDelegate: NSObject, URLSessionDelegate {
