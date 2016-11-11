@@ -29,7 +29,8 @@ class TestURLSession : XCTestCase {
             ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
             ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
-            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate)
+            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
+            ("test_taskError", test_taskError)
         ]
     }
 
@@ -261,6 +262,29 @@ class TestURLSession : XCTestCase {
         task.resume()
         session.finishTasksAndInvalidate()
         waitForExpectations(timeout: 12)
+    }
+    
+    func test_taskError() {
+        let url = URL(string: "http://127.0.0.1:\(serverPort)/Nepal")!
+        let session = URLSession(configuration: URLSessionConfiguration.default,
+                                 delegate: nil,
+                                 delegateQueue: nil)
+        let completionExpectation = expectation(description: "dataTask completion block wasn't called")
+        let task = session.dataTask(with: url) { result in
+            let error = result.2
+            XCTAssertNotNil(error)
+            XCTAssertEqual(error?.code, NSURLErrorBadURL)
+            completionExpectation.fulfill()
+        }
+        //should result in Bad URL error
+        task.resume()
+        
+        waitForExpectations(timeout: 5) { error in
+            XCTAssertNil(error)
+            
+            XCTAssertNotNil(task.error)
+            XCTAssertEqual(task.error?.code, NSURLErrorBadURL)
+        }
     }
 }
 
