@@ -58,7 +58,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLResponse`                | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
     | `NSHTTPURLResponse`          | Mostly Complete | Substantial   | `NSCoding` remains unimplemented                                                                                   |
     | `NSURL`                      | Mostly Complete | Substantial   | `NSCoding` with non-keyed-coding archivers, `checkResourceIsReachable()`, and resource values remain unimplemented |
-    | `NSURLQueryItem`             | Mostly Complete | N/A           | `NSCoding` remains unimplemented                                                                                   |
+    | `NSURLQueryItem`             | Mostly Complete | N/A           |                                                                                                                    |
     | `URLResourceKey`             | Complete        | N/A           |                                                                                                                    |
     | `URLFileResourceType`        | Complete        | N/A           |                                                                                                                    |
     | `URL`                        | Complete        | Incomplete    |                                                                                                                    |
