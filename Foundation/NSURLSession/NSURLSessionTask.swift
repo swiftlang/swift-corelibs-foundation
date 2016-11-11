@@ -128,7 +128,7 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     
     open func copy(with zone: NSZone?) -> Any {
-        NSUnimplemented()
+        return self
     }
     
     /// An identifier for this task, assigned by and unique to the owning session
