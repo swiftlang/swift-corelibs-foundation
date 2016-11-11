@@ -23,11 +23,39 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        if let encodedUrl = aDecoder.decodeObject(forKey: "NS.url") as? NSURL {
+            self.url = encodedUrl._swiftObject
+        }
+        
+        if let encodedMimeType = aDecoder.decodeObject(forKey: "NS.mimeType") as? NSString {
+            self.mimeType = encodedMimeType._swiftObject
+        }
+        
+        self.expectedContentLength = aDecoder.decodeInt64(forKey: "NS.expectedContentLength")
+        
+        if let encodedEncodingName = aDecoder.decodeObject(forKey: "NS.textEncodingName") as? NSString {
+            self.textEncodingName = encodedEncodingName._swiftObject
+        }
+        
+        if let encodedFilename = aDecoder.decodeObject(forKey: "NS.suggestedFilename") as? NSString {
+            self.suggestedFilename = encodedFilename._swiftObject
+        }
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(self.url?._bridgeToObjectiveC(), forKey: "NS.url")
+        aCoder.encode(self.mimeType?._bridgeToObjectiveC(), forKey: "NS.mimeType")
+        aCoder.encode(self.expectedContentLength, forKey: "NS.expectedContentLength")
+        aCoder.encode(self.textEncodingName?._bridgeToObjectiveC(), forKey: "NS.textEncodingName")
+        aCoder.encode(self.suggestedFilename?._bridgeToObjectiveC(), forKey: "NS.suggestedFilename")
     }
     
     open override func copy() -> Any {
@@ -135,7 +163,27 @@ open class HTTPURLResponse : URLResponse {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        self.statusCode = aDecoder.decodeInteger(forKey: "NS.statusCode")
+        
+        if let encodedHeaders = aDecoder.decodeObject(forKey: "NS.allHeaderFields") as? NSDictionary {
+            self.allHeaderFields = encodedHeaders._swiftObject
+        } else {
+            self.allHeaderFields = [:]
+        }
+        
+        super.init(coder: aDecoder)
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        super.encode(with: aCoder) //Will fail if .allowsKeyedCoding == false
+        
+        aCoder.encode(self.statusCode, forKey: "NS.statusCode")
+        aCoder.encode(self.allHeaderFields._bridgeToObjectiveC(), forKey: "NS.allHeaderFields")
+        
     }
     
     /// The HTTP status code of the receiver.
