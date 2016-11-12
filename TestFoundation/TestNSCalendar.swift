@@ -26,7 +26,9 @@ class TestNSCalendar: XCTestCase {
             ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
             ("test_gettingDatesOnISO8601Calendar", test_gettingDatesOnISO8601Calendar),
             ("test_copy",test_copy),
-            ("test_addingDates", test_addingDates)
+            ("test_addingDates", test_addingDates),
+            ("test_datesNotOnWeekend", test_datesNotOnWeekend),
+            ("test_datesOnWeekend", test_datesOnWeekend)
             // Disabled because this fails on linux https://bugs.swift.org/browse/SR-320
             // ("test_currentCalendarRRstability", test_currentCalendarRRstability),
         ]
@@ -140,6 +142,20 @@ class TestNSCalendar: XCTestCase {
         XCTAssertEqual(dayAfterComponents.year, 2016)
         XCTAssertEqual(dayAfterComponents.month, 10)
         XCTAssertEqual(dayAfterComponents.day, 5)
+    }
+    
+    func test_datesNotOnWeekend() {
+        let calendar = Calendar(identifier: .gregorian)
+        let wednesdayInFebruary = calendar.date(from: DateComponents(year: 2016, month: 2, day: 17))!
+        
+        XCTAssertFalse(calendar.isDateInWeekend(wednesdayInFebruary))
+    }
+    
+    func test_datesOnWeekend() {
+        let calendar = Calendar(identifier: .gregorian)
+        let sundayInFebruary = calendar.date(from: DateComponents(year: 2016, month: 2, day: 14))!
+        
+        XCTAssertTrue(calendar.isDateInWeekend(sundayInFebruary))
     }
 }
 
