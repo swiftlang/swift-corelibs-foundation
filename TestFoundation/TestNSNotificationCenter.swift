@@ -26,6 +26,7 @@ class TestNSNotificationCenter : XCTestCase {
             ("test_postMultipleNotifications", test_postMultipleNotifications),
             ("test_addObserverForNilName", test_addObserverForNilName),
             ("test_removeObserver", test_removeObserver),
+            ("test_observeNotificationOnSpecificQueue", test_observeNotificationOnSpecificQueue)
         ]
     }
     
@@ -148,6 +149,20 @@ class TestNSNotificationCenter : XCTestCase {
 
         notificationCenter.post(name: notificationName, object: nil)
         XCTAssertTrue(flag)
+    }
+
+    func test_observeNotificationOnSpecificQueue() {
+        let nc = NotificationCenter()
+        let name = Notification.Name(rawValue: "test_observeNotificationOnSpecificQueue")
+        let queue = OperationQueue()
+        let x = expectation(description: "expect_notification_fired")
+
+        _ = nc.addObserver(forName: name, object: nil, queue: queue) { notification in
+            XCTAssertEqual(OperationQueue.current, queue)
+            x.fulfill()
+        }
+        nc.post(name: name, object: nil)
+        waitForExpectations(timeout: 1)
     }
 
 }
