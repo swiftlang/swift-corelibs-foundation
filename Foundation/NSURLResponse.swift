@@ -104,7 +104,7 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
     /// method appends the proper file extension based on the MIME type.
     ///
     /// This method always returns a valid filename.
-    open fileprivate(set) var suggestedFilename: String?
+    open fileprivate(set) var suggestedFilename: String!
 }
 
 /// A Response to an HTTP URL load.
