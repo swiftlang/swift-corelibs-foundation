@@ -26,11 +26,27 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        let encodedBool = aDecoder.decodeBool(forKey: "NS.boolean.value")
+        self.kind = .boolean(encodedBool)
+        
+        super.init()
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        switch self.kind {
+        case .boolean(let value):
+            aCoder.encode(value, forKey: "NS.boolean.value")
+        case .block:
+            preconditionFailure("NSBlockPredicate cannot be encoded or decoded.")
+        }
     }
     
     open override func copy() -> Any {
@@ -38,7 +54,32 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        switch self.kind {
+        case .boolean(let value):
+            return NSPredicate(value: value)
+        case .block(let block):
+            return NSPredicate(block: block)
+        }
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? NSPredicate {
+            if other === self {
+                return true
+            } else {
+                switch (other.kind, self.kind) {
+                case (.boolean(let otherBool), .boolean(let selfBool)):
+                    return otherBool == selfBool
+                    // TODO: case for init(format:argumentArray:)
+                    // TODO: case for init(fromMetadataQueryString:)
+                // NSBlockPredicate returns false even for copy
+                default:
+                    return false
+                }
+            }
+        }
+        
+        return false
     }
     
     // Parse predicateFormat and return an appropriate predicate
@@ -58,7 +99,17 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
         super.init()
     }
     
-    open var predicateFormat: String  { NSUnimplemented() } // returns the format string of the predicate
+    open var predicateFormat: String {
+        switch self.kind {
+        case .boolean(let value):
+            return value ? "TRUEPREDICATE" : "FALSEPREDICATE"
+        case .block:
+            // TODO: Bring NSBlockPredicate's predicateFormat to macOS's Foundation version
+            // let address = unsafeBitCast(block, to: Int.self)
+            // return String(format:"BLOCKPREDICATE(%2X)", address)
+            return "BLOCKPREDICATE"
+        }
+    }
     
     open func withSubstitutionVariables(_ variables: [String : Any]) -> Self { NSUnimplemented() } // substitute constant values for variables
     
