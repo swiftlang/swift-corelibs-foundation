@@ -90,6 +90,8 @@ class TestNSData: XCTestCase {
             ("test_initDataWithCapacity", test_initDataWithCapacity),
             ("test_initDataWithCount", test_initDataWithCount),
             ("test_emptyStringToData", test_emptyStringToData),
+            
+            ("test_hash", test_hash)
         ]
     }
     
@@ -443,6 +445,23 @@ class TestNSData: XCTestCase {
     func test_emptyStringToData() {
         let data = "".data(using: .utf8)!
         XCTAssertEqual(0, data.count, "data from empty string is empty")
+    }
+    
+    func test_hash() {
+        //tests crashes at SR-936
+        
+        let data = "foobar".data(using: .utf8)!
+        
+        _ = NSData().hash
+        
+        _ = NSData(data: data).hash
+        
+        _ = data.hashValue
+        
+        _ = NSMutableData(data: data).hash
+        
+        
+        _ = NSMutableData().hash
     }
 }
 
