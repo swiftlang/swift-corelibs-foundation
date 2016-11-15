@@ -200,7 +200,9 @@ open class NSNumber : NSValue {
     // This layout MUST be the same as CFNumber so that they are bridgeable
     private var _base = _CFInfo(typeID: CFNumberGetTypeID())
     private var _pad: UInt64 = 0
-    
+
+    internal let _objCType: _NSSimpleObjCType
+
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
@@ -221,77 +223,95 @@ open class NSNumber : NSValue {
         }
         return false
     }
+
+    open override var objCType: UnsafePointer<Int8> {
+        return UnsafePointer<Int8>(bitPattern: UInt(_objCType.rawValue.value))!
+    }
     
     deinit {
         _CFDeinit(self)
     }
     
     public init(value: Int8) {
+        _objCType = .Char
         super.init()
         _CFNumberInitInt8(_cfObject, value)
     }
     
     public init(value: UInt8) {
+        _objCType = .UChar
         super.init()
         _CFNumberInitUInt8(_cfObject, value)
     }
     
     public init(value: Int16) {
+        _objCType = .Short
         super.init()
         _CFNumberInitInt16(_cfObject, value)
     }
     
     public init(value: UInt16) {
+        _objCType = .UShort
         super.init()
         _CFNumberInitUInt16(_cfObject, value)
     }
     
     public init(value: Int32) {
+        _objCType = .Long
         super.init()
         _CFNumberInitInt32(_cfObject, value)
     }
     
     public init(value: UInt32) {
+        _objCType = .ULong
         super.init()
         _CFNumberInitUInt32(_cfObject, value)
     }
     
     public init(value: Int) {
+        _objCType = .Int
         super.init()
         _CFNumberInitInt(_cfObject, value)
     }
     
     public init(value: UInt) {
+        _objCType = .UInt
         super.init()
         _CFNumberInitUInt(_cfObject, value)
     }
     
     public init(value: Int64) {
+        _objCType = .LongLong
         super.init()
         _CFNumberInitInt64(_cfObject, value)
     }
     
     public init(value: UInt64) {
+        _objCType = .ULongLong
         super.init()
         _CFNumberInitUInt64(_cfObject, value)
     }
     
     public init(value: Float) {
+        _objCType = .Float
         super.init()
         _CFNumberInitFloat(_cfObject, value)
     }
     
     public init(value: Double) {
+        _objCType = .Double
         super.init()
         _CFNumberInitDouble(_cfObject, value)
     }
     
     public init(value: Bool) {
+        _objCType = .Bool
         super.init()
         _CFNumberInitBool(_cfObject, value)
     }
 
     override internal init() {
+        _objCType = .Undef
         super.init()
     }
 

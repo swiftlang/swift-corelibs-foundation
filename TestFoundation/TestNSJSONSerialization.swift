@@ -777,7 +777,7 @@ extension TestNSJSONSerialization {
         
         // Cannot generate "true"/"false" currently
         json = [NSNumber(value:false),NSNumber(value:true)]
-        XCTAssertEqual(try trySerialize(json), "[0,1]")
+        XCTAssertEqual(try trySerialize(json), "[false,true]")
     }
     
     func test_serialize_stringEscaping() {
@@ -931,12 +931,14 @@ extension TestNSJSONSerialization {
     
     func test_booleanJSONObject() {
         do {
-            let mydata = try JSONSerialization.data(withJSONObject: [true])
-            XCTAssertEqual(String(data: mydata, encoding: String.Encoding.utf8), "[1]")
+            let objectLikeBoolArray = try JSONSerialization.data(withJSONObject: [true, NSNumber(value: false), NSNumber(value: true)] as Array<Any>)
+            XCTAssertEqual(String(data: objectLikeBoolArray, encoding: .utf8), "[true,false,true]")
+            let valueLikeBoolArray = try JSONSerialization.data(withJSONObject: [false, true, false])
+            XCTAssertEqual(String(data: valueLikeBoolArray, encoding: .utf8), "[false,true,false]")
         } catch {
             XCTFail("Failed during serialization")
         }
-        XCTAssertTrue(JSONSerialization.isValidJSONObject([1]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([true]))
     }
 
     private func createTestFile(_ path: String,_contents: Data) -> String? {
