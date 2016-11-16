@@ -944,11 +944,6 @@ open class NSMutableData : NSData {
             CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
         }
     }
-    
-    /// SR-936 workaround
-    open override var hash: Int {
-        return (self.copy() as! NSData).hash
-    }
 }
 
 extension NSData : _StructTypeBridgeable {
