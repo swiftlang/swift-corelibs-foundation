@@ -15,8 +15,8 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     private enum PredicateKind {
         case boolean(Bool)
         case block((Any?, [String : Any]?) -> Bool)
-        // TODO: case for init(format:argumentArray:)
-        // TODO: case for init(fromMetadataQueryString:)
+        case format(String)
+        case metadataQuery(String)
     }
 
     private let kind: PredicateKind
@@ -41,11 +41,17 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
+        //TODO: store kind key for .boolean, .format, .metadataQuery
+        
         switch self.kind {
         case .boolean(let value):
             aCoder.encode(value, forKey: "NS.boolean.value")
         case .block:
             preconditionFailure("NSBlockPredicate cannot be encoded or decoded.")
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
         }
     }
     
@@ -59,6 +65,10 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
             return NSPredicate(value: value)
         case .block(let block):
             return NSPredicate(block: block)
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
         }
     }
     
@@ -70,10 +80,12 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
                 switch (other.kind, self.kind) {
                 case (.boolean(let otherBool), .boolean(let selfBool)):
                     return otherBool == selfBool
-                    // TODO: case for init(format:argumentArray:)
-                    // TODO: case for init(fromMetadataQueryString:)
-                // NSBlockPredicate returns false even for copy
+                case (.format, .format):
+                    NSUnimplemented()
+                case (.metadataQuery, .metadataQuery):
+                    NSUnimplemented()
                 default:
+                    // NSBlockPredicate returns false even for copy
                     return false
                 }
             }
@@ -108,6 +120,10 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
             // let address = unsafeBitCast(block, to: Int.self)
             // return String(format:"BLOCKPREDICATE(%2X)", address)
             return "BLOCKPREDICATE"
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
         }
     }
     
@@ -127,6 +143,10 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
             return value
         case let .block(block):
             return block(object, bindings)
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
         }
     } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered
     
