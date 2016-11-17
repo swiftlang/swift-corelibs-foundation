@@ -156,11 +156,101 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        if let encodedURL = aDecoder.decodeObject(forKey: "NS.url") as? NSURL {
+            self.url = encodedURL._swiftObject
+        }
+        
+        if let encodedHeaders = aDecoder.decodeObject(forKey: "NS._allHTTPHeaderFields") as? NSDictionary {
+            self._allHTTPHeaderFields = encodedHeaders.reduce([String : String]()) { result, item in
+                var result = result
+                if let key = item.key as? NSString,
+                    let value = item.value as? NSString {
+                    result[key._swiftObject] = value._swiftObject
+                }
+                return result
+            }
+        }
+        
+        if let encodedDocumentURL = aDecoder.decodeObject(forKey: "NS.mainDocumentURL") as? NSURL {
+            self.mainDocumentURL = encodedDocumentURL._swiftObject
+        }
+        
+        if let encodedMethod = aDecoder.decodeObject(forKey: "NS.httpMethod") as? NSString {
+            self.httpMethod = encodedMethod._swiftObject
+        }
+        
+        let encodedCachePolicy = aDecoder.decodeObject(forKey: "NS._cachePolicy") as! NSNumber
+        self._cachePolicy = CachePolicy(rawValue: encodedCachePolicy.uintValue)!
+        
+        let encodedTimeout = aDecoder.decodeObject(forKey: "NS._timeoutInterval") as! NSNumber
+        self._timeoutInterval = encodedTimeout.doubleValue
+
+        let encodedHttpBody: Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.httpBody") {
+            guard let buffer = $0 else { return nil }
+            return Data(buffer: buffer)
+        }
+        
+        if let encodedHttpBody = encodedHttpBody {
+            self._body = .data(encodedHttpBody)
+        }
+        
+        let encodedNetworkServiceType = aDecoder.decodeObject(forKey: "NS._networkServiceType") as! NSNumber
+        self._networkServiceType = NetworkServiceType(rawValue: encodedNetworkServiceType.uintValue)!
+        
+        let encodedCellularAccess = aDecoder.decodeObject(forKey: "NS._allowsCellularAccess") as! NSNumber
+        self._allowsCellularAccess = encodedCellularAccess.boolValue
+        
+        let encodedHandleCookies = aDecoder.decodeObject(forKey: "NS._httpShouldHandleCookies") as! NSNumber
+        self._httpShouldHandleCookies = encodedHandleCookies.boolValue
+        
+        let encodedUsePipelining = aDecoder.decodeObject(forKey: "NS._httpShouldUsePipelining") as! NSNumber
+        self._httpShouldUsePipelining = encodedUsePipelining.boolValue
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(self.url?._bridgeToObjectiveC(), forKey: "NS.url")
+        aCoder.encode(self._allHTTPHeaderFields?._bridgeToObjectiveC(), forKey: "NS._allHTTPHeaderFields")
+        aCoder.encode(self.mainDocumentURL?._bridgeToObjectiveC(), forKey: "NS.mainDocumentURL")
+        aCoder.encode(self.httpMethod?._bridgeToObjectiveC(), forKey: "NS.httpMethod")
+        aCoder.encode(self._cachePolicy.rawValue._bridgeToObjectiveC(), forKey: "NS._cachePolicy")
+        aCoder.encode(self._timeoutInterval._bridgeToObjectiveC(), forKey: "NS._timeoutInterval")
+        if let httpBody = self.httpBody?._bridgeToObjectiveC() {
+            let bytePtr = httpBody.bytes.bindMemory(to: UInt8.self, capacity: httpBody.length)
+            aCoder.encodeBytes(bytePtr, length: httpBody.length, forKey: "NS.httpBody")
+        }
+        //On macOS input stream is not encoded.
+        aCoder.encode(self._networkServiceType.rawValue._bridgeToObjectiveC(), forKey: "NS._networkServiceType")
+        aCoder.encode(self._allowsCellularAccess._bridgeToObjectiveC(), forKey: "NS._allowsCellularAccess")
+        aCoder.encode(self._httpShouldHandleCookies._bridgeToObjectiveC(), forKey: "NS._httpShouldHandleCookies")
+        aCoder.encode(self._httpShouldUsePipelining._bridgeToObjectiveC(), forKey: "NS._httpShouldUsePipelining")
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        //On macOS this fields do not determine the result:
+        //allHTTPHeaderFields
+        //timeoutInterval
+        //httBody
+        //networkServiceType
+        //httpShouldUsePipelining
+        if let other = object as? NSURLRequest {
+            return other === self
+                || (other.url == self.url
+                    && other.mainDocumentURL == self.mainDocumentURL
+                    && other.httpMethod == self.httpMethod
+                    && other._cachePolicy == self._cachePolicy
+                    && other.httpBodyStream == self.httpBodyStream
+                    && other._allowsCellularAccess == self._allowsCellularAccess
+                    && other._httpShouldHandleCookies == self._httpShouldHandleCookies)
+        }
+        return false
     }
     
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
@@ -289,7 +379,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
 /// example.
 open class NSMutableURLRequest : NSURLRequest {
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        super.init(coder: aDecoder)
     }
     
     public convenience init(url: URL) {

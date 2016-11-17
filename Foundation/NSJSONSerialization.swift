@@ -270,21 +270,21 @@ private struct JSONWriter {
     }
     
     mutating func serializeJSON(_ obj: Any) throws {
-        
-        if let str = obj as? String {
+
+        switch (obj) {
+        case let str as String:
             try serializeString(str)
-        } else if let num = _SwiftValue.store(obj) as? NSNumber {
-            try serializeNumber(num)
-        } else if let array = obj as? Array<Any> {
+        case let boolValue as Bool:
+            serializeBool(boolValue)
+        case _ where _SwiftValue.store(obj) is NSNumber:
+            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
+        case let array as Array<Any>:
             try serializeArray(array)
-        } else if let dict = obj as? Dictionary<AnyHashable, Any> {
+        case let dict as Dictionary<AnyHashable, Any>:
             try serializeDictionary(dict)
-        } else if let null = obj as? NSNull {
+        case let null as NSNull:
             try serializeNull(null)
-        } else if let boolVal = obj as? Bool {
-            try serializeNumber(NSNumber(value: boolVal))
-        }
-        else {
+        default:
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
         }
     }
@@ -319,15 +319,26 @@ private struct JSONWriter {
         writer("\"")
     }
 
+    func serializeBool(_ bool: Bool) {
+        switch bool {
+        case true:
+            writer("true")
+        case false:
+            writer("false")
+        }
+    }
+
     mutating func serializeNumber(_ num: NSNumber) throws {
         if num.doubleValue.isInfinite || num.doubleValue.isNaN {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
         }
         
-        // Cannot detect type information (e.g. bool) as there is no objCType property on NSNumber in Swift
-        // So, just print the number
-
-        writer(_serializationString(for: num))
+        switch num._objCType {
+        case .Bool:
+            serializeBool(num.boolValue)
+        default:
+            writer(_serializationString(for: num))
+        }
     }
 
     mutating func serializeArray(_ array: [Any]) throws {

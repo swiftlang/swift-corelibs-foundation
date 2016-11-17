@@ -53,7 +53,9 @@ class TestNSNumberFormatter: XCTestCase {
             ("test_lenient", test_lenient),
             ("test_minimumSignificantDigits", test_minimumSignificantDigits),
             ("test_maximumSignificantDigits", test_maximumSignificantDigits),
-            ("test_stringFor", test_stringFor)
+            ("test_stringFor", test_stringFor),
+            ("test_numberFrom", test_numberFrom),
+            //("test_en_US_initialValues", test_en_US_initialValues)
         ]
     }
     
@@ -68,11 +70,15 @@ class TestNSNumberFormatter: XCTestCase {
         XCTAssertEqual(formattedString, "T 42_00")
          */
     }
-    
+
     func test_decimalSeparator() {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .decimal
-        numberFormatter.decimalSeparator = "-"
+
+        let separator = "-"
+        numberFormatter.decimalSeparator = separator
+        XCTAssertEqual(numberFormatter.decimalSeparator, separator)
+
         let formattedString = numberFormatter.string(from: 42.42)
         XCTAssertEqual(formattedString, "42-42")
     }
@@ -147,14 +153,28 @@ class TestNSNumberFormatter: XCTestCase {
     }
     
     func test_plusSignSymbol() {
-        //FIXME: How do we show the plus sign from a NSNumberFormatter?
+        // ex. 1.0E+1 in scientific notation
+        let numberFormatter = NumberFormatter()
+        let format = "#E+0"
+        numberFormatter.format = format
+        XCTAssertEqual(numberFormatter.format, format)
 
-//        let numberFormatter = NumberFormatter()
-//        numberFormatter.plusSign = "👍"
-//        let formattedString = numberFormatter.stringFromNumber(42)
-//        XCTAssertEqual(formattedString, "👍42")
+        let sign = "👍"
+        numberFormatter.plusSign = sign
+        XCTAssertEqual(numberFormatter.plusSign, sign)
+
+        let formattedString = numberFormatter.string(from: 420000000000000000)
+        XCTAssertNotNil(formattedString)
+        XCTAssertEqual(formattedString, "4.2E👍17")
+
+        // Verify a negative exponent does not have the 👍
+        let noPlusString = numberFormatter.string(from: -0.420)
+        XCTAssertNotNil(noPlusString)
+        if let fmt = noPlusString {
+            XCTAssertFalse(fmt.contains(sign), "Expected format of -0.420 (-4.2E-1) shouldn't have a plus sign which was set as \(sign)")
+        }
     }
-    
+
     func test_currencySymbol() {
         // Disabled due to [SR-250]
         /*
@@ -316,14 +336,30 @@ class TestNSNumberFormatter: XCTestCase {
         */
     }
 
-    //FIXME: Something is wrong with numberFromString implementation, I don't know exactly why, but it's not working.
     func test_lenient() {
-//        let numberFormatter = NumberFormatter()
-//        numberFormatter.numberStyle = .CurrencyStyle
-//        let nilNumberBeforeLenient = numberFormatter.numberFromString("42")
+        let numberFormatter = NumberFormatter()
+        // Not lenient by default
+        XCTAssertFalse(numberFormatter.isLenient)
+
+        // Lenient allows wrong style -- not lenient here
+        numberFormatter.numberStyle = .spellOut
+        XCTAssertEqual(numberFormatter.numberStyle, .spellOut)
+//        let nilNumber = numberFormatter.number(from: "2.22")
+        // FIXME: Not nil on Linux?
+        //XCTAssertNil(nilNumber)
+        // Lenient allows wrong style
+        numberFormatter.isLenient = true
+        XCTAssertTrue(numberFormatter.isLenient)
+        let number = numberFormatter.number(from: "2.22")
+        XCTAssertEqual(number, 2.22)
+
+        // TODO: Add some tests with currency after [SR-250] resolved
+//        numberFormatter.numberStyle = .currency
+//        let nilNumberBeforeLenient = numberFormatter.number(from: "42")
+//
 //        XCTAssertNil(nilNumberBeforeLenient)
-//        numberFormatter.lenient = true
-//        let numberAfterLenient = numberFormatter.numberFromString("42.42")
+//        numberFormatter.isLenient = true
+//        let numberAfterLenient = numberFormatter.number(from: "42.42")
 //        XCTAssertEqual(numberAfterLenient, 42.42)
     }
     
@@ -353,7 +389,76 @@ class TestNSNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.string(for: NSNumber(value: 99.1))!, "99")
         XCTAssertNil(numberFormatter.string(for: "NaN"))
         XCTAssertNil(numberFormatter.string(for: NSString(string: "NaN")))
+
+        numberFormatter.numberStyle = .spellOut
+        XCTAssertEqual(numberFormatter.string(for: 234), "two hundred thirty-four")
+        XCTAssertEqual(numberFormatter.string(for: 2007), "two thousand seven")
+        XCTAssertEqual(numberFormatter.string(for: 3), "three")
+        XCTAssertEqual(numberFormatter.string(for: 0.3), "zero point three")
+
+        numberFormatter.locale = Locale(identifier: "zh_CN")
+        numberFormatter.numberStyle = .spellOut
+        XCTAssertEqual(numberFormatter.string(from: 11.4), "十一点四")
+
+        numberFormatter.locale = Locale(identifier: "fr_FR")
+        numberFormatter.numberStyle = .spellOut
+        XCTAssertEqual(numberFormatter.string(from: 11.4), "onze virgule quatre")
+
     }
-  
+
+    func test_numberFrom() {
+        let numberFormatter = NumberFormatter()
+        XCTAssertEqual(numberFormatter.number(from: "10"), 10)
+        XCTAssertEqual(numberFormatter.number(from: "3.14"), 3.14)
+        XCTAssertEqual(numberFormatter.number(from: "0.01"), 0.01)
+        XCTAssertEqual(numberFormatter.number(from: ".01"), 0.01)
+
+        // These don't work unless lenient/style set
+        numberFormatter.numberStyle = .decimal
+        XCTAssertEqual(numberFormatter.number(from: "1,001"), 1001)
+        XCTAssertEqual(numberFormatter.number(from: "1,050,001"), 1050001)
+
+        numberFormatter.numberStyle = .spellOut
+        XCTAssertEqual(numberFormatter.number(from: "two thousand and seven"), 2007)
+        XCTAssertEqual(numberFormatter.number(from: "one point zero"), 1.0)
+        XCTAssertEqual(numberFormatter.number(from: "one hundred million"), 1E8)
+
+        numberFormatter.locale = Locale(identifier: "zh_CN")
+        numberFormatter.numberStyle = .spellOut
+        XCTAssertEqual(numberFormatter.number(from: "十一点四"), 11.4)
+
+        numberFormatter.locale = Locale(identifier: "fr_FR")
+        numberFormatter.numberStyle = .spellOut
+        XCTAssertEqual(numberFormatter.number(from: "onze virgule quatre"), 11.4)
+    }
+
+    func test_en_US_initialValues() {
+        // Symbols should be extractable
+        // At one point, none of this passed!
+
+        let numberFormatter = NumberFormatter();
+        numberFormatter.locale = Locale(identifier: "en_US")
+
+        // TODO: Check if this is true for all versions...
+        XCTAssertEqual(numberFormatter.format, "#;0;#")
+
+        XCTAssertEqual(numberFormatter.plusSign, "+")
+        XCTAssertEqual(numberFormatter.minusSign, "-")
+        XCTAssertEqual(numberFormatter.decimalSeparator, ".")
+        XCTAssertEqual(numberFormatter.groupingSeparator, ",")
+        XCTAssertEqual(numberFormatter.nilSymbol, "")
+        XCTAssertEqual(numberFormatter.notANumberSymbol, "NaN")
+        XCTAssertEqual(numberFormatter.positiveInfinitySymbol, "+∞")
+        XCTAssertEqual(numberFormatter.negativeInfinitySymbol, "-∞")
+        XCTAssertEqual(numberFormatter.positivePrefix, "")
+        XCTAssertEqual(numberFormatter.negativePrefix, "-")
+        XCTAssertEqual(numberFormatter.positiveSuffix, "")
+        XCTAssertEqual(numberFormatter.negativeSuffix, "")
+        XCTAssertEqual(numberFormatter.percentSymbol, "%")
+        XCTAssertEqual(numberFormatter.perMillSymbol, "‰")
+        XCTAssertEqual(numberFormatter.exponentSymbol, "E")
+        XCTAssertEqual(numberFormatter.groupingSeparator, ",")
+        XCTAssertEqual(numberFormatter.paddingCharacter, "*")
+    }
 }
 
