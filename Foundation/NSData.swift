@@ -217,7 +217,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     open var bytes: UnsafeRawPointer {
-        return UnsafeRawPointer(CFDataGetBytePtr(_cfObject))
+        guard let bytePtr = CFDataGetBytePtr(_cfObject) else {
+            //This could occure on empty data being encoded.
+            //TODO: switch with nil when signature is fixed
+            return UnsafeRawPointer(bitPattern: 0xf00deadb0c0)! //would not result in 'nil unwrapped optional'
+        }
+        return UnsafeRawPointer(bytePtr)
     }
 
     

@@ -53,8 +53,8 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLProtectionSpace`         | Unimplemented   | None          |                                                                                                                    |
     | `URLProtocol`                | Unimplemented   | None          |                                                                                                                    |
     | `URLProtocolClient`          | Unimplemented   | None          |                                                                                                                    |
-    | `NSURLRequest`               | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
-    | `NSMutableURLRequest`        | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
+    | `NSURLRequest`               | Mostly Complete | Incomplete    |                                                                                                                    |
+    | `NSMutableURLRequest`        | Mostly Complete | Incomplete    |                                                                                                                    |
     | `URLResponse`                | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
     | `NSHTTPURLResponse`          | Mostly Complete | Substantial   | `NSCoding` remains unimplemented                                                                                   |
     | `NSURL`                      | Mostly Complete | Substantial   | `NSCoding` with non-keyed-coding archivers, `checkResourceIsReachable()`, and resource values remain unimplemented |
