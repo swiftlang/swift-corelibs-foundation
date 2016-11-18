@@ -38,7 +38,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_createDirectory() {
         let fm = FileManager.default
-        let path = "/tmp/testdir\(NSUUID().uuidString)"
+        let path = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
         
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -63,7 +63,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_createFile() {
         let fm = FileManager.default
-        let path = "/tmp/testfile\(NSUUID().uuidString)"
+        let path = NSTemporaryDirectory() + "testfile\(NSUUID().uuidString)"
         
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -83,8 +83,8 @@ class TestNSFileManager : XCTestCase {
 
     func test_moveFile() {
         let fm = FileManager.default
-        let path = "/tmp/testfile\(NSUUID().uuidString)"
-        let path2 = "/tmp/testfile2\(NSUUID().uuidString)"
+        let path = NSTemporaryDirectory() + "testfile\(NSUUID().uuidString)"
+        let path2 = NSTemporaryDirectory() + "testfile2\(NSUUID().uuidString)"
 
         func cleanup() {
             ignoreError { try fm.removeItem(atPath: path) }
@@ -114,7 +114,7 @@ class TestNSFileManager : XCTestCase {
     
     func test_fileAttributes() {
         let fm = FileManager.default
-        let path = "/tmp/test_fileAttributes\(NSUUID().uuidString)"
+        let path = NSTemporaryDirectory() + "test_fileAttributes\(NSUUID().uuidString)"
 
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -161,7 +161,7 @@ class TestNSFileManager : XCTestCase {
     }
     
     func test_setFileAttributes() {
-        let path = "/tmp/test_setFileAttributes\(NSUUID().uuidString)"
+        let path = NSTemporaryDirectory() + "test_setFileAttributes\(NSUUID().uuidString)"
         let fm = FileManager.default
         
         ignoreError { try fm.removeItem(atPath: path) }
@@ -189,10 +189,10 @@ class TestNSFileManager : XCTestCase {
     func test_pathEnumerator() {
         let fm = FileManager.default
         let testDirName = "testdir\(NSUUID().uuidString)"
-        let basePath = "/tmp/\(testDirName)"
-        let itemPath = "/tmp/\(testDirName)/item"
-        let basePath2 = "/tmp/\(testDirName)/path2"
-        let itemPath2 = "/tmp/\(testDirName)/path2/item"
+        let basePath = NSTemporaryDirectory() + "\(testDirName)"
+        let itemPath = NSTemporaryDirectory() + "\(testDirName)/item"
+        let basePath2 = NSTemporaryDirectory() + "\(testDirName)/path2"
+        let itemPath2 = NSTemporaryDirectory() + "\(testDirName)/path2/item"
         
         ignoreError { try fm.removeItem(atPath: basePath) }
         
@@ -222,8 +222,8 @@ class TestNSFileManager : XCTestCase {
     func test_directoryEnumerator() {
         let fm = FileManager.default
         let testDirName = "testdir\(NSUUID().uuidString)"
-        let path = "/tmp/\(testDirName)"
-        let itemPath = "/tmp/\(testDirName)/item"
+        let path = NSTemporaryDirectory() + "\(testDirName)"
+        let itemPath = NSTemporaryDirectory() + "\(testDirName)/item"
         
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -244,8 +244,8 @@ class TestNSFileManager : XCTestCase {
             XCTFail()
         }
         
-        let subDirPath = "/tmp/\(testDirName)/testdir2"
-        let subDirItemPath = "/tmp/\(testDirName)/testdir2/item"
+        let subDirPath = NSTemporaryDirectory() + "\(testDirName)/testdir2"
+        let subDirItemPath = NSTemporaryDirectory() + "\(testDirName)/testdir2/item"
         do {
             try fm.createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
             let _ = fm.createFile(atPath: subDirItemPath, contents: Data(), attributes: nil)
@@ -320,9 +320,9 @@ class TestNSFileManager : XCTestCase {
     func test_contentsOfDirectoryAtPath() {
         let fm = FileManager.default
         let testDirName = "testdir\(NSUUID().uuidString)"
-        let path = "/tmp/\(testDirName)"
-        let itemPath1 = "/tmp/\(testDirName)/item"
-        let itemPath2 = "/tmp/\(testDirName)/item2"
+        let path = NSTemporaryDirectory() + "\(testDirName)"
+        let itemPath1 = NSTemporaryDirectory() + "\(testDirName)/item"
+        let itemPath2 = NSTemporaryDirectory() + "\(testDirName)/item2"
         
         ignoreError { try fm.removeItem(atPath: path) }
         
@@ -363,11 +363,11 @@ class TestNSFileManager : XCTestCase {
     
     func test_subpathsOfDirectoryAtPath() {
         let fm = FileManager.default
-        let path = "/tmp/testdir"
-        let path2 = "/tmp/testdir/sub"
-        let itemPath1 = "/tmp/testdir/item"
-        let itemPath2 = "/tmp/testdir/item2"
-        let itemPath3 = "/tmp/testdir/sub/item3"
+        let path = NSTemporaryDirectory() + "testdir"
+        let path2 = NSTemporaryDirectory() + "testdir/sub"
+        let itemPath1 = NSTemporaryDirectory() + "testdir/item"
+        let itemPath2 = NSTemporaryDirectory() + "testdir/item2"
+        let itemPath3 = NSTemporaryDirectory() + "testdir/sub/item3"
                 
         ignoreError { try fm.removeItem(atPath: path) }
         

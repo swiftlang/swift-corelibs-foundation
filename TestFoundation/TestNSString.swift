@@ -419,11 +419,11 @@ class TestNSString : XCTestCase {
     
     func test_completePathIntoString() {
         let fileNames = [
-            "/tmp/Test_completePathIntoString_01",
-            "/tmp/test_completePathIntoString_02",
-            "/tmp/test_completePathIntoString_01.txt",
-            "/tmp/test_completePathIntoString_01.dat",
-            "/tmp/test_completePathIntoString_03.DAT"
+            NSTemporaryDirectory() + "Test_completePathIntoString_01",
+            NSTemporaryDirectory() + "test_completePathIntoString_02",
+            NSTemporaryDirectory() + "test_completePathIntoString_01.txt",
+            NSTemporaryDirectory() + "test_completePathIntoString_01.dat",
+            NSTemporaryDirectory() + "test_completePathIntoString_03.DAT"
         ]
         
         guard ensureFiles(fileNames) else {
@@ -432,7 +432,7 @@ class TestNSString : XCTestCase {
         }
 
         let tmpPath = { (path: String) -> String in
-            return "/tmp/\(path)"
+            return NSTemporaryDirectory() + "\(path)"
         }
 
         do {
@@ -463,9 +463,9 @@ class TestNSString : XCTestCase {
         }
         
         let fileNames2 = [
-            "/tmp/ABC/",
-            "/tmp/ABCD/",
-            "/tmp/abcde"
+            NSTemporaryDirectory() + "ABC/",
+            NSTemporaryDirectory() + "ABCD/",
+            NSTemporaryDirectory() + "abcde"
         ]
         
         guard ensureFiles(fileNames2) else {
@@ -571,7 +571,7 @@ class TestNSString : XCTestCase {
         
         // Next check has no sense on Linux due to case sensitive file system.
         #if os(OSX)
-        guard ensureFiles(["/tmp/ABC/temp.txt"]) else {
+        guard ensureFiles([NSTemporaryDirectory() + "ABC/temp.txt"]) else {
             XCTAssert(false, "Could not create temp files for testing.")
             return
         }

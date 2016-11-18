@@ -108,7 +108,7 @@ class TestNSBundle : XCTestCase {
     
     private func _setupPlayground() -> String? {
         // Make sure the directory is uniquely named
-        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"
+        let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         
         do {
             try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
@@ -179,7 +179,7 @@ class TestNSBundle : XCTestCase {
     }
     
     func test_bundleWithInvalidPath(){
-        let bundleInvalid = Bundle(path: "/tmp/test.playground")
+        let bundleInvalid = Bundle(path: NSTemporaryDirectory() + "test.playground")
         XCTAssertNil(bundleInvalid)
     }
     

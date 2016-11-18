@@ -352,7 +352,7 @@ class TestNSURL : XCTestCase {
     
     func test_URLByResolvingSymlinksInPath() {
         let files = [
-            "/tmp/ABC/test_URLByResolvingSymlinksInPath"
+            NSTemporaryDirectory() + "ABC/test_URLByResolvingSymlinksInPath"
         ]
         
         guard ensureFiles(files) else {
