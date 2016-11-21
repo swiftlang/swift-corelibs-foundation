@@ -15,7 +15,7 @@
     import SwiftFoundation
     import SwiftXCTest
 #endif
-import Dispatch
+
 
 class TestNSJSONSerialization : XCTestCase {
     
@@ -598,7 +598,6 @@ extension TestNSJSONSerialization {
             ("test_invalidJsonObjectToStreamBuffer", test_invalidJsonObjectToStreamBuffer),
             ("test_jsonObjectToOutputStreamInsufficeintBuffer", test_jsonObjectToOutputStreamInsufficeintBuffer),
             ("test_booleanJSONObject", test_booleanJSONObject),
-            ("test_serialization_perf", test_serialize_perf),
         ]
     }
 
@@ -742,35 +741,6 @@ extension TestNSJSONSerialization {
         
         let jsonArr4 = [["a":NSNull()],["b":NSNull()]]
         XCTAssertEqual(try trySerialize(jsonArr4), "[{\"a\":null},{\"b\":null}]")
-    }
-    
-    func test_serialize_perf() {
-        let numItems = 20                  // Number of elements in the payload
-        let loops = 500                    // Number of times to invoke serialization per measurement
-        let concurrency = 4                // Number of concurrent threads
-        var PAYLOAD = [String:Any]()       // The string to convert
-        
-        for i in 1...numItems {
-            PAYLOAD["Item \(i)"] = Double(i)
-        }
-        
-        let queue = DispatchQueue(label: "testcaseQueue", attributes: .concurrent)
-        let group = DispatchGroup()
-        
-        self.measure {
-            for _ in 1...concurrency {
-                queue.async(group: group) {
-                    for _ in 1...loops {
-                        do {
-                            _ = try JSONSerialization.data(withJSONObject: PAYLOAD)
-                        } catch {
-                            XCTFail("Could not serialize to JSON: \(error)")
-                        }
-                    }
-                }
-            }
-            _ = group.wait(timeout: .distantFuture) // forever
-        }
     }
     
     func test_nested_array() {
