@@ -44,10 +44,11 @@ open class PropertyListSerialization : NSObject {
 #else
         let fmt = CFPropertyListFormat(format.rawValue)
 #endif
-        return CFPropertyListIsValid(unsafeBitCast(_SwiftValue.store(plist), to: CFPropertyList.self), fmt)
+        let plistObj = _SwiftValue.store(plist)
+        return CFPropertyListIsValid(plistObj, fmt)
     }
-    
-    open class func data(fromPropertyList plist: AnyObject, format: PropertyListFormat, options opt: WriteOptions) throws -> Data {
+
+    open class func data(fromPropertyList plist: Any, format: PropertyListFormat, options opt: WriteOptions) throws -> Data {
         var error: Unmanaged<CFError>? = nil
         let result = withUnsafeMutablePointer(to: &error) { (outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> CFData? in
 #if os(OSX) || os(iOS)
@@ -56,7 +57,8 @@ open class PropertyListSerialization : NSObject {
             let fmt = CFPropertyListFormat(format.rawValue)
 #endif
             let options = CFOptionFlags(opt)
-            return CFPropertyListCreateData(kCFAllocatorSystemDefault, plist, fmt, options, outErr)
+            let plistObj = _SwiftValue.store(plist)
+            return CFPropertyListCreateData(kCFAllocatorSystemDefault, plistObj, fmt, options, outErr)
         }
         if let res = result {
             return res._swiftObject
@@ -64,7 +66,7 @@ open class PropertyListSerialization : NSObject {
             throw error!.takeRetainedValue()._nsObject
         }
     }
-    
+
     /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
     open class func propertyList(from data: Data, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0
