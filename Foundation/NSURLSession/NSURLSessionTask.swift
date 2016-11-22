@@ -221,7 +221,10 @@ open class URLSessionTask : NSObject, NSCopying {
      * The error, if any, delivered via -URLSession:task:didCompleteWithError:
      * This property will be nil in the event that no error occured.
      */
-    /*@NSCopying*/ open fileprivate(set) var error: NSError?
+    fileprivate var _error: Error?
+    /*@NSCopying*/ open var error: Error? {
+        return self._error
+    }
     
     /// Suspend the task.
     ///
@@ -877,7 +880,7 @@ extension URLSessionTask {
         }
     }
     func completeTask(withError error: NSError) {
-        self.error = error
+        self._error = error
         
         guard case .transferFailed = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete / failed.")

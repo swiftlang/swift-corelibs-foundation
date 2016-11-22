@@ -284,7 +284,7 @@ class TestURLSession : XCTestCase {
             XCTAssertNil(error)
             
             XCTAssertNotNil(task.error)
-            XCTAssertEqual(task.error?.code, NSURLErrorBadURL)
+            XCTAssertEqual((task.error as! NSError).code, NSURLErrorBadURL)
         }
     }
     
