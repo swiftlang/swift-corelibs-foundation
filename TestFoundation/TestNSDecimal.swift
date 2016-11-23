@@ -396,6 +396,8 @@ class TestNSDecimal: XCTestCase {
         XCTAssertTrue(NSDecimalIsNotANumber(&result), "NaN e4")
         XCTAssertNotEqual(.noError, NSDecimalMultiplyByPowerOf10(&result, &NaN, 5, .plain))
         XCTAssertTrue(NSDecimalIsNotANumber(&result), "NaN e5")
+
+        XCTAssertFalse(Double(NSDecimalNumber(decimal:Decimal(0))).isNaN)
     }
 
     func test_NegativeAndZeroMultiplication() {
