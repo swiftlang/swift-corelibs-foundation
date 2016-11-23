@@ -276,14 +276,18 @@ private struct JSONWriter {
             try serializeString(str)
         case let boolValue as Bool:
             serializeBool(boolValue)
-        case _ where _SwiftValue.store(obj) is NSNumber:
-            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
+        case let num as Int:
+            writer(String(describing: num))
+        case let num as UInt:
+            writer(String(describing: num))
         case let array as Array<Any>:
             try serializeArray(array)
         case let dict as Dictionary<AnyHashable, Any>:
             try serializeDictionary(dict)
         case let null as NSNull:
             try serializeNull(null)
+        case _ where _SwiftValue.store(obj) is NSNumber:
+            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
         default:
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
         }
