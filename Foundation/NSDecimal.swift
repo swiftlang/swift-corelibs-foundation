@@ -241,7 +241,7 @@ extension Decimal {
 extension Decimal : Hashable, Comparable {
     internal var doubleValue: Double {
         var d = 0.0
-        if _length == 0 && _isNegative == 0 {
+        if _length == 0 && _isNegative == 1 {
             return Double.nan
         }
         for i in 0..<8 {
