@@ -174,6 +174,8 @@ class TestNSDecimal: XCTestCase {
         XCTAssertEqual("-5", Decimal(signOf: Decimal(-3), magnitudeOf: Decimal(5)).description)
         XCTAssertEqual("5", Decimal(signOf: Decimal(3), magnitudeOf: Decimal(-5)).description)
         XCTAssertEqual("-5", Decimal(signOf: Decimal(-3), magnitudeOf: Decimal(-5)).description)
+        XCTAssertEqual("5", NSDecimalNumber(decimal:Decimal(5)).description)
+        XCTAssertEqual("-5", NSDecimalNumber(decimal:Decimal(-5)).description)
     }
 
     func test_ExplicitConstruction() {
@@ -552,6 +554,10 @@ class TestNSDecimal: XCTestCase {
             var num = Decimal(start)
             NSDecimalRound(&num, &num, scale, mode)
             XCTAssertEqual(Decimal(expected), num)
+            let numnum = NSDecimalNumber(decimal:Decimal(start))
+            let behavior = NSDecimalNumberHandler(roundingMode: mode, scale: Int16(scale), raiseOnExactness: false, raiseOnOverflow: true, raiseOnUnderflow: true, raiseOnDivideByZero: true)
+            let result = numnum.rounding(accordingToBehavior:behavior)
+            XCTAssertEqual(Double(expected), result.doubleValue)
         }
     }
 
