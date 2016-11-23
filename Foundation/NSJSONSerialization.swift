@@ -55,14 +55,19 @@ open class JSONSerialization : NSObject {
     open class func isValidJSONObject(_ obj: Any) -> Bool {
         // TODO: - revisit this once bridging story gets fully figured out
         func isValidJSONObjectInternal(_ obj: Any) -> Bool {
-            // object is Swift.String or NSNull
-            if obj is String || obj is NSNull {
+            // object is Swift.String, NSNull, Int, Bool, or UInt
+            if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt {
                 return true
             }
 
-            // object is NSNumber and is not NaN or infinity
-            if let number = _SwiftValue.store(obj) as? NSNumber {
-                let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
+            // object is a Double and is not NaN or infinity
+            if let number = obj as? Double  {
+                let invalid = number.isInfinite || number.isNaN
+                return !invalid
+            }
+            // object is a Float and is not NaN or infinity
+            if let number = obj as? Float  {
+                let invalid = number.isInfinite || number.isNaN
                 return !invalid
             }
 
@@ -84,6 +89,12 @@ open class JSONSerialization : NSObject {
                     }
                 }
                 return true
+            }
+
+            // object is NSNumber and is not NaN or infinity
+            if let number = _SwiftValue.store(obj) as? NSNumber {
+                let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
+                return !invalid
             }
 
             // invalid object
