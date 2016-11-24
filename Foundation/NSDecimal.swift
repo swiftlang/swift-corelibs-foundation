@@ -644,7 +644,7 @@ fileprivate extension UInt16 {
     }
 }
 
-fileprivate func decimalCompare<T:VariableLengthNumber>(
+fileprivate func mantissaCompare<T:VariableLengthNumber>(
     _ left: T,
     _ right: T) -> ComparisonResult {
 
@@ -655,7 +655,7 @@ fileprivate func decimalCompare<T:VariableLengthNumber>(
         return .orderedAscending
     }
     let length = left._length // == right._length
-    for i in 0..<length {
+    for i in (0..<length).reversed() {
         let comparison = left[i].compareTo(right[i])
         if comparison != .orderedSame {
             return comparison
@@ -1131,7 +1131,7 @@ public func NSDecimalAdd(_ result: UnsafeMutablePointer<Decimal>, _ leftOperand:
             }
             result.pointee._length = length
         } else { // not the same sign
-            let comparison = decimalCompare(a,b)
+            let comparison = mantissaCompare(a,b)
 
             switch comparison {
             case .orderedSame:
@@ -1728,7 +1728,7 @@ extension Decimal {
         var selfNormal = self
         var otherNormal = other
         _ = NSDecimalNormalize(&selfNormal, &otherNormal, .down)
-        let comparison = decimalCompare(selfNormal,otherNormal)
+        let comparison = mantissaCompare(selfNormal,otherNormal)
         if selfNormal._isNegative == 1 {
             if comparison == .orderedDescending {
                 return .orderedAscending
