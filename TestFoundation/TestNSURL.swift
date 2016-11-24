@@ -389,14 +389,14 @@ class TestNSURL : XCTestCase {
             let result = url.resolvingSymlinksInPath().absoluteString
             XCTAssertEqual(result, "file:///private/")
         }
-        #endif
-        
+        #else
         do {
             let url = URL(fileURLWithPath: "/tmp/ABC/test_URLByResolvingSymlinksInPath")
             let result = url.resolvingSymlinksInPath().absoluteString
             XCTAssertEqual(result, "file:///tmp/ABC/test_URLByResolvingSymlinksInPath", "URLByResolvingSymlinksInPath appends trailing slash for existing directories only")
         }
-        
+        #endif
+
         do {
             let url = URL(fileURLWithPath: "/tmp/ABC/..")
             let result = url.resolvingSymlinksInPath().absoluteString
