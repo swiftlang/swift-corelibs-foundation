@@ -62,13 +62,11 @@ open class JSONSerialization : NSObject {
 
             // object is a Double and is not NaN or infinity
             if let number = obj as? Double  {
-                let invalid = number.isInfinite || number.isNaN
-                return !invalid
+                return number.isFinite
             }
             // object is a Float and is not NaN or infinity
             if let number = obj as? Float  {
-                let invalid = number.isInfinite || number.isNaN
-                return !invalid
+                return number.isFinite
             }
 
             // object is Swift.Array
@@ -92,6 +90,7 @@ open class JSONSerialization : NSObject {
             }
 
             // object is NSNumber and is not NaN or infinity
+            // For better performance, this (most expensive) test should be last.
             if let number = _SwiftValue.store(obj) as? NSNumber {
                 let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
                 return !invalid
@@ -282,6 +281,7 @@ private struct JSONWriter {
     
     mutating func serializeJSON(_ obj: Any) throws {
 
+        // For better performance, the most expensive conditions to evaluate should be last.
         switch (obj) {
         case let str as String:
             try serializeString(str)
