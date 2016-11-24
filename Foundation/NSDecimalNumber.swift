@@ -7,7 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
 /***************	Exceptions		***********/
 public struct NSExceptionName : RawRepresentable, Equatable, Hashable, Comparable {
     public private(set) var rawValue: String
@@ -443,7 +442,6 @@ open class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCoding
     }
 }
 
-
 extension NSNumber {
     
     public var decimalValue: Decimal {
@@ -455,10 +453,4 @@ extension NSNumber {
     }
 }
 
-// Could be silently inexact for float and double.
-
-extension Scanner {
-    
-    public func scanDecimal(_ dcm: UnsafeMutablePointer<Decimal>) -> Bool { NSUnimplemented() }
-}
 
