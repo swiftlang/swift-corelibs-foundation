@@ -254,7 +254,7 @@ open class Process: NSObject {
             let process: Process = NSObject.unretainedReference(info!)
             
             process.processLaunchedCondition.lock()
-            while process.running == false {
+            while process.isRunning == false {
                 process.processLaunchedCondition.wait()
             }
             
@@ -290,7 +290,7 @@ open class Process: NSObject {
             
             // Set the running flag to false
             
-            process.running = false
+            process.isRunning = false
             
             // Invalidate the source and wake up the run loop, if it's available
             
@@ -406,7 +406,7 @@ open class Process: NSObject {
         self.runLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &runLoopSourceContext!)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopDefaultMode)
         
-        running = true
+        isRunning = true
         
         self.processIdentifier = pid
         
@@ -422,7 +422,7 @@ open class Process: NSObject {
     
     // status
     open private(set) var processIdentifier: Int32 = -1
-    open private(set) var running: Bool = false
+    open private(set) var isRunning: Bool = false
     
     open private(set) var terminationStatus: Int32 = 0
     open var terminationReason: TerminationReason { NSUnimplemented() }
@@ -451,13 +451,13 @@ extension Process {
         
         repeat {
             
-        } while( self.running == true && RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: 0.05)) )
+        } while( self.isRunning == true && RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: 0.05)) )
         
         self.runLoop = nil
     }
 }
 
-public let ProcessDidTerminateNotification: String = "ProcessDidTerminateNotification"
+public let didTerminateNotification: String = "NSTaskDidTerminateNotification"
 
 private func posix(_ code: Int32) {
     switch code {
