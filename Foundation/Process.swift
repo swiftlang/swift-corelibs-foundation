@@ -459,7 +459,7 @@ extension Process {
 
 extension Process {
     
-    static let didTerminateNotification = NSNotification.Name(rawValue: "NSTaskDidTerminateNotification")
+    public static let didTerminateNotification = NSNotification.Name(rawValue: "NSTaskDidTerminateNotification")
 }
     
 private func posix(_ code: Int32) {
