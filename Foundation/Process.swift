@@ -156,19 +156,19 @@ open class Process: NSObject {
     open var currentDirectoryPath: String = FileManager.default.currentDirectoryPath
     
     // standard I/O channels; could be either an NSFileHandle or an NSPipe
-    open var standardInput: AnyObject? {
+    open var standardInput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardInput must be either NSPipe or NSFileHandle")
         }
     }
-    open var standardOutput: AnyObject? {
+    open var standardOutput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardOutput must be either NSPipe or NSFileHandle")
         }
     }
-    open var standardError: AnyObject? {
+    open var standardError: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardError must be either NSPipe or NSFileHandle")
@@ -437,7 +437,7 @@ open class Process: NSObject {
 extension Process {
     
     // convenience; create and launch
-    open class func launchedTaskWithLaunchPath(_ path: String, arguments: [String]) -> Process {
+    open class func launchedProcess(launchPath path: String, arguments: [String]) -> Process {
         let process = Process()
         process.launchPath = path
         process.arguments = arguments
@@ -457,7 +457,7 @@ extension Process {
     }
 }
 
-public let didTerminateNotification: String = "NSTaskDidTerminateNotification"
+public let didTerminateNotification = NSNotification.Name(rawValue: "NSTaskDidTerminateNotification")
 
 private func posix(_ code: Int32) {
     switch code {

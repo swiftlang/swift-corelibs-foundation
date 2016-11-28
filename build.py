@@ -378,7 +378,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSString.swift',
 	'Foundation/NSStringAPI.swift',
 	'Foundation/NSSwiftRuntime.swift',
-	'Foundation/NSTask.swift',
+	'Foundation/Process.swift',
 	'Foundation/NSTextCheckingResult.swift',
 	'Foundation/NSThread.swift',
 	'Foundation/NSTimer.swift',
