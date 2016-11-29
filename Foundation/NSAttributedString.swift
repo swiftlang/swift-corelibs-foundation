@@ -136,7 +136,33 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
     
     open func enumerateAttribute(_ attrName: String, in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [], using block: (Any?, NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
-        // ...
+        let skipsLongestEffectiveRangeCalculation = opts.contains(.longestEffectiveRangeNotRequired)
+        let reversed = opts.contains(.reverse)
+        var attributeEnumerationRange = AttributeEnumerationRange(range: enumerationRange, reversed: reversed)
+        
+        while attributeEnumerationRange.hasMore {
+            var attributesEffectiveRange = NSRange(location: NSNotFound, length: 0)
+            let attributeInRange: Any?
+            if skipsLongestEffectiveRangeCalculation {
+                attributeInRange = attribute(attrName, at: attributeEnumerationRange.currentIndex, effectiveRange: &attributesEffectiveRange)
+            } else {
+                attributeInRange = attribute(attrName, at: attributeEnumerationRange.currentIndex, longestEffectiveRange: &attributesEffectiveRange, in: enumerationRange)
+            }
+            
+            if attributesEffectiveRange.location == NSNotFound && attributesEffectiveRange.length == 0 {
+                // no attributes found, continue to next index
+                attributeEnumerationRange.advance()
+                continue
+            }
+            
+            var stop = false
+            block(attributeInRange, attributesEffectiveRange, &stop)
+            if stop {
+                break
+            }
+            
+            attributeEnumerationRange.advance(step: attributesEffectiveRange.length)
+        }
     }
     
 }
