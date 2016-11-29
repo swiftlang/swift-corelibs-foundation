@@ -42,7 +42,8 @@ extension XMLParser {
     }
 }
 
-private func UTF8STRING(_ bytes: UnsafePointer<UInt8>) -> String? {
+private func UTF8STRING(_ bytes: UnsafePointer<UInt8>?) -> String? {
+    guard let bytes = bytes else { return nil }
     // strlen operates on the wrong type, char*. We can't rebind the memory to a different type without knowing it's length,
     // but since we know strlen is in libc, its safe to directly bitcast the pointer without worrying about multiple accesses
     // of different types visible to the compiler.
@@ -243,16 +244,10 @@ internal func _colonSeparatedStringFromPrefixAndSuffix(_ prefix: UnsafePointer<U
     return "\(prefixString!):\(suffixString!)"
 }
 
-internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>?, URI: UnsafePointer<UInt8>, nb_namespaces: Int32, namespaces: UnsafeMutablePointer<UnsafePointer<UInt8>?>, nb_attributes: Int32, nb_defaulted: Int32, attributes: UnsafeMutablePointer<UnsafePointer<UInt8>?>) -> Void {
+internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>?, URI: UnsafePointer<UInt8>?, nb_namespaces: Int32, namespaces: UnsafeMutablePointer<UnsafePointer<UInt8>?>, nb_attributes: Int32, nb_defaulted: Int32, attributes: UnsafeMutablePointer<UnsafePointer<UInt8>?>) -> Void {
     let parser = ctx.parser
-    let reportQNameURI = parser.shouldProcessNamespaces
     let reportNamespaces = parser.shouldReportNamespacePrefixes
-    // Since strlen is in libc, it's safe to bitcast the UInt8 pointer argument to an Int8 (char *) pointer.
-    let prefixLen = prefix != nil ? UInt(strlen(unsafeBitCast(prefix!, to: UnsafePointer<Int8>.self))) : 0
-    let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
-    let qualifiedNameString = prefixLen != 0 ? _colonSeparatedStringFromPrefixAndSuffix(prefix!, UInt(prefixLen), localname, UInt(strlen(unsafeBitCast(localname, to: UnsafePointer<Int8>.self)))) : localnameString
-    let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nil
-    
+
     var nsDict = [String:String]()
     var attrDict = [String:String]()
     if nb_attributes + nb_namespaces > 0 {
@@ -274,7 +269,7 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
                     nsDict[k] = v
                 }
             }
-            if !reportQNameURI {
+            if !parser.shouldProcessNamespaces {
                 if let k = asAttrNamespaceNameString,
                    let v = namespaceValueString {
                     attrDict[k] = v
@@ -323,37 +318,47 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         }
         
     }
-    
-    if let delegate = parser.delegate {
-        if reportQNameURI {
-            delegate.parser(parser, didStartElement: localnameString!, namespaceURI: (namespaceURIString != nil ? namespaceURIString : ""), qualifiedName: (qualifiedNameString != nil ? qualifiedNameString : ""), attributes: attrDict)
-        } else {
-            delegate.parser(parser, didStartElement: qualifiedNameString!, namespaceURI: nil, qualifiedName: nil, attributes: attrDict)
+
+    var elementName: String = UTF8STRING(localname)!
+    var namespaceURI: String? = nil
+    var qualifiedName: String? = nil
+    if parser.shouldProcessNamespaces {
+        namespaceURI = UTF8STRING(URI) ?? ""
+        qualifiedName = elementName
+        if let prefix = UTF8STRING(prefix) {
+            qualifiedName = elementName + ":" + prefix
         }
     }
+    else if let prefix = UTF8STRING(prefix) {
+        elementName = elementName + ":" + prefix
+    }
+
+    parser.delegate?.parser(parser, didStartElement: elementName, namespaceURI: namespaceURI, qualifiedName: qualifiedName, attributes: attrDict)
 }
 
-internal func _NSXMLParserEndElementNs(_ ctx: _CFXMLInterface , localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>?, URI: UnsafePointer<UInt8>) -> Void {
+internal func _NSXMLParserEndElementNs(_ ctx: _CFXMLInterface , localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>?, URI: UnsafePointer<UInt8>?) -> Void {
     let parser = ctx.parser
-    let reportQNameURI = parser.shouldProcessNamespaces
-    let prefixLen = prefix != nil ? strlen(unsafeBitCast(prefix!, to: UnsafePointer<Int8>.self)) : 0
-    let localnameString = (prefixLen == 0 || reportQNameURI) ? UTF8STRING(localname) : nil
-    let nilStr: String? = nil
-    let qualifiedNameString = (prefixLen != 0) ? _colonSeparatedStringFromPrefixAndSuffix(prefix!, UInt(prefixLen), localname, UInt(strlen(unsafeBitCast(localname, to: UnsafePointer<Int8>.self)))) : nilStr
-    let namespaceURIString = reportQNameURI ? UTF8STRING(URI) : nilStr
-    
-    
-    if let delegate = parser.delegate {
-        if reportQNameURI {
-            // When reporting namespace info, the delegate parameters are not passed in nil
-            delegate.parser(parser, didEndElement: localnameString!, namespaceURI: namespaceURIString == nil ? "" : namespaceURIString, qualifiedName: qualifiedNameString == nil ? "" : qualifiedNameString)
-        } else {
-            delegate.parser(parser, didEndElement: qualifiedNameString!, namespaceURI: nil, qualifiedName: nil)
+
+    var elementName: String = UTF8STRING(localname)!
+    var namespaceURI: String? = nil
+    var qualifiedName: String? = nil
+    if parser.shouldProcessNamespaces {
+        namespaceURI = UTF8STRING(URI) ?? ""
+        qualifiedName = elementName
+        if let prefix = UTF8STRING(prefix) {
+            qualifiedName = elementName + ":" + prefix
         }
     }
-    
+    else if let prefix = UTF8STRING(prefix) {
+        elementName = elementName + ":" + prefix
+    }
+
+    parser.delegate?.parser(parser, didEndElement: elementName, namespaceURI: namespaceURI, qualifiedName: qualifiedName)
+
     // Pop the last namespaces that were pushed (safe since XML is balanced)
-    parser._popNamespaces()
+    if parser.shouldReportNamespacePrefixes {
+        parser._popNamespaces()
+    }
 }
 
 internal func _NSXMLParserCharacters(_ ctx: _CFXMLInterface, ch: UnsafePointer<UInt8>, len: Int32) -> Void {
@@ -410,8 +415,10 @@ open class XMLParser : NSObject {
     private var _handler: _CFXMLInterfaceSAXHandler
     internal var _stream: InputStream?
     internal var _data: Data?
+
     internal var _chunkSize = Int(4096 * 32) // a suitably large number for a decent chunk size
-    internal var _haveDetectedEncoding = false
+    // This chunk of data stores the head of the stream. We know we have enough information for encoding
+    // when there are atleast 4 bytes in here.
     internal var _bomChunk: Data?
     fileprivate var _parserContext: _CFXMLInterfaceParserContext?
     internal var _delegateAborted = false
@@ -500,72 +507,52 @@ open class XMLParser : NSObject {
 
     internal func parseData(_ data: Data) -> Bool {
         _CFXMLInterfaceSetStructuredErrorFunc(interface, _structuredErrorFunc)
-        var result = true
-        /* The vast majority of this method just deals with ensuring we do a single parse
-         on the first 4 received bytes before continuing on to the actual incremental section */
-        if _haveDetectedEncoding {
-            var totalLength = data.count
-            if let chunk = _bomChunk {
-                totalLength += chunk.count
+
+        let handler: _CFXMLInterfaceSAXHandler? = (delegate != nil ? _handler : nil)
+        let unparsedData: Data
+        // If the parser context is nil, we have not received enough bytes to create the push parser
+        if _parserContext == nil {
+            // Look at the bomChunk and this data
+            let bomChunk: Data = {
+                guard var bomChunk = _bomChunk else {
+                    return data
+                }
+                bomChunk.append(data)
+                return bomChunk
+            }()
+            // If we have not received 4 bytes, save the bomChunk for next pass
+            if bomChunk.count < 4 {
+                _bomChunk = bomChunk
+                return false
             }
-            if (totalLength < 4) {
-                if let chunk = _bomChunk {
-                    var newData = Data()
-                    newData.append(chunk)
-                    newData.append(data)
-                    _bomChunk = newData
-                } else {
-                    _bomChunk = data
-                }
-            } else {
-                var allExistingData: Data
-                if let chunk = _bomChunk {
-                    var newData = Data()
-                    newData.append(chunk)
-                    newData.append(data)
-                    allExistingData = newData
-                } else {
-                    allExistingData = data
-                }
-
-                var handler: _CFXMLInterfaceSAXHandler? = nil
-                if delegate != nil {
-                    handler = _handler
-                }
-                
-                _parserContext = allExistingData.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> _CFXMLInterfaceParserContext in
-                    return _CFXMLInterfaceCreatePushParserCtxt(handler, interface, bytes, 4, nil)
-                }
-
-                var options = _kCFXMLInterfaceRecover | _kCFXMLInterfaceNoEnt // substitute entities, recover on errors
-                if shouldResolveExternalEntities {
-                    options |= _kCFXMLInterfaceDTDLoad
-                }
-
-                if handler == nil {
-                    options |= (_kCFXMLInterfaceNoError | _kCFXMLInterfaceNoWarning)
-                }
-
-                _CFXMLInterfaceCtxtUseOptions(_parserContext, options)
-                _haveDetectedEncoding = true
-                _bomChunk = nil
-
-                if (totalLength > 4) {
-                    let remainingData = allExistingData.withUnsafeMutableBytes { (bytes: UnsafeMutablePointer<UInt8>) -> Data in
-                        let ptr = bytes.advanced(by: 4)
-                        return Data(bytesNoCopy: ptr, count: totalLength - 4, deallocator: .none)
-                    }
-                    
-                    let _ = parseData(remainingData)
-                }
+            // Prepare options (substitute entities, recover on errors)
+            var options = _kCFXMLInterfaceRecover | _kCFXMLInterfaceNoEnt
+            if shouldResolveExternalEntities {
+                options |= _kCFXMLInterfaceDTDLoad
             }
-        } else {
-            let parseResult = data.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Int32 in
-                return _CFXMLInterfaceParseChunk(_parserContext, bytes, Int32(data.count), 0)
+            if handler == nil {
+                options |= (_kCFXMLInterfaceNoError | _kCFXMLInterfaceNoWarning)
             }
-            
-            result = _handleParseResult(parseResult)
+
+            // Create the push context with the first 4 bytes
+            bomChunk.withUnsafeBytes { bytes in
+                _parserContext = _CFXMLInterfaceCreatePushParserCtxt(handler, interface, bytes, 4, nil)
+            }
+            _CFXMLInterfaceCtxtUseOptions(_parserContext, options)
+            // Prepare the remaining data for parsing
+            let dataRange = bomChunk.indices
+            let unparsed = Range(uncheckedBounds: (dataRange.startIndex.advanced(by: 4), dataRange.endIndex))
+            unparsedData = bomChunk.subdata(in: unparsed)
         }
+        else {
+            unparsedData = data
+        }
+
+        let parseResult = unparsedData.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Int32 in
+            return _CFXMLInterfaceParseChunk(_parserContext, bytes, Int32(unparsedData.count), 0)
+        }
+
+        let result = _handleParseResult(parseResult)
         _CFXMLInterfaceSetStructuredErrorFunc(interface, nil)
         return result
     }
@@ -745,13 +732,13 @@ public protocol XMLParserDelegate: class {
     func parser(_ parser: XMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data?
     // this gives the delegate an opportunity to resolve an external entity itself and reply with the resulting data.
     
-    func parser(_ parser: XMLParser, parseErrorOccurred parseError: NSError)
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error)
     // ...and this reports a fatal error to the delegate. The parser will stop parsing.
     
-    func parser(_ parser: XMLParser, validationErrorOccurred validationError: NSError)
+    func parser(_ parser: XMLParser, validationErrorOccurred validationError: Error)
 }
 
-extension XMLParserDelegate {
+public extension XMLParserDelegate {
     
     func parserDidStartDocument(_ parser: XMLParser) { }
     func parserDidEndDocument(_ parser: XMLParser) { }
@@ -788,9 +775,9 @@ extension XMLParserDelegate {
     
     func parser(_ parser: XMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data? { return nil }
     
-    func parser(_ parser: XMLParser, parseErrorOccurred parseError: NSError) { }
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) { }
     
-    func parser(_ parser: XMLParser, validationErrorOccurred validationError: NSError) { }
+    func parser(_ parser: XMLParser, validationErrorOccurred validationError: Error) { }
 }
 
 extension XMLParser {
