@@ -37,14 +37,14 @@ class TestNSAttributedString : XCTestCase {
         
         var range = NSRange()
         let attrs = attrString.attributes(at: 0, effectiveRange: &range)
-        XCTAssertEqual(range.location, NSNotFound)
-        XCTAssertEqual(range.length, 0)
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, string.utf16.count)
         XCTAssertEqual(attrs.count, 0)
 
         let attribute = attrString.attribute("invalid", at: 0, effectiveRange: &range)
         XCTAssertNil(attribute)
-        XCTAssertEqual(range.location, NSNotFound)
-        XCTAssertEqual(range.length, 0)
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, string.utf16.count)
     }
     
     func test_initWithStringAndAttributes() {
@@ -67,8 +67,8 @@ class TestNSAttributedString : XCTestCase {
 
         let invalidAttribute = attrString.attribute("invalid", at: 0, effectiveRange: &range)
         XCTAssertNil(invalidAttribute)
-        XCTAssertEqual(range.location, NSNotFound)
-        XCTAssertEqual(range.length, 0)
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, string.utf16.count)
 
         let attribute = attrString.attribute("attribute.placeholder.key", at: 0, effectiveRange: &range)
         XCTAssertEqual(range.location, 0)

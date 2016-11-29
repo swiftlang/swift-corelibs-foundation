@@ -115,11 +115,9 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
                 attributesInRange = attributes(at: currentIndex, longestEffectiveRange: &attributesEffectiveRange, in: enumerationRange)
             }
             
-            if attributesEffectiveRange.location != NSNotFound && attributesEffectiveRange.length > 0 {
-                var shouldStop = false
-                block(attributesInRange, attributesEffectiveRange, &shouldStop)
-                stop.pointee = shouldStop
-            }
+            var shouldStop = false
+            block(attributesInRange, attributesEffectiveRange, &shouldStop)
+            stop.pointee = shouldStop
             
             return attributesEffectiveRange
         }
@@ -135,11 +133,9 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
                 attributeInRange = attribute(attrName, at: currentIndex, longestEffectiveRange: &attributeEffectiveRange, in: enumerationRange)
             }
             
-            if attributeEffectiveRange.location != NSNotFound && attributeEffectiveRange.length > 0 {
-                var shouldStop = false
-                block(attributeInRange, attributeEffectiveRange, &shouldStop)
-                stop.pointee = shouldStop
-            }
+            var shouldStop = false
+            block(attributeInRange, attributeEffectiveRange, &shouldStop)
+            stop.pointee = shouldStop
             
             return attributeEffectiveRange
         }
@@ -208,11 +204,9 @@ private extension NSAttributedString {
                 results[stringKey] = value
             }
             
-            // Update effective range
-            let hasAttrs = results.count > 0
-            rangeInfo.rangePointer?.pointee.location = hasAttrs ? cfRangePointer.pointee.location : NSNotFound
-            rangeInfo.rangePointer?.pointee.length = hasAttrs ? cfRangePointer.pointee.length : 0
-            
+            // Update effective range and return the results
+            rangeInfo.rangePointer?.pointee.location = cfRangePointer.pointee.location
+            rangeInfo.rangePointer?.pointee.length = cfRangePointer.pointee.length
             return results
         }
     }
@@ -229,15 +223,9 @@ private extension NSAttributedString {
             }
             
             // Update effective range and return the result
-            if let attribute = attribute {
-                rangeInfo.rangePointer?.pointee.location = cfRangePointer.pointee.location
-                rangeInfo.rangePointer?.pointee.length = cfRangePointer.pointee.length
-                return attribute
-            } else {
-                rangeInfo.rangePointer?.pointee.location = NSNotFound
-                rangeInfo.rangePointer?.pointee.length = 0
-                return nil
-            }
+            rangeInfo.rangePointer?.pointee.location = cfRangePointer.pointee.location
+            rangeInfo.rangePointer?.pointee.length = cfRangePointer.pointee.length
+            return attribute
         }
     }
     
@@ -245,14 +233,8 @@ private extension NSAttributedString {
         var attributeEnumerationRange = AttributeEnumerationRange(range: enumerationRange, reversed: reversed)
         while attributeEnumerationRange.hasMore {
             var stop = false
-            
             let effectiveRange = block(attributeEnumerationRange.currentIndex, &stop)
-            if effectiveRange.location == NSNotFound && effectiveRange.length == 0 {
-                attributeEnumerationRange.advance()
-            } else {
-                attributeEnumerationRange.advance(step: effectiveRange.length)
-            }
-            
+            attributeEnumerationRange.advance(step: effectiveRange.length)
             if stop {
                 break
             }
