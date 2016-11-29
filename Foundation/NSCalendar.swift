@@ -974,7 +974,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     This API reports if the date is within a weekend period, as defined by the calendar and calendar's locale.
     */
     open func isDateInWeekend(_ date: Date) -> Bool {
-        return _CFCalendarIsWeekend(_cfObject, date.timeIntervalSinceReferenceDate)
+        return _CFCalendarIsWeekend(_cfObject, date.timeIntervalSince1970)
     }
     
     /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer.
