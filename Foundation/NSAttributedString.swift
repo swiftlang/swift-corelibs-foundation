@@ -106,65 +106,45 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     public init(NSAttributedString attrStr: NSAttributedString) { NSUnimplemented() }
 
     open func enumerateAttributes(in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [], using block: ([String : Any], NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
-        let skipsLongestEffectiveRangeCalculation = opts.contains(.longestEffectiveRangeNotRequired)
-        let reversed = opts.contains(.reverse)
-        var attributeEnumerationRange = AttributeEnumerationRange(range: enumerationRange, reversed: reversed)
-        
-        while attributeEnumerationRange.hasMore {
+        _enumerate(in: enumerationRange, reversed: opts.contains(.reverse)) { currentIndex, stop in
             var attributesEffectiveRange = NSRange(location: NSNotFound, length: 0)
             let attributesInRange: [String : Any]
-            if skipsLongestEffectiveRangeCalculation {
-                attributesInRange = attributes(at: attributeEnumerationRange.currentIndex, effectiveRange: &attributesEffectiveRange)
+            if opts.contains(.longestEffectiveRangeNotRequired) {
+                attributesInRange = attributes(at: currentIndex, effectiveRange: &attributesEffectiveRange)
             } else {
-                attributesInRange = attributes(at: attributeEnumerationRange.currentIndex, longestEffectiveRange: &attributesEffectiveRange, in: enumerationRange)
+                attributesInRange = attributes(at: currentIndex, longestEffectiveRange: &attributesEffectiveRange, in: enumerationRange)
             }
             
-            if attributesEffectiveRange.location == NSNotFound && attributesEffectiveRange.length == 0 {
-                // no attributes found, continue to next index
-                attributeEnumerationRange.advance()
-                continue
+            if attributesEffectiveRange.location != NSNotFound && attributesEffectiveRange.length > 0 {
+                var shouldStop = false
+                block(attributesInRange, attributesEffectiveRange, &shouldStop)
+                stop.pointee = shouldStop
             }
             
-            var stop = false
-            block(attributesInRange, attributesEffectiveRange, &stop)
-            if stop {
-                break
-            }
-            
-            attributeEnumerationRange.advance(step: attributesEffectiveRange.length)
+            return attributesEffectiveRange
         }
     }
     
     open func enumerateAttribute(_ attrName: String, in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [], using block: (Any?, NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
-        let skipsLongestEffectiveRangeCalculation = opts.contains(.longestEffectiveRangeNotRequired)
-        let reversed = opts.contains(.reverse)
-        var attributeEnumerationRange = AttributeEnumerationRange(range: enumerationRange, reversed: reversed)
-        
-        while attributeEnumerationRange.hasMore {
-            var attributesEffectiveRange = NSRange(location: NSNotFound, length: 0)
+        _enumerate(in: enumerationRange, reversed: opts.contains(.reverse)) { currentIndex, stop in
+            var attributeEffectiveRange = NSRange(location: NSNotFound, length: 0)
             let attributeInRange: Any?
-            if skipsLongestEffectiveRangeCalculation {
-                attributeInRange = attribute(attrName, at: attributeEnumerationRange.currentIndex, effectiveRange: &attributesEffectiveRange)
+            if opts.contains(.longestEffectiveRangeNotRequired) {
+                attributeInRange = attribute(attrName, at: currentIndex, effectiveRange: &attributeEffectiveRange)
             } else {
-                attributeInRange = attribute(attrName, at: attributeEnumerationRange.currentIndex, longestEffectiveRange: &attributesEffectiveRange, in: enumerationRange)
+                attributeInRange = attribute(attrName, at: currentIndex, longestEffectiveRange: &attributeEffectiveRange, in: enumerationRange)
             }
             
-            if attributesEffectiveRange.location == NSNotFound && attributesEffectiveRange.length == 0 {
-                // no attributes found, continue to next index
-                attributeEnumerationRange.advance()
-                continue
+            if attributeEffectiveRange.location != NSNotFound && attributeEffectiveRange.length > 0 {
+                var shouldStop = false
+                block(attributeInRange, attributeEffectiveRange, &shouldStop)
+                stop.pointee = shouldStop
             }
             
-            var stop = false
-            block(attributeInRange, attributesEffectiveRange, &stop)
-            if stop {
-                break
-            }
-            
-            attributeEnumerationRange.advance(step: attributesEffectiveRange.length)
+            return attributeEffectiveRange
         }
     }
-    
+
 }
 
 private extension NSAttributedString {
@@ -257,6 +237,24 @@ private extension NSAttributedString {
                 rangeInfo.rangePointer?.pointee.location = NSNotFound
                 rangeInfo.rangePointer?.pointee.length = 0
                 return nil
+            }
+        }
+    }
+    
+    func _enumerate(in enumerationRange: NSRange, reversed: Bool, using block: (Int, UnsafeMutablePointer<ObjCBool>) -> NSRange) {
+        var attributeEnumerationRange = AttributeEnumerationRange(range: enumerationRange, reversed: reversed)
+        while attributeEnumerationRange.hasMore {
+            var stop = false
+            
+            let effectiveRange = block(attributeEnumerationRange.currentIndex, &stop)
+            if effectiveRange.location == NSNotFound && effectiveRange.length == 0 {
+                attributeEnumerationRange.advance()
+            } else {
+                attributeEnumerationRange.advance(step: effectiveRange.length)
+            }
+            
+            if stop {
+                break
             }
         }
     }
