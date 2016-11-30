@@ -38,6 +38,16 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
         return Locale(adoptingReference: __NSLocaleCurrent(), autoupdating: false)
     }
     
+    /// Returns a locale which tracks the user's current preferences.
+    ///
+    /// If mutated, this Locale will no longer track the user's preferences.
+    ///
+    /// - note: The autoupdating Locale will only compare equal to another autoupdating Locale.
+    public static var autoupdatingCurrent : Locale {
+        // swift-corelibs-foundation does not yet support autoupdating, but we can return the current locale (which will not change).
+        return Locale(adoptingReference: __NSLocaleCurrent(), autoupdating: true)
+    }
+    
     @available(*, unavailable, message: "Consider using the user's locale or nil instead, depending on use case")
     public static var system : Locale { fatalError() }
     

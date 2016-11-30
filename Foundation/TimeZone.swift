@@ -45,10 +45,11 @@ public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
 
     /// The time zone currently used by the system, automatically updating to the user's current preference.
     ///
-    /// If this time zone is mutated, then it no longer tracks the application time zone.
+    /// If this time zone is mutated, then it no longer tracks the system time zone.
     ///
     /// The autoupdating time zone only compares equal to itself.
     public static var autoupdatingCurrent : TimeZone {
+        // swift-corelibs-foundation does not yet support autoupdating, but we can return the current time zone (which will not change).
         return TimeZone(adoptingReference: __NSTimeZoneAutoupdating(), autoupdating: true)
     }
     
