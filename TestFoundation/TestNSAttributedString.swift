@@ -127,43 +127,31 @@ class TestNSAttributedString : XCTestCase {
         let fullRange = NSRange(location: 0, length: attrString.length)
 
         var rangeDescriptionString = ""
-        var valueDescriptionString = ""
+        var attrDescriptionString = ""
         attrString.enumerateAttribute(attrKey1, in: fullRange) { attr, range, stop in
-            rangeDescriptionString.append("(\(range.location),\(range.length))")
-            if let attr = attr {
-                valueDescriptionString.append("\(attr)" + "|")
-            } else {
-                valueDescriptionString.append("nil" + "|")
-            }
+            rangeDescriptionString.append(self.describe(range: range))
+            attrDescriptionString.append(self.describe(attr: attr))
         }
         XCTAssertEqual(rangeDescriptionString, "(0,28)(28,116)")
-        XCTAssertEqual(valueDescriptionString, "\(attrValue1)|nil|")
+        XCTAssertEqual(attrDescriptionString, "\(attrValue1)|nil|")
         
         rangeDescriptionString = ""
-        valueDescriptionString = ""
+        attrDescriptionString = ""
         attrString.enumerateAttribute(attrKey1, in: fullRange, options: [.reverse]) { attr, range, stop in
-            rangeDescriptionString.append("(\(range.location),\(range.length))")
-            if let attr = attr {
-                valueDescriptionString.append("\(attr)" + "|")
-            } else {
-                valueDescriptionString.append("nil" + "|")
-            }
+            rangeDescriptionString.append(self.describe(range: range))
+            attrDescriptionString.append(self.describe(attr: attr))
         }
         XCTAssertEqual(rangeDescriptionString, "(28,116)(0,28)")
-        XCTAssertEqual(valueDescriptionString, "nil|\(attrValue1)|")
+        XCTAssertEqual(attrDescriptionString, "nil|\(attrValue1)|")
         
         rangeDescriptionString = ""
-        valueDescriptionString = ""
+        attrDescriptionString = ""
         attrString.enumerateAttribute(attrKey1, in: fullRange, options: [.longestEffectiveRangeNotRequired]) { attr, range, stop in
-            rangeDescriptionString.append("(\(range.location),\(range.length))")
-            if let attr = attr {
-                valueDescriptionString.append("\(attr)" + "|")
-            } else {
-                valueDescriptionString.append("nil" + "|")
-            }
+            rangeDescriptionString.append(self.describe(range: range))
+            attrDescriptionString.append(self.describe(attr: attr))
         }
         XCTAssertEqual(rangeDescriptionString, "(0,28)(28,12)(40,5)(45,99)")
-        XCTAssertEqual(valueDescriptionString, "\(attrValue1)|nil|nil|nil|")
+        XCTAssertEqual(attrDescriptionString, "\(attrValue1)|nil|nil|nil|")
     }
     
     func test_enumerateAttributes() {
@@ -189,58 +177,65 @@ class TestNSAttributedString : XCTestCase {
         let fullRange = NSRange(location: 0, length: attrString.length)
         
         var rangeDescriptionString = ""
-        var valueDescriptionString = ""
+        var attrsDescriptionString = ""
         attrString.enumerateAttributes(in: fullRange) { attrs, range, stop in
-            rangeDescriptionString.append("(\(range.location),\(range.length))")
-            if attrs.count > 0 {
-                valueDescriptionString.append("[" + attrs.map({ "\($0):\($1)" }).joined(separator: ",") + "]")
-            } else {
-                valueDescriptionString.append("[:]")
-            }
+            rangeDescriptionString.append(self.describe(range: range))
+            attrsDescriptionString.append(self.describe(attrs: attrs))
         }
         XCTAssertEqual(rangeDescriptionString, "(0,18)(18,2)(20,8)(28,12)(40,5)(45,99)")
-        XCTAssertEqual(valueDescriptionString, "[attribute.placeholder.key1:attribute.placeholder.value1][attribute.placeholder.key1:attribute.placeholder.value1,attribute.placeholder.key2:attribute.placeholder.value2][attribute.placeholder.key2:attribute.placeholder.value2][:][attribute.placeholder.key3:attribute.placeholder.value3][:]")
+        XCTAssertEqual(attrsDescriptionString, "[attribute.placeholder.key1:attribute.placeholder.value1][attribute.placeholder.key1:attribute.placeholder.value1,attribute.placeholder.key2:attribute.placeholder.value2][attribute.placeholder.key2:attribute.placeholder.value2][:][attribute.placeholder.key3:attribute.placeholder.value3][:]")
         
         rangeDescriptionString = ""
-        valueDescriptionString = ""
+        attrsDescriptionString = ""
         attrString.enumerateAttributes(in: fullRange, options: [.reverse]) { attrs, range, stop in
-            rangeDescriptionString.append("(\(range.location),\(range.length))")
-            if attrs.count > 0 {
-                valueDescriptionString.append("[" + attrs.map({ "\($0):\($1)" }).joined(separator: ",") + "]")
-            } else {
-                valueDescriptionString.append("[:]")
-            }
+            rangeDescriptionString.append(self.describe(range: range))
+            attrsDescriptionString.append(self.describe(attrs: attrs))
         }
         XCTAssertEqual(rangeDescriptionString, "(45,99)(40,5)(28,12)(20,8)(18,2)(0,18)")
-        XCTAssertEqual(valueDescriptionString, "[:][attribute.placeholder.key3:attribute.placeholder.value3][:][attribute.placeholder.key2:attribute.placeholder.value2][attribute.placeholder.key1:attribute.placeholder.value1,attribute.placeholder.key2:attribute.placeholder.value2][attribute.placeholder.key1:attribute.placeholder.value1]")
+        XCTAssertEqual(attrsDescriptionString, "[:][attribute.placeholder.key3:attribute.placeholder.value3][:][attribute.placeholder.key2:attribute.placeholder.value2][attribute.placeholder.key1:attribute.placeholder.value1,attribute.placeholder.key2:attribute.placeholder.value2][attribute.placeholder.key1:attribute.placeholder.value1]")
         
         let partialRange = NSRange(location: 0, length: 10)
         
         rangeDescriptionString = ""
-        valueDescriptionString = ""
+        attrsDescriptionString = ""
         attrString.enumerateAttributes(in: partialRange) { attrs, range, stop in
-            rangeDescriptionString.append("(\(range.location),\(range.length))")
-            if attrs.count > 0 {
-                valueDescriptionString.append("[" + attrs.map({ "\($0):\($1)" }).joined(separator: ",") + "]")
-            } else {
-                valueDescriptionString.append("[:]")
-            }
+            rangeDescriptionString.append(self.describe(range: range))
+            attrsDescriptionString.append(self.describe(attrs: attrs))
         }
         XCTAssertEqual(rangeDescriptionString, "(0,10)")
-        XCTAssertEqual(valueDescriptionString, "[attribute.placeholder.key1:attribute.placeholder.value1]")
+        XCTAssertEqual(attrsDescriptionString, "[attribute.placeholder.key1:attribute.placeholder.value1]")
         
         rangeDescriptionString = ""
-        valueDescriptionString = ""
+        attrsDescriptionString = ""
         attrString.enumerateAttributes(in: partialRange, options: [.reverse]) { attrs, range, stop in
-            rangeDescriptionString.append("(\(range.location),\(range.length))")
-            if attrs.count > 0 {
-                valueDescriptionString.append("[" + attrs.map({ "\($0):\($1)" }).joined(separator: ",") + "]")
-            } else {
-                valueDescriptionString.append("[:]")
-            }
+            rangeDescriptionString.append(self.describe(range: range))
+            attrsDescriptionString.append(self.describe(attrs: attrs))
         }
         XCTAssertEqual(rangeDescriptionString, "(0,10)")
-        XCTAssertEqual(valueDescriptionString, "[attribute.placeholder.key1:attribute.placeholder.value1]")
+        XCTAssertEqual(attrsDescriptionString, "[attribute.placeholder.key1:attribute.placeholder.value1]")
+    }
+}
+
+fileprivate extension TestNSAttributedString {
+    
+    fileprivate func describe(range: NSRange) -> String {
+        return "(\(range.location),\(range.length))"
+    }
+    
+    fileprivate func describe(attr: Any?) -> String {
+        if let attr = attr {
+            return "\(attr)" + "|"
+        } else {
+            return "nil" + "|"
+        }
+    }
+    
+    fileprivate func describe(attrs: [String : Any]) -> String {
+        if attrs.count > 0 {
+            return "[" + attrs.map({ "\($0):\($1)" }).sorted(by: { $0 < $1 }).joined(separator: ",") + "]"
+        } else {
+            return "[:]"
+        }
     }
 }
 
