@@ -19,22 +19,15 @@
  */
 public struct URLResourceValues {
     fileprivate var _values: [URLResourceKey: Any]
-    fileprivate var _keys: Set<URLResourceKey>
-    
+
     public init() {
         _values = [:]
-        _keys = []
     }
-    
-    fileprivate init(keys: Set<URLResourceKey>, values: [URLResourceKey: Any]) {
+
+    fileprivate init(_ values: [URLResourceKey: Any]) {
         _values = values
-        _keys = keys
     }
-    
-    private func contains(_ key: URLResourceKey) -> Bool {
-        return _keys.contains(key)
-    }
-    
+
     private func _get<T>(_ key : URLResourceKey) -> T? {
         return _values[key] as? T
     }
@@ -44,44 +37,11 @@ public struct URLResourceValues {
     private func _get(_ key: URLResourceKey) -> Int? {
         return (_values[key] as? NSNumber)?.intValue
     }
-    
+
     private mutating func _set(_ key : URLResourceKey, newValue : Any?) {
-        _keys.insert(key)
         _values[key] = newValue
     }
-    private mutating func _set(_ key : URLResourceKey, newValue : String?) {
-        _keys.insert(key)
-        _values[key] = newValue
-    }
-    private mutating func _set(_ key : URLResourceKey, newValue : [String]?) {
-        _keys.insert(key)
-        _values[key] = newValue
-    }
-    private mutating func _set(_ key : URLResourceKey, newValue : Date?) {
-        _keys.insert(key)
-        _values[key] = newValue
-    }
-    private mutating func _set(_ key : URLResourceKey, newValue : URL?) {
-        _keys.insert(key)
-        _values[key] = newValue
-    }
-    private mutating func _set(_ key : URLResourceKey, newValue : Bool?) {
-        _keys.insert(key)
-        if let value = newValue {
-            _values[key] = NSNumber(value: value)
-        } else {
-            _values[key] = nil
-        }
-    }
-    private mutating func _set(_ key : URLResourceKey, newValue : Int?) {
-        _keys.insert(key)
-        if let value = newValue {
-            _values[key] = NSNumber(value: value)
-        } else {
-            _values[key] = nil
-        }
-    }
-    
+
     /// A loosely-typed dictionary containing all keys and values.
     ///
     /// If you have set temporary keys or non-standard keys, you can find them in here.
@@ -901,7 +861,7 @@ public struct URL : ReferenceConvertible, Equatable {
     ///
     /// Only the values for the keys specified in `keys` will be populated.
     public func resourceValues(forKeys keys: Set<URLResourceKey>) throws -> URLResourceValues {
-        return URLResourceValues(keys: keys, values: try _url.resourceValues(forKeys: Array(keys)))
+        return URLResourceValues(try _url.resourceValues(forKeys: Array(keys)))
     }
 
     /// Sets a temporary resource value on the URL object.
