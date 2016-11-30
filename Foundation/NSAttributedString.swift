@@ -105,12 +105,78 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     
     public init(NSAttributedString attrStr: NSAttributedString) { NSUnimplemented() }
 
-    open func enumerateAttributes(in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [], using block: ([String : Any], NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) { NSUnimplemented() }
-    open func enumerateAttribute(_ attrName: String, in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [], using block: (Any?, NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) { NSUnimplemented() }
+    open func enumerateAttributes(in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [], using block: ([String : Any], NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+        _enumerate(in: enumerationRange, reversed: opts.contains(.reverse)) { currentIndex, stop in
+            var attributesEffectiveRange = NSRange(location: NSNotFound, length: 0)
+            let attributesInRange: [String : Any]
+            if opts.contains(.longestEffectiveRangeNotRequired) {
+                attributesInRange = attributes(at: currentIndex, effectiveRange: &attributesEffectiveRange)
+            } else {
+                attributesInRange = attributes(at: currentIndex, longestEffectiveRange: &attributesEffectiveRange, in: enumerationRange)
+            }
+            
+            var shouldStop = false
+            block(attributesInRange, attributesEffectiveRange, &shouldStop)
+            stop.pointee = shouldStop
+            
+            return attributesEffectiveRange
+        }
+    }
     
+    open func enumerateAttribute(_ attrName: String, in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [], using block: (Any?, NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+        _enumerate(in: enumerationRange, reversed: opts.contains(.reverse)) { currentIndex, stop in
+            var attributeEffectiveRange = NSRange(location: NSNotFound, length: 0)
+            let attributeInRange: Any?
+            if opts.contains(.longestEffectiveRangeNotRequired) {
+                attributeInRange = attribute(attrName, at: currentIndex, effectiveRange: &attributeEffectiveRange)
+            } else {
+                attributeInRange = attribute(attrName, at: currentIndex, longestEffectiveRange: &attributeEffectiveRange, in: enumerationRange)
+            }
+            
+            var shouldStop = false
+            block(attributeInRange, attributeEffectiveRange, &shouldStop)
+            stop.pointee = shouldStop
+            
+            return attributeEffectiveRange
+        }
+    }
+
 }
 
 private extension NSAttributedString {
+    
+    struct AttributeEnumerationRange {
+        let startIndex: Int
+        let endIndex: Int
+        let reversed: Bool
+        var currentIndex: Int
+        
+        var hasMore: Bool {
+            if reversed {
+                return currentIndex >= endIndex
+            } else {
+                return currentIndex <= endIndex
+            }
+        }
+        
+        init(range: NSRange, reversed: Bool) {
+            let lowerBound = range.location
+            let upperBound = range.location + range.length - 1
+            self.reversed = reversed
+            startIndex = reversed ? upperBound : lowerBound
+            endIndex = reversed ? lowerBound : upperBound
+            currentIndex = startIndex
+        }
+        
+        mutating func advance(step: Int = 1) {
+            if reversed {
+                currentIndex -= step
+            } else {
+                currentIndex += step
+            }
+        }
+    }
+    
     struct RangeInfo {
         let rangePointer: NSRangePointer?
         let shouldFetchLongestEffectiveRange: Bool
@@ -138,11 +204,9 @@ private extension NSAttributedString {
                 results[stringKey] = value
             }
             
-            // Update effective range
-            let hasAttrs = results.count > 0
-            rangeInfo.rangePointer?.pointee.location = hasAttrs ? cfRangePointer.pointee.location : NSNotFound
-            rangeInfo.rangePointer?.pointee.length = hasAttrs ? cfRangePointer.pointee.length : 0
-            
+            // Update effective range and return the results
+            rangeInfo.rangePointer?.pointee.location = cfRangePointer.pointee.location
+            rangeInfo.rangePointer?.pointee.length = cfRangePointer.pointee.length
             return results
         }
     }
@@ -159,14 +223,20 @@ private extension NSAttributedString {
             }
             
             // Update effective range and return the result
-            if let attribute = attribute {
-                rangeInfo.rangePointer?.pointee.location = cfRangePointer.pointee.location
-                rangeInfo.rangePointer?.pointee.length = cfRangePointer.pointee.length
-                return attribute
-            } else {
-                rangeInfo.rangePointer?.pointee.location = NSNotFound
-                rangeInfo.rangePointer?.pointee.length = 0
-                return nil
+            rangeInfo.rangePointer?.pointee.location = cfRangePointer.pointee.location
+            rangeInfo.rangePointer?.pointee.length = cfRangePointer.pointee.length
+            return attribute
+        }
+    }
+    
+    func _enumerate(in enumerationRange: NSRange, reversed: Bool, using block: (Int, UnsafeMutablePointer<ObjCBool>) -> NSRange) {
+        var attributeEnumerationRange = AttributeEnumerationRange(range: enumerationRange, reversed: reversed)
+        while attributeEnumerationRange.hasMore {
+            var stop = false
+            let effectiveRange = block(attributeEnumerationRange.currentIndex, &stop)
+            attributeEnumerationRange.advance(step: effectiveRange.length)
+            if stop {
+                break
             }
         }
     }
@@ -197,8 +267,8 @@ extension NSAttributedString {
         public init(rawValue: UInt) {
             self.rawValue = rawValue
         }
-        public static let Reverse = EnumerationOptions(rawValue: 1 << 1)
-        public static let LongestEffectiveRangeNotRequired = EnumerationOptions(rawValue: 1 << 20)
+        public static let reverse = EnumerationOptions(rawValue: 1 << 1)
+        public static let longestEffectiveRangeNotRequired = EnumerationOptions(rawValue: 1 << 20)
     }
 
 }
