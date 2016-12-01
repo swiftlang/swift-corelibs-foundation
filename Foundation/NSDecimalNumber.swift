@@ -7,7 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
 /***************	Exceptions		***********/
 public struct NSExceptionName : RawRepresentable, Equatable, Hashable, Comparable {
     public private(set) var rawValue: String
@@ -161,7 +160,12 @@ open class NSDecimalNumber : NSNumber {
         NSRequiresConcreteImplementation()
     }
     
-    open override func description(withLocale locale: Locale?) -> String { NSUnimplemented() }
+    open override func description(withLocale locale: Locale?) -> String {
+        guard locale == nil else {
+            fatalError("Locale not supported: \(locale!)")
+        }
+        return self.decimal.description
+    }
 
     open class var zero: NSDecimalNumber {
         return NSDecimalNumber(integerLiteral: 0)
@@ -261,8 +265,16 @@ open class NSDecimalNumber : NSNumber {
         return NSDecimalNumber(decimal: result)
     }
     
-    open func rounding(accordingToBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber { NSUnimplemented() }
     // Round to the scale of the behavior.
+    open func rounding(accordingToBehavior b: NSDecimalNumberBehaviors?) -> NSDecimalNumber {
+        var result = Decimal()
+        var input = self.decimal
+        let behavior = b ?? NSDecimalNumber.defaultBehavior
+        let roundingMode = behavior.roundingMode()
+        let scale = behavior.scale()
+        NSDecimalRound(&result, &input, Int(scale), roundingMode)
+        return NSDecimalNumber(decimal: result)
+    }
     
     // compare two NSDecimalNumbers
     open override func compare(_ decimalNumber: NSNumber) -> ComparisonResult {
@@ -430,7 +442,6 @@ open class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCoding
     }
 }
 
-
 extension NSNumber {
     
     public var decimalValue: Decimal {
@@ -442,10 +453,4 @@ extension NSNumber {
     }
 }
 
-// Could be silently inexact for float and double.
-
-extension Scanner {
-    
-    public func scanDecimal(_ dcm: UnsafeMutablePointer<Decimal>) -> Bool { NSUnimplemented() }
-}
 

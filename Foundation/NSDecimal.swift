@@ -241,7 +241,7 @@ extension Decimal {
 extension Decimal : Hashable, Comparable {
     internal var doubleValue: Double {
         var d = 0.0
-        if _length == 0 && _isNegative == 0 {
+        if _length == 0 && _isNegative == 1 {
             return Double.nan
         }
         for i in 0..<8 {
@@ -644,7 +644,7 @@ fileprivate extension UInt16 {
     }
 }
 
-fileprivate func decimalCompare<T:VariableLengthNumber>(
+fileprivate func mantissaCompare<T:VariableLengthNumber>(
     _ left: T,
     _ right: T) -> ComparisonResult {
 
@@ -655,7 +655,7 @@ fileprivate func decimalCompare<T:VariableLengthNumber>(
         return .orderedAscending
     }
     let length = left._length // == right._length
-    for i in 0..<length {
+    for i in (0..<length).reversed() {
         let comparison = left[i].compareTo(right[i])
         if comparison != .orderedSame {
             return comparison
@@ -1131,7 +1131,7 @@ public func NSDecimalAdd(_ result: UnsafeMutablePointer<Decimal>, _ leftOperand:
             }
             result.pointee._length = length
         } else { // not the same sign
-            let comparison = decimalCompare(a,b)
+            let comparison = mantissaCompare(a,b)
 
             switch comparison {
             case .orderedSame:
@@ -1415,6 +1415,17 @@ public func NSDecimalString(_ dcm: UnsafePointer<Decimal>, _ locale: AnyObject?)
         fatalError("Locale not supported: \(locale!)")
     }
     return dcm.pointee.description
+}
+
+private func multiplyBy10(_ dcm: inout Decimal, andAdd extra:Int) -> NSDecimalNumber.CalculationError {
+    let backup = dcm
+
+    if multiplyByShort(&dcm, 10) == .noError && addShort(&dcm, UInt16(extra)) == .noError {
+        return .noError
+    } else {
+        dcm = backup // restore the old values
+        return .overflow // this is the only possible error
+    }
 }
 
 fileprivate protocol VariableLengthNumber {
@@ -1728,7 +1739,7 @@ extension Decimal {
         var selfNormal = self
         var otherNormal = other
         _ = NSDecimalNormalize(&selfNormal, &otherNormal, .down)
-        let comparison = decimalCompare(selfNormal,otherNormal)
+        let comparison = mantissaCompare(selfNormal,otherNormal)
         if selfNormal._isNegative == 1 {
             if comparison == .orderedDescending {
                 return .orderedAscending
@@ -1903,3 +1914,161 @@ fileprivate let pow10 = [
 /*^38*/ Decimal(length: 8, mantissa:( 0x0000, 0x0000, 0x2240, 0x098a, 0xc47a, 0x5a86, 0x4ca8, 0x4b3b))
 /*^39 is on 9 shorts. */
 ]
+
+// Copied from NSScanner.swift
+private func decimalSep(_ locale: Locale?) -> String {
+    if let loc = locale {
+        if let sep = loc._bridgeToObjectiveC().object(forKey: .decimalSeparator) as? NSString {
+            return sep._swiftObject
+        }
+        return "."
+    } else {
+        return decimalSep(Locale.current)
+    }
+}
+
+// Copied from NSScanner.swift
+private func isADigit(_ ch: unichar) -> Bool {
+    struct Local {
+        static let set = CharacterSet.decimalDigits
+    }
+    return Local.set.contains(UnicodeScalar(ch)!)
+}
+
+// Copied from NSScanner.swift
+private func numericValue(_ ch: unichar) -> Int {
+    if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
+        return Int(ch) - Int(unichar(unicodeScalarLiteral: "0"))
+    } else {
+        return __CFCharDigitValue(UniChar(ch))
+    }
+}
+
+// Could be silently inexact for float and double.
+extension Scanner {
+
+    public func scanDecimal(_ dcm: inout Decimal) -> Bool {
+        if let result = scanDecimal() {
+            dcm = result
+            return true
+        } else {
+            return false
+        }
+
+    }
+    public func scanDecimal() -> Decimal? {
+
+        var result = Decimal()
+
+        let string = self._scanString
+        let length = string.length
+        var buf = _NSStringBuffer(string: string, start: self._scanLocation, end: length)
+
+        let ds_chars = decimalSep(locale).utf16
+        let ds = ds_chars[ds_chars.startIndex]
+        buf.skip(_skipSet)
+        var neg = false
+
+        if buf.currentCharacter == unichar(unicodeScalarLiteral: "-") || buf.currentCharacter == unichar(unicodeScalarLiteral: "+") {
+            neg = buf.currentCharacter == unichar(unicodeScalarLiteral: "-")
+            buf.advance()
+            buf.skip(_skipSet)
+        }
+        guard isADigit(buf.currentCharacter) else {
+            return nil
+        }
+
+        var tooBig = false
+
+        // build the mantissa
+        repeat {
+            let numeral = numericValue(buf.currentCharacter)
+            if numeral == -1 {
+                break
+            }
+
+            if tooBig || multiplyBy10(&result,andAdd:numeral) != .noError {
+                tooBig = true
+                if result._exponent == Int32(Int8.max) {
+                    repeat {
+                        buf.advance()
+                    } while isADigit(buf.currentCharacter)
+                    return Decimal.nan
+                }
+                result._exponent += 1
+            }
+            buf.advance()
+        } while isADigit(buf.currentCharacter)
+
+        // get the decimal point
+        if buf.currentCharacter == ds {
+            buf.advance()
+            // continue to build the mantissa
+            repeat {
+                let numeral = numericValue(buf.currentCharacter)
+                if numeral == -1 {
+                    break
+                }
+                if tooBig || multiplyBy10(&result,andAdd:numeral) != .noError {
+                    tooBig = true
+                } else {
+                    if result._exponent == Int32(Int8.min) {
+                        repeat {
+                            buf.advance()
+                        } while isADigit(buf.currentCharacter)
+                        return Decimal.nan
+                    }
+                    result._exponent -= 1
+                }
+                buf.advance()
+            } while isADigit(buf.currentCharacter)
+        }
+
+        if buf.currentCharacter == unichar(unicodeScalarLiteral: "e") || buf.currentCharacter == unichar(unicodeScalarLiteral: "E") {
+            var exponentIsNegative = false
+            var exponent: Int32 = 0
+
+            buf.advance()
+            if buf.currentCharacter == unichar(unicodeScalarLiteral: "-") {
+                exponentIsNegative = true
+                buf.advance()
+            } else if buf.currentCharacter == unichar(unicodeScalarLiteral: "+") {
+                buf.advance()
+            }
+
+            repeat {
+                let numeral = numericValue(buf.currentCharacter)
+                if numeral == -1 {
+                    break
+                }
+                exponent = 10 * exponent + numeral
+                guard exponent <= 2*Int32(Int8.max) else {
+                    return Decimal.nan
+                }
+
+                buf.advance()
+            } while isADigit(buf.currentCharacter)
+
+            if exponentIsNegative {
+                exponent = -exponent
+            }
+            exponent += result._exponent
+            guard exponent >= Int32(Int8.min) && exponent <= Int32(Int8.max) else {
+                return Decimal.nan
+            }
+            result._exponent = exponent
+        }
+
+        result.isNegative = neg
+
+        // if we get to this point, and have NaN, then the input string was probably "-0"
+        // or some variation on that, and normalize that to zero.
+        if result.isNaN {
+            result = Decimal(0)
+        }
+
+        result.compact()
+        self._scanLocation = buf.location
+        return result
+    }
+}

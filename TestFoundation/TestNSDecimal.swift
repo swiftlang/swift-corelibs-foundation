@@ -34,6 +34,7 @@ class TestNSDecimal: XCTestCase {
             ("test_PositivePowers", test_PositivePowers),
             ("test_RepeatingDivision", test_RepeatingDivision),
             ("test_Round", test_Round),
+            ("test_ScanDecimal", test_ScanDecimal),
             ("test_SimpleMultiplication", test_SimpleMultiplication),
             ("test_SmallerNumbers", test_SmallerNumbers),
             ("test_ZeroPower", test_ZeroPower),
@@ -174,6 +175,8 @@ class TestNSDecimal: XCTestCase {
         XCTAssertEqual("-5", Decimal(signOf: Decimal(-3), magnitudeOf: Decimal(5)).description)
         XCTAssertEqual("5", Decimal(signOf: Decimal(3), magnitudeOf: Decimal(-5)).description)
         XCTAssertEqual("-5", Decimal(signOf: Decimal(-3), magnitudeOf: Decimal(-5)).description)
+        XCTAssertEqual("5", NSDecimalNumber(decimal:Decimal(5)).description)
+        XCTAssertEqual("-5", NSDecimalNumber(decimal:Decimal(-5)).description)
     }
 
     func test_ExplicitConstruction() {
@@ -396,6 +399,8 @@ class TestNSDecimal: XCTestCase {
         XCTAssertTrue(NSDecimalIsNotANumber(&result), "NaN e4")
         XCTAssertNotEqual(.noError, NSDecimalMultiplyByPowerOf10(&result, &NaN, 5, .plain))
         XCTAssertTrue(NSDecimalIsNotANumber(&result), "NaN e5")
+
+        XCTAssertFalse(Double(NSDecimalNumber(decimal:Decimal(0))).isNaN)
     }
 
     func test_NegativeAndZeroMultiplication() {
@@ -550,7 +555,43 @@ class TestNSDecimal: XCTestCase {
             var num = Decimal(start)
             NSDecimalRound(&num, &num, scale, mode)
             XCTAssertEqual(Decimal(expected), num)
+            let numnum = NSDecimalNumber(decimal:Decimal(start))
+            let behavior = NSDecimalNumberHandler(roundingMode: mode, scale: Int16(scale), raiseOnExactness: false, raiseOnOverflow: true, raiseOnUnderflow: true, raiseOnDivideByZero: true)
+            let result = numnum.rounding(accordingToBehavior:behavior)
+            XCTAssertEqual(Double(expected), result.doubleValue)
         }
+    }
+
+    func test_ScanDecimal() {
+        let testCases = [
+            // expected, value
+            ( 123.456e78, "123.456e78" ),
+            ( -123.456e78, "-123.456e78" ),
+            ( 123.456, " 123.456 " ),
+            ( 3.14159, " 3.14159e0" ),
+            ( 3.14159, " 3.14159e-0" ),
+            ( 0.314159, " 3.14159e-1" ),
+            ( 3.14159, " 3.14159e+0" ),
+            ( 31.4159, " 3.14159e+1" ),
+            ( 12.34, " 01234e-02"),
+        ]
+        for testCase in testCases {
+            let (expected, string) = testCase
+            let decimal = Decimal(string:string)!
+            let aboutOne = Decimal(expected) / decimal
+            let approximatelyRight = aboutOne >= Decimal(0.99999) && aboutOne <= Decimal(1.00001)
+            XCTAssertTrue(approximatelyRight, "\(expected) ~= \(decimal) : \(aboutOne) \(aboutOne >= Decimal(0.99999)) \(aboutOne <= Decimal(1.00001))" )
+        }
+        guard let ones = Decimal(string:"111111111111111111111111111111111111111") else {
+            XCTFail("Unable to parse Decimal(string:'111111111111111111111111111111111111111')")
+            return
+        }
+        let num = ones / Decimal(9)
+        guard let answer = Decimal(string:"12345679012345679012345679012345679012.3") else {
+            XCTFail("Unable to parse Decimal(string:'12345679012345679012345679012345679012.3')")
+            return
+        }
+        XCTAssertEqual(answer,num,"\(ones) / 9 = \(answer) \(num)")
     }
 
     func test_SimpleMultiplication() {
