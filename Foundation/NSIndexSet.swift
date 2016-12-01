@@ -545,13 +545,20 @@ open class NSMutableIndexSet : NSIndexSet {
     }
     
     internal func _replaceRangeAtIndex(_ index: Int, withRange range: NSRange?) {
-        let oldRange = _ranges[index]
-        if let range = range {
-            _ranges[index] = range
-            _count += range.length - oldRange.length
+        if index >= _ranges.count {
+            if range == nil {
+                return
+            }
+            fatalError("index beyond bounds of range storage")
         } else {
-            _ranges.remove(at: index)
-            _count -= oldRange.length
+            let oldRange = _ranges[index]
+            if let range = range {
+                _ranges[index] = range
+                _count += range.length - oldRange.length
+            } else {
+                _ranges.remove(at: index)
+                _count -= oldRange.length
+            }
         }
     }
     

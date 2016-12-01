@@ -404,48 +404,53 @@ void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date) {
     }
 }
 
+#define UCAL_QUARTER 4444
+
+#define UCAL_FIELD_ERROR 9999
 
 static UCalendarDateFields __CFCalendarGetICUFieldCode(CFCalendarUnit unit) {
     switch (unit) {
-    case kCFCalendarUnitEra: return UCAL_ERA;
-    case kCFCalendarUnitYear: return UCAL_YEAR;
-    case kCFCalendarUnitMonth: return UCAL_MONTH;
-    case kCFCalendarUnitDay: return UCAL_DAY_OF_MONTH;
-    case kCFCalendarUnitHour: return UCAL_HOUR_OF_DAY;
-    case kCFCalendarUnitMinute: return UCAL_MINUTE;
-    case kCFCalendarUnitSecond: return UCAL_SECOND;
-    case kCFCalendarUnitWeek: return UCAL_WEEK_OF_YEAR;
-    case kCFCalendarUnitWeekOfYear: return UCAL_WEEK_OF_YEAR;
-    case kCFCalendarUnitWeekOfMonth: return UCAL_WEEK_OF_MONTH;
-    case kCFCalendarUnitYearForWeekOfYear: return UCAL_YEAR_WOY;
-    case kCFCalendarUnitWeekday: return UCAL_DAY_OF_WEEK;
-    case kCFCalendarUnitWeekdayOrdinal: return UCAL_DAY_OF_WEEK_IN_MONTH;
+        case kCFCalendarUnitEra: return UCAL_ERA;
+        case kCFCalendarUnitYear: return UCAL_YEAR;
+        case kCFCalendarUnitQuarter: return (UCalendarDateFields)UCAL_QUARTER;
+        case kCFCalendarUnitMonth: return UCAL_MONTH;
+        case kCFCalendarUnitDay: return UCAL_DAY_OF_MONTH;
+        case kCFCalendarUnitHour: return UCAL_HOUR_OF_DAY;
+        case kCFCalendarUnitMinute: return UCAL_MINUTE;
+        case kCFCalendarUnitSecond: return UCAL_SECOND;
+        case kCFCalendarUnitWeekOfYear: return UCAL_WEEK_OF_YEAR;
+        case kCFCalendarUnitWeekOfMonth: return UCAL_WEEK_OF_MONTH;
+        case kCFCalendarUnitYearForWeekOfYear: return UCAL_YEAR_WOY;
+        case kCFCalendarUnitWeekday: return UCAL_DAY_OF_WEEK;
+        case kCFCalendarUnitWeekdayOrdinal: return UCAL_DAY_OF_WEEK_IN_MONTH;
     }
-    return (UCalendarDateFields)-1;
+    return (UCalendarDateFields)UCAL_FIELD_ERROR;
 }
 
 static UCalendarDateFields __CFCalendarGetICUFieldCodeFromChar(char ch) {
     switch (ch) {
-    case 'G': return UCAL_ERA;
-    case 'y': return UCAL_YEAR;
-    case 'M': return UCAL_MONTH;
-    case 'l': return UCAL_IS_LEAP_MONTH;
-    case 'd': return UCAL_DAY_OF_MONTH;
-    case 'h': return UCAL_HOUR;
-    case 'H': return UCAL_HOUR_OF_DAY;
-    case 'm': return UCAL_MINUTE;
-    case 's': return UCAL_SECOND;
-    case 'S': return UCAL_MILLISECOND;
-    case 'w': return UCAL_WEEK_OF_YEAR;
-    case 'W': return UCAL_WEEK_OF_MONTH;
-    case 'Y': return UCAL_YEAR_WOY;
-    case 'E': return UCAL_DAY_OF_WEEK;
-    case 'D': return UCAL_DAY_OF_YEAR;
-    case 'F': return UCAL_DAY_OF_WEEK_IN_MONTH;
-    case 'a': return UCAL_AM_PM;
-    case 'g': return UCAL_JULIAN_DAY;
+        case 'G': return UCAL_ERA;
+        case 'y': return UCAL_YEAR;
+        case 'M': return UCAL_MONTH;
+        case 'l': return UCAL_IS_LEAP_MONTH;
+        case 'd': return UCAL_DAY_OF_MONTH;
+        case 'h': return UCAL_HOUR;
+        case 'H': return UCAL_HOUR_OF_DAY;
+        case 'm': return UCAL_MINUTE;
+        case 's': return UCAL_SECOND;
+        case 'S': return UCAL_MILLISECOND;
+        case '^': return UCAL_WEEK_OF_YEAR;
+        case 'w': return UCAL_WEEK_OF_YEAR;
+        case 'W': return UCAL_WEEK_OF_MONTH;
+        case 'Y': return UCAL_YEAR_WOY;
+        case 'E': return UCAL_DAY_OF_WEEK;
+        case 'D': return UCAL_DAY_OF_YEAR;
+        case 'F': return UCAL_DAY_OF_WEEK_IN_MONTH;
+        case 'a': return UCAL_AM_PM;
+        case 'g': return UCAL_JULIAN_DAY;
+        case 'Q': return (UCalendarDateFields)UCAL_QUARTER;
     }
-    return (UCalendarDateFields)-1;
+    return (UCalendarDateFields)UCAL_FIELD_ERROR;
 }
 
 static CFCalendarUnit __CFCalendarGetCalendarUnitFromChar(char ch) {
@@ -498,6 +503,47 @@ CFRange CFCalendarGetMaximumRangeOfUnit(CFCalendarRef calendar, CFCalendarUnit u
 	if (100000 < range.length) range.length = 100000;
     }
     return range;
+}
+
+extern Boolean __calcNextDaylightSavingTimeTransition(UCalendar *ucal, UDate start_udate, UDate limit, UDate *answer);
+
+// check if a given time is within the second repeated time frame of time zone transition
+// for example, the midnight Oct 1 1978 to 1am in Rome has been repeated twice due to dst transition
+// this function returns true for anytime in between the second midnight to the second 1am, excluding the second 1am
+// if the function returns true, it will also return the transition point, and the length of the transition
+static Boolean __CFCalendarGetTimeRangeOfTimeZoneTransition(CFCalendarRef cal, CFAbsoluteTime at, CFAbsoluteTime *transition, CFTimeInterval *length) {
+    // if the given time is before 1900, assume there is no dst transition yet
+    if (at < -3187299600.0) {
+        return false;
+    }
+    
+    UDate ans = 0.0;
+    UDate start = (at - 48.0 * 60 * 60 + kCFAbsoluteTimeIntervalSince1970) * 1000.0; // start back 48 hours
+    UErrorCode status = U_ZERO_ERROR;
+    UDate orig_millis = ucal_getMillis(cal->_cal, &status);
+    Boolean b = __calcNextDaylightSavingTimeTransition(cal->_cal, start, start + 4 * 86400 * 1000.0, &ans);
+    status = U_ZERO_ERROR;
+    ucal_setMillis(cal->_cal, orig_millis, &status);
+    CFAbsoluteTime tran = (ans / 1000.0) - kCFAbsoluteTimeIntervalSince1970;
+    // the transition must be at or before "at" if "at" is within the repeated time frame
+    if (!b || tran > at) {
+        return false;
+    }
+    
+    // gmt offset includes dst offset
+    CFTimeInterval preOffset = CFTimeZoneGetSecondsFromGMT(cal->_tz, tran - 1.0);
+    CFTimeInterval nextOffset = CFTimeZoneGetSecondsFromGMT(cal->_tz, tran + 1.0);
+    
+    CFTimeInterval diff = preOffset - nextOffset;
+    
+    // gmt offset before the transition > gmt offset after the transition => backward dst transition
+    if (diff > 0.0 && at >= tran && at < tran + diff) {
+        if (transition) *transition = tran;
+        if (length) *length = diff;
+        return true;
+    }
+    
+    return false;
 }
 
 static void __CFCalendarSetToFirstInstant(CFCalendarRef calendar, CFCalendarUnit unit, CFAbsoluteTime at) {
@@ -569,6 +615,146 @@ static void __CFCalendarSetToFirstInstant(CFCalendarRef calendar, CFCalendarUnit
 	    ucal_setMillis(calendar->_cal, bad_udate, &status);
 	} while (ucal_get(calendar->_cal, UCAL_ERA, &status) < target_era);
     }
+}
+
+// assume field is within millisecond to hour
+static double __CFCalendarTotalSecondsInSmallUnits(CFCalendarRef calendar, UCalendarDateFields field, UErrorCode *status) {
+    double totalSecond = 0;
+    if (field == UCAL_MILLISECOND || field == UCAL_MILLISECONDS_IN_DAY) {
+        return totalSecond;
+    }
+    int32_t value = ucal_get(calendar->_cal, UCAL_MILLISECOND, status);
+    totalSecond += (double)value/1000.0;
+    if (field == UCAL_SECOND) {
+        return totalSecond;
+    }
+    value = ucal_get(calendar->_cal, UCAL_SECOND, status);
+    totalSecond += (double)value;
+    if (field == UCAL_MINUTE) {
+        return totalSecond;
+    }
+    value = ucal_get(calendar->_cal, UCAL_MINUTE, status);
+    totalSecond += (double)value*60.0;
+    return totalSecond;
+}
+
+// assume the ICU calendar has been initialized
+// we rely on ICU to add and roll units which are larger than or equal to DAYs
+// we have an assumption which is we assume that there is no time zone with a backward repeated day
+// at the time of writing this code, there is only one instance of DST that forwards a day
+static UDate __CFCalendarAdd(CFCalendarRef calendar, UCalendarDateFields field, int32_t amount, CFOptionFlags options, UErrorCode *status){
+    UDate result;
+    CFOptionFlags roll = options & kCFCalendarComponentsWrap;
+    if (field == UCAL_MILLISECOND || field == UCAL_SECOND || field == UCAL_MINUTE || field == UCAL_HOUR_OF_DAY ||
+        field == UCAL_HOUR || field == UCAL_MILLISECONDS_IN_DAY || field == UCAL_AM_PM) {
+        
+        double unitLength = 0.0;
+        BOOL keepHourInvariant = NO;
+        switch (field) {
+            case UCAL_MILLISECOND:
+            case UCAL_MILLISECONDS_IN_DAY:
+                unitLength = 1.0;
+                break;
+            case UCAL_MINUTE:
+                unitLength = 60000.0;
+                break;
+            case UCAL_SECOND:
+                unitLength = 1000.0;
+                break;
+            case UCAL_HOUR:
+            case UCAL_HOUR_OF_DAY:
+                unitLength = 3600000.0;
+                break;
+            case UCAL_AM_PM:
+                unitLength = 3600000.0 * 12.0;
+                keepHourInvariant = YES;
+                break;
+            default:
+                break;
+        }
+        
+        double leftoverTime = 0.0;
+        if (roll) {
+            int32_t min = ucal_getLimit(calendar->_cal, field, UCAL_ACTUAL_MINIMUM, status);
+            int32_t max = ucal_getLimit(calendar->_cal, field, UCAL_ACTUAL_MAXIMUM, status);
+            int32_t gap = max - min + 1;
+            int32_t originalValue = ucal_get(calendar->_cal, field, status);
+            int32_t finalValue = originalValue + amount;
+            finalValue = (finalValue - min) % gap;
+            if (finalValue < 0) {
+                finalValue += gap;
+            }
+            finalValue += min;
+            if (finalValue < originalValue && amount > 0) {
+                amount = finalValue;
+                CFAbsoluteTime at = ucal_getMillis(calendar->_cal, status) / 1000.0 - kCFAbsoluteTimeIntervalSince1970;
+                CFCalendarUnit largeField;
+                switch (field) {
+                    case UCAL_MILLISECOND:
+                    case UCAL_MILLISECONDS_IN_DAY:
+                        largeField = kCFCalendarUnitSecond;
+                        break;
+                    case UCAL_SECOND:
+                        largeField = kCFCalendarUnitMinute;
+                        break;
+                    case UCAL_MINUTE:
+                        largeField = kCFCalendarUnitHour;
+                        break;
+                    case UCAL_HOUR_OF_DAY:
+                    case UCAL_HOUR:
+                        largeField = kCFCalendarUnitDay;
+                        break;
+                    default:
+                        largeField = kCFCalendarUnitSecond; // Just pick some value
+                        break;
+                }
+                leftoverTime = __CFCalendarTotalSecondsInSmallUnits(calendar, field, status);
+                __CFCalendarSetToFirstInstant(calendar, largeField, at);
+            } else {
+                amount = finalValue - originalValue;
+            }
+        }
+        
+        int32_t dst = 0;
+        int32_t hour = 0;
+        if (keepHourInvariant) {
+            dst = ucal_get(calendar->_cal, UCAL_DST_OFFSET, status) + ucal_get(calendar->_cal, UCAL_ZONE_OFFSET, status);
+            hour = ucal_get(calendar->_cal, UCAL_HOUR_OF_DAY, status);
+        }
+        
+        result = ucal_getMillis(calendar->_cal, status);
+        result += (double)amount * unitLength;
+        result += leftoverTime * 1000.0;
+        ucal_setMillis(calendar->_cal, result, status);
+        
+        if (keepHourInvariant) {
+            dst -= ucal_get(calendar->_cal, UCAL_DST_OFFSET, status) + ucal_get(calendar->_cal, UCAL_ZONE_OFFSET, status);
+            if (dst != 0) {
+                result = ucal_getMillis(calendar->_cal, status) + dst;
+                ucal_setMillis(calendar->_cal, result, status);
+                if (ucal_get(calendar->_cal, UCAL_HOUR_OF_DAY, status) != hour) {
+                    result -= dst;
+                    ucal_setMillis(calendar->_cal, result, status);
+                }
+            }
+        }
+    } else {
+        if (roll) {
+            ucal_roll(calendar->_cal, field, amount, status);
+        } else {
+            ucal_add(calendar->_cal, field, amount, status);
+        }
+        
+        CFAbsoluteTime t, start;
+        CFTimeInterval length;
+        result = ucal_getMillis(calendar->_cal, status);
+        start = result / 1000.0 - kCFAbsoluteTimeIntervalSince1970;
+        if (amount > 0 && __CFCalendarGetTimeRangeOfTimeZoneTransition(calendar, start, &t, &length)) {
+            result = (start - length + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
+            ucal_setMillis(calendar->_cal, result, status);
+        }
+    }
+    return result;
 }
 
 static Boolean __validUnits(CFCalendarUnit smaller, CFCalendarUnit bigger) {
@@ -887,51 +1073,63 @@ Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbso
     return false;
 }
 
-Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, int **vector, int count) {
+Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, int32_t **vector, int32_t count) {
     if (!calendar->_cal) __CFCalendarSetupCal(calendar);
     if (calendar->_cal) {
-	UErrorCode status = U_ZERO_ERROR;
-	ucal_clear(calendar->_cal);
-	UDate udate = floor((at + kCFAbsoluteTimeIntervalSince1970) * 1000.0);
-	ucal_setMillis(calendar->_cal, udate, &status);
-	char ch = *componentDesc;
-	while (ch) {
-	    UCalendarDateFields field = __CFCalendarGetICUFieldCodeFromChar(ch);
-	    int value = ucal_get(calendar->_cal, field, &status);
-	    if (UCAL_MONTH == field) value++;
-	    *(*vector) = value;
-	    vector++;
-	    componentDesc++;
-	    ch = *componentDesc;
-	}
-	return U_SUCCESS(status) ? true : false;
+        UErrorCode status = U_ZERO_ERROR;
+        ucal_clear(calendar->_cal);
+        UDate udate = (floor(at) + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
+        ucal_setMillis(calendar->_cal, udate, &status);
+        char ch = *componentDesc;
+        while (ch) {
+            if ('#' == ch) {
+                *(*vector) = (int32_t)((at - floor(at)) * 1.0e+9);
+            } else {
+                UCalendarDateFields field = __CFCalendarGetICUFieldCodeFromChar(ch);
+                int32_t value = 0;
+                if ((UCalendarDateFields)UCAL_QUARTER != field && (UCalendarDateFields)UCAL_FIELD_ERROR != field) {
+                    value = ucal_get(calendar->_cal, field, &status);
+                }
+                if (UCAL_MONTH == field) value++;
+                *(*vector) = value;
+            }
+            vector++;
+            componentDesc++;
+            ch = *componentDesc;
+        }
+        return U_SUCCESS(status) ? true : false;
     }
     return false;
 }
 
-Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int *vector, int count) {
+Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int32_t *vector, int32_t count) {
     if (!calendar->_cal) __CFCalendarSetupCal(calendar);
     if (calendar->_cal) {
-	UErrorCode status = U_ZERO_ERROR;
-	ucal_clear(calendar->_cal);
-	UDate udate = floor((*atp + kCFAbsoluteTimeIntervalSince1970) * 1000.0);
-	ucal_setMillis(calendar->_cal, udate, &status);
-	char ch = *componentDesc;
-	while (ch) {
-	    UCalendarDateFields field = __CFCalendarGetICUFieldCodeFromChar(ch);
-            int amount = *vector;
-	    if (options & kCFCalendarComponentsWrap) {
-		ucal_roll(calendar->_cal, field, amount, &status);
-	    } else {
-		ucal_add(calendar->_cal, field, amount, &status);
-	    }
-	    vector++;
-	    componentDesc++;
-	    ch = *componentDesc;
-	}
-	udate = ucal_getMillis(calendar->_cal, &status);
-	*atp = (udate / 1000.0) - kCFAbsoluteTimeIntervalSince1970;
-	return U_SUCCESS(status) ? true : false;
+        UErrorCode status = U_ZERO_ERROR;
+        ucal_clear(calendar->_cal);
+        double startingInt;
+        double startingFrac = modf(*atp, &startingInt);
+        UDate udate = (startingInt + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
+        ucal_setMillis(calendar->_cal, udate, &status);
+        int32_t nanosecond = 0;
+        char ch = *componentDesc;
+        while (ch) {
+            int32_t amount = *vector;
+            if ('#' == ch) {
+                nanosecond = amount;
+            } else {
+                UCalendarDateFields field = __CFCalendarGetICUFieldCodeFromChar(ch);
+                if ((UCalendarDateFields)UCAL_QUARTER != field && (UCalendarDateFields)UCAL_FIELD_ERROR != field) {
+                    __CFCalendarAdd(calendar, field, amount, options, &status);
+                }
+            }
+            vector++;
+            componentDesc++;
+            ch = *componentDesc;
+        }
+        udate = ucal_getMillis(calendar->_cal, &status);
+        *atp = (udate / 1000.0) - kCFAbsoluteTimeIntervalSince1970 + startingFrac + (nanosecond * 1.0e-9);
+        return U_SUCCESS(status) ? true : false;
     }
     return false;
 }

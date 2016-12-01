@@ -537,3 +537,70 @@ extension CFNumber : _NSBridgeable {
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 
+extension NSNumber : _HasCustomAnyHashableRepresentation {
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        enum ObjCType {
+            
+        }
+        if let decimal = self as? NSDecimalNumber {
+            return AnyHashable(decimal.decimalValue)
+        } else if _cfObject === kCFBooleanTrue {
+            return AnyHashable(true)
+        } else if _cfObject === kCFBooleanFalse {
+            return AnyHashable(false)
+        } else {
+            /// - Note: this is not accurate - it will destroy UInt values and probably not handle Int conversions well...
+            switch CFNumberGetType(_cfObject) {
+            case kCFNumberCharType:
+                fallthrough
+            case kCFNumberSInt8Type:
+                fallthrough
+            case kCFNumberShortType:
+                fallthrough
+            case kCFNumberSInt16Type:
+                fallthrough
+            case kCFNumberIntType:
+                fallthrough
+            case kCFNumberSInt32Type:
+#if arch(i386) || arch(arm)
+                return AnyHashable(intValue)
+#elseif arch(x86_64) || arch(arm64) || arch(s390x)
+                fallthrough
+#endif
+            case kCFNumberLongType:
+                fallthrough
+            case kCFNumberLongLongType:
+                fallthrough
+            case kCFNumberSInt64Type:
+#if arch(i386) || arch(arm)
+                return AnyHashable(int64Value)
+#elseif arch(x86_64) || arch(arm64) || arch(s390x)
+                return AnyHashable(intValue)
+#endif
+            case kCFNumberFloat32Type:
+                fallthrough
+            case kCFNumberFloatType:
+                return AnyHashable(floatValue)
+            case kCFNumberDoubleType:
+                fallthrough
+            case kCFNumberFloat64Type:
+                return AnyHashable(doubleValue)
+            case kCFNumberCFIndexType:
+                return AnyHashable(intValue)
+            case kCFNumberNSIntegerType:
+                return AnyHashable(intValue)
+            case kCFNumberCGFloatType:
+#if arch(i386) || arch(arm)
+                return AnyHashable(CGFloat(floatValue))
+#elseif arch(x86_64) || arch(arm64) || arch(s390x)
+                return AnyHashable(CGFloat(doubleValue))
+#endif
+            default:
+                return nil
+            }
+        }
+        
+    }
+}
+

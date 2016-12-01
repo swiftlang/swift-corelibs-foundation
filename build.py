@@ -69,7 +69,8 @@ foundation.CFLAGS += " ".join([
 swift_cflags += [
 	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
 	'-I${SYSROOT}/usr/include/libxml2',
-	'-I${SYSROOT}/usr/include/curl'
+	'-I${SYSROOT}/usr/include/curl',
+	'-DDEPLOYMENT_RUNTIME_SWIFT',
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
@@ -104,7 +105,8 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/swift',
 		'-Xcc -fblocks'
 	])
-	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
+	Configuration.current.extra_ld_flags += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs '
+	foundation.LDFLAGS += '-rpath \$$ORIGIN '
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
@@ -476,8 +478,6 @@ foundation_tests = SwiftExecutable('TestFoundation', [
         'TestFoundation/HTTPServer.swift',
         'Foundation/ProgressFraction.swift',
 ] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
-
-Configuration.current.extra_ld_flags = '-L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs'
 
 foundation_tests.add_dependency(foundation_tests_resources)
 foundation.add_phase(foundation_tests_resources)

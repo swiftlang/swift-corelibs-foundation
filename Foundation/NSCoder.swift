@@ -17,7 +17,7 @@ extension NSCoder {
 }
 
 
-public protocol NSCoding {
+public protocol NSCoding : class {
     func encode(with aCoder: NSCoder)
     init?(coder aDecoder: NSCoder)
 }

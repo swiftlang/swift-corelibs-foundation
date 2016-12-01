@@ -25,7 +25,7 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFDate
     
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        return Int(bitPattern: __CFHashDouble(timeIntervalSinceReferenceDate))
     }
     
     open override func isEqual(_ value: Any?) -> Bool {

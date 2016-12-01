@@ -288,16 +288,13 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private func _symbols(_ key: CFString) -> [String] {
         let dateFormatter = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale?._cfObject, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle)
         CFDateFormatterSetProperty(dateFormatter, kCFDateFormatterCalendarKey, _cfObject)
-        let result = (CFDateFormatterCopyProperty(dateFormatter, key) as! CFArray)._swiftObject
-        return result.map {
-            return ($0 as! NSString)._swiftObject
-        }
+        return (CFDateFormatterCopyProperty(dateFormatter, key) as! NSArray)._swiftObject.map { $0 as! String }
     }
     
     private func _symbol(_ key: CFString) -> String {
         let dateFormatter = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale?._bridgeToObjectiveC()._cfObject, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle)
         CFDateFormatterSetProperty(dateFormatter, kCFDateFormatterCalendarKey, self._cfObject)
-        return (CFDateFormatterCopyProperty(dateFormatter, key) as! CFString)._swiftObject
+        return (CFDateFormatterCopyProperty(dateFormatter, key) as! NSString)._swiftObject
     }
     
     open var eraSymbols: [String] {
@@ -448,21 +445,22 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private func _convert(_ comps: DateComponents) -> (Array<Int32>, Array<Int8>) {
         var vector = [Int32]()
         var compDesc = [Int8]()
-        _convert(comps.era, type: "E", vector: &vector, compDesc: &compDesc)
+        _convert(comps.era, type: "G", vector: &vector, compDesc: &compDesc)
         _convert(comps.year, type: "y", vector: &vector, compDesc: &compDesc)
+        _convert(comps.yearForWeekOfYear, type: "Y", vector: &vector, compDesc: &compDesc)
         _convert(comps.quarter, type: "Q", vector: &vector, compDesc: &compDesc)
+        _convert(comps.month, type: "M", vector: &vector, compDesc: &compDesc)
         if comps.weekOfYear != NSDateComponentUndefined {
             _convert(comps.weekOfYear, type: "w", vector: &vector, compDesc: &compDesc)
         } else {
-            // _convert(comps.week, type: "^", vector: &vector, compDesc: &compDesc)
+             _convert(0, type: "^", vector: &vector, compDesc: &compDesc)
         }
         _convert(comps.weekOfMonth, type: "W", vector: &vector, compDesc: &compDesc)
-        _convert(comps.yearForWeekOfYear, type: "Y", vector: &vector, compDesc: &compDesc)
+        _convert(comps.day, type: "d", vector: &vector, compDesc: &compDesc)
         _convert(comps.weekday, type: "E", vector: &vector, compDesc: &compDesc)
         _convert(comps.weekdayOrdinal, type: "F", vector: &vector, compDesc: &compDesc)
         _convert(comps.month, type: "M", vector: &vector, compDesc: &compDesc)
         _convert(comps.isLeapMonth, type: "l", vector: &vector, compDesc: &compDesc)
-        _convert(comps.day, type: "d", vector: &vector, compDesc: &compDesc)
         _convert(comps.hour, type: "H", vector: &vector, compDesc: &compDesc)
         _convert(comps.minute, type: "m", vector: &vector, compDesc: &compDesc)
         _convert(comps.second, type: "s", vector: &vector, compDesc: &compDesc)
@@ -567,11 +565,11 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             }
 
             return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
-                return _CFCalendarDecomposeAbsoluteTimeV(_cfObject, date.timeIntervalSinceReferenceDate, compDesc, vecBuffer.baseAddress!, Int32(compDesc.count - 1))
+                return _CFCalendarDecomposeAbsoluteTimeV(_cfObject, date.timeIntervalSinceReferenceDate, compDesc, vecBuffer.baseAddress!, Int32(compDesc.count))
             }
         }
         if res {
-            return _components(unitFlags, vector: ints)
+            return  _components(unitFlags, vector: ints)
         }
         
         fatalError()
@@ -583,7 +581,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         
         let res: Bool = withUnsafeMutablePointer(to: &at) { t in
             return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
-                return _CFCalendarAddComponentsV(_cfObject, t, CFOptionFlags(opts.rawValue), compDesc, vectorBuffer.baseAddress!, Int32(vector.count))
+                return _CFCalendarAddComponentsV(_cfObject, t, CFOptionFlags(opts.rawValue), compDesc, vectorBuffer.baseAddress!, Int32(compDesc.count))
             }
         }
         
@@ -603,8 +601,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             }
 
             return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
-                _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, Int32(vector.count))
-                return false
+                return _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, Int32(vector.count))
             }
         }
         if res {

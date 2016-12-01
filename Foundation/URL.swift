@@ -982,6 +982,14 @@ extension URL : CustomStringConvertible, CustomDebugStringConvertible {
     }
 }
 
+extension NSURL : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(URL._unconditionallyBridgeFromObjectiveC(self))
+    }
+}
+
 extension URL : CustomPlaygroundQuickLookable {
     public var customPlaygroundQuickLook: PlaygroundQuickLook {
         return .url(absoluteString)

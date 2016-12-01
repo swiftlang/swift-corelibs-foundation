@@ -1169,3 +1169,11 @@ extension Calendar: _ObjectTypeBridgeable {
         return result!
     }
 }
+
+extension NSCalendar : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(Calendar._unconditionallyBridgeFromObjectiveC(self))
+    }
+}

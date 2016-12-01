@@ -229,10 +229,15 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     // MARK: - NSObject methods
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        return Int(bitPattern: CFHashBytes(unsafeBitCast(bytes, to: UnsafeMutablePointer<UInt8>.self), min(length, 80)))
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
+        if let data = value as? NSData {
+            return isEqual(to: data._swiftObject)
+        } else if let data = value as? Data {
+            return isEqual(to: data)
+        }
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         if let data = value as? DispatchData {
             if data.count != length {
@@ -244,11 +249,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
         }
 #endif
-        if let data = value as? Data {
-            return isEqual(to: data)
-        } else if let data = value as? NSData {
-            return isEqual(to: data._swiftObject)
-        }
+        
         return false
     }
     open func isEqual(to other: Data) -> Bool {
@@ -343,6 +344,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     public static var supportsSecureCoding: Bool {
         return true
+    }
+    
+    open override var classForCoder: AnyClass {
+        return NSData.self
     }
 
     // MARK: - IO
@@ -932,7 +937,12 @@ open class NSMutableData : NSData {
     }
     
     open func resetBytes(in range: NSRange) {
-        bzero(mutableBytes.advanced(by: range.location), range.length)
+        let origLength = length
+        let newLength = range.location + range.length
+        if origLength < newLength {
+            length = newLength
+        }
+        memset(mutableBytes.advanced(by: range.location), 0, range.length)
     }
     
     open func setData(_ data: Data) {
@@ -944,9 +954,29 @@ open class NSMutableData : NSData {
     }
     
     open func replaceBytes(in range: NSRange, withBytes replacementBytes: UnsafeRawPointer?, length replacementLength: Int) {
-        if let replacementBytes = replacementBytes {
-            let bytePtr = replacementBytes.bindMemory(to: UInt8.self, capacity: replacementLength)
-            CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
+        
+        let currentLength = length
+        let resultingLength = currentLength - range.length + replacementLength
+        let shift = resultingLength - currentLength
+        if resultingLength > currentLength {
+            self.length = resultingLength
+        }
+        let start = range.location
+        let len = range.length
+        
+        if shift > 0 {
+            memmove(mutableBytes.advanced(by: start + replacementLength), mutableBytes.advanced(by: start + len), currentLength - start - len)
+        }
+        if replacementLength > 0 {
+            if let srcBuf = replacementBytes {
+                let bytePtr = srcBuf.bindMemory(to: UInt8.self, capacity: replacementLength)
+                memmove(mutableBytes.advanced(by: start), bytePtr, replacementLength)
+            } else {
+                memset(mutableBytes.advanced(by: start), 0, replacementLength)
+            }
+        }
+        if resultingLength < currentLength {
+            self.length = resultingLength
         }
     }
 }

@@ -19,18 +19,37 @@ internal func testBundle() -> Bundle {
     return Bundle.main
 }
 
+internal func XCTAssertSameType(_ expression1: @autoclosure () throws -> Any.Type, _ expression2: @autoclosure () throws -> Any.Type, _ message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line) {
+    do {
+        let lhs = try expression1()
+        let rhs = try expression2()
+        if lhs != rhs {
+            let msg = message()
+            fatalError("Expected \(lhs) == \(rhs) : \(msg) in \(file):\(line)")
+        }
+    } catch {
+        let msg = message()
+        fatalError("An error was thrown while evaluating type comparison: \(msg) in \(file):\(line)")
+    }
+}
+
 // For the Swift version of the Foundation tests, we must manually list all test cases here.
 XCTMain([
     testCase(TestNSAffineTransform.allTests),
+    testCase(TestAffineTransform.allTests),
     testCase(TestNSArray.allTests),
     testCase(TestNSBundle.allTests),
     testCase(TestNSByteCountFormatter.allTests),
     testCase(TestNSCalendar.allTests),
+    testCase(TestCalendar.allTests),
     testCase(TestNSCharacterSet.allTests),
     testCase(TestNSCompoundPredicate.allTests),
     testCase(TestNSData.allTests),
+    testCase(TestData.allTests),
     testCase(TestNSDate.allTests),
+    testCase(TestDate.allTests),
     testCase(TestNSDateComponents.allTests),
+    testCase(TestDateInterval.allTests),
     testCase(TestNSDateFormatter.allTests),
     testCase(TestNSDecimal.allTests),
     testCase(TestNSDictionary.allTests),
@@ -38,11 +57,15 @@ XCTMain([
     testCase(TestNSGeometry.allTests),
     testCase(TestNSHTTPCookie.allTests),
     testCase(TestNSIndexPath.allTests),
+    testCase(TestIndexPath.allTests),
     testCase(TestNSIndexSet.allTests),
+    testCase(TestIndexSet.allTests),
     testCase(TestNSJSONSerialization.allTests),
     testCase(TestNSKeyedArchiver.allTests),
     testCase(TestNSKeyedUnarchiver.allTests),
     testCase(TestNSLocale.allTests),
+    testCase(TestLocale.allTests),
+    testCase(TestMeasurement.allTests),
     testCase(TestNSNotificationCenter.allTests),
     testCase(TestNSNotificationQueue.allTests),
     testCase(TestNSNull.allTests),
@@ -50,6 +73,7 @@ XCTMain([
     testCase(TestNSNumberFormatter.allTests),
     testCase(TestNSOperationQueue.allTests),
     testCase(TestNSOrderedSet.allTests),
+    testCase(TestPersonNameComponents.allTests),
     testCase(TestNSPipe.allTests),
     testCase(TestNSPredicate.allTests),
     testCase(TestNSProcessInfo.allTests),
@@ -66,7 +90,9 @@ XCTMain([
     testCase(TestNSTextCheckingResult.allTests),
     testCase(TestNSTimer.allTests),
     testCase(TestNSTimeZone.allTests),
+    testCase(TestTimeZone.allTests),
     testCase(TestNSURL.allTests),
+    testCase(TestURL.allTests),
     testCase(TestNSURLComponents.allTests),
     testCase(TestNSURLCredential.allTests),
     testCase(TestNSURLRequest.allTests),
@@ -76,6 +102,7 @@ XCTMain([
     testCase(TestURLSession.allTests),
     testCase(TestNSNull.allTests),
     testCase(TestNSUUID.allTests),
+    testCase(TestUUID.allTests),
     testCase(TestNSValue.allTests),
     testCase(TestNSUserDefaults.allTests),
     testCase(TestNSXMLParser.allTests),

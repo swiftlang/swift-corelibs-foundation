@@ -371,6 +371,19 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
 
     // Transform Struct
     open var transformStruct: AffineTransform
+    
+    override open var hash: Int {
+        return transformStruct.hashValue
+    }
+    
+    override open func isEqual(_ value: Any?) -> Bool {
+        if let transform = value as? AffineTransform {
+            return transform == transformStruct
+        } else if let transform = value as? NSAffineTransform {
+            return transform.transformStruct == transformStruct
+        }
+        return false
+    }
 }
 
 extension AffineTransform : _ObjectTypeBridgeable {
@@ -412,5 +425,13 @@ extension NSAffineTransform : _StructTypeBridgeable {
     
     public func _bridgeToSwift() -> AffineTransform {
         return AffineTransform._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+extension NSAffineTransform : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(AffineTransform._unconditionallyBridgeFromObjectiveC(self))
     }
 }

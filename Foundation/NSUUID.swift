@@ -35,8 +35,10 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         memcpy(unsafeBitCast(buffer, to: UnsafeMutableRawPointer.self), UnsafeRawPointer(bytes), 16)
     }
     
-    open func getBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
-        _cf_uuid_copy(uuid, buffer)
+    open func getBytes(_ uuid: UnsafeMutablePointer<UInt8>?) {
+        if let uuid = uuid {
+            _cf_uuid_copy(uuid, buffer)
+        }
     }
     
     open var uuidString: String {

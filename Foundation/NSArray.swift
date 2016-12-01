@@ -605,7 +605,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
 
 extension NSArray : _CFBridgeable, _SwiftBridgeable {
     internal var _cfObject: CFArray { return unsafeBitCast(self, to: CFArray.self) }
-    internal var _swiftObject: [AnyObject] { return Array._unconditionallyBridgeFromObjectiveC(self) }
+    internal var _swiftObject: [Any] { return Array._unconditionallyBridgeFromObjectiveC(self) }
 }
 
 extension NSMutableArray {

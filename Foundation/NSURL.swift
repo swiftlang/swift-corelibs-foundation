@@ -917,6 +917,37 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
         NSUnimplemented()
     }
     
+    open override var hash: Int {
+        if let val = value {
+            return name.hash + val.hash
+        } else {
+            return name.hash
+        }
+    }
+    
+    open override func isEqual(_ value: Any?) -> Bool {
+        func partsAreEqual(_ lhs: String?, _ rhs: String?) -> Bool {
+            if let left = lhs {
+                if let right = rhs {
+                    return left == right
+                }
+            } else {
+                return rhs == nil
+            }
+            return false
+        }
+        
+        if let other = value as? URLQueryItem {
+            return partsAreEqual(self.name, other.name) && partsAreEqual(self.value, other.value)
+        } else if let other = value as? NSURLQueryItem {
+            if self === other {
+                return true
+            }
+            return partsAreEqual(self.name, other.name) && partsAreEqual(self.value, other.value)
+        }
+        return false
+    }
+    
     open let name: String
     open let value: String?
 }

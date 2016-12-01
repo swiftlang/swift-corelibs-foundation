@@ -466,3 +466,12 @@ extension Locale : _ObjectTypeBridgeable {
         return result!
     }
 }
+
+extension NSLocale : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(Locale._unconditionallyBridgeFromObjectiveC(self))
+    }
+}
+
