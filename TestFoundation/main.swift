@@ -62,7 +62,7 @@ XCTMain([
     testCase(TestNSStream.allTests),
     testCase(TestNSString.allTests),
 //    testCase(TestNSThread.allTests),
-    testCase(TestNSTask.allTests),
+    testCase(TestProcess.allTests),
     testCase(TestNSTextCheckingResult.allTests),
     testCase(TestNSTimer.allTests),
     testCase(TestNSTimeZone.allTests),

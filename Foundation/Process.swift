@@ -16,7 +16,7 @@ import CoreFoundation
     import Glibc
 #endif
 
-extension Task {
+extension Process {
     public enum TerminationReason : Int {
         case exit
         case uncaughtSignal
@@ -72,27 +72,27 @@ private func runloopIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) ->
 }
 
 
-// Equal method for task in run loop source
-private func nstaskIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) -> _DarwinCompatibleBoolean {
+// Equal method for process in run loop source
+private func processIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) -> _DarwinCompatibleBoolean {
     
-    let unmanagedTaskA = Unmanaged<AnyObject>.fromOpaque(a!)
-    guard let taskA = unmanagedTaskA.takeUnretainedValue() as? Task else {
+    let unmanagedProcessA = Unmanaged<AnyObject>.fromOpaque(a!)
+    guard let processA = unmanagedProcessA.takeUnretainedValue() as? Process else {
         return false
     }
     
-    let unmanagedTaskB = Unmanaged<AnyObject>.fromOpaque(a!)
-    guard let taskB = unmanagedTaskB.takeUnretainedValue() as? Task else {
+    let unmanagedProcessB = Unmanaged<AnyObject>.fromOpaque(a!)
+    guard let processB = unmanagedProcessB.takeUnretainedValue() as? Process else {
         return false
     }
     
-    guard taskA == taskB else {
+    guard processA == processB else {
         return false
     }
     
     return true
 }
 
-open class Task: NSObject {
+open class Process: NSObject {
     private static func setup() {
         struct Once {
             static var done = false
@@ -124,7 +124,7 @@ open class Task: NSObject {
                     }
                     
                     managerThreadRunLoop?.run()
-                    fatalError("NSTask manager run loop exited unexpectedly; it should run forever once initialized")
+                    fatalError("Process manager run loop exited unexpectedly; it should run forever once initialized")
                 }
                 thread.start()
                 managerThreadRunLoopIsRunningCondition.lock()
@@ -137,11 +137,11 @@ open class Task: NSObject {
         }
     }
     
-    // Create an NSTask which can be run at a later time
-    // An NSTask can only be run once. Subsequent attempts to
-    // run an NSTask will raise.
-    // Upon task death a notification will be sent
-    //   { Name = NSTaskDidTerminateNotification; object = task; }
+    // Create an Process which can be run at a later time
+    // An Process can only be run once. Subsequent attempts to
+    // run an Process will raise.
+    // Upon process death a notification will be sent
+    //   { Name = ProcessDidTerminateNotification; object = process; }
     //
     
     public override init() {
@@ -156,19 +156,19 @@ open class Task: NSObject {
     open var currentDirectoryPath: String = FileManager.default.currentDirectoryPath
     
     // standard I/O channels; could be either an NSFileHandle or an NSPipe
-    open var standardInput: AnyObject? {
+    open var standardInput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardInput must be either NSPipe or NSFileHandle")
         }
     }
-    open var standardOutput: AnyObject? {
+    open var standardOutput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardOutput must be either NSPipe or NSFileHandle")
         }
     }
-    open var standardError: AnyObject? {
+    open var standardError: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardError must be either NSPipe or NSFileHandle")
@@ -189,7 +189,7 @@ open class Task: NSObject {
     
         // Dispatch the manager thread if it isn't already running
         
-        Task.setup()
+        Process.setup()
         
         // Ensure that the launch path is set
         
@@ -251,14 +251,14 @@ open class Task: NSObject {
         let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
             (socket, type, address, data, info )  in
             
-            let task: Task = NSObject.unretainedReference(info!)
+            let process: Process = NSObject.unretainedReference(info!)
             
-            task.processLaunchedCondition.lock()
-            while task.running == false {
-                task.processLaunchedCondition.wait()
+            process.processLaunchedCondition.lock()
+            while process.isRunning == false {
+                process.processLaunchedCondition.wait()
             }
             
-            task.processLaunchedCondition.unlock()
+            process.processLaunchedCondition.unlock()
             
             var exitCode : Int32 = 0
 #if CYGWIN
@@ -271,31 +271,31 @@ open class Task: NSObject {
             
             repeat {
 #if CYGWIN
-                waitResult = waitpid( task.processIdentifier, exitCodePtrWrapper, 0)
+                waitResult = waitpid( process.processIdentifier, exitCodePtrWrapper, 0)
 #else
-                waitResult = waitpid( task.processIdentifier, &exitCode, 0)
+                waitResult = waitpid( process.processIdentifier, &exitCode, 0)
 #endif
             } while ( (waitResult == -1) && (errno == EINTR) )
             
-            task.terminationStatus = WEXITSTATUS( exitCode )
+            process.terminationStatus = WEXITSTATUS( exitCode )
             
             // If a termination handler has been set, invoke it on a background thread
             
-            if task.terminationHandler != nil {
+            if process.terminationHandler != nil {
                 let thread = Thread {
-                    task.terminationHandler!(task)
+                    process.terminationHandler!(process)
                 }
                 thread.start()
             }
             
             // Set the running flag to false
             
-            task.running = false
+            process.isRunning = false
             
             // Invalidate the source and wake up the run loop, if it's available
             
-            CFRunLoopSourceInvalidate(task.runLoopSource)
-            if let runLoop = task.runLoop {
+            CFRunLoopSourceInvalidate(process.runLoopSource)
+            if let runLoop = process.runLoop {
                 CFRunLoopWakeUp(runLoop._cfRunLoop)
             }
             
@@ -384,7 +384,7 @@ open class Task: NSObject {
                                                            retain: { return runLoopSourceRetain($0) },
                                                            release: { runLoopSourceRelease($0) },
                                                            copyDescription: nil,
-                                                           equal: { return nstaskIsEqual($0, $1) },
+                                                           equal: { return processIsEqual($0, $1) },
                                                            hash: nil,
                                                            schedule: nil,
                                                            cancel: nil,
@@ -395,7 +395,7 @@ open class Task: NSObject {
         runLoopContext.version = 0
         runLoopContext.retain = runLoopSourceRetain
         runLoopContext.release = runLoopSourceRelease
-        runLoopContext.equal = nstaskIsEqual
+        runLoopContext.equal = processIsEqual
         runLoopContext.perform = emptyRunLoopCallback
         self.withUnretainedReference {
             (refPtr: UnsafeMutablePointer<UInt8>) in
@@ -406,7 +406,7 @@ open class Task: NSObject {
         self.runLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &runLoopSourceContext!)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopDefaultMode)
         
-        running = true
+        isRunning = true
         
         self.processIdentifier = pid
         
@@ -422,43 +422,46 @@ open class Task: NSObject {
     
     // status
     open private(set) var processIdentifier: Int32 = -1
-    open private(set) var running: Bool = false
+    open private(set) var isRunning: Bool = false
     
     open private(set) var terminationStatus: Int32 = 0
     open var terminationReason: TerminationReason { NSUnimplemented() }
     
     /*
-    A block to be invoked when the process underlying the NSTask terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The NSTask is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the NSTask has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an NSTask, the NSTaskDidTerminateNotification notification is not posted for that task.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of NSTask which hasn't been updated to include an implementation of the storage and use of it.  
+    A block to be invoked when the process underlying the Process terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The Process is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the Process has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an Process, the ProcessDidTerminateNotification notification is not posted for that process.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of Process which hasn't been updated to include an implementation of the storage and use of it.  
     */
-    open var terminationHandler: ((Task) -> Void)?
-    open var qualityOfService: NSQualityOfService = .default  // read-only after the task is launched
+    open var terminationHandler: ((Process) -> Void)?
+    open var qualityOfService: NSQualityOfService = .default  // read-only after the process is launched
 }
 
-extension Task {
+extension Process {
     
     // convenience; create and launch
-    open class func launchedTaskWithLaunchPath(_ path: String, arguments: [String]) -> Task {
-        let task = Task()
-        task.launchPath = path
-        task.arguments = arguments
-        task.launch()
+    open class func launchedProcess(launchPath path: String, arguments: [String]) -> Process {
+        let process = Process()
+        process.launchPath = path
+        process.arguments = arguments
+        process.launch()
     
-        return task
+        return process
     }
     
-    // poll the runLoop in defaultMode until task completes
+    // poll the runLoop in defaultMode until process completes
     open func waitUntilExit() {
         
         repeat {
             
-        } while( self.running == true && RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: 0.05)) )
+        } while( self.isRunning == true && RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: 0.05)) )
         
         self.runLoop = nil
     }
 }
 
-public let NSTaskDidTerminateNotification: String = "NSTaskDidTerminateNotification"
-
+extension Process {
+    
+    public static let didTerminateNotification = NSNotification.Name(rawValue: "NSTaskDidTerminateNotification")
+}
+    
 private func posix(_ code: Int32) {
     switch code {
     case 0: return

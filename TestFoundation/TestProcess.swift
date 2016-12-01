@@ -16,8 +16,8 @@
 #endif
 import CoreFoundation
 
-class TestNSTask : XCTestCase {
-    static var allTests: [(String, (TestNSTask) -> () throws -> Void)] {
+class TestProcess : XCTestCase {
+    static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         return [
                    ("test_exit0" , test_exit0),
                    ("test_exit1" , test_exit1),
@@ -39,85 +39,85 @@ class TestNSTask : XCTestCase {
     
     func test_exit0() {
         
-        let task = Task()
+        let process = Process()
         
-        task.launchPath = "/bin/bash"
-        task.arguments = ["-c", "exit 0"]
+        process.launchPath = "/bin/bash"
+        process.arguments = ["-c", "exit 0"]
         
-        task.launch()
-        task.waitUntilExit()
-        XCTAssertEqual(task.terminationStatus, 0)
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
     }
     
     func test_exit1() {
         
-        let task = Task()
+        let process = Process()
         
-        task.launchPath = "/bin/bash"
-        task.arguments = ["-c", "exit 1"]
+        process.launchPath = "/bin/bash"
+        process.arguments = ["-c", "exit 1"]
 
-        task.launch()
-        task.waitUntilExit()
-        XCTAssertEqual(task.terminationStatus, 1)
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 1)
     }
     
     func test_exit100() {
         
-        let task = Task()
+        let process = Process()
         
-        task.launchPath = "/bin/bash"
-        task.arguments = ["-c", "exit 100"]
+        process.launchPath = "/bin/bash"
+        process.arguments = ["-c", "exit 100"]
         
-        task.launch()
-        task.waitUntilExit()
-        XCTAssertEqual(task.terminationStatus, 100)
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 100)
     }
     
     func test_sleep2() {
         
-        let task = Task()
+        let process = Process()
         
-        task.launchPath = "/bin/bash"
-        task.arguments = ["-c", "sleep 2"]
+        process.launchPath = "/bin/bash"
+        process.arguments = ["-c", "sleep 2"]
         
-        task.launch()
-        task.waitUntilExit()
-        XCTAssertEqual(task.terminationStatus, 0)
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
     }
     
     func test_sleep2_exit1() {
         
-        let task = Task()
+        let process = Process()
         
-        task.launchPath = "/bin/bash"
-        task.arguments = ["-c", "sleep 2; exit 1"]
+        process.launchPath = "/bin/bash"
+        process.arguments = ["-c", "sleep 2; exit 1"]
         
-        task.launch()
-        task.waitUntilExit()
-        XCTAssertEqual(task.terminationStatus, 1)
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 1)
     }
 
 
     func test_pipe_stdin() {
-        let task = Task()
+        let process = Process()
 
-        task.launchPath = "/bin/cat"
+        process.launchPath = "/bin/cat"
 
         let outputPipe = Pipe()
-        task.standardOutput = outputPipe
+        process.standardOutput = outputPipe
 
         let inputPipe = Pipe()
-        task.standardInput = inputPipe
+        process.standardInput = inputPipe
 
-        task.launch()
+        process.launch()
 
         inputPipe.fileHandleForWriting.write("Hello, 🐶.\n".data(using: .utf8)!)
 
         // Close the input pipe to send EOF to cat.
         inputPipe.fileHandleForWriting.closeFile()
 
-        task.waitUntilExit()
-        XCTAssertEqual(task.terminationStatus, 0)
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
 
         let data = outputPipe.fileHandleForReading.availableData
         guard let string = String(data: data, encoding: .utf8) else {
@@ -128,17 +128,17 @@ class TestNSTask : XCTestCase {
     }
 
     func test_pipe_stdout() {
-        let task = Task()
+        let process = Process()
 
-        task.launchPath = "/usr/bin/which"
-        task.arguments = ["which"]
+        process.launchPath = "/usr/bin/which"
+        process.arguments = ["which"]
 
         let pipe = Pipe()
-        task.standardOutput = pipe
+        process.standardOutput = pipe
 
-        task.launch()
-        task.waitUntilExit()
-        XCTAssertEqual(task.terminationStatus, 0)
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
 
         let data = pipe.fileHandleForReading.availableData
         guard let string = String(data: data, encoding: .ascii) else {
@@ -149,17 +149,17 @@ class TestNSTask : XCTestCase {
     }
 
     func test_pipe_stderr() {
-        let task = Task()
+        let process = Process()
 
-        task.launchPath = "/bin/cat"
-        task.arguments = ["invalid_file_name"]
+        process.launchPath = "/bin/cat"
+        process.arguments = ["invalid_file_name"]
 
         let errorPipe = Pipe()
-        task.standardError = errorPipe
+        process.standardError = errorPipe
 
-        task.launch()
-        task.waitUntilExit()
-        XCTAssertEqual(task.terminationStatus, 1)
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 1)
 
         let data = errorPipe.fileHandleForReading.availableData
         guard let _ = String(data: data, encoding: .ascii) else {
@@ -171,18 +171,18 @@ class TestNSTask : XCTestCase {
     }
 
     func test_pipe_stdout_and_stderr_same_pipe() {
-        let task = Task()
+        let process = Process()
 
-        task.launchPath = "/bin/cat"
-        task.arguments = ["invalid_file_name"]
+        process.launchPath = "/bin/cat"
+        process.arguments = ["invalid_file_name"]
 
         let pipe = Pipe()
-        task.standardOutput = pipe
-        task.standardError = pipe
+        process.standardOutput = pipe
+        process.standardError = pipe
 
-        task.launch()
-        task.waitUntilExit()
-        XCTAssertEqual(task.terminationStatus, 1)
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 1)
 
         let data = pipe.fileHandleForReading.availableData
         guard let string = String(data: data, encoding: .ascii) else {
@@ -193,17 +193,17 @@ class TestNSTask : XCTestCase {
     }
 
     func test_file_stdout() {
-        let task = Task()
+        let process = Process()
 
-        task.launchPath = "/usr/bin/which"
-        task.arguments = ["which"]
+        process.launchPath = "/usr/bin/which"
+        process.arguments = ["which"]
 
-        mkstemp(template: "TestNSTask.XXXXXX") { handle in
-            task.standardOutput = handle
+        mkstemp(template: "TestProcess.XXXXXX") { handle in
+            process.standardOutput = handle
 
-            task.launch()
-            task.waitUntilExit()
-            XCTAssertEqual(task.terminationStatus, 0)
+            process.launch()
+            process.waitUntilExit()
+            XCTAssertEqual(process.terminationStatus, 0)
 
             handle.seek(toFileOffset: 0)
             let data = handle.readDataToEndOfFile()
@@ -248,7 +248,7 @@ class TestNSTask : XCTestCase {
 }
 
 private func mkstemp(template: String, body: (FileHandle) throws -> Void) rethrows {
-    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestNSTask.XXXXXX")
+    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestProcess.XXXXXX")
     
     try url.withUnsafeFileSystemRepresentation {
         switch mkstemp(UnsafeMutablePointer(mutating: $0!)) {
@@ -268,21 +268,21 @@ private enum Error: Swift.Error {
 }
 
 private func runTask(_ arguments: [String], environment: [String: String]? = nil) throws -> String {
-    let task = Task()
+    let process = Process()
 
     var arguments = arguments
-    task.launchPath = arguments.removeFirst()
-    task.arguments = arguments
-    task.environment = environment
+    process.launchPath = arguments.removeFirst()
+    process.arguments = arguments
+    process.environment = environment
 
     let pipe = Pipe()
-    task.standardOutput = pipe
-    task.standardError = pipe
-    task.launch()
-    task.waitUntilExit()
+    process.standardOutput = pipe
+    process.standardError = pipe
+    process.launch()
+    process.waitUntilExit()
 
-    guard task.terminationStatus == 0 else {
-        throw Error.TerminationStatus(task.terminationStatus)
+    guard process.terminationStatus == 0 else {
+        throw Error.TerminationStatus(process.terminationStatus)
     }
 
     let data = pipe.fileHandleForReading.availableData
