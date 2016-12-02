@@ -287,10 +287,6 @@ private struct JSONWriter {
             try serializeString(str)
         case let boolValue as Bool:
             serializeBool(boolValue)
-        case let num as Int:
-            writer(String(describing: num))
-        case let num as UInt:
-            writer(String(describing: num))
         case let array as Array<Any>:
             try serializeArray(array)
         case let dict as Dictionary<AnyHashable, Any>:
