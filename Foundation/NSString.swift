@@ -1183,15 +1183,19 @@ extension NSString {
     }
     
     public convenience init?(data: Data, encoding: UInt) {
+        if data.count == 0 {
+            self.init("")
+        } else {
         guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
             return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
         }) else { return nil }
         
-        var str: String?
-        if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
-            self.init(str!)
-        } else {
-            return nil
+            var str: String?
+            if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
+                self.init(str!)
+            } else {
+                return nil
+            }
         }
     }
     
