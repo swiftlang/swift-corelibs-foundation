@@ -499,9 +499,9 @@ static const CFIndex kCFNotFound = -1;
 
 
 /* Range type */
-typedef struct {
-    CFIndex location;
-    CFIndex length;
+typedef struct CFRange {
+  CFIndex location;
+  CFIndex length;
 } CFRange;
 
 #if defined(CF_INLINE)
@@ -585,16 +585,16 @@ typedef void *		(*CFAllocatorAllocateCallBack)(CFIndex allocSize, CFOptionFlags 
 typedef void *		(*CFAllocatorReallocateCallBack)(void *ptr, CFIndex newsize, CFOptionFlags hint, void *info);
 typedef void		(*CFAllocatorDeallocateCallBack)(void *ptr, void *info);
 typedef CFIndex		(*CFAllocatorPreferredSizeCallBack)(CFIndex size, CFOptionFlags hint, void *info);
-typedef struct {
-    CFIndex				version;
-    void *				info;
-    CFAllocatorRetainCallBack		retain;
-    CFAllocatorReleaseCallBack		release;        
-    CFAllocatorCopyDescriptionCallBack	copyDescription;
-    CFAllocatorAllocateCallBack		allocate;
-    CFAllocatorReallocateCallBack	reallocate;
-    CFAllocatorDeallocateCallBack	deallocate;
-    CFAllocatorPreferredSizeCallBack	preferredSize;
+typedef struct CFAllocatorContext {
+  CFIndex version;
+  void *info;
+  CFAllocatorRetainCallBack retain;
+  CFAllocatorReleaseCallBack release;
+  CFAllocatorCopyDescriptionCallBack copyDescription;
+  CFAllocatorAllocateCallBack allocate;
+  CFAllocatorReallocateCallBack reallocate;
+  CFAllocatorDeallocateCallBack deallocate;
+  CFAllocatorPreferredSizeCallBack preferredSize;
 } CFAllocatorContext;
 
 CF_EXPORT

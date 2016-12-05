@@ -36,12 +36,12 @@ CF_ENUM(SInt32) {
     kCFMessagePortBecameInvalidError = -5
 };
 
-typedef struct {
-    CFIndex	version;
-    void *	info;
-    const void *(*retain)(const void *info);
-    void	(*release)(const void *info);
-    CFStringRef	(*copyDescription)(const void *info);
+typedef struct CFMessagePortContext {
+  CFIndex version;
+  void *info;
+  const void *(*retain)(const void *info);
+  void (*release)(const void *info);
+  CFStringRef (*copyDescription)(const void *info);
 } CFMessagePortContext;
 
 typedef CFDataRef (*CFMessagePortCallBack)(CFMessagePortRef local, SInt32 msgid, CFDataRef data, void *info);

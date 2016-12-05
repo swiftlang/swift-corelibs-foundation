@@ -49,12 +49,12 @@ typedef CF_OPTIONS(CFOptionFlags, CFStreamEventType) {
     kCFStreamEventEndEncountered = 16
 };
 
-typedef struct {
-    CFIndex version;
-    void *info;
-    void *(*retain)(void *info);
-    void (*release)(void *info);
-    CFStringRef (*copyDescription)(void *info);
+typedef struct CFStreamClientContext {
+  CFIndex version;
+  void *info;
+  void *(*retain)(void *info);
+  void (*release)(void *info);
+  CFStringRef (*copyDescription)(void *info);
 } CFStreamClientContext;
 
 typedef struct CF_BRIDGED_MUTABLE_TYPE(NSInputStream) __CFReadStream * CFReadStreamRef;
@@ -285,10 +285,11 @@ typedef CF_ENUM(CFIndex, CFStreamErrorDomain) {
     kCFStreamErrorDomainMacOSStatus      /* OSStatus type from Carbon APIs; interpret using <MacTypes.h> */
 };
 
-typedef struct {
-    CFIndex domain; 
-    SInt32 error;
+typedef struct CFStreamError {
+  CFIndex domain;
+  SInt32 error;
 } CFStreamError;
+
 CF_EXPORT
 CFStreamError CFReadStreamGetError(CFReadStreamRef stream);
 CF_EXPORT

@@ -26,12 +26,12 @@
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
 
-typedef struct {
-    CFIndex	version;
-    void *	info;
-    const void *(*retain)(const void *info);
-    void	(*release)(const void *info);
-    CFStringRef	(*copyDescription)(const void *info);
+typedef struct CFBinaryHeapCompareContext {
+  CFIndex version;
+  void *info;
+  const void *(*retain)(const void *info);
+  void (*release)(const void *info);
+  CFStringRef (*copyDescription)(const void *info);
 } CFBinaryHeapCompareContext;
 
 /*!
@@ -57,12 +57,13 @@ typedef struct {
 	@field compare The callback used to compare values in the binary heap for
 		equality in some operations.
 */
-typedef struct {
-    CFIndex	version;
-    const void *(*retain)(CFAllocatorRef allocator, const void *ptr);
-    void	(*release)(CFAllocatorRef allocator, const void *ptr);
-    CFStringRef	(*copyDescription)(const void *ptr);
-    CFComparisonResult	(*compare)(const void *ptr1, const void *ptr2, void *context);
+typedef struct CFBinaryHeapCallBacks {
+  CFIndex version;
+  const void *(*retain)(CFAllocatorRef allocator, const void *ptr);
+  void (*release)(CFAllocatorRef allocator, const void *ptr);
+  CFStringRef (*copyDescription)(const void *ptr);
+  CFComparisonResult (*compare)(const void *ptr1, const void *ptr2,
+                                void *context);
 } CFBinaryHeapCallBacks;
 
 /*!

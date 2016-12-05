@@ -25,12 +25,12 @@ CF_EXTERN_C_BEGIN
 
 typedef struct CF_BRIDGED_MUTABLE_TYPE(NSMachPort) __CFMachPort * CFMachPortRef;
 
-typedef struct {
-    CFIndex	version;
-    void *	info;
-    const void *(*retain)(const void *info);
-    void	(*release)(const void *info);
-    CFStringRef	(*copyDescription)(const void *info);
+typedef struct CFMachPortContext {
+  CFIndex version;
+  void *info;
+  const void *(*retain)(const void *info);
+  void (*release)(const void *info);
+  CFStringRef (*copyDescription)(const void *info);
 } CFMachPortContext;
 
 typedef void (*CFMachPortCallBack)(CFMachPortRef port, void *msg, CFIndex size, void *info);

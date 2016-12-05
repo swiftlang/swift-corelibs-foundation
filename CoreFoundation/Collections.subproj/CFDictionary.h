@@ -104,13 +104,13 @@ typedef void		(*CFDictionaryReleaseCallBack)(CFAllocatorRef allocator, const voi
 typedef CFStringRef	(*CFDictionaryCopyDescriptionCallBack)(const void *value);
 typedef Boolean		(*CFDictionaryEqualCallBack)(const void *value1, const void *value2);
 typedef CFHashCode	(*CFDictionaryHashCallBack)(const void *value);
-typedef struct {
-    CFIndex				version;
-    CFDictionaryRetainCallBack		retain;
-    CFDictionaryReleaseCallBack		release;
-    CFDictionaryCopyDescriptionCallBack	copyDescription;
-    CFDictionaryEqualCallBack		equal;
-    CFDictionaryHashCallBack		hash;
+typedef struct CFDictionaryKeyCallBacks {
+  CFIndex version;
+  CFDictionaryRetainCallBack retain;
+  CFDictionaryReleaseCallBack release;
+  CFDictionaryCopyDescriptionCallBack copyDescription;
+  CFDictionaryEqualCallBack equal;
+  CFDictionaryHashCallBack hash;
 } CFDictionaryKeyCallBacks;
 
 /*!
@@ -156,12 +156,12 @@ const CFDictionaryKeyCallBacks kCFCopyStringDictionaryKeyCallBacks;
 	@field equal The callback used to compare values in the dictionary for
 		equality in some operations.
 */
-typedef struct {
-    CFIndex				version;
-    CFDictionaryRetainCallBack		retain;
-    CFDictionaryReleaseCallBack		release;
-    CFDictionaryCopyDescriptionCallBack	copyDescription;
-    CFDictionaryEqualCallBack		equal;
+typedef struct CFDictionaryValueCallBacks {
+  CFIndex version;
+  CFDictionaryRetainCallBack retain;
+  CFDictionaryReleaseCallBack release;
+  CFDictionaryCopyDescriptionCallBack copyDescription;
+  CFDictionaryEqualCallBack equal;
 } CFDictionaryValueCallBacks;
 
 /*!

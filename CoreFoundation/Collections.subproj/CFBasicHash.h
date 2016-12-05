@@ -57,11 +57,11 @@ enum {
 // Note that for a hash table without keys, the value is treated as the key,
 // and the value should be passed in as the key for operations which take a key.
 
-typedef struct {
-    CFIndex idx;
-    uintptr_t weak_key;
-    uintptr_t weak_value;
-    uintptr_t count;
+typedef struct CFBasicHashBucket {
+  CFIndex idx;
+  uintptr_t weak_key;
+  uintptr_t weak_value;
+  uintptr_t count;
 } CFBasicHashBucket;
 
 typedef struct __CFBasicHash *CFBasicHashRef;

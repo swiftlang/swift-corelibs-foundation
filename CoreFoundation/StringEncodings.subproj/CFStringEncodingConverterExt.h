@@ -49,19 +49,19 @@ typedef CFIndex (*CFStringEncodingToUnicodeLenProc)(uint32_t flags, const uint8_
 typedef CFIndex (*CFStringEncodingToBytesPrecomposeProc)(uint32_t flags, const UniChar *character, CFIndex numChars, uint8_t *bytes, CFIndex maxByteLen, CFIndex *usedByteLen);
 typedef bool (*CFStringEncodingIsValidCombiningCharacterProc)(UniChar character);
 
-typedef struct {
-    void *toBytes;
-    void *toUnicode;
-    uint16_t maxBytesPerChar;
-    uint16_t maxDecomposedCharLen;
-    uint8_t encodingClass;
-    uint32_t :24;
-    CFStringEncodingToBytesLenProc toBytesLen;
-    CFStringEncodingToUnicodeLenProc toUnicodeLen;
-    CFStringEncodingToBytesFallbackProc toBytesFallback;
-    CFStringEncodingToUnicodeFallbackProc toUnicodeFallback;
-    CFStringEncodingToBytesPrecomposeProc toBytesPrecompose;
-    CFStringEncodingIsValidCombiningCharacterProc isValidCombiningChar;
+typedef struct CFStringEncodingConverter {
+  void *toBytes;
+  void *toUnicode;
+  uint16_t maxBytesPerChar;
+  uint16_t maxDecomposedCharLen;
+  uint8_t encodingClass;
+  uint32_t : 24;
+  CFStringEncodingToBytesLenProc toBytesLen;
+  CFStringEncodingToUnicodeLenProc toUnicodeLen;
+  CFStringEncodingToBytesFallbackProc toBytesFallback;
+  CFStringEncodingToUnicodeFallbackProc toUnicodeFallback;
+  CFStringEncodingToBytesPrecomposeProc toBytesPrecompose;
+  CFStringEncodingIsValidCombiningCharacterProc isValidCombiningChar;
 } CFStringEncodingConverter;
 
 extern const CFStringEncodingConverter *CFStringEncodingGetConverter(uint32_t encoding);

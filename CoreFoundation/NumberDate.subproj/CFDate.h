@@ -60,22 +60,22 @@ typedef const struct CF_BRIDGED_TYPE(NSTimeZone) __CFTimeZone * CFTimeZoneRef;
 #define CF_CALENDAR_DEPRECATED(A, B, C, D, ...) CF_DEPRECATED(A, B, C, D, __VA_ARGS__)
 #endif
 
-typedef struct {
-    SInt32 year;
-    SInt8 month;
-    SInt8 day;
-    SInt8 hour;
-    SInt8 minute;
-    double second;
+typedef struct CFGregorianDate {
+  SInt32 year;
+  SInt8 month;
+  SInt8 day;
+  SInt8 hour;
+  SInt8 minute;
+  double second;
 } CFGregorianDate CF_CALENDAR_DEPRECATED(10_4, 10_10, 2_0, 8_0, "Use CFCalendar or NSCalendar API instead");
 
-typedef struct {
-    SInt32 years;
-    SInt32 months;
-    SInt32 days;
-    SInt32 hours;
-    SInt32 minutes;
-    double seconds;
+typedef struct CFGregorianUnits {
+  SInt32 years;
+  SInt32 months;
+  SInt32 days;
+  SInt32 hours;
+  SInt32 minutes;
+  double seconds;
 } CFGregorianUnits CF_CALENDAR_DEPRECATED(10_4, 10_10, 2_0, 8_0, "Use CFCalendar or NSCalendar API instead");
 
 typedef CF_OPTIONS(CFOptionFlags, CFGregorianUnitFlags) {
