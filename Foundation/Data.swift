@@ -605,6 +605,31 @@ public final class _DataStorage {
         _needToZero = true
     }
     
+    public init(bytes: UnsafeRawPointer?, length: Int) {
+        precondition(length < _DataStorage.maxSize)
+        if length == 0 {
+            _capacity = 0
+            _length = 0
+            _needToZero = false
+            _bytes = nil
+        } else if _DataStorage.vmOpsThreshold <= length {
+            _capacity = length
+            _length = length
+            _needToZero = true
+            _bytes = _DataStorage.allocate(length, false)!
+            _DataStorage.move(_bytes!, bytes, length)
+        } else {
+            var capacity = length
+            if (_DataStorage.vmOpsThreshold <= capacity) {
+                capacity = NSRoundUpToMultipleOfPageSize(capacity)
+            }
+            _length = length
+            _bytes = _DataStorage.allocate(capacity, false)!
+            _capacity = capacity
+            _needToZero = true
+            _DataStorage.move(_bytes!, bytes, length)
+        }
+    }
     
     public init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)?) {
         precondition(length < _DataStorage.maxSize)
@@ -947,21 +972,21 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - parameter bytes: A pointer to the memory. It will be copied.
     /// - parameter count: The number of bytes to copy.
     public init(bytes: UnsafeRawPointer, count: Int) {
-        _backing = _DataStorage(bytes: UnsafeMutableRawPointer(mutating: bytes), length: count, copy: true, deallocator: nil)
+        _backing = _DataStorage(bytes: bytes, length: count)
     }
     
     /// Initialize a `Data` with copied memory content.
     ///
     /// - parameter buffer: A buffer pointer to copy. The size is calculated from `SourceType` and `buffer.count`.
     public init<SourceType>(buffer: UnsafeBufferPointer<SourceType>) {
-        _backing = _DataStorage(bytes: UnsafeMutableRawPointer(mutating: buffer.baseAddress), length: MemoryLayout<SourceType>.stride * buffer.count, copy: true, deallocator: nil)
+        _backing = _DataStorage(bytes: buffer.baseAddress, length: MemoryLayout<SourceType>.stride * buffer.count)
     }
     
     /// Initialize a `Data` with copied memory content.
     ///
     /// - parameter buffer: A buffer pointer to copy. The size is calculated from `SourceType` and `buffer.count`.
     public init<SourceType>(buffer: UnsafeMutableBufferPointer<SourceType>) {
-        _backing = _DataStorage(bytes: buffer.baseAddress, length: MemoryLayout<SourceType>.stride * buffer.count, copy: true, deallocator: nil)
+        _backing = _DataStorage(bytes: buffer.baseAddress, length: MemoryLayout<SourceType>.stride * buffer.count)
     }
     
     /// Initialize a `Data` with the contents of an Array.
@@ -969,7 +994,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - parameter bytes: An array of bytes to copy.
     public init(bytes: Array<UInt8>) {
         _backing = bytes.withUnsafeBufferPointer {
-            return _DataStorage(bytes: UnsafeMutableRawPointer(mutating: $0.baseAddress), length: $0.count, copy: true, deallocator: nil)
+            return _DataStorage(bytes: $0.baseAddress, length: $0.count)
         }
     }
     
@@ -978,7 +1003,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - parameter bytes: An array of bytes to copy.
     public init(bytes: ArraySlice<UInt8>) {
         _backing = bytes.withUnsafeBufferPointer {
-            return _DataStorage(bytes: UnsafeMutableRawPointer(mutating: $0.baseAddress), length: $0.count, copy: true, deallocator: nil)
+            return _DataStorage(bytes: $0.baseAddress, length: $0.count)
         }
     }
     
@@ -1016,7 +1041,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - parameter deallocator: Specifies the mechanism to free the indicated buffer, or `.none`.
     public init(bytesNoCopy bytes: UnsafeMutableRawPointer, count: Int, deallocator: Deallocator) {
         let whichDeallocator = deallocator._deallocator
-        _backing = _DataStorage(immutableReference: NSData(bytesNoCopy: bytes, length: count, deallocator: whichDeallocator))
+        _backing = _DataStorage(bytes: bytes, length: count, copy: false, deallocator: whichDeallocator)
     }
     
     /// Initialize a `Data` with the contents of a `URL`.
@@ -1101,7 +1126,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     @inline(__always)
     public func withUnsafeBytes<ResultType, ContentType>(_ body: (UnsafePointer<ContentType>) throws -> ResultType) rethrows -> ResultType {
         let bytes =  _backing.bytes ?? UnsafeRawPointer(bitPattern: 0xBAD0)!
-        defer { _fixLifetime(self)}
         let contentPtr = bytes.bindMemory(to: ContentType.self, capacity: count / MemoryLayout<ContentType>.stride)
         return try body(contentPtr)
     }
@@ -1116,8 +1140,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         if !isKnownUniquelyReferenced(&_backing) {
             _backing = _backing.mutableCopy()
         }
-        let mutableBytes =  _backing.mutableBytes ?? UnsafeMutableRawPointer(bitPattern: 0xBAD0)!
-        defer { _fixLifetime(self)}
+        let mutableBytes = _backing.mutableBytes ?? UnsafeMutableRawPointer(bitPattern: 0xBAD0)!
         let contentPtr = mutableBytes.bindMemory(to: ContentType.self, capacity: count / MemoryLayout<ContentType>.stride)
         return try body(UnsafeMutablePointer(contentPtr))
     }
@@ -1132,16 +1155,14 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - warning: This method does not verify that the contents at pointer have enough space to hold `count` bytes.
     @inline(__always)
     public func copyBytes(to pointer: UnsafeMutablePointer<UInt8>, count: Int) {
-        if count > 0 {
-            memcpy(UnsafeMutableRawPointer(pointer), _backing.bytes!, count)
-        }
+        if count == 0 { return }
+        memcpy(UnsafeMutableRawPointer(pointer), _backing.bytes!, count)
     }
     
     @inline(__always)
     private func _copyBytesHelper(to pointer: UnsafeMutableRawPointer, from range: NSRange) {
-        if range.length > 0 {
-            memcpy(UnsafeMutableRawPointer(pointer), _backing.bytes!.advanced(by: range.location), range.length)
-        }
+        if range.length == 0 { return }
+        memcpy(UnsafeMutableRawPointer(pointer), _backing.bytes!.advanced(by: range.location), range.length)
     }
     
     /// Copy a subset of the contents of the data to a pointer.
