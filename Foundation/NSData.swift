@@ -945,6 +945,21 @@ open class NSMutableData : NSData {
         
     }
 
+    /// Replaces with a given set of bytes a given range within the contents of the receiver.
+    ///
+    /// If the length of range is not equal to replacementLength, the receiver is resized to 
+    /// accommodate the new bytes. Any bytes past range in the receiver are shifted to accommodate
+    /// the new bytes. You can therefore pass NULL for replacementBytes and 0 for replacementLength
+    /// to delete bytes in the receiver in the range range. You can also replace a range (which
+    /// might be zero-length) with more bytes than the length of the range, which has the effect of
+    /// insertion (or “replace some and insert more”).
+    ///
+    /// - Parameter range: range within the receiver's contents to replace with bytes. The range must not exceed the bounds of the receiver.
+    /// - Parameter replacementBytes: data to insert into the receiver's contents.
+    /// - Parameter replacementLength:  number of bytes to take from `replacementBytes`.
+    ///
+    /// - Note: `replacementLength` must be less than or equal to the
+    ///   size of the buffer pointed to by `replacementBytes`. 
     open func replaceBytes(in range: NSRange, withBytes replacementBytes: UnsafeRawPointer?, length replacementLength: Int) {
         let bytePtr = replacementBytes?.bindMemory(to: UInt8.self, capacity: replacementLength)
         CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
