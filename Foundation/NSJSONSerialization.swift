@@ -184,8 +184,10 @@ open class JSONSerialization : NSObject {
     open class func writeJSONObject(_ obj: Any, toStream stream: OutputStream, options opt: WritingOptions) throws -> Int {
         let jsonData = try _data(withJSONObject: obj, options: opt, stream: true)
         let count = jsonData.count
-        return jsonData.withUnsafeBytes { (bytePtr) -> Int in
-            return stream.write(bytePtr, maxLength: count)
+        return jsonData.withUnsafeBytes { (bytePtr: UnsafePointer<UInt8>) -> Int in
+            let res: Int = stream.write(bytePtr, maxLength: count)
+            /// TODO: If the result here is negative the error should be obtained from the stream to propigate as a throw
+            return res
         }
     }
     
