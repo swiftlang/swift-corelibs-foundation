@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFMessagePort.c
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Christopher Kane
 */
 
@@ -28,7 +23,7 @@
 #include <dlfcn.h>
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED) && __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
 #endif
 #endif
@@ -64,10 +59,8 @@ struct __CFMessagePort {
     int32_t _perPID;			/* zero if not per-pid, else pid */
     CFMachPortRef _replyPort;		/* only used by remote port; immutable once created; invalidated */
     CFRunLoopSourceRef _source;		/* only used by local port; immutable once created; invalidated */
-#if __HAS_DISPATCH__
     dispatch_source_t _dispatchSource;  /* only used by local port; invalidated */
     dispatch_queue_t _dispatchQ;	/* only used by local port */
-#endif
     CFMessagePortInvalidationCallBack _icallout;
     CFMessagePortCallBack _callout;	/* only used by local port; immutable */
     CFMessagePortCallBackEx _calloutEx;	/* only used by local port; immutable */
@@ -255,7 +248,7 @@ static void __CFMessagePortDeallocate(CFTypeRef cf) {
     CFIndex cnt = 0;
     if (NULL != __CFAllRemoteMessagePorts) {
 	cnt = CFDictionaryGetCount(__CFAllRemoteMessagePorts);
-	remotePorts = CFAllocatorAllocate(kCFAllocatorSystemDefault, cnt * sizeof(CFMessagePortRef), __kCFAllocatorGCScannedMemory);
+	remotePorts = CFAllocatorAllocate(kCFAllocatorSystemDefault, cnt * sizeof(CFMessagePortRef), 0);
 	CFDictionaryGetKeysAndValues(__CFAllRemoteMessagePorts, NULL, (const void **)remotePorts);
 	for (CFIndex idx = 0; idx < cnt; idx++) {
 	    CFRetain(remotePorts[idx]);
@@ -287,7 +280,7 @@ static const CFRuntimeClass __CFMessagePortClass = {
 };
 
 CFTypeID CFMessagePortGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{ __kCFMessagePortTypeID = _CFRuntimeRegisterClass(&__CFMessagePortClass); });
     return __kCFMessagePortTypeID;
 }
@@ -375,10 +368,8 @@ static CFMessagePortRef __CFMessagePortCreateLocal(CFAllocatorRef allocator, CFS
     memory->_perPID = perPID ? getpid() : 0;	// actual value not terribly useful for local ports
     memory->_replyPort = NULL;
     memory->_source = NULL;
-#if __HAS_DISPATCH__
     memory->_dispatchSource = NULL;
     memory->_dispatchQ = NULL;
-#endif
     memory->_icallout = NULL;
     memory->_callout = callout;
     memory->_calloutEx = calloutEx;
@@ -448,7 +439,7 @@ CFMessagePortRef _CFMessagePortCreateLocalEx(CFAllocatorRef allocator, CFStringR
 
 static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CFStringRef name, Boolean perPID, CFIndex pid) {
     CFMessagePortRef memory;
-    CFMachPortRef native = NULL;
+    CFMachPortRef native;
     CFMachPortContext ctx;
     uint8_t *utfname = NULL;
     CFIndex size;
@@ -495,10 +486,8 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     memory->_perPID = perPID ? pid : 0;
     memory->_replyPort = NULL;
     memory->_source = NULL;
-#if __HAS_DISPATCH__
     memory->_dispatchSource = NULL;
     memory->_dispatchQ = NULL;
-#endif
     memory->_icallout = NULL;
     memory->_callout = NULL;
     memory->_calloutEx = NULL;
@@ -507,6 +496,8 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     ctx.retain = NULL;
     ctx.release = NULL;
     ctx.copyDescription = NULL;
+    task_get_bootstrap_port(mach_task_self(), &bp);
+    native = (KERN_SUCCESS == ret) ? CFMachPortCreateWithPort(allocator, port, __CFMessagePortDummyCallback, &ctx, NULL) : NULL;
     CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
     if (NULL == native) {
 	// name is released by deallocation
@@ -591,6 +582,30 @@ Boolean CFMessagePortSetName(CFMessagePortRef ms, CFStringRef name) {
         kern_return_t ret;
         mach_port_t bs, mp;
         task_get_bootstrap_port(mach_task_self(), &bs);
+        ret = bootstrap_check_in(bs, (char *)utfname, &mp); /* If we're started by launchd or the old mach_init */
+        if (ret == KERN_SUCCESS) {
+            ret = mach_port_insert_right(mach_task_self(), mp, mp, MACH_MSG_TYPE_MAKE_SEND);
+            if (KERN_SUCCESS == ret) {
+                CFMachPortContext ctx = {0, ms, NULL, NULL, NULL};
+                native = CFMachPortCreateWithPort(allocator, mp, __CFMessagePortDummyCallback, &ctx, NULL);
+		__CFMessagePortSetExtraMachRef(ms);
+            } else {
+                mach_port_destroy(mach_task_self(), mp);
+                CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
+		CFRelease(name);
+                return false;
+            }
+        } 
+        if (!native) {
+            CFMachPortContext ctx = {0, ms, NULL, NULL, NULL};
+            native = CFMachPortCreate(allocator, __CFMessagePortDummyCallback, &ctx, NULL);
+	    if (!native) {
+                CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
+                CFRelease(name);
+                return false;
+	    }
+            mp = CFMachPortGetPort(native);
+        }
         CFMachPortSetInvalidationCallBack(native, __CFMessagePortInvalidationCallBack);
         ms->_port = native;
 	if (NULL != oldPort && oldPort != native) {
@@ -620,6 +635,10 @@ Boolean CFMessagePortSetName(CFMessagePortRef ms, CFStringRef name) {
 	CFDictionaryAddValue(__CFAllLocalMessagePorts, name, ms);
 	__CFUnlock(&__CFAllMessagePortsLock);
     }
+    else if (name) {
+        // if setting the same name on the message port, then avoid leak
+        CFRelease(name);
+    }
 
     CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
     return true;
@@ -628,7 +647,7 @@ Boolean CFMessagePortSetName(CFMessagePortRef ms, CFStringRef name) {
 void CFMessagePortGetContext(CFMessagePortRef ms, CFMessagePortContext *context) {
     __CFGenericValidateType(ms, CFMessagePortGetTypeID());
 //#warning CF: assert that this is a local port
-    CFAssert(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
+    CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
     memmove(context, &ms->_context, sizeof(CFMessagePortContext));
 }
 
@@ -639,13 +658,11 @@ void CFMessagePortInvalidate(CFMessagePortRef ms) {
     }
     __CFMessagePortLock(ms);
     if (__CFMessagePortIsValid(ms)) {
-#if __HAS_DISPATCH__
         if (ms->_dispatchSource) {
             dispatch_source_cancel(ms->_dispatchSource);
             ms->_dispatchSource = NULL;
 	    ms->_dispatchQ = NULL;
         }
-#endif
 
 	CFMessagePortInvalidationCallBack callout = ms->_icallout;
 	CFRunLoopSourceRef source = ms->_source;
@@ -1052,12 +1069,7 @@ CFRunLoopSourceRef CFMessagePortCreateRunLoopSource(CFAllocatorRef allocator, CF
         CFRelease(ms->_source);
         ms->_source = NULL;
     }
-    Boolean hasDispatchSource = false;
-#if __HAS_DISPATCH__
-    hasDispatchSource = (NULL == ms->_dispatchSource);
-#endif
-    if (NULL == ms->_source && !hasDispatchSource && __CFMessagePortIsValid(ms))
-    {
+    if (NULL == ms->_source && NULL == ms->_dispatchSource && __CFMessagePortIsValid(ms)) {
 	CFRunLoopSourceContext1 context;
 	context.version = 1;
 	context.info = (void *)ms;
@@ -1076,8 +1088,6 @@ CFRunLoopSourceRef CFMessagePortCreateRunLoopSource(CFAllocatorRef allocator, CF
     __CFMessagePortUnlock(ms);
     return result;
 }
-
-#if __HAS_DISPATCH__
 
 void CFMessagePortSetDispatchQueue(CFMessagePortRef ms, dispatch_queue_t queue) {
     __CFGenericValidateType(ms, CFMessagePortGetTypeID());
@@ -1108,7 +1118,7 @@ void CFMessagePortSetDispatchQueue(CFMessagePortRef ms, dispatch_queue_t queue) 
         mach_port_t port = __CFMessagePortGetPort(ms);
         if (MACH_PORT_NULL != port) {
             static dispatch_queue_t mportQueue = NULL;
-            static dispatch_once_t once = 0;
+            static dispatch_once_t once;
             dispatch_once(&once, ^{
                 dispatch_queue_attr_t dqattr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, qos_class_main(), 0);
                 mportQueue = dispatch_queue_create("com.apple.CFMessagePort", dqattr);
@@ -1161,5 +1171,4 @@ void CFMessagePortSetDispatchQueue(CFMessagePortRef ms, dispatch_queue_t queue) 
     }
     __CFMessagePortUnlock(ms);
 }
-#endif
 

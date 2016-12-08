@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFOldStylePList.c
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Tony Parker
 */
 
@@ -154,7 +149,7 @@ static UniChar getSlashedChar(_CFStringsFileParseInfo *pInfo) {
 }
 
 static CFStringRef _uniqueStringForCharacters(_CFStringsFileParseInfo *pInfo, const UniChar *base, CFIndex length) CF_RETURNS_RETAINED {
-    if (0 == length) return !(0) ? (CFStringRef)CFRetain(CFSTR("")) : CFSTR("");
+    if (0 == length) return (CFStringRef)CFRetain(CFSTR(""));
     // This is to avoid having to promote the buffers of all the strings compared against
     // during the set probe; if a Unicode string is passed in, that's what happens.
     CFStringRef stringToUnique = NULL;
@@ -181,7 +176,7 @@ static CFStringRef _uniqueStringForCharacters(_CFStringsFileParseInfo *pInfo, co
 	uniqued = stringToUnique;
     }
     if (stringToUnique) CFRelease(stringToUnique);
-    if (uniqued && !(0)) CFRetain(uniqued);
+    if (uniqued) CFRetain(uniqued);
     return uniqued;
 }
 
@@ -192,7 +187,7 @@ static CFStringRef _uniqueStringForString(_CFStringsFileParseInfo *pInfo, CFStri
         CFSetAddValue(pInfo->stringSet, uniqued);
         __CFTypeCollectionRelease(pInfo->allocator, uniqued);
     }
-    if (uniqued && !(0)) CFRetain(uniqued);
+    if (uniqued) CFRetain(uniqued);
     return uniqued;
 }
 
@@ -326,11 +321,11 @@ static CFTypeRef parsePlistArray(_CFStringsFileParseInfo *pInfo) CF_RETURNS_RETA
 }
 
 __attribute__((noinline)) void _CFPropertyListMissingSemicolon(UInt32 line) {
-    CFLog(kCFLogLevelWarning, CFSTR("CFPropertyListCreateFromXMLData(): Old-style plist parser: missing semicolon in dictionary on line %d. Parsing will be abandoned. Break on _CFPropertyListMissingSemicolon to debug."), line);
+    CFLog(kCFLogLevelWarning, CFSTR("CFPropertyListCreateFromXMLData(): Old-style plist parser: missing semicolon in dictionary on line %d. Parsing will be abandoned. Break on _CFPropertyListMissingSemicolon to debug."), (unsigned int)line);
 }
 
 __attribute__((noinline)) void _CFPropertyListMissingSemicolonOrValue(UInt32 line) {
-    CFLog(kCFLogLevelWarning, CFSTR("CFPropertyListCreateFromXMLData(): Old-style plist parser: missing semicolon or value in dictionary on line %d. Parsing will be abandoned. Break on _CFPropertyListMissingSemicolonOrValue to debug."), line);
+    CFLog(kCFLogLevelWarning, CFSTR("CFPropertyListCreateFromXMLData(): Old-style plist parser: missing semicolon or value in dictionary on line %d. Parsing will be abandoned. Break on _CFPropertyListMissingSemicolonOrValue to debug."), (unsigned int)line);
 }
 
 static CFDictionaryRef parsePlistDictContent(_CFStringsFileParseInfo *pInfo) CF_RETURNS_RETAINED {
@@ -374,7 +369,7 @@ static CFDictionaryRef parsePlistDictContent(_CFStringsFileParseInfo *pInfo) CF_
 	if (foundChar && *pInfo->curr == ';') {
 	    pInfo->curr ++;
 	    key = parsePlistString(pInfo, false);
-	} else if (true || !foundChar) {
+	} else {
             UInt32 line = lineNumberStrings(pInfo);
             _CFPropertyListMissingSemicolon(line);
 	    failedParse = true;
@@ -605,7 +600,7 @@ CF_PRIVATE CFTypeRef __CFCreateOldStylePropertyListOrStringsFile(CFAllocatorRef 
     
     if (result && format) *format = kCFPropertyListOpenStepFormat;
     
-    if (createdBuffer && !(0)) CFAllocatorDeallocate(allocator, buf);
+    if (createdBuffer) CFAllocatorDeallocate(allocator, buf);
     CFRelease(stringsPInfo.stringSet);
     CFRelease(originalString);
     return result;

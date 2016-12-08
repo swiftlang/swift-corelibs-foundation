@@ -1,16 +1,11 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*
-    CFICULogging.h
-    Copyright (c) 2008 - 2015 Apple Inc. and the Swift project authors
+	CFICULogging.h
+	Copyright (c) 2008-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 /*
@@ -64,6 +59,7 @@
 #define __cficu_udat_close udat_close
 #define __cficu_udat_countSymbols udat_countSymbols
 #define __cficu_udat_format udat_format
+#define __cficu_udat_formatForFields udat_formatForFields
 #define __cficu_udat_get2DigitYearStart udat_get2DigitYearStart
 #define __cficu_udat_getCalendar udat_getCalendar
 #define __cficu_udat_getSymbols udat_getSymbols

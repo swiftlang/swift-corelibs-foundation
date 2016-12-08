@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFRuntime.c
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Christopher Kane
 */
 
@@ -17,12 +12,13 @@
 
 #include <CoreFoundation/CFRuntime.h>
 #include "CFInternal.h"
-#include <CoreFoundation/CFBasicHash.h>
+#include "CFBasicHash.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFCalendar.h>
+#include <CoreFoundation/CFURLComponents.h>
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
@@ -35,7 +31,6 @@
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFTimeZone.h>
 #include <CoreFoundation/CFCalendar.h>
-#include <CoreFoundation/CFURLComponents.h>
 #if DEPLOYMENT_TARGET_EMBEDDED
 // This isn't in the embedded runtime.h header
 OBJC_EXPORT void *objc_destructInstance(id obj);
@@ -191,6 +186,13 @@ static const CFRuntimeClass __CFTypeClass = {
 };
 #endif //__cplusplus
 
+#if !__OBJC2__
+//<rdar://problem/26305326> __attribute__((__cleanup__())) fails to link on 32 bit Mac
+CF_PRIVATE void objc_terminate(void) {
+    abort();
+}
+#endif
+
 // the lock does not protect most reading of these; we just leak the old table to allow read-only accesses to continue to work
 static CFLock_t __CFBigRuntimeFunnel = CFLockInit;
 CF_PRIVATE CFRuntimeClass * __CFRuntimeClassTable[__CFRuntimeClassTableSize] = {0};
@@ -212,6 +214,7 @@ bool (*__CFObjCIsCollectable)(void *) = NULL;
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 // The constant string class reference is set at link time to _NSCFConstantString
+void *__CFConstantStringClassReferencePtr = &__CFConstantStringClassReference;
 #else
 #if !__CONSTANT_CFSTRINGS__ || DEPLOYMENT_TARGET_EMBEDDED_MINI
 // Compiler uses this symbol name; must match compiler built-in decl, so we use 'int'
@@ -227,9 +230,9 @@ int __CFConstantStringClassReference[24] = {0};
 #else
 int __CFConstantStringClassReference[12] = {0};
 #endif
-#endif
 
-void *__CFConstantStringClassReferencePtr = &__CFConstantStringClassReference;
+void *__CFConstantStringClassReferencePtr = NULL;
+#endif
 
 Boolean _CFIsObjC(CFTypeID typeID, void *obj) {
     return CF_IS_OBJC(typeID, obj);
@@ -287,17 +290,6 @@ void _CFEnableZombies(void) {
 
 #endif /* DEBUG */
 
-// XXX_PCB:  use the class version field as a bitmask, to allow classes to opt-in for GC scanning.
-
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-CF_INLINE CFOptionFlags CF_GET_COLLECTABLE_MEMORY_TYPE(const CFRuntimeClass *cls)
-{
-    return ((cls->version & _kCFRuntimeScannedObject) ? __kCFAllocatorGCScannedMemory : 0) | __kCFAllocatorGCObjectMemory;
-}
-#else
-#define CF_GET_COLLECTABLE_MEMORY_TYPE(x) (0)
-#endif
-
 CF_INLINE CFRuntimeBase *_cf_aligned_malloc(size_t align, CFIndex size, const char *className) {
     CFRuntimeBase *memory;
     
@@ -314,12 +306,12 @@ CF_INLINE CFRuntimeBase *_cf_aligned_malloc(size_t align, CFIndex size, const ch
     errorStringPointer =
 #endif
     strerror_r(errno, errorStringBuffer, errorStringBufferLength);
-    CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %u-byte alignment, but memory could not be so allocated: %s"), className, align, errorStringPointer);
+    CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %zu-byte alignment, but memory could not be so allocated: %s"), className, align, errorStringPointer);
 #elif DEPLOYMENT_TARGET_WINDOWS
-    CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %u-byte alignment, but aligned memory is not supported on this platform"), className);
+    CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %zu-byte alignment, but aligned memory is not supported on this platform"), className, align);
     memory = (CFRuntimeBase *)malloc(size);
 #else
-    CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %u-byte alignment, but aligned memory is not supported on this platform"), className);
+    CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %zu-byte alignment, but aligned memory is not supported on this platform"), className, align);
     memory = NULL;
 #endif
     
@@ -335,21 +327,21 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
     CFIndex size = sizeof(CFRuntimeBase) + extraBytes;
     CFRuntimeClass *cls = __CFRuntimeClassTable[typeID];
     size_t align = (cls->version & _kCFRuntimeRequiresAlignment) ? cls->requiredAlignment : 16;
-
+    
     CFRuntimeBase *memory = (CFRuntimeBase *)swift_allocObject(isa, size, align - 1);
-
+    
     // Zero the rest of the memory, starting at cfinfo
     memset(&memory->_cfinfo, 0, size - (sizeof(memory->_cfisa) + sizeof(memory->_swift_strong_rc) + sizeof(memory->_swift_weak_rc)));
-
+    
     // Set up the cfinfo struct
     uint32_t *cfinfop = (uint32_t *)&(memory->_cfinfo);
     // The 0x80 means we use the default allocator
     *cfinfop = (uint32_t)(((uint32_t)typeID << 8) | (0x80));
-
+    
     return memory;
 #else
     if (__CFRuntimeClassTableSize <= typeID) HALT;
-    CFAssert(typeID != _kCFRuntimeNotATypeID, __kCFLogAssertion, "%s(): Uninitialized type id", __PRETTY_FUNCTION__);
+    CFAssert1(typeID != _kCFRuntimeNotATypeID, __kCFLogAssertion, "%s(): Uninitialized type id", __PRETTY_FUNCTION__);
     CFRuntimeClass *cls = __CFRuntimeClassTable[typeID];
     if (NULL == cls) {
 	return NULL;
@@ -368,7 +360,8 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
     }
     Boolean usesSystemDefaultAllocator = _CFAllocatorIsSystemDefault(realAllocator);
     size_t align = (cls->version & _kCFRuntimeRequiresAlignment) ? cls->requiredAlignment : 16;
-    CFIndex size = sizeof(CFRuntimeBase) + extraBytes + (usesSystemDefaultAllocator ? 0 : sizeof(CFAllocatorRef));
+    // To preserve 16 byte alignment when using custom allocators, we always place the CFAllocatorRef 16 bytes before the CFType. n.b. we assume sizeof(CFAllocatorRef) < 16
+    CFIndex size = sizeof(CFRuntimeBase) + extraBytes + (usesSystemDefaultAllocator ? 0 : 16);
     size = (size + 0xF) & ~0xF;	// CF objects are multiples of 16 in size
     // CFType version 0 objects are unscanned by default since they don't have write-barriers and hard retain their innards
     // CFType version 1 objects are scanned and use hand coded write-barriers to store collectable storage within
@@ -376,14 +369,12 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
     if (cls->version & _kCFRuntimeRequiresAlignment) {
         memory = _cf_aligned_malloc(align, size, cls->className);
     } else {
-        memory = (CFRuntimeBase *)CFAllocatorAllocate(allocator, size, CF_GET_COLLECTABLE_MEMORY_TYPE(cls));
+        memory = (CFRuntimeBase *)CFAllocatorAllocate(allocator, size, 0);
     }
     if (NULL == memory) {
 	return NULL;
     }
-    if (!kCFUseCollectableAllocator || !CF_IS_COLLECTABLE_ALLOCATOR(allocator) || !(CF_GET_COLLECTABLE_MEMORY_TYPE(cls) & __kCFAllocatorGCScannedMemory)) {
-        memset(memory, 0, size);
-    }
+    memset(memory, 0, size);
     if (__CFOASafe && category) {
 	__CFSetLastAllocationEventName(memory, (char *)category);
     } else if (__CFOASafe) {
@@ -391,30 +382,25 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
     }
     if (!usesSystemDefaultAllocator) {
         // add space to hold allocator ref for non-standard allocators.
-        // (this screws up 8 byte alignment but seems to work)
-        *(CFAllocatorRef *)((char *)memory) = (CFAllocatorRef)CFRetain(realAllocator);
-        memory = (CFRuntimeBase *)((char *)memory + sizeof(CFAllocatorRef));
+        // This means the allocator is 16 bytes before the result. See the line where we added 16 bytes above, when !usesSystemDefaultAllocator
+	*(CFAllocatorRef *)((char *)memory) = (CFAllocatorRef)CFRetain(realAllocator);
+	memory = (CFRuntimeBase *)((char *)memory + 16);
     }
     uint32_t rc = 0;
 #if __LP64__
-    if (!kCFUseCollectableAllocator || (1 && 1)) {
-        memory->_rc = 1;
-    }
+    memory->_rc = 1;
     if (customRC) {
         memory->_rc = 0xFFFFFFFFU;
         rc = 0xFF;
     }
 #else
-    if (!kCFUseCollectableAllocator || (1 && 1)) {
-        rc = 1;
-    }
+    rc = 1;
     if (customRC) {
         rc = 0xFF;
     }
 #endif
     uint32_t *cfinfop = (uint32_t *)&(memory->_cfinfo);
     *cfinfop = (uint32_t)((rc << 24) | (customRC ? 0x800000 : 0x0) | ((uint32_t)typeID << 8) | (usesSystemDefaultAllocator ? 0x80 : 0x00));
-
     memory->_cfisa = __CFISAForTypeID(typeID);
     if (NULL != cls->init) {
 	(cls->init)(memory);
@@ -426,7 +412,7 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
 #if DEPLOYMENT_RUNTIME_SWIFT
 #else
 void _CFRuntimeInitStaticInstance(void *ptr, CFTypeID typeID) {
-    CFAssert(typeID != _kCFRuntimeNotATypeID, __kCFLogAssertion, "%s(): Uninitialized type id", __PRETTY_FUNCTION__);
+    CFAssert1(typeID != _kCFRuntimeNotATypeID, __kCFLogAssertion, "%s(): Uninitialized type id", __PRETTY_FUNCTION__);
     if (__CFRuntimeClassTableSize <= typeID) HALT;
     CFRuntimeClass *cfClass = __CFRuntimeClassTable[typeID];
     Boolean customRC = !!(cfClass->version & _kCFRuntimeCustomRefCount);
@@ -474,7 +460,6 @@ CF_PRIVATE void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newType
         ((CFSwiftRef)cf)->isa = (uintptr_t)__CFISAForTypeID(newTypeID);
     }
 #endif
-    
 }
 
 
@@ -486,11 +471,9 @@ enum {
 #if DEPLOYMENT_TARGET_MACOSX
 #define NUM_EXTERN_TABLES 8
 #define EXTERN_TABLE_IDX(O) (((uintptr_t)(O) >> 8) & 0x7)
-#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#else
 #define NUM_EXTERN_TABLES 1
 #define EXTERN_TABLE_IDX(O) 0
-#else
-#error
 #endif
 
 // we disguise pointers so that programs like 'leaks' forget about these references
@@ -555,30 +538,41 @@ CF_PRIVATE void __CFGenericValidateType_(CFTypeRef cf, CFTypeID type, const char
     if (cf && CF_IS_SWIFT(type, (CFSwiftRef)cf)) return;
 #endif
     if (cf && CF_IS_OBJC(type, cf)) return;
-    CFAssert((cf != NULL) && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)), __kCFLogAssertion, "%s(): pointer %p is not a CF object", func, cf); \
-    CFAssert(__CFGenericTypeID_inline(cf) == type, __kCFLogAssertion, "%s(): pointer %p is not a %s", func, cf, __CFRuntimeClassTable[type]->className);	\
+    CFAssert2((cf != NULL) && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)), __kCFLogAssertion, "%s(): pointer %p is not a CF object", func, cf); \
+    CFAssert3(__CFGenericTypeID_inline(cf) == type, __kCFLogAssertion, "%s(): pointer %p is not a %s", func, cf, __CFRuntimeClassTable[type]->className);	\
 }
 
 #define __CFGenericAssertIsCF(cf) \
-    CFAssert(cf != NULL && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)), __kCFLogAssertion, "%s(): pointer %p is not a CF object", __PRETTY_FUNCTION__, cf);
+    CFAssert2(cf != NULL && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)), __kCFLogAssertion, "%s(): pointer %p is not a CF object", __PRETTY_FUNCTION__, cf);
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+
+CF_INLINE Boolean CFTYPE_IS_SWIFT(const void *obj) {
+    CFTypeID typeID = __CFGenericTypeID_inline(obj);
+    return CF_IS_SWIFT(typeID, obj);
+}
+
+#define CFTYPE_SWIFT_FUNCDISPATCH0(rettype, obj, fn) \
+    if (CFTYPE_IS_SWIFT(obj)) return (rettype)__CFSwiftBridge.fn((CFSwiftRef)obj);
+
+#define CFTYPE_SWIFT_FUNCDISPATCH1(rettype, obj, fn, a1) \
+    if (CFTYPE_IS_SWIFT(obj)) return (rettype)__CFSwiftBridge.fn((CFSwiftRef)obj, a1);
+
+#else
+
+#define CFTYPE_IS_SWIFT(obj) (0)
+#define CFTYPE_SWIFT_FUNCDISPATCH0(rettype, obj, fn) do {} while(0)
+#define CFTYPE_SWIFT_FUNCDISPATCH1(rettype, obj, fn, a1) do {} while (0)
+
+#endif
 
 
 #define CFTYPE_IS_OBJC(obj) (false)
 #define CFTYPE_OBJC_FUNCDISPATCH0(rettype, obj, sel) do {} while (0)
 #define CFTYPE_OBJC_FUNCDISPATCH1(rettype, obj, sel, a1) do {} while (0)
 
-CF_INLINE Boolean CFTYPE_IS_SWIFT(const void *obj) {
-    CFTypeID typeID = __CFGenericTypeID_inline(obj);
-    return CF_IS_SWIFT(typeID, obj);
-}
-#define CFTYPE_SWIFT_FUNCDISPATCH0(rettype, obj, fn) \
-    if (CFTYPE_IS_SWIFT(obj)) return (rettype)__CFSwiftBridge.fn((CFSwiftRef)obj);
-#define CFTYPE_SWIFT_FUNCDISPATCH1(rettype, obj, fn, a1) \
-    if (CFTYPE_IS_SWIFT(obj)) return (rettype)__CFSwiftBridge.fn((CFSwiftRef)obj, a1);
-
 
 CFTypeID CFGetTypeID(CFTypeRef cf) {
-    
 #if defined(DEBUG)
     if (NULL == cf) { CRSetCrashLogMessage("*** CFGetTypeID() called with NULL ***"); HALT; }
 #endif
@@ -590,13 +584,18 @@ CFTypeID CFGetTypeID(CFTypeRef cf) {
 }
 
 CFStringRef CFCopyTypeIDDescription(CFTypeID type) {
-    CFAssert((NULL != __CFRuntimeClassTable[type]) && __kCFNotATypeTypeID != type && __kCFTypeTypeID != type, __kCFLogAssertion, "%s(): type %d is not a CF type ID", __PRETTY_FUNCTION__, type);
+    CFAssert2((NULL != __CFRuntimeClassTable[type]) && __kCFNotATypeTypeID != type && __kCFTypeTypeID != type, __kCFLogAssertion, "%s(): type %lu is not a CF type ID", __PRETTY_FUNCTION__, type);
     return CFStringCreateWithCString(kCFAllocatorSystemDefault, __CFRuntimeClassTable[type]->className, kCFStringEncodingASCII);
 }
 
 // Bit 31 (highest bit) in second word of cf instance indicates external ref count
 
 static CFTypeRef _CFRetain(CFTypeRef cf, Boolean tryR);
+
+CFTypeRef _CFNonObjCRetain(CFTypeRef cf) {
+    __CFGenericAssertIsCF(cf);
+    return _CFRetain(cf, false);
+}
 
 CFTypeRef CFRetain(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFRetain() called with NULL ***"); HALT; }
@@ -610,6 +609,11 @@ CFTypeRef CFAutorelease(CFTypeRef __attribute__((cf_consumed)) cf) {
 }
 
 static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf);
+
+void _CFNonObjCRelease(CFTypeRef cf) {
+    __CFGenericAssertIsCF(cf);
+    _CFRelease(cf);
+}
 
 void CFRelease(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFRelease() called with NULL ***"); HALT; }
@@ -635,88 +639,22 @@ CF_PRIVATE const void *__CFStringCollectionCopy(CFAllocatorRef allocator, const 
     if (NULL == ptr) { CRSetCrashLogMessage("*** __CFStringCollectionCopy() called with NULL ***"); HALT; }
     CFStringRef theString = (CFStringRef)ptr;
     CFStringRef result = CFStringCreateCopy((allocator), theString);
-    if (CF_IS_COLLECTABLE_ALLOCATOR(allocator)) {
-        result = (CFStringRef)CFMakeCollectable(result);
-    }
     return (const void *)result;
 }
 
 extern void CFCollection_non_gc_storage_error(void);
 
 CF_PRIVATE const void *__CFTypeCollectionRetain(CFAllocatorRef allocator, const void *ptr) {
-#if DEPLOYMENT_RUNTIME_SWIFT
-    return CFRetain((CFTypeRef)ptr);
-#else
     if (NULL == ptr) { CRSetCrashLogMessage("*** __CFTypeCollectionRetain() called with NULL; likely a collection has been corrupted ***"); HALT; }
     CFTypeRef cf = (CFTypeRef)ptr;
-    // only collections allocated in the GC zone can opt-out of reference counting.
-    if (CF_IS_COLLECTABLE_ALLOCATOR(allocator)) {
-        if (CFTYPE_IS_OBJC(cf)) return cf;  // do nothing for OBJC objects.
-        if (auto_zone_is_valid_pointer(objc_collectableZone(), ptr)) {
-            CFRuntimeClass *cfClass = __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)];
-            if (cfClass->version & _kCFRuntimeResourcefulObject) {
-                // GC: If this a CF object in the GC heap that is marked resourceful, then
-                // it must be retained keep it alive in a CF collection.
-                CFRetain(cf);
-            }
-            else
-                ;   // don't retain normal CF objects
-            return cf;
-        } else {
-            // support constant CFTypeRef objects.
-#if __LP64__
-            uint32_t lowBits = ((CFRuntimeBase *)cf)->_rc;
-#else
-            uint32_t lowBits = ((CFRuntimeBase *)cf)->_cfinfo[CF_RC_BITS];
-#endif
-            if (lowBits == 0) return cf;
-            // complain about non-GC objects in GC containers.
-            CFLog(kCFLogLevelWarning, CFSTR("storing a non-GC object %p in a GC collection, break on CFCollection_non_gc_storage_error to debug."), cf);
-            CFCollection_non_gc_storage_error();
-            // XXX should halt, except Patrick is using this somewhere.
-            // HALT;
-        }
-    }
     return CFRetain(cf);
-#endif
 }
 
 
 CF_PRIVATE void __CFTypeCollectionRelease(CFAllocatorRef allocator, const void *ptr) {
-#if DEPLOYMENT_RUNTIME_SWIFT
-    CFRelease((CFTypeRef)ptr);
-#else
     if (NULL == ptr) { CRSetCrashLogMessage("*** __CFTypeCollectionRelease() called with NULL; likely a collection has been corrupted ***"); HALT; }
     CFTypeRef cf = (CFTypeRef)ptr;
-    // only collections allocated in the GC zone can opt-out of reference counting.
-    if (CF_IS_COLLECTABLE_ALLOCATOR(allocator)) {
-        if (CFTYPE_IS_OBJC(cf)) return; // do nothing for OBJC objects.
-        if (auto_zone_is_valid_pointer(objc_collectableZone(), cf)) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-            // GC: If this a CF object in the GC heap that is marked uncollectable, then
-            // must balance the retain done in __CFTypeCollectionRetain().
-            CFRuntimeClass *cfClass = __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)];
-            if (cfClass->version & _kCFRuntimeResourcefulObject) {
-                // reclaim is called by _CFRelease(), which must be called to keep the
-                // CF and GC retain counts in sync.
-                CFRelease(cf);
-            } else {
-                // avoid releasing normal CF objects.  Like other collections, for example
-            }
-            return;
-#endif
-        } else {
-            // support constant CFTypeRef objects.
-#if __LP64__
-            uint32_t lowBits = ((CFRuntimeBase *)cf)->_rc;
-#else
-            uint32_t lowBits = ((CFRuntimeBase *)cf)->_cfinfo[CF_RC_BITS];
-#endif
-            if (lowBits == 0) return;
-        }
-    }
     CFRelease(cf);
-#endif
 }
 
 #if !__LP64__
@@ -775,17 +713,28 @@ CFIndex CFGetRetainCount(CFTypeRef cf) {
 }
 #endif
 
+// Even though we no longer support GC, leave implementations of these functions in for compatibility.
 CFTypeRef CFMakeCollectable(CFTypeRef cf) {
-    if (NULL == cf) return NULL;
     return cf;
 }
 
 CFTypeRef CFMakeUncollectable(CFTypeRef cf) {
-    if (NULL == cf) return NULL;
-    if (CF_IS_COLLECTABLE(cf)) {
-        CFRetain(cf);
-    }
     return cf;
+}
+
+Boolean _CFNonObjCEqual(CFTypeRef cf1, CFTypeRef cf2) {
+    //cf1 is guaranteed to be non-NULL and non-ObjC, cf2 is unknown
+    if (cf1 == cf2) return true;
+    if (NULL == cf2) { CRSetCrashLogMessage("*** CFEqual() called with NULL second argument ***"); HALT; }
+    CFTYPE_OBJC_FUNCDISPATCH1(Boolean, cf2, isEqual:, cf1);
+    CFTYPE_SWIFT_FUNCDISPATCH1(Boolean, cf2, NSObject.isEqual, (CFSwiftRef)cf1);
+    __CFGenericAssertIsCF(cf1);
+    __CFGenericAssertIsCF(cf2);
+    if (__CFGenericTypeID_inline(cf1) != __CFGenericTypeID_inline(cf2)) return false;
+    if (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf1)]->equal) {
+        return __CFRuntimeClassTable[__CFGenericTypeID_inline(cf1)]->equal(cf1, cf2);
+    }
+    return false;
 }
 
 Boolean CFEqual(CFTypeRef cf1, CFTypeRef cf2) {
@@ -805,6 +754,15 @@ Boolean CFEqual(CFTypeRef cf1, CFTypeRef cf2) {
     return false;
 }
 
+CFHashCode _CFNonObjCHash(CFTypeRef cf) {
+    __CFGenericAssertIsCF(cf);
+    CFHashCode (*hash)(CFTypeRef cf) = __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->hash;
+    if (NULL != hash) {
+        return hash(cf);
+    }
+    return (CFHashCode)cf;
+}
+
 CFHashCode CFHash(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFHash() called with NULL ***"); HALT; }
     CFTYPE_OBJC_FUNCDISPATCH0(CFHashCode, cf, hash);
@@ -814,7 +772,6 @@ CFHashCode CFHash(CFTypeRef cf) {
     if (NULL != hash) {
 	return hash(cf);
     }
-    if (CF_IS_COLLECTABLE(cf)) return (CFHashCode)_object_getExternalHash((id)cf);
     return (CFHashCode)cf;
 }
 
@@ -859,10 +816,11 @@ extern CFTypeID CFStringTokenizerGetTypeID();
 extern CFTypeID CFStorageGetTypeID(void);
 extern void __CFAllocatorInitialize(void);
 extern void __CFStringInitialize(void);
+extern void __CFNumberInitialize(void);
 extern void __CFCharacterSetInitialize(void);
 extern void __CFPFactoryInitialize(void);
 extern void __CFPlugInInitialize(void);
-#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_MACOSX
+#if (DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_MACOSX) && DEPLOYMENT_RUNTIME_SWIFT
 CF_PRIVATE void __CFTSDInitialize();
 #endif
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -975,6 +933,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted() {
 #endif
 
 
+// Even though we no longer support GC, we leave this exported symbol to avoid lockstep dependencies.
 #undef kCFUseCollectableAllocator
 CF_EXPORT bool kCFUseCollectableAllocator;
 bool kCFUseCollectableAllocator = false;
@@ -996,6 +955,15 @@ pthread_t _CF_pthread_main_thread_np(void) {
 
 #endif
 
+#if DEPLOYMENT_RUNTIME_SWIFT && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
+typedef bool (*_os_log_NSCF_callback)(const void *obj, char *string_value, size_t string_sz, bool *publicData);
+extern void _os_log_set_nscf_formatter(_os_log_NSCF_callback function);
+bool os_log_callback(const void *obj, char *string_value, size_t string_sz, bool *publicData) {
+    return false;
+}
+#endif
+
+
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 static void __CFInitialize(void) __attribute__ ((constructor));
 static
@@ -1016,24 +984,15 @@ void __CFInitialize(void) {
 #if DEPLOYMENT_TARGET_WINDOWS
         // Must not call any CF functions
         __CFTSDWindowsInitialize();
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_MACOSX
+#elif (DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_MACOSX) && DEPLOYMENT_RUNTIME_SWIFT
         __CFTSDInitialize();
 #endif
-        
         __CFProphylacticAutofsAccess = true;
 
         for (CFIndex idx = 0; idx < sizeof(__CFEnv) / sizeof(__CFEnv[0]); idx++) {
             __CFEnv[idx].value = __CFEnv[idx].name ? getenv(__CFEnv[idx].name) : NULL;
         }
         
-#if !defined(kCFUseCollectableAllocator)
-        kCFUseCollectableAllocator = objc_collectingEnabled();
-#endif
-        if (kCFUseCollectableAllocator) {
-#if !defined(__CFObjCIsCollectable)
-            __CFObjCIsCollectable = (bool (*)(void *))objc_isAuto;
-#endif
-        }
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 	UInt32 s, r;
 	__CFStringGetUserDefaultEncoding(&s, &r); // force the potential setenv to occur early
@@ -1044,23 +1003,23 @@ void __CFInitialize(void) {
         memset(__CFRuntimeClassTable, 0, sizeof(__CFRuntimeClassTable));
         memset(__CFRuntimeObjCClassTable, 0, sizeof(__CFRuntimeObjCClassTable));
 
-        
 #if DEPLOYMENT_RUNTIME_SWIFT
-
-        #ifndef __CFSwiftGetBaseClass
-        #if TARGET_OS_LINUX
-        #define __CFSwiftGetBaseClass _TF10Foundation21__CFSwiftGetBaseClassFT_PMPs9AnyObject_
-        #elif TARGET_OS_MAC
-        #define __CFSwiftGetBaseClass _TF15SwiftFoundation21__CFSwiftGetBaseClassFT_PMPs9AnyObject_
-        #endif
-        #endif
-        extern uintptr_t __CFSwiftGetBaseClass();        
-
+        
+#ifndef __CFSwiftGetBaseClass
+#if TARGET_OS_LINUX
+#define __CFSwiftGetBaseClass _TF10Foundation21__CFSwiftGetBaseClassFT_PMPs9AnyObject_
+#elif TARGET_OS_MAC
+#define __CFSwiftGetBaseClass _TF15SwiftFoundation21__CFSwiftGetBaseClassFT_PMPs9AnyObject_
+#endif
+#endif
+        extern uintptr_t __CFSwiftGetBaseClass();
+        
         uintptr_t NSCFType = __CFSwiftGetBaseClass();
         for (CFIndex idx = 1; idx < __CFRuntimeClassTableSize; idx++) {
             __CFRuntimeObjCClassTable[idx] = NSCFType;
         }
 #endif
+        
 
         /* Here so that two runtime classes get indices 0, 1. */
         __kCFNotATypeTypeID = _CFRuntimeRegisterClass(&__CFNotATypeClass);
@@ -1135,21 +1094,16 @@ void __CFInitialize(void) {
 #if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI) && !DEPLOYMENT_RUNTIME_SWIFT
         CFMachPortGetTypeID();
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         __CFStreamInitialize();
-#endif
 #if DEPLOYMENT_TARGET_WINDOWS
         CFWindowsNamedPipeGetTypeID();
 #endif
         
         CFDateGetTypeID();
-
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
         CFRunLoopGetTypeID();
         CFRunLoopObserverGetTypeID();
         CFRunLoopSourceGetTypeID();
         CFRunLoopTimerGetTypeID();
-#endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         CFTimeZoneGetTypeID();
         CFCalendarGetTypeID();
@@ -1158,19 +1112,21 @@ void __CFInitialize(void) {
         CFCalendarGetTypeID();
 #endif
 #endif
+        
 #if DEPLOYMENT_RUNTIME_SWIFT
-        _CFKeyedArchiverUIDGetTypeID();
-        #ifndef __CFInitializeSwift
-        #if TARGET_OS_LINUX
-        #define __CFInitializeSwift _TF10Foundation19__CFInitializeSwiftFT_T_
-        #elif TARGET_OS_MAC
-        #define __CFInitializeSwift _TF15SwiftFoundation19__CFInitializeSwiftFT_T_
-        #endif
-        #endif
+#ifndef __CFInitializeSwift
+#if TARGET_OS_LINUX
+#define __CFInitializeSwift _TF10Foundation19__CFInitializeSwiftFT_T_
+#elif TARGET_OS_MAC
+#define __CFInitializeSwift _TF15SwiftFoundation19__CFInitializeSwiftFT_T_
+#endif
+#endif
         extern void __CFInitializeSwift();
         __CFInitializeSwift();
-#endif
         __CFNumberInitialize(); /* needs to happen after Swift bridge is initialized */
+#endif
+        
+
         {
             CFIndex idx, cnt = 0;
             char **args = NULL;
@@ -1226,16 +1182,19 @@ void __CFInitialize(void) {
 #endif
 
 #if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
-        // CFLog(kCFLogLevelWarning, CFSTR("Assertions enabled"));
+        CFLog(kCFLogLevelWarning, CFSTR("Assertions enabled"));
 #endif
 
         __CFProphylacticAutofsAccess = false;
+
+#if DEPLOYMENT_RUNTIME_SWIFT && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
+        _os_log_set_nscf_formatter(&os_log_callback);
+#endif
         
         __CFInitializing = 0;
         __CFInitialized = 1;
     }
 }
-
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
@@ -1259,8 +1218,8 @@ static CFBundleRef RegisterCoreFoundationBundle(void) {
     CFAssert(ourModule, __kCFLogAssertion, "GetModuleHandle failed");
 
     wResult = GetModuleFileNameW(ourModule, path, MAX_PATH+1);
-    CFAssert(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
-    CFAssert(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", path);
+    CFAssert1(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
+    CFAssert1(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", path);
 
     // strip off last component, the DLL name
     for (idx = wResult - 1; idx; idx--) {
@@ -1337,7 +1296,6 @@ static bool (*CAS32)(int32_t, int32_t, volatile int32_t *) = OSAtomicCompareAndS
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 extern void swift_retain(void *);
-extern void swift_release(void *);
 #endif
 
 // For "tryR==true", a return of NULL means "failed".
@@ -1365,7 +1323,6 @@ static CFTypeRef _CFRetain(CFTypeRef cf, Boolean tryR) {
         return cf;
     }
 
-    Boolean didAuto = false;
 #if __LP64__
 #if !DEPLOYMENT_TARGET_WINDOWS
     uint64_t allBits;
@@ -1373,30 +1330,20 @@ static CFTypeRef _CFRetain(CFTypeRef cf, Boolean tryR) {
         // It's important to load a 64-bit value from cfinfo when running in 64 bit - if we use the 'cfinfo' from above then it's possible we did not atomically fetch the deallocating/deallocated flag and the retain count together (19256102). Therefore it is after this load that we check the deallocating/deallocated flag and the const-ness.
         allBits = *(uint64_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
         if (tryR && (allBits & (RC_DEALLOCATING_BIT | RC_DEALLOCATED_BIT))) return NULL; // This object is marked for deallocation
-        if (RC_GET(allBits) == 0 && !CF_IS_COLLECTABLE(cf)) return cf; // Constant CFTypeRef
+        if (RC_GET(allBits) == 0) return cf; // Constant CFTypeRef
     } while (!CAS64(allBits, allBits + RC_INCREMENT, (int64_t *)&((CFRuntimeBase *)cf)->_cfinfo));
-    // GC:  0 --> 1 transition? then add a GC retain count, to root the object. we'll remove it on the 1 --> 0 transition.
-    if (RC_GET(allBits) == 0 && CF_IS_COLLECTABLE(cf)) {
-	auto_zone_retain(objc_collectableZone(), (void*)cf);
-	didAuto = true;
-    }
 #else
     if (tryR && (cfinfo & (RC_DEALLOCATING_BIT | RC_DEALLOCATED_BIT))) return NULL; // deallocating or deallocated
     uint32_t lowBits;
     do {
 	lowBits = ((CFRuntimeBase *)cf)->_rc;
     } while (!CAS32(lowBits, lowBits + 1, (int32_t *)&((CFRuntimeBase *)cf)->_rc));
-    // GC:  0 --> 1 transition? then add a GC retain count, to root the object. we'll remove it on the 1 --> 0 transition.
-    if (lowBits == 0 && CF_IS_COLLECTABLE(cf)) {
-	auto_zone_retain(objc_collectableZone(), (void*)cf);
-	didAuto = true;
-    }
 #endif
 #else
 #define RC_START 24
 #define RC_END 31
     CFIndex rcLowBits = __CFBitfieldGetValue(cfinfo, RC_END, RC_START);
-    if (__builtin_expect(0 == rcLowBits, 0) && !CF_IS_COLLECTABLE(cf)) return cf;	// Constant CFTypeRef
+    if (__builtin_expect(0 == rcLowBits, 0)) return cf;	// Constant CFTypeRef
     volatile uint32_t *infoLocation = (uint32_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
     bool success = 0;
     do {
@@ -1427,15 +1374,10 @@ static CFTypeRef _CFRetain(CFTypeRef cf, Boolean tryR) {
             __CFUnlock(&__CFRuntimeExternRefCountTableLock);
         } else {
             success = CAS32(*(int32_t *)& cfinfo, *(int32_t *)&prospectiveNewInfo, (int32_t *)infoLocation);
-            // XXX_PCB:  0 --> 1 transition? then add a GC retain count, to root the object. we'll remove it on the 1 --> 0 transition.
-            if (success && __CFBitfieldGetValue(cfinfo, RC_END, RC_START) == 0 && CF_IS_COLLECTABLE(cf)) {
-		auto_zone_retain(objc_collectableZone(), (void*)cf);
-		didAuto = true;
-	    }
         }
     } while (__builtin_expect(!success, 0));
 #endif
-    if (!didAuto && __builtin_expect(__CFOASafe, 0)) {
+    if (__builtin_expect(__CFOASafe, 0)) {
 	__CFRecordAllocationEvent(__kCFRetainEvent, (void *)cf, 0, CFGetRetainCount(cf), NULL);
     }
     return cf;
@@ -1469,10 +1411,15 @@ Boolean _CFIsDeallocating(CFTypeRef cf) {
 static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 #if DEPLOYMENT_RUNTIME_SWIFT
     // We always call through to swift_release, since all CFTypeRefs are at least _NSCFType objects
+    extern void swift_release(void *);
     swift_release((void *)cf);
 #else
+
     uint32_t cfinfo = *(uint32_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
-    if (cfinfo & RC_DEALLOCATED_BIT) return; // deallocated, or not a cf object
+    if (cfinfo & RC_DEALLOCATED_BIT) {
+        CRSetCrashLogMessage("Detected over-release of a CFTypeRef");
+        HALT;
+    }
     CFTypeID typeID = (cfinfo >> 8) & 0x03FF; // mask up to 0x0FFF
     if (cfinfo & 0x800000) { // custom ref counting for object
         CFRuntimeClass *cfClass = __CFRuntimeClassTable[typeID];
@@ -1491,7 +1438,6 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 
     CFIndex start_rc = __builtin_expect(__CFOASafe, 0) ? CFGetRetainCount(cf) : 0;
     Boolean isAllocator = (__kCFAllocatorTypeID_CONST == typeID);
-    Boolean didAuto = false;
 #if __LP64__
 #if !DEPLOYMENT_TARGET_WINDOWS
     uint32_t lowBits;
@@ -1501,7 +1447,6 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
         allBits = *(uint64_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
 	lowBits = RC_GET(allBits);
 	if (0 == lowBits) {
-	    if (CF_IS_COLLECTABLE(cf)) auto_zone_release(objc_collectableZone(), (void*)cf);
 	    return;        // Constant CFTypeRef
 	}
         if (1 == lowBits) {
@@ -1509,45 +1454,37 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
             if ((cfClass->version & _kCFRuntimeResourcefulObject) && cfClass->reclaim != NULL) {
                 cfClass->reclaim(cf);
             }
-	    if (!CF_IS_COLLECTABLE(cf)) {
-		uint64_t newAllBits = allBits | RC_DEALLOCATING_BIT;
-		if (!CAS64(allBits, newAllBits, (int64_t *)&((CFRuntimeBase *)cf)->_cfinfo)) {
-		    goto again;
-		}
-                void (*func)(CFTypeRef) = __CFRuntimeClassTable[typeID]->finalize;
-	        if (NULL != func) {
-		    func(cf);
-	        }
-		// Any further ref-count changes after this point are operating on a finalized object
-		allBits = *(uint64_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
-		lowBits = RC_GET(allBits);
-	        if (isAllocator || (1 == lowBits)) {
-		    do { // hammer until it takes; trying to retain the object on another thread at this point? too late!
-                        allBits = *(uint64_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
-	            } while (!CAS64(allBits, (allBits | RC_DEALLOCATED_BIT) - RC_INCREMENT, (int64_t *)&((CFRuntimeBase *)cf)->_cfinfo));
-		    goto really_free;
-	        }
-                Boolean success = false;
-                do { // drop the deallocating bit; racey, but this resurrection stuff isn't thread-safe anyway
-                    allBits = *(uint64_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
-                    uint64_t newAllBits = allBits & ~RC_DEALLOCATING_BIT;
-                    success = CAS64(allBits, newAllBits, (int64_t *)&((CFRuntimeBase *)cf)->_cfinfo);
-                } while (!success);
-		goto again; // still need to have the effect of a CFRelease
+            uint64_t newAllBits = allBits | RC_DEALLOCATING_BIT;
+            if (!CAS64(allBits, newAllBits, (int64_t *)&((CFRuntimeBase *)cf)->_cfinfo)) {
+                goto again;
             }
+            void (*func)(CFTypeRef) = __CFRuntimeClassTable[typeID]->finalize;
+            if (NULL != func) {
+                func(cf);
+            }
+            // Any further ref-count changes after this point are operating on a finalized object
+            allBits = *(uint64_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
+            lowBits = RC_GET(allBits);
+            if (isAllocator || (1 == lowBits)) {
+                do { // hammer until it takes; trying to retain the object on another thread at this point? too late!
+                    allBits = *(uint64_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
+                } while (!CAS64(allBits, (allBits | RC_DEALLOCATED_BIT) - RC_INCREMENT, (int64_t *)&((CFRuntimeBase *)cf)->_cfinfo));
+                goto really_free;
+            }
+            Boolean success = false;
+            do { // drop the deallocating bit; racey, but this resurrection stuff isn't thread-safe anyway
+                allBits = *(uint64_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
+                uint64_t newAllBits = allBits & ~RC_DEALLOCATING_BIT;
+                success = CAS64(allBits, newAllBits, (int64_t *)&((CFRuntimeBase *)cf)->_cfinfo);
+            } while (!success);
+            goto again; // still need to have the effect of a CFRelease
         }
     } while (!CAS64(allBits, allBits - RC_INCREMENT, (int64_t *)&((CFRuntimeBase *)cf)->_cfinfo));
-    if (lowBits == 1 && CF_IS_COLLECTABLE(cf)) {
-        // GC:  release the collector's hold over the object, which will call the finalize function later on.
-	auto_zone_release(objc_collectableZone(), (void*)cf);
-        didAuto = true;
-    }
 #else
     uint32_t lowBits;
     do {
 	lowBits = ((CFRuntimeBase *)cf)->_rc;
 	if (0 == lowBits) {
-	    if (CF_IS_COLLECTABLE(cf)) auto_zone_release(objc_collectableZone(), (void*)cf);
 	    return;        // Constant CFTypeRef
 	}
 	if (1 == lowBits) {
@@ -1556,22 +1493,15 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
             if ((cfClass->version & _kCFRuntimeResourcefulObject) && cfClass->reclaim != NULL) {
                 cfClass->reclaim(cf);
             }
-	    if (!CF_IS_COLLECTABLE(cf)) {
-                void (*func)(CFTypeRef) = __CFRuntimeClassTable[typeID]->finalize;
-	        if (NULL != func) {
-		    func(cf);
-	        }
-	        if (isAllocator || CAS32(1, 0, (int32_t *)&((CFRuntimeBase *)cf)->_rc)) {
-		    goto really_free;
-	        }
-	    }
+            void (*func)(CFTypeRef) = __CFRuntimeClassTable[typeID]->finalize;
+            if (NULL != func) {
+                func(cf);
+            }
+            if (isAllocator || CAS32(1, 0, (int32_t *)&((CFRuntimeBase *)cf)->_rc)) {
+                goto really_free;
+            }
 	}
     } while (!CAS32(lowBits, lowBits - 1, (int32_t *)&((CFRuntimeBase *)cf)->_rc));
-    if (lowBits == 1 && CF_IS_COLLECTABLE(cf)) {
-        // GC:  release the collector's hold over the object, which will call the finalize function later on.
-	auto_zone_release(objc_collectableZone(), (void*)cf);
-        didAuto = true;
-    }
 #endif
 #else
 #if !DEPLOYMENT_TARGET_WINDOWS
@@ -1579,7 +1509,6 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
     volatile uint32_t *infoLocation = (uint32_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
     CFIndex rcLowBits = __CFBitfieldGetValue(cfinfo, RC_END, RC_START);
     if (0 == rcLowBits) {
-        if (CF_IS_COLLECTABLE(cf)) auto_zone_release(objc_collectableZone(), (void*)cf);
         return;        // Constant CFTypeRef
     }
     bool success = 0;
@@ -1590,9 +1519,6 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
         if (1 == rcLowBits) {
             // we think cf should be deallocated
             uint32_t prospectiveNewInfo = cfinfo | (RC_DEALLOCATING_BIT);
-            if (CF_IS_COLLECTABLE(cf)) {
-                prospectiveNewInfo -= (1 << RC_START);
-            }
             success = CAS32(*(int32_t *)& cfinfo, *(int32_t *)&prospectiveNewInfo, (int32_t *)infoLocation);
             if (success) whack = true;
         } else {
@@ -1620,44 +1546,38 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
     } while (!success);
 
     if (whack) {
-            CFRuntimeClass *cfClass = __CFRuntimeClassTable[typeID];
-            if ((cfClass->version & _kCFRuntimeResourcefulObject) && cfClass->reclaim != NULL) {
-                cfClass->reclaim(cf);
+        CFRuntimeClass *cfClass = __CFRuntimeClassTable[typeID];
+        if ((cfClass->version & _kCFRuntimeResourcefulObject) && cfClass->reclaim != NULL) {
+            cfClass->reclaim(cf);
+        }
+
+        if (isAllocator) {
+            goto really_free;
+        } else {
+            void (*func)(CFTypeRef) = __CFRuntimeClassTable[typeID]->finalize;
+            if (NULL != func) {
+                func(cf);
             }
-            if (CF_IS_COLLECTABLE(cf)) {
-                // GC:  release the collector's hold over the object, which will call the finalize function later on.
-                auto_zone_release(objc_collectableZone(), (void*)cf);
-                didAuto = true;
-            } else {
-                if (isAllocator) {
-                    goto really_free;
-                } else {
-                    void (*func)(CFTypeRef) = __CFRuntimeClassTable[typeID]->finalize;
-                    if (NULL != func) {
-                        func(cf);
-                    }
-		    // Any further ref-count changes after this point are operating on a finalized object
-                    rcLowBits = __CFBitfieldGetValue(*infoLocation, RC_END, RC_START);
-                    if (1 == rcLowBits) {
-                        do { // hammer until it takes; trying to retain the object on another thread at this point? too late!
-                            cfinfo = *infoLocation;
-                        } while (!CAS32(cfinfo, cfinfo | RC_DEALLOCATED_BIT, (int32_t *)infoLocation));
-                        goto really_free;
-                    }
-                    do { // drop the deallocating bit; racey, but this resurrection stuff isn't thread-safe anyway
-                        cfinfo = *infoLocation;
-                        uint32_t prospectiveNewInfo = (cfinfo & ~(RC_DEALLOCATING_BIT));
-                        success = CAS32(*(int32_t *)& cfinfo, *(int32_t *)&prospectiveNewInfo, (int32_t *)infoLocation);
-                    } while (!success);
-                    goto again;
-                }
+            // Any further ref-count changes after this point are operating on a finalized object
+            rcLowBits = __CFBitfieldGetValue(*infoLocation, RC_END, RC_START);
+            if (1 == rcLowBits) {
+                do { // hammer until it takes; trying to retain the object on another thread at this point? too late!
+                    cfinfo = *infoLocation;
+                } while (!CAS32(cfinfo, cfinfo | RC_DEALLOCATED_BIT, (int32_t *)infoLocation));
+                goto really_free;
             }
+            do { // drop the deallocating bit; racey, but this resurrection stuff isn't thread-safe anyway
+                cfinfo = *infoLocation;
+                uint32_t prospectiveNewInfo = (cfinfo & ~(RC_DEALLOCATING_BIT));
+                success = CAS32(*(int32_t *)& cfinfo, *(int32_t *)&prospectiveNewInfo, (int32_t *)infoLocation);
+            } while (!success);
+            goto again;
+        }
      }
 #else
     volatile uint32_t *infoLocation = (uint32_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
     CFIndex rcLowBits = __CFBitfieldGetValue(*infoLocation, RC_END, RC_START);
     if (0 == rcLowBits) {
-        if (CF_IS_COLLECTABLE(cf)) auto_zone_release(objc_collectableZone(), (void*)cf);
         return;        // Constant CFTypeRef
     }
     bool success = 0;
@@ -1671,34 +1591,25 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 	    if ((cfClass->version & _kCFRuntimeResourcefulObject) && cfClass->reclaim != NULL) {
 		cfClass->reclaim(cf);
 	    }
-	    if (CF_IS_COLLECTABLE(cf)) {
-                uint32_t prospectiveNewInfo = initialCheckInfo - (1 << RC_START);
-                success = CAS32(*(int32_t *)&initialCheckInfo, *(int32_t *)&prospectiveNewInfo, (int32_t *)infoLocation);
-                // GC:  release the collector's hold over the object, which will call the finalize function later on.
+	    
+            if (isAllocator) {
+                goto really_free;
+            } else {
+                void (*func)(CFTypeRef) = __CFRuntimeClassTable[typeID]->finalize;
+                if (NULL != func) {
+                    func(cf);
+                }
+                // We recheck rcLowBits to see if the object has been retained again during
+                // the finalization process.  This allows for the finalizer to resurrect,
+                // but the main point is to allow finalizers to be able to manage the
+                // removal of objects from uniquing caches, which may race with other threads
+                // which are allocating (looking up and finding) objects from those caches,
+                // which (that thread) would be the thing doing the extra retain in that case.
+                rcLowBits = __CFBitfieldGetValue(*infoLocation, RC_END, RC_START);
+                success = (1 == rcLowBits);
                 if (success) {
-		    auto_zone_release(objc_collectableZone(), (void*)cf);
-		    didAuto = true;
-		}
-             } else {
-		if (isAllocator) {
-		    goto really_free;
-		} else {
-                    void (*func)(CFTypeRef) = __CFRuntimeClassTable[typeID]->finalize;
-                    if (NULL != func) {
-		        func(cf);
-                    }
-		    // We recheck rcLowBits to see if the object has been retained again during
-		    // the finalization process.  This allows for the finalizer to resurrect,
-		    // but the main point is to allow finalizers to be able to manage the
-		    // removal of objects from uniquing caches, which may race with other threads
-		    // which are allocating (looking up and finding) objects from those caches,
-		    // which (that thread) would be the thing doing the extra retain in that case.
-		    rcLowBits = __CFBitfieldGetValue(*infoLocation, RC_END, RC_START);
-		    success = (1 == rcLowBits);
-		    if (success) {
-			goto really_free;
-		    }
-		}
+                    goto really_free;
+                }
             }
         } else {
             // not yet junk
@@ -1725,13 +1636,13 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
     } while (!success);
 #endif
 #endif
-    if (!didAuto && __builtin_expect(__CFOASafe, 0)) {
+    if (__builtin_expect(__CFOASafe, 0)) {
 	__CFRecordAllocationEvent(__kCFReleaseEvent, (void *)cf, 0, start_rc - 1, NULL);
     }
     return;
 
     really_free:;
-    if (!didAuto && __builtin_expect(__CFOASafe, 0)) {
+    if (__builtin_expect(__CFOASafe, 0)) {
 	// do not use CFGetRetainCount() because cf has been freed if it was an allocator
 	__CFRecordAllocationEvent(__kCFReleaseEvent, (void *)cf, 0, 0, NULL);
     }
@@ -1748,8 +1659,9 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 	}
 
 	{
-        CFAllocatorDeallocate(allocator, (uint8_t *)cf - (usesSystemDefaultAllocator ? 0 : sizeof(CFAllocatorRef)));
-    }
+            // To preserve 16 byte alignment when using custom allocators, we always place the CFAllocatorRef 16 bytes before the CFType. Here we need to make sure we pass the original pointer back to the allocator for deallocating (which included the space for holding the pointer to the allocator itself).
+	    CFAllocatorDeallocate(allocator, (uint8_t *)cf - (usesSystemDefaultAllocator ? 0 : 16));
+	}
 
 	if (kCFAllocatorSystemDefault != allocator) {
 	    CFRelease(allocator);
@@ -1759,9 +1671,7 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 }
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-
 struct _CFSwiftBridge __CFSwiftBridge = { { NULL } };
-
 
 // Call out to the CF-level finalizer, because the object is going to go away.
 CF_SWIFT_EXPORT void _CFDeinit(CFTypeRef cf) {
@@ -1773,7 +1683,6 @@ CF_SWIFT_EXPORT void _CFDeinit(CFTypeRef cf) {
         func(cf);
     }
 }
-#endif
 
 bool _CFIsSwift(CFTypeID type, CFSwiftRef obj) {
     if (type == _kCFRuntimeNotATypeID) {
@@ -1808,8 +1717,6 @@ const char *_NSPrintForDebugger(void *cf) {
     }
 }
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-
 // For CF functions with 'Get' semantics, the compiler currently assumes that the result is autoreleased and must be retained. It does so on all platforms by emitting a call to objc_retainAutoreleasedReturnValue. On Darwin, this is implemented by the ObjC runtime. On Linux, there is no runtime, and therefore we have to stub it out here ourselves. The compiler will eventually call swift_release to balance the retain below. This is a workaround until the compiler no longer emits this callout on Linux.
 void * objc_retainAutoreleasedReturnValue(void *obj) {
     if (obj) {
@@ -1818,7 +1725,7 @@ void * objc_retainAutoreleasedReturnValue(void *obj) {
     }
     else return NULL;
 }
-
+        
 CFHashCode __CFHashDouble(double d) {
     return _CFHashDouble(d);
 }

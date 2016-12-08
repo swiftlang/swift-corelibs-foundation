@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFRuntime.h
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. All rights reserved.
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFRUNTIME__)
@@ -23,29 +18,17 @@ CF_EXTERN_C_BEGIN
 
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) && !__x86_64h__)
 
-// GC: until we link against ObjC must use indirect functions.  Overridden in CFSetupFoundationBridging
+// Although we no longer support GC, we leave exported symbols in place for now to avoid any lockstep dependency issues.
 CF_EXPORT bool kCFUseCollectableAllocator;
 CF_EXPORT bool (*__CFObjCIsCollectable)(void *);
-
-CF_INLINE Boolean _CFAllocatorIsSystemDefault(CFAllocatorRef allocator) {
-    if (allocator == kCFAllocatorSystemDefault) return true;
-    if (NULL == allocator || kCFAllocatorDefault == allocator) {
-        return (kCFAllocatorSystemDefault == CFAllocatorGetDefault());
-    }
-    return false;
-}
-
-// is GC on?
-#define CF_USING_COLLECTABLE_MEMORY (kCFUseCollectableAllocator)
-// is GC on and is this the GC allocator?
-#define CF_IS_COLLECTABLE_ALLOCATOR(allocator) (kCFUseCollectableAllocator && (NULL == (allocator) || kCFAllocatorSystemDefault == (allocator) || 0))
-// is this allocated by the collector?
-#define CF_IS_COLLECTABLE(obj) (__CFObjCIsCollectable ? __CFObjCIsCollectable((void*)obj) : false)
 
 #else
 
 #define kCFUseCollectableAllocator 0
 #define __CFObjCIsCollectable 0
+
+#endif
+
 
 CF_INLINE Boolean _CFAllocatorIsSystemDefault(CFAllocatorRef allocator) {
     if (allocator == kCFAllocatorSystemDefault) return true;
@@ -58,7 +41,6 @@ CF_INLINE Boolean _CFAllocatorIsSystemDefault(CFAllocatorRef allocator) {
 #define CF_USING_COLLECTABLE_MEMORY 0
 #define CF_IS_COLLECTABLE_ALLOCATOR(allocator) (0 && allocator) // prevent allocator from being claimed to be un-used
 #define CF_IS_COLLECTABLE(obj) (0 && obj) // prevent obj from being claimed to be un-used
-#endif
 
 enum {
     _kCFRuntimeNotATypeID = 0
@@ -90,7 +72,7 @@ typedef struct __CFRuntimeClass {
         // this field must be non-NULL when _kCFRuntimeCustomRefCount is in the .version field
         // - if the callback is passed 1 in 'op' it should increment the 'cf's reference count and return 0
         // - if the callback is passed 0 in 'op' it should return the 'cf's reference count, up to 32 bits
-        // - if the callback is passed -1 in 'op' it should decrement the 'cf's reference count; if it is now zero, 'cf' should be cleaned up and deallocated (the finalize callback above will NOT be called unless the process is running under GC, and CF does not deallocate the memory for you; if running under GC, finalize should do the object tear-down and free the object memory); then return 0
+        // - if the callback is passed -1 in 'op' it should decrement the 'cf's reference count; if it is now zero, 'cf' should be cleaned up and deallocated; then return 0
         // remember to use saturation arithmetic logic and stop incrementing and decrementing when the ref count hits UINT32_MAX, or you will have a security bug
         // remember that reference count incrementing/decrementing must be done thread-safely/atomically
         // objects should be created/initialized with a custom ref-count of 1 by the class creation functions
@@ -241,7 +223,6 @@ typedef struct __CFRuntimeBase {
 #endif
 
 #endif
-
 
 CF_EXPORT CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CFIndex extraBytes, unsigned char *category);
 	/* Creates a new CF instance of the class specified by the

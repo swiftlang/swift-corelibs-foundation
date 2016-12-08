@@ -1,15 +1,5 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFXMLParser.c
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. All rights reserved.
 	Responsibility: David Smith
 */
 
@@ -77,13 +67,13 @@ static const CFRuntimeClass __CFXMLParserClass = {
 };
 
 CFTypeID CFXMLParserGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{ __kCFXMLParserTypeID = _CFRuntimeRegisterClass(&__CFXMLParserClass); });
     return __kCFXMLParserTypeID;
 }
 
 void CFXMLParserGetContext(CFXMLParserRef parser, CFXMLParserContext *context) {
-    CFAssert(parser != NULL, __kCFLogAssertion, "%s(): NULL parser not permitted", __PRETTY_FUNCTION__);
+    CFAssert1(parser != NULL, __kCFLogAssertion, "%s(): NULL parser not permitted", __PRETTY_FUNCTION__);
     __CFGenericValidateType(parser, CFXMLParserGetTypeID());
     if (context) {
 	context->version = parser->context.version;
@@ -151,8 +141,8 @@ CFStringRef CFXMLParserCopyErrorDescription(CFXMLParserRef parser) {
 
 void CFXMLParserAbort(CFXMLParserRef parser, CFXMLParserStatusCode errorCode, CFStringRef errorDescription) {
     __CFGenericValidateType(parser, CFXMLParserGetTypeID());
-    CFAssert(errorCode > 0, __kCFLogAssertion, "%s(): errorCode must be greater than zero", __PRETTY_FUNCTION__);
-    CFAssert(errorDescription != NULL, __kCFLogAssertion, "%s(): errorDescription may not be NULL", __PRETTY_FUNCTION__);
+    CFAssert1(errorCode > 0, __kCFLogAssertion, "%s(): errorCode must be greater than zero", __PRETTY_FUNCTION__);
+    CFAssert1(errorDescription != NULL, __kCFLogAssertion, "%s(): errorDescription may not be NULL", __PRETTY_FUNCTION__);
     __CFGenericValidateType(errorDescription, CFStringGetTypeID());
 
     parser->status = errorCode;
@@ -238,20 +228,20 @@ static CFXMLParserRef __CFXMLParserInit(CFAllocatorRef alloc, CFURLRef dataSourc
 }
 
 CFXMLParserRef CFXMLParserCreate(CFAllocatorRef allocator, CFDataRef xmlData, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes, CFXMLParserCallBacks *callBacks, CFXMLParserContext *context) {
-    CFAssert(xmlData != NULL, __kCFLogAssertion, "%s(): NULL data not permitted", __PRETTY_FUNCTION__);
+    CFAssert1(xmlData != NULL, __kCFLogAssertion, "%s(): NULL data not permitted", __PRETTY_FUNCTION__);
     __CFGenericValidateType(xmlData, CFDataGetTypeID());
-    CFAssert(dataSource == NULL || CFGetTypeID(dataSource) == CFURLGetTypeID(), __kCFLogAssertion, "%s(): dataSource is not a valid CFURL", __PRETTY_FUNCTION__);
-    CFAssert(callBacks != NULL && callBacks->createXMLStructure != NULL && callBacks->addChild != NULL && callBacks->endXMLStructure != NULL, __kCFLogAssertion, "%s(): callbacks createXMLStructure, addChild, and endXMLStructure must all be non-NULL", __PRETTY_FUNCTION__);
-    CFAssert(versionOfNodes <= 1, __kCFLogAssertion, "%s(): version number %d is higher than supported by CFXMLParser", __PRETTY_FUNCTION__, versionOfNodes);
-    CFAssert(versionOfNodes != 0, __kCFLogAssertion, "%s(): version number 0 is no longer supported by CFXMLParser", __PRETTY_FUNCTION__);
+    CFAssert1(dataSource == NULL || CFGetTypeID(dataSource) == CFURLGetTypeID(), __kCFLogAssertion, "%s(): dataSource is not a valid CFURL", __PRETTY_FUNCTION__);
+    CFAssert1(callBacks != NULL && callBacks->createXMLStructure != NULL && callBacks->addChild != NULL && callBacks->endXMLStructure != NULL, __kCFLogAssertion, "%s(): callbacks createXMLStructure, addChild, and endXMLStructure must all be non-NULL", __PRETTY_FUNCTION__);
+    CFAssert2(versionOfNodes <= 1, __kCFLogAssertion, "%s(): version number %ld is higher than supported by CFXMLParser", __PRETTY_FUNCTION__, versionOfNodes);
+    CFAssert1(versionOfNodes != 0, __kCFLogAssertion, "%s(): version number 0 is no longer supported by CFXMLParser", __PRETTY_FUNCTION__);
     return __CFXMLParserInit(allocator, dataSource, parseOptions, xmlData, versionOfNodes, callBacks, context);
 }
 
 CFXMLParserRef CFXMLParserCreateWithDataFromURL(CFAllocatorRef allocator, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes, CFXMLParserCallBacks *callBacks, CFXMLParserContext *context) {
-    CFAssert(dataSource == NULL || CFGetTypeID(dataSource) == CFURLGetTypeID(), __kCFLogAssertion, "%s(): dataSource is not a valid CFURL", __PRETTY_FUNCTION__);
-    CFAssert(callBacks != NULL && callBacks->createXMLStructure != NULL && callBacks->addChild != NULL && callBacks->endXMLStructure != NULL, __kCFLogAssertion, "%s(): callbacks createXMLStructure, addChild, and endXMLStructure must all be non-NULL", __PRETTY_FUNCTION__);
-    CFAssert(versionOfNodes <= 1, __kCFLogAssertion, "%s(): version number %d is higher than supported by CFXMLParser", __PRETTY_FUNCTION__, versionOfNodes);
-    CFAssert(versionOfNodes != 0, __kCFLogAssertion, "%s(): version number 0 is no longer supported by CFXMLParser", __PRETTY_FUNCTION__);
+    CFAssert1(dataSource == NULL || CFGetTypeID(dataSource) == CFURLGetTypeID(), __kCFLogAssertion, "%s(): dataSource is not a valid CFURL", __PRETTY_FUNCTION__);
+    CFAssert1(callBacks != NULL && callBacks->createXMLStructure != NULL && callBacks->addChild != NULL && callBacks->endXMLStructure != NULL, __kCFLogAssertion, "%s(): callbacks createXMLStructure, addChild, and endXMLStructure must all be non-NULL", __PRETTY_FUNCTION__);
+    CFAssert2(versionOfNodes <= 1, __kCFLogAssertion, "%s(): version number %ld is higher than supported by CFXMLParser", __PRETTY_FUNCTION__, versionOfNodes);
+    CFAssert1(versionOfNodes != 0, __kCFLogAssertion, "%s(): version number 0 is no longer supported by CFXMLParser", __PRETTY_FUNCTION__);
 
     return __CFXMLParserInit(allocator, dataSource, parseOptions, NULL, versionOfNodes, callBacks, context);
 }
@@ -1593,13 +1583,6 @@ Boolean parseAttributes(CFXMLParserRef parser) {
     CFMutableDictionaryRef dict;
     CFMutableArrayRef array;
     Boolean failure = false;
-    if (_inputStreamPeekCharacter(&parser->input, &ch) && ch == '>') {
-        if (parser->argDict) {
-            CFDictionaryRemoveAllValues(parser->argDict);
-            CFArrayRemoveAllValues(parser->argArray);
-        }
-        return true;  // No attributes; let caller deal with it
-    }
     if (!parser->argDict) {
         parser->argDict = CFDictionaryCreateMutable(CFGetAllocator(parser), 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
         parser->argArray = CFArrayCreateMutable(CFGetAllocator(parser), 0, &kCFTypeArrayCallBacks);
@@ -1792,7 +1775,7 @@ CFXMLTreeRef CFXMLTreeCreateWithDataFromURL(CFAllocatorRef allocator, CFURLRef d
     CFXMLParserCallBacks callbacks;
     CFXMLTreeRef result;
 
-    CFAssert(dataSource == NULL || CFGetTypeID(dataSource) == CFURLGetTypeID(), __kCFLogAssertion, "%s(): dataSource is not a valid CFURL", __PRETTY_FUNCTION__);
+    CFAssert1(dataSource == NULL || CFGetTypeID(dataSource) == CFURLGetTypeID(), __kCFLogAssertion, "%s(): dataSource is not a valid CFURL", __PRETTY_FUNCTION__);
 
     callbacks.createXMLStructure = _XMLTreeCreateXMLStructure;
     callbacks.addChild = _XMLTreeAddChild;
@@ -1827,7 +1810,7 @@ CFXMLTreeRef CFXMLTreeCreateFromDataWithError(CFAllocatorRef allocator, CFDataRe
     CFXMLTreeRef result;
 
     __CFGenericValidateType(xmlData, CFDataGetTypeID());
-    CFAssert(dataSource == NULL || CFGetTypeID(dataSource) == CFURLGetTypeID(), __kCFLogAssertion, "%s(): dataSource is not a valid CFURL", __PRETTY_FUNCTION__);
+    CFAssert1(dataSource == NULL || CFGetTypeID(dataSource) == CFURLGetTypeID(), __kCFLogAssertion, "%s(): dataSource is not a valid CFURL", __PRETTY_FUNCTION__);
 
     callbacks.createXMLStructure = _XMLTreeCreateXMLStructure;
     callbacks.addChild = _XMLTreeAddChild;
@@ -1887,7 +1870,7 @@ CFXMLTreeRef CFXMLTreeCreateFromDataWithError(CFAllocatorRef allocator, CFDataRe
  We should also be handling items that are up over certain values correctly.
  */
 CFStringRef CFXMLCreateStringByEscapingEntities(CFAllocatorRef allocator, CFStringRef string, CFDictionaryRef entitiesDictionary) {
-    CFAssert(string != NULL, __kCFLogAssertion, "%s(): NULL string not permitted.", __PRETTY_FUNCTION__);
+    CFAssert1(string != NULL, __kCFLogAssertion, "%s(): NULL string not permitted.", __PRETTY_FUNCTION__);
     CFMutableStringRef newString = CFStringCreateMutable(allocator, 0); // unbounded mutable string
     CFMutableCharacterSetRef startChars = CFCharacterSetCreateMutable(allocator);
 
@@ -1938,7 +1921,7 @@ CFStringRef CFXMLCreateStringByEscapingEntities(CFAllocatorRef allocator, CFStri
 }
 
 CFStringRef CFXMLCreateStringByUnescapingEntities(CFAllocatorRef allocator, CFStringRef string, CFDictionaryRef entitiesDictionary) {
-    CFAssert(string != NULL, __kCFLogAssertion, "%s(): NULL string not permitted.", __PRETTY_FUNCTION__);
+    CFAssert1(string != NULL, __kCFLogAssertion, "%s(): NULL string not permitted.", __PRETTY_FUNCTION__);
 
     CFStringInlineBuffer inlineBuf; /* use this for fast traversal of the string in question */
     CFStringRef sub;

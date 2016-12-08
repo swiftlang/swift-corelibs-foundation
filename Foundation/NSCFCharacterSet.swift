@@ -107,3 +107,32 @@ internal  func _CFSwiftCharacterSetHasMemberInPlane(_ cset: CFTypeRef, _ plane: 
 internal  func _CFSwiftCharacterSetInverted(_ cset: CFTypeRef) -> Unmanaged<CFCharacterSet> {
     return Unmanaged.passRetained((cset as! NSCharacterSet).inverted._cfObject)
 }
+
+internal func _CFSwiftMutableSetAddCharactersInRange(_ characterSet: CFTypeRef, _ range: CFRange) -> Void {
+    (characterSet as! NSMutableCharacterSet).addCharacters(in: NSRange(location: range.location, length: range.length))
+}
+
+internal func _CFSwiftMutableSetRemoveCharactersInRange(_ characterSet: CFTypeRef, _ range: CFRange) -> Void {
+    (characterSet as! NSMutableCharacterSet).removeCharacters(in: NSRange(location: range.location, length: range.length))
+}
+
+internal func _CFSwiftMutableSetAddCharactersInString(_ characterSet: CFTypeRef, _ string: CFString) -> Void {
+    (characterSet as! NSMutableCharacterSet).addCharacters(in: string._swiftObject)
+}
+
+internal func _CFSwiftMutableSetRemoveCharactersInString(_ characterSet: CFTypeRef, _ string: CFString) -> Void {
+    (characterSet as! NSMutableCharacterSet).removeCharacters(in: string._swiftObject)
+}
+
+internal func _CFSwiftMutableSetFormUnionWithCharacterSet(_ characterSet: CFTypeRef, _ other: CFTypeRef) -> Void {
+    (characterSet as! NSMutableCharacterSet).formUnion(with: (other as! NSCharacterSet)._swiftObject)
+}
+
+internal func _CFSwiftMutableSetFormIntersectionWithCharacterSet(_ characterSet: CFTypeRef, _ other: CFTypeRef) -> Void {
+    (characterSet as! NSMutableCharacterSet).formIntersection(with: (other as! NSCharacterSet)._swiftObject)
+}
+
+internal func _CFSwiftMutableSetInvert(_ characterSet: CFTypeRef) -> Void {
+    (characterSet as! NSMutableCharacterSet).invert()
+}
+

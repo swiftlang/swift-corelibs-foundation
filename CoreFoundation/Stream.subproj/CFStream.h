@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFStream.h
-	Copyright (c) 2000 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFSTREAM__)
@@ -22,12 +17,12 @@
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFSocket.h>
 #include <CoreFoundation/CFError.h>
-#if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
-#endif
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
+
+typedef CFStringRef CFStreamPropertyKey CF_EXTENSIBLE_STRING_ENUM;
 
 typedef CF_ENUM(CFIndex, CFStreamStatus) {
     kCFStreamStatusNotOpen = 0,
@@ -72,7 +67,7 @@ CFTypeID CFWriteStreamGetTypeID(void);
 
 /* Value will be a CFData containing all bytes thusfar written; used to recover the data written to a memory write stream. */
 CF_EXPORT
-const CFStringRef kCFStreamPropertyDataWritten;
+const CFStreamPropertyKey kCFStreamPropertyDataWritten;
 
 /* Pass kCFAllocatorNull for bytesDeallocator to prevent CFReadStream from deallocating bytes; otherwise, CFReadStream will deallocate bytes when the stream is destroyed */
 CF_EXPORT
@@ -98,25 +93,25 @@ CF_IMPLICIT_BRIDGING_ENABLED
 
 /* Property for file write streams; value should be a CFBoolean.  Set to TRUE to append to a file, rather than to replace its contents */
 CF_EXPORT
-const CFStringRef kCFStreamPropertyAppendToFile;
+const CFStreamPropertyKey kCFStreamPropertyAppendToFile;
 
 CF_EXPORT
-const CFStringRef kCFStreamPropertyFileCurrentOffset;   // Value is a CFNumber
+const CFStreamPropertyKey kCFStreamPropertyFileCurrentOffset;   // Value is a CFNumber
 
 
 /* Socket stream properties */
 
 /* Value will be a CFData containing the native handle */
 CF_EXPORT
-const CFStringRef kCFStreamPropertySocketNativeHandle;
+const CFStreamPropertyKey kCFStreamPropertySocketNativeHandle;
 
 /* Value will be a CFString, or NULL if unknown */
 CF_EXPORT
-const CFStringRef kCFStreamPropertySocketRemoteHostName;
+const CFStreamPropertyKey kCFStreamPropertySocketRemoteHostName;
 
 /* Value will be a CFNumber, or NULL if unknown */
 CF_EXPORT
-const CFStringRef kCFStreamPropertySocketRemotePortNumber;
+const CFStreamPropertyKey kCFStreamPropertySocketRemotePortNumber;
 
 CF_IMPLICIT_BRIDGING_DISABLED
 /* Socket streams; the returned streams are paired such that they use the same socket; pass NULL if you want only the read stream or the write stream */
@@ -170,7 +165,7 @@ Boolean CFReadStreamHasBytesAvailable(CFReadStreamRef stream);
    This call will block until at least one byte is available; it will NOT block
    until the entire buffer can be filled.  To avoid blocking, either poll using
    CFReadStreamHasBytesAvailable() or use the run loop and listen for the 
-   kCFStreamCanRead event for notification of data available. */
+   kCFStreamEventHasBytesAvailable event for notification of data available. */
 CF_EXPORT
 CFIndex CFReadStreamRead(CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength);
 
@@ -195,7 +190,7 @@ Boolean CFWriteStreamCanAcceptBytes(CFWriteStreamRef stream);
    occurred, or 0 if the stream has been filled to capacity (for fixed-length
    streams).  If the stream is not full, this call will block until at least
    one byte is written.  To avoid blocking, either poll via CFWriteStreamCanAcceptBytes
-   or use the run loop and listen for the kCFStreamCanWrite event. */
+   or use the run loop and listen for the kCFStreamEventCanAcceptBytes event. */
 CF_EXPORT
 CFIndex CFWriteStreamWrite(CFWriteStreamRef stream, const UInt8 *buffer, CFIndex bufferLength);
 
@@ -208,16 +203,16 @@ CFIndex CFWriteStreamWrite(CFWriteStreamRef stream, const UInt8 *buffer, CFIndex
    (like before the stream has been opened).  See the documentation for particular 
    properties to determine their get- and set-ability. */
 CF_EXPORT
-CFTypeRef CFReadStreamCopyProperty(CFReadStreamRef stream, CFStringRef propertyName);
+CFTypeRef CFReadStreamCopyProperty(CFReadStreamRef stream, CFStreamPropertyKey propertyName);
 CF_EXPORT
-CFTypeRef CFWriteStreamCopyProperty(CFWriteStreamRef stream, CFStringRef propertyName);
+CFTypeRef CFWriteStreamCopyProperty(CFWriteStreamRef stream, CFStreamPropertyKey propertyName);
 
 /* Returns TRUE if the stream recognizes and accepts the given property-value pair; 
    FALSE otherwise. */
 CF_EXPORT
-Boolean CFReadStreamSetProperty(CFReadStreamRef stream, CFStringRef propertyName, CFTypeRef propertyValue);
+Boolean CFReadStreamSetProperty(CFReadStreamRef stream, CFStreamPropertyKey propertyName, CFTypeRef propertyValue);
 CF_EXPORT
-Boolean CFWriteStreamSetProperty(CFWriteStreamRef stream, CFStringRef propertyName, CFTypeRef propertyValue);
+Boolean CFWriteStreamSetProperty(CFWriteStreamRef stream, CFStreamPropertyKey propertyName, CFTypeRef propertyValue);
 
 /* Asynchronous processing - If you wish to neither poll nor block, you may register 
    a client to hear about interesting events that occur on a stream.  Only one client
@@ -241,16 +236,15 @@ CF_EXPORT
 Boolean CFWriteStreamSetClient(CFWriteStreamRef stream, CFOptionFlags streamEvents, CFWriteStreamClientCallBack clientCB, CFStreamClientContext *clientContext);
 
 CF_EXPORT
-void CFReadStreamScheduleWithRunLoop(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode);
+void CFReadStreamScheduleWithRunLoop(CFReadStreamRef stream, CFRunLoopRef runLoop, CFRunLoopMode runLoopMode);
 CF_EXPORT
-void CFWriteStreamScheduleWithRunLoop(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode);
+void CFWriteStreamScheduleWithRunLoop(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFRunLoopMode runLoopMode);
 
 CF_EXPORT
-void CFReadStreamUnscheduleFromRunLoop(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode);
+void CFReadStreamUnscheduleFromRunLoop(CFReadStreamRef stream, CFRunLoopRef runLoop, CFRunLoopMode runLoopMode);
 CF_EXPORT
-void CFWriteStreamUnscheduleFromRunLoop(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode);
+void CFWriteStreamUnscheduleFromRunLoop(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFRunLoopMode runLoopMode);
 
-#if __HAS_DISPATCH__
 
 /*
  * Specify the dispatch queue upon which the client callbacks will be invoked.
@@ -276,7 +270,6 @@ dispatch_queue_t CFReadStreamCopyDispatchQueue(CFReadStreamRef stream) CF_AVAILA
 CF_EXPORT
 dispatch_queue_t CFWriteStreamCopyDispatchQueue(CFWriteStreamRef stream) CF_AVAILABLE(10_9, 7_0);
 
-#endif
 
 /* The following API is deprecated starting in 10.5; please use CFRead/WriteStreamCopyError(), above, instead */
 typedef CF_ENUM(CFIndex, CFStreamErrorDomain) {

@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFString.h
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFSTRING__)
@@ -47,8 +42,9 @@ pointer quickly, in constant time, or they return NULL. They might choose to ret
 for many reasons; for instance it's possible that for users running in different
 languages these sometimes return NULL; or in a future OS release the first two might
 switch to always returning NULL. Never observing NULL returns in your usages of these
-functions does not mean they won't ever return NULL. (But note the CFStringGetCharactersPtr()
-exception mentioned further below.)
+functions does not mean they won't ever return NULL. In fact, this happened with the 
+introduction of tagged pointer strings in OS X 10.10, and a year later iOS 9. 
+(But please note the CFStringGetCharactersPtr() exception mentioned further below.)
 
 In your usages of these functions, if you get a NULL return, use the non-Ptr version
 of the functions as shown in this example:
@@ -286,8 +282,8 @@ CFMutableStringRef CFStringCreateMutableCopy(CFAllocatorRef alloc, CFIndex maxLe
 /* This function creates a mutable string that has a developer supplied and directly editable backing store.
 The string will be manipulated within the provided buffer (if any) until it outgrows capacity; then the
 externalCharactersAllocator will be consulted for more memory. When the CFString is deallocated, the
-buffer will be freed with the externalCharactersAllocator. Provide kCFAllocatorNull here to prevent the buffer
-from ever being reallocated or deallocated by CFString. See comments at top of this file for more info.
+buffer will be freed with the externalCharactersAllocator. If you provide kCFAllocatorNull here, and the buffer 
+needs to grow, then CFString will switch to using the default allocator. See comments at top of this file for more info.
 */
 CF_EXPORT
 CFMutableStringRef CFStringCreateMutableWithExternalCharactersNoCopy(CFAllocatorRef alloc, UniChar *chars, CFIndex numChars, CFIndex capacity, CFAllocatorRef externalCharactersAllocator);
@@ -333,13 +329,13 @@ this can't always be counted on. Please see note at the top of the file for more
 details.
 */
 CF_EXPORT
-ConstStringPtr CFStringGetPascalStringPtr(CFStringRef theString, CFStringEncoding encoding);	/* May return NULL at any time; be prepared for NULL */
+ConstStringPtr CFStringGetPascalStringPtr(CFStringRef theString, CFStringEncoding encoding);  /* May return NULL at any time; be prepared for NULL, if not now, in some other time or place. See discussion at top of this file. */
 
 CF_EXPORT
-const char *CFStringGetCStringPtr(CFStringRef theString, CFStringEncoding encoding);		/* May return NULL at any time; be prepared for NULL */
+const char *CFStringGetCStringPtr(CFStringRef theString, CFStringEncoding encoding);  /* May return NULL at any time; be prepared for NULL, if not now, in some other time or place. See discussion at top of this file. */
 
 CF_EXPORT
-const UniChar *CFStringGetCharactersPtr(CFStringRef theString);					/* May return NULL at any time; be prepared for NULL */
+const UniChar *CFStringGetCharactersPtr(CFStringRef theString);  /* May return NULL at any time; be prepared for NULL, if not now, in some other time or place. See discussion at top of this file. */
 
 /* The primitive conversion routine; allows you to convert a string piece at a time
        into a fixed size buffer. Returns number of characters converted. 

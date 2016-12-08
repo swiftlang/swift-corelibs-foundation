@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFStorage.h
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 /*!
         @header CFStorage
@@ -226,7 +221,7 @@ CF_EXPORT void CFStorageGetValues(CFStorageRef storage, CFRange range, void *val
 		what is expected by the applier function, the behavior is
 		undefined.
 */
-CF_EXPORT void CFStorageApplyFunction(CFStorageRef storage, CFRange range, CFStorageApplierFunction applier, void *context);
+CF_EXPORT void CFStorageApplyFunction(CFStorageRef storage, CFRange range, CFStorageApplierFunction CF_NOESCAPE applier, void *context);
 
 /*!
 	@function CFStorageApplyBlock
@@ -246,7 +241,7 @@ CF_EXPORT void CFStorageApplyFunction(CFStorageRef storage, CFRange range, CFSto
  
  */
 #if __BLOCKS__
-CF_EXPORT void CFStorageApplyBlock(CFStorageRef storage, CFRange range, CFStorageEnumerationOptionFlags options, CFStorageApplierBlock applier);
+CF_EXPORT void CFStorageApplyBlock(CFStorageRef storage, CFRange range, CFStorageEnumerationOptionFlags options, CFStorageApplierBlock CF_NOESCAPE applier);
 #endif
 
 

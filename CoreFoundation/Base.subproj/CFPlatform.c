@@ -1,17 +1,13 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFPlatform.c
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Tony Parker
 */
+
 
 #include "CFInternal.h"
 #include <CoreFoundation/CFPriv.h>
@@ -50,7 +46,7 @@ int _CFArgc(void) { return *_NSGetArgc(); }
 #endif
 
 
-CF_EXPORT Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
+CF_PRIVATE Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
     return getcwd(path, maxlen) != NULL;
 }
 
@@ -72,8 +68,8 @@ CF_PRIVATE const wchar_t *_CFDLLPath(void) {
         CFAssert(ourModule, __kCFLogAssertion, "GetModuleHandle failed");
 
         DWORD wResult = GetModuleFileNameW(ourModule, cachedPath, MAX_PATH+1);
-        CFAssert(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
-        CFAssert(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", cachedPath);
+        CFAssert1(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
+        CFAssert1(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", cachedPath);
 
         // strip off last component, the DLL name
         CFIndex idx;
@@ -156,8 +152,6 @@ const char *_CFProcessPath(void) {
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX
-#if TARGET_OS_CYGWIN
-#else
 #include <unistd.h>
 #if __has_include(<syscall.h>)
 #include <syscall.h>
@@ -168,7 +162,6 @@ const char *_CFProcessPath(void) {
 Boolean _CFIsMainThread(void) {
     return syscall(SYS_gettid) == getpid();
 }
-#endif
 
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
@@ -189,7 +182,7 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-CF_EXPORT CFStringRef _CFProcessNameString(void) {
+CF_PRIVATE CFStringRef _CFProcessNameString(void) {
     static CFStringRef __CFProcessNameString = NULL;
     if (!__CFProcessNameString) {
         const char *processName = *_CFGetProgname();
@@ -209,7 +202,7 @@ CF_EXPORT CFStringRef _CFProcessNameString(void) {
 #include <sys/param.h>
 
 // Set the fallBackToHome parameter to true if we should fall back to the HOME environment variable if all else fails. Otherwise return NULL.
-static CFURLRef _CFCopyHomeDirURLForUser(struct passwd *upwd, bool fallBackToHome) {
+static CFURLRef _CFCopyHomeDirURLForUser(const char *username, bool fallBackToHome) {
     const char *fixedHomePath = issetugid() ? NULL : __CFgetenv("CFFIXED_USER_HOME");
     const char *homePath = NULL;
     
@@ -217,7 +210,19 @@ static CFURLRef _CFCopyHomeDirURLForUser(struct passwd *upwd, bool fallBackToHom
     // First try CFFIXED_USER_HOME (only if not setugid), then fall back to the upwd, then fall back to HOME environment variable
     CFURLRef home = NULL;
     if (!issetugid() && fixedHomePath) home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)fixedHomePath, strlen(fixedHomePath), true);
-    if (!home && upwd && upwd->pw_dir) home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)upwd->pw_dir, strlen(upwd->pw_dir), true);
+    if (!home) {
+        struct passwd *upwd = NULL;
+        if (username) {
+            upwd = getpwnam(username);
+        } else {
+            uid_t euid;
+            __CFGetUGIDs(&euid, NULL);
+            upwd = getpwuid(euid ?: getuid());
+        }
+        if (upwd && upwd->pw_dir) {
+            home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)upwd->pw_dir, strlen(upwd->pw_dir), true);
+        }
+    }
     if (fallBackToHome && !home) homePath = __CFgetenv("HOME");
     if (fallBackToHome && !home && homePath) home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)homePath, strlen(homePath), true);
     
@@ -230,7 +235,7 @@ static CFURLRef _CFCopyHomeDirURLForUser(struct passwd *upwd, bool fallBackToHom
 #define CFMaxHostNameLength	256
 #define CFMaxHostNameSize	(CFMaxHostNameLength+1)
 
-CF_EXPORT CFStringRef _CFStringCreateHostName(void) {
+CF_PRIVATE CFStringRef _CFStringCreateHostName(void) {
     char myName[CFMaxHostNameSize];
 
     // return @"" instead of nil a la CFUserName() and Ali Ozer
@@ -282,10 +287,7 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
 
 CFURLRef CFCopyHomeDirectoryURL(void) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-    uid_t euid;
-    __CFGetUGIDs(&euid, NULL);
-    struct passwd *upwd = getpwuid(euid ? euid : getuid());
-    return _CFCopyHomeDirURLForUser(upwd, true);
+    return _CFCopyHomeDirURLForUser(NULL, true);
 #elif DEPLOYMENT_TARGET_WINDOWS
     CFURLRef retVal = NULL;
     CFIndex len = 0;
@@ -343,7 +345,7 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
 #if TARGET_IPHONE_SIMULATOR
     if (!uName) { // TODO: Handle other cases here? See <rdar://problem/18504645> SIM: CFCopyHomeDirectoryURLForUser should not call getpwuid
         static CFURLRef home;
-        static dispatch_once_t once = 0;
+        static dispatch_once_t once;
         
         dispatch_once(&once, ^{
             const char *env = getenv("CFFIXED_USER_HOME");
@@ -366,12 +368,8 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
 #endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     if (!uName) {
-        uid_t euid;
-        __CFGetUGIDs(&euid, NULL);
-        struct passwd *upwd = getpwuid(euid ? euid : getuid());
-        return _CFCopyHomeDirURLForUser(upwd, true);
+        return _CFCopyHomeDirURLForUser(NULL, true);
     } else {
-        struct passwd *upwd = NULL;
         char buf[128], *user;
         SInt32 len = CFStringGetLength(uName), size = CFStringGetMaximumSizeForEncoding(len, kCFPlatformInterfaceStringEncoding);
         CFIndex usedSize;
@@ -380,14 +378,17 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
         } else {
             user = CFAllocatorAllocate(kCFAllocatorSystemDefault, size+1, 0);
         }
+        CFURLRef result = NULL;
         if (CFStringGetBytes(uName, CFRangeMake(0, len), kCFPlatformInterfaceStringEncoding, 0, true, (uint8_t *)user, size, &usedSize) == len) {
             user[usedSize] = '\0';
-            upwd = getpwnam(user);
+            result = _CFCopyHomeDirURLForUser(user, false);
+        } else {
+            result = _CFCopyHomeDirURLForUser(NULL, false);
         }
         if (buf != user) {
             CFAllocatorDeallocate(kCFAllocatorSystemDefault, user);
         }
-        return _CFCopyHomeDirURLForUser(upwd, false);
+        return result;
     }
 #elif DEPLOYMENT_TARGET_WINDOWS
     // This code can only get the directory for the current user
@@ -574,17 +575,10 @@ CF_PRIVATE void __CFFinalizeWindowsThreadData() {
 
 #endif
 
-
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 static pthread_key_t __CFTSDIndexKey;
-#endif
 
 CF_PRIVATE void __CFTSDInitialize() {
-#if DEPLOYMENT_TARGET_LINUX
     (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
-#else
-    (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
-#endif
 }
 
 static void __CFTSDSetSpecific(void *arg) {
@@ -607,43 +601,12 @@ static void *__CFTSDGetSpecific() {
 #endif
 }
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-
-extern void swift_retain(void *);
-extern void swift_release(void *);
-
-static void _CFThreadSpecificDestructor(void *ctx) {
-    swift_release(ctx);
-}
-
-_CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
-    _CFThreadSpecificKey key;
-    pthread_key_create(&key, &_CFThreadSpecificDestructor);
-    return key;
-}
-
-CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
-    return (CFTypeRef)pthread_getspecific(key);
-}
-
-void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
-    if (value != NULL) {
-        swift_retain((void *)value);
-        pthread_setspecific(key, value);
-    } else {
-        pthread_setspecific(key, NULL);
-    }
-}
-
-_CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context) {
-    pthread_t thread;
-    pthread_create(&thread, &attrs, startfn, context);
-    return thread;
-}
-
-#endif
-
+CF_PRIVATE Boolean __CFMainThreadHasExited;
 static void __CFTSDFinalize(void *arg) {
+    if (pthread_main_np()) {
+        __CFMainThreadHasExited = true;
+    }
+    
     // Set our TSD so we're called again by pthreads. It will call the destructor PTHREAD_DESTRUCTOR_ITERATIONS times as long as a value is set in the thread specific data. We handle each case below.
     __CFTSDSetSpecific(arg);
 
@@ -680,17 +643,18 @@ extern int pthread_key_init_np(int, void (*)(void *));
 #endif
 
 // Get or initialize a thread local storage. It is created on demand.
-static __CFTSDTable *__CFTSDGetTable() {
+static __CFTSDTable *__CFTSDGetTable(const Boolean create) {
     __CFTSDTable *table = (__CFTSDTable *)__CFTSDGetSpecific();
     // Make sure we're not setting data again after destruction.
     if (table == CF_TSD_BAD_PTR) {
         return NULL;
     }
     // Create table on demand
-    if (!table) {
+    if (!table && create) {
         // This memory is freed in the finalize function
         table = (__CFTSDTable *)calloc(1, sizeof(__CFTSDTable));
         // Windows and Linux have created the table already, we need to initialize it here for other platforms. On Windows, the cleanup function is called by DllMain when a thread exits. On Linux the destructor is set at init time.
+        __CFTSDInitialize();
         __CFTSDSetSpecific(table);
     }
     
@@ -699,19 +663,28 @@ static __CFTSDTable *__CFTSDGetTable() {
 
 
 // For the use of CF and Foundation only
-CF_EXPORT void *_CFGetTSD(uint32_t slot) {
+CF_EXPORT void *_CFGetTSDCreateIfNeeded(const uint32_t slot, const Boolean create) {
     if (slot > CF_TSD_MAX_SLOTS) {
         _CFLogSimple(kCFLogLevelError, "Error: TSD slot %d out of range (get)", slot);
         HALT;
     }
-    __CFTSDTable *table = __CFTSDGetTable();
-    if (!table) {
+    void * result = NULL;
+    __CFTSDTable *table = __CFTSDGetTable(create);
+    if (table) {
+        uintptr_t *slots = (uintptr_t *)(table->data);
+        result = (void *)slots[slot];
+    }
+    else if (create) {
         // Someone is getting TSD during thread destruction. The table is gone, so we can't get any data anymore.
         _CFLogSimple(kCFLogLevelWarning, "Warning: TSD slot %d retrieved but the thread data has already been torn down.", slot);
         return NULL;
     }
-    uintptr_t *slots = (uintptr_t *)(table->data);
-    return (void *)slots[slot];
+    return result;
+}
+
+// For the use of CF and Foundation only
+CF_EXPORT void *_CFGetTSD(uint32_t slot) {
+    return _CFGetTSDCreateIfNeeded(slot, true);
 }
 
 // For the use of CF and Foundation only
@@ -720,7 +693,7 @@ CF_EXPORT void *_CFSetTSD(uint32_t slot, void *newVal, tsdDestructor destructor)
         _CFLogSimple(kCFLogLevelError, "Error: TSD slot %d out of range (set)", slot);
         HALT;
     }
-    __CFTSDTable *table = __CFTSDGetTable();
+    __CFTSDTable *table = __CFTSDGetTable(true);
     if (!table) {
         // Someone is setting TSD during thread destruction. The table is gone, so we can't get any data anymore.
         _CFLogSimple(kCFLogLevelWarning, "Warning: TSD slot %d set but the thread data has already been torn down.", slot);
@@ -1303,21 +1276,40 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-#include <sys/socket.h>
-CF_EXPORT int32_t _CF_SOCK_STREAM() { return SOCK_STREAM; }
-#endif
+#import <fcntl.h>
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-#include <fcntl.h>
-int _CFOpenFileWithMode(const char *path, int opts, mode_t mode) {
-    return open(path, opts, mode);
-}
-int _CFOpenFile(const char *path, int opts) {
-    return open(path, opts);
-}
-#endif
+extern void swift_retain(void *);
+extern void swift_release(void *);
 
-#if DEPLOYMENT_RUNTIME_SWIFT
+static void _CFThreadSpecificDestructor(void *ctx) {
+    swift_release(ctx);
+}
+
+_CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
+    _CFThreadSpecificKey key;
+    pthread_key_create(&key, &_CFThreadSpecificDestructor);
+    return key;
+}
+
+CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
+    return (CFTypeRef)pthread_getspecific(key);
+}
+
+void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
+    if (value != NULL) {
+        swift_retain((void *)value);
+        pthread_setspecific(key, value);
+    } else {
+        pthread_setspecific(key, NULL);
+    }
+}
+
+_CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context) {
+    pthread_t thread;
+    pthread_create(&thread, &attrs, startfn, context);
+    return thread;
+}
+
 CF_EXPORT char **_CFEnviron(void) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     return *_NSGetEnviron();
@@ -1328,7 +1320,12 @@ CF_EXPORT char **_CFEnviron(void) {
 #endif
 }
 
-#endif
+int _CFOpenFileWithMode(const char *path, int opts, mode_t mode) {
+    return open(path, opts, mode);
+}
+int _CFOpenFile(const char *path, int opts) {
+    return open(path, opts);
+}
 
 void *_CFReallocf(void *ptr, size_t size) {
 #if DEPLOYMENT_TARGET_WINDOWS | DEPLOYMENT_TARGET_LINUX
@@ -1341,3 +1338,6 @@ void *_CFReallocf(void *ptr, size_t size) {
     return reallocf(ptr, size);
 #endif
 }
+
+#endif
+

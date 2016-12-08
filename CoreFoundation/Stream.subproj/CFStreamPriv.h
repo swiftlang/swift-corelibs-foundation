@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFStreamPriv.h
-	Copyright (c) 2000 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFSTREAMPRIV__)
@@ -60,78 +55,18 @@ struct _CFStream;
 
 CF_EXPORT void* _CFStreamGetInfoPointer(struct _CFStream* stream);
 
+#if !defined(CF_PRIVATE)
+#define CF_PRIVATE __attribute__((__visibility__("hidden")))
+#endif
+
 // cb version must be > 0
-CF_EXPORT struct _CFStream *_CFStreamCreateWithConstantCallbacks(CFAllocatorRef alloc, void *info, const struct _CFStreamCallBacks *cb, Boolean isReading);
+CF_PRIVATE struct _CFStream *_CFStreamCreateWithConstantCallbacks(CFAllocatorRef alloc, void *info, const struct _CFStreamCallBacks *cb, Boolean isReading);
 
-// Only available for streams created with _CFStreamCreateWithConstantCallbacks, above. cb's version must be 1
-CF_EXPORT void _CFStreamSetInfoPointer(struct _CFStream *stream, void *info, const struct _CFStreamCallBacks *cb);
-
-/*
-** _CFStreamSourceScheduleWithRunLoop
-**
-** Schedules the given run loop source on the given run loop and mode.  It then
-** adds the loop and mode pair to the runLoopsAndModes list.  The list is
-** simply a linear list of a loop reference followed by a mode reference.
-**
-** source Run loop source to be scheduled
-**
-** runLoopsAndModes List of run loop/mode pairs on which the source is scheduled
-**
-** runLoop Run loop on which the source is being scheduled
-**
-** runLoopMode Run loop mode on which the source is being scheduled
-*/
-CF_EXPORT
-void _CFStreamSourceScheduleWithRunLoop(CFRunLoopSourceRef source, CFMutableArrayRef runLoopsAndModes, CFRunLoopRef runLoop, CFStringRef runLoopMode);
-
-
-/*
-** _CFStreamSourceUnscheduleFromRunLoop
-**
-** Unschedule the given source from the given run loop and mode.  It then will
-** guarantee that the source remains scheduled on the list of run loop and mode
-** pairs in the runLoopsAndModes list.  The list is simply a linear list of a
-** loop reference followed by a mode reference.
-**
-** source Run loop source to be unscheduled
-**
-** runLoopsAndModes List of run loop/mode pairs on which the source is scheduled
-**
-** runLoop Run loop from which the source is being unscheduled
-**
-** runLoopMode Run loop mode from which the source is being unscheduled
-*/
-CF_EXPORT
-void _CFStreamSourceUnscheduleFromRunLoop(CFRunLoopSourceRef source, CFMutableArrayRef runLoopsAndModes, CFRunLoopRef runLoop, CFStringRef runLoopMode);
-
-
-/*
-** _CFStreamSourceScheduleWithAllRunLoops
-**
-** Schedules the given run loop source on all the run loops and modes in the list.
-** The list is simply a linear list of a loop reference followed by a mode reference.
-**
-** source Run loop source to be unscheduled
-**
-** runLoopsAndModes List of run loop/mode pairs on which the source is scheduled
-*/
-CF_EXPORT
-void _CFStreamSourceScheduleWithAllRunLoops(CFRunLoopSourceRef source, CFArrayRef runLoopsAndModes);
-
-
-/*
-** _CFStreamSourceUnscheduleFromRunLoop
-**
-** Unschedule the given source from all the run loops and modes in the list.
-** The list is simply a linear list of a loop reference followed by a mode
-** reference.
-**
-** source Run loop source to be unscheduled
-**
-** runLoopsAndModes List of run loop/mode pairs on which the source is scheduled
-*/
-CF_EXPORT
-void _CFStreamSourceUncheduleFromAllRunLoops(CFRunLoopSourceRef source, CFArrayRef runLoopsAndModes);
+// Returns an array of the runloops and modes on which the stream is currently scheduled
+CF_PRIVATE
+CFArrayRef _CFReadStreamCopyRunLoopsAndModes(CFReadStreamRef readStream);
+CF_PRIVATE
+CFArrayRef _CFWriteStreamCopyRunLoopsAndModes(CFWriteStreamRef writeStream);
 
 CF_EXPORT
 CFReadStreamRef _CFReadStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
@@ -180,6 +115,15 @@ CF_EXTERN_C_END
  * value will be NULL (as opposed to containing ((int) -1)).
  */
 CF_EXPORT const CFStringRef _kCFStreamPropertyFileNativeHandle CF_AVAILABLE_IOS(5_0);
+
+/*
+ * SPI: The _kCFStreamPropertyHTTPTrailer property is a dictionary of HTTP headers & values that the caller
+ *		wishes to have present in the trailer section of a chunked-encoded message body.  The caller is responsible
+ *		for setting this property BEFORE the stream event NSStreamEventEndEncountered is signaled to the reader of the
+ *		stream on which this property is set.
+ */
+CF_EXPORT const CFStringRef _kCFStreamPropertyHTTPTrailer API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+
 
 #endif /* ! __COREFOUNDATION_CFSTREAMPRIV__ */
 

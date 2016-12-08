@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFURL.inc.h
-	Copyright (c) 2012 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2012-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Jim Luther/Chris Linn
 */
 
@@ -97,7 +92,7 @@
                 }
             }
             // optimization for https urls
-            else if (idx == 5 && characterArray[0] == 'h' && characterArray[1] == 't' && characterArray[2] == 't' && characterArray[3] == 'p' && characterArray[3] == 's') {
+            else if (idx == 5 && characterArray[0] == 'h' && characterArray[1] == 't' && characterArray[2] == 't' && characterArray[3] == 'p' && characterArray[4] == 's') {
                 _setSchemeTypeInFlags(&flags, kHasHttpsScheme);
             }
             break;
@@ -352,10 +347,11 @@
                 UniChar surrogatePair[2];
                 surrogatePair[0] = ch;
                 surrogatePair[1] = characterArray[idx + 1];
-                _appendPercentEscapesForCharacter(surrogatePair, true, encoding, *escapedString);
-                // we consumed 2 chararacters instead of 1
-                *mark = idx + 2;
-                ++idx;
+                if ( _appendPercentEscapesForCharacter(surrogatePair, true, encoding, *escapedString) ) {
+                    // we consumed 2 chararacters instead of 1
+                    *mark = idx + 2;
+                    ++idx;
+                }
             }
         }
     }
