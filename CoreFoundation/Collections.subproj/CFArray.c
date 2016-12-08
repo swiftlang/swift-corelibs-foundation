@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFArray.c
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Christopher Kane
 */
 
@@ -46,7 +41,7 @@ struct __CFArray {
     CFIndex _count;		/* number of objects */
     CFIndex _mutations;
     int32_t _mutInProgress;
-    __strong void *_store;           /* can be NULL when MutableDeque */
+    void *_store;           /* can be NULL when MutableDeque */
 };
 
 /* Flag bits */
@@ -60,29 +55,6 @@ enum {		/* Bits 2-3 */
     __kCFArrayHasCFTypeCallBacks = 1,
     __kCFArrayHasCustomCallBacks = 3	/* callbacks are at end of header */
 };
-
-/*
-    Bits 4 & 5 are reserved for GC use.
-    Bit 4, if set, indicates that the array is weak.
-    Bit 5 marks whether finalization has occured and, thus, whether to continue to do special retain/release processing of elements.
- */
-
-CF_INLINE bool isStrongMemory(CFTypeRef collection) {
-    return __CFBitfieldGetValue(((const CFRuntimeBase *)collection)->_cfinfo[CF_INFO_BITS], 4, 4) == 0;
-}
-
-CF_INLINE bool isWeakMemory(CFTypeRef collection) {
-    return __CFBitfieldGetValue(((const CFRuntimeBase *)collection)->_cfinfo[CF_INFO_BITS], 4, 4) != 0;
-}
-
-CF_INLINE bool hasBeenFinalized(CFTypeRef collection) {
-    return __CFBitfieldGetValue(((const CFRuntimeBase *)collection)->_cfinfo[CF_INFO_BITS], 5, 5) != 0;
-}
-#if DEPLOYMENT_TARGET_MACOSX
-CF_INLINE void markFinalized(CFTypeRef collection) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)collection)->_cfinfo[CF_INFO_BITS], 5, 5, 1);
-}
-#endif
 
 CF_INLINE CFIndex __CFArrayGetType(CFArrayRef array) {
     return __CFBitfieldGetValue(((const CFRuntimeBase *)array)->_cfinfo[CF_INFO_BITS], 1, 0);
@@ -187,38 +159,35 @@ static void __CFArrayReleaseValues(CFArrayRef array, CFRange range, bool release
     CFIndex idx;
     switch (__CFArrayGetType(array)) {
     case __kCFArrayImmutable:
-	if (NULL != cb->release && 0 < range.length && !hasBeenFinalized(array)) {
-            // if we've been finalized then we know that
-            //   1) we're using the standard callback on GC memory
-            //   2) the slots don't' need to be zeroed
+	if (NULL != cb->release && 0 < range.length) {
 	    struct __CFArrayBucket *buckets = __CFArrayGetBucketsPtr(array);
 	    allocator = __CFGetAllocator(array);
 	    for (idx = 0; idx < range.length; idx++) {
 		INVOKE_CALLBACK2(cb->release, allocator, buckets[idx + range.location]._item);
-		buckets[idx + range.location]._item = NULL; // GC:  break strong reference.
+		buckets[idx + range.location]._item = NULL;
 	    }
 	}
 	break;
     case __kCFArrayDeque: {
 	struct __CFArrayDeque *deque = (struct __CFArrayDeque *)array->_store;
-	if (0 < range.length && NULL != deque && !hasBeenFinalized(array)) {
+	if (0 < range.length && NULL != deque) {
 	    struct __CFArrayBucket *buckets = __CFArrayGetBucketsPtr(array);
 	    if (NULL != cb->release) {
 		allocator = __CFGetAllocator(array);
 		for (idx = 0; idx < range.length; idx++) {
 		    INVOKE_CALLBACK2(cb->release, allocator, buckets[idx + range.location]._item);
-		    buckets[idx + range.location]._item = NULL; // GC:  break strong reference.
+		    buckets[idx + range.location]._item = NULL;
 		}
             } else {
 		for (idx = 0; idx < range.length; idx++) {
-		    buckets[idx + range.location]._item = NULL; // GC:  break strong reference.
+		    buckets[idx + range.location]._item = NULL;
 		}
 	    }
 	}
 	if (releaseStorageIfPossible && 0 == range.location && __CFArrayGetCount(array) == range.length) {
 	    allocator = __CFGetAllocator(array);
-	    if (NULL != deque) if (!CF_IS_COLLECTABLE_ALLOCATOR(allocator)) CFAllocatorDeallocate(allocator, deque);
-	    __CFArraySetCount(array, 0);  // GC: _count == 0 ==> _store == NULL.
+	    if (NULL != deque) CFAllocatorDeallocate(allocator, deque);
+	    __CFArraySetCount(array, 0);
 	    ((struct __CFArray *)array)->_store = NULL;
 	}
 	break;
@@ -228,9 +197,9 @@ static void __CFArrayReleaseValues(CFArrayRef array, CFRange range, bool release
 
 #if defined(DEBUG)
 CF_INLINE void __CFArrayValidateRange(CFArrayRef array, CFRange range, const char *func) {
-    CFAssert(0 <= range.location && range.location <= CFArrayGetCount(array), __kCFLogAssertion, "%s(): range.location index (%d) out of bounds (0, %d)", func, range.location, CFArrayGetCount(array));
-    CFAssert(0 <= range.length, __kCFLogAssertion, "%s(): range.length (%d) cannot be less than zero", func, range.length);
-    CFAssert(range.location + range.length <= CFArrayGetCount(array), __kCFLogAssertion, "%s(): ending index (%d) out of bounds (0, %d)", func, range.location + range.length, CFArrayGetCount(array));
+    CFAssert3(0 <= range.location && range.location <= CFArrayGetCount(array), __kCFLogAssertion, "%s(): range.location index (%ld) out of bounds (0, %ld)", func, range.location, CFArrayGetCount(array));
+    CFAssert2(0 <= range.length, __kCFLogAssertion, "%s(): range.length (%ld) cannot be less than zero", func, range.length);
+    CFAssert3(range.location + range.length <= CFArrayGetCount(array), __kCFLogAssertion, "%s(): ending index (%ld) out of bounds (0, %ld)", func, range.location + range.length, CFArrayGetCount(array));
 }
 #else
 #define __CFArrayValidateRange(a,r,f)
@@ -303,28 +272,6 @@ static CFStringRef __CFArrayCopyDescription(CFTypeRef cf) {
 static void __CFArrayDeallocate(CFTypeRef cf) {
     CFArrayRef array = (CFArrayRef)cf;
     BEGIN_MUTATION(array);
-#if DEPLOYMENT_TARGET_MACOSX
-    // Under GC, keep contents alive when we know we can, either standard callbacks or NULL
-    // if (__CFBitfieldGetValue(cf->info, 5, 4)) return; // bits only ever set under GC
-    CFAllocatorRef allocator = __CFGetAllocator(array);
-    if (CF_IS_COLLECTABLE_ALLOCATOR(allocator)) {
-	// XXX_PCB keep array intact during finalization.
-	const CFArrayCallBacks *cb = __CFArrayGetCallBacks(array);
-	if (cb->retain == NULL && cb->release == NULL) {
-	    END_MUTATION(array);
-            return;
-	}
-        if (cb == &kCFTypeArrayCallBacks || cb->release == kCFTypeArrayCallBacks.release) {
-            markFinalized(cf);
-            for (CFIndex idx = 0; idx < __CFArrayGetCount(array); idx++) {
-                const void *item = CFArrayGetValueAtIndex(array, 0 + idx);
-    	        kCFTypeArrayCallBacks.release(kCFAllocatorSystemDefault, item);
-            }
-	    END_MUTATION(array);
-            return;
-        }
-    }
-#endif
     __CFArrayReleaseValues(array, CFRangeMake(0, __CFArrayGetCount(array)), true);
     END_MUTATION(array);
 }
@@ -344,7 +291,7 @@ static const CFRuntimeClass __CFArrayClass = {
 };
 
 CFTypeID CFArrayGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
         __kCFArrayTypeID = _CFRuntimeRegisterClass(&__CFArrayClass);
     });
@@ -355,11 +302,6 @@ static CFArrayRef __CFArrayInit(CFAllocatorRef allocator, UInt32 flags, CFIndex 
     struct __CFArray *memory;
     UInt32 size;
     __CFBitfieldSetValue(flags, 31, 2, 0);
-    if (CF_IS_COLLECTABLE_ALLOCATOR(allocator)) {
-	if (!callBacks || (callBacks->retain == NULL && callBacks->release == NULL)) {
-	    __CFBitfieldSetValue(flags, 4, 4, 1); // setWeak
-	}
-    }
     if (__CFArrayCallBacksMatchNull(callBacks)) {
 	__CFBitfieldSetValue(flags, 3, 2, __kCFArrayHasNullCallBacks);
     } else if (__CFArrayCallBacksMatchCFType(callBacks)) {
@@ -383,9 +325,6 @@ static CFArrayRef __CFArrayInit(CFAllocatorRef allocator, UInt32 flags, CFIndex 
     __CFArraySetCount((CFArrayRef)memory, 0);
     switch (__CFBitfieldGetValue(flags, 1, 0)) {
     case __kCFArrayImmutable:
-        if (isWeakMemory(memory)) {  // if weak, don't scan
-            auto_zone_set_unscanned(objc_collectableZone(), memory);
-        }
 	if (__CFOASafe) __CFSetLastAllocationEventName(memory, "CFArray (immutable)");
 	break;
     case __kCFArrayDeque:
@@ -407,7 +346,7 @@ static CFArrayRef __CFArrayInit(CFAllocatorRef allocator, UInt32 flags, CFIndex 
 }
 
 CF_PRIVATE CFArrayRef __CFArrayCreateTransfer(CFAllocatorRef allocator, const void **values, CFIndex numValues) {
-    CFAssert(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%d) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
+    CFAssert2(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%ld) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
     UInt32 flags = __kCFArrayImmutable;
     __CFBitfieldSetValue(flags, 31, 2, 0);
     __CFBitfieldSetValue(flags, 3, 2, __kCFArrayHasCFTypeCallBacks);
@@ -428,25 +367,21 @@ CF_PRIVATE CFArrayRef __CFArrayCreate0(CFAllocatorRef allocator, const void **va
     CFArrayRef result;
     const CFArrayCallBacks *cb;
     struct __CFArrayBucket *buckets;
-    CFAllocatorRef bucketsAllocator;
-    void* bucketsBase;
     CFIndex idx;
-    CFAssert(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%d) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
+    CFAssert2(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%ld) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
     result = __CFArrayInit(allocator, __kCFArrayImmutable, numValues, callBacks);
     cb = __CFArrayGetCallBacks(result);
     buckets = __CFArrayGetBucketsPtr(result);
-    bucketsAllocator = isStrongMemory(result) ? allocator : kCFAllocatorNull;
-    bucketsBase = CF_IS_COLLECTABLE_ALLOCATOR(bucketsAllocator) ? (void *)auto_zone_base_pointer(objc_collectableZone(), buckets) : NULL;
     if (NULL != cb->retain) {
         for (idx = 0; idx < numValues; idx++) {
-	    __CFAssignWithWriteBarrier((void **)&buckets->_item, (void *)INVOKE_CALLBACK2(cb->retain, allocator, *values));
+	    *((void **)&buckets->_item) = (void *)INVOKE_CALLBACK2(cb->retain, allocator, *values);
             values++;
             buckets++;
         }
     }
     else {
         for (idx = 0; idx < numValues; idx++) {
-            __CFAssignWithWriteBarrier((void **)&buckets->_item, (void *)*values);
+            *((void **)&buckets->_item) = (void *)*values;
             values++;
             buckets++;
         }
@@ -456,8 +391,8 @@ CF_PRIVATE CFArrayRef __CFArrayCreate0(CFAllocatorRef allocator, const void **va
 }
 
 CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutable0(CFAllocatorRef allocator, CFIndex capacity, const CFArrayCallBacks *callBacks) {
-    CFAssert(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%d) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
-    CFAssert(capacity <= LONG_MAX / sizeof(void *), __kCFLogAssertion, "%s(): capacity (%d) is too large for this architecture", __PRETTY_FUNCTION__, capacity);
+    CFAssert2(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
+    CFAssert2(capacity <= LONG_MAX / sizeof(void *), __kCFLogAssertion, "%s(): capacity (%ld) is too large for this architecture", __PRETTY_FUNCTION__, capacity);
     return (CFMutableArrayRef)__CFArrayInit(allocator, __kCFArrayDeque, capacity, callBacks);
 }
 
@@ -465,8 +400,6 @@ CF_PRIVATE CFArrayRef __CFArrayCreateCopy0(CFAllocatorRef allocator, CFArrayRef 
     CFArrayRef result;
     const CFArrayCallBacks *cb;
     struct __CFArrayBucket *buckets;
-    CFAllocatorRef bucketsAllocator;
-    void* bucketsBase;
     CFIndex numValues = CFArrayGetCount(array);
     CFIndex idx;
     if (CF_IS_OBJC(CFArrayGetTypeID(), array) || CF_IS_SWIFT(CFArrayGetTypeID(), array)) {
@@ -475,10 +408,8 @@ CF_PRIVATE CFArrayRef __CFArrayCreateCopy0(CFAllocatorRef allocator, CFArrayRef 
 	cb = __CFArrayGetCallBacks(array);
 	    }
     result = __CFArrayInit(allocator, __kCFArrayImmutable, numValues, cb);
-    cb = __CFArrayGetCallBacks(result); // GC: use the new array's callbacks so we don't leak.
+    cb = __CFArrayGetCallBacks(result);
     buckets = __CFArrayGetBucketsPtr(result);
-    bucketsAllocator = isStrongMemory(result) ? allocator : kCFAllocatorNull;
-	bucketsBase = CF_IS_COLLECTABLE_ALLOCATOR(bucketsAllocator) ? (void *)auto_zone_base_pointer(objc_collectableZone(), buckets) : NULL;
     for (idx = 0; idx < numValues; idx++) {
 	const void *value = CFArrayGetValueAtIndex(array, idx);
 	if (NULL != cb->retain) {
@@ -577,7 +508,7 @@ const void *CFArrayGetValueAtIndex(CFArrayRef array, CFIndex idx) {
     CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), const void *, (CFSwiftRef)array, NSArray.objectAtIndex, idx);
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), const void *, (NSArray *)array, objectAtIndex:idx);
     __CFGenericValidateType(array, CFArrayGetTypeID());
-    CFAssert(0 <= idx && idx < __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index (%d) out of bounds", __PRETTY_FUNCTION__, idx);
+    CFAssert2(0 <= idx && idx < __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index (%ld) out of bounds", __PRETTY_FUNCTION__, idx);
     CHECK_FOR_MUTATION(array);
     return __CFArrayGetBucketAtIndex(array, idx)->_item;
 }
@@ -595,13 +526,13 @@ void CFArrayGetValues(CFArrayRef array, CFRange range, const void **values) {
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSArray *)array, getObjects:(id *)values range:NSMakeRange(range.location, range.length));
     __CFGenericValidateType(array, CFArrayGetTypeID());
     __CFArrayValidateRange(array, range, __PRETTY_FUNCTION__);
-    CFAssert(NULL != values, __kCFLogAssertion, "%s(): pointer to values may not be NULL", __PRETTY_FUNCTION__);
+    CFAssert1(NULL != values, __kCFLogAssertion, "%s(): pointer to values may not be NULL", __PRETTY_FUNCTION__);
     CHECK_FOR_MUTATION(array);
     if (0 < range.length) {
 	switch (__CFArrayGetType(array)) {
 	case __kCFArrayImmutable:
 	case __kCFArrayDeque:
-	    objc_memmove_collectable(values, __CFArrayGetBucketsPtr(array) + range.location, range.length * sizeof(struct __CFArrayBucket));
+	    memmove(values, __CFArrayGetBucketsPtr(array) + range.location, range.length * sizeof(struct __CFArrayBucket));
 	    break;
 	}
     }
@@ -639,7 +570,7 @@ void CFArrayApplyFunction(CFArrayRef array, CFRange range, CFArrayApplierFunctio
     FAULT_CALLBACK((void **)&(applier));
     __CFGenericValidateType(array, CFArrayGetTypeID());
     __CFArrayValidateRange(array, range, __PRETTY_FUNCTION__);
-    CFAssert(NULL != applier, __kCFLogAssertion, "%s(): pointer to applier function may not be NULL", __PRETTY_FUNCTION__);
+    CFAssert1(NULL != applier, __kCFLogAssertion, "%s(): pointer to applier function may not be NULL", __PRETTY_FUNCTION__);
     CHECK_FOR_MUTATION(array);
     for (idx = 0; idx < range.length; idx++) {
 	const void *item = CFArrayGetValueAtIndex(array, range.location + idx);
@@ -680,7 +611,7 @@ void CFArrayAppendValue(CFMutableArrayRef array, const void *value) {
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSMutableArray *)array, addObject:(id)value);
     
     __CFGenericValidateType(array, CFArrayGetTypeID());
-    CFAssert(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
+    CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
     CHECK_FOR_MUTATION(array);
     _CFArrayReplaceValues(array, CFRangeMake(__CFArrayGetCount(array), 0), &value, 1);
 }
@@ -689,8 +620,8 @@ void CFArraySetValueAtIndex(CFMutableArrayRef array, CFIndex idx, const void *va
     CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), void, (CFSwiftRef)array, NSMutableArray.setObject, idx, value);
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSMutableArray *)array, setObject:(id)value atIndex:(NSUInteger)idx);
     __CFGenericValidateType(array, CFArrayGetTypeID());
-    CFAssert(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
-    CFAssert(0 <= idx && idx <= __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index (%d) out of bounds", __PRETTY_FUNCTION__, idx);
+    CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
+    CFAssert2(0 <= idx && idx <= __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index (%ld) out of bounds", __PRETTY_FUNCTION__, idx);
     CHECK_FOR_MUTATION(array);
     if (idx == __CFArrayGetCount(array)) {
 	_CFArrayReplaceValues(array, CFRangeMake(idx, 0), &value, 1);
@@ -700,12 +631,12 @@ void CFArraySetValueAtIndex(CFMutableArrayRef array, CFIndex idx, const void *va
 	const CFArrayCallBacks *cb = __CFArrayGetCallBacks(array);
 	CFAllocatorRef allocator = __CFGetAllocator(array);
 	struct __CFArrayBucket *bucket = __CFArrayGetBucketAtIndex(array, idx);
-	if (NULL != cb->retain && !hasBeenFinalized(array)) {
+	if (NULL != cb->retain) {
 	    value = (void *)INVOKE_CALLBACK2(cb->retain, allocator, value);
 	}
 	old_value = bucket->_item;
-	__CFAssignWithWriteBarrier((void **)&bucket->_item, (void *)value); // GC: handles deque/CFStorage cases.
-	if (NULL != cb->release && !hasBeenFinalized(array)) {
+	__CFAssignWithWriteBarrier((void **)&bucket->_item, (void *)value);
+	if (NULL != cb->release) {
 	    INVOKE_CALLBACK2(cb->release, allocator, old_value);
 	}
 	array->_mutations++;
@@ -717,8 +648,8 @@ void CFArrayInsertValueAtIndex(CFMutableArrayRef array, CFIndex idx, const void 
     CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), void, (CFSwiftRef)array, NSMutableArray.insertObject, idx, value);
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSMutableArray *)array, insertObject:(id)value atIndex:(NSUInteger)idx);
     __CFGenericValidateType(array, CFArrayGetTypeID());
-    CFAssert(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
-    CFAssert(0 <= idx && idx <= __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index (%d) out of bounds", __PRETTY_FUNCTION__, idx);
+    CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
+    CFAssert2(0 <= idx && idx <= __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index (%ld) out of bounds", __PRETTY_FUNCTION__, idx);
     CHECK_FOR_MUTATION(array);
     _CFArrayReplaceValues(array, CFRangeMake(idx, 0), &value, 1);
 }
@@ -731,9 +662,9 @@ void CFArrayExchangeValuesAtIndices(CFMutableArrayRef array, CFIndex idx1, CFInd
     CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), void, (CFSwiftRef)array, NSMutableArray.exchangeObjectAtIndex, idx1, idx2);
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSMutableArray *)array, exchangeObjectAtIndex:(NSUInteger)idx1 withObjectAtIndex:(NSUInteger)idx2);
     __CFGenericValidateType(array, CFArrayGetTypeID());
-    CFAssert(0 <= idx1 && idx1 < __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index #1 (%d) out of bounds", __PRETTY_FUNCTION__, idx1);
-    CFAssert(0 <= idx2 && idx2 < __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index #2 (%d) out of bounds", __PRETTY_FUNCTION__, idx2);
-    CFAssert(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
+    CFAssert2(0 <= idx1 && idx1 < __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index #1 (%ld) out of bounds", __PRETTY_FUNCTION__, idx1);
+    CFAssert2(0 <= idx2 && idx2 < __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index #2 (%ld) out of bounds", __PRETTY_FUNCTION__, idx2);
+    CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
     CHECK_FOR_MUTATION(array);
     BEGIN_MUTATION(array);
     bucket1 = __CFArrayGetBucketAtIndex(array, idx1);
@@ -750,8 +681,8 @@ void CFArrayRemoveValueAtIndex(CFMutableArrayRef array, CFIndex idx) {
     CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), void, (CFSwiftRef)array, NSMutableArray.removeObjectAtIndex, idx);
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSMutableArray *)array, removeObjectAtIndex:(NSUInteger)idx);
     __CFGenericValidateType(array, CFArrayGetTypeID());
-    CFAssert(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
-    CFAssert(0 <= idx && idx < __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index (%d) out of bounds", __PRETTY_FUNCTION__, idx);
+    CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
+    CFAssert2(0 <= idx && idx < __CFArrayGetCount(array), __kCFLogAssertion, "%s(): index (%ld) out of bounds", __PRETTY_FUNCTION__, idx);
     CHECK_FOR_MUTATION(array);
     _CFArrayReplaceValues(array, CFRangeMake(idx, 1), NULL, 0);
 }
@@ -760,7 +691,7 @@ void CFArrayRemoveAllValues(CFMutableArrayRef array) {
     CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), void, (CFSwiftRef)array, NSMutableArray.removeAllObjects);
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSMutableArray *)array, removeAllObjects);
     __CFGenericValidateType(array, CFArrayGetTypeID());
-    CFAssert(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
+    CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
     CHECK_FOR_MUTATION(array);
     BEGIN_MUTATION(array);
     __CFArrayReleaseValues(array, CFRangeMake(0, __CFArrayGetCount(array)), true);
@@ -795,8 +726,7 @@ static void __CFArrayRepositionDequeRegions(CFMutableArrayRef array, CFRange ran
 	CFIndex capacity = __CFArrayDequeRoundUpCapacity(futureCnt + wiggle);
 	CFIndex size = sizeof(struct __CFArrayDeque) + capacity * sizeof(struct __CFArrayBucket);
 	CFAllocatorRef allocator = __CFGetAllocator(array);
-        Boolean collectableMemory = CF_IS_COLLECTABLE_ALLOCATOR(allocator);
-	struct __CFArrayDeque *newDeque = (struct __CFArrayDeque *)CFAllocatorAllocate(allocator, size, isStrongMemory(array) ? __kCFAllocatorGCScannedMemory : 0);
+	struct __CFArrayDeque *newDeque = (struct __CFArrayDeque *)CFAllocatorAllocate(allocator, size, 0);
 	if (__CFOASafe) __CFSetLastAllocationEventName(newDeque, "CFArray (store-deque)");
 	struct __CFArrayBucket *newBuckets = (struct __CFArrayBucket *)((uint8_t *)newDeque + sizeof(struct __CFArrayDeque));
 	CFIndex oldL = L;
@@ -805,11 +735,10 @@ static void __CFArrayRepositionDequeRegions(CFMutableArrayRef array, CFRange ran
 	CFIndex newC0 = newL + A + newCount;
 	newDeque->_leftIdx = newL;
 	newDeque->_capacity = capacity;
-	if (0 < A) objc_memmove_collectable(newBuckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
-	if (0 < C) objc_memmove_collectable(newBuckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
+	if (0 < A) memmove(newBuckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
+	if (0 < C) memmove(newBuckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
 	__CFAssignWithWriteBarrier((void **)&array->_store, (void *)newDeque);
-        if (!collectableMemory && deque) CFAllocatorDeallocate(allocator, deque);
-        if (CF_IS_COLLECTABLE_ALLOCATOR(allocator)) auto_zone_release(objc_collectableZone(), newDeque);
+        if (deque) CFAllocatorDeallocate(allocator, deque);
 //printf("3:  array %p store is now %p (%lx)\n", array, array->_store, *(unsigned long *)(array->_store));
 	return;
     }
@@ -819,8 +748,7 @@ static void __CFArrayRepositionDequeRegions(CFMutableArrayRef array, CFRange ran
 	// inserting: C is smaller and R has room
 	CFIndex oldC0 = L + A + B;
 	CFIndex newC0 = L + A + newCount;
-	if (0 < C) objc_memmove_collectable(buckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
-	// GrP GC: zero-out newly exposed space on the right, if any
+	if (0 < C) memmove(buckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
 	if (oldC0 > newC0) memset(buckets + newC0 + C, 0, (oldC0 - newC0) * sizeof(struct __CFArrayBucket));
     } else if ((numNewElems < 0) || (numNewElems <= L && A <= C)) {	// move A
 	// deleting: A is smaller or equal (covers remaining delete cases)
@@ -828,8 +756,7 @@ static void __CFArrayRepositionDequeRegions(CFMutableArrayRef array, CFRange ran
 	CFIndex oldL = L;
 	CFIndex newL = L - numNewElems;
 	deque->_leftIdx = newL;
-	if (0 < A) objc_memmove_collectable(buckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
-	// GrP GC: zero-out newly exposed space on the left, if any
+	if (0 < A) memmove(buckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
 	if (newL > oldL) memset(buckets + oldL, 0, (newL - oldL) * sizeof(struct __CFArrayBucket));
     } else {
 	// now, must be inserting, and either:
@@ -843,14 +770,12 @@ static void __CFArrayRepositionDequeRegions(CFMutableArrayRef array, CFRange ran
 	CFIndex newC0 = newL + A + newCount;
 	deque->_leftIdx = newL;
 	if (newL < oldL) {
-	    if (0 < A) objc_memmove_collectable(buckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
-	    if (0 < C) objc_memmove_collectable(buckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
-	    // GrP GC: zero-out newly exposed space on the right, if any
+	    if (0 < A) memmove(buckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
+	    if (0 < C) memmove(buckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
 	    if (oldC0 > newC0) memset(buckets + newC0 + C, 0, (oldC0 - newC0) * sizeof(struct __CFArrayBucket));
 	} else {
-	    if (0 < C) objc_memmove_collectable(buckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
-	    if (0 < A) objc_memmove_collectable(buckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
-	    // GrP GC: zero-out newly exposed space on the left, if any
+	    if (0 < C) memmove(buckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
+	    if (0 < A) memmove(buckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
 	    if (newL > oldL) memset(buckets + oldL, 0, (newL - oldL) * sizeof(struct __CFArrayBucket));
 	}
     }
@@ -869,8 +794,8 @@ static void __CFArrayHandleOutOfMemory(CFTypeRef obj, CFIndex numBytes) {
 void _CFArraySetCapacity(CFMutableArrayRef array, CFIndex cap) {
     if (CF_IS_OBJC(CFArrayGetTypeID(), array) || CF_IS_SWIFT(CFArrayGetTypeID(), array)) return;
     __CFGenericValidateType(array, CFArrayGetTypeID());
-    CFAssert(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
-    CFAssert(__CFArrayGetCount(array) <= cap, __kCFLogAssertion, "%s(): desired capacity (%d) is less than count (%d)", __PRETTY_FUNCTION__, cap, __CFArrayGetCount(array));
+    CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
+    CFAssert3(__CFArrayGetCount(array) <= cap, __kCFLogAssertion, "%s(): desired capacity (%ld) is less than count (%ld)", __PRETTY_FUNCTION__, cap, __CFArrayGetCount(array));
     CHECK_FOR_MUTATION(array);
     BEGIN_MUTATION(array);
     // Currently, attempting to set the capacity of an array which is the CFStorage
@@ -882,24 +807,22 @@ void _CFArraySetCapacity(CFMutableArrayRef array, CFIndex cap) {
 	CFIndex capacity = __CFArrayDequeRoundUpCapacity(cap);
 	CFIndex size = sizeof(struct __CFArrayDeque) + capacity * sizeof(struct __CFArrayBucket);
 	CFAllocatorRef allocator = __CFGetAllocator(array);
-	Boolean collectableMemory = CF_IS_COLLECTABLE_ALLOCATOR(allocator);
 	if (NULL == deque) {
-	    deque = (struct __CFArrayDeque *)CFAllocatorAllocate(allocator, size, isStrongMemory(array) ? __kCFAllocatorGCScannedMemory : 0);
+	    deque = (struct __CFArrayDeque *)CFAllocatorAllocate(allocator, size, 0);
 	    if (NULL == deque) __CFArrayHandleOutOfMemory(array, size);
 	    if (__CFOASafe) __CFSetLastAllocationEventName(deque, "CFArray (store-deque)");
 	    deque->_leftIdx = capacity / 2; 
 	} else {
 	    struct __CFArrayDeque *olddeque = deque;
 	    CFIndex oldcap = deque->_capacity;
-	    deque = (struct __CFArrayDeque *)CFAllocatorAllocate(allocator, size, isStrongMemory(array) ? __kCFAllocatorGCScannedMemory : 0);
+	    deque = (struct __CFArrayDeque *)CFAllocatorAllocate(allocator, size, 0);
 	    if (NULL == deque) __CFArrayHandleOutOfMemory(array, size);
-	    objc_memmove_collectable(deque, olddeque, sizeof(struct __CFArrayDeque) + oldcap * sizeof(struct __CFArrayBucket));
-	    if (!collectableMemory) CFAllocatorDeallocate(allocator, olddeque);
+	    memmove(deque, olddeque, sizeof(struct __CFArrayDeque) + oldcap * sizeof(struct __CFArrayBucket));
+	    CFAllocatorDeallocate(allocator, olddeque);
 	    if (__CFOASafe) __CFSetLastAllocationEventName(deque, "CFArray (store-deque)");
 	}
 	deque->_capacity = capacity;
 	__CFAssignWithWriteBarrier((void **)&array->_store, (void *)deque);
-        if (collectableMemory) auto_zone_release(objc_collectableZone(), deque);
     }
     END_MUTATION(array);
 }
@@ -910,8 +833,8 @@ void CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void **n
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSMutableArray *)array, replaceObjectsInRange:NSMakeRange(range.location, range.length) withObjects:(id *)newValues count:(NSUInteger)newCount);
     __CFGenericValidateType(array, CFArrayGetTypeID());
     __CFArrayValidateRange(array, range, __PRETTY_FUNCTION__);
-    CFAssert(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
-    CFAssert(0 <= newCount, __kCFLogAssertion, "%s(): newCount (%d) cannot be less than zero", __PRETTY_FUNCTION__, newCount);
+    CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
+    CFAssert2(0 <= newCount, __kCFLogAssertion, "%s(): newCount (%ld) cannot be less than zero", __PRETTY_FUNCTION__, newCount);
     CHECK_FOR_MUTATION(array);
     return _CFArrayReplaceValues(array, range, newValues, newCount);
 }
@@ -926,13 +849,13 @@ void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void **
     const void **newv, *buffer[256];
     cnt = __CFArrayGetCount(array);
     futureCnt = cnt - range.length + newCount;
-    CFAssert(newCount <= futureCnt, __kCFLogAssertion, "%s(): internal error 1", __PRETTY_FUNCTION__);
+    CFAssert1(newCount <= futureCnt, __kCFLogAssertion, "%s(): internal error 1", __PRETTY_FUNCTION__);
     cb = __CFArrayGetCallBacks(array);
     CFAllocatorRef allocator = __CFGetAllocator(array);
 
     /* Retain new values if needed, possibly allocating a temporary buffer for them */
-    if (NULL != cb->retain && !hasBeenFinalized(array)) {
-	newv = (newCount <= 256) ? (const void **)buffer : (const void **)CFAllocatorAllocate(kCFAllocatorSystemDefault, newCount * sizeof(void *), 0); // GC OK
+    if (NULL != cb->retain) {
+	newv = (newCount <= 256) ? (const void **)buffer : (const void **)CFAllocatorAllocate(kCFAllocatorSystemDefault, newCount * sizeof(void *), 0);
 	if (newv != buffer && __CFOASafe) __CFSetLastAllocationEventName(newv, "CFArray (temp)");
 	for (idx = 0; idx < newCount; idx++) {
 	    newv[idx] = (void *)INVOKE_CALLBACK2(cb->retain, allocator, (void *)newValues[idx]);
@@ -963,12 +886,11 @@ void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void **
 	    struct __CFArrayDeque *deque;
 	    CFIndex capacity = __CFArrayDequeRoundUpCapacity(futureCnt);
 	    CFIndex size = sizeof(struct __CFArrayDeque) + capacity * sizeof(struct __CFArrayBucket);
-	    deque = (struct __CFArrayDeque *)CFAllocatorAllocate((allocator), size, isStrongMemory(array) ? __kCFAllocatorGCScannedMemory : 0);
+	    deque = (struct __CFArrayDeque *)CFAllocatorAllocate((allocator), size, 0);
 	    if (__CFOASafe) __CFSetLastAllocationEventName(deque, "CFArray (store-deque)");
 	    deque->_leftIdx = (capacity - newCount) / 2;
 	    deque->_capacity = capacity;
 	    __CFAssignWithWriteBarrier((void **)&array->_store, (void *)deque);
-            if (CF_IS_COLLECTABLE_ALLOCATOR(allocator)) auto_zone_release(objc_collectableZone(), deque); // GC: now safe to unroot the array body.
 	}
     } else {		// Deque
 	// reposition regions A and C for new region B elements in gap
@@ -983,7 +905,7 @@ void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void **
 	} else {	// Deque
 	    struct __CFArrayDeque *deque = (struct __CFArrayDeque *)array->_store;
 	    struct __CFArrayBucket *raw_buckets = (struct __CFArrayBucket *)((uint8_t *)deque + sizeof(struct __CFArrayDeque));
-	    objc_memmove_collectable(raw_buckets + deque->_leftIdx + range.location, newv, newCount * sizeof(struct __CFArrayBucket));
+	    memmove(raw_buckets + deque->_leftIdx + range.location, newv, newCount * sizeof(struct __CFArrayBucket));
 	}
     }
     __CFArraySetCount(array, futureCnt);
@@ -1023,7 +945,7 @@ CF_PRIVATE void _CFArraySortValues(CFMutableArrayRef array, CFComparatorFunction
     }
     // implemented abstractly, careful!
     const void **values, *buffer[256];
-    values = (range.length <= 256) ? (const void **)buffer : (const void **)CFAllocatorAllocate(kCFAllocatorSystemDefault, range.length * sizeof(void *), 0); // GC OK
+    values = (range.length <= 256) ? (const void **)buffer : (const void **)CFAllocatorAllocate(kCFAllocatorSystemDefault, range.length * sizeof(void *), 0);
     CFArrayGetValues(array, range, values);
     struct _acompareContext ctx;
     ctx.func = comparator;
@@ -1036,11 +958,11 @@ CF_PRIVATE void _CFArraySortValues(CFMutableArrayRef array, CFComparatorFunction
 void CFArraySortValues(CFMutableArrayRef array, CFRange range, CFComparatorFunction comparator, void *context) {
     FAULT_CALLBACK((void **)&(comparator));
     __CFArrayValidateRange(array, range, __PRETTY_FUNCTION__);
-    CFAssert(NULL != comparator, __kCFLogAssertion, "%s(): pointer to comparator function may not be NULL", __PRETTY_FUNCTION__);
+    CFAssert1(NULL != comparator, __kCFLogAssertion, "%s(): pointer to comparator function may not be NULL", __PRETTY_FUNCTION__);
     Boolean immutable = false;
     if (CF_IS_OBJC(CFArrayGetTypeID(), array) || CF_IS_SWIFT(CFArrayGetTypeID(), array)) {
         BOOL result;
-        result = CF_OBJC_CALLV((NSMutableArray *)array, isKindOfClass:[NSMutableArray class]);
+        result = CF_OBJC_CALLV((NSMutableArray *)array, isKindOfClass:[NSMutableArray class]); // TODO: Fixme for swift (we need a isKindOfClass replacement: (array as? NSMutableArray) != nil)
         immutable = !result;
     } else if (__kCFArrayImmutable == __CFArrayGetType(array)) {
         immutable = true;
@@ -1060,7 +982,7 @@ void CFArraySortValues(CFMutableArrayRef array, CFRange range, CFComparatorFunct
     }
     // implemented abstractly, careful!
     const void **values, *buffer[256];
-    values = (range.length <= 256) ? (const void **)buffer : (const void **)CFAllocatorAllocate(kCFAllocatorSystemDefault, range.length * sizeof(void *), 0); // GC OK
+    values = (range.length <= 256) ? (const void **)buffer : (const void **)CFAllocatorAllocate(kCFAllocatorSystemDefault, range.length * sizeof(void *), 0);
     CFArrayGetValues(array, range, values);
     struct _acompareContext ctx;
     ctx.func = comparator;
@@ -1073,7 +995,7 @@ void CFArraySortValues(CFMutableArrayRef array, CFRange range, CFComparatorFunct
 CFIndex CFArrayBSearchValues(CFArrayRef array, CFRange range, const void *value, CFComparatorFunction comparator, void *context) {
     FAULT_CALLBACK((void **)&(comparator));
     __CFArrayValidateRange(array, range, __PRETTY_FUNCTION__);
-    CFAssert(NULL != comparator, __kCFLogAssertion, "%s(): pointer to comparator function may not be NULL", __PRETTY_FUNCTION__);
+    CFAssert1(NULL != comparator, __kCFLogAssertion, "%s(): pointer to comparator function may not be NULL", __PRETTY_FUNCTION__);
     // implemented abstractly, careful!
     if (range.length <= 0) return range.location;
     const void *item = CFArrayGetValueAtIndex(array, range.location + range.length - 1);

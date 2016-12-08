@@ -1,20 +1,14 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*
- *  CFUnicodeDecomposition.h
- *  CoreFoundation
- *
- *  Created by aki on Wed Oct 03 2001.
- *  Copyright (c) 2001 - 2015 Apple Inc. and the Swift project authors
- *
+	CFUnicodeDecomposition.h
+	CoreFoundation
+
+	Created by aki on Wed Oct 03 2001.
+	Copyright (c) 2001-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
  */
 
 #if !defined(__COREFOUNDATION_CFUNICODEDECOMPOSITION__)
@@ -34,6 +28,7 @@ CF_EXPORT CFIndex CFUniCharDecomposeCharacter(UTF32Char character, UTF32Char *co
 CF_EXPORT CFIndex CFUniCharCompatibilityDecompose(UTF32Char *convertedChars, CFIndex length, CFIndex maxBufferLength);
 
 CF_EXPORT bool CFUniCharDecompose(const UTF16Char *src, CFIndex length, CFIndex *consumedLength, void *dst, CFIndex maxLength, CFIndex *filledLength, bool needToReorder, uint32_t dstFormat, bool isHFSPlus);
+CF_EXPORT bool CFUniCharDecomposeWithErrorLocation(const UTF16Char *src, CFIndex length, CFIndex *consumedLength, void *dst, CFIndex maxLength, CFIndex *filledLength, bool needToReorder, uint32_t dstFormat, bool isHFSPlus, CFIndex *charIndex);
 
 CF_EXPORT void CFUniCharPrioritySort(UTF32Char *characters, CFIndex length);
 

@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFAvailability.h
-	Copyright (c) 2013 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2013-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFAVAILABILITY__)
@@ -21,11 +16,17 @@
 #include <TargetConditionals.h>
 #endif
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define API_AVAILABLE(...)
+#define API_DEPRECATED(...)
+#else
 #if (TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_WIN32)
 #include <Availability.h>
+#include <os/availability.h>
 
 // Even if unused, these must remain here for compatibility, because projects rely on them being included.
 #include <AvailabilityMacros.h>
+#endif
 #endif
 
 #ifndef __has_feature
@@ -138,7 +139,27 @@ CF_ENUM(CFIndex) {
     ...
 };
 */
-#define CF_ENUM(...) __CF_ENUM_GET_MACRO(__VA_ARGS__, __CF_NAMED_ENUM, __CF_ANON_ENUM)(__VA_ARGS__)
+#define CF_ENUM(...) __CF_ENUM_GET_MACRO(__VA_ARGS__, __CF_NAMED_ENUM, __CF_ANON_ENUM, )(__VA_ARGS__)
+
+#if __has_attribute(swift_wrapper)
+#define _CF_TYPED_ENUM __attribute__((swift_wrapper(enum)))
+#else
+#define _CF_TYPED_ENUM
+#endif
+
+#if __has_attribute(swift_wrapper)
+#define _CF_TYPED_EXTENSIBLE_ENUM __attribute__((swift_wrapper(struct)))
+#else
+#define _CF_TYPED_EXTENSIBLE_ENUM
+#endif
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define CF_STRING_ENUM
+#define CF_EXTENSIBLE_STRING_ENUM
+#else
+#define CF_STRING_ENUM _CF_TYPED_ENUM
+#define CF_EXTENSIBLE_STRING_ENUM _CF_TYPED_EXTENSIBLE_ENUM
+#endif
 
 // Extension availability macros
 #define CF_EXTENSION_UNAVAILABLE(_msg)      __OS_EXTENSION_UNAVAILABLE(_msg)

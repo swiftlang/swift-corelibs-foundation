@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFApplicationPreferences.c
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: David Smith
 */
 
@@ -37,8 +32,8 @@ static CFTypeRef _CFApplicationPreferencesCreateValueForKey2(_CFApplicationPrefe
 
 CFPropertyListRef CFPreferencesCopyAppValue(CFStringRef key, CFStringRef appName) {
     _CFApplicationPreferences *standardPrefs;
-    CFAssert(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
-    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
+    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
     
     standardPrefs = _CFStandardApplicationPreferences(appName);
     return standardPrefs ? _CFApplicationPreferencesCreateValueForKey2(standardPrefs, key) : NULL;
@@ -48,8 +43,8 @@ CF_EXPORT Boolean CFPreferencesAppBooleanValue(CFStringRef key, CFStringRef appN
     CFPropertyListRef value;
     Boolean result, valid;
     CFTypeID typeID = 0;
-    CFAssert(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
-    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
+    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
 
     if (!keyExistsAndHasValidFormat) {
         keyExistsAndHasValidFormat = &valid;
@@ -98,8 +93,8 @@ CF_PRIVATE CFIndex CFPreferencesAppIntegerValue(CFStringRef key, CFStringRef app
     CFIndex result;
     CFTypeID typeID = 0;
     Boolean valid;
-    CFAssert(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
-    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
+    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
 
     value = CFPreferencesCopyAppValue(key, appName);
     if (!keyExistsAndHasValidFormat) {
@@ -136,21 +131,21 @@ CF_PRIVATE CFIndex CFPreferencesAppIntegerValue(CFStringRef key, CFStringRef app
 }
 
 Boolean CFPreferencesGetAppBooleanValue(CFStringRef key, CFStringRef appName, Boolean *keyExistsAndHasValidFormat) {
-    CFAssert(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
-    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
+    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
     return CFPreferencesAppBooleanValue(key, appName, keyExistsAndHasValidFormat);
 }
 
 CFIndex CFPreferencesGetAppIntegerValue(CFStringRef key, CFStringRef appName, Boolean *keyExistsAndHasValidFormat) {
-    CFAssert(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
-    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
+    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
     return CFPreferencesAppIntegerValue(key, appName, keyExistsAndHasValidFormat);
 }
 
 void CFPreferencesSetAppValue(CFStringRef key, CFTypeRef value, CFStringRef appName) {
     _CFApplicationPreferences *standardPrefs;
-    CFAssert(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
-    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
+    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
 
     standardPrefs = _CFStandardApplicationPreferences(appName);
     if (standardPrefs) {
@@ -166,7 +161,7 @@ static CFMutableDictionaryRef __CFStandardUserPreferences = NULL; // Mutable dic
 Boolean CFPreferencesAppSynchronize(CFStringRef appName) {
     _CFApplicationPreferences *standardPrefs;
     Boolean result;
-    CFAssert(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL, __kCFLogAssertion, "%s(): Cannot access application preferences with a NULL application name", __PRETTY_FUNCTION__);
     
     // Do not call _CFStandardApplicationPreferences(), as we do not want to create the preferences only to synchronize
     __CFLock(&__CFApplicationPreferencesLock);
@@ -231,7 +226,7 @@ void _CFApplicationPreferencesDomainHasChanged(CFPreferencesDomainRef changedDom
                 updateDictRep(appPrefs);
             }
         }
-        if(prefsArray != prefsBuf) _CFAllocatorDeallocateGC(alloc, prefsArray);
+        if(prefsArray != prefsBuf) CFAllocatorDeallocate(alloc, prefsArray);
     }
     __CFUnlock(&__CFApplicationPreferencesLock);
 }
@@ -423,7 +418,7 @@ void _CFApplicationPreferencesSetStandardSearchList(_CFApplicationPreferences *a
 #undef ADD_DOMAIN
 
 
-CF_EXPORT _CFApplicationPreferences *_CFStandardApplicationPreferences(CFStringRef appName) {
+CF_PRIVATE _CFApplicationPreferences *_CFStandardApplicationPreferences(CFStringRef appName) {
     _CFApplicationPreferences *appPreferences;
 //    CFAssert(appName != kCFPreferencesAnyApplication, __kCFLogAssertion, "Cannot use any of the CFPreferences...App... functions with an appName of kCFPreferencesAnyApplication");
     __CFLock(&__CFApplicationPreferencesLock);

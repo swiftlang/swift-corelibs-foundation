@@ -1,21 +1,16 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*      CFBundle_Grok.c
-        Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
         Responsibility: Tony Parker
 */
 
 #include "CFBundle_Internal.h"
 
-#if defined(BINARY_SUPPORT_DYLD)
+#if BINARY_SUPPORT_DYLD
 // Import the mach-o headers that define the macho magic numbers
 #include <mach-o/loader.h>
 #include <mach-o/fat.h>
@@ -32,7 +27,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#if defined(BINARY_SUPPORT_DLFCN)
+#if BINARY_SUPPORT_DLFCN
 #include <dlfcn.h>
 #endif /* BINARY_SUPPORT_DLFCN */
 

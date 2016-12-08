@@ -102,8 +102,8 @@ class TestNSURL : XCTestCase {
         }
     }
     
-    internal func generateResults(_ url: URL, pathComponent: String?, pathExtension : String?) -> [String : String] {
-        var result = [String : String]()
+    internal func generateResults(_ url: URL, pathComponent: String?, pathExtension : String?) -> [String : Any] {
+        var result = [String : Any]()
         if let pathComponent = pathComponent {
             let newFileURL = url.appendingPathComponent(pathComponent, isDirectory: false)
             result["appendingPathComponent-File"] = newFileURL.relativeString
@@ -123,8 +123,8 @@ class TestNSURL : XCTestCase {
             result["absoluteURLString"] = url.absoluteURL.relativeString
             result["scheme"] = url.scheme ?? kNullString
             result["host"] = url.host ?? kNullString
-            // Temporarily disabled because we're only checking string results
-            // result["port"] = url.port ?? kNullString
+            
+            result["port"] = url.port ?? kNullString
             result["user"] = url.user ?? kNullString
             result["password"] = url.password ?? kNullString
             result["path"] = url.path
@@ -134,9 +134,8 @@ class TestNSURL : XCTestCase {
             result["isFileURL"] = url.isFileURL ? "YES" : "NO"
             result["standardizedURL"] = url.standardized.relativeString
             
-            // Temporarily disabled because we're only checking string results
-            // result["pathComponents"] = url.pathComponents ?? kNullString
-            result["lastPathComponent"] = url.lastPathComponent 
+            result["pathComponents"] = url.pathComponents 
+            result["lastPathComponent"] = url.lastPathComponent
             result["pathExtension"] = url.pathExtension
             result["deletingLastPathComponent"] = url.deletingLastPathComponent().relativeString
             result["deletingLastPathExtension"] = url.deletingPathExtension().relativeString
@@ -144,18 +143,39 @@ class TestNSURL : XCTestCase {
         return result
     }
 
-    internal func compareResults(_ url : URL, expected : [String : Any], got : [String : String]) -> (Bool, [String]) {
+    internal func compareResults(_ url : URL, expected : [String : Any], got : [String : Any]) -> (Bool, [String]) {
         var differences = [String]()
         for (key, obj) in expected {
             // Skip non-string expected results
             if ["port", "standardizedURL", "pathComponents"].contains(key) {
                 continue
             }
-            if let stringObj = obj as? String {
-                if stringObj != got[key] {
-                    differences.append(" \(key)  Expected = '\(stringObj)',  Got = '\(got[key] as Optional)'")
+            if let expectedValue = obj as? String {
+                if let testedValue = got[key] as? String {
+                    if expectedValue != testedValue {
+                        differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(testedValue)'")
+                    }
+                } else {
+                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(got[key])'")
+                }
+            } else if let expectedValue = obj as? [String] {
+                if let testedValue = got[key] as? [String] {
+                    if expectedValue != testedValue {
+                        differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(testedValue)'")
+                    }
+                } else {
+                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(got[key])'")
+                }
+            } else if let expectedValue = obj as? Int {
+                if let testedValue = got[key] as? Int {
+                    if expectedValue != testedValue {
+                        differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(testedValue)'")
+                    }
+                } else {
+                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(got[key])'")
                 }
             }
+            
         }
         for (key, obj) in got {
             if expected[key] == nil {
@@ -179,9 +199,9 @@ class TestNSURL : XCTestCase {
             let inBase = testDict[kURLTestBaseKey] as! String?
             let inPathComponent = testDict[kURLTestPathComponentKey] as! String?
             let inPathExtension = testDict[kURLTestPathExtensionKey] as! String?
-            let expectedCFResults = testDict[kURLTestCFResultsKey]!
             let expectedNSResult = testDict[kURLTestNSResultsKey]!
             var url : URL? = nil
+            
             switch (testDict[kURLTestURLCreatorKey]! as! String) {
             case kNSURLWithStringCreator:
                 url = URLWithString(inURL, baseString: inBase)
@@ -191,18 +211,16 @@ class TestNSURL : XCTestCase {
             default:
                 XCTFail()
             }
-            
-            if let url = url {
-                if title == "NSURLWithString-parse-ambiguous-url-001" {
-                    // TODO: Fix this test
-                } else {
-                    let results = generateResults(url, pathComponent: inPathComponent, pathExtension: inPathExtension)
-                    let (isEqual, differences) = compareResults(url, expected: expectedNSResult as! [String: Any], got: results)
-                    XCTAssertTrue(isEqual, "\(title): \(differences)")
-                }
+            if title == "NSURLWithString-parse-ambiguous-url-001" {
+                // TODO: Fix this test
             } else {
-                XCTAssertEqual(expectedCFResults as? String, kNullURLString)
-                XCTAssertEqual(expectedNSResult as? String, kNullURLString)
+                if let url = url {
+                        let results = generateResults(url, pathComponent: inPathComponent, pathExtension: inPathExtension)
+                        let (isEqual, differences) = compareResults(url, expected: expectedNSResult as! [String: Any], got: results)
+                        XCTAssertTrue(isEqual, "\(title): \(differences.joined(separator: "\n"))")
+                } else {
+                    XCTAssertEqual(expectedNSResult as? String, kNullURLString)
+                }
             }
         }
         

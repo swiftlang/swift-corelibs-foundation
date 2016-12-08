@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFInternal.h
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 /*
@@ -109,6 +104,17 @@ CF_EXTERN_C_BEGIN
 #endif
 #include <pthread.h>
 
+#if __has_include(<os/log.h>)
+#import <os/log.h>
+#else
+typedef struct os_log_s *os_log_t;
+#define os_log(...)
+#define os_log_info(...)
+#define os_log_debug(...)
+#define os_log_error(...)
+#define os_log_create(...) (NULL)
+#endif
+
 #if DEPLOYMENT_TARGET_MACOSX && DEPLOYMENT_RUNTIME_SWIFT
 // This target configuration some how misses the availability macros to let these be defined, so this works-around the missing definitions
 #ifndef PTHREAD_ERRORCHECK_MUTEX_INITIALIZER
@@ -128,7 +134,6 @@ CF_EXTERN_C_BEGIN
 #define __CF_LITTLE_ENDIAN__ 1
 #define __CF_BIG_ENDIAN__ 0
 #endif
-
 
 #include <CoreFoundation/ForFoundationOnly.h>
 #if DEPLOYMENT_RUNTIME_SWIFT
@@ -150,7 +155,9 @@ CF_EXPORT void _CFMachPortInstallNotifyPort(CFRunLoopRef rl, CFStringRef mode);
 #endif
 
 
-CF_EXPORT CFIndex __CFActiveProcessorCount();
+CF_PRIVATE os_log_t _CFOSLog(void);
+
+CF_PRIVATE CFIndex __CFActiveProcessorCount();
 
 #ifndef CLANG_ANALYZER_NORETURN
 #if __has_feature(attribute_analyzer_noreturn)
@@ -161,36 +168,33 @@ CF_EXPORT CFIndex __CFActiveProcessorCount();
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
-#if !defined(__GNUC__)
-#define __builtin_trap() DebugBreak()
-#define __builtin_unreachable() __assume(0)
-#endif
+#define __builtin_unreachable() do { } while (0)
 #endif
 
-#if defined(__GNUC__)
-    #define HALT do {__builtin_trap(); kill(getpid(), 9); __builtin_unreachable(); } while (0)
-#elif defined(_MSC_VER)
-    #define HALT do { __builtin_trap(); abort(); __builtin_unreachable(); } while (0)
-#else
-    #error Compiler not supported
+#if defined(__i386__) || defined(__x86_64__)
+    #if defined(__GNUC__)
+        #define HALT do {asm __volatile__("int3"); kill(getpid(), 9); __builtin_unreachable(); } while (0)
+    #elif defined(_MSC_VER)
+        #define HALT do { DebugBreak(); abort(); __builtin_unreachable(); } while (0)
+    #else
+        #error Compiler not supported
+    #endif
 #endif
+
 
 #if defined(DEBUG)
-    #define __CFAssert(cond, prio, desc, ...)                                  \
-        do {                                                                   \
-          if (!(cond)) {                                                       \
-            CFLog(prio, CFSTR(desc), ##__VA_ARGS__);                             \
-            HALT;                                                              \
-          }                                                                    \
-        } while (0)
+    #define CFAssert(cond, prio, desc) do { if (!(cond)) { CFLog(prio, CFSTR(desc)); /* HALT; */ } } while (0)
+    #define CFAssert1(cond, prio, desc, a1) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1); /* HALT; */ } } while (0)
+    #define CFAssert2(cond, prio, desc, a1, a2) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2); /* HALT; */ } } while (0)
+    #define CFAssert3(cond, prio, desc, a1, a2, a3) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2, a3); /* HALT; */ } } while (0)
+    #define CFAssert4(cond, prio, desc, a1, a2, a3, a4) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2, a3, a4); /* HALT; */ } } while (0)
 #else
-    #define __CFAssert(cond, prio, desc, ...)                                  \
-      do {                                                                     \
-      } while (0)
+    #define CFAssert(cond, prio, desc) do {} while (0)
+    #define CFAssert1(cond, prio, desc, a1) do {} while (0)
+    #define CFAssert2(cond, prio, desc, a1, a2) do {} while (0)
+    #define CFAssert3(cond, prio, desc, a1, a2, a3) do {} while (0)
+    #define CFAssert4(cond, prio, desc, a1, a2, a3, a4) do {} while (0)
 #endif
-
-#define CFAssert(condition, priority, description, ...)                        \
-  __CFAssert((condition), (priority), description, ##__VA_ARGS__)
 
 #define __kCFLogAssertion	3
 
@@ -235,6 +239,8 @@ enum {
         __CFTSDKeyMachMessageBoost = 12, // valid only in the context of a CFMachPort callout
         __CFTSDKeyMachMessageHasVoucher = 13,
         __CFTSDKeyWeakReferenceHandler = 14,
+        __CFTSDKeyIsInPreferences = 15,
+        __CFTSDKeyIsHoldingGlobalPreferencesLock = 16, // this can be removed if we run out of TSD keys, it's just for assertions
 	// autorelease pool stuff must be higher than run loop constants
 	__CFTSDKeyAutoreleaseData2 = 61,
 	__CFTSDKeyAutoreleaseData1 = 62,
@@ -283,26 +289,10 @@ CF_INLINE CFAllocatorRef __CFGetDefaultAllocator(void) {
 #define __kCFAllocatorTempMemory	0x2
 #define __kCFAllocatorNoPointers	0x10
 #define __kCFAllocatorDoNotRecordEvent	0x100
-#define __kCFAllocatorGCScannedMemory 0x200     /* GC:  memory should be scanned. */
-#define __kCFAllocatorGCObjectMemory 0x400      /* GC:  memory needs to be finalized. */
-
-CF_INLINE auto_memory_type_t CF_GET_GC_MEMORY_TYPE(CFOptionFlags flags) {
-	auto_memory_type_t type = (flags & __kCFAllocatorGCScannedMemory ? 0 : AUTO_UNSCANNED) | (flags & __kCFAllocatorGCObjectMemory ? AUTO_OBJECT : 0);
-    return type;
-}
 
 CF_INLINE void __CFAssignWithWriteBarrier(void **location, void *value) {
-    if (kCFUseCollectableAllocator) {
-        objc_assign_strongCast((id)value, (id *)location);
-    } else {
-        *location = value;
-    }
+    *location = value;
 }
-
-// Zero-retain count CFAllocator functions, i.e. memory that will be collected, no dealloc necessary
-CF_EXPORT void *_CFAllocatorAllocateGC(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint);
-CF_EXPORT void *_CFAllocatorReallocateGC(CFAllocatorRef allocator, void *ptr, CFIndex newsize, CFOptionFlags hint);
-CF_EXPORT void _CFAllocatorDeallocateGC(CFAllocatorRef allocator, void *ptr);
 
 CF_EXPORT CFAllocatorRef _CFTemporaryMemoryAllocator(void);
 
@@ -342,83 +332,66 @@ CF_PRIVATE Boolean __CFProcessIsRestricted();
 #define STACK_BUFFER_DECL(T, N, C) T N[C]
 #endif
 
-#ifdef __ANDROID__
-// Avoids crashes on Android
-// https://bugs.swift.org/browse/SR-2587
-// https://bugs.swift.org/browse/SR-2588
-// Seemed to be a linker/relocation? problem.
-// CFStrings using CONST_STRING_DECL() were not working
-// Applies reference to _NSCFConstantString's isa here
-// rather than using a linker option to create an alias.
-#define __CFConstantStringClassReference _TMC10Foundation19_NSCFConstantString
-#endif
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
-#if defined(__CONSTANT_CFSTRINGS__)
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+
 CF_EXPORT void *__CFConstantStringClassReference[];
+
+#if DEPLOYMENT_TARGET_LINUX
+#define CONST_STRING_SECTION __attribute__((section(".cfstr.data")))
 #else
-CF_EXPORT int __CFConstantStringClassReference[];
+#define CONST_STRING_SECTION
+#endif
+
+#define CONST_STRING_DECL(S, V) \
+const struct __CFConstStr __##S CONST_STRING_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
+const CFStringRef S = (CFStringRef)&__##S;
+
+#define PE_CONST_STRING_DECL(S, V) \
+const static struct __CFConstStr __##S CONST_STRING_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
+CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
+
+
+#elif defined(__CONSTANT_CFSTRINGS__)
+
+#define CONST_STRING_DECL(S, V) const CFStringRef S = (const CFStringRef)__builtin___CFStringMakeConstantString(V);
+#define PE_CONST_STRING_DECL(S, V) CF_PRIVATE const CFStringRef S = (const CFStringRef)__builtin___CFStringMakeConstantString(V);
+
+#else
 
 struct CF_CONST_STRING {
     CFRuntimeBase _base;
     uint8_t *_ptr;
-#if defined(__LP64__) && defined(__BIG_ENDIAN__)
-    uint64_t _length;
-#else
     uint32_t _length;
-#endif
 };
-#endif
+
+CF_EXPORT int __CFConstantStringClassReference[];
+
+/* CFNetwork also has a copy of the CONST_STRING_DECL macro (for use on platforms without constant string support in cc); please warn cfnetwork-core@group.apple.com of any necessary changes to this macro. -- REW, 1/28/2002 */
 
 #if __CF_BIG_ENDIAN__
-#define __CFSTR_FLAGS {0x00, 0x00, 0x07, 0xc8}
+
+#define CONST_STRING_DECL(S, V)			\
+static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0x00, 0x00, 0x07, 0xc8}}, (uint8_t *)V, sizeof(V) - 1}; \
+const CFStringRef S = (CFStringRef) & __ ## S ## __;
+#define PE_CONST_STRING_DECL(S, V)			\
+static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0x00, 0x00, 0x07, 0xc8}}, (uint8_t *)V, sizeof(V) - 1}; \
+CF_PRIVATE const CFStringRef S = (CFStringRef) & __ ## S ## __;
+
 #elif __CF_LITTLE_ENDIAN__
-#define __CFSTR_FLAGS {0xc8, 0x07, 0x00, 0x00}
+
+#define CONST_STRING_DECL(S, V)			\
+static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
+const CFStringRef S = (CFStringRef) & __ ## S ## __;
+#define PE_CONST_STRING_DECL(S, V)			\
+static struct CF_CONST_STRING __ ## S ## __ = {{(uintptr_t)&__CFConstantStringClassReference, {0xc8, 0x07, 0x00, 0x00}}, (uint8_t *)(V), sizeof(V) - 1}; \
+CF_PRIVATE const CFStringRef S = (CFStringRef) & __ ## S ## __;
+
 #endif
 
-#if defined(__CONSTANT_CFSTRINGS__)
-#define __CFSTR_TAG __CFConstStr
-#define __CFSTR_CONST const
-#else
-#define __CFSTR_TAG CF_CONST_STRING
-#define __CFSTR_CONST
-#endif
-
-#if DEPLOYMENT_RUNTIME_SWIFT
- // TODO: Pinned retain count for constants?
- #define __CFSTR_RC_INIT _CF_CONSTANT_OBJECT_STRONG_RC, 0,
-
- #if DEPLOYMENT_TARGET_LINUX
-  #define __CFSTR_SECTION __attribute__((section(".cfstr.data")))
- #else
-  #define __CFSTR_SECTION
- #endif
-#else
- #define __CFSTR_RC_INIT
- #define __CFSTR_SECTION
-#endif
-
-/*
- * CFNetwork also has a copy of the CONST_STRING_DECL macro (for use on
- * platforms without constant string support in cc); please warn
- * cfnetwork-core@group.apple.com of any necessary changes to this macro.
- *  -- REW, 1/28/2002
- */
-#define CONST_STRING_DECL(S, V)                                                \
-  __CFSTR_CONST struct __CFSTR_TAG __##S __CFSTR_SECTION = {                   \
-      {(uintptr_t)&__CFConstantStringClassReference,                           \
-       __CFSTR_RC_INIT __CFSTR_FLAGS},                                         \
-      (uint8_t *)(V),                                                          \
-      sizeof(V) - 1};                                                          \
-  const CFStringRef S = (CFStringRef)&__##S;
-
-#define PE_CONST_STRING_DECL(S, V)                                             \
-  static __CFSTR_CONST struct __CFSTR_TAG __##S __CFSTR_SECTION = {            \
-      {(uintptr_t)&__CFConstantStringClassReference,                           \
-       __CFSTR_RC_INIT __CFSTR_FLAGS},                                         \
-      (uint8_t *)(V),                                                          \
-      sizeof(V) - 1};                                                          \
-  CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
+#endif // __CONSTANT_CFSTRINGS__
 
 CF_EXPORT bool __CFOASafe;
 CF_EXPORT void __CFSetLastAllocationEventName(void *ptr, const char *classname);
@@ -442,24 +415,43 @@ extern CFTypeRef CFMakeUncollectable(CFTypeRef cf);
 
 CF_PRIVATE void _CFRaiseMemoryException(CFStringRef reason);
 
-extern CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
+CF_EXPORT CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
 
 CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX
 
 typedef pthread_mutex_t CFLock_t;
 
 #define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER)
 #define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
 
-#define __CFLock(LP) ({ (void)pthread_mutex_lock(LP); })
+#define __CFLock(LP) ({ \
+    (void)pthread_mutex_lock(LP); })
 
-#define __CFUnlock(LP) ({ (void)pthread_mutex_unlock(LP); })
+#define __CFUnlock(LP) ({ \
+    (void)pthread_mutex_unlock(LP); })
 
-#define __CFLockTry(LP) ({ pthread_mutex_trylock(LP) == 0; })
+#define __CFLockTry(LP) ({ \
+    pthread_mutex_trylock(LP) == 0; })
+
+#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+
+typedef pthread_mutex_t CFLock_t;
+
+#define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER)
+#define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
+
+#define __CFLock(LP) ({ \
+    (void)pthread_mutex_lock(LP); })
+
+#define __CFUnlock(LP) ({ \
+    (void)pthread_mutex_unlock(LP); })
+
+#define __CFLockTry(LP) ({ \
+    pthread_mutex_trylock(LP) == 0; })
 
 #elif DEPLOYMENT_TARGET_WINDOWS
 
@@ -515,7 +507,6 @@ typedef CFLock_t OSSpinLock;
 #define __CFUnlock(A)	do {} while (0)
 
 #endif
-
 
 #if !__HAS_DISPATCH__
 
@@ -629,11 +620,21 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
 
 extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 
-#define CF_OBJC_FUNCDISPATCHV(typeID, obj, ...) do { } while (0)
-#define CF_OBJC_CALLV(obj, ...) (0)
-#define CF_IS_OBJC(typeID, obj) (0)
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define CF_IS_SWIFT(type, obj) (_CFIsSwift(type, (CFSwiftRef)obj))
+
+#define CF_SWIFT_FUNCDISPATCHV(type, ret, obj, fn, ...) do { \
+    if (CF_IS_SWIFT(type, obj)) { \
+        return (ret)__CFSwiftBridge.fn((CFSwiftRef)obj, ##__VA_ARGS__); \
+    } \
+} while (0)
 
 #define CF_SWIFT_CALLV(obj, fn, ...) __CFSwiftBridge.fn((CFSwiftRef)obj, ##__VA_ARGS__)
+#else
+#define CF_IS_SWIFT(type, obj) (0)
+#define CF_SWIFT_FUNCDISPATCHV(type, ret, obj, fn, ...) do { } while (0)
+#define CF_SWIFT_CALLV(obj, fn, ...) (0)
+#endif
 
 extern uintptr_t __CFRuntimeObjCClassTable[];
 
@@ -641,8 +642,10 @@ CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
     return (typeID < __CFRuntimeClassTableSize) ? __CFRuntimeObjCClassTable[typeID] : 0;
 }
 
-/* For Swift, which can't allocate any CF objects until after the bridge is initialized */
-CF_PRIVATE void __CFNumberInitialize(void);
+
+#define CF_OBJC_FUNCDISPATCHV(typeID, obj, ...) do { } while (0)
+#define CF_OBJC_CALLV(obj, ...) (0)
+#define CF_IS_OBJC(typeID, obj) (0)
 
 /* See comments in CFBase.c
 */
@@ -678,28 +681,22 @@ CF_PRIVATE void __CFNumberInitialize(void);
 
 extern void *__CFLookupCFNetworkFunction(const char *name);
 
-#define DEFINE_WEAK_CFNETWORK_FUNC(R, N, P, A, ...)             \
-    typedef R (*dyfuncptr)P;                                    \
-    static dyfuncptr dyfunc = (dyfuncptr)(~(uintptr_t)0);	\
-    if ((dyfuncptr)(~(uintptr_t)0) == dyfunc) {			\
-        dyfunc = (dyfuncptr)__CFLookupCFNetworkFunction(#N); }	\
-    if (dyfunc) { return dyfunc A ; }				\
-    return __VA_ARGS__ ;					\
-}
-
-#define DEFINE_WEAK_CFNETWORK_FUNC_FAIL(R, N, P, A, FAILACTION, ...)	\
-static R __CFNetwork_ ## N P {                                  \
-    typedef R (*dyfuncptr)P;                                    \
-    static dyfuncptr dyfunc = (dyfuncptr)(~(uintptr_t)0);       \
-    if ((dyfuncptr)(~(uintptr_t)0) == dyfunc) {                 \
-        dyfunc = (dyfuncptr)__CFLookupCFNetworkFunction(#N); }  \
-    if (dyfunc) { return dyfunc A ; }                           \
-    FAILACTION ;                                                \
-    return __VA_ARGS__ ;                                        \
-}
+#define DEFINE_WEAK_CFNETWORK_FUNC_FAIL(R, N, P, A, FAILACTION, ...)        \
+    static R __CFNetwork_ ## N P {                                          \
+        typedef R (*dyfuncptr)P;                                            \
+        static dyfuncptr dyfunc = (dyfuncptr)(~(uintptr_t)0);               \
+        static dispatch_once_t onceToken;                                   \
+        dispatch_once(&onceToken, ^{                                        \
+            dyfunc = (dyfuncptr)__CFLookupCFNetworkFunction(#N);            \
+        });                                                                 \
+        if (dyfunc) {                                                       \
+            return dyfunc A ;                                               \
+        }                                                                   \
+        FAILACTION ;                                                        \
+        return __VA_ARGS__ ;                                                \
+    }
 
 #else
-#define DEFINE_WEAK_CFNETWORK_FUNC(R, N, P, A, ...)
 #define DEFINE_WEAK_CFNETWORK_FUNC_FAIL(R, N, P, A, ...)
 #endif
 
@@ -713,9 +710,10 @@ extern void *__CFLookupCoreServicesInternalFunction(const char *name);
     static R __CFCoreServicesInternal_ ## N P {                             \
         typedef R (*dyfuncptr)P;                                            \
         static dyfuncptr dyfunc = (dyfuncptr)(~(uintptr_t)0);               \
-        if ((dyfuncptr)(~(uintptr_t)0) == dyfunc) {                         \
+        static dispatch_once_t onceToken;                                   \
+        dispatch_once(&onceToken, ^{                                        \
             dyfunc = (dyfuncptr)__CFLookupCoreServicesInternalFunction(#N); \
-        }                                                                   \
+        });                                                                 \
         if (dyfunc) {                                                       \
             return dyfunc A ;                                               \
         }                                                                   \
@@ -744,7 +742,8 @@ CF_INLINE CFAllocatorRef __CFGetAllocator(CFTypeRef cf) {	// !!! Use with CF typ
     if (__builtin_expect(__CFBitfieldGetValue(((const CFRuntimeBase *)cf)->_cfinfo[CF_INFO_BITS], 7, 7), 1)) {
 	return kCFAllocatorSystemDefault;
     }
-    return *(CFAllocatorRef *)((char *)cf - sizeof(CFAllocatorRef));
+    // To preserve 16 byte alignment when using custom allocators, we always place the CFAllocatorRef 16 bytes before the CFType
+    return *(CFAllocatorRef *)((char *)cf - 16);
 }
 
 /* !!! Avoid #importing objc.h; e.g. converting this to a .m file */
@@ -830,11 +829,16 @@ CF_INLINE const char *CFPathRelativeToAppleFrameworksRoot(const char *path, Bool
     return path;
 }
 
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX)
 #if __HAS_DISPATCH__
 
 #include <dispatch/dispatch.h>
+#if __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
+#else
+enum {
+    DISPATCH_QUEUE_OVERCOMMIT = 0x2ull,
+};
+#endif
 
 #if DEPLOYMENT_TARGET_LINUX
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
@@ -843,12 +847,13 @@ CF_INLINE const char *CFPathRelativeToAppleFrameworksRoot(const char *path, Bool
 #define QOS_CLASS_BACKGROUND DISPATCH_QUEUE_PRIORITY_BACKGROUND
 
 CF_INLINE long qos_class_main() {
-	return QOS_CLASS_USER_INITIATED;
+    return QOS_CLASS_USER_INITIATED;
 }
 
 CF_INLINE long qos_class_self() {
-	return QOS_CLASS_DEFAULT;
+    return QOS_CLASS_DEFAULT;
 }
+
 #endif
 
 // Returns a generic dispatch queue for when you want to just throw some work
@@ -874,7 +879,16 @@ CF_INLINE dispatch_queue_t __CFDispatchQueueGetGenericBackground(void) {
 }
 
 #endif
-#endif
+
+CF_PRIVATE CFStringRef _CFStringCopyBundleUnloadingProtectedString(CFStringRef str);
+
+// Use this for functions that are intended to be breakpoint hooks. If you do not, the compiler may optimize them away.
+// Based on: BREAKPOINT_FUNCTION in objc-os.h
+// Example:
+//   CF_BREAKPOINT_FUNCTION( void stop_on_error(void) ); */
+#define CF_BREAKPOINT_FUNCTION(prototype) \
+    extern __attribute__((noinline, used, visibility("hidden"))) \
+    prototype { asm(""); }
 
 CF_EXTERN_C_END
 

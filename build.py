@@ -158,7 +158,8 @@ public = [
 	'CoreFoundation/NumberDate.subproj/CFNumber.h',
 	'CoreFoundation/Collections.subproj/CFData.h',
 	'CoreFoundation/String.subproj/CFAttributedString.h',
-	'CoreFoundation/Base.subproj/CoreFoundation_Prefix.h'
+	'CoreFoundation/Base.subproj/CoreFoundation_Prefix.h',
+	'CoreFoundation/AppServices.subproj/CFNotificationCenter.h'
 ],
 private = [
 	'CoreFoundation/Base.subproj/ForSwiftFoundationOnly.h',
@@ -200,6 +201,8 @@ private = [
 	'CoreFoundation/StringEncodings.subproj/CFICUConverters.h',
 	'CoreFoundation/String.subproj/CFRegularExpression.h',
 	'CoreFoundation/String.subproj/CFRunArray.h',
+	'CoreFoundation/Locale.subproj/CFDateFormatter_Private.h',
+	'CoreFoundation/Locale.subproj/CFLocale_Private.h',
 ],
 project = [
 ])
@@ -513,7 +516,7 @@ build install: phony | ${BUILD_DIR}/.install
 """
 extra_script += """
 rule RunTestFoundation
-    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${LIBS_DIRS} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${LIBS_DIRS} lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
+    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${LIBS_DIRS} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${LIBS_DIRS} ${BUILD_DIR}/../lldb-${OS}-${ARCH}/bin/lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
     description = Building Tests
 
 build ${BUILD_DIR}/.test: RunTestFoundation | TestFoundation

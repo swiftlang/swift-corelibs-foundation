@@ -1,16 +1,11 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	
- CFLocaleInternal.h
- Copyright (c) 2008 - 2015 Apple Inc. and the Swift project authors
+	CFLocaleInternal.h
+	Copyright (c) 2008-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
  */
 
 /*
@@ -36,6 +31,7 @@ CF_EXPORT CFStringRef const kCFLocaleGroupingSeparatorKey;
 CF_EXPORT CFStringRef const kCFLocaleIdentifierKey;
 CF_EXPORT CFStringRef const kCFLocaleLanguageCodeKey;
 CF_EXPORT CFStringRef const kCFLocaleMeasurementSystemKey;
+CF_EXPORT CFStringRef const kCFLocaleTemperatureUnitKey;
 CF_EXPORT CFStringRef const kCFLocaleScriptCodeKey;
 CF_EXPORT CFStringRef const kCFLocaleUsesMetricSystemKey;
 CF_EXPORT CFStringRef const kCFLocaleVariantCodeKey;

@@ -156,7 +156,7 @@ internal extension String {
 
 public extension NSString {
     
-    public var absolutePath: Bool {
+    public var isAbsolutePath: Bool {
         return hasPrefix("~") || hasPrefix("/")
     }
     

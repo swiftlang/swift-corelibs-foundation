@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFStreamAbstract.h
-	Copyright (c) 2000 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2016, Apple Inc.and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFSTREAMABSTRACT__)
@@ -119,19 +114,6 @@ CF_EXPORT
 void *_CFReadStreamGetClient(CFReadStreamRef readStream);
 CF_EXPORT
 void *_CFWriteStreamGetClient(CFWriteStreamRef writeStream);
-
-// Returns an array of the runloops and modes on which the stream is currently scheduled
-// Note that these are unretained mutable arrays - use the copy variant instead.
-CF_EXPORT
-CFArrayRef _CFReadStreamGetRunLoopsAndModes(CFReadStreamRef readStream);
-CF_EXPORT
-CFArrayRef _CFWriteStreamGetRunLoopsAndModes(CFWriteStreamRef writeStream);
-
-// Returns an array of the runloops and modes on which the stream is currently scheduled
-CF_EXPORT
-CFArrayRef _CFReadStreamCopyRunLoopsAndModes(CFReadStreamRef readStream);
-CF_EXPORT
-CFArrayRef _CFWriteStreamCopyRunLoopsAndModes(CFWriteStreamRef writeStream);
 
 /* Deprecated versions; here for backwards compatibility. */
 typedef struct {

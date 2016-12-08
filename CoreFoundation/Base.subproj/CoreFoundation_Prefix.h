@@ -1,21 +1,31 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CoreFoundation_Prefix.h
-	Copyright (c) 2005 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2005-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #ifndef __COREFOUNDATION_PREFIX_H__
 #define __COREFOUNDATION_PREFIX_H__ 1
 
 #define _DARWIN_UNLIMITED_SELECT 1
+
+#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS)
+#if DEPLOYMENT_RUNTIME_SWIFT
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+#define __HAS_DISPATCH__ 1
+#else
+#define __HAS_DISPATCH__ 0
+#endif
+#else
+#define __HAS_DISPATCH__ 1
+#endif
+#endif
+#if DEPLOYMENT_TARGET_LINUX && DEPLOYMENT_RUNTIME_SWIFT && DEPLOYMENT_ENABLE_LIBDISPATCH
+#define __HAS_DISPATCH__ 1
+#endif
 
 #include <CoreFoundation/CFBase.h>
 
@@ -64,19 +74,12 @@ typedef char * Class;
 #define CRSetCrashLogMessage(A) do {} while (0)
 #define CRSetCrashLogMessage2(A) do {} while (0)
 
-#ifndef CF_SWIFT_EXPORT
-#if DEPLOYMENT_RUNTIME_SWIFT
-#define CF_SWIFT_EXPORT extern
-#else
-#define CF_SWIFT_EXPORT static
-#endif
-#endif
-
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-#include <libkern/OSAtomic.h>
-#include <pthread.h>
+#import <libkern/OSAtomic.h>
+#import <pthread.h>
 #endif
 
+    
 /* This macro creates some helper functions which are useful in dealing with libdispatch:
  *  __ PREFIX Queue -- manages and returns a singleton serial queue
  *
@@ -85,7 +88,7 @@ typedef char * Class;
  */
 
 #if __HAS_DISPATCH__
-
+    
 #define DISPATCH_HELPER_FUNCTIONS(PREFIX, QNAME)			\
 static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
     static volatile dispatch_queue_t __ ## PREFIX ## dq = NULL;		\
@@ -97,24 +100,15 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
         }								\
     }									\
     return __ ## PREFIX ## dq;						\
-}									\
+}
 
 #else
-    
+
 #define DISPATCH_HELPER_FUNCTIONS(PREFIX, QNAME)
-
-#endif
-
-#define LIBAUTO_STUB	1
-#define LIBAUTO_STUB_BASICS 1
-
     
-#if __CF_GC_SUPPORT && !__clang_analyzer__
-#define _CF_GC_SUPPORT 1
-#else
-#define _CF_GC_SUPPORT 0
 #endif
-
+    
+    
 // hint to the analyzer that the caller is no longer responsable for the object and that it will be transfered to the reciver that is opaque to the caller
 #if __clang_analyzer__
 #define CF_TRANSFER_OWNERSHIP(obj) (typeof(obj))[(id)obj autorelease]
@@ -135,18 +129,6 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
 #else
 #define CF_RETAIN_BALANCED_ELSEWHERE(obj, identified_location) do { } while (0)
 #endif
-    
-    
-#ifndef LIBAUTO_STUB
-
-#if DEPLOYMENT_TARGET_MACOSX
-#include <auto_zone.h>
-#endif
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-#include <objc/objc-auto.h>
-#endif
-
-#endif // LIBAUTO_STUB
 
 #if DEPLOYMENT_TARGET_WINDOWS
 // Compatibility with boolean.h
@@ -156,7 +138,7 @@ typedef unsigned int	boolean_t;
 typedef int		boolean_t;
 #endif
 #endif
-
+    
 #if DEPLOYMENT_TARGET_FREEBSD
 #include <string.h>
 #include <sys/stat.h> // mode_t
@@ -165,7 +147,6 @@ typedef int		boolean_t;
 #if DEPLOYMENT_TARGET_LINUX
     
 #define CF_PRIVATE __attribute__((visibility("hidden")))
-#define __strong
 #define __weak
 
 #define strtod_l(a,b,locale) strtod(a,b)
@@ -178,11 +159,11 @@ typedef int		boolean_t;
 
 #include <pthread.h>
 
-#ifdef __ANDROID__
+#if TARGET_OS_ANDROID
 typedef unsigned long fd_mask;
 #endif
-
-#if !defined(__ANDROID__) && !TARGET_OS_CYGWIN
+    
+#if !TARGET_OS_ANDROID && !TARGET_OS_CYGWIN
 CF_INLINE size_t
 strlcpy(char * dst, const char * src, size_t maxlen) {
     const size_t srclen = strlen(src);
@@ -244,7 +225,7 @@ CF_INLINE uint64_t mach_absolute_time() {
 }
 
 #endif
-
+    
 #if DEPLOYMENT_TARGET_FREEBSD
 #define HAVE_STRUCT_TIMESPEC 1
 
@@ -501,130 +482,8 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...);
 
 #endif
 
-#ifdef LIBAUTO_STUB_BASICS
-    
-CF_INLINE BOOL objc_isAuto(id object) { return 0; }
-CF_INLINE uintptr_t _object_getExternalHash(id obj) {
-    return (uintptr_t)obj;
-}    
-
-#endif
-
-#ifdef LIBAUTO_STUB
-
-#include <stddef.h>
-
-/* Stubs for functions in libauto. */
-
-enum {OBJC_GENERATIONAL = (1 << 0)};
-
-enum {
-    OBJC_RATIO_COLLECTION        = (0 << 0), 
-    OBJC_GENERATIONAL_COLLECTION = (1 << 0),
-    OBJC_FULL_COLLECTION         = (2 << 0),
-    OBJC_EXHAUSTIVE_COLLECTION   = (3 << 0),
-    OBJC_COLLECT_IF_NEEDED       = (1 << 3),
-    OBJC_WAIT_UNTIL_DONE         = (1 << 4),
-};
-
-    
-enum {
-    AUTO_TYPE_UNKNOWN = -1,
-    AUTO_UNSCANNED = (1 << 0),
-    AUTO_OBJECT = (1 << 1),
-    AUTO_POINTERS_ONLY = (1 << 2),
-    AUTO_MEMORY_SCANNED = !AUTO_UNSCANNED,
-    AUTO_MEMORY_UNSCANNED = AUTO_UNSCANNED,
-    AUTO_MEMORY_ALL_POINTERS = AUTO_POINTERS_ONLY,
-    AUTO_MEMORY_ALL_WEAK_POINTERS = (AUTO_UNSCANNED | AUTO_POINTERS_ONLY),
-    AUTO_OBJECT_SCANNED = AUTO_OBJECT,
-    AUTO_OBJECT_UNSCANNED = AUTO_OBJECT | AUTO_UNSCANNED, 
-    AUTO_OBJECT_ALL_POINTERS = AUTO_OBJECT | AUTO_POINTERS_ONLY
-};
-typedef unsigned long auto_memory_type_t;
-typedef struct _auto_zone_t auto_zone_t;
-typedef struct auto_weak_callback_block {
-    struct auto_weak_callback_block *next;
-    void (*callback_function)(void *arg1, void *arg2);
-    void *arg1;
-    void *arg2;
-} auto_weak_callback_block_t;
-
-CF_INLINE void *objc_memmove_collectable(void *a, const void *b, size_t c) { return memmove(a, b, c); }
-CF_INLINE void *objc_collectableZone(void) { return 0; }
-
-CF_INLINE void *auto_zone_allocate_object(void *zone, size_t size, auto_memory_type_t type, int rc, int clear) { return 0; }
-CF_INLINE const void *auto_zone_base_pointer(void *zone, const void *ptr) { return 0; }
-CF_INLINE void auto_zone_set_scan_exactly(void *zone, void *ptr) {}
-CF_INLINE void auto_zone_retain(void *zone, void *ptr) {}
-CF_INLINE unsigned int auto_zone_release(void *zone, void *ptr) { return 0; }
-CF_INLINE unsigned int auto_zone_retain_count(void *zone, const void *ptr) { return 0; }
-CF_INLINE void auto_zone_set_unscanned(void *zone, void *ptr) {}
-CF_INLINE void auto_zone_set_nofinalize(void *zone, void *ptr) {}
-CF_INLINE int auto_zone_is_finalized(void *zone, const void *ptr) { return 0; }
-CF_INLINE size_t auto_zone_size(void *zone, const void *ptr) { return 0; }
-CF_INLINE void auto_register_weak_reference(void *zone, const void *referent, void **referrer, uintptr_t *counter, void **listHead, void **listElement) {}
-CF_INLINE void auto_unregister_weak_reference(void *zone, const void *referent, void **referrer) {}
-CF_INLINE int auto_zone_is_valid_pointer(void *zone, const void *ptr) { return 0; }
-CF_INLINE void* auto_read_weak_reference(void *zone, void **referrer) { void *result = *referrer; return result; }
-CF_INLINE void auto_assign_weak_reference(void *zone, const void *value, const void **location, auto_weak_callback_block_t *block) { *location = (void *)value; }
-CF_INLINE auto_memory_type_t auto_zone_get_layout_type(void *zone, void *ptr) { return AUTO_UNSCANNED; }
-CF_INLINE int auto_zone_set_write_barrier(void *zone, const void *dest, const void *new_value) { return false; }
-
-CF_INLINE void objc_assertRegisteredThreadWithCollector(void) {}
-CF_INLINE void objc_registerThreadWithCollector(void) {}
-
-// from objc-auto.h
-
-CF_INLINE BOOL objc_atomicCompareAndSwapPtr(id predicate, id replacement, volatile id *objectLocation) 
-{ return OSAtomicCompareAndSwapPtr((void *)predicate, (void *)replacement, (void * volatile *)objectLocation); }
-
-CF_INLINE BOOL objc_atomicCompareAndSwapPtrBarrier(id predicate, id replacement, volatile id *objectLocation) 
-{ return OSAtomicCompareAndSwapPtrBarrier((void *)predicate, (void *)replacement, (void * volatile *)objectLocation); }
-
-CF_INLINE BOOL objc_atomicCompareAndSwapGlobal(id predicate, id replacement, volatile id *objectLocation) 
-{ return OSAtomicCompareAndSwapPtr((void *)predicate, (void *)replacement, (void * volatile *)objectLocation); }
-
-CF_INLINE BOOL objc_atomicCompareAndSwapGlobalBarrier(id predicate, id replacement, volatile id *objectLocation) 
-{ return OSAtomicCompareAndSwapPtrBarrier((void *)predicate, (void *)replacement, (void * volatile *)objectLocation); }
-
-CF_INLINE BOOL objc_atomicCompareAndSwapInstanceVariable(id predicate, id replacement, volatile id *objectLocation) 
-{ return OSAtomicCompareAndSwapPtr((void *)predicate, (void *)replacement, (void * volatile *)objectLocation); }
-
-CF_INLINE BOOL objc_atomicCompareAndSwapInstanceVariableBarrier(id predicate, id replacement, volatile id *objectLocation) 
-{ return OSAtomicCompareAndSwapPtrBarrier((void *)predicate, (void *)replacement, (void * volatile *)objectLocation); }
-
-CF_INLINE id objc_assign_strongCast(id val, id *dest) 
-{ return (*dest = val); }
-
-CF_INLINE id objc_assign_global(id val, id *dest) 
-{ return (*dest = val); }
-
-CF_INLINE id objc_assign_ivar(id val, id dest, ptrdiff_t offset) 
-{ return (*(id*)((char *)dest+offset) = val); }
-
-//CF_INLINE void *objc_memmove_collectable(void *dst, const void *src, size_t size) { return memmove(dst, src, size); }
-
-CF_INLINE id objc_read_weak(id *location) 
-{ return *location; }
-
-CF_INLINE id objc_assign_weak(id value, id *location) 
-{ return (*location = value); }
-
-
-CF_INLINE void objc_finalizeOnMainThread(Class cls) { }
-CF_INLINE BOOL objc_is_finalized(void *ptr) { return NO; }
-CF_INLINE void objc_clear_stack(unsigned long options) { }
-
-CF_INLINE BOOL objc_collectingEnabled(void) { return NO; }
-CF_INLINE void objc_start_collector_thread(void) { }
-
-CF_INLINE void objc_collect(unsigned long options) { }
-    
-#endif
-
 #if DEPLOYMENT_TARGET_WINDOWS && defined(__cplusplus)
 } // extern "C"
 #endif
 
-#endif
+#endif // __COREFOUNDATION_PREFIX_H__

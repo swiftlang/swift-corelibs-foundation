@@ -181,6 +181,8 @@ open class NSKeyedArchiver : NSCoder {
         plist["$objects"] = self._objects
         plist["$top"] = self._containers[0].dict
 
+        
+        
         if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiverWillFinish(self)
         }

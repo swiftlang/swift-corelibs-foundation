@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFPropertyList.h
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFPROPERTYLIST__)
@@ -29,8 +24,6 @@ typedef CF_OPTIONS(CFOptionFlags, CFPropertyListMutabilityOptions) {
     kCFPropertyListMutableContainers,
     kCFPropertyListMutableContainersAndLeaves
 };
-
-CF_IMPLICIT_BRIDGING_DISABLED
 
 /*
 	Creates a property list object from its XML description; xmlData should
@@ -60,8 +53,6 @@ CFPropertyListRef CFPropertyListCreateFromXMLData(CFAllocatorRef allocator, CFDa
 CF_EXPORT
 CFDataRef CFPropertyListCreateXMLData(CFAllocatorRef allocator, CFPropertyListRef propertyList) CF_DEPRECATED(10_0, 10_10, 2_0, 8_0, "Use CFPropertyListCreateData instead.");
 
-CF_IMPLICIT_BRIDGING_ENABLED
-
 /*
 	Recursively creates a copy of the given property list (so nested arrays
 	and dictionaries are copied as well as the top-most container). The
@@ -84,8 +75,6 @@ typedef CF_ENUM(CFIndex, CFPropertyListFormat) {
  * the format parameter. */
 CF_EXPORT
 Boolean CFPropertyListIsValid(CFPropertyListRef plist, CFPropertyListFormat format);
-
-CF_IMPLICIT_BRIDGING_DISABLED
 
 /* Writes the bytes of a plist serialization out to the stream.  The
  * stream must be opened and configured -- the function simply writes
@@ -115,8 +104,6 @@ CFIndex CFPropertyListWriteToStream(CFPropertyListRef propertyList, CFWriteStrea
 CF_EXPORT
 CFPropertyListRef CFPropertyListCreateFromStream(CFAllocatorRef allocator, CFReadStreamRef stream, CFIndex streamLength, CFOptionFlags mutabilityOption, CFPropertyListFormat *format, CFStringRef *errorString) CF_DEPRECATED(10_2, 10_10, 2_0, 8_0, "Use CFPropertyListCreateWithStream instead.");
 
-CF_IMPLICIT_BRIDGING_ENABLED
-
 CF_ENUM(CFIndex) {
     kCFPropertyListReadCorruptError = 3840,              // Error parsing a property list
     kCFPropertyListReadUnknownVersionError = 3841,       // The version number in the property list is unknown
@@ -144,9 +131,8 @@ CFIndex CFPropertyListWrite(CFPropertyListRef propertyList, CFWriteStreamRef str
 CF_EXPORT
 CFDataRef CFPropertyListCreateData(CFAllocatorRef allocator, CFPropertyListRef propertyList, CFPropertyListFormat format, CFOptionFlags options, CFErrorRef *error) CF_AVAILABLE(10_6, 4_0);
 
-
-CF_IMPLICIT_BRIDGING_DISABLED
 CF_EXTERN_C_END
+CF_IMPLICIT_BRIDGING_DISABLED
 
 #endif /* ! __COREFOUNDATION_CFPROPERTYLIST__ */
 

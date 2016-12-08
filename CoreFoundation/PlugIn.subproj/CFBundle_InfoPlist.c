@@ -1,20 +1,12 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
-//
-//  CFBundle_InfoPlist.c
-//  CoreFoundation
-//
-//  Created by Tony Parker on 5/30/12.
-//
-//
+/*      CFBundle_InfoPlist.c
+	Copyright (c) 2012-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+        Responsibility: Tony Parker
+ */
 
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFNumber.h>
@@ -27,9 +19,7 @@
 #if TARGET_OS_CYGWIN
 #else
 #include <dirent.h>
-#if __has_include(<sys/sysctl.h>)
 #include <sys/sysctl.h>
-#endif
 #include <sys/mman.h>
 #endif
 #endif
@@ -96,9 +86,12 @@ CF_EXPORT void _CFSetProductName(CFStringRef str) {
 CF_EXPORT CFStringRef _CFGetProductName(void) {
 #if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     if (!_cfBundlePlatform) {
-        const char *isClassic = __CFgetenv("CLASSIC");
-        if (isClassic && strnlen(isClassic, 1) >= 1 && isClassic[0] == '1') {
-            _cfBundlePlatform = CFSTR("iphone");
+        // We only honor the classic suffix if it is one of two preset values. Otherwise we fall back to the result of sysctlbyname.
+        const char *classicSuffix = __CFgetenv("CLASSIC_SUFFIX");
+        if (classicSuffix && strncmp(classicSuffix, "iphone", strlen("iphone")) == 0) {
+                _cfBundlePlatform = CFSTR("iphone");
+        } else if (classicSuffix && strncmp(classicSuffix, "ipad", strlen("ipad")) == 0) {
+                _cfBundlePlatform = CFSTR("ipad");
         } else {
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
@@ -112,17 +105,17 @@ CF_EXPORT CFStringRef _CFGetProductName(void) {
                 } else if (4 <= buflen && 0 == memcmp(buffer, "iPad", 4)) {
                     _cfBundlePlatform = CFSTR("ipad");
                 } else {
-                    const char *env = __CFgetenv("IPHONE_SIMULATOR_DEVICE");
+                    const char *env = __CFgetenv("SIMULATOR_LEGACY_ASSET_SUFFIX");
                     if (env) {
-                        if (0 == strcmp(env, "iPhone")) {
+                        if (0 == strcmp(env, "iphone")) {
                             _cfBundlePlatform = CFSTR("iphone");
-                        } else if (0 == strcmp(env, "iPad")) {
+                        } else if (0 == strcmp(env, "ipad")) {
                             _cfBundlePlatform = CFSTR("ipad");
                         } else {
-                            // fallback, unrecognized IPHONE_SIMULATOR_DEVICE
+                            // fallback, unrecognized SIMULATOR_LEGACY_ASSET_SUFFIX
                         }
                     } else {
-                        // fallback, unrecognized hw.machine and no IPHONE_SIMULATOR_DEVICE
+                        // fallback, unrecognized hw.machine and no SIMULATOR_LEGACY_ASSET_SUFFIX
                     }
                 }
             }
@@ -296,16 +289,16 @@ static Boolean _isOverrideKey(CFStringRef fullKey, CFStringRef *outBaseKey, CFSt
         if (outPlatformSuffix) {
             *outPlatformSuffix = platform;
         } else {
-            if (platform && !(0)) CFRelease(platform);
+            if (platform) CFRelease(platform);
         }
         if (outProductSuffix) {
             *outProductSuffix = product;
         } else {
-            if (product && !(0)) CFRelease(product);
+            if (product) CFRelease(product);
         }
     } else {
-        if (platform && !(0)) CFRelease(platform);
-        if (product && !(0)) CFRelease(product);
+        if (platform) CFRelease(platform);
+        if (product) CFRelease(product);
     }
     return result;
 }
@@ -441,12 +434,13 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectory(CFAllocatorRef
     return dict;
 }
 
+// If infoPlistUrl is passed as non-null it will return retained as the out parameter; callers are responsible for releasing.
 CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, CFURLRef * infoPlistUrl, uint8_t version) {
     // We only return NULL for a bad URL, otherwise we create a dummy dictionary
     if (!url) return NULL;
-
-    CFDictionaryRef result = NULL;    
-
+    
+    CFDictionaryRef result = NULL;
+    
     // We're going to search for two files here - Info.plist and Info-macos.plist (platform specific). The platform-specific one takes precedence.
     // First, construct the URL to the directory we'll search by using the passed in URL as a base
     CFStringRef platformInfoURLFromBase = _CFBundlePlatformInfoURLFromBase0;
@@ -483,10 +477,10 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
         absoluteURL = CFURLCopyAbsoluteURL(directoryURL);
         CFStringRef directoryPath = CFURLCopyFileSystemPath(absoluteURL, PLATFORM_PATH_STYLE);
         CFRelease(absoluteURL);
-
+        
         __block CFURLRef localInfoPlistURL = NULL;
         __block CFURLRef platformInfoPlistURL = NULL;
-
+        
         if (directoryPath) {
             CFIndex infoPlistLength = CFStringGetLength(_CFBundleInfoPlistName);
             CFIndex platformInfoPlistLength = CFStringGetLength(_CFBundlePlatformInfoPlistName);
@@ -551,11 +545,9 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
                 }
             } else if (error) {
                 // Avoid calling out from CFError (which can cause infinite recursion) by grabbing some of the vital info and printing it ourselves
-                CFDictionaryRef userInfo = CFErrorCopyUserInfo(error);
                 CFStringRef domain = CFErrorGetDomain(error);
                 CFIndex code = CFErrorGetCode(error);
-                CFLog(kCFLogLevelError, CFSTR("There was an error parsing the Info.plist for the bundle at URL %@\n %@ - %ld\n %@"), localInfoPlistURL, domain, code, userInfo);
-                if (userInfo) CFRelease(userInfo);
+                 CFLog(kCFLogLevelError, CFSTR("There was an error parsing the Info.plist for the bundle at URL <%p>: %@ - %ld"), localInfoPlistURL, domain, code);
                 CFRelease(error);
             }
             
@@ -578,10 +570,10 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
     if (!result) {
         result = CFDictionaryCreateMutable(alloc, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     }
-
+    
     // process ~ipad, ~iphone, etc.
     _CFBundleInfoPlistProcessInfoDictionary((CFMutableDictionaryRef)result);
-        
+    
     return result;
 }
 
@@ -657,7 +649,7 @@ static Boolean _CFBundleGetPackageInfoInDirectoryWithInfoDictionary(CFAllocatorR
                 if (packageCreator) *packageCreator = CFSwapInt32BigToHost(tmp);
                 retVal = hasCreator = true;
             }
-            if (releaseInfoDict && !(0)) CFRelease(infoDict);
+            if (releaseInfoDict) CFRelease(infoDict);
         }
     }
     if (!hasType || !hasCreator) {
@@ -759,9 +751,12 @@ static void _CFBundleInfoPlistFixupInfoDictionary(CFBundleRef bundle, CFMutableD
 CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle) {
     __CFLock(&bundle->_lock);
     if (!bundle->_infoDict) {
-        CFURLRef infoPlistUrl;
+        CFURLRef infoPlistUrl = NULL;
         bundle->_infoDict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(kCFAllocatorSystemDefault, bundle->_url, &infoPlistUrl, bundle->_version);
-        bundle->_infoPlistUrl = infoPlistUrl;
+        if (bundle->_infoPlistUrl) {
+            CFRelease(bundle->_infoPlistUrl);
+        }
+        bundle->_infoPlistUrl = infoPlistUrl; // transfered as retained
 
         // Add or fixup any keys that will be expected later
         if (bundle->_infoDict) _CFBundleInfoPlistFixupInfoDictionary(bundle, (CFMutableDictionaryRef)bundle->_infoDict);
@@ -950,6 +945,9 @@ CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRe
 }
 
 CF_EXPORT CFURLRef _CFBundleCopyInfoPlistURL(CFBundleRef bundle) {
+    __CFLock(&bundle->_lock);
     CFURLRef url = bundle->_infoPlistUrl;
-    return (url ? (CFURLRef) CFRetain(url) : NULL);
+    CFURLRef result = (url ? (CFURLRef) CFRetain(url) : NULL);
+    __CFUnlock(&bundle->_lock);
+    return result;
 }

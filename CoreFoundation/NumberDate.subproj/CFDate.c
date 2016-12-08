@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFDate.c
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Christopher Kane
 */
 
@@ -24,6 +19,10 @@
 
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
+#else
+#ifndef NSEC_PER_SEC
+#define NSEC_PER_SEC 1000000000UL
+#endif
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
@@ -31,6 +30,7 @@
 #endif
 
 #define DEFINE_CFDATE_FUNCTIONS 1
+
 
 /* cjk: The Julian Date for the reference date is 2451910.5,
         I think, in case that's ever useful. */
@@ -42,8 +42,6 @@ const CFTimeInterval kCFAbsoluteTimeIntervalSince1904 = 3061152000.0L;
 
 CF_PRIVATE double __CFTSRRate = 0.0;
 static double __CF1_TSRRate = 0.0;
-
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 
 CF_PRIVATE uint64_t __CFTimeIntervalToTSR(CFTimeInterval ti) {
     if ((ti * __CFTSRRate) > INT64_MAX / 2) return (INT64_MAX / 2);
@@ -66,11 +64,10 @@ CF_PRIVATE CFTimeInterval __CFTimeIntervalUntilTSR(uint64_t tsr) {
 
 // Technically this is 'TSR units' not a strict 'TSR' absolute time
 CF_PRIVATE uint64_t __CFTSRToNanoseconds(uint64_t tsr) {
-    double tsrInNanoseconds = floor(tsr * __CF1_TSRRate * 1000000000UL);
+    double tsrInNanoseconds = floor(tsr * __CF1_TSRRate * NSEC_PER_SEC);
     uint64_t ns = (uint64_t)tsrInNanoseconds;
     return ns;
 }
-#endif
 
 #if __HAS_DISPATCH__
 CF_PRIVATE dispatch_time_t __CFTSRToDispatchTime(uint64_t tsr) {
@@ -92,7 +89,6 @@ CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
     ret += (1.0E-6 * (CFTimeInterval)tv.tv_usec);
     return ret;
 }
-
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
@@ -149,7 +145,7 @@ static const CFRuntimeClass __CFDateClass = {
 };
 
 CFTypeID CFDateGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
         __kCFDateTypeID = _CFRuntimeRegisterClass(&__CFDateClass); 
 

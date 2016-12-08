@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFBundle_Internal.h
-	Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFBUNDLE_INTERNAL__)
@@ -45,9 +40,6 @@ CF_EXTERN_C_BEGIN
 CF_INLINE uint32_t _CFBundleSwapInt32Conditional(uint32_t arg, Boolean swap) {return swap ? CFSwapInt32(arg) : arg;}
 CF_INLINE uint32_t _CFBundleSwapInt64Conditional(uint64_t arg, Boolean swap) {return swap ? CFSwapInt64(arg) : arg;}
 
-// uncomment this to enable the checking for 8302591
-//#define CFBUNDLE_NO_TRAVERSE_OUTSIDE
-
 typedef struct __CFResourceData {
     Boolean _executableLacksResourceFork;
     Boolean _infoDictionaryFromResourceFork;
@@ -71,8 +63,8 @@ struct __CFBundle {
     CFURLRef _url;
     CFDateRef _modDate;
     
-    __strong CFDictionaryRef _infoDict;
-    __strong CFDictionaryRef _localInfoDict;
+    CFDictionaryRef _infoDict;
+    CFDictionaryRef _localInfoDict;
     CFArrayRef _searchLanguages;
     
     __CFPBinaryType _binaryType;
@@ -128,6 +120,9 @@ struct __CFBundle {
 #endif /* BINARY_SUPPORT_DLL */
     
 };
+
+CF_PRIVATE os_log_t _CFBundleResourceLogger(void);
+CF_PRIVATE os_log_t _CFBundleLocalizedStringLogger(void);
 
 extern _CFPlugInData *__CFBundleGetPlugInData(CFBundleRef bundle);
 
@@ -243,7 +238,6 @@ extern void _CFPlugInRemovePlugInInstance(CFPlugInRef plugIn);
 
 extern void _CFPlugInAddFactory(CFPlugInRef plugIn, _CFPFactoryRef factory);
 extern void _CFPlugInRemoveFactory(CFPlugInRef plugIn, _CFPFactoryRef factory);
-
 
 /* Strings for parsing bundle structure */
 #define _CFBundleSupportFilesDirectoryName1 CFSTR("Support Files")

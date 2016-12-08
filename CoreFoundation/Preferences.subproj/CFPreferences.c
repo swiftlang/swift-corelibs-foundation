@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFPreferences.c
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: David Smith
 */
 
@@ -54,7 +49,7 @@ CONST_STRING_DECL(kCFPreferencesCurrentUser, "kCFPreferencesCurrentUser")
 
 
 static CFAllocatorRef _preferencesAllocator = NULL;
-CF_EXPORT CFAllocatorRef __CFPreferencesAllocator(void) {
+CF_PRIVATE CFAllocatorRef __CFPreferencesAllocator(void) {
     if (!_preferencesAllocator) {
 #if DEBUG_PREFERENCES_MEMORY
         _preferencesAllocator = CFCountingAllocatorCreate(NULL);
@@ -238,8 +233,8 @@ static CFMutableDictionaryRef  domainCache = NULL; // mutable
 
 CFTypeRef  CFPreferencesCopyValue(CFStringRef  key, CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;
-    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
-    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
     
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if (domain) {
@@ -254,7 +249,7 @@ CFDictionaryRef CFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef ap
     CFMutableDictionaryRef result;
     CFIndex idx, count;
 
-    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
     __CFGenericValidateType(appName, CFStringGetTypeID());
     __CFGenericValidateType(user, CFStringGetTypeID());
     __CFGenericValidateType(host, CFStringGetTypeID());
@@ -284,8 +279,8 @@ CFDictionaryRef CFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef ap
 
 void CFPreferencesSetValue(CFStringRef  key, CFTypeRef  value, CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;
-    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
-    CFAssert(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert1(key != NULL, __kCFLogAssertion, "%s(): Cannot access preferences with a NULL key", __PRETTY_FUNCTION__);
 
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if (domain) {
@@ -298,7 +293,7 @@ void CFPreferencesSetValue(CFStringRef  key, CFTypeRef  value, CFStringRef  appN
 void CFPreferencesSetMultiple(CFDictionaryRef keysToSet, CFArrayRef keysToRemove, CFStringRef appName, CFStringRef user, CFStringRef host) {
     CFPreferencesDomainRef domain;
     CFIndex idx, count;
-    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
     if (keysToSet) __CFGenericValidateType(keysToSet, CFDictionaryGetTypeID());
     if (keysToRemove) __CFGenericValidateType(keysToRemove, CFArrayGetTypeID());
     __CFGenericValidateType(appName, CFStringGetTypeID());
@@ -340,7 +335,7 @@ void CFPreferencesSetMultiple(CFDictionaryRef keysToSet, CFArrayRef keysToRemove
 
 Boolean CFPreferencesSynchronize(CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;
-    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
 
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if(domain) _CFApplicationPreferencesDomainHasChanged(domain);
@@ -350,14 +345,14 @@ Boolean CFPreferencesSynchronize(CFStringRef  appName, CFStringRef  user, CFStri
 
 CFArrayRef  CFPreferencesCopyApplicationList(CFStringRef  user, CFStringRef  host) {
     CFArrayRef  array;
-    CFAssert(user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL user or host", __PRETTY_FUNCTION__);
+    CFAssert1(user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL user or host", __PRETTY_FUNCTION__);
     array = _CFPreferencesCreateDomainList(user, host);
     return array;
 }
 
 CFArrayRef  CFPreferencesCopyKeyList(CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;
-    CFAssert(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
+    CFAssert1(appName != NULL && user != NULL && host != NULL, __kCFLogAssertion, "%s(): Cannot access preferences for a NULL application name, user, or host", __PRETTY_FUNCTION__);
 
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if (!domain) {
@@ -557,7 +552,7 @@ static void __CFPreferencesPerformSynchronize(const void *key, const void *value
     if (!_CFPreferencesDomainSynchronize(domain)) *cumulativeResult = false;
 }
 
-CF_EXPORT Boolean _CFSynchronizeDomainCache(void) {
+CF_PRIVATE Boolean _CFSynchronizeDomainCache(void) {
     Boolean result = true;
     __CFLock(&domainCacheLock);
     if (domainCache) {
@@ -577,7 +572,7 @@ CF_PRIVATE void _CFPreferencesPurgeDomainCache(void) {
     __CFUnlock(&domainCacheLock);
 }
 
-CF_EXPORT CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
+CF_PRIVATE CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
     CFArrayRef  domains;
     CFMutableArrayRef  marray;
@@ -680,7 +675,7 @@ CF_EXPORT CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFSt
 //
 
 CFPreferencesDomainRef _CFPreferencesDomainCreate(CFTypeRef  context, const _CFPreferencesDomainCallBacks *callBacks) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{ __kCFPreferencesDomainTypeID = _CFRuntimeRegisterClass(&__CFPreferencesDomainClass); });
     CFAllocatorRef alloc = __CFPreferencesAllocator();
     CFPreferencesDomainRef newDomain;
@@ -703,11 +698,11 @@ void _CFPreferencesDomainSet(CFPreferencesDomainRef domain, CFStringRef  key, CF
     domain->_callBacks->writeValue(domain->_context, domain->_domain, key, value);
 }
 
-CF_EXPORT Boolean _CFPreferencesDomainSynchronize(CFPreferencesDomainRef domain) {
+CF_PRIVATE Boolean _CFPreferencesDomainSynchronize(CFPreferencesDomainRef domain) {
     return domain->_callBacks->synchronize(domain->_context, domain->_domain);
 }
 
-CF_EXPORT void _CFPreferencesDomainSetIsWorldReadable(CFPreferencesDomainRef domain, Boolean isWorldReadable) {
+CF_PRIVATE void _CFPreferencesDomainSetIsWorldReadable(CFPreferencesDomainRef domain, Boolean isWorldReadable) {
     if (domain->_callBacks->setIsWorldReadable) {
         domain->_callBacks->setIsWorldReadable(domain->_context, domain->_domain, isWorldReadable);
     }
