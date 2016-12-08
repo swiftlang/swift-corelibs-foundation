@@ -304,6 +304,10 @@ CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorR
 
 CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(CFAllocatorRef alloc, CFDataRef data);
 
+CF_EXPORT _Nullable CFErrorRef _CFReadStreamCopyError(CFReadStreamRef stream);
+
+CF_EXPORT _Nullable CFErrorRef _CFWriteStreamCopyError(CFWriteStreamRef stream);
+
 _CF_EXPORT_SCOPE_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */

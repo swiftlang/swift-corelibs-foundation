@@ -111,7 +111,7 @@ open class Stream: NSObject {
     }
     
     open var streamError: NSError? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
 }
 
@@ -158,6 +158,10 @@ open class InputStream: Stream {
     
     open override var streamStatus: Status {
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
+    }
+    
+    open override var streamError: NSError? {
+        return _CFReadStreamCopyError(_stream)?._nsObject
     }
 }
 
@@ -218,6 +222,10 @@ open class OutputStream : Stream {
     
     open  override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
         return CFWriteStreamSetProperty(_stream, key.rawValue._cfObject, property)
+    }
+    
+    open override var streamError: NSError? {
+        return _CFWriteStreamCopyError(_stream)?._nsObject
     }
 }
 

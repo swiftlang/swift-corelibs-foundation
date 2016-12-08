@@ -83,7 +83,7 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
     wchar_t path[CFMaxPathSize];
     flags |= (_O_BINARY|_O_NOINHERIT);
     if (_CFURLGetWideFileSystemRepresentation(fileStream->url, TRUE, path, CFMaxPathSize) == FALSE)
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#else
     char path[CFMaxPathSize];
     if (CFURLGetFileSystemRepresentation(fileStream->url, TRUE, (UInt8 *)path, CFMaxPathSize) == FALSE)
 #endif
@@ -98,10 +98,10 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
     }
     
     do {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_WINDOWS
+        fileStream->fd = _wopen(path, flags, 0666);
+#else
         fileStream->fd = open((const char *)path, flags, 0666);
-#elif DEPLOYMENT_TARGET_WINDOWS
-	fileStream->fd = _wopen(path, flags, 0666);
 #endif
         if (fileStream->fd < 0)
             break;
@@ -864,6 +864,11 @@ CF_EXPORT CFWriteStreamRef CFWriteStreamCreateWithAllocatedBuffers(CFAllocatorRe
     ctxt.bufferAllocator = bufferAllocator;
     return (CFWriteStreamRef)_CFStreamCreateWithConstantCallbacks(alloc, &ctxt, (struct _CFStreamCallBacks *)(&writeDataCallBacks), FALSE);
 }
+
+CF_SWIFT_EXPORT _Nullable CFErrorRef _CFReadStreamCopyError(CFReadStreamRef stream) { return CFReadStreamCopyError(stream); }
+
+CF_SWIFT_EXPORT _Nullable CFErrorRef _CFWriteStreamCopyError(CFWriteStreamRef stream) { return CFWriteStreamCopyError(stream); }
+
 
 #undef BUF_SIZE
 
