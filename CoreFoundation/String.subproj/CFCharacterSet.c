@@ -1677,7 +1677,8 @@ Boolean CFCharacterSetIsCharacterMember(CFCharacterSetRef theSet, UniChar theCha
     Boolean result = false;
     
     CF_OBJC_FUNCDISPATCHV(__kCFCharacterSetTypeID, Boolean, (NSCharacterSet *)theSet, longCharacterIsMember:(UTF32Char)theChar);
-    
+    CF_SWIFT_FUNCDISPATCHV(__kCFCharacterSetTypeID, Boolean, (CFSwiftRef)theSet, NSCharacterSet.longCharacterIsMember, theChar);
+
     __CFGenericValidateType(theSet, __kCFCharacterSetTypeID);
     
     isInverted = __CFCSetIsInverted(theSet);
@@ -1892,6 +1893,7 @@ Boolean CFCharacterSetHasMemberInPlane(CFCharacterSetRef theSet, CFIndex thePlan
     Boolean isInverted = __CFCSetIsInverted(theSet);
 
     CF_OBJC_FUNCDISPATCHV(__kCFCharacterSetTypeID, Boolean, (NSCharacterSet *)theSet, hasMemberInPlane:(uint8_t)thePlane);
+    CF_SWIFT_FUNCDISPATCHV(__kCFCharacterSetTypeID, Boolean, (CFSwiftRef)theSet, NSCharacterSet.hasMemberInPlane, thePlane);
 
     if (__CFCSetIsEmpty(theSet)) {
         return (isInverted ? TRUE : FALSE);
