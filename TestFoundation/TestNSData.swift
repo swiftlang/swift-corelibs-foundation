@@ -421,8 +421,14 @@ class TestNSData: XCTestCase {
         let replacement = makeData([8, 9, 10])
         mData.replaceBytes(in: NSMakeRange(1, 3), withBytes: replacement.bytes,
             length: 3)
-        let expected = makeData([0, 8, 9, 10, 0])
+        var expected = makeData([0, 8, 9, 10, 0])
         XCTAssertEqual(mData, expected)
+
+        // test removing bytes with nil replacementBytes parameter
+        mData.replaceBytes(in: NSMakeRange(1, 3), withBytes: nil, length: 0)
+        expected = makeData([0, 0])
+        XCTAssertEqual(mData, expected)
+
     }
 
     func test_initDataWithCapacity() {
