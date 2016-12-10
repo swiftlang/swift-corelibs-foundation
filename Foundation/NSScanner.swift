@@ -168,6 +168,7 @@ internal struct _NSStringBuffer {
             buffer.withUnsafeMutableBufferPointer({ (ptr: inout UnsafeMutableBufferPointer<unichar>) -> Void in
                 string.getCharacters(ptr.baseAddress!, range: range)
             })
+            curChar = buffer[bufferLoc - 1]
         } else {
             bufferLoc = 0
             curChar = _NSStringBuffer.EndCharacter

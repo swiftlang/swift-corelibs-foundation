@@ -94,6 +94,7 @@ class TestNSString : XCTestCase {
             ("test_utf16StringRangeCount", test_StringUTF16ViewIndexStrideableRange),
             ("test_reflection", { _ in test_reflection }),
             ("test_replacingOccurrences", test_replacingOccurrences),
+            ("test_getLineStart", test_getLineStart),
         ]
     }
 
@@ -1030,6 +1031,30 @@ class TestNSString : XCTestCase {
     func test_mutableStringConstructor() {
         let mutableString = NSMutableString(string: "Test")
         XCTAssertEqual(mutableString, "Test")
+    }
+
+    func test_getLineStart() {
+        // offset        012345 678901
+        let twoLines =  "line1\nline2\n"
+        var outStartIndex = twoLines.startIndex
+        var outEndIndex = twoLines.startIndex
+        var outContentsEndIndex = twoLines.startIndex
+
+        twoLines.getLineStart(&outStartIndex, end: &outEndIndex,
+                              contentsEnd: &outContentsEndIndex,
+                              for: outEndIndex..<outEndIndex)
+
+        XCTAssertEqual(outStartIndex, twoLines.startIndex)
+        XCTAssertEqual(outContentsEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 5))
+        XCTAssertEqual(outEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 6))
+
+        twoLines.getLineStart(&outStartIndex, end: &outEndIndex,
+                              contentsEnd: &outContentsEndIndex,
+                              for: outEndIndex..<outEndIndex)
+
+        XCTAssertEqual(outStartIndex, twoLines.index(twoLines.startIndex, offsetBy: 6))
+        XCTAssertEqual(outContentsEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 11))
+        XCTAssertEqual(outEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 12))
     }
 }
 
