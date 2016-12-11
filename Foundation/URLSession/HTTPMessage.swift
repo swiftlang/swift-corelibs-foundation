@@ -1,4 +1,4 @@
-// Foundation/NSURLSession/HTTPMessage.swift - HTTP Message parsing
+// Foundation/URLSession/HTTPMessage.swift - HTTP Message parsing
 //
 // This source file is part of the Swift.org open source project
 //
@@ -13,7 +13,7 @@
 /// Helpers for parsing HTTP responses.
 /// These are libcurl helpers for the URLSession API code.
 /// - SeeAlso: https://curl.haxx.se/libcurl/c/
-/// - SeeAlso: NSURLSession.swift
+/// - SeeAlso: URLSession.swift
 ///
 // -----------------------------------------------------------------------------
 

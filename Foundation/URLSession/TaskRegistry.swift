@@ -1,4 +1,4 @@
-// Foundation/NSURLSession/TaskRegistry.swift - NSURLSession & libcurl
+// Foundation/URLSession/TaskRegistry.swift - URLSession & libcurl
 //
 // This source file is part of the Swift.org open source project
 //
@@ -12,7 +12,7 @@
 ///
 /// These are libcurl helpers for the URLSession API code.
 /// - SeeAlso: https://curl.haxx.se/libcurl/c/
-/// - SeeAlso: NSURLSession.swift
+/// - SeeAlso: URLSession.swift
 ///
 // -----------------------------------------------------------------------------
 

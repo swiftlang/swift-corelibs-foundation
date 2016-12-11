@@ -1,4 +1,4 @@
-// Foundation/NSURLSession/EasyHandle.swift - NSURLSession & libcurl
+// Foundation/URLSession/EasyHandle.swift - URLSession & libcurl
 //
 // This source file is part of the Swift.org open source project
 //
@@ -13,7 +13,7 @@
 /// libcurl *easy handle* wrapper.
 /// These are libcurl helpers for the URLSession API code.
 /// - SeeAlso: https://curl.haxx.se/libcurl/c/
-/// - SeeAlso: NSURLSession.swift
+/// - SeeAlso: URLSession.swift
 ///
 // -----------------------------------------------------------------------------
 

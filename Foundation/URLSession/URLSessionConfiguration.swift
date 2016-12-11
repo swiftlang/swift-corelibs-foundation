@@ -1,4 +1,4 @@
-// Foundation/NSURLSession/NSURLSessionConfiguration.swift - NSURLSession Configuration
+// Foundation/URLSession/URLSessionConfiguration.swift - URLSession Configuration
 //
 // This source file is part of the Swift.org open source project
 //
@@ -11,7 +11,7 @@
 // -----------------------------------------------------------------------------
 ///
 /// URLSession API code.
-/// - SeeAlso: NSURLSession.swift
+/// - SeeAlso: URLSession.swift
 ///
 // -----------------------------------------------------------------------------
 
@@ -197,13 +197,13 @@ open class URLSessionConfiguration : NSObject, NSCopying {
      */
     open var shouldUseExtendedBackgroundIdleMode: Bool
     
-    /* An optional array of Class objects which subclass NSURLProtocol.
+    /* An optional array of Class objects which subclass URLProtocol.
      The Class will be sent +canInitWithRequest: when determining if
      an instance of the class can be used for a given URL scheme.
-     You should not use +[NSURLProtocol registerClass:], as that
+     You should not use +[URLProtocol registerClass:], as that
      method will register your class with the default session rather
      than with an instance of URLSession.
-     Custom NSURLProtocol subclasses are not available to background
+     Custom URLProtocol subclasses are not available to background
      sessions.
      */
      open var protocolClasses: [AnyClass]?

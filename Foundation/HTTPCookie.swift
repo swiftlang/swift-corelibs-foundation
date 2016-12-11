@@ -75,9 +75,9 @@ extension HTTPCookiePropertyKey {
     internal static let created = HTTPCookiePropertyKey(rawValue: "Created")
 }
 
-/// `NSHTTPCookie` represents an http cookie.
+/// `HTTPCookie` represents an http cookie.
 ///
-/// An `NSHTTPCookie` instance represents a single http cookie. It is
+/// An `HTTPCookie` instance represents a single http cookie. It is
 /// an immutable object initialized from a dictionary that contains
 /// the various cookie attributes. It has accessors to get the various
 /// attributes of a cookie.
@@ -102,7 +102,7 @@ open class HTTPCookie : NSObject {
            .path, .secure, .expires, .comment, .commentURL,
            .discard, .maximumAge, .port]
 
-    /// Initialize a NSHTTPCookie object with a dictionary of parameters
+    /// Initialize a HTTPCookie object with a dictionary of parameters
     ///
     /// - Parameter properties: The dictionary of properties to be used to
     /// initialize this cookie.
@@ -222,7 +222,7 @@ open class HTTPCookie : NSObject {
     ///
     /// All other keys are ignored.
     ///
-    /// - Returns: An initialized `NSHTTPCookie`, or nil if the set of
+    /// - Returns: An initialized `HTTPCookie`, or nil if the set of
     /// dictionary keys is invalid, for example because a required key is
     /// missing, or a recognized key maps to an illegal value.
     ///
@@ -379,7 +379,7 @@ open class HTTPCookie : NSObject {
     /// you can pass a dictionary containing data other than cookie data.
     /// - Parameter headerFields: The response header fields to check for cookies.
     /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpeted.
-    /// - Returns: An array of NSHTTPCookie objects
+    /// - Returns: An array of HTTPCookie objects
     open class func cookies(withResponseHeaderFields headerFields: [String : String], forURL url: URL) -> [HTTPCookie] {
 
         //HTTP Cookie parsing based on RFC 6265: https://tools.ietf.org/html/rfc6265
@@ -475,10 +475,10 @@ open class HTTPCookie : NSObject {
     /// Returns a dictionary representation of the receiver.
     ///
     /// This method returns a dictionary representation of the
-    /// `NSHTTPCookie` which can be saved and passed to
+    /// `HTTPCookie` which can be saved and passed to
     /// `init(properties:)` later to reconstitute an equivalent cookie.
     ///
-    /// See the `NSHTTPCookie` `init(properties:)` method for
+    /// See the `HTTPCookie` `init(properties:)` method for
     /// more information on the constraints imposed on the dictionary, and
     /// for descriptions of the supported keys and values.
     ///

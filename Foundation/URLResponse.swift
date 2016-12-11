@@ -8,13 +8,13 @@
 //
 
 
-/// An `NSURLResponse` object represents a URL load response in a
+/// An `URLResponse` object represents a URL load response in a
 /// manner independent of protocol and URL scheme.
 ///
-/// `NSURLResponse` encapsulates the metadata associated
-/// with a URL load. Note that NSURLResponse objects do not contain
+/// `URLResponse` encapsulates the metadata associated
+/// with a URL load. Note that URLResponse objects do not contain
 /// the actual bytes representing the content of a URL. See
-/// `NSURLSession` for more information about receiving the content
+/// `URLSession` for more information about receiving the content
 /// data for a URL load.
 open class URLResponse : NSObject, NSSecureCoding, NSCopying {
 
@@ -66,14 +66,14 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
         return self
     }
     
-    /// Initialize an NSURLResponse with the provided values.
+    /// Initialize an URLResponse with the provided values.
     ///
-    /// This is the designated initializer for NSURLResponse.
+    /// This is the designated initializer for URLResponse.
     /// - Parameter URL: the URL
     /// - Parameter mimeType: the MIME content type of the response
     /// - Parameter expectedContentLength: the expected content length of the associated data
     /// - Parameter textEncodingName the name of the text encoding for the associated data, if applicable, else nil
-    /// - Returns: The initialized NSURLResponse.
+    /// - Returns: The initialized URLResponse.
     public init(url: URL, mimeType: String?, expectedContentLength length: Int, textEncodingName name: String?) {
         self.url = url
         self.mimeType = mimeType
@@ -138,7 +138,7 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
 /// A Response to an HTTP URL load.
 ///
 /// An NSHTTPURLResponse object represents a response to an
-/// HTTP URL load. It is a specialization of NSURLResponse which
+/// HTTP URL load. It is a specialization of URLResponse which
 /// provides conveniences for accessing information specific to HTTP
 /// protocol responses.
 open class HTTPURLResponse : URLResponse {

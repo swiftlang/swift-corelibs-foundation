@@ -8,21 +8,21 @@
 //
 
 /*!
-    @header NSURLProtocol.h
+    @header URLProtocol.h
 
     This header file describes the constructs used to represent URL
     protocols, and describes the extensible system by which specific
     classes can be made to handle the loading of particular URL types or
     schemes.
     
-    <p>NSURLProtocol is an abstract class which provides the
+    <p>URLProtocol is an abstract class which provides the
     basic structure for performing protocol-specific loading of URL
     data.
     
-    <p>The NSURLProtocolClient describes the integration points a
+    <p>The URLProtocolClient describes the integration points a
     protocol implemention can use to hook into the URL loading system.
-    NSURLProtocolClient describes the methods a protocol implementation
-    needs to drive the URL loading system from a NSURLProtocol subclass.
+    URLProtocolClient describes the methods a protocol implementation
+    needs to drive the URL loading system from a URLProtocol subclass.
     
     <p>To support customization of protocol-specific requests,
     protocol implementors are encouraged to provide categories on
@@ -32,20 +32,20 @@
     protocol-specific request data by using the
     <tt>+propertyForKey:inRequest:</tt> and
     <tt>+setProperty:forKey:inRequest:</tt> class methods on
-    NSURLProtocol. See the NSHTTPURLRequest on NSURLRequest and
+    URLProtocol. See the NSHTTPURLRequest on NSURLRequest and
     NSMutableHTTPURLRequest on NSMutableURLRequest for examples of
     such extensions.
     
     <p>An essential responsibility for a protocol implementor is
-    creating a NSURLResponse for each request it processes successfully.
+    creating a URLResponse for each request it processes successfully.
     A protocol implementor may wish to create a custom, mutable 
-    NSURLResponse class to aid in this work.
+    URLResponse class to aid in this work.
 */
 
 /*!
-@protocol NSURLProtocolClient
-@discussion NSURLProtocolClient provides the interface to the URL
-loading system that is intended for use by NSURLProtocol
+@protocol URLProtocolClient
+@discussion URLProtocolClient provides the interface to the URL
+loading system that is intended for use by URLProtocol
 implementors.
 */
 public protocol URLProtocolClient : NSObjectProtocol {
@@ -53,9 +53,9 @@ public protocol URLProtocolClient : NSObjectProtocol {
     
     /*!
      @method URLProtocol:wasRedirectedToRequest:
-     @abstract Indicates to an NSURLProtocolClient that a redirect has
+     @abstract Indicates to an URLProtocolClient that a redirect has
      occurred.
-     @param URLProtocol the NSURLProtocol object sending the message.
+     @param URLProtocol the URLProtocol object sending the message.
      @param request the NSURLRequest to which the protocol implementation
      has redirected.
      */
@@ -64,10 +64,10 @@ public protocol URLProtocolClient : NSObjectProtocol {
     
     /*!
      @method URLProtocol:cachedResponseIsValid:
-     @abstract Indicates to an NSURLProtocolClient that the protocol
+     @abstract Indicates to an URLProtocolClient that the protocol
      implementation has examined a cached response and has
      determined that it is valid.
-     @param URLProtocol the NSURLProtocol object sending the message.
+     @param URLProtocol the URLProtocol object sending the message.
      @param cachedResponse the NSCachedURLResponse object that has
      examined and is valid.
      */
@@ -76,12 +76,12 @@ public protocol URLProtocolClient : NSObjectProtocol {
     
     /*!
      @method URLProtocol:didReceiveResponse:
-     @abstract Indicates to an NSURLProtocolClient that the protocol
-     implementation has created an NSURLResponse for the current load.
-     @param URLProtocol the NSURLProtocol object sending the message.
-     @param response the NSURLResponse object the protocol implementation
+     @abstract Indicates to an URLProtocolClient that the protocol
+     implementation has created an URLResponse for the current load.
+     @param URLProtocol the URLProtocol object sending the message.
+     @param response the URLResponse object the protocol implementation
      has created.
-     @param cacheStoragePolicy The NSURLCacheStoragePolicy the protocol
+     @param cacheStoragePolicy The URLCacheStoragePolicy the protocol
      has determined should be used for the given response if the
      response is to be stored in a cache.
      */
@@ -90,12 +90,12 @@ public protocol URLProtocolClient : NSObjectProtocol {
     
     /*!
      @method URLProtocol:didLoadData:
-     @abstract Indicates to an NSURLProtocolClient that the protocol
+     @abstract Indicates to an URLProtocolClient that the protocol
      implementation has loaded URL data.
      @discussion The data object must contain only new data loaded since
      the previous call to this method (if any), not cumulative data for
      the entire load.
-     @param URLProtocol the NSURLProtocol object sending the message.
+     @param URLProtocol the URLProtocol object sending the message.
      @param data URL load data being made available.
      */
     func urlProtocol(_ protocol: URLProtocol, didLoad data: Data)
@@ -103,18 +103,18 @@ public protocol URLProtocolClient : NSObjectProtocol {
     
     /*!
      @method URLProtocolDidFinishLoading:
-     @abstract Indicates to an NSURLProtocolClient that the protocol
+     @abstract Indicates to an URLProtocolClient that the protocol
      implementation has finished loading successfully.
-     @param URLProtocol the NSURLProtocol object sending the message.
+     @param URLProtocol the URLProtocol object sending the message.
      */
     func urlProtocolDidFinishLoading(_ protocol: URLProtocol)
     
     
     /*!
      @method URLProtocol:didFailWithError:
-     @abstract Indicates to an NSURLProtocolClient that the protocol
+     @abstract Indicates to an URLProtocolClient that the protocol
      implementation has failed to load successfully.
-     @param URLProtocol the NSURLProtocol object sending the message.
+     @param URLProtocol the URLProtocol object sending the message.
      @param error The error that caused the load to fail.
      */
     func urlProtocol(_ protocol: URLProtocol, didFailWithError error: NSError)
@@ -143,9 +143,9 @@ public protocol URLProtocolClient : NSObjectProtocol {
 }
 
 /*!
-    @class NSURLProtocol
+    @class URLProtocol
  
-    @abstract NSURLProtocol is an abstract class which provides the
+    @abstract URLProtocol is an abstract class which provides the
     basic structure for performing protocol-specific loading of URL
     data. Concrete subclasses handle the specifics associated with one
     or more protocols or URL schemes.
@@ -154,14 +154,14 @@ open class URLProtocol : NSObject {
     
     /*! 
         @method initWithRequest:cachedResponse:client:
-        @abstract Initializes an NSURLProtocol given request, 
+        @abstract Initializes an URLProtocol given request, 
         cached response, and client.
         @param request The request to load.
         @param cachedResponse A response that has been retrieved from the
         cache for the given request. The protocol implementation should
         apply protocol-specific validity checks if such tests are
         necessary.
-        @param client The NSURLProtocolClient object that serves as the
+        @param client The URLProtocolClient object that serves as the
         interface the protocol implementation can use to report results back
         to the URL loading system.
     */
@@ -169,8 +169,8 @@ open class URLProtocol : NSObject {
     
     /*! 
         @method client
-        @abstract Returns the NSURLProtocolClient of the receiver. 
-        @result The NSURLProtocolClient of the receiver.  
+        @abstract Returns the URLProtocolClient of the receiver. 
+        @result The URLProtocolClient of the receiver.  
     */
     open var client: URLProtocolClient? { NSUnimplemented() }
     
@@ -303,7 +303,7 @@ open class URLProtocol : NSObject {
     /*! 
         @method registerClass:
         @abstract This method registers a protocol class, making it visible
-        to several other NSURLProtocol class methods.
+        to several other URLProtocol class methods.
         @discussion When the URL loading system begins to load a request,
         each protocol class that has been registered is consulted in turn to
         see if it can be initialized with a given request. The first
@@ -321,7 +321,7 @@ open class URLProtocol : NSObject {
         @param protocolClass the class to register.
         @result YES if the protocol was registered successfully, NO if not.
         The only way that failure can occur is if the given class is not a
-        subclass of NSURLProtocol.
+        subclass of URLProtocol.
     */
     open class func registerClass(_ protocolClass: AnyClass) -> Bool { NSUnimplemented() }
     
@@ -329,7 +329,7 @@ open class URLProtocol : NSObject {
         @method unregisterClass:
         @abstract This method unregisters a protocol. 
         @discussion After unregistration, a protocol class is no longer
-        consulted in calls to NSURLProtocol class methods.
+        consulted in calls to URLProtocol class methods.
         @param protocolClass The class to unregister.
     */
     open class func unregisterClass(_ protocolClass: AnyClass) { NSUnimplemented() }

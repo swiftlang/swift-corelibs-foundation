@@ -41,7 +41,7 @@ public protocol URLAuthenticationChallengeSender : NSObjectProtocol {
 }
 
 /*!
-    @class NSURLAuthenticationChallenge
+    @class URLAuthenticationChallenge
     @discussion This class represents an authentication challenge. It
     provides all the information about the challenge, and has a method
     to indicate when it's done.
@@ -64,10 +64,10 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
     /*!
      @method initWithProtectionSpace:proposedCredential:previousFailureCount:failureResponse:error:
      @abstract Initialize an authentication challenge
-     @param space The NSURLProtectionSpace to use
-     @param credential The proposed NSURLCredential for this challenge, or nil
+     @param space The URLProtectionSpace to use
+     @param credential The proposed URLCredential for this challenge, or nil
      @param previousFailureCount A count of previous failures attempting access.
-     @param response The NSURLResponse for the authentication failure, if applicable, else nil
+     @param response The URLResponse for the authentication failure, if applicable, else nil
      @param error The NSError for the authentication failure, if applicable, else nil
      @result An authentication challenge initialized with the specified parameters
      */

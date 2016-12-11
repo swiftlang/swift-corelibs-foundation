@@ -15,9 +15,9 @@
     import SwiftXCTest
 #endif
 
-class TestNSHTTPCookie: XCTestCase {
+class TestHTTPCookie: XCTestCase {
 
-    static var allTests: [(String, (TestNSHTTPCookie) -> () throws -> Void)] {
+    static var allTests: [(String, (TestHTTPCookie) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_RequestHeaderFields", test_RequestHeaderFields),
@@ -86,7 +86,7 @@ class TestNSHTTPCookie: XCTestCase {
         XCTAssertNil(versionZeroCookieWithInvalidVersionOneProps?.commentURL)
         XCTAssert(versionZeroCookieWithInvalidVersionOneProps?.isSessionOnly == true)
 
-        // v0 should never use NSHTTPCookieMaximumAge
+        // v0 should never use HTTPCookieMaximumAge
         XCTAssert(
             versionZeroCookieWithInvalidVersionOneProps?.expiresDate?.timeIntervalSince1970 ==
             Date(timeIntervalSince1970: 1000).timeIntervalSince1970

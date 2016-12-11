@@ -9,12 +9,12 @@
 
 
 /*!
-    @enum NSURLCredentialPersistence
+    @enum URLCredentialPersistence
     @abstract Constants defining how long a credential will be kept around
-    @constant NSURLCredentialPersistenceNone This credential won't be saved.
-    @constant NSURLCredentialPersistenceForSession This credential will only be stored for this session.
-    @constant NSURLCredentialPersistencePermanent This credential will be stored permanently. Note: Whereas in Mac OS X any application can access any credential provided the user gives permission, in iPhone OS an application can access only its own credentials.
-    @constant NSURLCredentialPersistenceSynchronizable This credential will be stored permanently. Additionally, this credential will be distributed to other devices based on the owning AppleID.
+    @constant URLCredentialPersistenceNone This credential won't be saved.
+    @constant URLCredentialPersistenceForSession This credential will only be stored for this session.
+    @constant URLCredentialPersistencePermanent This credential will be stored permanently. Note: Whereas in Mac OS X any application can access any credential provided the user gives permission, in iPhone OS an application can access only its own credentials.
+    @constant URLCredentialPersistenceSynchronizable This credential will be stored permanently. Additionally, this credential will be distributed to other devices based on the owning AppleID.
         Note: Whereas in Mac OS X any application can access any credential provided the user gives permission, on iOS an application can 
         access only its own credentials.
 */
@@ -29,7 +29,7 @@ extension URLCredential {
 
 
 /*!
-    @class NSURLCredential
+    @class URLCredential
     @discussion This class is an immutable object representing an authentication credential.  The actual type of the credential is determined by the constructor called in the categories declared below.
 */
 open class URLCredential : NSObject, NSSecureCoding, NSCopying {
@@ -39,11 +39,11 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
     
     /*!
         @method initWithUser:password:persistence:
-        @abstract Initialize a NSURLCredential with a user and password
+        @abstract Initialize a URLCredential with a user and password
         @param user the username
         @param password the password
         @param persistence enum that says to store per session, permanently or not at all
-        @result The initialized NSURLCredential
+        @result The initialized URLCredential
      */
     public init(user: String, password: String, persistence: Persistence) {
         guard persistence != .permanent && persistence != .synchronizable else {
@@ -57,11 +57,11 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
     
     /*!
         @method credentialWithUser:password:persistence:
-        @abstract Create a new NSURLCredential with a user and password
+        @abstract Create a new URLCredential with a user and password
         @param user the username
         @param password the password
         @param persistence enum that says to store per session, permanently or not at all
-        @result The new autoreleased NSURLCredential
+        @result The new autoreleased URLCredential
      */
     
     public required init?(coder aDecoder: NSCoder) {
@@ -157,25 +157,25 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
 
 // TODO: We have no implementation for Security.framework primitive types SecIdentity and SecTrust yet
 /*
-extension NSURLCredential {
+extension URLCredential {
     
     /*!
         @method initWithIdentity:certificates:persistence:
-        @abstract Initialize an NSURLCredential with an identity and array of at least 1 client certificates (SecCertificateRef)
+        @abstract Initialize an URLCredential with an identity and array of at least 1 client certificates (SecCertificateRef)
         @param identity a SecIdentityRef object
         @param certArray an array containing at least one SecCertificateRef objects
         @param persistence enum that says to store per session, permanently or not at all
-        @result the Initialized NSURLCredential
+        @result the Initialized URLCredential
      */
-    public convenience init(identity: SecIdentity, certificates certArray: [AnyObject]?, persistence: NSURLCredentialPersistence)
+    public convenience init(identity: SecIdentity, certificates certArray: [AnyObject]?, persistence: URLCredentialPersistence)
     
     /*!
         @method credentialWithIdentity:certificates:persistence:
-        @abstract Create a new NSURLCredential with an identity and certificate array
+        @abstract Create a new URLCredential with an identity and certificate array
         @param identity a SecIdentityRef object
         @param certArray an array containing at least one SecCertificateRef objects
         @param persistence enum that says to store per session, permanently or not at all
-        @result The new autoreleased NSURLCredential
+        @result The new autoreleased URLCredential
      */
     
     /*!
@@ -193,19 +193,19 @@ extension NSURLCredential {
     public var certificates: [AnyObject] { NSUnimplemented() }
 }
 
-extension NSURLCredential {
+extension URLCredential {
     
     /*!
         @method initWithTrust:
-        @abstract Initialize a new NSURLCredential which specifies that the specified trust has been accepted.
-        @result the Initialized NSURLCredential
+        @abstract Initialize a new URLCredential which specifies that the specified trust has been accepted.
+        @result the Initialized URLCredential
      */
     public convenience init(trust: SecTrust) { NSUnimplemented() }
     
     /*!
         @method credentialForTrust:
-        @abstract Create a new NSURLCredential which specifies that a handshake has been trusted.
-        @result The new autoreleased NSURLCredential
+        @abstract Create a new URLCredential which specifies that a handshake has been trusted.
+        @result The new autoreleased URLCredential
      */
     public convenience init(forTrust trust: SecTrust) { NSUnimplemented() }
 }

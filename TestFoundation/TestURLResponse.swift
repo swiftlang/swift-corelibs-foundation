@@ -17,8 +17,8 @@
 #endif
 
 
-class TestNSURLResponse : XCTestCase {
-    static var allTests: [(String, (TestNSURLResponse) -> () throws -> Void)] {
+class TestURLResponse : XCTestCase {
+    static var allTests: [(String, (TestURLResponse) -> () throws -> Void)] {
         return [
             ("test_URL", test_URL),
             ("test_MIMEType_1", test_MIMEType_1),

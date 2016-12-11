@@ -9,11 +9,11 @@
 
 
 /*!
-    @enum NSHTTPCookieAcceptPolicy
+    @enum HTTPCookieAcceptPolicy
     @abstract Values for the different cookie accept policies
-    @constant NSHTTPCookieAcceptPolicyAlways Accept all cookies
-    @constant NSHTTPCookieAcceptPolicyNever Reject all cookies
-    @constant NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain Accept cookies
+    @constant HTTPCookieAcceptPolicyAlways Accept all cookies
+    @constant HTTPCookieAcceptPolicyNever Reject all cookies
+    @constant HTTPCookieAcceptPolicyOnlyFromMainDocumentDomain Accept cookies
     only from the main document domain
 */
 extension HTTPCookie {
@@ -27,8 +27,8 @@ extension HTTPCookie {
 
 
 /*!
-    @class NSHTTPCookieStorage 
-    @discussion NSHTTPCookieStorage implements a singleton object (shared
+    @class HTTPCookieStorage 
+    @discussion HTTPCookieStorage implements a singleton object (shared
     instance) which manages the shared cookie store.  It has methods
     to allow clients to set and remove cookies, and get the current
     set of cookies.  It also has convenience methods to parse and
@@ -88,7 +88,7 @@ open class HTTPCookieStorage: NSObject {
         @method cookiesForURL:
         @abstract Returns an array of cookies to send to the given URL.
         @param URL The URL for which to get cookies.
-        @result an NSArray of NSHTTPCookie objects.
+        @result an NSArray of HTTPCookie objects.
         @discussion The cookie manager examines the cookies it stores and
         includes those which should be sent to the given URL. You can use
         <tt>+[NSCookie requestHeaderFieldsWithCookies:]</tt> to turn this array
@@ -126,14 +126,14 @@ open class HTTPCookieStorage: NSObject {
       @method sortedCookiesUsingDescriptors:
       @abstract Returns an array of all cookies in the store, sorted according to the key value and sorting direction of the NSSortDescriptors specified in the parameter.
       @param sortOrder an array of NSSortDescriptors which represent the preferred sort order of the resulting array.
-      @discussion proper sorting of cookies may require extensive string conversion, which can be avoided by allowing the system to perform the sorting.  This API is to be preferred over the more generic -[NSHTTPCookieStorage cookies] API, if sorting is going to be performed.
+      @discussion proper sorting of cookies may require extensive string conversion, which can be avoided by allowing the system to perform the sorting.  This API is to be preferred over the more generic -[HTTPCookieStorage cookies] API, if sorting is going to be performed.
     */
     open func sortedCookies(using sortOrder: [SortDescriptor]) -> [HTTPCookie] { NSUnimplemented() }
 }
 
 /*!
-    @const NSHTTPCookieManagerCookiesChangedNotification
+    @const HTTPCookieManagerCookiesChangedNotification
     @abstract Notification sent when the set of cookies changes
 */
-public let NSHTTPCookieManagerCookiesChangedNotification: String = "" // NSUnimplemented
+public let HTTPCookieManagerCookiesChangedNotification: String = "" // NSUnimplemented
 

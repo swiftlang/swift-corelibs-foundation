@@ -1,4 +1,4 @@
-// Foundation/NSURLSession/NSURLSessionDelegate.swift - NSURLSession API
+// Foundation/URLSession/URLSessionDelegate.swift - URLSession API
 //
 // This source file is part of the Swift.org open source project
 //
@@ -11,7 +11,7 @@
 // -----------------------------------------------------------------------------
 ///
 /// URLSession API code.
-/// - SeeAlso: NSURLSession.swift
+/// - SeeAlso: URLSession.swift
 ///
 // -----------------------------------------------------------------------------
 

@@ -11,19 +11,19 @@
 /*!
     @enum NSURLCacheStoragePolicy
     
-    @discussion The NSURLCacheStoragePolicy enum defines constants that
+    @discussion The URLCacheStoragePolicy enum defines constants that
     can be used to specify the type of storage that is allowable for an
     NSCachedURLResponse object that is to be stored in an NSURLCache.
     
-    @constant NSURLCacheStorageAllowed Specifies that storage in an
-    NSURLCache is allowed without restriction.
+    @constant URLCacheStorageAllowed Specifies that storage in an
+    URLCache is allowed without restriction.
 
-    @constant NSURLCacheStorageAllowedInMemoryOnly Specifies that
-    storage in an NSURLCache is allowed; however storage should be
+    @constant URLCacheStorageAllowedInMemoryOnly Specifies that
+    storage in an URLCache is allowed; however storage should be
     done in memory only, no disk storage should be done.
 
-    @constant NSURLCacheStorageNotAllowed Specifies that storage in an
-    NSURLCache is not allowed in any fashion, either in memory or on
+    @constant URLCacheStorageNotAllowed Specifies that storage in an
+    URLCache is not allowed in any fashion, either in memory or on
     disk.
 */
 extension URLCache {
@@ -68,10 +68,10 @@ open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         @method initWithResponse:data
         @abstract Initializes an NSCachedURLResponse with the given
         response and data.
-        @discussion A default NSURLCacheStoragePolicy is used for
+        @discussion A default URLCacheStoragePolicy is used for
         NSCachedURLResponse objects initialized with this method:
-        NSURLCacheStorageAllowed.
-        @param response a NSURLResponse object.
+        URLCacheStorageAllowed.
+        @param response a URLResponse object.
         @param data an NSData object representing the URL content
         corresponding to the given response.
         @result an initialized NSCachedURLResponse.
@@ -82,12 +82,12 @@ open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         @method initWithResponse:data:userInfo:storagePolicy:
         @abstract Initializes an NSCachedURLResponse with the given
         response, data, user-info dictionary, and storage policy.
-        @param response a NSURLResponse object.
+        @param response a URLResponse object.
         @param data an NSData object representing the URL content
         corresponding to the given response.
         @param userInfo a dictionary user-specified information to be
         stored with the NSCachedURLResponse.
-        @param storagePolicy an NSURLCacheStoragePolicy constant.
+        @param storagePolicy an URLCacheStoragePolicy constant.
         @result an initialized NSCachedURLResponse.
     */
     public init(response: URLResponse, data: Data, userInfo: [AnyHashable : Any]? = [:], storagePolicy: URLCache.StoragePolicy) { NSUnimplemented() }
@@ -115,8 +115,8 @@ open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
     
     /*! 
         @method storagePolicy
-        @abstract Returns the NSURLCacheStoragePolicy constant of the receiver. 
-        @result The NSURLCacheStoragePolicy constant of the receiver. 
+        @abstract Returns the URLCacheStoragePolicy constant of the receiver. 
+        @result The URLCacheStoragePolicy constant of the receiver. 
     */
     open var storagePolicy: URLCache.StoragePolicy { NSUnimplemented() }
 }
@@ -125,9 +125,9 @@ open class URLCache : NSObject {
     
     /*! 
         @method sharedURLCache
-        @abstract Returns the shared NSURLCache instance.
+        @abstract Returns the shared URLCache instance.
         @discussion Unless set explicitly through a call to
-        <tt>+setSharedURLCache:</tt>, this method returns an NSURLCache
+        <tt>+setSharedURLCache:</tt>, this method returns an URLCache
         instance created with the following default values:
         <ul>
         <li>Memory capacity: 4 megabytes (4 * 1024 * 1024 bytes)
@@ -138,8 +138,8 @@ open class URLCache : NSObject {
         constraints should find the default shared cache instance
         acceptable. If this default shared cache instance is not
         acceptable, <tt>+setSharedURLCache:</tt> can be called to set a
-        different NSURLCache instance to be returned from this method.
-        @result the shared NSURLCache instance.
+        different URLCache instance to be returned from this method.
+        @result the shared URLCache instance.
     */
     open class var shared: URLCache {
         get {
@@ -152,15 +152,15 @@ open class URLCache : NSObject {
 
     /*! 
         @method initWithMemoryCapacity:diskCapacity:diskPath:
-        @abstract Initializes an NSURLCache with the given capacity and
+        @abstract Initializes an URLCache with the given capacity and
         path.
-        @discussion The returned NSURLCache is backed by disk, so
+        @discussion The returned URLCache is backed by disk, so
         developers can be more liberal with space when choosing the
         capacity for this kind of cache. A disk cache measured in the tens
         of megabytes should be acceptable in most cases.
         @param capacity the capacity, measured in bytes, for the cache.
         @param path the path on disk where the cache data is stored.
-        @result an initialized NSURLCache, with the given capacity, backed
+        @result an initialized URLCache, with the given capacity, backed
         by disk.
     */
     public init(memoryCapacity: Int, diskCapacity: Int, diskPath path: String?) { NSUnimplemented() }

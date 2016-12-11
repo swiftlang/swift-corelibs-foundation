@@ -194,8 +194,8 @@ open class URLSession : NSObject {
     fileprivate var invalidated = false
     
     /*
-     * The shared session uses the currently set global NSURLCache,
-     * NSHTTPCookieStorage and NSURLCredentialStorage objects.
+     * The shared session uses the currently set global URLCache,
+     * HTTPCookieStorage and URLCredentialStorage objects.
      */
     open class var shared: URLSession { NSUnimplemented() }
     

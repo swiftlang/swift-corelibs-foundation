@@ -16,9 +16,9 @@
     import SwiftXCTest
 #endif
 
-class TestNSURLCredential : XCTestCase {
+class TestURLCredential : XCTestCase {
     
-    static var allTests: [(String, (TestNSURLCredential) -> () throws -> Void)] {
+    static var allTests: [(String, (TestURLCredential) -> () throws -> Void)] {
         return [
                    ("test_construction", test_construction),
                    ("test_copy", test_copy),

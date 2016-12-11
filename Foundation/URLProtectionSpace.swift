@@ -9,46 +9,46 @@
 
 
 /*!
-   @const NSURLProtectionSpaceHTTP
+   @const URLProtectionSpaceHTTP
    @abstract The protocol for HTTP
 */
-public let NSURLProtectionSpaceHTTP: String = "NSURLProtectionSpaceHTTP"
+public let URLProtectionSpaceHTTP: String = "URLProtectionSpaceHTTP"
 
 /*!
-   @const NSURLProtectionSpaceHTTPS
+   @const URLProtectionSpaceHTTPS
    @abstract The protocol for HTTPS
 */
-public let NSURLProtectionSpaceHTTPS: String = "NSURLProtectionSpaceHTTPS"
+public let URLProtectionSpaceHTTPS: String = "URLProtectionSpaceHTTPS"
 
 /*!
-   @const NSURLProtectionSpaceFTP
+   @const URLProtectionSpaceFTP
    @abstract The protocol for FTP
 */
-public let NSURLProtectionSpaceFTP: String = "NSURLProtectionSpaceFTP"
+public let URLProtectionSpaceFTP: String = "URLProtectionSpaceFTP"
 
 /*!
-    @const NSURLProtectionSpaceHTTPProxy
+    @const URLProtectionSpaceHTTPProxy
     @abstract The proxy type for http proxies
 */
-public let NSURLProtectionSpaceHTTPProxy: String = "NSURLProtectionSpaceHTTPProxy"
+public let URLProtectionSpaceHTTPProxy: String = "URLProtectionSpaceHTTPProxy"
 
 /*!
-    @const NSURLProtectionSpaceHTTPSProxy
+    @const URLProtectionSpaceHTTPSProxy
     @abstract The proxy type for https proxies
 */
-public let NSURLProtectionSpaceHTTPSProxy: String = "NSURLProtectionSpaceHTTPSProxy"
+public let URLProtectionSpaceHTTPSProxy: String = "URLProtectionSpaceHTTPSProxy"
 
 /*!
-    @const NSURLProtectionSpaceFTPProxy
+    @const URLProtectionSpaceFTPProxy
     @abstract The proxy type for ftp proxies
 */
-public let NSURLProtectionSpaceFTPProxy: String = "NSURLProtectionSpaceFTPProxy"
+public let URLProtectionSpaceFTPProxy: String = "URLProtectionSpaceFTPProxy"
 
 /*!
-    @const NSURLProtectionSpaceSOCKSProxy
+    @const URLProtectionSpaceSOCKSProxy
     @abstract The proxy type for SOCKS proxies
 */
-public let NSURLProtectionSpaceSOCKSProxy: String = "NSURLProtectionSpaceSOCKSProxy"
+public let URLProtectionSpaceSOCKSProxy: String = "URLProtectionSpaceSOCKSProxy"
 
 /*!
     @const NSURLAuthenticationMethodDefault
@@ -101,7 +101,7 @@ public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMe
 
 
 /*!
-    @class NSURLProtectionSpace
+    @class URLProtectionSpace
     @discussion This class represents a protection space requiring authentication.
 */
 open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
@@ -225,7 +225,7 @@ extension URLProtectionSpace {
 
 // TODO: Currently no implementation of Security.framework
 /*
-extension NSURLProtectionSpace {
+extension URLProtectionSpace {
     
     /*!
         @method serverTrust
