@@ -26,7 +26,7 @@ class TestNSLocale : XCTestCase {
 
     func test_Identifier() {
         // Current locale identifier should not be empty
-        // Or things like NSNumberFormatter spellOut style won't work
+        // Or things like NumberFormatter spellOut style won't work
         XCTAssertFalse(Locale.current.identifier.isEmpty)
 
         let enUSID = "en_US"

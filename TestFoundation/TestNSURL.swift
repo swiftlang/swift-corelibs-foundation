@@ -433,8 +433,8 @@ class TestNSURL : XCTestCase {
     }
 }
     
-class TestNSURLComponents : XCTestCase {
-    static var allTests: [(String, (TestNSURLComponents) -> () throws -> Void)] {
+class TestURLComponents : XCTestCase {
+    static var allTests: [(String, (TestURLComponents) -> () throws -> Void)] {
         return [
             ("test_string", test_string),
             ("test_port", test_portSetter),

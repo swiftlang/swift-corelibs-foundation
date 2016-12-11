@@ -19,9 +19,9 @@
 
 import CoreFoundation
 
-class TestNSXMLDocument : XCTestCase {
+class TestXMLDocument : XCTestCase {
 
-    static var allTests: [(String, (TestNSXMLDocument) -> () throws -> Void)] {
+    static var allTests: [(String, (TestXMLDocument) -> () throws -> Void)] {
         #if os(OSX) || os(iOS)
             return [
                 ("test_basicCreation", test_basicCreation),
@@ -187,10 +187,10 @@ class TestNSXMLDocument : XCTestCase {
 
         element.stringValue = nil
 
-        //        let doc = NSXMLDocument(rootElement: element)
+        //        let doc = XMLDocument(rootElement: element)
         //        xmlCreateIntSubset(xmlDocPtr(doc._xmlNode), "test.dtd", nil, nil)
         //        xmlAddDocEntity(xmlDocPtr(doc._xmlNode), "author", Int32(XML_INTERNAL_GENERAL_ENTITY.rawValue), nil, nil, "Robert Thompson")
-        //        let author = NSXMLElement(name: "author")
+        //        let author = XMLElement(name: "author")
         //        doc.rootElement()?.addChild(author)
         //        author.setStringValue("&author;", resolvingEntities: true)
         //        XCTAssertEqual(author.stringValue, "Robert Thompson", author.stringValue ?? "")
@@ -266,7 +266,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssert(doc.childCount == 1)
         XCTAssertEqual(doc.rootElement()?.children?[0].stringValue, "Robert Thompson")
 
-        guard let testDataURL = testBundle().url(forResource: "NSXMLDocumentTestData", withExtension: "xml") else {
+        guard let testDataURL = testBundle().url(forResource: "XMLDocumentTestData", withExtension: "xml") else {
             XCTFail("Could not find XML test data")
             return
         }
@@ -371,7 +371,7 @@ class TestNSXMLDocument : XCTestCase {
     }
 
     func test_documentWithDTD() throws {
-        let doc = try XMLDocument(contentsOf: testBundle().url(forResource: "NSXMLDTDTestData", withExtension: "xml")!, options: [])
+        let doc = try XMLDocument(contentsOf: testBundle().url(forResource: "XMLDTDTestData", withExtension: "xml")!, options: [])
         let dtd = doc.dtd
         XCTAssert(dtd?.name == "root")
 
@@ -399,7 +399,7 @@ class TestNSXMLDocument : XCTestCase {
     }
     
     func test_dtd_attributes() throws {
-        let doc = try XMLDocument(contentsOf: testBundle().url(forResource: "NSXMLDTDTestData", withExtension: "xml")!, options: [])
+        let doc = try XMLDocument(contentsOf: testBundle().url(forResource: "XMLDTDTestData", withExtension: "xml")!, options: [])
         let dtd = doc.dtd!
         let attrDecl = dtd.attributeDeclaration(forName: "print", elementName: "foo")!
         XCTAssert(attrDecl.dtdKind == .enumerationAttribute)

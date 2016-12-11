@@ -69,9 +69,9 @@ class XMLParserDelegateEventStream: XMLParserDelegate {
     }
 }
 
-class TestNSXMLParser : XCTestCase {
+class TestXMLParser : XCTestCase {
 
-    static var allTests: [(String, (TestNSXMLParser) -> () throws -> Void)] {
+    static var allTests: [(String, (TestXMLParser) -> () throws -> Void)] {
         return [
             ("test_withData", test_withData),
             ("test_withDataEncodings", test_withDataEncodings),
@@ -108,7 +108,7 @@ class TestNSXMLParser : XCTestCase {
 
 
     func test_withData() {
-        let xml = Array(TestNSXMLParser.xmlUnderTest().utf8CString)
+        let xml = Array(TestXMLParser.xmlUnderTest().utf8CString)
         let data = xml.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<CChar>) -> Data in
             return buffer.baseAddress!.withMemoryRebound(to: UInt8.self, capacity: buffer.count * MemoryLayout<CChar>.stride) {
                 return Data(bytes: $0, count: buffer.count)
@@ -118,7 +118,7 @@ class TestNSXMLParser : XCTestCase {
         let stream = XMLParserDelegateEventStream()
         parser.delegate = stream
         let res = parser.parse()
-        XCTAssertEqual(stream.events, TestNSXMLParser.xmlUnderTestExpectedEvents())
+        XCTAssertEqual(stream.events, TestXMLParser.xmlUnderTestExpectedEvents())
         XCTAssertTrue(res)
     }
 
@@ -128,18 +128,18 @@ class TestNSXMLParser : XCTestCase {
         //   - .nextstep, .utf32LittleEndian
         let encodings: [String.Encoding] = [.utf16LittleEndian, .utf16BigEndian, .utf32BigEndian, .ascii]
         for encoding in encodings {
-            let xml = TestNSXMLParser.xmlUnderTest(encoding: encoding)
+            let xml = TestXMLParser.xmlUnderTest(encoding: encoding)
             let parser = XMLParser(data: xml.data(using: encoding)!)
             let stream = XMLParserDelegateEventStream()
             parser.delegate = stream
             let res = parser.parse()
-            XCTAssertEqual(stream.events, TestNSXMLParser.xmlUnderTestExpectedEvents())
+            XCTAssertEqual(stream.events, TestXMLParser.xmlUnderTestExpectedEvents())
             XCTAssertTrue(res)
         }
     }
 
     func test_withDataOptions() {
-        let xml = TestNSXMLParser.xmlUnderTest()
+        let xml = TestXMLParser.xmlUnderTest()
         let parser = XMLParser(data: xml.data(using: String.Encoding.utf8)!)
         parser.shouldProcessNamespaces = true
         parser.shouldReportNamespacePrefixes = true
@@ -147,7 +147,7 @@ class TestNSXMLParser : XCTestCase {
         let stream = XMLParserDelegateEventStream()
         parser.delegate = stream
         let res = parser.parse()
-        XCTAssertEqual(stream.events, TestNSXMLParser.xmlUnderTestExpectedEvents(namespaces: true)  )
+        XCTAssertEqual(stream.events, TestXMLParser.xmlUnderTestExpectedEvents(namespaces: true)  )
         XCTAssertTrue(res)
     }
 

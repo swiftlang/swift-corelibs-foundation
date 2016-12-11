@@ -800,7 +800,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     /*
     This API returns all the date components of a date, as if in a given time zone (instead of the receiving calendar's time zone).
     The time zone overrides the time zone of the NSCalendar for the purposes of this calculation.
-    Note: if you want "date information in a given time zone" in order to display it, you should use NSDateFormatter to format the date.
+    Note: if you want "date information in a given time zone" in order to display it, you should use DateFormatter to format the date.
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// The Darwin version is not nullable but this one is since the conversion from the date and unit flags can potentially return nil

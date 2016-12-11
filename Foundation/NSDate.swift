@@ -104,7 +104,7 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
      There are a number of options to acquire a formatted string for a date
      including: date formatters (see
-     [NSDateFormatter](//apple_ref/occ/cl/NSDateFormatter) and
+     [DateFormatter](//apple_ref/occ/cl/DateFormatter) and
      [Data Formatting Guide](//apple_ref/doc/uid/10000029i)),
      and the `NSDate` methods `descriptionWithLocale:`,
      `dateWithCalendarFormat:timeZone:`, and

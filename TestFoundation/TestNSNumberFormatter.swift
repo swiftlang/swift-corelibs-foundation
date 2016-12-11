@@ -16,9 +16,9 @@
 #endif
 import CoreFoundation
 
-class TestNSNumberFormatter: XCTestCase {
+class TestNumberFormatter: XCTestCase {
 
-    static var allTests: [(String, (TestNSNumberFormatter) -> () throws -> Void)] {
+    static var allTests: [(String, (TestNumberFormatter) -> () throws -> Void)] {
         return [
             ("test_currencyCode", test_currencyCode),
             ("test_decimalSeparator", test_decimalSeparator),
@@ -62,7 +62,7 @@ class TestNSNumberFormatter: XCTestCase {
     func test_currencyCode() {
         // Disabled due to [SR-250]
         /*
-        let numberFormatter = NSNumberFormatter()
+        let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .CurrencyStyle
         numberFormatter.currencyCode = "T"
         numberFormatter.currencyDecimalSeparator = "_"
@@ -86,7 +86,7 @@ class TestNSNumberFormatter: XCTestCase {
     func test_currencyDecimalSeparator() {
         // Disabled due to [SR-250]
         /*
-        let numberFormatter = NSNumberFormatter()
+        let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .CurrencyStyle
         numberFormatter.currencyDecimalSeparator = "-"
         numberFormatter.currencyCode = "T"
