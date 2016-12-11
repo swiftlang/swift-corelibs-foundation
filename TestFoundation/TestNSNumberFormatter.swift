@@ -198,8 +198,12 @@ class TestNSNumberFormatter: XCTestCase {
     func test_minimumIntegerDigits() {
         let numberFormatter = NumberFormatter()
         numberFormatter.minimumIntegerDigits = 3
-        let formattedString = numberFormatter.string(from: 0)
+        var formattedString = numberFormatter.string(from: 0)
         XCTAssertEqual(formattedString, "000")
+
+        numberFormatter.numberStyle = .decimal
+        formattedString = numberFormatter.string(from: 0.1)
+        XCTAssertEqual(formattedString, "0.1")        
     }
     
     func test_maximumIntegerDigits() {
@@ -375,8 +379,12 @@ class TestNSNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.usesSignificantDigits = true
         numberFormatter.maximumSignificantDigits = 3
-        let formattedString = numberFormatter.string(from: 42.42424242)
+        var formattedString = numberFormatter.string(from: 42.42424242)
         XCTAssertEqual(formattedString, "42.4")
+        
+        numberFormatter.numberStyle = .decimal
+        formattedString = numberFormatter.string(from: 987654321)
+        XCTAssertEqual(formattedString, "987,654,321")
     }
 
     func test_stringFor() {
