@@ -19,8 +19,8 @@ extension DateIntervalFormatter {
     }
 }
 
-// NSDateIntervalFormatter is used to format the range between two NSDates in a locale-sensitive way.
-// NSDateIntervalFormatter returns nil and NO for all methods in NSFormatter.
+// DateIntervalFormatter is used to format the range between two NSDates in a locale-sensitive way.
+// DateIntervalFormatter returns nil and NO for all methods in Formatter.
 
 open class DateIntervalFormatter : Formatter {
     
@@ -36,8 +36,8 @@ open class DateIntervalFormatter : Formatter {
     /*@NSCopying*/ open var calendar: Calendar! // default is the calendar of the locale
     /*@NSCopying*/ open var timeZone: TimeZone! // default is [NSTimeZone defaultTimeZone]
     open var dateTemplate: String! // default is an empty string
-    open var dateStyle: Style // default is NSDateIntervalFormatterNoStyle
-    open var timeStyle: Style // default is NSDateIntervalFormatterNoStyle
+    open var dateStyle: Style // default is DateIntervalFormatterNoStyle
+    open var timeStyle: Style // default is DateIntervalFormatterNoStyle
     
     /*
          If the range smaller than the resolution specified by the dateTemplate, a single date format will be produced. If the range is larger than the format specified by the dateTemplate, a locale-specific fallback will be used to format the items missing from the pattern.

@@ -34,7 +34,7 @@ extension DateComponentsFormatter {
     }
 }
 
-/* NSDateComponentsFormatter provides locale-correct and flexible string formatting of quantities of time, such as "1 day" or "1h 10m", as specified by NSDateComponents. For formatting intervals of time (such as "2PM to 5PM"), see NSDateIntervalFormatter. NSDateComponentsFormatter is thread-safe, in that calling methods on it from multiple threads will not cause crashes or incorrect results, but it makes no attempt to prevent confusion when one thread sets something and another thread isn't expecting it to change.
+/* DateComponentsFormatter provides locale-correct and flexible string formatting of quantities of time, such as "1 day" or "1h 10m", as specified by NSDateComponents. For formatting intervals of time (such as "2PM to 5PM"), see DateIntervalFormatter. DateComponentsFormatter is thread-safe, in that calling methods on it from multiple threads will not cause crashes or incorrect results, but it makes no attempt to prevent confusion when one thread sets something and another thread isn't expecting it to change.
  */
 
 open class DateComponentsFormatter : Formatter {
@@ -53,11 +53,11 @@ open class DateComponentsFormatter : Formatter {
     
     open func string(from components: DateComponents) -> String? { NSUnimplemented() }
     
-    /* Normally, NSDateComponentsFormatter will calculate as though counting from the current date and time (e.g. in February, 1 month formatted as a number of days will be 28). -stringFromDate:toDate: calculates from the passed-in startDate instead.
+    /* Normally, DateComponentsFormatter will calculate as though counting from the current date and time (e.g. in February, 1 month formatted as a number of days will be 28). -stringFromDate:toDate: calculates from the passed-in startDate instead.
      
        See 'allowedUnits' for how the default set of allowed units differs from -stringFromDateComponents:.
      
-       Note that this is still formatting the quantity of time between the dates, not the pair of dates itself. For strings like "Feb 22nd - Feb 28th", use NSDateIntervalFormatter.
+       Note that this is still formatting the quantity of time between the dates, not the pair of dates itself. For strings like "Feb 22nd - Feb 28th", use DateIntervalFormatter.
      */
     open func string(from startDate: Date, to endDate: Date) -> String? { NSUnimplemented() }
     
@@ -67,7 +67,7 @@ open class DateComponentsFormatter : Formatter {
     
     open class func localizedString(from components: DateComponents, unitsStyle: UnitsStyle) -> String? { NSUnimplemented() }
     
-    /* Choose how to indicate units. For example, 1h 10m vs 1:10. Default is NSDateComponentsFormatterUnitsStylePositional.
+    /* Choose how to indicate units. For example, 1h 10m vs 1:10. Default is DateComponentsFormatterUnitsStylePositional.
      */
     open var unitsStyle: UnitsStyle
     
@@ -87,9 +87,9 @@ open class DateComponentsFormatter : Formatter {
      */
     open var allowedUnits: NSCalendar.Unit
     
-    /* Bitmask specifying how to handle zeros in units. This includes both padding and dropping zeros so that a consistent number digits are displayed, causing updating displays to remain more stable. Default is NSDateComponentsFormatterZeroFormattingBehaviorDefault.
+    /* Bitmask specifying how to handle zeros in units. This includes both padding and dropping zeros so that a consistent number digits are displayed, causing updating displays to remain more stable. Default is DateComponentsFormatterZeroFormattingBehaviorDefault.
      
-       If the combination of zero formatting behavior and style would lead to ambiguous date formats (for example, 1:10 meaning 1 hour, 10 seconds), NSDateComponentsFormatter will throw an exception.
+       If the combination of zero formatting behavior and style would lead to ambiguous date formats (for example, 1:10 meaning 1 hour, 10 seconds), DateComponentsFormatter will throw an exception.
      */
     open var zeroFormattingBehavior: ZeroFormattingBehavior
     
@@ -129,7 +129,7 @@ open class DateComponentsFormatter : Formatter {
      */
     open var formattingContext: Context
     
-    /* NSDateComponentsFormatter currently only implements formatting, not parsing. Until it implements parsing, this will always return NO.
+    /* DateComponentsFormatter currently only implements formatting, not parsing. Until it implements parsing, this will always return NO.
      */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future

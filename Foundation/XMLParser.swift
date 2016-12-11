@@ -471,7 +471,7 @@ open class XMLParser : NSObject {
     open var shouldProcessNamespaces: Bool = false
     open var shouldReportNamespacePrefixes: Bool = false
     
-    //defaults to NSXMLNodeLoadExternalEntitiesNever
+    //defaults to XMLNodeLoadExternalEntitiesNever
     open var externalEntityResolvingPolicy: ExternalEntityResolvingPolicy = .resolveExternalEntitiesNever
     
     open var allowedExternalEntityURLs: Set<URL>?

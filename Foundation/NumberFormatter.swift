@@ -82,7 +82,7 @@ open class NumberFormatter : Formatter {
     
     open var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
     
-    // Report the used range of the string and an NSError, in addition to the usual stuff from NSFormatter
+    // Report the used range of the string and an NSError, in addition to the usual stuff from Formatter
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     open func objectValue(_ string: String, range: inout NSRange) throws -> Any? { NSUnimplemented() }
@@ -93,7 +93,7 @@ open class NumberFormatter : Formatter {
         return string(from: number)
     }
     
-    // Even though NSNumberFormatter responds to the usual NSFormatter methods,
+    // Even though NumberFormatter responds to the usual Formatter methods,
     //   here are some convenience methods which are a little more obvious.
     open func string(from number: NSNumber) -> String? {
         return CFNumberFormatterCreateStringWithNumber(kCFAllocatorSystemDefault, _cfFormatter, number._cfObject)._swiftObject
@@ -175,7 +175,7 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    // Attributes of an NSNumberFormatter
+    // Attributes of an NumberFormatter
     internal var _numberStyle: Style = .none
     open var numberStyle: Style {
         get {
@@ -889,7 +889,7 @@ open class NumberFormatter : Formatter {
     }
     
     // FIXME: Uncomment this when NSDecimalNumberHandler.default() gets rid of NSUnimplementend()
-    // This is currently commented out so that NSNumberFormatter instances can be tested
+    // This is currently commented out so that NumberFormatter instances can be tested
 //    internal var _roundingBehavior: NSDecimalNumberHandler = NSDecimalNumberHandler.default()
 //    /*@NSCopying*/ open var roundingBehavior: NSDecimalNumberHandler {
 //        get {

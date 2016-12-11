@@ -9,37 +9,37 @@
 
 import CoreFoundation
 // Input options
-//  NSXMLNodeOptionsNone
-//  NSXMLNodePreserveAll
-//  NSXMLNodePreserveNamespaceOrder
-//  NSXMLNodePreserveAttributeOrder
-//  NSXMLNodePreserveEntities
-//  NSXMLNodePreservePrefixes
-//  NSXMLNodePreserveCDATA
-//  NSXMLNodePreserveEmptyElements
-//  NSXMLNodePreserveQuotes
-//  NSXMLNodePreserveWhitespace
-//  NSXMLNodeLoadExternalEntities
-//  NSXMLNodeLoadExternalEntitiesSameOriginOnly
+//  XMLNodeOptionsNone
+//  XMLNodePreserveAll
+//  XMLNodePreserveNamespaceOrder
+//  XMLNodePreserveAttributeOrder
+//  XMLNodePreserveEntities
+//  XMLNodePreservePrefixes
+//  XMLNodePreserveCDATA
+//  XMLNodePreserveEmptyElements
+//  XMLNodePreserveQuotes
+//  XMLNodePreserveWhitespace
+//  XMLNodeLoadExternalEntities
+//  XMLNodeLoadExternalEntitiesSameOriginOnly
 
-//  NSXMLDocumentTidyHTML
-//  NSXMLDocumentTidyXML
+//  XMLDocumentTidyHTML
+//  XMLDocumentTidyXML
 
-//  NSXMLDocumentValidate
+//  XMLDocumentValidate
 
 // Output options
-//  NSXMLNodePrettyPrint
-//  NSXMLDocumentIncludeContentTypeDeclaration
+//  XMLNodePrettyPrint
+//  XMLDocumentIncludeContentTypeDeclaration
 
 extension XMLDocument {
 
     /*!
-        @typedef NSXMLDocumentContentKind
+        @typedef XMLDocumentContentKind
         @abstract Define what type of document this is.
-        @constant NSXMLDocumentXMLKind The default document type
-        @constant NSXMLDocumentXHTMLKind Set if NSXMLDocumentTidyHTML is set and HTML is detected
-        @constant NSXMLDocumentHTMLKind Outputs empty tags without a close tag, eg <br>
-        @constant NSXMLDocumentTextKind Output the string value of the document
+        @constant XMLDocumentXMLKind The default document type
+        @constant XMLDocumentXHTMLKind Set if XMLDocumentTidyHTML is set and HTML is detected
+        @constant XMLDocumentHTMLKind Outputs empty tags without a close tag, eg <br>
+        @constant XMLDocumentTextKind Output the string value of the document
     */
     public enum ContentKind : UInt {
 
@@ -51,7 +51,7 @@ extension XMLDocument {
 }
 
 /*!
-    @class NSXMLDocument
+    @class XMLDocument
     @abstract An XML Document
 	@discussion Note: if the application of a method would result in more than one element in the children array, an exception is thrown. Trying to add a document, namespace, attribute, or node with a parent also throws an exception. To add a node with a parent first detach or create a copy of it.
 */
@@ -309,7 +309,7 @@ open class XMLDocument : XMLNode {
 
     /*!
         @method XMLData
-        @abstract Invokes XMLDataWithOptions with NSXMLNodeOptionsNone.
+        @abstract Invokes XMLDataWithOptions with XMLNodeOptionsNone.
     */
     /*@NSCopying*/ open var xmlData: Data { return xmlData(withOptions: []) }
 

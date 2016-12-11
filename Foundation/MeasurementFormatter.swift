@@ -34,11 +34,11 @@ open class MeasurementFormatter : Formatter, NSSecureCoding {
      - kilocalories may be formatted as "C" instead of "kcal" depending on the locale.
      - kilometersPerHour may be formatted as "miles per hour" for US and UK locales but "kilometers per hour" for other locales.
      
-     However, if NSMeasurementFormatterUnitOptionsProvidedUnit is set, the formatter will do the following:
+     However, if MeasurementFormatterUnitOptionsProvidedUnit is set, the formatter will do the following:
      - kilocalories would be formatted as "kcal" in the language of the locale, even if the locale prefers "C".
      - kilometersPerHour would be formatted as "kilometers per hour" for US and UK locales even though the preference is for "miles per hour."
      
-     Note that NSMeasurementFormatter will handle converting measurement objects to the preferred units in a particular locale.  For instance, if provided a measurement object in kilometers and the set locale is en_US, the formatter will implicitly convert the measurement object to miles and return the formatted string as the equivalent measurement in miles.
+     Note that MeasurementFormatter will handle converting measurement objects to the preferred units in a particular locale.  For instance, if provided a measurement object in kilometers and the set locale is en_US, the formatter will implicitly convert the measurement object to miles and return the formatted string as the equivalent measurement in miles.
      
      */
     open var unitOptions: MeasurementFormatter.UnitOptions = []
@@ -57,7 +57,7 @@ open class MeasurementFormatter : Formatter, NSSecureCoding {
     
     
     /*
-     If not specified, the number formatter is set up with NSNumberFormatterDecimalStyle.
+     If not specified, the number formatter is set up with NumberFormatterDecimalStyle.
      */
     open var numberFormatter: NumberFormatter!
     

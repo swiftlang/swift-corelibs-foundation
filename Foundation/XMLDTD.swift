@@ -9,7 +9,7 @@
 
 import CoreFoundation
 /*!
-    @class NSXMLDTD
+    @class XMLDTD
     @abstract Defines the order, repetition, and allowable values for a document
 */
 open class XMLDTD : XMLNode {

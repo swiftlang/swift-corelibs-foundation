@@ -9,7 +9,7 @@
 
 import CoreFoundation
 /*!
-    @typedef NSXMLDTDNodeKind
+    @typedef XMLDTDNodeKind
 	@abstract The subkind of a DTD node kind.
 */
 extension XMLDTDNode {
@@ -61,7 +61,7 @@ extension XMLDTDNode {
 }
 
 /*!
-    @class NSXMLDTDNode
+    @class XMLDTDNode
     @abstract The nodes that are exclusive to a DTD
 	@discussion Every DTD node has a name. Object value is defined as follows:<ul>
 		<li><b>Entity declaration</b> - the string that that entity resolves to eg "&lt;"</li>

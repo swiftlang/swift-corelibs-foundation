@@ -18,8 +18,8 @@ import SwiftXCTest
 
 
 
-class TestNSPropertyList : XCTestCase {
-    static var allTests: [(String, (TestNSPropertyList) -> () throws -> Void)] {
+class TestPropertyListSerialization : XCTestCase {
+    static var allTests: [(String, (TestPropertyListSerialization) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction ),
             ("test_decode", test_decode ),

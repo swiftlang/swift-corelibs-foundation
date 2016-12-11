@@ -50,7 +50,7 @@ open class ByteCountFormatter : Formatter {
         NSUnimplemented()
     }
     
-    /* Shortcut for converting a byte count into a string without creating an NSByteCountFormatter and an NSNumber. If you need to specify options other than countStyle, create an instance of NSByteCountFormatter first.
+    /* Shortcut for converting a byte count into a string without creating an ByteCountFormatter and an NSNumber. If you need to specify options other than countStyle, create an instance of ByteCountFormatter first.
     */
     open class func string(fromByteCount byteCount: Int64, countStyle: ByteCountFormatter.CountStyle) -> String { NSUnimplemented() }
     
@@ -58,15 +58,15 @@ open class ByteCountFormatter : Formatter {
     */
     open func string(fromByteCount byteCount: Int64) -> String { NSUnimplemented() }
     
-    /* Specify the units that can be used in the output. If NSByteCountFormatterUseDefault, uses platform-appropriate settings; otherwise will only use the specified units. This is the default value. Note that ZB and YB cannot be covered by the range of possible values, but you can still choose to use these units to get fractional display ("0.0035 ZB" for instance).
+    /* Specify the units that can be used in the output. If ByteCountFormatterUseDefault, uses platform-appropriate settings; otherwise will only use the specified units. This is the default value. Note that ZB and YB cannot be covered by the range of possible values, but you can still choose to use these units to get fractional display ("0.0035 ZB" for instance).
     */
     open var allowedUnits: Units = .useDefault
     
-    /* Specify how the count is displayed by indicating the number of bytes to be used for kilobyte. The default setting is NSByteCountFormatterFileCount, which is the system specific value for file and storage sizes.
+    /* Specify how the count is displayed by indicating the number of bytes to be used for kilobyte. The default setting is ByteCountFormatterFileCount, which is the system specific value for file and storage sizes.
     */
     open var countStyle: CountStyle = .file
     
-    /* Choose whether to allow more natural display of some values, such as zero, where it may be displayed as "Zero KB," ignoring all other flags or options (with the exception of NSByteCountFormatterUseBytes, which would generate "Zero bytes"). The result is appropriate for standalone output. Default value is YES. Special handling of certain values such as zero is especially important in some languages, so it's highly recommended that this property be left in its default state.
+    /* Choose whether to allow more natural display of some values, such as zero, where it may be displayed as "Zero KB," ignoring all other flags or options (with the exception of ByteCountFormatterUseBytes, which would generate "Zero bytes"). The result is appropriate for standalone output. Default value is YES. Special handling of certain values such as zero is especially important in some languages, so it's highly recommended that this property be left in its default state.
     */
     open var allowsNonnumericFormatting: Bool = true
     

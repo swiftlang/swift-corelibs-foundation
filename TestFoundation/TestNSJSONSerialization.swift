@@ -17,7 +17,7 @@
 #endif
 
 
-class TestNSJSONSerialization : XCTestCase {
+class TestJSONSerialization : XCTestCase {
     
     let supportedEncodings: [String.Encoding] = [
         .utf8,
@@ -25,7 +25,7 @@ class TestNSJSONSerialization : XCTestCase {
         .utf32LittleEndian, .utf32BigEndian
     ]
 
-    static var allTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
+    static var allTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
         return JSONObjectWithDataTests
             + deserializationTests
             + isValidJSONObjectTests
@@ -35,9 +35,9 @@ class TestNSJSONSerialization : XCTestCase {
 }
 
 //MARK: - JSONObjectWithData
-extension TestNSJSONSerialization {
+extension TestJSONSerialization {
 
-    class var JSONObjectWithDataTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
+    class var JSONObjectWithDataTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
         return [
             ("test_JSONObjectWithData_emptyObject", test_JSONObjectWithData_emptyObject),
             ("test_JSONObjectWithData_encodingDetection", test_JSONObjectWithData_encodingDetection),
@@ -86,9 +86,9 @@ extension TestNSJSONSerialization {
 }
 
 //MARK: - JSONDeserialization
-extension TestNSJSONSerialization {
+extension TestJSONSerialization {
     
-    class var deserializationTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
+    class var deserializationTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
         return [
             ("test_deserialize_emptyObject", test_deserialize_emptyObject),
             ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
@@ -482,9 +482,9 @@ extension TestNSJSONSerialization {
 }
 
 // MARK: - isValidJSONObjectTests
-extension TestNSJSONSerialization {
+extension TestJSONSerialization {
 
-    class var isValidJSONObjectTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
+    class var isValidJSONObjectTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
         return [
             ("test_isValidJSONObjectTrue", test_isValidJSONObjectTrue),
             ("test_isValidJSONObjectFalse", test_isValidJSONObjectFalse),
@@ -581,9 +581,9 @@ extension TestNSJSONSerialization {
 }
 
 // MARK: - serializationTests
-extension TestNSJSONSerialization {
+extension TestJSONSerialization {
 
-    class var serializationTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
+    class var serializationTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
         return [
             ("test_serialize_emptyObject", test_serialize_emptyObject),
             ("test_serialize_null", test_serialize_null),
@@ -628,7 +628,7 @@ extension TestNSJSONSerialization {
     }
     
     //[SR-2151] https://bugs.swift.org/browse/SR-2151
-    //NSJSONSerialization.data(withJSONObject:options) produces illegal JSON code
+    //JSONSerialization.data(withJSONObject:options) produces illegal JSON code
     func test_serialize_dictionaryWithDecimal() {
         
         //test serialize values less than 1 with maxFractionDigits = 15

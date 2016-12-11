@@ -28,7 +28,7 @@ open class LengthFormatter : Formatter {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
+    /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NumberFormatter with NumberFormatterDecimalStyle
     open var unitStyle: UnitStyle // default is NSFormattingUnitStyleMedium
     
     open var isForPersonHeightUse: Bool // default is NO; if it is set to YES, the number argument for -stringFromMeters: and -unitStringFromMeters: is considered as a person's height

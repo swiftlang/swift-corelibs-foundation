@@ -11,24 +11,24 @@
 import CoreFoundation
 
 // initWithKind options
-//  NSXMLNodeOptionsNone
-//  NSXMLNodePreserveAll
-//  NSXMLNodePreserveNamespaceOrder
-//  NSXMLNodePreserveAttributeOrder
-//  NSXMLNodePreserveEntities
-//  NSXMLNodePreservePrefixes
-//  NSXMLNodeIsCDATA
-//  NSXMLNodeExpandEmptyElement
-//  NSXMLNodeCompactEmptyElement
-//  NSXMLNodeUseSingleQuotes
-//  NSXMLNodeUseDoubleQuotes
+//  XMLNodeOptionsNone
+//  XMLNodePreserveAll
+//  XMLNodePreserveNamespaceOrder
+//  XMLNodePreserveAttributeOrder
+//  XMLNodePreserveEntities
+//  XMLNodePreservePrefixes
+//  XMLNodeIsCDATA
+//  XMLNodeExpandEmptyElement
+//  XMLNodeCompactEmptyElement
+//  XMLNodeUseSingleQuotes
+//  XMLNodeUseDoubleQuotes
 
 // Output options
-//  NSXMLNodePrettyPrint
+//  XMLNodePrettyPrint
 
 
 /*!
-    @class NSXMLNode
+    @class XMLNode
     @abstract The basic unit of an XML document.
 */
 open class XMLNode: NSObject, NSCopying {
@@ -99,7 +99,7 @@ open class XMLNode: NSObject, NSCopying {
 
     /*!
         @method initWithKind:
-        @abstract Invokes @link initWithKind:options: @/link with options set to NSXMLNodeOptionsNone
+        @abstract Invokes @link initWithKind:options: @/link with options set to XMLNodeOptionsNone
     */
     public convenience init(kind: Kind) {
         self.init(kind: kind, options: [])
@@ -107,7 +107,7 @@ open class XMLNode: NSObject, NSCopying {
 
     /*!
         @method initWithKind:options:
-        @abstract Inits a node with fidelity options as description NSXMLNodeOptions.h
+        @abstract Inits a node with fidelity options as description XMLNodeOptions.h
     */
     public init(kind: Kind, options: Options = []) {
 
@@ -741,14 +741,14 @@ open class XMLNode: NSObject, NSCopying {
 
     /*!
         @method canonicalXMLStringPreservingComments:
-        @abstract W3 canonical form (http://www.w3.org/TR/xml-c14n). The input option NSXMLNodePreserveWhitespace should be set for true canonical form.
+        @abstract W3 canonical form (http://www.w3.org/TR/xml-c14n). The input option XMLNodePreserveWhitespace should be set for true canonical form.
     */
     open func canonicalXMLStringPreservingComments(_ comments: Bool) -> String { NSUnimplemented() }
 
     /*!
         @method nodesForXPath:error:
         @abstract Returns the nodes resulting from applying an XPath to this node using the node as the context item ("."). normalizeAdjacentTextNodesPreservingCDATA:NO should be called if there are adjacent text nodes since they are not allowed under the XPath/XQuery Data Model.
-    	@returns An array whose elements are a kind of NSXMLNode.
+    	@returns An array whose elements are a kind of XMLNode.
     */
     open func nodes(forXPath xpath: String) throws -> [XMLNode] {
         guard let nodes = _CFXMLNodesForXPath(_xmlNode, xpath) else {
@@ -767,7 +767,7 @@ open class XMLNode: NSObject, NSCopying {
     /*!
         @method objectsForXQuery:constants:error:
         @abstract Returns the objects resulting from applying an XQuery to this node using the node as the context item ("."). Constants are a name-value dictionary for constants declared "external" in the query. normalizeAdjacentTextNodesPreservingCDATA:NO should be called if there are adjacent text nodes since they are not allowed under the XPath/XQuery Data Model.
-    	@returns An array whose elements are kinds of NSArray, NSData, NSDate, NSNumber, NSString, NSURL, or NSXMLNode.
+    	@returns An array whose elements are kinds of NSArray, NSData, NSDate, NSNumber, NSString, NSURL, or XMLNode.
     */
     open func objects(forXQuery xquery: String, constants: [String : Any]?) throws -> [Any] {
         NSUnimplemented()
@@ -845,7 +845,7 @@ open class XMLNode: NSObject, NSCopying {
     }
 
     // libxml2 believes any node can have children, though XMLNode disagrees.
-    // Nevertheless, this belongs here so that NSXMLElement and NSXMLDocument can share
+    // Nevertheless, this belongs here so that XMLElement and XMLDocument can share
     // the same implementation.
     internal func _insertChild(_ child: XMLNode, atIndex index: Int) {
         precondition(index >= 0)
@@ -921,9 +921,9 @@ open class XMLNode: NSObject, NSCopying {
     }
 }
 
-internal protocol _NSXMLNodeCollectionType: Collection { }
+internal protocol _XMLNodeCollectionType: Collection { }
 
-extension XMLNode: _NSXMLNodeCollectionType {
+extension XMLNode: _XMLNodeCollectionType {
 
     public struct Index: Comparable {
         fileprivate let node: _CFXMLNodePtr?

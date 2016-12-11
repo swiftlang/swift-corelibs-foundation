@@ -9,7 +9,7 @@
 
 import CoreFoundation
 /*!
-    @class NSXMLElement
+    @class XMLElement
     @abstract An XML element
     @discussion Note: Trying to add a document, namespace, attribute, or node with a parent throws an exception. To add a node with a parent first detach or create a copy of it.
 */
