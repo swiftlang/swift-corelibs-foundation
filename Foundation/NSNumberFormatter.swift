@@ -192,6 +192,12 @@ open class NumberFormatter : Formatter {
                 _usesGroupingSeparator = true
                 _minimumFractionDigits = 2
                 
+            case .decimal:
+                _usesSignificantDigits = false
+                _usesGroupingSeparator = true
+                _maximumFractionDigits = 3
+                _minimumIntegerDigits = 1
+                
             default:
                 _usesSignificantDigits = true
                 _usesGroupingSeparator = true
