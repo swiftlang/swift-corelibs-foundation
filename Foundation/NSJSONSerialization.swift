@@ -55,15 +55,18 @@ open class JSONSerialization : NSObject {
     open class func isValidJSONObject(_ obj: Any) -> Bool {
         // TODO: - revisit this once bridging story gets fully figured out
         func isValidJSONObjectInternal(_ obj: Any) -> Bool {
-            // object is Swift.String or NSNull
-            if obj is String || obj is NSNull {
+            // object is Swift.String, NSNull, Int, Bool, or UInt
+            if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt {
                 return true
             }
 
-            // object is NSNumber and is not NaN or infinity
-            if let number = _SwiftValue.store(obj) as? NSNumber {
-                let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
-                return !invalid
+            // object is a Double and is not NaN or infinity
+            if let number = obj as? Double  {
+                return number.isFinite
+            }
+            // object is a Float and is not NaN or infinity
+            if let number = obj as? Float  {
+                return number.isFinite
             }
 
             // object is Swift.Array
@@ -84,6 +87,13 @@ open class JSONSerialization : NSObject {
                     }
                 }
                 return true
+            }
+
+            // object is NSNumber and is not NaN or infinity
+            // For better performance, this (most expensive) test should be last.
+            if let number = _SwiftValue.store(obj) as? NSNumber {
+                let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
+                return !invalid
             }
 
             // invalid object
@@ -280,19 +290,20 @@ private struct JSONWriter {
     
     mutating func serializeJSON(_ obj: Any) throws {
 
+        // For better performance, the most expensive conditions to evaluate should be last.
         switch (obj) {
         case let str as String:
             try serializeString(str)
         case let boolValue as Bool:
             serializeBool(boolValue)
-        case _ where _SwiftValue.store(obj) is NSNumber:
-            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
         case let array as Array<Any>:
             try serializeArray(array)
         case let dict as Dictionary<AnyHashable, Any>:
             try serializeDictionary(dict)
         case let null as NSNull:
             try serializeNull(null)
+        case _ where _SwiftValue.store(obj) is NSNumber:
+            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
         default:
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
         }
