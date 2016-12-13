@@ -480,7 +480,7 @@ extension URLSession {
        return downloadTask(with: _Request(url), behavior: .downloadCompletionHandler(completionHandler)) 
     }
 
-    open func downloadTask(withResumeData resumeData: Data, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
+    open func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
 }
 
 internal extension URLSession {
