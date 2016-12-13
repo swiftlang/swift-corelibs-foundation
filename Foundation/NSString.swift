@@ -1432,9 +1432,12 @@ extension String {
         let range = CFRangeMake(0, CFStringGetLength(cfstring))
         let opts = CFStringCompareFlags(
             kCFCompareAnchored | kCFCompareNonliteral)
-        
-        return CFStringFindWithOptions(cfstring, prefix._cfObject,
+        if prefix.isEmpty {
+            return true
+        } else {
+            return CFStringFindWithOptions(cfstring, prefix._cfObject,
                                        range, opts, nil)
+        } 
     }
     
     public func hasSuffix(_ suffix: String) -> Bool {
@@ -1442,8 +1445,12 @@ extension String {
         let range = CFRangeMake(0, CFStringGetLength(cfstring))
         let opts = CFStringCompareFlags(
             kCFCompareAnchored | kCFCompareBackwards | kCFCompareNonliteral)
-        return CFStringFindWithOptions(cfstring, suffix._cfObject,
+        if suffix.isEmpty {
+            return true
+        } else {
+            return CFStringFindWithOptions(cfstring, suffix._cfObject,
                                        range, opts, nil)
+        }    
     }
 }
 #endif
