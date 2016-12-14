@@ -42,6 +42,7 @@ XCTMain([
     testCase(TestNSJSONSerialization.allTests),
     testCase(TestNSKeyedArchiver.allTests),
     testCase(TestNSKeyedUnarchiver.allTests),
+    testCase(TestNSLengthFormatter.allTests),
     testCase(TestNSLocale.allTests),
     testCase(TestNSNotificationCenter.allTests),
     testCase(TestNSNotificationQueue.allTests),
