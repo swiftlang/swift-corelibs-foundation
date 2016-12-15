@@ -61,7 +61,8 @@ class TestNSURL : XCTestCase {
             ("test_fileURLWithPath", test_fileURLWithPath),
             ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
             ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath),
-            ("test_copy", test_copy)
+            ("test_copy", test_copy),
+            ("test_itemNSCoding", test_itemNSCoding),
         ]
     }
     
@@ -430,6 +431,12 @@ class TestNSURL : XCTestCase {
         let queryItem = NSURLQueryItem(name: "id", value: "23")
         let queryItemCopy = queryItem.copy() as! NSURLQueryItem
         XCTAssertTrue(queryItem.isEqual(queryItemCopy))
+    }
+    
+    func test_itemNSCoding() {
+        let queryItemA = NSURLQueryItem(name: "id", value: "23")
+        let queryItemB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: queryItemA)) as! NSURLQueryItem
+        XCTAssertEqual(queryItemA, queryItemB, "Archived then unarchived query item must be equal.")
     }
 }
     
