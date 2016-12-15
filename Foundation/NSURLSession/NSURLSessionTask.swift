@@ -128,7 +128,7 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     
     open func copy(with zone: NSZone?) -> Any {
-        NSUnimplemented()
+        return self
     }
     
     /// An identifier for this task, assigned by and unique to the owning session
@@ -221,7 +221,10 @@ open class URLSessionTask : NSObject, NSCopying {
      * The error, if any, delivered via -URLSession:task:didCompleteWithError:
      * This property will be nil in the event that no error occured.
      */
-    /*@NSCopying*/ open var error: NSError? { NSUnimplemented() }
+    fileprivate var _error: NSError?
+    /*@NSCopying*/ open var error: NSError? {
+        return self._error
+    }
     
     /// Suspend the task.
     ///
@@ -877,6 +880,8 @@ extension URLSessionTask {
         }
     }
     func completeTask(withError error: NSError) {
+        self._error = error
+        
         guard case .transferFailed = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete / failed.")
         }
@@ -1032,8 +1037,8 @@ fileprivate extension URLSessionTask {
         guard case .waitingForResponseCompletionHandler(let ts) = internalState else { fatalError("Received response disposition, but we're not waiting for it.") }
         switch disposition {
         case .cancel:
-            //TODO: Fail the task with NSURLErrorCancelled
-            NSUnimplemented()
+            let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)
+            self.completeTask(withError: error)
         case .allow:
             // Continue the transfer. This will unpause the easy handle.
             internalState = .transferInProgress(ts)
