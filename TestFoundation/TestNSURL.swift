@@ -446,7 +446,8 @@ class TestNSURLComponents : XCTestCase {
             ("test_string", test_string),
             ("test_port", test_portSetter),
             ("test_url", test_url),
-            ("test_copy", test_copy)
+            ("test_copy", test_copy),
+            ("test_createURLWithComponents", test_createURLWithComponents)
         ]
     }
     
@@ -524,4 +525,20 @@ class TestNSURLComponents : XCTestCase {
         /* Assert that NSURLComponents.copy is actually a copy of NSURLComponents */ 
         XCTAssertTrue(copy.isEqual(urlComponent))
     }
+    
+    func test_createURLWithComponents() {
+        let urlComponents = NSURLComponents()
+        urlComponents.scheme = "https";
+        urlComponents.host = "com.test.swift";
+        urlComponents.path = "/test/path";
+        let date = Date()
+        let query1 = URLQueryItem(name: "date", value: date.description)
+        let query2 = URLQueryItem(name: "simpleDict", value: "false")
+        let query3 = URLQueryItem(name: "checkTest", value: "false")
+        let query4 = URLQueryItem(name: "someKey", value: "afsdjhfgsdkf^fhdjgf")
+        urlComponents.queryItems = [query1, query2, query3, query4]
+        XCTAssertNotNil(urlComponents.url?.query)
+        XCTAssertEqual(urlComponents.queryItems?.count, 4)
+    }
+
 }
