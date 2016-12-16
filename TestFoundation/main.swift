@@ -50,6 +50,7 @@ XCTMain([
     testCase(TestNSNumberFormatter.allTests),
     testCase(TestNSOperationQueue.allTests),
     testCase(TestNSOrderedSet.allTests),
+    testCase(TestNSPersonNameComponents.allTests),
     testCase(TestNSPipe.allTests),
     testCase(TestNSPredicate.allTests),
     testCase(TestNSProcessInfo.allTests),
