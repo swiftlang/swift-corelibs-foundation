@@ -41,7 +41,7 @@ internal final class _NSCFSet : NSMutableSet {
         guard let value = CFSetGetValue(_cfObject, unsafeBitCast(_SwiftValue.store(object), to: UnsafeRawPointer.self)) else {
             return nil
         }
-        return _SwiftValue.fetch(unsafeBitCast(value, to: AnyObject.self))
+        return _SwiftValue.fetch(unsafeBitCast(value, to: AnyObject.self) as AnyObject?)
         
     }
     
