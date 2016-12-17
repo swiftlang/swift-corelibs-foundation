@@ -39,7 +39,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     override func object(forKey aKey: Any) -> Any? {
         let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(_SwiftValue.store(aKey), to: UnsafeRawPointer.self))
         if value != nil {
-            return _SwiftValue.fetch(unsafeBitCast(value, to: AnyObject.self))
+            return _SwiftValue.fetch(unsafeBitCast(value, to: AnyObject.self) as AnyObject?)
         } else {
             return nil
         }
