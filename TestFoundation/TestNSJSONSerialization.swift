@@ -596,7 +596,7 @@ extension TestNSJSONSerialization {
             ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
             ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
             ("test_invalidJsonObjectToStreamBuffer", test_invalidJsonObjectToStreamBuffer),
-            ("test_jsonObjectToOutputStreamInsufficeintBuffer", test_jsonObjectToOutputStreamInsufficeintBuffer),
+            ("test_jsonObjectToOutputStreamInsufficientBuffer", test_jsonObjectToOutputStreamInsufficientBuffer),
             ("test_booleanJSONObject", test_booleanJSONObject),
         ]
     }
@@ -868,7 +868,7 @@ extension TestNSJSONSerialization {
             let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream, options: [])
             outputStream.close()
             if(result > -1) {
-                XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+                XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}\0\0\0\0\0\0\0")
             }
         } catch {
             XCTFail("Error thrown: \(error)")
@@ -892,7 +892,7 @@ extension TestNSJSONSerialization {
                         let resultRead: Int = fileStream.read(&buffer, maxLength: buffer.count)
                         fileStream.close()
                         if(resultRead > -1){
-                            XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+                            XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}\0\0\0\0\0\0\0")
                         }
                     }
                     removeTestFile(filePath!)
@@ -905,7 +905,7 @@ extension TestNSJSONSerialization {
         }
     }
     
-    func test_jsonObjectToOutputStreamInsufficeintBuffer() {
+    func test_jsonObjectToOutputStreamInsufficientBuffer() {
         let dict = ["a":["b":1]]
         let buffer = Array<UInt8>(repeating: 0, count: 10)
         let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: buffer.count)

@@ -39,7 +39,7 @@ class TestNSStream : XCTestCase {
         XCTAssertEqual(Stream.Status.notOpen, dataStream.streamStatus)
         dataStream.open()
         XCTAssertEqual(Stream.Status.open, dataStream.streamStatus)
-        var buffer = [UInt8](repeating: 0, count: 20)
+        var buffer = [UInt8](repeating: 0, count: 17)
         if dataStream.hasBytesAvailable {
             let result: Int = dataStream.read(&buffer, maxLength: buffer.count)
             dataStream.close()
@@ -62,7 +62,7 @@ class TestNSStream : XCTestCase {
             XCTAssertEqual(Stream.Status.notOpen, urlStream.streamStatus)
             urlStream.open()
             XCTAssertEqual(Stream.Status.open, urlStream.streamStatus)
-            var buffer = [UInt8](repeating: 0, count: 20)
+            var buffer = [UInt8](repeating: 0, count: 17)
             if urlStream.hasBytesAvailable {
                 let result :Int = urlStream.read(&buffer, maxLength: buffer.count)
                 urlStream.close()
@@ -89,7 +89,7 @@ class TestNSStream : XCTestCase {
             XCTAssertEqual(Stream.Status.notOpen, fileStream.streamStatus)
             fileStream.open()
             XCTAssertEqual(Stream.Status.open, fileStream.streamStatus)
-            var buffer = [UInt8](repeating: 0, count: 20)
+            var buffer = [UInt8](repeating: 0, count: 17)
             if fileStream.hasBytesAvailable {
                 let result: Int = fileStream.read(&buffer, maxLength: buffer.count)
                 fileStream.close()
