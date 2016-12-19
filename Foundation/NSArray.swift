@@ -226,7 +226,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         for idx in 0..<count {
             let item = _SwiftValue.store(self[idx])
             if set.contains(item) {
-                return _SwiftValue.fetch(item)
+                return _SwiftValue.fetch(item as AnyObject?)
             }
         }
         return nil
