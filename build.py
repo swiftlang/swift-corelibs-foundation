@@ -360,6 +360,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSPathUtilities.swift',
 	'Foundation/NSPersonNameComponents.swift',
 	'Foundation/NSPersonNameComponentsFormatter.swift',
+	'Foundation/NSPlatform.swift',
 	'Foundation/NSPort.swift',
 	'Foundation/NSPortMessage.swift',
 	'Foundation/NSPredicate.swift',

@@ -16,7 +16,7 @@ import Glibc
 #if os(OSX) || os(iOS)
 fileprivate let _NSPageSize = Int(vm_page_size)
 #elseif os(Linux)
-fileprivate let _NSPageSize = getpagesize()
+fileprivate let _NSPageSize = Int(getpagesize())
 #endif
 
 public func NSPageSize() -> Int {
