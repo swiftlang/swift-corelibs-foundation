@@ -91,7 +91,7 @@ public final class _DataStorage {
             num -= pages
         }
         if num > 0 {
-            memmove(dest, source, num)
+            memmove(dest, source!, num)
         }
     }
     
@@ -500,7 +500,7 @@ public final class _DataStorage {
             }
             if replacementLength != 0 {
                 if replacementBytes != nil {
-                    memmove(mutableBytes! + start, replacementBytes, replacementLength)
+                    memmove(mutableBytes! + start, replacementBytes!, replacementLength)
                 } else {
                     memset(mutableBytes! + start, 0, replacementLength)
                 }
@@ -822,7 +822,10 @@ public final class _DataStorage {
             if lhs.bytes == rhs.bytes {
                 return true
             }
-            return memcmp(lhs._bytes, rhs._bytes, length1) == 0
+            if length1 > 0 {
+                return memcmp(lhs._bytes!, rhs._bytes!, length1) == 0
+            }
+            return true
         }
     }
     
@@ -1638,7 +1641,10 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         if backing1.bytes == backing2.bytes {
             return true
         }
-        return memcmp(backing1.bytes, backing2.bytes, length1) == 0
+        if length1 > 0 {
+            return memcmp(backing1.bytes!, backing2.bytes!, length1) == 0
+        }
+        return true
     }
 }
 
