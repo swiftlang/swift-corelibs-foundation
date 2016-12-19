@@ -24,7 +24,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         guard type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self else {
            NSRequiresConcreteImplementation()
         }
-        return _SwiftValue.fetch(_storage[index])
+        return _SwiftValue.fetch(nonOptional: _storage[index])
     }
     
     public convenience override init() {
@@ -151,7 +151,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
 
     internal var allObjects: [Any] {
         if type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self {
-            return _storage.map { _SwiftValue.fetch($0) }
+            return _storage.map { _SwiftValue.fetch(nonOptional: $0) }
         } else {
             return (0..<count).map { idx in
                 return self[idx]
@@ -226,7 +226,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         for idx in 0..<count {
             let item = _SwiftValue.store(self[idx])
             if set.contains(item) {
-                return _SwiftValue.fetch(item)
+                return _SwiftValue.fetch(nonOptional: item)
             }
         }
         return nil
@@ -236,7 +236,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         objects.reserveCapacity(objects.count + range.length)
 
         if type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self {
-            objects += _storage[range.toRange()!].map { _SwiftValue.fetch($0) }
+            objects += _storage[range.toRange()!].map { _SwiftValue.fetch(nonOptional: $0) }
             return
         }
         

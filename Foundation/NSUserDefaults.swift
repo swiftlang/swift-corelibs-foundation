@@ -150,7 +150,7 @@ open class UserDefaults: NSObject {
               let bVal = aVal as? NSArray else {
             return nil
         }
-        return _SwiftValue.fetch(bVal) as? [String]
+        return _SwiftValue.fetch(nonOptional: bVal) as? [String]
     }
     open func integer(forKey defaultName: String) -> Int {
         guard let aVal = object(forKey: defaultName),

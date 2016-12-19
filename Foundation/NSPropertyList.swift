@@ -84,7 +84,7 @@ open class PropertyListSerialization : NSObject {
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
-            return _SwiftValue.fetch(decoded!)
+            return _SwiftValue.fetch(nonOptional: decoded!)
         }
     }
     
@@ -104,7 +104,7 @@ open class PropertyListSerialization : NSObject {
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
-            return _SwiftValue.fetch(decoded!)
+            return _SwiftValue.fetch(nonOptional: decoded!)
         }
     }
     
