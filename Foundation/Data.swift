@@ -934,7 +934,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         /// A custom deallocator.
         case custom((UnsafeMutableRawPointer, Int) -> Void)
         
-        fileprivate var _deallocator : ((UnsafeMutableRawPointer, Int) -> Void)? {
+        fileprivate var _deallocator : ((UnsafeMutableRawPointer, Int) -> Void) {
 #if DEPLOYMENT_RUNTIME_SWIFT
             switch self {
             case .unmap:
@@ -942,7 +942,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             case .free:
                 return { __NSDataInvokeDeallocatorFree($0, $1) }
             case .none:
-                return nil
+                return { _, _ in }
             case .custom(let b):
                 return { (ptr, len) in
                     b(ptr, len)
@@ -957,7 +957,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             case .free:
                 return { __NSDataInvokeDeallocatorFree($0, $1) }
             case .none:
-                return nil
+                return { _, _ in }
             case .custom(let b):
                 return { (ptr, len) in
                     b(ptr, len)
