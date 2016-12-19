@@ -89,4 +89,5 @@ XCTMain([
     testCase(TestProgress.allTests),
     testCase(TestObjCRuntime.allTests),
     testCase(TestNotification.allTests),
+    testCase(TestUUID.allTests),
 ])
