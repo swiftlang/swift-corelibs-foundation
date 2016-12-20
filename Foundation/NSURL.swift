@@ -919,11 +919,34 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
     }
     
     required public init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        let encodedName = aDecoder.decodeObject(forKey: "NS.name") as! NSString
+        self.name = encodedName._swiftObject
+        
+        let encodedValue = aDecoder.decodeObject(forKey: "NS.value") as? NSString
+        self.value = encodedValue?._swiftObject
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(self.name._bridgeToObjectiveC(), forKey: "NS.name")
+        aCoder.encode(self.value?._bridgeToObjectiveC(), forKey: "NS.value")
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? NSURLQueryItem {
+            return other === self
+                || (other.name == self.name
+                    && other.value == self.value)
+        }
+        
+        return false
     }
     
     open let name: String
@@ -1233,8 +1256,9 @@ open class NSURLComponents: NSObject, NSCopying {
                 
                 return (0..<count).map { idx in
                     let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
-                    let entryName = oneEntry.object(forKey: "name"._cfObject) as! String
-                    let entryValue = oneEntry.object(forKey: "value"._cfObject) as? String
+                    let swiftEntry = oneEntry._swiftObject 
+                    let entryName = swiftEntry["name"] as! String
+                    let entryValue = swiftEntry["value"] as? String
                     return URLQueryItem(name: entryName, value: entryValue)
                 }
             } else {

@@ -370,7 +370,7 @@ CF_EXPORT CFHashCode CFStringHashISOLatin1CString(const uint8_t *bytes, CFIndex 
 CF_EXPORT CFHashCode CFStringHashCString(const uint8_t *bytes, CFIndex len);
 CF_EXPORT CFHashCode CFStringHashCharacters(const UniChar *characters, CFIndex len);
 CF_EXPORT CFHashCode CFStringHashNSString(CFStringRef str);
-CF_EXPORT CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length);
+CF_EXPORT CFHashCode CFHashBytes(uint8_t *_Nullable bytes, CFIndex length);
 
 
 _CF_EXPORT_SCOPE_END

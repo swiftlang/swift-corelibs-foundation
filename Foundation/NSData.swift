@@ -94,6 +94,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
     
+    internal func _providesConcreteBacking() -> Bool {
+        return type(of: self) === NSData.self || type(of: self) === NSMutableData.self
+    }
+    
     override open var _cfTypeID: CFTypeID {
         return CFDataGetTypeID()
     }

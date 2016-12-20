@@ -44,7 +44,26 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         aCoder.encode(self.nickname?._bridgeToObjectiveC(), forKey: "NS.nickname")
     }
     
-    open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> Any {
+        let copy = NSPersonNameComponents()
+        copy.namePrefix = namePrefix
+        copy.givenName = givenName
+        copy.middleName = middleName
+        copy.familyName = familyName
+        copy.nameSuffix = nameSuffix
+        copy.nickname = nickname
+        if let PR = phoneticRepresentation {
+            var copyPR = PersonNameComponents()
+            copyPR.namePrefix = PR.namePrefix
+            copyPR.givenName = PR.givenName
+            copyPR.middleName = PR.middleName
+            copyPR.familyName = PR.familyName
+            copyPR.nameSuffix = PR.nameSuffix
+            copyPR.nickname = PR.nickname
+            copy.phoneticRepresentation = copyPR
+        }
+        return copy
+    }
     
     /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
     

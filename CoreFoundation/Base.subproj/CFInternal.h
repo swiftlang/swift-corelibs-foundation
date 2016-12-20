@@ -171,14 +171,16 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount();
 #define __builtin_unreachable() do { } while (0)
 #endif
 
-#if defined(__i386__) || defined(__x86_64__)
-    #if defined(__GNUC__)
+#if defined(__GNUC__) 
+    #if defined(__i386__) || defined(__x86_64__)
         #define HALT do {asm __volatile__("int3"); kill(getpid(), 9); __builtin_unreachable(); } while (0)
-    #elif defined(_MSC_VER)
-        #define HALT do { DebugBreak(); abort(); __builtin_unreachable(); } while (0)
     #else
-        #error Compiler not supported
+        #define HALT do {__builtin_trap(); kill(getpid(), 9); __builtin_unreachable(); } while (0)
     #endif
+#elif defined(_MSC_VER)
+    #define HALT do { DebugBreak(); abort(); __builtin_unreachable(); } while (0)
+#else
+    #error Compiler not supported
 #endif
 
 

@@ -13,7 +13,7 @@ foundation = DynamicLibrary("Foundation")
 
 foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefix.h'
 
-swift_cflags = []
+swift_cflags = ['-DDEPLOYMENT_RUNTIME_SWIFT']
 if Configuration.current.target.sdk == OSType.Linux:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -DCF_CHARACTERSET_DATA_DIR="CoreFoundation/CharacterSets"'
 	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `${PKG_CONFIG} icu-uc icu-i18n --libs` -Wl,-defsym,__CFConstantStringClassReference=_TMC10Foundation19_NSCFConstantString -Wl,-Bsymbolic '
@@ -363,6 +363,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSPathUtilities.swift',
 	'Foundation/NSPersonNameComponents.swift',
 	'Foundation/NSPersonNameComponentsFormatter.swift',
+	'Foundation/NSPlatform.swift',
 	'Foundation/NSPort.swift',
 	'Foundation/NSPortMessage.swift',
 	'Foundation/NSPredicate.swift',

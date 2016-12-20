@@ -61,7 +61,8 @@ class TestNSURL : XCTestCase {
             ("test_fileURLWithPath", test_fileURLWithPath),
             ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
             ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath),
-            ("test_copy", test_copy)
+            ("test_copy", test_copy),
+            ("test_itemNSCoding", test_itemNSCoding),
         ]
     }
     
@@ -431,6 +432,12 @@ class TestNSURL : XCTestCase {
         let queryItemCopy = queryItem.copy() as! NSURLQueryItem
         XCTAssertTrue(queryItem.isEqual(queryItemCopy))
     }
+    
+    func test_itemNSCoding() {
+        let queryItemA = NSURLQueryItem(name: "id", value: "23")
+        let queryItemB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: queryItemA)) as! NSURLQueryItem
+        XCTAssertEqual(queryItemA, queryItemB, "Archived then unarchived query item must be equal.")
+    }
 }
     
 class TestNSURLComponents : XCTestCase {
@@ -439,7 +446,8 @@ class TestNSURLComponents : XCTestCase {
             ("test_string", test_string),
             ("test_port", test_portSetter),
             ("test_url", test_url),
-            ("test_copy", test_copy)
+            ("test_copy", test_copy),
+            ("test_createURLWithComponents", test_createURLWithComponents)
         ]
     }
     
@@ -517,4 +525,20 @@ class TestNSURLComponents : XCTestCase {
         /* Assert that NSURLComponents.copy is actually a copy of NSURLComponents */ 
         XCTAssertTrue(copy.isEqual(urlComponent))
     }
+    
+    func test_createURLWithComponents() {
+        let urlComponents = NSURLComponents()
+        urlComponents.scheme = "https";
+        urlComponents.host = "com.test.swift";
+        urlComponents.path = "/test/path";
+        let date = Date()
+        let query1 = URLQueryItem(name: "date", value: date.description)
+        let query2 = URLQueryItem(name: "simpleDict", value: "false")
+        let query3 = URLQueryItem(name: "checkTest", value: "false")
+        let query4 = URLQueryItem(name: "someKey", value: "afsdjhfgsdkf^fhdjgf")
+        urlComponents.queryItems = [query1, query2, query3, query4]
+        XCTAssertNotNil(urlComponents.url?.query)
+        XCTAssertEqual(urlComponents.queryItems?.count, 4)
+    }
+
 }

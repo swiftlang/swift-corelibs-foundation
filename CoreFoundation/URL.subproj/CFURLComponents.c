@@ -1073,7 +1073,8 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                         else {
                             valueString = CFSTR("");
                         }
-                        CFTypeRef keys[] = {CFSTR("name"), CFSTR("value")};
+                        CFStringRef name = CFSTR("name");
+                        CFTypeRef keys[] = {name, CFSTR("value")};
                         CFTypeRef values[] = {nameString, valueString};
                         CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
                         CFArrayAppendValue(intermediateResult, entry);
@@ -1097,7 +1098,8 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                         else {
                             nameString =  CFSTR("");
                         }
-                        CFTypeRef keys[] = {CFSTR("name")};
+                        CFStringRef name = CFSTR("name");
+                        CFTypeRef keys[] = {name};
                         CFTypeRef values[] = {nameString};
                         CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
                         CFArrayAppendValue(intermediateResult, entry);
@@ -1126,7 +1128,8 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                 else {
                     valueString = CFSTR("");
                 }
-                CFTypeRef keys[] = {CFSTR("name"), CFSTR("value")};
+                CFStringRef name = CFSTR("name");
+                CFTypeRef keys[] = {name, CFSTR("value")};
                 CFTypeRef values[] = {nameString, valueString};
                 CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
                 CFArrayAppendValue(intermediateResult, entry);
@@ -1148,7 +1151,8 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                 else {
                     nameString =  CFSTR("");
                 }
-                CFTypeRef keys[] = {CFSTR("name")};
+                CFStringRef name = CFSTR("name");
+                CFTypeRef keys[] = {name};
                 CFTypeRef values[] = {nameString};
                 CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
                 CFArrayAppendValue(intermediateResult, entry);
@@ -1206,7 +1210,7 @@ CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFAr
                     chars[0] = '=';
                     CFStringAppendCharactersToAppendBuffer(&buf, chars, 1);
                     CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, value, queryNameValueAllowed);
-                    CFStringAppendStringToAppendBuffer(&buf, value);
+                    CFStringAppendStringToAppendBuffer(&buf, stringWithPercentEncoding);
                     CFRelease(stringWithPercentEncoding);
                 }
                 // else the query item string will be simply "name"
