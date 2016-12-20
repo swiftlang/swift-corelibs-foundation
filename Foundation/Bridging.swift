@@ -77,12 +77,12 @@ internal final class _SwiftValue : NSObject, NSCopying {
     
     static func fetch(_ object: AnyObject?) -> Any? {
         if let obj = object {
-            return fetch(obj)
+            return fetch(nonOptional: obj)
         }
         return nil
     }
     
-    static func fetch(_ object: AnyObject) -> Any {
+    static func fetch(nonOptional object: AnyObject) -> Any {
         if let container = object as? _SwiftValue {
             return container.value
         } else if let val = object as? _StructBridgeable {

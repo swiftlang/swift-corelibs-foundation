@@ -27,7 +27,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             NSRequiresConcreteImplementation()
         }
         if let val = _storage[_SwiftValue.store(aKey)] {
-            return _SwiftValue.fetch(val)
+            return _SwiftValue.fetch(nonOptional: val)
         }
         return nil
     }
@@ -37,7 +37,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             NSRequiresConcreteImplementation()
         }
         
-        return NSGeneratorEnumerator(_storage.keys.map { _SwiftValue.fetch($0) }.makeIterator())
+        return NSGeneratorEnumerator(_storage.keys.map { _SwiftValue.fetch(nonOptional: $0) }.makeIterator())
     }
     
     public override convenience init() {
@@ -186,8 +186,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     open func getObjects(_ objects: inout [Any], andKeys keys: inout [Any], count: Int) {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             for (key, value) in _storage {
-                keys.append(_SwiftValue.fetch(key))
-                objects.append(_SwiftValue.fetch(value))
+                keys.append(_SwiftValue.fetch(nonOptional: key))
+                objects.append(_SwiftValue.fetch(nonOptional: value))
             }
         } else {
             

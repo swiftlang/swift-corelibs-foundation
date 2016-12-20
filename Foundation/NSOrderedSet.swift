@@ -70,7 +70,7 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
 
     open func object(at idx: Int) -> Any {
-        return _SwiftValue.fetch(_orderedStorage[idx])
+        return _SwiftValue.fetch(nonOptional: _orderedStorage[idx])
     }
 
     open func index(of object: Any) -> Int {
@@ -121,7 +121,7 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     
     internal var allObjects: [Any] {
         if type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self {
-            return _orderedStorage.map { _SwiftValue.fetch($0) }
+            return _orderedStorage.map { _SwiftValue.fetch(nonOptional: $0) }
         } else {
             return (0..<count).map { idx in
                 return self[idx]
@@ -161,7 +161,7 @@ extension NSOrderedSet {
 
     public var firstObject: Any? {
         if let value = _orderedStorage.first {
-            return _SwiftValue.fetch(value)
+            return _SwiftValue.fetch(nonOptional: value)
         } else {
             return nil
         }
@@ -169,7 +169,7 @@ extension NSOrderedSet {
 
     public var lastObject: Any? {
         if let value = _orderedStorage.last {
-            return _SwiftValue.fetch(value)
+            return _SwiftValue.fetch(nonOptional: value)
         } else {
             return nil
         }
@@ -234,19 +234,19 @@ extension NSOrderedSet {
         guard type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        return NSGeneratorEnumerator(_orderedStorage.map { _SwiftValue.fetch($0) }.makeIterator())
+        return NSGeneratorEnumerator(_orderedStorage.map { _SwiftValue.fetch(nonOptional: $0) }.makeIterator())
     }
 
     public func reverseObjectEnumerator() -> NSEnumerator { 
         guard type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        return NSGeneratorEnumerator(_orderedStorage.map { _SwiftValue.fetch($0) }.reversed().makeIterator())
+        return NSGeneratorEnumerator(_orderedStorage.map { _SwiftValue.fetch(nonOptional: $0) }.reversed().makeIterator())
     }
     
     /*@NSCopying*/ 
     public var reversed: NSOrderedSet {
-        return NSOrderedSet(array: _orderedStorage.map { _SwiftValue.fetch($0) }.reversed())
+        return NSOrderedSet(array: _orderedStorage.map { _SwiftValue.fetch(nonOptional: $0) }.reversed())
     }
     
     // These two methods return a facade object for the receiving ordered set,
@@ -548,7 +548,7 @@ extension NSMutableOrderedSet {
 
         let swiftRange = range.toRange()!
         _orderedStorage[swiftRange].sort { lhs, rhs in
-            return cmptr(_SwiftValue.fetch(lhs), _SwiftValue.fetch(rhs)) == .orderedAscending
+            return cmptr(_SwiftValue.fetch(nonOptional: lhs), _SwiftValue.fetch(nonOptional: rhs)) == .orderedAscending
         }
     }
 }

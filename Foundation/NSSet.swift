@@ -34,7 +34,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         guard type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self || type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        return NSGeneratorEnumerator(_storage.map { _SwiftValue.fetch($0) }.makeIterator())
+        return NSGeneratorEnumerator(_storage.map { _SwiftValue.fetch(nonOptional: $0) }.makeIterator())
     }
 
     public convenience override init() {
@@ -166,7 +166,7 @@ extension NSSet {
     
     open var allObjects: [Any] {
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
-            return _storage.map { _SwiftValue.fetch($0) }
+            return _storage.map { _SwiftValue.fetch(nonOptional: $0) }
         } else {
             let enumerator = objectEnumerator()
             var items = [Any]()
@@ -219,7 +219,7 @@ extension NSSet {
     open func addingObjects(from other: Set<AnyHashable>) -> Set<AnyHashable> {
         var result = Set<AnyHashable>(minimumCapacity: Swift.max(count, other.count))
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
-            result.formUnion(_storage.map { _SwiftValue.fetch($0) as! AnyHashable })
+            result.formUnion(_storage.map { _SwiftValue.fetch(nonOptional: $0) as! AnyHashable })
         } else {
             for case let obj as NSObject in self {
                 _ = result.insert(obj)
@@ -231,7 +231,7 @@ extension NSSet {
     open func addingObjects(from other: [Any]) -> Set<AnyHashable> {
         var result = Set<AnyHashable>(minimumCapacity: count)
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
-            result.formUnion(_storage.map { _SwiftValue.fetch($0) as! AnyHashable })
+            result.formUnion(_storage.map { _SwiftValue.fetch(nonOptional: $0) as! AnyHashable })
         } else {
             for case let obj as AnyHashable in self {
                 result.insert(obj)
