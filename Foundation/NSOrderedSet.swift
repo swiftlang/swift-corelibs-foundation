@@ -161,7 +161,7 @@ extension NSOrderedSet {
 
     public var firstObject: Any? {
         if let value = _orderedStorage.first {
-            return _SwiftValue.fetch(value)
+            return _SwiftValue.fetch(value as AnyObject?)
         } else {
             return nil
         }
@@ -169,7 +169,7 @@ extension NSOrderedSet {
 
     public var lastObject: Any? {
         if let value = _orderedStorage.last {
-            return _SwiftValue.fetch(value)
+            return _SwiftValue.fetch(value as AnyObject?)
         } else {
             return nil
         }
