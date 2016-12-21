@@ -80,7 +80,9 @@ open class DateFormatter : Formatter {
     }
 
     open func setLocalizedDateFormatFromTemplate(_ dateFormatTemplate: String) {
-        NSUnimplemented()
+        if let format = DateFormatter.dateFormat(fromTemplate: dateFormatTemplate, options: 0, locale: locale) {
+            dateFormat = format
+        }
     }
 
     private func _reset() {
