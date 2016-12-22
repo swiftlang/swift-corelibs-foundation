@@ -592,7 +592,7 @@ public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxi
     ///
     /// - parameter date1: A date to compare.
     /// - parameter date2: A date to compare.
-    /// - parameter: component: A granularity to compare. For example, pass `.hour` to check if two dates are in the same hour.
+    /// - parameter component: A granularity to compare. For example, pass `.hour` to check if two dates are in the same hour.
     public func compare(_ date1: Date, to date2: Date, toGranularity component: Component) -> ComparisonResult {
         return _handle.map { $0.compare(date1, to: date2, toUnitGranularity: Calendar._toCalendarUnit([component])) }
     }
