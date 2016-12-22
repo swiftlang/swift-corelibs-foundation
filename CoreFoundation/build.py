@@ -130,6 +130,7 @@ private = [
 	'StringEncodings.subproj/CFICUConverters.h',
 	'String.subproj/CFRegularExpression.h',
 	'String.subproj/CFRunArray.h',
+	'URL.subproj/CFURLSessionInterface.h',
 ],
 project = [
 ])
