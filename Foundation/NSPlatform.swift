@@ -15,7 +15,7 @@ import Glibc
 
 #if os(OSX) || os(iOS)
 fileprivate let _NSPageSize = Int(vm_page_size)
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
 fileprivate let _NSPageSize = Int(getpagesize())
 #endif
 

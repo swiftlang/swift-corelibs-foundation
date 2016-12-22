@@ -19,7 +19,9 @@
 #if TARGET_OS_CYGWIN
 #else
 #include <dirent.h>
+#if !TARGET_OS_ANDROID
 #include <sys/sysctl.h>
+#endif
 #include <sys/mman.h>
 #endif
 #endif

@@ -894,7 +894,6 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     if (maxLength > sizeof(stack_buffer) / sizeof(stack_buffer[0])) {
         buffer = calloc(sizeof(char), maxLength);
         if (!buffer) {
-            -            __android_log_print(ANDROID_LOG_ERROR, tag, "Unable to allocate %d bytes for log message - truncating.", (int)axLength);
             maxLength = sizeof(stack_buffer) / sizeof(stack_buffer[0]);
             buffer = &stack_buffer[0];
             buffer[maxLength-1] = '\000';

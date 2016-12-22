@@ -48,8 +48,10 @@ enum {
 #define __check_int64_div(x, y, err)            (x / y)
 #define __check_uint64_div(x, y, err)           (x / y)
 
-#define __checkint_int64_mul(x, y, err)         (x * y)
-#define __checkint_uint64_add(x, y, err)        (x + y)
+#define __checkint_int64_mul(x, y, err)         __check_int64_mul(x, y, err)
+#define __checkint_int32_mul(x, y, err)         __check_int32_mul(x, y, err)
+#define __checkint_uint64_add(x, y, err)        __check_uint64_add(x, y, err)
+#define __checkint_uint32_add(x, y, err)        __check_uint32_add(x, y, err)
 
 #endif
 
