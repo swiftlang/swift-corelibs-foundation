@@ -56,9 +56,9 @@ open class Timer : NSObject {
     // !!! That doesn't make sense as init(fire date: Date, ...) is more general than this constructor, which can be implemented in terms of init(fire date: Date, ...).
     // !!! The convenience here has been switched around and deliberately does not match what is exposed by Darwin Foundation.
     /// Creates and returns a new Timer object initialized with the specified block object.
-    /// - parameter:  timeInterval  The number of seconds between firings of the timer. If seconds is less than or equal to 0.0, this method chooses the nonnegative value of 0.1 milliseconds instead
-    /// - parameter:  repeats  If YES, the timer will repeatedly reschedule itself until invalidated. If NO, the timer will be invalidated after it fires.
-    /// - parameter:  block  The execution body of the timer; the timer itself is passed as the parameter to this block when executed to aid in avoiding cyclical references
+    /// - parameter timeInterval: The number of seconds between firings of the timer. If seconds is less than or equal to 0.0, this method chooses the nonnegative value of 0.1 milliseconds instead
+    /// - parameter repeats: If YES, the timer will repeatedly reschedule itself until invalidated. If NO, the timer will be invalidated after it fires.
+    /// - parameter block: The execution body of the timer; the timer itself is passed as the parameter to this block when executed to aid in avoiding cyclical references
     public convenience init(timeInterval interval: TimeInterval, repeats: Bool, block: @escaping (Timer) -> Swift.Void) {
         self.init(fire: Date(), interval: interval, repeats: repeats, block: block)
     }
