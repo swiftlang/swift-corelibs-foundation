@@ -19,16 +19,16 @@ private func pthread_main_np() -> Int32 {
 
 open class Operation : NSObject {
     let lock = NSLock()
-    internal weak var _queue: OperationQueue?
-    internal var _cancelled = false
-    internal var _executing = false
-    internal var _finished = false
-    internal var _ready = false
-    internal var _dependencies = Set<Operation>()
+    public weak var _queue: OperationQueue?
+    public var _cancelled = false
+    public var _executing = false
+    public var _finished = false
+    public var _ready = false
+    public var _dependencies = Set<Operation>()
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-    internal var _group = DispatchGroup()
-    internal var _depGroup = DispatchGroup()
-    internal var _groups = [DispatchGroup]()
+    public var _group = DispatchGroup()
+    public var _depGroup = DispatchGroup()
+    public var _groups = [DispatchGroup]()
 #endif
     
     public override init() {
@@ -38,7 +38,7 @@ open class Operation : NSObject {
 #endif
     }
     
-    internal func _leaveGroups() {
+    public func _leaveGroups() {
         // assumes lock is taken
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         _groups.forEach() { $0.leave() }
@@ -53,7 +53,7 @@ open class Operation : NSObject {
         finish()
     }
     
-    internal func finish() {
+    public func finish() {
         lock.lock()
         _finished = true
         _leaveGroups()
@@ -151,7 +151,7 @@ open class Operation : NSObject {
     
     open var name: String?
     
-    internal func _waitUntilReady() {
+    public func _waitUntilReady() {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         _depGroup.wait()
 #endif
@@ -171,7 +171,7 @@ extension Operation {
 
 open class BlockOperation: Operation {
     typealias ExecutionBlock = () -> Void
-    internal var _block: () -> Void
+    public var _block: () -> Void
     internal var _executionBlocks = [ExecutionBlock]()
     
     public init(block: @escaping () -> Void) {
@@ -203,7 +203,7 @@ open class BlockOperation: Operation {
 
 public let NSOperationQueueDefaultMaxConcurrentOperationCount: Int = Int.max
 
-internal struct _OperationList {
+public struct _OperationList {
     var veryLow = [Operation]()
     var low = [Operation]()
     var normal = [Operation]()
@@ -303,7 +303,7 @@ open class OperationQueue: NSObject {
     
     var _operations = _OperationList()
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-    internal var _concurrencyGate: DispatchSemaphore? {
+    public var _concurrencyGate: DispatchSemaphore? {
         get {
             lock.lock()
             let val = __concurrencyGate
@@ -314,7 +314,7 @@ open class OperationQueue: NSObject {
 
     // This is NOT the behavior of the objective-c variant; it will never re-use a queue and instead for every operation it will create a new one.
     // However this is considerably faster and probably more effecient.
-    internal var _underlyingQueue: DispatchQueue {
+    public var _underlyingQueue: DispatchQueue {
         lock.lock()
         if let queue = __underlyingQueue {
             lock.unlock()
@@ -352,7 +352,7 @@ open class OperationQueue: NSObject {
     }
 
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-    internal init(_queue queue: DispatchQueue, maxConcurrentOperations: Int = NSOperationQueueDefaultMaxConcurrentOperationCount) {
+    public init(_queue queue: DispatchQueue, maxConcurrentOperations: Int = NSOperationQueueDefaultMaxConcurrentOperationCount) {
         __underlyingQueue = queue
         maxConcurrentOperationCount = maxConcurrentOperations
         super.init()
@@ -360,7 +360,7 @@ open class OperationQueue: NSObject {
     }
 #endif
 
-    internal func _dequeueOperation() -> Operation? {
+    public func _dequeueOperation() -> Operation? {
         lock.lock()
         let op = _operations.dequeue()
         lock.unlock()
@@ -371,7 +371,7 @@ open class OperationQueue: NSObject {
         addOperations([op], waitUntilFinished: false)
     }
     
-    internal func _runOperation() {
+    public func _runOperation() {
         if let op = _dequeueOperation() {
             if !op.isCancelled {
                 op._waitUntilReady()
@@ -433,7 +433,7 @@ open class OperationQueue: NSObject {
 #endif
     }
     
-    internal func _operationFinished(_ operation: Operation) {
+    public func _operationFinished(_ operation: Operation) {
         lock.lock()
         _operations.remove(operation)
         operation._queue = nil
@@ -464,7 +464,7 @@ open class OperationQueue: NSObject {
     
     open var maxConcurrentOperationCount: Int = NSOperationQueueDefaultMaxConcurrentOperationCount
     
-    internal var _suspended = false
+    public var _suspended = false
     open var isSuspended: Bool {
         get {
             return _suspended
@@ -487,7 +487,7 @@ open class OperationQueue: NSObject {
         }
     }
     
-    internal var _name: String?
+    public var _name: String?
     open var name: String? {
         get {
             lock.lock()
