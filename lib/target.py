@@ -407,6 +407,8 @@ class Target:
     def swift_sdk_name(self):
         if self.sdk == OSType.MacOSX:
             return "macosx"
+        elif self.sdk == OSType.Linux and "android" in self.triple:
+            return "android"
         elif self.sdk == OSType.Linux:
             return "linux"
         elif self.sdk == OSType.FreeBSD:
