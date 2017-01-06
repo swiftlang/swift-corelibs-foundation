@@ -36,4 +36,7 @@ _C_LABEL(__CFUnicodeDataLSize):
 #endif
 
 NO_EXEC_STACK_DIRECTIVE
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
 
