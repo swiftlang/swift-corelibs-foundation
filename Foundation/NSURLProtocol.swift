@@ -117,7 +117,7 @@ public protocol URLProtocolClient : NSObjectProtocol {
      @param URLProtocol the NSURLProtocol object sending the message.
      @param error The error that caused the load to fail.
      */
-    func urlProtocol(_ protocol: URLProtocol, didFailWithError error: NSError)
+    func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error)
     
     
     /*!
