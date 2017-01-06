@@ -966,14 +966,14 @@ extension FileManager {
     internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
         var _url : URL
         var _options : FileManager.DirectoryEnumerationOptions
-        var _errorHandler : ((URL, NSError) -> Bool)?
+        var _errorHandler : ((URL, Error) -> Bool)?
         var _stream : UnsafeMutablePointer<FTS>? = nil
         var _current : UnsafeMutablePointer<FTSENT>? = nil
-        var _rootError : NSError? = nil
+        var _rootError : Error? = nil
         var _gotRoot : Bool = false
         
         // See @escaping comments above.
-        init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: (/* @escaping */ (URL, NSError) -> Bool)?) {
+        init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: (/* @escaping */ (URL, Error) -> Bool)?) {
             _url = url
             _options = options
             _errorHandler = errorHandler
