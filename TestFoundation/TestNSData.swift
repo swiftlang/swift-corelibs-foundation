@@ -90,6 +90,7 @@ class TestNSData: XCTestCase {
             ("test_initDataWithCapacity", test_initDataWithCapacity),
             ("test_initDataWithCount", test_initDataWithCount),
             ("test_emptyStringToData", test_emptyStringToData),
+            ("test_repeatingValueInitialization", test_repeatingValueInitialization),
         ]
     }
     
@@ -1031,6 +1032,20 @@ extension TestNSData {
             let byteCount = data.copyBytes(to: buffer)
             XCTAssertEqual(6 * MemoryLayout<MyStruct>.stride, byteCount)
         }
+    }
+
+    func test_repeatingValueInitialization() {
+        var d = Data(repeating: 0x01, count: 3)
+        let elements = repeatElement(UInt8(0x02), count: 3) // ensure we fall into the sequence case
+        d.append(contentsOf: elements)
+
+        XCTAssertEqual(d[0], 0x01)
+        XCTAssertEqual(d[1], 0x01)
+        XCTAssertEqual(d[2], 0x01)
+
+        XCTAssertEqual(d[3], 0x02)
+        XCTAssertEqual(d[4], 0x02)
+        XCTAssertEqual(d[5], 0x02)
     }
 }
 
