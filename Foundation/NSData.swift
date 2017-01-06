@@ -164,21 +164,21 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         if url.isFileURL {
             try self.init(contentsOfFile: url.path, options: readOptionsMask)
         } else {
-            let session = URLSession(configuration: URLSessionConfiguration.default)
-            let cond = NSCondition()
-            var resError: NSError?
-            var resData: Data?
-            let task = session.dataTask(with: url, completionHandler: { (data: Data?, response: URLResponse?, error: NSError?) -> Void in
-                resData = data
-                resError = error
-                cond.broadcast()
+            let session = URLSession(configuration: .default)
+            let condition = NSCondition()
+            var responseError: Error?
+            var responseData: Data?
+            let task = session.dataTask(with: url, completionHandler: { data, response, error in
+                responseData = data
+                responseError = error
+                condition.broadcast()
             })
             task.resume()
-            cond.wait()
-            if resData == nil {
-                throw resError!
+            condition.wait()
+            guard let responseData = responseData else {
+                throw responseError!
             }
-            self.init(data: resData!)
+            self.init(data: responseData)
         }
     }
     
