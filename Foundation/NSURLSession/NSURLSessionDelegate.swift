@@ -227,7 +227,7 @@ public protocol URLSessionDownloadDelegate : URLSessionTaskDelegate {
     
     /* Sent when a download has been resumed. If a download failed with an
      * error, the -userInfo dictionary of the error will contain an
-     * URLSessionDownloadTaskResumeData key, whose value is the resume
+     * NSURLSessionDownloadTaskResumeData key, whose value is the resume
      * data.
      */
      func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64)
