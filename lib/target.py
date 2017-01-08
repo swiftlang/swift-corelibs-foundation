@@ -85,11 +85,11 @@ class ArchType:
         if value == ArchType.msp430:
             return "msp430"
         if value == ArchType.ppc:
-            return "ppc"
+            return "powerpc"
         if value == ArchType.ppc64:
-            return "ppc64"
+            return "powerpc64"
         if value == ArchType.ppc64le:
-            return "ppc64le"
+            return "powerpc64le"
         if value == ArchType.r600:
             return "r600"
         if value == ArchType.amdgcn:
@@ -176,11 +176,11 @@ class ArchType:
             return ArchType.mips64el
         if string == "msp430":
             return ArchType.msp430
-        if string == "ppc":
+        if string == "ppc" or string == "powerpc":
             return ArchType.ppc
-        if string == "ppc64":
+        if string == "ppc64" or string == "powerpc64":
             return ArchType.ppc64
-        if string == "ppc64le":
+        if string == "ppc64le" or string == "powerpc64le":
             return ArchType.ppc64le
         if string == "r600":
             return ArchType.r600
