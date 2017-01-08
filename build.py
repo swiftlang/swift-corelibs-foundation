@@ -81,7 +81,7 @@ if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	]
 
 triple = Configuration.current.target.triple
-if triple == "x86_64-linux-gnu" or triple == "armv7-none-linux-androideabi" or triple == "s390x-linux-gnu":
+if triple.endswith("-linux-gnu") or triple == "armv7-none-linux-androideabi":
 	foundation.LDFLAGS += '-lcurl '
 
 if triple == "armv7-none-linux-androideabi":
