@@ -201,7 +201,9 @@ open class BlockOperation: Operation {
     }
 }
 
-public let NSOperationQueueDefaultMaxConcurrentOperationCount: Int = Int.max
+public extension OperationQueue {
+    public static let defaultMaxConcurrentOperationCount: Int = Int.max
+}
 
 internal struct _OperationList {
     var veryLow = [Operation]()
@@ -332,7 +334,7 @@ open class OperationQueue: NSObject {
                 __concurrencyGate = DispatchSemaphore(value: 1)
             } else {
                 attr = .concurrent
-                if maxConcurrentOperationCount != NSOperationQueueDefaultMaxConcurrentOperationCount {
+                if maxConcurrentOperationCount != OperationQueue.defaultMaxConcurrentOperationCount {
                     __concurrencyGate = DispatchSemaphore(value:maxConcurrentOperationCount)
                 }
             }
@@ -352,7 +354,7 @@ open class OperationQueue: NSObject {
     }
 
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-    internal init(_queue queue: DispatchQueue, maxConcurrentOperations: Int = NSOperationQueueDefaultMaxConcurrentOperationCount) {
+    internal init(_queue queue: DispatchQueue, maxConcurrentOperations: Int = OperationQueue.defaultMaxConcurrentOperationCount) {
         __underlyingQueue = queue
         maxConcurrentOperationCount = maxConcurrentOperations
         super.init()
@@ -462,7 +464,7 @@ open class OperationQueue: NSObject {
         return count
     }
     
-    open var maxConcurrentOperationCount: Int = NSOperationQueueDefaultMaxConcurrentOperationCount
+    open var maxConcurrentOperationCount: Int = OperationQueue.defaultMaxConcurrentOperationCount
     
     internal var _suspended = false
     open var isSuspended: Bool {
