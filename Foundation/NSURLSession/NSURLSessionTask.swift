@@ -140,9 +140,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// May differ from originalRequest due to http server redirection
     /*@NSCopying*/ open fileprivate(set) var currentRequest: URLRequest? {
         get {
-            var r: URLRequest? = nil
-            taskAttributesIsolation.sync { r = self._currentRequest }
-            return r
+            return taskAttributesIsolation.sync { self._currentRequest }
         }
         //TODO: dispatch_barrier_async
         set { taskAttributesIsolation.async(flags: .barrier) { self._currentRequest = newValue } }
@@ -150,9 +148,7 @@ open class URLSessionTask : NSObject, NSCopying {
     fileprivate var _currentRequest: URLRequest? = nil
     /*@NSCopying*/ open fileprivate(set) var response: URLResponse? {
         get {
-            var r: URLResponse? = nil
-            taskAttributesIsolation.sync { r = self._response }
-            return r
+            return taskAttributesIsolation.sync { self._response }
         }
         set { taskAttributesIsolation.async(flags: .barrier) { self._response = newValue } }
     }
@@ -166,9 +162,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// Number of body bytes already received
    open fileprivate(set) var countOfBytesReceived: Int64 {
         get {
-            var r: Int64 = 0
-            taskAttributesIsolation.sync { r = self._countOfBytesReceived }
-            return r
+            return taskAttributesIsolation.sync { self._countOfBytesReceived }
         }
         set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesReceived = newValue } }
     }
@@ -177,9 +171,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// Number of body bytes already sent */
     open fileprivate(set) var countOfBytesSent: Int64 {
         get {
-            var r: Int64 = 0
-            taskAttributesIsolation.sync { r = self._countOfBytesSent }
-            return r
+            return taskAttributesIsolation.sync { self._countOfBytesSent }
         }
         set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesSent = newValue } }
     }
@@ -209,9 +201,7 @@ open class URLSessionTask : NSObject, NSCopying {
      */
     open var state: URLSessionTask.State {
         get {
-            var r: URLSessionTask.State = .suspended
-            taskAttributesIsolation.sync { r = self._state }
-            return r
+            return taskAttributesIsolation.sync { self._state }
         }
         set { taskAttributesIsolation.async(flags: .barrier) { self._state = newValue } }
     }
@@ -296,9 +286,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// URLSessionTask.highPriority, but use is not restricted to these.
     open var priority: Float {
         get {
-            var r: Float = 0
-            taskAttributesIsolation.sync { r = self._priority }
-            return r
+            return taskAttributesIsolation.sync { self._priority }
         }
         set {
             taskAttributesIsolation.async(flags: .barrier) { self._priority = newValue }
