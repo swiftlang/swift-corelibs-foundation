@@ -291,9 +291,9 @@ open class URLSessionTask : NSObject, NSCopying {
     /// will be used.
     ///
     /// If no priority is specified, the task will operate with the default priority
-    /// as defined by the constant URLSessionTaskPriorityDefault. Two additional
-    /// priority levels are provided: URLSessionTaskPriorityLow and
-    /// URLSessionTaskPriorityHigh, but use is not restricted to these.
+    /// as defined by the constant URLSessionTask.defaultPriority. Two additional
+    /// priority levels are provided: URLSessionTask.lowPriority and
+    /// URLSessionTask.highPriority, but use is not restricted to these.
     open var priority: Float {
         get {
             var r: Float = 0
@@ -304,7 +304,7 @@ open class URLSessionTask : NSObject, NSCopying {
             taskAttributesIsolation.async(flags: .barrier) { self._priority = newValue }
         }
     }
-    fileprivate var _priority: Float = URLSessionTaskPriorityDefault
+    fileprivate var _priority: Float = URLSessionTask.defaultPriority
 }
 
 extension URLSessionTask {
@@ -1116,9 +1116,19 @@ fileprivate extension HTTPURLResponse {
     }
 }
 
-public let URLSessionTaskPriorityDefault: Float = 0.5
-public let URLSessionTaskPriorityLow: Float = 0.25
-public let URLSessionTaskPriorityHigh: Float = 0.75
+public extension URLSessionTask {
+    /// The default URL session task priority, used implicitly for any task you 
+    /// have not prioritized. The floating point value of this constant is 0.5.
+    public static let defaultPriority: Float = 0.5
+
+    /// A low URL session task priority, with a floating point value above the 
+    /// minimum of 0 and below the default value.
+    public static let lowPriority: Float = 0.25
+
+    /// A high URL session task priority, with a floating point value above the
+    /// default value and below the maximum of 1.0.
+    public static let highPriority: Float = 0.75
+}
 
 /*
  * An URLSessionDataTask does not provide any additional
