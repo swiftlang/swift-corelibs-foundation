@@ -45,7 +45,7 @@ extension URLSession {
         
         fileprivate var tasks: [Int: URLSessionTask] = [:]
         fileprivate var behaviours: [Int: _Behaviour] = [:]
-        fileprivate var tasksFinishedCallback: (() -> ())?
+        fileprivate var tasksFinishedCallback: (() -> Void)?
     }
 }
 
@@ -87,7 +87,7 @@ extension URLSession._TaskRegistry {
         }
     }
 
-    func notify(on tasksCompetion: @escaping () -> ()) {
+    func notify(on tasksCompetion: @escaping () -> Void) {
         tasksFinishedCallback = tasksCompetion
     }
 

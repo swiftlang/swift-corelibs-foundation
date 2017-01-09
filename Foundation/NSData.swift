@@ -806,7 +806,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }()
         
         var currentLineCount = 0
-        let appendByteToResult : (UInt8) -> () = {
+        let appendByteToResult : (UInt8) -> Void = {
             result.append($0)
             currentLineCount += 1
             if let options = lineOptions, currentLineCount == options.lineLength {
