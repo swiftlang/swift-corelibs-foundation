@@ -302,7 +302,10 @@ extension Notification.Name {
     public static let NSFileHandleReadToEndOfFileCompletion = Notification.Name(rawValue: "") // NSUnimplemented
     public static let NSFileHandleConnectionAccepted = Notification.Name(rawValue: "") // NSUnimplemented
     public static let NSFileHandleDataAvailable = Notification.Name(rawValue: "") // NSUnimplemented
-    public static let NSFileHandleReadCompletion = Notification.Name(rawValue: "") // NSUnimplemented
+}
+
+extension FileHandle {
+    public static let readCompletionNotification = Notification.Name(rawValue: "NSFileHandleReadCompletionNotification")
 }
 
 public let NSFileHandleNotificationDataItem: String = "" // NSUnimplemented
