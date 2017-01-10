@@ -60,9 +60,9 @@ struct Options {
 }
 
 enum OptionParseError : Swift.Error {
-    case UnrecognizedArgument(String)
-    case MissingArgument(String)
-    case InvalidFormat(String)
+    case unrecognizedArgument(String)
+    case missingArgument(String)
+    case invalidFormat(String)
 }
 
 func parseArguments(_ args: [String]) throws -> Options {
@@ -82,7 +82,7 @@ func parseArguments(_ args: [String]) throws -> Options {
                 if let path = iterator.next() {
                     opts.output = path
                 } else {
-                    throw OptionParseError.MissingArgument("-o requires a path argument")
+                    throw OptionParseError.missingArgument("-o requires a path argument")
                 }
                 break
             case "-convert":
@@ -99,17 +99,17 @@ func parseArguments(_ args: [String]) throws -> Options {
                             opts.conversionFormat = .json
                             break
                         default:
-                            throw OptionParseError.InvalidFormat(format)
+                            throw OptionParseError.invalidFormat(format)
                     }
                 } else {
-                    throw OptionParseError.MissingArgument("-convert requires a format argument of xml1 binary1 json")
+                    throw OptionParseError.missingArgument("-convert requires a format argument of xml1 binary1 json")
                 }
                 break
             case "-e":
                 if let ext = iterator.next() {
                     opts.fileExtension = ext
                 } else {
-                    throw OptionParseError.MissingArgument("-e requires an extension argument")
+                    throw OptionParseError.missingArgument("-e requires an extension argument")
                 }
             case "-help":
                 opts.mode = .help
@@ -122,7 +122,7 @@ func parseArguments(_ args: [String]) throws -> Options {
                 break
             default:
                 if arg.hasPrefix("-") && arg.utf8.count > 1 {
-                    throw OptionParseError.UnrecognizedArgument(arg)
+                    throw OptionParseError.unrecognizedArgument(arg)
                 }
                 break
         }
@@ -377,14 +377,14 @@ func main() -> Int32 {
         }
     } catch let err {
         switch err as! OptionParseError {
-            case .UnrecognizedArgument(let arg):
+            case .unrecognizedArgument(let arg):
                 print("unrecognized option: \(arg)")
                 let _ = help()
                 break
-            case .InvalidFormat(let format):
+            case .invalidFormat(let format):
                 print("unrecognized format \(format)\nformat should be one of: xml1 binary1 json")
                 break
-            case .MissingArgument(let errorStr):
+            case .missingArgument(let errorStr):
                 print(errorStr)
                 break
         }
