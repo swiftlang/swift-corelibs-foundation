@@ -269,10 +269,8 @@ public func NSClassFromString(_ aClassName: String) -> AnyClass? {
             return nil
         }
         aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
-        break
     case 2:
         aClassNameWithPrefix = aClassName
-        break
     default:
         NSLog("*** NSClassFromString(\(aClassName)): nested class names not yet supported")
         return nil

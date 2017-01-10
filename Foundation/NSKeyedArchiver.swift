@@ -612,54 +612,41 @@ open class NSKeyedArchiver : NSCoder {
         case .ID:
             let objectp = unsafeBitCast(addr, to: UnsafePointer<Any>.self)
             encode(objectp.pointee)
-            break
         case .Class:
             let classp = unsafeBitCast(addr, to: UnsafePointer<AnyClass>.self)
             encode(NSStringFromClass(classp.pointee)._bridgeToObjectiveC())
-            break
         case .Char:
             let charp = unsafeBitCast(addr, to: UnsafePointer<CChar>.self)
             _encodeValue(NSNumber(value: charp.pointee))
-            break
         case .UChar:
             let ucharp = unsafeBitCast(addr, to: UnsafePointer<UInt8>.self)
             _encodeValue(NSNumber(value: ucharp.pointee))
-            break
         case .Int, .Long:
             let intp = unsafeBitCast(addr, to: UnsafePointer<Int32>.self)
             _encodeValue(NSNumber(value: intp.pointee))
-            break
         case .UInt, .ULong:
             let uintp = unsafeBitCast(addr, to: UnsafePointer<UInt32>.self)
             _encodeValue(NSNumber(value: uintp.pointee))
-            break
         case .LongLong:
             let longlongp = unsafeBitCast(addr, to: UnsafePointer<Int64>.self)
             _encodeValue(NSNumber(value: longlongp.pointee))
-            break
         case .ULongLong:
             let ulonglongp = unsafeBitCast(addr, to: UnsafePointer<UInt64>.self)
             _encodeValue(NSNumber(value: ulonglongp.pointee))
-            break
         case .Float:
             let floatp = unsafeBitCast(addr, to: UnsafePointer<Float>.self)
             _encodeValue(NSNumber(value: floatp.pointee))
-            break
         case .Double:
             let doublep = unsafeBitCast(addr, to: UnsafePointer<Double>.self)
             _encodeValue(NSNumber(value: doublep.pointee))
-            break
         case .Bool:
             let boolp = unsafeBitCast(addr, to: UnsafePointer<Bool>.self)
             _encodeValue(NSNumber(value: boolp.pointee))
-            break
         case .CharPtr:
             let charpp = unsafeBitCast(addr, to: UnsafePointer<UnsafePointer<Int8>>.self)
             encode(NSString(utf8String: charpp.pointee))
-            break
         default:
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unknown type encoding ('\(type.rawValue)')")
-            break
         }
     }
     

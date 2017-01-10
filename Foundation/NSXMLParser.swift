@@ -119,7 +119,6 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
         if !matches {
             return nil
         }
-        break
     case .resolveExternalEntitiesAlways:
         break
     case .resolveExternalEntitiesNever:
