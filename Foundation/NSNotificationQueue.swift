@@ -87,7 +87,7 @@ open class NotificationQueue: NSObject {
         }
 
         if !coalesceMask.isEmpty {
-            self.dequeueNotificationsMatching(notification, coalesceMask: coalesceMask)
+            self.dequeueNotifications(matching: notification, coalesceMask: coalesceMask)
         }
 
         switch postingStyle {
@@ -105,7 +105,7 @@ open class NotificationQueue: NSObject {
         }
     }
     
-    open func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: NotificationCoalescing) {
+    open func dequeueNotifications(matching notification: Notification, coalesceMask: NotificationCoalescing) {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
         case [.onName, .onSender]:
