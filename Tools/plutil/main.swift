@@ -44,9 +44,9 @@ enum ExecutionMode {
 }
 
 enum ConversionFormat {
-    case XML1
-    case Binary1
-    case JSON
+    case xml1
+    case binary1
+    case json
 }
 
 struct Options {
@@ -90,13 +90,13 @@ func parseArguments(_ args: [String]) throws -> Options {
                 if let format = iterator.next() {
                     switch format {
                         case "xml1":
-                            opts.conversionFormat = ConversionFormat.XML1
+                            opts.conversionFormat = .xml1
                             break
                         case "binary1":
-                            opts.conversionFormat = ConversionFormat.Binary1
+                            opts.conversionFormat = .binary1
                             break
                         case "json":
-                            opts.conversionFormat = ConversionFormat.JSON
+                            opts.conversionFormat = .json
                             break
                         default:
                             throw OptionParseError.InvalidFormat(format)
