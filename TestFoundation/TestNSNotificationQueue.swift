@@ -173,15 +173,15 @@ class TestNSNotificationQueue : XCTestCase {
 
         let queue = NotificationQueue.defaultQueue()
         // #1
-        queue.enqueueNotification(notification1, postingStyle: .postASAP,  coalesceMask: .CoalescingOnName, forModes: nil)
+        queue.enqueueNotification(notification1, postingStyle: .postASAP,  coalesceMask: .onName, forModes: nil)
         // #2
-        queue.enqueueNotification(notification2, postingStyle: .postASAP,  coalesceMask: .CoalescingOnSender, forModes: nil)
+        queue.enqueueNotification(notification2, postingStyle: .postASAP,  coalesceMask: .onSender, forModes: nil)
         // #3, coalesce with 1 & 2
-        queue.enqueueNotification(notification1, postingStyle: .postASAP,  coalesceMask: .CoalescingOnName, forModes: nil)
+        queue.enqueueNotification(notification1, postingStyle: .postASAP,  coalesceMask: .onName, forModes: nil)
         // #4, coalesce with #3
-        queue.enqueueNotification(notification2, postingStyle: .postASAP,  coalesceMask: .CoalescingOnName, forModes: nil)
+        queue.enqueueNotification(notification2, postingStyle: .postASAP,  coalesceMask: .onName, forModes: nil)
         // #5
-        queue.enqueueNotification(notification1, postingStyle: .postASAP,  coalesceMask: .CoalescingOnSender, forModes: nil)
+        queue.enqueueNotification(notification1, postingStyle: .postASAP,  coalesceMask: .onSender, forModes: nil)
         scheduleTimer(withInterval: 0.001)
         // check that we received notifications #4 and #5
         XCTAssertEqual(numberOfNameCoalescingCalls, 1)
