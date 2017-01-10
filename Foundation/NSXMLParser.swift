@@ -782,7 +782,7 @@ public extension XMLParserDelegate {
 
 extension XMLParser {
     // If validation is on, this will report a fatal validation error to the delegate. The parser will stop parsing.
-    public static let ErrorDomain: String = "NSXMLParserErrorDomain" // for use with NSError.
+    public static let errorDomain: String = "NSXMLParserErrorDomain" // for use with NSError.
 
     // Error reporting
     public enum ErrorCode : Int {
