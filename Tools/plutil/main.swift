@@ -74,37 +74,30 @@ func parseArguments(_ args: [String]) throws -> Options {
                 while let path = iterator.next() {
                     opts.inputs.append(path)
                 }
-                break
             case "-s":
                 opts.silent = true
-                break
             case "-o":
                 if let path = iterator.next() {
                     opts.output = path
                 } else {
                     throw OptionParseError.missingArgument("-o requires a path argument")
                 }
-                break
             case "-convert":
                 opts.mode = .convert
                 if let format = iterator.next() {
                     switch format {
                         case "xml1":
                             opts.conversionFormat = .xml1
-                            break
                         case "binary1":
                             opts.conversionFormat = .binary1
-                            break
                         case "json":
                             opts.conversionFormat = .json
-                            break
                         default:
                             throw OptionParseError.invalidFormat(format)
                     }
                 } else {
                     throw OptionParseError.missingArgument("-convert requires a format argument of xml1 binary1 json")
                 }
-                break
             case "-e":
                 if let ext = iterator.next() {
                     opts.fileExtension = ext
@@ -113,18 +106,14 @@ func parseArguments(_ args: [String]) throws -> Options {
                 }
             case "-help":
                 opts.mode = .help
-                break
             case "-lint":
                 opts.mode = .lint
-                break
             case "-p":
                 opts.mode = .print
-                break
             default:
                 if arg.hasPrefix("-") && arg.utf8.count > 1 {
                     throw OptionParseError.unrecognizedArgument(arg)
                 }
-                break
         }
     }
     
@@ -380,13 +369,10 @@ func main() -> Int32 {
             case .unrecognizedArgument(let arg):
                 print("unrecognized option: \(arg)")
                 let _ = help()
-                break
             case .invalidFormat(let format):
                 print("unrecognized format \(format)\nformat should be one of: xml1 binary1 json")
-                break
             case .missingArgument(let errorStr):
                 print(errorStr)
-                break
         }
         return EXIT_FAILURE
     }
