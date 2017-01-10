@@ -12,9 +12,9 @@ import CoreFoundation
 extension NotificationQueue {
 
     public enum PostingStyle : UInt {
-        case whenIdle
-        case asap
-        case now
+        case whenIdle = 1
+        case asap = 2
+        case now = 3
     }
 
     public struct NotificationCoalescing : OptionSet {
