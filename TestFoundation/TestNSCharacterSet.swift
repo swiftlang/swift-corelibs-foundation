@@ -36,6 +36,11 @@ class TestNSCharacterSet : XCTestCase {
             ("test_AnnexPlanes", test_AnnexPlanes),
             ("test_Planes", test_Planes),
             ("test_InlineBuffer", test_InlineBuffer),
+            // The following tests must remain disabled until SR-2509 is resolved.
+            // ("test_Subtracting", test_Subtracting),
+            // ("test_SubtractEmptySet", test_SubtractEmptySet),
+            // ("test_SubtractNonEmptySet", test_SubtractNonEmptySet),
+            // ("test_SymmetricDifference", test_SymmetricDifference),
         ]
     }
     
@@ -249,6 +254,33 @@ class TestNSCharacterSet : XCTestCase {
     
     func test_InlineBuffer() {
         
+    }
+
+    func test_Subtracting() {
+        let difference = CharacterSet(charactersIn: "abc").subtracting(CharacterSet(charactersIn: "b"))
+        let expected = CharacterSet(charactersIn: "ac")
+        XCTAssertEqual(expected, difference)
+    }
+
+    func test_SubtractEmptySet() {
+        var mutableSet = CharacterSet(charactersIn: "abc")
+        let emptySet = CharacterSet()
+        mutableSet.subtract(emptySet)
+        let expected = CharacterSet(charactersIn: "abc")
+        XCTAssertEqual(expected, mutableSet)
+    }
+
+    func test_SubtractNonEmptySet() {
+        var mutableSet = CharacterSet()
+        let nonEmptySet = CharacterSet(charactersIn: "abc")
+        mutableSet.subtract(nonEmptySet)
+        XCTAssertTrue(mutableSet.isEmpty)
+    }
+
+    func test_SymmetricDifference() {
+        let symmetricDifference = CharacterSet(charactersIn: "ac").symmetricDifference(CharacterSet(charactersIn: "b"))
+        let expected = CharacterSet(charactersIn: "abc")
+        XCTAssertEqual(expected, symmetricDifference)
     }
 }
 
