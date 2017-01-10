@@ -22,8 +22,8 @@ extension NotificationQueue {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let CoalescingOnName = Coalescing(rawValue: 1 << 0)
-        public static let CoalescingOnSender = Coalescing(rawValue: 1 << 1)
+        public static let onName = Coalescing(rawValue: 1 << 0)
+        public static let onSender = Coalescing(rawValue: 1 << 1)
     }
 }
 
@@ -77,7 +77,7 @@ open class NotificationQueue: NSObject {
     }
 
     open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle) {
-        enqueueNotification(notification, postingStyle: postingStyle, coalesceMask: [.CoalescingOnName, .CoalescingOnSender], forModes: nil)
+        enqueueNotification(notification, postingStyle: postingStyle, coalesceMask: [.onName, .onSender], forModes: nil)
     }
 
     open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: Coalescing, forModes modes: [RunLoopMode]?) {
@@ -108,15 +108,15 @@ open class NotificationQueue: NSObject {
     open func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: Coalescing) {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
-        case [.CoalescingOnName, .CoalescingOnSender]:
+        case [.onName, .onSender]:
             predicate = { (entryNotification, _) in
                 return _SwiftValue.store(notification.object) !== _SwiftValue.store(entryNotification.object) || notification.name != entryNotification.name
             }
-        case [.CoalescingOnName]:
+        case [.onName]:
             predicate = { (entryNotification, _) in
                 return notification.name != entryNotification.name
             }
-        case [.CoalescingOnSender]:
+        case [.onSender]:
             predicate = { (entryNotification, _) in
                 return _SwiftValue.store(notification.object) !== _SwiftValue.store(entryNotification.object)
             }
