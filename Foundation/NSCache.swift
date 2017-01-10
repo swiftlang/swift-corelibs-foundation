@@ -143,7 +143,7 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
         
         if let del = delegate {
             for entry in toRemove {
-                del.cache(unsafeBitCast(self, to:NSCache<AnyObject, AnyObject>.self), willEvictObject: entry.value)
+                del.cache(unsafeDowncast(self, to:NSCache<AnyObject, AnyObject>.self), willEvictObject: entry.value)
             }
         }
         
