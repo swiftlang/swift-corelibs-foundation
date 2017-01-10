@@ -37,10 +37,10 @@ func help() -> Int32 {
 }
 
 enum ExecutionMode {
-    case Help
-    case Lint
-    case Convert
-    case Print
+    case help
+    case lint
+    case convert
+    case print
 }
 
 enum ConversionFormat {
@@ -50,7 +50,7 @@ enum ConversionFormat {
 }
 
 struct Options {
-    var mode: ExecutionMode = .Lint
+    var mode: ExecutionMode = .lint
     var silent: Bool = false
     var output: String?
     var fileExtension: String?
@@ -86,7 +86,7 @@ func parseArguments(_ args: [String]) throws -> Options {
                 }
                 break
             case "-convert":
-                opts.mode = ExecutionMode.Convert
+                opts.mode = .convert
                 if let format = iterator.next() {
                     switch format {
                         case "xml1":
@@ -112,13 +112,13 @@ func parseArguments(_ args: [String]) throws -> Options {
                     throw OptionParseError.MissingArgument("-e requires an extension argument")
                 }
             case "-help":
-                opts.mode = ExecutionMode.Help
+                opts.mode = .help
                 break
             case "-lint":
-                opts.mode = ExecutionMode.Lint
+                opts.mode = .lint
                 break
             case "-p":
-                opts.mode = ExecutionMode.Print
+                opts.mode = .print
                 break
             default:
                 if arg.hasPrefix("-") && arg.utf8.count > 1 {
@@ -366,13 +366,13 @@ func main() -> Int32 {
     do {
         let opts = try parseArguments(args)
         switch opts.mode {
-            case .Lint:
+            case .lint:
                 return lint(opts)
-            case .Convert:
+            case .convert:
                 return convert(opts)
-            case .Print:
+            case .print:
                 return display(opts)
-            case .Help:
+            case .help:
                 return help()
         }
     } catch let err {
