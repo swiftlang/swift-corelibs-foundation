@@ -33,15 +33,15 @@ class TestNSNotificationQueue : XCTestCase {
     }
 
     func test_defaultQueue() {
-        let defaultQueue1 = NotificationQueue.defaultQueue()
+        let defaultQueue1 = NotificationQueue.default
         XCTAssertNotNil(defaultQueue1)
-        let defaultQueue2 = NotificationQueue.defaultQueue()
+        let defaultQueue2 = NotificationQueue.default
         XCTAssertEqual(defaultQueue1, defaultQueue2)
 
         executeInBackgroundThread() {
-            let defaultQueueForBackgroundThread = NotificationQueue.defaultQueue()
+            let defaultQueueForBackgroundThread = NotificationQueue.default
             XCTAssertNotNil(defaultQueueForBackgroundThread)
-            XCTAssertEqual(defaultQueueForBackgroundThread, NotificationQueue.defaultQueue())
+            XCTAssertEqual(defaultQueueForBackgroundThread, NotificationQueue.default)
             XCTAssertNotEqual(defaultQueueForBackgroundThread, defaultQueue1)
         }
     }
@@ -54,7 +54,7 @@ class TestNSNotificationQueue : XCTestCase {
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
-        let queue = NotificationQueue.defaultQueue()
+        let queue = NotificationQueue.default
         queue.enqueueNotification(notification, postingStyle: .postNow)
         XCTAssertEqual(numberOfCalls, 1)
         NotificationCenter.default.removeObserver(obs)
@@ -68,7 +68,7 @@ class TestNSNotificationQueue : XCTestCase {
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
-        let queue = NotificationQueue.defaultQueue()
+        let queue = NotificationQueue.default
         queue.enqueueNotification(notification, postingStyle: .postNow)
         queue.enqueueNotification(notification, postingStyle: .postNow)
         queue.enqueueNotification(notification, postingStyle: .postNow)
@@ -100,7 +100,7 @@ class TestNSNotificationQueue : XCTestCase {
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
-        let queue = NotificationQueue.defaultQueue()
+        let queue = NotificationQueue.default
 
         let runLoop = RunLoop.current
         let endDate = Date(timeInterval: TimeInterval(0.05), since: Date())
@@ -131,7 +131,7 @@ class TestNSNotificationQueue : XCTestCase {
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
-        let queue = NotificationQueue.defaultQueue()
+        let queue = NotificationQueue.default
         queue.enqueueNotification(notification, postingStyle: .postASAP)
 
         scheduleTimer(withInterval: 0.001) // run timer trigger the notifications
@@ -147,7 +147,7 @@ class TestNSNotificationQueue : XCTestCase {
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: notification.object, queue: nil) { notification in
             numberOfCalls += 1
         }
-        let queue = NotificationQueue.defaultQueue()
+        let queue = NotificationQueue.default
         queue.enqueueNotification(notification, postingStyle: .postASAP)
         queue.enqueueNotification(notification, postingStyle: .postASAP)
         queue.enqueueNotification(notification, postingStyle: .postASAP)
@@ -171,7 +171,7 @@ class TestNSNotificationQueue : XCTestCase {
             numberOfObjectCoalescingCalls += 1
         }
 
-        let queue = NotificationQueue.defaultQueue()
+        let queue = NotificationQueue.default
         // #1
         queue.enqueueNotification(notification1, postingStyle: .postASAP,  coalesceMask: .onName, forModes: nil)
         // #2
@@ -200,7 +200,7 @@ class TestNSNotificationQueue : XCTestCase {
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
-        NotificationQueue.defaultQueue().enqueueNotification(notification, postingStyle: .postWhenIdle)
+        NotificationQueue.default.enqueueNotification(notification, postingStyle: .postWhenIdle)
         // add a timer to wakeup the runloop, process the timer and call the observer awaiting for any input sources/timers
         scheduleTimer(withInterval: 0.001)
         XCTAssertEqual(numberOfCalls, 1)

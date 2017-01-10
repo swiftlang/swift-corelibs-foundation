@@ -58,7 +58,7 @@ open class NotificationQueue: NSObject {
 
     // The default notification queue for the current thread.
     private static var _defaultQueue = NSThreadSpecific<NotificationQueue>()
-    open class func defaultQueue() -> NotificationQueue {
+    open class var `default`: NotificationQueue {
         return _defaultQueue.get() {
             return NotificationQueue(notificationCenter: NotificationCenter.default)
         }
