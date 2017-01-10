@@ -76,11 +76,11 @@ open class NotificationQueue: NSObject {
         removeRunloopObserver(self.asapRunloopObserver)
     }
 
-    open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle) {
-        enqueueNotification(notification, postingStyle: postingStyle, coalesceMask: [.onName, .onSender], forModes: nil)
+    open func enqueue(_ notification: Notification, postingStyle: PostingStyle) {
+        enqueue(notification, postingStyle: postingStyle, coalesceMask: [.onName, .onSender], forModes: nil)
     }
 
-    open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: NotificationCoalescing, forModes modes: [RunLoopMode]?) {
+    open func enqueue(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: NotificationCoalescing, forModes modes: [RunLoopMode]?) {
         var runloopModes: [RunLoopMode] = [.defaultRunLoopMode]
         if let modes = modes  {
             runloopModes = modes
