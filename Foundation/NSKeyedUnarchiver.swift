@@ -113,13 +113,11 @@ open class NSKeyedUnarchiver : NSCoder {
         switch self._stream {
         case .data(let data):
             try plist = PropertyListSerialization.propertyList(from: data, options: [], format: &format)
-            break
         case .stream(let inputStream):
             try plist = PropertyListSerialization.propertyList(with: unsafeBitCast(inputStream, to: CFReadStream.self),
                                                                            length: 0,
                                                                            options: [],
                                                                            format: &format)
-            break
         }
         
         guard let unwrappedPlist = plist as? Dictionary<String, Any> else {
@@ -756,68 +754,55 @@ open class NSKeyedUnarchiver : NSCoder {
                 // TODO: Pretty sure this is not 100% correct
                 addr.assumingMemoryBound(to: Any.self).pointee = ns
             }
-            break
         case .Class:
             if let ns = decodeObject() as? NSString {
                 if let nsClass = NSClassFromString(String._unconditionallyBridgeFromObjectiveC(ns)) {
                     addr.assumingMemoryBound(to: AnyClass.self).pointee = nsClass
                 }
             }
-            break
         case .Char:
             if let ns : NSNumber = _decodeValue() {
                 addr.assumingMemoryBound(to: CChar.self).pointee = ns.int8Value
             }
-            break
         case .UChar:
             if let ns : NSNumber = _decodeValue() {
                 addr.assumingMemoryBound(to: UInt8.self).pointee = ns.uint8Value
             }
-            break
         case .Int, .Long:
             if let ns : NSNumber = _decodeValue() {
                 addr.assumingMemoryBound(to: Int32.self).pointee = ns.int32Value
             }
-            break
         case .UInt, .ULong:
             if let ns : NSNumber = _decodeValue() {
                 addr.assumingMemoryBound(to: UInt32.self).pointee = ns.uint32Value
             }
-            break
         case .LongLong:
             if let ns : NSNumber = _decodeValue() {
                 addr.assumingMemoryBound(to: Int64.self).pointee = ns.int64Value
             }
-            break
         case .ULongLong:
             if let ns : NSNumber = _decodeValue() {
                 addr.assumingMemoryBound(to: UInt64.self).pointee = ns.uint64Value
             }
-            break
         case .Float:
             if let ns : NSNumber = _decodeValue() {
                 addr.assumingMemoryBound(to: Float.self).pointee = ns.floatValue
             }
-            break
         case .Double:
             if let ns : NSNumber = _decodeValue() {
                 addr.assumingMemoryBound(to: Double.self).pointee = ns.doubleValue
             }
-            break
         case .Bool:
             if let ns : NSNumber = _decodeValue() {
                 addr.assumingMemoryBound(to: Bool.self).pointee = ns.boolValue
             }
-            break
         case .CharPtr:
             if let ns = decodeObject() as? NSString {
                 let string = ns.utf8String! // XXX leaky
                 addr.assumingMemoryBound(to: UnsafePointer<Int8>.self).pointee = string
             }
-            break
         default:
             fatalError("NSKeyedUnarchiver.decodeValueOfObjCType: unknown type encoding ('\(type.rawValue)')")
-            break
         }
     }
     

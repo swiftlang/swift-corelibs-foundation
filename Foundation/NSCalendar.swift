@@ -1619,52 +1619,36 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         switch unit {
             case NSCalendar.Unit.era:
                 era = value
-                break
             case NSCalendar.Unit.year:
                 year = value
-                break
             case NSCalendar.Unit.month:
                 month = value
-                break
             case NSCalendar.Unit.day:
                 day = value
-                break
             case NSCalendar.Unit.hour:
                 hour = value
-                break
             case NSCalendar.Unit.minute:
                 minute = value
-                break
             case NSCalendar.Unit.second:
                 second = value
-                break
             case NSCalendar.Unit.nanosecond:
                 nanosecond = value
-                break
             case NSCalendar.Unit.weekday:
                 weekday = value
-                break
             case NSCalendar.Unit.weekdayOrdinal:
                 weekdayOrdinal = value
-                break
             case NSCalendar.Unit.quarter:
                 quarter = value
-                break
             case NSCalendar.Unit.weekOfMonth:
                 weekOfMonth = value
-                break
             case NSCalendar.Unit.weekOfYear:
                 weekOfYear = value
-                break
             case NSCalendar.Unit.yearForWeekOfYear:
                 yearForWeekOfYear = value
-                break
             case NSCalendar.Unit.calendar:
                 print(".Calendar cannot be set via \(#function)")
-                break
             case NSCalendar.Unit.timeZone:
                 print(".TimeZone cannot be set via \(#function)")
-                break
             default:
                 break
         }

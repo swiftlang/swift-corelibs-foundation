@@ -612,54 +612,41 @@ open class NSKeyedArchiver : NSCoder {
         case .ID:
             let objectp = addr.assumingMemoryBound(to: Any.self)
             encode(objectp.pointee)
-            break
         case .Class:
             let classp = addr.assumingMemoryBound(to: AnyClass.self)
             encode(NSStringFromClass(classp.pointee)._bridgeToObjectiveC())
-            break
         case .Char:
             let charp = addr.assumingMemoryBound(to: CChar.self)
             _encodeValue(NSNumber(value: charp.pointee))
-            break
         case .UChar:
             let ucharp = addr.assumingMemoryBound(to: UInt8.self)
             _encodeValue(NSNumber(value: ucharp.pointee))
-            break
         case .Int, .Long:
             let intp = addr.assumingMemoryBound(to: Int32.self)
             _encodeValue(NSNumber(value: intp.pointee))
-            break
         case .UInt, .ULong:
             let uintp = addr.assumingMemoryBound(to: UInt32.self)
             _encodeValue(NSNumber(value: uintp.pointee))
-            break
         case .LongLong:
             let longlongp = addr.assumingMemoryBound(to: Int64.self)
             _encodeValue(NSNumber(value: longlongp.pointee))
-            break
         case .ULongLong:
             let ulonglongp = addr.assumingMemoryBound(to: UInt64.self)
             _encodeValue(NSNumber(value: ulonglongp.pointee))
-            break
         case .Float:
             let floatp = addr.assumingMemoryBound(to: Float.self)
             _encodeValue(NSNumber(value: floatp.pointee))
-            break
         case .Double:
             let doublep = addr.assumingMemoryBound(to: Double.self)
             _encodeValue(NSNumber(value: doublep.pointee))
-            break
         case .Bool:
             let boolp = addr.assumingMemoryBound(to: Bool.self)
             _encodeValue(NSNumber(value: boolp.pointee))
-            break
         case .CharPtr:
             let charpp = addr.assumingMemoryBound(to: UnsafePointer<Int8>.self)
             encode(NSString(utf8String: charpp.pointee))
-            break
         default:
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unknown type encoding ('\(type.rawValue)')")
-            break
         }
     }
     

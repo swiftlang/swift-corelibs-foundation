@@ -218,19 +218,14 @@ internal struct _OperationList {
         switch operation.queuePriority {
         case .veryLow:
             veryLow.append(operation)
-            break
         case .low:
             low.append(operation)
-            break
         case .normal:
             normal.append(operation)
-            break
         case .high:
             high.append(operation)
-            break
         case .veryHigh:
             veryHigh.append(operation)
-            break
         }
     }
     
@@ -243,27 +238,22 @@ internal struct _OperationList {
             if let idx = veryLow.index(of: operation) {
                 veryLow.remove(at: idx)
             }
-            break
         case .low:
             if let idx = low.index(of: operation) {
                 low.remove(at: idx)
             }
-            break
         case .normal:
             if let idx = normal.index(of: operation) {
                 normal.remove(at: idx)
             }
-            break
         case .high:
             if let idx = high.index(of: operation) {
                 high.remove(at: idx)
             }
-            break
         case .veryHigh:
             if let idx = veryHigh.index(of: operation) {
                 veryHigh.remove(at: idx)
             }
-            break
         }
     }
     

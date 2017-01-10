@@ -64,10 +64,8 @@ open class Host: NSObject {
             switch (_type) {
             case .name:
                 flags = AI_PASSIVE | AI_CANONNAME
-                break
             case .address:
                 flags = AI_PASSIVE | AI_CANONNAME | AI_NUMERICHOST
-                break
             case .current:
                 _resolveCurrent()
                 return
