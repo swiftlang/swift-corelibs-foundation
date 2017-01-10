@@ -754,65 +754,65 @@ open class NSKeyedUnarchiver : NSCoder {
         case .ID:
             if let ns = decodeObject() {
                 // TODO: Pretty sure this is not 100% correct
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Any>.self).pointee = ns
+                addr.assumingMemoryBound(to: Any.self).pointee = ns
             }
             break
         case .Class:
             if let ns = decodeObject() as? NSString {
                 if let nsClass = NSClassFromString(String._unconditionallyBridgeFromObjectiveC(ns)) {
-                    unsafeBitCast(addr, to: UnsafeMutablePointer<AnyClass>.self).pointee = nsClass
+                    addr.assumingMemoryBound(to: AnyClass.self).pointee = nsClass
                 }
             }
             break
         case .Char:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<CChar>.self).pointee = ns.int8Value
+                addr.assumingMemoryBound(to: CChar.self).pointee = ns.int8Value
             }
             break
         case .UChar:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt8>.self).pointee = ns.uint8Value
+                addr.assumingMemoryBound(to: UInt8.self).pointee = ns.uint8Value
             }
             break
         case .Int, .Long:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Int32>.self).pointee = ns.int32Value
+                addr.assumingMemoryBound(to: Int32.self).pointee = ns.int32Value
             }
             break
         case .UInt, .ULong:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt32>.self).pointee = ns.uint32Value
+                addr.assumingMemoryBound(to: UInt32.self).pointee = ns.uint32Value
             }
             break
         case .LongLong:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Int64>.self).pointee = ns.int64Value
+                addr.assumingMemoryBound(to: Int64.self).pointee = ns.int64Value
             }
             break
         case .ULongLong:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UInt64>.self).pointee = ns.uint64Value
+                addr.assumingMemoryBound(to: UInt64.self).pointee = ns.uint64Value
             }
             break
         case .Float:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Float>.self).pointee = ns.floatValue
+                addr.assumingMemoryBound(to: Float.self).pointee = ns.floatValue
             }
             break
         case .Double:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Double>.self).pointee = ns.doubleValue
+                addr.assumingMemoryBound(to: Double.self).pointee = ns.doubleValue
             }
             break
         case .Bool:
             if let ns : NSNumber = _decodeValue() {
-                unsafeBitCast(addr, to: UnsafeMutablePointer<Bool>.self).pointee = ns.boolValue
+                addr.assumingMemoryBound(to: Bool.self).pointee = ns.boolValue
             }
             break
         case .CharPtr:
             if let ns = decodeObject() as? NSString {
                 let string = ns.utf8String! // XXX leaky
-                unsafeBitCast(addr, to: UnsafeMutablePointer<UnsafePointer<Int8>>.self).pointee = string
+                addr.assumingMemoryBound(to: UnsafePointer<Int8>.self).pointee = string
             }
             break
         default:

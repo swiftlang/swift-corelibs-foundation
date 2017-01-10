@@ -43,7 +43,7 @@ extension String : _ObjectTypeBridgeable {
                 result = str
             }
         } else if type(of: source) == _NSCFConstantString.self {
-            let conststr = unsafeBitCast(source, to: _NSCFConstantString.self)
+            let conststr = unsafeDowncast(source, to: _NSCFConstantString.self)
             let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)))
             result = str
         } else {
