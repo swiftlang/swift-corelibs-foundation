@@ -78,7 +78,7 @@ internal func _CFSwiftIsEqual(_ cf1: AnyObject, cf2: AnyObject) -> Bool {
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
 internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
     withUnsafeMutablePointer(to: &arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
-        bzero(unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self), MemoryLayout<T>.size)
+        bzero(UnsafeMutableRawPointer(ptr), MemoryLayout<T>.size)
     }
 }
 

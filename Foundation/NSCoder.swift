@@ -145,7 +145,7 @@ open class NSCoder : NSObject {
         
         var obj: Any? = nil
         withUnsafeMutablePointer(to: &obj) { (ptr: UnsafeMutablePointer<Any?>) -> Void in
-            decodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self))
+            decodeValue(ofObjCType: "@", at: UnsafeMutableRawPointer(ptr))
         }
         return obj
     }
