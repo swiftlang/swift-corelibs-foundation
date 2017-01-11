@@ -18,12 +18,12 @@ extension NotificationQueue {
         case postNow
     }
 
-    public struct Coalescing : OptionSet {
+    public struct NotificationCoalescing : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let onName = Coalescing(rawValue: 1 << 0)
-        public static let onSender = Coalescing(rawValue: 1 << 1)
+        public static let onName = NotificationCoalescing(rawValue: 1 << 0)
+        public static let onSender = NotificationCoalescing(rawValue: 1 << 1)
     }
 }
 
@@ -80,7 +80,7 @@ open class NotificationQueue: NSObject {
         enqueueNotification(notification, postingStyle: postingStyle, coalesceMask: [.onName, .onSender], forModes: nil)
     }
 
-    open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: Coalescing, forModes modes: [RunLoopMode]?) {
+    open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: NotificationCoalescing, forModes modes: [RunLoopMode]?) {
         var runloopModes: [RunLoopMode] = [.defaultRunLoopMode]
         if let modes = modes  {
             runloopModes = modes
@@ -105,7 +105,7 @@ open class NotificationQueue: NSObject {
         }
     }
     
-    open func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: Coalescing) {
+    open func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: NotificationCoalescing) {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
         case [.onName, .onSender]:
