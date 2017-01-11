@@ -158,7 +158,7 @@ func lint(_ options: Options) -> Int32 {
         let data : Data?
         if file == "-" {
             // stdin
-            data = FileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
+            data = FileHandle.standardInput.readDataToEndOfFile()
         } else {
             data = try? Data(contentsOf: URL(fileURLWithPath: file))
         }
@@ -326,7 +326,7 @@ func display(_ options: Options) -> Int32 {
         let data : Data?
         if file == "-" {
             // stdin
-            data = FileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
+            data = FileHandle.standardInput.readDataToEndOfFile()
         } else {
             data = try? Data(contentsOf: URL(fileURLWithPath: file))
         }
