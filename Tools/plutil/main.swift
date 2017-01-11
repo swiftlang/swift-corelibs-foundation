@@ -183,28 +183,29 @@ func convert(_ options: Options) -> Int32 {
 }
 
 enum DisplayType {
-    case Primary
-    case Key
-    case Value
+    case primary
+    case key
+    case value
 }
 
 extension Dictionary {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary || type == .Key {
+        switch type {
+        case .primary, .key:
             print("\(indentation)[\n", terminator: "")
-        } else {
+        case .value:
             print("[\n", terminator: "")
         }
-        
+
         forEach() {
             if let key = $0.0 as? String {
-                key.display(indent + 1, type: .Key)
+                key.display(indent + 1, type: .key)
             } else {
                 fatalError("plists should have strings as keys but got a \(type(of: $0.0))")
             }
             print(" => ", terminator: "")
-            displayPlist($0.1, indent: indent + 1, type: .Value)
+            displayPlist($0.1, indent: indent + 1, type: .value)
         }
         
         print("\(indentation)]\n", terminator: "")
@@ -212,17 +213,18 @@ extension Dictionary {
 }
 
 extension Array {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary || type == .Key {
+        switch type {
+        case .primary, .key:
             print("\(indentation)[\n", terminator: "")
-        } else {
+        case .value:
             print("[\n", terminator: "")
         }
-        
+
         for idx in 0..<count {
             print("\(indentation)  \(idx) => ", terminator: "")
-            displayPlist(self[idx], indent: indent + 1, type: .Value)
+            displayPlist(self[idx], indent: indent + 1, type: .value)
         }
         
         print("\(indentation)]\n", terminator: "")
@@ -230,62 +232,62 @@ extension Array {
 }
 
 extension String {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary {
+        switch type {
+        case .primary:
             print("\(indentation)\"\(self)\"\n", terminator: "")
-        }
-        else if type == .Key {
+        case .key:
             print("\(indentation)\"\(self)\"", terminator: "")
-        } else {
+        case .value:
             print("\"\(self)\"\n", terminator: "")
         }
     }
 }
 
 extension Bool {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary {
+        switch type {
+        case .primary:
             print("\(indentation)\"\(self ? "1" : "0")\"\n", terminator: "")
-        }
-        else if type == .Key {
+        case .key:
             print("\(indentation)\"\(self ? "1" : "0")\"", terminator: "")
-        } else {
+        case .value:
             print("\"\(self ? "1" : "0")\"\n", terminator: "")
         }
     }
 }
 
 extension NSNumber {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary {
+        switch type {
+        case .primary:
             print("\(indentation)\"\(self)\"\n", terminator: "")
-        }
-        else if type == .Key {
+        case .key:
             print("\(indentation)\"\(self)\"", terminator: "")
-        } else {
+        case .value:
             print("\"\(self)\"\n", terminator: "")
         }
     }
 }
 
 extension NSData {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary {
+        switch type {
+        case .primary:
             print("\(indentation)\"\(self)\"\n", terminator: "")
-        }
-        else if type == .Key {
+        case .key:
             print("\(indentation)\"\(self)\"", terminator: "")
-        } else {
+        case .value:
             print("\"\(self)\"\n", terminator: "")
         }
     }
 }
 
-func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .Primary) {
+func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .primary) {
     if let val = plist as? Dictionary<String, Any> {
         val.display(indent, type: type)
     } else if let val = plist as? Array<Any> {
