@@ -104,7 +104,7 @@ public extension Notification.Name {
         @abstract This notification is sent on the main thread whenever
         the set of stored credentials changes.
     */
-    public static let NSURLCredentialStorageChanged = NSNotification.Name(rawValue: "") // NSUnimplemented
+    public static let NSURLCredentialStorageChanged = NSNotification.Name(rawValue: "NSURLCredentialStorageChangedNotification")
 }
 
 /*
@@ -113,5 +113,5 @@ public extension Notification.Name {
  *		attribute should be removed.  If the key is missing or the value is @NO, then no attempt will be made
  *		to remove such a credential.
  */
-public let NSURLCredentialStorageRemoveSynchronizableCredentials: String = "" // NSUnimplemented
+public let NSURLCredentialStorageRemoveSynchronizableCredentials: String = "NSURLCredentialStorageRemoveSynchronizableCredentials"
 

@@ -246,7 +246,7 @@ open class Thread : NSObject {
 }
 
 extension NSNotification.Name {
-    public static let NSWillBecomeMultiThreaded = NSNotification.Name(rawValue: "") // NSUnimplemented
-    public static let NSDidBecomeSingleThreaded = NSNotification.Name(rawValue: "") // NSUnimplemented
-    public static let NSThreadWillExit = NSNotification.Name(rawValue: "") // NSUnimplemented
+    public static let NSWillBecomeMultiThreaded = NSNotification.Name(rawValue: "NSWillBecomeMultiThreadedNotification")
+    public static let NSDidBecomeSingleThreaded = NSNotification.Name(rawValue: "NSDidBecomeSingleThreadedNotification")
+    public static let NSThreadWillExit = NSNotification.Name(rawValue: "NSThreadWillExitNotification")
 }

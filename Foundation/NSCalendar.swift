@@ -1242,7 +1242,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
 // with distributed notifications.
 
 extension NSNotification.Name {
-    public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "") // NSUnimplemented
+    public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "NSCalendarDayChangedNotification")
 }
 
 // This is a just used as an extensible struct, basically;

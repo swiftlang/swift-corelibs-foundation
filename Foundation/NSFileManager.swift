@@ -785,19 +785,19 @@ public struct FileAttributeKey : RawRepresentable, Equatable, Hashable, Comparab
     public static let posixPermissions = FileAttributeKey(rawValue: "NSFilePosixPermissions")
     public static let systemNumber = FileAttributeKey(rawValue: "NSFileSystemNumber")
     public static let systemFileNumber = FileAttributeKey(rawValue: "NSFileSystemFileNumber")
-    public static let extensionHidden = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let hfsCreatorCode = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let hfsTypeCode = FileAttributeKey(rawValue: "") // NSUnimplemented
+    public static let extensionHidden = FileAttributeKey(rawValue: "NSFileExtensionHidden")
+    public static let hfsCreatorCode = FileAttributeKey(rawValue: "NSFileHFSCreatorCode")
+    public static let hfsTypeCode = FileAttributeKey(rawValue: "NSFileHFSTypeCode")
     public static let immutable = FileAttributeKey(rawValue: "NSFileImmutable")
     public static let appendOnly = FileAttributeKey(rawValue: "NSFileAppendOnly")
-    public static let creationDate = FileAttributeKey(rawValue: "") // NSUnimplemented
+    public static let creationDate = FileAttributeKey(rawValue: "NSFileCreationDate")
     public static let ownerAccountID = FileAttributeKey(rawValue: "NSFileOwnerAccountID")
     public static let groupOwnerAccountID = FileAttributeKey(rawValue: "NSFileGroupOwnerAccountID")
-    public static let busy = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let systemSize = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let systemFreeSize = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let systemNodes = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let systemFreeNodes = FileAttributeKey(rawValue: "") // NSUnimplemented
+    public static let busy = FileAttributeKey(rawValue: "NSFileBusy")
+    public static let systemSize = FileAttributeKey(rawValue: "NSFileSystemSize")
+    public static let systemFreeSize = FileAttributeKey(rawValue: "NSFileSystemFreeSize")
+    public static let systemNodes = FileAttributeKey(rawValue: "NSFileSystemNodes")
+    public static let systemFreeNodes = FileAttributeKey(rawValue: "NSFileSystemFreeNodes")
 }
 
 public struct FileAttributeType : RawRepresentable, Equatable, Hashable, Comparable {
