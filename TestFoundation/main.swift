@@ -34,6 +34,7 @@ XCTMain([
     testCase(TestNSDateFormatter.allTests),
     testCase(TestNSDecimal.allTests),
     testCase(TestNSDictionary.allTests),
+    testCase(TestNSEnergyFormatter.allTests),
     testCase(TestNSFileManager.allTests),
     testCase(TestNSGeometry.allTests),
     testCase(TestNSHTTPCookie.allTests),
