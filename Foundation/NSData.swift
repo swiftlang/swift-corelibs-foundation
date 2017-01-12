@@ -175,10 +175,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             })
             task.resume()
             condition.wait()
-            guard let responseData = responseData else {
+            guard let nonNilResponseData = responseData else {
                 throw responseError!
             }
-            self.init(data: responseData)
+            self.init(data: nonNilResponseData)
         }
     }
     
