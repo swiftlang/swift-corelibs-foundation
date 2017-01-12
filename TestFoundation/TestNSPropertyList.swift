@@ -21,8 +21,9 @@ import SwiftXCTest
 class TestNSPropertyList : XCTestCase {
     static var allTests: [(String, (TestNSPropertyList) -> () throws -> Void)] {
         return [
-            ("test_BasicConstruction", test_BasicConstruction ),
-            ("test_decode", test_decode ),
+            ("test_BasicConstruction", test_BasicConstruction),
+            ("test_decodeData", test_decodeData),
+            ("test_decodeStream", test_decodeStream),
         ]
     }
     
@@ -39,7 +40,7 @@ class TestNSPropertyList : XCTestCase {
         XCTAssertEqual(data!.count, 42, "empty dictionary should be 42 bytes")
     }
     
-    func test_decode() {
+    func test_decodeData() {
         var decoded: Any?
         var fmt = PropertyListSerialization.PropertyListFormat.binary
         let path = testBundle().url(forResource: "Test", withExtension: "plist")
@@ -50,6 +51,32 @@ class TestNSPropertyList : XCTestCase {
             }
         } catch {
             
+        }
+
+        XCTAssertNotNil(decoded)
+        let dict = decoded as! Dictionary<String, Any>
+        XCTAssertEqual(dict.count, 3)
+        let val = dict["Foo"]
+        XCTAssertNotNil(val)
+        if let str = val as? String {
+            XCTAssertEqual(str, "Bar")
+        } else {
+            XCTFail("value stored is not a string")
+        }
+    }
+
+    func test_decodeStream() {
+        var decoded: Any?
+        var fmt = PropertyListSerialization.PropertyListFormat.binary
+        let path = testBundle().url(forResource: "Test", withExtension: "plist")
+        let stream = InputStream(url: path!)!
+        stream.open()
+        do {
+            decoded = try withUnsafeMutablePointer(to: &fmt) { (format: UnsafeMutablePointer<PropertyListSerialization.PropertyListFormat>) -> Any in
+                return try PropertyListSerialization.propertyList(with: stream, options: [], format: format)
+            }
+        } catch {
+
         }
 
         XCTAssertNotNil(decoded)

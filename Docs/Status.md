@@ -128,7 +128,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSKeyedUnarchiver`         | Mostly Complete | Substantial   | `decodingFailurePolicy.set` remains unimplemented                             |
     | `NSKeyedArchiverHelpers`    | N/A             | N/A           | For internal use only                                                         |
     | `NSCoder`                   | Incomplete      | N/A           | Decoding methods which require a concrete implementation remain unimplemented |
-    | `PropertyListSerialization` | Mostly Complete | Incomplete    | `propertyList(with:options:format:)` remains unimplemented                    |
+    | `PropertyListSerialization` | Complete        | Incomplete    |                                                                               |
 
 * **XML**: A group of classes for parsing and representing XML documents and elements.
 
