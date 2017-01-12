@@ -15,6 +15,7 @@ extension EnergyFormatter {
         case calorie = 1793 // chemistry "calories", abbr "cal"
         case kilocalorie = 1794 // kilocalories in general, abbr “kcal”, or “C” in some locales (e.g. US) when usesFoodEnergy is set to YES
 
+        // Map Unit to UnitEnergy class to aid with conversions
         fileprivate var unitEnergy: UnitEnergy {
             switch self {
             case .joule:
@@ -28,11 +29,17 @@ extension EnergyFormatter {
             }
         }
 
+        // Reuse symbols defined in UnitEnergy, except for kilocalories, which is defined as "kCal"
         fileprivate var symbol: String {
-            return unitEnergy.symbol
-
+            switch self {
+            case .kilocalorie:
+                return "kcal"
+            default:
+                return unitEnergy.symbol
+            }
         }
 
+        // Return singular, full string representation of the energy unit
         fileprivate var singularString: String {
             switch self {
             case .joule:
@@ -45,6 +52,8 @@ extension EnergyFormatter {
                 return "kilocalorie"
             }
         }
+        
+        // Return plural, full string representation of the energy unit
         fileprivate var pluralString: String {
             return "\(self.singularString)s"
         }
@@ -78,6 +87,7 @@ open class EnergyFormatter: Formatter {
         guard let formattedValue = numberFormatter.string(from:NSNumber(value: value)) else {
             fatalError("Cannot format \(value) as string")
         }
+        
         let separator = unitStyle == EnergyFormatter.UnitStyle.short ? "" : " "
         return "\(formattedValue)\(separator)\(unitString(fromValue: value, unit: unit))"
     }
@@ -106,15 +116,18 @@ open class EnergyFormatter: Formatter {
 
     // Return a localized string of the given unit, and if the unit is singular or plural is based on the given number.
     open func unitString(fromValue value: Double, unit: Unit) -> String {
+        
+        //Special case when isForFoodEnergyUse is true
         if isForFoodEnergyUse && unit == .kilocalorie {
-            if unitStyle == .short || unitStyle == .medium {
-                return Unit.calorie.symbol
-            } else if value == 1.0 {
-                return Unit.calorie.singularString
+            if unitStyle == .short {
+                return "C"
+            } else if unitStyle == .medium {
+                return "Cal"
             } else {
-                return Unit.calorie.pluralString
+                return "Calories"
             }
         }
+        
         if unitStyle == .short || unitStyle == .medium {
             return unit.symbol
         } else if value == 1.0 {
