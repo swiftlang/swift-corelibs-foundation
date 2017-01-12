@@ -288,19 +288,20 @@ extension NSData {
 }
 
 func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .primary) {
-    if let val = plist as? Dictionary<String, Any> {
+    switch plist {
+    case let val as [String : Any]:
         val.display(indent, type: type)
-    } else if let val = plist as? Array<Any> {
+    case let val as [Any]:
         val.display(indent, type: type)
-    } else if let val = plist as? String {
+    case let val as String:
         val.display(indent, type: type)
-    } else if let val = plist as? Bool {
+    case let val as Bool:
         val.display(indent, type: type)
-    } else if let val = plist as? NSNumber {
+    case let val as NSNumber:
         val.display(indent, type: type)
-    } else if let val = plist as? NSData {
+    case let val as NSData:
         val.display(indent, type: type)
-    } else {
+    default:
         fatalError("unhandled type \(type(of: plist))")
     }
 }
