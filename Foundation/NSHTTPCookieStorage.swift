@@ -128,7 +128,7 @@ open class HTTPCookieStorage: NSObject {
       @param sortOrder an array of NSSortDescriptors which represent the preferred sort order of the resulting array.
       @discussion proper sorting of cookies may require extensive string conversion, which can be avoided by allowing the system to perform the sorting.  This API is to be preferred over the more generic -[NSHTTPCookieStorage cookies] API, if sorting is going to be performed.
     */
-    open func sortedCookies(using sortOrder: [SortDescriptor]) -> [HTTPCookie] { NSUnimplemented() }
+    open func sortedCookies(using sortOrder: [NSSortDescriptor]) -> [HTTPCookie] { NSUnimplemented() }
 }
 
 /*!

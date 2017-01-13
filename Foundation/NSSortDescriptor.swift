@@ -8,7 +8,7 @@
 //
 
 
-open class SortDescriptor: NSObject, NSSecureCoding, NSCopying {
+open class NSSortDescriptor: NSObject, NSSecureCoding, NSCopying {
     
     public required init?(coder aDecoder: NSCoder) {
         NSUnimplemented()
@@ -34,42 +34,43 @@ open class SortDescriptor: NSObject, NSSecureCoding, NSCopying {
     public init(key: String?, ascending: Bool) { NSUnimplemented() }
     
     open var key: String? { NSUnimplemented() }
+    
     open var ascending: Bool { NSUnimplemented() }
     
     open func allowEvaluation() { NSUnimplemented() } // Force a sort descriptor which was securely decoded to allow evaluation
     
-    public init(key: String?, ascending: Bool, comparator cmptr: Comparator) { NSUnimplemented() }
+    public init(key: String?, ascending: Bool, comparator cmptr: @escaping Comparator) { NSUnimplemented() }
     
     open var comparator: Comparator { NSUnimplemented() }
     
-    open func compareObject(_ object1: AnyObject, toObject object2: AnyObject) -> ComparisonResult  { NSUnimplemented() }// primitive - override this method if you want to perform comparisons differently (not key based for example)
-    open var reversedSortDescriptor: AnyObject  { NSUnimplemented() } // primitive - override this method to return a sort descriptor instance with reversed sort order
+    open func compare(_ object1: Any, to object2: Any) -> ComparisonResult  { NSUnimplemented() }// primitive - override this method if you want to perform comparisons differently (not key based for example)
+    open var reversedSortDescriptor: Any  { NSUnimplemented() } // primitive - override this method to return a sort descriptor instance with reversed sort order
 }
 
 extension NSSet {
     
-    public func sortedArrayUsingDescriptors(_ sortDescriptors: [SortDescriptor]) -> [AnyObject] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
+    open func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
 }
 
 extension NSArray {
     
-    public func sortedArrayUsingDescriptors(_ sortDescriptors: [SortDescriptor]) -> [AnyObject] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
+    open func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
 }
 
 extension NSMutableArray {
     
-    public func sortUsingDescriptors(_ sortDescriptors: [SortDescriptor]) { NSUnimplemented() } // sorts the array itself
+    open func sort(using sortDescriptors: [NSSortDescriptor]) { NSUnimplemented() } // sorts the array itself
 }
 
 
 extension NSOrderedSet {
     
     // returns a new array by sorting the objects of the receiver
-    public func sortedArrayUsingDescriptors(_ sortDescriptors: [SortDescriptor]) -> [AnyObject] { NSUnimplemented() }
+    open func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] { NSUnimplemented() }
 }
 
 extension NSMutableOrderedSet {
     
     // sorts the ordered set itself
-    public func sortUsingDescriptors(_ sortDescriptors: [SortDescriptor]) { NSUnimplemented() }
+    open func sort(using sortDescriptors: [NSSortDescriptor]) { NSUnimplemented() }
 }
