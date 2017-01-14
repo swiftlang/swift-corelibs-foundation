@@ -49,13 +49,9 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     // ErrorType forbids this being internal
     open var _domain: String
     open var _code: Int
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    private var _userInfo: [String : Any]?
+    private var _userInfo: [AnyHashable : Any]?
     
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    public init(domain: String, code: Int, userInfo dict: [String : Any]? = nil) {
+    public init(domain: String, code: Int, userInfo dict: [AnyHashable : Any]? = nil) {
         _domain = domain
         _code = code
         _userInfo = dict
@@ -68,7 +64,7 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         _code = aDecoder.decodeInteger(forKey: "NSCode")
         _domain = aDecoder.decodeObject(of: NSString.self, forKey: "NSDomain")!._swiftObject
         if let info = aDecoder.decodeObject(of: [NSSet.self, NSDictionary.self, NSArray.self, NSString.self, NSNumber.self, NSData.self, NSURL.self], forKey: "NSUserInfo") as? NSDictionary {
-            var filteredUserInfo = [String : Any]()
+            var filteredUserInfo = [AnyHashable : Any]()
             // user info must be filtered so that the keys are all strings
             info.enumerateKeysAndObjects(options: []) {
                 if let key = $0.0 as? NSString {
@@ -108,14 +104,8 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return _code
     }
 
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    open var userInfo: [String : Any] {
-        if let info = _userInfo {
-            return info
-        } else {
-            return Dictionary<String, Any>()
-        }
+    open var userInfo: [AnyHashable : Any] {
+        return _userInfo ?? [:]
     }
     
     open var localizedDescription: String {
@@ -184,11 +174,9 @@ extension CFError : _NSBridgeable {
     typealias NSType = NSError
     internal var _nsObject: NSType {
         let userInfo = CFErrorCopyUserInfo(self)._swiftObject
-        var newUserInfo: [String: Any] = [:]
+        var newUserInfo: [AnyHashable: Any] = [:]
         for (key, value) in userInfo {
-            if let key = key as? String {
-                newUserInfo[key] = value
-            }
+            newUserInfo[key] = value
         }
 
         return NSError(domain: CFErrorGetDomain(self)._swiftObject, code: CFErrorGetCode(self), userInfo: newUserInfo)
@@ -274,7 +262,7 @@ public protocol CustomNSError : Error {
     var errorCode: Int { get }
 
     /// The user-info dictionary.
-    var errorUserInfo: [String : Any] { get }
+    var errorUserInfo: [AnyHashable : Any] { get }
 }
 
 public extension Error where Self : CustomNSError {
@@ -298,7 +286,7 @@ public func _swift_Foundation_getErrorDefaultUserInfo(_ error: Error) -> Any? {
     let hasUserInfoValueProvider = false
 
     // Populate the user-info dictionary
-    var result: [String : Any]
+    var result: [AnyHashable : Any]
 
     // Initialize with custom user-info.
     if let customNSError = error as? CustomNSError {
@@ -464,7 +452,7 @@ public extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawVal
 
     /// Initialize an error within this domain with the given ``code``
     /// and ``userInfo``.
-    public init(_ code: Code, userInfo: [String : Any] = [:]) {
+    public init(_ code: Code, userInfo: [AnyHashable : Any] = [:]) {
         self.init(_nsError: NSError(domain: Self._nsErrorDomain,
             code: numericCast(code.rawValue),
             userInfo: userInfo))
@@ -472,7 +460,7 @@ public extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawVal
 
     /// The user-info dictionary for an error that was bridged from
     /// NSError.
-    var userInfo: [String : Any] { return errorUserInfo }
+    var userInfo: [AnyHashable : Any] { return errorUserInfo }
 }
 
 /// Various helper implementations for _BridgedStoredNSError
@@ -484,7 +472,7 @@ public extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawVal
 
     /// Initialize an error within this domain with the given ``code``
     /// and ``userInfo``.
-    public init(_ code: Code, userInfo: [String : Any] = [:]) {
+    public init(_ code: Code, userInfo: [AnyHashable : Any] = [:]) {
         self.init(_nsError: NSError(domain: Self._nsErrorDomain,
             code: numericCast(code.rawValue),
             userInfo: userInfo))
@@ -510,7 +498,7 @@ public extension _BridgedStoredNSError {
 
     var errorCode: Int { return _nsError.code }
 
-    var errorUserInfo: [String : Any] {
+    var errorUserInfo: [AnyHashable : Any] {
         return _nsError.userInfo
     }
 }
@@ -626,23 +614,23 @@ public extension CocoaError {
 
     /// The file path associated with the error, if any.
     var filePath: String? {
-        return _nsUserInfo[NSFilePathErrorKey._bridgeToObjectiveC()] as? String
+        return _nsUserInfo[NSFilePathErrorKey] as? String
     }
 
     /// The string encoding associated with this error, if any.
     var stringEncoding: String.Encoding? {
-        return (_nsUserInfo[NSStringEncodingErrorKey._bridgeToObjectiveC()] as? NSNumber)
+        return (_nsUserInfo[NSStringEncodingErrorKey] as? NSNumber)
         .map { String.Encoding(rawValue: $0.uintValue) }
     }
 
     /// The underlying error behind this error, if any.
     var underlying: Error? {
-        return _nsUserInfo[NSUnderlyingErrorKey._bridgeToObjectiveC()] as? Error
+        return _nsUserInfo[NSUnderlyingErrorKey] as? Error
     }
 
     /// The URL associated with this error, if any.
     var url: URL? {
-        return _nsUserInfo[NSURLErrorKey._bridgeToObjectiveC()] as? URL
+        return _nsUserInfo[NSURLErrorKey] as? URL
     }
 }
 
@@ -807,12 +795,12 @@ public extension URLError {
 
     /// The URL which caused a load to fail.
     public var failingURL: URL? {
-        return _nsUserInfo[NSURLErrorFailingURLErrorKey._bridgeToObjectiveC()] as? URL
+        return _nsUserInfo[NSURLErrorFailingURLErrorKey] as? URL
     }
 
     /// The string for the URL which caused a load to fail.
     public var failureURLString: String? {
-        return _nsUserInfo[NSURLErrorFailingURLStringErrorKey._bridgeToObjectiveC()] as? String
+        return _nsUserInfo[NSURLErrorFailingURLStringErrorKey] as? String
     }
 }
 

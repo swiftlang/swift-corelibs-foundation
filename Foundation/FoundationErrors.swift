@@ -61,7 +61,7 @@ public var NSCoderValueNotFoundError: Int                    { return CocoaError
     import Glibc
 #endif
 
-internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : String? = nil, url : URL? = nil, extraUserInfo : [String : Any]? = nil) -> NSError {
+internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : String? = nil, url : URL? = nil, extraUserInfo : [AnyHashable : Any]? = nil) -> NSError {
     var cocoaError : CocoaError.Code
     if reading {
         switch posixErrno {
@@ -83,7 +83,7 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
         }
     }
     
-    var userInfo = extraUserInfo ?? [String : Any]()
+    var userInfo = extraUserInfo ?? [AnyHashable : Any]()
     if let path = path {
         userInfo[NSFilePathErrorKey] = path._nsObject
     } else if let url = url {
