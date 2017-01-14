@@ -119,7 +119,7 @@ open class Stream: NSObject {
 // Subclassers are required to implement these methods.
 open class InputStream: Stream {
 
-    private var _stream: CFReadStream!
+    fileprivate var _stream: CFReadStream!
 
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -147,6 +147,10 @@ open class InputStream: Stream {
     public convenience init?(fileAtPath path: String) {
         self.init(url: URL(fileURLWithPath: path))
     }
+    
+    internal init(reference: CFReadStream) {
+        _stream = reference
+    }
 
     open override func open() {
         CFReadStreamOpen(_stream)
@@ -165,12 +169,19 @@ open class InputStream: Stream {
     }
 }
 
+extension InputStream : _CFBridgeable {
+    var _cfObject: CFReadStream { return _stream }
+}
+
+extension CFReadStream : _SwiftBridgeable {
+    var _swiftObject: InputStream { return InputStream(reference: self) }
+}
+
 // OutputStream is an abstract class representing the base functionality of a write stream.
 // Subclassers are required to implement these methods.
-// Currently this is left as named OutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
 open class OutputStream : Stream {
     
-    private  var _stream: CFWriteStream!
+    fileprivate var _stream: CFWriteStream!
     
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
@@ -200,6 +211,10 @@ open class OutputStream : Stream {
         self.init(url: URL(fileURLWithPath: path), append: shouldAppend)
     }
     
+    internal init(reference: CFWriteStream) {
+        _stream = reference
+    }
+    
     open override func open() {
         CFWriteStreamOpen(_stream)
     }
@@ -227,6 +242,14 @@ open class OutputStream : Stream {
     open override var streamError: NSError? {
         return _CFWriteStreamCopyError(_stream)?._nsObject
     }
+}
+
+extension OutputStream : _CFBridgeable {
+    var _cfObject: CFWriteStream { return _stream }
+}
+
+extension CFWriteStream : _SwiftBridgeable {
+    var _swiftObject: OutputStream { return OutputStream(reference: self) }
 }
 
 // Discussion of this API is ongoing for its usage of AutoreleasingUnsafeMutablePointer
