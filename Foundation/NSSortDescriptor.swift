@@ -30,6 +30,9 @@ open class NSSortDescriptor: NSObject, NSSecureCoding, NSCopying {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
+        guard _comparator == nil else {
+            fatalError("NSSortDescriptor object that has been initialized with init(key:ascending:comparator:) cannot be encoded.")
+        }
         
         aCoder.encode(_ascending, forKey: "NSAscending")
         aCoder.encode(_key, forKey: "NSKey")
@@ -45,11 +48,7 @@ open class NSSortDescriptor: NSObject, NSSecureCoding, NSCopying {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        if let _comparator = _comparator {
-            return NSSortDescriptor(key: _key, ascending: _ascending, comparator: _comparator)
-        } else {
-            return NSSortDescriptor(key: _key, ascending: _ascending)
-        }
+        return self
     }
 
     // keys may be key paths
@@ -95,7 +94,11 @@ open class NSSortDescriptor: NSObject, NSSecureCoding, NSCopying {
     open func compare(_ object1: Any, to object2: Any) -> ComparisonResult {
         
         if let comparator = _comparator {
-            return comparator(object1, object2)
+            if ascending {
+                return comparator(object1, object2)
+            } else {
+                return ComparisonResult(rawValue: -1 * comparator(object1, object2).rawValue)!
+            }
         } else {
             NSUnimplemented()
         }
@@ -103,9 +106,12 @@ open class NSSortDescriptor: NSObject, NSSecureCoding, NSCopying {
     
     // primitive - override this method to return a sort descriptor instance with reversed sort order
     open var reversedSortDescriptor: Any {
-        let copied = copy() as! NSSortDescriptor
-        copied._ascending = !copied._ascending
-        return copied
+        
+        if let comparator = _comparator {
+            return NSSortDescriptor(key: _key, ascending: !_ascending, comparator: comparator)
+        } else {
+            return NSSortDescriptor(key: _key, ascending: !_ascending)
+        }
     }
 }
 
