@@ -173,19 +173,19 @@ class TestNSAffineTransform : XCTestCase {
         checkPointTransformation(noop, point: point, expectedPoint: point)
         
         let tenEighty = NSAffineTransform()
-        tenEighty.rotate(byRadians: CGFloat(6 * M_PI))
+        tenEighty.rotate(byRadians: 6 * .pi)
         checkPointTransformation(tenEighty, point: point, expectedPoint: point)
         
         let rotateCounterClockwise = NSAffineTransform()
-        rotateCounterClockwise.rotate(byRadians: CGFloat(M_PI_2))
+        rotateCounterClockwise.rotate(byRadians: .pi / 2)
         checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(10.0)))
         
         let rotateClockwise = NSAffineTransform()
-        rotateClockwise.rotate(byRadians: CGFloat(-M_PI_2))
+        rotateClockwise.rotate(byRadians: -.pi / 2)
         checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat(-10.0)))
         
         let reflectAboutOrigin = NSAffineTransform()
-        reflectAboutOrigin.rotate(byRadians: CGFloat(M_PI))
+        reflectAboutOrigin.rotate(byRadians: .pi)
         checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
     }
     
