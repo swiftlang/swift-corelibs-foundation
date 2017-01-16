@@ -20,7 +20,8 @@ extension NotificationQueue {
     public struct NotificationCoalescing : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
-        
+
+        public static let none = NotificationCoalescing(rawValue: 0)
         public static let onName = NotificationCoalescing(rawValue: 1 << 0)
         public static let onSender = NotificationCoalescing(rawValue: 1 << 1)
     }
