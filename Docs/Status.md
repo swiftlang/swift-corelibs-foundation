@@ -322,5 +322,5 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSError`                | Complete        | None          |                                   |
     | `NSUUID`                 | Complete        | Substantial   |                                   |
     | `UUID`                   | Complete        | None          |                                   |
-    | `NSPersonNameComponents` | Mostly Complete | None          | `NSCopying` remains unimplemented |
+    | `NSPersonNameComponents` | Complete        | Incomplete    |                                   |
     | `PersonNameComponents`   | Complete        | None          |                                   |
