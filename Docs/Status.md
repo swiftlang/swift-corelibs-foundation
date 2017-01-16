@@ -169,7 +169,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSCountedSet`        | Mostly Complete | Incomplete    | `init?(coder:)` remains unimplemented                                                                                                                               |
     | `NSCFSet`             | N/A             | N/A           | For internal use only                                                                                                                                               |
     | `NSCache`             | Complete        | None          |                                                                                                                                                                     |
-    | `NSSortDescriptor`    | Unimplemented   | None          |                                                                                                                                                                     |
+    | `NSSortDescriptor`    | Mostly Complete | Incomplete    | `init(key:ascending:)`                                                                                                                                       remains unimplemented |
 
 * **RunLoop**: Timers, streams and run loops.
 

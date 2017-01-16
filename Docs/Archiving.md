@@ -32,6 +32,7 @@ There is a preliminary implementation of NSKeyedArchiver and NSKeyedUnarchiver w
 * NSPersonNameComponents
 * NSPort (not supported for keyed archiving)
 * NSSet
+* NSSortDescriptor
 * NSSpecialValue (for limited number of types)
 * NSString
 * NSTimeZone
@@ -55,7 +56,6 @@ There is a preliminary implementation of NSKeyedArchiver and NSKeyedUnarchiver w
 * NSIndexPath
 * NSIndexSet
 * NSPredicate
-* NSSortDescriptor
 * NSTextCheckingResult
 * NSURLAuthenticationChallenge
 * NSURLCache
