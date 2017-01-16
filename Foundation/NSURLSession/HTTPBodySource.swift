@@ -107,7 +107,7 @@ internal final class _HTTPBodyFileSource {
     fileprivate let fileURL: URL
     fileprivate let channel: DispatchIO 
     fileprivate let workQueue: DispatchQueue 
-    fileprivate let dataAvailableHandler: () -> ()
+    fileprivate let dataAvailableHandler: () -> Void
     fileprivate var hasActiveReadHandler = false
     fileprivate var availableChunk: _Chunk = .empty
     /// Create a new data source backed by a file.
@@ -121,7 +121,7 @@ internal final class _HTTPBodyFileSource {
     ///     no data may be available even if there's more data in the file.
     ///     if `getNextChunk(withLength:)` returns `.retryLater`, this handler
     ///     will be called once data becomes available.
-    init(fileURL: URL, workQueue: DispatchQueue, dataAvailableHandler: @escaping () -> ()) {
+    init(fileURL: URL, workQueue: DispatchQueue, dataAvailableHandler: @escaping () -> Void) {
         guard fileURL.isFileURL else { fatalError("The body data URL must be a file URL.") }
         self.fileURL = fileURL
         self.workQueue = workQueue
