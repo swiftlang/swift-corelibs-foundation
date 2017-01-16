@@ -1272,10 +1272,9 @@ open class NSMutableString : NSString {
             NSRequiresConcreteImplementation()
         }
 
-        // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
-        let start = _storage.startIndex
-        let min = _storage.index(start, offsetBy: range.location)
-        let max = _storage.index(start, offsetBy: range.location + range.length)
+        let start = _storage.utf16.startIndex
+        let min = _storage.utf16.index(start, offsetBy: range.location).samePosition(in: _storage)!
+        let max = _storage.utf16.index(start, offsetBy: range.location + range.length).samePosition(in: _storage)!
         _storage.replaceSubrange(min..<max, with: aString)
     }
     
