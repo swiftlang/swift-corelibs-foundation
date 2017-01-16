@@ -16,9 +16,9 @@
 #endif
 
 class TestURLSession : XCTestCase {
-
+    
     var serverPort: Int = -1
-
+    
     static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
         return [
             ("test_dataTaskWithURL", test_dataTaskWithURL),
@@ -34,7 +34,7 @@ class TestURLSession : XCTestCase {
             ("test_taskCopy", test_taskCopy),
         ]
     }
-
+    
     private func runServer(with condition: ServerSemaphore) throws {
         let start = 21961
         for port in start...(start+100) { //we must find at least one port to bind
@@ -50,7 +50,7 @@ class TestURLSession : XCTestCase {
             }
         }
     }
-
+    
     func test_dataTaskWithURL() {
         let serverReady = ServerSemaphore()
         globalDispatchQueue.async {
@@ -64,7 +64,7 @@ class TestURLSession : XCTestCase {
         serverReady.wait()
         let urlString = "http://127.0.0.1:\(serverPort)/Nepal"
         let url = URL(string: urlString)!
-        let d = DataTask(with: expectation(description: "data task"))                         
+        let d = DataTask(with: expectation(description: "data task"))
         d.run(with: url)
         waitForExpectations(timeout: 12)
         if !d.error {
@@ -79,7 +79,7 @@ class TestURLSession : XCTestCase {
                 try self.runServer(with: serverReady)
             } catch {
                 XCTAssertTrue(true)
-                return 
+                return
             }
         }
         serverReady.wait()
@@ -91,14 +91,14 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "URL test with completion handler")
         var expectedResult = "unknown"
         let task = session.dataTask(with: url) { data, response, error in
-            if let e = error {
+            if let e = error as? NSError {
                 XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
                 expect.fulfill()
                 return
             }
-
+            
             let httpResponse = response as! HTTPURLResponse?
-            XCTAssertEqual(200, httpResponse!.statusCode, "HTTP response code is not 200") 
+            XCTAssertEqual(200, httpResponse!.statusCode, "HTTP response code is not 200")
             expectedResult = String(data: data!, encoding: String.Encoding.utf8)!
             XCTAssertEqual("Washington, D.C.", expectedResult, "Did not receive expected value")
             expect.fulfill()
@@ -106,7 +106,7 @@ class TestURLSession : XCTestCase {
         task.resume()
         waitForExpectations(timeout: 12)
     }
-
+    
     func test_dataTaskWithURLRequest() {
         let serverReady = ServerSemaphore()
         globalDispatchQueue.async {
@@ -120,14 +120,14 @@ class TestURLSession : XCTestCase {
         serverReady.wait()
         let urlString = "http://127.0.0.1:\(serverPort)/Peru"
         let urlRequest = URLRequest(url: URL(string: urlString)!)
-        let d = DataTask(with: expectation(description: "data task"))     
+        let d = DataTask(with: expectation(description: "data task"))
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
         if !d.error {
             XCTAssertEqual(d.capital, "Lima", "test_dataTaskWithURLRequest returned an unexpected result")
         }
     }
-
+    
     func test_dataTaskWithURLRequestCompletionHandler() {
         let serverReady = ServerSemaphore()
         globalDispatchQueue.async {
@@ -147,7 +147,7 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "URL test with completion handler")
         var expectedResult = "unknown"
         let task = session.dataTask(with: urlRequest) { data, response, error in
-            if let e = error {
+            if let e = error as? NSError {
                 XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
                 expect.fulfill()
                 return
@@ -161,7 +161,7 @@ class TestURLSession : XCTestCase {
         task.resume()
         waitForExpectations(timeout: 12)
     }
-
+    
     func test_downloadTaskWithURL() {
         let serverReady = ServerSemaphore()
         globalDispatchQueue.async {
@@ -174,12 +174,12 @@ class TestURLSession : XCTestCase {
         }
         serverReady.wait()
         let urlString = "http://127.0.0.1:\(serverPort)/country.txt"
-        let url = URL(string: urlString)!   
+        let url = URL(string: urlString)!
         let d = DownloadTask(with: expectation(description: "download task with delegate"))
         d.run(with: url)
         waitForExpectations(timeout: 12)
     }
-
+    
     func test_downloadTaskWithURLRequest() {
         let serverReady = ServerSemaphore()
         globalDispatchQueue.async {
@@ -197,7 +197,7 @@ class TestURLSession : XCTestCase {
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
     }
-
+    
     func test_downloadTaskWithRequestAndHandler() {
         let serverReady = ServerSemaphore()
         globalDispatchQueue.async {
@@ -215,7 +215,7 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "download task with handler")
         let req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/country.txt")!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
-            if let e = error {
+            if let e = error as? NSError {
                 XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
             }
             expect.fulfill()
@@ -223,7 +223,7 @@ class TestURLSession : XCTestCase {
         task.resume()
         waitForExpectations(timeout: 12)
     }
-
+    
     func test_downloadTaskWithURLAndHandler() {
         let serverReady = ServerSemaphore()
         globalDispatchQueue.async {
@@ -241,7 +241,7 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "download task with handler")
         let req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/country.txt")!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
-            if let e = error {
+            if let e = error as? NSError {
                 XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
             }
             expect.fulfill()
@@ -272,7 +272,7 @@ class TestURLSession : XCTestCase {
                                  delegateQueue: nil)
         let completionExpectation = expectation(description: "dataTask completion block wasn't called")
         let task = session.dataTask(with: url) { result in
-            let error = result.2
+            let error = result.2 as? NSError
             XCTAssertNotNil(error)
             XCTAssertEqual(error?.code, NSURLErrorBadURL)
             completionExpectation.fulfill()
@@ -284,7 +284,7 @@ class TestURLSession : XCTestCase {
             XCTAssertNil(error)
             
             XCTAssertNotNil(task.error)
-            XCTAssertEqual(task.error?.code, NSURLErrorBadURL)
+            XCTAssertEqual((task.error  as? NSError)?.code, NSURLErrorBadURL)
         }
     }
     
@@ -315,11 +315,11 @@ class DataTask : NSObject {
     var session: URLSession! = nil
     var task: URLSessionDataTask! = nil
     public var error = false
-
+    
     init(with expectation: XCTestExpectation) {
-       dataTaskExpectation = expectation 
+        dataTaskExpectation = expectation
     }
-
+    
     func run(with request: URLRequest) {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
@@ -338,31 +338,31 @@ class DataTask : NSObject {
 }
 
 extension DataTask : URLSessionDataDelegate {
-     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-         capital = String(data: data, encoding: String.Encoding.utf8)!
-         dataTaskExpectation.fulfill()
-     }
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        capital = String(data: data, encoding: String.Encoding.utf8)!
+        dataTaskExpectation.fulfill()
+    }
 }
 
 extension DataTask : URLSessionTaskDelegate {
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: NSError?) {
-         guard let e = error else { return }
-         XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
-         dataTaskExpectation.fulfill()
-         self.error = true
-     }
-} 
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        guard let e = error as? NSError else { return }
+        XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
+        dataTaskExpectation.fulfill()
+        self.error = true
+    }
+}
 
 class DownloadTask : NSObject {
     var totalBytesWritten: Int64 = 0
     let dwdExpectation: XCTestExpectation!
     var session: URLSession! = nil
     var task: URLSessionDownloadTask! = nil
-
+    
     init(with expectation: XCTestExpectation) {
         dwdExpectation = expectation
     }
-
+    
     func run(with url: URL) {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
@@ -370,7 +370,7 @@ class DownloadTask : NSObject {
         task = session.downloadTask(with: url)
         task.resume()
     }
-
+    
     func run(with urlRequest: URLRequest) {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
@@ -395,13 +395,13 @@ extension DownloadTask : URLSessionDownloadDelegate {
             XCTFail("Unable to calculate size of the downloaded file")
         }
         dwdExpectation.fulfill()
-   }
+    }
 }
 
 extension DownloadTask : URLSessionTaskDelegate {
-   public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: NSError?) {
-       guard let e = error else { return }
-       XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
-       dwdExpectation.fulfill()
-   }
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        guard let e = error as? NSError else { return }
+        XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
+        dwdExpectation.fulfill()
+    }
 }
