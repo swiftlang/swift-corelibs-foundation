@@ -181,7 +181,7 @@ class TestNSStream : XCTestCase {
         var buffer = Array<UInt8>(repeating: 0, count: 12)
         var myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = OutputStream.outputStreamToMemory()
+        let outputStream = OutputStream.toMemory()
         XCTAssertEqual(Stream.Status.notOpen, outputStream.streamStatus)
         outputStream.open()
         XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)

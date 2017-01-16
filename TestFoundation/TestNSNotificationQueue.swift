@@ -55,7 +55,7 @@ class TestNSNotificationQueue : XCTestCase {
             numberOfCalls += 1
         }
         let queue = NotificationQueue.default
-        queue.enqueue(notification, postingStyle: .postNow)
+        queue.enqueue(notification, postingStyle: .now)
         XCTAssertEqual(numberOfCalls, 1)
         NotificationCenter.default.removeObserver(obs)
     }
@@ -69,9 +69,9 @@ class TestNSNotificationQueue : XCTestCase {
             numberOfCalls += 1
         }
         let queue = NotificationQueue.default
-        queue.enqueue(notification, postingStyle: .postNow)
-        queue.enqueue(notification, postingStyle: .postNow)
-        queue.enqueue(notification, postingStyle: .postNow)
+        queue.enqueue(notification, postingStyle: .now)
+        queue.enqueue(notification, postingStyle: .now)
+        queue.enqueue(notification, postingStyle: .now)
         // Coalescing doesn't work for the NSPostingStyle.PostNow. That is why we expect 3 calls here
         XCTAssertEqual(numberOfCalls, 3)
         NotificationCenter.default.removeObserver(obs)
@@ -87,7 +87,7 @@ class TestNSNotificationQueue : XCTestCase {
             numberOfCalls += 1
         }
         let notificationQueue = NotificationQueue(notificationCenter: notificationCenter)
-        notificationQueue.enqueue(notification, postingStyle: .postNow)
+        notificationQueue.enqueue(notification, postingStyle: .now)
         XCTAssertEqual(numberOfCalls, 1)
         NotificationCenter.default.removeObserver(obs)
     }
@@ -111,11 +111,11 @@ class TestNSNotificationQueue : XCTestCase {
             }
 
             // post 2 notifications for the NSDefaultRunLoopMode mode
-            queue.enqueue(notification, postingStyle: .postNow, coalesceMask: [], forModes: [runLoopMode])
-            queue.enqueue(notification, postingStyle: .postNow)
+            queue.enqueue(notification, postingStyle: .now, coalesceMask: [], forModes: [runLoopMode])
+            queue.enqueue(notification, postingStyle: .now)
             // here we post notification for the NSRunLoopCommonModes. It shouldn't have any affect, because the timer is scheduled in NSDefaultRunLoopMode.
             // The notification queue will only post the notification to its notification center if the run loop is in one of the modes provided in the array.
-            queue.enqueue(notification, postingStyle: .postNow, coalesceMask: [], forModes: [.commonModes])
+            queue.enqueue(notification, postingStyle: .now, coalesceMask: [], forModes: [.commonModes])
         }
         runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
         let _ = runLoop.run(mode: .defaultRunLoopMode, before: endDate)
@@ -132,7 +132,7 @@ class TestNSNotificationQueue : XCTestCase {
             numberOfCalls += 1
         }
         let queue = NotificationQueue.default
-        queue.enqueue(notification, postingStyle: .postASAP)
+        queue.enqueue(notification, postingStyle: .asap)
 
         scheduleTimer(withInterval: 0.001) // run timer trigger the notifications
         XCTAssertEqual(numberOfCalls, 1)
@@ -148,9 +148,9 @@ class TestNSNotificationQueue : XCTestCase {
             numberOfCalls += 1
         }
         let queue = NotificationQueue.default
-        queue.enqueue(notification, postingStyle: .postASAP)
-        queue.enqueue(notification, postingStyle: .postASAP)
-        queue.enqueue(notification, postingStyle: .postASAP)
+        queue.enqueue(notification, postingStyle: .asap)
+        queue.enqueue(notification, postingStyle: .asap)
+        queue.enqueue(notification, postingStyle: .asap)
 
         scheduleTimer(withInterval: 0.001)
         XCTAssertEqual(numberOfCalls, 1)
@@ -173,15 +173,15 @@ class TestNSNotificationQueue : XCTestCase {
 
         let queue = NotificationQueue.default
         // #1
-        queue.enqueue(notification1, postingStyle: .postASAP,  coalesceMask: .onName, forModes: nil)
+        queue.enqueue(notification1, postingStyle: .asap,  coalesceMask: .onName, forModes: nil)
         // #2
-        queue.enqueue(notification2, postingStyle: .postASAP,  coalesceMask: .onSender, forModes: nil)
+        queue.enqueue(notification2, postingStyle: .asap,  coalesceMask: .onSender, forModes: nil)
         // #3, coalesce with 1 & 2
-        queue.enqueue(notification1, postingStyle: .postASAP,  coalesceMask: .onName, forModes: nil)
+        queue.enqueue(notification1, postingStyle: .asap,  coalesceMask: .onName, forModes: nil)
         // #4, coalesce with #3
-        queue.enqueue(notification2, postingStyle: .postASAP,  coalesceMask: .onName, forModes: nil)
+        queue.enqueue(notification2, postingStyle: .asap,  coalesceMask: .onName, forModes: nil)
         // #5
-        queue.enqueue(notification1, postingStyle: .postASAP,  coalesceMask: .onSender, forModes: nil)
+        queue.enqueue(notification1, postingStyle: .asap,  coalesceMask: .onSender, forModes: nil)
         scheduleTimer(withInterval: 0.001)
         // check that we received notifications #4 and #5
         XCTAssertEqual(numberOfNameCoalescingCalls, 1)
@@ -200,7 +200,7 @@ class TestNSNotificationQueue : XCTestCase {
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
-        NotificationQueue.default.enqueue(notification, postingStyle: .postWhenIdle)
+        NotificationQueue.default.enqueue(notification, postingStyle: .whenIdle)
         // add a timer to wakeup the runloop, process the timer and call the observer awaiting for any input sources/timers
         scheduleTimer(withInterval: 0.001)
         XCTAssertEqual(numberOfCalls, 1)

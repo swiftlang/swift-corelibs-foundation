@@ -212,7 +212,7 @@ open class OutputStream : Stream {
         return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_stream)))!
     }
     
-    open class func outputStreamToMemory() -> Self {
+    open class func toMemory() -> Self {
         return self.init(toMemory: ())
     }
     

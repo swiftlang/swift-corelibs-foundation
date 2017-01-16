@@ -12,10 +12,9 @@ import CoreFoundation
 extension NotificationQueue {
 
     public enum PostingStyle : UInt {
-        
-        case postWhenIdle
-        case postASAP
-        case postNow
+        case whenIdle = 1
+        case asap = 2
+        case now = 3
     }
 
     public struct NotificationCoalescing : OptionSet {
@@ -38,12 +37,12 @@ open class NotificationQueue: NSObject {
     internal var idleList = NSNotificationList()
     internal lazy var idleRunloopObserver: CFRunLoopObserver = {
         return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFOptionFlags(kCFRunLoopBeforeTimers), true, 0) {[weak self] observer, activity in
-            self!.notifyQueues(.postWhenIdle)
+            self!.notifyQueues(.whenIdle)
         }
     }()
     internal lazy var asapRunloopObserver: CFRunLoopObserver = {
         return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFOptionFlags(kCFRunLoopBeforeWaiting | kCFRunLoopExit), true, 0) {[weak self] observer, activity in
-            self!.notifyQueues(.postASAP)
+            self!.notifyQueues(.asap)
         }
     }()
 
@@ -91,15 +90,15 @@ open class NotificationQueue: NSObject {
         }
 
         switch postingStyle {
-        case .postNow:
+        case .now:
             let currentMode = RunLoop.current.currentMode
             if currentMode == nil || runloopModes.contains(currentMode!) {
                 self.notificationCenter.post(notification)
             }
-        case .postASAP: // post at the end of the current notification callout or timer
+        case .asap: // post at the end of the current notification callout or timer
             addRunloopObserver(self.asapRunloopObserver)
             self.asapList.append((notification, runloopModes))
-        case .postWhenIdle: // wait until the runloop is idle, then post the notification
+        case .whenIdle: // wait until the runloop is idle, then post the notification
             addRunloopObserver(self.idleRunloopObserver)
             self.idleList.append((notification, runloopModes))
         }
@@ -156,7 +155,7 @@ open class NotificationQueue: NSObject {
         let currentMode = RunLoop.current.currentMode
         for queue in NotificationQueue.notificationQueueList {
             let notificationQueue = queue as! NotificationQueue
-            if postingStyle == .postWhenIdle {
+            if postingStyle == .whenIdle {
                 notificationQueue.notify(currentMode, notificationList: &notificationQueue.idleList)
             } else {
                 notificationQueue.notify(currentMode, notificationList: &notificationQueue.asapList)
