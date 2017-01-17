@@ -88,12 +88,12 @@ open class PropertyListSerialization : NSObject {
         }
     }
     
-    internal class func propertyList(with stream: CFReadStream, length streamLength: Int, options opt: ReadOptions, format: UnsafeMutablePointer <PropertyListFormat>?) throws -> Any {
+    internal class func propertyList(with stream: CFReadStream, options opt: ReadOptions, format: UnsafeMutablePointer <PropertyListFormat>?) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0
         var error: Unmanaged<CFError>? = nil
         let decoded = withUnsafeMutablePointer(to: &fmt) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>) -> NSObject? in
             withUnsafeMutablePointer(to: &error) { (outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> NSObject? in
-                return unsafeBitCast(CFPropertyListCreateWithStream(kCFAllocatorSystemDefault, stream, streamLength, CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), to: NSObject.self)
+                return unsafeBitCast(CFPropertyListCreateWithStream(kCFAllocatorSystemDefault, stream, 0, CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), to: NSObject.self)
             }
         }
 #if os(OSX) || os(iOS)
@@ -109,6 +109,6 @@ open class PropertyListSerialization : NSObject {
     }
     
     open class func propertyList(with stream: InputStream, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
-        NSUnimplemented()
+        return try propertyList(with: stream._stream, options: opt, format: format)
     }
 }

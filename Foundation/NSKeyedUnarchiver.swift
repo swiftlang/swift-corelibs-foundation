@@ -38,7 +38,7 @@ open class NSKeyedUnarchiver : NSCoder {
     
     private enum Stream {
         case data(Data)
-        case stream(InputStream)
+        case stream(CFReadStream)
     }
     
     private var _stream : Stream
@@ -74,7 +74,7 @@ open class NSKeyedUnarchiver : NSCoder {
             return nil
         }
         
-        let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(unsafeBitCast(readStream, to: InputStream.self)))
+        let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(readStream))
         do {
             try root = keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
             keyedUnarchiver.finishDecoding()
@@ -113,11 +113,8 @@ open class NSKeyedUnarchiver : NSCoder {
         switch self._stream {
         case .data(let data):
             try plist = PropertyListSerialization.propertyList(from: data, options: [], format: &format)
-        case .stream(let inputStream):
-            try plist = PropertyListSerialization.propertyList(with: unsafeBitCast(inputStream, to: CFReadStream.self),
-                                                                           length: 0,
-                                                                           options: [],
-                                                                           format: &format)
+        case .stream(let readStream):
+            try plist = PropertyListSerialization.propertyList(with: readStream, options: [], format: &format)
         }
         
         guard let unwrappedPlist = plist as? Dictionary<String, Any> else {
