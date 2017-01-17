@@ -11,7 +11,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
     import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
     import Glibc
 #endif
 
@@ -55,15 +55,18 @@ open class JSONSerialization : NSObject {
     open class func isValidJSONObject(_ obj: Any) -> Bool {
         // TODO: - revisit this once bridging story gets fully figured out
         func isValidJSONObjectInternal(_ obj: Any) -> Bool {
-            // object is Swift.String or NSNull
-            if obj is String || obj is NSNull {
+            // object is Swift.String, NSNull, Int, Bool, or UInt
+            if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt {
                 return true
             }
 
-            // object is NSNumber and is not NaN or infinity
-            if let number = obj as? NSNumber {
-                let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
-                return !invalid
+            // object is a Double and is not NaN or infinity
+            if let number = obj as? Double  {
+                return number.isFinite
+            }
+            // object is a Float and is not NaN or infinity
+            if let number = obj as? Float  {
+                return number.isFinite
             }
 
             // object is Swift.Array
@@ -86,6 +89,13 @@ open class JSONSerialization : NSObject {
                 return true
             }
 
+            // object is NSNumber and is not NaN or infinity
+            // For better performance, this (most expensive) test should be last.
+            if let number = _SwiftValue.store(obj) as? NSNumber {
+                let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
+                return !invalid
+            }
+
             // invalid object
             return false
         }
@@ -101,14 +111,13 @@ open class JSONSerialization : NSObject {
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
     internal class func _data(withJSONObject value: Any, options opt: WritingOptions, stream: Bool) throws -> Data {
-        var result = Data()
+        var jsonStr = String()
         
         var writer = JSONWriter(
             pretty: opt.contains(.prettyPrinted),
             writer: { (str: String?) in
                 if let str = str {
-                    let count = str.lengthOfBytes(using: .utf8)
-                    result.append(UnsafeRawPointer(str.cString(using: .utf8)!).bindMemory(to: UInt8.self, capacity: count), count: count)
+                    jsonStr.append(str)
                 }
             }
         )
@@ -131,6 +140,14 @@ open class JSONSerialization : NSObject {
             }
         }
         
+        let count = jsonStr.lengthOfBytes(using: .utf8)
+        let bufferLength = count+1 // Allow space for null terminator
+        var utf8: [CChar] = Array<CChar>(repeating: 0, count: bufferLength)
+        if !jsonStr.getCString(&utf8, maxLength: bufferLength, encoding: .utf8) {
+            fatalError("Failed to generate a CString from a String")
+        }
+        let rawBytes = UnsafeRawPointer(UnsafePointer(utf8))
+        let result = Data(bytes: rawBytes.bindMemory(to: UInt8.self, capacity: count), count: count)
         return result
     }
     open class func data(withJSONObject value: Any, options opt: WritingOptions = []) throws -> Data {
@@ -177,8 +194,10 @@ open class JSONSerialization : NSObject {
     open class func writeJSONObject(_ obj: Any, toStream stream: OutputStream, options opt: WritingOptions) throws -> Int {
         let jsonData = try _data(withJSONObject: obj, options: opt, stream: true)
         let count = jsonData.count
-        return jsonData.withUnsafeBytes { (bytePtr) -> Int in
-            return stream.write(bytePtr, maxLength: count)
+        return jsonData.withUnsafeBytes { (bytePtr: UnsafePointer<UInt8>) -> Int in
+            let res: Int = stream.write(bytePtr, maxLength: count)
+            /// TODO: If the result here is negative the error should be obtained from the stream to propigate as a throw
+            return res
         }
     }
     
@@ -270,23 +289,22 @@ private struct JSONWriter {
     }
     
     mutating func serializeJSON(_ obj: Any) throws {
-        
-        if let str = obj as? String {
+
+        // For better performance, the most expensive conditions to evaluate should be last.
+        switch (obj) {
+        case let str as String:
             try serializeString(str)
-        } else if let num = obj as? Int {
-            try serializeNumber(NSNumber(value: num))
-        } else if let num = obj as? Double {
-            try serializeNumber(NSNumber(value: num))
-        } else if let num = obj as? NSNumber {
-            try serializeNumber(num)
-        } else if let array = obj as? Array<Any> {
+        case let boolValue as Bool:
+            serializeBool(boolValue)
+        case let array as Array<Any>:
             try serializeArray(array)
-        } else if let dict = obj as? Dictionary<AnyHashable, Any> {
+        case let dict as Dictionary<AnyHashable, Any>:
             try serializeDictionary(dict)
-        } else if let null = obj as? NSNull {
+        case let null as NSNull:
             try serializeNull(null)
-        }
-        else {
+        case _ where _SwiftValue.store(obj) is NSNumber:
+            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
+        default:
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
         }
     }
@@ -321,15 +339,26 @@ private struct JSONWriter {
         writer("\"")
     }
 
+    func serializeBool(_ bool: Bool) {
+        switch bool {
+        case true:
+            writer("true")
+        case false:
+            writer("false")
+        }
+    }
+
     mutating func serializeNumber(_ num: NSNumber) throws {
         if num.doubleValue.isInfinite || num.doubleValue.isNaN {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
         }
         
-        // Cannot detect type information (e.g. bool) as there is no objCType property on NSNumber in Swift
-        // So, just print the number
-
-        writer(_serializationString(for: num))
+        switch num._objCType {
+        case .Bool:
+            serializeBool(num.boolValue)
+        default:
+            writer(_serializationString(for: num))
+        }
     }
 
     mutating func serializeArray(_ array: [Any]) throws {

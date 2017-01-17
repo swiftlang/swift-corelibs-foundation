@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFURLAccess.h
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 
         CFURLAccess is deprecated as of Mac OS X 10.9 and iOS 7.0. The suggested replacement for URLs with network schemes (http, https, ftp, data) are the NSURLSession or NSURLConnection classes. The suggested replacement for URLs with the file scheme are the foundation classes NSFileManager, NSFileHandle and NSURL, or the CoreFoundation classes CFStream and CFURL.
 */

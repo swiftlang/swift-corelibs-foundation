@@ -18,7 +18,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     private var _prefs: UnsafeMutableRawPointer? = nil
 #if os(OSX) || os(iOS)
     private var _lock = pthread_mutex_t()
-#elseif os(Linux)
+#elseif os(Linux) || os(Android) || CYGWIN
     private var _lock = Int32(0)
 #endif
     private var _nullLocale = false
@@ -245,8 +245,9 @@ public func <(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
 }
 
 
-
-public let NSCurrentLocaleDidChangeNotification: String = "kCFLocaleCurrentLocaleDidChangeNotification"
+public extension NSLocale {
+    public static let currentLocaleDidChangeNotification = NSNotification.Name(rawValue: "kCFLocaleCurrentLocaleDidChangeNotification")
+}
 
 
 extension CFLocale : _NSBridgeable, _SwiftBridgeable {

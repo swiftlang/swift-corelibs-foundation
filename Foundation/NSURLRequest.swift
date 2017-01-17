@@ -134,12 +134,12 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     
     public init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: TimeInterval) {
         self.url = url
-        _cachePolicy = cachePolicy
-        _timeoutInterval = timeoutInterval
+        self.cachePolicy = cachePolicy
+        self.timeoutInterval = timeoutInterval
     }
     
     private func setValues(from source: NSURLRequest) {
-        self._allHTTPHeaderFields = source.allHTTPHeaderFields
+        self.allHTTPHeaderFields = source.allHTTPHeaderFields
         self.url = source.url
         self.mainDocumentURL = source.mainDocumentURL
         self.httpMethod = source.httpMethod
@@ -156,11 +156,101 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        if let encodedURL = aDecoder.decodeObject(forKey: "NS.url") as? NSURL {
+            self.url = encodedURL._swiftObject
+        }
+        
+        if let encodedHeaders = aDecoder.decodeObject(forKey: "NS._allHTTPHeaderFields") as? NSDictionary {
+            self.allHTTPHeaderFields = encodedHeaders.reduce([String : String]()) { result, item in
+                var result = result
+                if let key = item.key as? NSString,
+                    let value = item.value as? NSString {
+                    result[key._swiftObject] = value._swiftObject
+                }
+                return result
+            }
+        }
+        
+        if let encodedDocumentURL = aDecoder.decodeObject(forKey: "NS.mainDocumentURL") as? NSURL {
+            self.mainDocumentURL = encodedDocumentURL._swiftObject
+        }
+        
+        if let encodedMethod = aDecoder.decodeObject(forKey: "NS.httpMethod") as? NSString {
+            self.httpMethod = encodedMethod._swiftObject
+        }
+        
+        let encodedCachePolicy = aDecoder.decodeObject(forKey: "NS._cachePolicy") as! NSNumber
+        self.cachePolicy = CachePolicy(rawValue: encodedCachePolicy.uintValue)!
+        
+        let encodedTimeout = aDecoder.decodeObject(forKey: "NS._timeoutInterval") as! NSNumber
+        self.timeoutInterval = encodedTimeout.doubleValue
+
+        let encodedHttpBody: Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.httpBody") {
+            guard let buffer = $0 else { return nil }
+            return Data(buffer: buffer)
+        }
+        
+        if let encodedHttpBody = encodedHttpBody {
+            self._body = .data(encodedHttpBody)
+        }
+        
+        let encodedNetworkServiceType = aDecoder.decodeObject(forKey: "NS._networkServiceType") as! NSNumber
+        self.networkServiceType = NetworkServiceType(rawValue: encodedNetworkServiceType.uintValue)!
+        
+        let encodedCellularAccess = aDecoder.decodeObject(forKey: "NS._allowsCellularAccess") as! NSNumber
+        self.allowsCellularAccess = encodedCellularAccess.boolValue
+        
+        let encodedHandleCookies = aDecoder.decodeObject(forKey: "NS._httpShouldHandleCookies") as! NSNumber
+        self.httpShouldHandleCookies = encodedHandleCookies.boolValue
+        
+        let encodedUsePipelining = aDecoder.decodeObject(forKey: "NS._httpShouldUsePipelining") as! NSNumber
+        self.httpShouldUsePipelining = encodedUsePipelining.boolValue
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(self.url?._bridgeToObjectiveC(), forKey: "NS.url")
+        aCoder.encode(self.allHTTPHeaderFields?._bridgeToObjectiveC(), forKey: "NS._allHTTPHeaderFields")
+        aCoder.encode(self.mainDocumentURL?._bridgeToObjectiveC(), forKey: "NS.mainDocumentURL")
+        aCoder.encode(self.httpMethod?._bridgeToObjectiveC(), forKey: "NS.httpMethod")
+        aCoder.encode(self.cachePolicy.rawValue._bridgeToObjectiveC(), forKey: "NS._cachePolicy")
+        aCoder.encode(self.timeoutInterval._bridgeToObjectiveC(), forKey: "NS._timeoutInterval")
+        if let httpBody = self.httpBody?._bridgeToObjectiveC() {
+            let bytePtr = httpBody.bytes.bindMemory(to: UInt8.self, capacity: httpBody.length)
+            aCoder.encodeBytes(bytePtr, length: httpBody.length, forKey: "NS.httpBody")
+        }
+        //On macOS input stream is not encoded.
+        aCoder.encode(self.networkServiceType.rawValue._bridgeToObjectiveC(), forKey: "NS._networkServiceType")
+        aCoder.encode(self.allowsCellularAccess._bridgeToObjectiveC(), forKey: "NS._allowsCellularAccess")
+        aCoder.encode(self.httpShouldHandleCookies._bridgeToObjectiveC(), forKey: "NS._httpShouldHandleCookies")
+        aCoder.encode(self.httpShouldUsePipelining._bridgeToObjectiveC(), forKey: "NS._httpShouldUsePipelining")
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        //On macOS this fields do not determine the result:
+        //allHTTPHeaderFields
+        //timeoutInterval
+        //httBody
+        //networkServiceType
+        //httpShouldUsePipelining
+        if let other = object as? NSURLRequest {
+            return other === self
+                || (other.url == self.url
+                    && other.mainDocumentURL == self.mainDocumentURL
+                    && other.httpMethod == self.httpMethod
+                    && other.cachePolicy == self.cachePolicy
+                    && other.httpBodyStream == self.httpBodyStream
+                    && other.allowsCellularAccess == self.allowsCellularAccess
+                    && other.httpShouldHandleCookies == self.httpShouldHandleCookies)
+        }
+        return false
     }
     
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
@@ -175,27 +265,16 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     /// document" policy. There may also be other future uses.
     /*@NSCopying*/ open fileprivate(set) var mainDocumentURL: URL?
     
-    internal var _cachePolicy: CachePolicy = .useProtocolCachePolicy
-    open var cachePolicy: CachePolicy {
-        return _cachePolicy
-    }
+    open internal(set) var cachePolicy: CachePolicy = .useProtocolCachePolicy
     
-    internal var _timeoutInterval: TimeInterval = 60.0
-    open var timeoutInterval: TimeInterval {
-        return _timeoutInterval
-    }
+    open internal(set) var timeoutInterval: TimeInterval = 60.0
 
     /// Returns the HTTP request method of the receiver.
     open fileprivate(set) var httpMethod: String? = "GET"
     
     /// A dictionary containing all the HTTP header fields
     /// of the receiver.
-    internal var _allHTTPHeaderFields: [String : String]? = nil
-    open var allHTTPHeaderFields: [String : String]? {
-        get {
-            return _allHTTPHeaderFields
-        }
-    }
+    open internal(set) var allHTTPHeaderFields: [String : String]? = nil
     
     /// Returns the value which corresponds to the given header field.
     ///
@@ -240,25 +319,13 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
         return nil
     }
     
-    internal var _networkServiceType: NetworkServiceType = .`default`
-    open var networkServiceType: NetworkServiceType {
-        return _networkServiceType
-    }
+    open internal(set) var networkServiceType: NetworkServiceType = .default
     
-    internal var _allowsCellularAccess: Bool = true
-    open var allowsCellularAccess: Bool {
-        return _allowsCellularAccess
-    }
+    open internal(set) var allowsCellularAccess: Bool = true
     
-    internal var _httpShouldHandleCookies: Bool = true
-    open var httpShouldHandleCookies: Bool {
-        return _httpShouldHandleCookies
-    }
+    open internal(set) var httpShouldHandleCookies: Bool = true
     
-    internal var _httpShouldUsePipelining: Bool = true
-    open var httpShouldUsePipelining: Bool {
-        return _httpShouldUsePipelining
-    }
+    open internal(set) var httpShouldUsePipelining: Bool = true
 }
 
 /// An `NSMutableURLRequest` object represents a mutable URL load
@@ -289,7 +356,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
 /// example.
 open class NSMutableURLRequest : NSURLRequest {
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        super.init(coder: aDecoder)
     }
     
     public convenience init(url: URL) {
@@ -332,30 +399,18 @@ open class NSMutableURLRequest : NSURLRequest {
     }
     
     open override var cachePolicy: CachePolicy {
-        get {
-            return _cachePolicy
-        }
-        set {
-            _cachePolicy = newValue
-        }
+        get { return super.cachePolicy }
+        set { super.cachePolicy = newValue }
     }
     
     open override var timeoutInterval: TimeInterval {
-        get {
-            return _timeoutInterval
-        }
-        set {
-            _timeoutInterval = newValue
-        }
+        get { return super.timeoutInterval }
+        set { super.timeoutInterval = newValue }
     }
     
     open override var allHTTPHeaderFields: [String : String]? {
-        get {
-            return _allHTTPHeaderFields
-        }
-        set {
-            _allHTTPHeaderFields = newValue
-        }
+        get { return super.allHTTPHeaderFields }
+        set { super.allHTTPHeaderFields = newValue }
     }
     
     /// Sets the value of the given HTTP header field.
@@ -372,7 +427,7 @@ open class NSMutableURLRequest : NSURLRequest {
             f.removeValue(forKey: old.0)
         }
         f[field] = value
-        _allHTTPHeaderFields = f
+        allHTTPHeaderFields = f
     }
     
     /// Adds an HTTP header field in the current header dictionary.
@@ -393,7 +448,7 @@ open class NSMutableURLRequest : NSURLRequest {
         } else {
             f[field] = value
         }
-        _allHTTPHeaderFields = f
+        allHTTPHeaderFields = f
     }
     
     open override var httpBody: Data? {
@@ -439,39 +494,23 @@ open class NSMutableURLRequest : NSURLRequest {
     }
     
     open override var networkServiceType: NetworkServiceType {
-        get {
-            return _networkServiceType
-        }
-        set {
-            _networkServiceType = newValue
-        }
+        get { return super.networkServiceType }
+        set { super.networkServiceType = newValue }
     }
     
     open override var allowsCellularAccess: Bool {
-        get {
-            return _allowsCellularAccess
-        }
-        set {
-            _allowsCellularAccess = newValue
-        }
+        get { return super.allowsCellularAccess }
+        set { super.allowsCellularAccess = newValue }
     }
     
     open override var httpShouldHandleCookies: Bool {
-        get {
-            return _httpShouldHandleCookies
-        }
-        set {
-            _httpShouldHandleCookies = newValue
-        }
+        get { return super.httpShouldHandleCookies }
+        set { super.httpShouldHandleCookies = newValue }
     }
     
     open override var httpShouldUsePipelining: Bool {
-        get {
-            return _httpShouldUsePipelining
-        }
-        set {
-            _httpShouldUsePipelining = newValue
-        }
+        get { return super.httpShouldUsePipelining }
+        set { super.httpShouldUsePipelining = newValue }
     }
 }
 

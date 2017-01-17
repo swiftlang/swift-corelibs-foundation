@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFLocale.h
-	Copyright (c) 2002 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2002-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFLOCALE__)
@@ -18,9 +13,13 @@
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFNotificationCenter.h>
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
+
+typedef CFStringRef CFLocaleIdentifier CF_EXTENSIBLE_STRING_ENUM;
+typedef CFStringRef CFLocaleKey CF_STRING_ENUM;
 
 typedef const struct CF_BRIDGED_TYPE(NSLocale) __CFLocale *CFLocaleRef;
 
@@ -75,25 +74,25 @@ CFArrayRef CFLocaleCopyPreferredLanguages(void) CF_AVAILABLE(10_5, 2_0);
 	// Returns the array of canonicalized CFString locale IDs that the user prefers.
 
 CF_EXPORT
-CFStringRef CFLocaleCreateCanonicalLanguageIdentifierFromString(CFAllocatorRef allocator, CFStringRef localeIdentifier);
+CFLocaleIdentifier CFLocaleCreateCanonicalLanguageIdentifierFromString(CFAllocatorRef allocator, CFStringRef localeIdentifier);
 	// Map an arbitrary language identification string (something close at
 	// least) to a canonical language identifier.
 
 CF_EXPORT
-CFStringRef CFLocaleCreateCanonicalLocaleIdentifierFromString(CFAllocatorRef allocator, CFStringRef localeIdentifier);
+CFLocaleIdentifier CFLocaleCreateCanonicalLocaleIdentifierFromString(CFAllocatorRef allocator, CFStringRef localeIdentifier);
 	// Map an arbitrary locale identification string (something close at
 	// least) to the canonical identifier.
 
 CF_EXPORT
-CFStringRef CFLocaleCreateCanonicalLocaleIdentifierFromScriptManagerCodes(CFAllocatorRef allocator, LangCode lcode, RegionCode rcode);
+CFLocaleIdentifier CFLocaleCreateCanonicalLocaleIdentifierFromScriptManagerCodes(CFAllocatorRef allocator, LangCode lcode, RegionCode rcode);
 	// Map a Mac OS LangCode and RegionCode to the canonical locale identifier.
 
 CF_EXPORT
-CFStringRef CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode(CFAllocatorRef allocator, uint32_t lcid) CF_AVAILABLE(10_6, 4_0);
+CFLocaleIdentifier CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode(CFAllocatorRef allocator, uint32_t lcid) CF_AVAILABLE(10_6, 4_0);
 	// Map a Windows LCID to the canonical locale identifier.
 
 CF_EXPORT
-uint32_t CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier(CFStringRef localeIdentifier) CF_AVAILABLE(10_6, 4_0);
+uint32_t CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier(CFLocaleIdentifier localeIdentifier) CF_AVAILABLE(10_6, 4_0);
 	// Map a locale identifier to a Windows LCID.
 
 typedef CF_ENUM(CFIndex, CFLocaleLanguageDirection) {
@@ -111,7 +110,7 @@ CF_EXPORT
 CFLocaleLanguageDirection CFLocaleGetLanguageLineDirection(CFStringRef isoLangCode) CF_AVAILABLE(10_6, 4_0);
 
 CF_EXPORT
-CFDictionaryRef CFLocaleCreateComponentsFromLocaleIdentifier(CFAllocatorRef allocator, CFStringRef localeID);
+CFDictionaryRef CFLocaleCreateComponentsFromLocaleIdentifier(CFAllocatorRef allocator, CFLocaleIdentifier localeID);
 	// Parses a locale ID consisting of language, script, country, variant,
 	// and keyword/value pairs into a dictionary. The keys are the constant
 	// CFStrings corresponding to the locale ID components, and the values
@@ -121,7 +120,7 @@ CFDictionaryRef CFLocaleCreateComponentsFromLocaleIdentifier(CFAllocatorRef allo
 	// kCFLocaleCalendarIdentifier=kCFJapaneseCalendar.
 
 CF_EXPORT
-CFStringRef CFLocaleCreateLocaleIdentifierFromComponents(CFAllocatorRef allocator, CFDictionaryRef dictionary);
+CFLocaleIdentifier CFLocaleCreateLocaleIdentifierFromComponents(CFAllocatorRef allocator, CFDictionaryRef dictionary);
 	// Reverses the actions of CFLocaleCreateDictionaryFromLocaleIdentifier,
 	// creating a single string from the data in the dictionary. The
 	// dictionary {kCFLocaleLanguageCode=en, kCFLocaleCountryCode=US,
@@ -129,7 +128,7 @@ CFStringRef CFLocaleCreateLocaleIdentifierFromComponents(CFAllocatorRef allocato
 	// "en_US@calendar=japanese".
 
 CF_EXPORT
-CFLocaleRef CFLocaleCreate(CFAllocatorRef allocator, CFStringRef localeIdentifier);
+CFLocaleRef CFLocaleCreate(CFAllocatorRef allocator, CFLocaleIdentifier localeIdentifier);
 	// Returns a CFLocaleRef for the locale named by the "arbitrary" locale identifier.
 
 CF_EXPORT
@@ -139,62 +138,64 @@ CFLocaleRef CFLocaleCreateCopy(CFAllocatorRef allocator, CFLocaleRef locale);
 	// or hold onto it.  In the future, there may be mutable locales.
 
 CF_EXPORT
-CFStringRef CFLocaleGetIdentifier(CFLocaleRef locale);
+CFLocaleIdentifier CFLocaleGetIdentifier(CFLocaleRef locale);
 	// Returns the locale's identifier.  This may not be the same string
 	// that the locale was created with (CFLocale may canonicalize it).
 
 CF_EXPORT
-CFTypeRef CFLocaleGetValue(CFLocaleRef locale, CFStringRef key);
+CFTypeRef CFLocaleGetValue(CFLocaleRef locale, CFLocaleKey key);
 	// Returns the value for the given key.  This is how settings and state
 	// are accessed via a CFLocale.  Values might be of any CF type.
 
 CF_EXPORT
-CFStringRef CFLocaleCopyDisplayNameForPropertyValue(CFLocaleRef displayLocale, CFStringRef key, CFStringRef value);
+CFStringRef CFLocaleCopyDisplayNameForPropertyValue(CFLocaleRef displayLocale, CFLocaleKey key, CFStringRef value);
 	// Returns the display name for the given value.  The key tells what
 	// the value is, and is one of the usual locale property keys, though
 	// not all locale property keys have values with display name values.
 
 
-CF_EXPORT const CFStringRef kCFLocaleCurrentLocaleDidChangeNotification CF_AVAILABLE(10_5, 2_0);
+CF_EXPORT const CFNotificationName kCFLocaleCurrentLocaleDidChangeNotification CF_AVAILABLE(10_5, 2_0);
 
 
 // Locale Keys
-CF_EXPORT const CFStringRef kCFLocaleIdentifier;
-CF_EXPORT const CFStringRef kCFLocaleLanguageCode;
-CF_EXPORT const CFStringRef kCFLocaleCountryCode;
-CF_EXPORT const CFStringRef kCFLocaleScriptCode;
-CF_EXPORT const CFStringRef kCFLocaleVariantCode;
+CF_EXPORT const CFLocaleKey kCFLocaleIdentifier;
+CF_EXPORT const CFLocaleKey kCFLocaleLanguageCode;
+CF_EXPORT const CFLocaleKey kCFLocaleCountryCode;
+CF_EXPORT const CFLocaleKey kCFLocaleScriptCode;
+CF_EXPORT const CFLocaleKey kCFLocaleVariantCode;
 
-CF_EXPORT const CFStringRef kCFLocaleExemplarCharacterSet;
-CF_EXPORT const CFStringRef kCFLocaleCalendarIdentifier;
-CF_EXPORT const CFStringRef kCFLocaleCalendar;
-CF_EXPORT const CFStringRef kCFLocaleCollationIdentifier;
-CF_EXPORT const CFStringRef kCFLocaleUsesMetricSystem;
-CF_EXPORT const CFStringRef kCFLocaleMeasurementSystem; // "Metric" or "U.S."
-CF_EXPORT const CFStringRef kCFLocaleDecimalSeparator;
-CF_EXPORT const CFStringRef kCFLocaleGroupingSeparator;
-CF_EXPORT const CFStringRef kCFLocaleCurrencySymbol;
-CF_EXPORT const CFStringRef kCFLocaleCurrencyCode; // ISO 3-letter currency code
-CF_EXPORT const CFStringRef kCFLocaleCollatorIdentifier CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFStringRef kCFLocaleQuotationBeginDelimiterKey CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFStringRef kCFLocaleQuotationEndDelimiterKey CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFLocaleKey kCFLocaleExemplarCharacterSet;
+CF_EXPORT const CFLocaleKey kCFLocaleCalendarIdentifier;
+CF_EXPORT const CFLocaleKey kCFLocaleCalendar;
+CF_EXPORT const CFLocaleKey kCFLocaleCollationIdentifier;
+CF_EXPORT const CFLocaleKey kCFLocaleUsesMetricSystem;
+CF_EXPORT const CFLocaleKey kCFLocaleMeasurementSystem; // "Metric" or "U.S."
+CF_EXPORT const CFLocaleKey kCFLocaleDecimalSeparator;
+CF_EXPORT const CFLocaleKey kCFLocaleGroupingSeparator;
+CF_EXPORT const CFLocaleKey kCFLocaleCurrencySymbol;
+CF_EXPORT const CFLocaleKey kCFLocaleCurrencyCode; // ISO 3-letter currency code
+CF_EXPORT const CFLocaleKey kCFLocaleCollatorIdentifier CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFLocaleKey kCFLocaleQuotationBeginDelimiterKey CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFLocaleKey kCFLocaleQuotationEndDelimiterKey CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFLocaleKey kCFLocaleAlternateQuotationBeginDelimiterKey CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFLocaleKey kCFLocaleAlternateQuotationEndDelimiterKey CF_AVAILABLE(10_6, 4_0);
 
 // Values for kCFLocaleCalendarIdentifier
-CF_EXPORT const CFStringRef kCFGregorianCalendar;
-CF_EXPORT const CFStringRef kCFBuddhistCalendar;
-CF_EXPORT const CFStringRef kCFChineseCalendar;
-CF_EXPORT const CFStringRef kCFHebrewCalendar;
-CF_EXPORT const CFStringRef kCFIslamicCalendar;
-CF_EXPORT const CFStringRef kCFIslamicCivilCalendar;
-CF_EXPORT const CFStringRef kCFJapaneseCalendar;
-CF_EXPORT const CFStringRef kCFRepublicOfChinaCalendar CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFStringRef kCFPersianCalendar CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFStringRef kCFIndianCalendar CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFStringRef kCFISO8601Calendar CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFStringRef kCFIslamicTabularCalendar CF_AVAILABLE(10_10, 8_0);
-CF_EXPORT const CFStringRef kCFIslamicUmmAlQuraCalendar CF_AVAILABLE(10_10, 8_0);
+typedef CFStringRef CFCalendarIdentifier CF_STRING_ENUM;
+
+CF_EXPORT const CFCalendarIdentifier kCFGregorianCalendar;
+CF_EXPORT const CFCalendarIdentifier kCFBuddhistCalendar;
+CF_EXPORT const CFCalendarIdentifier kCFChineseCalendar;
+CF_EXPORT const CFCalendarIdentifier kCFHebrewCalendar;
+CF_EXPORT const CFCalendarIdentifier kCFIslamicCalendar;
+CF_EXPORT const CFCalendarIdentifier kCFIslamicCivilCalendar;
+CF_EXPORT const CFCalendarIdentifier kCFJapaneseCalendar;
+CF_EXPORT const CFCalendarIdentifier kCFRepublicOfChinaCalendar CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFCalendarIdentifier kCFPersianCalendar CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFCalendarIdentifier kCFIndianCalendar CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFCalendarIdentifier kCFISO8601Calendar CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFCalendarIdentifier kCFIslamicTabularCalendar CF_AVAILABLE(10_10, 8_0);
+CF_EXPORT const CFCalendarIdentifier kCFIslamicUmmAlQuraCalendar CF_AVAILABLE(10_10, 8_0);
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

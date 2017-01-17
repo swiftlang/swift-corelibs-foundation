@@ -51,6 +51,7 @@ struct _NSObjectBridge {
     CFTypeID (*_cfTypeID)(CFTypeRef object);
     CFHashCode (*hash)(CFTypeRef object);
     bool (*isEqual)(CFTypeRef object, CFTypeRef other);
+    _Nonnull CFTypeRef (*_Nonnull copyWithZone)(_Nonnull CFTypeRef object, _Nullable CFTypeRef zone);
 };
 
 struct _NSArrayBridge {
@@ -81,6 +82,7 @@ struct _NSDictionaryBridge {
     CFIndex (*countForObject)(CFTypeRef dictionary, CFTypeRef value);
     void (*getObjects)(CFTypeRef dictionary, CFTypeRef _Nullable *_Nullable valuebuf, CFTypeRef _Nullable *_Nullable keybuf);
     void (*__apply)(CFTypeRef dictionary, void (*applier)(CFTypeRef key, CFTypeRef value, void *context), void *context);
+    _Nonnull CFTypeRef (*_Nonnull copy)(CFTypeRef obj);
 };
 
 struct _NSMutableDictionaryBridge {
@@ -92,11 +94,23 @@ struct _NSMutableDictionaryBridge {
 };
 
 struct _NSSetBridge {
-    
+    CFIndex (*_Nonnull count)(CFTypeRef obj);
+    bool (*containsObject)(CFTypeRef set, CFTypeRef value);
+    _Nullable CFTypeRef (*_Nonnull __getValue)(CFTypeRef set, CFTypeRef value, CFTypeRef key);
+    bool (*getValueIfPresent)(CFTypeRef set, CFTypeRef object, CFTypeRef _Nullable *_Nullable value);
+    void (*getObjects)(CFTypeRef set, CFTypeRef _Nullable *_Nullable values);
+    void (*__apply)(CFTypeRef set, void (*applier)(CFTypeRef value, void *context), void *context);
+    _Nonnull CFTypeRef (*_Nonnull copy)(CFTypeRef obj);
+    CFIndex (*_Nonnull countForKey)(CFTypeRef obj, CFTypeRef key);
+    _Nullable CFTypeRef (*_Nonnull member)(CFTypeRef obj, CFTypeRef value);
 };
 
 struct _NSMutableSetBridge {
-    
+    void (*addObject)(CFTypeRef set, CFTypeRef value);
+    void (*replaceObject)(CFTypeRef set, CFTypeRef value);
+    void (*setObject)(CFTypeRef set, CFTypeRef value);
+    void (*removeObject)(CFTypeRef set, CFTypeRef value);
+    void (*removeAllObjects)(CFTypeRef set);
 };
 
 struct _NSStringBridge {
@@ -107,7 +121,7 @@ struct _NSStringBridge {
     UniChar (*characterAtIndex)(CFTypeRef str, CFIndex idx);
     void (*getCharacters)(CFTypeRef str, CFRange range, UniChar *buffer);
     CFIndex (*__getBytes)(CFTypeRef str, CFStringEncoding encoding, CFRange range, uint8_t *_Nullable buffer, CFIndex maxBufLen, CFIndex *_Nullable usedBufLen);
-    const char *_Nullable (*_Nonnull _fastCStringContents)(CFTypeRef str);
+    const char *_Nullable (*_Nonnull _fastCStringContents)(CFTypeRef str, bool nullTerminated);
     const UniChar *_Nullable (*_Nonnull _fastCharacterContents)(CFTypeRef str);
     bool (*_getCString)(CFTypeRef str, char *buffer, size_t len, UInt32 encoding);
     bool (*_encodingCantBeStoredInEightBitCFString)(CFTypeRef str);
@@ -159,7 +173,7 @@ struct _NSXMLParserBridge {
     void (*startElementNs)(_CFXMLInterface ctx,
                            const unsigned char *localname,
                            const unsigned char *_Nullable prefix,
-                           const unsigned char *URI,
+                           const unsigned char *_Nullable URI,
                            int nb_namespaces,
                            const unsigned char *_Nullable *_Nonnull namespaces,
                            int nb_attributes,
@@ -168,7 +182,7 @@ struct _NSXMLParserBridge {
     void (*endElementNs)(_CFXMLInterface ctx,
                          const unsigned char *localname,
                          const unsigned char *_Nullable prefix,
-                         const unsigned char *URI);
+                         const unsigned char *_Nullable URI);
     void (*characters)(_CFXMLInterface ctx,
                        const unsigned char *ch,
                        int len);
@@ -251,7 +265,6 @@ CF_EXPORT void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out
 CF_EXPORT void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out);
 
 
-CF_EXPORT int32_t _CF_SOCK_STREAM();
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
 #if !__COREFOUNDATION_FORFOUNDATIONONLY__
 typedef const struct __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
@@ -271,8 +284,6 @@ CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
-CF_EXPORT CFHashCode __CFHashDouble(double d);
-
 CF_EXPORT Boolean _CFIsMainThread(void);
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
@@ -290,6 +301,12 @@ CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_N
 CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar);
 CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
+
+CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(CFAllocatorRef alloc, CFDataRef data);
+
+CF_EXPORT _Nullable CFErrorRef _CFReadStreamCopyError(CFReadStreamRef stream);
+
+CF_EXPORT _Nullable CFErrorRef _CFWriteStreamCopyError(CFWriteStreamRef stream);
 
 _CF_EXPORT_SCOPE_END
 

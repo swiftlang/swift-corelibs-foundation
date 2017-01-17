@@ -15,8 +15,8 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     private enum PredicateKind {
         case boolean(Bool)
         case block((Any?, [String : Any]?) -> Bool)
-        // TODO: case for init(format:argumentArray:)
-        // TODO: case for init(fromMetadataQueryString:)
+        case format(String)
+        case metadataQuery(String)
     }
 
     private let kind: PredicateKind
@@ -26,11 +26,33 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        let encodedBool = aDecoder.decodeBool(forKey: "NS.boolean.value")
+        self.kind = .boolean(encodedBool)
+        
+        super.init()
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        //TODO: store kind key for .boolean, .format, .metadataQuery
+        
+        switch self.kind {
+        case .boolean(let value):
+            aCoder.encode(value, forKey: "NS.boolean.value")
+        case .block:
+            preconditionFailure("NSBlockPredicate cannot be encoded or decoded.")
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
+        }
     }
     
     open override func copy() -> Any {
@@ -38,7 +60,38 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        switch self.kind {
+        case .boolean(let value):
+            return NSPredicate(value: value)
+        case .block(let block):
+            return NSPredicate(block: block)
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
+        }
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? NSPredicate {
+            if other === self {
+                return true
+            } else {
+                switch (other.kind, self.kind) {
+                case (.boolean(let otherBool), .boolean(let selfBool)):
+                    return otherBool == selfBool
+                case (.format, .format):
+                    NSUnimplemented()
+                case (.metadataQuery, .metadataQuery):
+                    NSUnimplemented()
+                default:
+                    // NSBlockPredicate returns false even for copy
+                    return false
+                }
+            }
+        }
+        
+        return false
     }
     
     // Parse predicateFormat and return an appropriate predicate
@@ -58,7 +111,21 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
         super.init()
     }
     
-    open var predicateFormat: String  { NSUnimplemented() } // returns the format string of the predicate
+    open var predicateFormat: String {
+        switch self.kind {
+        case .boolean(let value):
+            return value ? "TRUEPREDICATE" : "FALSEPREDICATE"
+        case .block:
+            // TODO: Bring NSBlockPredicate's predicateFormat to macOS's Foundation version
+            // let address = unsafeBitCast(block, to: Int.self)
+            // return String(format:"BLOCKPREDICATE(%2X)", address)
+            return "BLOCKPREDICATE"
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
+        }
+    }
     
     open func withSubstitutionVariables(_ variables: [String : Any]) -> Self { NSUnimplemented() } // substitute constant values for variables
     
@@ -76,6 +143,10 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
             return value
         case let .block(block):
             return block(object, bindings)
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
         }
     } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered
     

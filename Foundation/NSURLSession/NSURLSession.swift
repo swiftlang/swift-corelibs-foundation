@@ -189,8 +189,9 @@ open class URLSession : NSObject {
     /// This queue is used to make public attributes on `URLSessionTask` instances thread safe.
     /// - Note: It's a **concurrent** queue.
     internal let taskAttributesIsolation: DispatchQueue 
-    fileprivate let taskRegistry = URLSession._TaskRegistry()
+    internal let taskRegistry = URLSession._TaskRegistry()
     fileprivate let identifier: Int32
+    fileprivate var invalidated = false
     
     /*
      * The shared session uses the currently set global NSURLCache,
@@ -237,7 +238,7 @@ open class URLSession : NSObject {
     }
     
     open let delegateQueue: OperationQueue
-    open let delegate: URLSessionDelegate?
+    open var delegate: URLSessionDelegate?
     open let configuration: URLSessionConfiguration
     
     /*
@@ -258,7 +259,29 @@ open class URLSession : NSObject {
      * session with the same identifier until URLSession:didBecomeInvalidWithError: has
      * been issued.
      */
-    open func finishTasksAndInvalidate() { NSUnimplemented() }
+    open func finishTasksAndInvalidate() {
+       //we need to return immediately
+       workQueue.async {
+           //don't allow creation of new tasks from this point onwards
+           self.invalidated = true
+
+           let invalidateSessionCallback = { [weak self] in
+               //invoke the delegate method and break the delegate link
+               guard let `self` = self, let sessionDelegate = self.delegate else { return }
+               self.delegateQueue.addOperation {
+                   sessionDelegate.urlSession(self, didBecomeInvalidWithError: nil)
+                   self.delegate = nil
+               }
+           }
+
+           //wait for running tasks to finish
+           if !self.taskRegistry.isEmpty {
+               self.taskRegistry.notify(on: invalidateSessionCallback)
+           } else {
+               invalidateSessionCallback()
+           }
+       }
+    }
     
     /* -invalidateAndCancel acts as -finishTasksAndInvalidate, but issues
      * -cancel to all outstanding tasks for this session.  Note task
@@ -297,7 +320,7 @@ open class URLSession : NSObject {
     }
     
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
-    open func uploadTask(with request: URLRequest, fromData bodyData: Data) -> URLSessionUploadTask {
+    open func uploadTask(with request: URLRequest, from bodyData: Data) -> URLSessionUploadTask {
         let r = URLSession._Request(request)
         return uploadTask(with: r, body: .data(createDispatchData(bodyData)), behaviour: .callDelegate)
     }
@@ -367,6 +390,7 @@ fileprivate extension URLSession {
     ///
     /// All public methods funnel into this one.
     func dataTask(with request: _Request, behaviour: _TaskRegistry._Behaviour) -> URLSessionDataTask {
+        guard !self.invalidated else { fatalError("Session invalidated") }
         let r = createConfiguredRequest(from: request)
         let i = createNextTaskIdentifier()
         let task = URLSessionDataTask(session: self, request: r, taskIdentifier: i)
@@ -380,6 +404,7 @@ fileprivate extension URLSession {
     ///
     /// All public methods funnel into this one.
     func uploadTask(with request: _Request, body: URLSessionTask._Body, behaviour: _TaskRegistry._Behaviour) -> URLSessionUploadTask {
+        guard !self.invalidated else { fatalError("Session invalidated") }
         let r = createConfiguredRequest(from: request)
         let i = createNextTaskIdentifier()
         let task = URLSessionUploadTask(session: self, request: r, taskIdentifier: i, body: body)
@@ -391,6 +416,7 @@ fileprivate extension URLSession {
     
     /// Create a download task
     func downloadTask(with request: _Request, behavior: _TaskRegistry._Behaviour) -> URLSessionDownloadTask {
+        guard !self.invalidated else { fatalError("Session invalidated") }
         let r = createConfiguredRequest(from: request)
         let i = createNextTaskIdentifier()
         let task = URLSessionDownloadTask(session: self, request: r, taskIdentifier: i)
@@ -433,10 +459,10 @@ extension URLSession {
      */
     open func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
         let fileData = try! Data(contentsOf: fileURL) 
-        return uploadTask(with: request, fromData: fileData, completionHandler: completionHandler)
+        return uploadTask(with: request, from: fileData, completionHandler: completionHandler)
     }
 
-    open func uploadTask(with request: URLRequest, fromData bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
+    open func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
         return uploadTask(with: _Request(request), body: .data(createDispatchData(bodyData!)), behaviour: .dataCompletionHandler(completionHandler))
     }
     
@@ -454,7 +480,7 @@ extension URLSession {
        return downloadTask(with: _Request(url), behavior: .downloadCompletionHandler(completionHandler)) 
     }
 
-    open func downloadTask(withResumeData resumeData: Data, completionHandler: (NSURL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
+    open func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
 }
 
 internal extension URLSession {

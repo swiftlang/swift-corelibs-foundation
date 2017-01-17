@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFBundlePriv.h
-	Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFBUNDLEPRIV__)
@@ -245,6 +240,12 @@ Boolean _CFBundleGetStringsFilesShared(CFBundleRef bundle);
 
 CF_EXPORT
 CFURLRef _CFBundleCopyFrameworkURLForExecutablePath(CFStringRef executablePath);
+
+#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#include <xpc/xpc.h>
+CF_EXPORT
+void _CFBundleSetupXPCBootstrap(xpc_object_t bootstrap) CF_AVAILABLE(10_10, 8_0);
+#endif
 
 /* Functions deprecated as SPI */
 

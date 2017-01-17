@@ -39,7 +39,7 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     override func object(forKey aKey: Any) -> Any? {
         let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(_SwiftValue.store(aKey), to: UnsafeRawPointer.self))
         if value != nil {
-            return _SwiftValue.fetch(unsafeBitCast(value, to: AnyObject.self))
+            return _SwiftValue.fetch(nonOptional: unsafeBitCast(value, to: AnyObject.self))
         } else {
             return nil
         }
@@ -117,7 +117,7 @@ internal func _CFSwiftDictionaryGetValue(_ dictionary: AnyObject, key: AnyObject
             return Unmanaged<AnyObject>.passUnretained(obj)
         }
     } else {
-        let k = _SwiftValue.fetch(key)
+        let k = _SwiftValue.fetch(nonOptional: key)
         let value = dict.object(forKey: k)
         let v = _SwiftValue.store(value)
         dict._storage[key as! NSObject] = v
@@ -212,4 +212,8 @@ internal func _CFSwiftDictionaryRemoveValue(_ dictionary:  AnyObject, key: AnyOb
 
 internal func _CFSwiftDictionaryRemoveAllValues(_ dictionary: AnyObject) {
     (dictionary as! NSMutableDictionary).removeAllObjects()
+}
+
+internal func _CFSwiftDictionaryCreateCopy(_ dictionary: AnyObject) -> Unmanaged<AnyObject> {
+    return Unmanaged<AnyObject>.passRetained((dictionary as! NSDictionary).copy() as! NSObject)
 }

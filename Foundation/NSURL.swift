@@ -12,7 +12,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
@@ -306,6 +306,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     public init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
         super.init()
+        
         let thePath = _standardizedPath(path)
         if thePath.length > 0 {
             
@@ -340,17 +341,25 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         self.init(fileURLWithPath: path, isDirectory: isDir, relativeTo: nil)
     }
 
-    public convenience init(fileURLWithPath path: String) {
-        let thePath = _standardizedPath(path)
+    public init(fileURLWithPath path: String) {
+        let thePath: String
+        let pathString = NSString(string: path)
+        if !pathString.isAbsolutePath {
+            thePath = pathString.standardizingPath
+        } else {
+            thePath = path
+        }
 
         var isDir : Bool = false
         if thePath.hasSuffix("/") {
             isDir = true
         } else {
-            let _ = FileManager.default.fileExists(atPath: path, isDirectory: &isDir)
+            if !FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {
+                isDir = false
+            }
         }
-
-        self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeTo: nil)
+        super.init()
+        _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPOSIXPathStyle, isDir, nil)
     }
     
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
@@ -496,7 +505,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     open var password: String? {
         let absoluteURL = CFURLCopyAbsoluteURL(_cfObject)
-#if os(Linux)
+#if os(Linux) || os(Android) || CYGWIN
         let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, kCFURLComponentPassword, nil)
 #else
         let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, .password, nil)
@@ -910,11 +919,34 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
     }
     
     required public init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        let encodedName = aDecoder.decodeObject(forKey: "NS.name") as! NSString
+        self.name = encodedName._swiftObject
+        
+        let encodedValue = aDecoder.decodeObject(forKey: "NS.value") as? NSString
+        self.value = encodedValue?._swiftObject
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(self.name._bridgeToObjectiveC(), forKey: "NS.name")
+        aCoder.encode(self.value?._bridgeToObjectiveC(), forKey: "NS.value")
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        if let other = object as? NSURLQueryItem {
+            return other === self
+                || (other.name == self.name
+                    && other.value == self.value)
+        }
+        
+        return false
     }
     
     open let name: String
@@ -1224,8 +1256,9 @@ open class NSURLComponents: NSObject, NSCopying {
                 
                 return (0..<count).map { idx in
                     let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
-                    let entryName = oneEntry.object(forKey: "name"._cfObject) as! String
-                    let entryValue = oneEntry.object(forKey: "value"._cfObject) as? String
+                    let swiftEntry = oneEntry._swiftObject 
+                    let entryName = swiftEntry["name"] as! String
+                    let entryValue = swiftEntry["value"] as? String
                     return URLQueryItem(name: entryName, value: entryValue)
                 }
             } else {

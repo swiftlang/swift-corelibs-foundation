@@ -1,16 +1,11 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
-/*    CFUnicodeDecomposition.c
-    Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
-    Responsibility: Foundation Team
+/*	CFUnicodeDecomposition.c
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+	Responsibility: Foundation Team
 */
 
 #include <string.h>
@@ -208,8 +203,9 @@ CF_INLINE bool __CFProcessReorderBuffer(UTF32Char *buffer, CFIndex length, void 
 }
 
 #define MAX_BUFFER_LENGTH (32)
-bool CFUniCharDecompose(const UTF16Char *src, CFIndex length, CFIndex *consumedLength, void *dst, CFIndex maxLength, CFIndex *filledLength, bool needToReorder, uint32_t dstFormat, bool isHFSPlus) {
+bool CFUniCharDecomposeWithErrorLocation(const UTF16Char *src, CFIndex length, CFIndex *consumedLength, void *dst, CFIndex maxLength, CFIndex *filledLength, bool needToReorder, uint32_t dstFormat, bool isHFSPlus, CFIndex *charIndex) {
     CFIndex usedLength = 0;
+    const UTF16Char * const originalSrc = src;
     CFIndex originalLength = length;
     UTF32Char buffer[MAX_BUFFER_LENGTH];
     UTF32Char *decompBuffer = buffer;
@@ -217,6 +213,9 @@ bool CFUniCharDecompose(const UTF16Char *src, CFIndex length, CFIndex *consumedL
     CFIndex decompBufferLen = 0;
     CFIndex segmentLength = 0;
     UTF32Char currentChar;
+
+    // kCFNotFound indicates an insufficiently sized buffer, which is the default failure case.
+    if (charIndex) *charIndex = kCFNotFound;
 
     if (NULL == __CFUniCharDecompositionTable) __CFUniCharLoadDecompositionTable();
 
@@ -244,12 +243,18 @@ bool CFUniCharDecompose(const UTF16Char *src, CFIndex length, CFIndex *consumedL
             ++usedLength;
         } else {
             if (CFUniCharIsSurrogateLowCharacter(currentChar)) { // Stray surrogagte
-                if (dstFormat != kCFUniCharUTF16Format) break;
+                if (dstFormat != kCFUniCharUTF16Format) {
+                    if (charIndex) *charIndex = src - 1 - originalSrc;
+                    break;
+                }
             } else if (CFUniCharIsSurrogateHighCharacter(currentChar)) {
                 if (((length - segmentLength) > 1) && CFUniCharIsSurrogateLowCharacter(*src)) {
                     currentChar = CFUniCharGetLongCharacterForSurrogatePair(currentChar, *(src++));
                 } else {
-                    if (dstFormat != kCFUniCharUTF16Format) break;
+                    if (dstFormat != kCFUniCharUTF16Format) {
+                        if (charIndex) *charIndex = src - originalSrc;
+                        break;
+                    }
                 }
             }
 
@@ -305,6 +310,10 @@ bool CFUniCharDecompose(const UTF16Char *src, CFIndex length, CFIndex *consumedL
     return ((length > 0) ? false : true);
 }
 
+bool CFUniCharDecompose(const UTF16Char *src, CFIndex length, CFIndex *consumedLength, void *dst, CFIndex maxLength, CFIndex *filledLength, bool needToReorder, uint32_t dstFormat, bool isHFSPlus) {
+    return CFUniCharDecomposeWithErrorLocation(src, length, consumedLength, dst, maxLength, filledLength, needToReorder, dstFormat, isHFSPlus, NULL);
+}
+
 #define MAX_COMP_DECOMP_LEN (32)
 
 static CFIndex __CFUniCharRecursivelyCompatibilityDecomposeCharacter(UTF32Char character, UTF32Char *convertedChars) {
@@ -344,7 +353,7 @@ CF_INLINE void __CFUniCharMoveBufferFromEnd1(UTF32Char *convertedChars, CFIndex 
     while (convertedChars > limit) *(--dstP) = *(--convertedChars);
 }
 
-CF_EXPORT CFIndex CFUniCharCompatibilityDecompose(UTF32Char *convertedChars, CFIndex length, CFIndex maxBufferLength) {
+CF_PRIVATE CFIndex CFUniCharCompatibilityDecompose(UTF32Char *convertedChars, CFIndex length, CFIndex maxBufferLength) {
     UTF32Char currentChar;
     UTF32Char buffer[MAX_COMP_DECOMP_LEN];
     const UTF32Char *bufferP;

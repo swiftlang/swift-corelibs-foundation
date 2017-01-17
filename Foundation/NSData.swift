@@ -11,7 +11,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
@@ -92,6 +92,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             let bytePtr = self.bytes.bindMemory(to: UInt8.self, capacity: self.length)
             return CFDataCreate(kCFAllocatorSystemDefault, bytePtr, self.length)
         }
+    }
+    
+    internal func _providesConcreteBacking() -> Bool {
+        return type(of: self) === NSData.self || type(of: self) === NSMutableData.self
     }
     
     override open var _cfTypeID: CFTypeID {
@@ -217,7 +221,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     open var bytes: UnsafeRawPointer {
-        return UnsafeRawPointer(CFDataGetBytePtr(_cfObject))
+        guard let bytePtr = CFDataGetBytePtr(_cfObject) else {
+            //This could occure on empty data being encoded.
+            //TODO: switch with nil when signature is fixed
+            return UnsafeRawPointer(bitPattern: 0x7f00dead)! //would not result in 'nil unwrapped optional'
+        }
+        return UnsafeRawPointer(bytePtr)
     }
 
     
@@ -228,6 +237,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
+        if let data = value as? Data {
+            return isEqual(to: data)
+        } else if let data = value as? NSData {
+            return isEqual(to: data._swiftObject)
+        }
+        
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         if let data = value as? DispatchData {
             if data.count != length {
@@ -239,11 +254,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
         }
 #endif
-        if let data = value as? Data {
-            return isEqual(to: data)
-        } else if let data = value as? NSData {
-            return isEqual(to: data._swiftObject)
-        }
+        
         return false
     }
     open func isEqual(to other: Data) -> Bool {
@@ -423,7 +434,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             repeat {
                 #if os(OSX) || os(iOS)
                     bytesWritten = Darwin.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
-                #elseif os(Linux)
+                #elseif os(Linux) || os(Android) || CYGWIN
                     bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
                 #endif
             } while (bytesWritten < 0 && errno == EINTR)
@@ -444,7 +455,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             // Preserve permissions.
             var info = stat()
             if lstat(path, &info) == 0 {
-                mode = info.st_mode
+                mode = mode_t(info.st_mode)
             } else if errno != ENOENT && errno != ENAMETOOLONG {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
@@ -795,7 +806,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }()
         
         var currentLineCount = 0
-        let appendByteToResult : (UInt8) -> () = {
+        let appendByteToResult : (UInt8) -> Void = {
             result.append($0)
             currentLineCount += 1
             if let options = lineOptions, currentLineCount == options.lineLength {

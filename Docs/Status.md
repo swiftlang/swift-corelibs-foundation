@@ -47,18 +47,18 @@ There is no _Complete_ status for test coverage because there are always additio
     |------------------------------|-----------------|---------------|--------------------------------------------------------------------------------------------------------------------|
     | `URLAuthenticationChallenge` | Unimplemented   | None          |                                                                                                                    |
     | `URLCache`                   | Unimplemented   | None          |                                                                                                                    |
-    | `URLCredential`              | Mostly Complete | Incomplete    | `NSCoding` and `NSCopying` remain unimplemented                                                                    |
+    | `URLCredential`              | Mostly Complete | Incomplete    | `NSCopying` remains unimplemented                                                                                  |
     | `URLCredentialStorage`       | Unimplemented   | None          |                                                                                                                    |
     | `NSURLError*`                | Complete        | N/A           |                                                                                                                    |
     | `URLProtectionSpace`         | Unimplemented   | None          |                                                                                                                    |
     | `URLProtocol`                | Unimplemented   | None          |                                                                                                                    |
     | `URLProtocolClient`          | Unimplemented   | None          |                                                                                                                    |
-    | `NSURLRequest`               | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
-    | `NSMutableURLRequest`        | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
-    | `URLResponse`                | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                   |
-    | `NSHTTPURLResponse`          | Mostly Complete | Substantial   | `NSCoding` remains unimplemented                                                                                   |
+    | `NSURLRequest`               | Mostly Complete | Incomplete    |                                                                                                                    |
+    | `NSMutableURLRequest`        | Mostly Complete | Incomplete    |                                                                                                                    |
+    | `URLResponse`                | Mostly Complete | Incomplete    |                                                                                                                    |
+    | `NSHTTPURLResponse`          | Mostly Complete | Substantial   |                                                                                                                    |
     | `NSURL`                      | Mostly Complete | Substantial   | `NSCoding` with non-keyed-coding archivers, `checkResourceIsReachable()`, and resource values remain unimplemented |
-    | `NSURLQueryItem`             | Mostly Complete | N/A           | `NSCoding` remains unimplemented                                                                                   |
+    | `NSURLQueryItem`             | Mostly Complete | N/A           |                                                                                                                    |
     | `URLResourceKey`             | Complete        | N/A           |                                                                                                                    |
     | `URLFileResourceType`        | Complete        | N/A           |                                                                                                                    |
     | `URL`                        | Complete        | Incomplete    |                                                                                                                    |
@@ -78,7 +78,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLSession`                 | Mostly Complete | Incomplete    | `shared`, invalidation, resetting, flushing, getting tasks, and others remain unimplemented                        |
     | `URLSessionConfiguration`    | Mostly Complete | Incomplete    | `ephemeral` and `background(withIdentifier:)` remain unimplemented                                                 |
     | `URLSessionDelegate`         | Complete        | N/A           |                                                                                                                    |
-    | `URLSessionTask`             | Mostly Complete | Incomplete    | `NSCopying`, `cancel()`, `error`, `createTransferState(url:)` with streams, and others remain unimplemented        |
+    | `URLSessionTask`             | Mostly Complete | Incomplete    | `cancel()`, `createTransferState(url:)` with streams, and others remain unimplemented                              |
     | `URLSessionDataTask`         | Complete        | Incomplete    |                                                                                                                    |
     | `URLSessionUploadTask`       | Complete        | None          |                                                                                                                    |
     | `URLSessionDownloadTask`     | Incomplete      | Incomplete    | `cancel(byProducingResumeData:)` remains unimplemented                                                             |
@@ -322,5 +322,5 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSError`                | Complete        | None          |                                   |
     | `NSUUID`                 | Complete        | Substantial   |                                   |
     | `UUID`                   | Complete        | None          |                                   |
-    | `NSPersonNameComponents` | Mostly Complete | None          | `NSCopying` remains unimplemented |
+    | `NSPersonNameComponents` | Complete        | Incomplete    |                                   |
     | `PersonNameComponents`   | Complete        | None          |                                   |

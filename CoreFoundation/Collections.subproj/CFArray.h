@@ -1,15 +1,5 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFArray.h
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. All rights reserved.
 */
 
 /*!
@@ -394,7 +384,7 @@ void CFArrayGetValues(CFArrayRef theArray, CFRange range, const void **values);
 		undefined.
 */
 CF_EXPORT
-void CFArrayApplyFunction(CFArrayRef theArray, CFRange range, CFArrayApplierFunction applier, void *context);
+void CFArrayApplyFunction(CFArrayRef theArray, CFRange range, CFArrayApplierFunction CF_NOESCAPE applier, void *context);
 
 /*!
 	@function CFArrayGetFirstIndexOfValue

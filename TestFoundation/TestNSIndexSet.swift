@@ -27,6 +27,7 @@ class TestNSIndexSet : XCTestCase {
             ("test_removal", test_removal),
             ("test_addition", test_addition),
             ("test_setAlgebra", test_setAlgebra),
+            ("test_copy", test_copy),
         ]
     }
     
@@ -50,7 +51,29 @@ class TestNSIndexSet : XCTestCase {
         XCTAssertEqual(set3.lastIndex, 10)
         
     }
-    
+
+    func test_copy() {
+        let range: NSRange = NSRange(location: 3, length: 4)
+        let array : [Int] = [1,2,3,4,5,6,7,8,9,10]
+        let indexSet = NSMutableIndexSet()
+        for index in array {
+            indexSet.add(index)
+        }
+
+        //Test copy operation of NSIndexSet case which is immutable
+        let selfIndexSet: NSIndexSet = NSIndexSet(indexesIn: range)
+        let selfIndexSetCopy = selfIndexSet.copy() as! NSIndexSet
+        XCTAssertTrue(selfIndexSetCopy === selfIndexSet)
+        XCTAssertTrue(selfIndexSetCopy.isEqual(to: selfIndexSet._bridgeToSwift()))
+
+        //Test copy operation of NSMutableIndexSet case
+        let mutableIndexSet: NSIndexSet = indexSet
+        indexSet.add(11)
+        let mutableIndexSetCopy = mutableIndexSet.copy() as! NSIndexSet
+        XCTAssertFalse(mutableIndexSetCopy === mutableIndexSet)
+        XCTAssertTrue(mutableIndexSetCopy.isEqual(to: mutableIndexSet._bridgeToSwift()))
+    }
+
     func test_enumeration() {
         let set = IndexSet(integersIn: 4..<11)
         var result = Array<Int>()

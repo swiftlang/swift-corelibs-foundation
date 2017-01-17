@@ -29,7 +29,7 @@ open class URLSessionTask : NSObject, NSCopying {
     fileprivate var suspendCount = 1
     fileprivate var easyHandle: _EasyHandle!
     fileprivate var totalDownloaded = 0
-    fileprivate unowned let session: URLSessionProtocol
+    fileprivate var session: URLSessionProtocol! //change to nil when task completes
     fileprivate let body: _Body
     fileprivate let tempFileURL: URL
     
@@ -62,6 +62,10 @@ open class URLSessionTask : NSObject, NSCopying {
             }
             if case .taskCompleted = internalState {
                 updateTaskState()
+                guard let s = session as? URLSession else { fatalError() }
+                s.workQueue.async {
+                    s.taskRegistry.remove(self)
+                }
             }
         }
     }
@@ -84,15 +88,19 @@ open class URLSessionTask : NSObject, NSCopying {
         originalRequest = nil
         body = .none
         workQueue = DispatchQueue(label: "URLSessionTask.notused.0")
-        taskAttributesIsolation = DispatchQueue(label: "URLSessionTask.notused.1")
+        taskAttributesIsolation = DispatchQueue(label: "URLSessionTask.notused.1", attributes: DispatchQueue.Attributes.concurrent)
         let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
         _ = FileManager.default.createFile(atPath: fileName, contents: nil)
         self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init()
     }
-    /// Create a data task, i.e. with no body
+    /// Create a data task. If there is a httpBody in the URLRequest, use that as a parameter
     internal convenience init(session: URLSession, request: URLRequest, taskIdentifier: Int) {
-        self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
+        if let bodyData = request.httpBody {
+            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.data(createDispatchData(bodyData)))
+        } else {
+            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
+        }
     }
     internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body) {
         self.session = session
@@ -120,7 +128,7 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     
     open func copy(with zone: NSZone?) -> Any {
-        NSUnimplemented()
+        return self
     }
     
     /// An identifier for this task, assigned by and unique to the owning session
@@ -132,21 +140,17 @@ open class URLSessionTask : NSObject, NSCopying {
     /// May differ from originalRequest due to http server redirection
     /*@NSCopying*/ open fileprivate(set) var currentRequest: URLRequest? {
         get {
-            var r: URLRequest? = nil
-            taskAttributesIsolation.sync { r = self._currentRequest }
-            return r
+            return taskAttributesIsolation.sync { self._currentRequest }
         }
         //TODO: dispatch_barrier_async
-        set { taskAttributesIsolation.async { self._currentRequest = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._currentRequest = newValue } }
     }
     fileprivate var _currentRequest: URLRequest? = nil
     /*@NSCopying*/ open fileprivate(set) var response: URLResponse? {
         get {
-            var r: URLResponse? = nil
-            taskAttributesIsolation.sync { r = self._response }
-            return r
+            return taskAttributesIsolation.sync { self._response }
         }
-        set { taskAttributesIsolation.async { self._response = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._response = newValue } }
     }
     fileprivate var _response: URLResponse? = nil
     
@@ -158,22 +162,18 @@ open class URLSessionTask : NSObject, NSCopying {
     /// Number of body bytes already received
    open fileprivate(set) var countOfBytesReceived: Int64 {
         get {
-            var r: Int64 = 0
-            taskAttributesIsolation.sync { r = self._countOfBytesReceived }
-            return r
+            return taskAttributesIsolation.sync { self._countOfBytesReceived }
         }
-        set { taskAttributesIsolation.async { self._countOfBytesReceived = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesReceived = newValue } }
     }
     fileprivate var _countOfBytesReceived: Int64 = 0
     
     /// Number of body bytes already sent */
     open fileprivate(set) var countOfBytesSent: Int64 {
         get {
-            var r: Int64 = 0
-            taskAttributesIsolation.sync { r = self._countOfBytesSent }
-            return r
+            return taskAttributesIsolation.sync { self._countOfBytesSent }
         }
-        set { taskAttributesIsolation.async { self._countOfBytesSent = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesSent = newValue } }
     }
 
     fileprivate var _countOfBytesSent: Int64 = 0
@@ -201,11 +201,9 @@ open class URLSessionTask : NSObject, NSCopying {
      */
     open var state: URLSessionTask.State {
         get {
-            var r: URLSessionTask.State = .suspended
-            taskAttributesIsolation.sync { r = self._state }
-            return r
+            return taskAttributesIsolation.sync { self._state }
         }
-        set { taskAttributesIsolation.async { self._state = newValue } }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._state = newValue } }
     }
     fileprivate var _state: URLSessionTask.State = .suspended
     
@@ -213,7 +211,7 @@ open class URLSessionTask : NSObject, NSCopying {
      * The error, if any, delivered via -URLSession:task:didCompleteWithError:
      * This property will be nil in the event that no error occured.
      */
-    /*@NSCopying*/ open var error: NSError? { NSUnimplemented() }
+    /*@NSCopying*/ open fileprivate(set) var error: NSError?
     
     /// Suspend the task.
     ///
@@ -280,20 +278,18 @@ open class URLSessionTask : NSObject, NSCopying {
     /// will be used.
     ///
     /// If no priority is specified, the task will operate with the default priority
-    /// as defined by the constant URLSessionTaskPriorityDefault. Two additional
-    /// priority levels are provided: URLSessionTaskPriorityLow and
-    /// URLSessionTaskPriorityHigh, but use is not restricted to these.
+    /// as defined by the constant URLSessionTask.defaultPriority. Two additional
+    /// priority levels are provided: URLSessionTask.lowPriority and
+    /// URLSessionTask.highPriority, but use is not restricted to these.
     open var priority: Float {
         get {
-            var r: Float = 0
-            taskAttributesIsolation.sync { r = self._priority }
-            return r
+            return taskAttributesIsolation.sync { self._priority }
         }
         set {
-            taskAttributesIsolation.async { self._priority = newValue }
+            taskAttributesIsolation.async(flags: .barrier) { self._priority = newValue }
         }
     }
-    fileprivate var _priority: Float = URLSessionTaskPriorityDefault
+    fileprivate var _priority: Float = URLSessionTask.defaultPriority
 }
 
 extension URLSessionTask {
@@ -568,6 +564,8 @@ fileprivate extension URLSessionTask {
         easyHandle.set(requestMethod: request.httpMethod ?? "GET")
         if request.httpMethod == "HEAD" {
             easyHandle.set(noBody: true)
+        } else if ((request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
+            easyHandle.set(customHeaders: ["Content-Type:application/x-www-form-urlencoded"])
         }
     }
 }
@@ -781,7 +779,7 @@ extension URLSessionTask: _EasyHandleDelegate {
         // to the delegate. But in case of redirects etc. we might send another
         // request.
         guard case .transferInProgress(let ts) = internalState else { fatalError("Transfer completed, but it wasn't in progress.") }
-        guard let request = currentRequest else { fatalError("Transfer completed, but there's no currect request.") }
+        guard let request = currentRequest else { fatalError("Transfer completed, but there's no current request.") }
         guard errorCode == nil else {
             internalState = .transferFailed
             failWith(errorCode: errorCode!, request: request)
@@ -819,27 +817,35 @@ extension URLSessionTask {
         guard case .transferCompleted(response: let response, bodyDataDrain: let bodyDataDrain) = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete.")
         }
-        internalState = .taskCompleted
         self.response = response
+
+        //because we deregister the task with the session on internalState being set to taskCompleted
+        //we need to do the latter after the delegate/handler was notified/invoked
         switch session.behaviour(for: self) {
         case .taskDelegate(let delegate):
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
                 delegate.urlSession(s, task: self, didCompleteWithError: nil)
+                self.internalState = .taskCompleted
             }
         case .noDelegate:
-            break
+            internalState = .taskCompleted
         case .dataCompletionHandler(let completion):
             guard case .inMemory(let bodyData) = bodyDataDrain else {
                 fatalError("Task has data completion handler, but data drain is not in-memory.")
             }
+
             guard let s = session as? URLSession else { fatalError() }
-           
-            var data = Data(capacity: bodyData!.length)
-            data.append(Data(bytes: bodyData!.bytes, count: bodyData!.length)) 
+
+            var data = Data()
+            if let body = bodyData {
+                data = Data(bytes: body.bytes, count: body.length)
+            }
 
             s.delegateQueue.addOperation {
                 completion(data, response, nil)
+                self.internalState = .taskCompleted
+                self.session = nil
             }
         case .downloadCompletionHandler(let completion):
             guard case .toFile(let url, let fileHandle?) = bodyDataDrain else {
@@ -852,32 +858,38 @@ extension URLSessionTask {
             
             s.delegateQueue.addOperation {
                 completion(url, response, nil) 
+                self.internalState = .taskCompleted
+                self.session = nil
             }
             
         }
     }
     func completeTask(withError error: NSError) {
+        self.error = error
+        
         guard case .transferFailed = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete / failed.")
         }
-        internalState = .taskCompleted
         switch session.behaviour(for: self) {
         case .taskDelegate(let delegate):
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
                 delegate.urlSession(s, task: self, didCompleteWithError: error as Error)
+                self.internalState = .taskCompleted
             }
         case .noDelegate:
-            break
+            internalState = .taskCompleted
         case .dataCompletionHandler(let completion):
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
                 completion(nil, nil, error)
+                self.internalState = .taskCompleted
             }
         case .downloadCompletionHandler(let completion): 
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
                 completion(nil, nil, error)
+                self.internalState = .taskCompleted
             }
         }
     }
@@ -1010,8 +1022,8 @@ fileprivate extension URLSessionTask {
         guard case .waitingForResponseCompletionHandler(let ts) = internalState else { fatalError("Received response disposition, but we're not waiting for it.") }
         switch disposition {
         case .cancel:
-            //TODO: Fail the task with NSURLErrorCancelled
-            NSUnimplemented()
+            let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)
+            self.completeTask(withError: error)
         case .allow:
             // Continue the transfer. This will unpause the easy handle.
             internalState = .transferInProgress(ts)
@@ -1089,9 +1101,19 @@ fileprivate extension HTTPURLResponse {
     }
 }
 
-public let URLSessionTaskPriorityDefault: Float = 0.5
-public let URLSessionTaskPriorityLow: Float = 0.25
-public let URLSessionTaskPriorityHigh: Float = 0.75
+public extension URLSessionTask {
+    /// The default URL session task priority, used implicitly for any task you 
+    /// have not prioritized. The floating point value of this constant is 0.5.
+    public static let defaultPriority: Float = 0.5
+
+    /// A low URL session task priority, with a floating point value above the 
+    /// minimum of 0 and below the default value.
+    public static let lowPriority: Float = 0.25
+
+    /// A high URL session task priority, with a floating point value above the
+    /// default value and below the maximum of 1.0.
+    public static let highPriority: Float = 0.75
+}
 
 /*
  * An URLSessionDataTask does not provide any additional
@@ -1125,7 +1147,7 @@ open class URLSessionDownloadTask : URLSessionTask {
      * If resume data cannot be created, the completion handler will be
      * called with nil resumeData.
      */
-    open func cancel(byProducingResumeData completionHandler: (NSData?) -> Void) { NSUnimplemented() }
+    open func cancel(byProducingResumeData completionHandler: @escaping (Data?) -> Void) { NSUnimplemented() }
 }
 
 /*
@@ -1158,14 +1180,14 @@ open class URLSessionStreamTask : URLSessionTask {
      * If an error occurs, any outstanding reads will also fail, and new
      * read requests will error out immediately.
      */
-    open func readData(ofMinLength minBytes: Int, maxLength maxBytes: Int, timeout: TimeInterval, completionHandler: (NSData?, Bool, NSError?) -> Void) { NSUnimplemented() }
+    open func readData(ofMinLength minBytes: Int, maxLength maxBytes: Int, timeout: TimeInterval, completionHandler: @escaping (Data?, Bool, Error?) -> Void) { NSUnimplemented() }
     
     /* Write the data completely to the underlying socket.  If all the
      * bytes have not been written by the timeout, a timeout error will
      * occur.  Note that invocation of the completion handler does not
      * guarantee that the remote side has received all the bytes, only
      * that they have been written to the kernel. */
-    open func write(data: NSData, timeout: TimeInterval, completionHandler: (NSError?) -> Void) { NSUnimplemented() }
+    open func write(_ data: Data, timeout: TimeInterval, completionHandler: @escaping (Error?) -> Void) { NSUnimplemented() }
     
     /* -captureStreams completes any already enqueued reads
      * and writes, and then invokes the

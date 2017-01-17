@@ -40,9 +40,12 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     public var hashValue: Int {
         return name.rawValue.hash
     }
-    
+
     public var description: String {
-        return "name = \(name.rawValue),  object = \(object), userInfo = \(userInfo)"
+        var description = "name = \(name.rawValue)"
+        if let obj = object { description += ", object = \(obj)" }
+        if let info = userInfo { description += ", userInfo = \(info)" }
+        return description
     }
     
     public var debugDescription: String {
@@ -73,7 +76,17 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
 
 extension Notification : CustomReflectable {
     public var customMirror: Mirror {
-        NSUnimplemented()
+        var children: [(label: String?, value: Any)] = [(label: "name", self.name.rawValue)]
+
+        if let object = self.object {
+            children.append((label: "object", object))
+        }
+
+        if let info = self.userInfo {
+            children.append((label: "userInfo", info))
+        }
+
+        return Mirror(self, children: children, displayStyle: .class)
     }
 }
 

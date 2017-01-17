@@ -89,6 +89,8 @@ class TestNSData: XCTestCase {
             ("test_replaceBytes", test_replaceBytes),
             ("test_initDataWithCapacity", test_initDataWithCapacity),
             ("test_initDataWithCount", test_initDataWithCount),
+            ("test_emptyStringToData", test_emptyStringToData),
+            ("test_repeatingValueInitialization", test_repeatingValueInitialization),
         ]
     }
     
@@ -437,6 +439,11 @@ class TestNSData: XCTestCase {
             XCTFail("Byte at index: \(index) is not zero: \(data[index])")
             return
         }
+    }
+
+    func test_emptyStringToData() {
+        let data = "".data(using: .utf8)!
+        XCTAssertEqual(0, data.count, "data from empty string is empty")
     }
 }
 
@@ -1025,6 +1032,20 @@ extension TestNSData {
             let byteCount = data.copyBytes(to: buffer)
             XCTAssertEqual(6 * MemoryLayout<MyStruct>.stride, byteCount)
         }
+    }
+
+    func test_repeatingValueInitialization() {
+        var d = Data(repeating: 0x01, count: 3)
+        let elements = repeatElement(UInt8(0x02), count: 3) // ensure we fall into the sequence case
+        d.append(contentsOf: elements)
+
+        XCTAssertEqual(d[0], 0x01)
+        XCTAssertEqual(d[1], 0x01)
+        XCTAssertEqual(d[2], 0x01)
+
+        XCTAssertEqual(d[3], 0x02)
+        XCTAssertEqual(d[4], 0x02)
+        XCTAssertEqual(d[5], 0x02)
     }
 }
 

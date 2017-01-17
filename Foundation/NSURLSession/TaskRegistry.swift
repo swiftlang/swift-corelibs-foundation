@@ -17,7 +17,7 @@
 // -----------------------------------------------------------------------------
 
 import CoreFoundation
-
+import Dispatch
 
 extension URLSession {
     /// This helper class keeps track of all tasks, and their behaviours.
@@ -45,6 +45,7 @@ extension URLSession {
         
         fileprivate var tasks: [Int: URLSessionTask] = [:]
         fileprivate var behaviours: [Int: _Behaviour] = [:]
+        fileprivate var tasksFinishedCallback: (() -> Void)?
     }
 }
 
@@ -79,6 +80,19 @@ extension URLSession._TaskRegistry {
             fatalError("Trying to remove task's behaviour, but it's not in the registry.")
         }
         behaviours.remove(at: behaviourIdx)
+
+        guard let allTasksFinished = tasksFinishedCallback else { return }
+        if self.isEmpty {
+            allTasksFinished()
+        }
+    }
+
+    func notify(on tasksCompetion: @escaping () -> Void) {
+        tasksFinishedCallback = tasksCompetion
+    }
+
+    var isEmpty: Bool {
+        return tasks.count == 0
     }
 }
 extension URLSession._TaskRegistry {

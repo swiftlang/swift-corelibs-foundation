@@ -13,7 +13,7 @@
     import Foundation
     import XCTest
 #else
-    @testable import SwiftFoundation
+    import SwiftFoundation
     import SwiftXCTest
 #endif
 
@@ -161,7 +161,7 @@ class TestNSXMLDocument : XCTestCase {
         element.insertChildren([foo, bar], at: 1)
         XCTAssertEqual(element.children?[1], foo)
         XCTAssertEqual(element.children?[2], bar)
-        XCTAssertEqual(element.children?[0], baz, "\(element.children?[0])")
+        XCTAssertEqual(element.children?[0], baz)
 
         let faz = XMLElement(name: "faz")
         element.replaceChild(at: 2, with: faz)
@@ -239,7 +239,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(element.attributes?.last, bazAttribute)
 
         element.setAttributesWith(["hello": "world", "foobar": "buzbaz"])
-        XCTAssertEqual(element.attribute(forName:"hello")?.stringValue, "world", "\(element.attribute(forName:"hello")?.stringValue)")
+        XCTAssertEqual(element.attribute(forName:"hello")?.stringValue, "world", "\(element.attribute(forName:"hello")?.stringValue as Optional)")
         XCTAssertEqual(element.attribute(forName:"foobar")?.stringValue, "buzbaz", "\(element.attributes ?? [])")
     }
 
@@ -318,7 +318,7 @@ class TestNSXMLDocument : XCTestCase {
             XCTFail("Should have thrown")
         } catch let nsError as NSError {
             XCTAssert(nsError.code == XMLParser.ErrorCode.internalError.rawValue)
-            XCTAssert(nsError.domain == XMLParser.ErrorDomain)
+            XCTAssert(nsError.domain == XMLParser.errorDomain)
             XCTAssert((nsError.userInfo[NSLocalizedDescriptionKey] as! String).contains("Element img was declared EMPTY this one has content"))
         }
 

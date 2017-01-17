@@ -101,10 +101,10 @@ extension NSString {
     }
 }
 
-internal func _createRegexForPattern(_ pattern: String, _ options: RegularExpression.Options) -> RegularExpression? {
+internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpression.Options) -> NSRegularExpression? {
     struct local {
-        static let __NSRegularExpressionCache: NSCache<NSString, RegularExpression> = {
-            let cache = NSCache<NSString, RegularExpression>()
+        static let __NSRegularExpressionCache: NSCache<NSString, NSRegularExpression> = {
+            let cache = NSCache<NSString, NSRegularExpression>()
             cache.name = "NSRegularExpressionCache"
             cache.countLimit = 10
             return cache
@@ -115,7 +115,7 @@ internal func _createRegexForPattern(_ pattern: String, _ options: RegularExpres
         return regex
     }
     do {
-        let regex = try RegularExpression(pattern: pattern, options: options)
+        let regex = try NSRegularExpression(pattern: pattern, options: options)
         local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
         return regex
     } catch {
@@ -274,7 +274,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         self.init(string: CFStringCreateWithCString(kCFAllocatorSystemDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding))._swiftObject)
     }
     
-    internal var _fastCStringContents: UnsafePointer<Int8>? {
+    internal func _fastCStringContents(_ nullTerminated: Bool) -> UnsafePointer<Int8>? {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._core.isASCII {
                 return unsafeBitCast(_storage._core.startASCII, to: UnsafePointer<Int8>.self)
@@ -487,7 +487,7 @@ extension NSString {
     
     internal func _rangeOfRegularExpressionPattern(regex pattern: String, options mask: CompareOptions, range searchRange: NSRange, locale: Locale?) -> NSRange {
         var matchedRange = NSMakeRange(NSNotFound, 0)
-        let regexOptions: RegularExpression.Options = mask.contains(.caseInsensitive) ? .caseInsensitive : []
+        let regexOptions: NSRegularExpression.Options = mask.contains(.caseInsensitive) ? .caseInsensitive : []
         let matchingOptions: NSMatchingOptions = mask.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             matchedRange = regex.rangeOfFirstMatch(in: _swiftObject, options: matchingOptions, range: searchRange)
@@ -817,7 +817,7 @@ extension NSString {
 
             return data
         }
-        return nil
+        return Data()
     }
     
     public func data(using encoding: UInt) -> Data? {
@@ -1008,8 +1008,10 @@ extension NSString {
     open func trimmingCharacters(in set: CharacterSet) -> String {
         let len = length
         var buf = _NSStringBuffer(string: self, start: 0, end: len)
-        while !buf.isAtEnd && set.contains(UnicodeScalar(buf.currentCharacter)!) {
-            buf.advance()
+        while !buf.isAtEnd,
+            let character = UnicodeScalar(buf.currentCharacter),
+            set.contains(character) {
+                buf.advance()
         }
         
         let startOfNonTrimmedRange = buf.location // This points at the first char not in the set
@@ -1018,8 +1020,10 @@ extension NSString {
             return ""
         } else if startOfNonTrimmedRange < len - 1 {
             buf.location = len - 1
-            while set.contains(UnicodeScalar(buf.currentCharacter)!) && buf.location >= startOfNonTrimmedRange {
-                buf.rewind()
+            while let character = UnicodeScalar(buf.currentCharacter),
+                set.contains(character),
+                buf.location >= startOfNonTrimmedRange {
+                    buf.rewind()
             }
             let endOfNonTrimmedRange = buf.location
             return substring(with: NSMakeRange(startOfNonTrimmedRange, endOfNonTrimmedRange + 1 - startOfNonTrimmedRange))
@@ -1054,7 +1058,7 @@ extension NSString {
     }
     
     internal func _stringByReplacingOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: CompareOptions, range: NSRange) -> String {
-        let regexOptions: RegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
+        let regexOptions: NSRegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
         let matchingOptions: NSMatchingOptions = options.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             return regex.stringByReplacingMatches(in: _swiftObject, options: matchingOptions, range: range, withTemplate: replacement)
@@ -1179,15 +1183,19 @@ extension NSString {
     }
     
     public convenience init?(data: Data, encoding: UInt) {
+        if data.count == 0 {
+            self.init("")
+        } else {
         guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
             return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
         }) else { return nil }
         
-        var str: String?
-        if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
-            self.init(str!)
-        } else {
-            return nil
+            var str: String?
+            if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
+                self.init(str!)
+            } else {
+                return nil
+            }
         }
     }
     
@@ -1264,10 +1272,9 @@ open class NSMutableString : NSString {
             NSRequiresConcreteImplementation()
         }
 
-        // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
-        let start = _storage.startIndex
-        let min = _storage.index(start, offsetBy: range.location)
-        let max = _storage.index(start, offsetBy: range.location + range.length)
+        let start = _storage.utf16.startIndex
+        let min = _storage.utf16.index(start, offsetBy: range.location).samePosition(in: _storage)!
+        let max = _storage.utf16.index(start, offsetBy: range.location + range.length).samePosition(in: _storage)!
         _storage.replaceSubrange(min..<max, with: aString)
     }
     
@@ -1341,7 +1348,7 @@ extension NSMutableString {
     }
     
     internal func _replaceOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: CompareOptions, range searchRange: NSRange) -> Int {
-        let regexOptions: RegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
+        let regexOptions: NSRegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
         let matchingOptions: NSMatchingOptions = options.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             return regex.replaceMatches(in: self, options: matchingOptions, range: searchRange, withTemplate: replacement)

@@ -19,13 +19,28 @@ class TestNSLocale : XCTestCase {
     static var allTests: [(String, (TestNSLocale) -> () throws -> Void)] {
         return [
             ("test_constants", test_constants),
+            ("test_Identifier", test_Identifier),
             ("test_copy", test_copy)
         ]
     }
+
+    func test_Identifier() {
+        // Current locale identifier should not be empty
+        // Or things like NSNumberFormatter spellOut style won't work
+        XCTAssertFalse(Locale.current.identifier.isEmpty)
+
+        let enUSID = "en_US"
+        let locale = Locale(identifier: enUSID)
+        XCTAssertEqual(enUSID, locale.identifier)
+
+        let deDEID = "de_DE"
+        let germanLocale = Locale(identifier: deDEID)
+        XCTAssertEqual(deDEID, germanLocale.identifier)
+    }
     
     func test_constants() {
-        XCTAssertEqual(NSCurrentLocaleDidChangeNotification, "kCFLocaleCurrentLocaleDidChangeNotification",
-                        "\(NSCurrentLocaleDidChangeNotification) is not equal to kCFLocaleCurrentLocaleDidChangeNotification")
+        XCTAssertEqual(NSLocale.currentLocaleDidChangeNotification.rawValue, "kCFLocaleCurrentLocaleDidChangeNotification",
+                        "\(NSLocale.currentLocaleDidChangeNotification.rawValue) is not equal to kCFLocaleCurrentLocaleDidChangeNotification")
         
         XCTAssertEqual(NSLocale.Key.identifier.rawValue, "kCFLocaleIdentifierKey",
                         "\(NSLocale.Key.identifier.rawValue) is not equal to kCFLocaleIdentifierKey")

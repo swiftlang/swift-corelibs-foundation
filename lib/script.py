@@ -199,7 +199,7 @@ rule Assemble
 
         link_command = """
 rule Link
-    command = mkdir -p `dirname $out`; ${CLANG} ${TARGET_LDFLAGS} $flags ${VERBOSE_FLAGS} $start $in $end -o $out""" 
+    command = mkdir -p `dirname $out`; ${CLANG} ${TARGET_LDFLAGS} ${VERBOSE_FLAGS} $start $in $end $flags -o $out""" 
         if Configuration.current.verbose:
             link_command += "-Xlinker --verbose"
         link_command += """

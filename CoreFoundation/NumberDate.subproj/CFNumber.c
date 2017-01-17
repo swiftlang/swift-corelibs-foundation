@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFNumber.c
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Ali Ozer
 */
 
@@ -76,7 +71,7 @@ static const CFRuntimeClass __CFBooleanClass = {
 };
 
 CFTypeID CFBooleanGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
         __kCFBooleanTypeID = _CFRuntimeRegisterClass(&__CFBooleanClass); // initOnce covered
         _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFBooleanTrue, __kCFBooleanTypeID);
@@ -127,7 +122,7 @@ static CFComparisonResult CFNumberCompare_old(struct __CFNumber_old * number1, s
 
 
 #define __CFAssertIsNumber(cf) __CFGenericValidateType(cf, CFNumberGetTypeID())
-#define __CFAssertIsValidNumberType(type) CFAssert((0 < type && type <= kCFNumberMaxType) || (type == kCFNumberSInt128Type), __kCFLogAssertion, "%s(): bad CFNumber type %d", __PRETTY_FUNCTION__, type);
+#define __CFAssertIsValidNumberType(type) CFAssert2((0 < type && type <= kCFNumberMaxType) || (type == kCFNumberSInt128Type), __kCFLogAssertion, "%s(): bad CFNumber type %ld", __PRETTY_FUNCTION__, type);
 
 /* The IEEE bit patterns... Also have:
 0x7f800000		float +Inf
@@ -1040,45 +1035,49 @@ static const CFRuntimeClass __CFNumberClass = {
 };
 
 
+CF_PRIVATE void __CFNumberInitialize(void) {
+    _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFNumberNaN, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberNaN._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberNaN._pad = BITSFORDOUBLENAN;
+    
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberNegativeInfinity, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberNegativeInfinity._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberNegativeInfinity._pad = BITSFORDOUBLENEGINF;
+    
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberPositiveInfinity, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberPositiveInfinity._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberPositiveInfinity._pad = BITSFORDOUBLEPOSINF;
+    
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32Zero, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberFloat32Zero._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat32Type);
+    __kCFNumberFloat32Zero._pad = BITSFORFLOATZERO;
+    
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32One, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberFloat32One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat32Type);
+    __kCFNumberFloat32One._pad = BITSFORFLOATONE;
+    
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64Zero, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberFloat64Zero._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberFloat64Zero._pad = BITSFORDOUBLEZERO;
+    
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64One, __kCFNumberTypeID);
+    __CFBitfieldSetValue(__kCFNumberFloat64One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
+    __kCFNumberFloat64One._pad = BITSFORDOUBLEONE;
+}
+
 CFTypeID CFNumberGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
         __kCFNumberTypeID = _CFRuntimeRegisterClass(&__CFNumberClass); // initOnce covered
+#if !DEPLOYMENT_RUNTIME_SWIFT
+        __CFNumberInitialize();
+#endif
+        
 
         const char *caching = __CFgetenv("CFNumberDisableCache");	// "all" to disable caching and tagging; anything else to disable caching; nothing to leave both enabled
         if (caching) __CFNumberCaching = (!strcmp(caching, "all")) ? kCFNumberCachingFullyDisabled : kCFNumberCachingDisabled;	// initial state above is kCFNumberCachingEnabled
     });
     return __kCFNumberTypeID;
-}
-
-CF_PRIVATE void __CFNumberInitialize(void) {
-    _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFNumberNaN, __kCFNumberTypeID);
-    __CFBitfieldSetValue(__kCFNumberNaN._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-    __kCFNumberNaN._pad = BITSFORDOUBLENAN;
-
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberNegativeInfinity, __kCFNumberTypeID);
-    __CFBitfieldSetValue(__kCFNumberNegativeInfinity._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-    __kCFNumberNegativeInfinity._pad = BITSFORDOUBLENEGINF;
-
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberPositiveInfinity, __kCFNumberTypeID);
-    __CFBitfieldSetValue(__kCFNumberPositiveInfinity._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-    __kCFNumberPositiveInfinity._pad = BITSFORDOUBLEPOSINF;
-
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32Zero, __kCFNumberTypeID);
-    __CFBitfieldSetValue(__kCFNumberFloat32Zero._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat32Type);
-    __kCFNumberFloat32Zero._pad = BITSFORFLOATZERO;
-
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32One, __kCFNumberTypeID);
-    __CFBitfieldSetValue(__kCFNumberFloat32One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat32Type);
-    __kCFNumberFloat32One._pad = BITSFORFLOATONE;
-
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64Zero, __kCFNumberTypeID);
-    __CFBitfieldSetValue(__kCFNumberFloat64Zero._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-    __kCFNumberFloat64Zero._pad = BITSFORDOUBLEZERO;
-
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64One, __kCFNumberTypeID);
-    __CFBitfieldSetValue(__kCFNumberFloat64One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
-    __kCFNumberFloat64One._pad = BITSFORDOUBLEONE;
 }
 
 #define MinCachedInt (-1)
@@ -1103,58 +1102,57 @@ static inline void _CFNumberInit(CFNumberRef result, CFNumberType type, const vo
     __CFBitfieldSetValue(((struct __CFNumber *)result)->_base._cfinfo[CF_INFO_BITS], 4, 0, (uint8_t)__CFNumberTypeTable[type].canonicalType);
 }
 
-CF_EXPORT void _CFNumberInitBool(CFNumberRef result, Boolean value) {
+void _CFNumberInitBool(CFNumberRef result, Boolean value) {
     _CFNumberInit(result, kCFNumberCharType, &value);
 }
 
-CF_EXPORT void _CFNumberInitInt8(CFNumberRef result, int8_t value) {
-   _CFNumberInit(result, kCFNumberCharType, &value);
-}
-
-CF_EXPORT void _CFNumberInitUInt8(CFNumberRef result, uint8_t value) {
+void _CFNumberInitInt8(CFNumberRef result, int8_t value) {
     _CFNumberInit(result, kCFNumberCharType, &value);
 }
 
-CF_EXPORT void _CFNumberInitInt16(CFNumberRef result, int16_t value) {
+void _CFNumberInitUInt8(CFNumberRef result, uint8_t value) {
+    _CFNumberInit(result, kCFNumberCharType, &value);
+}
+
+void _CFNumberInitInt16(CFNumberRef result, int16_t value) {
     _CFNumberInit(result, kCFNumberShortType, &value);
 }
 
-CF_EXPORT void _CFNumberInitUInt16(CFNumberRef result, uint16_t value) {
+void _CFNumberInitUInt16(CFNumberRef result, uint16_t value) {
     _CFNumberInit(result, kCFNumberShortType, &value);
 }
 
-CF_EXPORT void _CFNumberInitInt32(CFNumberRef result, int32_t value) {
+void _CFNumberInitInt32(CFNumberRef result, int32_t value) {
     _CFNumberInit(result, kCFNumberIntType, &value);
 }
 
-CF_EXPORT void _CFNumberInitUInt32(CFNumberRef result, uint32_t value) {
+void _CFNumberInitUInt32(CFNumberRef result, uint32_t value) {
     _CFNumberInit(result, kCFNumberIntType, &value);
 }
 
-CF_EXPORT void _CFNumberInitInt(CFNumberRef result, long value) {
+void _CFNumberInitInt(CFNumberRef result, long value) {
     _CFNumberInit(result, kCFNumberLongType, &value);
 }
 
-CF_EXPORT void _CFNumberInitUInt(CFNumberRef result, unsigned long value) {
+void _CFNumberInitUInt(CFNumberRef result, unsigned long value) {
     _CFNumberInit(result, kCFNumberLongType, &value);
 }
 
-CF_EXPORT void _CFNumberInitInt64(CFNumberRef result, int64_t value) {
+void _CFNumberInitInt64(CFNumberRef result, int64_t value) {
     _CFNumberInit(result, kCFNumberLongLongType, &value);
 }
 
-CF_EXPORT void _CFNumberInitUInt64(CFNumberRef result, uint64_t value) {
+void _CFNumberInitUInt64(CFNumberRef result, uint64_t value) {
     _CFNumberInit(result, kCFNumberLongLongType, &value);
 }
 
-CF_EXPORT void _CFNumberInitFloat(CFNumberRef result, float value) {
+void _CFNumberInitFloat(CFNumberRef result, float value) {
     _CFNumberInit(result, kCFNumberFloatType, &value);
 }
 
-CF_EXPORT void _CFNumberInitDouble(CFNumberRef result, double value) {
+void _CFNumberInitDouble(CFNumberRef result, double value) {
     _CFNumberInit(result, kCFNumberDoubleType, &value);
 }
-
 
 CFNumberRef CFNumberCreate(CFAllocatorRef allocator, CFNumberType type, const void *valuePtr) {
     __CFAssertIsValidNumberType(type);
@@ -1202,7 +1200,7 @@ CFNumberRef CFNumberCreate(CFAllocatorRef allocator, CFNumberType type, const vo
 	}
     }
 
-    CFIndex size = (sizeof(struct __CFNumber) - sizeof(CFRuntimeBase)) + ((!__CFNumberTypeTable[type].floatBit && __CFNumberTypeTable[type].storageBit) ? 8 : 0);
+    CFIndex size = 8 + ((!__CFNumberTypeTable[type].floatBit && __CFNumberTypeTable[type].storageBit) ? 8 : 0);
 #if OLD_CRAP_TOO
     size += 2 * sizeof(void *);
 #endif
@@ -1239,6 +1237,17 @@ CFLog(kCFLogLevelWarning, CFSTR("+++ Create old number '%@'"), __CFNumberCopyDes
 	return result;
     }
 
+    uint64_t value;
+    switch (__CFNumberTypeTable[type].canonicalType) {
+    case kCFNumberSInt8Type:   value = (uint64_t)(int64_t)*(int8_t *)valuePtr; goto smallVal;
+    case kCFNumberSInt16Type:  value = (uint64_t)(int64_t)*(int16_t *)valuePtr; goto smallVal;
+    case kCFNumberSInt32Type:  value = (uint64_t)(int64_t)*(int32_t *)valuePtr; goto smallVal;
+			smallVal: memmove((void *)&result->_pad, &value, 8); break;
+    case kCFNumberSInt64Type:  memmove((void *)&result->_pad, valuePtr, 8); break;
+    case kCFNumberSInt128Type: memmove((void *)&result->_pad, valuePtr, 16); break;
+    case kCFNumberFloat32Type: memmove((void *)&result->_pad, valuePtr, 4); break;
+    case kCFNumberFloat64Type: memmove((void *)&result->_pad, valuePtr, 8); break;
+    }
     _CFNumberInit(result, type, valuePtr);
 //printf("  => %p\n", result);
     return result;

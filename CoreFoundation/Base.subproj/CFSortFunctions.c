@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFSortFunctions.c
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Christopher Kane
 */
 
@@ -17,9 +12,47 @@
 #include "CFInternal.h"
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED) && __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
 #endif
+#endif
+#include "CFLogUtilities.h"
+#include "CFInternal.h"
+
+#if __has_include(<checkint.h>)
+#include <checkint.h>
+#else
+enum {
+    CHECKINT_NO_ERROR = 0,
+    CHECKINT_OVERFLOW_ERROR = (1 << 0),
+    CHECKINT_TYPE_ERROR = (1 << 1)
+};
+
+#define __check_int32_add(x, y, err)            (x + y)
+#define __check_uint32_add(x, y, err)           (x + y)
+#define __check_int64_add(x, y, err)            (x + y)
+#define __check_uint64_add(x, y, err)           (x + y)
+
+#define __check_int32_sub(x, y, err)            (x - y)
+#define __check_uint32_sub(x, y, err)           (x - y)
+#define __check_int64_sub(x, y, err)            (x - y)
+#define __check_uint64_sub(x, y, err)           (x - y)
+
+#define __check_int32_mul(x, y, err)            (x * y)
+#define __check_uint32_mul(x, y, err)           (x * y)
+#define __check_int64_mul(x, y, err)            (x * y)
+#define __check_uint64_mul(x, y, err)           (x * y)
+
+#define __check_int32_div(x, y, err)            (x / y)
+#define __check_uint32_div(x, y, err)           (x / y)
+#define __check_int64_div(x, y, err)            (x / y)
+#define __check_uint64_div(x, y, err)           (x / y)
+
+#define __checkint_int64_mul(x, y, err)         __check_int64_mul(x, y, err)
+#define __checkint_int32_mul(x, y, err)         __check_int32_mul(x, y, err)
+#define __checkint_uint64_add(x, y, err)        __check_uint64_add(x, y, err)
+#define __checkint_uint32_add(x, y, err)        __check_uint32_add(x, y, err)
+
 #endif
 
 enum {
@@ -121,7 +154,6 @@ static void __CFSimpleMergeSort(VALUE_TYPE listp[], INDEX_TYPE cnt, VALUE_TYPE t
 }
 
 #if __HAS_DISPATCH__
-// Excluded from linux for dispatch dependency
 
 // if !right, put the cnt1 smallest values in tmp, else put the cnt2 largest values in tmp
 static void __CFSortIndexesNMerge(VALUE_TYPE listp1[], INDEX_TYPE cnt1, VALUE_TYPE listp2[], INDEX_TYPE cnt2, VALUE_TYPE tmp[], size_t right, COMPARATOR_BLOCK cmp) {
@@ -284,14 +316,76 @@ void CFSortIndexes(CFIndex *indexBuffer, CFIndex count, CFOptionFlags opts, CFCo
     if (local != tmp) free(tmp);
 }
 
+typedef CF_ENUM(uint8_t, _CFOverflowResult) {
+    _CFOverflowResultOK = 0,
+    _CFOverflowResultNegativeParameters,
+    _CFOverflowResultOverflows,
+};
+
+// Overflow utilities for positive integers
+CF_INLINE _CFOverflowResult _CFIntegerProductWouldOverflow(CFIndex si_a, CFIndex si_b) {
+    _CFOverflowResult result = _CFOverflowResultOK;
+    if (si_a < 0 || si_b < 0) {
+        // we explicitly only implement a subset of the overflow checking, so report failure if out of domain
+        result = _CFOverflowResultNegativeParameters;
+    } else {
+        int32_t err = CHECKINT_NO_ERROR;
+#if __LP64__
+        __checkint_int64_mul(si_a, si_b, &err);
+#else
+        __checkint_int32_mul(si_a, si_b, &err);
+#endif
+        if (err != CHECKINT_NO_ERROR) {
+            result = _CFOverflowResultOverflows;
+        }
+    }
+    return result;
+}
+CF_INLINE _CFOverflowResult _CFPointerSumWouldOverflow(void *p, size_t n) {
+    _CFOverflowResult result = _CFOverflowResultOK;
+    int32_t err = CHECKINT_NO_ERROR;
+#if __LP64__
+    __checkint_uint64_add((uint64_t)p, (uint64_t)n, &err);
+#else
+    __checkint_uint32_add((uint32_t)p, (uint32_t)n, &err);
+#endif
+    if (err != CHECKINT_NO_ERROR) {
+        result = _CFOverflowResultOverflows;
+    }
+    return result;
+}
+
 /* Comparator is passed the address of the values. */
 void CFQSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparatorFunction comparator, void *context) {
     if (count < 2 || elementSize < 1) return;
+    _CFOverflowResult overflowResult = _CFIntegerProductWouldOverflow(count, elementSize);
+    if (overflowResult != _CFOverflowResultOK) {
+        CFLog(kCFLogLevelError, CFSTR("Unable to qsort array - count: %ld elementSize: %ld product overflows"), (long)count, (long)elementSize);
+        CRSetCrashLogMessage("qsort - count/elementSize overflow");
+        HALT;
+    }
+    overflowResult = _CFPointerSumWouldOverflow(list, count * elementSize);
+    if (overflowResult != _CFOverflowResultOK) {
+        CFLog(kCFLogLevelError, CFSTR("Unable to qsort array - list: %lu count: %ld elementSize: %ld - array access overflows"), (unsigned long)list, (long)count, (long)elementSize);
+        CRSetCrashLogMessage("qsort - array access overflow");
+        HALT;
+    }
     STACK_BUFFER_DECL(CFIndex, locali, count <= 4096 ? count : 1);
     CFIndex *indexes = (count <= 4096) ? locali : (CFIndex *)malloc(count * sizeof(CFIndex));
+    if (indexes == NULL) {
+        CFLog(kCFLogLevelError, CFSTR("unable to qsort array - malloc failed"));
+        CRSetCrashLogMessage("qsort - malloc failed");
+        HALT;
+    }
     CFSortIndexes(indexes, count, 0, ^(CFIndex a, CFIndex b) { return comparator((char *)list + a * elementSize, (char *)list + b * elementSize, context); });
     STACK_BUFFER_DECL(uint8_t, locals, count <= (16 * 1024 / elementSize) ? count * elementSize : 1);
     void *store = (count <= (16 * 1024 / elementSize)) ? locals : malloc(count * elementSize);
+    overflowResult = _CFPointerSumWouldOverflow(store, count * elementSize);
+    if (overflowResult != _CFOverflowResultOK) {
+        CFLog(kCFLogLevelError, CFSTR("Unable to qsort array - list: %lu count: %ld elementSize: %ld array - store overflows"), (unsigned long)list, (long)count, (long)elementSize);
+        CRSetCrashLogMessage("qsort - array storage overflow");
+        HALT;
+    }
     for (CFIndex idx = 0; idx < count; idx++) {
         if (sizeof(uintptr_t) == elementSize) {
             uintptr_t *a = (uintptr_t *)list + indexes[idx];
@@ -302,7 +396,7 @@ void CFQSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparatorFu
         }
     }
     // no swapping or modification of the original list has occurred until this point
-    objc_memmove_collectable(list, store, count * elementSize);
+    memmove(list, store, count * elementSize);
     if (locals != store) free(store);
     if (locali != indexes) free(indexes);
 }
@@ -310,11 +404,34 @@ void CFQSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparatorFu
 /* Comparator is passed the address of the values. */
 void CFMergeSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparatorFunction comparator, void *context) {
     if (count < 2 || elementSize < 1) return;
+    _CFOverflowResult overflowResult = _CFIntegerProductWouldOverflow(count, elementSize);
+    if (overflowResult != _CFOverflowResultOK) {
+        CFLog(kCFLogLevelError, CFSTR("Unable to mergesort array - count: %ld elementSize: %ld overflows"), (long)count, (long)elementSize);
+        CRSetCrashLogMessage("merge sort - count/elementSize overflow");
+        HALT;
+    }
+    overflowResult = _CFPointerSumWouldOverflow(list, count * elementSize);
+    if (overflowResult != _CFOverflowResultOK) {
+        CFLog(kCFLogLevelError, CFSTR("Unable to mergesort array - list: %lu count: %ld elementSize: %ld - array access overflows"), (unsigned long)list, (long)count, (long)elementSize);
+        CRSetCrashLogMessage("merge sort - array access overflow");
+        HALT;
+    }
     STACK_BUFFER_DECL(CFIndex, locali, count <= 4096 ? count : 1);
     CFIndex *indexes = (count <= 4096) ? locali : (CFIndex *)malloc(count * sizeof(CFIndex));
+    if (indexes == NULL) {
+        CFLog(kCFLogLevelError, CFSTR("unable to mergesort array - malloc failed"));
+        CRSetCrashLogMessage("merge sort - malloc failure");
+        HALT;
+    }
     CFSortIndexes(indexes, count, kCFSortStable, ^(CFIndex a, CFIndex b) { return comparator((char *)list + a * elementSize, (char *)list + b * elementSize, context); });
     STACK_BUFFER_DECL(uint8_t, locals, count <= (16 * 1024 / elementSize) ? count * elementSize : 1);
     void *store = (count <= (16 * 1024 / elementSize)) ? locals : malloc(count * elementSize);
+    overflowResult = _CFPointerSumWouldOverflow(store, count * elementSize);
+    if (overflowResult != _CFOverflowResultOK) {
+        CFLog(kCFLogLevelError, CFSTR("Unable to mergesort array - list: %lu count: %ld elementSize: %ld - array store overflows"), (unsigned long)list, (long)count, (long)elementSize);
+        CRSetCrashLogMessage("merge sort - overflow array storage");
+        HALT;
+    }
     for (CFIndex idx = 0; idx < count; idx++) {
         if (sizeof(uintptr_t) == elementSize) {
             uintptr_t *a = (uintptr_t *)list + indexes[idx];
@@ -325,7 +442,7 @@ void CFMergeSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparat
         }
     }
     // no swapping or modification of the original list has occurred until this point
-    objc_memmove_collectable(list, store, count * elementSize);
+    memmove(list, store, count * elementSize);
     if (locals != store) free(store);
     if (locali != indexes) free(indexes);
 }

@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFLocaleKeys.c
-	Copyright (c) 2008 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Christopher Kane
 */
 
@@ -33,6 +28,9 @@ CONST_STRING_DECL(kCFLocaleGroupingSeparatorKey, "kCFLocaleGroupingSeparatorKey"
 CONST_STRING_DECL(kCFLocaleIdentifierKey, "kCFLocaleIdentifierKey");
 CONST_STRING_DECL(kCFLocaleLanguageCodeKey, "kCFLocaleLanguageCodeKey");
 CONST_STRING_DECL(kCFLocaleMeasurementSystemKey, "kCFLocaleMeasurementSystemKey");
+CONST_STRING_DECL(kCFLocaleTemperatureUnitKey, "kCFLocaleTemperatureUnitKey");
+CONST_STRING_DECL(kCFLocaleTemperatureUnitCelsius, "Celsius");
+CONST_STRING_DECL(kCFLocaleTemperatureUnitFahrenheit, "Fahrenheit");
 CONST_STRING_DECL(kCFLocaleScriptCodeKey, "kCFLocaleScriptCodeKey");
 CONST_STRING_DECL(kCFLocaleUsesMetricSystemKey, "kCFLocaleUsesMetricSystemKey");
 CONST_STRING_DECL(kCFLocaleVariantCodeKey, "kCFLocaleVariantCodeKey");
@@ -126,7 +124,7 @@ CONST_STRING_DECL(kCFCalendarIdentifierChinese, "chinese");
 CONST_STRING_DECL(kCFCalendarIdentifierRepublicOfChina, "roc");
 CONST_STRING_DECL(kCFCalendarIdentifierPersian, "persian");
 CONST_STRING_DECL(kCFCalendarIdentifierIndian, "indian");
-CONST_STRING_DECL(kCFCalendarIdentifierISO8601, "");
+CONST_STRING_DECL(kCFCalendarIdentifierISO8601, "iso8601");
 CONST_STRING_DECL(kCFCalendarIdentifierCoptic, "coptic");
 CONST_STRING_DECL(kCFCalendarIdentifierEthiopicAmeteMihret, "ethiopic");
 CONST_STRING_DECL(kCFCalendarIdentifierEthiopicAmeteAlem, "ethiopic-amete-alem");
@@ -162,6 +160,7 @@ CF_EXPORT CFStringRef const kCFLocaleGroupingSeparator __attribute__((alias ("kC
 CF_EXPORT CFStringRef const kCFLocaleIdentifier __attribute__((alias ("kCFLocaleIdentifierKey")));
 CF_EXPORT CFStringRef const kCFLocaleLanguageCode __attribute__((alias ("kCFLocaleLanguageCodeKey")));
 CF_EXPORT CFStringRef const kCFLocaleMeasurementSystem __attribute__((alias ("kCFLocaleMeasurementSystemKey")));
+CF_EXPORT CFStringRef const kCFLocaleTemperatureUnit __attribute__((alias ("kCFLocaleTemperatureUnitKey")));
 CF_EXPORT CFStringRef const kCFLocaleScriptCode __attribute__((alias ("kCFLocaleScriptCodeKey")));
 CF_EXPORT CFStringRef const kCFLocaleUsesMetricSystem __attribute__((alias ("kCFLocaleUsesMetricSystemKey")));
 CF_EXPORT CFStringRef const kCFLocaleVariantCode __attribute__((alias ("kCFLocaleVariantCodeKey")));

@@ -27,7 +27,8 @@ class TestNSDateFormatter: XCTestCase {
             ("test_dateStyleMedium",   test_dateStyleMedium),
             ("test_dateStyleLong",     test_dateStyleLong),
             ("test_dateStyleFull",     test_dateStyleFull),
-            ("test_customDateFormat", test_customDateFormat)
+            ("test_customDateFormat", test_customDateFormat),
+            ("test_setLocalizedDateFormatFromTemplate", test_setLocalizedDateFormatFromTemplate),
         ]
     }
     
@@ -277,5 +278,17 @@ class TestNSDateFormatter: XCTestCase {
         XCTAssertEqual(f.string(from: testDate), "11-03-2016")
         
     }
-    
+
+    func test_setLocalizedDateFormatFromTemplate() {
+        let locale = Locale(identifier: DEFAULT_LOCALE)
+        let template = "EEEE MMMM d y hhmmss a zzzz"
+
+        let f = DateFormatter()
+        f.locale = locale
+        f.setLocalizedDateFormatFromTemplate(template)
+
+        let dateFormat = DateFormatter.dateFormat(fromTemplate: template, options: 0, locale: locale)
+        XCTAssertEqual(f.dateFormat, dateFormat)
+    }
+
 }

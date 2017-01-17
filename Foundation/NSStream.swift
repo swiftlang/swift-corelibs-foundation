@@ -111,7 +111,7 @@ open class Stream: NSObject {
     }
     
     open var streamError: NSError? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
 }
 
@@ -158,6 +158,10 @@ open class InputStream: Stream {
     
     open override var streamStatus: Status {
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
+    }
+    
+    open override var streamError: NSError? {
+        return _CFReadStreamCopyError(_stream)?._nsObject
     }
 }
 
@@ -208,7 +212,7 @@ open class OutputStream : Stream {
         return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_stream)))!
     }
     
-    open class func outputStreamToMemory() -> Self {
+    open class func toMemory() -> Self {
         return self.init(toMemory: ())
     }
     
@@ -218,6 +222,10 @@ open class OutputStream : Stream {
     
     open  override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
         return CFWriteStreamSetProperty(_stream, key.rawValue._cfObject, property)
+    }
+    
+    open override var streamError: NSError? {
+        return _CFWriteStreamCopyError(_stream)?._nsObject
     }
 }
 
@@ -248,7 +256,8 @@ public protocol StreamDelegate : class {
 extension Stream.PropertyKey {
     public static let socketSecurityLevelKey = Stream.PropertyKey(rawValue: "kCFStreamPropertySocketSecurityLevel")
     public static let socksProxyConfigurationKey = Stream.PropertyKey(rawValue: "kCFStreamPropertySOCKSProxy")
-    public static let dataWrittenToMemoryStreamKey = Stream.PropertyKey(rawValue: "kCFStreamPropertyDataWritten")    public static let fileCurrentOffsetKey = Stream.PropertyKey(rawValue: "kCFStreamPropertyFileCurrentOffset")
+    public static let dataWrittenToMemoryStreamKey = Stream.PropertyKey(rawValue: "kCFStreamPropertyDataWritten")
+    public static let fileCurrentOffsetKey = Stream.PropertyKey(rawValue: "kCFStreamPropertyFileCurrentOffset")
     public static let networkServiceType = Stream.PropertyKey(rawValue: "kCFStreamNetworkServiceType")
 }
 

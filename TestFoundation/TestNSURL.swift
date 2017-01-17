@@ -61,7 +61,8 @@ class TestNSURL : XCTestCase {
             ("test_fileURLWithPath", test_fileURLWithPath),
             ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
             ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath),
-            ("test_copy", test_copy)
+            ("test_copy", test_copy),
+            ("test_itemNSCoding", test_itemNSCoding),
         ]
     }
     
@@ -102,8 +103,8 @@ class TestNSURL : XCTestCase {
         }
     }
     
-    internal func generateResults(_ url: URL, pathComponent: String?, pathExtension : String?) -> [String : String] {
-        var result = [String : String]()
+    internal func generateResults(_ url: URL, pathComponent: String?, pathExtension : String?) -> [String : Any] {
+        var result = [String : Any]()
         if let pathComponent = pathComponent {
             let newFileURL = url.appendingPathComponent(pathComponent, isDirectory: false)
             result["appendingPathComponent-File"] = newFileURL.relativeString
@@ -123,8 +124,8 @@ class TestNSURL : XCTestCase {
             result["absoluteURLString"] = url.absoluteURL.relativeString
             result["scheme"] = url.scheme ?? kNullString
             result["host"] = url.host ?? kNullString
-            // Temporarily disabled because we're only checking string results
-            // result["port"] = url.port ?? kNullString
+            
+            result["port"] = url.port ?? kNullString
             result["user"] = url.user ?? kNullString
             result["password"] = url.password ?? kNullString
             result["path"] = url.path
@@ -134,9 +135,8 @@ class TestNSURL : XCTestCase {
             result["isFileURL"] = url.isFileURL ? "YES" : "NO"
             result["standardizedURL"] = url.standardized.relativeString
             
-            // Temporarily disabled because we're only checking string results
-            // result["pathComponents"] = url.pathComponents ?? kNullString
-            result["lastPathComponent"] = url.lastPathComponent 
+            result["pathComponents"] = url.pathComponents 
+            result["lastPathComponent"] = url.lastPathComponent
             result["pathExtension"] = url.pathExtension
             result["deletingLastPathComponent"] = url.deletingLastPathComponent().relativeString
             result["deletingLastPathExtension"] = url.deletingPathExtension().relativeString
@@ -144,18 +144,39 @@ class TestNSURL : XCTestCase {
         return result
     }
 
-    internal func compareResults(_ url : URL, expected : [String : Any], got : [String : String]) -> (Bool, [String]) {
+    internal func compareResults(_ url : URL, expected : [String : Any], got : [String : Any]) -> (Bool, [String]) {
         var differences = [String]()
         for (key, obj) in expected {
             // Skip non-string expected results
             if ["port", "standardizedURL", "pathComponents"].contains(key) {
                 continue
             }
-            if let stringObj = obj as? String {
-                if stringObj != got[key] {
-                    differences.append(" \(key)  Expected = '\(stringObj)',  Got = '\(got[key])'")
+            if let expectedValue = obj as? String {
+                if let testedValue = got[key] as? String {
+                    if expectedValue != testedValue {
+                        differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(testedValue)'")
+                    }
+                } else {
+                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(got[key])'")
+                }
+            } else if let expectedValue = obj as? [String] {
+                if let testedValue = got[key] as? [String] {
+                    if expectedValue != testedValue {
+                        differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(testedValue)'")
+                    }
+                } else {
+                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(got[key])'")
+                }
+            } else if let expectedValue = obj as? Int {
+                if let testedValue = got[key] as? Int {
+                    if expectedValue != testedValue {
+                        differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(testedValue)'")
+                    }
+                } else {
+                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(got[key])'")
                 }
             }
+            
         }
         for (key, obj) in got {
             if expected[key] == nil {
@@ -179,9 +200,9 @@ class TestNSURL : XCTestCase {
             let inBase = testDict[kURLTestBaseKey] as! String?
             let inPathComponent = testDict[kURLTestPathComponentKey] as! String?
             let inPathExtension = testDict[kURLTestPathExtensionKey] as! String?
-            let expectedCFResults = testDict[kURLTestCFResultsKey]!
             let expectedNSResult = testDict[kURLTestNSResultsKey]!
             var url : URL? = nil
+            
             switch (testDict[kURLTestURLCreatorKey]! as! String) {
             case kNSURLWithStringCreator:
                 url = URLWithString(inURL, baseString: inBase)
@@ -191,18 +212,16 @@ class TestNSURL : XCTestCase {
             default:
                 XCTFail()
             }
-            
-            if let url = url {
-                if title == "NSURLWithString-parse-ambiguous-url-001" {
-                    // TODO: Fix this test
-                } else {
-                    let results = generateResults(url, pathComponent: inPathComponent, pathExtension: inPathExtension)
-                    let (isEqual, differences) = compareResults(url, expected: expectedNSResult as! [String: Any], got: results)
-                    XCTAssertTrue(isEqual, "\(title): \(differences)")
-                }
+            if title == "NSURLWithString-parse-ambiguous-url-001" {
+                // TODO: Fix this test
             } else {
-                XCTAssertEqual(expectedCFResults as? String, kNullURLString)
-                XCTAssertEqual(expectedNSResult as? String, kNullURLString)
+                if let url = url {
+                        let results = generateResults(url, pathComponent: inPathComponent, pathExtension: inPathExtension)
+                        let (isEqual, differences) = compareResults(url, expected: expectedNSResult as! [String: Any], got: results)
+                        XCTAssertTrue(isEqual, "\(title): \(differences.joined(separator: "\n"))")
+                } else {
+                    XCTAssertEqual(expectedNSResult as? String, kNullURLString)
+                }
             }
         }
         
@@ -352,7 +371,7 @@ class TestNSURL : XCTestCase {
     
     func test_URLByResolvingSymlinksInPath() {
         let files = [
-            "/tmp/ABC/test_URLByResolvingSymlinksInPath"
+            NSTemporaryDirectory() + "ABC/test_URLByResolvingSymlinksInPath"
         ]
         
         guard ensureFiles(files) else {
@@ -389,14 +408,14 @@ class TestNSURL : XCTestCase {
             let result = url.resolvingSymlinksInPath().absoluteString
             XCTAssertEqual(result, "file:///private/")
         }
-        #endif
-        
+        #else
         do {
             let url = URL(fileURLWithPath: "/tmp/ABC/test_URLByResolvingSymlinksInPath")
             let result = url.resolvingSymlinksInPath().absoluteString
             XCTAssertEqual(result, "file:///tmp/ABC/test_URLByResolvingSymlinksInPath", "URLByResolvingSymlinksInPath appends trailing slash for existing directories only")
         }
-        
+        #endif
+
         do {
             let url = URL(fileURLWithPath: "/tmp/ABC/..")
             let result = url.resolvingSymlinksInPath().absoluteString
@@ -413,6 +432,12 @@ class TestNSURL : XCTestCase {
         let queryItemCopy = queryItem.copy() as! NSURLQueryItem
         XCTAssertTrue(queryItem.isEqual(queryItemCopy))
     }
+    
+    func test_itemNSCoding() {
+        let queryItemA = NSURLQueryItem(name: "id", value: "23")
+        let queryItemB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: queryItemA)) as! NSURLQueryItem
+        XCTAssertEqual(queryItemA, queryItemB, "Archived then unarchived query item must be equal.")
+    }
 }
     
 class TestNSURLComponents : XCTestCase {
@@ -421,7 +446,8 @@ class TestNSURLComponents : XCTestCase {
             ("test_string", test_string),
             ("test_port", test_portSetter),
             ("test_url", test_url),
-            ("test_copy", test_copy)
+            ("test_copy", test_copy),
+            ("test_createURLWithComponents", test_createURLWithComponents)
         ]
     }
     
@@ -442,7 +468,7 @@ class TestNSURLComponents : XCTestCase {
         var url = URLComponents(string: urlString)
         url!.port = port
         let receivedString = url!.string
-        XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(receivedString)")
+        XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(receivedString as Optional)")
     }
 
     func test_url() {
@@ -454,7 +480,7 @@ class TestNSURLComponents : XCTestCase {
         compWithAuthority!.path = "/path/to/file with space.html"
         compWithAuthority!.query = "id=23&search=Foo Bar"
         var expectedString = "https://www.swift.org/path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(compWithAuthority!.string, expectedString, "expected \(expectedString) but received \(compWithAuthority!.string)")
+        XCTAssertEqual(compWithAuthority!.string, expectedString, "expected \(expectedString) but received \(compWithAuthority!.string as Optional)")
 
         var aURL = compWithAuthority!.url(relativeTo: baseURL)
         XCTAssertNotNil(aURL)
@@ -474,7 +500,7 @@ class TestNSURLComponents : XCTestCase {
         compWithoutAuthority.path = "path/to/file with space.html"
         compWithoutAuthority.query = "id=23&search=Foo Bar"
         expectedString = "path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(compWithoutAuthority.string, expectedString, "expected \(expectedString) but received \(compWithoutAuthority.string)")
+        XCTAssertEqual(compWithoutAuthority.string, expectedString, "expected \(expectedString) but received \(compWithoutAuthority.string as Optional)")
 
         aURL = compWithoutAuthority.url(relativeTo: baseURL)
         XCTAssertNotNil(aURL)
@@ -499,4 +525,20 @@ class TestNSURLComponents : XCTestCase {
         /* Assert that NSURLComponents.copy is actually a copy of NSURLComponents */ 
         XCTAssertTrue(copy.isEqual(urlComponent))
     }
+    
+    func test_createURLWithComponents() {
+        let urlComponents = NSURLComponents()
+        urlComponents.scheme = "https";
+        urlComponents.host = "com.test.swift";
+        urlComponents.path = "/test/path";
+        let date = Date()
+        let query1 = URLQueryItem(name: "date", value: date.description)
+        let query2 = URLQueryItem(name: "simpleDict", value: "false")
+        let query3 = URLQueryItem(name: "checkTest", value: "false")
+        let query4 = URLQueryItem(name: "someKey", value: "afsdjhfgsdkf^fhdjgf")
+        urlComponents.queryItems = [query1, query2, query3, query4]
+        XCTAssertNotNil(urlComponents.url?.query)
+        XCTAssertEqual(urlComponents.queryItems?.count, 4)
+    }
+
 }

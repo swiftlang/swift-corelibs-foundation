@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFURL.h
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFURL__)
@@ -28,7 +23,7 @@ typedef CF_ENUM(CFIndex, CFURLPathStyle) {
     kCFURLHFSPathStyle CF_ENUM_DEPRECATED(10_0, 10_9, 2_0, 7_0), /* The use of kCFURLHFSPathStyle is deprecated. The Carbon File Manager, which uses HFS style paths, is deprecated. HFS style paths are unreliable because they can arbitrarily refer to multiple volumes if those volumes have identical volume names. You should instead use kCFURLPOSIXPathStyle wherever possible. */
     kCFURLWindowsPathStyle
 };
-
+    
 typedef const struct CF_BRIDGED_TYPE(NSURL) __CFURL * CFURLRef;
 
 /* CFURLs are composed of two fundamental pieces - their string, and a */
@@ -65,7 +60,7 @@ CFURLRef CFURLCreateWithBytes(CFAllocatorRef allocator, const UInt8 *URLBytes, C
 CF_EXPORT
 CFDataRef CFURLCreateData(CFAllocatorRef allocator, CFURLRef url, CFStringEncoding encoding, Boolean escapeWhitespace);
 
-/* Any escape sequences in URLString will be interpreted via UTF-8. */
+/* Any percent-escape sequences in URLString will be interpreted via UTF-8. URLString must be a valid URL string. */
 CF_EXPORT
 CFURLRef CFURLCreateWithString(CFAllocatorRef allocator, CFStringRef URLString, CFURLRef baseURL);
 
@@ -107,11 +102,11 @@ CFURLRef CFURLCreateFromFileSystemRepresentation(CFAllocatorRef allocator, const
 /* like a drive letter and colon for kCFURLWindowsPathStyle ) then the baseURL */
 /* is ignored. */
 CF_EXPORT
-CFURLRef CFURLCreateWithFileSystemPathRelativeToBase(CFAllocatorRef allocator, CFStringRef filePath, CFURLPathStyle pathStyle, Boolean isDirectory, CFURLRef baseURL);
+CFURLRef CFURLCreateWithFileSystemPathRelativeToBase(CFAllocatorRef allocator, CFStringRef filePath, CFURLPathStyle pathStyle, Boolean isDirectory, CFURLRef baseURL); 
 
 CF_EXPORT
 CFURLRef CFURLCreateFromFileSystemRepresentationRelativeToBase(CFAllocatorRef allocator, const UInt8 *buffer, CFIndex bufLen, Boolean isDirectory, CFURLRef baseURL);
-
+                                                                         
 /* Fills buffer with the file system's native representation of */
 /* url's path. No more than maxBufLen bytes are written to buffer. */
 /* The buffer should be at least the maximum path length for */
@@ -126,7 +121,7 @@ Boolean CFURLGetFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBas
 CF_EXPORT
 CFURLRef CFURLCopyAbsoluteURL(CFURLRef relativeURL);
 
-/* Returns the URL's string. */
+/* Returns the URL's string. Percent-escape sequences are not removed. */
 CF_EXPORT
 CFStringRef CFURLGetString(CFURLRef anURL);
 
@@ -135,76 +130,74 @@ CF_EXPORT
 CFURLRef CFURLGetBaseURL(CFURLRef anURL);
 
 /*
- All URLs can be broken into two pieces - the scheme (preceding the
- first colon) and the resource specifier (following the first colon).
- Most URLs are also "standard" URLs conforming to RFC 1808 (available
- from www.w3c.org).  This category includes URLs of the file, http,
- https, and ftp schemes, to name a few.  Standard URLs start the
- resource specifier with two slashes ("//"), and can be broken into
- four distinct pieces - the scheme, the net location, the path, and
- further resource specifiers (typically an optional parameter, query,
- and/or fragment).  The net location appears immediately following
- the two slashes and goes up to the next slash; it's format is
- scheme-specific, but is usually composed of some or all of a username,
- password, host name, and port.  The path is a series of path components
- separated by slashes; if the net location is present, the path always
- begins with a slash.  Standard URLs can be relative to another URL,
- in which case at least the scheme and possibly other pieces as well
- come from the base URL (see RFC 1808 for precise details when resolving
- a relative URL against its base).  The full URL is therefore
- 
- <scheme> "://" <net location> <path, always starting with slash> <add'l resource specifiers>
- 
- If a given CFURL can be decomposed (that is, conforms to RFC 1808), you
- can ask for each of the four basic pieces (scheme, net location, path,
- and resource specifer) separately, as well as for its base URL.  The
- basic pieces are returned with any percent escape sequences still in
- place (although note that the scheme may not legally include any
- percent escapes); this is to allow the caller to distinguish between
- percent sequences that may have syntactic meaning if replaced by the
- character being escaped (for instance, a '/' in a path component).
- Since only the individual schemes know which characters are
- syntactically significant, CFURL cannot safely replace any percent
- escape sequences.  However, you can use
- CFURLCreateStringByReplacingPercentEscapes() to create a new string with
- the percent escapes removed; see below.
- 
- If a given CFURL can not be decomposed, you can ask for its scheme and its
- resource specifier; asking it for its net location or path will return NULL.
- 
- To get more refined information about the components of a decomposable
- CFURL, you may ask for more specific pieces of the URL, expressed with
- the percent escapes removed.  The available functions are CFURLCopyHostName(),
- CFURLGetPortNumber() (returns an Int32), CFURLCopyUserName(),
- CFURLCopyPassword(), CFURLCopyQuery(), CFURLCopyParameters(), and
- CFURLCopyFragment().  Because the parameters, query, and fragment of an
- URL may contain scheme-specific syntaxes, these methods take a second
- argument, giving a list of characters which should NOT be replaced if
- percent escaped.  For instance, the ftp parameter syntax gives simple
- key-value pairs as "<key>=<value>;"  Clearly if a key or value includes
- either '=' or ';', it must be escaped to avoid corrupting the meaning of
- the parameters, so the caller may request the parameter string as
- 
- CFStringRef myParams = CFURLCopyParameters(ftpURL, CFSTR("=;%"));
- 
- requesting that all percent escape sequences be replaced by the represented
- characters, except for escaped '=', '%' or ';' characters.  Pass the empty
- string (CFSTR("")) to request that all percent escapes be replaced, or NULL
- to request that none be.
- */
+All URLs can be broken into two pieces - the scheme (preceding the
+first colon) and the resource specifier (following the first colon).
+Most URLs are also "standard" URLs conforming to RFC 1808 (available
+from www.w3c.org).  This category includes URLs of the file, http,
+https, and ftp schemes, to name a few.  Standard URLs start the
+resource specifier with two slashes ("//"), and can be broken into
+four distinct pieces - the scheme, the net location, the path, and
+further resource specifiers (typically an optional parameter, query,
+and/or fragment).  The net location appears immediately following
+the two slashes and goes up to the next slash; it's format is
+scheme-specific, but is usually composed of some or all of a username,
+password, host name, and port.  The path is a series of path components
+separated by slashes; if the net location is present, the path always
+begins with a slash.  Standard URLs can be relative to another URL,
+in which case at least the scheme and possibly other pieces as well
+come from the base URL (see RFC 1808 for precise details when resolving
+a relative URL against its base).  The full URL is therefore
+
+<scheme> "://" <net location> <path, always starting with slash> <add'l resource specifiers>
+
+If a given CFURL can be decomposed (that is, conforms to RFC 1808), you
+can ask for each of the four basic pieces (scheme, net location, path,
+and resource specifer) separately, as well as for its base URL.  The
+basic pieces are returned with any percent-escape sequences still in
+place (although note that the scheme may not legally include any
+percent-escapes); this is to allow the caller to distinguish between
+percent-escape sequences that may have syntactic meaning if replaced by the
+character being escaped (for instance, a '/' in a path component).
+Since only the individual schemes know which characters are
+syntactically significant, CFURL cannot safely replace any percent-
+escape sequences.  However, you can use
+CFURLCreateStringByReplacingPercentEscapes() to create a new string with
+the percent-escapes removed; see below.
+
+If a given CFURL can not be decomposed, you can ask for its scheme and its
+resource specifier; asking it for its net location or path will return NULL.
+
+To get more refined information about the components of a decomposable
+CFURL, you may ask for more specific pieces of the URL, expressed with
+the percent-escapes removed.  The available functions are CFURLCopyHostName(),
+CFURLGetPortNumber() (returns an Int32), CFURLCopyUserName(),
+CFURLCopyPassword(), CFURLCopyQuery(), CFURLCopyParameters(), and
+CFURLCopyFragment().  Because the parameters, query, and fragment of an
+URL may contain scheme-specific syntaxes, these methods take a second
+argument, giving a list of characters which should NOT be replaced if
+percent-escaped.  For instance, the ftp parameter syntax gives simple
+key-value pairs as "<key>=<value>;"  Clearly if a key or value includes
+either '=' or ';', it must be escaped to avoid corrupting the meaning of
+the parameters, so the caller may request the parameter string as
+
+CFStringRef myParams = CFURLCopyParameters(ftpURL, CFSTR("=;%"));
+
+requesting that all percent-escape sequences be replaced by the represented
+characters, except for escaped '=', '%' or ';' characters.  Pass the empty
+string (CFSTR("")) to request that all percent-escapes be replaced, or NULL
+to request that none be.
+*/
 
 /* Returns true if anURL conforms to RFC 1808 */
 CF_EXPORT
-Boolean CFURLCanBeDecomposed(CFURLRef anURL);
-
-/* The next several methods leave any percent escape sequences intact */
+Boolean CFURLCanBeDecomposed(CFURLRef anURL); 
 
 CF_EXPORT
 CFStringRef CFURLCopyScheme(CFURLRef anURL);
 
-/* NULL if CFURLCanBeDecomposed(anURL) is false */
+/* Percent-escape sequences are not removed. NULL if CFURLCanBeDecomposed(anURL) is false */
 CF_EXPORT
-CFStringRef CFURLCopyNetLocation(CFURLRef anURL);
+CFStringRef CFURLCopyNetLocation(CFURLRef anURL); 
 
 /* NULL if CFURLCanBeDecomposed(anURL) is false; also does not resolve the URL */
 /* against its base.  See also CFURLCopyAbsoluteURL().  Note that, strictly */
@@ -214,15 +207,17 @@ CFStringRef CFURLCopyNetLocation(CFURLRef anURL);
 /* the normal POSIX appearance); CFURLCopyStrictPath()'s return value omits any */
 /* leading slash, and uses isAbsolute to report whether the URL's path is absolute. */
 
-/* CFURLCopyFileSystemPath() returns the URL's path as a file system path for the */
-/* given path style.  All percent escape sequences are replaced.  The URL is not */
-/* resolved against its base before computing the path. */
+/* Percent-escape sequences are not removed. */
 CF_EXPORT
 CFStringRef CFURLCopyPath(CFURLRef anURL);
 
+/* Percent-escape sequences are not removed. */
 CF_EXPORT
 CFStringRef CFURLCopyStrictPath(CFURLRef anURL, Boolean *isAbsolute);
 
+/* CFURLCopyFileSystemPath() returns the URL's path as a file system path for the */
+/* given path style.  All percent-escape sequences are removed.  The URL is not */
+/* resolved against its base before computing the path. */
 CF_EXPORT
 CFStringRef CFURLCopyFileSystemPath(CFURLRef anURL, CFURLPathStyle pathStyle);
 
@@ -233,24 +228,29 @@ Boolean CFURLHasDirectoryPath(CFURLRef anURL);
 
 /* Any additional resource specifiers after the path.  For URLs */
 /* that cannot be decomposed, this is everything except the scheme itself. */
+/* Percent-escape sequences are not removed. */
 CF_EXPORT
-CFStringRef CFURLCopyResourceSpecifier(CFURLRef anURL);
+CFStringRef CFURLCopyResourceSpecifier(CFURLRef anURL); 
 
+/* Percent-escape sequences are removed. */
 CF_EXPORT
 CFStringRef CFURLCopyHostName(CFURLRef anURL);
 
 CF_EXPORT
 SInt32 CFURLGetPortNumber(CFURLRef anURL); /* Returns -1 if no port number is specified */
 
+/* Percent-escape sequences are removed. */
 CF_EXPORT
 CFStringRef CFURLCopyUserName(CFURLRef anURL);
 
+/* Percent-escape sequences are removed. */
 CF_EXPORT
 CFStringRef CFURLCopyPassword(CFURLRef anURL);
 
-/* These remove all percent escape sequences except those for */
+/* CFURLCopyParameterString, CFURLCopyQueryString, and CFURLCopyFragment */
+/* remove all percent-escape sequences except those for */
 /* characters in charactersToLeaveEscaped.  If charactersToLeaveEscaped */
-/* is empty (""), all percent escape sequences are replaced by their */
+/* is empty (""), all percent-escape sequences are replaced by their */
 /* corresponding characters.  If charactersToLeaveEscaped is NULL, */
 /* then no escape sequences are removed at all */
 CF_EXPORT
@@ -262,15 +262,13 @@ CFStringRef CFURLCopyQueryString(CFURLRef anURL, CFStringRef charactersToLeaveEs
 CF_EXPORT
 CFStringRef CFURLCopyFragment(CFURLRef anURL, CFStringRef charactersToLeaveEscaped);
 
+/* Percent-escape sequences are removed. */
 CF_EXPORT
 CFStringRef CFURLCopyLastPathComponent(CFURLRef url);
 
+/* Percent-escape sequences are removed. */
 CF_EXPORT
 CFStringRef CFURLCopyPathExtension(CFURLRef url);
-
-/* These functions all treat the base URL of the supplied url as */
-/* invariant.  In other words, the URL returned will always have */
-/* the same base as the URL supplied as an argument. */
 
 CF_EXPORT
 CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRef url, CFStringRef pathComponent, Boolean isDirectory);
@@ -287,111 +285,111 @@ CFURLRef CFURLCreateCopyDeletingPathExtension(CFAllocatorRef allocator, CFURLRef
 /* Fills buffer with the bytes for url, returning the number of bytes */
 /* filled.  If buffer is of insufficient size, returns -1 and no bytes */
 /* are placed in buffer.  If buffer is NULL, the needed length is */
-/* computed and returned.  The returned bytes are the original bytes */
+/* computed and returned.  The returned bytes are the original bytes */ 
 /* from which the URL was created; if the URL was created from a */
 /* string, the bytes will be the bytes of the string encoded via UTF-8  */
 CF_EXPORT
 CFIndex CFURLGetBytes(CFURLRef url, UInt8 *buffer, CFIndex bufferLength);
 
 typedef CF_ENUM(CFIndex, CFURLComponentType) {
-    kCFURLComponentScheme = 1,
-    kCFURLComponentNetLocation = 2,
-    kCFURLComponentPath = 3,
-    kCFURLComponentResourceSpecifier = 4,
-    
-    kCFURLComponentUser = 5,
-    kCFURLComponentPassword = 6,
-    kCFURLComponentUserInfo = 7,
-    kCFURLComponentHost = 8,
-    kCFURLComponentPort = 9,
-    kCFURLComponentParameterString = 10,
-    kCFURLComponentQuery = 11,
-    kCFURLComponentFragment = 12
-};
+	kCFURLComponentScheme = 1,
+	kCFURLComponentNetLocation = 2,
+	kCFURLComponentPath = 3,
+	kCFURLComponentResourceSpecifier = 4,
 
-/*
- Gets the  range of the requested component in the bytes of url, as
- returned by CFURLGetBytes().  This range is only good for use in the
- bytes returned by CFURLGetBytes!
+	kCFURLComponentUser = 5,
+	kCFURLComponentPassword = 6,
+	kCFURLComponentUserInfo = 7,
+	kCFURLComponentHost = 8,
+	kCFURLComponentPort = 9,
+	kCFURLComponentParameterString = 10,
+	kCFURLComponentQuery = 11,
+	kCFURLComponentFragment = 12
+};
  
- If non-NULL, rangeIncludingSeparators gives the range of component
- including the sequences that separate component from the previous and
- next components.  If there is no previous or next component, that end of
- rangeIncludingSeparators will match the range of the component itself.
- If url does not contain the given component type, (kCFNotFound, 0) is
- returned, and rangeIncludingSeparators is set to the location where the
- component would be inserted.  Some examples -
- 
- For the URL http://www.apple.com/hotnews/
- 
- Component           returned range      rangeIncludingSeparators
- scheme              (0, 4)              (0, 7)
- net location        (7, 13)             (4, 16)
- path                (20, 9)             (20, 9)
- resource specifier  (kCFNotFound, 0)    (29, 0)
- user                (kCFNotFound, 0)    (7, 0)
- password            (kCFNotFound, 0)    (7, 0)
- user info           (kCFNotFound, 0)    (7, 0)
- host                (7, 13)             (4, 16)
- port                (kCFNotFound, 0)    (20, 0)
- parameter           (kCFNotFound, 0)    (29, 0)
- query               (kCFNotFound, 0)    (29, 0)
- fragment            (kCFNotFound, 0)    (29, 0)
- 
- 
- For the URL ./relPath/file.html#fragment
- 
- Component           returned range      rangeIncludingSeparators
- scheme              (kCFNotFound, 0)    (0, 0)
- net location        (kCFNotFound, 0)    (0, 0)
- path                (0, 19)             (0, 20)
- resource specifier  (20, 8)             (19, 9)
- user                (kCFNotFound, 0)    (0, 0)
- password            (kCFNotFound, 0)    (0, 0)
- user info           (kCFNotFound, 0)    (0, 0)
- host                (kCFNotFound, 0)    (0, 0)
- port                (kCFNotFound, 0)    (0, 0)
- parameter           (kCFNotFound, 0)    (19, 0)
- query               (kCFNotFound, 0)    (19, 0)
- fragment            (20, 8)             (19, 9)
- 
- 
- For the URL scheme://user:pass@host:1/path/path2/file.html;params?query#fragment
- 
- Component           returned range      rangeIncludingSeparators
- scheme              (0, 6)              (0, 9)
- net location        (9, 16)             (6, 19)
- path                (25, 21)            (25, 22)
- resource specifier  (47, 21)            (46, 22)
- user                (9, 4)              (6, 8)
- password            (14, 4)             (13, 6)
- user info           (9, 9)              (6, 13)
- host                (19, 4)             (18, 6)
- port                (24, 1)             (23, 2)
- parameter           (47, 6)             (46, 8)
- query               (54, 5)             (53, 7)
- fragment            (60, 8)             (59, 9)
- */
+/* 
+Gets the  range of the requested component in the bytes of url, as
+returned by CFURLGetBytes().  This range is only good for use in the
+bytes returned by CFURLGetBytes!
+
+If non-NULL, rangeIncludingSeparators gives the range of component
+including the sequences that separate component from the previous and
+next components.  If there is no previous or next component, that end of
+rangeIncludingSeparators will match the range of the component itself.
+If url does not contain the given component type, (kCFNotFound, 0) is
+returned, and rangeIncludingSeparators is set to the location where the
+component would be inserted.  Some examples -
+
+For the URL http://www.apple.com/hotnews/
+
+Component           returned range      rangeIncludingSeparators
+scheme              (0, 4)              (0, 7)
+net location        (7, 13)             (4, 16)
+path                (20, 9)             (20, 9)    
+resource specifier  (kCFNotFound, 0)    (29, 0)
+user                (kCFNotFound, 0)    (7, 0)
+password            (kCFNotFound, 0)    (7, 0)
+user info           (kCFNotFound, 0)    (7, 0)
+host                (7, 13)             (4, 16)
+port                (kCFNotFound, 0)    (20, 0)
+parameter           (kCFNotFound, 0)    (29, 0)
+query               (kCFNotFound, 0)    (29, 0)
+fragment            (kCFNotFound, 0)    (29, 0)
+
+
+For the URL ./relPath/file.html#fragment
+
+Component           returned range      rangeIncludingSeparators
+scheme              (kCFNotFound, 0)    (0, 0)
+net location        (kCFNotFound, 0)    (0, 0)
+path                (0, 19)             (0, 20)
+resource specifier  (20, 8)             (19, 9)
+user                (kCFNotFound, 0)    (0, 0)
+password            (kCFNotFound, 0)    (0, 0)
+user info           (kCFNotFound, 0)    (0, 0)
+host                (kCFNotFound, 0)    (0, 0)
+port                (kCFNotFound, 0)    (0, 0)
+parameter           (kCFNotFound, 0)    (19, 0)
+query               (kCFNotFound, 0)    (19, 0)
+fragment            (20, 8)             (19, 9)
+
+
+For the URL scheme://user:pass@host:1/path/path2/file.html;params?query#fragment
+
+Component           returned range      rangeIncludingSeparators
+scheme              (0, 6)              (0, 9)
+net location        (9, 16)             (6, 19)
+path                (25, 21)            (25, 22) 
+resource specifier  (47, 21)            (46, 22)
+user                (9, 4)              (6, 8)
+password            (14, 4)             (13, 6)
+user info           (9, 9)              (6, 13)
+host                (19, 4)             (18, 6)
+port                (24, 1)             (23, 2)
+parameter           (47, 6)             (46, 8)
+query               (54, 5)             (53, 7)
+fragment            (60, 8)             (59, 9)
+*/
 CF_EXPORT
 CFRange CFURLGetByteRangeForComponent(CFURLRef url, CFURLComponentType component, CFRange *rangeIncludingSeparators);
 
-/* Returns a string with any percent escape sequences that do NOT */
+/* Returns a string with any percent-escape sequences that do NOT */
 /* correspond to characters in charactersToLeaveEscaped with their */
-/* equivalent.  Returns NULL on failure (if an invalid percent sequence */
+/* equivalent.  Returns NULL on failure (if an invalid percent-escape sequence */
 /* is encountered), or the original string (retained) if no characters */
-/* need to be replaced. Pass NULL to request that no percent escapes be */
-/* replaced, or the empty string (CFSTR("")) to request that all percent */
-/* escapes be replaced.  Uses UTF8 to interpret percent escapes. */
+/* need to be replaced. Pass NULL to request that no percent-escapes be */
+/* replaced, or the empty string (CFSTR("")) to request that all percent- */
+/* escapes be replaced.  Uses UTF8 to interpret percent-escapes. */
 CF_EXPORT
 CFStringRef CFURLCreateStringByReplacingPercentEscapes(CFAllocatorRef allocator, CFStringRef originalString, CFStringRef charactersToLeaveEscaped);
 
-/* As above, but allows you to specify the encoding to use when interpreting percent escapes */
+/* As above, but allows you to specify the encoding to use when interpreting percent-escapes */
 CF_EXPORT
 CFStringRef CFURLCreateStringByReplacingPercentEscapesUsingEncoding(CFAllocatorRef allocator, CFStringRef origString, CFStringRef charsToLeaveEscaped, CFStringEncoding encoding) CF_DEPRECATED(10_0, 10_11, 2_0, 9_0, "Use [NSString stringByRemovingPercentEncoding] or CFURLCreateStringByReplacingPercentEscapes() instead, which always uses the recommended UTF-8 encoding.");
 
 /* Creates a copy or originalString, replacing certain characters with */
-/* the equivalent percent escape sequence based on the encoding specified. */
-/* If the originalString does not need to be modified (no percent escape */
+/* the equivalent percent-escape sequence based on the encoding specified. */
+/* If the originalString does not need to be modified (no percent-escape */
 /* sequences are missing), may retain and return originalString. */
 /* If you are uncertain of the correct encoding, you should use UTF-8, */
 /* which is the encoding designated by RFC 2396 as the correct encoding */
@@ -409,43 +407,44 @@ CFStringRef CFURLCreateStringByAddingPercentEscapes(CFAllocatorRef allocator, CF
 CF_IMPLICIT_BRIDGING_DISABLED
 
 /*
- CFURLIsFileReferenceURL
- 
- Returns whether the URL is a file reference URL.
- 
- Parameters
- url
- The URL specifying the resource.
+    CFURLIsFileReferenceURL
+
+    Returns whether the URL is a file reference URL.
+
+    Parameters
+        url
+            The URL specifying the resource.
  */
 CF_EXPORT
 Boolean CFURLIsFileReferenceURL(CFURLRef url) CF_AVAILABLE(10_9, 7_0);
 
 /*
- CFURLCreateFileReferenceURL
- 
- Returns a new file reference URL that refers to the same resource as a specified URL.
- 
- Parameters
- allocator
- The memory allocator for creating the new URL.
- url
- The file URL specifying the resource.
- error
- On output when the result is NULL, the error that occurred. This parameter is optional; if you do not wish the error returned, pass NULL here. The caller is responsible for releasing a valid output error.
- 
- Return Value
- The new file reference URL, or NULL if an error occurs.
- 
- Discussion
- File reference URLs use a URL path syntax that identifies a file system object by reference, not by path. This form of file URL remains valid when the file system path of the URL’s underlying resource changes. An error will occur if the url parameter is not a file URL. File reference URLs cannot be created to file system objects which do not exist or are not reachable. In some areas of the file system hierarchy, file reference URLs cannot be generated to the leaf node of the URL path. A file reference URL's path should never be persistently stored because is not valid across system restarts, and across remounts of volumes -- if you want to create a persistent reference to a file system object, use a bookmark (see CFURLCreateBookmarkData). If this function returns NULL, the optional error is populated. This function is currently applicable only to URLs for file system resources.
- Symbol is present in iOS 4, but performs no operation.
+    CFURLCreateFileReferenceURL
+    
+    Returns a new file reference URL that refers to the same resource as a specified URL.
+
+    Parameters
+        allocator
+            The memory allocator for creating the new URL.
+        url
+            The file URL specifying the resource.
+        error
+            On output when the result is NULL, the error that occurred. This parameter is optional; if you do not wish the error returned, pass NULL here. The caller is responsible for releasing a valid output error.
+
+    Return Value
+        The new file reference URL, or NULL if an error occurs.
+
+    Discussion
+        File reference URLs use a URL path syntax that identifies a file system object by reference, not by path. This form of file URL remains valid when the file system path of the URL’s underlying resource changes. An error will occur if the url parameter is not a file URL. File reference URLs cannot be created to file system objects which do not exist or are not reachable. In some areas of the file system hierarchy, file reference URLs cannot be generated to the leaf node of the URL path. A file reference URL's path should never be persistently stored because is not valid across system restarts, and across remounts of volumes -- if you want to create a persistent reference to a file system object, use a bookmark (see CFURLCreateBookmarkData). If this function returns NULL, the optional error is populated. This function is currently applicable only to URLs for file system resources.
+        Symbol is present in iOS 4, but performs no operation.
  */
 CF_EXPORT
 CFURLRef CFURLCreateFileReferenceURL(CFAllocatorRef allocator, CFURLRef url, CFErrorRef *error) CF_AVAILABLE(10_6, 4_0);
 
+
 /*
     CFURLCreateFilePathURL
- 
+    
     Returns a new file path URL that refers to the same resource as a specified URL.
 
     Parameters
@@ -738,7 +737,7 @@ const CFStringRef kCFURLContentModificationDateKey CF_AVAILABLE(10_6, 4_0);
 
 CF_EXPORT
 const CFStringRef kCFURLAttributeModificationDateKey CF_AVAILABLE(10_6, 4_0);
-    /* The time the resource's attributes were last modified (Read-write, value type CFDate) */
+    /* The time the resource's attributes were last modified (Read-only, value type CFDate) */
 
 CF_EXPORT
 const CFStringRef kCFURLLinkCountKey CF_AVAILABLE(10_6, 4_0);
@@ -765,20 +764,20 @@ const CFStringRef kCFURLLabelNumberKey CF_AVAILABLE(10_6, 4_0);
     /* The label number assigned to the resource (Read-write, value type CFNumber) */
 
 CF_EXPORT
-const CFStringRef kCFURLLabelColorKey CF_AVAILABLE(10_6, 4_0);
-    /* The color of the assigned label (Currently not implemented, value type CGColorRef, must link with Application Services) */
+const CFStringRef kCFURLLabelColorKey API_DEPRECATED("Use NSURLLabelColorKey", macosx(10.6, 10.12), ios(4.0, 10.0), watchos(2.0, 3.0), tvos(9.0, 10.0));
+    /* not implemented */
 
 CF_EXPORT
 const CFStringRef kCFURLLocalizedLabelKey CF_AVAILABLE(10_6, 4_0);
     /* The user-visible label text (Read-only, value type CFString) */
 
 CF_EXPORT
-const CFStringRef kCFURLEffectiveIconKey CF_AVAILABLE(10_6, 4_0);
-    /* The icon normally displayed for the resource (Read-only, value type CGImageRef, must link with Application Services) */
+const CFStringRef kCFURLEffectiveIconKey API_DEPRECATED("Use NSURLEffectiveIconKey", macosx(10.6, 10.12), ios(4.0, 10.0), watchos(2.0, 3.0), tvos(9.0, 10.0));
+    /* not implemented */
 
 CF_EXPORT
-const CFStringRef kCFURLCustomIconKey CF_AVAILABLE(10_6, 4_0);
-    /* The custom icon assigned to the resource, if any (Currently not implemented, value type CGImageRef, must link with Application Services) */
+const CFStringRef kCFURLCustomIconKey API_DEPRECATED("Use NSURLCustomIconKey", macosx(10.6, 10.12), ios(4.0, 10.0), watchos(2.0, 3.0), tvos(9.0, 10.0));
+    /* not implemented */
 
 CF_EXPORT
 const CFStringRef kCFURLFileResourceIdentifierKey CF_AVAILABLE(10_7, 5_0);
@@ -819,6 +818,10 @@ const CFStringRef kCFURLTagNamesKey CF_AVAILABLE(10_9, NA);
 CF_EXPORT
 const CFStringRef kCFURLPathKey CF_AVAILABLE(10_8, 6_0);
     /* the URL's path as a file system path (Read-only, value type CFString) */
+
+CF_EXPORT
+const CFStringRef kCFURLCanonicalPathKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+    /* the URL's path as a canonical absolute file system path (Read-only, value type CFString) */
 
 CF_EXPORT
 const CFStringRef kCFURLIsMountTriggerKey CF_AVAILABLE(10_7, 4_0);
@@ -1028,6 +1031,30 @@ const CFStringRef kCFURLVolumeNameKey CF_AVAILABLE(10_7, 5_0);
 CF_EXPORT
 const CFStringRef kCFURLVolumeLocalizedNameKey CF_AVAILABLE(10_7, 5_0);
     /* The user-presentable name of the volume (Read-only, value type CFString) */
+
+CF_EXPORT
+const CFStringRef kCFURLVolumeIsEncryptedKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+    /* true if the volume is encrypted. (Read-only, value type CFBoolean) */
+
+CF_EXPORT
+const CFStringRef kCFURLVolumeIsRootFileSystemKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+    /* true if the volume is the root filesystem. (Read-only, value type CFBoolean) */
+
+CF_EXPORT
+const CFStringRef kCFURLVolumeSupportsCompressionKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+    /* true if the volume supports transparent decompression of compressed files using decmpfs. (Read-only, value type CFBoolean) */
+
+CF_EXPORT
+const CFStringRef kCFURLVolumeSupportsFileCloningKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+    /* true if the volume supports clonefile(2) (Read-only, value type CFBoolean) */
+
+CF_EXPORT
+const CFStringRef kCFURLVolumeSupportsSwapRenamingKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+    /* true if the volume supports renamex_np(2)'s RENAME_SWAP option (Read-only, value type CFBoolean) */
+
+CF_EXPORT
+const CFStringRef kCFURLVolumeSupportsExclusiveRenamingKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+    /* true if the volume supports renamex_np(2)'s RENAME_EXCL option (Read-only, value type CFBoolean) */
 
 /* UbiquitousItem Properties */
 

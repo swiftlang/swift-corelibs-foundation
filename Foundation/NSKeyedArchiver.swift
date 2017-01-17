@@ -181,6 +181,8 @@ open class NSKeyedArchiver : NSCoder {
         plist["$objects"] = self._objects
         plist["$top"] = self._containers[0].dict
 
+        
+        
         if let unwrappedDelegate = self.delegate {
             unwrappedDelegate.archiverWillFinish(self)
         }
@@ -241,8 +243,7 @@ open class NSKeyedArchiver : NSCoder {
     }
     
     private func _validateObjectSupportsSecureCoding(_ objv : Any?) {
-        if objv != nil &&
-            self.requiresSecureCoding &&
+        if let objv = objv, self.requiresSecureCoding &&
             !NSKeyedArchiver._supportsSecureCoding(objv) {
             fatalError("Secure coding required when encoding \(objv)")
         }
@@ -271,7 +272,9 @@ open class NSKeyedArchiver : NSCoder {
             return NSKeyedArchiveNullObjectReference
         }
         
-        uid = self._objRefMap[objv as! AnyHashable]
+        let value = _SwiftValue.store(objv)!
+        
+        uid = self._objRefMap[value]
         if uid == nil {
             if conditional {
                 return nil // object has not been unconditionally encoded
@@ -279,7 +282,7 @@ open class NSKeyedArchiver : NSCoder {
             
             uid = UInt32(self._objects.count)
             
-            self._objRefMap[objv as! AnyHashable] = uid
+            self._objRefMap[value] = uid
             self._objects.insert(NSKeyedArchiveNullObjectReferenceName, at: Int(uid!))
         }
 
@@ -293,7 +296,7 @@ open class NSKeyedArchiver : NSCoder {
         if objv == nil {
             return true // always have a null reference
         } else {
-            return self._objRefMap[objv as! AnyHashable] != nil
+            return self._objRefMap[_SwiftValue.store(objv)] != nil
         }
     }
     
@@ -362,10 +365,10 @@ open class NSKeyedArchiver : NSCoder {
      */
     private func replaceObject(_ object: Any, withObject replacement: Any?) {
         if let unwrappedDelegate = self.delegate {
-            unwrappedDelegate.archiver(self, willReplace: object as! AnyHashable, with: replacement)
+            unwrappedDelegate.archiver(self, willReplace: object, with: replacement)
         }
         
-        self._replacementMap[object as! AnyHashable] = replacement
+        self._replacementMap[_SwiftValue.store(object)] = replacement
     }
    
     /**
@@ -477,9 +480,8 @@ open class NSKeyedArchiver : NSCoder {
         
         // object replaced by NSObject.replacementObjectForKeyedArchiver
         // if it is replaced with nil, it cannot be further replaced
-        if objectToEncode == nil {
-            let ns = object as? NSObject
-            objectToEncode = ns?.replacementObjectForKeyedArchiver(self)
+        if let ns = objectToEncode as? NSObject {
+            objectToEncode = ns.replacementObjectForKeyedArchiver(self)
             if objectToEncode == nil {
                 replaceObject(object!, withObject: nil)
                 return nil
@@ -511,7 +513,12 @@ open class NSKeyedArchiver : NSCoder {
 
         haveVisited = _haveVisited(objv)
         object = _replacementObject(objv)
-
+        
+        // bridge value types
+        if let bridgedObject = object as? _ObjectBridgeable {
+            object = bridgedObject._bridgeToAnyObject()
+        }
+        
         objectRef = _referenceObject(object, conditional: conditional)
         guard let unwrappedObjectRef = objectRef else {
             // we can return nil if the object is being conditionally encoded
@@ -532,12 +539,9 @@ open class NSKeyedArchiver : NSCoder {
                 _pushEncodingContext(innerEncodingContext)
                 codable.encode(with: self)
 
-                guard let ns = object as? NSObject else {
-                    fatalError("Attempt to encode non-NSObject");
-                }
-
-                let cls : AnyClass = ns.classForKeyedArchiver ?? type(of: object) as! AnyClass
-
+                let ns = object as? NSObject
+                let cls : AnyClass = ns?.classForKeyedArchiver ?? type(of: object!) as! AnyClass
+                
                 _setObjectInCurrentEncodingContext(_classReference(cls), forKey: "$class", escape: false)
                 _popEncodingContext()
                 encodedObject = innerEncodingContext.dict
@@ -606,56 +610,43 @@ open class NSKeyedArchiver : NSCoder {
     private func _encodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafeRawPointer) {
         switch type {
         case .ID:
-            let objectp = unsafeBitCast(addr, to: UnsafePointer<Any>.self)
+            let objectp = addr.assumingMemoryBound(to: Any.self)
             encode(objectp.pointee)
-            break
         case .Class:
-            let classp = unsafeBitCast(addr, to: UnsafePointer<AnyClass>.self)
+            let classp = addr.assumingMemoryBound(to: AnyClass.self)
             encode(NSStringFromClass(classp.pointee)._bridgeToObjectiveC())
-            break
         case .Char:
-            let charp = unsafeBitCast(addr, to: UnsafePointer<CChar>.self)
+            let charp = addr.assumingMemoryBound(to: CChar.self)
             _encodeValue(NSNumber(value: charp.pointee))
-            break
         case .UChar:
-            let ucharp = unsafeBitCast(addr, to: UnsafePointer<UInt8>.self)
+            let ucharp = addr.assumingMemoryBound(to: UInt8.self)
             _encodeValue(NSNumber(value: ucharp.pointee))
-            break
         case .Int, .Long:
-            let intp = unsafeBitCast(addr, to: UnsafePointer<Int32>.self)
+            let intp = addr.assumingMemoryBound(to: Int32.self)
             _encodeValue(NSNumber(value: intp.pointee))
-            break
         case .UInt, .ULong:
-            let uintp = unsafeBitCast(addr, to: UnsafePointer<UInt32>.self)
+            let uintp = addr.assumingMemoryBound(to: UInt32.self)
             _encodeValue(NSNumber(value: uintp.pointee))
-            break
         case .LongLong:
-            let longlongp = unsafeBitCast(addr, to: UnsafePointer<Int64>.self)
+            let longlongp = addr.assumingMemoryBound(to: Int64.self)
             _encodeValue(NSNumber(value: longlongp.pointee))
-            break
         case .ULongLong:
-            let ulonglongp = unsafeBitCast(addr, to: UnsafePointer<UInt64>.self)
+            let ulonglongp = addr.assumingMemoryBound(to: UInt64.self)
             _encodeValue(NSNumber(value: ulonglongp.pointee))
-            break
         case .Float:
-            let floatp = unsafeBitCast(addr, to: UnsafePointer<Float>.self)
+            let floatp = addr.assumingMemoryBound(to: Float.self)
             _encodeValue(NSNumber(value: floatp.pointee))
-            break
         case .Double:
-            let doublep = unsafeBitCast(addr, to: UnsafePointer<Double>.self)
+            let doublep = addr.assumingMemoryBound(to: Double.self)
             _encodeValue(NSNumber(value: doublep.pointee))
-            break
         case .Bool:
-            let boolp = unsafeBitCast(addr, to: UnsafePointer<Bool>.self)
+            let boolp = addr.assumingMemoryBound(to: Bool.self)
             _encodeValue(NSNumber(value: boolp.pointee))
-            break
         case .CharPtr:
-            let charpp = unsafeBitCast(addr, to: UnsafePointer<UnsafePointer<Int8>>.self)
+            let charpp = addr.assumingMemoryBound(to: UnsafePointer<Int8>.self)
             encode(NSString(utf8String: charpp.pointee))
-            break
         default:
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unknown type encoding ('\(type.rawValue)')")
-            break
         }
     }
     

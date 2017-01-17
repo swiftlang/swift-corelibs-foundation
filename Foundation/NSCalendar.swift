@@ -53,7 +53,7 @@ extension NSCalendar {
         public static let ethiopicAmeteMihret = NSCalendar.Identifier("ethiopic")
         public static let ethiopicAmeteAlem = NSCalendar.Identifier("ethiopic-amete-alem")
         public static let hebrew = NSCalendar.Identifier("hebrew")
-        public static let ISO8601 = NSCalendar.Identifier("")
+        public static let ISO8601 = NSCalendar.Identifier("iso8601")
         public static let indian = NSCalendar.Identifier("indian")
         public static let islamic = NSCalendar.Identifier("islamic")
         public static let islamicCivil = NSCalendar.Identifier("islamic-civil")
@@ -461,7 +461,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         _convert(comps.weekday, type: "E", vector: &vector, compDesc: &compDesc)
         _convert(comps.weekdayOrdinal, type: "F", vector: &vector, compDesc: &compDesc)
         _convert(comps.month, type: "M", vector: &vector, compDesc: &compDesc)
-        _convert(comps.isLeapMonth, type: "L", vector: &vector, compDesc: &compDesc)
+        _convert(comps.isLeapMonth, type: "l", vector: &vector, compDesc: &compDesc)
         _convert(comps.day, type: "d", vector: &vector, compDesc: &compDesc)
         _convert(comps.hour, type: "H", vector: &vector, compDesc: &compDesc)
         _convert(comps.minute, type: "m", vector: &vector, compDesc: &compDesc)
@@ -579,7 +579,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     open func date(byAdding comps: DateComponents, to date: Date, options opts: Options = []) -> Date? {
         var (vector, compDesc) = _convert(comps)
-        var at: CFAbsoluteTime = 0.0
+        var at: CFAbsoluteTime = date.timeIntervalSinceReferenceDate
         
         let res: Bool = withUnsafeMutablePointer(to: &at) { t in
             return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
@@ -974,7 +974,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     This API reports if the date is within a weekend period, as defined by the calendar and calendar's locale.
     */
     open func isDateInWeekend(_ date: Date) -> Bool {
-        return _CFCalendarIsWeekend(_cfObject, date.timeIntervalSinceReferenceDate)
+        return _CFCalendarIsWeekend(_cfObject, date.timeIntervalSince1970)
     }
     
     /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer.
@@ -1619,52 +1619,36 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         switch unit {
             case NSCalendar.Unit.era:
                 era = value
-                break
             case NSCalendar.Unit.year:
                 year = value
-                break
             case NSCalendar.Unit.month:
                 month = value
-                break
             case NSCalendar.Unit.day:
                 day = value
-                break
             case NSCalendar.Unit.hour:
                 hour = value
-                break
             case NSCalendar.Unit.minute:
                 minute = value
-                break
             case NSCalendar.Unit.second:
                 second = value
-                break
             case NSCalendar.Unit.nanosecond:
                 nanosecond = value
-                break
             case NSCalendar.Unit.weekday:
                 weekday = value
-                break
             case NSCalendar.Unit.weekdayOrdinal:
                 weekdayOrdinal = value
-                break
             case NSCalendar.Unit.quarter:
                 quarter = value
-                break
             case NSCalendar.Unit.weekOfMonth:
                 weekOfMonth = value
-                break
             case NSCalendar.Unit.weekOfYear:
                 weekOfYear = value
-                break
             case NSCalendar.Unit.yearForWeekOfYear:
                 yearForWeekOfYear = value
-                break
             case NSCalendar.Unit.calendar:
                 print(".Calendar cannot be set via \(#function)")
-                break
             case NSCalendar.Unit.timeZone:
                 print(".TimeZone cannot be set via \(#function)")
-                break
             default:
                 break
         }

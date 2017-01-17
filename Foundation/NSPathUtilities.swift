@@ -11,7 +11,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
@@ -156,7 +156,7 @@ internal extension String {
 
 public extension NSString {
     
-    public var absolutePath: Bool {
+    public var isAbsolutePath: Bool {
         return hasPrefix("~") || hasPrefix("/")
     }
     

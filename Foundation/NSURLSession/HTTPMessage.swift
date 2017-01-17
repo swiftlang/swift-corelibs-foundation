@@ -143,7 +143,12 @@ extension URLSessionTask._HTTPMessage {
     var headersAsDictionary: [String: String] {
         var result: [String: String] = [:]
         headers.forEach {
-            result[$0.name] = $0.value
+            if result[$0.name] == nil {
+                result[$0.name] = $0.value
+            }
+            else {
+                result[$0.name]! += (", " + $0.value)
+            }
         }
         return result
     }
@@ -287,8 +292,13 @@ private extension URLSessionTask._HTTPMessage._Header {
         var value: String?
         let line = headView[headView.index(after: nameRange.upperBound)..<headView.endIndex]
         if !line.isEmpty {
-            guard let v = line.trimSPHTPrefix else { return nil }
-            value = String(v)
+            if line.hasSPHTPrefix && line.count == 1 {
+                // to handle empty headers i.e header without value
+                value = String("")
+            } else {
+                guard let v = line.trimSPHTPrefix else { return nil }
+                value = String(v)
+            }
         }
         do {
             var t = tail

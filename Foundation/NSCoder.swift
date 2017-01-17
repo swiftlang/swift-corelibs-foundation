@@ -103,7 +103,7 @@ open class NSCoder : NSObject {
     open func encode(_ object: Any?) {
         var object = object
         withUnsafePointer(to: &object) { (ptr: UnsafePointer<Any?>) -> Void in
-            encodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeRawPointer.self))
+            encodeValue(ofObjCType: "@", at: UnsafeRawPointer(ptr))
         }
     }
     
@@ -145,7 +145,7 @@ open class NSCoder : NSObject {
         
         var obj: Any? = nil
         withUnsafeMutablePointer(to: &obj) { (ptr: UnsafeMutablePointer<Any?>) -> Void in
-            decodeValue(ofObjCType: "@", at: unsafeBitCast(ptr, to: UnsafeMutableRawPointer.self))
+            decodeValue(ofObjCType: "@", at: UnsafeMutableRawPointer(ptr))
         }
         return obj
     }

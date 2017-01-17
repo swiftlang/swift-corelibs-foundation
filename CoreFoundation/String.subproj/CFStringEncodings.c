@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFStringEncodings.c
-	Copyright (c) 1999 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Foundation Team
 */
 
@@ -812,8 +807,8 @@ CFIndex CFStringGetMaximumSizeOfFileSystemRepresentation(CFStringRef string) {
     }
 } 
 
-Boolean CFStringGetFileSystemRepresentation(CFStringRef string, char *buffer, CFIndex maxBufLen) {
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX)
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+_CFStringFileSystemRepresentationError _CFStringGetFileSystemRepresentationWithErrorStatus(CFStringRef string, char *buffer, CFIndex maxBufLen, CFIndex *characterIndex) {
 #define MAX_STACK_BUFFER_LEN	(255)
     const UTF16Char *characters = CFStringGetCharactersPtr(string);
     const char *origBuffer = buffer;
@@ -821,7 +816,9 @@ Boolean CFStringGetFileSystemRepresentation(CFStringRef string, char *buffer, CF
     CFIndex length = CFStringGetLength(string);
     CFIndex usedBufLen;
 
-    if (maxBufLen < length) return false; // Since we're using UTF-8, the byte length is never shorter than the char length. Also, it filters out 0 == maxBufLen
+    if (maxBufLen < length) {
+        return _kCFStringFileSystemRepresentationErrorBufferFull; // Since we're using UTF-8, the byte length is never shorter than the char length. Also, it filters out 0 == maxBufLen
+    }
 
     if (NULL == characters) {
         UTF16Char charactersBuffer[MAX_STACK_BUFFER_LEN];
@@ -843,27 +840,58 @@ Boolean CFStringGetFileSystemRepresentation(CFStringRef string, char *buffer, CF
             CFStringGetCharacters(string, range, charactersBuffer);
             if ((range.length == MAX_STACK_BUFFER_LEN) && CFUniCharIsSurrogateHighCharacter(charactersBuffer[MAX_STACK_BUFFER_LEN - 1])) --range.length; // Backup for a high surrogate
 
-            if (!CFUniCharDecompose(charactersBuffer, range.length, NULL, (void *)buffer, bufferLimit - buffer, &usedBufLen, true, kCFUniCharUTF8Format, true)) return false;
+            CFIndex badIndex = kCFNotFound;
+            if (!CFUniCharDecomposeWithErrorLocation(charactersBuffer, range.length, NULL, (void *)buffer, bufferLimit - buffer, &usedBufLen, true, kCFUniCharUTF8Format, true, &badIndex)) {
+                if (badIndex == kCFNotFound) {
+                    return _kCFStringFileSystemRepresentationErrorBufferFull;
+                } else {
+                    if (characterIndex) *characterIndex = badIndex;
+                    return _kCFStringFileSystemRepresentationErrorUnpairedSurrogate;
+                }
+            }
 
             buffer += usedBufLen;
             range.location += range.length;
         }
     } else {
-        if (!CFUniCharDecompose(characters, length, NULL, (void *)buffer, maxBufLen, &usedBufLen, true, kCFUniCharUTF8Format, true)) return false;
+        CFIndex badIndex = kCFNotFound;
+        if (!CFUniCharDecomposeWithErrorLocation(characters, length, NULL, (void *)buffer, maxBufLen, &usedBufLen, true, kCFUniCharUTF8Format, true, &badIndex)) {
+            if (badIndex == kCFNotFound) {
+                return _kCFStringFileSystemRepresentationErrorBufferFull;
+            } else {
+                if (characterIndex) *characterIndex = badIndex;
+                return _kCFStringFileSystemRepresentationErrorUnpairedSurrogate;
+            }
+        }
         buffer += usedBufLen;
     }
 
     if (buffer < bufferLimit) { // Since the filename has its own limit, this is ok for now
         *buffer = '\0';
-	if (_CFExecutableLinkedOnOrAfter(CFSystemVersionLion)) {
-	    while (origBuffer < buffer) if (*origBuffer++ == 0) {	// There's a zero in there. Now see if the rest are all zeroes.
-		while (origBuffer < buffer) if (*origBuffer++ != 0) return false;	// Embedded NULLs should cause failure: <rdar://problem/5863219>
+        if (_CFExecutableLinkedOnOrAfter(CFSystemVersionLion)) {
+            const char *findZeroBuffer = origBuffer;
+            while (findZeroBuffer < buffer) if (*findZeroBuffer++ == 0) {	// There's a zero in there. Now see if the rest are all zeroes.
+                while (findZeroBuffer < buffer) {
+                    if (*findZeroBuffer != 0) {
+                        // Embedded NULLs should cause failure: <rdar://problem/5863219>
+                        if (characterIndex) *characterIndex = findZeroBuffer - origBuffer;
+                        return _kCFStringFileSystemRepresentationErrorEmbeddedNull;
+                    }
+                    findZeroBuffer++;
+                }
             }
-	}
-        return true;
+        }
+        return _kCFStringFileSystemRepresentationErrorNone;
     } else {
-        return false;
+        return _kCFStringFileSystemRepresentationErrorBufferFull;
     }
+
+}
+#endif
+
+Boolean CFStringGetFileSystemRepresentation(CFStringRef string, char *buffer, CFIndex maxBufLen) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+    return _CFStringGetFileSystemRepresentationWithErrorStatus(string, buffer, maxBufLen, NULL) == _kCFStringFileSystemRepresentationErrorNone;
 #else
     return CFStringGetCString(string, buffer, maxBufLen, CFStringFileSystemEncoding());
 #endif

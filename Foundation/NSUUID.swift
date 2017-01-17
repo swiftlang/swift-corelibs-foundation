@@ -12,7 +12,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
     import Darwin.uuid
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
     import Glibc
 #endif
 
@@ -32,7 +32,7 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public init(uuidBytes bytes: UnsafePointer<UInt8>) {
-        memcpy(unsafeBitCast(buffer, to: UnsafeMutableRawPointer.self), UnsafeRawPointer(bytes), 16)
+        memcpy(UnsafeMutableRawPointer(buffer), UnsafeRawPointer(bytes), 16)
     }
     
     open func getBytes(_ uuid: UnsafeMutablePointer<UInt8>) {

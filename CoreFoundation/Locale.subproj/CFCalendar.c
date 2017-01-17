@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFCalendar.c
-	Copyright (c) 2004 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2004-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Christopher Kane
 */
 
@@ -52,7 +47,7 @@ static void __CFCalendarDeallocate(CFTypeRef cf) {
     if (calendar->_identifier) CFRelease(calendar->_identifier);
     if (calendar->_locale) CFRelease(calendar->_locale);
     if (calendar->_localeID) CFRelease(calendar->_localeID);
-    if (calendar->_tz) CFRelease(calendar->_tz);
+    if (calendar->_identifier) CFRelease(calendar->_tz);
     if (calendar->_cal) ucal_close(calendar->_cal);
 }
 
@@ -71,7 +66,7 @@ static const CFRuntimeClass __CFCalendarClass = {
 };
 
 CFTypeID CFCalendarGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{ __kCFCalendarTypeID = _CFRuntimeRegisterClass(&__CFCalendarClass); });
     return __kCFCalendarTypeID;
 }
@@ -236,20 +231,29 @@ CFCalendarRef CFCalendarCopyCurrent(void) {
 }
 
 Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier) {
-    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar && identifier != kCFChineseCalendar) {
+    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar && identifier != kCFRepublicOfChinaCalendar && identifier != kCFPersianCalendar && identifier != kCFCalendarIdentifierCoptic && identifier != kCFCalendarIdentifierEthiopicAmeteMihret && identifier != kCFCalendarIdentifierEthiopicAmeteAlem && identifier != kCFChineseCalendar && identifier != kCFISO8601Calendar && identifier != kCFIslamicTabularCalendar && identifier != kCFIslamicUmmAlQuraCalendar) {
         if (CFEqual(kCFGregorianCalendar, identifier)) identifier = kCFGregorianCalendar;
         else if (CFEqual(kCFBuddhistCalendar, identifier)) identifier = kCFBuddhistCalendar;
         else if (CFEqual(kCFJapaneseCalendar, identifier)) identifier = kCFJapaneseCalendar;
         else if (CFEqual(kCFIslamicCalendar, identifier)) identifier = kCFIslamicCalendar;
         else if (CFEqual(kCFIslamicCivilCalendar, identifier)) identifier = kCFIslamicCivilCalendar;
         else if (CFEqual(kCFHebrewCalendar, identifier)) identifier = kCFHebrewCalendar;
+        else if (CFEqual(kCFRepublicOfChinaCalendar, identifier)) identifier = kCFRepublicOfChinaCalendar;
+        else if (CFEqual(kCFPersianCalendar, identifier)) identifier = kCFPersianCalendar;
+        else if (CFEqual(kCFIndianCalendar, identifier)) identifier = kCFIndianCalendar;
+        else if (CFEqual(kCFCalendarIdentifierCoptic, identifier)) identifier = kCFCalendarIdentifierCoptic;
+        else if (CFEqual(kCFCalendarIdentifierEthiopicAmeteMihret, identifier)) identifier = kCFCalendarIdentifierEthiopicAmeteMihret;
+        else if (CFEqual(kCFCalendarIdentifierEthiopicAmeteAlem, identifier)) identifier = kCFCalendarIdentifierEthiopicAmeteAlem;
         else if (CFEqual(kCFChineseCalendar, identifier)) identifier = kCFChineseCalendar;
+        else if (CFEqual(kCFISO8601Calendar, identifier)) identifier = kCFISO8601Calendar;
+        else if (CFEqual(kCFIslamicTabularCalendar, identifier)) identifier = kCFIslamicTabularCalendar;
+        else if (CFEqual(kCFIslamicUmmAlQuraCalendar, identifier)) identifier = kCFIslamicUmmAlQuraCalendar;
         else return false;
     }
     
     calendar->_identifier = (CFStringRef)CFRetain(identifier);
     calendar->_locale = NULL;
-    calendar->_localeID = CFLocaleGetIdentifier(CFLocaleGetSystem());
+    calendar->_localeID = CFRetain(CFLocaleGetIdentifier(CFLocaleGetSystem()));
     calendar->_tz = CFTimeZoneCopyDefault();
     calendar->_cal = NULL;
     return true;
@@ -260,14 +264,15 @@ CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringR
     __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
     __CFGenericValidateType(identifier, CFStringGetTypeID());
     // return NULL until Chinese calendar is available
-    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar && identifier != kCFChineseCalendar) {
+    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar) {
+//    if (identifier != kCFGregorianCalendar && identifier != kCFBuddhistCalendar && identifier != kCFJapaneseCalendar && identifier != kCFIslamicCalendar && identifier != kCFIslamicCivilCalendar && identifier != kCFHebrewCalendar && identifier != kCFChineseCalendar) {
 	if (CFEqual(kCFGregorianCalendar, identifier)) identifier = kCFGregorianCalendar;
 	else if (CFEqual(kCFBuddhistCalendar, identifier)) identifier = kCFBuddhistCalendar;
 	else if (CFEqual(kCFJapaneseCalendar, identifier)) identifier = kCFJapaneseCalendar;
 	else if (CFEqual(kCFIslamicCalendar, identifier)) identifier = kCFIslamicCalendar;
 	else if (CFEqual(kCFIslamicCivilCalendar, identifier)) identifier = kCFIslamicCivilCalendar;
 	else if (CFEqual(kCFHebrewCalendar, identifier)) identifier = kCFHebrewCalendar;
-	else if (CFEqual(kCFChineseCalendar, identifier)) identifier = kCFChineseCalendar;
+//	else if (CFEqual(kCFChineseCalendar, identifier)) identifier = kCFChineseCalendar;
 	else return NULL;
     }
     struct __CFCalendar *calendar = NULL;
@@ -278,7 +283,7 @@ CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringR
     }
     calendar->_identifier = (CFStringRef)CFRetain(identifier);
     calendar->_locale = NULL;
-    calendar->_localeID = CFLocaleGetIdentifier(CFLocaleGetSystem());
+    calendar->_localeID = CFRetain(CFLocaleGetIdentifier(CFLocaleGetSystem()));
     calendar->_tz = CFTimeZoneCopyDefault();
     calendar->_cal = NULL;
     return (CFCalendarRef)calendar;
@@ -1068,6 +1073,14 @@ Boolean CFCalendarGetTimeRangeOfUnit(CFCalendarRef calendar, CFCalendarUnit unit
     }
 
     return false;
+}
+
+CF_PRIVATE CFCalendarRef _CFCalendarCopyCoWCurrentCalendar() {
+    return CFCalendarCopyCurrent();
+}
+
+CF_PRIVATE CFCalendarRef _CFCalendarCreateCoWWithIdentifier(CFStringRef identifier) {
+    return CFCalendarCreateWithIdentifier(kCFAllocatorSystemDefault, identifier);
 }
 
 #undef BUFFER_SIZE

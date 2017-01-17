@@ -34,3 +34,6 @@ _C_LABEL(__CFUnicodeDataLEnd):
 _C_LABEL(__CFUnicodeDataLSize):
     .int _C_LABEL(__CFUnicodeDataLEnd) - _C_LABEL(__CFUnicodeDataL)
 #endif
+
+NO_EXEC_STACK_DIRECTIVE
+

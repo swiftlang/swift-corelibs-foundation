@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFSystemDirectories.c
-	Copyright (c) 1997 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1997-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Kevin Perry
 */
 
@@ -31,10 +26,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pwd.h>
-#include <NSSystemDirectories.h>
+#include <sysdir.h>
+
+// For now, CFSystemDirectories SPIs are exactly equivalent to (or at least a subset of) sysdir's. NSSearchPath* APIs in Foundation are not a subset of sysdir, so don't attempt to push that functionality down here without accommodating the differences.
+#define CFSearchPathToSysdir(dir) ((sysdir_search_path_directory_t)dir)
+#define CFSearchPathDomainMaskToSysdir(mask) ((sysdir_search_path_domain_mask_t)domainMask)
 
 CFSearchPathEnumerationState __CFStartSearchPathEnumeration(CFSearchPathDirectory dir, CFSearchPathDomainMask domainMask) {
-    return NSStartSearchPathEnumeration(dir, domainMask);
+    return sysdir_start_search_path_enumeration(CFSearchPathToSysdir(dir), CFSearchPathDomainMaskToSysdir(domainMask));
 }
 
 CFSearchPathEnumerationState __CFGetNextSearchPathEnumeration(CFSearchPathEnumerationState state, uint8_t *path, CFIndex pathSize) {
@@ -42,10 +41,10 @@ CFSearchPathEnumerationState __CFGetNextSearchPathEnumeration(CFSearchPathEnumer
     // NSGetNextSearchPathEnumeration requires a MAX_PATH size
     if (pathSize < PATH_MAX) {
         uint8_t tempPath[PATH_MAX];
-        result = NSGetNextSearchPathEnumeration(state, (char *)tempPath);
+        result = sysdir_get_next_search_path_enumeration(state, (char *)tempPath);
         strlcpy((char *)path, (char *)tempPath, pathSize);
     } else {
-        result = NSGetNextSearchPathEnumeration(state, (char *)path);
+        result = sysdir_get_next_search_path_enumeration(state, (char *)path);
     }
     return result;
 }

@@ -45,10 +45,11 @@ public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
 
     /// The time zone currently used by the system, automatically updating to the user's current preference.
     ///
-    /// If this time zone is mutated, then it no longer tracks the application time zone.
+    /// If this time zone is mutated, then it no longer tracks the system time zone.
     ///
     /// The autoupdating time zone only compares equal to itself.
     public static var autoupdatingCurrent : TimeZone {
+        // swift-corelibs-foundation does not yet support autoupdating, but we can return the current time zone (which will not change).
         return TimeZone(adoptingReference: __NSTimeZoneAutoupdating(), autoupdating: true)
     }
     
@@ -236,7 +237,7 @@ extension TimeZone : CustomStringConvertible, CustomDebugStringConvertible, Cust
         var c: [(label: String?, value: Any)] = []
         c.append((label: "identifier", value: identifier))
         c.append((label: "kind", value: _kindDescription))
-        c.append((label: "abbreviation", value: abbreviation()))
+        c.append((label: "abbreviation", value: abbreviation() as Any))
         c.append((label: "secondsFromGMT", value: secondsFromGMT()))
         c.append((label: "isDaylightSavingTime", value: isDaylightSavingTime()))
         return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)

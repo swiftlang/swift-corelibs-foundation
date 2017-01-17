@@ -140,19 +140,18 @@ internal func _CFSwiftStringGetCharacters(_ str: AnyObject, range: CFRange, buff
 }
 
 internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncoding, range: CFRange, buffer: UnsafeMutablePointer<UInt8>?, maxBufLen: CFIndex, usedBufLen: UnsafeMutablePointer<CFIndex>?) -> CFIndex {
+    let convertedLength: CFIndex
     switch encoding {
         // TODO: Don't treat many encodings like they are UTF8
     case CFStringEncoding(kCFStringEncodingUTF8), CFStringEncoding(kCFStringEncodingISOLatin1), CFStringEncoding(kCFStringEncodingMacRoman), CFStringEncoding(kCFStringEncodingASCII), CFStringEncoding(kCFStringEncodingNonLossyASCII):
-        let encodingView = (str as! NSString)._swiftObject.utf8
-        let start = encodingView.startIndex
+        let encodingView = (str as! NSString).substring(with: NSRange(range)).utf8
         if let buffer = buffer {
-            for idx in 0..<range.length {
-                let characterIndex = encodingView.index(start, offsetBy: idx + range.location)
-                let character = encodingView[characterIndex]
+            for (idx, character) in encodingView.enumerated() {
                 buffer.advanced(by: idx).initialize(to: character)
             }
         }
-        usedBufLen?.pointee = range.length
+        usedBufLen?.pointee = encodingView.count
+        convertedLength = encodingView.count
         
     case CFStringEncoding(kCFStringEncodingUTF16):
         let encodingView = (str as! NSString)._swiftObject.utf16
@@ -169,13 +168,13 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
         }
         // Every character was 2 bytes
         usedBufLen?.pointee = range.length * 2
-
+        convertedLength = range.length
 
     default:
         fatalError("Attempted to get bytes of a Swift string using an unsupported encoding")
     }
     
-    return range.length
+    return convertedLength
 }
 
 internal func _CFSwiftStringCreateWithSubstring(_ str: AnyObject, range: CFRange) -> Unmanaged<AnyObject> {
@@ -191,8 +190,8 @@ internal func _CFSwiftStringCreateMutableCopy(_ str: AnyObject) -> Unmanaged<Any
     return Unmanaged<AnyObject>.passRetained((str as! NSString).mutableCopy() as! NSObject)
 }
 
-internal func _CFSwiftStringFastCStringContents(_ str: AnyObject) -> UnsafePointer<Int8>? {
-    return (str as! NSString)._fastCStringContents
+internal func _CFSwiftStringFastCStringContents(_ str: AnyObject, _ nullTerminated: Bool) -> UnsafePointer<Int8>? {
+    return (str as! NSString)._fastCStringContents(nullTerminated)
 }
 
 internal func _CFSwiftStringFastContents(_ str: AnyObject) -> UnsafePointer<UniChar>? {

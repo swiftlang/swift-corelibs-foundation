@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFError.c
-	Copyright (c) 2006 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2006-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Ali Ozer
 */
 
@@ -23,11 +18,12 @@
 #endif
 
 
+
 #if DEPLOYMENT_RUNTIME_SWIFT
 // We don't have the right memory management semantics to handle storing Swift blocks right now
 #define USES_CALLBACK_BLOCKS 0
 #else
-#define USES_CALLBACK_BLOCKS 0
+#define USES_CALLBACK_BLOCKS 1
 #endif
 
 /* Pre-defined userInfo keys
@@ -161,7 +157,7 @@ static const CFRuntimeClass __CFErrorClass = {
 };
 
 CFTypeID CFErrorGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{ __kCFErrorTypeID = _CFRuntimeRegisterClass(&__CFErrorClass); });
     return __kCFErrorTypeID;
 }
@@ -514,7 +510,6 @@ static CFTypeRef _CFErrorMachCallBack(CFErrorRef err, CFStringRef key) CF_RETURN
 }
 #endif
 
-#if USES_CALLBACK_BLOCKS
 
 static const void *blockCopyValueCallBack(CFAllocatorRef allocator, const void *value) {return _Block_copy(value);}
 static void blockReleaseValueCallBack(CFAllocatorRef allocator, const void *value) {_Block_release(value);}
@@ -564,14 +559,13 @@ CFErrorUserInfoKeyCallBackBlock CFErrorGetCallBackBlockForDomain(CFStringRef dom
 
 void CFErrorSetCallBackForDomain(CFStringRef domainName, CFErrorUserInfoKeyCallBack callBack) {
     // Since we have replaced the callback functionality with a callback block functionality, we now register (legacy) callback functions embedded in a block which autoreleases the result
-    CFErrorUserInfoKeyCallBackBlock block = NULL;
-    if (callBack) {
-        block = ^(CFErrorRef err, CFStringRef key){
-            CFTypeRef result = callBack(err, key);
-            if (result) CFAutorelease(CFMakeCollectable(result));
-            return result;
-        };
-    }
+    CFErrorUserInfoKeyCallBackBlock block = (!callBack) ? NULL : ^(CFErrorRef err, CFStringRef key){
+        CFTypeRef result = callBack(err, key);
+#if !DEPLOYMENT_RUNTIME_SWIFT
+        if (result) CFAutorelease(result);
+#endif
+        return result;
+    };
     CFErrorSetCallBackBlockForDomain(domainName, block);
 }
 
@@ -581,6 +575,6 @@ CFErrorUserInfoKeyCallBack CFErrorGetCallBackForDomain(CFStringRef domainName) {
     return NULL;
 }
 
-#endif
+
 
 

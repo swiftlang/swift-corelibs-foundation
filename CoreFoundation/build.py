@@ -88,6 +88,7 @@ public = [
 	'NumberDate.subproj/CFNumber.h',
 	'Collections.subproj/CFData.h',
 	'String.subproj/CFAttributedString.h',
+	'AppServices.subproj/CFNotificationCenter.h',
 ],
 private = [
 	'Base.subproj/CFAsmMacros.h',
@@ -129,6 +130,7 @@ private = [
 	'StringEncodings.subproj/CFICUConverters.h',
 	'String.subproj/CFRegularExpression.h',
 	'String.subproj/CFRunArray.h',
+	'URL.subproj/CFURLSessionInterface.h',
 ],
 project = [
 ])

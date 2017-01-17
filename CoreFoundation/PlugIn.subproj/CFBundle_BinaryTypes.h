@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFBundle_BinaryTypes.h
-	Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFBUNDLE_BINARYTYPES__)
@@ -20,7 +15,11 @@ CF_EXTERN_C_BEGIN
 #if DEPLOYMENT_TARGET_MACOSX
 #define BINARY_SUPPORT_DYLD 1
 #define BINARY_SUPPORT_DLFCN 1
+#if DEPLOYMENT_RUNTIME_SWIFT
 #define USE_DYLD_PRIV 0
+#else
+#define USE_DYLD_PRIV 1
+#endif
 #elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 #define BINARY_SUPPORT_DYLD 1
 #define BINARY_SUPPORT_DLFCN 1

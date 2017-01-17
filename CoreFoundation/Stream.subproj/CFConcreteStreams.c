@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFConcreteStreams.c
-	Copyright (c) 2000 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: John Iarocci
 */
 
@@ -54,9 +49,10 @@ typedef struct {
 
 
 CONST_STRING_DECL(kCFStreamPropertyFileCurrentOffset, "kCFStreamPropertyFileCurrentOffset");
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 CONST_STRING_DECL(_kCFStreamPropertyFileNativeHandle, "_kCFStreamPropertyFileNativeHandle");
 #endif
+CONST_STRING_DECL(_kCFStreamPropertyHTTPTrailer, "_kCFStreamPropertyHTTPTrailer");
 
 #ifdef REAL_FILE_SCHEDULING
 extern void _CFFileDescriptorInduceFakeReadCallBack(CFFileDescriptorRef);
@@ -87,7 +83,7 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
     wchar_t path[CFMaxPathSize];
     flags |= (_O_BINARY|_O_NOINHERIT);
     if (_CFURLGetWideFileSystemRepresentation(fileStream->url, TRUE, path, CFMaxPathSize) == FALSE)
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#else
     char path[CFMaxPathSize];
     if (CFURLGetFileSystemRepresentation(fileStream->url, TRUE, (UInt8 *)path, CFMaxPathSize) == FALSE)
 #endif
@@ -102,10 +98,10 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
     }
     
     do {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_WINDOWS
+        fileStream->fd = _wopen(path, flags, 0666);
+#else
         fileStream->fd = open((const char *)path, flags, 0666);
-#elif DEPLOYMENT_TARGET_WINDOWS
-	fileStream->fd = _wopen(path, flags, 0666);
 #endif
         if (fileStream->fd < 0)
             break;
@@ -422,7 +418,7 @@ static CFTypeRef fileCopyProperty(struct _CFStream *stream, CFStringRef property
         if (fileStream->offset != -1) {
             result = CFNumberCreate(CFGetAllocator((CFTypeRef)stream), kCFNumberSInt64Type, &(fileStream->offset));
         }
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     } else if (CFEqual(propertyName, _kCFStreamPropertyFileNativeHandle)) {
 		int fd = fileStream->fd;
 		if (fd != -1) {
@@ -868,6 +864,11 @@ CF_EXPORT CFWriteStreamRef CFWriteStreamCreateWithAllocatedBuffers(CFAllocatorRe
     ctxt.bufferAllocator = bufferAllocator;
     return (CFWriteStreamRef)_CFStreamCreateWithConstantCallbacks(alloc, &ctxt, (struct _CFStreamCallBacks *)(&writeDataCallBacks), FALSE);
 }
+
+CF_SWIFT_EXPORT _Nullable CFErrorRef _CFReadStreamCopyError(CFReadStreamRef stream) { return CFReadStreamCopyError(stream); }
+
+CF_SWIFT_EXPORT _Nullable CFErrorRef _CFWriteStreamCopyError(CFWriteStreamRef stream) { return CFWriteStreamCopyError(stream); }
+
 
 #undef BUF_SIZE
 

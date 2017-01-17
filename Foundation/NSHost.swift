@@ -9,9 +9,9 @@
 
 
 #if os(OSX) || os(iOS)
-    import Darwin
-#elseif os(Linux)
-    import Glibc
+import Darwin
+#elseif os(Linux) || CYGWIN
+import Glibc
 #endif
 
 import CoreFoundation
@@ -99,17 +99,20 @@ open class Host: NSObject {
             switch (_type) {
             case .name:
                 flags = AI_PASSIVE | AI_CANONNAME
-                break
             case .address:
                 flags = AI_PASSIVE | AI_CANONNAME | AI_NUMERICHOST
-                break
             case .current:
                 _resolveCurrent()
                 return
             }
             var hints = addrinfo()
             hints.ai_family = PF_UNSPEC
-            hints.ai_socktype = _CF_SOCK_STREAM()
+#if os(OSX) || os(iOS) || os(Android)
+            hints.ai_socktype = SOCK_STREAM
+#else
+            hints.ai_socktype = Int32(SOCK_STREAM.rawValue)
+#endif
+    
             hints.ai_flags = flags
             
             var res0: UnsafeMutablePointer<addrinfo>? = nil

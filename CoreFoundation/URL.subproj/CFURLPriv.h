@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFURLPriv.h
-	Copyright (c) 2008 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
         Responsibility: Jim Luther/Chris Linn
  */
 
@@ -22,8 +17,6 @@
 #include <CoreFoundation/CFDictionary.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
-#if TARGET_OS_MAC || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
-#endif
 #include <CoreFoundation/CFDate.h>
 #if TARGET_OS_MAC
 #include <sys/mount.h>
@@ -336,19 +329,21 @@ CF_EXPORT const CFStringRef kCFURLUbiquitousItemContainerDisplayNameKey CF_AVAIL
 
 CF_EXPORT const CFStringRef kCFURLUbiquitousItemIsSharedKey; // true if the ubiquitous item is shared. (Read-only, value type boolean NSNumber)
 
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemRoleKey CF_AVAILABLE(10_11, 9_0); // returns the current user's role for this shared item, or nil if not shared. (Read-only, value type NSString). Possible values below.
+CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemCurrentUserRoleKey CF_AVAILABLE(10_11, 9_0); // Replaced by kCFURLUbiquitousSharedItemCurrentUserRoleKey.
 CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemRoleOwner CF_AVAILABLE(10_11, 9_0); // the current user is the owner of this shared item.
 CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemRoleParticipant CF_AVAILABLE(10_11, 9_0); // the current user is a participant of this shared item.
 
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemOwnerNameKey CF_DEPRECATED(10_11, 10_11, 9_0, 9_0); // returns the name of the owner of a shared item, or nil if the current user. (Read-only, value type NSString)
-
 CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemOwnerNameComponentsKey CF_AVAILABLE(10_11, 9_0); // returns a NSPersonNameComponents, or nil if the current user. (Read-only, value type NSPersonNameComponents)
+CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemMostRecentEditorNameComponentsKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // returns a NSPersonNameComponents for the most recent editro fo the file, or nil if the current user. (Read-only, value type NSPersonNameComponents)
 
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemPermissionsKey CF_AVAILABLE(10_11, 9_0); // returns the permissions for a participant of this shared item, or nil if not shared. (Read-only, value type NSString). Possible values below.
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemPermissionsReadOnly CF_AVAILABLE(10_11, 9_0); // participants are only allowed to read this item
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemPermissionsReadWrite CF_AVAILABLE(10_11, 9_0); // participants are allowed to both read and write this item
+CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemCurrentUserPermissionsKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // returns the permissions for a participant of this shared item, or nil if not shared. (Read-only, value type NSString). Possible values below.
+CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemPermissionsReadOnly API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // participants are only allowed to read this item
+CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemPermissionsReadWrite API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // participants are allowed to both read and write this item
 
 // Deprecated. Will be removed.
+CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemRoleKey CF_AVAILABLE(10_11, 9_0); // Replaced by kCFURLUbiquitousSharedItemCurrentUserRoleKey.
+CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemOwnerNameKey CF_DEPRECATED(10_11, 10_11, 9_0, 9_0); // Replaced by kCFURLUbiquitousSharedItemOwnerNameComponentsKey.
+CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemPermissionsKey CF_AVAILABLE(10_11, 9_0); // returns the permissions for a participant of this shared item, or nil if not shared. (Read-only, value type NSString). Possible values below.
 CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemReadOnlyPermissions CF_AVAILABLE(10_11, 9_0);
 CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemReadWritePermissions CF_AVAILABLE(10_11, 9_0);
 
@@ -358,6 +353,9 @@ CF_EXPORT const CFStringRef kCFURLThumbnailDictionaryKey CF_AVAILABLE(10_10, 8_0
 CF_EXPORT const CFStringRef kCFURLThumbnailKey CF_AVAILABLE(10_10, 8_0);
 // The values of thumbnails in the dictionary returned by NSURLThumbnailDictionaryKey
 CF_EXPORT const CFStringRef kCFThumbnail1024x1024SizeKey CF_AVAILABLE(10_10, 8_0);
+
+// This private key is only for the use of CFURLPromises and the URL cache code in CoreServicesInternal
+CF_EXPORT const CFStringRef _kCFURLPromisePhysicalURLKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 
 
 /*
@@ -454,84 +452,94 @@ Boolean _CFURLCopyResourcePropertyValuesAndFlags( CFURLRef url, CFURLFilePropert
     Volume property flags
  */
 typedef CF_OPTIONS(unsigned long long, CFURLVolumePropertyFlags) {
-	kCFURLVolumeIsLocal				=                0x1LL,	// Local device (vs. network device)
-	kCFURLVolumeIsAutomount				=                0x2LL,	// Mounted by the automounter
-	kCFURLVolumeDontBrowse				=                0x4LL,	// Hidden from user browsing
-	kCFURLVolumeIsReadOnly				=                0x8LL,	// Mounted read-only
-	kCFURLVolumeIsQuarantined		        =               0x10LL,	// Mounted with quarantine bit
-	kCFURLVolumeIsEjectable				=               0x20LL,
-	kCFURLVolumeIsRemovable				=               0x40LL,
-	kCFURLVolumeIsInternal				=               0x80LL,
-	kCFURLVolumeIsExternal				=              0x100LL,
-	kCFURLVolumeIsDiskImage				=              0x200LL,
-	kCFURLVolumeIsFileVault				=              0x400LL,
-	kCFURLVolumeIsLocaliDiskMirror CF_ENUM_DEPRECATED(10_6, 10_9, 4_0, 7_0)
+    kCFURLVolumeIsLocal                                 =                0x1LL,	// Local device (vs. network device)
+    kCFURLVolumeIsAutomount				=                0x2LL,	// Mounted by the automounter
+    kCFURLVolumeDontBrowse				=                0x4LL,	// Hidden from user browsing
+    kCFURLVolumeIsReadOnly				=                0x8LL,	// Mounted read-only
+    kCFURLVolumeIsQuarantined                           =               0x10LL,	// Mounted with quarantine bit
+    kCFURLVolumeIsEjectable				=               0x20LL,
+    kCFURLVolumeIsRemovable				=               0x40LL,
+    kCFURLVolumeIsInternal				=               0x80LL,
+    kCFURLVolumeIsExternal				=              0x100LL,
+    kCFURLVolumeIsDiskImage				=              0x200LL,
+    kCFURLVolumeIsFileVault				=              0x400LL,
+    kCFURLVolumeIsLocaliDiskMirror CF_ENUM_DEPRECATED(10_6, 10_9, 4_0, 7_0)
                                                         =              0x800LL, // Deprecated and scheduled for removal in 10.10/8.0 - there are no more iDisks
-	kCFURLVolumeIsiPod				=             0x1000LL,
-	kCFURLVolumeIsiDisk CF_ENUM_DEPRECATED(10_6, 10_9, 4_0, 7_0)
+    kCFURLVolumeIsiPod                                  =             0x1000LL,
+    kCFURLVolumeIsiDisk CF_ENUM_DEPRECATED(10_6, 10_9, 4_0, 7_0)
                                                         =             0x2000LL, // Deprecated and scheduled for removal in 10.10/8.0 - there are no more iDisks
-	kCFURLVolumeIsCD				=             0x4000LL,
-	kCFURLVolumeIsDVD				=             0x8000LL,
-	kCFURLVolumeIsDeviceFileSystem			=	     0x10000LL,
-        kCFURLVolumeIsTimeMachine CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsCD                                    =             0x4000LL,
+    kCFURLVolumeIsDVD                                   =             0x8000LL,
+    kCFURLVolumeIsDeviceFileSystem			=	     0x10000LL,
+    kCFURLVolumeIsTimeMachine CF_ENUM_AVAILABLE_MAC(10_9)
                                                         =	     0x20000LL,
-        kCFURLVolumeIsAirport CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsAirport CF_ENUM_AVAILABLE_MAC(10_9)
                                                         =	     0x40000LL,
-        kCFURLVolumeIsVideoDisk CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsVideoDisk CF_ENUM_AVAILABLE_MAC(10_9)
                                                         =	     0x80000LL,
-        kCFURLVolumeIsDVDVideo CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsDVDVideo CF_ENUM_AVAILABLE_MAC(10_9)
                                                         =	    0x100000LL,
-        kCFURLVolumeIsBDVideo CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsBDVideo CF_ENUM_AVAILABLE_MAC(10_9)
                                                         =	    0x200000LL,
-        kCFURLVolumeIsMobileTimeMachine CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsMobileTimeMachine CF_ENUM_AVAILABLE_MAC(10_9)
                                                         =	    0x400000LL,
-        kCFURLVolumeIsNetworkOptical CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsNetworkOptical CF_ENUM_AVAILABLE_MAC(10_9)
                                                         =	    0x800000LL,
-        kCFURLVolumeIsBeingRepaired CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsBeingRepaired CF_ENUM_AVAILABLE_MAC(10_9)
                                                         =	   0x1000000LL,
-        kCFURLVolumeIsBeingUnmounted CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsBeingUnmounted CF_ENUM_AVAILABLE_MAC(10_9)
                                                         =	   0x2000000LL,
+    kCFURLVolumeIsRootFileSystem CF_ENUM_AVAILABLE_MAC(10_11)
+                                                        =	   0x4000000LL,
+    kCFURLVolumeIsEncrypted CF_ENUM_AVAILABLE_MAC(10_11)
+                                                        =	   0x8000000LL,
     
-// IMPORTANT: The values of the following flags must stay in sync with the
-// VolumeCapabilities flags in CarbonCore (FileIDTreeStorage.h)
-	kCFURLVolumeSupportsPersistentIDs		=        0x100000000LL,
-	kCFURLVolumeSupportsSearchFS			=        0x200000000LL,
-	kCFURLVolumeSupportsExchange			=        0x400000000LL,
-	// reserved						 0x800000000LL,
-	kCFURLVolumeSupportsSymbolicLinks		=       0x1000000000LL,
-	kCFURLVolumeSupportsDenyModes			=       0x2000000000LL,
-	kCFURLVolumeSupportsCopyFile			=       0x4000000000LL,
-	kCFURLVolumeSupportsReadDirAttr			=       0x8000000000LL,
-	kCFURLVolumeSupportsJournaling			=      0x10000000000LL,
-	kCFURLVolumeSupportsRename			=      0x20000000000LL,
-	kCFURLVolumeSupportsFastStatFS			=      0x40000000000LL,
-	kCFURLVolumeSupportsCaseSensitiveNames		=      0x80000000000LL,
-	kCFURLVolumeSupportsCasePreservedNames		=     0x100000000000LL,
-	kCFURLVolumeSupportsFLock			=     0x200000000000LL,
-	kCFURLVolumeHasNoRootDirectoryTimes		=     0x400000000000LL,
-	kCFURLVolumeSupportsExtendedSecurity		=     0x800000000000LL,
-	kCFURLVolumeSupports2TBFileSize			=    0x1000000000000LL,
-	kCFURLVolumeSupportsHardLinks			=    0x2000000000000LL,
-	kCFURLVolumeSupportsMandatoryByteRangeLocks	=    0x4000000000000LL,
-	kCFURLVolumeSupportsPathFromID			=    0x8000000000000LL,
-	// reserved					    0x10000000000000LL,
-	kCFURLVolumeIsJournaling			=   0x20000000000000LL,
-	kCFURLVolumeSupportsSparseFiles			=   0x40000000000000LL,
-	kCFURLVolumeSupportsZeroRuns			=   0x80000000000000LL,
-	kCFURLVolumeSupportsVolumeSizes			=  0x100000000000000LL,
-	kCFURLVolumeSupportsRemoteEvents		=  0x200000000000000LL,
-	kCFURLVolumeSupportsHiddenFiles			=  0x400000000000000LL,
-	kCFURLVolumeSupportsDecmpFSCompression		=  0x800000000000000LL,
-	kCFURLVolumeHas64BitObjectIDs			= 0x1000000000000000LL,
-	kCFURLVolumePropertyFlagsAll			= 0xffffffffffffffffLL
+    // IMPORTANT: The values of the following flags must stay in sync with the
+    // VolumeCapabilities flags in CarbonCore (FileIDTreeStorage.h)
+    kCFURLVolumeSupportsPersistentIDs                   =        0x100000000LL,
+    kCFURLVolumeSupportsSearchFS			=        0x200000000LL,
+    kCFURLVolumeSupportsExchange			=        0x400000000LL,
+    // reserved                                                  0x800000000LL,
+    kCFURLVolumeSupportsSymbolicLinks                   =       0x1000000000LL,
+    kCFURLVolumeSupportsDenyModes			=       0x2000000000LL,
+    kCFURLVolumeSupportsCopyFile			=       0x4000000000LL,
+    kCFURLVolumeSupportsReadDirAttr			=       0x8000000000LL,
+    kCFURLVolumeSupportsJournaling			=      0x10000000000LL,
+    kCFURLVolumeSupportsRename                          =      0x20000000000LL,
+    kCFURLVolumeSupportsFastStatFS			=      0x40000000000LL,
+    kCFURLVolumeSupportsCaseSensitiveNames		=      0x80000000000LL,
+    kCFURLVolumeSupportsCasePreservedNames		=     0x100000000000LL,
+    kCFURLVolumeSupportsFLock                           =     0x200000000000LL,
+    kCFURLVolumeHasNoRootDirectoryTimes                 =     0x400000000000LL,
+    kCFURLVolumeSupportsExtendedSecurity		=     0x800000000000LL,
+    kCFURLVolumeSupports2TBFileSize			=    0x1000000000000LL,
+    kCFURLVolumeSupportsHardLinks			=    0x2000000000000LL,
+    kCFURLVolumeSupportsMandatoryByteRangeLocks         =    0x4000000000000LL,
+    kCFURLVolumeSupportsPathFromID			=    0x8000000000000LL,
+    // reserved                                             0x10000000000000LL,
+    kCFURLVolumeIsJournaling                            =   0x20000000000000LL,
+    kCFURLVolumeSupportsSparseFiles			=   0x40000000000000LL,
+    kCFURLVolumeSupportsZeroRuns			=   0x80000000000000LL,
+    kCFURLVolumeSupportsVolumeSizes			=  0x100000000000000LL,
+    kCFURLVolumeSupportsRemoteEvents                    =  0x200000000000000LL,
+    kCFURLVolumeSupportsHiddenFiles			=  0x400000000000000LL,
+    kCFURLVolumeSupportsDecmpFSCompression		=  0x800000000000000LL,
+    kCFURLVolumeHas64BitObjectIDs			= 0x1000000000000000LL,
+    kCFURLVolumeSupportsFileCloning API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0))
+                                                        = 0x2000000000000000LL,
+    kCFURLVolumeSupportsSwapRenaming API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0))
+                                                        = 0x4000000000000000LL,
+    kCFURLVolumeSupportsExclusiveRenaming API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0))
+                                                        = 0x8000000000000000LL,
+    kCFURLVolumePropertyFlagsAll			= 0xffffffffffffffffLL
 };
 
 
 /*
     _CFURLGetVolumePropertyFlags - Returns a bit array of volume properties.
-    Only flags whose corresponding bits are set in the "mask" parameter are valid 
+    Only flags whose corresponding bits are set in the "mask" parameter are valid
     in the output bit array. Returns true on success, false if an error occurs.
-    Optional output error: the error is set to a valid CFErrorRef if and only if the function 
+    Optional output error: the error is set to a valid CFErrorRef if and only if the function
     returns false. A valid output error must be released by the caller.
  */
 CF_EXPORT
@@ -672,17 +680,19 @@ CFDataRef _CFURLCopySecurityScopeFromFileURL(CFURLRef url) CF_AVAILABLE(10_10, 8
 CF_EXPORT
 void _CFURLSetPermanentResourcePropertyForKey(CFURLRef url, CFStringRef key, CFTypeRef propertyValue) CF_AVAILABLE(10_10, 8_0);
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+
 // Returns a string describing the bookmark data. For debugging purposes only.
 CF_EXPORT
 CFStringRef _CFURLBookmarkCopyDescription(CFDataRef bookmarkRef) CF_AVAILABLE(10_10, 8_0);
 
+#if TARGET_OS_MAC || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 // private CFURLBookmarkCreationOptions
 enum {
     kCFURLBookmarkCreationWithFileProvider CF_ENUM_AVAILABLE(10_10, 8_0) = ( 1UL << 26 ), // private option to create bookmarks with file provider string. The file provider string overrides the rest of the bookmark data at resolution time.
     kCFURLBookmarkOperatingInsideScopedBookmarksAgent = (1UL << 27), // private option used internally by ScopedBookmarkAgent to prevent recursion between the agent and the framework code. Available 10_7, NA
     kCFURLBookmarkCreationAllowCreationIfResourceDoesNotExistMask = ( 1UL << 28 ),    // allow creation of a bookmark to a file: scheme with a CFURLRef of item which may not exist.  If the filesystem item does not exist, the created bookmark contains essentially no properties beyond the url string. Available 10_7, 5_0.
     kCFURLBookmarkCreationDoNotIncludeSandboxExtensionsMask = ( 1UL << 29 ),  // If set, sandbox extensions are not included in created bookmarks. Ordinarily, bookmarks (except those created suitable for putting into a bookmark file) will have a sandbox extension added for the item. Available 10_7, NA.
+    kCFURLBookmarkCreationAllowOnlyReadAccess API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)) = ( 1UL << 30 ), // at resolution time only read access to the resource will be granted (works with regular non-security scoped bookmarks)
     kCFURLBookmarkCreationSuitableForOdocAppleEvent CF_ENUM_DEPRECATED(10_6, 10_11, NA, NA, "kCFURLBookmarkCreationSuitableForOdocAppleEvent does nothing and has no effect on bookmark resolution" ) = ( 1UL << 31 ),   // add properties we guarantee will be in an odoc AppleEvent. Available 10_10, NA (but supported back to 10.6).
 };
 
@@ -697,6 +707,8 @@ enum {
 // private CFURLBookmarkResolutionOptions
 enum {
     kCFBookmarkResolutionPerformRelativeResolutionFirstMask CF_ENUM_AVAILABLE(10_8, 6_0) = ( 1UL << 11 ), // perform relative resolution before absolute resolution. If this bit is set, for this to be useful a relative URL must also have been passed in and the bookmark when created must have been created relative to another url.
+    kCFURLBookmarkResolutionAllowingPromisedItem API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)) = ( 1UL << 12 ), // If kCFURLBookmarkResolutionAllowingPromisedItem is set, resolving a bookmark may return promise item URL if the target has been evicted to the cloud (instead of downloading the evicted document during bookmark resolution). Clients must use NSPromisedItems and NSFileCoordinator API to access promised item URLs. kCFURLBookmarkResolutionAllowingPromisedItem is ignored when resolving security-scoped bookmarks.
+    kCFBookmarkResolutionQuarantineMountedNetworkVolumesMask API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)) = ( 1UL << 13 ), // quarantine any network volume mounted during resolution
 };
 
 typedef CF_ENUM(CFIndex, CFURLBookmarkMatchResult) {

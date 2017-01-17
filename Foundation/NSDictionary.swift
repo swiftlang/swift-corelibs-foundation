@@ -27,7 +27,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             NSRequiresConcreteImplementation()
         }
         if let val = _storage[_SwiftValue.store(aKey)] {
-            return _SwiftValue.fetch(val)
+            return _SwiftValue.fetch(nonOptional: val)
         }
         return nil
     }
@@ -37,7 +37,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             NSRequiresConcreteImplementation()
         }
         
-        return NSGeneratorEnumerator(_storage.keys.map { _SwiftValue.fetch($0) }.makeIterator())
+        return NSGeneratorEnumerator(_storage.keys.map { _SwiftValue.fetch(nonOptional: $0) }.makeIterator())
     }
     
     public override convenience init() {
@@ -186,8 +186,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     open func getObjects(_ objects: inout [Any], andKeys keys: inout [Any], count: Int) {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             for (key, value) in _storage {
-                keys.append(_SwiftValue.fetch(key))
-                objects.append(_SwiftValue.fetch(value))
+                keys.append(_SwiftValue.fetch(nonOptional: key))
+                objects.append(_SwiftValue.fetch(nonOptional: value))
             }
         } else {
             
@@ -433,8 +433,20 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return objects
     }
     
-    open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool { NSUnimplemented() }
-    open func write(to url: URL, atomically: Bool) -> Bool { NSUnimplemented() } // the atomically flag is ignored if url of a type that cannot be written atomically.
+    open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
+        return write(to: URL(fileURLWithPath: path), atomically: useAuxiliaryFile)
+    }
+    
+    // the atomically flag is ignored if url of a type that cannot be written atomically.
+    open func write(to url: URL, atomically: Bool) -> Bool {
+        do {
+            let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: PropertyListSerialization.PropertyListFormat.xml, options: 0)
+            try pListData.write(to: url, options: atomically ? .atomic : [])
+            return true
+        } catch {
+            return false
+        }
+    }
     
     open func enumerateKeysAndObjects(_ block: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         enumerateKeysAndObjects(options: [], using: block)
@@ -551,8 +563,20 @@ open class NSMutableDictionary : NSDictionary {
         super.init(objects: objects, forKeys: keys, count: cnt)
     }
     
-    public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
-    public convenience init?(contentsOfURL url: URL) { NSUnimplemented() }
+    public convenience init?(contentsOfFile path: String) {
+        self.init(contentsOfURL: URL(fileURLWithPath: path))
+    }
+    
+    public convenience init?(contentsOfURL url: URL) {
+        do {
+            guard let plistDoc = try? Data(contentsOf: url) else { return nil }
+            let plistDict = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Dictionary<AnyHashable,Any>
+            guard let plistDictionary = plistDict else { return nil }
+            self.init(dictionary: plistDictionary)
+        } catch {
+            return nil
+        }
+    }
 }
 
 extension NSMutableDictionary {

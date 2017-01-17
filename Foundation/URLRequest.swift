@@ -29,9 +29,9 @@ public struct URLRequest : ReferenceConvertible, Equatable, Hashable {
     }
     
     /// Creates and initializes a URLRequest with the given URL and cache policy.
-    /// - parameter: url The URL for the request.
-    /// - parameter: cachePolicy The cache policy for the request. Defaults to `.useProtocolCachePolicy`
-    /// - parameter: timeoutInterval The timeout interval for the request. See the commentary for the `timeoutInterval` for more information on timeout intervals. Defaults to 60.0
+    /// - parameter url: The URL for the request.
+    /// - parameter cachePolicy: The cache policy for the request. Defaults to `.useProtocolCachePolicy`
+    /// - parameter timeoutInterval: The timeout interval for the request. See the commentary for the `timeoutInterval` for more information on timeout intervals. Defaults to 60.0
     public init(url: URL, cachePolicy: CachePolicy = .useProtocolCachePolicy, timeoutInterval: TimeInterval = 60.0) {
         _handle = _MutableHandle(adoptingReference: NSMutableURLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval))
     }
@@ -145,7 +145,7 @@ public struct URLRequest : ReferenceConvertible, Equatable, Hashable {
     /// The value which corresponds to the given header
     /// field. Note that, in keeping with the HTTP RFC, HTTP header field
     /// names are case-insensitive.
-    /// - parameter: field the header field name to use for the lookup (case-insensitive).
+    /// - parameter field: the header field name to use for the lookup (case-insensitive).
     public func value(forHTTPHeaderField field: String) -> String? {
         return _handle.map { $0.value(forHTTPHeaderField: field) }
     }
@@ -238,23 +238,23 @@ extension URLRequest : CustomStringConvertible, CustomDebugStringConvertible, Cu
             return "url: nil"
         }
     }
-    
+
     public var debugDescription: String {
         return self.description
     }
-    
+
     public var customMirror: Mirror {
         var c: [(label: String?, value: Any)] = []
-        c.append((label: "url", value: url))
+        c.append((label: "url", value: url as Any))
         c.append((label: "cachePolicy", value: cachePolicy.rawValue))
         c.append((label: "timeoutInterval", value: timeoutInterval))
-        c.append((label: "mainDocumentURL", value: mainDocumentURL))
+        c.append((label: "mainDocumentURL", value: mainDocumentURL as Any))
         c.append((label: "networkServiceType", value: networkServiceType))
         c.append((label: "allowsCellularAccess", value: allowsCellularAccess))
-        c.append((label: "httpMethod", value: httpMethod))
-        c.append((label: "allHTTPHeaderFields", value: allHTTPHeaderFields))
-        c.append((label: "httpBody", value: httpBody))
-        c.append((label: "httpBodyStream", value: httpBodyStream))
+        c.append((label: "httpMethod", value: httpMethod as Any))
+        c.append((label: "allHTTPHeaderFields", value: allHTTPHeaderFields as Any))
+        c.append((label: "httpBody", value: httpBody as Any))
+        c.append((label: "httpBodyStream", value: httpBodyStream as Any))
         c.append((label: "httpShouldHandleCookies", value: httpShouldHandleCookies))
         c.append((label: "httpShouldUsePipelining", value: httpShouldUsePipelining))
         return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
@@ -265,21 +265,21 @@ extension URLRequest : _ObjectTypeBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSURLRequest.self
     }
-    
+
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSURLRequest {
         return _handle._copiedReference()
     }
-    
+
     public static func _forceBridgeFromObjectiveC(_ input: NSURLRequest, result: inout URLRequest?) {
         result = URLRequest(_bridged: input)
     }
-    
+
     public static func _conditionallyBridgeFromObjectiveC(_ input: NSURLRequest, result: inout URLRequest?) -> Bool {
         result = URLRequest(_bridged: input)
         return true
     }
-    
+
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSURLRequest?) -> URLRequest {
         var result: URLRequest? = nil
         _forceBridgeFromObjectiveC(source!, result: &result)

@@ -29,6 +29,7 @@ class TestNSURLResponse : XCTestCase {
             ("test_suggestedFilename_2", test_suggestedFilename_2),
             ("test_suggestedFilename_3", test_suggestedFilename_3),
             ("test_copywithzone", test_copyWithZone),
+            ("test_NSCoding", test_NSCoding),
         ]
     }
     
@@ -91,6 +92,19 @@ class TestNSURLResponse : XCTestCase {
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertTrue(res.isEqual(res.copy() as! NSObject))
     }
+    
+    func test_NSCoding() {
+        let url = URL(string: "https://apple.com")!
+        let responseA = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
+        let responseB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: responseA)) as! URLResponse
+        
+        //On macOS unarchived Archived then unarchived `URLResponse` is not equal.
+        XCTAssertEqual(responseA.url, responseB.url, "Archived then unarchived url response must be equal.")
+        XCTAssertEqual(responseA.mimeType, responseB.mimeType, "Archived then unarchived url response must be equal.")
+        XCTAssertEqual(responseA.expectedContentLength, responseB.expectedContentLength, "Archived then unarchived url response must be equal.")
+        XCTAssertEqual(responseA.textEncodingName, responseB.textEncodingName, "Archived then unarchived url response must be equal.")
+        XCTAssertEqual(responseA.suggestedFilename, responseB.suggestedFilename, "Archived then unarchived url response must be equal.")
+    }
 }
 
 
@@ -127,6 +141,8 @@ class TestNSHTTPURLResponse : XCTestCase {
                    ("test_MIMETypeAndCharacterEncoding_1", test_MIMETypeAndCharacterEncoding_1),
                    ("test_MIMETypeAndCharacterEncoding_2", test_MIMETypeAndCharacterEncoding_2),
                    ("test_MIMETypeAndCharacterEncoding_3", test_MIMETypeAndCharacterEncoding_3),
+                   
+                   ("test_NSCoding", test_NSCoding),
         ]
     }
     
@@ -156,8 +172,8 @@ class TestNSHTTPURLResponse : XCTestCase {
         let f = ["A": "1", "B": "2"]
         let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.allHeaderFields.count, 2)
-        XCTAssertEqual(sut?.allHeaderFields["A"], "1")
-        XCTAssertEqual(sut?.allHeaderFields["B"], "2")
+        XCTAssertEqual(sut?.allHeaderFields["A"] as! String, "1")
+        XCTAssertEqual(sut?.allHeaderFields["B"] as! String, "2")
     }
     
     // Note that the message content length is different from the message
@@ -291,5 +307,29 @@ class TestNSHTTPURLResponse : XCTestCase {
         let sut = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)
         XCTAssertEqual(sut?.mimeType, "text/html")
         XCTAssertEqual(sut?.textEncodingName, "iso-8859-4")
+    }
+    
+    // NSCoding
+    
+    func test_NSCoding() {
+        let url = URL(string: "https://apple.com")!
+        let f = ["Content-Type": "text/HTML; charset=ISO-8859-4"]
+        
+        let responseA = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: f)!
+        let responseB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: responseA)) as! HTTPURLResponse
+        
+        //On macOS unarchived Archived then unarchived `URLResponse` is not equal.
+        XCTAssertEqual(responseA.statusCode, responseB.statusCode, "Archived then unarchived http url response must be equal.")
+        XCTAssertEqual(Array(responseA.allHeaderFields.keys), Array(responseB.allHeaderFields.keys), "Archived then unarchived http url response must be equal.")
+        
+        for key in responseA.allHeaderFields.keys {
+            XCTAssertEqual(responseA.allHeaderFields[key] as? String, responseB.allHeaderFields[key] as? String, "Archived then unarchived http url response must be equal.")
+        }
+        
+        XCTAssertEqual(responseA.url, responseB.url, "Archived then unarchived http url response must be equal.")
+        XCTAssertEqual(responseA.mimeType, responseB.mimeType, "Archived then unarchived http url response must be equal.")
+        XCTAssertEqual(responseA.expectedContentLength, responseB.expectedContentLength, "Archived then unarchived http url response must be equal.")
+        XCTAssertEqual(responseA.textEncodingName, responseB.textEncodingName, "Archived then unarchived http url response must be equal.")
+        XCTAssertEqual(responseA.suggestedFilename, responseB.suggestedFilename, "Archived then unarchived http url response must be equal.")
     }
 }

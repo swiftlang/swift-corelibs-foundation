@@ -37,20 +37,20 @@ func help() -> Int32 {
 }
 
 enum ExecutionMode {
-    case Help
-    case Lint
-    case Convert
-    case Print
+    case help
+    case lint
+    case convert
+    case print
 }
 
 enum ConversionFormat {
-    case XML1
-    case Binary1
-    case JSON
+    case xml1
+    case binary1
+    case json
 }
 
 struct Options {
-    var mode: ExecutionMode = .Lint
+    var mode: ExecutionMode = .lint
     var silent: Bool = false
     var output: String?
     var fileExtension: String?
@@ -60,9 +60,9 @@ struct Options {
 }
 
 enum OptionParseError : Swift.Error {
-    case UnrecognizedArgument(String)
-    case MissingArgument(String)
-    case InvalidFormat(String)
+    case unrecognizedArgument(String)
+    case missingArgument(String)
+    case invalidFormat(String)
 }
 
 func parseArguments(_ args: [String]) throws -> Options {
@@ -74,57 +74,46 @@ func parseArguments(_ args: [String]) throws -> Options {
                 while let path = iterator.next() {
                     opts.inputs.append(path)
                 }
-                break
             case "-s":
                 opts.silent = true
-                break
             case "-o":
                 if let path = iterator.next() {
                     opts.output = path
                 } else {
-                    throw OptionParseError.MissingArgument("-o requires a path argument")
+                    throw OptionParseError.missingArgument("-o requires a path argument")
                 }
-                break
             case "-convert":
-                opts.mode = ExecutionMode.Convert
+                opts.mode = .convert
                 if let format = iterator.next() {
                     switch format {
                         case "xml1":
-                            opts.conversionFormat = ConversionFormat.XML1
-                            break
+                            opts.conversionFormat = .xml1
                         case "binary1":
-                            opts.conversionFormat = ConversionFormat.Binary1
-                            break
+                            opts.conversionFormat = .binary1
                         case "json":
-                            opts.conversionFormat = ConversionFormat.JSON
-                            break
+                            opts.conversionFormat = .json
                         default:
-                            throw OptionParseError.InvalidFormat(format)
+                            throw OptionParseError.invalidFormat(format)
                     }
                 } else {
-                    throw OptionParseError.MissingArgument("-convert requires a format argument of xml1 binary1 json")
+                    throw OptionParseError.missingArgument("-convert requires a format argument of xml1 binary1 json")
                 }
-                break
             case "-e":
                 if let ext = iterator.next() {
                     opts.fileExtension = ext
                 } else {
-                    throw OptionParseError.MissingArgument("-e requires an extension argument")
+                    throw OptionParseError.missingArgument("-e requires an extension argument")
                 }
             case "-help":
-                opts.mode = ExecutionMode.Help
-                break
+                opts.mode = .help
             case "-lint":
-                opts.mode = ExecutionMode.Lint
-                break
+                opts.mode = .lint
             case "-p":
-                opts.mode = ExecutionMode.Print
-                break
+                opts.mode = .print
             default:
                 if arg.hasPrefix("-") && arg.utf8.count > 1 {
-                    throw OptionParseError.UnrecognizedArgument(arg)
+                    throw OptionParseError.unrecognizedArgument(arg)
                 }
-                break
         }
     }
     
@@ -158,7 +147,7 @@ func lint(_ options: Options) -> Int32 {
         let data : Data?
         if file == "-" {
             // stdin
-            data = FileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
+            data = FileHandle.standardInput.readDataToEndOfFile()
         } else {
             data = try? Data(contentsOf: URL(fileURLWithPath: file))
         }
@@ -194,28 +183,29 @@ func convert(_ options: Options) -> Int32 {
 }
 
 enum DisplayType {
-    case Primary
-    case Key
-    case Value
+    case primary
+    case key
+    case value
 }
 
 extension Dictionary {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary || type == .Key {
+        switch type {
+        case .primary, .key:
             print("\(indentation)[\n", terminator: "")
-        } else {
+        case .value:
             print("[\n", terminator: "")
         }
-        
+
         forEach() {
             if let key = $0.0 as? String {
-                key.display(indent + 1, type: .Key)
+                key.display(indent + 1, type: .key)
             } else {
                 fatalError("plists should have strings as keys but got a \(type(of: $0.0))")
             }
             print(" => ", terminator: "")
-            displayPlist($0.1, indent: indent + 1, type: .Value)
+            displayPlist($0.1, indent: indent + 1, type: .value)
         }
         
         print("\(indentation)]\n", terminator: "")
@@ -223,17 +213,18 @@ extension Dictionary {
 }
 
 extension Array {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary || type == .Key {
+        switch type {
+        case .primary, .key:
             print("\(indentation)[\n", terminator: "")
-        } else {
+        case .value:
             print("[\n", terminator: "")
         }
-        
+
         for idx in 0..<count {
             print("\(indentation)  \(idx) => ", terminator: "")
-            displayPlist(self[idx], indent: indent + 1, type: .Value)
+            displayPlist(self[idx], indent: indent + 1, type: .value)
         }
         
         print("\(indentation)]\n", terminator: "")
@@ -241,75 +232,76 @@ extension Array {
 }
 
 extension String {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary {
+        switch type {
+        case .primary:
             print("\(indentation)\"\(self)\"\n", terminator: "")
-        }
-        else if type == .Key {
+        case .key:
             print("\(indentation)\"\(self)\"", terminator: "")
-        } else {
+        case .value:
             print("\"\(self)\"\n", terminator: "")
         }
     }
 }
 
 extension Bool {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary {
+        switch type {
+        case .primary:
             print("\(indentation)\"\(self ? "1" : "0")\"\n", terminator: "")
-        }
-        else if type == .Key {
+        case .key:
             print("\(indentation)\"\(self ? "1" : "0")\"", terminator: "")
-        } else {
+        case .value:
             print("\"\(self ? "1" : "0")\"\n", terminator: "")
         }
     }
 }
 
 extension NSNumber {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary {
+        switch type {
+        case .primary:
             print("\(indentation)\"\(self)\"\n", terminator: "")
-        }
-        else if type == .Key {
+        case .key:
             print("\(indentation)\"\(self)\"", terminator: "")
-        } else {
+        case .value:
             print("\"\(self)\"\n", terminator: "")
         }
     }
 }
 
 extension NSData {
-    func display(_ indent: Int = 0, type: DisplayType = .Primary) {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
         let indentation = String(repeating: " ", count: indent * 2)
-        if type == .Primary {
+        switch type {
+        case .primary:
             print("\(indentation)\"\(self)\"\n", terminator: "")
-        }
-        else if type == .Key {
+        case .key:
             print("\(indentation)\"\(self)\"", terminator: "")
-        } else {
+        case .value:
             print("\"\(self)\"\n", terminator: "")
         }
     }
 }
 
-func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .Primary) {
-    if let val = plist as? Dictionary<String, Any> {
+func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .primary) {
+    switch plist {
+    case let val as [String : Any]:
         val.display(indent, type: type)
-    } else if let val = plist as? Array<Any> {
+    case let val as [Any]:
         val.display(indent, type: type)
-    } else if let val = plist as? String {
+    case let val as String:
         val.display(indent, type: type)
-    } else if let val = plist as? Bool {
+    case let val as Bool:
         val.display(indent, type: type)
-    } else if let val = plist as? NSNumber {
+    case let val as NSNumber:
         val.display(indent, type: type)
-    } else if let val = plist as? NSData {
+    case let val as NSData:
         val.display(indent, type: type)
-    } else {
+    default:
         fatalError("unhandled type \(type(of: plist))")
     }
 }
@@ -326,7 +318,7 @@ func display(_ options: Options) -> Int32 {
         let data : Data?
         if file == "-" {
             // stdin
-            data = FileHandle.fileHandleWithStandardInput().readDataToEndOfFile()
+            data = FileHandle.standardInput.readDataToEndOfFile()
         } else {
             data = try? Data(contentsOf: URL(fileURLWithPath: file))
         }
@@ -366,27 +358,24 @@ func main() -> Int32 {
     do {
         let opts = try parseArguments(args)
         switch opts.mode {
-            case .Lint:
+            case .lint:
                 return lint(opts)
-            case .Convert:
+            case .convert:
                 return convert(opts)
-            case .Print:
+            case .print:
                 return display(opts)
-            case .Help:
+            case .help:
                 return help()
         }
     } catch let err {
         switch err as! OptionParseError {
-            case .UnrecognizedArgument(let arg):
+            case .unrecognizedArgument(let arg):
                 print("unrecognized option: \(arg)")
                 let _ = help()
-                break
-            case .InvalidFormat(let format):
+            case .invalidFormat(let format):
                 print("unrecognized format \(format)\nformat should be one of: xml1 binary1 json")
-                break
-            case .MissingArgument(let errorStr):
+            case .missingArgument(let errorStr):
                 print(errorStr)
-                break
         }
         return EXIT_FAILURE
     }

@@ -118,7 +118,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_InputStreamInvalidPath() {
-        let fileStream: InputStream = InputStream(fileAtPath: "/tmp/file.txt")!
+        let fileStream: InputStream = InputStream(fileAtPath: NSTemporaryDirectory() + "file.txt")!
         XCTAssertEqual(Stream.Status.notOpen, fileStream.streamStatus)
         fileStream.open()
         XCTAssertEqual(Stream.Status.error, fileStream.streamStatus)
@@ -181,7 +181,7 @@ class TestNSStream : XCTestCase {
         var buffer = Array<UInt8>(repeating: 0, count: 12)
         var myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = OutputStream.outputStreamToMemory()
+        let outputStream = OutputStream.toMemory()
         XCTAssertEqual(Stream.Status.notOpen, outputStream.streamStatus)
         outputStream.open()
         XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)
@@ -217,7 +217,7 @@ class TestNSStream : XCTestCase {
     }
     
     private func createTestFile(_ path: String, _contents: Data) -> String? {
-        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"
+        let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {
             try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
             if FileManager.default.createFile(atPath: tempDir + "/" + path, contents: _contents,

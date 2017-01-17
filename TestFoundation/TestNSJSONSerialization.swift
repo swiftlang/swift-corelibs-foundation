@@ -597,6 +597,7 @@ extension TestNSJSONSerialization {
             ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
             ("test_invalidJsonObjectToStreamBuffer", test_invalidJsonObjectToStreamBuffer),
             ("test_jsonObjectToOutputStreamInsufficeintBuffer", test_jsonObjectToOutputStreamInsufficeintBuffer),
+            ("test_booleanJSONObject", test_booleanJSONObject),
         ]
     }
 
@@ -776,7 +777,7 @@ extension TestNSJSONSerialization {
         
         // Cannot generate "true"/"false" currently
         json = [NSNumber(value:false),NSNumber(value:true)]
-        XCTAssertEqual(try trySerialize(json), "[0,1]")
+        XCTAssertEqual(try trySerialize(json), "[false,true]")
     }
     
     func test_serialize_stringEscaping() {
@@ -928,8 +929,20 @@ extension TestNSJSONSerialization {
         XCTAssertThrowsError(try JSONSerialization.writeJSONObject(str, toStream: outputStream, options: []))
     }
     
+    func test_booleanJSONObject() {
+        do {
+            let objectLikeBoolArray = try JSONSerialization.data(withJSONObject: [true, NSNumber(value: false), NSNumber(value: true)] as Array<Any>)
+            XCTAssertEqual(String(data: objectLikeBoolArray, encoding: .utf8), "[true,false,true]")
+            let valueLikeBoolArray = try JSONSerialization.data(withJSONObject: [false, true, false])
+            XCTAssertEqual(String(data: valueLikeBoolArray, encoding: .utf8), "[false,true,false]")
+        } catch {
+            XCTFail("Failed during serialization")
+        }
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([true]))
+    }
+
     private func createTestFile(_ path: String,_contents: Data) -> String? {
-        let tempDir = "/tmp/TestFoundation_Playground_" + NSUUID().uuidString + "/"
+        let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {
             try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
             if FileManager.default.createFile(atPath: tempDir + "/" + path, contents: _contents,

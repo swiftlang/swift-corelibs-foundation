@@ -1,21 +1,17 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
-/*  CFLocale.c
-    Copyright (c) 2002 - 2015 Apple Inc. and the Swift project authors
-    Responsibility: David Smith
+/*      CFLocale.c
+	Copyright (c) 2002-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+	Responsibility: David Smith
 */
 
 // Note the header file is in the OpenSource set (stripped to almost nothing), but not the .c file
 
 #include <CoreFoundation/CFLocale.h>
+#include <CoreFoundation/CFLocale_Private.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFDictionary.h>
@@ -33,6 +29,10 @@
 #include <unicode/putil.h>          // ICU low-level utilities
 #include <unicode/umsg.h>           // ICU message formatting
 #include <unicode/ucol.h>
+#include <unicode/uvernum.h>
+#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<unicode/uameasureformat.h>)
+#include <unicode/uameasureformat.h>
+#endif
 #endif
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <stdlib.h>
@@ -56,6 +56,8 @@
 #endif
 
 
+CF_PRIVATE CFCalendarRef _CFCalendarCreateCoWWithIdentifier(CFStringRef identifier);
+
 CONST_STRING_DECL(kCFLocaleCurrentLocaleDidChangeNotification, "kCFLocaleCurrentLocaleDidChangeNotification")
 
 static const char *kCalendarKeyword = "calendar";
@@ -68,7 +70,7 @@ PE_CONST_STRING_DECL(__kCFLocaleCollatorID, "locale:collator id")
 
 
 enum {
-    __kCFLocaleKeyTableCount = 21
+    __kCFLocaleKeyTableCount = 22
 };
 
 struct key_table {
@@ -99,6 +101,7 @@ static bool __CFLocaleCopyUsesMetric(CFLocaleRef locale, bool user, CFTypeRef *c
 static bool __CFLocaleCopyCalendar(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCopyCollationID(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCopyMeasurementSystem(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
+static bool __CFLocaleCopyTemperatureUnit(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCopyNumberFormat(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCopyNumberFormat2(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCurrencyFullName(const char *locale, const char *value, CFStringRef *out);
@@ -118,6 +121,7 @@ static struct key_table __CFLocaleKeyTable[__kCFLocaleKeyTableCount] = {
     {(CFStringRef)&kCFLocaleCollationIdentifierKey, __CFLocaleCopyCollationID, __CFLocaleSetNOP, __CFLocaleCollationName, NULL},
     {(CFStringRef)&kCFLocaleUsesMetricSystemKey, __CFLocaleCopyUsesMetric, __CFLocaleSetNOP, __CFLocaleNoName, NULL},
     {(CFStringRef)&kCFLocaleMeasurementSystemKey, __CFLocaleCopyMeasurementSystem, __CFLocaleSetNOP, __CFLocaleNoName, NULL},
+    {(CFStringRef)&kCFLocaleTemperatureUnitKey, __CFLocaleCopyTemperatureUnit, __CFLocaleSetNOP, __CFLocaleNoName, NULL},
     {(CFStringRef)&kCFLocaleDecimalSeparatorKey, __CFLocaleCopyNumberFormat, __CFLocaleSetNOP, __CFLocaleNoName, (CFStringRef)&kCFNumberFormatterDecimalSeparatorKey},
     {(CFStringRef)&kCFLocaleGroupingSeparatorKey, __CFLocaleCopyNumberFormat, __CFLocaleSetNOP, __CFLocaleNoName, (CFStringRef)&kCFNumberFormatterGroupingSeparatorKey},
     {(CFStringRef)&kCFLocaleCurrencySymbolKey, __CFLocaleCopyNumberFormat2, __CFLocaleSetNOP, __CFLocaleCurrencyShortName, (CFStringRef)&kCFNumberFormatterCurrencySymbolKey},
@@ -238,7 +242,7 @@ static const CFRuntimeClass __CFLocaleClass = {
 };
 
 CFTypeID CFLocaleGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
         __kCFLocaleTypeID = _CFRuntimeRegisterClass(&__CFLocaleClass); // initOnce covered
         for (CFIndex idx = 0; idx < __kCFLocaleKeyTableCount; idx++) {
@@ -280,7 +284,12 @@ static CFLocaleRef __CFLocaleCurrent = NULL;
 
 
 #if DEPLOYMENT_TARGET_MACOSX
+// Specify a default locale on Mac for Swift
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define FALLBACK_LOCALE_NAME CFSTR("en_US")
+#else
 #define FALLBACK_LOCALE_NAME CFSTR("")
+#endif /* DEPLOYMENT_RUNTIME_SWIFT */
 #elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 #define FALLBACK_LOCALE_NAME CFSTR("en_US")
 #elif DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
@@ -401,11 +410,11 @@ Boolean _CFLocaleInit(CFLocaleRef locale, CFStringRef identifier) {
     ((struct __CFLocale *)locale)->_cache = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
     ((struct __CFLocale *)locale)->_prefs = NULL;
     ((struct __CFLocale *)locale)->_lock = CFLockInit;
-
-    return (CFLocaleRef)locale;
+    
+    return true;
 }
 #endif
-    
+
 CFLocaleRef CFLocaleCreate(CFAllocatorRef allocator, CFStringRef identifier) {
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
     __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
@@ -438,6 +447,7 @@ CFLocaleRef CFLocaleCreate(CFAllocatorRef allocator, CFStringRef identifier) {
     uint32_t size = sizeof(struct __CFLocale) - sizeof(CFRuntimeBase);
     locale = (struct __CFLocale *)_CFRuntimeCreateInstance(allocator, CFLocaleGetTypeID(), size, NULL);
     if (NULL == locale) {
+        if (localeIdentifier) { CFRelease(localeIdentifier); }
 	return NULL;
     }
     __CFLocaleSetType(locale, __kCFLocaleOrdinary);
@@ -455,7 +465,7 @@ CFLocaleRef CFLocaleCreate(CFAllocatorRef allocator, CFStringRef identifier) {
     return (CFLocaleRef)locale;
 }
 
-//Prior to Gala, CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
+//CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
 static CFLocaleRef _CFLocaleCreateCopyGuts(CFAllocatorRef allocator, CFLocaleRef locale, CFStringRef calendarIdentifier) {
     CF_OBJC_FUNCDISPATCHV(CFLocaleGetTypeID(), CFLocaleRef, (NSLocale *)locale, copy);
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
@@ -477,6 +487,7 @@ static CFLocaleRef _CFLocaleCreateCopyGuts(CFAllocatorRef allocator, CFLocaleRef
     uint32_t size = sizeof(struct __CFLocale) - sizeof(CFRuntimeBase);
     loc = (struct __CFLocale *)_CFRuntimeCreateInstance(allocator, CFLocaleGetTypeID(), size, NULL);
     if (NULL == loc) {
+        if (localeIdentifier) { CFRelease(localeIdentifier); }
         return NULL;
     }
     __CFLocaleSetType(loc, __CFLocaleGetType(locale));
@@ -489,7 +500,7 @@ static CFLocaleRef _CFLocaleCreateCopyGuts(CFAllocatorRef allocator, CFLocaleRef
     return (CFLocaleRef)loc;
 }
 
-//Prior to Gala, CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
+//CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
 CFLocaleRef CFLocaleCreateCopy(CFAllocatorRef allocator, CFLocaleRef locale) {
     return _CFLocaleCreateCopyGuts(allocator, locale, NULL);
 }
@@ -784,6 +795,39 @@ CFLocaleLanguageDirection CFLocaleGetLanguageLineDirection(CFStringRef isoLangCo
 #endif
 }
 
+_CFLocaleCalendarDirection _CFLocaleGetCalendarDirection(void) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+    _CFLocaleCalendarDirection calendarDirection = _kCFLocaleCalendarDirectionLeftToRight;
+    Boolean keyExistsAndHasValidFormat = false;
+    Boolean calendarIsRightToLeft = CFPreferencesGetAppBooleanValue(CFSTR("NSLocaleCalendarDirectionIsRightToLeft"), kCFPreferencesAnyApplication, &keyExistsAndHasValidFormat);
+    if (keyExistsAndHasValidFormat) {
+        calendarDirection = calendarIsRightToLeft ? _kCFLocaleCalendarDirectionRightToLeft : _kCFLocaleCalendarDirectionLeftToRight;
+    } else {
+        // If there was no default set, return the directionality of the effective language,
+        // except for Hebrew, where the default should be LTR
+        CFBundleRef mainBundle = CFBundleGetMainBundle();
+        CFArrayRef bundleLocalizations = CFBundleCopyBundleLocalizations(mainBundle);
+
+        if (NULL != bundleLocalizations) {
+            CFArrayRef effectiveLocalizations = CFBundleCopyPreferredLocalizationsFromArray(bundleLocalizations);
+            CFStringRef effectiveLocale = CFArrayGetValueAtIndex(effectiveLocalizations, 0);
+            CFDictionaryRef effectiveLocaleComponents = CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorDefault, effectiveLocale);
+            CFStringRef effectiveLanguage = CFDictionaryGetValue(effectiveLocaleComponents, kCFLocaleLanguageCodeKey);
+            if (NULL != effectiveLanguage) {
+                CFLocaleLanguageDirection effectiveLanguageDirection = CFLocaleGetLanguageCharacterDirection(effectiveLanguage);
+                calendarDirection = (effectiveLanguageDirection == kCFLocaleLanguageDirectionRightToLeft) ? _kCFLocaleCalendarDirectionRightToLeft : _kCFLocaleCalendarDirectionLeftToRight;
+            }
+            CFRelease(effectiveLocaleComponents);
+            CFRelease(effectiveLocalizations);
+            CFRelease(bundleLocalizations);
+        }
+    }
+    return calendarDirection;
+#else
+    return _kCFLocaleCalendarDirectionLeftToRight;
+#endif
+}
+
 CFArrayRef CFLocaleCopyPreferredLanguages(void) {
     CFMutableArrayRef newArray = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
@@ -793,8 +837,10 @@ CFArrayRef CFLocaleCopyPreferredLanguages(void) {
             CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(languagesArray, idx);
 	    if (str && (CFStringGetTypeID() == CFGetTypeID(str))) {
                 CFStringRef ident = CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorSystemDefault, str);
-		CFArrayAppendValue(newArray, ident);
-		CFRelease(ident);
+                if (ident) {
+                    CFArrayAppendValue(newArray, ident);
+                    CFRelease(ident);
+                }
 	    }
 	}
     }
@@ -1017,7 +1063,7 @@ static bool __CFLocaleCopyCalendarID(CFLocaleRef locale, bool user, CFTypeRef *c
 static bool __CFLocaleCopyCalendar(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
     if (__CFLocaleCopyCalendarID(locale, user, cf, context)) {
-	CFCalendarRef calendar = CFCalendarCreateWithIdentifier(kCFAllocatorSystemDefault, (CFStringRef)*cf);
+        CFCalendarRef calendar = _CFCalendarCreateCoWWithIdentifier((CFStringRef)*cf);
 	CFCalendarSetLocale(calendar, locale);
         CFDictionaryRef prefs = __CFLocaleGetPrefs(locale);
         CFPropertyListRef metapref = prefs ? CFDictionaryGetValue(prefs, CFSTR("AppleFirstWeekday")) : NULL;
@@ -1196,6 +1242,66 @@ static bool __CFLocaleCopyMeasurementSystem(CFLocaleRef locale, bool user, CFTyp
 #else
     *cf = CFSTR("U.S."); //historical behavior, probably irrelevant in CF Mini
     return true;
+#endif
+}
+
+
+
+static bool __CFLocaleCopyTemperatureUnit(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context) {
+#if U_ICU_VERSION_MAJOR_NUM > 54
+    bool celsius = true;    // Default is Celsius
+    bool done = false;
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+    if (user) {
+        CFTypeRef temperatureUnitPref = CFDictionaryGetValue(locale->_prefs, CFSTR("AppleTemperatureUnit"));
+        if (temperatureUnitPref) {
+            if (CFEqual(temperatureUnitPref, kCFLocaleTemperatureUnitFahrenheit)) {
+                celsius = false;
+                done = true;
+            } else if (CFEqual(temperatureUnitPref, kCFLocaleTemperatureUnitCelsius)) {
+                done = true;
+            }
+            // If set to anything else, fall back to locale default
+        }
+    }
+#endif
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+    if (!done) {
+        char localeID[ULOC_FULLNAME_CAPACITY+ULOC_KEYWORD_AND_VALUES_CAPACITY];
+        if (CFStringGetCString(locale->_identifier, localeID, sizeof(localeID)/sizeof(char), kCFStringEncodingASCII)) {
+#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<unicode/uameasureformat.h>)
+            UErrorCode icuStatus = U_ZERO_ERROR;
+            UAMeasureUnit unit;
+            int32_t unitCount = uameasfmt_getUnitsForUsage(localeID, "temperature", "weather", &unit, 1, &icuStatus);
+            if (U_SUCCESS(icuStatus) && unitCount > 0) {
+                if (unit == UAMEASUNIT_TEMPERATURE_FAHRENHEIT) {
+                    celsius = false;
+                }
+                done = true;
+            }
+#endif
+        }
+    }
+    if (!done) {
+        UMeasurementSystem system = UMS_SI;
+        __CFLocaleGetMeasurementSystemGuts(locale, user, &system);
+        if (system == UMS_US) {
+            celsius = false;
+        }
+        done = true;
+    }
+#endif
+    if (!done) {
+        celsius = true;
+    }
+    if (celsius) {
+        *cf = kCFLocaleTemperatureUnitCelsius;
+    } else {
+        *cf = kCFLocaleTemperatureUnitFahrenheit;
+    }
+    return true;
+#else
+    return false;
 #endif
 }
 

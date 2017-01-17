@@ -38,6 +38,16 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
         return Locale(adoptingReference: __NSLocaleCurrent(), autoupdating: false)
     }
     
+    /// Returns a locale which tracks the user's current preferences.
+    ///
+    /// If mutated, this Locale will no longer track the user's preferences.
+    ///
+    /// - note: The autoupdating Locale will only compare equal to another autoupdating Locale.
+    public static var autoupdatingCurrent : Locale {
+        // swift-corelibs-foundation does not yet support autoupdating, but we can return the current locale (which will not change).
+        return Locale(adoptingReference: __NSLocaleCurrent(), autoupdating: true)
+    }
+    
     @available(*, unavailable, message: "Consider using the user's locale or nil instead, depending on use case")
     public static var system : Locale { fatalError() }
     
@@ -69,7 +79,7 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
     
     /// Returns a localized string for a specified identifier.
     ///
-    /// For example, in the "en" locale, the result for `"en"` is `"Spanish"`.
+    /// For example, in the "en" locale, the result for `"es"` is `"Spanish"`.
     public func localizedString(forIdentifier identifier: String) -> String? {
         return _wrapped.displayName(forKey: .identifier, value: identifier)
     }
@@ -83,7 +93,7 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
     
     /// Returns a localized string for a specified region code.
     ///
-    /// For example, in the "en" locale, the result for `"fr"` is `"French"`.
+    /// For example, in the "en" locale, the result for `"fr"` is `"France"`.
     public func localizedString(forRegionCode regionCode: String) -> String? {
         return _wrapped.displayName(forKey: .countryCode, value: regionCode)
     }

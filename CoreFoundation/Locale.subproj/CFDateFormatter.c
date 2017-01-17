@@ -1,21 +1,17 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
-/*        CFDateFormatter.c
-        Copyright (c) 2002 - 2015 Apple Inc. and the Swift project authors
+/*      CFDateFormatter.c
+	Copyright (c) 2002-2016, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
         Responsibility: David Smith
 */
 
 #define U_SHOW_INTERNAL_API 1
 
 #include <CoreFoundation/CFDateFormatter.h>
+#include <CoreFoundation/CFDateFormatter_Private.h>
 #include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFTimeZone.h>
 #include <CoreFoundation/CFCalendar.h>
@@ -41,7 +37,7 @@ typedef CF_ENUM(CFIndex, CFDateFormatterAmbiguousYearHandling) {
 
 extern UCalendar *__CFCalendarCreateUCalendar(CFStringRef calendarID, CFStringRef localeID, CFTimeZoneRef tz);
 
-static CONST_STRING_DECL(kCFDateFormatterFormattingContextKey, "kCFDateFormatterFormattingContextKey");
+PE_CONST_STRING_DECL(kCFDateFormatterFormattingContextKey, "kCFDateFormatterFormattingContextKey");
 
 CF_EXPORT const CFStringRef kCFDateFormatterCalendarIdentifierKey;
 
@@ -104,7 +100,7 @@ static void _CFDateFormatterStripAMPMIndicators(UniChar **bpat, int32_t *bpatlen
 
     //scan
     for (CFIndex idx = 0; idx < *bpatlen; idx++) {
-        if ((*bpat)[idx] == 'a') {
+        if (((*bpat)[idx] == 'a') || ((*bpat)[idx] == 'b') || ((*bpat)[idx] == 'B') || ((*bpat)[idx] == 'C')) {
             
             //back up
             while ((*bpat)[idx - 1] == ' ') {
@@ -112,7 +108,7 @@ static void _CFDateFormatterStripAMPMIndicators(UniChar **bpat, int32_t *bpatlen
             }
             
             //shift
-            for (; (*bpat)[idx] == ' ' || (*bpat)[idx] == 'a'; idx++) {
+            for (; (*bpat)[idx] == ' ' || (*bpat)[idx] == 'a' || (*bpat)[idx] == 'b' || (*bpat)[idx] == 'B' || (*bpat)[idx] == 'C'; idx++) {
                 for (CFIndex shiftIdx = idx; shiftIdx < *bpatlen && shiftIdx + 1 < bufferSize; shiftIdx++) {
                     (*bpat)[shiftIdx] = (*bpat)[shiftIdx + 1];
                 }
@@ -687,7 +683,7 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
             CFStringRef newFormat = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)timeBuffer, timeLen);
             CFStringRef formatString = __CFDateFormatterCreateForcedString(df, newFormat);
             CFIndex cnt = CFStringGetLength(formatString);
-            CFAssert(cnt <= BUFFER_SIZE, __kCFLogAssertion, "%s(): time format string too long", __PRETTY_FUNCTION__);
+            CFAssert1(cnt <= BUFFER_SIZE, __kCFLogAssertion, "%s(): time format string too long", __PRETTY_FUNCTION__);
             if (cnt <= BUFFER_SIZE) {
                 CFStringGetCharacters(formatString, CFRangeMake(0, cnt), (UniChar *)timeBuffer);
                 timeLen = cnt;
@@ -714,7 +710,7 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
             CFStringRef newFormat = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)ubuffer, ret);
             CFStringRef formatString = __CFDateFormatterCreateForcedString(df, newFormat);
             CFIndex cnt = CFStringGetLength(formatString);
-            CFAssert(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
+            CFAssert1(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
             if (cnt <= 1024) {
                 STACK_BUFFER_DECL(UChar, ubuffer, cnt);
                 const UChar *ustr = (UChar *)CFStringGetCharactersPtr((CFStringRef)formatString);
@@ -765,12 +761,12 @@ static const CFRuntimeClass __CFDateFormatterClass = {
 };
 
 CFTypeID CFDateFormatterGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{ __kCFDateFormatterTypeID = _CFRuntimeRegisterClass(&__CFDateFormatterClass); });
     return __kCFDateFormatterTypeID;
 }
 
-CFDateFormatterRef CFDateFormatterCreate(CFAllocatorRef allocator, CFLocaleRef locale, CFDateFormatterStyle dateStyle, CFDateFormatterStyle timeStyle) {
+static CFDateFormatterRef __SetUpCFDateFormatter(CFAllocatorRef allocator, CFLocaleRef locale, CFDateFormatterStyle dateStyle, CFDateFormatterStyle timeStyle, CFBooleanRef calculateISO8601) {
     struct __CFDateFormatter *memory;
     uint32_t size = sizeof(struct __CFDateFormatter) - sizeof(CFRuntimeBase);
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
@@ -852,7 +848,7 @@ CFDateFormatterRef CFDateFormatterCreate(CFAllocatorRef allocator, CFLocaleRef l
     case kCFDateFormatterLongStyle:
     case kCFDateFormatterFullStyle: break;
     default:
-        CFAssert(0, __kCFLogAssertion, "%s(): unknown date style %d", __PRETTY_FUNCTION__, dateStyle);
+        CFAssert2(0, __kCFLogAssertion, "%s(): unknown date style %ld", __PRETTY_FUNCTION__, dateStyle);
         memory->_dateStyle = kCFDateFormatterMediumStyle;
         break;
     }
@@ -863,7 +859,7 @@ CFDateFormatterRef CFDateFormatterCreate(CFAllocatorRef allocator, CFLocaleRef l
     case kCFDateFormatterLongStyle:
     case kCFDateFormatterFullStyle: break;
     default:
-        CFAssert(0, __kCFLogAssertion, "%s(): unknown time style %d", __PRETTY_FUNCTION__, timeStyle);
+        CFAssert2(0, __kCFLogAssertion, "%s(): unknown time style %ld", __PRETTY_FUNCTION__, timeStyle);
         memory->_timeStyle = kCFDateFormatterMediumStyle;
         break;
     }
@@ -871,6 +867,14 @@ CFDateFormatterRef CFDateFormatterCreate(CFAllocatorRef allocator, CFLocaleRef l
     //Prior to Gala, CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
     //Since we're not in that situation here, and this is a frequently used path, we retain as we used to
     memory->_locale = locale ? CFRetain(locale) : (CFLocaleRef)CFRetain(CFLocaleGetSystem());
+
+    if (kCFBooleanTrue == calculateISO8601) {
+        CFCalendarRef iso8601Cal = CFCalendarCreateWithIdentifier(kCFAllocatorSystemDefault, kCFGregorianCalendar);
+        CFCalendarSetFirstWeekday(iso8601Cal, UCAL_MONDAY);
+        CFCalendarSetMinimumDaysInFirstWeek(iso8601Cal, 4);
+        memory->_property._Calendar = iso8601Cal;
+    }
+
     memory->_property._TimeZone = CFTimeZoneCopyDefault();
     
     CFStringRef calident = (CFStringRef)CFLocaleGetValue(memory->_locale, kCFLocaleCalendarIdentifierKey);
@@ -881,10 +885,162 @@ CFDateFormatterRef CFDateFormatterCreate(CFAllocatorRef allocator, CFLocaleRef l
     __ResetUDateFormat(memory, false);
     if (!memory->_df) {
         CFRelease(memory);
-	return NULL;
+        return NULL;
     }
     return (CFDateFormatterRef)memory;
 }
+
+#define FORMAT_STRING_MAX_LENGTH 29     // Length of "yyyy-'W'ww-dd'T'HH:mm:ssXXXXX"
+static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions options) {
+    CFMutableStringRef resultStr = CFStringCreateMutable(kCFAllocatorSystemDefault, FORMAT_STRING_MAX_LENGTH);
+
+    BOOL useSpaceInsteadOfTChar = (options & kCFISO8601DateFormatWithSpaceBetweenDateAndTime) == kCFISO8601DateFormatWithSpaceBetweenDateAndTime;
+    BOOL useDashSeparator = (options & kCFISO8601DateFormatWithDashSeparatorInDate) == kCFISO8601DateFormatWithDashSeparatorInDate;
+    BOOL useColonSeparatorInTime = (options & kCFISO8601DateFormatWithColonSeparatorInTime) == kCFISO8601DateFormatWithColonSeparatorInTime;
+    BOOL useColonSeparatorInTimeZone = (options & kCFISO8601DateFormatWithColonSeparatorInTimeZone) == kCFISO8601DateFormatWithColonSeparatorInTimeZone;
+
+    if ((options & kCFISO8601DateFormatWithInternetDateTime) == kCFISO8601DateFormatWithInternetDateTime) {
+        // Check for dashes
+        if (useDashSeparator == NO) {
+            CFStringAppendCString(resultStr, "yyyyMMdd", kCFStringEncodingUTF8);
+        } else {
+            CFStringAppendCString(resultStr, "yyyy-MM-dd", kCFStringEncodingUTF8);
+        }
+
+        // Check for T separator
+        if (useSpaceInsteadOfTChar == NO) {
+            CFStringAppendCString(resultStr, "'T'", kCFStringEncodingUTF8);
+        } else {
+            CFStringAppendCString(resultStr, " ", kCFStringEncodingUTF8);
+        }
+
+        // Check for colons
+        if (useColonSeparatorInTime == NO) {
+            CFStringAppendCString(resultStr, "HHmmss", kCFStringEncodingUTF8);
+        } else {
+            CFStringAppendCString(resultStr, "HH:mm:ss", kCFStringEncodingUTF8);
+        }
+
+        // Check for time zone separator
+        if (useColonSeparatorInTimeZone == NO) {
+            CFStringAppendCString(resultStr, "XXXX", kCFStringEncodingUTF8);  // Basic Format (e.g. +080500)
+        } else {
+            CFStringAppendCString(resultStr, "XXXXX", kCFStringEncodingUTF8);  // Extended Format (e.g. +08:05:00)
+        }
+
+        return resultStr;  // Skip the loop below.
+    }
+
+    unsigned int currentOption = 0, allOptions = options;
+    for (int i = 0; currentOption < allOptions; currentOption = 1 << i, i++) {
+        BOOL firstFormatSymbol = NO;
+        if (CFStringGetLength(resultStr) < 1) {
+            firstFormatSymbol = YES;
+        }
+        switch(currentOption) {
+            case kCFISO8601DateFormatWithYear:
+                if ((options & kCFISO8601DateFormatWithYear) == kCFISO8601DateFormatWithYear) {
+                    BOOL includesWeekOfYear = (options & kCFISO8601DateFormatWithWeekOfYear) == kCFISO8601DateFormatWithWeekOfYear;
+                    if (includesWeekOfYear == NO) {
+                        CFStringAppendCString(resultStr, "yyyy", kCFStringEncodingUTF8);  // Year for calendar dates
+                    } else {
+                        CFStringAppendCString(resultStr, "YYYY", kCFStringEncodingUTF8);  // Year for week dates
+                    }
+                }
+                break;
+            case kCFISO8601DateFormatWithMonth:
+                if ((options & kCFISO8601DateFormatWithMonth) == kCFISO8601DateFormatWithMonth) {
+                    if ((firstFormatSymbol == NO) && useDashSeparator) {
+                        CFStringAppendCString(resultStr, "-", kCFStringEncodingUTF8);
+                    }
+                    CFStringAppendCString(resultStr, "MM", kCFStringEncodingUTF8);
+                }
+                break;
+            case kCFISO8601DateFormatWithWeekOfYear:
+                if ((options & kCFISO8601DateFormatWithWeekOfYear) == kCFISO8601DateFormatWithWeekOfYear) {
+                    if ((firstFormatSymbol == NO) && useDashSeparator) {
+                        CFStringAppendCString(resultStr, "-", kCFStringEncodingUTF8);
+                    }
+                    CFStringAppendCString(resultStr, "'W'ww", kCFStringEncodingUTF8);
+                }
+                break;
+            case kCFISO8601DateFormatWithDay:
+                if ((options & kCFISO8601DateFormatWithDay) == kCFISO8601DateFormatWithDay) {
+                    if ((firstFormatSymbol == NO) && useDashSeparator) {
+                        CFStringAppendCString(resultStr, "-", kCFStringEncodingUTF8);
+                    }
+
+                    BOOL includesMonth = (options & kCFISO8601DateFormatWithMonth) == kCFISO8601DateFormatWithMonth;
+                    BOOL includesWeekOfYear = (options & kCFISO8601DateFormatWithWeekOfYear) == kCFISO8601DateFormatWithWeekOfYear;
+
+                    if (includesWeekOfYear == NO) {
+                        if (includesMonth == NO) {
+                            CFStringAppendCString(resultStr, "DDD", kCFStringEncodingUTF8);  // Day of Year
+                        } else {
+                            CFStringAppendCString(resultStr, "dd", kCFStringEncodingUTF8);  // Day of Month
+                        }
+                    } else {  // If week is included, we want to use the day local to that week.
+                        CFStringAppendCString(resultStr, "ee", kCFStringEncodingUTF8);  // Local day of week
+                    }
+                }
+                break;
+            case kCFISO8601DateFormatWithTime:
+                if ((options & kCFISO8601DateFormatWithTime) == kCFISO8601DateFormatWithTime) {
+                    if (firstFormatSymbol == NO) { // This matters for T (or Space) character
+                        if (useSpaceInsteadOfTChar == NO) {
+                            CFStringAppendCString(resultStr, "'T'", kCFStringEncodingUTF8);
+                        } else {
+                            CFStringAppendCString(resultStr, " ", kCFStringEncodingUTF8);
+                        }
+                    }
+                    // Check for colons
+                    if (useColonSeparatorInTime == NO) {
+                        CFStringAppendCString(resultStr, "HHmmss", kCFStringEncodingUTF8);
+                    } else {
+                        CFStringAppendCString(resultStr, "HH:mm:ss", kCFStringEncodingUTF8);
+                    }
+                }
+                break;
+            case kCFISO8601DateFormatWithTimeZone:
+                if ((options & kCFISO8601DateFormatWithTimeZone) == kCFISO8601DateFormatWithTimeZone) {
+                    // Check for time zone separator
+                    if (useColonSeparatorInTimeZone == NO) {
+                        CFStringAppendCString(resultStr, "XXXX", kCFStringEncodingUTF8);  // Basic Format (e.g. +080500)
+                    } else {
+                        CFStringAppendCString(resultStr, "XXXXX", kCFStringEncodingUTF8);  // Extended Format (e.g. +08:05:00)
+                    }
+                }
+                break;
+            default: break;
+        }
+    }
+
+    return resultStr;
+}
+
+CFDateFormatterRef CFDateFormatterCreateISO8601Formatter(CFAllocatorRef allocator, CFISO8601DateFormatOptions formatOptions) {
+    CFStringRef localeStr = CFStringCreateWithCString(kCFAllocatorSystemDefault, "en_US_POSIX", kCFStringEncodingUTF8);
+    CFLocaleRef locale = CFLocaleCreate(kCFAllocatorSystemDefault, localeStr);
+    CFDateFormatterRef ISO8601Formatter = __SetUpCFDateFormatter(allocator, locale, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle, kCFBooleanTrue);  // dateStyle and timeStyle are not relevant for ISO8601
+
+    if (formatOptions != 0) {
+        CFStringRef formatStr = __createISO8601FormatString(formatOptions);
+        if (formatStr) {
+            CFDateFormatterSetFormat(ISO8601Formatter, formatStr);
+            CFRelease(formatStr);
+        }
+    }
+
+    CFRelease(localeStr);
+    CFRelease(locale);
+
+    return ISO8601Formatter;
+}
+
+CFDateFormatterRef CFDateFormatterCreate(CFAllocatorRef allocator, CFLocaleRef locale, CFDateFormatterStyle dateStyle, CFDateFormatterStyle timeStyle) {
+    return __SetUpCFDateFormatter(allocator, locale, dateStyle, timeStyle, kCFBooleanFalse);
+}
+
 
 static void __substituteFormatStringFromPrefsDFRelative(CFDateFormatterRef formatter) {
 
@@ -1116,7 +1272,7 @@ static CFStringRef __CFDateFormatterCreateForcedString(CFDateFormatterRef format
     if (options == UDATPG_MATCH_NO_OPTIONS) return (CFStringRef)CFRetain(inString);
     
     static CFCharacterSetRef hourCharacters;
-    static dispatch_once_t onceToken = 0;
+    static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         hourCharacters = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, CFSTR("hHkK"));
     });
@@ -1183,7 +1339,7 @@ void CFDateFormatterSetFormat(CFDateFormatterRef formatter, CFStringRef formatSt
     __CFGenericValidateType(formatString, CFStringGetTypeID());
     formatString = __CFDateFormatterCreateForcedString(formatter, formatString);
     CFIndex cnt = CFStringGetLength(formatString);
-    CFAssert(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
+    CFAssert1(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
     if (formatter->_format != formatString && cnt <= 1024) {
         // When going from a situation where there is no custom format already,
         // and the "relative date formatting" property is set, we need to reset
@@ -1250,8 +1406,66 @@ CFStringRef CFDateFormatterCreateStringWithAbsoluteTime(CFAllocatorRef allocator
     return string;
 }
 
+#if U_ICU_VERSION_MAJOR_NUM > 55
 static const char * const _ICUPatternMap = "GyMdkHmsSEDFwWahKzYeugAZvcLQqVUOXxr:";
 
+CFAttributedStringRef _CFDateFormatterCreateAttributedStringAndFieldsWithAbsoluteTime(CFAllocatorRef allocator, CFDateFormatterRef formatter, CFAbsoluteTime at) {
+    if (allocator == NULL) allocator = __CFGetDefaultAllocator();
+    __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
+    __CFGenericValidateType(formatter, CFDateFormatterGetTypeID());
+    UChar *ustr = NULL, ubuffer[BUFFER_SIZE + 1];
+    UErrorCode status = U_ZERO_ERROR;
+    CFIndex used, cnt = BUFFER_SIZE;
+    UDate ud = (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0 + 0.5;
+    UFieldPositionIterator *fpositer = ufieldpositer_open(&status);
+    used = __cficu_udat_formatForFields(formatter->_df, ud, ubuffer + 1, cnt, fpositer, &status);
+    if (status == U_BUFFER_OVERFLOW_ERROR || cnt < used) {
+        cnt = used + 1 + 1; // leave room for RTL marker if needed
+        ustr = (UChar *)CFAllocatorAllocate(kCFAllocatorSystemDefault, sizeof(UChar) * cnt, 0);
+        status = U_ZERO_ERROR;
+        ufieldpositer_close(fpositer);
+        fpositer = ufieldpositer_open(&status);
+        used = __cficu_udat_formatForFields(formatter->_df, ud, ustr + 1, cnt, fpositer, &status);
+    }
+    CFStringRef string = NULL;
+    CFMutableAttributedStringRef attributed = NULL;
+    if (U_SUCCESS(status)) {
+        UniChar *bufferToUse = ustr ? (UniChar *)ustr : (UniChar *)ubuffer;
+        if (formatter->_property._UsesCharacterDirection == kCFBooleanTrue && CFLocaleGetLanguageCharacterDirection(CFLocaleGetIdentifier(formatter->_locale)) == kCFLocaleLanguageDirectionRightToLeft) {
+            // Insert Unicode RTL marker
+            bufferToUse[0] = 0x200F;
+            used++;
+        } else {
+            // Move past direction marker
+            bufferToUse++;
+        }
+        string = CFStringCreateWithCharacters(allocator, bufferToUse, used);
+        
+    }
+    if (ustr) CFAllocatorDeallocate(kCFAllocatorSystemDefault, ustr);
+    if (string) {
+        attributed = CFAttributedStringCreateMutable(allocator, CFStringGetLength(string));
+        CFAttributedStringReplaceString(attributed, CFRangeMake(0, 0), string);
+        CFRelease(string);
+        int32_t field;
+        int32_t beginIndex;
+        int32_t endIndex;
+        size_t limit = strlen(_ICUPatternMap);
+        while ((field = ufieldpositer_next(fpositer, &beginIndex, &endIndex)) >= 0) {
+            if (field >= limit) {
+                continue;
+            }
+            CFStringRef pattern = CFStringCreateWithBytes(allocator, (UInt8 *)_ICUPatternMap+field, 1, kCFStringEncodingASCII, false);
+            CFAttributedStringSetAttribute(attributed, CFRangeMake(beginIndex, endIndex-beginIndex), kCFDateFormatterPatternCharacterKey, pattern);
+            CFRelease(pattern);
+        }
+    }
+    if (fpositer != NULL) {
+        ufieldpositer_close(fpositer);
+    }
+    return attributed;
+}
+#endif
 
 static UDate __CFDateFormatterCorrectTimeWithTarget(UCalendar *calendar, UDate at, int32_t target, Boolean isEra, UErrorCode *status) {
     __cficu_ucal_setMillis(calendar, at, status);
@@ -1627,17 +1841,17 @@ static CFArrayRef __CFDateFormatterCopySymbolsArray(UDateFormat *icudf, int32_t 
     STACK_BUFFER_DECL(CFStringRef, strings, cnt);
     for (idx = 0; idx < cnt; idx++) {
         UChar ubuffer[BUFFER_SIZE];
-        CFStringRef str = NULL;
-        status = U_ZERO_ERROR;
-        CFIndex ucnt = __cficu_udat_getSymbols(icudf, (UDateFormatSymbolType)icucode, idx + index_base, ubuffer, BUFFER_SIZE, &status);
-        if (U_SUCCESS(status) && cnt <= BUFFER_SIZE) {
-            str = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)ubuffer, ucnt);
-        }
-        strings[idx] = !str ? (CFStringRef)CFRetain(CFSTR("<error>")) : str;
+	CFStringRef str = NULL;
+	status = U_ZERO_ERROR;
+	CFIndex ucnt = __cficu_udat_getSymbols(icudf, (UDateFormatSymbolType)icucode, idx + index_base, ubuffer, BUFFER_SIZE, &status);
+	if (U_SUCCESS(status) && cnt <= BUFFER_SIZE) {
+	    str = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)ubuffer, ucnt);
+	}
+	strings[idx] = !str ? (CFStringRef)CFRetain(CFSTR("<error>")) : str;
     }
     CFArrayRef array = CFArrayCreate(kCFAllocatorSystemDefault, (const void **)strings, cnt, &kCFTypeArrayCallBacks);
     while (cnt--) {
-        CFRelease(strings[cnt]);
+	CFRelease(strings[cnt]);
     }
     return array;
 }
@@ -1861,7 +2075,7 @@ static void __CFDateFormatterSetProperty(CFDateFormatterRef formatter, CFStringR
             formatter->_property._FormattingContext = (CFNumberRef)CFRetain(value);
         }
     } else {
-        CFAssert(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
+        CFAssert3(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
     }
     if (oldProperty) CFRelease(oldProperty);
 }
@@ -1987,7 +2201,7 @@ CFTypeRef CFDateFormatterCopyProperty(CFDateFormatterRef formatter, CFStringRef 
         int value = __cficu_udat_getContext(formatter->_df, UDISPCTX_TYPE_CAPITALIZATION, &status);
         return CFNumberCreate(CFGetAllocator(formatter), kCFNumberIntType, (const void *)&value);
     } else {
-        CFAssert(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
+        CFAssert3(0, __kCFLogAssertion, "%s(): unknown key %p (%@)", __PRETTY_FUNCTION__, key, key);
     }
     return NULL;
 }

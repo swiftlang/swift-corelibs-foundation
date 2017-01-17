@@ -27,8 +27,8 @@ class TestNSTextCheckingResult: XCTestCase {
     func test_textCheckingResult() {
        let patternString = "(a|b)x|123|(c|d)y"
        do {
-           let patternOptions: RegularExpression.Options = []
-           let regex = try RegularExpression(pattern: patternString, options: patternOptions)
+           let patternOptions: NSRegularExpression.Options = []
+           let regex = try NSRegularExpression(pattern: patternString, options: patternOptions)
            let searchString = "1x030cy"
            let searchOptions: NSMatchingOptions = []
            let searchRange = NSMakeRange(0,7)
