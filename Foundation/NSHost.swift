@@ -28,12 +28,25 @@ open class Host: NSObject {
     internal var _names = [String]()
     internal var _addresses = [String]()
     
+    static internal let _current = Host(currentHostName(), .current)
+    
     internal init(_ info: String?, _ type: ResolveType) {
         _info = info
         _type = type
     }
     
-    static internal let _current = Host(nil, .current)
+    static internal func currentHostName() -> String {
+        let hname = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
+        defer {
+            hname.deinitialize()
+            hname.deallocate(capacity: Int(NI_MAXHOST))
+        }
+        let r = gethostname(hname, Int(NI_MAXHOST))
+        if r < 0 || hname[0] == 0 {
+            return "localhost"
+        }
+        return String(cString: hname)
+    }
     
     open class func current() -> Host {
         return _current
@@ -52,7 +65,29 @@ open class Host: NSObject {
     }
     
     internal func _resolveCurrent() {
-        // TODO: cannot access getifaddrs here...
+        var ifaddr: UnsafeMutablePointer<ifaddrs>? = nil
+        if getifaddrs(&ifaddr) != 0 {
+            return
+        }
+        var ifa: UnsafeMutablePointer<ifaddrs>? = ifaddr
+        let address = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
+        defer {
+            freeifaddrs(ifaddr)
+            address.deinitialize()
+            address.deallocate(capacity: Int(NI_MAXHOST))
+        }
+        while let ifaValue = ifa?.pointee {
+            if let ifa_addr = ifaValue.ifa_addr, ifaValue.ifa_flags & UInt32(IFF_LOOPBACK) == 0 {
+                let family = ifa_addr.pointee.sa_family
+                if family == UInt16(AF_INET) || family == UInt16(AF_INET6) {
+                    let sa_len: socklen_t = socklen_t((family == UInt16(AF_INET6)) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
+                    if getnameinfo(ifa_addr, sa_len, address, socklen_t(NI_MAXHOST), nil, 0, NI_NUMERICHOST) == 0 {
+                        _addresses.append(String(cString: address))
+                    }
+                }
+            }
+            ifa = ifaValue.ifa_next
+        }
     }
     
     internal func _resolve() {
@@ -82,10 +117,18 @@ open class Host: NSObject {
             
             var res0: UnsafeMutablePointer<addrinfo>? = nil
             let r = getaddrinfo(info, nil, &hints, &res0)
+            defer {
+                freeaddrinfo(res0)
+            }
             if r != 0 {
                 return
             }
             var res: UnsafeMutablePointer<addrinfo>? = res0
+            let host = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
+            defer {
+                host.deinitialize()
+                host.deallocate(capacity: Int(NI_MAXHOST))
+            }
             while res != nil {
                 let info = res!.pointee
                 let family = info.ai_family
@@ -95,22 +138,17 @@ open class Host: NSObject {
                 }
                 let sa_len: socklen_t = socklen_t((family == AF_INET6) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
                 let lookupInfo = { (content: inout [String], flags: Int32) in
-                    let hname = UnsafeMutablePointer<Int8>.allocate(capacity: 1024)
-                    if (getnameinfo(info.ai_addr, sa_len, hname, 1024, nil, 0, flags) == 0) {
-                        content.append(String(describing: hname))
+                    if getnameinfo(info.ai_addr, sa_len, host, socklen_t(NI_MAXHOST), nil, 0, flags) == 0 {
+                        content.append(String(cString: host))
                     }
-                    hname.deinitialize()
-                    hname.deallocate(capacity: 1024)
                 }
                 lookupInfo(&_addresses, NI_NUMERICHOST)
                 lookupInfo(&_names, NI_NAMEREQD)
                 lookupInfo(&_names, NI_NOFQDN|NI_NAMEREQD)
                 res = info.ai_next
             }
-            
-            freeaddrinfo(res0)
         }
-
+        
     }
     
     open var name: String? {
