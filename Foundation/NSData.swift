@@ -170,19 +170,19 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let cond = NSCondition()
-            var resError: NSError?
+            var resError: Error?
             var resData: Data?
-            let task = session.dataTask(with: url, completionHandler: { (data: Data?, response: URLResponse?, error: NSError?) -> Void in
+            let task = session.dataTask(with: url, completionHandler: { data, response, error in
                 resData = data
                 resError = error
                 cond.broadcast()
             })
             task.resume()
             cond.wait()
-            if resData == nil {
+            guard let data = resData else {
                 throw resError!
             }
-            self.init(data: resData!)
+            self.init(data: data)
         }
     }
     

@@ -211,7 +211,7 @@ open class URLSessionTask : NSObject, NSCopying {
      * The error, if any, delivered via -URLSession:task:didCompleteWithError:
      * This property will be nil in the event that no error occured.
      */
-    /*@NSCopying*/ open fileprivate(set) var error: NSError?
+    /*@NSCopying*/ open fileprivate(set) var error: Error?
     
     /// Suspend the task.
     ///
@@ -864,7 +864,7 @@ extension URLSessionTask {
             
         }
     }
-    func completeTask(withError error: NSError) {
+    func completeTask(withError error: Error) {
         self.error = error
         
         guard case .transferFailed = internalState else {
@@ -901,7 +901,7 @@ extension URLSessionTask {
                 NSURLErrorFailingURLStringErrorKey: $0.absoluteString,
                 ]
         }
-        let error = NSError(domain: NSURLErrorDomain, code: errorCode, userInfo: userInfo)
+        let error = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: errorCode, userInfo: userInfo))
         completeTask(withError: error)
     }
     func redirectFor(request: URLRequest) {
@@ -1022,7 +1022,7 @@ fileprivate extension URLSessionTask {
         guard case .waitingForResponseCompletionHandler(let ts) = internalState else { fatalError("Received response disposition, but we're not waiting for it.") }
         switch disposition {
         case .cancel:
-            let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)
+            let error = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled))
             self.completeTask(withError: error)
         case .allow:
             // Continue the transfer. This will unpause the easy handle.

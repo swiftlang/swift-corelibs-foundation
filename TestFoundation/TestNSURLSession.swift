@@ -91,8 +91,8 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "URL test with completion handler")
         var expectedResult = "unknown"
         let task = session.dataTask(with: url) { data, response, error in
-            if let e = error {
-                XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
+            if let e = error as? URLError {
+                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
                 expect.fulfill()
                 return
             }
@@ -147,8 +147,8 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "URL test with completion handler")
         var expectedResult = "unknown"
         let task = session.dataTask(with: urlRequest) { data, response, error in
-            if let e = error {
-                XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
+            if let e = error as? URLError {
+                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
                 expect.fulfill()
                 return
             }
@@ -215,8 +215,8 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "download task with handler")
         let req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/country.txt")!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
-            if let e = error {
-                XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
+            if let e = error as? URLError {
+                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
             }
             expect.fulfill()
         }
@@ -241,8 +241,8 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "download task with handler")
         let req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/country.txt")!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
-            if let e = error {
-                XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
+            if let e = error as? URLError {
+                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
             }
             expect.fulfill()
         }
@@ -272,9 +272,9 @@ class TestURLSession : XCTestCase {
                                  delegateQueue: nil)
         let completionExpectation = expectation(description: "dataTask completion block wasn't called")
         let task = session.dataTask(with: url) { result in
-            let error = result.2
+            let error = result.2 as? URLError
             XCTAssertNotNil(error)
-            XCTAssertEqual(error?.code, NSURLErrorBadURL)
+            XCTAssertEqual(error?.code, .badURL)
             completionExpectation.fulfill()
         }
         //should result in Bad URL error
@@ -284,7 +284,7 @@ class TestURLSession : XCTestCase {
             XCTAssertNil(error)
             
             XCTAssertNotNil(task.error)
-            XCTAssertEqual(task.error?.code, NSURLErrorBadURL)
+            XCTAssertEqual((task.error as? URLError)?.code, .badURL)
         }
     }
     
@@ -345,9 +345,9 @@ extension DataTask : URLSessionDataDelegate {
 }
 
 extension DataTask : URLSessionTaskDelegate {
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: NSError?) {
-         guard let e = error else { return }
-         XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+         guard let e = error as? URLError else { return }
+         XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
          dataTaskExpectation.fulfill()
          self.error = true
      }
@@ -399,9 +399,9 @@ extension DownloadTask : URLSessionDownloadDelegate {
 }
 
 extension DownloadTask : URLSessionTaskDelegate {
-   public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: NSError?) {
-       guard let e = error else { return }
-       XCTAssertEqual(e.code, NSURLErrorTimedOut, "Unexpected error code")
+   public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+       guard let e = error as? URLError else { return }
+       XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
        dwdExpectation.fulfill()
    }
 }
