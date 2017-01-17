@@ -155,7 +155,7 @@ open class URLSessionTask : NSObject, NSCopying {
     fileprivate var _response: URLResponse? = nil
     
     /* Byte count properties may be zero if no body is expected,
-     * or URLSessionTransferSizeUnknown if it is not possible
+     * or NSURLSessionTransferSizeUnknown if it is not possible
      * to know how many bytes will be transferred.
      */
     
@@ -1226,7 +1226,7 @@ open class URLSessionStreamTask : URLSessionTask {
 }
 
 /* Key in the userInfo dictionary of an NSError received during a failed download. */
-public let URLSessionDownloadTaskResumeData: String = "" // NSUnimplemented
+public let NSURLSessionDownloadTaskResumeData: String = "NSURLSessionDownloadTaskResumeData"
 
 
 extension URLSession {

@@ -179,7 +179,7 @@ fileprivate func nextSessionIdentifier() -> Int32 {
     sessionCounter += 1
     return sessionCounter
 }
-public let URLSessionTransferSizeUnknown: Int64 = -1
+public let NSURLSessionTransferSizeUnknown: Int64 = -1
 
 open class URLSession : NSObject {
     fileprivate let _configuration: _Configuration
