@@ -116,10 +116,10 @@ open class Host: NSObject {
             hints.ai_flags = flags
             
             var res0: UnsafeMutablePointer<addrinfo>? = nil
+            let r = getaddrinfo(info, nil, &hints, &res0)
             defer {
                 freeaddrinfo(res0)
             }
-            let r = getaddrinfo(info, nil, &hints, &res0)
             if r != 0 {
                 return
             }
