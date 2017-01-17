@@ -446,23 +446,23 @@ extension URLSession {
      * see <Foundation/NSURLError.h>.  The delegate, if any, will still be
      * called for authentication challenges.
      */
-    open func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask {
+    open func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
         return dataTask(with: _Request(request), behaviour: .dataCompletionHandler(completionHandler))
     }
 
-    open func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionDataTask {
+    open func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
         return dataTask(with: _Request(url), behaviour: .dataCompletionHandler(completionHandler))
     }
     
     /*
      * upload convenience method.
      */
-    open func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
+    open func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
         let fileData = try! Data(contentsOf: fileURL) 
         return uploadTask(with: request, from: fileData, completionHandler: completionHandler)
     }
 
-    open func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, NSError?) -> Void) -> URLSessionUploadTask {
+    open func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
         return uploadTask(with: _Request(request), body: .data(createDispatchData(bodyData!)), behaviour: .dataCompletionHandler(completionHandler))
     }
     
@@ -472,15 +472,15 @@ extension URLSession {
      * copied during the invocation of the completion routine.  The file
      * will be removed automatically.
      */
-    open func downloadTask(with request: URLRequest, completionHandler: @escaping (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask {
+    open func downloadTask(with request: URLRequest, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
         return downloadTask(with: _Request(request), behavior: .downloadCompletionHandler(completionHandler))
     }
 
-    open func downloadTask(with url: URL, completionHandler: @escaping (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { 
+    open func downloadTask(with url: URL, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
        return downloadTask(with: _Request(url), behavior: .downloadCompletionHandler(completionHandler)) 
     }
 
-    open func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping (URL?, URLResponse?, NSError?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
+    open func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
 }
 
 internal extension URLSession {
