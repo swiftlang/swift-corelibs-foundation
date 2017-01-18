@@ -16,12 +16,14 @@
     import SwiftXCTest
 #endif
 
+import CoreFoundation
 
 class TestNSThread : XCTestCase {
     static var allTests: [(String, (TestNSThread) -> () throws -> Void)] {
         return [
             ("test_currentThread", test_currentThread ),
             ("test_threadStart", test_threadStart),
+            ("test_threadName", test_threadName),
         ]
     }
 
@@ -50,5 +52,36 @@ class TestNSThread : XCTestCase {
         }
         condition.unlock()
         XCTAssertTrue(started)
+    }
+    
+    func test_threadName() {
+        let thread = Thread()
+        XCTAssertNil(thread.name)
+
+        func getPThreadName() -> String? {
+            var buf = [Int8](repeating: 0, count: 16)
+            let r = _CFThreadGetName(&buf, Int32(buf.count))
+
+            guard r == 0 else {
+                return nil
+            }
+            return String(cString: buf)
+        }
+
+        let thread2 = Thread() {
+            Thread.current.name = "Thread2"
+            XCTAssertEqual(Thread.current.name, "Thread2")
+            XCTAssertEqual(Thread.current.name, getPThreadName())
+        }
+
+        thread2.start()
+
+        Thread.current.name = "CurrentThread"
+        XCTAssertEqual(Thread.current.name, getPThreadName())
+
+        let thread3 = Thread()
+        thread3.name = "Thread3"
+        XCTAssertEqual(thread3.name, "Thread3")
+        XCTAssertNotEqual(thread3.name, getPThreadName())
     }
 }
