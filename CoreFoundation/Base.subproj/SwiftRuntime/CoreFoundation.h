@@ -43,6 +43,10 @@
 #include <netdb.h> // for NSHost.swift
 #endif
 
+#if __has_include(<ifaddrs.h>)
+#include <ifaddrs.h> // for NSHost.swift
+#endif
+
 #if defined(__STDC_VERSION__) && (199901L <= __STDC_VERSION__)
 
 #include <inttypes.h>
