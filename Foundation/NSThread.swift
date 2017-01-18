@@ -8,10 +8,16 @@
 //
 
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
-#elseif os(Linux) || CYGWIN
+#elseif os(Linux) || os(Android) || CYGWIN
 import Glibc
+private func pthread_main_thread_np() -> pthread_t {
+    return _CF_pthread_main_thread_np()
+}
+private func pthread_main_np() -> Int32 {
+    return _CFIsMainThread() ? 1 : 0
+}
 #endif
 
 import CoreFoundation
@@ -57,18 +63,25 @@ private func NSThreadStart(_ context: UnsafeMutableRawPointer?) -> UnsafeMutable
 }
 
 open class Thread : NSObject {
-    
+    static internal let _mainThread = Thread(thread: pthread_main_thread_np())
     static internal var _currentThread = NSThreadSpecific<Thread>()
     open class var current: Thread {
+        if isMainThread {
+            return _mainThread
+        }
+
         return Thread._currentThread.get() {
             return Thread(thread: pthread_self())
         }
     }
     
-    open class var isMainThread: Bool { NSUnimplemented() }
+    open class var isMainThread: Bool {
+        return pthread_main_np() != 0
+    }
     
-    // !!! NSThread's mainThread property is incorrectly exported as "main", which conflicts with its "main" method.
-    open class var mainThread: Thread { NSUnimplemented() }
+    open class var main: Thread {
+        return _mainThread
+    }
 
     /// Alternative API for detached thread creation
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
@@ -131,7 +144,7 @@ open class Thread : NSObject {
     }
     
     internal var _main: (Void) -> Void = {}
-#if os(OSX) || os(iOS) || CYGWIN
+#if os(macOS) || os(iOS) || CYGWIN
     private var _thread: pthread_t? = nil
 #elseif os(Linux) || os(Android)
     private var _thread = pthread_t()
@@ -186,10 +199,11 @@ open class Thread : NSObject {
 #endif
     }
     
-    open func main() {
-        _main()
+    // FIXME: should be a function but conflicts with the `class var main` propery
+    open var main: (Void) -> Void {
+        return self._main
     }
-    
+
     open var name: String? {
         NSUnimplemented()
     }
@@ -229,7 +243,7 @@ open class Thread : NSObject {
     }
     
     open var isMainThread: Bool {
-        NSUnimplemented()
+        return Thread._mainThread._thread == _thread
     }
     
     open func cancel() {
