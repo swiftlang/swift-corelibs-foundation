@@ -284,5 +284,5 @@ extension NSTimeZone {
 }
 
 extension NSNotification.Name {
-    public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: "") // NSUnimplemented
+    public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: kCFTimeZoneSystemTimeZoneDidChangeNotification._swiftObject)
 }

@@ -1226,7 +1226,7 @@ open class URLSessionStreamTask : URLSessionTask {
 }
 
 /* Key in the userInfo dictionary of an NSError received during a failed download. */
-public let URLSessionDownloadTaskResumeData: String = "" // NSUnimplemented
+public let URLSessionDownloadTaskResumeData: String = "NSURLSessionDownloadTaskResumeData"
 
 
 extension URLSession {
