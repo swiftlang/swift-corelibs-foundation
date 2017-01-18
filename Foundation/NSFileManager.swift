@@ -500,6 +500,7 @@ open class FileManager : NSObject {
         return result
     }
     
+    @discardableResult
     open func changeCurrentDirectoryPath(_ path: String) -> Bool {
         return chdir(path) == 0
     }
