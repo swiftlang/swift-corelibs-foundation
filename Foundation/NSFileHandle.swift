@@ -131,6 +131,7 @@ open class FileHandle : NSObject, NSSecureCoding {
         return UInt64(lseek(_fd, 0, SEEK_CUR))
     }
     
+    @discardableResult
     open func seekToEndOfFile() -> UInt64 {
         return UInt64(lseek(_fd, 0, SEEK_END))
     }
