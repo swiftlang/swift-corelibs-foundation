@@ -153,7 +153,7 @@ public enum ComparisonResult : Int {
 }
 
 /* Note: QualityOfService enum is available on all platforms, but it may not be implemented on all platforms. */
-public enum NSQualityOfService : Int {
+public enum QualityOfService : Int {
     
     /* UserInteractive QoS is used for work directly involved in providing an interactive UI such as processing events or drawing to the screen. */
     case userInteractive
