@@ -621,7 +621,7 @@ public struct CocoaError : _BridgedStoredNSError {
 
 public extension CocoaError {
     private var _nsUserInfo: [AnyHashable : Any] {
-        return NSError(domain: _domain, code: _code, userInfo: nil).userInfo
+        return _nsError.userInfo
     }
 
     /// The file path associated with the error, if any.
@@ -802,7 +802,7 @@ public struct URLError : _BridgedStoredNSError {
 
 public extension URLError {
     private var _nsUserInfo: [AnyHashable : Any] {
-        return NSError(domain: _domain, code: _code, userInfo: nil).userInfo
+        return _nsError.userInfo
     }
 
     /// The URL which caused a load to fail.
