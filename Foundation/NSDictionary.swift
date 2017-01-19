@@ -644,7 +644,7 @@ extension NSDictionary {
     As for any usage of hashing, is recommended that the keys have a well-distributed implementation of -hash, and the hash codes must satisfy the hash/isEqual: invariant.
     Keys with duplicate hash codes are allowed, but will cause lower performance and increase memory usage.
     */
-    open class func sharedKeySet(forKeys keys: [NSCopying]) -> AnyObject { NSUnimplemented() }
+    open class func sharedKeySet(forKeys keys: [NSCopying]) -> Any { NSUnimplemented() }
 }
 
 extension NSMutableDictionary {
@@ -655,7 +655,7 @@ extension NSMutableDictionary {
     If keyset is nil, an exception is thrown.
     If keyset is not an object returned by +sharedKeySetForKeys:, an exception is thrown.
     */
-    public convenience init(sharedKeySet keyset: AnyObject) { NSUnimplemented() }
+    public convenience init(sharedKeySet keyset: Any) { NSUnimplemented() }
 }
 
 extension NSDictionary : ExpressibleByDictionaryLiteral { }

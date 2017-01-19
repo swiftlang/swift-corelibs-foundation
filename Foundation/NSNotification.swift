@@ -167,12 +167,12 @@ open class NotificationCenter: NSObject {
         }
     }
 
-    open func post(name aName: Notification.Name, object anObject: AnyObject?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
+    open func post(name aName: Notification.Name, object anObject: Any?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
         let notification = Notification(name: aName, object: anObject, userInfo: aUserInfo)
         post(notification)
     }
 
-    open func removeObserver(_ observer: AnyObject) {
+    open func removeObserver(_ observer: Any) {
         removeObserver(observer, name: nil, object: nil)
     }
 
