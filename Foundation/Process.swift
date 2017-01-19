@@ -435,7 +435,7 @@ open class Process: NSObject {
     A block to be invoked when the process underlying the Process terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The Process is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the Process has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an Process, the ProcessDidTerminateNotification notification is not posted for that process.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of Process which hasn't been updated to include an implementation of the storage and use of it.  
     */
     open var terminationHandler: ((Process) -> Void)?
-    open var qualityOfService: NSQualityOfService = .default  // read-only after the process is launched
+    open var qualityOfService: QualityOfService = .default  // read-only after the process is launched
 }
 
 extension Process {

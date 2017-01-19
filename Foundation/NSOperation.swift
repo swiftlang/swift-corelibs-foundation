@@ -147,7 +147,7 @@ open class Operation : NSObject {
     open var threadPriority: Double = 0.5
     
     /// - Note: Quality of service is not directly supported here since there are not qos class promotions available outside of darwin targets.
-    open var qualityOfService: NSQualityOfService = .default
+    open var qualityOfService: QualityOfService = .default
     
     open var name: String?
     
@@ -497,7 +497,7 @@ open class OperationQueue: NSObject {
         }
     }
     
-    open var qualityOfService: NSQualityOfService = .default
+    open var qualityOfService: QualityOfService = .default
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
     // Note: this will return non nil whereas the objective-c version will only return non nil when it has been set.
     // it uses a target queue assignment instead of returning the actual underlying queue.
