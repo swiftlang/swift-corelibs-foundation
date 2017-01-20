@@ -318,7 +318,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSData`                 | Complete        | Substantial   |                                   |
     | `NSMutableData`          | Complete        | Substantial   |                                   |
     | `Data`                   | Complete        | Substantial   |                                   |
-    | `NSProgress`             | Unimplemented   | None          |                                   |
+    | `NSProgress`             | Complete        | Substantial   |                                   |
     | `NSError`                | Complete        | None          |                                   |
     | `NSUUID`                 | Complete        | Substantial   |                                   |
     | `UUID`                   | Complete        | None          |                                   |
