@@ -226,7 +226,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSGeometry`                      | Mostly Complete | Substantial   | `NSIntegralRectWithOptions` `.AlignRectFlipped` support remains unimplemented |
     | `CGFloat`                         | Complete        | Substantial   |                                                                               |
     | `AffineTransform`                 | Complete        | None          |                                                                               |
-    | `NSAffineTransform`               | Mostly Complete | Substnatial   | `NSCoding` remains unimplemented                                              |
+    | `NSAffineTransform`               | Complete        | Substnatial   |                                                                               |
     | `NSNumber`                        | Complete        | Incomplete    |                                                                               |
     | `NSConcreteValue`                 | N/A             | N/A           | For internal use only                                                         |
     | `NSSpecialValue`                  | N/A             | N/A           | For internal use only                                                         |
