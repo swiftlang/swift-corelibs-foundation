@@ -123,7 +123,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | Entity Name                 | Status          | Test Coverage | Notes                                                                         |
     |-----------------------------|-----------------|---------------|-------------------------------------------------------------------------------|
     | `NSJSONSerialization`       | Mostly Complete | Substantial   | `jsonObject(with:options:)` remains unimplemented                             |
-    | `NSKeyedArchiver`           | Mostly Complete | Substantial   | `init()` and `encodedData` remain unimplemented                               |
+    | `NSKeyedArchiver`           | Complete        | Substantial   |                              |
     | `NSKeyedCoderOldStyleArray` | N/A             | N/A           | For internal use only                                                         |
     | `NSKeyedUnarchiver`         | Mostly Complete | Substantial   | `decodingFailurePolicy.set` remains unimplemented                             |
     | `NSKeyedArchiverHelpers`    | N/A             | N/A           | For internal use only                                                         |
