@@ -288,7 +288,8 @@ public extension Error where Self : CustomNSError {
 public extension Error {
     /// Retrieve the localized description for this error.
     var localizedDescription: String {
-        return NSError(domain: _domain, code: _code, userInfo: nil).localizedDescription
+        let defaultUserInfo = _swift_Foundation_getErrorDefaultUserInfo(self) as! [String : Any]
+        return NSError(domain: _domain, code: _code, userInfo: defaultUserInfo).localizedDescription
     }
 }
 
