@@ -38,6 +38,8 @@ class TestNSAffineTransform : XCTestCase {
             ("test_AppendTransform", test_AppendTransform),
             ("test_PrependTransform", test_PrependTransform),
             ("test_TransformComposition", test_TransformComposition),
+            ("test_Equal", test_Equal),
+            ("test_NSCoding", test_NSCoding),
         ]
     }
     
@@ -342,6 +344,21 @@ class TestNSAffineTransform : XCTestCase {
             ref.transformStruct = val
             XCTAssertEqual(ref.hashValue, val.hashValue)
         }
+    }
+    
+    func test_Equal() {
+        let transform = NSAffineTransform()
+        let transform1 = NSAffineTransform()
+        
+        XCTAssertEqual(transform1, transform)
+        XCTAssertFalse(transform === transform1)
+    }
+    
+    func test_NSCoding() {
+        let transformA = NSAffineTransform()
+        transformA.scale(by: 2)
+        let transformB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: transformA)) as! NSAffineTransform
+        XCTAssertEqual(transformA, transformB, "Archived then unarchived `NSAffineTransform` must be equal.")
     }
 }
 
