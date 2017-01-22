@@ -489,7 +489,7 @@ public struct URL : ReferenceConvertible, Equatable {
     ///
     /// If the data representation is not a legal URL string as ASCII bytes, the URL object may not behave as expected. If the URL cannot be formed then this will return nil.
     public init?(dataRepresentation: Data, relativeTo url: URL?, isAbsolute: Bool = false) {
-        guard dataRepresentation.count > 0 else { return nil }
+        guard !dataRepresentation.isEmpty else { return nil }
         
         if isAbsolute {
             _url = URL._converted(from: NSURL(absoluteURLWithDataRepresentation: dataRepresentation, relativeTo: url))

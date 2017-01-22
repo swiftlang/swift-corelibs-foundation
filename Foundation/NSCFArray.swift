@@ -62,7 +62,7 @@ internal func _CFSwiftArrayGetValueAtIndex(_ array: AnyObject, _ index: CFIndex)
     } else {
         let value = _SwiftValue.store(arr.object(at: index))
         let container: NSMutableDictionary
-        if arr._storage.count == 0 {
+        if arr._storage.isEmpty {
             container = NSMutableDictionary()
             arr._storage.append(container)
         } else {
@@ -84,7 +84,7 @@ internal func _CFSwiftArrayGetValues(_ array: AnyObject, _ range: CFRange, _ val
             let index = idx + range.location
             let value = _SwiftValue.store(arr.object(at: index))
             let container: NSMutableDictionary
-            if arr._storage.count == 0 {
+            if arr._storage.isEmpty {
                 container = NSMutableDictionary()
                 arr._storage.append(container)
             } else {

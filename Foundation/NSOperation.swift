@@ -258,19 +258,19 @@ internal struct _OperationList {
     }
     
     mutating func dequeue() -> Operation? {
-        if veryHigh.count > 0 {
+        if !veryHigh.isEmpty {
             return veryHigh.remove(at: 0)
         }
-        if high.count > 0 {
+        if !high.isEmpty {
             return high.remove(at: 0)
         }
-        if normal.count > 0 {
+        if !normal.isEmpty {
             return normal.remove(at: 0)
         }
-        if low.count > 0 {
+        if !low.isEmpty {
             return low.remove(at: 0)
         }
-        if veryLow.count > 0 {
+        if !veryLow.isEmpty {
             return veryLow.remove(at: 0)
         }
         return nil

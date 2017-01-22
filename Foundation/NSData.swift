@@ -800,7 +800,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             if options.contains(.endLineWithLineFeed) { separator.append(10) }
             
             //if the kind of line ending to insert is not specified, the default line ending is Carriage Return + Line Feed.
-            if separator.count == 0 {separator = [13,10]}
+            if separator.isEmpty { separator = [13,10] }
             
             return (lineLength,separator)
         }()
