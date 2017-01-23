@@ -29,9 +29,12 @@ class TestNSGeometry : XCTestCase {
             ("test_CGPoint_BasicConstruction", test_CGPoint_BasicConstruction),
             ("test_CGSize_BasicConstruction", test_CGSize_BasicConstruction),
             ("test_CGRect_BasicConstruction", test_CGRect_BasicConstruction),
+            ("test_NSEdgeInsets_BasicConstruction", test_NSEdgeInsets_BasicConstruction),
+            ("test_NSEdgeInsetsEqual", test_NSEdgeInsetsEqual),
             ("test_NSMakePoint", test_NSMakePoint),
             ("test_NSMakeSize", test_NSMakeSize),
             ("test_NSMakeRect", test_NSMakeRect),
+            ("test_NSEdgeInsetsMake", test_NSEdgeInsetsMake),
             ("test_NSUnionRect", test_NSUnionRect),
             ("test_NSIntersectionRect", test_NSIntersectionRect),
             ("test_NSOffsetRect", test_NSOffsetRect),
@@ -136,6 +139,28 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(r2.size.height, s.height)
     }
 
+    func test_NSEdgeInsets_BasicConstruction() {
+        let i1 = NSEdgeInsets()
+        XCTAssertEqual(i1.top, CGFloat(0.0))
+        XCTAssertEqual(i1.left, CGFloat(0.0))
+        XCTAssertEqual(i1.bottom, CGFloat(0.0))
+        XCTAssertEqual(i1.right, CGFloat(0.0))
+
+        let i2 = NSEdgeInsets(top: CGFloat(3.6), left: CGFloat(4.5), bottom: CGFloat(5.0), right: CGFloat(-1.0))
+        XCTAssertEqual(i2.top, CGFloat(3.6))
+        XCTAssertEqual(i2.left, CGFloat(4.5))
+        XCTAssertEqual(i2.bottom, CGFloat(5.0))
+        XCTAssertEqual(i2.right, CGFloat(-1.0))
+    }
+
+    func test_NSEdgeInsetsEqual() {
+        let variant1 = NSEdgeInsets(top: CGFloat(3.6), left: CGFloat(4.5), bottom: CGFloat(5.0), right: CGFloat(-1.0))
+        let variant1Copy = NSEdgeInsets(top: CGFloat(3.6), left: CGFloat(4.5), bottom: CGFloat(5.0), right: CGFloat(-1.0))
+        let variant2 = NSEdgeInsets(top: CGFloat(3.1), left: CGFloat(4.5), bottom: CGFloat(5.0), right: CGFloat(-1.0))
+        XCTAssertTrue(NSEdgeInsetsEqual(variant1, variant1Copy))
+        XCTAssertFalse(NSEdgeInsetsEqual(variant1, variant2))
+    }
+
     func test_NSMakePoint() {
         let p2 = NSMakePoint(CGFloat(3.6), CGFloat(4.5))
         XCTAssertEqual(p2.x, CGFloat(3.6))
@@ -154,6 +179,14 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(r2.origin.y, CGFloat(3.0))
         XCTAssertEqual(r2.size.width, CGFloat(5.0))
         XCTAssertEqual(r2.size.height, CGFloat(5.0))
+    }
+
+    func test_NSEdgeInsetsMake() {
+        let i2 = NSEdgeInsetsMake(CGFloat(2.2), CGFloat(3.0), CGFloat(5.0), CGFloat(5.0))
+        XCTAssertEqual(i2.top, CGFloat(2.2))
+        XCTAssertEqual(i2.left, CGFloat(3.0))
+        XCTAssertEqual(i2.bottom, CGFloat(5.0))
+        XCTAssertEqual(i2.right, CGFloat(5.0))
     }
 
     func test_NSUnionRect() {
