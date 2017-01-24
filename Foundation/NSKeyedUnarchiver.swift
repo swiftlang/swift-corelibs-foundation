@@ -51,7 +51,7 @@ open class NSKeyedUnarchiver : NSCoder {
     private var _classes : Dictionary<UInt32, AnyClass> = [:]
     private var _cache : Array<_NSKeyedArchiverUID> = []
     private var _allowedClasses : Array<[AnyClass]> = []
-    private var _error : NSError? = nil
+    private var _error : Error? = nil
     
     override open var error: Error? {
         return _error
@@ -96,9 +96,9 @@ open class NSKeyedUnarchiver : NSCoder {
         
         do {
             try _readPropertyList()
-        } catch let error as NSError {
-            failWithError(error)
         } catch {
+            failWithError(error)
+            self._error = error
         }
     }
   
@@ -542,10 +542,9 @@ open class NSKeyedUnarchiver : NSCoder {
             try _decodeArrayOfObjectsForKey(key) { object in
                 array.append(object)
             }
-        } catch let error as NSError {
+        } catch {
             failWithError(error)
             self._error = error
-        } catch {
         }
         
         return array
@@ -607,10 +606,9 @@ open class NSKeyedUnarchiver : NSCoder {
     open override func decodeObject(forKey key: String) -> Any? {
         do {
             return try _decodeObject(forKey: key)
-        } catch let error as NSError {
+        } catch {
             failWithError(error)
             self._error = error
-        } catch {
         }
         return nil
     }
@@ -623,10 +621,9 @@ open class NSKeyedUnarchiver : NSCoder {
                 defer { self._allowedClasses.removeLast() }
                 
                 return try _decodeObject(forKey: key)
-            } catch let error as NSError {
+            } catch {
                 failWithError(error)
                 self._error = error
-            } catch {
             }
         }        
         return nil
@@ -660,10 +657,9 @@ open class NSKeyedUnarchiver : NSCoder {
     open override func decodeObject() -> Any? {
         do {
             return try _decodeObject(forKey: nil)
-        } catch let error as NSError {
+        } catch {
             failWithError(error)
             self._error = error
-        } catch {
         }
         
         return nil
