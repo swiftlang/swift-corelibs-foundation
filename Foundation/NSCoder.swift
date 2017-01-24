@@ -275,7 +275,7 @@ open class NSCoder : NSObject {
         return false
     }
     
-    open func decodePropertyListForKey(_ key: String) -> Any? {
+    open func decodePropertyList(forKey key: String) -> Any? {
         NSUnimplemented()
     }
     

@@ -669,12 +669,12 @@ open class NSKeyedUnarchiver : NSCoder {
         return _decodeObject(of: NSPropertyListClasses)
     }
     
-    open override func decodePropertyListForKey(_ key: String) -> Any? {
+    open override func decodePropertyList(forKey key: String) -> Any? {
         return decodeObject(of: NSPropertyListClasses, forKey:key)
     }
     
     /**
-        Note that unlike decodePropertyListForKey(), _decodePropertyListForKey() decodes
+        Note that unlike decodePropertyList(forKey:), _decodePropertyListForKey() decodes
         a property list in the current decoding context rather than as an object. It's
         also able to return value types.
      */
