@@ -47,7 +47,6 @@ open class Operation : NSObject {
 #endif
     }
     
-    /// - Note: Operations that are asynchronous from the execution of the operation queue itself are not supported since there is no KVO to trigger the finish.
     open func start() {
         main()
         finish()
@@ -156,6 +155,24 @@ open class Operation : NSObject {
         _depGroup.wait()
 #endif
         _ready = true
+    }
+}
+
+/// The following two methods are added to provide support for Operations which
+/// are asynchronous from the execution of the operation queue itself.  On Darwin,
+/// this is supported via KVO notifications.  In the absence of KVO on non-Darwin
+/// platforms, these two methods (which are defined in NSObject on Darwin) are
+/// temporarily added here.  They should be removed once a permanent solution is
+/// found.
+extension Operation {
+    public func willChangeValue(forKey key: String) {
+        // do nothing
+    }
+
+    public func didChangeValue(forKey key: String) {
+        if key == "isFinished" && isFinished {
+            finish()
+        }
     }
 }
 
