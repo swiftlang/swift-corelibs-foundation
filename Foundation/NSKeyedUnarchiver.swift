@@ -863,15 +863,9 @@ open class NSKeyedUnarchiver : NSCoder {
     }
 
     open class func unarchiveTopLevelObjectWithData(_ data: Data) throws -> Any? {
-        var root : Any? = nil
-        
         let keyedUnarchiver = NSKeyedUnarchiver(forReadingWithData: data)
-        do {
-            try root = keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
-            keyedUnarchiver.finishDecoding()
-        } catch {
-        }
-        
+        let root = try keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
+        keyedUnarchiver.finishDecoding()
         return root
     }
 }
