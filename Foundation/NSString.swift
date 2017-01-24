@@ -369,7 +369,7 @@ extension NSString {
         return compare(string, options: mask, range: compareRange, locale: nil)
     }
     
-    public func compare(_ string: String, options mask: CompareOptions, range compareRange: NSRange, locale: AnyObject?) -> ComparisonResult {
+    public func compare(_ string: String, options mask: CompareOptions, range compareRange: NSRange, locale: Any?) -> ComparisonResult {
         var res: CFComparisonResult
         if let loc = locale {
             res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! NSLocale)._cfObject)

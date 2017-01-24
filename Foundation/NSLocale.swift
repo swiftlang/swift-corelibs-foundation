@@ -27,7 +27,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    open func object(forKey key: NSLocale.Key) -> AnyObject? {
+    open func object(forKey key: NSLocale.Key) -> Any? {
         return CFLocaleGetValue(_cfObject, key.rawValue._cfObject)
     }
     

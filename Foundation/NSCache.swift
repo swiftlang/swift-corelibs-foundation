@@ -175,11 +175,11 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
 }
 
 public protocol NSCacheDelegate : NSObjectProtocol {
-    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: AnyObject)
+    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: Any)
 }
 
 extension NSCacheDelegate {
-    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: AnyObject) {
+    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: Any) {
         // Default implementation does nothing
     }
 }
