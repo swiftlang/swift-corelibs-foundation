@@ -16,12 +16,14 @@ import XCTest
 import SwiftFoundation
 import SwiftXCTest
 #endif
+import Dispatch
 
 class TestNSOperationQueue : XCTestCase {
     static var allTests: [(String, (TestNSOperationQueue) -> () throws -> Void)] {
         return [
             ("test_OperationPriorities", test_OperationPriorities),
-            ("test_OperationCount", test_OperationCount)
+            ("test_OperationCount", test_OperationCount),
+            ("test_AsyncOperation", test_AsyncOperation)
         ]
     }
     
@@ -65,4 +67,76 @@ class TestNSOperationQueue : XCTestCase {
         XCTAssertEqual(msgOperations[2], "Operation2 executed")
         XCTAssertEqual(msgOperations[3], "Operation4 executed")
     }
+
+    func test_AsyncOperation() {
+        let operation = AsyncOperation()
+        XCTAssertFalse(operation.isExecuting)
+        XCTAssertFalse(operation.isFinished)
+
+        operation.start()
+
+        while !operation.isFinished {
+            // do nothing
+        }
+
+        XCTAssertFalse(operation.isExecuting)
+        XCTAssertTrue(operation.isFinished)
+    }
+}
+
+class AsyncOperation: Operation {
+
+    private let queue = DispatchQueue(label: "async.operation.queue")
+    private let lock = NSLock()
+
+    private var _executing = false
+    private var _finished = false
+
+    override internal(set) var isExecuting: Bool {
+        get {
+            return _executing
+        }
+        set {
+            if _executing != newValue {
+                willChangeValue(forKey: "isExecuting")
+                _executing = newValue
+                didChangeValue(forKey: "isExecuting")
+            }
+        }
+    }
+
+    override internal(set) var isFinished: Bool {
+        get {
+            return _finished
+        }
+        set {
+            if _finished != newValue {
+                willChangeValue(forKey: "isFinished")
+                _finished = newValue
+                didChangeValue(forKey: "isFinished")
+            }
+        }
+    }
+
+    override var isAsynchronous: Bool {
+        return true
+    }
+
+    override func start() {
+        if isCancelled {
+            isFinished = true
+            return
+        }
+
+        isExecuting = true
+
+        queue.async {
+            sleep(1)
+            self.lock.lock()
+            self.isExecuting = false
+            self.isFinished = true
+            self.lock.unlock()
+        }
+    }
+
 }
