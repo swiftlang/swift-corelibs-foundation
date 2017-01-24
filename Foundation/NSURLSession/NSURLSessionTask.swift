@@ -140,9 +140,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// May differ from originalRequest due to http server redirection
     /*@NSCopying*/ open fileprivate(set) var currentRequest: URLRequest? {
         get {
-            var r: URLRequest? = nil
-            taskAttributesIsolation.sync { r = self._currentRequest }
-            return r
+            return taskAttributesIsolation.sync { self._currentRequest }
         }
         //TODO: dispatch_barrier_async
         set { taskAttributesIsolation.async(flags: .barrier) { self._currentRequest = newValue } }
@@ -150,9 +148,7 @@ open class URLSessionTask : NSObject, NSCopying {
     fileprivate var _currentRequest: URLRequest? = nil
     /*@NSCopying*/ open fileprivate(set) var response: URLResponse? {
         get {
-            var r: URLResponse? = nil
-            taskAttributesIsolation.sync { r = self._response }
-            return r
+            return taskAttributesIsolation.sync { self._response }
         }
         set { taskAttributesIsolation.async(flags: .barrier) { self._response = newValue } }
     }
@@ -166,9 +162,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// Number of body bytes already received
    open fileprivate(set) var countOfBytesReceived: Int64 {
         get {
-            var r: Int64 = 0
-            taskAttributesIsolation.sync { r = self._countOfBytesReceived }
-            return r
+            return taskAttributesIsolation.sync { self._countOfBytesReceived }
         }
         set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesReceived = newValue } }
     }
@@ -177,9 +171,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// Number of body bytes already sent */
     open fileprivate(set) var countOfBytesSent: Int64 {
         get {
-            var r: Int64 = 0
-            taskAttributesIsolation.sync { r = self._countOfBytesSent }
-            return r
+            return taskAttributesIsolation.sync { self._countOfBytesSent }
         }
         set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesSent = newValue } }
     }
@@ -209,9 +201,7 @@ open class URLSessionTask : NSObject, NSCopying {
      */
     open var state: URLSessionTask.State {
         get {
-            var r: URLSessionTask.State = .suspended
-            taskAttributesIsolation.sync { r = self._state }
-            return r
+            return taskAttributesIsolation.sync { self._state }
         }
         set { taskAttributesIsolation.async(flags: .barrier) { self._state = newValue } }
     }
@@ -221,10 +211,7 @@ open class URLSessionTask : NSObject, NSCopying {
      * The error, if any, delivered via -URLSession:task:didCompleteWithError:
      * This property will be nil in the event that no error occured.
      */
-    fileprivate var _error: NSError?
-    /*@NSCopying*/ open var error: NSError? {
-        return self._error
-    }
+    /*@NSCopying*/ open fileprivate(set) var error: Error?
     
     /// Suspend the task.
     ///
@@ -291,20 +278,18 @@ open class URLSessionTask : NSObject, NSCopying {
     /// will be used.
     ///
     /// If no priority is specified, the task will operate with the default priority
-    /// as defined by the constant URLSessionTaskPriorityDefault. Two additional
-    /// priority levels are provided: URLSessionTaskPriorityLow and
-    /// URLSessionTaskPriorityHigh, but use is not restricted to these.
+    /// as defined by the constant URLSessionTask.defaultPriority. Two additional
+    /// priority levels are provided: URLSessionTask.lowPriority and
+    /// URLSessionTask.highPriority, but use is not restricted to these.
     open var priority: Float {
         get {
-            var r: Float = 0
-            taskAttributesIsolation.sync { r = self._priority }
-            return r
+            return taskAttributesIsolation.sync { self._priority }
         }
         set {
             taskAttributesIsolation.async(flags: .barrier) { self._priority = newValue }
         }
     }
-    fileprivate var _priority: Float = URLSessionTaskPriorityDefault
+    fileprivate var _priority: Float = URLSessionTask.defaultPriority
 }
 
 extension URLSessionTask {
@@ -879,8 +864,8 @@ extension URLSessionTask {
             
         }
     }
-    func completeTask(withError error: NSError) {
-        self._error = error
+    func completeTask(withError error: Error) {
+        self.error = error
         
         guard case .transferFailed = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete / failed.")
@@ -916,7 +901,7 @@ extension URLSessionTask {
                 NSURLErrorFailingURLStringErrorKey: $0.absoluteString,
                 ]
         }
-        let error = NSError(domain: NSURLErrorDomain, code: errorCode, userInfo: userInfo)
+        let error = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: errorCode, userInfo: userInfo))
         completeTask(withError: error)
     }
     func redirectFor(request: URLRequest) {
@@ -1037,7 +1022,7 @@ fileprivate extension URLSessionTask {
         guard case .waitingForResponseCompletionHandler(let ts) = internalState else { fatalError("Received response disposition, but we're not waiting for it.") }
         switch disposition {
         case .cancel:
-            let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)
+            let error = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled))
             self.completeTask(withError: error)
         case .allow:
             // Continue the transfer. This will unpause the easy handle.
@@ -1116,9 +1101,19 @@ fileprivate extension HTTPURLResponse {
     }
 }
 
-public let URLSessionTaskPriorityDefault: Float = 0.5
-public let URLSessionTaskPriorityLow: Float = 0.25
-public let URLSessionTaskPriorityHigh: Float = 0.75
+public extension URLSessionTask {
+    /// The default URL session task priority, used implicitly for any task you 
+    /// have not prioritized. The floating point value of this constant is 0.5.
+    public static let defaultPriority: Float = 0.5
+
+    /// A low URL session task priority, with a floating point value above the 
+    /// minimum of 0 and below the default value.
+    public static let lowPriority: Float = 0.25
+
+    /// A high URL session task priority, with a floating point value above the
+    /// default value and below the maximum of 1.0.
+    public static let highPriority: Float = 0.75
+}
 
 /*
  * An URLSessionDataTask does not provide any additional
@@ -1152,7 +1147,7 @@ open class URLSessionDownloadTask : URLSessionTask {
      * If resume data cannot be created, the completion handler will be
      * called with nil resumeData.
      */
-    open func cancel(byProducingResumeData completionHandler: (NSData?) -> Void) { NSUnimplemented() }
+    open func cancel(byProducingResumeData completionHandler: @escaping (Data?) -> Void) { NSUnimplemented() }
 }
 
 /*
@@ -1185,14 +1180,14 @@ open class URLSessionStreamTask : URLSessionTask {
      * If an error occurs, any outstanding reads will also fail, and new
      * read requests will error out immediately.
      */
-    open func readData(ofMinLength minBytes: Int, maxLength maxBytes: Int, timeout: TimeInterval, completionHandler: (NSData?, Bool, NSError?) -> Void) { NSUnimplemented() }
+    open func readData(ofMinLength minBytes: Int, maxLength maxBytes: Int, timeout: TimeInterval, completionHandler: @escaping (Data?, Bool, Error?) -> Void) { NSUnimplemented() }
     
     /* Write the data completely to the underlying socket.  If all the
      * bytes have not been written by the timeout, a timeout error will
      * occur.  Note that invocation of the completion handler does not
      * guarantee that the remote side has received all the bytes, only
      * that they have been written to the kernel. */
-    open func write(data: NSData, timeout: TimeInterval, completionHandler: (NSError?) -> Void) { NSUnimplemented() }
+    open func write(_ data: Data, timeout: TimeInterval, completionHandler: @escaping (Error?) -> Void) { NSUnimplemented() }
     
     /* -captureStreams completes any already enqueued reads
      * and writes, and then invokes the
@@ -1231,7 +1226,7 @@ open class URLSessionStreamTask : URLSessionTask {
 }
 
 /* Key in the userInfo dictionary of an NSError received during a failed download. */
-public let URLSessionDownloadTaskResumeData: String = "" // NSUnimplemented
+public let URLSessionDownloadTaskResumeData: String = "NSURLSessionDownloadTaskResumeData"
 
 
 extension URLSession {

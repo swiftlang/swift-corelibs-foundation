@@ -103,9 +103,9 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         if type(of: self) == NSValue.self {
             self.init()
             if NSValue._isSpecialObjCType(type) {
-                self._concreteValue = NSSpecialValue(bytes: unsafeBitCast(value, to: UnsafePointer<UInt8>.self), objCType: type)
+                self._concreteValue = NSSpecialValue(bytes: value.assumingMemoryBound(to: UInt8.self), objCType: type)
             } else {
-                self._concreteValue = NSConcreteValue(bytes: unsafeBitCast(value, to: UnsafePointer<UInt8>.self), objCType: type)
+                self._concreteValue = NSConcreteValue(bytes: value.assumingMemoryBound(to: UInt8.self), objCType: type)
             }
         } else {
             NSRequiresConcreteImplementation()

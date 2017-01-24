@@ -126,8 +126,8 @@ open class NSKeyedArchiver : NSCoder {
         return finishedEncoding
     }
     
-    public override init() {
-        NSUnimplemented()
+    public override convenience init() {
+        self.init(forWritingWith: NSMutableData())
     }
     
     private init(output: AnyObject) {
@@ -165,7 +165,12 @@ open class NSKeyedArchiver : NSCoder {
     
     /// If encoding has not yet finished, then invoking this property will call finishEncoding and return the data. If you initialized the keyed archiver with a specific mutable data instance, then it will be returned from this property after finishEncoding is called.
     open var encodedData: Data {
-        NSUnimplemented()
+        
+        if !_flags.contains(.finishedEncoding) {
+            finishEncoding()
+        }
+        
+        return (_stream as! NSData)._swiftObject
     }
 
     open func finishEncoding() {
@@ -428,7 +433,7 @@ open class NSKeyedArchiver : NSCoder {
             
             if let ns = clsv as? NSObject.Type {
                 let classHints = ns.classFallbacksForKeyedArchiver()
-                if classHints.count > 0 {
+                if !classHints.isEmpty {
                     classDict["$classhints"] = classHints
                 }
             }
@@ -610,56 +615,43 @@ open class NSKeyedArchiver : NSCoder {
     private func _encodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafeRawPointer) {
         switch type {
         case .ID:
-            let objectp = unsafeBitCast(addr, to: UnsafePointer<Any>.self)
+            let objectp = addr.assumingMemoryBound(to: Any.self)
             encode(objectp.pointee)
-            break
         case .Class:
-            let classp = unsafeBitCast(addr, to: UnsafePointer<AnyClass>.self)
+            let classp = addr.assumingMemoryBound(to: AnyClass.self)
             encode(NSStringFromClass(classp.pointee)._bridgeToObjectiveC())
-            break
         case .Char:
-            let charp = unsafeBitCast(addr, to: UnsafePointer<CChar>.self)
+            let charp = addr.assumingMemoryBound(to: CChar.self)
             _encodeValue(NSNumber(value: charp.pointee))
-            break
         case .UChar:
-            let ucharp = unsafeBitCast(addr, to: UnsafePointer<UInt8>.self)
+            let ucharp = addr.assumingMemoryBound(to: UInt8.self)
             _encodeValue(NSNumber(value: ucharp.pointee))
-            break
         case .Int, .Long:
-            let intp = unsafeBitCast(addr, to: UnsafePointer<Int32>.self)
+            let intp = addr.assumingMemoryBound(to: Int32.self)
             _encodeValue(NSNumber(value: intp.pointee))
-            break
         case .UInt, .ULong:
-            let uintp = unsafeBitCast(addr, to: UnsafePointer<UInt32>.self)
+            let uintp = addr.assumingMemoryBound(to: UInt32.self)
             _encodeValue(NSNumber(value: uintp.pointee))
-            break
         case .LongLong:
-            let longlongp = unsafeBitCast(addr, to: UnsafePointer<Int64>.self)
+            let longlongp = addr.assumingMemoryBound(to: Int64.self)
             _encodeValue(NSNumber(value: longlongp.pointee))
-            break
         case .ULongLong:
-            let ulonglongp = unsafeBitCast(addr, to: UnsafePointer<UInt64>.self)
+            let ulonglongp = addr.assumingMemoryBound(to: UInt64.self)
             _encodeValue(NSNumber(value: ulonglongp.pointee))
-            break
         case .Float:
-            let floatp = unsafeBitCast(addr, to: UnsafePointer<Float>.self)
+            let floatp = addr.assumingMemoryBound(to: Float.self)
             _encodeValue(NSNumber(value: floatp.pointee))
-            break
         case .Double:
-            let doublep = unsafeBitCast(addr, to: UnsafePointer<Double>.self)
+            let doublep = addr.assumingMemoryBound(to: Double.self)
             _encodeValue(NSNumber(value: doublep.pointee))
-            break
         case .Bool:
-            let boolp = unsafeBitCast(addr, to: UnsafePointer<Bool>.self)
+            let boolp = addr.assumingMemoryBound(to: Bool.self)
             _encodeValue(NSNumber(value: boolp.pointee))
-            break
         case .CharPtr:
-            let charpp = unsafeBitCast(addr, to: UnsafePointer<UnsafePointer<Int8>>.self)
+            let charpp = addr.assumingMemoryBound(to: UnsafePointer<Int8>.self)
             encode(NSString(utf8String: charpp.pointee))
-            break
         default:
             fatalError("NSKeyedArchiver.encodeValueOfObjCType: unknown type encoding ('\(type.rawValue)')")
-            break
         }
     }
     

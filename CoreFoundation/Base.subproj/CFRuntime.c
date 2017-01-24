@@ -955,14 +955,6 @@ pthread_t _CF_pthread_main_thread_np(void) {
 
 #endif
 
-#if DEPLOYMENT_RUNTIME_SWIFT && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
-typedef bool (*_os_log_NSCF_callback)(const void *obj, char *string_value, size_t string_sz, bool *publicData);
-extern void _os_log_set_nscf_formatter(_os_log_NSCF_callback function);
-bool os_log_callback(const void *obj, char *string_value, size_t string_sz, bool *publicData) {
-    return false;
-}
-#endif
-
 
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 static void __CFInitialize(void) __attribute__ ((constructor));
@@ -1187,10 +1179,6 @@ void __CFInitialize(void) {
 
         __CFProphylacticAutofsAccess = false;
 
-#if DEPLOYMENT_RUNTIME_SWIFT && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
-        _os_log_set_nscf_formatter(&os_log_callback);
-#endif
-        
         __CFInitializing = 0;
         __CFInitialized = 1;
     }

@@ -318,7 +318,7 @@ class TestNSXMLDocument : XCTestCase {
             XCTFail("Should have thrown")
         } catch let nsError as NSError {
             XCTAssert(nsError.code == XMLParser.ErrorCode.internalError.rawValue)
-            XCTAssert(nsError.domain == XMLParser.ErrorDomain)
+            XCTAssert(nsError.domain == XMLParser.errorDomain)
             XCTAssert((nsError.userInfo[NSLocalizedDescriptionKey] as! String).contains("Element img was declared EMPTY this one has content"))
         }
 

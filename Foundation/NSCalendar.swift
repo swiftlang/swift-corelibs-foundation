@@ -112,12 +112,14 @@ extension NSCalendar {
     }
 }
 
-public func ==(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
-    return lhs.rawValue == rhs.rawValue
-}
+extension NSCalendar.Identifier {
+    public static func ==(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
 
-public func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
-    return lhs.rawValue < rhs.rawValue
+    public static func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
+        return lhs.rawValue < rhs.rawValue
+    }
 }
 
 open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
@@ -603,8 +605,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             }
 
             return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
-                _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, Int32(vector.count))
-                return false
+                return _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, Int32(vector.count))
             }
         }
         if res {
@@ -1242,7 +1243,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
 // with distributed notifications.
 
 extension NSNotification.Name {
-    public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "") // NSUnimplemented
+    public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "NSCalendarDayChangedNotification")
 }
 
 // This is a just used as an extensible struct, basically;
@@ -1619,52 +1620,36 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         switch unit {
             case NSCalendar.Unit.era:
                 era = value
-                break
             case NSCalendar.Unit.year:
                 year = value
-                break
             case NSCalendar.Unit.month:
                 month = value
-                break
             case NSCalendar.Unit.day:
                 day = value
-                break
             case NSCalendar.Unit.hour:
                 hour = value
-                break
             case NSCalendar.Unit.minute:
                 minute = value
-                break
             case NSCalendar.Unit.second:
                 second = value
-                break
             case NSCalendar.Unit.nanosecond:
                 nanosecond = value
-                break
             case NSCalendar.Unit.weekday:
                 weekday = value
-                break
             case NSCalendar.Unit.weekdayOrdinal:
                 weekdayOrdinal = value
-                break
             case NSCalendar.Unit.quarter:
                 quarter = value
-                break
             case NSCalendar.Unit.weekOfMonth:
                 weekOfMonth = value
-                break
             case NSCalendar.Unit.weekOfYear:
                 weekOfYear = value
-                break
             case NSCalendar.Unit.yearForWeekOfYear:
                 yearForWeekOfYear = value
-                break
             case NSCalendar.Unit.calendar:
                 print(".Calendar cannot be set via \(#function)")
-                break
             case NSCalendar.Unit.timeZone:
                 print(".TimeZone cannot be set via \(#function)")
-                break
             default:
                 break
         }

@@ -117,7 +117,7 @@ public protocol URLProtocolClient : NSObjectProtocol {
      @param URLProtocol the NSURLProtocol object sending the message.
      @param error The error that caused the load to fail.
      */
-    func urlProtocol(_ protocol: URLProtocol, didFailWithError error: NSError)
+    func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error)
     
     
     /*!
@@ -274,7 +274,7 @@ open class URLProtocol : NSObject {
         @result The property stored with the given key, or nil if no property
         had previously been stored with the given key in the given request.
     */
-    open class func property(forKey key: String, in request: URLRequest) -> AnyObject? { NSUnimplemented() }
+    open class func property(forKey key: String, in request: URLRequest) -> Any? { NSUnimplemented() }
     
     /*! 
         @method setProperty:forKey:inRequest:
@@ -287,7 +287,7 @@ open class URLProtocol : NSObject {
         @param key The string to use for the property storage. 
         @param request The request in which to store the property. 
     */
-    open class func setProperty(_ value: AnyObject, forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
+    open class func setProperty(_ value: Any, forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
     
     /*!
         @method removePropertyForKey:inRequest:

@@ -107,7 +107,7 @@ internal final class _HTTPBodyFileSource {
     fileprivate let fileURL: URL
     fileprivate let channel: DispatchIO 
     fileprivate let workQueue: DispatchQueue 
-    fileprivate let dataAvailableHandler: () -> ()
+    fileprivate let dataAvailableHandler: () -> Void
     fileprivate var hasActiveReadHandler = false
     fileprivate var availableChunk: _Chunk = .empty
     /// Create a new data source backed by a file.
@@ -121,7 +121,7 @@ internal final class _HTTPBodyFileSource {
     ///     no data may be available even if there's more data in the file.
     ///     if `getNextChunk(withLength:)` returns `.retryLater`, this handler
     ///     will be called once data becomes available.
-    init(fileURL: URL, workQueue: DispatchQueue, dataAvailableHandler: @escaping () -> ()) {
+    init(fileURL: URL, workQueue: DispatchQueue, dataAvailableHandler: @escaping () -> Void) {
         guard fileURL.isFileURL else { fatalError("The body data URL must be a file URL.") }
         self.fileURL = fileURL
         self.workQueue = workQueue
@@ -167,7 +167,7 @@ fileprivate extension _HTTPBodyFileSource {
             switch (done, data, errno) {
             case (true, _, errno) where errno != 0:
                 self.availableChunk = .errorDetected(Int(errno))
-            case (true, .some(let d), 0) where d.count == 0:
+            case (true, .some(let d), 0) where d.isEmpty:
                 self.append(data: d, endOfFile: true)
             case (true, .some(let d), 0):
                 self.append(data: d, endOfFile: false)
@@ -220,10 +220,10 @@ extension _HTTPBodyFileSource : _HTTPBodySource {
             let l = min(length, data.count)
             let (head, tail) = splitData(dispatchData: data, atPosition: l)
             
-            availableChunk = (tail.count == 0) ? .empty : .data(tail)
+            availableChunk = tail.isEmpty ? .empty : .data(tail)
             readNextChunk()
             
-            if head.count == 0 {
+            if head.isEmpty {
                 return .retryLater
             } else {
                 return .data(head)
@@ -231,8 +231,8 @@ extension _HTTPBodyFileSource : _HTTPBodySource {
         case .done(.some(let data)):
             let l = min(length, data.count)
             let (head, tail) = splitData(dispatchData: data, atPosition: l)
-            availableChunk = (tail.count == 0) ? .done(nil) : .done(tail)
-            if (head.count == 0) {
+            availableChunk = tail.isEmpty ? .done(nil) : .done(tail)
+            if head.isEmpty {
                 return .done
             } else {
                 return .data(head)

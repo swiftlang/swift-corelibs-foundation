@@ -18,9 +18,15 @@
 class TestNSFileHandle : XCTestCase {
     static var allTests : [(String, (TestNSFileHandle) -> () throws -> ())] {
         return [
-                   ("test_pipe", test_pipe),
-                   ("test_nullDevice", test_nullDevice),
+            ("test_constants", test_constants),
+            ("test_pipe", test_pipe),
+            ("test_nullDevice", test_nullDevice),
         ]
+    }
+
+    func test_constants() {
+        XCTAssertEqual(FileHandle.readCompletionNotification.rawValue, "NSFileHandleReadCompletionNotification",
+                       "\(FileHandle.readCompletionNotification.rawValue) is not equal to NSFileHandleReadCompletionNotification")
     }
 
     func test_pipe() {

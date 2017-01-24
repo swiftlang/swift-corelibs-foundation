@@ -131,9 +131,10 @@ open class HTTPCookieStorage: NSObject {
     open func sortedCookies(using sortOrder: [NSSortDescriptor]) -> [HTTPCookie] { NSUnimplemented() }
 }
 
-/*!
-    @const NSHTTPCookieManagerCookiesChangedNotification
-    @abstract Notification sent when the set of cookies changes
-*/
-public let NSHTTPCookieManagerCookiesChangedNotification: String = "" // NSUnimplemented
-
+public extension Notification.Name {
+    /*!
+     @const NSHTTPCookieManagerCookiesChangedNotification
+     @abstract Notification sent when the set of cookies changes
+     */
+    public static let NSHTTPCookieManagerCookiesChanged = Notification.Name(rawValue: "NSHTTPCookieManagerCookiesChangedNotification")
+}

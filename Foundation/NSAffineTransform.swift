@@ -100,10 +100,8 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
      [    0       0    1 ]
      */
     public init(rotationByRadians angle: CGFloat) {
-        let α = Double(angle)
-
-        let sine = CGFloat(sin(α))
-        let cosine = CGFloat(cos(α))
+        let sine = sin(angle)
+        let cosine = cos(angle)
 
         self.init(m11: cosine, m12: sine, m21: -sine, m22: cosine, tX: CGFloat(0.0), tY: CGFloat(0.0))
     }
@@ -117,8 +115,8 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
      [    0       0    1 ]
      */
     public init(rotationByDegrees angle: CGFloat) {
-        let α = Double(angle) * M_PI / 180.0
-        self.init(rotationByRadians: CGFloat(α))
+        let α = angle * .pi / 180.0
+        self.init(rotationByRadians: α)
     }
 
     /**
@@ -145,8 +143,8 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
      [    0       0    1 ]
      */
     public mutating func rotate(byDegrees angle: CGFloat) {
-        let α = Double(angle) * M_PI / 180.0
-        return rotate(byRadians: CGFloat(α))
+        let α = angle * .pi / 180.0
+        return rotate(byRadians: α)
     }
 
     /**
@@ -158,10 +156,8 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
      [    0       0    1 ]
      */
     public mutating func rotate(byRadians angle: CGFloat) {
-        let α = Double(angle)
-
-        let sine = CGFloat(sin(α))
-        let cosine = CGFloat(cos(α))
+        let sine = sin(angle)
+        let cosine = cos(angle)
 
         m11 = cosine
         m12 = sine

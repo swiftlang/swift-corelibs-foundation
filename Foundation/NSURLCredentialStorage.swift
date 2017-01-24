@@ -98,12 +98,14 @@ extension URLCredentialStorage {
     public func setDefaultCredential(_ credential: URLCredential, for protectionSpace: URLProtectionSpace, task: URLSessionTask) { NSUnimplemented() }
 }
 
-/*!
-    @const NSURLCredentialStorageChangedNotification
-    @abstract This notification is sent on the main thread whenever
-    the set of stored credentials changes.
-*/
-public let NSURLCredentialStorageChangedNotification: String = "" // NSUnimplemented
+public extension Notification.Name {
+    /*!
+        @const NSURLCredentialStorageChangedNotification
+        @abstract This notification is sent on the main thread whenever
+        the set of stored credentials changes.
+    */
+    public static let NSURLCredentialStorageChanged = NSNotification.Name(rawValue: "NSURLCredentialStorageChangedNotification")
+}
 
 /*
  *  NSURLCredentialStorageRemoveSynchronizableCredentials - (NSNumber value)
@@ -111,5 +113,5 @@ public let NSURLCredentialStorageChangedNotification: String = "" // NSUnimpleme
  *		attribute should be removed.  If the key is missing or the value is @NO, then no attempt will be made
  *		to remove such a credential.
  */
-public let NSURLCredentialStorageRemoveSynchronizableCredentials: String = "" // NSUnimplemented
+public let NSURLCredentialStorageRemoveSynchronizableCredentials: String = "NSURLCredentialStorageRemoveSynchronizableCredentials"
 

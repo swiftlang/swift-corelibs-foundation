@@ -322,40 +322,28 @@ open class NSNumber : NSValue {
         switch type {
         case .Bool:
             self.init(value:buffer.load(as: Bool.self))
-            break
         case .Char:
             self.init(value:buffer.load(as: Int8.self))
-            break
         case .UChar:
             self.init(value:buffer.load(as: UInt8.self))
-            break
         case .Short:
             self.init(value:buffer.load(as: Int16.self))
-            break
         case .UShort:
             self.init(value:buffer.load(as: UInt16.self))
-            break
         case .Int, .Long:
             self.init(value:buffer.load(as: Int32.self))
-            break
         case .UInt, .ULong:
             self.init(value:buffer.load(as: UInt32.self))
-            break
         case .LongLong:
             self.init(value:buffer.load(as: Int64.self))
-            break
         case .ULongLong:
             self.init(value:buffer.load(as: UInt64.self))
-            break
         case .Float:
             self.init(value:buffer.load(as: Float.self))
-            break
         case .Double:
             self.init(value:buffer.load(as: Double.self))
-            break
         default:
             fatalError("NSNumber.init: unsupported type encoding spec '\(String(cString: objCType))'")
-            break
         }
     }
 

@@ -369,7 +369,7 @@ extension NSString {
         return compare(string, options: mask, range: compareRange, locale: nil)
     }
     
-    public func compare(_ string: String, options mask: CompareOptions, range compareRange: NSRange, locale: AnyObject?) -> ComparisonResult {
+    public func compare(_ string: String, options mask: CompareOptions, range compareRange: NSRange, locale: Any?) -> ComparisonResult {
         var res: CFComparisonResult
         if let loc = locale {
             res = CFStringCompareWithOptionsAndLocale(_cfObject, string._cfObject, CFRange(compareRange), mask._cfValue(true), (loc as! NSLocale)._cfObject)
@@ -1183,7 +1183,7 @@ extension NSString {
     }
     
     public convenience init?(data: Data, encoding: UInt) {
-        if data.count == 0 {
+        if data.isEmpty {
             self.init("")
         } else {
         guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
@@ -1272,10 +1272,9 @@ open class NSMutableString : NSString {
             NSRequiresConcreteImplementation()
         }
 
-        // this is incorrectly calculated for grapheme clusters that have a size greater than a single unichar
-        let start = _storage.startIndex
-        let min = _storage.index(start, offsetBy: range.location)
-        let max = _storage.index(start, offsetBy: range.location + range.length)
+        let start = _storage.utf16.startIndex
+        let min = _storage.utf16.index(start, offsetBy: range.location).samePosition(in: _storage)!
+        let max = _storage.utf16.index(start, offsetBy: range.location + range.length).samePosition(in: _storage)!
         _storage.replaceSubrange(min..<max, with: aString)
     }
     

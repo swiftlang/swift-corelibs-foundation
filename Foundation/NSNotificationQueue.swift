@@ -12,18 +12,18 @@ import CoreFoundation
 extension NotificationQueue {
 
     public enum PostingStyle : UInt {
-        
-        case postWhenIdle
-        case postASAP
-        case postNow
+        case whenIdle = 1
+        case asap = 2
+        case now = 3
     }
 
-    public struct Coalescing : OptionSet {
+    public struct NotificationCoalescing : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let CoalescingOnName = Coalescing(rawValue: 1 << 0)
-        public static let CoalescingOnSender = Coalescing(rawValue: 1 << 1)
+
+        public static let none = NotificationCoalescing(rawValue: 0)
+        public static let onName = NotificationCoalescing(rawValue: 1 << 0)
+        public static let onSender = NotificationCoalescing(rawValue: 1 << 1)
     }
 }
 
@@ -38,12 +38,12 @@ open class NotificationQueue: NSObject {
     internal var idleList = NSNotificationList()
     internal lazy var idleRunloopObserver: CFRunLoopObserver = {
         return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFOptionFlags(kCFRunLoopBeforeTimers), true, 0) {[weak self] observer, activity in
-            self!.notifyQueues(.postWhenIdle)
+            self!.notifyQueues(.whenIdle)
         }
     }()
     internal lazy var asapRunloopObserver: CFRunLoopObserver = {
         return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFOptionFlags(kCFRunLoopBeforeWaiting | kCFRunLoopExit), true, 0) {[weak self] observer, activity in
-            self!.notifyQueues(.postASAP)
+            self!.notifyQueues(.asap)
         }
     }()
 
@@ -58,7 +58,7 @@ open class NotificationQueue: NSObject {
 
     // The default notification queue for the current thread.
     private static var _defaultQueue = NSThreadSpecific<NotificationQueue>()
-    open class func defaultQueue() -> NotificationQueue {
+    open class var `default`: NotificationQueue {
         return _defaultQueue.get() {
             return NotificationQueue(notificationCenter: NotificationCenter.default)
         }
@@ -76,47 +76,47 @@ open class NotificationQueue: NSObject {
         removeRunloopObserver(self.asapRunloopObserver)
     }
 
-    open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle) {
-        enqueueNotification(notification, postingStyle: postingStyle, coalesceMask: [.CoalescingOnName, .CoalescingOnSender], forModes: nil)
+    open func enqueue(_ notification: Notification, postingStyle: PostingStyle) {
+        enqueue(notification, postingStyle: postingStyle, coalesceMask: [.onName, .onSender], forModes: nil)
     }
 
-    open func enqueueNotification(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: Coalescing, forModes modes: [RunLoopMode]?) {
+    open func enqueue(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: NotificationCoalescing, forModes modes: [RunLoopMode]?) {
         var runloopModes: [RunLoopMode] = [.defaultRunLoopMode]
         if let modes = modes  {
             runloopModes = modes
         }
 
         if !coalesceMask.isEmpty {
-            self.dequeueNotificationsMatching(notification, coalesceMask: coalesceMask)
+            self.dequeueNotifications(matching: notification, coalesceMask: coalesceMask)
         }
 
         switch postingStyle {
-        case .postNow:
+        case .now:
             let currentMode = RunLoop.current.currentMode
             if currentMode == nil || runloopModes.contains(currentMode!) {
                 self.notificationCenter.post(notification)
             }
-        case .postASAP: // post at the end of the current notification callout or timer
+        case .asap: // post at the end of the current notification callout or timer
             addRunloopObserver(self.asapRunloopObserver)
             self.asapList.append((notification, runloopModes))
-        case .postWhenIdle: // wait until the runloop is idle, then post the notification
+        case .whenIdle: // wait until the runloop is idle, then post the notification
             addRunloopObserver(self.idleRunloopObserver)
             self.idleList.append((notification, runloopModes))
         }
     }
     
-    open func dequeueNotificationsMatching(_ notification: Notification, coalesceMask: Coalescing) {
+    open func dequeueNotifications(matching notification: Notification, coalesceMask: NotificationCoalescing) {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
-        case [.CoalescingOnName, .CoalescingOnSender]:
+        case [.onName, .onSender]:
             predicate = { (entryNotification, _) in
                 return _SwiftValue.store(notification.object) !== _SwiftValue.store(entryNotification.object) || notification.name != entryNotification.name
             }
-        case [.CoalescingOnName]:
+        case [.onName]:
             predicate = { (entryNotification, _) in
                 return notification.name != entryNotification.name
             }
-        case [.CoalescingOnSender]:
+        case [.onSender]:
             predicate = { (entryNotification, _) in
                 return _SwiftValue.store(notification.object) !== _SwiftValue.store(entryNotification.object)
             }
@@ -156,7 +156,7 @@ open class NotificationQueue: NSObject {
         let currentMode = RunLoop.current.currentMode
         for queue in NotificationQueue.notificationQueueList {
             let notificationQueue = queue as! NotificationQueue
-            if postingStyle == .postWhenIdle {
+            if postingStyle == .whenIdle {
                 notificationQueue.notify(currentMode, notificationList: &notificationQueue.idleList)
             } else {
                 notificationQueue.notify(currentMode, notificationList: &notificationQueue.asapList)

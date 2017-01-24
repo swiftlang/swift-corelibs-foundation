@@ -27,7 +27,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    open func object(forKey key: NSLocale.Key) -> AnyObject? {
+    open func object(forKey key: NSLocale.Key) -> Any? {
         return CFLocaleGetValue(_cfObject, key.rawValue._cfObject)
     }
     
@@ -245,8 +245,9 @@ public func <(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
 }
 
 
-
-public let NSCurrentLocaleDidChangeNotification: String = "kCFLocaleCurrentLocaleDidChangeNotification"
+public extension NSLocale {
+    public static let currentLocaleDidChangeNotification = NSNotification.Name(rawValue: "kCFLocaleCurrentLocaleDidChangeNotification")
+}
 
 
 extension CFLocale : _NSBridgeable, _SwiftBridgeable {

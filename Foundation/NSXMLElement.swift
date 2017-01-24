@@ -109,7 +109,7 @@ open class XMLElement: XMLNode {
                 result.append(XMLNode._objectNodeForNode(attribute))
                 nextAttribute = _CFXMLNodeGetNextSibling(attribute)
             }
-            return result.count > 0 ? result : nil // This appears to be how Darwin does it
+            return !result.isEmpty ? result : nil // This appears to be how Darwin does it
         }
 
         set {

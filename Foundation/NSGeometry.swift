@@ -25,10 +25,10 @@ public struct CGPoint {
     }
 }
 
-extension CGPoint: Equatable { }
-
-public func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
-    return lhs.x == rhs.x && lhs.y == rhs.y
+extension CGPoint: Equatable {
+    public static func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
+        return lhs.x == rhs.x && lhs.y == rhs.y
+    }
 }
 
 extension CGPoint: NSSpecialValueCoding {
@@ -88,10 +88,10 @@ public struct CGSize {
     }
 }
 
-extension CGSize: Equatable { }
-
-public func ==(lhs: CGSize, rhs: CGSize) -> Bool {
-    return lhs.width == rhs.width && lhs.height == rhs.height
+extension CGSize: Equatable {
+    public static func ==(lhs: CGSize, rhs: CGSize) -> Bool {
+        return lhs.width == rhs.width && lhs.height == rhs.height
+    }
 }
 
 extension CGSize: NSSpecialValueCoding {
@@ -151,10 +151,10 @@ public struct CGRect {
     }
 }
 
-extension CGRect: Equatable { }
-
-public func ==(lhs: CGRect, rhs: CGRect) -> Bool {
-    return lhs.origin == rhs.origin && lhs.size == rhs.size
+extension CGRect: Equatable {
+    public static func ==(lhs: CGRect, rhs: CGRect) -> Bool {
+        return lhs.origin == rhs.origin && lhs.size == rhs.size
+    }
 }
 
 public typealias NSPoint = CGPoint
@@ -321,38 +321,38 @@ extension NSEdgeInsets: NSSpecialValueCoding {
     }
 }
 
-public struct NSAlignmentOptions : OptionSet {
+public struct AlignmentOptions : OptionSet {
     public var rawValue : UInt64
     public init(rawValue: UInt64) { self.rawValue = rawValue }
     
-    public static let AlignMinXInward = NSAlignmentOptions(rawValue: 1 << 0)
-    public static let AlignMinYInward = NSAlignmentOptions(rawValue: 1 << 1)
-    public static let AlignMaxXInward = NSAlignmentOptions(rawValue: 1 << 2)
-    public static let AlignMaxYInward = NSAlignmentOptions(rawValue: 1 << 3)
-    public static let AlignWidthInward = NSAlignmentOptions(rawValue: 1 << 4)
-    public static let AlignHeightInward = NSAlignmentOptions(rawValue: 1 << 5)
+    public static let alignMinXInward = AlignmentOptions(rawValue: 1 << 0)
+    public static let alignMinYInward = AlignmentOptions(rawValue: 1 << 1)
+    public static let alignMaxXInward = AlignmentOptions(rawValue: 1 << 2)
+    public static let alignMaxYInward = AlignmentOptions(rawValue: 1 << 3)
+    public static let alignWidthInward = AlignmentOptions(rawValue: 1 << 4)
+    public static let alignHeightInward = AlignmentOptions(rawValue: 1 << 5)
     
-    public static let AlignMinXOutward = NSAlignmentOptions(rawValue: 1 << 8)
-    public static let AlignMinYOutward = NSAlignmentOptions(rawValue: 1 << 9)
-    public static let AlignMaxXOutward = NSAlignmentOptions(rawValue: 1 << 10)
-    public static let AlignMaxYOutward = NSAlignmentOptions(rawValue: 1 << 11)
-    public static let AlignWidthOutward = NSAlignmentOptions(rawValue: 1 << 12)
-    public static let AlignHeightOutward = NSAlignmentOptions(rawValue: 1 << 13)
+    public static let alignMinXOutward = AlignmentOptions(rawValue: 1 << 8)
+    public static let alignMinYOutward = AlignmentOptions(rawValue: 1 << 9)
+    public static let alignMaxXOutward = AlignmentOptions(rawValue: 1 << 10)
+    public static let alignMaxYOutward = AlignmentOptions(rawValue: 1 << 11)
+    public static let alignWidthOutward = AlignmentOptions(rawValue: 1 << 12)
+    public static let alignHeightOutward = AlignmentOptions(rawValue: 1 << 13)
     
-    public static let AlignMinXNearest = NSAlignmentOptions(rawValue: 1 << 16)
-    public static let AlignMinYNearest = NSAlignmentOptions(rawValue: 1 << 17)
-    public static let AlignMaxXNearest = NSAlignmentOptions(rawValue: 1 << 18)
-    public static let AlignMaxYNearest = NSAlignmentOptions(rawValue: 1 << 19)
-    public static let AlignWidthNearest = NSAlignmentOptions(rawValue: 1 << 20)
-    public static let AlignHeightNearest = NSAlignmentOptions(rawValue: 1 << 21)
+    public static let alignMinXNearest = AlignmentOptions(rawValue: 1 << 16)
+    public static let alignMinYNearest = AlignmentOptions(rawValue: 1 << 17)
+    public static let alignMaxXNearest = AlignmentOptions(rawValue: 1 << 18)
+    public static let alignMaxYNearest = AlignmentOptions(rawValue: 1 << 19)
+    public static let alignWidthNearest = AlignmentOptions(rawValue: 1 << 20)
+    public static let alignHeightNearest = AlignmentOptions(rawValue: 1 << 21)
 
     // pass this if the rect is in a flipped coordinate system. This allows 0.5 to be treated in a visually consistent way.
-    public static let AlignRectFlipped = NSAlignmentOptions(rawValue: 1 << 63)
+    public static let alignRectFlipped = AlignmentOptions(rawValue: 1 << 63)
     
     // convenience combinations
-    public static let AlignAllEdgesInward = [NSAlignmentOptions.AlignMinXInward, NSAlignmentOptions.AlignMaxXInward, NSAlignmentOptions.AlignMinYInward, NSAlignmentOptions.AlignMaxYInward]
-    public static let AlignAllEdgesOutward = [NSAlignmentOptions.AlignMinXOutward, NSAlignmentOptions.AlignMaxXOutward, NSAlignmentOptions.AlignMinYOutward, NSAlignmentOptions.AlignMaxYOutward]
-    public static let AlignAllEdgesNearest = [NSAlignmentOptions.AlignMinXNearest, NSAlignmentOptions.AlignMaxXNearest, NSAlignmentOptions.AlignMinYNearest, NSAlignmentOptions.AlignMaxYNearest]
+    public static let alignAllEdgesInward: AlignmentOptions = [.alignMinXInward, .alignMaxXInward, .alignMinYInward, .alignMaxYInward]
+    public static let alignAllEdgesOutward: AlignmentOptions = [.alignMinXOutward, .alignMaxXOutward, .alignMinYOutward, .alignMaxYOutward]
+    public static let alignAllEdgesNearest: AlignmentOptions = [.alignMinXNearest, .alignMaxXNearest, .alignMinYNearest, .alignMaxYNearest]
 }
 
 public let NSZeroPoint: NSPoint = NSPoint()
@@ -429,12 +429,12 @@ public func NSIntegralRect(_ aRect: NSRect) -> NSRect {
         return NSZeroRect
     }
     
-    return NSIntegralRectWithOptions(aRect, [.AlignMinXOutward, .AlignMaxXOutward, .AlignMinYOutward, .AlignMaxYOutward])
+    return NSIntegralRectWithOptions(aRect, [.alignMinXOutward, .alignMaxXOutward, .alignMinYOutward, .alignMaxYOutward])
 }
-public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: NSAlignmentOptions) -> NSRect {
+public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: AlignmentOptions) -> NSRect {
     let listOfOptionsIsInconsistentErrorMessage = "List of options is inconsistent"
     
-    if opts.contains(.AlignRectFlipped) {
+    if opts.contains(.alignRectFlipped) {
         NSUnimplemented()
     }
 
@@ -453,81 +453,81 @@ public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: NSAlignmentOption
     }
     
 
-    if opts.contains(.AlignWidthInward) && width != 0 {
+    if opts.contains(.alignWidthInward) && width != 0 {
         guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         width = floor(aRect.size.width.native)
     }
-    if opts.contains(.AlignHeightInward) && height != 0 {
+    if opts.contains(.alignHeightInward) && height != 0 {
         guard height.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         height = floor(aRect.size.height.native)
     }
-    if opts.contains(.AlignWidthOutward) && width != 0 {
+    if opts.contains(.alignWidthOutward) && width != 0 {
         guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         width = ceil(aRect.size.width.native)
     }
-    if opts.contains(.AlignHeightOutward) && height != 0 {
+    if opts.contains(.alignHeightOutward) && height != 0 {
         guard height.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         height = ceil(aRect.size.height.native)
     }
-    if opts.contains(.AlignWidthNearest) && width != 0 {
+    if opts.contains(.alignWidthNearest) && width != 0 {
         guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         width = round(aRect.size.width.native)
     }
-    if opts.contains(.AlignHeightNearest) && height != 0 {
+    if opts.contains(.alignHeightNearest) && height != 0 {
         guard height.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         height = round(aRect.size.height.native)
     }
 
     
-    if opts.contains(.AlignMinXInward) {
+    if opts.contains(.alignMinXInward) {
         guard minX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         minX = ceil(aRect.origin.x.native)
     }
-    if opts.contains(.AlignMinYInward) {
+    if opts.contains(.alignMinYInward) {
         guard minY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         minY = ceil(aRect.origin.y.native)
     }
-    if opts.contains(.AlignMaxXInward) {
+    if opts.contains(.alignMaxXInward) {
         guard maxX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         maxX = floor(aRect.origin.x.native + aRect.size.width.native)
     }
-    if opts.contains(.AlignMaxYInward) {
+    if opts.contains(.alignMaxYInward) {
         guard maxY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         maxY = floor(aRect.origin.y.native + aRect.size.height.native)
     }
 
     
-    if opts.contains(.AlignMinXOutward) {
+    if opts.contains(.alignMinXOutward) {
         guard minX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         minX = floor(aRect.origin.x.native)
     }
-    if opts.contains(.AlignMinYOutward) {
+    if opts.contains(.alignMinYOutward) {
         guard minY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         minY = floor(aRect.origin.y.native)
     }
-    if opts.contains(.AlignMaxXOutward) {
+    if opts.contains(.alignMaxXOutward) {
         guard maxX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         maxX = ceil(aRect.origin.x.native + aRect.size.width.native)
     }
-    if opts.contains(.AlignMaxYOutward) {
+    if opts.contains(.alignMaxYOutward) {
         guard maxY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         maxY = ceil(aRect.origin.y.native + aRect.size.height.native)
     }
     
 
-    if opts.contains(.AlignMinXNearest) {
+    if opts.contains(.alignMinXNearest) {
         guard minX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         minX = round(aRect.origin.x.native)
     }
-    if opts.contains(.AlignMinYNearest) {
+    if opts.contains(.alignMinYNearest) {
         guard minY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         minY = round(aRect.origin.y.native)
     }
-    if opts.contains(.AlignMaxXNearest) {
+    if opts.contains(.alignMaxXNearest) {
         guard maxX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         maxX = round(aRect.origin.x.native + aRect.size.width.native)
     }
-    if opts.contains(.AlignMaxYNearest) {
+    if opts.contains(.alignMaxYNearest) {
         guard maxY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
         maxY = round(aRect.origin.y.native + aRect.size.height.native)
     }

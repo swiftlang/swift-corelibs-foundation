@@ -188,13 +188,10 @@ public final class _DataStorage {
         switch _backing {
         case .swift:
             block(UnsafeBufferPointer<UInt8>(start: _bytes?.assumingMemoryBound(to: UInt8.self), count: _length), 0, &stop)
-            break
         case .immutable:
             block(UnsafeBufferPointer<UInt8>(start: _bytes?.assumingMemoryBound(to: UInt8.self), count: _length), 0, &stop)
-            break
         case .mutable:
             block(UnsafeBufferPointer<UInt8>(start: _bytes?.assumingMemoryBound(to: UInt8.self), count: _length), 0, &stop)
-            break
         case .customReference(let d):
             d.enumerateBytes { (ptr, range, stop) in
                 var stopv = false
@@ -204,7 +201,6 @@ public final class _DataStorage {
                     stop.pointee = true
                 }
             }
-            break
         case .customMutableReference(let d):
             d.enumerateBytes { (ptr, range, stop) in
                 var stopv = false
@@ -214,7 +210,6 @@ public final class _DataStorage {
                     stop.pointee = true
                 }
             }
-            break
         }
     }
     
@@ -310,27 +305,22 @@ public final class _DataStorage {
                 _needToZero = true
             }
             _length = newLength
-            break
         case .immutable(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.length = length
             _backing = .mutable(data)
             _length = length
             _bytes = data.mutableBytes
-            break
         case .mutable(let d):
             d.length = length
             _length = length
             _bytes = d.mutableBytes
-            break
         case .customReference(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.length = length
             _backing = .customMutableReference(data)
-            break
         case .customMutableReference(let d):
             d.length = length
-            break
         }
     }
     
@@ -345,27 +335,22 @@ public final class _DataStorage {
             }
             _length = newLength
             _DataStorage.move(_bytes!.advanced(by: origLength), bytes, length)
-            break
         case .immutable(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.append(bytes, length: length)
             _backing = .mutable(data)
             _length = data.length
             _bytes = data.mutableBytes
-            break
         case .mutable(let d):
             d.append(bytes, length: length)
             _length = d.length
             _bytes = d.mutableBytes
-            break
         case .customReference(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.append(bytes, length: length)
             _backing = .customReference(data)
-            break
         case .customMutableReference(let d):
             d.append(bytes, length: length)
-            break
         }
         
     }
@@ -400,27 +385,22 @@ public final class _DataStorage {
                 memset(_bytes!.advanced(by: origLength), 0, extraLength)
             }
             _length = newLength
-            break
         case .immutable(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.increaseLength(by: extraLength)
             _backing = .mutable(data)
             _length += extraLength
             _bytes = data.mutableBytes
-            break
         case .mutable(let d):
             d.increaseLength(by: extraLength)
             _length += extraLength
             _bytes = d.mutableBytes
-            break
         case .customReference(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.increaseLength(by: extraLength)
             _backing = .customReference(data)
-            break
         case .customMutableReference(let d):
             d.increaseLength(by: extraLength)
-            break
         }
         
     }
@@ -432,12 +412,10 @@ public final class _DataStorage {
             fallthrough
         case .mutable:
             _bytes!.advanced(by: index).assumingMemoryBound(to: UInt8.self).pointee = value
-            break
         default:
             var theByte = value
             let range = NSRange(location: index, length: 1)
             replaceBytes(in: range, with: &theByte, length: 1)
-            break
         }
         
     }
@@ -456,27 +434,22 @@ public final class _DataStorage {
                 _length = newLength
             }
             _DataStorage.move(_bytes!.advanced(by: range.location), bytes!, range.length)
-            break
         case .immutable(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.replaceBytes(in: range, withBytes: bytes!)
             _backing = .mutable(data)
             _length = data.length
             _bytes = data.mutableBytes
-            break
         case .mutable(let d):
             d.replaceBytes(in: range, withBytes: bytes!)
             _length = d.length
             _bytes = d.mutableBytes
-            break
         case .customReference(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.replaceBytes(in: range, withBytes: bytes!)
             _backing = .customMutableReference(data)
-            break
         case .customMutableReference(let d):
             d.replaceBytes(in: range, withBytes: bytes!)
-            break
         }
     }
     
@@ -509,28 +482,23 @@ public final class _DataStorage {
             if resultingLength < currentLength {
                 setLength(resultingLength)
             }
-            break
         case .immutable(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.replaceBytes(in: range, withBytes: replacementBytes, length: replacementLength)
             _backing = .mutable(data)
             _length = replacementLength
             _bytes = data.mutableBytes
-            break
         case .mutable(let d):
             d.replaceBytes(in: range, withBytes: replacementBytes, length: replacementLength)
             _backing = .mutable(d)
             _length = replacementLength
             _bytes = d.mutableBytes
-            break
         case .customReference(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.replaceBytes(in: range, withBytes: replacementBytes, length: replacementLength)
             _backing = .customMutableReference(data)
-            break
         case .customMutableReference(let d):
             d.replaceBytes(in: range, withBytes: replacementBytes, length: replacementLength)
-            break
         }
     }
     
@@ -547,27 +515,22 @@ public final class _DataStorage {
                 _length = newLength
             }
             memset(_bytes!.advanced(by: range.location), 0, range.length)
-            break
         case .immutable(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.resetBytes(in: range)
             _backing = .mutable(data)
             _length = data.length
             _bytes = data.mutableBytes
-            break
         case .mutable(let d):
             d.resetBytes(in: range)
             _length = d.length
             _bytes = d.mutableBytes
-            break
         case .customReference(let d):
             let data = d.mutableCopy() as! NSMutableData
             data.resetBytes(in: range)
             _backing = .customMutableReference(data)
-            break
         case .customMutableReference(let d):
             d.resetBytes(in: range)
-            break
         }
         
     }
@@ -709,7 +672,6 @@ public final class _DataStorage {
         switch _backing {
         case .swift:
             _freeBytes()
-            break
         default:
             break
         }
@@ -911,7 +873,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     public typealias Index = Int
     public typealias Indices = CountableRange<Int>
     
-    internal var _backing : _DataStorage
+    @_versioned internal var _backing : _DataStorage
     
     // A standard or custom deallocator for `Data`.
     ///
@@ -1007,6 +969,17 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     public init(bytes: ArraySlice<UInt8>) {
         _backing = bytes.withUnsafeBufferPointer {
             return _DataStorage(bytes: $0.baseAddress, length: $0.count)
+        }
+    }
+
+    /// Initialze a `Data` with a repeating byte pattern
+    ///
+    /// - parameter repeatedValue: A byte to initialze the pattern
+    /// - parameter count: The number of bytes the data initially contains initialzed to the repeatedValue
+    public init(repeating repeatedValue: UInt8, count: Int) {
+        self.init(count: count)
+        withUnsafeMutableBytes { (bytes: UnsafeMutablePointer<UInt8>) -> Void in
+            memset(bytes, Int32(repeatedValue), count)
         }
     }
     
@@ -1304,7 +1277,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - parameter buffer: The buffer of bytes to append. The size is calculated from `SourceType` and `buffer.count`.
     @inline(__always)
     public mutating func append<SourceType>(_ buffer : UnsafeBufferPointer<SourceType>) {
-        if buffer.count == 0 { return }
+        if buffer.isEmpty { return }
         if !isKnownUniquelyReferenced(&_backing) {
             _backing = _backing.mutableCopy()
         }
@@ -1331,7 +1304,9 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         for byte in newElements {
             self[idx] = byte
             idx += 1
-            count = idx
+            if idx > count {
+                count = idx
+            }
         }
     }
     
@@ -1428,7 +1403,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             let shift = resultCount - currentCount
             let start = subrange.lowerBound
             
-            self.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) -> () in
+            self.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) -> Void in
                 if shift != 0 {
                     let destination = bytes + start + replacementCount
                     let source = bytes + start + subrangeCount
@@ -1436,7 +1411,11 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                 }
                 
                 if replacementCount != 0 {
-                    newElements._copyContents(initializing: bytes + start)
+                  let buf = UnsafeMutableBufferPointer(start: bytes + start, 
+                                                       count: replacementCount)
+                  var (it,idx) = newElements._copyContents(initializing: buf)
+                  precondition(it.next() == nil && idx == buf.endIndex,
+                    "newElements iterator returned different count to newElements.count")
                 }
             }
     }

@@ -144,14 +144,14 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return userInfo[NSHelpAnchorErrorKey] as? String
     }
     
-    internal typealias NSErrorProvider = (_ error: NSError, _ key: String) -> AnyObject?
+    internal typealias NSErrorProvider = (_ error: NSError, _ key: String) -> Any?
     internal static var userInfoProviders = [String: NSErrorProvider]()
     
-    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (/* @escaping */ (NSError, String) -> AnyObject?)?) {
+    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (/* @escaping */ (NSError, String) -> Any?)?) {
         NSError.userInfoProviders[errorDomain] = provider
     }
 
-    open class func userInfoValueProvider(forDomain errorDomain: String) -> ((NSError, String) -> AnyObject?)? {
+    open class func userInfoValueProvider(forDomain errorDomain: String) -> ((NSError, String) -> Any?)? {
         return NSError.userInfoProviders[errorDomain]
     }
     
@@ -621,7 +621,7 @@ public struct CocoaError : _BridgedStoredNSError {
 
 public extension CocoaError {
     private var _nsUserInfo: [AnyHashable : Any] {
-        return NSError(domain: _domain, code: _code, userInfo: nil).userInfo
+        return _nsError.userInfo
     }
 
     /// The file path associated with the error, if any.
@@ -802,7 +802,7 @@ public struct URLError : _BridgedStoredNSError {
 
 public extension URLError {
     private var _nsUserInfo: [AnyHashable : Any] {
-        return NSError(domain: _domain, code: _code, userInfo: nil).userInfo
+        return _nsError.userInfo
     }
 
     /// The URL which caused a load to fail.

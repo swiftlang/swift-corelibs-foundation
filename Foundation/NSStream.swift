@@ -110,7 +110,7 @@ open class Stream: NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    open var streamError: NSError? {
+    open var streamError: Error? {
         NSRequiresConcreteImplementation()
     }
 }
@@ -119,7 +119,7 @@ open class Stream: NSObject {
 // Subclassers are required to implement these methods.
 open class InputStream: Stream {
 
-    private var _stream: CFReadStream!
+    internal let _stream: CFReadStream!
 
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -160,8 +160,8 @@ open class InputStream: Stream {
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
     }
     
-    open override var streamError: NSError? {
-        return _CFReadStreamCopyError(_stream)?._nsObject
+    open override var streamError: Error? {
+        return _CFReadStreamCopyError(_stream)
     }
 }
 
@@ -212,7 +212,7 @@ open class OutputStream : Stream {
         return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_stream)))!
     }
     
-    open class func outputStreamToMemory() -> Self {
+    open class func toMemory() -> Self {
         return self.init(toMemory: ())
     }
     
@@ -224,8 +224,8 @@ open class OutputStream : Stream {
         return CFWriteStreamSetProperty(_stream, key.rawValue._cfObject, property)
     }
     
-    open override var streamError: NSError? {
-        return _CFWriteStreamCopyError(_stream)?._nsObject
+    open override var streamError: Error? {
+        return _CFWriteStreamCopyError(_stream)
     }
 }
 

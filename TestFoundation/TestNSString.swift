@@ -93,6 +93,8 @@ class TestNSString : XCTestCase {
             ("test_PrefixSuffix", test_PrefixSuffix),
             ("test_utf16StringRangeCount", test_StringUTF16ViewIndexStrideableRange),
             ("test_reflection", { _ in test_reflection }),
+            ("test_replacingOccurrences", test_replacingOccurrences),
+            ("test_getLineStart", test_getLineStart),
         ]
     }
 
@@ -1030,6 +1032,30 @@ class TestNSString : XCTestCase {
         let mutableString = NSMutableString(string: "Test")
         XCTAssertEqual(mutableString, "Test")
     }
+
+    func test_getLineStart() {
+        // offset        012345 678901
+        let twoLines =  "line1\nline2\n"
+        var outStartIndex = twoLines.startIndex
+        var outEndIndex = twoLines.startIndex
+        var outContentsEndIndex = twoLines.startIndex
+
+        twoLines.getLineStart(&outStartIndex, end: &outEndIndex,
+                              contentsEnd: &outContentsEndIndex,
+                              for: outEndIndex..<outEndIndex)
+
+        XCTAssertEqual(outStartIndex, twoLines.startIndex)
+        XCTAssertEqual(outContentsEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 5))
+        XCTAssertEqual(outEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 6))
+
+        twoLines.getLineStart(&outStartIndex, end: &outEndIndex,
+                              contentsEnd: &outContentsEndIndex,
+                              for: outEndIndex..<outEndIndex)
+
+        XCTAssertEqual(outStartIndex, twoLines.index(twoLines.startIndex, offsetBy: 6))
+        XCTAssertEqual(outContentsEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 11))
+        XCTAssertEqual(outEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 12))
+    }
 }
 
 struct ComparisonTest {
@@ -1228,4 +1254,43 @@ extension TestNSString {
 }
 
 func test_reflection() {
+}
+
+extension TestNSString {
+    func test_replacingOccurrences() {
+        let testPrefix = "ab"
+        let testSuffix = "cd"
+        let testEmoji = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}"
+        let testString = testPrefix + testEmoji + testSuffix
+
+        let testReplacement = "xyz"
+        let testReplacementEmoji = "\u{01F468}\u{200D}\u{002764}\u{00FE0F}\u{200D}\u{01F48B}\u{200D}\u{01F468}"
+
+        let noChange = testString.replacingOccurrences(of: testReplacement, with: "")
+        XCTAssertEqual(noChange, testString)
+
+        let removePrefix = testString.replacingOccurrences(of: testPrefix, with: "")
+        XCTAssertEqual(removePrefix, testEmoji + testSuffix)
+        let replacePrefix = testString.replacingOccurrences(of: testPrefix, with: testReplacement)
+        XCTAssertEqual(replacePrefix, testReplacement + testEmoji + testSuffix)
+
+        let removeSuffix = testString.replacingOccurrences(of: testSuffix, with: "")
+        XCTAssertEqual(removeSuffix, testPrefix + testEmoji)
+        let replaceSuffix = testString.replacingOccurrences(of: testSuffix, with: testReplacement)
+        XCTAssertEqual(replaceSuffix, testPrefix + testEmoji + testReplacement)
+
+        let removeMultibyte = testString.replacingOccurrences(of: testEmoji, with: "")
+        XCTAssertEqual(removeMultibyte, testPrefix + testSuffix)
+        let replaceMultibyte = testString.replacingOccurrences(of: testEmoji, with: testReplacement)
+        XCTAssertEqual(replaceMultibyte, testPrefix + testReplacement + testSuffix)
+
+        let replaceMultibyteWithMultibyte = testString.replacingOccurrences(of: testEmoji, with: testReplacementEmoji)
+        XCTAssertEqual(replaceMultibyteWithMultibyte, testPrefix + testReplacementEmoji + testSuffix)
+
+        let replacePrefixWithMultibyte = testString.replacingOccurrences(of: testPrefix, with: testReplacementEmoji)
+        XCTAssertEqual(replacePrefixWithMultibyte, testReplacementEmoji + testEmoji + testSuffix)
+
+        let replaceSuffixWithMultibyte = testString.replacingOccurrences(of: testSuffix, with: testReplacementEmoji)
+        XCTAssertEqual(replaceSuffixWithMultibyte, testPrefix + testEmoji + testReplacementEmoji)
+    }
 }

@@ -71,7 +71,7 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      @param error The NSError for the authentication failure, if applicable, else nil
      @result An authentication challenge initialized with the specified parameters
      */
-    public init(protectionSpace space: URLProtectionSpace, proposedCredential credential: URLCredential?, previousFailureCount: Int, failureResponse response: URLResponse?, error: NSError?, sender: URLAuthenticationChallengeSender) {
+    public init(protectionSpace space: URLProtectionSpace, proposedCredential credential: URLCredential?, previousFailureCount: Int, failureResponse response: URLResponse?, error: Error?, sender: URLAuthenticationChallengeSender) {
         NSUnimplemented()
     }
     
@@ -156,7 +156,7 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      then this method will return the error. Otherwise it will
      return nil.
      */
-    /*@NSCopying*/ open var error: NSError? {
+    /*@NSCopying*/ open var error: Error? {
         get {
             NSUnimplemented()
         }
