@@ -433,7 +433,7 @@ open class NSKeyedArchiver : NSCoder {
             
             if let ns = clsv as? NSObject.Type {
                 let classHints = ns.classFallbacksForKeyedArchiver()
-                if classHints.count > 0 {
+                if !classHints.isEmpty {
                     classDict["$classhints"] = classHints
                 }
             }

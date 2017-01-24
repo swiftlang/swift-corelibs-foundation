@@ -1277,7 +1277,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - parameter buffer: The buffer of bytes to append. The size is calculated from `SourceType` and `buffer.count`.
     @inline(__always)
     public mutating func append<SourceType>(_ buffer : UnsafeBufferPointer<SourceType>) {
-        if buffer.count == 0 { return }
+        if buffer.isEmpty { return }
         if !isKnownUniquelyReferenced(&_backing) {
             _backing = _backing.mutableCopy()
         }

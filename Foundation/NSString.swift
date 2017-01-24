@@ -1183,7 +1183,7 @@ extension NSString {
     }
     
     public convenience init?(data: Data, encoding: UInt) {
-        if data.count == 0 {
+        if data.isEmpty {
             self.init("")
         } else {
         guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in

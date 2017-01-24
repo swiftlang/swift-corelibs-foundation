@@ -133,7 +133,7 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return _ranges.first?.location ?? NSNotFound
     }
     open var lastIndex: Int {
-        guard _ranges.count > 0 else {
+        guard !_ranges.isEmpty else {
             return NSNotFound
         }
         return NSMaxRange(_ranges.last!) - 1
@@ -557,7 +557,7 @@ open class NSMutableIndexSet : NSIndexSet {
     
     internal func _mergeOverlappingRangesStartingAtIndex(_ index: Int) {
         var rangeIndex = index
-        while _ranges.count > 0 && rangeIndex < _ranges.count - 1 {
+        while !_ranges.isEmpty && rangeIndex < _ranges.count - 1 {
             let curRange = _ranges[rangeIndex]
             let nextRange = _ranges[rangeIndex + 1]
             let curEnd = NSMaxRange(curRange)
