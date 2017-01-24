@@ -24,6 +24,7 @@ class TestNSPropertyList : XCTestCase {
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_decodeData", test_decodeData),
             ("test_decodeStream", test_decodeStream),
+            ("test_booleanProperty", test_booleanProperty),
         ]
     }
     
@@ -88,6 +89,19 @@ class TestNSPropertyList : XCTestCase {
             XCTAssertEqual(str, "Bar")
         } else {
             XCTFail("value stored is not a string")
+        }
+    }
+    
+    func test_booleanProperty() {
+        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"> <plist version='1.0'><dict><key>state</key><true/></dict></plist>"
+        do {
+            let plistDoc = try XMLDocument(xmlString: plistDocString, options: [])
+            try plistDoc.validate()
+            let plist = try PropertyListSerialization.propertyList(from: plistDoc.xmlData, options: [], format: nil) as! [String: Any]
+            XCTAssertNotNil(plist)
+            XCTAssertEqual(plist["state"] as? NSNumber, 1)
+        } catch {
+             XCTFail("Value stored is not boolean")
         }
     }
 }

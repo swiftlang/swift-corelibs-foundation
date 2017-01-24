@@ -2178,7 +2178,8 @@ static Boolean parseXMLElement(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFTy
             if (pInfo->skip) {
                 *out = NULL;
             } else {
-                *out = CFRetain(kCFBooleanTrue);
+                SInt32 val = 1;
+                *out = CFNumberCreate(kCFAllocatorSystemDefault, kCFNumberSInt8Type, (const void *)&val);
             }
             return true;
         case FALSE_IX:
@@ -2191,7 +2192,8 @@ static Boolean parseXMLElement(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFTy
             if (pInfo->skip) {
                 *out = NULL;
             } else {
-                *out = CFRetain(kCFBooleanFalse);
+                SInt32 val = 0;
+                *out = CFNumberCreate(kCFAllocatorSystemDefault, kCFNumberSInt8Type, (const void *)&val);
             }
             return true;
         case REAL_IX:
