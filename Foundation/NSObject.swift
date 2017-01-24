@@ -260,7 +260,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
     ///
     /// - Parameter aCoder: The coder encoding the instance.
     /// - Returns:          The object encode instead of the instance (if different).
-    open func replacementObjectForCoder(_ aCoder: NSCoder) -> Any? {
+    open func replacementObject(for aCoder: NSCoder) -> Any? {
         return self
     }
 
@@ -284,8 +284,8 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
     ///
     /// - Parameter archiver:   A keyed archiver creating an archive.
     /// - Returns:              The object encode instead of the instance (if different).
-    open func replacementObjectForKeyedArchiver(_ archiver: NSKeyedArchiver) -> Any? {
-        return self.replacementObjectForCoder(archiver)
+    open func replacementObject(for archiver: NSKeyedArchiver) -> Any? {
+        return self.replacementObject(for: archiver as NSCoder)
     }
     
     /// Overridden to return the names of classes that can be used to decode

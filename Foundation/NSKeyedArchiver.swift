@@ -483,10 +483,10 @@ open class NSKeyedArchiver : NSCoder {
             return objectToEncode
         }
         
-        // object replaced by NSObject.replacementObjectForKeyedArchiver
+        // object replaced by NSObject.replacementObject(for:)
         // if it is replaced with nil, it cannot be further replaced
         if let ns = objectToEncode as? NSObject {
-            objectToEncode = ns.replacementObjectForKeyedArchiver(self)
+            objectToEncode = ns.replacementObject(for: self)
             if objectToEncode == nil {
                 replaceObject(object!, withObject: nil)
                 return nil
@@ -799,7 +799,7 @@ public protocol NSKeyedArchiverDelegate : class {
     // either returns this object or can return a different object to be encoded
     // instead.  The delegate can also fiddle with the coder state.  If the delegate
     // returns nil, nil is encoded.  This method is called after the original object
-    // may have replaced itself with replacementObjectForKeyedArchiver:.
+    // may have replaced itself with replacementObject(for:).
     // This method is not called for an object once a replacement mapping has been
     // setup for that object (either explicitly, or because the object has previously
     // been encoded).  This is also not called when nil is about to be encoded.
