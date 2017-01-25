@@ -236,14 +236,12 @@ extension NSLocale {
 }
 
 
-extension NSLocale.Key {
-    public static func ==(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
+public func ==(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
+    return lhs.rawValue == rhs.rawValue
+}
 
-    public static func <(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
-        return lhs.rawValue < rhs.rawValue
-    }
+public func <(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
+    return lhs.rawValue < rhs.rawValue
 }
 
 
