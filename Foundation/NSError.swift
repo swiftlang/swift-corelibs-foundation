@@ -144,14 +144,14 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return userInfo[NSHelpAnchorErrorKey] as? String
     }
     
-    internal typealias UserInfoProvider = (_ error: Error, _ key: String) -> Any?
-    internal static var userInfoProviders = [String: UserInfoProvider]()
+    internal typealias NSErrorProvider = (_ error: NSError, _ key: String) -> Any?
+    internal static var userInfoProviders = [String: NSErrorProvider]()
     
-    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (/* @escaping */ (Error, String) -> Any?)?) {
+    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (/* @escaping */ (NSError, String) -> Any?)?) {
         NSError.userInfoProviders[errorDomain] = provider
     }
 
-    open class func userInfoValueProvider(forDomain errorDomain: String) -> ((Error, String) -> Any?)? {
+    open class func userInfoValueProvider(forDomain errorDomain: String) -> ((NSError, String) -> Any?)? {
         return NSError.userInfoProviders[errorDomain]
     }
     
