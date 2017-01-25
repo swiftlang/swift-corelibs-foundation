@@ -41,14 +41,14 @@ extension CGPoint: NSSpecialValueCoding {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        self = aDecoder.decodePointForKey("NS.pointval")
+        self = aDecoder.decodePoint(forKey: "NS.pointval")
     }
     
     func encodeWithCoder(_ aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        aCoder.encodePoint(self, forKey: "NS.pointval")
+        aCoder.encode(self, forKey: "NS.pointval")
     }
     
     static func objCType() -> String {
@@ -104,14 +104,14 @@ extension CGSize: NSSpecialValueCoding {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        self = aDecoder.decodeSizeForKey("NS.sizeval")
+        self = aDecoder.decodeSize(forKey: "NS.sizeval")
     }
     
     func encodeWithCoder(_ aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        aCoder.encodeSize(self, forKey: "NS.sizeval")
+        aCoder.encode(self, forKey: "NS.sizeval")
     }
     
     static func objCType() -> String {
@@ -186,14 +186,14 @@ extension CGRect: NSSpecialValueCoding {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        self = aDecoder.decodeRectForKey("NS.rectval")
+        self = aDecoder.decodeRect(forKey: "NS.rectval")
     }
     
     func encodeWithCoder(_ aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        aCoder.encodeRect(self, forKey: "NS.rectval")
+        aCoder.encode(self, forKey: "NS.rectval")
     }
     
     static func objCType() -> String {
@@ -807,7 +807,7 @@ extension NSValue {
 
 extension NSCoder {
     
-    public func encodePoint(_ point: NSPoint) {
+    public func encode(_ point: NSPoint) {
         self._encodeCGFloat(point.x)
         self._encodeCGFloat(point.y)
     }
@@ -816,7 +816,7 @@ extension NSCoder {
         return NSPoint(x: _decodeCGFloat(), y: _decodeCGFloat())
     }
     
-    public func encodeSize(_ size: NSSize) {
+    public func encode(_ size: NSSize) {
         self._encodeCGFloat(size.width)
         self._encodeCGFloat(size.height)
     }
@@ -825,9 +825,9 @@ extension NSCoder {
         return NSSize(width: _decodeCGFloat(), height: _decodeCGFloat())
     }
     
-    public func encodeRect(_ rect: NSRect) {
-        self.encodePoint(rect.origin)
-        self.encodeSize(rect.size)
+    public func encode(_ rect: NSRect) {
+        self.encode(rect.origin)
+        self.encode(rect.size)
     }
     
     public func decodeRect() -> NSRect {
@@ -837,19 +837,19 @@ extension NSCoder {
 
 extension NSCoder {
     
-    public func encodePoint(_ point: NSPoint, forKey key: String) {
+    public func encode(_ point: NSPoint, forKey key: String) {
         self.encode(NSStringFromPoint(point)._bridgeToObjectiveC(), forKey: key)
     }
     
-    public func encodeSize(_ size: NSSize, forKey key: String) {
+    public func encode(_ size: NSSize, forKey key: String) {
         self.encode(NSStringFromSize(size)._bridgeToObjectiveC(), forKey: key)
     }
     
-    public func encodeRect(_ rect: NSRect, forKey key: String) {
+    public func encode(_ rect: NSRect, forKey key: String) {
         self.encode(NSStringFromRect(rect)._bridgeToObjectiveC(), forKey: key)
     }
     
-    public func decodePointForKey(_ key: String) -> NSPoint {
+    public func decodePoint(forKey key: String) -> NSPoint {
         if let string = self.decodeObject(of: NSString.self, forKey: key) {
             return NSPointFromString(String._unconditionallyBridgeFromObjectiveC(string))
         } else {
@@ -857,7 +857,7 @@ extension NSCoder {
         }
     }
     
-    public func decodeSizeForKey(_ key: String) -> NSSize {
+    public func decodeSize(forKey key: String) -> NSSize {
         if let string = self.decodeObject(of: NSString.self, forKey: key) {
             return NSSizeFromString(String._unconditionallyBridgeFromObjectiveC(string))
         } else {
@@ -865,7 +865,7 @@ extension NSCoder {
         }
     }
     
-    public func decodeRectForKey(_ key: String) -> NSRect {
+    public func decodeRect(forKey key: String) -> NSRect {
         if let string = self.decodeObject(of: NSString.self, forKey: key) {
             return NSRectFromString(String._unconditionallyBridgeFromObjectiveC(string))
         } else {

@@ -222,9 +222,9 @@ public extension LocalizedError {
 /// NSErrorRecoveryAttempting, which is used by NSError when it
 /// attempts recovery from an error.
 class _NSErrorRecoveryAttempter {
-    func attemptRecovery(fromError nsError: NSError,
+    func attemptRecovery(fromError error: Error,
         optionIndex recoveryOptionIndex: Int) -> Bool {
-        let error = nsError as Error as! RecoverableError
+        let error = error as! RecoverableError
         return error.attemptRecovery(optionIndex: recoveryOptionIndex)
   }
 }

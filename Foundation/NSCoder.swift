@@ -682,7 +682,7 @@ open class NSCoder : NSObject {
     ///
     /// - Parameter key:    The coder key.
     /// - Returns:          A decoded object containing a property list.
-    open func decodePropertyListForKey(_ key: String) -> Any? {
+    open func decodePropertyList(forKey key: String) -> Any? {
         NSUnimplemented()
     }
 

@@ -33,14 +33,14 @@ public struct RunLoopMode : RawRepresentable, Equatable, Hashable, Comparable {
     public var hashValue: Int {
         return rawValue.hashValue
     }
-}
 
-public func ==(lhs: RunLoopMode, rhs: RunLoopMode) -> Bool {
-    return lhs.rawValue == rhs.rawValue
-}
+    public static func ==(_ lhs: RunLoopMode, _ rhs: RunLoopMode) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
 
-public func <(lhs: RunLoopMode, rhs: RunLoopMode) -> Bool {
-    return lhs.rawValue < rhs.rawValue
+    public static func <(_ lhs: RunLoopMode, _ rhs: RunLoopMode) -> Bool {
+        return lhs.rawValue < rhs.rawValue
+    }
 }
 
 
