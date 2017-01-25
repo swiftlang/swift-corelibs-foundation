@@ -323,18 +323,18 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
     open var hashValue: Int {
         return hash
     }
+}
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func ==(lhs: NSObject, rhs: NSObject) -> Bool {
-        return lhs.isEqual(rhs)
-    }
+/// Returns a Boolean value indicating whether two values are equal.
+///
+/// Equality is the inverse of inequality. For any values `a` and `b`,
+/// `a == b` implies that `a != b` is `false`.
+///
+/// - Parameters:
+///   - lhs: A value to compare.
+///   - rhs: Another value to compare.
+public func ==(lhs: NSObject, rhs: NSObject) -> Bool {
+    return lhs.isEqual(rhs)
 }
 
 extension NSObject : CustomDebugStringConvertible {
