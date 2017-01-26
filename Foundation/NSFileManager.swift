@@ -274,7 +274,6 @@ open class FileManager : NSObject {
      
         This method replaces fileAttributesAtPath:traverseLink:.
      */
-    /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
     open func attributesOfItem(atPath path: String) throws -> [FileAttributeKey : Any] {
         var s = stat()
         guard lstat(path, &s) == 0 else {
