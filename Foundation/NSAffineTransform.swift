@@ -286,12 +286,16 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        aCoder.encode(Double(self.transformStruct.m11), forKey: "NS._m11")
-        aCoder.encode(Double(self.transformStruct.m12), forKey: "NS._m12")
-        aCoder.encode(Double(self.transformStruct.m21), forKey: "NS._m21")
-        aCoder.encode(Double(self.transformStruct.m22), forKey: "NS._m22")
-        aCoder.encode(Double(self.transformStruct.tX), forKey: "NS._tX")
-        aCoder.encode(Double(self.transformStruct.tY), forKey: "NS._tY")
+        let pointer = UnsafePointer<Float>([
+            Float(transformStruct.m11),
+            Float(transformStruct.m12),
+            Float(transformStruct.m21),
+            Float(transformStruct.m22),
+            Float(transformStruct.tX),
+            Float(transformStruct.tY),
+        ])
+
+        aCoder.encodeArray(ofObjCType: "[f]", count: 6, at: pointer)
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
@@ -308,12 +312,19 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        let m11 = aDecoder.decodeDouble(forKey: "NS._m11")
-        let m12 = aDecoder.decodeDouble(forKey: "NS._m12")
-        let m21 = aDecoder.decodeDouble(forKey: "NS._m21")
-        let m22 = aDecoder.decodeDouble(forKey: "NS._m22")
-        let tX = aDecoder.decodeDouble(forKey: "NS._tX")
-        let tY = aDecoder.decodeDouble(forKey: "NS._tY")
+        let pointer = UnsafeMutablePointer<Float>.allocate(capacity: 6)
+        defer {
+            pointer.deinitialize()
+            pointer.deallocate(capacity: 6)
+        }
+        aDecoder.decodeArray(ofObjCType: "[f]", count: 6, at: pointer)
+        
+        let m11 = pointer[0]
+        let m12 = pointer[1]
+        let m21 = pointer[2]
+        let m22 = pointer[3]
+        let tX = pointer[4]
+        let tY = pointer[5]
         
         self.transformStruct = AffineTransform(m11: CGFloat(m11), m12: CGFloat(m12),
                                                m21: CGFloat(m21), m22: CGFloat(m22),
