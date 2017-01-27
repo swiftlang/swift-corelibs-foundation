@@ -23,8 +23,24 @@ extension Process {
     }
 }
 
-private func WEXITSTATUS(_ status: CInt) -> CInt {
+private func WIFEXITED(_ status: Int32) -> Bool {
+    return _WSTATUS(status) == 0
+}
+
+private func _WSTATUS(_ status: Int32) -> Int32 {
+    return status & 0x7f
+}
+
+private func WIFSIGNALED(_ status: Int32) -> Bool {
+    return (_WSTATUS(status) != 0) && (_WSTATUS(status) != 0x7f)
+}
+
+private func WEXITSTATUS(_ status: Int32) -> Int32 {
     return (status >> 8) & 0xff
+}
+
+private func WTERMSIG(_ status: Int32) -> Int32 {
+    return status & 0x7f
 }
 
 private var managerThreadRunLoop : RunLoop? = nil
@@ -280,8 +296,15 @@ open class Process: NSObject {
                 waitResult = waitpid( process.processIdentifier, &exitCode, 0)
 #endif
             } while ( (waitResult == -1) && (errno == EINTR) )
-            
-            process.terminationStatus = WEXITSTATUS( exitCode )
+
+            if WIFSIGNALED(exitCode) {
+                process.terminationStatus = WTERMSIG(exitCode)
+                process.terminationReason = .uncaughtSignal
+            } else {
+                assert(WIFEXITED(exitCode))
+                process.terminationStatus = WEXITSTATUS(exitCode)
+                process.terminationReason = .exit
+            }
             
             // If a termination handler has been set, invoke it on a background thread
             
@@ -429,7 +452,7 @@ open class Process: NSObject {
     open private(set) var isRunning: Bool = false
     
     open private(set) var terminationStatus: Int32 = 0
-    open var terminationReason: TerminationReason { NSUnimplemented() }
+    open private(set) var terminationReason: TerminationReason = .exit
     
     /*
     A block to be invoked when the process underlying the Process terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The Process is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the Process has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an Process, the ProcessDidTerminateNotification notification is not posted for that process.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of Process which hasn't been updated to include an implementation of the storage and use of it.  
