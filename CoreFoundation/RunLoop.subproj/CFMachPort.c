@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include "CFInternal.h"
 #include <os/lock.h>
-#include <os/log.h>
 
 
 // This queue is used for the cancel/event handler for dead name notification.
