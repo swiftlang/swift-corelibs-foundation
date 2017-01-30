@@ -604,7 +604,7 @@ typedef enum {
 
 static bool also_do_stderr(const _cf_logging_style style) {
     bool result = false;
-#if DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
     // just log to stderr, other logging facilities are out
     result = true;
 #elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
