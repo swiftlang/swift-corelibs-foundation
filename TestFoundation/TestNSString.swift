@@ -90,6 +90,7 @@ class TestNSString : XCTestCase {
             ("test_deletingPathExtension", test_deletingPathExtension),
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
+            ("test_emptyStringPrefixAndSuffix",test_emptyStringPrefixAndSuffix),
             ("test_PrefixSuffix", test_PrefixSuffix),
             ("test_utf16StringRangeCount", test_StringUTF16ViewIndexStrideableRange),
             ("test_reflection", { _ in test_reflection }),
@@ -1056,6 +1057,12 @@ class TestNSString : XCTestCase {
         XCTAssertEqual(outContentsEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 11))
         XCTAssertEqual(outEndIndex, twoLines.index(twoLines.startIndex, offsetBy: 12))
     }
+    
+    func test_emptyStringPrefixAndSuffix() {
+        let testString = "hello"
+        XCTAssertTrue(testString.hasPrefix(""))
+        XCTAssertTrue(testString.hasSuffix(""))
+    }
 }
 
 struct ComparisonTest {
@@ -1086,7 +1093,8 @@ let comparisonTests = [
     // ASCII cases
     ComparisonTest("t", "tt"),
     ComparisonTest("t", "Tt"),
-    ComparisonTest("\u{0}", ""),
+    ComparisonTest("\u{0}", "",
+        reason: "https://bugs.swift.org/browse/SR-332"),
     ComparisonTest("\u{0}", "\u{0}",
         reason: "https://bugs.swift.org/browse/SR-332"),
     ComparisonTest("\r\n", "t"),
@@ -1183,16 +1191,20 @@ enum Stack: Swift.Error {
 }
 
 func checkHasPrefixHasSuffix(_ lhs: String, _ rhs: String, _ stack: [UInt]) -> Int {
-    if lhs == "" {
+    if (lhs == "" && rhs == "") {
+        var failures = 0
+        failures += lhs.hasPrefix(rhs) ? 0: 1
+        failures += lhs.hasSuffix(rhs) ? 0: 1
+        return failures
+    } else if lhs == "" {
         var failures = 0
         failures += lhs.hasPrefix(rhs) ? 1 : 0
         failures += lhs.hasSuffix(rhs) ? 1 : 0
         return failures
-    }
-    if rhs == "" {
+    } else if rhs == "" {
         var failures = 0
-        failures += lhs.hasPrefix(rhs) ? 1 : 0
-        failures += lhs.hasSuffix(rhs) ? 1 : 0
+        failures += lhs.hasPrefix(rhs) ? 0 : 1 
+        failures += lhs.hasSuffix(rhs) ? 0 : 1 
         return failures
     }
 
@@ -1228,7 +1240,6 @@ func checkHasPrefixHasSuffix(_ lhs: String, _ rhs: String, _ stack: [UInt]) -> I
 
 extension TestNSString {
     func test_PrefixSuffix() {
-#if !_runtime(_ObjC)
         for test in comparisonTests {
             var failures = 0
             failures += checkHasPrefixHasSuffix(test.lhs, test.rhs, [test.loc, #line])
@@ -1249,7 +1260,6 @@ extension TestNSString {
             }
             XCTAssert(test.xfail == fail, "Unexpected \(test.xfail ?"success":"failure"): \(test.loc)")
         }
-#endif
     }
 }
 
