@@ -104,14 +104,14 @@ CF_EXTERN_C_BEGIN
 #endif
 #include <pthread.h>
 
-#if __has_include(<os/log.h>)
+#if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
 #import <os/log.h>
 #else
 typedef struct os_log_s *os_log_t;
-#define os_log(...)
-#define os_log_info(...)
-#define os_log_debug(...)
-#define os_log_error(...)
+#define os_log(...) do { } while (0)
+#define os_log_info(...) do { } while (0)
+#define os_log_debug(...) do { } while (0)
+#define os_log_error(...) do { } while (0)
 #define os_log_create(...) (NULL)
 #endif
 
