@@ -1132,15 +1132,35 @@ public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxi
 }
 
 extension Calendar : CustomDebugStringConvertible, CustomStringConvertible, CustomReflectable {
+    private var _kindDescription : String {
+        if self == .autoupdatingCurrent {
+            return "autoupdatingCurrent"
+        } else if self == .current {
+            return "current"
+        } else {
+            return "fixed"
+        }
+    }
+    
     public var description: String {
-        return _handle.map { $0.description }
+        return "\(identifier) (\(_kindDescription))"
     }
     
     public var debugDescription: String {
-        return _handle.map { $0.debugDescription }
+        return "\(identifier) (\(_kindDescription))"
     }
     
-    public var customMirror: Mirror { NSUnimplemented() }
+    public var customMirror: Mirror {
+        let children: [(label: String?, value: Any)] = [
+            (label: "identifier", value: identifier),
+            (label: "kind", value: _kindDescription),
+            (label: "locale", value: locale as Any),
+            (label: "timeZone", value: timeZone),
+            (label: "firstWeekDay", value: firstWeekday),
+            (label: "minimumDaysInFirstWeek", value: minimumDaysInFirstWeek)
+        ]
+        return Mirror(self, children: children, displayStyle: Mirror.DisplayStyle.struct)
+    }
 }
 
 extension Calendar: _ObjectTypeBridgeable {

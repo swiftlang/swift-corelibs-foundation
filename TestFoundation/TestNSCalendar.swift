@@ -28,7 +28,8 @@ class TestNSCalendar: XCTestCase {
             ("test_copy",test_copy),
             ("test_addingDates", test_addingDates),
             ("test_datesNotOnWeekend", test_datesNotOnWeekend),
-            ("test_datesOnWeekend", test_datesOnWeekend)
+            ("test_datesOnWeekend", test_datesOnWeekend),
+            ("test_customMirror", test_customMirror)
             // Disabled because this fails on linux https://bugs.swift.org/browse/SR-320
             // ("test_currentCalendarRRstability", test_currentCalendarRRstability),
         ]
@@ -174,6 +175,17 @@ class TestNSCalendar: XCTestCase {
         let sundayInFebruary = calendar.date(from: DateComponents(year: 2016, month: 2, day: 14))!
         
         XCTAssertTrue(calendar.isDateInWeekend(sundayInFebruary))
+    }
+    
+    func test_customMirror() {
+        let calendar = Calendar(identifier: .gregorian)
+        let calendarMirror = calendar.customMirror
+        
+        XCTAssertEqual(calendar.identifier, calendarMirror.descendant("identifier") as? Calendar.Identifier)
+        XCTAssertEqual(calendar.locale, calendarMirror.descendant("locale") as? Locale)
+        XCTAssertEqual(calendar.timeZone, calendarMirror.descendant("timeZone") as? TimeZone)
+        XCTAssertEqual(calendar.firstWeekday, calendarMirror.descendant("firstWeekDay") as? Int)
+        XCTAssertEqual(calendar.minimumDaysInFirstWeek, calendarMirror.descendant("minimumDaysInFirstWeek") as? Int)
     }
 }
 
