@@ -1143,11 +1143,11 @@ extension Calendar : CustomDebugStringConvertible, CustomStringConvertible, Cust
     }
     
     public var description: String {
-        return _handle.map { $0.description }
+        return "\(identifier) (\(_kindDescription))"
     }
     
     public var debugDescription: String {
-        return _handle.map { $0.debugDescription }
+        return "\(identifier) (\(_kindDescription))"
     }
     
     public var customMirror: Mirror {
