@@ -8,7 +8,7 @@ In order to build on OS X, you will need:
 
 * The latest version of Xcode
 * The latest version of the OS X SDK (at this time: 10.11)
-* The [current Swift toolchain](https://swift.org/download/#latest-development-snapshots).
+* The [current Swift toolchain](https://swift.org/download/#snapshots).
 
 Foundation is developed at the same time as the rest of Swift, so the most recent version of the compiler is required in order to build it.
 
