@@ -154,7 +154,7 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
         _lock.unlock()
     }
     
-    open func removeObject(forKey key: AnyObject) {
+    open func removeObject(forKey key: KeyType) {
         let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
         
         _lock.lock()
