@@ -286,16 +286,18 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        let pointer = UnsafePointer<Float>([
+        let array = [
             Float(transformStruct.m11),
             Float(transformStruct.m12),
             Float(transformStruct.m21),
             Float(transformStruct.m22),
             Float(transformStruct.tX),
             Float(transformStruct.tY),
-        ])
-
-        aCoder.encodeArray(ofObjCType: "[f]", count: 6, at: pointer)
+        ]
+        
+        array.withUnsafeBytes { pointer in
+            aCoder.encodeValue(ofObjCType: "[6f]", at: UnsafeRawPointer(pointer.baseAddress!))
+        }
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
@@ -312,20 +314,20 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        let pointer = UnsafeMutablePointer<Float>.allocate(capacity: 6)
+        let pointer = UnsafeMutableRawPointer.allocate(bytes: MemoryLayout<Float>.stride * 6, alignedTo: 1)
         defer {
-            pointer.deinitialize()
-            pointer.deallocate(capacity: 6)
+            pointer.deallocate(bytes: MemoryLayout<Float>.stride * 6, alignedTo: 1)
         }
-        aDecoder.decodeArray(ofObjCType: "[f]", count: 6, at: pointer)
+        aDecoder.decodeValue(ofObjCType: "[6f]", at: pointer)
         
-        let m11 = pointer[0]
-        let m12 = pointer[1]
-        let m21 = pointer[2]
-        let m22 = pointer[3]
-        let tX = pointer[4]
-        let tY = pointer[5]
-        
+        let floatPointer = pointer.bindMemory(to: Float.self, capacity: 6)
+        let m11 = floatPointer[0]
+        let m12 = floatPointer[1]
+        let m21 = floatPointer[2]
+        let m22 = floatPointer[3]
+        let tX = floatPointer[4]
+        let tY = floatPointer[5]
+
         self.transformStruct = AffineTransform(m11: CGFloat(m11), m12: CGFloat(m12),
                                                m21: CGFloat(m21), m22: CGFloat(m22),
                                                tX: CGFloat(tX), tY: CGFloat(tY))
