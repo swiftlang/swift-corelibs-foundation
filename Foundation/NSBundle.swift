@@ -72,12 +72,19 @@ open class Bundle: NSObject {
     
     /* Methods for loading and unloading bundles. */
     open func load() -> Bool {
-        return  CFBundleLoadExecutable(_bundle)
+        return CFBundleLoadExecutable(_bundle)
     }
     open var isLoaded: Bool {
         return CFBundleIsExecutableLoaded(_bundle)
     }
-    open func unload() -> Bool { NSUnimplemented() }
+    open func unload() -> Bool {
+        guard isLoaded else {
+            return true
+        }
+
+        CFBundleUnloadExecutable(_bundle)
+        return !isLoaded
+    }
     
     open func preflight() throws {
         var unmanagedError:Unmanaged<CFError>? = nil
