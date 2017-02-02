@@ -125,7 +125,7 @@ class TestNSHTTPCookie: XCTestCase {
                       "Set-Cookie": "fr=anjd&232; Max-Age=7776000; path=/; domain=.example.com; secure; httponly",
                       "header2":"value2",
                       "header3":"value3"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, forURL: URL(string: "http://example.com")!)
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: URL(string: "http://example.com")!)
         XCTAssertEqual(cookies.count, 1)
         XCTAssertEqual(cookies[0].name, "fr")
         XCTAssertEqual(cookies[0].value, "anjd&232")
@@ -133,7 +133,7 @@ class TestNSHTTPCookie: XCTestCase {
 
     func test_cookiesWithResponseHeader0cookies() {
         let header = ["header1":"value1", "header2":"value2", "header3":"value3"]
-        let cookies =  HTTPCookie.cookies(withResponseHeaderFields: header, forURL: URL(string: "http://example.com")!)
+        let cookies =  HTTPCookie.cookies(withResponseHeaderFields: header, for: URL(string: "http://example.com")!)
         XCTAssertEqual(cookies.count, 0)
     }
 
@@ -142,7 +142,7 @@ class TestNSHTTPCookie: XCTestCase {
                       "Set-Cookie": "fr=a&2@#; Max-Age=1186000; path=/; domain=.example.com; secure, xd=plm!@#;path=/;domain=.example2.com", 
                       "header2":"value2",
                       "header3":"value3"]
-        let cookies =  HTTPCookie.cookies(withResponseHeaderFields: header, forURL: URL(string: "http://example.com")!)
+        let cookies =  HTTPCookie.cookies(withResponseHeaderFields: header, for: URL(string: "http://example.com")!)
         XCTAssertEqual(cookies.count, 2)
         XCTAssertTrue(cookies[0].isSecure)
         XCTAssertFalse(cookies[1].isSecure)
@@ -153,7 +153,7 @@ class TestNSHTTPCookie: XCTestCase {
                        "Set-Cookie": "fr=anjd&232; expires=Wed, 21 Sep 2016 05:33:00 GMT; Max-Age=7776000; path=/; secure; httponly",
                        "header2":"value2",
                        "header3":"value3"]
-        let cookies =  HTTPCookie.cookies(withResponseHeaderFields: header, forURL: URL(string: "http://example.com")!)
+        let cookies =  HTTPCookie.cookies(withResponseHeaderFields: header, for: URL(string: "http://example.com")!)
         XCTAssertEqual(cookies[0].domain, "http://example.com")
         XCTAssertNotNil(cookies[0].expiresDate)
 
@@ -173,7 +173,7 @@ class TestNSHTTPCookie: XCTestCase {
                       "Set-Cookie": "fr=tx; expires=Wed, 21-Sep-2016 05:33:00 GMT; Max-Age=7776000; secure; httponly", 
                       "header2":"value2",
                       "header3":"value3"]
-        let cookies =  HTTPCookie.cookies(withResponseHeaderFields: header, forURL: URL(string: "http://example.com")!)
+        let cookies =  HTTPCookie.cookies(withResponseHeaderFields: header, for: URL(string: "http://example.com")!)
         XCTAssertEqual(cookies[0].domain, "http://example.com")
         XCTAssertEqual(cookies[0].path, "/")
     }
