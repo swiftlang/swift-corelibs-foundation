@@ -29,7 +29,8 @@ class TestNSFileManager : XCTestCase {
             ("test_pathEnumerator",test_pathEnumerator),
             ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
             ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
-            ("test_copyItemAtPathToPath", test_copyItemAtPathToPath)
+            ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
+            ("test_homedirectoryForUser", test_homedirectoryForUser),
         ]
     }
     
@@ -473,5 +474,12 @@ class TestNSFileManager : XCTestCase {
             return
         }
         XCTFail("Copy overwrites a file/folder that already exists")
+    }
+    
+    func test_homedirectoryForUser() {
+        let filemanger = FileManager.default
+        XCTAssertNil(filemanger.homeDirectory(forUser: "someuser"))
+        XCTAssertNil(filemanger.homeDirectory(forUser: ""))
+        XCTAssertNotNil(filemanger.homeDirectoryForCurrentUser)
     }
 }

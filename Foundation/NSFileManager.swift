@@ -712,9 +712,15 @@ extension FileManager {
 }
 
 extension FileManager {
-    open var homeDirectoryForCurrentUser: URL { NSUnimplemented() }
+    open var homeDirectoryForCurrentUser: URL {
+        return homeDirectory(forUser: CFCopyUserName().takeRetainedValue()._swiftObject)!
+    }
     open var temporaryDirectory: URL { NSUnimplemented() }
-    open func homeDirectory(forUser userName: String) -> URL? { NSUnimplemented() }
+    open func homeDirectory(forUser userName: String) -> URL? {
+        guard !userName.isEmpty else { return nil }
+        guard let url = CFCopyHomeDirectoryURLForUser(userName._cfObject) else { return nil }
+        return  url.takeRetainedValue()._swiftObject
+    }
 }
 
 extension FileManager {
