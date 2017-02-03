@@ -150,7 +150,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
                 }
             })
         } else {
-            self.init(array: set.map { $0 })
+            self.init(array: Array(set))
         }
     }
 }
@@ -421,7 +421,7 @@ open class NSCountedSet : NSMutableSet {
     }
 
     public convenience init(set: Set<AnyHashable>) {
-        self.init(array: set.map { $0 })
+        self.init(array: Array(set))
     }
 
     public required convenience init?(coder: NSCoder) { NSUnimplemented() }

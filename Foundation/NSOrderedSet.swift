@@ -295,7 +295,7 @@ extension NSOrderedSet {
 
     public convenience init(orderedSet set: NSOrderedSet, range: NSRange, copyItems flag: Bool) {
         // TODO: Use the array method here when available.
-        self.init(array: set.map { $0 }, range: range, copyItems: flag)
+        self.init(array: Array(set), range: range, copyItems: flag)
     }
 
     public convenience init(array: [Any]) {
@@ -331,7 +331,7 @@ extension NSOrderedSet {
     }
 
     public convenience init(set: Set<AnyHashable>, copyItems flag: Bool) {
-        self.init(array: set.map { $0 }, copyItems: flag)
+        self.init(array: Array(set), copyItems: flag)
     }
 }
 

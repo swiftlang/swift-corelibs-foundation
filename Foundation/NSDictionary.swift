@@ -138,7 +138,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     public convenience init(dictionary otherDictionary: [AnyHashable : Any]) {
-        self.init(objects: otherDictionary.values.map { $0 }, forKeys: otherDictionary.keys.map { _SwiftValue.store($0) })
+        self.init(objects: Array(otherDictionary.values), forKeys: otherDictionary.keys.map { _SwiftValue.store($0) })
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
@@ -156,7 +156,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
 
     open var allKeys: [Any] {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
-            return _storage.keys.map { $0 }
+            return Array(_storage.keys)
         } else {
             var keys = [Any]()
             let enumerator = keyEnumerator()
@@ -169,7 +169,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     
     open var allValues: [Any] {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
-            return _storage.values.map { $0 }
+            return Array(_storage.values)
         } else {
             var values = [Any]()
             let enumerator = keyEnumerator()
