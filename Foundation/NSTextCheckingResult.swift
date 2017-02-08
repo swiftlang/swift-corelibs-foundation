@@ -70,7 +70,7 @@ internal class _NSRegularExpressionNSTextCheckingResultResult : NSTextCheckingRe
         NSUnimplemented()
     }
     
-    open override func encode(with aCoder: NSCoder) {
+    internal override func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
     
