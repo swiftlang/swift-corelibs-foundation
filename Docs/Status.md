@@ -196,7 +196,7 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name                 | Status          | Test Coverage | Notes                                                                                                                                                            |
     |-----------------------------|-----------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-    | `RegularExpression`         | Mostly Complete | Substantial   | `NSCoding` remains unimplemented                                                                                                                                 |
+    | `NSRegularExpression`       | Complete        | Substantial   |                                                                                                                                 |
     | `Scanner`                   | Mostly Complete | Incomplete    | `scanHex<T: _FloatLike>(_:locale:locationToScanFrom:to:)` and `localizedScannerWithString(_:)` remain unimplemented                                              |
     | `TextCheckingResult`        | Mostly Complete | Incomplete    | `NSCoding`, `NSCopying`, `resultType`, and `range(at:)` remain unimplemented                                                                                     |
     | `NSAttributedString`        | Incomplete      | Incomplete    | `NSCoding`, `NS[Mutable]Copying`, `attributedSubstring(from:)`, `isEqual(to:)`, `init(NSAttributedString:)` remain unimplemented |
