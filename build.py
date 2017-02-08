@@ -64,6 +64,7 @@ foundation.CFLAGS += " ".join([
 	'-I${SYSROOT}/usr/include/libxml2',
 	'-I${SYSROOT}/usr/include/curl',
 	'-I./',
+	'-I./closure',
 ])
 
 swift_cflags += [

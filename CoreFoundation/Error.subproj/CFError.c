@@ -13,6 +13,9 @@
 #include "CFInternal.h"
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/ForFoundationOnly.h>
+#if __BLOCKS__
+#include <Block.h>
+#endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <mach/mach_error.h>
 #endif
