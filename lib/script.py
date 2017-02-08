@@ -206,7 +206,7 @@ rule Link
     description = Link: $out
 
 rule Archive
-    command = mkdir -p `dirname $out`; ${AR} ${AR_FLAGS} $flags $out $in
+    command = mkdir -p `dirname $out`; ${AR} ${AR_FLAGS} $out $in
     description = Archive: $out
 """
         
