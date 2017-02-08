@@ -65,13 +65,11 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        if let other = object as? NSRegularExpression {
-            return self === other
-                || (self.pattern == other.pattern
-                    && self.options == other.options)
-        }
+        guard let other = object as? NSRegularExpression else { return false }
         
-        return false
+        return self === other
+            || (self.pattern == other.pattern
+                && self.options == other.options)
     }
     
     /* An instance of NSRegularExpression is created from a regular expression pattern and a set of options.  If the pattern is invalid, nil will be returned and an NSError will be returned by reference.  The pattern syntax currently supported is that specified by ICU.
