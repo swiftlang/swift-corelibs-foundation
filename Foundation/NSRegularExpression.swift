@@ -43,8 +43,8 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        aCoder.encode(self.pattern._nsObject, forKey: "NS.pattern")
-        aCoder.encode(self.options.rawValue._bridgeToObjectiveC(), forKey: "NS.options")
+        aCoder.encode(self.pattern._nsObject, forKey: "NSPattern")
+        aCoder.encode(self.options.rawValue._bridgeToObjectiveC(), forKey: "NSOptions")
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
@@ -52,8 +52,8 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        guard let pattern = aDecoder.decodeObject(forKey: "NS.pattern") as? NSString,
-            let options = aDecoder.decodeObject(forKey: "NS.options") as? NSNumber else {
+        guard let pattern = aDecoder.decodeObject(forKey: "NSPattern") as? NSString,
+            let options = aDecoder.decodeObject(forKey: "NSOptions") as? NSNumber else {
                 return nil
         }
         
