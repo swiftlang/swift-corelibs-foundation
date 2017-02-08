@@ -10,7 +10,7 @@
 import CoreFoundation
 
 /* NSTextCheckingType in this project is limited to regular expressions. */
-extension TextCheckingResult {
+extension NSTextCheckingResult {
     public struct CheckingType : OptionSet {
         public let rawValue: UInt64
         public init(rawValue: UInt64) { self.rawValue = rawValue }
@@ -19,22 +19,22 @@ extension TextCheckingResult {
     }
 }
 
-open class TextCheckingResult: NSObject, NSCopying, NSCoding {
+open class NSTextCheckingResult: NSObject, NSCopying, NSCoding {
     
     public override init() {
         super.init()
     }
     
-    open class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) -> TextCheckingResult {
-        return _NSRegularExpressionTextCheckingResultResult(ranges: ranges, count: count, regularExpression: regularExpression)
+    open class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) -> NSTextCheckingResult {
+        return _NSRegularExpressionNSTextCheckingResultResult(ranges: ranges, count: count, regularExpression: regularExpression)
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open override func copy() -> Any {
@@ -42,19 +42,19 @@ open class TextCheckingResult: NSObject, NSCopying, NSCoding {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        return self
     }
     
     /* Mandatory properties, used with all types of results. */
-    open var resultType: CheckingType { NSUnimplemented() }
+    open var resultType: CheckingType { NSRequiresConcreteImplementation() }
     open var range: NSRange { return range(at: 0) }
     /* A result must have at least one range, but may optionally have more (for example, to represent regular expression capture groups).  The range at index 0 always matches the range property.  Additional ranges, if any, will have indexes from 1 to numberOfRanges-1. */
-    open func range(at idx: Int) -> NSRange { NSUnimplemented() }
+    open func range(at idx: Int) -> NSRange { NSRequiresConcreteImplementation() }
     open var regularExpression: NSRegularExpression? { return nil }
     open var numberOfRanges: Int { return 1 }
 }
 
-internal class _NSRegularExpressionTextCheckingResultResult : TextCheckingResult {
+internal class _NSRegularExpressionNSTextCheckingResultResult : NSTextCheckingResult {
     var _ranges = [NSRange]()
     let _regularExpression: NSRegularExpression
     init(ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) {
@@ -67,7 +67,11 @@ internal class _NSRegularExpressionTextCheckingResultResult : TextCheckingResult
     }
 
     internal required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        NSUnimplemented()
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        NSUnimplemented()
     }
     
     override var resultType: CheckingType { return .RegularExpression }
@@ -76,9 +80,9 @@ internal class _NSRegularExpressionTextCheckingResultResult : TextCheckingResult
     override var regularExpression: NSRegularExpression? { return _regularExpression }
 }
 
-extension TextCheckingResult {
+extension NSTextCheckingResult {
     
-    public func resultByAdjustingRangesWithOffset(_ offset: Int) -> TextCheckingResult {
+    public func resultByAdjustingRangesWithOffset(_ offset: Int) -> NSTextCheckingResult {
         let count = self.numberOfRanges
         var newRanges = [NSRange]()
         for idx in 0..<count {
@@ -91,7 +95,7 @@ extension TextCheckingResult {
               newRanges.append(NSRange(location: currentRange.location + offset,length: currentRange.length))
            }
         }
-        let result = TextCheckingResult.regularExpressionCheckingResultWithRanges(&newRanges, count: count, regularExpression: self.regularExpression!)
+        let result = NSTextCheckingResult.regularExpressionCheckingResultWithRanges(&newRanges, count: count, regularExpression: self.regularExpression!)
         return result
     }
 }
