@@ -22,7 +22,9 @@ extension NSTextCheckingResult {
 open class NSTextCheckingResult: NSObject, NSCopying, NSCoding {
     
     public override init() {
-        super.init()
+        if type(of: self) == NSTextCheckingResult.self {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     open class func regularExpressionCheckingResultWithRanges(_ ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) -> NSTextCheckingResult {
@@ -30,7 +32,9 @@ open class NSTextCheckingResult: NSObject, NSCopying, NSCoding {
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        NSRequiresConcreteImplementation()
+        if type(of: self) == NSTextCheckingResult.self {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     open func encode(with aCoder: NSCoder) {
@@ -57,6 +61,7 @@ open class NSTextCheckingResult: NSObject, NSCopying, NSCoding {
 internal class _NSRegularExpressionNSTextCheckingResultResult : NSTextCheckingResult {
     var _ranges = [NSRange]()
     let _regularExpression: NSRegularExpression
+    
     init(ranges: NSRangePointer, count: Int, regularExpression: NSRegularExpression) {
         _regularExpression = regularExpression
         super.init()
