@@ -21,6 +21,7 @@ internal func testBundle() -> Bundle {
 
 // For the Swift version of the Foundation tests, we must manually list all test cases here.
 XCTMain([
+    testCase(TestNSCache.allTests),
     testCase(TestNSAffineTransform.allTests),
     testCase(TestNSArray.allTests),
     testCase(TestNSBundle.allTests),
