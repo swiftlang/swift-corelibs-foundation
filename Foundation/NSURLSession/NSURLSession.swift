@@ -174,8 +174,7 @@ import Dispatch
 
 fileprivate var sessionCounter = Int32(0)
 fileprivate func nextSessionIdentifier() -> Int32 {
-    //TODO: find an alternative for this on Linux
-    //return OSAtomicIncrement32Barrier(&sessionCounter)
+    //TODO: find an alternative for OSAtomicIncrement32Barrier() on Linux
     sessionCounter += 1
     return sessionCounter
 }

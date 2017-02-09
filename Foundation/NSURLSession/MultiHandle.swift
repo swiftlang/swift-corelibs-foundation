@@ -36,13 +36,11 @@ extension URLSession {
     internal final class _MultiHandle {
         let rawHandle = CFURLSessionMultiHandleInit()
         let queue: DispatchQueue
-        //let queue = DispatchQueue(label: "MultiHandle.isolation", attributes: .serial)
         let group = DispatchGroup()
         fileprivate var easyHandles: [_EasyHandle] = []
         fileprivate var timeoutSource: _TimeoutSource? = nil
         
         init(configuration: URLSession._Configuration, workQueue: DispatchQueue) {
-            //queue.setTarget(queue: workQueue)
             queue = DispatchQueue(label: "MultiHandle.isolation", target: workQueue)
             setupCallbacks()
             configure(with: configuration)
@@ -311,7 +309,6 @@ fileprivate class _TimeoutSource {
         self.rawSource = DispatchSource.makeTimerSource(queue: queue) as! DispatchSource
         
         let delay = UInt64(max(1, milliseconds - 1)) 
-        //let leeway: UInt64 = (milliseconds == 1) ? NSEC_PER_USEC : NSEC_PER_MSEC
         let start = DispatchTime.now() + DispatchTimeInterval.milliseconds(Int(delay))
         
         rawSource.scheduleRepeating(deadline: start, interval: .milliseconds(Int(delay)), leeway: (milliseconds == 1) ? .microseconds(Int(1)) : .milliseconds(Int(1)))
