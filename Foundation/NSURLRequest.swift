@@ -240,17 +240,15 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
         //httBody
         //networkServiceType
         //httpShouldUsePipelining
-        if let other = object as? NSURLRequest {
-            return other === self
-                || (other.url == self.url
-                    && other.mainDocumentURL == self.mainDocumentURL
-                    && other.httpMethod == self.httpMethod
-                    && other.cachePolicy == self.cachePolicy
-                    && other.httpBodyStream == self.httpBodyStream
-                    && other.allowsCellularAccess == self.allowsCellularAccess
-                    && other.httpShouldHandleCookies == self.httpShouldHandleCookies)
-        }
-        return false
+        guard let other = object as? NSURLRequest else { return false }
+        return other === self
+            || (other.url == self.url
+                && other.mainDocumentURL == self.mainDocumentURL
+                && other.httpMethod == self.httpMethod
+                && other.cachePolicy == self.cachePolicy
+                && other.httpBodyStream == self.httpBodyStream
+                && other.allowsCellularAccess == self.allowsCellularAccess
+                && other.httpShouldHandleCookies == self.httpShouldHandleCookies)
     }
     
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.

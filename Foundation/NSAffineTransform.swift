@@ -334,12 +334,9 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        if let other = object as? NSAffineTransform {
-            return other === self
-                || (other.transformStruct == self.transformStruct)
-        }
-        
-        return false
+        guard let other = object as? NSAffineTransform else { return false }
+        return other === self
+            || (other.transformStruct == self.transformStruct)
     }
     
     public static var supportsSecureCoding: Bool {

@@ -186,10 +186,8 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
     /// - Parameter object: The object with which to compare the instance.
     /// - Returns:          `true` if the instance is equal to `object`, otherwise `false`.
     open func isEqual(_ object: Any?) -> Bool {
-        if let obj = object as? NSObject {
-            return obj === self
-        }
-        return false
+        guard let obj = object as? NSObject else { return false }
+        return obj === self
     }
     
     /// Returns an integer that can be used as a table address in a hash table structure.

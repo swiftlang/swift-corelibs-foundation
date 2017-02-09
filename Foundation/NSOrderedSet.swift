@@ -33,11 +33,8 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        if let orderedSet = object as? NSOrderedSet {
-            return isEqual(to: orderedSet)
-        } else {
-            return false
-        }
+        guard let orderedSet = object as? NSOrderedSet else { return false }
+        return isEqual(to: orderedSet)
     }
     
     open func encode(with aCoder: NSCoder) {
