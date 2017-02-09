@@ -1264,7 +1264,7 @@ extension NSNotification.Name {
 // or quantities of the units.
 // When you create a new one of these, all values begin Undefined.
 
-public var NSDateComponentUndefined: Int = LONG_MAX
+public var NSDateComponentUndefined: Int = Int.max
 
 open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     internal var _calendar: Calendar?
