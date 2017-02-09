@@ -42,10 +42,14 @@ fileprivate class NSCacheKey: NSObject {
     override func isEqual(_ object: Any?) -> Bool {
         guard let other = (object as? NSCacheKey) else { return false }
         
-        guard let left = self.value as? NSObject,
-            let right = other.value as? NSObject else { return self.value === other.value }
-        
-        return left.isEqual(right)
+        if self.value === other.value {
+            return true
+        } else {
+            guard let left = self.value as? NSObject,
+                let right = other.value as? NSObject else { return false }
+            
+            return left.isEqual(right)
+        }
     }
 }
 
