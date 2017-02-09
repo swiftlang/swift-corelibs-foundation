@@ -20,15 +20,45 @@ private class NSCacheEntry<KeyType : AnyObject, ObjectType : AnyObject> {
     }
 }
 
+fileprivate class NSCacheKey: NSObject {
+    
+    var value: AnyObject
+    
+    init(_ value: AnyObject) {
+        self.value = value
+        super.init()
+    }
+    
+    override var hashValue: Int {
+        switch self.value {
+        case let nsObject as NSObject:
+            return nsObject.hashValue
+        case let hashable as Hashable:
+            return hashable.hashValue
+        default: return 0
+        }
+    }
+    
+    override func isEqual(_ object: Any?) -> Bool {
+        guard let other = (object as? NSCacheKey) else { return false }
+        
+        guard let left = self.value as? NSObject,
+            let right = other.value as? NSObject else { return self.value === other.value }
+        
+        return left.isEqual(right)
+    }
+}
+
 open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
-    private var _entries = Dictionary<UnsafeRawPointer, NSCacheEntry<KeyType, ObjectType>>()
+    
+    private var _entries = Dictionary<NSCacheKey, NSCacheEntry<KeyType, ObjectType>>()
     private let _lock = NSLock()
     private var _totalCost = 0
     private var _byCost: NSCacheEntry<KeyType, ObjectType>?
     
     open var name: String = ""
-    open var totalCostLimit: Int = -1 // limits are imprecise/not strict
-    open var countLimit: Int = -1 // limits are imprecise/not strict
+    open var totalCostLimit: Int = 0 // limits are imprecise/not strict
+    open var countLimit: Int = 0 // limits are imprecise/not strict
     open var evictsObjectsWithDiscardedContent: Bool = false
 
     public override init() {}
@@ -38,10 +68,10 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
     open func object(forKey key: KeyType) -> ObjectType? {
         var object: ObjectType?
         
-        let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
+        let key = NSCacheKey(key)
         
         _lock.lock()
-        if let entry = _entries[keyRef] {
+        if let entry = _entries[key] {
             object = entry.value
         }
         _lock.unlock()
@@ -81,7 +111,7 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
     }
     
     open func setObject(_ obj: ObjectType, forKey key: KeyType, cost g: Int) {
-        let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
+        let keyRef = NSCacheKey(key)
         
         _lock.lock()
         _totalCost += g
@@ -149,13 +179,13 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
         
         _lock.lock()
         for entry in toRemove {
-            _entries.removeValue(forKey: unsafeBitCast(entry.key, to: UnsafeRawPointer.self)) // the cost list is already fixed up in the purge routines
+            _entries.removeValue(forKey: NSCacheKey(entry.key)) // the cost list is already fixed up in the purge routines
         }
         _lock.unlock()
     }
     
     open func removeObject(forKey key: KeyType) {
-        let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
+        let keyRef = NSCacheKey(key)
         
         _lock.lock()
         if let entry = _entries.removeValue(forKey: keyRef) {
