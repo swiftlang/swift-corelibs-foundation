@@ -121,20 +121,18 @@ internal final class _SwiftValue : NSObject, NSCopying {
     }
     
     override func isEqual(_ value: Any?) -> Bool {
-        if let other = value as? _SwiftValue {
-            if self === other {
-                return true
-            }
-            if let otherHashable = other.value as? AnyHashable,
-               let hashable = self.value as? AnyHashable {
-                return otherHashable == hashable
-            }
+        switch value {
+        case let other as _SwiftValue:
+            guard let left = other.value as? AnyHashable,
+                let right = self.value as? AnyHashable else { return self === other }
             
-        } else if let otherHashable = value as? AnyHashable,
-                  let hashable = self.value as? AnyHashable {
-            return otherHashable == hashable
+            return left == right
+        case let other as AnyHashable:
+            guard let hashable = self.value as? AnyHashable else { return false }
+            return other == hashable
+        default:
+            return false
         }
-        return false
     }
     
     public func copy(with zone: NSZone?) -> Any {

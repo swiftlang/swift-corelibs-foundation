@@ -225,15 +225,14 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
-        if let cal = value as? Calendar {
-            return CFEqual(_cfObject, cal._cfObject)
-        } else if let cal = value as? NSCalendar {
-            if cal === self {
-                return true
-            }
-            return CFEqual(_cfObject, cal._cfObject)
+        switch value {
+        case let other as Calendar:
+            return CFEqual(_cfObject, other._cfObject)
+        case let other as NSCalendar:
+            return other === self || CFEqual(_cfObject, other._cfObject)
+        default:
+            return false
         }
-        return false
     }
     
     open override var description: String {

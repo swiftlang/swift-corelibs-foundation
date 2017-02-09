@@ -78,7 +78,8 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
-        if let other = value as? UUID {
+        switch value {
+        case let other as UUID:
             return other.uuid.0 == buffer[0] &&
                 other.uuid.1 == buffer[1] &&
                 other.uuid.2 == buffer[2] &&
@@ -95,13 +96,11 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
                 other.uuid.13 == buffer[13] &&
                 other.uuid.14 == buffer[14] &&
                 other.uuid.15 == buffer[15]
-        } else if let other = value as? NSUUID {
-            if other === self {
-                return true
-            }
-            return _cf_uuid_compare(buffer, other.buffer) == 0
+        case let other as NSUUID:
+            return other === self || _cf_uuid_compare(buffer, other.buffer) == 0
+        default:
+            return false
         }
-        return false
     }
     
     open override var hash: Int {

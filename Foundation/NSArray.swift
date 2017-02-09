@@ -137,12 +137,14 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
-        if let other = value as? [Any] {
+        switch value {
+        case let other as [Any]:
             return self.isEqual(to: other)
-        } else if let other = value as? NSArray {
+        case let other as NSArray:
             return self.isEqual(to: other.allObjects)
+        default:
+            return false
         }
-        return false
     }
 
     open override var hash: Int {

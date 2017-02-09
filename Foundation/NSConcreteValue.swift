@@ -167,12 +167,8 @@ internal class NSConcreteValue : NSValue {
     }
     
     override func isEqual(_ value: Any?) -> Bool {
-        if let other = value as? NSConcreteValue {
-            return self._typeInfo == other._typeInfo &&
-                   self._isEqualToValue(other)
-        } else {
-            return false
-        }
+        guard let other = value as? NSConcreteValue else { return false }
+        return self._typeInfo == other._typeInfo && self._isEqualToValue(other)
     }
 
     override var hash: Int {

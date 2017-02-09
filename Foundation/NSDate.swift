@@ -29,12 +29,14 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
-        if let date = value as? Date {
-            return isEqual(to: date)
-        } else if let date = value as? NSDate {
-            return isEqual(to: Date(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate))
+        switch value {
+        case let other as Date:
+            return isEqual(to: other)
+        case let other as NSDate:
+            return isEqual(to: Date(timeIntervalSinceReferenceDate: other.timeIntervalSinceReferenceDate))
+        default:
+            return false
         }
-        return false
     }
     
     deinit {

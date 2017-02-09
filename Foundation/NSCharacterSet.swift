@@ -50,12 +50,14 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
-        if let cs = value as? CharacterSet {
-            return CFEqual(_cfObject, cs._cfObject)
-        } else if let cs = value as? NSCharacterSet {
-            return CFEqual(_cfObject, cs._cfObject)
+        switch value {
+        case let other as CharacterSet:
+            return CFEqual(_cfObject, other._cfObject)
+        case let other as NSCharacterSet:
+            return CFEqual(_cfObject, other._cfObject)
+        default:
+            return false
         }
-        return false
     }
     
     open override var description: String {
