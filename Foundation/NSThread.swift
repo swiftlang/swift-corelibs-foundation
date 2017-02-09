@@ -143,7 +143,6 @@ open class Thread : NSObject {
 #endif
     internal var _status = _NSThreadStatus.initialized
     internal var _cancelled = false
-    internal var _name: String?
     /// - Note: this differs from the Darwin implementation in that the keys must be Strings
     open var threadDictionary = [String : Any]()
     
@@ -192,14 +191,9 @@ open class Thread : NSObject {
     }
     
     open var name: String? {
-        get {
-            return _name
-        }
-        set {
-            _name = newValue
-
+        didSet {
             if _thread == Thread.current._thread {
-                _CFThreadSetName(_name)
+                _CFThreadSetName(name)
             }
         }
     }
