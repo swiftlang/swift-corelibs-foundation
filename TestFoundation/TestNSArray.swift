@@ -400,7 +400,7 @@ class TestNSArray : XCTestCase {
         }
         mutableStringsInput1.sort(comparator)
         mutableStringsInput2.sort(options: [], usingComparator: comparator)
-        XCTAssertTrue(mutableStringsInput1.isEqual(to: mutableStringsInput2.map { $0 }))
+        XCTAssertTrue(mutableStringsInput1.isEqual(to: Array(mutableStringsInput2)))
     }
 
     func test_equality() {
@@ -410,14 +410,14 @@ class TestNSArray : XCTestCase {
 
         XCTAssertTrue(array1 == array2)
         XCTAssertTrue(array1.isEqual(array2))
-        XCTAssertTrue(array1.isEqual(to: array2.map { $0 }))
+        XCTAssertTrue(array1.isEqual(to: Array(array2)))
         // if 2 arrays are equal, hashes should be equal as well. But not vise versa
         XCTAssertEqual(array1.hash, array2.hash)
         XCTAssertEqual(array1.hashValue, array2.hashValue)
 
         XCTAssertFalse(array1 == array3)
         XCTAssertFalse(array1.isEqual(array3))
-        XCTAssertFalse(array1.isEqual(to: array3.map { $0 }))
+        XCTAssertFalse(array1.isEqual(to: Array(array3)))
 
         XCTAssertFalse(array1.isEqual(nil))
         XCTAssertFalse(array1.isEqual(NSObject()))
