@@ -39,10 +39,8 @@ internal class __NSCFType : NSObject {
     }
     
     override func isEqual(_ value: Any?) -> Bool {
-        if let other = value as? NSObject {
-            return CFEqual(self, other)
-        }
-        return false
+        guard let other = value as? NSObject else { return false }
+        return CFEqual(self, other)
     }
     
     override var description: String {

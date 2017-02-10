@@ -142,12 +142,14 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
-        if let other = value as? Dictionary<AnyHashable, Any> {
+        switch value {
+        case let other as Dictionary<AnyHashable, Any>:
             return isEqual(to: other)
-        } else if let other = value as? NSDictionary {
+        case let other as NSDictionary:
             return isEqual(to: Dictionary._unconditionallyBridgeFromObjectiveC(other))
+        default:
+            return false
         }
-        return false
     }
 
     open override var hash: Int {

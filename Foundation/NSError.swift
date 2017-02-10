@@ -169,11 +169,8 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     override open func isEqual(_ object: Any?) -> Bool {
         // Pulled from NSObject itself; this works on all platforms.
-        if let obj = object as? NSError {
-            return obj === self
-        }
-        
-        return false
+        guard let obj = object as? NSError else { return false }
+        return obj === self
     }
 }
 

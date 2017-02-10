@@ -341,11 +341,8 @@ open class NSDecimalNumber : NSNumber {
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
-        if let number = value as? NSDecimalNumber {
-            return self.decimal == number.decimal
-        } else {
-            return false
-        }
+        guard let other = value as? NSDecimalNumber else { return false }
+        return self.decimal == other.decimal
     }
 
 }
