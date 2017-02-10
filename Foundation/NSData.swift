@@ -170,19 +170,19 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let cond = NSCondition()
-            var resError: NSError?
+            var resError: Error?
             var resData: Data?
-            let task = session.dataTask(with: url, completionHandler: { (data: Data?, response: URLResponse?, error: NSError?) -> Void in
+            let task = session.dataTask(with: url, completionHandler: { data, response, error in
                 resData = data
                 resError = error
                 cond.broadcast()
             })
             task.resume()
             cond.wait()
-            if resData == nil {
+            guard let data = resData else {
                 throw resError!
             }
-            self.init(data: resData!)
+            self.init(data: data)
         }
     }
     
@@ -800,13 +800,13 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             if options.contains(.endLineWithLineFeed) { separator.append(10) }
             
             //if the kind of line ending to insert is not specified, the default line ending is Carriage Return + Line Feed.
-            if separator.count == 0 {separator = [13,10]}
+            if separator.isEmpty { separator = [13,10] }
             
             return (lineLength,separator)
         }()
         
         var currentLineCount = 0
-        let appendByteToResult : (UInt8) -> () = {
+        let appendByteToResult : (UInt8) -> Void = {
             result.append($0)
             currentLineCount += 1
             if let options = lineOptions, currentLineCount == options.lineLength {

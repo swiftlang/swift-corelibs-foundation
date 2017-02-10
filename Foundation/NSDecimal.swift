@@ -1035,10 +1035,10 @@ public func NSDecimalNormalize(_ a: UnsafeMutablePointer<Decimal>, _ b: UnsafeMu
     //
     // Divide bb by this value
     //
-    _ = integerMultiplyByPowerOf10(&result, bb.pointee, maxpow10 - diffexp)
+    _ = integerMultiplyByPowerOf10(&result, bb.pointee, Int(maxpow10 - diffexp))
 
     bb.pointee.copyMantissa(from: result)
-    bb.pointee._exponent -= maxpow10 - diffexp;
+    bb.pointee._exponent -= Int32(maxpow10 - diffexp);
 
     //
     // If bb > 0 multiply aa by the same value
@@ -1336,7 +1336,7 @@ public func NSDecimalDivide(_ result: UnsafeMutablePointer<Decimal>, _ leftOpera
      * accurate result later. I chose 19 arbitrarily
      * as half of the magic 38, so that normalization
      * doesn't always occur. */
-    if (19 <= a._exponent - b._exponent) {
+    if (19 <= Int(a._exponent - b._exponent)) {
         _ = NSDecimalNormalize(&a, &b, roundingMode);
         /* We ignore the small loss of precision this may
          * induce in the individual operands. */
@@ -1394,7 +1394,7 @@ public func NSDecimalMultiplyByPowerOf10(_ result: UnsafeMutablePointer<Decimal>
     return result.pointee.multiply(byPowerOf10: power)
 }
 
-public func NSDecimalString(_ dcm: UnsafePointer<Decimal>, _ locale: AnyObject?) -> String {
+public func NSDecimalString(_ dcm: UnsafePointer<Decimal>, _ locale: Any?) -> String {
     guard locale == nil else {
         fatalError("Locale not supported: \(locale!)")
     }
@@ -1615,7 +1615,7 @@ extension Decimal {
     }
     fileprivate mutating func round(scale:Int, roundingMode:RoundingMode) {
         // scale is the number of digits after the decimal point
-        var s = scale + _exponent
+        var s = Int32(scale) + _exponent
         if s == NSDecimalNoScale || s >= 0 {
             return
         }
@@ -2025,7 +2025,7 @@ extension Scanner {
                 if numeral == -1 {
                     break
                 }
-                exponent = 10 * exponent + numeral
+                exponent = 10 * exponent + Int32(numeral)
                 guard exponent <= 2*Int32(Int8.max) else {
                     return Decimal.nan
                 }

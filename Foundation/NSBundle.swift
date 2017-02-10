@@ -271,22 +271,16 @@ open class Bundle: NSObject {
         return CFBundleGetIdentifier(_bundle)?._swiftObject
     }
     
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     open var infoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetInfoDictionary(_bundle)
         return _SwiftValue.fetch(cfDict) as? [String : Any]
     }
     
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     open var localizedInfoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetLocalInfoDictionary(_bundle)
         return _SwiftValue.fetch(cfDict) as? [String : Any]
     }
     
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
-    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     open func object(forInfoDictionaryKey key: String) -> Any? {
         if let localizedInfoDictionary = localizedInfoDictionary {
             return localizedInfoDictionary[key]

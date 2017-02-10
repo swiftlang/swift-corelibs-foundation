@@ -73,25 +73,23 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        if let other = object as? NSPredicate {
-            if other === self {
-                return true
-            } else {
-                switch (other.kind, self.kind) {
-                case (.boolean(let otherBool), .boolean(let selfBool)):
-                    return otherBool == selfBool
-                case (.format, .format):
-                    NSUnimplemented()
-                case (.metadataQuery, .metadataQuery):
-                    NSUnimplemented()
-                default:
-                    // NSBlockPredicate returns false even for copy
-                    return false
-                }
+        guard let other = object as? NSPredicate else { return false }
+        
+        if other === self {
+            return true
+        } else {
+            switch (other.kind, self.kind) {
+            case (.boolean(let otherBool), .boolean(let selfBool)):
+                return otherBool == selfBool
+            case (.format, .format):
+                NSUnimplemented()
+            case (.metadataQuery, .metadataQuery):
+                NSUnimplemented()
+            default:
+                // NSBlockPredicate returns false even for copy
+                return false
             }
         }
-        
-        return false
     }
     
     // Parse predicateFormat and return an appropriate predicate

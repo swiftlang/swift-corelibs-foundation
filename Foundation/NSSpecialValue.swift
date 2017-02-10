@@ -134,14 +134,14 @@ internal class NSSpecialValue : NSValue {
     }
     
     override func isEqual(_ value: Any?) -> Bool {
-        if let object = value as? NSObject {
-            if self === object {
-                return true
-            } else if let special = object as? NSSpecialValue {
-                return _value.isEqual(special._value)
-            }
+        switch value {
+        case let other as NSSpecialValue:
+            return _value.isEqual(other._value)
+        case let other as NSObject:
+            return self === other
+        default:
+            return false
         }
-        return false
     }
     
     override var hash: Int {

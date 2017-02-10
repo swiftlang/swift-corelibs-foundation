@@ -1310,6 +1310,23 @@ _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (*
     return thread;
 }
 
+CF_SWIFT_EXPORT void _CFThreadSetName(const char *_Nullable name) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    pthread_setname_np(name);
+#elif DEPLOYMENT_TARGET_LINUX
+    pthread_setname_np(pthread_self(), name);
+#endif
+}
+
+CF_SWIFT_EXPORT int _CFThreadGetName(char *buf, int length) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    return pthread_getname_np(pthread_self(), buf, length);
+#elif DEPLOYMENT_TARGET_LINUX
+    return pthread_getname_np(pthread_self(), buf, length);
+#endif
+    return -1;
+}
+
 CF_EXPORT char **_CFEnviron(void) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     return *_NSGetEnviron();

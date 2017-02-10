@@ -106,7 +106,7 @@ open class NSDecimalNumber : NSNumber {
     public convenience init(string numberValue: String?) {
         self.init(decimal: Decimal(string: numberValue ?? "") ?? Decimal.nan)
     }
-    public convenience init(string numberValue: String?, locale: AnyObject?) {
+    public convenience init(string numberValue: String?, locale: Any?) {
         self.init(decimal: Decimal(string: numberValue ?? "", locale: locale as? Locale) ?? Decimal.nan)
     }
 
@@ -341,11 +341,8 @@ open class NSDecimalNumber : NSNumber {
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
-        if let number = value as? NSDecimalNumber {
-            return self.decimal == number.decimal
-        } else {
-            return false
-        }
+        guard let other = value as? NSDecimalNumber else { return false }
+        return self.decimal == other.decimal
     }
 
 }

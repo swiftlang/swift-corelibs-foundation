@@ -54,11 +54,8 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        if let tz = object as? NSTimeZone {
-            return isEqual(to: tz._swiftObject)
-        } else {
-            return false
-        }
+        guard let other = object as? NSTimeZone else { return false }
+        return isEqual(to: other._swiftObject)
     }
     
     open override var description: String {
@@ -284,5 +281,5 @@ extension NSTimeZone {
 }
 
 extension NSNotification.Name {
-    public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: "") // NSUnimplemented
+    public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: kCFTimeZoneSystemTimeZoneDidChangeNotification._swiftObject)
 }

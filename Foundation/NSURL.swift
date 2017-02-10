@@ -257,11 +257,8 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        if let url = object as? NSURL {
-            return CFEqual(_cfObject, url._cfObject)
-        } else {
-            return false
-        }
+        guard let other = object as? NSURL else { return false }
+        return CFEqual(_cfObject, other._cfObject)
     }
     
     open override var description: String {
@@ -940,13 +937,10 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        if let other = object as? NSURLQueryItem {
-            return other === self
+        guard let other = object as? NSURLQueryItem else { return false }
+        return other === self
                 || (other.name == self.name
                     && other.value == self.value)
-        }
-        
-        return false
     }
     
     open let name: String
@@ -961,34 +955,16 @@ open class NSURLComponents: NSObject, NSCopying {
     }
 
     open override func isEqual(_ object: Any?) -> Bool {
-        if let other = object as? NSURLComponents {
-            if scheme != other.scheme {
-                return false
-            }
-            if user != other.user {
-                return false
-            }
-            if password != other.password {
-                return false
-            }
-            if host != other.host {
-                return false
-            }
-            if port != other.port {
-                return false
-            }
-            if path != other.path {
-                return false
-            }
-            if query != other.query {
-                return false
-            }
-            if fragment != other.fragment {
-                return false
-            }
-            return true
-        }
-        return false
+        guard let other = object as? NSURLComponents else { return false }
+        return self === other
+            || (scheme == other.scheme
+                && user == other.user
+                && password == other.password
+                && host == other.host
+                && port == other.port
+                && path == other.path
+                && query == other.query
+                && fragment == other.fragment)
     }
 
     open func copy(with zone: NSZone? = nil) -> Any {

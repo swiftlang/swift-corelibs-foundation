@@ -27,7 +27,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    open func object(forKey key: NSLocale.Key) -> AnyObject? {
+    open func object(forKey key: NSLocale.Key) -> Any? {
         return CFLocaleGetValue(_cfObject, key.rawValue._cfObject)
     }
     
@@ -236,12 +236,14 @@ extension NSLocale {
 }
 
 
-public func ==(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
-    return lhs.rawValue == rhs.rawValue
-}
+extension NSLocale.Key {
+    public static func ==(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
 
-public func <(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
-    return lhs.rawValue < rhs.rawValue
+    public static func <(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
+        return lhs.rawValue < rhs.rawValue
+    }
 }
 
 

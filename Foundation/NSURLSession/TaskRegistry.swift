@@ -30,9 +30,9 @@ extension URLSession {
     /// - Note: This must **only** be accessed on the owning session's work queue.
     class _TaskRegistry {
         /// Completion handler for `URLSessionDataTask`, and `URLSessionUploadTask`.
-        typealias DataTaskCompletion = (Data?, URLResponse?, NSError?) -> Void
+        typealias DataTaskCompletion = (Data?, URLResponse?, Error?) -> Void
         /// Completion handler for `URLSessionDownloadTask`.
-        typealias DownloadTaskCompletion = (URL?, URLResponse?, NSError?) -> Void
+        typealias DownloadTaskCompletion = (URL?, URLResponse?, Error?) -> Void
         /// What to do upon events (such as completion) of a specific task.
         enum _Behaviour {
             /// Call the `URLSession`s delegate
@@ -45,7 +45,7 @@ extension URLSession {
         
         fileprivate var tasks: [Int: URLSessionTask] = [:]
         fileprivate var behaviours: [Int: _Behaviour] = [:]
-        fileprivate var tasksFinishedCallback: (() -> ())?
+        fileprivate var tasksFinishedCallback: (() -> Void)?
     }
 }
 
@@ -87,7 +87,7 @@ extension URLSession._TaskRegistry {
         }
     }
 
-    func notify(on tasksCompetion: @escaping () -> ()) {
+    func notify(on tasksCompetion: @escaping () -> Void) {
         tasksFinishedCallback = tasksCompetion
     }
 

@@ -20,7 +20,7 @@ extension NSCompoundPredicate {
 
 open class NSCompoundPredicate : NSPredicate {
     public init(type: LogicalType, subpredicates: [NSPredicate]) {
-        if type == .not && subpredicates.count == 0 {
+        if type == .not && subpredicates.isEmpty {
             preconditionFailure("Unsupported predicate count of \(subpredicates.count) for \(type)")
         }
 

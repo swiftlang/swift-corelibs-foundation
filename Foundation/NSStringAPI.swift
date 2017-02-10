@@ -422,7 +422,7 @@ extension String {
 
   /// Enumerates all the lines in a string.
   public func enumerateLines(
-    invoking body: @escaping (_ line: String, _ stop: inout Bool) -> ()
+    invoking body: @escaping (_ line: String, _ stop: inout Bool) -> Void
   ) {
     _ns.enumerateLines {
       (line: String, stop: UnsafeMutablePointer<ObjCBool>)
@@ -455,7 +455,7 @@ extension String {
     _ body: @escaping (
       _ substring: String?, _ substringRange: Range<Index>,
       _ enclosingRange: Range<Index>, inout Bool
-    ) -> ()
+    ) -> Void
   ) {
     _ns.enumerateSubstrings(in: _toNSRange(range), options: opts) {
       var stop_ = false
@@ -1587,7 +1587,7 @@ extension String {
     _ body: (
       _ substring: String?, _ substringRange: Range<Index>,
       _ enclosingRange: Range<Index>, inout Bool
-    ) -> ()
+    ) -> Void
   ) {
     fatalError("unavailable function can't be called")
   }

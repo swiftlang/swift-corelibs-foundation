@@ -63,7 +63,7 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #endif
 
 #if (INCLUDE_OBJC || DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
-#import <objc/message.h>
+#include <objc/message.h>
 #endif
 
 // ---- CFBundle material ----------------------------------------

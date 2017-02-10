@@ -470,7 +470,7 @@ public extension NSString {
     }
     
     internal func _longestCommonPrefix(_ strings: [String], caseSensitive: Bool) -> String? {
-        guard strings.count > 0 else {
+        guard !strings.isEmpty else {
             return nil
         }
         

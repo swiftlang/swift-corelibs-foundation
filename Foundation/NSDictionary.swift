@@ -138,16 +138,18 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     public convenience init(dictionary otherDictionary: [AnyHashable : Any]) {
-        self.init(objects: otherDictionary.values.map { $0 }, forKeys: otherDictionary.keys.map { _SwiftValue.store($0) })
+        self.init(objects: Array(otherDictionary.values), forKeys: otherDictionary.keys.map { _SwiftValue.store($0) })
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
-        if let other = value as? Dictionary<AnyHashable, Any> {
+        switch value {
+        case let other as Dictionary<AnyHashable, Any>:
             return isEqual(to: other)
-        } else if let other = value as? NSDictionary {
+        case let other as NSDictionary:
             return isEqual(to: Dictionary._unconditionallyBridgeFromObjectiveC(other))
+        default:
+            return false
         }
-        return false
     }
 
     open override var hash: Int {
@@ -156,7 +158,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
 
     open var allKeys: [Any] {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
-            return _storage.keys.map { $0 }
+            return Array(_storage.keys)
         } else {
             var keys = [Any]()
             let enumerator = keyEnumerator()
@@ -169,7 +171,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     
     open var allValues: [Any] {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
-            return _storage.values.map { $0 }
+            return Array(_storage.values)
         } else {
             var values = [Any]()
             let enumerator = keyEnumerator()
@@ -644,7 +646,7 @@ extension NSDictionary {
     As for any usage of hashing, is recommended that the keys have a well-distributed implementation of -hash, and the hash codes must satisfy the hash/isEqual: invariant.
     Keys with duplicate hash codes are allowed, but will cause lower performance and increase memory usage.
     */
-    open class func sharedKeySet(forKeys keys: [NSCopying]) -> AnyObject { NSUnimplemented() }
+    open class func sharedKeySet(forKeys keys: [NSCopying]) -> Any { NSUnimplemented() }
 }
 
 extension NSMutableDictionary {
@@ -655,7 +657,7 @@ extension NSMutableDictionary {
     If keyset is nil, an exception is thrown.
     If keyset is not an object returned by +sharedKeySetForKeys:, an exception is thrown.
     */
-    public convenience init(sharedKeySet keyset: AnyObject) { NSUnimplemented() }
+    public convenience init(sharedKeySet keyset: Any) { NSUnimplemented() }
 }
 
 extension NSDictionary : ExpressibleByDictionaryLiteral { }

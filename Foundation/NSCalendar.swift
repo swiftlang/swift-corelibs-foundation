@@ -112,12 +112,14 @@ extension NSCalendar {
     }
 }
 
-public func ==(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
-    return lhs.rawValue == rhs.rawValue
-}
+extension NSCalendar.Identifier {
+    public static func ==(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
 
-public func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
-    return lhs.rawValue < rhs.rawValue
+    public static func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
+        return lhs.rawValue < rhs.rawValue
+    }
 }
 
 open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
@@ -223,15 +225,14 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
-        if let cal = value as? Calendar {
-            return CFEqual(_cfObject, cal._cfObject)
-        } else if let cal = value as? NSCalendar {
-            if cal === self {
-                return true
-            }
-            return CFEqual(_cfObject, cal._cfObject)
+        switch value {
+        case let other as Calendar:
+            return CFEqual(_cfObject, other._cfObject)
+        case let other as NSCalendar:
+            return other === self || CFEqual(_cfObject, other._cfObject)
+        default:
+            return false
         }
-        return false
     }
     
     open override var description: String {
@@ -603,8 +604,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             }
 
             return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
-                _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, Int32(vector.count))
-                return false
+                return _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, Int32(vector.count))
             }
         }
         if res {
@@ -1242,7 +1242,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
 // with distributed notifications.
 
 extension NSNotification.Name {
-    public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "") // NSUnimplemented
+    public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "NSCalendarDayChangedNotification")
 }
 
 // This is a just used as an extensible struct, basically;
@@ -1263,7 +1263,7 @@ extension NSNotification.Name {
 // or quantities of the units.
 // When you create a new one of these, all values begin Undefined.
 
-public var NSDateComponentUndefined: Int = LONG_MAX
+public var NSDateComponentUndefined: Int = Int.max
 
 open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     internal var _calendar: Calendar?
@@ -1313,61 +1313,26 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        if let other = object as? NSDateComponents {
-            if era != other.era {
-                return false
-            }
-            if year != other.year {
-                return false
-            }
-            if quarter != other.quarter {
-                return false
-            }
-            if month != other.month {
-                return false
-            }
-            if day != other.day {
-                return false
-            }
-            if hour != other.hour {
-                return false
-            }
-            if minute != other.minute {
-                return false
-            }
-            if second != other.second {
-                return false
-            }
-            if nanosecond != other.nanosecond {
-                return false
-            }
-            if weekOfYear != other.weekOfYear {
-                return false
-            }
-            if weekOfMonth != other.weekOfMonth {
-                return false
-            }
-            if yearForWeekOfYear != other.yearForWeekOfYear {
-                return false
-            }
-            if weekday != other.weekday {
-                return false
-            }
-            if weekdayOrdinal != other.weekdayOrdinal {
-                return false
-            }
-            if isLeapMonth != other.isLeapMonth {
-                return false
-            }
-            if calendar != other.calendar {
-                return false
-            }
-            if timeZone != other.timeZone {
-                return false
-            }
-            return true
-        }
-        return false
+        guard let other = object as? NSDateComponents else { return false }
+        
+        return self === other
+            || (era == other.era
+                && year == other.year
+                && quarter == other.quarter
+                && month == other.month
+                && day == other.day
+                && hour == other.hour
+                && minute == other.minute
+                && second == other.second
+                && nanosecond == other.nanosecond
+                && weekOfYear == other.weekOfYear
+                && weekOfMonth == other.weekOfMonth
+                && yearForWeekOfYear == other.yearForWeekOfYear
+                && weekday == other.weekday
+                && weekdayOrdinal == other.weekdayOrdinal
+                && isLeapMonth == other.isLeapMonth
+                && calendar == other.calendar
+                && timeZone == other.timeZone)
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {

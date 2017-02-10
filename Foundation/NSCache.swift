@@ -154,7 +154,7 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
         _lock.unlock()
     }
     
-    open func removeObject(forKey key: AnyObject) {
+    open func removeObject(forKey key: KeyType) {
         let keyRef = unsafeBitCast(key, to: UnsafeRawPointer.self)
         
         _lock.lock()
@@ -175,11 +175,11 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
 }
 
 public protocol NSCacheDelegate : NSObjectProtocol {
-    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: AnyObject)
+    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: Any)
 }
 
 extension NSCacheDelegate {
-    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: AnyObject) {
+    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: Any) {
         // Default implementation does nothing
     }
 }

@@ -29,6 +29,8 @@ class TestNSFileManager : XCTestCase {
             ("test_pathEnumerator",test_pathEnumerator),
             ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
             ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
+            ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
+            ("test_homedirectoryForUser", test_homedirectoryForUser),
         ]
     }
     
@@ -409,5 +411,75 @@ class TestNSFileManager : XCTestCase {
         } catch {
             XCTFail("Failed to clean up files")
         }
+    }
+    
+    func test_copyItemAtPathToPath() {
+        let fm = FileManager.default
+        let srcPath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
+        let destPath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
+        
+        func cleanup() {
+            ignoreError { try fm.removeItem(atPath: srcPath) }
+            ignoreError { try fm.removeItem(atPath: destPath) }
+        }
+        
+        func directoryExists(atPath path: String) -> Bool {
+            var isDir = false
+            let exists = fm.fileExists(atPath: path, isDirectory: &isDir)
+            return exists && isDir
+        }
+        
+        func createDirectory(atPath path: String) {
+            do {
+                try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
+            } catch let error {
+                XCTFail("Unable to create directory: \(error)")
+            }
+            XCTAssertTrue(directoryExists(atPath: path))
+        }
+        
+        func createFile(atPath path: String) {
+            XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
+        }
+        
+        cleanup()
+        createFile(atPath: srcPath)
+        do {
+            try fm.copyItem(atPath: srcPath, toPath: destPath)
+        } catch let error {
+            XCTFail("Failed to copy file: \(error)")
+        }
+
+        cleanup()
+        createDirectory(atPath: srcPath)
+        createDirectory(atPath: "\(srcPath)/tempdir")
+        createFile(atPath: "\(srcPath)/tempdir/tempfile")
+        createFile(atPath: "\(srcPath)/tempdir/tempfile2")
+        do {
+            try fm.copyItem(atPath: srcPath, toPath: destPath)
+        } catch let error {
+            XCTFail("Unable to copy directory: \(error)")
+        }
+        XCTAssertTrue(directoryExists(atPath: destPath))
+        XCTAssertTrue(directoryExists(atPath: "\(destPath)/tempdir"))
+        XCTAssertTrue(fm.fileExists(atPath: "\(destPath)/tempdir/tempfile"))
+        XCTAssertTrue(fm.fileExists(atPath: "\(destPath)/tempdir/tempfile2"))
+        
+        if (false == directoryExists(atPath: destPath)) {
+            return
+        }
+        do {
+            try fm.copyItem(atPath: srcPath, toPath: destPath)
+        } catch {
+            return
+        }
+        XCTFail("Copy overwrites a file/folder that already exists")
+    }
+    
+    func test_homedirectoryForUser() {
+        let filemanger = FileManager.default
+        XCTAssertNil(filemanger.homeDirectory(forUser: "someuser"))
+        XCTAssertNil(filemanger.homeDirectory(forUser: ""))
+        XCTAssertNotNil(filemanger.homeDirectoryForCurrentUser)
     }
 }

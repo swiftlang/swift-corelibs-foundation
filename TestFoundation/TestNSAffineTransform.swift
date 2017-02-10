@@ -38,6 +38,8 @@ class TestNSAffineTransform : XCTestCase {
             ("test_AppendTransform", test_AppendTransform),
             ("test_PrependTransform", test_PrependTransform),
             ("test_TransformComposition", test_TransformComposition),
+            ("test_Equal", test_Equal),
+            ("test_NSCoding", test_NSCoding),
         ]
     }
     
@@ -173,19 +175,19 @@ class TestNSAffineTransform : XCTestCase {
         checkPointTransformation(noop, point: point, expectedPoint: point)
         
         let tenEighty = NSAffineTransform()
-        tenEighty.rotate(byRadians: CGFloat(6 * M_PI))
+        tenEighty.rotate(byRadians: 6 * .pi)
         checkPointTransformation(tenEighty, point: point, expectedPoint: point)
         
         let rotateCounterClockwise = NSAffineTransform()
-        rotateCounterClockwise.rotate(byRadians: CGFloat(M_PI_2))
+        rotateCounterClockwise.rotate(byRadians: .pi / 2)
         checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(10.0)))
         
         let rotateClockwise = NSAffineTransform()
-        rotateClockwise.rotate(byRadians: CGFloat(-M_PI_2))
+        rotateClockwise.rotate(byRadians: -.pi / 2)
         checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat(-10.0)))
         
         let reflectAboutOrigin = NSAffineTransform()
-        reflectAboutOrigin.rotate(byRadians: CGFloat(M_PI))
+        reflectAboutOrigin.rotate(byRadians: .pi)
         checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
     }
     
@@ -342,6 +344,21 @@ class TestNSAffineTransform : XCTestCase {
             ref.transformStruct = val
             XCTAssertEqual(ref.hashValue, val.hashValue)
         }
+    }
+    
+    func test_Equal() {
+        let transform = NSAffineTransform()
+        let transform1 = NSAffineTransform()
+        
+        XCTAssertEqual(transform1, transform)
+        XCTAssertFalse(transform === transform1)
+    }
+    
+    func test_NSCoding() {
+        let transformA = NSAffineTransform()
+        transformA.scale(by: 2)
+        let transformB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: transformA)) as! NSAffineTransform
+        XCTAssertEqual(transformA, transformB, "Archived then unarchived `NSAffineTransform` must be equal.")
     }
 }
 

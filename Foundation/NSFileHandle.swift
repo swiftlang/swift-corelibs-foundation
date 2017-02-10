@@ -131,6 +131,7 @@ open class FileHandle : NSObject, NSSecureCoding {
         return UInt64(lseek(_fd, 0, SEEK_CUR))
     }
     
+    @discardableResult
     open func seekToEndOfFile() -> UInt64 {
         return UInt64(lseek(_fd, 0, SEEK_END))
     }
@@ -295,21 +296,21 @@ extension FileHandle {
 }
 
 extension NSExceptionName {
-    public static let fileHandleOperationException = "" // NSUnimplemented
+    public static let fileHandleOperationException = NSExceptionName(rawValue: "NSFileHandleOperationException")
 }
 
 extension Notification.Name {
-    public static let NSFileHandleReadToEndOfFileCompletion = Notification.Name(rawValue: "") // NSUnimplemented
-    public static let NSFileHandleConnectionAccepted = Notification.Name(rawValue: "") // NSUnimplemented
-    public static let NSFileHandleDataAvailable = Notification.Name(rawValue: "") // NSUnimplemented
+    public static let NSFileHandleReadToEndOfFileCompletion = Notification.Name(rawValue: "NSFileHandleReadToEndOfFileCompletionNotification")
+    public static let NSFileHandleConnectionAccepted = Notification.Name(rawValue: "NSFileHandleConnectionAcceptedNotification")
+    public static let NSFileHandleDataAvailable = Notification.Name(rawValue: "NSFileHandleDataAvailableNotification")
 }
 
 extension FileHandle {
     public static let readCompletionNotification = Notification.Name(rawValue: "NSFileHandleReadCompletionNotification")
 }
 
-public let NSFileHandleNotificationDataItem: String = "" // NSUnimplemented
-public let NSFileHandleNotificationFileHandleItem: String = "" // NSUnimplemented
+public let NSFileHandleNotificationDataItem: String = "NSFileHandleNotificationDataItem"
+public let NSFileHandleNotificationFileHandleItem: String = "NSFileHandleNotificationFileHandleItem"
 
 extension FileHandle {
     open func readInBackgroundAndNotify(forModes modes: [RunLoopMode]?) {

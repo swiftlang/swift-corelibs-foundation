@@ -33,11 +33,8 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        if let orderedSet = object as? NSOrderedSet {
-            return isEqual(to: orderedSet)
-        } else {
-            return false
-        }
+        guard let orderedSet = object as? NSOrderedSet else { return false }
+        return isEqual(to: orderedSet)
     }
     
     open func encode(with aCoder: NSCoder) {
@@ -295,7 +292,7 @@ extension NSOrderedSet {
 
     public convenience init(orderedSet set: NSOrderedSet, range: NSRange, copyItems flag: Bool) {
         // TODO: Use the array method here when available.
-        self.init(array: set.map { $0 }, range: range, copyItems: flag)
+        self.init(array: Array(set), range: range, copyItems: flag)
     }
 
     public convenience init(array: [Any]) {
@@ -331,7 +328,7 @@ extension NSOrderedSet {
     }
 
     public convenience init(set: Set<AnyHashable>, copyItems flag: Bool) {
-        self.init(array: set.map { $0 }, copyItems: flag)
+        self.init(array: Array(set), copyItems: flag)
     }
 }
 

@@ -255,7 +255,7 @@ open class HTTPCookie : NSObject {
         _domain = canonicalDomain
 
         if let
-            secureString = properties[.secure] as? String, secureString.characters.count > 0
+            secureString = properties[.secure] as? String, !secureString.characters.isEmpty
         {
             _secure = true
         } else {
@@ -380,7 +380,7 @@ open class HTTPCookie : NSObject {
     /// - Parameter headerFields: The response header fields to check for cookies.
     /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpeted.
     /// - Returns: An array of NSHTTPCookie objects
-    open class func cookies(withResponseHeaderFields headerFields: [String : String], forURL url: URL) -> [HTTPCookie] {
+    open class func cookies(withResponseHeaderFields headerFields: [String : String], for URL: URL) -> [HTTPCookie] {
 
         //HTTP Cookie parsing based on RFC 6265: https://tools.ietf.org/html/rfc6265
         //Though RFC6265 suggests that multiple cookies cannot be folded into a single Set-Cookie field, this is
@@ -405,7 +405,7 @@ open class HTTPCookie : NSObject {
         //bake the cookies
         var httpCookies: [HTTPCookie] = []
         for i in 0..<cookieIndices.count-1 {
-            if let aCookie = createHttpCookie(url: url, pairs: nameValuePairs[cookieIndices[i]..<cookieIndices[i+1]]) {
+            if let aCookie = createHttpCookie(url: URL, pairs: nameValuePairs[cookieIndices[i]..<cookieIndices[i+1]]) {
                 httpCookies.append(aCookie)
             }
         }

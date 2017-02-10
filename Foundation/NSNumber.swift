@@ -212,16 +212,18 @@ open class NSNumber : NSValue {
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
-        if let number = value as? Int {
-            return intValue == number
-        } else if let number = value as? Double {
-            return doubleValue == number
-        } else if let number = value as? Bool {
-            return boolValue == number
-        } else if let number = value as? NSNumber {
-            return CFEqual(_cfObject, number._cfObject)
+        switch value {
+        case let other as Int:
+            return intValue == other
+        case let other as Double:
+            return doubleValue == other
+        case let other as Bool:
+            return boolValue == other
+        case let other as NSNumber:
+            return CFEqual(_cfObject, other._cfObject)
+        default:
+            return false
         }
-        return false
     }
 
     open override var objCType: UnsafePointer<Int8> {

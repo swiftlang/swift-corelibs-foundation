@@ -40,7 +40,11 @@
 #include <time.h>
 
 #if __has_include(<netdb.h>)
-#include <netdb.h> // for NSHost.swift
+#include <netdb.h> // for Host.swift
+#endif
+
+#if __has_include(<ifaddrs.h>)
+#include <ifaddrs.h> // for Host.swift
 #endif
 
 #if defined(__STDC_VERSION__) && (199901L <= __STDC_VERSION__)

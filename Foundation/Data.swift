@@ -971,6 +971,17 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             return _DataStorage(bytes: $0.baseAddress, length: $0.count)
         }
     }
+
+    /// Initialze a `Data` with a repeating byte pattern
+    ///
+    /// - parameter repeatedValue: A byte to initialze the pattern
+    /// - parameter count: The number of bytes the data initially contains initialzed to the repeatedValue
+    public init(repeating repeatedValue: UInt8, count: Int) {
+        self.init(count: count)
+        withUnsafeMutableBytes { (bytes: UnsafeMutablePointer<UInt8>) -> Void in
+            memset(bytes, Int32(repeatedValue), count)
+        }
+    }
     
     /// Initialize a `Data` with the specified size.
     ///
@@ -1266,7 +1277,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - parameter buffer: The buffer of bytes to append. The size is calculated from `SourceType` and `buffer.count`.
     @inline(__always)
     public mutating func append<SourceType>(_ buffer : UnsafeBufferPointer<SourceType>) {
-        if buffer.count == 0 { return }
+        if buffer.isEmpty { return }
         if !isKnownUniquelyReferenced(&_backing) {
             _backing = _backing.mutableCopy()
         }
@@ -1293,7 +1304,9 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         for byte in newElements {
             self[idx] = byte
             idx += 1
-            count = idx
+            if idx > count {
+                count = idx
+            }
         }
     }
     
@@ -1390,7 +1403,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             let shift = resultCount - currentCount
             let start = subrange.lowerBound
             
-            self.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) -> () in
+            self.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) -> Void in
                 if shift != 0 {
                     let destination = bytes + start + replacementCount
                     let source = bytes + start + subrangeCount
@@ -1637,7 +1650,7 @@ extension Data : CustomStringConvertible, CustomDebugStringConvertible, CustomRe
         
         // Minimal size data is output as an array
         if nBytes < 64 {
-            children.append((label: "bytes", value: self[0..<nBytes].map { $0 }))
+            children.append((label: "bytes", value: Array(self[0..<nBytes])))
         }
         
         let m = Mirror(self, children:children, displayStyle: Mirror.DisplayStyle.struct)

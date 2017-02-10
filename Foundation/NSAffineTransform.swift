@@ -100,10 +100,8 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
      [    0       0    1 ]
      */
     public init(rotationByRadians angle: CGFloat) {
-        let α = Double(angle)
-
-        let sine = CGFloat(sin(α))
-        let cosine = CGFloat(cos(α))
+        let sine = sin(angle)
+        let cosine = cos(angle)
 
         self.init(m11: cosine, m12: sine, m21: -sine, m22: cosine, tX: CGFloat(0.0), tY: CGFloat(0.0))
     }
@@ -117,8 +115,8 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
      [    0       0    1 ]
      */
     public init(rotationByDegrees angle: CGFloat) {
-        let α = Double(angle) * M_PI / 180.0
-        self.init(rotationByRadians: CGFloat(α))
+        let α = angle * .pi / 180.0
+        self.init(rotationByRadians: α)
     }
 
     /**
@@ -145,8 +143,8 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
      [    0       0    1 ]
      */
     public mutating func rotate(byDegrees angle: CGFloat) {
-        let α = Double(angle) * M_PI / 180.0
-        return rotate(byRadians: CGFloat(α))
+        let α = angle * .pi / 180.0
+        return rotate(byRadians: α)
     }
 
     /**
@@ -158,10 +156,8 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
      [    0       0    1 ]
      */
     public mutating func rotate(byRadians angle: CGFloat) {
-        let α = Double(angle)
-
-        let sine = CGFloat(sin(α))
-        let cosine = CGFloat(cos(α))
+        let sine = sin(angle)
+        let cosine = cos(angle)
 
         m11 = cosine
         m12 = sine
@@ -286,18 +282,63 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
 open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        let array = [
+            Float(transformStruct.m11),
+            Float(transformStruct.m12),
+            Float(transformStruct.m21),
+            Float(transformStruct.m22),
+            Float(transformStruct.tX),
+            Float(transformStruct.tY),
+        ]
+        
+        array.withUnsafeBytes { pointer in
+            aCoder.encodeValue(ofObjCType: "[6f]", at: UnsafeRawPointer(pointer.baseAddress!))
+        }
     }
+    
     open func copy(with zone: NSZone? = nil) -> Any {
         return NSAffineTransform(transform: self)
     }
+    
     // Necessary because `NSObject.copy()` returns `self`.
     open override func copy() -> Any {
         return copy(with: nil)
     }
+    
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        let pointer = UnsafeMutableRawPointer.allocate(bytes: MemoryLayout<Float>.stride * 6, alignedTo: 1)
+        defer {
+            pointer.deallocate(bytes: MemoryLayout<Float>.stride * 6, alignedTo: 1)
+        }
+        aDecoder.decodeValue(ofObjCType: "[6f]", at: pointer)
+        
+        let floatPointer = pointer.bindMemory(to: Float.self, capacity: 6)
+        let m11 = floatPointer[0]
+        let m12 = floatPointer[1]
+        let m21 = floatPointer[2]
+        let m22 = floatPointer[3]
+        let tX = floatPointer[4]
+        let tY = floatPointer[5]
+
+        self.transformStruct = AffineTransform(m11: CGFloat(m11), m12: CGFloat(m12),
+                                               m21: CGFloat(m21), m22: CGFloat(m22),
+                                               tX: CGFloat(tX), tY: CGFloat(tY))
     }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSAffineTransform else { return false }
+        return other === self
+            || (other.transformStruct == self.transformStruct)
+    }
+    
     public static var supportsSecureCoding: Bool {
         return true
     }

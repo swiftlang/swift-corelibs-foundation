@@ -274,7 +274,6 @@ open class FileManager : NSObject {
      
         This method replaces fileAttributesAtPath:traverseLink:.
      */
-    /// - Experiment: Note that the return type of this function is different than on Darwin Foundation (Any instead of AnyObject). This is likely to change once we have a more complete story for bridging in place.
     open func attributesOfItem(atPath path: String) throws -> [FileAttributeKey : Any] {
         var s = stat()
         guard lstat(path, &s) == 0 else {
@@ -373,7 +372,23 @@ open class FileManager : NSObject {
     }
     
     open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
-        NSUnimplemented()
+        guard
+            let attrs = try? attributesOfItem(atPath: srcPath),
+            let fileType = attrs[.type] as? FileAttributeType
+            else {
+                return
+        }
+        if fileType == .typeDirectory {
+            try createDirectory(atPath: dstPath, withIntermediateDirectories: false, attributes: nil)
+            let subpaths = try subpathsOfDirectory(atPath: srcPath)
+            for subpath in subpaths {
+                try copyItem(atPath: srcPath + "/" + subpath, toPath: dstPath + "/" + subpath)
+            }
+        } else {
+            if createFile(atPath: dstPath, contents: contents(atPath: srcPath), attributes: nil) == false {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [NSFilePathErrorKey : NSString(string: dstPath)])
+            }
+        }
     }
     
     open func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
@@ -500,6 +515,7 @@ open class FileManager : NSObject {
         return result
     }
     
+    @discardableResult
     open func changeCurrentDirectoryPath(_ path: String) -> Bool {
         return chdir(path) == 0
     }
@@ -696,9 +712,15 @@ extension FileManager {
 }
 
 extension FileManager {
-    open var homeDirectoryForCurrentUser: URL { NSUnimplemented() }
+    open var homeDirectoryForCurrentUser: URL {
+        return homeDirectory(forUser: CFCopyUserName().takeRetainedValue()._swiftObject)!
+    }
     open var temporaryDirectory: URL { NSUnimplemented() }
-    open func homeDirectory(forUser userName: String) -> URL? { NSUnimplemented() }
+    open func homeDirectory(forUser userName: String) -> URL? {
+        guard !userName.isEmpty else { return nil }
+        guard let url = CFCopyHomeDirectoryURLForUser(userName._cfObject) else { return nil }
+        return  url.takeRetainedValue()._swiftObject
+    }
 }
 
 extension FileManager {
@@ -785,19 +807,19 @@ public struct FileAttributeKey : RawRepresentable, Equatable, Hashable, Comparab
     public static let posixPermissions = FileAttributeKey(rawValue: "NSFilePosixPermissions")
     public static let systemNumber = FileAttributeKey(rawValue: "NSFileSystemNumber")
     public static let systemFileNumber = FileAttributeKey(rawValue: "NSFileSystemFileNumber")
-    public static let extensionHidden = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let hfsCreatorCode = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let hfsTypeCode = FileAttributeKey(rawValue: "") // NSUnimplemented
+    public static let extensionHidden = FileAttributeKey(rawValue: "NSFileExtensionHidden")
+    public static let hfsCreatorCode = FileAttributeKey(rawValue: "NSFileHFSCreatorCode")
+    public static let hfsTypeCode = FileAttributeKey(rawValue: "NSFileHFSTypeCode")
     public static let immutable = FileAttributeKey(rawValue: "NSFileImmutable")
     public static let appendOnly = FileAttributeKey(rawValue: "NSFileAppendOnly")
-    public static let creationDate = FileAttributeKey(rawValue: "") // NSUnimplemented
+    public static let creationDate = FileAttributeKey(rawValue: "NSFileCreationDate")
     public static let ownerAccountID = FileAttributeKey(rawValue: "NSFileOwnerAccountID")
     public static let groupOwnerAccountID = FileAttributeKey(rawValue: "NSFileGroupOwnerAccountID")
-    public static let busy = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let systemSize = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let systemFreeSize = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let systemNodes = FileAttributeKey(rawValue: "") // NSUnimplemented
-    public static let systemFreeNodes = FileAttributeKey(rawValue: "") // NSUnimplemented
+    public static let busy = FileAttributeKey(rawValue: "NSFileBusy")
+    public static let systemSize = FileAttributeKey(rawValue: "NSFileSystemSize")
+    public static let systemFreeSize = FileAttributeKey(rawValue: "NSFileSystemFreeSize")
+    public static let systemNodes = FileAttributeKey(rawValue: "NSFileSystemNodes")
+    public static let systemFreeNodes = FileAttributeKey(rawValue: "NSFileSystemFreeNodes")
 }
 
 public struct FileAttributeType : RawRepresentable, Equatable, Hashable, Comparable {

@@ -38,7 +38,7 @@ open class NSKeyedUnarchiver : NSCoder {
     
     private enum Stream {
         case data(Data)
-        case stream(InputStream)
+        case stream(CFReadStream)
     }
     
     private var _stream : Stream
@@ -51,7 +51,7 @@ open class NSKeyedUnarchiver : NSCoder {
     private var _classes : Dictionary<UInt32, AnyClass> = [:]
     private var _cache : Array<_NSKeyedArchiverUID> = []
     private var _allowedClasses : Array<[AnyClass]> = []
-    private var _error : NSError? = nil
+    private var _error : Error? = nil
     
     override open var error: Error? {
         return _error
@@ -74,7 +74,7 @@ open class NSKeyedUnarchiver : NSCoder {
             return nil
         }
         
-        let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(unsafeBitCast(readStream, to: InputStream.self)))
+        let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(readStream))
         do {
             try root = keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
             keyedUnarchiver.finishDecoding()
@@ -96,9 +96,9 @@ open class NSKeyedUnarchiver : NSCoder {
         
         do {
             try _readPropertyList()
-        } catch let error as NSError {
-            failWithError(error)
         } catch {
+            failWithError(error)
+            self._error = error
         }
     }
   
@@ -113,11 +113,8 @@ open class NSKeyedUnarchiver : NSCoder {
         switch self._stream {
         case .data(let data):
             try plist = PropertyListSerialization.propertyList(from: data, options: [], format: &format)
-        case .stream(let inputStream):
-            try plist = PropertyListSerialization.propertyList(with: unsafeBitCast(inputStream, to: CFReadStream.self),
-                                                                           length: 0,
-                                                                           options: [],
-                                                                           format: &format)
+        case .stream(let readStream):
+            try plist = PropertyListSerialization.propertyList(with: readStream, options: [], format: &format)
         }
         
         guard let unwrappedPlist = plist as? Dictionary<String, Any> else {
@@ -545,10 +542,9 @@ open class NSKeyedUnarchiver : NSCoder {
             try _decodeArrayOfObjectsForKey(key) { object in
                 array.append(object)
             }
-        } catch let error as NSError {
+        } catch {
             failWithError(error)
             self._error = error
-        } catch {
         }
         
         return array
@@ -610,10 +606,9 @@ open class NSKeyedUnarchiver : NSCoder {
     open override func decodeObject(forKey key: String) -> Any? {
         do {
             return try _decodeObject(forKey: key)
-        } catch let error as NSError {
+        } catch {
             failWithError(error)
             self._error = error
-        } catch {
         }
         return nil
     }
@@ -626,10 +621,9 @@ open class NSKeyedUnarchiver : NSCoder {
                 defer { self._allowedClasses.removeLast() }
                 
                 return try _decodeObject(forKey: key)
-            } catch let error as NSError {
+            } catch {
                 failWithError(error)
                 self._error = error
-            } catch {
             }
         }        
         return nil
@@ -663,10 +657,9 @@ open class NSKeyedUnarchiver : NSCoder {
     open override func decodeObject() -> Any? {
         do {
             return try _decodeObject(forKey: nil)
-        } catch let error as NSError {
+        } catch {
             failWithError(error)
             self._error = error
-        } catch {
         }
         
         return nil
@@ -676,12 +669,12 @@ open class NSKeyedUnarchiver : NSCoder {
         return _decodeObject(of: NSPropertyListClasses)
     }
     
-    open override func decodePropertyListForKey(_ key: String) -> Any? {
+    open override func decodePropertyList(forKey key: String) -> Any? {
         return decodeObject(of: NSPropertyListClasses, forKey:key)
     }
     
     /**
-        Note that unlike decodePropertyListForKey(), _decodePropertyListForKey() decodes
+        Note that unlike decodePropertyList(forKey:), _decodePropertyListForKey() decodes
         a property list in the current decoding context rather than as an object. It's
         also able to return value types.
      */
@@ -870,15 +863,9 @@ open class NSKeyedUnarchiver : NSCoder {
     }
 
     open class func unarchiveTopLevelObjectWithData(_ data: Data) throws -> Any? {
-        var root : Any? = nil
-        
         let keyedUnarchiver = NSKeyedUnarchiver(forReadingWithData: data)
-        do {
-            try root = keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
-            keyedUnarchiver.finishDecoding()
-        } catch {
-        }
-        
+        let root = try keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
+        keyedUnarchiver.finishDecoding()
         return root
     }
 }

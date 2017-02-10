@@ -89,8 +89,8 @@ open class Thread : NSObject {
         var ti = end_at - start_at
         let end_ut = start_ut + ti
         while (0.0 < ti) {
-            var __ts__ = timespec(tv_sec: LONG_MAX, tv_nsec: 0)
-            if ti < Double(LONG_MAX) {
+            var __ts__ = timespec(tv_sec: Int.max, tv_nsec: 0)
+            if ti < Double(Int.max) {
                 var integ = 0.0
                 let frac: Double = withUnsafeMutablePointer(to: &integ) { integp in
                     return modf(ti, integp)
@@ -110,8 +110,8 @@ open class Thread : NSObject {
         let start_ut = CFGetSystemUptime()
         let end_ut = start_ut + ti
         while 0.0 < ti {
-            var __ts__ = timespec(tv_sec: LONG_MAX, tv_nsec: 0)
-            if ti < Double(LONG_MAX) {
+            var __ts__ = timespec(tv_sec: Int.max, tv_nsec: 0)
+            if ti < Double(Int.max) {
                 var integ = 0.0
                 let frac: Double = withUnsafeMutablePointer(to: &integ) { integp in
                     return modf(ti, integp)
@@ -191,7 +191,11 @@ open class Thread : NSObject {
     }
     
     open var name: String? {
-        NSUnimplemented()
+        didSet {
+            if _thread == Thread.current._thread {
+                _CFThreadSetName(name)
+            }
+        }
     }
 
     open var stackSize: Int {
@@ -246,7 +250,7 @@ open class Thread : NSObject {
 }
 
 extension NSNotification.Name {
-    public static let NSWillBecomeMultiThreaded = NSNotification.Name(rawValue: "") // NSUnimplemented
-    public static let NSDidBecomeSingleThreaded = NSNotification.Name(rawValue: "") // NSUnimplemented
-    public static let NSThreadWillExit = NSNotification.Name(rawValue: "") // NSUnimplemented
+    public static let NSWillBecomeMultiThreaded = NSNotification.Name(rawValue: "NSWillBecomeMultiThreadedNotification")
+    public static let NSDidBecomeSingleThreaded = NSNotification.Name(rawValue: "NSDidBecomeSingleThreadedNotification")
+    public static let NSThreadWillExit = NSNotification.Name(rawValue: "NSThreadWillExitNotification")
 }

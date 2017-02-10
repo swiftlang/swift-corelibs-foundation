@@ -337,7 +337,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSFileManager.swift',
 	'Foundation/NSFormatter.swift',
 	'Foundation/NSGeometry.swift',
-	'Foundation/NSHost.swift',
+	'Foundation/Host.swift',
 	'Foundation/NSHTTPCookie.swift',
 	'Foundation/NSHTTPCookieStorage.swift',
 	'Foundation/NSIndexPath.swift',

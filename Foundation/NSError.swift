@@ -144,14 +144,14 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return userInfo[NSHelpAnchorErrorKey] as? String
     }
     
-    internal typealias NSErrorProvider = (_ error: NSError, _ key: String) -> AnyObject?
-    internal static var userInfoProviders = [String: NSErrorProvider]()
+    internal typealias UserInfoProvider = (_ error: Error, _ key: String) -> Any?
+    internal static var userInfoProviders = [String: UserInfoProvider]()
     
-    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (/* @escaping */ (NSError, String) -> AnyObject?)?) {
+    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (/* @escaping */ (Error, String) -> Any?)?) {
         NSError.userInfoProviders[errorDomain] = provider
     }
 
-    open class func userInfoValueProvider(forDomain errorDomain: String) -> ((NSError, String) -> AnyObject?)? {
+    open class func userInfoValueProvider(forDomain errorDomain: String) -> ((Error, String) -> Any?)? {
         return NSError.userInfoProviders[errorDomain]
     }
     
@@ -169,11 +169,8 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     override open func isEqual(_ object: Any?) -> Bool {
         // Pulled from NSObject itself; this works on all platforms.
-        if let obj = object as? NSError {
-            return obj === self
-        }
-        
-        return false
+        guard let obj = object as? NSError else { return false }
+        return obj === self
     }
 }
 
@@ -222,9 +219,9 @@ public extension LocalizedError {
 /// NSErrorRecoveryAttempting, which is used by NSError when it
 /// attempts recovery from an error.
 class _NSErrorRecoveryAttempter {
-    func attemptRecovery(fromError nsError: NSError,
+    func attemptRecovery(fromError error: Error,
         optionIndex recoveryOptionIndex: Int) -> Bool {
-        let error = nsError as Error as! RecoverableError
+        let error = error as! RecoverableError
         return error.attemptRecovery(optionIndex: recoveryOptionIndex)
   }
 }
@@ -288,7 +285,8 @@ public extension Error where Self : CustomNSError {
 public extension Error {
     /// Retrieve the localized description for this error.
     var localizedDescription: String {
-        return NSError(domain: _domain, code: _code, userInfo: nil).localizedDescription
+        let defaultUserInfo = _swift_Foundation_getErrorDefaultUserInfo(self) as! [String : Any]
+        return NSError(domain: _domain, code: _code, userInfo: defaultUserInfo).localizedDescription
     }
 }
 
@@ -621,7 +619,7 @@ public struct CocoaError : _BridgedStoredNSError {
 
 public extension CocoaError {
     private var _nsUserInfo: [AnyHashable : Any] {
-        return NSError(domain: _domain, code: _code, userInfo: nil).userInfo
+        return _nsError.userInfo
     }
 
     /// The file path associated with the error, if any.
@@ -802,7 +800,7 @@ public struct URLError : _BridgedStoredNSError {
 
 public extension URLError {
     private var _nsUserInfo: [AnyHashable : Any] {
-        return NSError(domain: _domain, code: _code, userInfo: nil).userInfo
+        return _nsError.userInfo
     }
 
     /// The URL which caused a load to fail.

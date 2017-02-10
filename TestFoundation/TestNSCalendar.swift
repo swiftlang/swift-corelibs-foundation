@@ -28,7 +28,8 @@ class TestNSCalendar: XCTestCase {
             ("test_copy",test_copy),
             ("test_addingDates", test_addingDates),
             ("test_datesNotOnWeekend", test_datesNotOnWeekend),
-            ("test_datesOnWeekend", test_datesOnWeekend)
+            ("test_datesOnWeekend", test_datesOnWeekend),
+            ("test_customMirror", test_customMirror)
             // Disabled because this fails on linux https://bugs.swift.org/browse/SR-320
             // ("test_currentCalendarRRstability", test_currentCalendarRRstability),
         ]
@@ -63,11 +64,29 @@ class TestNSCalendar: XCTestCase {
         
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!
-         let components = calendar.dateComponents([.year, .month, .day], from: date)
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
         
         XCTAssertEqual(components.year, 2015)
         XCTAssertEqual(components.month, 12)
         XCTAssertEqual(components.day, 5)
+
+        // Test for problem reported by Malcolm Barclay via swift-corelibs-dev
+        // https://lists.swift.org/pipermail/swift-corelibs-dev/Week-of-Mon-20161128/001031.html
+        let fromDate = Date()
+        let interval = 200
+        let toDate = Date(timeInterval: TimeInterval(interval), since: fromDate)
+        let fromToComponents = calendar.dateComponents([.second], from: fromDate, to: toDate)
+        XCTAssertEqual(fromToComponents.second, interval);
+
+        // Issue with 32-bit CF calendar vector on Linux
+        // Crashes on macOS 10.12.2/Foundation 1349.25
+        // (Possibly related) rdar://24384757
+        /*
+        let interval2 = Int(INT32_MAX) + 1
+        let toDate2 = Date(timeInterval: TimeInterval(interval2), since: fromDate)
+        let fromToComponents2 = calendar.dateComponents([.second], from: fromDate, to: toDate2)
+        XCTAssertEqual(fromToComponents2.second, interval2);
+        */
     }
 
     func test_gettingDatesOnISO8601Calendar() {
@@ -156,6 +175,17 @@ class TestNSCalendar: XCTestCase {
         let sundayInFebruary = calendar.date(from: DateComponents(year: 2016, month: 2, day: 14))!
         
         XCTAssertTrue(calendar.isDateInWeekend(sundayInFebruary))
+    }
+    
+    func test_customMirror() {
+        let calendar = Calendar(identifier: .gregorian)
+        let calendarMirror = calendar.customMirror
+        
+        XCTAssertEqual(calendar.identifier, calendarMirror.descendant("identifier") as? Calendar.Identifier)
+        XCTAssertEqual(calendar.locale, calendarMirror.descendant("locale") as? Locale)
+        XCTAssertEqual(calendar.timeZone, calendarMirror.descendant("timeZone") as? TimeZone)
+        XCTAssertEqual(calendar.firstWeekday, calendarMirror.descendant("firstWeekDay") as? Int)
+        XCTAssertEqual(calendar.minimumDaysInFirstWeek, calendarMirror.descendant("minimumDaysInFirstWeek") as? Int)
     }
 }
 
