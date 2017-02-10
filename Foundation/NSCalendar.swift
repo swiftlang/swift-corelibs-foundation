@@ -1315,7 +1315,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? NSDateComponents else { return false }
         
-        return self == other
+        return self === other
             || (era == other.era
                 && year == other.year
                 && quarter == other.quarter
