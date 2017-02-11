@@ -1094,7 +1094,13 @@ let comparisonTests = [
     ComparisonTest("t", "tt"),
     ComparisonTest("t", "Tt"),
     ComparisonTest("\u{0}", "",
-        reason: "https://bugs.swift.org/browse/SR-332"),
+        reason: {
+#if _runtime(_ObjC)
+    return ""
+#else
+    return "https://bugs.swift.org/browse/SR-332"
+#endif
+    }()),
     ComparisonTest("\u{0}", "\u{0}",
         reason: "https://bugs.swift.org/browse/SR-332"),
     ComparisonTest("\r\n", "t"),
