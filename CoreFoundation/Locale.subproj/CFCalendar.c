@@ -272,6 +272,7 @@ CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringR
 	else if (CFEqual(kCFIslamicCalendar, identifier)) identifier = kCFIslamicCalendar;
 	else if (CFEqual(kCFIslamicCivilCalendar, identifier)) identifier = kCFIslamicCivilCalendar;
 	else if (CFEqual(kCFHebrewCalendar, identifier)) identifier = kCFHebrewCalendar;
+       else if (CFEqual(kCFISO8601Calendar, identifier)) identifier = kCFISO8601Calendar;
 //	else if (CFEqual(kCFChineseCalendar, identifier)) identifier = kCFChineseCalendar;
 	else return NULL;
     }
