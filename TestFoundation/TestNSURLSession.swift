@@ -32,6 +32,7 @@ class TestURLSession : XCTestCase {
             ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
+            ("test_cancelTask", test_cancelTask),
         ]
     }
 
@@ -297,6 +298,26 @@ class TestURLSession : XCTestCase {
         
         XCTAssert(task.isEqual(task.copy()))
     }
+
+    func test_cancelTask() {
+        let serverReady = ServerSemaphore()
+        globalDispatchQueue.async {
+            do {
+                try self.runServer(with: serverReady)
+            } catch {
+                XCTAssertTrue(true)
+                return
+            }
+        }
+        serverReady.wait()
+        let url = URL(string: "http://127.0.0.1:\(serverPort)/Peru")!
+        let d = DataTask(with: expectation(description: "Task to be canceled"))
+        d.cancelExpectation = expectation(description: "URLSessionTask wasn't canceled")
+        d.run(with: url)
+        d.cancel()
+        waitForExpectations(timeout: 12)
+    }
+
 }
 
 class SessionDelegate: NSObject, URLSessionDelegate {
@@ -314,6 +335,8 @@ class DataTask : NSObject {
     var capital = "unknown"
     var session: URLSession! = nil
     var task: URLSessionDataTask! = nil
+    var cancelExpectation: XCTestExpectation?
+
     public var error = false
 
     init(with expectation: XCTestExpectation) {
@@ -335,20 +358,26 @@ class DataTask : NSObject {
         task = session.dataTask(with: url)
         task.resume()
     }
+
+    func cancel() {
+        task.cancel()
+    }
 }
 
 extension DataTask : URLSessionDataDelegate {
-     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-         capital = String(data: data, encoding: String.Encoding.utf8)!
-         dataTaskExpectation.fulfill()
-     }
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        capital = String(data: data, encoding: String.Encoding.utf8)!
+        dataTaskExpectation.fulfill()
+    }
 }
 
 extension DataTask : URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
          guard let e = error as? URLError else { return }
-         XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
          dataTaskExpectation.fulfill()
+         if let cancellation = cancelExpectation {
+             cancellation.fulfill()
+         }
          self.error = true
      }
 } 
