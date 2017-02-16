@@ -87,7 +87,7 @@ extension NSRange: NSSpecialValueCoding {
     static func objCType() -> String {
 #if arch(i386) || arch(arm)
         return "{_NSRange=II}"
-#elseif arch(x86_64) || arch(arm64) || arch(s390x)
+#elseif arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
         return "{_NSRange=QQ}"
 #else
         NSUnimplemented()
