@@ -1,0 +1,1 @@
+../../TestFoundation/TestNSBundle.swift
