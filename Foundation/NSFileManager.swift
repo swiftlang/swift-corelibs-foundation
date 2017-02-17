@@ -305,7 +305,7 @@ open class FileManager : NSObject {
         let grd = getgrgid(s.st_gid)
         if grd != nil && grd!.pointee.gr_name != nil {
             let name = String(cString: grd!.pointee.gr_name)
-            result[.groupOwnerAccountID] = name
+            result[.groupOwnerAccountName] = name
         }
 
         var type : FileAttributeType
