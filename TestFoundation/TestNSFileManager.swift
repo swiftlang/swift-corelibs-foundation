@@ -22,6 +22,7 @@ class TestNSFileManager : XCTestCase {
             ("test_createDirectory", test_createDirectory ),
             ("test_createFile", test_createFile ),
             ("test_moveFile", test_moveFile),
+            ("test_copyItem", test_copyItem),
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
             ("test_fileAttributes", test_fileAttributes),
             ("test_setFileAttributes", test_setFileAttributes),
@@ -100,6 +101,45 @@ class TestNSFileManager : XCTestCase {
             try fm.moveItem(atPath: path, toPath: path2)
         } catch let error {
             XCTFail("Failed to move file: \(error)")
+        }
+    }
+
+    func test_copyItem() {
+        let fm = FileManager.default
+        let content = "test content".data(using: .utf8)!
+        let path = NSTemporaryDirectory() + "directory"
+        let path2 = NSTemporaryDirectory() + "directory2"
+        do {
+            try fm.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil)
+            try fm.createDirectory(atPath: "\(path)/subdirectory",
+                                   withIntermediateDirectories: true,
+                                   attributes: nil)
+            fm.createFile(atPath: "\(path)/regular", contents: content, attributes: nil)
+            
+            fm.copyItem(atPath: path, toPath: path2)
+            let directoryExists = fm.fileExists(atPath: path2)
+            XCTAssertTrue(directoryExists)
+
+            let subDirectoryExists = fm.fileExists(atPath: "\(path2)/subdirectory")
+            XCTAssertTrue(subDirectoryExists)
+
+            let fileExists = fm.fileExists(atPath: "\(path2)/regular")
+            XCTAssertTrue(fileExists)
+
+            let attrib1 = try fm.attributesOfItem(atPath: "\(path)/regular")
+            let size1 = attrib1[FileAttributeKey.size] as! NSNumber
+            let attrib2 = try fm.attributesOfItem(atPath: "\(path2)/regular")
+            let size2 = attrib2[FileAttributeKey.size] as! NSNumber
+            XCTAssertEqual(size1, size2)
+        } catch let error {
+            XCTFail("Failed to copy item: \(error)")
+        }
+
+        do {
+            try fm.removeItem(atPath: path)
+            try fm.removeItem(atPath: path2)
+        } catch {
+            XCTFail("Failed to clean up files")
         }
     }
 

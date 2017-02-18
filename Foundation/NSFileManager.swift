@@ -373,7 +373,46 @@ open class FileManager : NSObject {
     }
     
     open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
-        NSUnimplemented()
+        let attr = try attributesOfItem(atPath: srcPath)
+        
+        guard let type = attr[.type] as? FileAttributeType, type == .typeDirectory else {
+            var st: stat = stat()
+            
+            var fin: Int32 = 0
+            var fout: Int32 = 0
+            var x: Int = 0
+            var i: Int = 0
+            
+            let bufferSize: Int = 8192
+            let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+            
+            stat(srcPath, &st)
+            
+            let size = st.st_size
+            
+            fin = open(srcPath, O_RDONLY)
+            fout = open(dstPath, O_WRONLY | O_CREAT, st.st_mode)
+            
+            while i < Int(size) {
+                x = read(fin, buffer, 8192)
+                write(fout, buffer, x)
+                i += x
+            }
+            
+            close(fout)
+            close(fin)
+            buffer.deinitialize(count: bufferSize)
+            buffer.deallocate(capacity: bufferSize)
+            return
+        }
+        
+        try createDirectory(atPath: dstPath, withIntermediateDirectories: true, attributes: nil)
+        
+        let children = try contentsOfDirectory(atPath: srcPath)
+        
+        for child in children {
+            try copyItem(atPath: "\(srcPath)/\(child)", toPath: "\(dstPath)/\(child)")
+        }
     }
     
     open func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
