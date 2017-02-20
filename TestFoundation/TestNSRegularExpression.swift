@@ -25,7 +25,9 @@ class TestNSRegularExpression : XCTestCase {
         return [
             ("test_simpleRegularExpressions", test_simpleRegularExpressions),
             ("test_regularExpressionReplacement", test_regularExpressionReplacement),
-            ("test_complexRegularExpressions", test_complexRegularExpressions)
+            ("test_complexRegularExpressions", test_complexRegularExpressions),
+            ("test_Equal", test_Equal),
+            ("test_NSCoding", test_NSCoding),
         ]
     }
     
@@ -316,5 +318,38 @@ class TestNSRegularExpression : XCTestCase {
         complexRegularExpressionTest("(a|b)x|123|(c|d)y", [], "903847123", [], NSMakeRange(0, 9), 1, NSMakeRange(6, 3), NSMakeRange(NSNotFound, 0), NSMakeRange(NSNotFound, 0))
         complexRegularExpressionTest("(a|b)x|123|(c|d)y", [], "axcy", [], NSMakeRange(0, 4), 2, NSMakeRange(0, 2), NSMakeRange(0, 1), NSMakeRange(NSNotFound, 0))
         complexRegularExpressionTest("(a|b)x|123|(c|d)y", [], "cya", [], NSMakeRange(0, 3), 1, NSMakeRange(0, 2), NSMakeRange(NSNotFound, 0), NSMakeRange(0, 1))
+    }
+    
+    func test_Equal() {
+        var regularExpressionA = try! NSRegularExpression(pattern: "[a-z]+", options: [])
+        var regularExpressionB = try! NSRegularExpression(pattern: "[a-z]+", options: [])
+        XCTAssertTrue(regularExpressionA == regularExpressionB)
+        XCTAssertFalse(regularExpressionA === regularExpressionB)
+        
+        regularExpressionA = try! NSRegularExpression(pattern: "[a-z]+", options: .caseInsensitive)
+        regularExpressionB = try! NSRegularExpression(pattern: "[a-z]+", options: .caseInsensitive)
+        XCTAssertTrue(regularExpressionA == regularExpressionB)
+        XCTAssertFalse(regularExpressionA === regularExpressionB)
+        
+        regularExpressionA = try! NSRegularExpression(pattern: "[a-z]+", options: [.caseInsensitive, .allowCommentsAndWhitespace])
+        regularExpressionB = try! NSRegularExpression(pattern: "[a-z]+", options: [.caseInsensitive, .allowCommentsAndWhitespace])
+        XCTAssertTrue(regularExpressionA == regularExpressionB)
+        XCTAssertFalse(regularExpressionA === regularExpressionB)
+        
+        regularExpressionA = try! NSRegularExpression(pattern: "[a-z]+", options: .caseInsensitive)
+        regularExpressionB = try! NSRegularExpression(pattern: "[a-z]+", options: [.caseInsensitive, .allowCommentsAndWhitespace])
+        XCTAssertFalse(regularExpressionA == regularExpressionB)
+        XCTAssertFalse(regularExpressionA === regularExpressionB)
+        
+        regularExpressionA = try! NSRegularExpression(pattern: "[a-y]+", options: .caseInsensitive)
+        regularExpressionB = try! NSRegularExpression(pattern: "[a-z]+", options: .caseInsensitive)
+        XCTAssertFalse(regularExpressionA == regularExpressionB)
+        XCTAssertFalse(regularExpressionA === regularExpressionB)
+    }
+    
+    func test_NSCoding() {
+        let regularExpressionA = try! NSRegularExpression(pattern: "[a-z]+", options: [.caseInsensitive, .allowCommentsAndWhitespace])
+        let regularExpressionB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: regularExpressionA)) as! NSRegularExpression
+        XCTAssertEqual(regularExpressionA, regularExpressionB, "Archived then unarchived `NSRegularExpression` must be equal.")
     }
 }

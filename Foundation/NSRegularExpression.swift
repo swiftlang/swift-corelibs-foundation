@@ -39,11 +39,37 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(self.pattern._nsObject, forKey: "NSPattern")
+        aCoder.encode(self.options.rawValue._bridgeToObjectiveC(), forKey: "NSOptions")
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    public required convenience init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        guard let pattern = aDecoder.decodeObject(forKey: "NSPattern") as? NSString,
+            let options = aDecoder.decodeObject(forKey: "NSOptions") as? NSNumber else {
+                return nil
+        }
+        
+        do {
+            try self.init(pattern: pattern._swiftObject, options: Options(rawValue: options.uintValue))
+        } catch {
+            return nil
+        }
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSRegularExpression else { return false }
+        
+        return self === other
+            || (self.pattern == other.pattern
+                && self.options == other.options)
     }
     
     /* An instance of NSRegularExpression is created from a regular expression pattern and a set of options.  If the pattern is invalid, nil will be returned and an NSError will be returned by reference.  The pattern syntax currently supported is that specified by ICU.
