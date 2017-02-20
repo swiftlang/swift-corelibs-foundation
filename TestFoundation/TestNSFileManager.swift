@@ -151,6 +151,23 @@ class TestNSFileManager : XCTestCase {
             let fileOwnerAccountID = attrs[.ownerAccountID] as? NSNumber
             XCTAssertNotNil(fileOwnerAccountID)
             
+            let fileGroupOwnerAccountID = attrs[.groupOwnerAccountID] as? NSNumber
+            XCTAssertNotNil(fileGroupOwnerAccountID)
+            
+            if let fileOwnerAccountName = attrs[.ownerAccountName] {
+                XCTAssertNotNil(fileOwnerAccountName as? String)
+                if let fileOwnerAccountNameStr = fileOwnerAccountName as? String {
+                    XCTAssertFalse(fileOwnerAccountNameStr.isEmpty)
+                }
+            }
+            
+            if let fileGroupOwnerAccountName = attrs[.groupOwnerAccountName] {
+                XCTAssertNotNil(fileGroupOwnerAccountName as? String)
+                if let fileGroupOwnerAccountNameStr = fileGroupOwnerAccountName as? String {
+                    XCTAssertFalse(fileGroupOwnerAccountNameStr.isEmpty)
+                }
+            }
+            
         } catch let err {
             XCTFail("\(err)")
         }
