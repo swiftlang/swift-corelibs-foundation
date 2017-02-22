@@ -308,6 +308,29 @@ CF_EXPORT _Nullable CFErrorRef _CFReadStreamCopyError(CFReadStreamRef stream);
 
 CF_EXPORT _Nullable CFErrorRef _CFWriteStreamCopyError(CFWriteStreamRef stream);
 
+// https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+// Version 0.8
+
+// note: All paths set in these environment variables must be absolute.
+
+/// a single base directory relative to which user-specific data files should be written. This directory is defined by the environment variable $XDG_DATA_HOME.
+CF_EXPORT CFStringRef _CFXDGCreateDataHomePath(void);
+
+/// a single base directory relative to which user-specific configuration files should be written. This directory is defined by the environment variable $XDG_CONFIG_HOME.
+CF_EXPORT CFStringRef _CFXDGCreateConfigHomePath(void);
+
+/// a set of preference ordered base directories relative to which data files should be searched. This set of directories is defined by the environment variable $XDG_DATA_DIRS.
+CF_EXPORT CFArrayRef _CFXDGCreateDataDirectoriesPaths(void);
+
+/// a set of preference ordered base directories relative to which configuration files should be searched. This set of directories is defined by the environment variable $XDG_CONFIG_DIRS.
+CF_EXPORT CFArrayRef _CFXDGCreateConfigDirectoriesPaths(void);
+
+/// a single base directory relative to which user-specific non-essential (cached) data should be written. This directory is defined by the environment variable $XDG_CACHE_HOME.
+CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void);
+
+/// a single base directory relative to which user-specific runtime files and other file objects should be placed. This directory is defined by the environment variable $XDG_RUNTIME_DIR.
+CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void);
+
 _CF_EXPORT_SCOPE_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */
