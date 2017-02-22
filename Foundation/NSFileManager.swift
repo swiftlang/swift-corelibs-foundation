@@ -343,7 +343,19 @@ open class FileManager : NSObject {
         This method replaces fileSystemAttributesAtPath:.
      */
     open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-        NSUnimplemented()
+        var s = statfs()
+        guard statfs(path, &s) == 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: path)
+        }
+        
+        var result = [FileAttributeKey : Any]()
+        let blockSize = UInt64(s.f_bsize)
+        result[.systemSize] = NSNumber(value: blockSize * s.f_blocks)
+        result[.systemFreeSize] = NSNumber(value: blockSize * s.f_bavail)
+        result[.systemNodes] = NSNumber(value: s.f_files)
+        result[.systemFreeNodes] = NSNumber(value: s.f_ffree)
+        
+        return result
     }
     
     /* createSymbolicLinkAtPath:withDestination:error: returns YES if the symbolic link that point at 'destPath' was able to be created at the location specified by 'path'. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
