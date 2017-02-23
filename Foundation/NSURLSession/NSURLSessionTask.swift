@@ -116,11 +116,7 @@ open class URLSessionTask : NSObject, NSCopying {
         self.easyHandle = _EasyHandle(delegate: self)
     }
     deinit {
-        //TODO: Can we ensure this somewhere else? This might run on the wrong
-        // thread / queue.
-        //if internalState.isEasyHandleAddedToMultiHandle {
-        //    session.removeHandle(easyHandle)
-        //}
+        //TODO: Do we remove the EasyHandle from the session here? This might run on the wrong thread / queue.
     }
     
     open override func copy() -> Any {
@@ -560,10 +556,8 @@ fileprivate extension URLSessionTask {
         easyHandle.set(followLocation: false)
         easyHandle.set(customHeaders: curlHeaders(for: request))
 
-        //Options unavailable on Ubuntu 14.04 (libcurl 7.36)
-        //TODO: Introduce something like an #if
-        //easyHandle.set(waitForPipeliningAndMultiplexing: true)
-        //easyHandle.set(streamWeight: priority)
+	//TODO: The CURLOPT_PIPEDWAIT option is unavailable on Ubuntu 14.04 (libcurl 7.36)
+	//TODO: Introduce something like an #if, if we want to set them here
 
         //set the request timeout
         //TODO: the timeout value needs to be reset on every data transfer
@@ -933,8 +927,6 @@ extension URLSessionTask {
             
             //TODO: Should the `public response: URLResponse` property be updated
             // before we call delegate API
-            // `func urlSession(session: session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest?) -> Void)`
-            // ?
             
             internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`

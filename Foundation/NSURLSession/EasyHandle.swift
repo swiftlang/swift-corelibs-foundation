@@ -167,9 +167,8 @@ extension _EasyHandle {
         try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionPROTOCOLS, protocols).asError()
         try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionREDIR_PROTOCOLS, protocols).asError()
         //TODO: Added in libcurl 7.45.0
-        // "https".withCString {
-        //     try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionDEFAULT_PROTOCOL, UnsafeMutablePointer($0)).asError()
-        //}
+        //TODO: Set default protocol for schemeless URLs
+        //CURLOPT_DEFAULT_PROTOCOL available only in libcurl 7.45.0
     }
     
     //TODO: Proxy setting, namely CFURLSessionOptionPROXY, CFURLSessionOptionPROXYPORT,
@@ -189,27 +188,21 @@ extension _EasyHandle {
         // We need to retain the list for as long as the rawHandle is in use.
         headerList = list
     }
-    /// Wait for pipelining/multiplexing
+    ///TODO: Wait for pipelining/multiplexing. Unavailable on Ubuntu 14.0
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_PIPEWAIT.html
-    //func set(waitForPipeliningAndMultiplexing flag: Bool) {
-    //    try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionPIPEWAIT, flag ? 1 : 0).asError()
-    //}
     
     //TODO: The public API does not allow us to use CFURLSessionOptionSTREAM_DEPENDS / CFURLSessionOptionSTREAM_DEPENDS_E
     // Might be good to add support for it, though.
     
-    /// set numerical stream weight
+    ///TODO: Set numerical stream weight when CURLOPT_PIPEWAIT is enabled
     /// - Parameter weight: values are clamped to lie between 0 and 1
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_STREAM_WEIGHT.html
     /// - SeeAlso: http://httpwg.org/specs/rfc7540.html#StreamPriority
-    //func set(streamWeight weight: Float) {
-    //    // Scale and clamp such that the range 0->1 ends up 1->256
-    //    let w = 1 + max(0, min(255, Int(round(weight * 255))))
-    //    try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionPIPEWAIT, w).asError()
-    //}
+
     /// Enable automatic decompression of HTTP downloads
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_ACCEPT_ENCODING.html
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTP_CONTENT_DECODING.html
+
     func set(automaticBodyDecompression flag: Bool) {
         if flag {
             "".withCString {

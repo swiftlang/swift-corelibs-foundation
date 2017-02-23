@@ -37,10 +37,6 @@ internal func copyDispatchData<T>(_ data: DispatchData, infoBuffer buffer: Unsaf
 
 /// Split `dispatch_data_t` into `(head, tail)` pair.
 internal func splitData(dispatchData data: DispatchData, atPosition position: Int) -> (DispatchData,DispatchData) {
-    /*let length = dispatch_data_get_size(data)
-    let head = dispatch_data_create_subrange(data, 0, position)
-    let tail = dispatch_data_create_subrange(data, position, length - position)
-    return (head, tail)*/
     return (data.subdata(in: 0..<position), data.subdata(in: position..<data.count))
 }
 
