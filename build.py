@@ -459,6 +459,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
     'TestFoundation/Resources/NSURLTestData.plist',
     'TestFoundation/Resources/Test.plist',
     'TestFoundation/Resources/NSStringTestData.txt',
+    'TestFoundation/Resources/NSString-UTF16-BE-data.txt',
     'TestFoundation/Resources/NSXMLDocumentTestData.xml',
     'TestFoundation/Resources/PropertyList-1.0.dtd',
     'TestFoundation/Resources/NSXMLDTDTestData.xml',
