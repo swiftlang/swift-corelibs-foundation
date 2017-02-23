@@ -168,7 +168,7 @@ extension _EasyHandle {
         try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionREDIR_PROTOCOLS, protocols).asError()
         //TODO: Added in libcurl 7.45.0
         //TODO: Set default protocol for schemeless URLs
-        //CURLOPT_ DEFAULT_PROTOCOL available only in libcurl 7.45.0
+        //CURLOPT_DEFAULT_PROTOCOL available only in libcurl 7.45.0
     }
     
     //TODO: Proxy setting, namely CFURLSessionOptionPROXY, CFURLSessionOptionPROXYPORT,
