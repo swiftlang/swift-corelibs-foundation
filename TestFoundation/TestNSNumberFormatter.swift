@@ -369,7 +369,7 @@ class TestNSNumberFormatter: XCTestCase {
     
     func test_minimumSignificantDigits() {
         let numberFormatter = NumberFormatter()
-        numberFormatter.usesSignificantDigits = true
+        numberFormatter.numberStyle = .decimal
         numberFormatter.minimumSignificantDigits = 3
         let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "42.0")
@@ -377,14 +377,14 @@ class TestNSNumberFormatter: XCTestCase {
     
     func test_maximumSignificantDigits() {
         let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        var formattedString = numberFormatter.string(from: 987654321)
+        XCTAssertEqual(formattedString, "987,654,321")
+        
         numberFormatter.usesSignificantDigits = true
         numberFormatter.maximumSignificantDigits = 3
-        var formattedString = numberFormatter.string(from: 42.42424242)
+        formattedString = numberFormatter.string(from: 42.42424242)
         XCTAssertEqual(formattedString, "42.4")
-        
-        numberFormatter.numberStyle = .decimal
-        formattedString = numberFormatter.string(from: 987654321)
-        XCTAssertEqual(formattedString, "987,654,321")
     }
 
     func test_stringFor() {
@@ -404,6 +404,9 @@ class TestNSNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.string(for: 3), "three")
         XCTAssertEqual(numberFormatter.string(for: 0.3), "zero point three")
 
+        numberFormatter.numberStyle = .decimal
+        XCTAssertEqual(numberFormatter.string(for: 234.5678), "234.568")
+        
         numberFormatter.locale = Locale(identifier: "zh_CN")
         numberFormatter.numberStyle = .spellOut
         XCTAssertEqual(numberFormatter.string(from: 11.4), "十一点四")
