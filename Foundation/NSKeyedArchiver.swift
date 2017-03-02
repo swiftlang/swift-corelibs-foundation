@@ -159,13 +159,13 @@ open class NSKeyedArchiver : NSCoder {
             return false
         }
         
+        defer { CFWriteStreamClose(writeStream) }
+        
         let keyedArchiver = NSKeyedArchiver(output: writeStream)
         
         keyedArchiver.encode(rootObject, forKey: NSKeyedArchiveRootObjectKey)
         keyedArchiver.finishEncoding()
         finishedEncoding = keyedArchiver._flags.contains(ArchiverFlags.finishedEncoding)
-
-        CFWriteStreamClose(writeStream)
         
         return finishedEncoding
     }

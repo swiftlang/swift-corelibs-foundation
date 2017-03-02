@@ -80,9 +80,9 @@ open class Operation : NSObject {
     
     open func cancel() {
         lock.lock()
+        defer { lock.unlock() }
         _cancelled = true
         _leaveGroups()
-        lock.unlock()
     }
     
     open var isExecuting: Bool {
@@ -104,20 +104,22 @@ open class Operation : NSObject {
     
     open func addDependency(_ op: Operation) {
         lock.lock()
+        defer { lock.unlock() }
         _dependencies.insert(op)
         op.lock.lock()
+        defer { op.lock.unlock() }
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         _depGroup.enter()
         op._groups.append(_depGroup)
 #endif
-        op.lock.unlock()
-        lock.unlock()
     }
     
     open func removeDependency(_ op: Operation) {
         lock.lock()
+        defer { lock.unlock() }
         _dependencies.remove(op)
         op.lock.lock()
+        defer { op.lock.unlock() }
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         let groupIndex = op._groups.index(where: { $0 === self._depGroup })
         if let idx = groupIndex {
@@ -125,14 +127,12 @@ open class Operation : NSObject {
             group.leave()
         }
 #endif
-        op.lock.unlock()
-        lock.unlock()
     }
     
     open var dependencies: [Operation] {
         lock.lock()
+        defer { lock.unlock() }
         let ops = _dependencies.map() { $0 }
-        lock.unlock()
         return ops
     }
     
@@ -189,14 +189,14 @@ open class BlockOperation: Operation {
     
     open func addExecutionBlock(_ block: @escaping () -> Void) {
         lock.lock()
+        defer { lock.unlock() }
         _executionBlocks.append(block)
-        lock.unlock()
     }
     
     open var executionBlocks: [() -> Void] {
         lock.lock()
+        defer { lock.unlock() }
         let blocks = _executionBlocks
-        lock.unlock()
         return blocks
     }
 }
@@ -308,8 +308,8 @@ open class OperationQueue: NSObject {
     // However this is considerably faster and probably more effecient.
     internal var _underlyingQueue: DispatchQueue {
         lock.lock()
+        defer { lock.unlock() }
         if let queue = __underlyingQueue {
-            lock.unlock()
             return queue
         } else {
             let effectiveName: String
@@ -333,7 +333,6 @@ open class OperationQueue: NSObject {
                 queue.suspend()
             }
             __underlyingQueue = queue
-            lock.unlock()
             return queue
         }
     }
@@ -354,8 +353,8 @@ open class OperationQueue: NSObject {
 
     internal func _dequeueOperation() -> Operation? {
         lock.lock()
+        defer { lock.unlock() }
         let op = _operations.dequeue()
-        lock.unlock()
         return op
     }
     
@@ -427,9 +426,9 @@ open class OperationQueue: NSObject {
     
     internal func _operationFinished(_ operation: Operation) {
         lock.lock()
+        defer { lock.unlock() }
         _operations.remove(operation)
         operation._queue = nil
-        lock.unlock()
     }
     
     open func addOperation(_ block: @escaping () -> Swift.Void) {
@@ -441,16 +440,16 @@ open class OperationQueue: NSObject {
     // WARNING: the return value of this property can never be used to reliably do anything sensible
     open var operations: [Operation] {
         lock.lock()
+        defer { lock.unlock() }
         let ops = _operations.map() { $0 }
-        lock.unlock()
         return ops
     }
     
     // WARNING: the return value of this property can never be used to reliably do anything sensible
     open var operationCount: Int {
         lock.lock()
+        defer { lock.unlock() }
         let count = _operations.count
-        lock.unlock()
         return count
     }
     
@@ -463,6 +462,7 @@ open class OperationQueue: NSObject {
         }
         set {
             lock.lock()
+            defer { lock.unlock() }
             if _suspended != newValue {
                 _suspended = newValue
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
@@ -475,7 +475,6 @@ open class OperationQueue: NSObject {
                 }
 #endif
             }
-            lock.unlock()
         }
     }
     
@@ -483,17 +482,17 @@ open class OperationQueue: NSObject {
     open var name: String? {
         get {
             lock.lock()
+            defer { lock.unlock() }
             let val = _name
-            lock.unlock()
             return val
         }
         set {
             lock.lock()
+            defer { lock.unlock() }
             _name = newValue
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
             __underlyingQueue = nil
 #endif
-            lock.unlock()
         }
     }
     
@@ -504,14 +503,14 @@ open class OperationQueue: NSObject {
     open var underlyingQueue: DispatchQueue? {
         get {
             lock.lock()
+            defer { lock.unlock() }
             let queue = __underlyingQueue
-            lock.unlock()
             return queue
         }
         set {
             lock.lock()
+            defer { lock.unlock() }
             __underlyingQueue = newValue
-            lock.unlock()
         }
     }
 #endif

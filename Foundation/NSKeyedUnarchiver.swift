@@ -74,14 +74,14 @@ open class NSKeyedUnarchiver : NSCoder {
             return nil
         }
         
+        defer { CFReadStreamClose(readStream) }
+        
         let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(readStream))
         do {
             try root = keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
             keyedUnarchiver.finishDecoding()
         } catch {
         }
-        
-        CFReadStreamClose(readStream)
         
         return root
     }

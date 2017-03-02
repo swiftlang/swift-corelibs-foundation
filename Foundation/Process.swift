@@ -202,6 +202,10 @@ open class Process: NSObject {
     open func launch() {
         
         self.processLaunchedCondition.lock()
+        defer {
+            self.processLaunchedCondition.unlock()
+            self.processLaunchedCondition.broadcast()
+        }
     
         // Dispatch the manager thread if it isn't already running
         
@@ -436,9 +440,6 @@ open class Process: NSObject {
         isRunning = true
         
         self.processIdentifier = pid
-        
-        self.processLaunchedCondition.unlock()
-        self.processLaunchedCondition.broadcast()
     }
     
     open func interrupt() { NSUnimplemented() } // Not always possible. Sends SIGINT.

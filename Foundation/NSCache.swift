@@ -75,10 +75,11 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
         let key = NSCacheKey(key)
         
         _lock.lock()
+        defer { _lock.unlock() }
+        
         if let entry = _entries[key] {
             object = entry.value
         }
-        _lock.unlock()
         
         return object
     }
@@ -192,19 +193,19 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
         let keyRef = NSCacheKey(key)
         
         _lock.lock()
+        defer { _lock.unlock() }
         if let entry = _entries.removeValue(forKey: keyRef) {
             _totalCost -= entry.cost
             remove(entry)
         }
-        _lock.unlock()
     }
     
     open func removeAllObjects() {
         _lock.lock()
+        defer { _lock.unlock() }
         _entries.removeAll()
         _byCost = nil
         _totalCost = 0
-        _lock.unlock()
     }    
 }
 
