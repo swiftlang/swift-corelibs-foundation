@@ -138,7 +138,9 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
                 insert(entry)
             }
         } else {
-            _entries[keyRef] = NSCacheEntry(key: key, value: obj, cost: g)
+            let entry = NSCacheEntry(key: key, value: obj, cost: g)
+            _entries[keyRef] = entry
+            insert(entry)
         }
         _lock.unlock()
         
