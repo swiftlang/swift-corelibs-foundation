@@ -21,7 +21,8 @@ class TestNSCache : XCTestCase {
         return [
             ("test_setWithUnmutableKeys", test_setWithUnmutableKeys),
             ("test_setWithMutableKeys", test_setWithMutableKeys),
-//            ("test_countLimit", test_countLimit),
+            ("test_costLimit", test_costLimit),
+            ("test_countLimit", test_countLimit),
         ]
     }
     
@@ -73,19 +74,36 @@ class TestNSCache : XCTestCase {
         XCTAssertNil(cache.object(forKey: key2), "should be nil")
     }
     
+    func test_costLimit() {
+        let cache = NSCache<NSString, NSString>()
+        cache.totalCostLimit = 10
+        
+        cache.setObject("object0", forKey: "0", cost: 4)
+        cache.setObject("object2", forKey: "2", cost: 5)
+        
+        cache.setObject("object1", forKey: "1", cost: 5)
+        
+        XCTAssertNil(cache.object(forKey: "0"), "should be nil")
+        XCTAssertEqual(cache.object(forKey: "2"), "object2", "should be equal to 'object2'")
+        XCTAssertEqual(cache.object(forKey: "1"), "object1", "should be equal to 'object1'")
+    }
+    
     func test_countLimit() {
         let cache = NSCache<NSString, NSString>()
-        cache.countLimit = 1
+        cache.countLimit = 2
         
         let key1 = NSString(string: "key1")
         let key2 = NSString(string: "key2")
+        let key3 = NSString(string: "key3")
         let value = NSString(string: "value")
         
         cache.setObject(value, forKey: key1)
         cache.setObject(value, forKey: key2)
+        cache.setObject(value, forKey: key3)
         
         XCTAssertEqual(cache.object(forKey: key2), value, "should be equal to \(value)")
+        XCTAssertEqual(cache.object(forKey: key3), value, "should be equal to \(value)")
         XCTAssertNil(cache.object(forKey: key1), "should be nil")
-
+        
     }
 }
