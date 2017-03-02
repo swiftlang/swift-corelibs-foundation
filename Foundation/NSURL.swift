@@ -956,6 +956,12 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
 open class NSURLComponents: NSObject, NSCopying {
     private let _components : CFURLComponentsRef!
     
+     deinit {
+        if let component = _components {
+            __CFURLComponentsDeallocate(component)
+        }
+    }
+
     open override func copy() -> Any {
         return copy(with: nil)
     }
