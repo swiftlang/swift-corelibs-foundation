@@ -84,11 +84,9 @@ open class NSConditionLock : NSObject, NSLocking {
 
     open func unlock() {
         _cond.lock()
-        defer {
-            _cond.broadcast()
-            _cond.unlock()
-        }
         _thread = nil
+        _cond.broadcast()
+        _cond.unlock()
     }
     
     open var condition: Int {
@@ -109,35 +107,35 @@ open class NSConditionLock : NSObject, NSLocking {
 
     open func unlock(withCondition condition: Int) {
         _cond.lock()
-        defer {
-            _cond.broadcast()
-            _cond.unlock()
-        }
         _thread = nil
         _value = condition
+        _cond.broadcast()
+        _cond.unlock()
     }
 
     open func lock(before limit: Date) -> Bool {
         _cond.lock()
-        defer { _cond.unlock() }
         while _thread != nil {
             if !_cond.wait(until: limit) {
+                _cond.unlock()
                 return false
             }
         }
         _thread = pthread_self()
+        _cond.unlock()
         return true
     }
     
     open func lock(whenCondition condition: Int, before limit: Date) -> Bool {
         _cond.lock()
-        defer { _cond.unlock() }
         while _thread != nil || _value != condition {
             if !_cond.wait(until: limit) {
+                _cond.unlock()
                 return false
             }
         }
         _thread = pthread_self()
+        _cond.unlock()
         return true
     }
     
