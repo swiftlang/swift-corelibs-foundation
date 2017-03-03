@@ -982,7 +982,7 @@ fileprivate extension URLSessionTask {
             guard let s = session as? URLSession else { fatalError() }
             s.delegateQueue.addOperation {
                 delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { _ in
-                    print("warning: Ignoring dispotion from completion handler.")
+                    URLSession.printDebug("warning: Ignoring disposition from completion handler.")
                 })
             }
         case .taskDelegate:
