@@ -613,7 +613,11 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     open func checkResourceIsReachableAndReturnError(_ error: UnsafeMutablePointer<NSError?>?) -> Bool {
         guard isFileURL,
             let path = path else {
-            return false
+                if let error = error {
+                    error.pointee = NSError(domain: NSCocoaErrorDomain,
+                                            code: CocoaError.Code.fileNoSuchFile.rawValue)
+                }
+                return false
         }
         
         guard FileManager.default.fileExists(atPath: path) else {
