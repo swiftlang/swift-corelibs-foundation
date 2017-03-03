@@ -28,7 +28,7 @@ extension ByteCountFormatter {
         // Can use any unit in showing the number.
         public static let useAll = Units(rawValue: 0x0FFFF)
     }
-
+    
     public enum CountStyle : Int {
         
         // Specifies display of file or storage byte counts. The actual behavior for this is platform-specific; on OS X 10.8, this uses the decimal style, but that may change over time.
@@ -47,7 +47,7 @@ open class ByteCountFormatter : Formatter {
     }
     
     public required init?(coder: NSCoder) {
-        super.init(coder: coder)
+        NSUnimplemented()
     }
     
     /* Specify the units that can be used in the output. If NSByteCountFormatterUseDefault, uses platform-appropriate settings; otherwise will only use the specified units. This is the default value. Note that ZB and YB cannot be covered by the range of possible values, but you can still choose to use these units to get fractional display ("0.0035 ZB" for instance).
@@ -82,17 +82,17 @@ open class ByteCountFormatter : Formatter {
     /* Specify the formatting context for the formatted string. Default is NSFormattingContextUnknown.
      */
     open var formattingContext: Context = .unknown
-
+    
     /* A variable to store the actual bytes passed into the methods. This value is used if the includesActualByteCount property is set.
-    */
+     */
     private var actualBytes: String = ""
     
     /* Create an instance of NumberFormatter for use in various methods
-    */
+     */
     private let numberFormatter = NumberFormatter()
     
     /* Shortcut for converting a byte count into a string without creating an NSByteCountFormatter and an NSNumber. If you need to specify options other than countStyle, create an instance of NSByteCountFormatter first.
-    */
+     */
     open class func string(fromByteCount byteCount: Int64, countStyle: ByteCountFormatter.CountStyle) -> String {
         let formatter = ByteCountFormatter()
         formatter.countStyle = countStyle
@@ -100,21 +100,13 @@ open class ByteCountFormatter : Formatter {
     }
     
     /* Convenience method on string(for:):. Convert a byte count into a string without creating an NSNumber.
-    */
+     */
     open func string(fromByteCount byteCount: Int64) -> String {
         //Convert actual bytes to a formatted string for use later
-        if includesActualByteCount {
-            numberFormatter.numberStyle = .decimal
-            actualBytes = numberFormatter.string(from: NSNumber(value: byteCount))!
-        }
-        
-        if allowedUnits != .useDefault && allowedUnits != .useAll {
-            if countStyle == .file || countStyle == .decimal {
-                return unitsToUseFor(byteCount: byteCount, byteSize: decimalByteSize)
-            } else {
-                return unitsToUseFor(byteCount: byteCount, byteSize: binaryByteSize)
-            }
-        } else if countStyle == .decimal || countStyle == .file {
+        numberFormatter.numberStyle = .decimal
+        actualBytes = numberFormatter.string(from: NSNumber(value: byteCount))!
+
+        if countStyle == .decimal || countStyle == .file {
             return convertValue(fromByteCount: byteCount, for: decimalByteSize)
         } else {
             return convertValue(fromByteCount: byteCount, for: binaryByteSize)
@@ -131,61 +123,143 @@ open class ByteCountFormatter : Formatter {
         return string(fromByteCount: Int64(value))
     }
     
-    /* If allowedUnits has been set this function will ensure the correct unit is used and conversion is done. The conversion is done by making use of the divide method.
-    */
-    private func unitsToUseFor(byteCount: Int64, byteSize: [Unit: Double]) -> String {
-        let bytes = Double(byteCount)
-        
-        if bytes == 0 {
-            return "Zero \(Unit.KB)"
-        } else if bytes == 1 {
-            return formatNumberFor(bytes: bytes, unit: Unit.byte)
-        }
-        
-        switch allowedUnits {
-        case Units.useBytes: return formatNumberFor(bytes: bytes, unit: Unit.bytes)
-        case Units.useKB: return divide(bytes, by: byteSize, for: .KB)
-        case Units.useMB: return divide(bytes, by: byteSize, for: .MB)
-        case Units.useGB: return divide(bytes, by: byteSize, for: .GB)
-        case Units.useTB: return divide(bytes, by: byteSize, for: .TB)
-        case Units.usePB: return divide(bytes, by: byteSize, for: .PB)
-        case Units.useEB: return divide(bytes, by: byteSize, for: .EB)
-        case Units.useZB: return divide(bytes, by: byteSize, for: .ZB)
-        default: return divide(bytes, by: byteSize, for: .YB)
+    /* This method accepts a byteCount and a byteSize value. Checks to see what range the byteCount falls into and then converts to the units determined by that range. The range to be used is decided by the byteSize parameter. The conversion is done by making use of the divide method.
+     */
+    private func convertValue(fromByteCount byteCount: Int64, for byteSize: [Unit: Double]) -> String {
+        let byte = Double(byteCount)
+        if byte == 0, allowsNonnumericFormatting, allowedUnits == .useDefault, includesUnit, includesCount {
+            return partsToIncludeFor(value: "Zero", unit: Unit.KB)
+        } else if byte == 1 || byte == -1 {
+            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+                return formatNumberFor(bytes: byte, unit: Unit.byte)
+            } else {
+                return valueToUseFor(byteCount: byte, unit: allowedUnits)
+            }
+        } else if  byte < byteSize[Unit.KB]! && byte > -byteSize[Unit.KB]!{
+            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+                return formatNumberFor(bytes: byte, unit: Unit.bytes)
+            } else {
+                return valueToUseFor(byteCount: byte, unit: allowedUnits)
+            }
+        } else if byte < byteSize[Unit.MB]! && byte > -byteSize[Unit.MB]! {
+            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+                return divide(byte, by: byteSize, for: .KB)
+            }
+            return valueToUseFor(byteCount: byte, unit: allowedUnits)
             
+        } else if byte < byteSize[Unit.GB]! && byte > -byteSize[Unit.GB]! {
+            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+                return divide(byte, by: byteSize, for: .MB)
+            }
+            return valueToUseFor(byteCount: byte, unit: allowedUnits)
+            
+        } else if byte < byteSize[Unit.TB]! && byte > -byteSize[Unit.TB]! {
+            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+                return divide(byte, by: byteSize, for: .GB)
+            }
+            return valueToUseFor(byteCount: byte, unit: allowedUnits)
+            
+        } else if byte < byteSize[Unit.PB]! && byte > -byteSize[Unit.PB]! {
+            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+                return divide(byte, by: byteSize, for: .TB)
+            }
+            return valueToUseFor(byteCount: byte, unit: allowedUnits)
+            
+        } else if byte < byteSize[Unit.EB]! && byte > -byteSize[Unit.EB]! {
+            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+                return divide(byte, by: byteSize, for: .PB)
+            }
+            return valueToUseFor(byteCount: byte, unit: allowedUnits)
+            
+        } else {
+            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+                return divide(byte, by: byteSize, for: .EB)
+            }
+            return valueToUseFor(byteCount: byte, unit: allowedUnits)
         }
     }
     
-    /* This method accepts a byteCount and a byteSize value. Checks to see what range the byteCount falls into and then converts to the units determined by that range. The range to be used is decided by the byteSize parameter. The conversion is done by making use of the divide method.
+    /*
+        A helper method to deal with the Option Set, caters for setting an individual value or passing in an array of values.
+        Returns the correct value based on the units that are allowed for use.
     */
-    private func convertValue(fromByteCount byteCount: Int64, for byteSize: [Unit: Double]) -> String {
-        let byte = Double(byteCount)
-        if byte == 0 && allowsNonnumericFormatting {
-            return "Zero \(Unit.KB)"
-        } else if byte == 1 {
-            return "\(byteCount) \(Unit.byte)"
-            
-        } else if  byte < byteSize[Unit.KB]! && byte > -byteSize[Unit.KB]!{
-            return formatNumberFor(bytes: byte, unit: Unit.bytes)
-            
-        } else if byte < byteSize[Unit.MB]! && byte > -byteSize[Unit.MB]! {
-            return divide(byte, by: byteSize, for: .KB)
-            
-        } else if byte < byteSize[Unit.GB]! && byte > -byteSize[Unit.GB]! {
-            return divide(byte, by: byteSize, for: .MB)
-            
-        } else if byte < byteSize[Unit.TB]! && byte > -byteSize[Unit.TB]! {
-            return divide(byte, by: byteSize, for: .GB)
-            
-        } else if byte < byteSize[Unit.PB]! && byte > -byteSize[Unit.PB]! {
-            return divide(byte, by: byteSize, for: .TB)
-            
-        } else if byte < byteSize[Unit.EB]! && byte > -byteSize[Unit.EB]! {
-            return divide(byte, by: byteSize, for: .PB)
-            
+    private func valueToUseFor(byteCount: Double, unit: ByteCountFormatter.Units) -> String {
+        var byteSize: [Unit: Double]
+        
+        //Check to see whether we're using 1000bytes per KB or 1024 per KB
+        if countStyle == .decimal || countStyle == .file {
+            byteSize = decimalByteSize
         } else {
-            return divide(byte, by: byteSize, for: .EB)
+            byteSize = binaryByteSize
         }
+        if byteCount == 0,  allowsNonnumericFormatting, includesCount, includesUnit {
+            return partsToIncludeFor(value: "Zero", unit: Unit.KB)
+        }
+        //Handles the cases where allowedUnits is set to a specific individual value. e.g. allowedUnits = .useTB
+        switch allowedUnits {
+        case Units.useBytes: return partsToIncludeFor(value: actualBytes, unit: Unit.bytes)
+        case Units.useKB: return divide(byteCount, by: byteSize, for: .KB)
+        case Units.useMB: return divide(byteCount, by: byteSize, for: .MB)
+        case Units.useGB: return divide(byteCount, by: byteSize, for: .GB)
+        case Units.useTB: return divide(byteCount, by: byteSize, for: .TB)
+        case Units.usePB: return divide(byteCount, by: byteSize, for: .PB)
+        case Units.useEB: return divide(byteCount, by: byteSize, for: .EB)
+        case Units.useZB: return divide(byteCount, by: byteSize, for: .ZB)
+        case Units.useYBOrHigher: return divide(byteCount, by: byteSize, for: .YB)
+        default: break
+        }
+        
+        //Initialise an array that will hold all the units we can use
+        var unitsToUse: [Unit] = []
+        
+        //Based on what units have been selected for use, build an array out of them.
+        if unit.contains(.useBytes) && byteCount == 1 {
+            unitsToUse.append(.byte)
+        } else if unit.contains(.useBytes) {
+            unitsToUse.append(.bytes)
+        }
+        if unit.contains(.useKB) {
+            unitsToUse.append(.KB)
+        }
+        if unit.contains(.useMB) {
+            unitsToUse.append(.MB)
+        }
+        if unit.contains(.useGB) {
+            unitsToUse.append(.GB)
+        }
+        if unit.contains(.useTB) {
+            unitsToUse.append(.TB)
+        }
+        if unit.contains(.usePB) {
+            unitsToUse.append(.PB)
+        }
+        if unit.contains(.useEB) {
+            unitsToUse.append(.EB)
+        }
+        if unit.contains(.useZB) {
+            unitsToUse.append(.ZB)
+        }
+        if unit.contains(.useYBOrHigher) {
+            unitsToUse.append(.YB)
+        }
+        
+        
+        var counter = 0
+        for _ in unitsToUse {
+            counter += 1
+            if counter > unitsToUse.count - 1 {
+                counter = unitsToUse.count - 1
+            }
+            /*
+                The units are appended to the array in asceding order, so if the value for byteCount is smaller than the byteSize value of the next unit
+                in the Array we use the previous unit. e.g. if byteCount = 1000, and AllowedUnits = [.useKB, .useGB] check to see if byteCount is smaller
+                than a GB in bytes(pow(1000, 3)) and if so, we'll use the previous unit which is KB in this case. 
+            */
+            if byteCount < byteSize[unitsToUse[counter]]! {
+                return divide(byteCount, by: byteSize, for: unitsToUse[counter - 1])
+            }
+        }
+        return divide(byteCount, by: byteSize, for: unitsToUse[counter])
     }
     
     // Coverts the number of bytes to the correct value given a specified unit, then passes the value and unit to formattedValue
@@ -200,36 +274,34 @@ open class ByteCountFormatter : Formatter {
     //Formats the byte value using the NumberFormatter class based on set properties and the unit passed in as a parameter.
     private func formatNumberFor(bytes: Double, unit: Unit) -> String {
         
-        numberFormatter.numberStyle = .decimal
-        
         switch (zeroPadsFractionDigits, isAdaptive) {
         //zeroPadsFractionDigits is true, isAdaptive is true
         case (true, true):
             switch unit {
             case .bytes, .byte, .KB:
-                numberFormatter.minimumFractionDigits = 0
-                numberFormatter.maximumFractionDigits = 0
-                let result = numberFormatter.string(from: NSNumber(value: bytes))
-                return partsToIncludeFor(value: result!, unit: unit)
+                let result = String(format: "%.0f", bytes)
+                return partsToIncludeFor(value: result, unit: unit)
             case .MB:
-                numberFormatter.minimumFractionDigits = 1
-                numberFormatter.maximumFractionDigits = 1
-                let result = numberFormatter.string(from: NSNumber(value: bytes))
-                return partsToIncludeFor(value: result!, unit: unit)
+                let result = String(format: "%.1f", bytes)
+                return partsToIncludeFor(value: result, unit: unit)
             default:
-                numberFormatter.minimumFractionDigits = 2
-                numberFormatter.maximumFractionDigits = 2
-                let result = numberFormatter.string(from: NSNumber(value: bytes))
-                return partsToIncludeFor(value: result!, unit: unit)
+                let result = String(format: "%.2f", bytes)
+                return partsToIncludeFor(value: result, unit: unit)
             }
         //zeroPadsFractionDigits is true, isAdaptive is false
         case (true, false):
             if unit == .byte || unit == .bytes {
-                return partsToIncludeFor(value: "\(bytes)", unit: unit)
+                numberFormatter.maximumFractionDigits = 0
+                let result = numberFormatter.string(from: NSNumber(value: bytes))
+                return partsToIncludeFor(value: result!, unit: unit)
             } else {
-                numberFormatter.usesSignificantDigits = true
-                numberFormatter.minimumSignificantDigits = 3
-                numberFormatter.maximumSignificantDigits = 3
+                if lengthOfInt(number: Int(bytes)) == 3 {
+                    numberFormatter.maximumFractionDigits = 1
+                } else {
+                    numberFormatter.usesSignificantDigits = true
+                    numberFormatter.maximumSignificantDigits = 3
+                    numberFormatter.minimumSignificantDigits = 3
+                }
                 let result = numberFormatter.string(from: NSNumber(value: bytes))
                 return partsToIncludeFor(value: result!, unit: unit)
             }
@@ -247,23 +319,52 @@ open class ByteCountFormatter : Formatter {
                 let result = numberFormatter.string(from: NSNumber(value: bytes))
                 return partsToIncludeFor(value: result!, unit: unit)
             default:
-                numberFormatter.minimumFractionDigits = 0
-                numberFormatter.maximumFractionDigits = 2
-                let result = numberFormatter.string(from: NSNumber(value: bytes))
-                return partsToIncludeFor(value: result!, unit: unit)
+                let result: String
+                //Need to add in an extra case for negative numbers as NumberFormatter formats 0.005 to 0 rather than
+                // 0.01
+                if bytes < 0 {
+                    let negBytes = round(bytes * 100) / 100
+                    result = numberFormatter.string(from: NSNumber(value: negBytes))!
+                } else {
+                    numberFormatter.minimumFractionDigits = 0
+                    numberFormatter.maximumFractionDigits = 2
+                    result = numberFormatter.string(from: NSNumber(value: bytes))!
+                }
+                
+                
+                return partsToIncludeFor(value: result, unit: unit)
             }
         //zeroPadsFractionDigits is false, isAdaptive is false
         case (false, false):
             if unit == .byte || unit == .bytes {
-                return partsToIncludeFor(value: "\(bytes)", unit: unit)
+                numberFormatter.minimumFractionDigits = 0
+                numberFormatter.maximumFractionDigits = 0
+                let result = numberFormatter.string(from: NSNumber(value: bytes))
+                return partsToIncludeFor(value: result!, unit: unit)
             } else {
-                numberFormatter.usesSignificantDigits = true
-                numberFormatter.minimumSignificantDigits = 3
-                numberFormatter.maximumSignificantDigits = 3
+                if lengthOfInt(number: Int(bytes)) > 3 {
+                    numberFormatter.maximumFractionDigits = 0
+                } else {
+                    numberFormatter.usesSignificantDigits = true
+                    numberFormatter.maximumSignificantDigits = 3
+                }
                 let result = numberFormatter.string(from: NSNumber(value: bytes))
                 return partsToIncludeFor(value: result!, unit: unit)
             }
         }
+    }
+    
+    // A helper method to return the length of an int
+    private func lengthOfInt(number: Int) -> Int {
+        var num = abs(number)
+        var length: [Int] = []
+        
+        while num > 0 {
+            let remainder = num % 10
+            length.append(remainder)
+            num /= 10
+        }
+        return length.count
     }
     
     // Returns the correct string based on the includesValue and includesUnit properties
@@ -276,7 +377,11 @@ open class ByteCountFormatter : Formatter {
         } else if includesCount, includesUnit {
             return "\(value) \(unit)"
         } else if includesCount, !includesUnit {
-            return "\(value)"
+            if value == "Zero", allowedUnits == .useDefault {
+                return "0"
+            } else {
+                return value
+            }
         } else if !includesCount, includesUnit {
             return "\(unit)"
         } else {
@@ -298,10 +403,9 @@ open class ByteCountFormatter : Formatter {
         case YB
     }
     // Maps each unit to it's corresponding value in bytes for decimal
-    private let decimalByteSize: [Unit: Double] = [.byte: 1, .KB: 1000, .MB: pow(1000, 2), .GB: pow(1000, 3), .TB: pow(1000, 4), .PB: pow(1000, 5), .EB: pow(1000, 6), .ZB: pow(1000, 7), .YB: pow(1000, 8)]
+    private let decimalByteSize: [Unit: Double] = [.byte: 1, .bytes: 1, .KB: 1000, .MB: pow(1000, 2), .GB: pow(1000, 3), .TB: pow(1000, 4), .PB: pow(1000, 5), .EB: pow(1000, 6), .ZB: pow(1000, 7), .YB: pow(1000, 8)]
     
     // Maps each unit to it's corresponding value in bytes for binary
-    private let binaryByteSize: [Unit: Double] = [.byte: 1, .KB: 1024, .MB: pow(1024, 2), .GB: pow(1024, 3), .TB: pow(1024, 4), .PB: pow(1024, 5), .EB: pow(1024, 6), .ZB: pow(1024, 7), .YB: pow(1024, 8)]
+    private let binaryByteSize: [Unit: Double] = [.byte: 1, .bytes: 1, .KB: 1024, .MB: pow(1024, 2), .GB: pow(1024, 3), .TB: pow(1024, 4), .PB: pow(1024, 5), .EB: pow(1024, 6), .ZB: pow(1024, 7), .YB: pow(1024, 8)]
     
-    }
-
+}
