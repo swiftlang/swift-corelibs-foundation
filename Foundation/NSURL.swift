@@ -611,7 +611,14 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     open func checkResourceIsReachable() throws -> Bool {
-        NSUnimplemented()
+        var unmanagedError: Unmanaged<CFError>?
+        return try withUnsafeMutablePointer(to: &unmanagedError) { unmanagedCFError in
+            let isReachable = CFURLResourceIsReachable(_cfObject, unmanagedCFError)
+            if let error = unmanagedCFError.pointee {
+                throw error.takeRetainedValue()._nsObject
+            }
+            return isReachable
+        }
     }
 
     /* Returns a file path URL that refers to the same resource as a specified URL. File path URLs use a file system style path. An error will occur if the url parameter is not a file URL. A file reference URL's resource must exist and be reachable to be converted to a file path URL. Symbol is present in iOS 4, but performs no operation.
