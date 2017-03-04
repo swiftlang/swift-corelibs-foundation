@@ -954,6 +954,9 @@ open class NSMutableData : NSData {
             let bytePtr = replacementBytes.bindMemory(to: UInt8.self, capacity: replacementLength)
             CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
         }
+        else {
+            CFDataDeleteBytes(_cfMutableObject, CFRangeMake(range.location, range.length))
+        }
     }
 }
 
