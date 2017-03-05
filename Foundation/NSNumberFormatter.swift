@@ -193,7 +193,6 @@ open class NumberFormatter : Formatter {
                 _minimumFractionDigits = 2
                 
             case .decimal:
-                _usesSignificantDigits = false
                 _usesGroupingSeparator = true
                 _maximumFractionDigits = 3
                 _minimumIntegerDigits = 1
@@ -783,6 +782,7 @@ open class NumberFormatter : Formatter {
         }
         set {
             _reset()
+            _usesSignificantDigits = true
             _minimumSignificantDigits = newValue
         }
     }
@@ -794,6 +794,7 @@ open class NumberFormatter : Formatter {
         }
         set {
             _reset()
+            _usesSignificantDigits = true
             _maximumSignificantDigits = newValue
         }
     }

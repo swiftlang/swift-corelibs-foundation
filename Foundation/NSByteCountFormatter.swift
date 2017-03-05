@@ -296,9 +296,9 @@ open class ByteCountFormatter : Formatter {
                 return partsToIncludeFor(value: result!, unit: unit)
             } else {
                 if lengthOfInt(number: Int(bytes)) == 3 {
+                    numberFormatter.usesSignificantDigits = false
                     numberFormatter.maximumFractionDigits = 1
                 } else {
-                    numberFormatter.usesSignificantDigits = true
                     numberFormatter.maximumSignificantDigits = 3
                     numberFormatter.minimumSignificantDigits = 3
                 }
@@ -345,7 +345,6 @@ open class ByteCountFormatter : Formatter {
                 if lengthOfInt(number: Int(bytes)) > 3 {
                     numberFormatter.maximumFractionDigits = 0
                 } else {
-                    numberFormatter.usesSignificantDigits = true
                     numberFormatter.maximumSignificantDigits = 3
                 }
                 let result = numberFormatter.string(from: NSNumber(value: bytes))
