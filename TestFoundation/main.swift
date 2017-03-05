@@ -25,6 +25,7 @@ XCTMain([
     testCase(TestNSArray.allTests),
     testCase(TestNSBundle.allTests),
     testCase(TestNSByteCountFormatter.allTests),
+    testCase(TestNSCache.allTests),
     testCase(TestNSCalendar.allTests),
     testCase(TestNSCharacterSet.allTests),
     testCase(TestNSCompoundPredicate.allTests),
