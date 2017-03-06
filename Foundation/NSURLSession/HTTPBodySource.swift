@@ -81,7 +81,7 @@ extension _HTTPBodyDataSource : _HTTPBodySource {
             return .done
         } else if remaining <= length {
             let r: DispatchData! = data
-            data = nil
+            data = DispatchData.empty 
             return .data(r)
         } else {
             let (chunk, remainder) = splitData(dispatchData: data, atPosition: length)
