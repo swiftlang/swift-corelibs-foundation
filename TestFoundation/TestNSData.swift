@@ -87,6 +87,7 @@ class TestNSData: XCTestCase {
             ("test_rangeOfData",test_rangeOfData),
             ("test_initMutableDataWithLength", test_initMutableDataWithLength),
             ("test_replaceBytes", test_replaceBytes),
+            ("test_replaceBytesWithNil", test_replaceBytesWithNil),
             ("test_initDataWithCapacity", test_initDataWithCapacity),
             ("test_initDataWithCount", test_initDataWithCount),
             ("test_emptyStringToData", test_emptyStringToData),
@@ -423,6 +424,17 @@ class TestNSData: XCTestCase {
         mData.replaceBytes(in: NSMakeRange(1, 3), withBytes: replacement.bytes,
             length: 3)
         let expected = makeData([0, 8, 9, 10, 0])
+        XCTAssertEqual(mData, expected)
+    }
+
+    func test_replaceBytesWithNil() {
+        func makeData(_ data: [UInt8]) -> NSMutableData {
+            return NSMutableData(bytes: data, length: data.count)
+        }
+
+        let mData = makeData([1, 2, 3, 4, 5])
+        mData.replaceBytes(in: NSMakeRange(1, 3), withBytes: nil, length: 0)
+        let expected = makeData([1, 5])
         XCTAssertEqual(mData, expected)
     }
 

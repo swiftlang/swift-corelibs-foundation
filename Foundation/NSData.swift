@@ -950,10 +950,8 @@ open class NSMutableData : NSData {
     }
     
     open func replaceBytes(in range: NSRange, withBytes replacementBytes: UnsafeRawPointer?, length replacementLength: Int) {
-        if let replacementBytes = replacementBytes {
-            let bytePtr = replacementBytes.bindMemory(to: UInt8.self, capacity: replacementLength)
-            CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
-        }
+        let bytePtr = replacementBytes?.bindMemory(to: UInt8.self, capacity: replacementLength)
+        CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
     }
 }
 
