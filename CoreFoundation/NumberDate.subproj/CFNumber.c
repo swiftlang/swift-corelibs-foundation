@@ -82,6 +82,7 @@ CFTypeID CFBooleanGetTypeID(void) {
 
 Boolean CFBooleanGetValue(CFBooleanRef boolean) {
     CF_OBJC_FUNCDISPATCHV(CFBooleanGetTypeID(), Boolean, (NSNumber *)boolean, boolValue);
+    CF_SWIFT_FUNCDISPATCHV(CFBooleanGetTypeID(), Boolean, (CFSwiftRef)boolean, NSNumber.boolValue);
     return (boolean == kCFBooleanTrue) ? true : false;
 }
 
@@ -1063,6 +1064,10 @@ CF_PRIVATE void __CFNumberInitialize(void) {
     _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64One, __kCFNumberTypeID);
     __CFBitfieldSetValue(__kCFNumberFloat64One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
     __kCFNumberFloat64One._pad = BITSFORDOUBLEONE;
+#if DEPLOYMENT_RUNTIME_SWIFT
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFBooleanTrue, __kCFBooleanTypeID);
+    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFBooleanFalse, __kCFBooleanTypeID);
+#endif
 }
 
 CFTypeID CFNumberGetTypeID(void) {
@@ -1256,6 +1261,7 @@ CFLog(kCFLogLevelWarning, CFSTR("+++ Create old number '%@'"), __CFNumberCopyDes
 CFNumberType CFNumberGetType(CFNumberRef number) {
 //printf("+ [%p] CFNumberGetType(%p)\n", pthread_self(), number);
     CF_OBJC_FUNCDISPATCHV(CFNumberGetTypeID(), CFNumberType, (NSNumber *)number, _cfNumberType);
+    CF_SWIFT_FUNCDISPATCHV(CFNumberGetTypeID(), CFNumberType, (CFSwiftRef)number, NSNumber._cfNumberGetType);
     __CFAssertIsNumber(number);
     CFNumberType type = __CFNumberGetType(number);
     if (kCFNumberSInt128Type == type) type = kCFNumberSInt64Type; // must hide this type, since it is not public
@@ -1275,6 +1281,7 @@ CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in CFNumberGetType: '%d' '%d'"), 
 
 CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number) {
     CF_OBJC_FUNCDISPATCHV(CFNumberGetTypeID(), CFNumberType, (NSNumber *)number, _cfNumberType);
+    CF_SWIFT_FUNCDISPATCHV(CFNumberGetTypeID(), CFNumberType, (CFSwiftRef)number, NSNumber._cfNumberGetType);
     __CFAssertIsNumber(number);
     return __CFNumberGetType(number);
 }
@@ -1319,6 +1326,7 @@ Boolean CFNumberGetValue(CFNumberRef number, CFNumberType type, void *valuePtr) 
 //printf("+ [%p] CFNumberGetValue(%p, %d, %p)\n", pthread_self(), number, type, valuePtr);
 
     CF_OBJC_FUNCDISPATCHV(CFNumberGetTypeID(), Boolean, (NSNumber *)number, _getValue:(void *)valuePtr forType:(CFNumberType)__CFNumberTypeTable[type].canonicalType);
+    CF_SWIFT_FUNCDISPATCHV(CFNumberGetTypeID(), Boolean, (CFSwiftRef)number, NSNumber._getValue, valuePtr, (CFNumberType)__CFNumberTypeTable[type].canonicalType);
     __CFAssertIsNumber(number);
     __CFAssertIsValidNumberType(type);
     uint8_t localMemory[128];

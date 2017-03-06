@@ -10,6 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import CoreFoundation
+
 // Support protocols for casting
 public protocol _ObjectBridgeable {
     func _bridgeToAnyObject() -> AnyObject
@@ -83,7 +85,11 @@ internal final class _SwiftValue : NSObject, NSCopying {
     }
     
     static func fetch(nonOptional object: AnyObject) -> Any {
-        if let container = object as? _SwiftValue {
+        if object === kCFBooleanTrue {
+            return true
+        } else if object === kCFBooleanFalse {
+            return false
+        } else if let container = object as? _SwiftValue {
             return container.value
         } else if let val = object as? _StructBridgeable {
             return val._bridgeToAny()

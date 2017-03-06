@@ -720,7 +720,7 @@ open class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
-    internal func _decodePropertyListForKey(_ key: String) -> Any {
+    internal func _decodePropertyListForKey(_ key: String) -> Any? {
         NSRequiresConcreteImplementation()
     }
 }
