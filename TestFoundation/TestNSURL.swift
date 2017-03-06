@@ -450,19 +450,30 @@ class TestNSURL : XCTestCase {
             XCTFail()
         }
         
-        var nsURL: NSURL? = NSURL(fileURLWithPath: "/usr")
-        var error: NSError?
-        XCTAssertEqual(true, nsURL?.checkResourceIsReachableAndReturnError(&error))
-        XCTAssertNil(error)
+        var nsURL = NSURL(fileURLWithPath: "/usr")
+        XCTAssertEqual(true, try? nsURL.checkResourceIsReachable())
         
-        nsURL = NSURL(string: "https://www.swift.org")
-        XCTAssertEqual(false, nsURL?.checkResourceIsReachableAndReturnError(&error))
-        XCTAssertNotNil(error)
-        error = nil
+        nsURL = NSURL(string: "https://www.swift.org")!
+        do {
+            _ = try nsURL.checkResourceIsReachable()
+            XCTFail()
+        } catch let error as NSError {
+            XCTAssertEqual(NSCocoaErrorDomain, error.domain)
+            XCTAssertEqual(CocoaError.Code.fileNoSuchFile.rawValue, error.code)
+        } catch {
+            XCTFail()
+        }
         
         nsURL = NSURL(fileURLWithPath: "/some_random_path")
-        XCTAssertEqual(false, nsURL?.checkResourceIsReachableAndReturnError(&error))
-        XCTAssertNotNil(error)
+        do {
+            _ = try nsURL.checkResourceIsReachable()
+            XCTFail()
+        } catch let error as NSError {
+            XCTAssertEqual(NSCocoaErrorDomain, error.domain)
+            XCTAssertEqual(CocoaError.Code.fileReadNoSuchFile.rawValue, error.code)
+        } catch {
+            XCTFail()
+        }
     }
 
     func test_copy() {

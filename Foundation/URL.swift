@@ -931,14 +931,7 @@ public struct URL : ReferenceConvertible, Equatable {
     ///
     /// This method synchronously checks if the resource's backing store is reachable. Checking reachability is appropriate when making decisions that do not require other immediate operations on the resource, e.g. periodic maintenance of UI state that depends on the existence of a specific document. When performing operations such as opening a file or copying resource properties, it is more efficient to simply try the operation and handle failures. This method is currently applicable only to URLs for file system resources. For other URL types, `false` is returned.
     public func checkResourceIsReachable() throws -> Bool {
-        var error: NSError?
-        let result = _url.checkResourceIsReachableAndReturnError(&error)
-        
-        guard error == nil else {
-            throw error!
-        }
-        
-        return result
+        return try _url.checkResourceIsReachable()
     }
     
     // MARK: - Bridging Support

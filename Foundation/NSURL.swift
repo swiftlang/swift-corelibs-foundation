@@ -610,25 +610,23 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open func checkResourceIsReachableAndReturnError(_ error: UnsafeMutablePointer<NSError?>?) -> Bool {
+    // TODO: should be `checkResourceIsReachableAndReturnError` with autoreleased error parameter.
+    // Currently Autoreleased pointers is not supported on Linux.
+    open func checkResourceIsReachable() throws -> Bool {
         guard isFileURL,
             let path = path else {
-                if let error = error {
-                    error.pointee = NSError(domain: NSCocoaErrorDomain,
-                                            code: CocoaError.Code.fileNoSuchFile.rawValue)
-                }
-                return false
+                throw NSError(domain: NSCocoaErrorDomain,
+                              code: CocoaError.Code.fileNoSuchFile.rawValue)
+                //return false
         }
         
         guard FileManager.default.fileExists(atPath: path) else {
-            if let error = error {
-                error.pointee = NSError(domain: NSCocoaErrorDomain,
-                                        code: CocoaError.Code.fileReadNoSuchFile.rawValue,
-                                        userInfo: [
-                                            "NSURL" : self,
-                                            "NSFilePath" : path])
-            }
-            return false
+            throw NSError(domain: NSCocoaErrorDomain,
+                          code: CocoaError.Code.fileReadNoSuchFile.rawValue,
+                          userInfo: [
+                            "NSURL" : self,
+                            "NSFilePath" : path])
+            //return false
         }
         
         return true
