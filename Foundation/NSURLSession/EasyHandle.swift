@@ -56,6 +56,8 @@ internal final class _EasyHandle {
     fileprivate var headerList: _CurlStringList?
     fileprivate var pauseState: _PauseState = []
     internal var fileLength: Int64 = 0
+    internal var timeoutTimer: _TimeoutSource!
+
     init(delegate: _EasyHandleDelegate) {
         self.delegate = delegate
         setupCallbacks()
@@ -394,6 +396,13 @@ fileprivate extension _EasyHandle {
 }
 
 fileprivate extension _EasyHandle {
+
+    func resetTimer() {
+        //simply create a new timer with the same queue, timeout and handler
+        //this must cancel the old handler and reset the timer
+        timeoutTimer = _TimeoutSource(queue: timeoutTimer.queue, milliseconds: timeoutTimer.milliseconds, handler: timeoutTimer.handler)
+    }
+
     /// Forward the libcurl callbacks into Swift methods
     func setupCallbacks() {
         // write
@@ -401,24 +410,33 @@ fileprivate extension _EasyHandle {
         
         try! CFURLSession_easy_setopt_wc(rawHandle, CFURLSessionOptionWRITEFUNCTION) { (data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, userdata: UnsafeMutableRawPointer?) -> Int in
             guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            defer {
+                handle.resetTimer()
+            }
             return handle.didReceive(data: data, size: size, nmemb: nmemb)
-            }.asError()
+        }.asError()
         
         // read
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionREADDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_wc(rawHandle, CFURLSessionOptionREADFUNCTION) { (data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, userdata: UnsafeMutableRawPointer?) -> Int in
             guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            defer {
+                handle.resetTimer()
+            }
             return handle.fill(writeBuffer: data, size: size, nmemb: nmemb)
-            }.asError()
+        }.asError()
          
         // header
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionHEADERDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_wc(rawHandle, CFURLSessionOptionHEADERFUNCTION) { (data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, userdata: UnsafeMutableRawPointer?) -> Int in
             guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            defer {
+                handle.resetTimer()
+            }
             var length = Double()
             try! CFURLSession_easy_getinfo_double(handle.rawHandle, CFURLSessionInfoCONTENT_LENGTH_DOWNLOAD, &length).asError()
             return handle.didReceive(headerData: data, size: size, nmemb: nmemb, fileLength: length)
-            }.asError()
+        }.asError()
 
         // socket options
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionSOCKOPTDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
@@ -431,7 +449,7 @@ fileprivate extension _EasyHandle {
             } catch {
                 return 1
             }
-            }.asError()
+        }.asError()
         // seeking in input stream
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionSEEKDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_seek(rawHandle, CFURLSessionOptionSEEKFUNCTION, { (userdata, offset, origin) -> Int32 in
