@@ -27,6 +27,9 @@ internal let kCFNumberDoubleType = CFNumberType.doubleType
 internal let kCFNumberCFIndexType = CFNumberType.cfIndexType
 internal let kCFNumberNSIntegerType = CFNumberType.nsIntegerType
 internal let kCFNumberCGFloatType = CFNumberType.cgFloatType
+internal let kCFNumberSInt128Type = CFNumberType(rawValue: 17)!
+#else
+internal let kCFNumberSInt128Type: CFNumberType = 17
 #endif
 
 extension Int : _ObjectTypeBridgeable {
@@ -160,7 +163,7 @@ extension Bool : _ObjectTypeBridgeable {
     
     public typealias _ObjectType = NSNumber
     public func _bridgeToObjectiveC() -> _ObjectType {
-        return NSNumber(value: self)
+        return unsafeBitCast(self ? kCFBooleanTrue : kCFBooleanFalse, to: NSNumber.self)
     }
     
     static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Bool?) {
@@ -520,6 +523,94 @@ open class NSNumber : NSValue {
     open override var description: String {
         return description(withLocale: nil)
     }
+    
+    internal func _cfNumberType() -> CFNumberType {
+        switch objCType.pointee {
+        case 0x42: return kCFNumberCharType
+        case 0x63: return kCFNumberCharType
+        case 0x43: return kCFNumberShortType
+        case 0x73: return kCFNumberShortType
+        case 0x53: return kCFNumberIntType
+        case 0x69: return kCFNumberIntType
+        case 0x49: return Int(uint32Value) < Int(Int32.max) ? kCFNumberIntType : kCFNumberLongLongType
+        case 0x6C: return kCFNumberLongType
+        case 0x4C: return uintValue < UInt(Int.max) ? kCFNumberLongType : kCFNumberLongLongType
+        case 0x66: return kCFNumberFloatType
+        case 0x64: return kCFNumberDoubleType
+        case 0x71: return kCFNumberLongLongType
+        case 0x51: return kCFNumberLongLongType
+        default: fatalError()
+        }
+    }
+    
+    internal func _getValue(_ valuePtr: UnsafeMutableRawPointer, forType type: CFNumberType) -> Bool {
+        switch type {
+        case kCFNumberSInt8Type:
+            valuePtr.assumingMemoryBound(to: Int8.self).pointee = int8Value
+            break
+        case kCFNumberSInt16Type:
+            valuePtr.assumingMemoryBound(to: Int16.self).pointee = int16Value
+            break
+        case kCFNumberSInt32Type:
+            valuePtr.assumingMemoryBound(to: Int32.self).pointee = int32Value
+            break
+        case kCFNumberSInt64Type:
+            valuePtr.assumingMemoryBound(to: Int64.self).pointee = int64Value
+            break
+        case kCFNumberSInt128Type:
+            struct CFSInt128Struct {
+                var high: Int64
+                var low: UInt64
+            }
+            let val = int64Value
+            valuePtr.assumingMemoryBound(to: CFSInt128Struct.self).pointee = CFSInt128Struct.init(high: (val < 0) ? -1 : 0, low: UInt64(bitPattern: val))
+            break
+        case kCFNumberFloat32Type:
+            valuePtr.assumingMemoryBound(to: Float.self).pointee = floatValue
+            break
+        case kCFNumberFloat64Type:
+            valuePtr.assumingMemoryBound(to: Double.self).pointee = doubleValue
+        default: fatalError()
+        }
+        return true
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        if !aCoder.allowsKeyedCoding {
+            NSUnimplemented()
+        } else {
+            if let keyedCoder = aCoder as? NSKeyedArchiver {
+                keyedCoder._encodePropertyList(self)
+            } else {
+                if CFGetTypeID(self) == CFBooleanGetTypeID() {
+                    aCoder.encode(boolValue, forKey: "NS.boolval")
+                } else {
+                    switch objCType.pointee {
+                    case 0x42:
+                        aCoder.encode(boolValue, forKey: "NS.boolval")
+                        break
+                    case 0x63: fallthrough
+                    case 0x43: fallthrough
+                    case 0x73: fallthrough
+                    case 0x53: fallthrough
+                    case 0x69: fallthrough
+                    case 0x49: fallthrough
+                    case 0x6C: fallthrough
+                    case 0x4C: fallthrough
+                    case 0x71: fallthrough
+                    case 0x51:
+                        aCoder.encode(int64Value, forKey: "NS.intval")
+                    case 0x66: fallthrough
+                    case 0x64:
+                        aCoder.encode(doubleValue, forKey: "NS.dblval")
+                    default: break
+                    }
+                }
+            }
+        }
+    }
+    
+    open override var classForCoder: AnyClass { return NSNumber.self }
 }
 
 extension CFNumber : _NSBridgeable {
@@ -527,3 +618,14 @@ extension CFNumber : _NSBridgeable {
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 
+internal func _CFSwiftNumberGetType(_ obj: CFTypeRef) -> CFNumberType {
+    return unsafeBitCast(obj, to: NSNumber.self)._cfNumberType()
+}
+
+internal func _CFSwiftNumberGetValue(_ obj: CFTypeRef, _ valuePtr: UnsafeMutableRawPointer, _ type: CFNumberType) -> Bool {
+    return unsafeBitCast(obj, to: NSNumber.self)._getValue(valuePtr, forType: type)
+}
+
+internal func _CFSwiftNumberGetBoolValue(_ obj: CFTypeRef) -> Bool {
+    return unsafeBitCast(obj, to: NSNumber.self).boolValue
+}

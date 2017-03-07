@@ -460,7 +460,7 @@ open class NSKeyedArchiver : NSCoder {
         guard let obj = objv else { return false }
         if obj is String { return false }
         guard let nsObject = obj as? NSObject else { return true }
-        return !(type(of: nsObject) === NSString.self || type(of: nsObject) === NSNumber.self || type(of: nsObject) === NSData.self)
+        return !(nsObject.classForCoder === NSString.self || nsObject.classForCoder === NSNumber.self || nsObject.classForCoder === NSData.self)
     }
    
     /**

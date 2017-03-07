@@ -224,6 +224,12 @@ struct _NSMutableCharacterSetBridge {
     void (*_Nonnull invert)(CFTypeRef cset);
 };
 
+struct _NSNumberBridge {
+    CFNumberType (*_Nonnull _cfNumberGetType)(CFTypeRef number);
+    bool (*_Nonnull boolValue)(CFTypeRef number);
+    bool (*_Nonnull _getValue)(CFTypeRef number, void *value, CFNumberType type);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -238,6 +244,7 @@ struct _CFSwiftBridge {
     struct _NSRunLoop NSRunLoop;
     struct _NSCharacterSetBridge NSCharacterSet;
     struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
+    struct _NSNumberBridge NSNumber;
 };
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
