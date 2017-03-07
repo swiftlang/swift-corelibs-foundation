@@ -33,7 +33,7 @@ class TestURLSession : XCTestCase {
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
             ("test_cancelTask", test_cancelTask),
-//            ("test_taskTimeout", test_taskTimeout),
+            ("test_taskTimeout", test_taskTimeout),
         ]
     }
 
@@ -47,7 +47,7 @@ class TestURLSession : XCTestCase {
                 try test.readAndRespond()
                 test.stop()
             } catch let e as ServerError {
-                if e.operation != "bind" { continue }
+                if e.operation == "bind" { continue }
                 throw e
             }
         }
