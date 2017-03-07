@@ -468,7 +468,7 @@ extension TestNSJSONSerialization {
                 XCTAssertEqual(result?[1] as? Int,       -1)
                 XCTAssertEqual(result?[2] as? Double,   1.3)
                 XCTAssertEqual(result?[3] as? Double,  -1.3)
-                XCTAssertEqual(result?[4] as? Double,  1000)
+                XCTAssertEqual(result?[4] as? Int,     1000)
                 XCTAssertEqual(result?[5] as? Double, 0.001)
             }
         } catch {
@@ -871,6 +871,7 @@ extension TestNSJSONSerialization {
             ("test_jsonObjectToOutputStreamInsufficientBuffer", test_jsonObjectToOutputStreamInsufficientBuffer),
             ("test_booleanJSONObject", test_booleanJSONObject),
             ("test_serialize_dictionaryWithDecimal", test_serialize_dictionaryWithDecimal),
+            ("test_serializeDecimalNumberJSONObject", test_serializeDecimalNumberJSONObject),
         ]
     }
 
@@ -1212,6 +1213,22 @@ extension TestNSJSONSerialization {
             XCTFail("Failed during serialization")
         }
         XCTAssertTrue(JSONSerialization.isValidJSONObject([true]))
+    }
+
+    func test_serializeDecimalNumberJSONObject() {
+        let decimalArray = "[12.1,10.0,0.0,0.0001,20,\(Int.max)]"
+        do {
+            let data = decimalArray.data(using: String.Encoding.utf8)
+            let result = try JSONSerialization.jsonObject(with: data!, options: []) as? [Any]
+            XCTAssertEqual(result?[0] as! Double, 12.1)
+            XCTAssertEqual(result?[1] as! Int, 10)
+            XCTAssertEqual(result?[2] as! Int, 0)
+            XCTAssertEqual(result?[3] as! Double, 0.0001)
+            XCTAssertEqual(result?[4] as! Int, 20)
+            XCTAssertEqual(result?[5] as! Int, Int.max)
+        } catch {
+            XCTFail("Failed during serialization")
+        }
     }
 
     fileprivate func createTestFile(_ path: String,_contents: Data) -> String? {
