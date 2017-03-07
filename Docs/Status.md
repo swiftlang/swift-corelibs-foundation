@@ -100,7 +100,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `MassFormatter`                 | Unimplemented   | None          |                                                                                           |
     | `NumberFormatter`               | Mostly Complete | Substantial   | `objectValue(_:range:)` remains unimplemented                                             |
     | `PersonNameComponentsFormatter` | Unimplemented   | None          |                                                                                           |
-    | `ByteCountFormatter`            | Unimplemented   | Incomplete    |                                                                                           |
+    | `ByteCountFormatter`            | Mostly Complete | Substantial   | `init?(coder:)` remains unimplemented                                                     |
     | `DateFormatter`                 | Mostly Complete | Incomplete    | `objectValue(_:range:)` remain unimplemented 										 |
     | `Formatter`                     | Complete        | N/A           |                                                                                           |
     | `MeasurementFormatter`          | Unimplemented   | None          |                                                                                           |
