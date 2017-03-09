@@ -87,58 +87,266 @@ extension TestNSJSONSerialization {
 
 //MARK: - JSONDeserialization
 extension TestNSJSONSerialization {
-    
+
+    enum ObjectType {
+        case data
+        case stream
+    }
+    static var objectType = ObjectType.data
+
     class var deserializationTests: [(String, (TestNSJSONSerialization) -> () throws -> Void)] {
         return [
-            ("test_deserialize_emptyObject", test_deserialize_emptyObject),
-            ("test_deserialize_multiStringObject", test_deserialize_multiStringObject),
-            
-            ("test_deserialize_emptyArray", test_deserialize_emptyArray),
-            ("test_deserialize_multiStringArray", test_deserialize_multiStringArray),
-            ("test_deserialize_unicodeString", test_deserialize_unicodeString),
-            ("test_deserialize_stringWithSpacesAtStart", test_deserialize_stringWithSpacesAtStart),
-            
-            
-            ("test_deserialize_values", test_deserialize_values),
-            ("test_deserialize_numbers", test_deserialize_numbers),
-            
-            ("test_deserialize_simpleEscapeSequences", test_deserialize_simpleEscapeSequences),
-            ("test_deserialize_unicodeEscapeSequence", test_deserialize_unicodeEscapeSequence),
-            ("test_deserialize_unicodeSurrogatePairEscapeSequence", test_deserialize_unicodeSurrogatePairEscapeSequence),
-            // Disabled due to uninitialized memory SR-606
-            // ("test_deserialize_allowFragments", test_deserialize_allowFragments),
-            
-            ("test_deserialize_unterminatedObjectString", test_deserialize_unterminatedObjectString),
-            ("test_deserialize_missingObjectKey", test_deserialize_missingObjectKey),
-            ("test_deserialize_unexpectedEndOfFile", test_deserialize_unexpectedEndOfFile),
-            ("test_deserialize_invalidValueInObject", test_deserialize_invalidValueInObject),
-            ("test_deserialize_invalidValueIncorrectSeparatorInObject", test_deserialize_invalidValueIncorrectSeparatorInObject),
-            ("test_deserialize_invalidValueInArray", test_deserialize_invalidValueInArray),
-            ("test_deserialize_badlyFormedArray", test_deserialize_badlyFormedArray),
-            ("test_deserialize_invalidEscapeSequence", test_deserialize_invalidEscapeSequence),
-            ("test_deserialize_unicodeMissingTrailingSurrogate", test_deserialize_unicodeMissingTrailingSurrogate),
-            ("test_serialize_dictionaryWithDecimal", test_serialize_dictionaryWithDecimal),
+            //Deserialization with Data
+            ("test_deserialize_emptyObject_withData", test_deserialize_emptyObject_withData),
+            ("test_deserialize_multiStringObject_withData", test_deserialize_multiStringObject_withData),
 
+            ("test_deserialize_emptyArray_withData", test_deserialize_emptyArray_withData),
+            ("test_deserialize_multiStringArray_withData", test_deserialize_multiStringArray_withData),
+            ("test_deserialize_unicodeString_withData", test_deserialize_unicodeString_withData),
+            ("test_deserialize_stringWithSpacesAtStart_withData", test_deserialize_stringWithSpacesAtStart_withData),
+
+
+            ("test_deserialize_values_withData", test_deserialize_values_withData),
+            ("test_deserialize_numbers_withData", test_deserialize_numbers_withData),
+
+            ("test_deserialize_simpleEscapeSequences_withData", test_deserialize_simpleEscapeSequences_withData),
+            ("test_deserialize_unicodeEscapeSequence_withData", test_deserialize_unicodeEscapeSequence_withData),
+            ("test_deserialize_unicodeSurrogatePairEscapeSequence_withData", test_deserialize_unicodeSurrogatePairEscapeSequence_withData),
+            // Disabled due to uninitialized memory SR-606
+            // ("test_deserialize_allowFragments_withData", test_deserialize_allowFragments_withData),
+
+            ("test_deserialize_unterminatedObjectString_withData", test_deserialize_unterminatedObjectString_withData),
+            ("test_deserialize_missingObjectKey_withData", test_deserialize_missingObjectKey_withData),
+            ("test_deserialize_unexpectedEndOfFile_withData", test_deserialize_unexpectedEndOfFile_withData),
+            ("test_deserialize_invalidValueInObject_withData", test_deserialize_invalidValueInObject_withData),
+            ("test_deserialize_invalidValueIncorrectSeparatorInObject_withData", test_deserialize_invalidValueIncorrectSeparatorInObject_withData),
+            ("test_deserialize_invalidValueInArray_withData", test_deserialize_invalidValueInArray_withData),
+            ("test_deserialize_badlyFormedArray_withData", test_deserialize_badlyFormedArray_withData),
+            ("test_deserialize_invalidEscapeSequence_withData", test_deserialize_invalidEscapeSequence_withData),
+            ("test_deserialize_unicodeMissingTrailingSurrogate_withData", test_deserialize_unicodeMissingTrailingSurrogate_withData),
+
+            //Deserialization with Stream
+            ("test_deserialize_emptyObject_withStream", test_deserialize_emptyObject_withStream),
+            ("test_deserialize_multiStringObject_withStream", test_deserialize_multiStringObject_withStream),
+
+            ("test_deserialize_emptyArray_withStream", test_deserialize_emptyArray_withStream),
+            ("test_deserialize_multiStringArray_withStream", test_deserialize_multiStringArray_withStream),
+            ("test_deserialize_unicodeString_withStream", test_deserialize_unicodeString_withStream),
+            ("test_deserialize_stringWithSpacesAtStart_withStream", test_deserialize_stringWithSpacesAtStart_withStream),
+
+
+            ("test_deserialize_values_withStream", test_deserialize_values_withStream),
+            ("test_deserialize_numbers_withStream", test_deserialize_numbers_withStream),
+
+            ("test_deserialize_simpleEscapeSequences_withStream", test_deserialize_simpleEscapeSequences_withStream),
+            ("test_deserialize_unicodeEscapeSequence_withStream", test_deserialize_unicodeEscapeSequence_withStream),
+            ("test_deserialize_unicodeSurrogatePairEscapeSequence_withStream", test_deserialize_unicodeSurrogatePairEscapeSequence_withStream),
+            // Disabled due to uninitialized memory SR-606
+            // ("test_deserialize_allowFragments_withStream", test_deserialize_allowFragments_withStream),
+
+            ("test_deserialize_unterminatedObjectString_withStream", test_deserialize_unterminatedObjectString_withStream),
+            ("test_deserialize_missingObjectKey_withStream", test_deserialize_missingObjectKey_withStream),
+            ("test_deserialize_unexpectedEndOfFile_withStream", test_deserialize_unexpectedEndOfFile_withStream),
+            ("test_deserialize_invalidValueInObject_withStream", test_deserialize_invalidValueInObject_withStream),
+            ("test_deserialize_invalidValueIncorrectSeparatorInObject_withStream", test_deserialize_invalidValueIncorrectSeparatorInObject_withStream),
+            ("test_deserialize_invalidValueInArray_withStream", test_deserialize_invalidValueInArray_withStream),
+            ("test_deserialize_badlyFormedArray_withStream", test_deserialize_badlyFormedArray_withStream),
+            ("test_deserialize_invalidEscapeSequence_withStream", test_deserialize_invalidEscapeSequence_withStream),
+            ("test_deserialize_unicodeMissingTrailingSurrogate_withStream", test_deserialize_unicodeMissingTrailingSurrogate_withStream),
+            ("test_JSONObjectWithStream_withFile", test_JSONObjectWithStream_withFile),
+            ("test_JSONObjectWithStream_withURL", test_JSONObjectWithStream_withURL),
         ]
     }
-    
+
+    func test_deserialize_emptyObject_withData() {
+        deserialize_emptyObject(objectType: .data)
+    }
+
+    func test_deserialize_multiStringObject_withData() {
+        deserialize_multiStringObject(objectType: .data)
+    }
+
+    func test_deserialize_emptyArray_withData() {
+        deserialize_emptyArray(objectType: .data)
+    }
+
+    func test_deserialize_multiStringArray_withData() {
+        deserialize_multiStringArray(objectType: .data)
+    }
+
+
+    func test_deserialize_unicodeString_withData() {
+        deserialize_unicodeString(objectType: .data)
+    }
+
+    func test_deserialize_stringWithSpacesAtStart_withData() {
+        deserialize_stringWithSpacesAtStart(objectType: .data)
+    }
+
+    func test_deserialize_values_withData() {
+        deserialize_values(objectType: .data)
+    }
+
+    func test_deserialize_numbers_withData() {
+        deserialize_numbers(objectType: .data)
+    }
+
+    func test_deserialize_simpleEscapeSequences_withData() {
+        deserialize_simpleEscapeSequences(objectType: .data)
+    }
+
+    func test_deserialize_unicodeEscapeSequence_withData() {
+        deserialize_unicodeEscapeSequence(objectType: .data)
+    }
+
+    func test_deserialize_unicodeSurrogatePairEscapeSequence_withData() {
+        deserialize_unicodeSurrogatePairEscapeSequence(objectType: .data)
+    }
+
+    // Disabled due to uninitialized memory SR-606
+    //    func test_deserialize_allowFragments_withData() {
+    //        deserialize_allowFragments(objectType: .data)
+    //    }
+
+    func test_deserialize_unterminatedObjectString_withData() {
+        deserialize_unterminatedObjectString(objectType: .data)
+    }
+
+    func test_deserialize_missingObjectKey_withData() {
+        deserialize_missingObjectKey(objectType: .data)
+    }
+
+    func test_deserialize_unexpectedEndOfFile_withData() {
+        deserialize_unexpectedEndOfFile(objectType: .data)
+    }
+
+    func test_deserialize_invalidValueInObject_withData() {
+        deserialize_invalidValueInObject(objectType: .data)
+    }
+
+    func test_deserialize_invalidValueIncorrectSeparatorInObject_withData() {
+        deserialize_invalidValueIncorrectSeparatorInObject(objectType: .data)
+    }
+
+    func test_deserialize_invalidValueInArray_withData() {
+        deserialize_invalidValueInArray(objectType: .data)
+    }
+
+    func test_deserialize_badlyFormedArray_withData() {
+        deserialize_badlyFormedArray(objectType: .data)
+    }
+
+    func test_deserialize_invalidEscapeSequence_withData() {
+        deserialize_invalidEscapeSequence(objectType: .data)
+    }
+
+    func test_deserialize_unicodeMissingTrailingSurrogate_withData() {
+        deserialize_unicodeMissingTrailingSurrogate(objectType: .data)
+    }
+
+    func test_deserialize_emptyObject_withStream() {
+        deserialize_emptyObject(objectType: .stream)
+    }
+
+    func test_deserialize_multiStringObject_withStream() {
+        deserialize_multiStringObject(objectType: .stream)
+    }
+
+    func test_deserialize_emptyArray_withStream() {
+        deserialize_emptyArray(objectType: .stream)
+    }
+
+    func test_deserialize_multiStringArray_withStream() {
+        deserialize_multiStringArray(objectType: .stream)
+    }
+
+
+    func test_deserialize_unicodeString_withStream() {
+        deserialize_unicodeString(objectType: .stream)
+    }
+
+    func test_deserialize_stringWithSpacesAtStart_withStream() {
+        deserialize_stringWithSpacesAtStart(objectType: .stream)
+    }
+
+    func test_deserialize_values_withStream() {
+        deserialize_values(objectType: .stream)
+    }
+
+    func test_deserialize_numbers_withStream() {
+        deserialize_numbers(objectType: .stream)
+    }
+
+    func test_deserialize_simpleEscapeSequences_withStream() {
+        deserialize_simpleEscapeSequences(objectType: .stream)
+    }
+
+    func test_deserialize_unicodeEscapeSequence_withStream() {
+        deserialize_unicodeEscapeSequence(objectType: .stream)
+    }
+
+    func test_deserialize_unicodeSurrogatePairEscapeSequence_withStream() {
+        deserialize_unicodeSurrogatePairEscapeSequence(objectType: .stream)
+    }
+
+    // Disabled due to uninitialized memory SR-606
+    //    func test_deserialize_allowFragments_withStream() {
+    //        deserialize_allowFragments(objectType: .stream)
+    //    }
+
+    func test_deserialize_unterminatedObjectString_withStream() {
+        deserialize_unterminatedObjectString(objectType: .stream)
+    }
+
+    func test_deserialize_missingObjectKey_withStream() {
+        deserialize_missingObjectKey(objectType: .stream)
+    }
+
+    func test_deserialize_unexpectedEndOfFile_withStream() {
+        deserialize_unexpectedEndOfFile(objectType: .stream)
+    }
+
+    func test_deserialize_invalidValueInObject_withStream() {
+        deserialize_invalidValueInObject(objectType: .stream)
+    }
+
+    func test_deserialize_invalidValueIncorrectSeparatorInObject_withStream() {
+        deserialize_invalidValueIncorrectSeparatorInObject(objectType: .stream)
+    }
+
+    func test_deserialize_invalidValueInArray_withStream() {
+        deserialize_invalidValueInArray(objectType: .stream)
+    }
+
+    func test_deserialize_badlyFormedArray_withStream() {
+        deserialize_badlyFormedArray(objectType: .stream)
+    }
+
+    func test_deserialize_invalidEscapeSequence_withStream() {
+        deserialize_invalidEscapeSequence(objectType: .stream)
+    }
+
+    func test_deserialize_unicodeMissingTrailingSurrogate_withStream() {
+        deserialize_unicodeMissingTrailingSurrogate(objectType: .stream)
+    }
+
     //MARK: - Object Deserialization
-    func test_deserialize_emptyObject() {
+    func deserialize_emptyObject(objectType: ObjectType) {
         let subject = "{}"
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let t = try JSONSerialization.jsonObject(with: data, options: [])
-            let result = t as? [String: Any]
+            let result = try getjsonObjectResult(data, objectType) as? [String: Any]
+
             XCTAssertEqual(result?.count, 0)
         } catch {
             XCTFail("Error thrown: \(error)")
         }
     }
-    
-    func test_deserialize_multiStringObject() {
+
+    func deserialize_multiStringObject(objectType: ObjectType) {
         let subject = "{ \"hello\": \"world\", \"swift\": \"rocks\" }"
         do {
             for encoding in [String.Encoding.utf8, String.Encoding.utf16BigEndian] {
@@ -146,7 +354,7 @@ extension TestNSJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+                let result = try getjsonObjectResult(data, objectType) as? [String: Any]
                 XCTAssertEqual(result?["hello"] as? String, "world")
                 XCTAssertEqual(result?["swift"] as? String, "rocks")
             }
@@ -154,50 +362,47 @@ extension TestNSJSONSerialization {
             XCTFail("Error thrown: \(error)")
         }
     }
-    
-    func test_deserialize_stringWithSpacesAtStart(){
-        
+
+    func deserialize_stringWithSpacesAtStart(objectType: ObjectType) {
         let subject = "{\"title\" : \" hello world!!\" }"
         do {
             guard let data = subject.data(using: .utf8) else  {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let result = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
+            let result = try getjsonObjectResult(data, objectType) as? [String: Any]
             XCTAssertEqual(result?["title"] as? String, " hello world!!")
         } catch{
             XCTFail("Error thrown: \(error)")
         }
-        
-        
     }
-    
+
     //MARK: - Array Deserialization
-    func test_deserialize_emptyArray() {
+    func deserialize_emptyArray(objectType: ObjectType) {
         let subject = "[]"
-        
+
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
+            let result = try getjsonObjectResult(data, objectType) as? [Any]
             XCTAssertEqual(result?.count, 0)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
-    
-    func test_deserialize_multiStringArray() {
+
+    func deserialize_multiStringArray(objectType: ObjectType) {
         let subject = "[\"hello\", \"swift⚡️\"]"
-        
+
         do {
             for encoding in [String.Encoding.utf8, String.Encoding.utf16BigEndian] {
                 guard let data = subject.data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
+                let result = try getjsonObjectResult(data, objectType) as? [Any]
                 XCTAssertEqual(result?[0] as? String, "hello")
                 XCTAssertEqual(result?[1] as? String, "swift⚡️")
             }
@@ -205,18 +410,17 @@ extension TestNSJSONSerialization {
             XCTFail("Unexpected error: \(error)")
         }
     }
-    
-    func test_deserialize_unicodeString() {
+
+    func deserialize_unicodeString(objectType: ObjectType) {
         /// Ģ has the same LSB as quotation mark " (U+0022) so test guarding against this case
         let subject = "[\"unicode\", \"Ģ\", \"😢\"]"
-        
         do {
             for encoding in [String.Encoding.utf16LittleEndian, String.Encoding.utf16BigEndian, String.Encoding.utf32LittleEndian, String.Encoding.utf32BigEndian] {
                 guard let data = subject.data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
+                let result = try getjsonObjectResult(data, objectType) as? [Any]
                 XCTAssertEqual(result?[0] as? String, "unicode")
                 XCTAssertEqual(result?[1] as? String, "Ģ")
                 XCTAssertEqual(result?[2] as? String, "😢")
@@ -225,18 +429,18 @@ extension TestNSJSONSerialization {
             XCTFail("Unexpected error: \(error)")
         }
     }
-    
+
     //MARK: - Value parsing
-    func test_deserialize_values() {
+    func deserialize_values(objectType: ObjectType) {
         let subject = "[true, false, \"hello\", null, {}, []]"
-        
+
         do {
             for encoding in supportedEncodings {
                 guard let data = subject.data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
+                let result = try getjsonObjectResult(data, objectType) as? [Any]
                 XCTAssertEqual(result?[0] as? Bool, true)
                 XCTAssertEqual(result?[1] as? Bool, false)
                 XCTAssertEqual(result?[2] as? String, "hello")
@@ -248,18 +452,18 @@ extension TestNSJSONSerialization {
             XCTFail("Unexpected error: \(error)")
         }
     }
-    
+
     //MARK: - Number parsing
-    func test_deserialize_numbers() {
+    func deserialize_numbers(objectType: ObjectType) {
         let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
-        
+
         do {
             for encoding in supportedEncodings {
                 guard let data = subject.data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
+                let result = try getjsonObjectResult(data, objectType) as? [Any]
                 XCTAssertEqual(result?[0] as? Int,        1)
                 XCTAssertEqual(result?[1] as? Int,       -1)
                 XCTAssertEqual(result?[2] as? Double,   1.3)
@@ -271,16 +475,16 @@ extension TestNSJSONSerialization {
             XCTFail("Unexpected error: \(error)")
         }
     }
-    
+
     //MARK: - Escape Sequences
-    func test_deserialize_simpleEscapeSequences() {
+    func deserialize_simpleEscapeSequences(objectType: ObjectType) {
         let subject = "[\"\\\"\", \"\\\\\", \"\\/\", \"\\b\", \"\\f\", \"\\n\", \"\\r\", \"\\t\"]"
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let res = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
+            let res = try getjsonObjectResult(data, objectType) as? [Any]
             let result = res?.flatMap { $0 as? String }
             XCTAssertEqual(result?[0], "\"")
             XCTAssertEqual(result?[1], "\\")
@@ -294,15 +498,15 @@ extension TestNSJSONSerialization {
             XCTFail("Unexpected error: \(error)")
         }
     }
-    
-    func test_deserialize_unicodeEscapeSequence() {
+
+    func deserialize_unicodeEscapeSequence(objectType: ObjectType) {
         let subject = "[\"\\u2728\"]"
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
+            let result = try getjsonObjectResult(data, objectType) as? [Any]
             // result?[0] as? String returns an Optional<String> and RHS is promoted
             // to Optional<String>
             XCTAssertEqual(result?[0] as? String, "✨")
@@ -310,15 +514,15 @@ extension TestNSJSONSerialization {
             XCTFail("Unexpected error: \(error)")
         }
     }
-    
-    func test_deserialize_unicodeSurrogatePairEscapeSequence() {
+
+    func deserialize_unicodeSurrogatePairEscapeSequence(objectType: ObjectType) {
         let subject = "[\"\\uD834\\udd1E\"]"
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let result = try JSONSerialization.jsonObject(with: data, options: []) as? [Any]
+            let result = try getjsonObjectResult(data, objectType) as? [Any]
             // result?[0] as? String returns an Optional<String> and RHS is promoted
             // to Optional<String>
             XCTAssertEqual(result?[0] as? String, "\u{1D11E}")
@@ -326,157 +530,225 @@ extension TestNSJSONSerialization {
             XCTFail("Unexpected error: \(error)")
         }
     }
-    
-    func test_deserialize_allowFragments() {
+
+    func deserialize_allowFragments(objectType: ObjectType) {
         let subject = "3"
-        
+
         do {
             for encoding in supportedEncodings {
                 guard let data = subject.data(using: encoding) else {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? Int
+                let result = try getjsonObjectResult(data, objectType) as? Int
                 XCTAssertEqual(result, 3)
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
-    
+
     //MARK: - Parsing Errors
-    func test_deserialize_unterminatedObjectString() {
+    func deserialize_unterminatedObjectString(objectType: ObjectType) {
         let subject = "{\"}"
-        
+
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let _ = try JSONSerialization.jsonObject(with: data, options: [])
+            let _ = try getjsonObjectResult(data, objectType)
             XCTFail("Expected error: UnterminatedString")
         } catch {
             // Passing case; the object as unterminated
         }
     }
-    
-    func test_deserialize_missingObjectKey() {
+
+    func deserialize_missingObjectKey(objectType: ObjectType) {
         let subject = "{3}"
-        
+
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let _ = try JSONSerialization.jsonObject(with: data, options: [])
+            let _ = try getjsonObjectResult(data, objectType)
             XCTFail("Expected error: Missing key for value")
         } catch {
             // Passing case; the key was missing for a value
         }
     }
-    
-    func test_deserialize_unexpectedEndOfFile() {
+
+    func deserialize_unexpectedEndOfFile(objectType: ObjectType) {
         let subject = "{"
-        
+
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let _ = try JSONSerialization.jsonObject(with: data, options: [])
+            let _ = try getjsonObjectResult(data, objectType)
             XCTFail("Expected error: Unexpected end of file")
         } catch {
             // Success
         }
     }
-    
-    func test_deserialize_invalidValueInObject() {
+
+    func deserialize_invalidValueInObject(objectType: ObjectType) {
         let subject = "{\"error\":}"
-        
+
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let _ = try JSONSerialization.jsonObject(with: data, options: [])
+            let _ = try getjsonObjectResult(data, objectType)
             XCTFail("Expected error: Invalid value")
         } catch {
             // Passing case; the value is invalid
         }
     }
-    
-    func test_deserialize_invalidValueIncorrectSeparatorInObject() {
+
+    func deserialize_invalidValueIncorrectSeparatorInObject(objectType: ObjectType) {
         let subject = "{\"missing\";}"
-        
+
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let _ = try JSONSerialization.jsonObject(with: data, options: [])
+            let _ = try getjsonObjectResult(data, objectType)
             XCTFail("Expected error: Invalid value")
         } catch {
             // passing case the value is invalid
         }
     }
-    
-    func test_deserialize_invalidValueInArray() {
+
+    func deserialize_invalidValueInArray(objectType: ObjectType) {
         let subject = "[,"
-        
+
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let _ = try JSONSerialization.jsonObject(with: data, options: [])
+            let _ = try getjsonObjectResult(data, objectType)
             XCTFail("Expected error: Invalid value")
         } catch {
             // Passing case; the element in the array is missing
         }
     }
-    
-    func test_deserialize_badlyFormedArray() {
+
+    func deserialize_badlyFormedArray(objectType: ObjectType) {
         let subject = "[2b4]"
-        
+
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let _ = try JSONSerialization.jsonObject(with: data, options: [])
+            let _ = try getjsonObjectResult(data, objectType)
             XCTFail("Expected error: Badly formed array")
         } catch {
             // Passing case; the array is malformed
         }
     }
-    
-    func test_deserialize_invalidEscapeSequence() {
+
+    func deserialize_invalidEscapeSequence(objectType: ObjectType) {
         let subject = "[\"\\e\"]"
-        
+
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let _ = try JSONSerialization.jsonObject(with: data, options: [])
+            let _ = try getjsonObjectResult(data, objectType)
             XCTFail("Expected error: Invalid escape sequence")
         } catch {
             // Passing case; the escape sequence is invalid
         }
     }
-    
-    func test_deserialize_unicodeMissingTrailingSurrogate() {
+
+    func deserialize_unicodeMissingTrailingSurrogate(objectType: ObjectType) {
         let subject = "[\"\\uD834\"]"
         do {
             guard let data = subject.data(using: .utf8) else {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let _ = try JSONSerialization.jsonObject(with: data, options: []) as? [String]
+            let _ = try getjsonObjectResult(data, objectType) as? [String]
             XCTFail("Expected error: Missing Trailing Surrogate")
         } catch {
             // Passing case; the unicode character is malformed
         }
+    }
+
+    func test_JSONObjectWithStream_withFile() {
+        let subject = "{}"
+        do {
+            guard let data = subject.data(using: .utf8) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let filePath = createTestFile("TestJSON.txt",_contents: data)
+            if filePath != nil {
+                let fileStream: InputStream = InputStream(fileAtPath: filePath!)!
+                fileStream.open()
+                let resultRead = try JSONSerialization.jsonObject(with: fileStream, options: [])
+                let result = resultRead as? [String: Any]
+                XCTAssertEqual(result?.count, 0)
+                fileStream.close()
+                removeTestFile(filePath!)
+            }
+        } catch {
+            XCTFail("Error thrown: \(error)")
+        }
+    }
+
+    func test_JSONObjectWithStream_withURL() {
+        let subject = "[true, false, \"hello\", null, {}, []]"
+        do {
+            for encoding in supportedEncodings {
+                guard let data = subject.data(using: encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let filePath = createTestFile("TestJSON.txt",_contents: data)
+                if filePath != nil {
+                    let url = URL(fileURLWithPath: filePath!)
+                    let inputStream: InputStream = InputStream(url: url)!
+                    inputStream.open()
+                    let result = try JSONSerialization.jsonObject(with: inputStream, options: []) as? [Any]
+                    inputStream.close()
+                    removeTestFile(filePath!)
+                    XCTAssertEqual(result?[0] as? Bool, true)
+                    XCTAssertEqual(result?[1] as? Bool, false)
+                    XCTAssertEqual(result?[2] as? String, "hello")
+                    XCTAssertNotNil(result?[3] as? NSNull)
+                    XCTAssertNotNil(result?[4] as? [String:Any])
+                    XCTAssertNotNil(result?[5] as? [Any])
+                }
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+
+    private func getjsonObjectResult(_ data: Data,_ objectType: ObjectType) throws -> Any {
+        var result: Any
+        switch objectType {
+        case .data:
+            //Test with Data
+            result = try JSONSerialization.jsonObject(with: data, options: [])
+        case .stream:
+            //Test with stream
+            let stream: InputStream = InputStream(data: data)
+            stream.open()
+            result = try JSONSerialization.jsonObject(with: stream, options: [])
+            stream.close()
+        }
+        return result
     }
 
 }
@@ -596,8 +868,9 @@ extension TestNSJSONSerialization {
             ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
             ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
             ("test_invalidJsonObjectToStreamBuffer", test_invalidJsonObjectToStreamBuffer),
-            ("test_jsonObjectToOutputStreamInsufficeintBuffer", test_jsonObjectToOutputStreamInsufficeintBuffer),
+            ("test_jsonObjectToOutputStreamInsufficientBuffer", test_jsonObjectToOutputStreamInsufficientBuffer),
             ("test_booleanJSONObject", test_booleanJSONObject),
+            ("test_serialize_dictionaryWithDecimal", test_serialize_dictionaryWithDecimal),
         ]
     }
 
@@ -905,7 +1178,7 @@ extension TestNSJSONSerialization {
         }
     }
     
-    func test_jsonObjectToOutputStreamInsufficeintBuffer() {
+    func test_jsonObjectToOutputStreamInsufficientBuffer() {
         let dict = ["a":["b":1]]
         let buffer = Array<UInt8>(repeating: 0, count: 10)
         let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: buffer.count)
@@ -941,7 +1214,7 @@ extension TestNSJSONSerialization {
         XCTAssertTrue(JSONSerialization.isValidJSONObject([true]))
     }
 
-    private func createTestFile(_ path: String,_contents: Data) -> String? {
+    fileprivate func createTestFile(_ path: String,_contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {
             try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
@@ -956,7 +1229,7 @@ extension TestNSJSONSerialization {
         }
     }
     
-    private func removeTestFile(_ location: String) {
+    fileprivate func removeTestFile(_ location: String) {
         do {
             try FileManager.default.removeItem(atPath: location)
         } catch _ {
