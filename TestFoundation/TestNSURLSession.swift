@@ -32,15 +32,16 @@ class TestURLSession : XCTestCase {
             ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
+//            ("test_taskTimeout", test_taskTimeout),
         ]
     }
 
-    private func runServer(with condition: ServerSemaphore) throws {
+    private func runServer(with condition: ServerSemaphore, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
         let start = 21961
         for port in start...(start+100) { //we must find at least one port to bind
             do {
                 serverPort = port
-                let test = try TestURLSessionServer(port: UInt16(port))
+                let test = try TestURLSessionServer(port: UInt16(port), startDelay: startDelay, sendDelay: sendDelay, bodyChunks: bodyChunks)
                 try test.start(started: condition)
                 try test.readAndRespond()
                 test.stop()
@@ -296,6 +297,31 @@ class TestURLSession : XCTestCase {
         let task = session.dataTask(with: url)
         
         XCTAssert(task.isEqual(task.copy()))
+    }
+
+    func test_taskTimeout() {
+        let serverReady = ServerSemaphore()
+        globalDispatchQueue.async {
+            do {
+                try self.runServer(with: serverReady, startDelay: 3, sendDelay: 3, bodyChunks: 3)
+            } catch {
+                XCTAssertTrue(true)
+                return
+            }
+        }
+        serverReady.wait()
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "download task with handler")
+        let req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/Peru")!)
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNil(error)
+        }
+        task.resume()
+        
+        waitForExpectations(timeout: 30)
     }
 }
 
